@@ -56,10 +56,16 @@ public class EndpointRulesSpecUtils {
                              "Default" + providerInterfaceName().simpleName());
     }
 
-    public ClassName interceptorName() {
+    public ClassName resolverInterceptorName() {
         Metadata md = intermediateModel.getMetadata();
         return ClassName.get(md.getFullInternalEndpointRulesPackageName(),
-                             md.getServiceName() + "EndpointInterceptor");
+                             md.getServiceName() + "ResolveEndpointInterceptor");
+    }
+
+    public ClassName requestModifierInterceptorName() {
+        Metadata md = intermediateModel.getMetadata();
+        return ClassName.get(md.getFullInternalEndpointRulesPackageName(),
+                             md.getServiceName() + "RequestSetEndpointInterceptor");
     }
 
     public ClassName clientEndpointTestsName() {

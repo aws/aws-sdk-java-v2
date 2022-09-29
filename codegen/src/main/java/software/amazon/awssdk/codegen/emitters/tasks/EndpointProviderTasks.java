@@ -16,6 +16,8 @@
 package software.amazon.awssdk.codegen.emitters.tasks;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.codegen.emitters.GeneratorTask;
@@ -25,11 +27,12 @@ import software.amazon.awssdk.codegen.model.config.customization.CustomizationCo
 import software.amazon.awssdk.codegen.model.service.ClientContextParam;
 import software.amazon.awssdk.codegen.poet.rules.ClientContextParamsClassSpec;
 import software.amazon.awssdk.codegen.poet.rules.EndpointParametersClassSpec;
-import software.amazon.awssdk.codegen.poet.rules.EndpointProviderInterceptorSpec;
 import software.amazon.awssdk.codegen.poet.rules.EndpointProviderInterfaceSpec;
 import software.amazon.awssdk.codegen.poet.rules.EndpointProviderSpec;
 import software.amazon.awssdk.codegen.poet.rules.EndpointProviderTestSpec;
+import software.amazon.awssdk.codegen.poet.rules.EndpointResolverInterceptorSpec;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesClientTestSpec;
+import software.amazon.awssdk.codegen.poet.rules.RequestEndpointInterceptorSpec;
 
 public final class EndpointProviderTasks extends BaseGeneratorTasks {
     private final GeneratorTaskParams generatorTaskParams;
@@ -45,7 +48,7 @@ public final class EndpointProviderTasks extends BaseGeneratorTasks {
         tasks.add(generateInterface());
         tasks.add(generateParams());
         tasks.add(generateDefaultProvider());
-        tasks.add(generateInterceptor());
+        tasks.addAll(generateInterceptors());
         if (shouldGenerateTests()) {
             tasks.add(generateClientTests());
             tasks.add(generateProviderTests());
@@ -69,9 +72,10 @@ public final class EndpointProviderTasks extends BaseGeneratorTasks {
         return new PoetGeneratorTask(endpointRulesInternalDir(), model.getFileHeader(), new EndpointProviderSpec(model));
     }
 
-    private GeneratorTask generateInterceptor() {
-        return new PoetGeneratorTask(endpointRulesInternalDir(), model.getFileHeader(),
-                                     new EndpointProviderInterceptorSpec(model));
+    private Collection<GeneratorTask> generateInterceptors() {
+        return Arrays.asList(
+            new PoetGeneratorTask(endpointRulesInternalDir(), model.getFileHeader(), new EndpointResolverInterceptorSpec(model)),
+            new PoetGeneratorTask(endpointRulesInternalDir(), model.getFileHeader(), new RequestEndpointInterceptorSpec(model)));
     }
 
     private GeneratorTask generateClientTests() {

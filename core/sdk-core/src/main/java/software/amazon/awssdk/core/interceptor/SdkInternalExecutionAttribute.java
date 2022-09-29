@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.interceptor;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksumRequired;
+import software.amazon.awssdk.core.rules.model.Endpoint;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.utils.AttributeMap;
 
@@ -44,7 +45,7 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
         new ExecutionAttribute<>("HttpChecksumRequired");
 
     /**
-     * Whether host prefix injection has been disbabled on the client.
+     * Whether host prefix injection has been disabled on the client.
      * See {@link software.amazon.awssdk.core.client.config.SdkAdvancedClientOption#DISABLE_HOST_PREFIX_INJECTION}
      */
     public static final ExecutionAttribute<Boolean> DISABLE_HOST_PREFIX_INJECTION =
@@ -70,6 +71,12 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
      */
     public static final ExecutionAttribute<Object> ENDPOINT_PROVIDER =
         new ExecutionAttribute<>("EndpointProvider");
+
+    /**
+     * The resolved destination endpoint.
+     */
+    public static final ExecutionAttribute<Endpoint> RESOLVED_ENDPOINT =
+        new ExecutionAttribute<>("ResolvedEndpoint");
 
     public static final ExecutionAttribute<AttributeMap> CLIENT_CONTEXT_PARAMS =
         new ExecutionAttribute<>("ClientContextParams");

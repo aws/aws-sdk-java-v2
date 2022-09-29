@@ -15,7 +15,8 @@ import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.protocols.query.interceptor.QueryParametersToBodyInterceptor;
 import software.amazon.awssdk.services.query.rules.QueryClientContextParams;
 import software.amazon.awssdk.services.query.rules.QueryEndpointProvider;
-import software.amazon.awssdk.services.query.rules.internal.QueryEndpointInterceptor;
+import software.amazon.awssdk.services.query.rules.internal.QueryRequestSetEndpointInterceptor;
+import software.amazon.awssdk.services.query.rules.internal.QueryResolveEndpointInterceptor;
 import software.amazon.awssdk.utils.CollectionUtils;
 
 /**
@@ -47,7 +48,8 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
         List<ExecutionInterceptor> interceptors = interceptorFactory
             .getInterceptors("software/amazon/awssdk/services/query/execution.interceptors");
         List<ExecutionInterceptor> additionalInterceptors = new ArrayList<>();
-        additionalInterceptors.add(new QueryEndpointInterceptor());
+        additionalInterceptors.add(new QueryResolveEndpointInterceptor());
+        additionalInterceptors.add(new QueryRequestSetEndpointInterceptor());
         additionalInterceptors.add(new QueryParametersToBodyInterceptor());
         interceptors = CollectionUtils.mergeLists(interceptors, additionalInterceptors);
         interceptors = CollectionUtils.mergeLists(interceptors, config.option(SdkClientOption.EXECUTION_INTERCEPTORS));
