@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon DevOps Guru",
-    "contributor": "",
-    "description": "This release adds filter feature on AddNotificationChannel API, enable customer to configure the SNS notification messages by Severity or MessageTypes"
-}
