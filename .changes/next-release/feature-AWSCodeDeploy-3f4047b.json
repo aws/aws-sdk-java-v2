@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CodeDeploy",
+    "contributor": "",
+    "description": "This release allows you to override the alarm configurations when creating a deployment."
+}
