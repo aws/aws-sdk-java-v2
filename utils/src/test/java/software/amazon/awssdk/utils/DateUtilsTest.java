@@ -18,6 +18,7 @@ package software.amazon.awssdk.utils;
 import static java.time.ZoneOffset.UTC;
 import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static software.amazon.awssdk.utils.DateUtils.ALTERNATE_ISO_8601_DATE_FORMAT;
@@ -73,6 +74,44 @@ public class DateUtilsTest {
     }
 
     @Test
+    public void formatRfc822Date_DateWithTwoDigitDayOfMonth_ReturnsFormattedString() throws ParseException {
+        String string = DateUtils.formatRfc822Date(INSTANT);
+        Instant parsedDateAsInstant = LONG_DATE_FORMAT.parse(string).toInstant();
+        assertThat(parsedDateAsInstant).isEqualTo(INSTANT);
+    }
+
+    @Test
+    public void formatRfc822Date_DateWithSingleDigitDayOfMonth_ReturnsFormattedString() throws ParseException {
+        Instant INSTANT_SINGLE_DIGIT_DAY_OF_MONTH = Instant.ofEpochMilli(1399484606000L);;
+        String string = DateUtils.formatRfc822Date(INSTANT_SINGLE_DIGIT_DAY_OF_MONTH);
+        Instant parsedDateAsInstant = LONG_DATE_FORMAT.parse(string).toInstant();
+        assertThat(parsedDateAsInstant).isEqualTo(INSTANT_SINGLE_DIGIT_DAY_OF_MONTH);
+    }
+
+    @Test
+    public void formatRfc822Date_DateWithSingleDigitDayOfMonth_ReturnsStringWithZeroLeadingDayOfMonth() throws ParseException {
+        final Instant INSTANT_SINGLE_DIGIT_DAY_OF_MONTH = Instant.ofEpochMilli(1399484606000L);;
+        String string = DateUtils.formatRfc822Date(INSTANT_SINGLE_DIGIT_DAY_OF_MONTH);
+        String expectedString = "Wed, 07 May 2014 17:43:26 GMT";
+        assertThat(string).isEqualTo(expectedString);
+    }
+
+    @Test
+    public void parseRfc822Date_DateWithTwoDigitDayOfMonth_ReturnsInstantObject() throws ParseException {
+        String formattedDate = LONG_DATE_FORMAT.format(Date.from(INSTANT));
+        Instant parsedInstant = DateUtils.parseRfc822Date(formattedDate);
+        assertThat(parsedInstant).isEqualTo(INSTANT);
+    }
+
+    @Test
+    public void parseRfc822Date_DateWithSingleDigitDayOfMonth_ReturnsInstantObject() throws ParseException {
+        final Instant INSTANT_SINGLE_DIGIT_DAY_OF_MONTH = Instant.ofEpochMilli(1399484606000L);;
+        String formattedDate = LONG_DATE_FORMAT.format(Date.from(INSTANT_SINGLE_DIGIT_DAY_OF_MONTH));
+        Instant parsedInstant = DateUtils.parseRfc822Date(formattedDate);
+        assertThat(parsedInstant).isEqualTo(INSTANT_SINGLE_DIGIT_DAY_OF_MONTH);
+    }
+
+    @Test
     public void formatRfc1123Date() throws ParseException {
         String string = DateUtils.formatRfc1123Date(INSTANT);
         Instant parsedDateAsInstant = LONG_DATE_FORMAT.parse(string).toInstant();
@@ -84,7 +123,7 @@ public class DateUtilsTest {
     }
 
     @Test
-    public void parseRfc822Date() throws ParseException {
+    public void parseRfc1123Date() throws ParseException {
         String formatted = LONG_DATE_FORMAT.format(Date.from(INSTANT));
         Instant expected = LONG_DATE_FORMAT.parse(formatted).toInstant();
         Instant actual = DateUtils.parseRfc1123Date(formatted);
