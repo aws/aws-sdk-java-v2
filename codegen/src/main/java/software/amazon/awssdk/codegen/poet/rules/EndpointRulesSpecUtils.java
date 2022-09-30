@@ -62,6 +62,12 @@ public class EndpointRulesSpecUtils {
                              md.getServiceName() + "ResolveEndpointInterceptor");
     }
 
+    public ClassName authSchemesInterceptorName() {
+        Metadata md = intermediateModel.getMetadata();
+        return ClassName.get(md.getFullInternalEndpointRulesPackageName(),
+                             md.getServiceName() + "EndpointAuthSchemeInterceptor");
+    }
+
     public ClassName requestModifierInterceptorName() {
         Metadata md = intermediateModel.getMetadata();
         return ClassName.get(md.getFullInternalEndpointRulesPackageName(),

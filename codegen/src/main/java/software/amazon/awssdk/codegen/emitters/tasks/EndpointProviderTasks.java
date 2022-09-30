@@ -26,6 +26,7 @@ import software.amazon.awssdk.codegen.emitters.PoetGeneratorTask;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.service.ClientContextParam;
 import software.amazon.awssdk.codegen.poet.rules.ClientContextParamsClassSpec;
+import software.amazon.awssdk.codegen.poet.rules.EndpointAuthSchemeInterceptorClassSpec;
 import software.amazon.awssdk.codegen.poet.rules.EndpointParametersClassSpec;
 import software.amazon.awssdk.codegen.poet.rules.EndpointProviderInterfaceSpec;
 import software.amazon.awssdk.codegen.poet.rules.EndpointProviderSpec;
@@ -75,7 +76,9 @@ public final class EndpointProviderTasks extends BaseGeneratorTasks {
     private Collection<GeneratorTask> generateInterceptors() {
         return Arrays.asList(
             new PoetGeneratorTask(endpointRulesInternalDir(), model.getFileHeader(), new EndpointResolverInterceptorSpec(model)),
-            new PoetGeneratorTask(endpointRulesInternalDir(), model.getFileHeader(), new RequestEndpointInterceptorSpec(model)));
+            new PoetGeneratorTask(endpointRulesInternalDir(), model.getFileHeader(), new RequestEndpointInterceptorSpec(model)),
+            new PoetGeneratorTask(endpointRulesInternalDir(), model.getFileHeader(),
+                                  new EndpointAuthSchemeInterceptorClassSpec(model)));
     }
 
     private GeneratorTask generateClientTests() {

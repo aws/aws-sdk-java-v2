@@ -240,6 +240,7 @@ public class BaseClientBuilderClass implements ClassSpec {
                              ArrayList.class);
 
         builder.addStatement("additionalInterceptors.add(new $T())", endpointRulesSpecUtils.resolverInterceptorName());
+        builder.addStatement("additionalInterceptors.add(new $T())", endpointRulesSpecUtils.authSchemesInterceptorName());
         builder.addStatement("additionalInterceptors.add(new $T())", endpointRulesSpecUtils.requestModifierInterceptorName());
 
         if (model.getMetadata().isQueryProtocol()) {

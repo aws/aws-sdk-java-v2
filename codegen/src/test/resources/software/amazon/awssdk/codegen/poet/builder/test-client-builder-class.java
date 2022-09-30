@@ -16,6 +16,7 @@ import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.services.json.rules.JsonEndpointProvider;
+import software.amazon.awssdk.services.json.rules.internal.JsonEndpointAuthSchemeInterceptor;
 import software.amazon.awssdk.services.json.rules.internal.JsonRequestSetEndpointInterceptor;
 import software.amazon.awssdk.services.json.rules.internal.JsonResolveEndpointInterceptor;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -53,6 +54,7 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
             .getInterceptors("software/amazon/awssdk/services/json/execution.interceptors");
         List<ExecutionInterceptor> additionalInterceptors = new ArrayList<>();
         additionalInterceptors.add(new JsonResolveEndpointInterceptor());
+        additionalInterceptors.add(new JsonEndpointAuthSchemeInterceptor());
         additionalInterceptors.add(new JsonRequestSetEndpointInterceptor());
         interceptors = CollectionUtils.mergeLists(interceptors, additionalInterceptors);
         interceptors = CollectionUtils.mergeLists(interceptors, config.option(SdkClientOption.EXECUTION_INTERCEPTORS));
