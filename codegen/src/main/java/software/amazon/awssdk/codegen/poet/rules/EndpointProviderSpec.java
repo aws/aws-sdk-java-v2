@@ -25,7 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.awscore.rules.AwsProviderUtils;
+import software.amazon.awssdk.awscore.rules.AwsEndpointProviderUtils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.rules.endpoints.BuiltInParameter;
@@ -139,7 +139,7 @@ public class EndpointProviderSpec implements ClassSpec {
         b.addStatement("$T res = new $T().evaluate($N, toIdentifierValueMap($N))",
                        Value.class, DefaultRuleEngine.class, RULE_SET_FIELD_NAME, paramsName);
 
-        b.addStatement("return $T.valueAsEndpointOrThrow($N)", AwsProviderUtils.class, "res");
+        b.addStatement("return $T.valueAsEndpointOrThrow($N)", AwsEndpointProviderUtils.class, "res");
 
         return b.build();
     }

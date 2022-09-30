@@ -2,10 +2,11 @@ package software.amazon.awssdk.services.query.rules.internal;
 
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.awscore.rules.AwsProviderUtils;
+import software.amazon.awssdk.awscore.rules.AwsEndpointProviderUtils;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.rules.model.Endpoint;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -15,10 +16,11 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 public final class QueryRequestSetEndpointInterceptor implements ExecutionInterceptor {
     @Override
     public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
-        if (AwsProviderUtils.endpointIsDiscovered(executionAttributes)) {
+        if (AwsEndpointProviderUtils.endpointIsDiscovered(executionAttributes)) {
             return context.httpRequest();
         }
         Endpoint endpoint = (Endpoint) executionAttributes.getAttribute(SdkInternalExecutionAttribute.RESOLVED_ENDPOINT);
-        return AwsProviderUtils.setUri(context.httpRequest(), endpoint.url());
+        return AwsEndpointProviderUtils.setUri(context.httpRequest(),
+                                               executionAttributes.getAttribute(SdkExecutionAttribute.CLIENT_ENDPOINT), endpoint.url());
     }
 }

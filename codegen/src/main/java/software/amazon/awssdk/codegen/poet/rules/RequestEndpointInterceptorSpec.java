@@ -20,13 +20,14 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.awscore.rules.AwsProviderUtils;
+import software.amazon.awssdk.awscore.rules.AwsEndpointProviderUtils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.rules.model.Endpoint;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -67,14 +68,18 @@ public class RequestEndpointInterceptorSpec implements ClassSpec {
 
         // We skip setting the endpoint here if the source of the endpoint is the endpoint discovery call
         b.beginControlFlow("if ($1T.endpointIsDiscovered(executionAttributes))",
-                           AwsProviderUtils.class)
+                           AwsEndpointProviderUtils.class)
          .addStatement("return context.httpRequest()")
          .endControlFlow().build();
 
         b.addStatement("$1T endpoint = ($1T) executionAttributes.getAttribute($2T.RESOLVED_ENDPOINT)",
                        Endpoint.class,
                        SdkInternalExecutionAttribute.class);
-        b.addStatement("return $T.setUri(context.httpRequest(), endpoint.url())", AwsProviderUtils.class);
+        b.addStatement("return $T.setUri(context.httpRequest(),"
+                       + "executionAttributes.getAttribute($T.CLIENT_ENDPOINT),"
+                       + "endpoint.url())",
+                       AwsEndpointProviderUtils.class,
+                       SdkExecutionAttribute.class);
         return b.build();
     }
 

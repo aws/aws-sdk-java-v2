@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.awscore.rules.AwsProviderUtils;
+import software.amazon.awssdk.awscore.rules.AwsEndpointProviderUtils;
 import software.amazon.awssdk.core.rules.Condition;
 import software.amazon.awssdk.core.rules.DefaultRuleEngine;
 import software.amazon.awssdk.core.rules.EndpointResult;
@@ -32,7 +32,7 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
     @Override
     public Endpoint resolveEndpoint(QueryEndpointParams endpointParams) {
         Value res = new DefaultRuleEngine().evaluate(ENDPOINT_RULE_SET, toIdentifierValueMap(endpointParams));
-        return AwsProviderUtils.valueAsEndpointOrThrow(res);
+        return AwsEndpointProviderUtils.valueAsEndpointOrThrow(res);
     }
 
     private static Map<Identifier, Value> toIdentifierValueMap(QueryEndpointParams params) {

@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.awscore.rules;
 
+import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
+
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,12 +34,13 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.StringUtils;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 @SdkInternalApi
-public final class AwsProviderUtils {
-    private static final Logger LOG = Logger.loggerFor(AwsProviderUtils.class);
+public final class AwsEndpointProviderUtils {
+    private static final Logger LOG = Logger.loggerFor(AwsEndpointProviderUtils.class);
 
-    private AwsProviderUtils() {
+    private AwsEndpointProviderUtils() {
     }
 
     public static Region regionBuiltIn(ExecutionAttributes executionAttributes) {
@@ -52,9 +55,17 @@ public final class AwsProviderUtils {
         return executionAttributes.getAttribute(AwsExecutionAttribute.FIPS_ENDPOINT_ENABLED);
     }
 
+    /**
+     * Returns the endpoint set on the client. Note that this strips off the query part of the URI because the endpoint rules
+     * library, e.g. {@code ParseURL} will return an exception if the URI it parses has query parameters.
+     */
     public static String endpointBuiltIn(ExecutionAttributes executionAttributes) {
         if (endpointIsOverridden(executionAttributes)) {
-            return executionAttributes.getAttribute(SdkExecutionAttribute.CLIENT_ENDPOINT).toString();
+            return invokeSafely(() -> {
+                URI endpointOverride = executionAttributes.getAttribute(SdkExecutionAttribute.CLIENT_ENDPOINT);
+                return new URI(endpointOverride.getScheme(), null, endpointOverride.getHost(), endpointOverride.getPort(),
+                               endpointOverride.getPath(), null, null).toString();
+            });
         }
         return null;
     }
@@ -102,23 +113,44 @@ public final class AwsProviderUtils {
         }
     }
 
-    public static SdkHttpRequest setUri(SdkHttpRequest request, URI newUri) {
-        String newPath = newUri.getRawPath();
-        String existingPath = request.getUri().getRawPath();
+    /**
+     * This sets the request URI to the resolved URI returned by the endpoint provider. There some things to be careful about
+     * to make this work properly:
+     * <p>
+     * If the client endpoint is an endpoint override, it may contain a path. In addition, the request marshaller itself may add
+     * components to the path if it's modeled for the operation. Unfortunately, {@link SdkHttpRequest#encodedPath()} returns
+     * the combined path from both the endpoint and the request. There is no way to know, just from the HTTP request object,
+     * where the override path ends (if it's even there) and where the request path starts. Additionally, the rule itself may
+     * also append other parts to the endpoint override path.
+     * <p>
+     * To solve this issue, we pass in the endpoint set on the path, which allows us to the strip the path from the endpoint
+     * override from the request path, and then correctly combine the paths.
+     * <p>
+     * For example, let's suppose the endpoint override on the client is {@code https://example.com/a}. Then we call an
+     * operation {@code Foo()}, that marshalls {@code /c} to the path. The resulting request path is {@code /a/c}. However, we
+     * also pass the endpoint to provider as a parameter, and the resolver returns {@code https://example.com/a/b}. This method
+     * takes care of combining the paths correctly so that the resulting path is {@code https://example.com/a/b/c}.
+     */
+    public static SdkHttpRequest setUri(SdkHttpRequest request, URI clientEndpoint, URI resolvedUri) {
+        // [client endpoint path]
+        String clientEndpointPath = clientEndpoint.getRawPath();
 
-        if (StringUtils.isNotBlank(existingPath)) {
-            if (newPath.endsWith("/") || existingPath.startsWith("/")) {
-                newPath += existingPath;
-            } else {
-                newPath = newPath + "/" + existingPath;
-            }
-        }
+        // [client endpoint path]/[request path]
+        String requestPath = request.getUri().getRawPath();
+
+        // [client endpoint path]/[additional path added by resolver]
+        String resolvedUriPath = resolvedUri.getRawPath();
+
+        // our goal is to construct [client endpoint path]/[additional path added by resolver]/[request path], so we just need
+        // to strip the client endpoint path from the marshalled request path to isolate just the part added by the marshaller
+        String requestPathWithClientPathRemoved = StringUtils.replaceOnce(requestPath, clientEndpointPath, "");
+        String finalPath = SdkHttpUtils.appendUri(resolvedUriPath, requestPathWithClientPathRemoved);
 
         return request.toBuilder()
-                      .protocol(newUri.getScheme())
-                      .host(newUri.getHost())
-                      .port(newUri.getPort())
-                      .encodedPath(newPath)
+                      .protocol(resolvedUri.getScheme())
+                      .host(resolvedUri.getHost())
+                      .port(resolvedUri.getPort())
+                      .encodedPath(finalPath)
                       .build();
     }
 
