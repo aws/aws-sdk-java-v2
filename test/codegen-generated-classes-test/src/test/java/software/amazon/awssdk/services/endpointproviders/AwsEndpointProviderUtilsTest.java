@@ -26,7 +26,7 @@ import java.util.Map;
 import org.junit.Test;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.rules.AwsEndpointAttribute;
-import software.amazon.awssdk.awscore.rules.AwsProviderUtils;
+import software.amazon.awssdk.awscore.rules.AwsEndpointProviderUtils;
 import software.amazon.awssdk.awscore.rules.EndpointAuthScheme;
 import software.amazon.awssdk.awscore.rules.SigV4AuthScheme;
 import software.amazon.awssdk.awscore.rules.SigV4aAuthScheme;
@@ -42,56 +42,56 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.MapUtils;
 
-public class AwsProviderUtilsTest {
+public class AwsEndpointProviderUtilsTest {
     @Test
     public void endpointOverridden_attrIsFalse_returnsFalse() {
         ExecutionAttributes attrs = new ExecutionAttributes();
         attrs.putAttribute(SdkExecutionAttribute.ENDPOINT_OVERRIDDEN, false);
-        assertThat(AwsProviderUtils.endpointIsOverridden(attrs)).isFalse();
+        assertThat(AwsEndpointProviderUtils.endpointIsOverridden(attrs)).isFalse();
     }
 
     @Test
     public void endpointOverridden_attrIsAbsent_returnsFalse() {
         ExecutionAttributes attrs = new ExecutionAttributes();
-        assertThat(AwsProviderUtils.endpointIsOverridden(attrs)).isFalse();
+        assertThat(AwsEndpointProviderUtils.endpointIsOverridden(attrs)).isFalse();
     }
 
     @Test
     public void endpointOverridden_attrIsTrue_returnsTrue() {
         ExecutionAttributes attrs = new ExecutionAttributes();
         attrs.putAttribute(SdkExecutionAttribute.ENDPOINT_OVERRIDDEN, true);
-        assertThat(AwsProviderUtils.endpointIsOverridden(attrs)).isTrue();
+        assertThat(AwsEndpointProviderUtils.endpointIsOverridden(attrs)).isTrue();
     }
 
     @Test
     public void endpointIsDiscovered_attrIsFalse_returnsFalse() {
         ExecutionAttributes attrs = new ExecutionAttributes();
         attrs.putAttribute(SdkInternalExecutionAttribute.IS_DISCOVERED_ENDPOINT, false);
-        assertThat(AwsProviderUtils.endpointIsDiscovered(attrs)).isFalse();
+        assertThat(AwsEndpointProviderUtils.endpointIsDiscovered(attrs)).isFalse();
     }
 
     @Test
     public void endpointIsDiscovered_attrIsAbsent_returnsFalse() {
         ExecutionAttributes attrs = new ExecutionAttributes();
-        assertThat(AwsProviderUtils.endpointIsDiscovered(attrs)).isFalse();
+        assertThat(AwsEndpointProviderUtils.endpointIsDiscovered(attrs)).isFalse();
     }
 
     @Test
     public void endpointIsDiscovered_attrIsTrue_returnsTrue() {
         ExecutionAttributes attrs = new ExecutionAttributes();
         attrs.putAttribute(SdkInternalExecutionAttribute.IS_DISCOVERED_ENDPOINT, true);
-        assertThat(AwsProviderUtils.endpointIsDiscovered(attrs)).isTrue();
+        assertThat(AwsEndpointProviderUtils.endpointIsDiscovered(attrs)).isTrue();
     }
 
     @Test
     public void valueAsEndpoint_isNone_throws() {
-        assertThatThrownBy(() -> AwsProviderUtils.valueAsEndpointOrThrow(Value.none()))
+        assertThatThrownBy(() -> AwsEndpointProviderUtils.valueAsEndpointOrThrow(Value.none()))
             .isInstanceOf(SdkClientException.class);
     }
 
     @Test
     public void valueAsEndpoint_isString_throwsAsMsg() {
-        assertThatThrownBy(() -> AwsProviderUtils.valueAsEndpointOrThrow(Value.fromStr("oops!")))
+        assertThatThrownBy(() -> AwsEndpointProviderUtils.valueAsEndpointOrThrow(Value.fromStr("oops!")))
             .isInstanceOf(SdkClientException.class)
             .hasMessageContaining("oops!");
     }
@@ -106,7 +106,7 @@ public class AwsProviderUtilsTest {
                                     .url(URI.create("https://myservice.aws"))
                                     .build();
 
-        assertThat(expected.url()).isEqualTo(AwsProviderUtils.valueAsEndpointOrThrow(endpointVal).url());
+        assertThat(expected.url()).isEqualTo(AwsEndpointProviderUtils.valueAsEndpointOrThrow(endpointVal).url());
     }
 
     @Test
@@ -146,7 +146,7 @@ public class AwsProviderUtilsTest {
                                                     .disableDoubleEncoding(false)
                                                     .build();
 
-        assertThat(AwsProviderUtils.valueAsEndpointOrThrow(endpointVal).attribute(AwsEndpointAttribute.AUTH_SCHEMES))
+        assertThat(AwsEndpointProviderUtils.valueAsEndpointOrThrow(endpointVal).attribute(AwsEndpointAttribute.AUTH_SCHEMES))
             .containsExactly(sigv4, sigv4a);
     }
 
@@ -157,7 +157,7 @@ public class AwsProviderUtilsTest {
                                                    .property("foo", Value.fromStr("baz"))
                                                    .build();
 
-        assertThat(AwsProviderUtils.valueAsEndpointOrThrow(endpointVal).attribute(AwsEndpointAttribute.AUTH_SCHEMES)).isNull();
+        assertThat(AwsEndpointProviderUtils.valueAsEndpointOrThrow(endpointVal).attribute(AwsEndpointAttribute.AUTH_SCHEMES)).isNull();
     }
 
     @Test
@@ -172,28 +172,28 @@ public class AwsProviderUtilsTest {
         Map<String, List<String>> expectedHeaders = MapUtils.of("foo1", Arrays.asList("bar1", "bar2"),
                                                                 "foo2", Arrays.asList("baz"));
 
-        assertThat(AwsProviderUtils.valueAsEndpointOrThrow(endpointVal).headers()).isEqualTo(expectedHeaders);
+        assertThat(AwsEndpointProviderUtils.valueAsEndpointOrThrow(endpointVal).headers()).isEqualTo(expectedHeaders);
     }
 
     @Test
     public void regionBuiltIn_returnsAttrValue() {
         ExecutionAttributes attrs = new ExecutionAttributes();
         attrs.putAttribute(AwsExecutionAttribute.AWS_REGION, Region.US_EAST_1);
-        assertThat(AwsProviderUtils.regionBuiltIn(attrs)).isEqualTo(Region.US_EAST_1);
+        assertThat(AwsEndpointProviderUtils.regionBuiltIn(attrs)).isEqualTo(Region.US_EAST_1);
     }
 
     @Test
     public void dualStackEnabledBuiltIn_returnsAttrValue() {
         ExecutionAttributes attrs = new ExecutionAttributes();
         attrs.putAttribute(AwsExecutionAttribute.DUALSTACK_ENDPOINT_ENABLED, true);
-        assertThat(AwsProviderUtils.dualStackEnabledBuiltIn(attrs)).isEqualTo(true);
+        assertThat(AwsEndpointProviderUtils.dualStackEnabledBuiltIn(attrs)).isEqualTo(true);
     }
 
     @Test
     public void fipsEnabledBuiltIn_returnsAttrValue() {
         ExecutionAttributes attrs = new ExecutionAttributes();
         attrs.putAttribute(AwsExecutionAttribute.FIPS_ENDPOINT_ENABLED, true);
-        assertThat(AwsProviderUtils.fipsEnabledBuiltIn(attrs)).isEqualTo(true);
+        assertThat(AwsEndpointProviderUtils.fipsEnabledBuiltIn(attrs)).isEqualTo(true);
     }
 
     @Test
@@ -203,14 +203,14 @@ public class AwsProviderUtilsTest {
         attrs.putAttribute(SdkExecutionAttribute.ENDPOINT_OVERRIDDEN, true);
         attrs.putAttribute(SdkExecutionAttribute.CLIENT_ENDPOINT, endpoint);
 
-        assertThat(AwsProviderUtils.endpointBuiltIn(attrs).toString()).isEqualTo("https://example.com/path");
+        assertThat(AwsEndpointProviderUtils.endpointBuiltIn(attrs).toString()).isEqualTo("https://example.com/path");
     }
 
     @Test
     public void useGlobalEndpointBuiltIn_returnsAttrValue() {
         ExecutionAttributes attrs = new ExecutionAttributes();
         attrs.putAttribute(SdkInternalExecutionAttribute.USE_GLOBAL_ENDPOINT, true);
-        assertThat(AwsProviderUtils.useGlobalEndpointBuiltIn(attrs)).isEqualTo(true);
+        assertThat(AwsEndpointProviderUtils.useGlobalEndpointBuiltIn(attrs)).isEqualTo(true);
     }
 
     @Test
@@ -224,7 +224,7 @@ public class AwsProviderUtilsTest {
                                                .method(SdkHttpMethod.GET)
                                                .build();
 
-        assertThat(AwsProviderUtils.setUri(request, clientEndpoint, resolvedUri).getUri().toString())
+        assertThat(AwsEndpointProviderUtils.setUri(request, clientEndpoint, resolvedUri).getUri().toString())
             .isEqualTo("https://override.example.com/a/b/c");
     }
 }

@@ -37,10 +37,10 @@ import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 @SdkInternalApi
-public final class AwsProviderUtils {
-    private static final Logger LOG = Logger.loggerFor(AwsProviderUtils.class);
+public final class AwsEndpointProviderUtils {
+    private static final Logger LOG = Logger.loggerFor(AwsEndpointProviderUtils.class);
 
-    private AwsProviderUtils() {
+    private AwsEndpointProviderUtils() {
     }
 
     public static Region regionBuiltIn(ExecutionAttributes executionAttributes) {
@@ -125,6 +125,11 @@ public final class AwsProviderUtils {
      * <p>
      * To solve this issue, we pass in the endpoint set on the path, which allows us to the strip the path from the endpoint
      * override from the request path, and then correctly combine the paths.
+     * <p>
+     * For example, let's suppose the endpoint override on the client is {@code https://example.com/a}. Then we call an
+     * operation {@code Foo()}, that marshalls {@code /c} to the path. The resulting request path is {@code /a/c}. However, we
+     * also pass the endpoint to provider as a parameter, and the resolver returns {@code https://example.com/a/b}. This method
+     * takes care of combining the paths correctly so that the resulting path is {@code https://example.com/a/b/c}.
      */
     public static SdkHttpRequest setUri(SdkHttpRequest request, URI clientEndpoint, URI resolvedUri) {
         // [client endpoint path]

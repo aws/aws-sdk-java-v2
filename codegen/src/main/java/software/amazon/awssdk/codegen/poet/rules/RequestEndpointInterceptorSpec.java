@@ -20,7 +20,7 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.awscore.rules.AwsProviderUtils;
+import software.amazon.awssdk.awscore.rules.AwsEndpointProviderUtils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
@@ -68,7 +68,7 @@ public class RequestEndpointInterceptorSpec implements ClassSpec {
 
         // We skip setting the endpoint here if the source of the endpoint is the endpoint discovery call
         b.beginControlFlow("if ($1T.endpointIsDiscovered(executionAttributes))",
-                           AwsProviderUtils.class)
+                           AwsEndpointProviderUtils.class)
          .addStatement("return context.httpRequest()")
          .endControlFlow().build();
 
@@ -78,7 +78,7 @@ public class RequestEndpointInterceptorSpec implements ClassSpec {
         b.addStatement("return $T.setUri(context.httpRequest(),"
                        + "executionAttributes.getAttribute($T.CLIENT_ENDPOINT),"
                        + "endpoint.url())",
-                       AwsProviderUtils.class,
+                       AwsEndpointProviderUtils.class,
                        SdkExecutionAttribute.class);
         return b.build();
     }

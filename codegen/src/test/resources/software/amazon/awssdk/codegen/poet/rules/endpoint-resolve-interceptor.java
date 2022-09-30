@@ -4,7 +4,7 @@ import java.util.Optional;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
-import software.amazon.awssdk.awscore.rules.AwsProviderUtils;
+import software.amazon.awssdk.awscore.rules.AwsEndpointProviderUtils;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -22,7 +22,7 @@ import software.amazon.awssdk.utils.AttributeMap;
 public final class QueryResolveEndpointInterceptor implements ExecutionInterceptor {
     @Override
     public SdkRequest modifyRequest(Context.ModifyRequest context, ExecutionAttributes executionAttributes) {
-        if (AwsProviderUtils.endpointIsDiscovered(executionAttributes)) {
+        if (AwsEndpointProviderUtils.endpointIsDiscovered(executionAttributes)) {
             return context.request();
         }
         QueryEndpointProvider provider = (QueryEndpointProvider) executionAttributes
@@ -37,9 +37,9 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
         setStaticContextParams(builder, executionAttributes.getAttribute(AwsExecutionAttribute.OPERATION_NAME));
         setContextParams(builder, executionAttributes.getAttribute(AwsExecutionAttribute.OPERATION_NAME), context.request());
         setClientContextParams(builder, executionAttributes);
-        builder.region(AwsProviderUtils.regionBuiltIn(executionAttributes));
-        builder.useDualStackEndpoint(AwsProviderUtils.dualStackEnabledBuiltIn(executionAttributes));
-        builder.useFipsEndpoint(AwsProviderUtils.fipsEnabledBuiltIn(executionAttributes));
+        builder.region(AwsEndpointProviderUtils.regionBuiltIn(executionAttributes));
+        builder.useDualStackEndpoint(AwsEndpointProviderUtils.dualStackEnabledBuiltIn(executionAttributes));
+        builder.useFipsEndpoint(AwsEndpointProviderUtils.fipsEnabledBuiltIn(executionAttributes));
         return builder.build();
     }
 

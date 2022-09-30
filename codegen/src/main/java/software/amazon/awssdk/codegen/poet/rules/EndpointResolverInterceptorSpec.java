@@ -26,7 +26,7 @@ import java.util.Optional;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
-import software.amazon.awssdk.awscore.rules.AwsProviderUtils;
+import software.amazon.awssdk.awscore.rules.AwsEndpointProviderUtils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
@@ -96,7 +96,7 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
 
         // We skip resolution if the source of the endpoint is the endpoint discovery call
         b.beginControlFlow("if ($1T.endpointIsDiscovered(executionAttributes))",
-                           AwsProviderUtils.class)
+                           AwsEndpointProviderUtils.class)
          .addStatement("return context.request()")
          .endControlFlow().build();
 
@@ -165,7 +165,7 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
                     throw new RuntimeException("Don't know how to set built-in " + m.getBuiltInEnum());
             }
 
-            b.addStatement("builder.$N($T.$N(executionAttributes))", setterName, AwsProviderUtils.class, builtInFn);
+            b.addStatement("builder.$N($T.$N(executionAttributes))", setterName, AwsEndpointProviderUtils.class, builtInFn);
         });
 
         b.addStatement("return builder.build()");
