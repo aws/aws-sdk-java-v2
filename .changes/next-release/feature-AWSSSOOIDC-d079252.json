@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SSO OIDC",
+    "contributor": "",
+    "description": "Documentation updates for the IAM Identity Center OIDC CLI Reference."
+}
