@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.awscore.rules;
 
+import static software.amazon.awssdk.awscore.rules.authscheme.AuthSchemeUtils.createAuthSchemes;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.net.URI;
@@ -23,11 +24,12 @@ import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
+import software.amazon.awssdk.awscore.AwsRequest;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
-import software.amazon.awssdk.core.rules.Identifier;
 import software.amazon.awssdk.core.rules.Value;
 import software.amazon.awssdk.core.rules.model.Endpoint;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -154,79 +156,42 @@ public final class AwsEndpointProviderUtils {
                       .build();
     }
 
+    public static AwsRequest addHeaders(AwsRequest request, Map<String, List<String>> headers) {
+        AwsRequestOverrideConfiguration.Builder configBuilder = request.overrideConfiguration()
+                                                                       .map(AwsRequestOverrideConfiguration::toBuilder)
+                                                                       .orElseGet(AwsRequestOverrideConfiguration::builder);
+
+
+        headers.forEach((name, values) -> {
+            List<String> existingValues = configBuilder.headers().get(name);
+            List<String> updatedValues;
+
+            if (existingValues != null) {
+                updatedValues = new ArrayList<>(existingValues);
+            } else {
+                updatedValues = new ArrayList<>();
+            }
+
+            updatedValues.addAll(values);
+
+            configBuilder.putHeader(name, updatedValues);
+        });
+
+        return request.toBuilder()
+            .overrideConfiguration(configBuilder.build())
+            .build();
+    }
+
     private static void addKnownProperties(Endpoint.Builder builder, Map<String, Value> properties) {
         properties.forEach((n, v) -> {
             switch (n) {
                 case "authSchemes":
-                    addAuthSchemes(builder, v);
+                    builder.putAttribute(AwsEndpointAttribute.AUTH_SCHEMES, createAuthSchemes(v));
                     break;
                 default:
                     LOG.debug(() -> "Ignoring unknown endpoint property: " + n);
                     break;
             }
         });
-    }
-
-    private static void addAuthSchemes(Endpoint.Builder builder, Value authSchemesValue) {
-        Value.Array schemesArray = authSchemesValue.expectArray();
-
-        List<EndpointAuthScheme> authSchemes = new ArrayList<>();
-        for (int i = 0; i < schemesArray.size(); ++i) {
-            Value.Record scheme = schemesArray.get(i).expectRecord();
-
-            String authSchemeName = scheme.get(Identifier.of("name")).expectString();
-            switch (authSchemeName) {
-                case "sigv4a": {
-                    SigV4aAuthScheme.Builder schemeBuilder = SigV4aAuthScheme.builder();
-
-                    Value signingName = scheme.get(Identifier.of("signingName"));
-                    if (signingName != null) {
-                        schemeBuilder.signingName(signingName.expectString());
-                    }
-
-                    Value signingRegionSet = scheme.get(Identifier.of("signingRegionSet"));
-                    if (signingRegionSet != null) {
-                        Value.Array signingRegionSetArray = signingRegionSet.expectArray();
-                        for (int j = 0; j < signingRegionSetArray.size(); ++j) {
-                            schemeBuilder.addSigningRegion(signingRegionSetArray.get(j).expectString());
-                        }
-                    }
-
-                    Value disableDoubleEncoding = scheme.get(Identifier.of("disableDoubleEncoding"));
-                    if (disableDoubleEncoding != null) {
-                        schemeBuilder.disableDoubleEncoding(disableDoubleEncoding.expectBool());
-                    }
-
-                    authSchemes.add(schemeBuilder.build());
-                }
-                break;
-                case "sigv4": {
-                    SigV4AuthScheme.Builder schemeBuilder = SigV4AuthScheme.builder();
-
-                    Value signingName = scheme.get(Identifier.of("signingName"));
-                    if (signingName != null) {
-                        schemeBuilder.signingName(signingName.expectString());
-                    }
-
-                    Value signingRegion = scheme.get(Identifier.of("signingRegion"));
-                    if (signingRegion != null) {
-                        schemeBuilder.signingRegion(signingRegion.expectString());
-                    }
-
-                    Value disableDoubleEncoding = scheme.get(Identifier.of("disableDoubleEncoding"));
-                    if (disableDoubleEncoding != null) {
-                        schemeBuilder.disableDoubleEncoding(disableDoubleEncoding.expectBool());
-                    }
-
-                    authSchemes.add(schemeBuilder.build());
-                }
-                break;
-                default:
-                    LOG.debug(() -> "Ignoring unknown auth scheme: " + authSchemeName);
-                    break;
-            }
-        }
-
-        builder.putAttribute(AwsEndpointAttribute.AUTH_SCHEMES, authSchemes);
     }
 }

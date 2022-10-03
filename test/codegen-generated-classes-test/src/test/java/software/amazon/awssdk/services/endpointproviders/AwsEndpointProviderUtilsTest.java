@@ -17,6 +17,8 @@ package software.amazon.awssdk.services.endpointproviders;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.net.URI;
 import java.util.Arrays;
@@ -24,12 +26,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import org.junit.Test;
+import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
+import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.awscore.rules.AwsEndpointAttribute;
 import software.amazon.awssdk.awscore.rules.AwsEndpointProviderUtils;
-import software.amazon.awssdk.awscore.rules.EndpointAuthScheme;
-import software.amazon.awssdk.awscore.rules.SigV4AuthScheme;
-import software.amazon.awssdk.awscore.rules.SigV4aAuthScheme;
+import software.amazon.awssdk.awscore.rules.authscheme.EndpointAuthScheme;
+import software.amazon.awssdk.awscore.rules.authscheme.SigV4AuthScheme;
+import software.amazon.awssdk.awscore.rules.authscheme.SigV4aAuthScheme;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
@@ -40,6 +44,8 @@ import software.amazon.awssdk.core.rules.model.Endpoint;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.regions.RegionScope;
+import software.amazon.awssdk.services.protocolquery.model.AllTypesRequest;
 import software.amazon.awssdk.utils.MapUtils;
 
 public class AwsEndpointProviderUtilsTest {
@@ -226,5 +232,46 @@ public class AwsEndpointProviderUtilsTest {
 
         assertThat(AwsEndpointProviderUtils.setUri(request, clientEndpoint, resolvedUri).getUri().toString())
             .isEqualTo("https://override.example.com/a/b/c");
+    }
+
+    @Test
+    public void setHeaders_existingValuesOnOverride_combinesWithNewValues() {
+        AwsRequest request = AllTypesRequest.builder()
+                                            .overrideConfiguration(o -> o.putHeader("foo", Arrays.asList("a", "b")))
+                                            .build();
+
+        Map<String, List<String>> newHeaders = MapUtils.of("foo", Arrays.asList("c"));
+        AwsRequest newRequest = AwsEndpointProviderUtils.addHeaders(request, newHeaders);
+
+        Map<String, List<String>> expectedHeaders = MapUtils.of("foo", Arrays.asList("a", "b", "c"));
+
+        assertThat(newRequest.overrideConfiguration().get().headers()).isEqualTo(expectedHeaders);
+    }
+
+    @Test
+    public void setHeaders_noExistingValues_setCorrectly() {
+        AwsRequest request = AllTypesRequest.builder()
+                                            .overrideConfiguration(o -> {})
+                                            .build();
+
+        Map<String, List<String>> newHeaders = MapUtils.of("foo", Arrays.asList("a"));
+        AwsRequest newRequest = AwsEndpointProviderUtils.addHeaders(request, newHeaders);
+
+        Map<String, List<String>> expectedHeaders = MapUtils.of("foo", Arrays.asList("a"));
+
+        assertThat(newRequest.overrideConfiguration().get().headers()).isEqualTo(expectedHeaders);
+    }
+
+    @Test
+    public void setHeaders_noExistingOverrideConfig_createsOverrideConfig() {
+        AwsRequest request = AllTypesRequest.builder()
+                                            .build();
+
+        Map<String, List<String>> newHeaders = MapUtils.of("foo", Arrays.asList("a"));
+        AwsRequest newRequest = AwsEndpointProviderUtils.addHeaders(request, newHeaders);
+
+        Map<String, List<String>> expectedHeaders = MapUtils.of("foo", Arrays.asList("a"));
+
+        assertThat(newRequest.overrideConfiguration().get().headers()).isEqualTo(expectedHeaders);
     }
 }
