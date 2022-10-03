@@ -9,7 +9,8 @@ import software.amazon.awssdk.auth.signer.SignerLoader;
 import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.awscore.rules.AwsEndpointAttribute;
 import software.amazon.awssdk.awscore.rules.AwsEndpointProviderUtils;
-import software.amazon.awssdk.awscore.rules.EndpointAuthScheme;
+import software.amazon.awssdk.awscore.rules.authscheme.AuthSchemeUtils;
+import software.amazon.awssdk.awscore.rules.authscheme.EndpointAuthScheme;
 import software.amazon.awssdk.awscore.util.SignerOverrideUtils;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -34,9 +35,9 @@ public final class QueryEndpointAuthSchemeInterceptor implements ExecutionInterc
         if (authSchemes == null) {
             return request;
         }
-        EndpointAuthScheme chosenAuthScheme = AwsEndpointProviderUtils.chooseAuthScheme(authSchemes);
+        EndpointAuthScheme chosenAuthScheme = AuthSchemeUtils.chooseAuthScheme(authSchemes);
         Supplier<Signer> signerProvider = signerProvider(chosenAuthScheme);
-        AwsEndpointProviderUtils.setSigningParams(executionAttributes, chosenAuthScheme);
+        AuthSchemeUtils.setSigningParams(executionAttributes, chosenAuthScheme);
         return SignerOverrideUtils.overrideSignerIfNotOverridden(request, executionAttributes, signerProvider);
     }
 

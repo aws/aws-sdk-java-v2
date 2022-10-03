@@ -13,29 +13,22 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.awscore.rules;
+package software.amazon.awssdk.awscore.rules.authscheme;
 
+import java.util.ArrayList;
+import java.util.List;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 @SdkProtectedApi
-public final class SigV4AuthScheme implements EndpointAuthScheme {
-    private final String signingRegion;
+public final class SigV4aAuthScheme implements EndpointAuthScheme {
     private final String signingName;
+    private final List<String> signingRegionSet;
     private final boolean disableDoubleEncoding;
 
-    private SigV4AuthScheme(Builder b) {
-        this.signingRegion = b.signingRegion;
+    private SigV4aAuthScheme(Builder b) {
         this.signingName = b.signingName;
+        this.signingRegionSet = b.signingRegionSet;
         this.disableDoubleEncoding = b.disableDoubleEncoding == null ? false : b.disableDoubleEncoding;
-    }
-
-    @Override
-    public String name() {
-        return "sigv4";
-    }
-
-    public String signingRegion() {
-        return signingRegion;
     }
 
     public String signingName() {
@@ -44,6 +37,15 @@ public final class SigV4AuthScheme implements EndpointAuthScheme {
 
     public boolean disableDoubleEncoding() {
         return disableDoubleEncoding;
+    }
+
+    public List<String> signingRegionSet() {
+        return signingRegionSet;
+    }
+
+    @Override
+    public String name() {
+        return "sigv4a";
     }
 
     @Override
@@ -55,21 +57,21 @@ public final class SigV4AuthScheme implements EndpointAuthScheme {
             return false;
         }
 
-        SigV4AuthScheme that = (SigV4AuthScheme) o;
+        SigV4aAuthScheme that = (SigV4aAuthScheme) o;
 
         if (disableDoubleEncoding != that.disableDoubleEncoding) {
             return false;
         }
-        if (signingRegion != null ? !signingRegion.equals(that.signingRegion) : that.signingRegion != null) {
+        if (signingName != null ? !signingName.equals(that.signingName) : that.signingName != null) {
             return false;
         }
-        return signingName != null ? signingName.equals(that.signingName) : that.signingName == null;
+        return signingRegionSet != null ? signingRegionSet.equals(that.signingRegionSet) : that.signingRegionSet == null;
     }
 
     @Override
     public int hashCode() {
-        int result = signingRegion != null ? signingRegion.hashCode() : 0;
-        result = 31 * result + (signingName != null ? signingName.hashCode() : 0);
+        int result = signingName != null ? signingName.hashCode() : 0;
+        result = 31 * result + (signingRegionSet != null ? signingRegionSet.hashCode() : 0);
         result = 31 * result + (disableDoubleEncoding ? 1 : 0);
         return result;
     }
@@ -79,12 +81,12 @@ public final class SigV4AuthScheme implements EndpointAuthScheme {
     }
 
     public static class Builder {
-        private String signingRegion;
+        private final List<String> signingRegionSet = new ArrayList<>();
         private String signingName;
         private Boolean disableDoubleEncoding;
 
-        public Builder signingRegion(String signingRegion) {
-            this.signingRegion = signingRegion;
+        public Builder addSigningRegion(String signingRegion) {
+            this.signingRegionSet.add(signingRegion);
             return this;
         }
 
@@ -98,8 +100,8 @@ public final class SigV4AuthScheme implements EndpointAuthScheme {
             return this;
         }
 
-        public SigV4AuthScheme build() {
-            return new SigV4AuthScheme(this);
+        public SigV4aAuthScheme build() {
+            return new SigV4aAuthScheme(this);
         }
     }
 }

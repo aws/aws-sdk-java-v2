@@ -18,6 +18,7 @@ package software.amazon.awssdk.awscore.rules;
 import java.util.Collections;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.awscore.rules.authscheme.EndpointAuthScheme;
 import software.amazon.awssdk.core.rules.model.EndpointAttributeKey;
 
 /**

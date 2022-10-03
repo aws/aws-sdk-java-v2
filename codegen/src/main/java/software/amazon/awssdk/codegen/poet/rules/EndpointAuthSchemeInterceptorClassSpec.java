@@ -29,7 +29,8 @@ import software.amazon.awssdk.auth.signer.SignerLoader;
 import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.awscore.rules.AwsEndpointAttribute;
 import software.amazon.awssdk.awscore.rules.AwsEndpointProviderUtils;
-import software.amazon.awssdk.awscore.rules.EndpointAuthScheme;
+import software.amazon.awssdk.awscore.rules.authscheme.AuthSchemeUtils;
+import software.amazon.awssdk.awscore.rules.authscheme.EndpointAuthScheme;
 import software.amazon.awssdk.awscore.util.SignerOverrideUtils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
@@ -104,14 +105,14 @@ public class EndpointAuthSchemeInterceptorClassSpec implements ClassSpec {
 
         // find the scheme to use
         builder.addStatement("$T chosenAuthScheme = $T.chooseAuthScheme(authSchemes)", EndpointAuthScheme.class,
-                             AwsEndpointProviderUtils.class);
+                             AuthSchemeUtils.class);
 
         // Create a signer provider
         builder.addStatement("$T signerProvider = signerProvider(chosenAuthScheme)", ParameterizedTypeName.get(Supplier.class,
                                                                                                                Signer.class));
 
         // Set signing attributes
-        builder.addStatement("$T.setSigningParams(executionAttributes, chosenAuthScheme)", AwsEndpointProviderUtils.class);
+        builder.addStatement("$T.setSigningParams(executionAttributes, chosenAuthScheme)", AuthSchemeUtils.class);
 
         // Override signer
         builder.addStatement("return $T.overrideSignerIfNotOverridden(request, executionAttributes, signerProvider)",
