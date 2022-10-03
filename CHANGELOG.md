@@ -1,3 +1,20 @@
+# __2.17.286__ __2022-10-03__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Access Analyzer__
+  - ### Features
+    - AWS IAM Access Analyzer policy validation introduces new checks for role trust policies. As customers author a policy, IAM Access Analyzer policy validation evaluates the policy for any issues to make it easier for customers to author secure policies.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adding an imdsSupport attribute to EC2 AMIs
+
+## __Amazon Import/Export Snowball__
+  - ### Features
+    - Adds support for V3_5C. This is a refreshed AWS Snowball Edge Compute Optimized device type with 28TB SSD, 104 vCPU and 416GB memory (customer usable).
+
 # __2.17.285__ __2022-09-30__
 ## __AWS CodeDeploy__
   - ### Features
