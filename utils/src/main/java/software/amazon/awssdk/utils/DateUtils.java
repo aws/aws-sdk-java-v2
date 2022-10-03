@@ -25,9 +25,11 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.time.chrono.IsoChronology;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -59,7 +61,9 @@ public final class DateUtils {
         .appendLiteral(' ')
         .appendOffset("+HHMM", "GMT")
         .toFormatter()
-        .withLocale(Locale.US);
+        .withLocale(Locale.US)
+        .withResolverStyle(ResolverStyle.SMART)
+        .withChronology(IsoChronology.INSTANCE);
 
     // ISO_INSTANT does not handle offsets in Java 12-. See https://bugs.openjdk.java.net/browse/JDK-8166138
     private static final List<DateTimeFormatter> ALTERNATE_ISO_8601_FORMATTERS =
