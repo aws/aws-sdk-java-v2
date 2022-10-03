@@ -89,7 +89,8 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
                      .withCipherPreference(builder.cipherPreference)
                      .withVerifyPeer(!config.get(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES));
              TlsContext clientTlsContext = new TlsContext(clientTlsContextOptions)) {
-
+            Duration connectionTimeout = config.get(SdkHttpConfigurationOption.CONNECTION_TIMEOUT);
+            setConnectionTimeout(clientSocketOptions, connectionTimeout);
             this.bootstrap = registerOwnedResource(clientBootstrap);
             this.socketOptions = registerOwnedResource(clientSocketOptions);
             this.tlsContext = registerOwnedResource(clientTlsContext);
@@ -99,6 +100,15 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
             this.maxConnectionIdleInMilliseconds = config.get(SdkHttpConfigurationOption.CONNECTION_MAX_IDLE_TIMEOUT).toMillis();
             this.proxyOptions = buildProxyOptions(builder.proxyConfiguration);
         }
+    }
+
+    private void setConnectionTimeout(SocketOptions clientSocketOptions, Duration connectionTimeout) {
+        if (connectionTimeout == null) {
+            return;
+        }
+
+        long connectionTimeoutMillis = connectionTimeout.toMillis();
+        clientSocketOptions.connectTimeoutMs = (int) Long.min(connectionTimeoutMillis, Integer.MAX_VALUE);
     }
 
     private HttpMonitoringOptions revolveHttpMonitoringOptions(ConnectionHealthChecksConfiguration config) {
@@ -325,10 +335,10 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         Builder connectionHealthChecksConfiguration(ConnectionHealthChecksConfiguration healthChecksConfiguration);
 
         /**
-         * A convenience method to configure the health checks for for all connections established by this client.
+         * A convenience method to configure the health checks for all connections established by this client.
          *
          * <p>
-         * eg: you can set a throughput threshold for the a connection to be considered healthy.
+         * eg: you can set a throughput threshold for the connection to be considered healthy.
          * If the connection falls below this threshold for a configurable amount of time,
          * then the connection is considered unhealthy and will be shut down.
          *
@@ -343,6 +353,14 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
          * Configure the maximum amount of time that a connection should be allowed to remain open while idle.
          */
         Builder connectionMaxIdleTime(Duration connectionMaxIdleTime);
+
+        /**
+         * The amount of time to wait when initially establishing a connection before giving up and timing out. The maximum
+         * possible value, in ms, is the value of {@link Integer#MAX_VALUE}, any longer duration will be reduced to the maximum
+         * possible value. If not specified, the connection timeout duration will be set to value defined in
+         * {@link SdkHttpConfigurationOption#GLOBAL_HTTP_DEFAULTS}.
+         */
+        Builder connectionTimeout(Duration connectionTimeout);
     }
 
     /**
@@ -426,6 +444,12 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
             ProxyConfiguration.Builder builder = ProxyConfiguration.builder();
             proxyConfigurationBuilderConsumer.accept(builder);
             return proxyConfiguration(builder.build());
+        }
+
+        @Override
+        public Builder connectionTimeout(Duration connectionTimeout) {
+            standardOptions.put(SdkHttpConfigurationOption.CONNECTION_TIMEOUT, connectionTimeout);
+            return this;
         }
     }
 }
