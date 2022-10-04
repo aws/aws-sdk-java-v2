@@ -55,6 +55,7 @@ import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.StringUtils;
 
 /**
@@ -83,6 +84,7 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
     private static final String DEFAULT_ENDPOINT_PROTOCOL = "https";
     private static final String FIPS_PREFIX = "fips-";
     private static final String FIPS_SUFFIX = "-fips";
+    private static final String FIPS_INFIX = "-fips-";
     private final AutoDefaultsModeDiscovery autoDefaultsModeDiscovery;
 
     protected AwsDefaultClientBuilder() {
@@ -377,13 +379,9 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
 
     @Override
     public final BuilderT region(Region region) {
-        if (idHasFipsPattern(region)) {
-            clientConfiguration.option(AwsClientOption.AWS_REGION, removeFips(region));
-            clientConfiguration.option(AwsClientOption.FIPS_ENDPOINT_ENABLED, true);
-        } else {
-            clientConfiguration.option(AwsClientOption.AWS_REGION, region);
-            clientConfiguration.option(AwsClientOption.FIPS_ENDPOINT_ENABLED, null);
-        }
+        Pair<Region, Optional<Boolean>> transformedRegion = transformFipsPseudoRegionIfNecessary(region);
+        clientConfiguration.option(AwsClientOption.AWS_REGION, transformedRegion.left());
+        clientConfiguration.option(AwsClientOption.FIPS_ENDPOINT_ENABLED, transformedRegion.right().orElse(null));
         return thisBuilder();
     }
 
@@ -443,21 +441,45 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
         defaultsMode(defaultsMode);
     }
 
-    private boolean idHasFipsPattern(Region region) {
-        return region.id().startsWith(FIPS_PREFIX) || region.id().endsWith(FIPS_SUFFIX);
-    }
+    /**
+     * If the region is a FIPS pseudo region (contains "fips"), this method returns a pair of values, the left side being the
+     * region with the "fips" string removed, and the right being {@code true}. Otherwise, the region is returned
+     * unchanged, and the right will be empty.
+     */
+    private static Pair<Region, Optional<Boolean>> transformFipsPseudoRegionIfNecessary(Region region) {
+        String id = region.id();
 
-    private Region removeFips(Region region) {
-        if (region.id().startsWith(FIPS_PREFIX)) {
-            String prefixRemoved = StringUtils.replaceOnce(region.id(), FIPS_PREFIX, "");
-            return Region.of(prefixRemoved);
+        // "fips-us-west-1"
+        if (id.startsWith(FIPS_PREFIX)) {
+            String prefixRemoved = id.substring(FIPS_PREFIX.length());
+            return Pair.of(Region.of(prefixRemoved), Optional.of(true));
         }
 
-        if (region.id().endsWith(FIPS_SUFFIX)) {
-            String suffixRemoved = StringUtils.replaceOnce(region.id(), FIPS_SUFFIX, "");
-            return Region.of(suffixRemoved);
+        // "us-west-1-fips"
+        if (id.endsWith(FIPS_SUFFIX)) {
+            int end = id.length() - FIPS_SUFFIX.length();
+            String suffixRemoved = id.substring(0, end);
+            return Pair.of(Region.of(suffixRemoved), Optional.of(true));
         }
 
-        return region;
+        // "query-fips-us-west-2"
+        if (id.contains(FIPS_INFIX)) {
+            String infixRemoved = StringUtils.replaceOnce(id, FIPS_INFIX, "-");
+            return Pair.of(Region.of(infixRemoved), Optional.of(true));
+        }
+
+        // "fips-rekognition.us-west-2"
+        if (id.contains(FIPS_PREFIX)) {
+            String infixRemoved = StringUtils.replaceOnce(id, FIPS_PREFIX, "");
+            return Pair.of(Region.of(infixRemoved), Optional.of(true));
+        }
+
+        // "rekognition-fips.us-west-2"
+        if (id.contains(FIPS_SUFFIX)) {
+            String infixRemoved = StringUtils.replaceOnce(id, FIPS_SUFFIX, "");
+            return Pair.of(Region.of(infixRemoved), Optional.of(true));
+        }
+
+        return Pair.of(region, Optional.empty());
     }
 }
