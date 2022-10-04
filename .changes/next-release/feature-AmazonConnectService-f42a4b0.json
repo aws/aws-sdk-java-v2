@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Connect Service",
-    "contributor": "",
-    "description": "Updated the CreateIntegrationAssociation API to support the CASES_DOMAIN IntegrationType."
-}
