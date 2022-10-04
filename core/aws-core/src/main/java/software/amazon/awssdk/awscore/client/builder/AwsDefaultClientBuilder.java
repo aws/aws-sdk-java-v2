@@ -468,7 +468,7 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
             return Pair.of(Region.of(infixRemoved), Optional.of(true));
         }
 
-        // "fips-rekognition.us-west-2"
+        // "rekognition.fips-us-west-2"
         if (id.contains(FIPS_PREFIX)) {
             String infixRemoved = StringUtils.replaceOnce(id, FIPS_PREFIX, "");
             return Pair.of(Region.of(infixRemoved), Optional.of(true));
