@@ -82,9 +82,9 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
     implements AwsClientBuilder<BuilderT, ClientT> {
     private static final Logger log = Logger.loggerFor(AwsClientBuilder.class);
     private static final String DEFAULT_ENDPOINT_PROTOCOL = "https";
-    private static final String FIPS_PREFIX = "fips-";
-    private static final String FIPS_SUFFIX = "-fips";
-    private static final String FIPS_INFIX = "-fips-";
+    private static final String[] FIPS_SEARCH = {"fips-", "-fips"};
+    private static final String[] FIPS_REPLACE = {"", ""};
+
     private final AutoDefaultsModeDiscovery autoDefaultsModeDiscovery;
 
     protected AwsDefaultClientBuilder() {
@@ -448,36 +448,10 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
      */
     private static Pair<Region, Optional<Boolean>> transformFipsPseudoRegionIfNecessary(Region region) {
         String id = region.id();
-
-        // "fips-us-west-1"
-        if (id.startsWith(FIPS_PREFIX)) {
-            String prefixRemoved = id.substring(FIPS_PREFIX.length());
-            return Pair.of(Region.of(prefixRemoved), Optional.of(true));
-        }
-
-        // "us-west-1-fips"
-        if (id.endsWith(FIPS_SUFFIX)) {
-            int end = id.length() - FIPS_SUFFIX.length();
-            String suffixRemoved = id.substring(0, end);
-            return Pair.of(Region.of(suffixRemoved), Optional.of(true));
-        }
-
-        // "query-fips-us-west-2"
-        if (id.contains(FIPS_INFIX)) {
-            String infixRemoved = StringUtils.replaceOnce(id, FIPS_INFIX, "-");
-            return Pair.of(Region.of(infixRemoved), Optional.of(true));
-        }
-
-        // "rekognition.fips-us-west-2"
-        if (id.contains(FIPS_PREFIX)) {
-            String infixRemoved = StringUtils.replaceOnce(id, FIPS_PREFIX, "");
-            return Pair.of(Region.of(infixRemoved), Optional.of(true));
-        }
-
-        // "rekognition-fips.us-west-2"
-        if (id.contains(FIPS_SUFFIX)) {
-            String infixRemoved = StringUtils.replaceOnce(id, FIPS_SUFFIX, "");
-            return Pair.of(Region.of(infixRemoved), Optional.of(true));
+        String newId = StringUtils.replaceEach(id, FIPS_SEARCH, FIPS_REPLACE);
+        if (!newId.equals(id)) {
+            log.info(() -> String.format("Replacing input region %s with %s and setting fipsEnabled to true", id, newId));
+            return Pair.of(Region.of(newId), Optional.of(true));
         }
 
         return Pair.of(region, Optional.empty());
