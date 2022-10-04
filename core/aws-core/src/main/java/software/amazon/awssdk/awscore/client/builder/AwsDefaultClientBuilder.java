@@ -55,6 +55,7 @@ import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * An SDK-internal implementation of the methods in {@link AwsClientBuilder}, {@link AwsAsyncClientBuilder} and
@@ -80,6 +81,8 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
     implements AwsClientBuilder<BuilderT, ClientT> {
     private static final Logger log = Logger.loggerFor(AwsClientBuilder.class);
     private static final String DEFAULT_ENDPOINT_PROTOCOL = "https";
+    private static final String FIPS_PREFIX = "fips-";
+    private static final String FIPS_SUFFIX = "-fips";
     private final AutoDefaultsModeDiscovery autoDefaultsModeDiscovery;
 
     protected AwsDefaultClientBuilder() {
@@ -374,7 +377,13 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
 
     @Override
     public final BuilderT region(Region region) {
-        clientConfiguration.option(AwsClientOption.AWS_REGION, region);
+        if (idHasFipsPattern(region)) {
+            clientConfiguration.option(AwsClientOption.AWS_REGION, removeFips(region));
+            clientConfiguration.option(AwsClientOption.FIPS_ENDPOINT_ENABLED, true);
+        } else {
+            clientConfiguration.option(AwsClientOption.AWS_REGION, region);
+            clientConfiguration.option(AwsClientOption.FIPS_ENDPOINT_ENABLED, null);
+        }
         return thisBuilder();
     }
 
@@ -432,5 +441,23 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
 
     public final void setDefaultsMode(DefaultsMode defaultsMode) {
         defaultsMode(defaultsMode);
+    }
+
+    private boolean idHasFipsPattern(Region region) {
+        return region.id().startsWith(FIPS_PREFIX) || region.id().endsWith(FIPS_SUFFIX);
+    }
+
+    private Region removeFips(Region region) {
+        if (region.id().startsWith(FIPS_PREFIX)) {
+            String prefixRemoved = StringUtils.replaceOnce(region.id(), FIPS_PREFIX, "");
+            return Region.of(prefixRemoved);
+        }
+
+        if (region.id().endsWith(FIPS_SUFFIX)) {
+            String suffixRemoved = StringUtils.replaceOnce(region.id(), FIPS_SUFFIX, "");
+            return Region.of(suffixRemoved);
+        }
+
+        return region;
     }
 }
