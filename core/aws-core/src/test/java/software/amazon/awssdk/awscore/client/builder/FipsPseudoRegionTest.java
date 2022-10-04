@@ -74,6 +74,9 @@ public class FipsPseudoRegionTest {
         testCases.add(new TestCase(Region.of("rekognition-fips.us-west-2"), Region.of("rekognition.us-west-2")));
         testCases.add(new TestCase(Region.of("rekognition.fips-us-west-2"), Region.of("rekognition.us-west-2")));
         testCases.add(new TestCase(Region.of("query-fips-us-west-2"), Region.of("query-us-west-2")));
+        testCases.add(new TestCase(Region.of("fips-fips-us-west-2"), Region.of("fips-us-west-2")));
+        testCases.add(new TestCase(Region.of("fips-us-west-2-fips"), Region.of("us-west-2-fips")));
+
 
         return testCases;
     }
