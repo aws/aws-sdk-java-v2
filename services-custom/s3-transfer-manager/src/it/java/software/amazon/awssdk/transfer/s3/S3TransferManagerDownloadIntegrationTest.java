@@ -25,6 +25,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -47,7 +48,7 @@ import software.amazon.awssdk.utils.Md5Utils;
 public class S3TransferManagerDownloadIntegrationTest extends S3IntegrationTestBase {
     private static final String BUCKET = temporaryBucketName(S3TransferManagerDownloadIntegrationTest.class);
     private static final String KEY = "key";
-    private static final int OBJ_SIZE = 16 * 1024 * 1024;
+    private static final int OBJ_SIZE = 18 * 1024 * 1024;
     private static File file;
 
     @BeforeAll
@@ -66,7 +67,7 @@ public class S3TransferManagerDownloadIntegrationTest extends S3IntegrationTestB
     }
 
     @Test
-    void download_toFile() throws IOException {
+    void download_toFile() throws Exception {
         Path path = RandomTempFile.randomUncreatedFile().toPath();
         FileDownload download =
             tm.downloadFile(DownloadFileRequest.builder()
@@ -74,7 +75,7 @@ public class S3TransferManagerDownloadIntegrationTest extends S3IntegrationTestB
                                                .destination(path)
                                                .addTransferListener(LoggingTransferListener.create())
                                                .build());
-        CompletedFileDownload completedFileDownload = download.completionFuture().join();
+        CompletedFileDownload completedFileDownload = download.completionFuture().get(1, TimeUnit.MINUTES);
         assertThat(Md5Utils.md5AsBase64(path.toFile())).isEqualTo(Md5Utils.md5AsBase64(file));
         assertThat(completedFileDownload.response().responseMetadata().requestId()).isNotNull();
     }

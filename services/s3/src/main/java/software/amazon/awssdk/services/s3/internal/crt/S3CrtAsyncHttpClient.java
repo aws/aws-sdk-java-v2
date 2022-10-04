@@ -51,6 +51,7 @@ import software.amazon.awssdk.utils.Logger;
  */
 @SdkInternalApi
 public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
+    private static final long MAX_WINDOW_SIZE = 100 * 1024 * 1024; // 100 MB //TODO: Run some perf tests
     private static final Logger log = Logger.loggerFor(S3CrtAsyncHttpClient.class);
 
     private final S3Client crtS3Client;
@@ -59,6 +60,7 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
 
     private S3CrtAsyncHttpClient(Builder builder) {
         s3NativeClientConfiguration = builder.clientConfiguration;
+        long initialWindowSize = Math.min(MAX_WINDOW_SIZE, s3NativeClientConfiguration.partSizeBytes() * 5);
 
         S3ClientOptions s3ClientOptions =
             new S3ClientOptions().withRegion(s3NativeClientConfiguration.signingRegion())
@@ -68,6 +70,8 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
                                  .withClientBootstrap(s3NativeClientConfiguration.clientBootstrap())
                                  .withPartSize(s3NativeClientConfiguration.partSizeBytes())
                                  .withComputeContentMd5(false)
+                                 .withInitialReadWindowSize(initialWindowSize)
+                                 .withReadBackpressureEnabled(true)
                                  .withThroughputTargetGbps(s3NativeClientConfiguration.targetThroughputInGbps());
         this.crtS3Client = new S3Client(s3ClientOptions);
     }
@@ -109,6 +113,9 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         S3MetaRequest s3MetaRequest = crtS3Client.makeMetaRequest(requestOptions);
         S3MetaRequestPauseObservable observable =
             asyncRequest.httpExecutionAttributes().getAttribute(METAREQUEST_PAUSE_OBSERVABLE);
+
+        responseHandler.metaRequest(s3MetaRequest);
+
         if (observable != null) {
             observable.subscribe(s3MetaRequest);
         }

@@ -23,6 +23,7 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.crt.CRT;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.s3.S3FinishedResponseContext;
+import software.amazon.awssdk.crt.s3.S3MetaRequest;
 import software.amazon.awssdk.crt.s3.S3MetaRequestResponseHandler;
 import software.amazon.awssdk.http.SdkCancellationException;
 import software.amazon.awssdk.http.SdkHttpResponse;
@@ -37,6 +38,7 @@ public class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseHandler
     private final SdkAsyncHttpResponseHandler responseHandler;
     private final S3CrtDataPublisher publisher;
     private final SdkHttpResponse.Builder respBuilder = SdkHttpResponse.builder();
+    private volatile S3MetaRequest metaRequest;
 
     public S3CrtResponseHandlerAdapter(CompletableFuture<Void> executeFuture, SdkAsyncHttpResponseHandler responseHandler) {
         this(executeFuture, responseHandler, new S3CrtDataPublisher());
@@ -65,11 +67,13 @@ public class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseHandler
     @Override
     public int onResponseBody(ByteBuffer bodyBytesIn, long objectRangeStart, long objectRangeEnd) {
         publisher.deliverData(bodyBytesIn);
+        // Returning 0 to disable flow control because it is enforced in publisher
         return 0;
     }
 
     @Override
     public void onFinished(S3FinishedResponseContext context) {
+        metaRequest.close();
         int crtCode = context.getErrorCode();
         int responseStatus = context.getResponseStatus();
         byte[] errorPayload = context.getErrorPayload();
@@ -111,5 +115,10 @@ public class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseHandler
 
     private static boolean isErrorResponse(int responseStatus) {
         return responseStatus != 0;
+    }
+
+    public void metaRequest(S3MetaRequest s3MetaRequest) {
+        metaRequest = s3MetaRequest;
+        publisher.metaRequest(s3MetaRequest);
     }
 }
