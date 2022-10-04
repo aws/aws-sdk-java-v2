@@ -2,6 +2,5 @@
     "category": "S3 Transfer Manager", 
     "contributor": "", 
     "type": "bugfix", 
-    "description": "Fixed issues in S3 Transfer Manager resumeDownloadFile 
-API where errors were being wrapped by SdkClientException"
+    "description": "Fixed issues in S3 Transfer Manager resumeDownloadFile API where errors were being wrapped by SdkClientException"
 }
