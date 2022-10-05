@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Network Firewall",
-    "contributor": "",
-    "description": "StreamExceptionPolicy configures how AWS Network Firewall processes traffic when a network connection breaks midstream"
-}
