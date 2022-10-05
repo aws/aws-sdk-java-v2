@@ -1,6 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "contributor": "dave-fn", 
-    "type": "bugfix", 
-    "description": "Build headers with two-digit day of month to meet RFC 822 reporting requirement"
-}
