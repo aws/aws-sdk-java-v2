@@ -379,9 +379,17 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
 
     @Override
     public final BuilderT region(Region region) {
-        Pair<Region, Optional<Boolean>> transformedRegion = transformFipsPseudoRegionIfNecessary(region);
-        clientConfiguration.option(AwsClientOption.AWS_REGION, transformedRegion.left());
-        clientConfiguration.option(AwsClientOption.FIPS_ENDPOINT_ENABLED, transformedRegion.right().orElse(null));
+        Region regionToSet = region;
+        Boolean fipsEnabled = null;
+
+        if (region != null) {
+            Pair<Region, Optional<Boolean>> transformedRegion = transformFipsPseudoRegionIfNecessary(region);
+            regionToSet = transformedRegion.left();
+            fipsEnabled = transformedRegion.right().orElse(null);
+        }
+
+        clientConfiguration.option(AwsClientOption.AWS_REGION, regionToSet);
+        clientConfiguration.option(AwsClientOption.FIPS_ENDPOINT_ENABLED, fipsEnabled);
         return thisBuilder();
     }
 
