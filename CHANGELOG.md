@@ -1,3 +1,15 @@
+# __2.17.289__ __2022-10-06__
+## __AWS Resilience Hub__
+  - ### Features
+    - Documentation change for AWS Resilience Hub. Doc-only update to fix Documentation layout
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Adds support for automatically transforming a FIPS pesudo region (e.g. "fips-us-west-2"), into a standard region name + setting the `fips_enabled` flag to `true`.
+
 # __2.17.288__ __2022-10-05__
 ## __AWS Glue__
   - ### Features
