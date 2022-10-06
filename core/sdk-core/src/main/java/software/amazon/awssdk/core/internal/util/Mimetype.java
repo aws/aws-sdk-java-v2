@@ -65,7 +65,7 @@ public final class Mimetype {
     /** The default gzip mimetype: application/x-gzip */
     public static final String MIMETYPE_GZIP = "application/x-gzip";
 
-    public static final String MIMETYPE_TEXT_PLAIN = "text/plain; charset=UTF-8";
+    public static final String MIMETYPE_TEXT_PLAIN = "text/plain";
 
     public static final String MIMETYPE_EVENT_STREAM = "application/vnd.amazon.eventstream";
 

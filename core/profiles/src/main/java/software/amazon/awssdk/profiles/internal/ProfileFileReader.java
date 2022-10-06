@@ -19,6 +19,7 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -51,7 +52,7 @@ public final class ProfileFileReader {
      * Parses the input and returns a mutable map from profile name to a map of properties. This will not close the provided
      * stream.
      */
-    public static Map<String, Map<String, String>> parseFile(InputStream profileStream, ProfileFile.Type fileType) {
+    public static Map<String, Map<String, Map<String, String>>> parseFile(InputStream profileStream, ProfileFile.Type fileType) {
         ParserState state = new ParserState(fileType);
 
         BufferedReader profileReader = new BufferedReader(new InputStreamReader(profileStream, StandardCharsets.UTF_8));
@@ -69,8 +70,12 @@ public final class ProfileFileReader {
         if (isEmptyLine(line) || isCommentLine(line)) {
             return; // Skip line
         }
-
-        if (isProfileDefinitionLine(line)) {
+        Optional<String> sectionDefined = sectionDefinitionLine(line);
+        if (sectionDefined.isPresent()) {
+            state.sectionReadInProgress = sectionDefined.get();
+            readSectionProfileDefinitionLine(state, line);
+        } else if (isProfileDefinitionLine(line)) {
+            state.sectionReadInProgress = ProfileFile.PROFILES_SECTION_TITLE;
             readProfileDefinitionLine(state, line);
         } else if (isPropertyContinuationLine(line)) {
             readPropertyContinuationLine(state, line);
@@ -94,20 +99,7 @@ public final class ProfileFileReader {
                         "Profile definition must end with ']' on line " + state.currentLineNumber);
 
         Optional<String> profileName = parseProfileDefinition(state, lineWithoutWhitespace);
-
-        // If we couldn't get the profile name, ignore this entire profile.
-        if (!profileName.isPresent()) {
-            state.ignoringCurrentProfile = true;
-            return;
-        }
-
-        state.currentProfileBeingRead = profileName.get();
-        state.currentPropertyBeingRead = null;
-        state.ignoringCurrentProfile = false;
-        state.ignoringCurrentProperty = false;
-
-        // If we've seen this profile before, don't override the existing properties. We'll be merging them.
-        state.profiles.computeIfAbsent(profileName.get(), i -> new LinkedHashMap<>());
+        updateStateBasedOnProfileName(state, profileName);
     }
 
     /**
@@ -139,7 +131,7 @@ public final class ProfileFileReader {
 
         Pair<String, String> property = propertyDefinition.get();
 
-        if (state.profiles.get(state.currentProfileBeingRead).containsKey(property.left())) {
+        if (state.profiles.get(state.sectionReadInProgress).get(state.currentProfileBeingRead).containsKey(property.left())) {
             log.warn(() -> "Warning: Duplicate property '" + property.left() + "' detected on line " + state.currentLineNumber +
                            ". The later one in the file will be used.");
         }
@@ -148,7 +140,8 @@ public final class ProfileFileReader {
         state.ignoringCurrentProperty = false;
         state.validatingContinuationsAsSubProperties = property.right().equals("");
 
-        state.profiles.get(state.currentProfileBeingRead).put(property.left(), property.right());
+        state.profiles.get(state.sectionReadInProgress)
+                      .get(state.currentProfileBeingRead).put(property.left(), property.right());
     }
 
     /**
@@ -169,8 +162,8 @@ public final class ProfileFileReader {
 
         // Comments are not removed on property continuation lines. They're considered part of the value.
         line = StringUtils.trim(line);
-
-        Map<String, String> profileProperties = state.profiles.get(state.currentProfileBeingRead);
+        Map<String, String> profileProperties = state.profiles.get(state.sectionReadInProgress)
+                                                              .get(state.currentProfileBeingRead);
 
         String currentPropertyValue = profileProperties.get(state.currentPropertyBeingRead);
         String newPropertyValue = currentPropertyValue + "\n" + line;
@@ -195,7 +188,7 @@ public final class ProfileFileReader {
         String standardizedProfileName;
         if (state.fileType == ProfileFile.Type.CONFIGURATION) {
             if (hasProfilePrefix) {
-                standardizedProfileName = StringUtils.trim(rawProfileName.substring("profile".length()));
+                standardizedProfileName = StringUtils.trim(rawProfileName.substring(ProfileFile.PROFILES_SECTION_TITLE.length()));
             } else if (rawProfileName.equals("default")) {
                 standardizedProfileName = "default";
             } else {
@@ -220,7 +213,7 @@ public final class ProfileFileReader {
 
         // [profile default] must take priority over [default] in configuration files.
         boolean isDefaultProfile = profileName.equals("default");
-        boolean seenProfileBefore = state.profiles.containsKey(profileName);
+        boolean seenProfileBefore = state.profiles.get(ProfileFile.PROFILES_SECTION_TITLE).containsKey(profileName);
 
         if (state.fileType == ProfileFile.Type.CONFIGURATION && isDefaultProfile && seenProfileBefore) {
             if (!hasProfilePrefix && state.seenDefaultProfileWithProfilePrefix) {
@@ -230,7 +223,7 @@ public final class ProfileFileReader {
             } else if (hasProfilePrefix && !state.seenDefaultProfileWithProfilePrefix) {
                 log.warn(() -> "Ignoring earlier-seen '[default]', because '[profile default]' was found on line " +
                                state.currentLineNumber);
-                state.profiles.remove("default");
+                state.profiles.get(ProfileFile.PROFILES_SECTION_TITLE).remove("default");
             }
         }
 
@@ -307,6 +300,78 @@ public final class ProfileFileReader {
         return VALID_IDENTIFIER.matcher(value).matches();
     }
 
+    private static Optional<String> sectionDefinitionLine(String line) {
+        if (line.startsWith("[")) {
+            String lineWithoutBrackets = line.substring(1, line.length() - 1);
+            String rawProfileName = StringUtils.trim(lineWithoutBrackets);
+            return Arrays.stream(ProfileSection.values())
+                         .filter(x -> !ProfileFile.PROFILES_SECTION_TITLE.equals(x.getSectionTitle()))
+                         .map(title -> title.getSectionTitle())
+                         .filter(reservedTitle -> rawProfileName.startsWith(String.format("%s ", reservedTitle))
+                                                  || rawProfileName.startsWith(String.format("%s\t", reservedTitle)))
+                         .findFirst();
+        }
+        return Optional.empty();
+    }
+
+    private static void readSectionProfileDefinitionLine(ParserState state, String line) {
+        // Profile definitions do not require a space between the closing bracket and the comment delimiter
+        String lineWithoutComments = removeTrailingComments(line, "#", ";");
+        String lineWithoutWhitespace = StringUtils.trim(lineWithoutComments);
+        Validate.isTrue(lineWithoutWhitespace.endsWith("]"),
+                        "Section definition must end with ']' on line " + state.currentLineNumber);
+
+        Optional<String> profileName = parseSpecialProfileDefinition(state, lineWithoutWhitespace);
+        updateStateBasedOnProfileName(state, profileName);
+    }
+
+    private static void updateStateBasedOnProfileName(ParserState state, Optional<String> profileName) {
+        // If we couldn't get the profile name, ignore this entire profile.
+        if (!profileName.isPresent()) {
+            state.ignoringCurrentProfile = true;
+            return;
+        }
+        state.currentProfileBeingRead = profileName.get();
+        state.currentPropertyBeingRead = null;
+        state.ignoringCurrentProfile = false;
+        state.ignoringCurrentProperty = false;
+
+        // If we've seen this profile before, don't override the existing properties. We'll be merging them.
+        state.profiles.get(state.sectionReadInProgress).computeIfAbsent(profileName.get(),
+                                                                                             i -> new LinkedHashMap<>());
+
+    }
+
+    private static Optional<String> parseSpecialProfileDefinition(ParserState state, String lineWithoutWhitespace) {
+        String lineWithoutBrackets = lineWithoutWhitespace.substring(1, lineWithoutWhitespace.length() - 1);
+        String rawProfileName = StringUtils.trim(lineWithoutBrackets);
+
+        String profilePrefix =
+            Arrays.stream(ProfileSection.values())
+                  .filter(x -> !x.getSectionTitle().equals(ProfileFile.PROFILES_SECTION_TITLE))
+                  .map(x -> x.getSectionTitle())
+                  .filter(
+                      title -> rawProfileName.startsWith(String.format("%s ", title))
+                               || rawProfileName.startsWith(String.format("%s\t", title)))
+                  .findFirst()
+                  .orElse(null);
+
+        if (state.fileType != ProfileFile.Type.CONFIGURATION || profilePrefix == null) {
+            return Optional.empty();
+        }
+
+        String standardizedProfileName = StringUtils.trim(rawProfileName.substring(profilePrefix.length()));
+        String profilePrefixName = StringUtils.trim(standardizedProfileName);
+
+        // If the profile name includes invalid characters, it should be ignored.
+        if (!isValidIdentifier(profilePrefixName)) {
+            log.warn(() -> "Ignoring " + standardizedProfileName + "' on line " + state.currentLineNumber + " because " +
+                           "it was not alphanumeric with only these special characters: - / . % @ _ : +");
+            return Optional.empty();
+        }
+        return Optional.of(profilePrefixName);
+    }
+
     /**
      * When {@link #parseFile(InputStream, ProfileFile.Type)} is invoked, this is used to track the state of the parser as it
      * reads the input stream.
@@ -366,11 +431,19 @@ public final class ProfileFileReader {
         private boolean seenDefaultProfileWithProfilePrefix = false;
 
         /**
+         * Whether a section read is in progress. This is used to segregate section properties and profile properties.
+         */
+        private String sectionReadInProgress;
+
+        /**
          * The profiles read so far by the parser.
          */
-        private Map<String, Map<String, String>> profiles = new LinkedHashMap<>();
+        private Map<String, Map<String, Map<String, String>>> profiles = new LinkedHashMap<>();
 
         private ParserState(ProfileFile.Type fileType) {
+            profiles.put(ProfileFile.PROFILES_SECTION_TITLE,  new LinkedHashMap<>());
+            Arrays.stream(ProfileSection.values())
+                  .forEach(profileSection -> profiles.put(profileSection.getSectionTitle(), new LinkedHashMap<>()));
             this.fileType = fileType;
         }
     }

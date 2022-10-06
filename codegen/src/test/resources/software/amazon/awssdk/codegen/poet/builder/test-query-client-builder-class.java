@@ -5,7 +5,11 @@ import java.util.List;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
+import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
+import software.amazon.awssdk.auth.token.credentials.aws.DefaultAwsTokenProvider;
+import software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
+import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -33,8 +37,10 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
 
     @Override
     protected final SdkClientConfiguration mergeServiceDefaults(SdkClientConfiguration config) {
-        return config.merge(c -> c.option(SdkAdvancedClientOption.SIGNER, defaultSigner()).option(
-            SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false));
+        return config.merge(c -> c.option(SdkAdvancedClientOption.SIGNER, defaultSigner())
+                     .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
+                     .option(AwsClientOption.TOKEN_PROVIDER, defaultTokenProvider())
+                     .option(SdkAdvancedClientOption.TOKEN_SIGNER, defaultTokenSigner()));
     }
 
     @Override
@@ -55,5 +61,13 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
     @Override
     protected final String signingName() {
         return "query-service";
+    }
+
+    private SdkTokenProvider defaultTokenProvider() {
+        return DefaultAwsTokenProvider.create();
+    }
+
+    private Signer defaultTokenSigner() {
+        return BearerTokenSigner.create();
     }
 }

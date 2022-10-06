@@ -48,12 +48,10 @@ public class AwsUnsignedChunkedEncodingInputStream extends AwsChunkedEncodingInp
      * @return Content length of the trailer that will be appended at the end.
      */
     public static long calculateChecksumContentLength(Algorithm algorithm, String headerName) {
-        int checksumLength = algorithm.base64EncodedLength();
-
-        return (headerName.length()
-                + HEADER_COLON_SEPARATOR.length()
-                + checksumLength
-                + CRLF.length());
+        return headerName.length()
+               + HEADER_COLON_SEPARATOR.length()
+               + algorithm.base64EncodedLength().longValue()
+               + CRLF.length() + CRLF.length();
     }
 
     /**
@@ -68,17 +66,20 @@ public class AwsUnsignedChunkedEncodingInputStream extends AwsChunkedEncodingInp
                 + CRLF.length();
     }
 
-    public static long calculateStreamContentLength(long originalLength) {
-        if (originalLength < 0) {
-            throw new IllegalArgumentException("Non negative content length expected.");
+    public static long calculateStreamContentLength(long originalLength, long defaultChunkSize) {
+        if (originalLength < 0 || defaultChunkSize == 0) {
+            throw new IllegalArgumentException(originalLength + ", " + defaultChunkSize + "Args <= 0 not expected");
         }
 
-        long maxSizeChunks = originalLength / DEFAULT_CHUNK_SIZE;
-        long remainingBytes = originalLength % DEFAULT_CHUNK_SIZE;
+        long maxSizeChunks = originalLength / defaultChunkSize;
+        long remainingBytes = originalLength % defaultChunkSize;
 
-        return maxSizeChunks * calculateChunkLength(DEFAULT_CHUNK_SIZE)
-                + (remainingBytes > 0 ? calculateChunkLength(remainingBytes) : 0)
-                + calculateChunkLength(0);
+        long allChunks = maxSizeChunks * calculateChunkLength(defaultChunkSize);
+        long remainingInChunk = remainingBytes > 0 ? calculateChunkLength(remainingBytes) : 0;
+        // last byte is composed of a "0" and "\r\n"
+        long lastByteSize = 1 + (long) CRLF.length();
+
+        return allChunks +  remainingInChunk + lastByteSize;
     }
 
     @Override

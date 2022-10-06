@@ -1338,6 +1338,24 @@
       "type":"list",
       "member":{"shape":"AggregatedUtterancesSummary"}
     },
+    "AllowedInputTypes":{
+      "type":"structure",
+      "required":[
+        "allowAudioInput",
+        "allowDTMFInput"
+      ],
+      "members":{
+        "allowAudioInput":{
+          "shape":"BoxedBoolean",
+          "documentation":"<p>Indicates whether audio input is allowed.</p>"
+        },
+        "allowDTMFInput":{
+          "shape":"BoxedBoolean",
+          "documentation":"<p>Indicates whether DTMF input is allowed.</p>"
+        }
+      },
+      "documentation":"<p>Specifies the allowed input types.</p>"
+    },
     "AmazonResourceName":{
       "type":"string",
       "max":1011,
@@ -1398,6 +1416,25 @@
       "max":250,
       "min":1
     },
+    "AudioAndDTMFInputSpecification":{
+      "type":"structure",
+      "required":["startTimeoutMs"],
+      "members":{
+        "startTimeoutMs":{
+          "shape":"TimeInMilliSeconds",
+          "documentation":"<p>Time for which a bot waits before assuming that the customer isn't going to speak or press a key. This timeout is shared between Audio and DTMF inputs.</p>"
+        },
+        "audioSpecification":{
+          "shape":"AudioSpecification",
+          "documentation":"<p>Specifies the settings on audio input.</p>"
+        },
+        "dtmfSpecification":{
+          "shape":"DTMFSpecification",
+          "documentation":"<p>Specifies the settings on DTMF input.</p>"
+        }
+      },
+      "documentation":"<p>Specifies the audio and DTMF input specification.</p>"
+    },
     "AudioLogDestination":{
       "type":"structure",
       "required":["s3Bucket"],
@@ -1433,6 +1470,24 @@
     "AudioRecognitionStrategy":{
       "type":"string",
       "enum":["UseSlotValuesAsCustomVocabulary"]
+    },
+    "AudioSpecification":{
+      "type":"structure",
+      "required":[
+        "maxLengthMs",
+        "endTimeoutMs"
+      ],
+      "members":{
+        "maxLengthMs":{
+          "shape":"TimeInMilliSeconds",
+          "documentation":"<p>Time for how long Amazon Lex waits before speech input is truncated and the speech is returned to application.</p>"
+        },
+        "endTimeoutMs":{
+          "shape":"TimeInMilliSeconds",
+          "documentation":"<p>Time for which a bot waits after the customer stops speaking to assume the utterance is finished.</p>"
+        }
+      },
+      "documentation":"<p>Specifies the audio input specifications.</p>"
     },
     "Boolean":{"type":"boolean"},
     "BotAliasHistoryEvent":{
@@ -2245,6 +2300,16 @@
       },
       "documentation":"<p>Contains information about code hooks that Amazon Lex calls during a conversation.</p>"
     },
+    "CompositeSlotTypeSetting":{
+      "type":"structure",
+      "members":{
+        "subSlots":{
+          "shape":"SubSlotTypeList",
+          "documentation":"<p>Subslots in the composite slot.</p>"
+        }
+      },
+      "documentation":"<p>A composite slot is a combination of two or more slots that capture multiple pieces of information in a single user input.</p>"
+    },
     "Condition":{
       "type":"structure",
       "required":["expressionString"],
@@ -3026,6 +3091,10 @@
         "multipleValuesSetting":{
           "shape":"MultipleValuesSetting",
           "documentation":"<p>Indicates whether the slot returns multiple values in one response. Multi-value slots are only available in the en-US locale. If you set this value to <code>true</code> in any other locale, Amazon Lex throws a <code>ValidationException</code>. </p> <p>If the <code>multipleValuesSetting</code> is not set, the default value is <code>false</code>.</p>"
+        },
+        "subSlotSetting":{
+          "shape":"SubSlotSetting",
+          "documentation":"<p>Specifications for the constituent sub slots and the expression for the composite slot.</p>"
         }
       }
     },
@@ -3079,6 +3148,10 @@
         "multipleValuesSetting":{
           "shape":"MultipleValuesSetting",
           "documentation":"<p>Indicates whether the slot returns multiple values in one response.</p>"
+        },
+        "subSlotSetting":{
+          "shape":"SubSlotSetting",
+          "documentation":"<p>Specifications for the constituent sub slots and the expression for the composite slot.</p>"
         }
       }
     },
@@ -3132,6 +3205,10 @@
         "externalSourceSetting":{
           "shape":"ExternalSourceSetting",
           "documentation":"<p>Sets the type of external information used to create the slot type.</p>"
+        },
+        "compositeSlotTypeSetting":{
+          "shape":"CompositeSlotTypeSetting",
+          "documentation":"<p>Specifications for a composite slot type.</p>"
         }
       }
     },
@@ -3181,6 +3258,10 @@
         "externalSourceSetting":{
           "shape":"ExternalSourceSetting",
           "documentation":"<p>The type of external information used to create the slot type.</p>"
+        },
+        "compositeSlotTypeSetting":{
+          "shape":"CompositeSlotTypeSetting",
+          "documentation":"<p>Specifications for a composite slot type.</p>"
         }
       }
     },
@@ -3273,6 +3354,38 @@
         "Importing",
         "Creating"
       ]
+    },
+    "DTMFCharacter":{
+      "type":"string",
+      "pattern":"^[A-D0-9#*]{1}$"
+    },
+    "DTMFSpecification":{
+      "type":"structure",
+      "required":[
+        "maxLength",
+        "endTimeoutMs",
+        "deletionCharacter",
+        "endCharacter"
+      ],
+      "members":{
+        "maxLength":{
+          "shape":"MaxUtteranceDigits",
+          "documentation":"<p>The maximum number of DTMF digits allowed in an utterance.</p>"
+        },
+        "endTimeoutMs":{
+          "shape":"TimeInMilliSeconds",
+          "documentation":"<p>How long the bot should wait after the last DTMF character input before assuming that the input has concluded.</p>"
+        },
+        "deletionCharacter":{
+          "shape":"DTMFCharacter",
+          "documentation":"<p>The DTMF character that clears the accumulated DTMF digits and immediately ends the input.</p>"
+        },
+        "endCharacter":{
+          "shape":"DTMFCharacter",
+          "documentation":"<p>The DTMF character that immediately ends input. If the user does not press this character, the input ends after the end timeout.</p>"
+        }
+      },
+      "documentation":"<p>Specifies the DTMF input specifications.</p>"
     },
     "DataPrivacy":{
       "type":"structure",
@@ -4570,6 +4683,10 @@
         "multipleValuesSetting":{
           "shape":"MultipleValuesSetting",
           "documentation":"<p>Indicates whether the slot accepts multiple values in a single utterance.</p> <p>If the <code>multipleValuesSetting</code> is not set, the default value is <code>false</code>.</p>"
+        },
+        "subSlotSetting":{
+          "shape":"SubSlotSetting",
+          "documentation":"<p>Specifications for the constituent sub slots and the expression for the composite slot.</p>"
         }
       }
     },
@@ -4655,7 +4772,11 @@
           "shape":"Timestamp",
           "documentation":"<p>A timestamp of the date and time that the slot type was last updated.</p>"
         },
-        "externalSourceSetting":{"shape":"ExternalSourceSetting"}
+        "externalSourceSetting":{"shape":"ExternalSourceSetting"},
+        "compositeSlotTypeSetting":{
+          "shape":"CompositeSlotTypeSetting",
+          "documentation":"<p>Specifications for a composite slot type.</p>"
+        }
       }
     },
     "Description":{
@@ -6421,6 +6542,11 @@
       "max":1000,
       "min":1
     },
+    "MaxUtteranceDigits":{
+      "type":"integer",
+      "max":1024,
+      "min":1
+    },
     "MergeStrategy":{
       "type":"string",
       "enum":[
@@ -6726,6 +6852,46 @@
       "max":100,
       "min":0
     },
+    "PromptAttempt":{
+      "type":"string",
+      "documentation":"<p>The attempt name of attempts of a prompt.</p>",
+      "enum":[
+        "Initial",
+        "Retry1",
+        "Retry2",
+        "Retry3",
+        "Retry4",
+        "Retry5"
+      ]
+    },
+    "PromptAttemptSpecification":{
+      "type":"structure",
+      "required":["allowedInputTypes"],
+      "members":{
+        "allowInterrupt":{
+          "shape":"BoxedBoolean",
+          "documentation":"<p>Indicates whether the user can interrupt a speech prompt attempt from the bot.</p>"
+        },
+        "allowedInputTypes":{
+          "shape":"AllowedInputTypes",
+          "documentation":"<p>Indicates the allowed input types of the prompt attempt.</p>"
+        },
+        "audioAndDTMFInputSpecification":{
+          "shape":"AudioAndDTMFInputSpecification",
+          "documentation":"<p>Specifies the settings on audio and DTMF input.</p>"
+        },
+        "textInputSpecification":{
+          "shape":"TextInputSpecification",
+          "documentation":"<p>Specifies the settings on text input.</p>"
+        }
+      },
+      "documentation":"<p>Specifies the settings on a prompt attempt.</p>"
+    },
+    "PromptAttemptsSpecificationMap":{
+      "type":"map",
+      "key":{"shape":"PromptAttempt"},
+      "value":{"shape":"PromptAttemptSpecification"}
+    },
     "PromptMaxRetries":{
       "type":"integer",
       "max":5,
@@ -6753,6 +6919,10 @@
         "messageSelectionStrategy":{
           "shape":"MessageSelectionStrategy",
           "documentation":"<p>Indicates how a message is selected from a message group among retries.</p>"
+        },
+        "promptAttemptsSpecification":{
+          "shape":"PromptAttemptsSpecificationMap",
+          "documentation":"<p>Specifies the advanced settings on each attempt of the prompt.</p>"
         }
       },
       "documentation":"<p>Specifies a list of message groups that Amazon Lex sends to a user to elicit a response.</p>"
@@ -7302,7 +7472,8 @@
       "enum":[
         "Custom",
         "Extended",
-        "ExternalGrammar"
+        "ExternalGrammar",
+        "Composite"
       ]
     },
     "SlotTypeFilter":{
@@ -7474,7 +7645,7 @@
           "documentation":"<p>Specifies the settings that Amazon Lex uses when a slot value is successfully entered by a user.</p>"
         }
       },
-      "documentation":"<p>Settings that you can use for eliciting a slot value.</p>"
+      "documentation":"<p>Specifies the elicitation setting details for constituent sub slots of a composite slot.</p>"
     },
     "SlotValueOverride":{
       "type":"structure",
@@ -7514,7 +7685,8 @@
       "type":"string",
       "enum":[
         "OriginalValue",
-        "TopResolution"
+        "TopResolution",
+        "Concatenation"
       ]
     },
     "SlotValueSelectionSetting":{
@@ -7546,6 +7718,24 @@
         "Ascending",
         "Descending"
       ]
+    },
+    "Specifications":{
+      "type":"structure",
+      "required":[
+        "slotTypeId",
+        "valueElicitationSetting"
+      ],
+      "members":{
+        "slotTypeId":{
+          "shape":"BuiltInOrCustomSlotTypeId",
+          "documentation":"<p>The unique identifier assigned to the slot type.</p>"
+        },
+        "valueElicitationSetting":{
+          "shape":"SubSlotValueElicitationSetting",
+          "documentation":"<p>Specifies the elicitation setting details for constituent sub slots of a composite slot.</p>"
+        }
+      },
+      "documentation":"<p>Subslot specifications.</p>"
     },
     "StartBotRecommendationRequest":{
       "type":"structure",
@@ -7775,6 +7965,71 @@
       "key":{"shape":"NonEmptyString"},
       "value":{"shape":"String"}
     },
+    "SubSlotExpression":{
+      "type":"string",
+      "max":640,
+      "min":0,
+      "pattern":"[0-9A-Za-z_\\-\\s\\(\\)]+"
+    },
+    "SubSlotSetting":{
+      "type":"structure",
+      "members":{
+        "expression":{
+          "shape":"SubSlotExpression",
+          "documentation":"<p>The expression text for defining the constituent sub slots in the composite slot using logical AND and OR operators.</p>"
+        },
+        "slotSpecifications":{
+          "shape":"SubSlotSpecificationMap",
+          "documentation":"<p>Specifications for the constituent sub slots of a composite slot.</p>"
+        }
+      },
+      "documentation":"<p>Specifications for the constituent sub slots and the expression for the composite slot.</p>"
+    },
+    "SubSlotSpecificationMap":{
+      "type":"map",
+      "key":{"shape":"Name"},
+      "value":{"shape":"Specifications"},
+      "max":6,
+      "min":0
+    },
+    "SubSlotTypeComposition":{
+      "type":"structure",
+      "required":[
+        "name",
+        "slotTypeId"
+      ],
+      "members":{
+        "name":{
+          "shape":"Name",
+          "documentation":"<p>Name of a constituent sub slot inside a composite slot.</p>"
+        },
+        "slotTypeId":{
+          "shape":"BuiltInOrCustomSlotTypeId",
+          "documentation":"<p>The unique identifier assigned to a slot type. This refers to either a built-in slot type or the unique slotTypeId of a custom slot type.</p>"
+        }
+      },
+      "documentation":"<p>Subslot type composition.</p>"
+    },
+    "SubSlotTypeList":{
+      "type":"list",
+      "member":{"shape":"SubSlotTypeComposition"},
+      "max":6,
+      "min":0
+    },
+    "SubSlotValueElicitationSetting":{
+      "type":"structure",
+      "required":["promptSpecification"],
+      "members":{
+        "defaultValueSpecification":{"shape":"SlotDefaultValueSpecification"},
+        "promptSpecification":{"shape":"PromptSpecification"},
+        "sampleUtterances":{
+          "shape":"SampleUtterancesList",
+          "documentation":"<p>If you know a specific pattern that users might respond to an Amazon Lex request for a sub slot value, you can provide those utterances to improve accuracy. This is optional. In most cases Amazon Lex is capable of understanding user utterances. This is similar to <code>SampleUtterances</code> for slots.</p>"
+        },
+        "waitAndContinueSpecification":{"shape":"WaitAndContinueSpecification"}
+      },
+      "documentation":"<p>Subslot elicitation settings.</p> <p> <code>DefaultValueSpecification</code> is a list of default values for a constituent sub slot in a composite slot. Default values are used when Amazon Lex hasn't determined a value for a slot. You can specify default values from context variables, session attributes, and defined values. This is similar to <code>DefaultValueSpecification</code> for slots.</p> <p> <code>PromptSpecification</code> is the prompt that Amazon Lex uses to elicit the sub slot value from the user. This is similar to <code>PromptSpecification</code> for slots.</p>"
+    },
     "SynonymList":{
       "type":"list",
       "member":{"shape":"SampleValue"},
@@ -7827,6 +8082,17 @@
       "type":"string",
       "max":256,
       "min":0
+    },
+    "TextInputSpecification":{
+      "type":"structure",
+      "required":["startTimeoutMs"],
+      "members":{
+        "startTimeoutMs":{
+          "shape":"TimeInMilliSeconds",
+          "documentation":"<p>Time for which a bot waits before re-prompting a customer for text input.</p>"
+        }
+      },
+      "documentation":"<p>Specifies the text input specifications.</p>"
     },
     "TextLogDestination":{
       "type":"structure",
@@ -7881,6 +8147,10 @@
         "Days",
         "Weeks"
       ]
+    },
+    "TimeInMilliSeconds":{
+      "type":"integer",
+      "min":1
     },
     "TimeValue":{
       "type":"integer",
@@ -8604,6 +8874,10 @@
         "multipleValuesSetting":{
           "shape":"MultipleValuesSetting",
           "documentation":"<p>Determines whether the slot accepts multiple values in one response. Multiple value slots are only available in the en-US locale. If you set this value to <code>true</code> in any other locale, Amazon Lex throws a <code>ValidationException</code>.</p> <p>If the <code>multipleValuesSetting</code> is not set, the default value is <code>false</code>.</p>"
+        },
+        "subSlotSetting":{
+          "shape":"SubSlotSetting",
+          "documentation":"<p>Specifications for the constituent sub slots and the expression for the composite slot.</p>"
         }
       }
     },
@@ -8661,6 +8935,10 @@
         "multipleValuesSetting":{
           "shape":"MultipleValuesSetting",
           "documentation":"<p>Indicates whether the slot accepts multiple values in one response.</p>"
+        },
+        "subSlotSetting":{
+          "shape":"SubSlotSetting",
+          "documentation":"<p>Specifications for the constituent sub slots and the expression for the composite slot.</p>"
         }
       }
     },
@@ -8718,7 +8996,11 @@
           "location":"uri",
           "locationName":"localeId"
         },
-        "externalSourceSetting":{"shape":"ExternalSourceSetting"}
+        "externalSourceSetting":{"shape":"ExternalSourceSetting"},
+        "compositeSlotTypeSetting":{
+          "shape":"CompositeSlotTypeSetting",
+          "documentation":"<p>Specifications for a composite slot type.</p>"
+        }
       }
     },
     "UpdateSlotTypeResponse":{
@@ -8768,7 +9050,11 @@
           "shape":"Timestamp",
           "documentation":"<p>A timestamp of the date and time that the slot type was last updated.</p>"
         },
-        "externalSourceSetting":{"shape":"ExternalSourceSetting"}
+        "externalSourceSetting":{"shape":"ExternalSourceSetting"},
+        "compositeSlotTypeSetting":{
+          "shape":"CompositeSlotTypeSetting",
+          "documentation":"<p>Specifications for a composite slot type.</p>"
+        }
       }
     },
     "Utterance":{"type":"string"},

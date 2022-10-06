@@ -124,7 +124,7 @@ public class ChecksumCalculatingAsyncRequestBodyTest {
                 .algorithm(Algorithm.CRC32)
                 .trailerHeader("x-amz-checksum-crc32")
                 .build();
-        assertThat(requestBody.contentType()).isEqualTo(Mimetype.MIMETYPE_TEXT_PLAIN);
+        assertThat(requestBody.contentType()).startsWith(Mimetype.MIMETYPE_TEXT_PLAIN);
     }
 
     @Test

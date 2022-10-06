@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Adds support for automatically transforming a FIPS pesudo region (e.g. \"fips-us-west-2\"), into a standard region name + setting the `fips_enabled` flag to `true`."
+}

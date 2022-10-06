@@ -125,7 +125,7 @@ public class AwsRetryPolicyTest {
 
     private Consumer<RetryPolicyContext.Builder> applyErrorCode(String errorCode, Duration clockSkew, Instant dateHeader) {
         SdkHttpFullResponse response = SdkHttpFullResponse.builder()
-                                                          .putHeader("Date", DateUtils.formatRfc1123Date(dateHeader))
+                                                          .putHeader("Date", DateUtils.formatRfc822Date(dateHeader))
                                                           .build();
 
         AwsErrorDetails errorDetails = AwsErrorDetails.builder()

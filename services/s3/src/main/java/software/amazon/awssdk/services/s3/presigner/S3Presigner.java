@@ -299,10 +299,8 @@ public interface S3Presigner extends SdkPresigner {
     /**
      * Presign a {@link PutObjectRequest} so that it can be executed at a later time without requiring additional
      * signing or authentication.
-     * <p/>
-     *
+     * <p>
      * <b>Example Usage</b>
-     * <p/>
      *
      * <pre>
      * {@code
@@ -329,7 +327,7 @@ public interface S3Presigner extends SdkPresigner {
     /**
      * Presign a {@link PutObjectRequest} so that it can be executed at a later time without requiring additional
      * signing or authentication.
-     * <p />
+     * <p>
      * This is a shorter method of invoking {@link #presignPutObject(PutObjectPresignRequest)} without needing
      * to call {@code PutObjectPresignRequest.builder()} or {@code .build()}.
      *
@@ -344,10 +342,8 @@ public interface S3Presigner extends SdkPresigner {
     /**
      * Presign a {@link CreateMultipartUploadRequest} so that it can be executed at a later time without requiring additional
      * signing or authentication.
-     * <p/>
-     *
+     * <p>
      * <b>Example Usage</b>
-     * <p/>
      *
      * <pre>
      * {@code
@@ -374,7 +370,7 @@ public interface S3Presigner extends SdkPresigner {
     /**
      * Presign a {@link CreateMultipartUploadRequest} so that it can be executed at a later time without requiring additional
      * signing or authentication.
-     * <p />
+     * <p>
      * This is a shorter method of invoking {@link #presignCreateMultipartUpload(CreateMultipartUploadPresignRequest)} without
      * needing to call {@code CreateMultipartUploadPresignRequest.builder()} or {@code .build()}.
      *
@@ -390,10 +386,9 @@ public interface S3Presigner extends SdkPresigner {
     /**
      * Presign a {@link UploadPartRequest} so that it can be executed at a later time without requiring additional
      * signing or authentication.
-     * <p/>
+     * <p>
      *
      * <b>Example Usage</b>
-     * <p/>
      *
      * <pre>
      * {@code
@@ -420,7 +415,7 @@ public interface S3Presigner extends SdkPresigner {
     /**
      * Presign a {@link UploadPartRequest} so that it can be executed at a later time without requiring additional
      * signing or authentication.
-     * <p />
+     * <p>
      * This is a shorter method of invoking {@link #presignUploadPart(UploadPartPresignRequest)} without needing
      * to call {@code UploadPartPresignRequest.builder()} or {@code .build()}.
      *
@@ -435,10 +430,9 @@ public interface S3Presigner extends SdkPresigner {
     /**
      * Presign a {@link CompleteMultipartUploadRequest} so that it can be executed at a later time without requiring additional
      * signing or authentication.
-     * <p/>
+     * <p>
      *
      * <b>Example Usage</b>
-     * <p/>
      *
      * <pre>
      * {@code
@@ -465,7 +459,7 @@ public interface S3Presigner extends SdkPresigner {
     /**
      * Presign a {@link CompleteMultipartUploadRequest} so that it can be executed at a later time without requiring additional
      * signing or authentication.
-     * <p />
+     * <p>
      * This is a shorter method of invoking {@link #presignCompleteMultipartUpload(CompleteMultipartUploadPresignRequest)} without
      * needing to call {@code CompleteMultipartUploadPresignRequest.builder()} or {@code .build()}.
      *
@@ -481,10 +475,9 @@ public interface S3Presigner extends SdkPresigner {
     /**
      * Presign a {@link AbortMultipartUploadRequest} so that it can be executed at a later time without requiring additional
      * signing or authentication.
-     * <p/>
+     * <p>
      *
      * <b>Example Usage</b>
-     * <p/>
      *
      * <pre>
      * {@code
@@ -511,7 +504,7 @@ public interface S3Presigner extends SdkPresigner {
     /**
      * Presign a {@link AbortMultipartUploadRequest} so that it can be executed at a later time without requiring additional
      * signing or authentication.
-     * <p />
+     * <p>
      * This is a shorter method of invoking {@link #presignAbortMultipartUpload(AbortMultipartUploadPresignRequest)} without
      * needing to call {@code AbortMultipartUploadPresignRequest.builder()} or {@code .build()}.
      *
