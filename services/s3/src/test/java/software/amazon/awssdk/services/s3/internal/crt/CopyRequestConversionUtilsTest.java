@@ -22,6 +22,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -55,7 +56,13 @@ class CopyRequestConversionUtilsTest {
     void toHeadObject_shouldCopyProperties() {
         CopyObjectRequest randomCopyObject = randomCopyObjectRequest();
         HeadObjectRequest convertedToHeadObject = CopyRequestConversionUtils.toHeadObjectRequest(randomCopyObject);
-        Set<String> fieldsToIgnore = new HashSet<>(Arrays.asList("ExpectedBucketOwner", "RequestPayer", "RequestPayer", "Bucket", "Key"));
+        Set<String> fieldsToIgnore = new HashSet<>(Arrays.asList("ExpectedBucketOwner",
+                                                                 "RequestPayer",
+                                                                 "Bucket",
+                                                                 "Key",
+                                                                 "SSECustomerKeyMD5",
+                                                                 "SSECustomerKey",
+                                                                 "SSECustomerAlgorithm"));
         verifyFieldsAreCopied(randomCopyObject, convertedToHeadObject, fieldsToIgnore,
                               CopyObjectRequest.builder().sdkFields(),
                               HeadObjectRequest.builder().sdkFields());
@@ -78,7 +85,7 @@ class CopyRequestConversionUtilsTest {
     void toCreateMultipartUploadRequest_shouldCopyProperties() {
         CopyObjectRequest randomCopyObject = randomCopyObjectRequest();
         CreateMultipartUploadRequest convertedRequest = CopyRequestConversionUtils.toCreateMultipartUploadRequest(randomCopyObject);
-        Set<String> fieldsToIgnore = new HashSet<>(Arrays.asList());
+        Set<String> fieldsToIgnore = new HashSet<>();
         verifyFieldsAreCopied(randomCopyObject, convertedRequest, fieldsToIgnore,
                               CopyObjectRequest.builder().sdkFields(),
                               CreateMultipartUploadRequest.builder().sdkFields());
@@ -94,7 +101,7 @@ class CopyRequestConversionUtilsTest {
         CompleteMultipartUploadResponse result = responseBuilder.build();
 
         CopyObjectResponse convertedRequest = CopyRequestConversionUtils.toCopyObjectResponse(result);
-        Set<String> fieldsToIgnore = new HashSet<>(Arrays.asList());
+        Set<String> fieldsToIgnore = new HashSet<>();
         verifyFieldsAreCopied(result, convertedRequest, fieldsToIgnore,
                               CompleteMultipartUploadResponse.builder().sdkFields(),
                               CopyObjectResponse.builder().sdkFields());
@@ -108,7 +115,7 @@ class CopyRequestConversionUtilsTest {
         CopyObjectRequest randomCopyObject = randomCopyObjectRequest();
         AbortMultipartUploadRequest convertedRequest = CopyRequestConversionUtils.toAbortMultipartUploadRequest(randomCopyObject,
                                                                                                                 "id");
-        Set<String> fieldsToIgnore = new HashSet<>(Arrays.asList());
+        Set<String> fieldsToIgnore = new HashSet<>();
         verifyFieldsAreCopied(randomCopyObject, convertedRequest, fieldsToIgnore,
                               CopyObjectRequest.builder().sdkFields(),
                               AbortMultipartUploadRequest.builder().sdkFields());
@@ -121,7 +128,7 @@ class CopyRequestConversionUtilsTest {
         CopyObjectRequest randomCopyObject = randomCopyObjectRequest();
         UploadPartCopyRequest convertedObject = CopyRequestConversionUtils.toUploadPartCopyRequest(randomCopyObject, 1, "id",
                                                                                                          "bytes=0-1024");
-        Set<String> fieldsToIgnore = new HashSet<>(Arrays.asList("CopySource", "SSECustomerKeyMD5"));
+        Set<String> fieldsToIgnore = new HashSet<>(Collections.singletonList("CopySource"));
         verifyFieldsAreCopied(randomCopyObject, convertedObject, fieldsToIgnore,
                               CopyObjectRequest.builder().sdkFields(),
                               UploadPartCopyRequest.builder().sdkFields());

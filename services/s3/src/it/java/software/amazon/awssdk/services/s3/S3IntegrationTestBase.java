@@ -51,7 +51,7 @@ public class S3IntegrationTestBase extends AwsTestBase {
      */
     @BeforeClass
     public static void setUp() throws Exception {
-        Log.initLoggingToStdout(Log.LogLevel.Trace);
+        Log.initLoggingToStdout(Log.LogLevel.Warn);
         s3 = s3ClientBuilder().build();
         s3Async = s3AsyncClientBuilder().build();
     }
