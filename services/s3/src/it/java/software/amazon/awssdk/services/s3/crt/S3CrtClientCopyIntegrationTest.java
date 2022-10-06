@@ -16,12 +16,18 @@
 package software.amazon.awssdk.services.s3.crt;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Fail.fail;
+import static software.amazon.awssdk.services.s3.model.ServerSideEncryption.AES256;
 import static software.amazon.awssdk.services.s3.utils.ChecksumUtils.computeCheckSum;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.nio.ByteBuffer;
+import java.security.SecureRandom;
+import java.util.Base64;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
+import javax.crypto.KeyGenerator;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -33,6 +39,8 @@ import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
 import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.model.MetadataDirective;
+import software.amazon.awssdk.utils.Md5Utils;
 
 public class S3CrtClientCopyIntegrationTest extends S3IntegrationTestBase {
     private static final String BUCKET = temporaryBucketName(S3CrtClientCopyIntegrationTest.class);
@@ -81,6 +89,56 @@ public class S3CrtClientCopyIntegrationTest extends S3IntegrationTestBase {
         createOriginalObject(originalContent, ORIGINAL_OBJ_SPECIAL_CHARACTER);
         copyObject(ORIGINAL_OBJ_SPECIAL_CHARACTER, COPIED_OBJ_SPECIAL_CHARACTER);
         validateCopiedObject(originalContent, COPIED_OBJ_SPECIAL_CHARACTER);
+    }
+
+    @Test
+    void copy_ssecServerSideEncryption_shouldSucceed() {
+        byte[] originalContent = randomBytes(OBJ_SIZE);
+        byte[] secretKey = generateSecretKey();
+        String b64Key = Base64.getEncoder().encodeToString(secretKey);
+        String b64KeyMd5 = Md5Utils.md5AsBase64(secretKey);
+
+        byte[] newSecretKey = generateSecretKey();
+        String newB64Key = Base64.getEncoder().encodeToString(newSecretKey);
+        String newB64KeyMd5 = Md5Utils.md5AsBase64(newSecretKey);
+
+        // Java S3 client is used because CRT S3 client putObject fails with SSE-C
+        // TODO: change back to S3CrtClient once the issue is fixed in CRT
+        s3Async.putObject(r -> r.bucket(BUCKET)
+                                         .key(ORIGINAL_OBJ)
+                                         .sseCustomerKey(b64Key)
+                                         .sseCustomerAlgorithm(AES256.name())
+                                         .sseCustomerKeyMD5(b64KeyMd5),
+                                   AsyncRequestBody.fromBytes(originalContent)).join();
+
+        CompletableFuture<CopyObjectResponse> future = s3CrtAsyncClient.copyObject(c -> c
+            .sourceBucket(BUCKET)
+            .sourceKey(ORIGINAL_OBJ)
+            .metadataDirective(MetadataDirective.REPLACE)
+            .sseCustomerAlgorithm(AES256.name())
+            .sseCustomerKey(newB64Key)
+            .sseCustomerKeyMD5(newB64KeyMd5)
+            .copySourceSSECustomerAlgorithm(AES256.name())
+            .copySourceSSECustomerKey(b64Key)
+            .copySourceSSECustomerKeyMD5(b64KeyMd5)
+            .destinationBucket(BUCKET)
+            .destinationKey(COPIED_OBJ));
+
+        CopyObjectResponse copyObjectResponse = future.join();
+        assertThat(copyObjectResponse.responseMetadata().requestId()).isNotNull();
+        assertThat(copyObjectResponse.sdkHttpResponse()).isNotNull();
+    }
+
+    private static byte[] generateSecretKey() {
+        KeyGenerator generator;
+        try {
+            generator = KeyGenerator.getInstance("AES");
+            generator.init(256, new SecureRandom());
+            return generator.generateKey().getEncoded();
+        } catch (Exception e) {
+            fail("Unable to generate symmetric key: " + e.getMessage());
+            return null;
+        }
     }
 
     private void createOriginalObject(byte[] originalContent, String originalKey) {

@@ -44,10 +44,10 @@ public final class CopyRequestConversionUtils {
                                 .ifModifiedSince(copyObjectRequest.copySourceIfModifiedSince())
                                 .ifNoneMatch(copyObjectRequest.copySourceIfNoneMatch())
                                 .ifUnmodifiedSince(copyObjectRequest.copySourceIfUnmodifiedSince())
-                                .sseCustomerAlgorithm(copyObjectRequest.sseCustomerAlgorithm())
-                                .expectedBucketOwner(copyObjectRequest.expectedBucketOwner())
-                                .sseCustomerKey(copyObjectRequest.sseCustomerKey())
-                                .sseCustomerKeyMD5(copyObjectRequest.sseCustomerKeyMD5())
+                                .expectedBucketOwner(copyObjectRequest.expectedSourceBucketOwner())
+                                .sseCustomerAlgorithm(copyObjectRequest.copySourceSSECustomerAlgorithm())
+                                .sseCustomerKey(copyObjectRequest.copySourceSSECustomerKey())
+                                .sseCustomerKeyMD5(copyObjectRequest.copySourceSSECustomerKeyMD5())
                                 .build();
     }
 
@@ -154,13 +154,14 @@ public final class CopyRequestConversionUtils {
                                     .copySourceRange(range)
                                     .copySourceSSECustomerAlgorithm(copyObjectRequest.copySourceSSECustomerAlgorithm())
                                     .copySourceSSECustomerKeyMD5(copyObjectRequest.copySourceSSECustomerKeyMD5())
-                                    .copySourceIfModifiedSince(copyObjectRequest.copySourceIfModifiedSince())
                                     .copySourceSSECustomerKey(copyObjectRequest.copySourceSSECustomerKey())
+                                    .copySourceIfModifiedSince(copyObjectRequest.copySourceIfModifiedSince())
                                     .expectedBucketOwner(copyObjectRequest.expectedBucketOwner())
                                     .expectedSourceBucketOwner(copyObjectRequest.expectedSourceBucketOwner())
                                     .requestPayer(copyObjectRequest.requestPayerAsString())
                                     .sseCustomerKey(copyObjectRequest.sseCustomerKey())
                                     .sseCustomerAlgorithm(copyObjectRequest.sseCustomerAlgorithm())
+                                    .sseCustomerKeyMD5(copyObjectRequest.sseCustomerKeyMD5())
                                     .build();
     }
 
