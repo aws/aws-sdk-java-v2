@@ -41,7 +41,6 @@ import software.amazon.awssdk.transfer.s3.model.ResumableFileDownload;
 import software.amazon.awssdk.transfer.s3.model.ResumableFileUpload;
 import software.amazon.awssdk.transfer.s3.model.Upload;
 import software.amazon.awssdk.transfer.s3.model.UploadDirectoryRequest;
-import software.amazon.awssdk.transfer.s3.progress.LoggingTransferListener;
 
 /**
  * Contains code snippets that will be used in the Javadocs of {@link S3TransferManager}

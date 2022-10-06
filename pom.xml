@@ -232,11 +232,9 @@
                                 <doclint>none</doclint>
                                 <!-- Exclude service packages to accelerate build -->
                                 <excludePackageNames>software.amazon.awssdk.services.*:*.codegen</excludePackageNames>
-                                <additionalOptions>
-                                    <additionalOption>
-                                        --snippet-path=${basedir}/src/test/java
-                                    </additionalOption>
-                                </additionalOptions>
+                                <additionalJOption>
+                                    ${additionalJavadocOption}
+                                </additionalJOption>
                             </configuration>
                         </execution>
                     </executions>
@@ -716,6 +714,17 @@
         </profile>
 
         <profile>
+            <id>jdk-18-plus</id>
+            <activation>
+                <jdk>[18,)</jdk>
+            </activation>
+            <properties>
+                <!-- snippet-path only works with JDK 18+ -->
+                <additionalJavadocOption>--snippet-path=${basedir}/src/test/java</additionalJavadocOption>
+            </properties>
+        </profile>
+
+        <profile>
             <id>quick</id>
             <properties>
                 <checkstyle.skip>true</checkstyle.skip>
@@ -928,6 +937,9 @@
                             <nodeprecatedlist>true</nodeprecatedlist>
                             <additionalJOptions>
                                 <additionalJOption>--allow-script-in-comments</additionalJOption>
+                                <additionalJOption>
+                                    ${additionalJavadocOption}
+                                </additionalJOption>
                             </additionalJOptions>
                             <windowtitle>AWS SDK for Java - ${awsjavasdk.version}</windowtitle>
                             <encoding>UTF-8</encoding>
@@ -935,11 +947,6 @@
                             <doctitle>AWS SDK for Java API Reference - ${awsjavasdk.version}</doctitle>
                             <packagesheader>AWS SDK for Java</packagesheader>
                             <excludePackageNames>:*.codegen:software.amazon.awssdk.services.protocol*</excludePackageNames>
-                            <additionalOptions>
-                                <additionalOption>
-                                    --snippet-path=${basedir}/src/test/java
-                                </additionalOption>
-                            </additionalOptions>
                             <groups>
                                 <group>
                                     <title>Greengrass</title>

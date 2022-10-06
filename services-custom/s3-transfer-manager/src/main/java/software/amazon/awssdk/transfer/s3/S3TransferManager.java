@@ -59,10 +59,10 @@ import software.amazon.awssdk.utils.Validate;
  * small parts from a single object. The Transfer Manager is built on top of the Java bindings of the AWS Common Runtime S3 client
  * and leverages Amazon S3 multipart upload and byte-range fetches for parallel transfers.
  *
- * <h1>Instantiate a Transfer Manager</h1>
- * <b>Create a transfer manager with SDK default settings</b>
+ * <h1>Instantiate Transfer Manager</h1>
+ * <b>Create a transfer manager instance with SDK default settings</b>
  * {@snippet class = software.amazon.awssdk.transfer.s3.samples.S3TransferManagerSamples region = defaultTM}
- * <b>Create a transfer manager with custom settings</b>
+ * <b>Create a transfer manager instance with custom settings</b>
  * {@snippet class = software.amazon.awssdk.transfer.s3.samples.S3TransferManagerSamples region = customTM}
  * <h1>Common Usage Patterns</h1>
  * <b>Upload a file to S3</b>
