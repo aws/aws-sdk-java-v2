@@ -55,6 +55,8 @@ import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Pair;
+import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * An SDK-internal implementation of the methods in {@link AwsClientBuilder}, {@link AwsAsyncClientBuilder} and
@@ -80,6 +82,9 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
     implements AwsClientBuilder<BuilderT, ClientT> {
     private static final Logger log = Logger.loggerFor(AwsClientBuilder.class);
     private static final String DEFAULT_ENDPOINT_PROTOCOL = "https";
+    private static final String[] FIPS_SEARCH = {"fips-", "-fips"};
+    private static final String[] FIPS_REPLACE = {"", ""};
+
     private final AutoDefaultsModeDiscovery autoDefaultsModeDiscovery;
 
     protected AwsDefaultClientBuilder() {
@@ -374,7 +379,17 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
 
     @Override
     public final BuilderT region(Region region) {
-        clientConfiguration.option(AwsClientOption.AWS_REGION, region);
+        Region regionToSet = region;
+        Boolean fipsEnabled = null;
+
+        if (region != null) {
+            Pair<Region, Optional<Boolean>> transformedRegion = transformFipsPseudoRegionIfNecessary(region);
+            regionToSet = transformedRegion.left();
+            fipsEnabled = transformedRegion.right().orElse(null);
+        }
+
+        clientConfiguration.option(AwsClientOption.AWS_REGION, regionToSet);
+        clientConfiguration.option(AwsClientOption.FIPS_ENDPOINT_ENABLED, fipsEnabled);
         return thisBuilder();
     }
 
@@ -432,5 +447,21 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
 
     public final void setDefaultsMode(DefaultsMode defaultsMode) {
         defaultsMode(defaultsMode);
+    }
+
+    /**
+     * If the region is a FIPS pseudo region (contains "fips"), this method returns a pair of values, the left side being the
+     * region with the "fips" string removed, and the right being {@code true}. Otherwise, the region is returned
+     * unchanged, and the right will be empty.
+     */
+    private static Pair<Region, Optional<Boolean>> transformFipsPseudoRegionIfNecessary(Region region) {
+        String id = region.id();
+        String newId = StringUtils.replaceEach(id, FIPS_SEARCH, FIPS_REPLACE);
+        if (!newId.equals(id)) {
+            log.info(() -> String.format("Replacing input region %s with %s and setting fipsEnabled to true", id, newId));
+            return Pair.of(Region.of(newId), Optional.of(true));
+        }
+
+        return Pair.of(region, Optional.empty());
     }
 }
