@@ -232,6 +232,11 @@
                                 <doclint>none</doclint>
                                 <!-- Exclude service packages to accelerate build -->
                                 <excludePackageNames>software.amazon.awssdk.services.*:*.codegen</excludePackageNames>
+                                <additionalOptions>
+                                    <additionalOption>
+                                        --snippet-path=${basedir}/src/test/java
+                                    </additionalOption>
+                                </additionalOptions>
                             </configuration>
                         </execution>
                     </executions>
@@ -930,6 +935,11 @@
                             <doctitle>AWS SDK for Java API Reference - ${awsjavasdk.version}</doctitle>
                             <packagesheader>AWS SDK for Java</packagesheader>
                             <excludePackageNames>:*.codegen:software.amazon.awssdk.services.protocol*</excludePackageNames>
+                            <additionalOptions>
+                                <additionalOption>
+                                    --snippet-path=${basedir}/src/test/java
+                                </additionalOption>
+                            </additionalOptions>
                             <groups>
                                 <group>
                                     <title>Greengrass</title>

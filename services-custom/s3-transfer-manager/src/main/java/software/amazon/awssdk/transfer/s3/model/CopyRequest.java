@@ -142,7 +142,7 @@ public final class CopyRequest
          *
          * @param copyRequestBuilder the copyRequest consumer builder
          * @return Returns a reference to this object so that method calls can be chained together.
-         * @see #copyRequest(CopyRequest)
+         * @see #copyObjectRequest(CopyObjectRequest) 
          */
         default Builder copyObjectRequest(Consumer<CopyObjectRequest.Builder> copyRequestBuilder) {
             return copyObjectRequest(CopyObjectRequest.builder()

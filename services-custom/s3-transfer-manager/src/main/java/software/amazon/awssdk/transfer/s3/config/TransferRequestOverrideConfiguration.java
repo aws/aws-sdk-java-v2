@@ -99,9 +99,7 @@ public final class TransferRequestOverrideConfiguration
          * transferListeners that have already been set. Add an optional request override configuration.
          *
          * @param transferListeners     the collection of transferListeners
-         * @param configuration The override configuration.
          * @return Returns a reference to this object so that method calls can be chained together.
-         * @return This builder for method chaining.
          * @see TransferListener
          */
         Builder transferListeners(Collection<TransferListener> transferListeners);
