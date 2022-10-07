@@ -44,6 +44,8 @@ import software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder;
 import software.amazon.awssdk.services.s3.internal.DelegatingS3AsyncClient;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.utils.CollectionUtils;
 
 @SdkInternalApi
@@ -203,13 +205,20 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                        .put(HTTP_CHECKSUM, executionAttributes.getAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM))
                        .build();
 
-            // TODO: is there a better way to disable SDK flexible checksum implementation
-            // Clear HTTP_CHECKSUM and RESOLVED_CHECKSUM_SPECS to disable SDK flexible checksum implementation.
-            executionAttributes.putAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM, null);
-            executionAttributes.putAttribute(SdkInternalExecutionAttribute.RESOLVED_CHECKSUM_SPECS, null);
+            // For putObject and getObject, we rely on CRT to perform checksum validation
+            disableChecksumForPutAndGet(context, executionAttributes);
 
             executionAttributes.putAttribute(SDK_HTTP_EXECUTION_ATTRIBUTES,
                                              attributes);
+        }
+
+        private static void disableChecksumForPutAndGet(Context.AfterMarshalling context, ExecutionAttributes executionAttributes) {
+            if (context.request() instanceof PutObjectRequest || context.request() instanceof GetObjectRequest) {
+                // TODO: is there a better way to disable SDK flexible checksum implementation
+                // Clear HTTP_CHECKSUM and RESOLVED_CHECKSUM_SPECS to disable SDK flexible checksum implementation.
+                executionAttributes.putAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM, null);
+                executionAttributes.putAttribute(SdkInternalExecutionAttribute.RESOLVED_CHECKSUM_SPECS, null);
+            }
         }
     }
 
