@@ -21,8 +21,8 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * Configuration that defines health checks for for all connections established by
- * the{@link ConnectionHealthChecksConfiguration}.
+ * Configuration that defines health checks for all connections established by
+ * the {@link ConnectionHealthChecksConfiguration}.
  *
  * <b>NOTE:</b> This is a Preview API and is subject to change so it should not be used in production.
  */
