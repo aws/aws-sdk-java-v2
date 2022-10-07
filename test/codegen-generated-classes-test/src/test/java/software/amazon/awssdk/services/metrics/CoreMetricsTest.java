@@ -24,6 +24,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.net.URI;
 import java.time.Duration;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -48,6 +49,7 @@ import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricPublisher;
+import software.amazon.awssdk.metrics.SdkMetric;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
 import software.amazon.awssdk.services.protocolrestjson.model.EmptyModeledException;
@@ -181,6 +183,8 @@ public class CoreMetricsTest {
         assertThat(capturedCollection.metricValues(CoreMetric.MARSHALLING_DURATION).get(0))
             .isGreaterThanOrEqualTo(Duration.ZERO);
         assertThat(capturedCollection.metricValues(CoreMetric.RETRY_COUNT)).containsExactly(0);
+        assertThat(capturedCollection.metricValues(CoreMetric.SERVICE_ENDPOINT).get(0)).isEqualTo(URI.create(
+            "https://customresponsemetadata.us-west-2.amazonaws.com"));
 
         assertThat(capturedCollection.children()).hasSize(1);
         MetricCollection attemptCollection = capturedCollection.children().get(0);

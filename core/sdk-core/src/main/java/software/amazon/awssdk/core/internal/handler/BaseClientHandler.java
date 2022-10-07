@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.internal.handler;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.function.BiFunction;
@@ -76,6 +77,13 @@ public abstract class BaseClientHandler {
         SdkHttpFullRequest request = measuredMarshall.left();
 
         request = modifyEndpointHostIfNeeded(request, clientConfiguration, executionParams);
+
+        try {
+            URI endpoint = new URI(request.protocol(), request.host(), null, null);
+            executionContext.metricCollector().reportMetric(CoreMetric.SERVICE_ENDPOINT, endpoint);
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException(e);
+        }
 
         addHttpRequest(executionContext, request);
         runAfterMarshallingInterceptors(executionContext);

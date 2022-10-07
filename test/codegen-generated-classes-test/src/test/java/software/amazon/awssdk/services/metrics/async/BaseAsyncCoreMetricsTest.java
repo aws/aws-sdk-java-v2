@@ -25,6 +25,7 @@ import static org.mockito.Mockito.verify;
 
 import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
+import java.net.URI;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
@@ -206,6 +207,8 @@ public abstract class BaseAsyncCoreMetricsTest {
             .isGreaterThanOrEqualTo(Duration.ZERO);
         assertThat(capturedCollection.metricValues(CoreMetric.API_CALL_DURATION).get(0))
             .isGreaterThan(FIXED_DELAY);
+        assertThat(capturedCollection.metricValues(CoreMetric.SERVICE_ENDPOINT).get(0))
+            .isEqualTo(URI.create("http://localhost"));
     }
 
     void stubSuccessfulResponse() {
