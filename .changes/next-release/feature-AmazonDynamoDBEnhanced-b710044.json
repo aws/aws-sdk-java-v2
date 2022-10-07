@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon DynamoDB Enhanced",
+    "contributor": "",
+    "description": "Treat @java.beans.Transient as @DynamoDbIgnore in BeanTableSchema and ImmutableTableSchema."
+}
