@@ -47,6 +47,8 @@ values used are also completely arbitrary.
    static final TableSchema<Customer> CUSTOMER_TABLE_SCHEMA = TableSchema.fromClass(Customer.class);
    ```
    
+   ##### [Alternative way to create a TableSchema](#create_table_schema_alt)
+   
    If you would prefer to skip the slightly costly bean inference for a faster solution, you can instead declare your 
    schema directly and let the compiler do the heavy lifting. If you do it this way, your class does not need to follow
    bean naming standards nor does it need to be annotated. This example is equivalent to the bean example : 
