@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS IoT Greengrass V2",
+    "contributor": "",
+    "description": "This release adds error status details for deployments and components that failed on a device and adds features to improve visibility into component installation."
+}
