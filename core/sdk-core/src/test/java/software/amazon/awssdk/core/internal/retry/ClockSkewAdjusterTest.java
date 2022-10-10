@@ -47,7 +47,7 @@ public class ClockSkewAdjusterTest {
 
     private SdkHttpFullResponse responseWithDateOffset(int value, ChronoUnit unit) {
         return SdkHttpFullResponse.builder()
-                                  .putHeader("Date", DateUtils.formatRfc1123Date(Instant.now().plus(value, unit)))
+                                  .putHeader("Date", DateUtils.formatRfc822Date(Instant.now().plus(value, unit)))
                                   .build();
     }
 

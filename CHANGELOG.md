@@ -1,3 +1,230 @@
+# __2.17.290__ __2022-10-07__
+## __AWS IoT Greengrass V2__
+  - ### Features
+    - This release adds error status details for deployments and components that failed on a device and adds features to improve visibility into component installation.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add the ability to configure connection timeout, and enabling keep-alive with interval/timeout settings on the AwsCrtAsyncHttpClient to support long-running connections
+        - Contributed by: [@nikp](https://github.com/nikp)
+    - Updated service endpoint metadata.
+
+## __Amazon CodeGuru Reviewer__
+  - ### Features
+    - Documentation update to replace broken link.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Amazon QuickSight now supports SecretsManager Secret ARN in place of CredentialPair for DataSource creation and update. This release also has some minor documentation updates and removes CountryCode as a required parameter in GeoSpatialColumnGroup
+
+## __Elastic Load Balancing__
+  - ### Features
+    - Gateway Load Balancer adds a new feature (target_failover) for customers to rebalance existing flows to a healthy target after marked unhealthy or deregistered. This allows graceful patching/upgrades of target appliances during maintenance windows, and helps reduce unhealthy target failover time.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@nikp](https://github.com/nikp)
+# __2.17.289__ __2022-10-06__
+## __AWS Resilience Hub__
+  - ### Features
+    - Documentation change for AWS Resilience Hub. Doc-only update to fix Documentation layout
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Adds support for automatically transforming a FIPS pesudo region (e.g. "fips-us-west-2"), into a standard region name + setting the `fips_enabled` flag to `true`.
+
+# __2.17.288__ __2022-10-05__
+## __AWS Glue__
+  - ### Features
+    - This SDK release adds support to sync glue jobs with source control provider. Additionally, a new parameter called SourceControlDetails will be added to Job model.
+
+## __AWS Network Firewall__
+  - ### Features
+    - StreamExceptionPolicy configures how AWS Network Firewall processes traffic when a network connection breaks midstream
+
+## __AWS Outposts__
+  - ### Features
+    - This release adds the Asset state information to the ListAssets response. The ListAssets request supports filtering on Asset state.
+
+# __2.17.287__ __2022-10-04__
+## __AWS S3 Control__
+  - ### Features
+    - S3 Object Lambda adds support to allow customers to intercept HeadObject and ListObjects requests and introduce their own compute. These requests were previously proxied to S3.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Build headers with two-digit day of month to meet RFC 822 reporting requirement
+        - Contributed by: [@dave-fn](https://github.com/dave-fn)
+
+## __Amazon Connect Cases__
+  - ### Features
+    - This release adds APIs for Amazon Connect Cases. Cases allows your agents to quickly track and manage customer issues that require multiple interactions, follow-up tasks, and teams in your contact center. For more information, see https://docs.aws.amazon.com/cases/latest/APIReference/Welcome.html
+
+## __Amazon Connect Service__
+  - ### Features
+    - Updated the CreateIntegrationAssociation API to support the CASES_DOMAIN IntegrationType.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Documentation updates to address various Amazon ECS tickets.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Added EnableNetworkAddressUsageMetrics flag for ModifyVpcAttribute, DescribeVpcAttribute APIs.
+
+## __Amazon WorkMail__
+  - ### Features
+    - This release adds support for impersonation roles in Amazon WorkMail.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@dave-fn](https://github.com/dave-fn)
+# __2.17.286__ __2022-10-03__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Access Analyzer__
+  - ### Features
+    - AWS IAM Access Analyzer policy validation introduces new checks for role trust policies. As customers author a policy, IAM Access Analyzer policy validation evaluates the policy for any issues to make it easier for customers to author secure policies.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adding an imdsSupport attribute to EC2 AMIs
+
+## __Amazon Import/Export Snowball__
+  - ### Features
+    - Adds support for V3_5C. This is a refreshed AWS Snowball Edge Compute Optimized device type with 28TB SSD, 104 vCPU and 416GB memory (customer usable).
+
+# __2.17.285__ __2022-09-30__
+## __AWS CodeDeploy__
+  - ### Features
+    - This release allows you to override the alarm configurations when creating a deployment.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS SSO OIDC__
+  - ### Features
+    - Documentation updates for the IAM Identity Center OIDC CLI Reference.
+
+## __Amazon Data Lifecycle Manager__
+  - ### Features
+    - This release adds support for archival of single-volume snapshots created by Amazon Data Lifecycle Manager policies
+
+## __Amazon DevOps Guru__
+  - ### Features
+    - This release adds filter feature on AddNotificationChannel API, enable customer to configure the SNS notification messages by Severity or MessageTypes
+
+## __Amazon SageMaker Runtime__
+  - ### Features
+    - A new parameter called EnableExplanations is added to InvokeEndpoint API to enable on-demand SageMaker Clarify online explainability requests.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - A new parameter called ExplainerConfig is added to CreateEndpointConfig API to enable SageMaker Clarify online explainability feature.
+
+# __2.17.284__ __2022-09-29__
+## __AWS Certificate Manager__
+  - ### Features
+    - This update returns additional certificate details such as certificate SANs and allows sorting in the ListCertificates API.
+
+## __AWS Migration Hub Orchestrator__
+  - ### Features
+    - Introducing AWS MigrationHubOrchestrator. This is the first public release of AWS MigrationHubOrchestrator.
+
+## __AWS Proton__
+  - ### Features
+    - This release adds an option to delete pipeline provisioning repositories using the UpdateAccountSettings API
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Provide the ability to set a custom socket factory when building an HTTP client
+        - Contributed by: [@dave-fn](https://github.com/dave-fn)
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Update RequestBody/AsyncRequestBody.fromString(String, Charset) to use the provided charset in the content-type.
+
+## __AWS Secrets Manager__
+  - ### Features
+    - Documentation updates for Secrets Manager
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - u-3tb1 instances are powered by Intel Xeon Platinum 8176M (Skylake) processors and are purpose-built to run large in-memory databases.
+
+## __Amazon FSx__
+  - ### Features
+    - This release adds support for Amazon File Cache.
+
+## __Amazon Polly__
+  - ### Features
+    - Added support for the new Cantonese voice - Hiujin. Hiujin is available as a Neural voice only.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - SageMaker Training Managed Warm Pools let you retain provisioned infrastructure to reduce latency for repetitive training workloads.
+
+## __Amazon Translate__
+  - ### Features
+    - This release enables customers to access control rights on Translate resources like Parallel Data and Custom Terminology using Tag Based Authorization.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - This release includes diagnostic log uploading feature. If it is enabled, the log files of WorkSpaces Windows client will be sent to Amazon WorkSpaces automatically for troubleshooting. You can use modifyClientProperty api to enable/disable this feature.
+
+## __EMR Serverless__
+  - ### Features
+    - This release adds API support to debug Amazon EMR Serverless jobs in real-time with live application UIs
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@dave-fn](https://github.com/dave-fn)
+# __2.17.283__ __2022-09-27__
+## __AWS Cost Explorer Service__
+  - ### Features
+    - This release is to support retroactive Cost Categories. The new field will enable you to retroactively apply new and existing cost category rules to previous months.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - My AWS Service (placeholder) - Amazon Kendra now provides a data source connector for DropBox. For more information, see https://docs.aws.amazon.com/kendra/latest/dg/data-source-dropbox.html
+
+## __Amazon Location Service__
+  - ### Features
+    - This release adds place IDs, which are unique identifiers of places, along with a new GetPlace operation, which can be used with place IDs to find a place again later. UnitNumber and UnitType are also added as new properties of places.
+
+# __2.17.282__ __2022-09-26__
+## __AWS Cost and Usage Report Service__
+  - ### Features
+    - This release adds two new support regions(me-central-1/eu-south-2) for OSG.
+
+## __AWS IoT FleetWise__
+  - ### Features
+    - General availability (GA) for AWS IoT Fleetwise. It adds AWS IoT Fleetwise to AWS SDK. For more information, see https://docs.aws.amazon.com/iot-fleetwise/latest/APIReference/Welcome.html.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - This release includes support for applying a CloudWatch alarm to Systems Manager capabilities like Automation, Run Command, State Manager, and Maintenance Windows.
+
 # __2.17.281__ __2022-09-23__
 ## __AWS App Runner__
   - ### Features
