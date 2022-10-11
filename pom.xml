@@ -700,11 +700,12 @@
         </profile>
 
         <profile>
-            <id>jdk-13-plus</id>
+            <id>jdk-11-plus</id>
             <activation>
-                <jdk>[13,)</jdk>
+                <jdk>[11,)</jdk>
             </activation>
             <properties>
+                <maven.compiler.release>8</maven.compiler.release>
                 <!-- Blockhound doesn't support Java 13+ without flags: https://github.com/reactor/BlockHound/issues/33 -->
                 <argLine>-XX:+AllowRedefinitionToAddDeleteMethods</argLine>
             </properties>
