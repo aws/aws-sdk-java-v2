@@ -706,6 +706,15 @@
             </activation>
             <properties>
                 <maven.compiler.release>8</maven.compiler.release>
+            </properties>
+        </profile>
+      
+        <profile>
+            <id>jdk-13-plus</id>
+            <activation>
+                <jdk>[13,)</jdk>
+            </activation>
+            <properties>
                 <!-- Blockhound doesn't support Java 13+ without flags: https://github.com/reactor/BlockHound/issues/33 -->
                 <argLine>-XX:+AllowRedefinitionToAddDeleteMethods</argLine>
             </properties>
