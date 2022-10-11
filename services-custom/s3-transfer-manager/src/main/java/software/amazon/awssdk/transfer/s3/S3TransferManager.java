@@ -54,58 +54,27 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * The S3 Transfer Manager is a library that allows users to easily and
- * optimally upload and downloads to and from S3.
+ * The S3 Transfer Manager is a library that allows users to easily perform accelerated uploads and downloads of objects to and
+ * from Amazon S3 and benefit from enhanced throughput and reliability, which is achieved through concurrent transfers of a set of
+ * small parts from a single object. The Transfer Manager is built on top of the Java bindings of the AWS Common Runtime S3 client
+ * and leverages Amazon S3 multipart upload and byte-range fetches for parallel transfers.
  *
- * <b>Usage Example:</b>
- *
- * <pre>
- * {@code
- * // Create using all default configuration values
- * S3TransferManager tm = S3TransferManager.create();
- *
- * // If you wish to configure settings, we recommend using the builder instead
- * S3TransferManager tm =
- *     S3TransferManager.builder()
- *                      .s3AsyncClient(S3CrtAsyncClient.builder()
- *                                                     .credentialsProvider(credentialProvider)
- *                                                     .region(Region.US_WEST_2)
- *                                                     .targetThroughputInGbps(20.0)
- *                                                     .minimumPartSizeInBytes(8 * MB))
- *                      .build();
- *
- * // Upload a file to S3
- * FileUpload upload =
- *     tm.uploadFile(u -> u.source(Paths.get("myFile.txt"))
- *                         .putObjectRequest(p -> p.bucket("bucket").key("key")));
- * upload.completionFuture().join();
- *
- * // Download an S3 object to a file
- * FileDownload download =
- *     tm.downloadFile(d -> d.getObjectRequest(g -> g.bucket("bucket").key("key"))
- *                           .destination(Paths.get("myFile.txt")));
- * download.completionFuture().join();
- * 
- * // Upload any content to S3
- * Upload upload =
- *     tm.upload(u -> u.requestBody(AsyncRequestBody.fromString("Hello world"))
- *                     .putObjectRequest(p -> p.bucket("bucket").key("key")));
- * upload.completionFuture().join();
- * 
- * // Download an S3 object to a custom destination
- * Download<ResponseBytes<GetObjectResponse>> download =
- *     tm.download(d -> d.getObjectRequest(g -> g.bucket("bucket").key("key"))
- *                       .responseTransformer(AsyncResponseTransformer.toBytes()));
- * download.completionFuture().join();
- * 
- * // Attach a TransferListener
- * FileUpload upload =
- *     tm.uploadFile(u -> u.source(Paths.get("myFile.txt"))
- *                         .putObjectRequest(p -> p.bucket("bucket").key("key"))
- *                         .addTransferListener(LoggingTransferListener.create()));
- * upload.completionFuture().join();
- * }
- * </pre>
+ * <h1>Instantiate Transfer Manager</h1>
+ * <b>Create a transfer manager instance with SDK default settings</b>
+ * {@snippet class = software.amazon.awssdk.transfer.s3.samples.S3TransferManagerSamples region = defaultTM}
+ * <b>Create a transfer manager instance with custom settings</b>
+ * {@snippet class = software.amazon.awssdk.transfer.s3.samples.S3TransferManagerSamples region = customTM}
+ * <h1>Common Usage Patterns</h1>
+ * <b>Upload a file to S3</b>
+ * {@snippet class = software.amazon.awssdk.transfer.s3.samples.S3TransferManagerSamples region = uploadFile}
+ * <b>Download an S3 object to a local file</b>
+ * {@snippet class = software.amazon.awssdk.transfer.s3.samples.S3TransferManagerSamples region = downloadFile}
+ * <b>Upload a local directory to an S3 bucket</b>
+ * {@snippet class = software.amazon.awssdk.transfer.s3.samples.S3TransferManagerSamples region = uploadDirectory}
+ * <b>Download S3 objects to a local directory</b>
+ * {@snippet class = software.amazon.awssdk.transfer.s3.samples.S3TransferManagerSamples region = downloadDirectory}
+ * <b>Copy an S3 object to a different location in S3</b>
+ * {@snippet class = software.amazon.awssdk.transfer.s3.samples.S3TransferManagerSamples region = copy}
  */
 @SdkPublicApi
 @SdkPreviewApi
@@ -119,16 +88,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
      *  event of an error, the SDK will NOT attempt to delete the file, leaving it as-is.
      * <p>
      * <b>Usage Example:</b>
-     * <pre>
-     * {@code
-     * // Initiate the transfer
-     * FileDownload download =
-     *     tm.downloadFile(d -> d.getObjectRequest(g -> g.bucket("bucket").key("key"))
-     *                           .destination(Paths.get("myFile.txt")));
-     * // Wait for the transfer to complete
-     * download.completionFuture().join();
-     * }
-     * </pre>
+     * {@snippet class=software.amazon.awssdk.transfer.s3.samples.S3TransferManagerSamples region=downloadFile }
      *
      * @see #downloadFile(Consumer)
      * @see #download(DownloadRequest)
@@ -155,27 +115,8 @@ public interface S3TransferManager extends SdkAutoCloseable {
      *
      * <p>
      * <b>Usage Example:</b>
-     * <pre>
-     * {@code
-     * // Initiate the transfer
-     * FileDownload download =
-     *     tm.downloadFile(d -> d.getObjectRequest(g -> g.bucket("bucket").key("key"))
-     *                           .destination(Paths.get("myFile.txt")));
-     *
-     * // Pause the download
-     * ResumableFileDownload resumableFileDownload = download.pause();
-     *
-     * //Optionally, persist the download object
-     * resumableFileDownload.writeToFile(file);
-     * ResumableFileDownload resumableFileDownload2 = ResumableFileDownload.fromFile(file);
-     *
-     * // Resume the download
-     * FileDownload resumedDownload = tm.resumeDownloadFile(resumableFileDownload2);
-     *
-     * // Wait for the transfer to complete
-     * resumedDownload.completionFuture().join();
+     * {@snippet class=software.amazon.awssdk.transfer.s3.samples.S3TransferManagerSamples region=resumeDownloadFile }
      * }
-     * </pre>
      *
      * @param resumableFileDownload the download to resume.
      * @return A new {@code FileDownload} object to use to check the state of the download.
@@ -201,16 +142,8 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * downloading to a file, you may use {@link #downloadFile(DownloadFileRequest)} instead.
      * <p>
      * <b>Usage Example (this example buffers the entire object in memory and is not suitable for large objects):</b>
-     * <pre>
-     * {@code
-     * // Initiate the transfer
-     * Download<ResponseBytes<GetObjectResponse>> download =
-     *     tm.download(d -> d.getObjectRequest(g -> g.bucket("bucket").key("key"))
-     *                       .responseTransformer(AsyncResponseTransformer.toBytes()));
-     * // Wait for the transfer to complete
-     * download.completionFuture().join();
-     * }
-     * </pre>
+     * {@snippet class=software.amazon.awssdk.transfer.s3.samples.S3TransferManagerSamples region=download }
+     *
      * See the static factory methods available in {@link AsyncResponseTransformer} for other use cases.
      *
      * @param downloadRequest the download request, containing a {@link GetObjectRequest} and {@link AsyncResponseTransformer}
@@ -238,16 +171,8 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * Upload a local file to an object in S3. For non-file-based uploads, you may use {@link #upload(UploadRequest)} instead.
      * <p>
      * <b>Usage Example:</b>
-     * <pre>
-     * {@code
-     * FileUpload upload =
-     *     tm.uploadFile(u -> u.source(Paths.get("myFile.txt"))
-     *                         .putObjectRequest(p -> p.bucket("bucket").key("key")));
-     * // Wait for the transfer to complete
-     * upload.completionFuture().join();
-     * }
-     * </pre>
-     * 
+     * {@snippet class=software.amazon.awssdk.transfer.s3.samples.S3TransferManagerSamples region=uploadFile }
+     *
      * @see #uploadFile(Consumer) 
      * @see #upload(UploadRequest) 
      */
@@ -273,28 +198,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
      *
      * <p>
      * <b>Usage Example:</b>
-     * <pre>
-     * {@code
-     * // Initiate the transfer
-     * FileUpload upload =
-     *     tm.uploadFile(d -> d.putObjectRequest(g -> g.bucket("bucket").key("key"))
-     *                           .source(Paths.get("myFile.txt")));
-     *
-     * // Pause the download
-     * ResumableFileUpload resumableFileUpload = upload.pause();
-     *
-     * //Optionally, persist the download object
-     * resumableFileUpload.writeToFile(file);
-     *
-     * ResumableFileUpload persistedResumableFileUpload = ResumableFileUpload.fromFile(file);
-     *
-     * // Resume the download
-     * FileUpload resumedUpload = tm.resumeUploadFile(persistedResumableFileUpload);
-     *
-     * // Wait for the transfer to complete
-     * resumedUpload.completionFuture().join();
-     * }
-     * </pre>
+     * {@snippet class=software.amazon.awssdk.transfer.s3.samples.S3TransferManagerSamples region=resumeUploadFile }
      *
      * @param resumableFileUpload the upload to resume.
      * @return A new {@code FileUpload} object to use to check the state of the download.
@@ -320,15 +224,8 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * {@link #uploadFile(UploadFileRequest)} instead.
      * <p>
      * <b>Usage Example:</b>
-     * <pre>
-     * {@code
-     * Upload upload =
-     *     tm.upload(u -> u.requestBody(AsyncRequestBody.fromString("Hello world"))
-     *                     .putObjectRequest(p -> p.bucket("bucket").key("key")));
-     * // Wait for the transfer to complete
-     * upload.completionFuture().join();
-     * }
-     * </pre>
+     * {@snippet class=software.amazon.awssdk.transfer.s3.samples.S3TransferManagerSamples region=upload }
+     *
      * See the static factory methods available in {@link AsyncRequestBody} for other use cases.
      *
      * @param uploadRequest the upload request, containing a {@link PutObjectRequest} and {@link AsyncRequestBody}
@@ -396,22 +293,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
      *
      * <p>
      * <b>Usage Example:</b>
-     * <pre>
-     * {@code
-     * DirectoryUpload directoryUpload =
-     *       transferManager.uploadDirectory(UploadDirectoryRequest.builder()
-     *                                                             .sourceDirectory(Paths.get("."))
-     *                                                             .bucket("bucket")
-     *                                                             .prefix("prefix")
-     *                                                             .build());
-     * // Wait for the transfer to complete
-     * CompletedDirectoryUpload completedDirectoryUpload = directoryUpload.completionFuture().join();
-     *
-     * // Print out the failed uploads
-     * completedDirectoryUpload.failedTransfers().forEach(System.out::println);
-     *
-     * }
-     * </pre>
+     * {@snippet class=software.amazon.awssdk.transfer.s3.samples.S3TransferManagerSamples region=uploadDirectory }
      *
      * @param uploadDirectoryRequest the upload directory request
      * @see #uploadDirectory(Consumer)
@@ -477,22 +359,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
      *
      * <p>
      * <b>Usage Example:</b>
-     * <pre>
-     * {@code
-     * DirectoryDownload directoryDownload =
-     *       transferManager.downloadDirectory(DownloadDirectoryRequest.builder()
-     *                                                                 .destination(Paths.get("."))
-     *                                                                 .bucket("bucket")
-     *                                                                 .prefix("prefix")
-     *                                                                 .build());
-     * // Wait for the transfer to complete
-     * CompletedDirectoryDownload completedDirectoryDownload = directoryDownload.completionFuture().join();
-     *
-     * // Print out the failed downloads
-     * completedDirectoryDownload.failedTransfers().forEach(System.out::println);
-     *
-     * }
-     * </pre>
+     * {@snippet class=software.amazon.awssdk.transfer.s3.samples.S3TransferManagerSamples region=downloadDirectory }
      *
      * @param downloadDirectoryRequest the download directory request
      * @see #downloadDirectory(Consumer)
@@ -528,18 +395,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * describing the outcome.
      * <p>
      * <b>Usage Example:</b>
-     * <pre>
-     * {@code
-     * Copy copy = tm.copy(c -> c
-     *     .copyObjectRequest(r -> r
-     *         .sourceBucket(BUCKET)
-     *         .sourceKey(ORIGINAL_OBJ)
-     *         .destinationBucket(BUCKET)
-     *         .destinationKey(COPIED_OBJ)));
-     * // Wait for the transfer to complete
-     * CompletedCopy completedCopy = copy.completionFuture().join();
-     * }
-     * </pre>
+     * {@snippet class=software.amazon.awssdk.transfer.s3.samples.S3TransferManagerSamples region=copy }
      *
      * @param copyRequest the copy request, containing a {@link CopyObjectRequest}
      * @return A {@link Copy} that can be used to track the ongoing transfer
