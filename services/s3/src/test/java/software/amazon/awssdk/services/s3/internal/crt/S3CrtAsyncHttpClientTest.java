@@ -142,7 +142,7 @@ public class S3CrtAsyncHttpClientTest {
     }
 
     @Test
-    public void nonStreamingOperation_checksumAlgoProvided_shouldHonor() {
+    public void nonStreamingOperation_checksumAlgoProvided_shouldNotPassToCrt() {
         HttpChecksum httpChecksum = HttpChecksum.builder()
                                                 .isRequestStreaming(false)
                                                 .requestAlgorithm("SHA1")
@@ -155,7 +155,7 @@ public class S3CrtAsyncHttpClientTest {
                                                                             .build();
 
         S3MetaRequestOptions actual = makeRequest(asyncExecuteRequest);
-        assertThat(actual.getChecksumAlgorithm()).isEqualTo(ChecksumAlgorithm.SHA1);
+        assertThat(actual.getChecksumAlgorithm()).isNull();
     }
 
     @Test
@@ -255,22 +255,6 @@ public class S3CrtAsyncHttpClientTest {
 
         S3MetaRequestOptions actual = makeRequest(asyncExecuteRequest);
         assertThat(actual.getValidateChecksum()).isTrue();
-    }
-
-    @Test
-    public void operationWithoutResponseAlgorithms_shouldNotValidate() {
-        HttpChecksum httpChecksum = HttpChecksum.builder()
-                                                .build();
-
-        AsyncExecuteRequest asyncExecuteRequest = getExecuteRequestBuilder().putHttpExecutionAttribute(OPERATION_NAME,
-                                                                                                       "GetObject")
-
-                                                                            .putHttpExecutionAttribute(HTTP_CHECKSUM,
-                                                                                                       httpChecksum)
-                                                                            .build();
-
-        S3MetaRequestOptions actual = makeRequest(asyncExecuteRequest);
-        assertThat(actual.getValidateChecksum()).isFalse();
     }
 
     private S3MetaRequestOptions makeRequest(AsyncExecuteRequest asyncExecuteRequest) {

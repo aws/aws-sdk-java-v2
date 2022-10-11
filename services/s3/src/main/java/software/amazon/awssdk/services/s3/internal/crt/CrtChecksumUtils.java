@@ -19,8 +19,6 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.crt.s3.ChecksumAlgorithm;
 import software.amazon.awssdk.crt.s3.S3MetaRequestOptions;
-import software.amazon.awssdk.utils.CollectionUtils;
-import software.amazon.awssdk.utils.StringUtils;
 
 @SdkInternalApi
 public final class CrtChecksumUtils {

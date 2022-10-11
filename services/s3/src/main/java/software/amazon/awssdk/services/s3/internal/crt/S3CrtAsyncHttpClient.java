@@ -43,7 +43,6 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.utils.AttributeMap;
-import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Logger;
 
 /**
@@ -91,9 +90,11 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         S3MetaRequestOptions.MetaRequestType requestType = requestType(asyncRequest);
 
         HttpChecksum httpChecksum = asyncRequest.httpExecutionAttributes().getAttribute(HTTP_CHECKSUM);
-        ChecksumAlgorithm checksumAlgorithm = crtChecksumAlgorithm(httpChecksum, requestType, s3NativeClientConfiguration.checksumValidationEnabled());
+        ChecksumAlgorithm checksumAlgorithm =
+            crtChecksumAlgorithm(httpChecksum, requestType, s3NativeClientConfiguration.checksumValidationEnabled());
 
-        boolean validateChecksum = validateResponseChecksum(httpChecksum, requestType,  s3NativeClientConfiguration.checksumValidationEnabled());
+        boolean validateChecksum =
+            validateResponseChecksum(httpChecksum, requestType,  s3NativeClientConfiguration.checksumValidationEnabled());
         String resumeToken = asyncRequest.httpExecutionAttributes().getAttribute(CRT_PAUSE_RESUME_TOKEN);
 
         S3MetaRequestOptions requestOptions = new S3MetaRequestOptions()

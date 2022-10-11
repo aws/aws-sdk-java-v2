@@ -212,7 +212,8 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                                              attributes);
         }
 
-        private static void disableChecksumForPutAndGet(Context.AfterMarshalling context, ExecutionAttributes executionAttributes) {
+        private static void disableChecksumForPutAndGet(Context.AfterMarshalling context,
+                                                        ExecutionAttributes executionAttributes) {
             if (context.request() instanceof PutObjectRequest || context.request() instanceof GetObjectRequest) {
                 // TODO: is there a better way to disable SDK flexible checksum implementation
                 // Clear HTTP_CHECKSUM and RESOLVED_CHECKSUM_SPECS to disable SDK flexible checksum implementation.
