@@ -184,7 +184,7 @@ public class StringAttributeConvertersTest {
     public void localeAttributeConverterBehaves() {
         LocaleAttributeConverter converter = LocaleAttributeConverter.create();
 
-        assertThat(transformFrom(converter, Locale.US).s()).isEqualTo(Locale.US);
+        assertThat(transformFrom(converter, Locale.US).s()).isEqualTo("en-US");
 
         assertThat(transformTo(converter, fromString("en-US"))).isEqualTo(Locale.US);
     }    
