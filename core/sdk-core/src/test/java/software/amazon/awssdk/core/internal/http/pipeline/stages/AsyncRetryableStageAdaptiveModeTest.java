@@ -192,6 +192,21 @@ public class AsyncRetryableStageAdaptiveModeTest {
         verify(tokenBucket, never()).updateClientSendingRate(false);
     }
 
+    @Test
+    public void execute_errorShouldNotBeWrapped() throws Exception {
+        RetryPolicy retryPolicy = RetryPolicy.builder(RetryMode.ADAPTIVE)
+                                             .numRetries(0)
+                                             .build();
+
+        mockChildResponse(new OutOfMemoryError());
+        retryableStage = createStage(retryPolicy);
+
+        SdkHttpFullRequest httpRequest = createHttpRequest();
+        RequestExecutionContext executionContext = createExecutionContext();
+        assertThatThrownBy(() -> retryableStage.execute(httpRequest, executionContext).join())
+            .hasCauseInstanceOf(Error.class);
+    }
+
 
     @Test
     public void execute_unsuccessfulResponse_nonThrottlingError_doesNotUpdateRate() throws Exception {
@@ -295,6 +310,11 @@ public class AsyncRetryableStageAdaptiveModeTest {
     }
 
     private void mockChildResponse(Exception error) throws Exception {
+        CompletableFuture<Response<Object>> errorResult = CompletableFutureUtils.failedFuture(error);
+        when(mockChildPipeline.execute(any(SdkHttpFullRequest.class), any(RequestExecutionContext.class))).thenReturn(errorResult);
+    }
+
+    private void mockChildResponse(Error error) throws Exception {
         CompletableFuture<Response<Object>> errorResult = CompletableFutureUtils.failedFuture(error);
         when(mockChildPipeline.execute(any(SdkHttpFullRequest.class), any(RequestExecutionContext.class))).thenReturn(errorResult);
     }

@@ -1,0 +1,24 @@
+{
+    "version": "2.17.289",
+    "date": "2022-10-06",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Adds support for automatically transforming a FIPS pesudo region (e.g. \"fips-us-west-2\"), into a standard region name + setting the `fips_enabled` flag to `true`."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Resilience Hub",
+            "contributor": "",
+            "description": "Documentation change for AWS Resilience Hub. Doc-only update to fix Documentation layout"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}

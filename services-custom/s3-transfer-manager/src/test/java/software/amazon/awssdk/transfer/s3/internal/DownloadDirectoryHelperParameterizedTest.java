@@ -103,6 +103,53 @@ public class DownloadDirectoryHelperParameterizedTest {
         verifyDestinationPathForSingleDownload(jimfs, "/", keys, actualRequests);
     }
 
+    /**
+     * The S3 bucket has the following keys:
+     * abc/def/image.jpg
+     * abc/def/title.jpg
+     * abc/def/ghi/xyz.txt
+     *
+     * if the prefix is "abc/def/", the structure should like this:
+     * image.jpg
+     * title.jpg
+     * ghi
+     *  - xyz.txt
+     */
+    @ParameterizedTest
+    @MethodSource("fileSystems")
+    void downloadDirectory_withPrefix_shouldStripPrefixInDestinationPath(FileSystem jimfs) {
+        directory = jimfs.getPath("test");
+        String[] keys = {"abc/def/image.jpg", "abc/def/title.jpg", "abc/def/ghi/xyz.txt"};
+        stubSuccessfulListObjects(listObjectsHelper, keys);
+        ArgumentCaptor<DownloadFileRequest> requestArgumentCaptor = ArgumentCaptor.forClass(DownloadFileRequest.class);
+
+        when(singleDownloadFunction.apply(requestArgumentCaptor.capture()))
+            .thenReturn(completedDownload());
+        DirectoryDownload downloadDirectory =
+            downloadDirectoryHelper.downloadDirectory(DownloadDirectoryRequest.builder()
+                                                                              .destinationDirectory(directory)
+                                                                              .bucket("bucket")
+                                                                              .prefix("abc/def/")
+                                                                              .build());
+        CompletedDirectoryDownload completedDirectoryDownload = downloadDirectory.completionFuture().join();
+        assertThat(completedDirectoryDownload.failedTransfers()).isEmpty();
+
+        List<DownloadFileRequest> actualRequests = requestArgumentCaptor.getAllValues();
+
+        assertThat(actualRequests.size()).isEqualTo(keys.length);
+
+        List<String> destinations =
+            actualRequests.stream().map(u -> u.destination().toString())
+                          .collect(Collectors.toList());
+
+        String jimfsSeparator = jimfs.getSeparator();
+
+        List<String> expectedPaths =
+            Arrays.asList("image.jpg", "title.jpg", "ghi/xyz.txt").stream()
+                  .map(k -> DIRECTORY_NAME + jimfsSeparator + k.replace("/",jimfsSeparator)).collect(Collectors.toList());
+        assertThat(destinations).isEqualTo(expectedPaths);
+    }
+
     @ParameterizedTest
     @MethodSource("fileSystems")
     void downloadDirectory_withDelimiter_shouldHonor(FileSystem jimfs) {

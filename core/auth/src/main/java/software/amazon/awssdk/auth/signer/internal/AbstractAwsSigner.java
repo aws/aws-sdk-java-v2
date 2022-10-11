@@ -238,7 +238,13 @@ public abstract class AbstractAwsSigner implements Signer {
          * encoding in addition to sorted parameter names.
          */
         httpRequest.forEachRawQueryParameter((key, values) -> {
+            if (StringUtils.isEmpty(key)) {
+                // Do not sign empty keys.
+                return;
+            }
+
             String encodedParamName = SdkHttpUtils.urlEncode(key);
+
             List<String> encodedValues = new ArrayList<>(values.size());
             for (String value : values) {
                 String encodedValue = SdkHttpUtils.urlEncode(value);

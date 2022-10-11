@@ -20,6 +20,7 @@ import java.time.Duration;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
@@ -27,6 +28,7 @@ import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -37,10 +39,12 @@ import software.amazon.awssdk.core.internal.InternalCoreExecutionAttribute;
 import software.amazon.awssdk.core.internal.io.SdkLengthAwareInputStream;
 import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
+import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.StringUtils;
@@ -220,6 +224,21 @@ public abstract class BaseClientHandler {
 
     protected boolean isCalculateCrc32FromCompressedData() {
         return clientConfiguration.option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED);
+    }
+
+    protected void validateSigningConfiguration(SdkHttpRequest request, Signer signer) {
+        if (signer == null) {
+            return;
+        }
+
+        if (signer.credentialType() != CredentialType.TOKEN) {
+            return;
+        }
+
+        URI endpoint = request.getUri();
+        if (!"https".equals(endpoint.getScheme())) {
+            throw SdkClientException.create("Cannot use bearer token signer with a plaintext HTTP endpoint: " + endpoint);
+        }
     }
 
     /**

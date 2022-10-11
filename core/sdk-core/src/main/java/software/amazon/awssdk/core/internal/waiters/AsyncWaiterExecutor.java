@@ -104,10 +104,21 @@ public final class AsyncWaiterExecutor<T> {
                             future.completeExceptionally(new UnsupportedOperationException());
                     }
                 } else {
-                    future.completeExceptionally(executorHelper.noneMatchException(responseOrException));
+                    Optional<Throwable> t = responseOrException.right();
+                    if (t.isPresent() && t.get() instanceof Error) {
+                        future.completeExceptionally(t.get());
+                    } else {
+                        future.completeExceptionally(executorHelper.noneMatchException(responseOrException));
+                    }
                 }
             } catch (Throwable t) {
-                future.completeExceptionally(SdkClientException.create("Encountered unexpected exception.", t));
+                Throwable cause = t instanceof CompletionException ? t.getCause() : t;
+
+                if (cause instanceof Error) {
+                    future.completeExceptionally(cause);
+                } else {
+                    future.completeExceptionally(SdkClientException.create("Encountered unexpected exception.", cause));
+                }
             }
         });
     }

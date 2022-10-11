@@ -1,0 +1,36 @@
+{
+    "version": "2.17.277",
+    "date": "2022-09-19",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS CloudTrail",
+            "contributor": "",
+            "description": "This release includes support for importing existing trails into CloudTrail Lake."
+        },
+        {
+            "type": "feature",
+            "category": "AWS MediaConnect",
+            "contributor": "",
+            "description": "This change allows the customer to use the SRT Caller protocol as part of their flows"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "This release adds CapacityAllocations field to DescribeCapacityReservations"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "This release adds support for Amazon RDS Proxy with SQL Server compatibility."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}

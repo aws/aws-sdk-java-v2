@@ -2410,16 +2410,21 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
         /**
          * Sets the value of the ListOfStructs property for this object.
          *
-         * This is a convenience method that creates an instance of the {@link List<SimpleStruct>.Builder} avoiding the
-         * need to create one manually via {@link List<SimpleStruct>#builder()}.
+         * This is a convenience method that creates an instance of the
+         * {@link software.amazon.awssdk.services.jsonprotocoltests.model.SimpleStruct.Builder} avoiding the need to
+         * create one manually via
+         * {@link software.amazon.awssdk.services.jsonprotocoltests.model.SimpleStruct#builder()}.
          *
-         * When the {@link Consumer} completes, {@link List<SimpleStruct>.Builder#build()} is called immediately and its
-         * result is passed to {@link #listOfStructs(List<SimpleStruct>)}.
+         * <p>
+         * When the {@link Consumer} completes,
+         * {@link software.amazon.awssdk.services.jsonprotocoltests.model.SimpleStruct.Builder#build()} is called
+         * immediately and its result is passed to {@link #listOfStructs(List<SimpleStruct>)}.
          *
          * @param listOfStructs
-         *        a consumer that will call methods on {@link List<SimpleStruct>.Builder}
+         *        a consumer that will call methods on
+         *        {@link software.amazon.awssdk.services.jsonprotocoltests.model.SimpleStruct.Builder}
          * @return Returns a reference to this object so that method calls can be chained together.
-         * @see #listOfStructs(List<SimpleStruct>)
+         * @see #listOfStructs(java.util.Collection<SimpleStruct>)
          */
         Builder listOfStructs(Consumer<SimpleStruct.Builder>... listOfStructs);
 
@@ -2618,6 +2623,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
          * This is a convenience method that creates an instance of the {@link StructWithTimestamp.Builder} avoiding the
          * need to create one manually via {@link StructWithTimestamp#builder()}.
          *
+         * <p>
          * When the {@link Consumer} completes, {@link StructWithTimestamp.Builder#build()} is called immediately and
          * its result is passed to {@link #structWithNestedTimestampMember(StructWithTimestamp)}.
          *
@@ -2655,6 +2661,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
          * This is a convenience method that creates an instance of the {@link StructWithNestedBlobType.Builder}
          * avoiding the need to create one manually via {@link StructWithNestedBlobType#builder()}.
          *
+         * <p>
          * When the {@link Consumer} completes, {@link StructWithNestedBlobType.Builder#build()} is called immediately
          * and its result is passed to {@link #structWithNestedBlob(StructWithNestedBlobType)}.
          *
@@ -2709,6 +2716,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
          * This is a convenience method that creates an instance of the {@link RecursiveStructType.Builder} avoiding the
          * need to create one manually via {@link RecursiveStructType#builder()}.
          *
+         * <p>
          * When the {@link Consumer} completes, {@link RecursiveStructType.Builder#build()} is called immediately and
          * its result is passed to {@link #recursiveStruct(RecursiveStructType)}.
          *
@@ -2736,6 +2744,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
          * This is a convenience method that creates an instance of the {@link BaseType.Builder} avoiding the need to
          * create one manually via {@link BaseType#builder()}.
          *
+         * <p>
          * When the {@link Consumer} completes, {@link BaseType.Builder#build()} is called immediately and its result is
          * passed to {@link #polymorphicTypeWithSubTypes(BaseType)}.
          *
@@ -2763,6 +2772,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
          * This is a convenience method that creates an instance of the {@link SubTypeOne.Builder} avoiding the need to
          * create one manually via {@link SubTypeOne#builder()}.
          *
+         * <p>
          * When the {@link Consumer} completes, {@link SubTypeOne.Builder#build()} is called immediately and its result
          * is passed to {@link #polymorphicTypeWithoutSubTypes(SubTypeOne)}.
          *
@@ -2812,6 +2822,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
          * This is a convenience method that creates an instance of the {@link Underscore_Name_Type.Builder} avoiding
          * the need to create one manually via {@link Underscore_Name_Type#builder()}.
          *
+         * <p>
          * When the {@link Consumer} completes, {@link Underscore_Name_Type.Builder#build()} is called immediately and
          * its result is passed to {@link #underscore_Name_Type(Underscore_Name_Type)}.
          *
@@ -2848,6 +2859,7 @@ public final class AllTypesUnionStructure implements SdkPojo, Serializable,
          * This is a convenience method that creates an instance of the {@link AllTypesUnionStructure.Builder} avoiding
          * the need to create one manually via {@link AllTypesUnionStructure#builder()}.
          *
+         * <p>
          * When the {@link Consumer} completes, {@link AllTypesUnionStructure.Builder#build()} is called immediately and
          * its result is passed to {@link #allTypesUnionStructure(AllTypesUnionStructure)}.
          *

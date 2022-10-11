@@ -114,7 +114,19 @@ public class AsyncRequestBodyTest {
     @Test
     public void stringConstructorHasCorrectContentType() {
         AsyncRequestBody requestBody = AsyncRequestBody.fromString("hello world");
-        assertThat(requestBody.contentType()).isEqualTo(Mimetype.MIMETYPE_TEXT_PLAIN);
+        assertThat(requestBody.contentType()).isEqualTo("text/plain; charset=UTF-8");
+    }
+
+    @Test
+    public void stringWithEncoding1ConstructorHasCorrectContentType() {
+        AsyncRequestBody requestBody = AsyncRequestBody.fromString("hello world", StandardCharsets.ISO_8859_1);
+        assertThat(requestBody.contentType()).isEqualTo("text/plain; charset=ISO-8859-1");
+    }
+
+    @Test
+    public void stringWithEncoding2ConstructorHasCorrectContentType() {
+        AsyncRequestBody requestBody = AsyncRequestBody.fromString("hello world", StandardCharsets.UTF_16BE);
+        assertThat(requestBody.contentType()).isEqualTo("text/plain; charset=UTF-16BE");
     }
 
     @Test

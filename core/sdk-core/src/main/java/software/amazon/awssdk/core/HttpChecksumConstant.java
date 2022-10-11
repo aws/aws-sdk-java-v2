@@ -39,6 +39,11 @@ public final class HttpChecksumConstant {
 
     public static final String HEADER_FOR_TRAILER_REFERENCE = "x-amz-trailer";
 
+    /**
+     * Default chunk size for Async trailer based checksum data transfer*
+     */
+    public static final int DEFAULT_ASYNC_CHUNK_SIZE = 16 * 1024;
+
     private HttpChecksumConstant() {
     }
 }
