@@ -55,7 +55,6 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
 
     @BeforeAll
     public static void setup() throws Exception {
-        S3IntegrationTestBase.setUp();
         createBucket(BUCKET);
         sourceFile = new RandomTempFile(OBJ_SIZE);
         s3.putObject(PutObjectRequest.builder()
@@ -68,7 +67,6 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
     public static void cleanup() {
         deleteBucketAndAllContents(BUCKET);
         sourceFile.delete();
-        S3IntegrationTestBase.cleanUp();
     }
 
     @Test

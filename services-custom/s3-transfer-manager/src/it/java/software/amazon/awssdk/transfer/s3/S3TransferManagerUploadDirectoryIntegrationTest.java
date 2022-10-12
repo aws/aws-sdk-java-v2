@@ -64,7 +64,6 @@ public class S3TransferManagerUploadDirectoryIntegrationTest extends S3Integrati
 
     @BeforeAll
     public static void setUp() throws Exception {
-        S3IntegrationTestBase.setUp();
         createBucket(TEST_BUCKET);
         randomString = RandomStringUtils.random(100);
         directory = createLocalTestDirectory();
@@ -83,7 +82,6 @@ public class S3TransferManagerUploadDirectoryIntegrationTest extends S3Integrati
         } catch (Exception exception) {
             log.warn(() -> "Failed to delete s3 bucket " + TEST_BUCKET, exception);
         }
-        S3IntegrationTestBase.cleanUp();
     }
 
     @Test

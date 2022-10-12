@@ -30,8 +30,6 @@ import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
-import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.testutils.RandomTempFile;
@@ -52,7 +50,6 @@ public class S3TransferManagerUploadIntegrationTest extends S3IntegrationTestBas
 
     @BeforeAll
     public static void setUp() throws Exception {
-        S3IntegrationTestBase.setUp();
         createBucket(TEST_BUCKET);
 
         testFile = new RandomTempFile(TEST_KEY, OBJ_SIZE);
@@ -62,7 +59,6 @@ public class S3TransferManagerUploadIntegrationTest extends S3IntegrationTestBas
     public static void teardown() throws IOException {
         Files.delete(testFile.toPath());
         deleteBucketAndAllContents(TEST_BUCKET);
-        S3IntegrationTestBase.cleanUp();
     }
 
    @Test

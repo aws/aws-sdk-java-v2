@@ -54,7 +54,6 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
 
     @BeforeAll
     public static void setUp() throws Exception {
-        S3IntegrationTestBase.setUp();
         createBucket(TEST_BUCKET);
         createBucket(TEST_BUCKET_CUSTOM_DELIMITER);
         sourceDirectory = createLocalTestDirectory();
@@ -98,7 +97,6 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
         }
 
         closeQuietly(tm, log.logger());
-        S3IntegrationTestBase.cleanUp();
     }
 
     /**

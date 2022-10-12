@@ -54,7 +54,6 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
 
     @BeforeAll
     public static void setup() throws Exception {
-        S3IntegrationTestBase.setUp();
         createBucket(BUCKET);
         largeFile = new RandomTempFile(OBJ_SIZE);
         smallFile = new RandomTempFile(2 * MB);
@@ -65,7 +64,6 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
         deleteBucketAndAllContents(BUCKET);
         largeFile.delete();
         smallFile.delete();
-        S3IntegrationTestBase.cleanUp();
     }
 
     @Test
