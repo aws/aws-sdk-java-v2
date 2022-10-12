@@ -43,7 +43,7 @@ import software.amazon.awssdk.testutils.service.AwsTestBase;
 public class ChecksumIntegrationTest extends S3IntegrationTestBase {
     private static final String TEST_BUCKET = temporaryBucketName(ChecksumIntegrationTest.class);
     private static final String TEST_KEY = "10mib_file.dat";
-    private static final int OBJ_SIZE = 1024 * 1024;
+    private static final int OBJ_SIZE = 10 * 1024 * 1024;
 
     private static RandomTempFile testFile;
     private static S3AsyncClient s3Crt;
@@ -70,37 +70,33 @@ public class ChecksumIntegrationTest extends S3IntegrationTestBase {
     }
 
     @Test
-    public void noChecksumCustomization_crc32ShouldBeUsed() {
+    void noChecksumCustomization_crc32ShouldBeUsed() {
         AsyncRequestBody body = AsyncRequestBody.fromFile(testFile.toPath());
         PutObjectResponse putObjectResponse =
             s3Crt.putObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY), body).join();
-        String putObjectChecksum = putObjectResponse.checksumCRC32();
-        assertThat(putObjectChecksum).isNotNull();
+        assertThat(putObjectResponse).isNotNull();
 
         ResponseBytes<GetObjectResponse> getObjectResponseResponseBytes =
-            s3Crt.getObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY), AsyncResponseTransformer.toBytes()).join();
+            s3Crt.getObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY).partNumber(1), AsyncResponseTransformer.toBytes()).join();
         String getObjectChecksum = getObjectResponseResponseBytes.response().checksumCRC32();
         assertThat(getObjectChecksum).isNotNull();
-        assertThat(putObjectChecksum).isEqualTo(getObjectChecksum);
     }
 
     @Test
-    public void checksumProvidedInRequest_shouldTakePrecendence() {
+    void putObject_checksumProvidedInRequest_shouldTakePrecendence() {
         AsyncRequestBody body = AsyncRequestBody.fromFile(testFile.toPath());
         PutObjectResponse putObjectResponse =
             s3Crt.putObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY).checksumAlgorithm(ChecksumAlgorithm.SHA1), body).join();
-        String putObjectChecksum = putObjectResponse.checksumSHA1();
-        assertThat(putObjectChecksum).isNotNull();
+        assertThat(putObjectResponse).isNotNull();
 
         ResponseBytes<GetObjectResponse> getObjectResponseResponseBytes =
-            s3Crt.getObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY), AsyncResponseTransformer.toBytes()).join();
+            s3Crt.getObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY).partNumber(1), AsyncResponseTransformer.toBytes()).join();
         String getObjectChecksum = getObjectResponseResponseBytes.response().checksumSHA1();
         assertThat(getObjectChecksum).isNotNull();
-        assertThat(putObjectChecksum).isEqualTo(getObjectChecksum);
     }
 
     @Test
-    public void checksumDisabled_shouldNotPerformChecksumValidation() {
+    void checksumDisabled_shouldNotPerformChecksumValidationByDefault() {
 
         try (S3AsyncClient s3Crt = S3CrtAsyncClient.builder()
                                                       .credentialsProvider(AwsTestBase.CREDENTIALS_PROVIDER_CHAIN)
@@ -119,16 +115,16 @@ public class ChecksumIntegrationTest extends S3IntegrationTestBase {
     }
 
     @Test
-    @Disabled("Disabled for now due to crt bug")
-    public void checksumRequiredOperation_shouldWork() {
+    void nonStreamingOperation_specifyChecksum_shouldWork() {
+        s3Crt.putObject(p -> p.bucket(TEST_BUCKET).key(TEST_KEY), AsyncRequestBody.fromString("helloworld")).join();
 
         // checksum is required for this operation
         PutObjectTaggingResponse putBucketAclResponse =
             s3Crt.putObjectTagging(p -> p.bucket(TEST_BUCKET).key(TEST_KEY)
+                                         .checksumAlgorithm(ChecksumAlgorithm.SHA1)
                                          .tagging(Tagging.builder().tagSet(Tag.builder().key("test").
-                                                                              value("value").build()).build())
-                                         .checksumAlgorithm(ChecksumAlgorithm.SHA1)).join();
+                                                                              value("value").build()).build()))
+                 .join();
         assertThat(putBucketAclResponse).isNotNull();
     }
-
 }

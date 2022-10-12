@@ -124,7 +124,7 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
      * {@link S3AsyncClient#getObject(GetObjectRequest, Path)}
      * and {@link S3AsyncClient#putObject(PutObjectRequest, Path)}
      *
-     * <p> //TODO: update algorithm once determined
+     * <p>
      * Checksum validation using CRC32 is enabled by default.
      *
      */
