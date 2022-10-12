@@ -62,7 +62,7 @@ public class S3IntegrationTestBase extends AwsTestBase {
      * client for tests to use.
      */
     @BeforeAll
-    public static void setUp() throws Exception {
+    public static void setUpForAllIntegTests() throws Exception {
         Log.initLoggingToStdout(Log.LogLevel.Warn);
         System.setProperty("aws.crt.debugnative", "true");
         s3 = s3ClientBuilder().build();
@@ -77,7 +77,7 @@ public class S3IntegrationTestBase extends AwsTestBase {
     }
 
     @AfterAll
-    public static void cleanUp() {
+    public static void cleanUpForAllIntegTests() {
         s3.close();
         s3Async.close();
         s3CrtAsync.close();

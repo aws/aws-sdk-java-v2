@@ -42,15 +42,12 @@ public class S3TransferManagerCopyIntegrationTest extends S3IntegrationTestBase 
 
     @BeforeAll
     public static void setUp() throws Exception {
-        S3IntegrationTestBase.setUp();
         createBucket(BUCKET);
     }
 
     @AfterAll
     public static void teardown() throws Exception {
-        tm.close();
         deleteBucketAndAllContents(BUCKET);
-        S3IntegrationTestBase.cleanUp();
     }
 
     @Test

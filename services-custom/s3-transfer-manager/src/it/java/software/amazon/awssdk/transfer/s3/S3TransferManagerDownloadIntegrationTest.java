@@ -32,7 +32,6 @@ import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.ResponsePublisher;
-import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.testutils.RandomTempFile;
@@ -64,7 +63,6 @@ public class S3TransferManagerDownloadIntegrationTest extends S3IntegrationTestB
     @AfterAll
     public static void cleanup() {
         deleteBucketAndAllContents(BUCKET);
-        S3IntegrationTestBase.cleanUp();
     }
 
     @Test
