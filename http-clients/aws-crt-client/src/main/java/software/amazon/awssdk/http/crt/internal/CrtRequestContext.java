@@ -32,7 +32,12 @@ public final class CrtRequestContext {
         this.request = builder.request;
         this.readBufferSize = builder.readBufferSize;
         this.crtConnPool = builder.crtConnPool;
-        this.metricCollector = this.request.metricCollector().orElseGet(NoOpMetricCollector::create);
+
+        if (this.request.metricCollector().isPresent()) {
+            this.metricCollector = this.request.metricCollector().get();
+        } else {
+            this.metricCollector = null;
+        }
     }
 
     public static Builder builder() {

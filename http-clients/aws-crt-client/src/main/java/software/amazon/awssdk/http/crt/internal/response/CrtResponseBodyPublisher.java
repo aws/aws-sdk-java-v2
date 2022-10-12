@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.crt.internal;
+package software.amazon.awssdk.http.crt.internal.response;
 
 import java.nio.ByteBuffer;
 import java.util.Optional;
@@ -38,8 +38,8 @@ import software.amazon.awssdk.utils.Validate;
  * Adapts an AWS Common Runtime Response Body stream from CrtHttpStreamHandler to a Publisher<ByteBuffer>
  */
 @SdkInternalApi
-public final class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> {
-    private static final Logger log = Logger.loggerFor(AwsCrtResponseBodyPublisher.class);
+public final class CrtResponseBodyPublisher implements Publisher<ByteBuffer> {
+    private static final Logger log = Logger.loggerFor(CrtResponseBodyPublisher.class);
     private static final LongUnaryOperator DECREMENT_IF_GREATER_THAN_ZERO = x -> ((x > 0) ? (x - 1) : (x));
 
     private final HttpClientConnection connection;
@@ -63,8 +63,8 @@ public final class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> 
      * @param windowSize The max allowed bytes to be queued. The sum of the sizes of all queued ByteBuffers should
      *                   never exceed this value.
      */
-    public AwsCrtResponseBodyPublisher(HttpClientConnection connection, HttpStream stream,
-                                       CompletableFuture<Void> responseComplete, int windowSize) {
+    public CrtResponseBodyPublisher(HttpClientConnection connection, HttpStream stream,
+                                    CompletableFuture<Void> responseComplete, int windowSize) {
         this.connection = Validate.notNull(connection, "HttpConnection must not be null");
         this.stream = Validate.notNull(stream, "Stream must not be null");
         this.responseComplete = Validate.notNull(responseComplete, "ResponseComplete future must not be null");
@@ -305,9 +305,9 @@ public final class AwsCrtResponseBodyPublisher implements Publisher<ByteBuffer> 
     }
 
     static class AwsCrtResponseBodySubscription implements Subscription {
-        private final AwsCrtResponseBodyPublisher publisher;
+        private final CrtResponseBodyPublisher publisher;
 
-        AwsCrtResponseBodySubscription(AwsCrtResponseBodyPublisher publisher) {
+        AwsCrtResponseBodySubscription(CrtResponseBodyPublisher publisher) {
             this.publisher = publisher;
         }
 

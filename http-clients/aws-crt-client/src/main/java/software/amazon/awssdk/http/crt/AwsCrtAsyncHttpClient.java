@@ -256,8 +256,13 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         paramNotNull(asyncRequest.requestContentPublisher(), "RequestContentPublisher");
         paramNotNull(asyncRequest.responseHandler(), "ResponseHandler");
 
-        MetricCollector metricCollector = asyncRequest.metricCollector().orElseGet(NoOpMetricCollector::create);
-        metricCollector.reportMetric(HTTP_CLIENT_NAME, clientName());
+        if (asyncRequest.metricCollector().isPresent()) {
+            MetricCollector metricCollector = asyncRequest.metricCollector().get();
+
+            if (metricCollector != null && !(metricCollector instanceof NoOpMetricCollector)) {
+                metricCollector.reportMetric(HTTP_CLIENT_NAME, clientName());
+            }
+        }
 
         /*
          * See the note on getOrCreateConnectionPool()
