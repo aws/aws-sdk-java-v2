@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon DynamoDB",
+    "contributor": "thomasturrell",
+    "description": "Add locale converter to enhanced DynamoDB client"
+}
