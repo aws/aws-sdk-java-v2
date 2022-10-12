@@ -28,7 +28,7 @@ artifact source.
 
 #### Sign up for AWS ####
 
-Before you begin, you need an AWS account. Please see the [Sign Up for AWS][docs-signup] section of
+Before you begin working with AWS, you need an AWS account. Please see the [Sign Up for AWS][docs-signup] section of
 the developer guide for information about how to create an AWS account and retrieve your AWS
 credentials.
 
