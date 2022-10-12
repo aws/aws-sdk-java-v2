@@ -13,9 +13,8 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.crt.internal;
+package software.amazon.awssdk.http.crt.internal.response;
 
-import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.CRT;
@@ -23,12 +22,12 @@ import software.amazon.awssdk.crt.http.HttpClientConnection;
 import software.amazon.awssdk.crt.http.HttpException;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpHeaderBlock;
-import software.amazon.awssdk.crt.http.HttpRequestBodyStream;
 import software.amazon.awssdk.crt.http.HttpStream;
 import software.amazon.awssdk.crt.http.HttpStreamResponseHandler;
 import software.amazon.awssdk.http.HttpStatusFamily;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
+import software.amazon.awssdk.http.crt.internal.CrtRequestContext;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
@@ -36,31 +35,35 @@ import software.amazon.awssdk.utils.Validate;
  * Implements the CrtHttpStreamHandler API and converts CRT callbacks into calls to SDK AsyncExecuteRequest methods
  */
 @SdkInternalApi
-public final class AwsCrtAsyncHttpStreamAdapter implements HttpStreamResponseHandler, HttpRequestBodyStream {
-    private static final Logger log = Logger.loggerFor(AwsCrtAsyncHttpStreamAdapter.class);
+public final class CrtResponseAdapter implements HttpStreamResponseHandler {
+    private static final Logger log = Logger.loggerFor(CrtResponseAdapter.class);
 
     private final HttpClientConnection connection;
     private final CompletableFuture<Void> responseComplete;
     private final AsyncExecuteRequest sdkRequest;
     private final SdkHttpResponse.Builder respBuilder = SdkHttpResponse.builder();
     private final int windowSize;
-    private final AwsCrtRequestBodySubscriber requestBodySubscriber;
-    private AwsCrtResponseBodyPublisher respBodyPublisher = null;
+    private CrtResponseBodyPublisher respBodyPublisher;
 
-    public AwsCrtAsyncHttpStreamAdapter(HttpClientConnection connection, CompletableFuture<Void> responseComplete,
-                                        AsyncExecuteRequest sdkRequest, int windowSize) {
+    private CrtResponseAdapter(HttpClientConnection connection,
+                               CompletableFuture<Void> responseComplete,
+                               AsyncExecuteRequest sdkRequest,
+                               int windowSize) {
         this.connection = Validate.notNull(connection, "HttpConnection is null");
         this.responseComplete = Validate.notNull(responseComplete, "reqComplete Future is null");
         this.sdkRequest = Validate.notNull(sdkRequest, "AsyncExecuteRequest Future is null");
         this.windowSize = Validate.isPositive(windowSize, "windowSize is <= 0");
-        this.requestBodySubscriber = new AwsCrtRequestBodySubscriber(windowSize);
+    }
 
-        sdkRequest.requestContentPublisher().subscribe(requestBodySubscriber);
+    public static HttpStreamResponseHandler toCrtResponseHandler(HttpClientConnection connection,
+                                                                 CompletableFuture<Void> responseComplete,
+                                                                 CrtRequestContext request) {
+        return new CrtResponseAdapter(connection, responseComplete, request.sdkRequest(), request.readBufferSize());
     }
 
     private void initRespBodyPublisherIfNeeded(HttpStream stream) {
         if (respBodyPublisher == null) {
-            respBodyPublisher = new AwsCrtResponseBodyPublisher(connection, stream, responseComplete, windowSize);
+            respBodyPublisher = new CrtResponseBodyPublisher(connection, stream, responseComplete, windowSize);
         }
     }
 
@@ -128,10 +131,5 @@ public final class AwsCrtAsyncHttpStreamAdapter implements HttpStreamResponseHan
             respBodyPublisher.setError(error);
             respBodyPublisher.publishToSubscribers();
         }
-    }
-
-    @Override
-    public boolean sendRequestBody(ByteBuffer bodyBytesOut) {
-        return requestBodySubscriber.transferRequestBody(bodyBytesOut);
     }
 }
