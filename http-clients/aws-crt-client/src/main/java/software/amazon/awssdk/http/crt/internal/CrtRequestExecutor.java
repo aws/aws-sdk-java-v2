@@ -15,6 +15,11 @@
 
 package software.amazon.awssdk.http.crt.internal;
 
+import static software.amazon.awssdk.http.HttpMetric.AVAILABLE_CONCURRENCY;
+import static software.amazon.awssdk.http.HttpMetric.HTTP_CLIENT_NAME;
+import static software.amazon.awssdk.http.HttpMetric.LEASED_CONCURRENCY;
+import static software.amazon.awssdk.http.HttpMetric.MAX_CONCURRENCY;
+import static software.amazon.awssdk.http.HttpMetric.PENDING_CONCURRENCY_ACQUIRES;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.io.IOException;
@@ -27,12 +32,15 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.CrtRuntimeException;
 import software.amazon.awssdk.crt.http.HttpClientConnection;
 import software.amazon.awssdk.crt.http.HttpHeader;
+import software.amazon.awssdk.crt.http.HttpManagerMetrics;
 import software.amazon.awssdk.crt.http.HttpRequest;
 import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.SdkCancellationException;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
+import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.metrics.SdkMetric;
 import software.amazon.awssdk.utils.Logger;
 
 @SdkInternalApi
@@ -45,6 +53,8 @@ public final class CrtRequestExecutor {
         // When a Connection is ready from the Connection Pool, schedule the Request on the connection
         CompletableFuture<HttpClientConnection> httpClientConnectionCompletableFuture =
             executionContext.crtConnPool().acquireConnection();
+
+        MetricCollector metricCollector = executionContext.metricCollector();
 
         httpClientConnectionCompletableFuture.whenComplete((crtConn, throwable) -> {
             AsyncExecuteRequest asyncRequest = executionContext.sdkRequest();
@@ -59,6 +69,7 @@ public final class CrtRequestExecutor {
             AwsCrtAsyncHttpStreamAdapter crtToSdkAdapter =
                 new AwsCrtAsyncHttpStreamAdapter(crtConn, requestFuture, asyncRequest, executionContext.readBufferSize());
             HttpRequest crtRequest = toCrtRequest(asyncRequest, crtToSdkAdapter);
+
             // Submit the Request on this Connection
             invokeSafely(() -> {
                 try {
@@ -73,6 +84,15 @@ public final class CrtRequestExecutor {
             });
         });
 
+        requestFuture.whenComplete((obj, err) -> {
+            HttpManagerMetrics managerMetrics = executionContext.crtConnPool().getManagerMetrics();
+            // currently this executor only handles HTTP 1.1. Until H2 is added, the max concurrency settings are 1:1 with TCP
+            // connections. When H2 is added, this code needs to be updated to handle stream multiplexing
+            metricCollector.reportMetric(MAX_CONCURRENCY, executionContext.crtConnPool().getMaxConnections());
+            metricCollector.reportMetric(AVAILABLE_CONCURRENCY, (int)managerMetrics.getAvailableConcurrency());
+            metricCollector.reportMetric(LEASED_CONCURRENCY, (int)managerMetrics.getLeasedConcurrency());
+            metricCollector.reportMetric(PENDING_CONCURRENCY_ACQUIRES, (int)managerMetrics.getPendingConcurrencyAcquires());
+        });
         return requestFuture;
     }
 

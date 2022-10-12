@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.http.crt;
 
+import static software.amazon.awssdk.http.HttpMetric.HTTP_CLIENT_NAME;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
@@ -43,6 +44,8 @@ import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.crt.internal.CrtRequestContext;
 import software.amazon.awssdk.http.crt.internal.CrtRequestExecutor;
+import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
@@ -252,6 +255,9 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         paramNotNull(asyncRequest.request(), "SdkHttpRequest");
         paramNotNull(asyncRequest.requestContentPublisher(), "RequestContentPublisher");
         paramNotNull(asyncRequest.responseHandler(), "ResponseHandler");
+
+        MetricCollector metricCollector = asyncRequest.metricCollector().orElseGet(NoOpMetricCollector::create);
+        metricCollector.reportMetric(HTTP_CLIENT_NAME, clientName());
 
         /*
          * See the note on getOrCreateConnectionPool()
