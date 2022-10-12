@@ -16,11 +16,9 @@
 package software.amazon.awssdk.http.crt.internal;
 
 import static software.amazon.awssdk.http.HttpMetric.AVAILABLE_CONCURRENCY;
-import static software.amazon.awssdk.http.HttpMetric.HTTP_CLIENT_NAME;
 import static software.amazon.awssdk.http.HttpMetric.LEASED_CONCURRENCY;
 import static software.amazon.awssdk.http.HttpMetric.MAX_CONCURRENCY;
 import static software.amazon.awssdk.http.HttpMetric.PENDING_CONCURRENCY_ACQUIRES;
-import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
@@ -28,16 +26,14 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.CrtRuntimeException;
 import software.amazon.awssdk.crt.http.HttpClientConnection;
 import software.amazon.awssdk.crt.http.HttpClientConnectionManager;
-import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpManagerMetrics;
 import software.amazon.awssdk.crt.http.HttpRequest;
-import software.amazon.awssdk.http.Header;
+import software.amazon.awssdk.crt.http.HttpStreamResponseHandler;
 import software.amazon.awssdk.http.SdkCancellationException;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
-import software.amazon.awssdk.metrics.SdkMetric;
 import software.amazon.awssdk.http.crt.internal.request.CrtRequestAdapter;
 import software.amazon.awssdk.http.crt.internal.response.CrtResponseAdapter;
 import software.amazon.awssdk.utils.Logger;
