@@ -35,6 +35,7 @@ import java.net.URL;
 import java.time.Period;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -44,6 +45,7 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.CharSequenceAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.CharacterArrayAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.CharacterAttributeConverter;
+import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.LocaleAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.PeriodAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.SetAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.StringAttributeConverter;
@@ -177,6 +179,15 @@ public class StringAttributeConvertersTest {
         assertThat(transformTo(converter, fromString("foo")).toString()).isEqualTo("foo");
         assertThat(transformTo(converter, fromNumber("42")).toString()).isEqualTo("42");
     }
+
+    @Test
+    public void localeAttributeConverterBehaves() {
+        LocaleAttributeConverter converter = LocaleAttributeConverter.create();
+
+        assertThat(transformFrom(converter, Locale.US).s()).isEqualTo("en-US");
+
+        assertThat(transformTo(converter, fromString("en-US"))).isEqualTo(Locale.US);
+    }    
 
     @Test
     public void uriAttributeConverterBehaves() {
