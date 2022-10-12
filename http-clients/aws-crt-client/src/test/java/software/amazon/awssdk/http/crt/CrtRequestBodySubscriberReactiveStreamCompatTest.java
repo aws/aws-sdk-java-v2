@@ -5,18 +5,18 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import org.reactivestreams.tck.SubscriberWhiteboxVerification;
 import org.reactivestreams.tck.TestEnvironment;
-import software.amazon.awssdk.http.crt.internal.AwsCrtRequestBodySubscriber;
+import software.amazon.awssdk.http.crt.internal.request.CrtRequestBodySubscriber;
 
-public class AwsCrtRequestBodySubscriberReactiveStreamCompatTest extends SubscriberWhiteboxVerification<ByteBuffer> {
+public class CrtRequestBodySubscriberReactiveStreamCompatTest extends SubscriberWhiteboxVerification<ByteBuffer> {
     private static final int DEFAULT_STREAM_WINDOW_SIZE = 16 * 1024 * 1024; // 16 MB Total Buffer size
 
-    public AwsCrtRequestBodySubscriberReactiveStreamCompatTest() {
+    public CrtRequestBodySubscriberReactiveStreamCompatTest() {
         super(new TestEnvironment());
     }
 
     @Override
     public Subscriber<ByteBuffer> createSubscriber(WhiteboxSubscriberProbe<ByteBuffer> probe) {
-        AwsCrtRequestBodySubscriber actualSubscriber = new AwsCrtRequestBodySubscriber(DEFAULT_STREAM_WINDOW_SIZE);
+        CrtRequestBodySubscriber actualSubscriber = new CrtRequestBodySubscriber(DEFAULT_STREAM_WINDOW_SIZE);
 
         // Pass Through calls to AwsCrtRequestBodySubscriber, but also register calls to the whitebox probe
         Subscriber<ByteBuffer> passthroughSubscriber = new Subscriber<ByteBuffer>() {

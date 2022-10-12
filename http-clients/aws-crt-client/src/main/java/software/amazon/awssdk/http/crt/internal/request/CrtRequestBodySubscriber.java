@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.crt.internal;
+package software.amazon.awssdk.http.crt.internal.request;
 
 import static software.amazon.awssdk.crt.utils.ByteBufferUtils.transferData;
 
@@ -33,8 +33,8 @@ import software.amazon.awssdk.utils.Validate;
  * Implements the Subscriber<ByteBuffer> API to be be callable from AwsCrtAsyncHttpStreamAdapter.sendRequestBody()
  */
 @SdkInternalApi
-public final class AwsCrtRequestBodySubscriber implements Subscriber<ByteBuffer> {
-    private static final Logger log = Logger.loggerFor(AwsCrtRequestBodySubscriber.class);
+public final class CrtRequestBodySubscriber implements Subscriber<ByteBuffer> {
+    private static final Logger log = Logger.loggerFor(CrtRequestBodySubscriber.class);
 
     private final int windowSize;
     private final Queue<ByteBuffer> queuedBuffers = new ConcurrentLinkedQueue<>();
@@ -48,7 +48,7 @@ public final class AwsCrtRequestBodySubscriber implements Subscriber<ByteBuffer>
      *
      * @param windowSize The number bytes to be queued before we stop proactively queuing data
      */
-    public AwsCrtRequestBodySubscriber(int windowSize) {
+    public CrtRequestBodySubscriber(int windowSize) {
         Validate.isPositive(windowSize, "windowSize is <= 0");
         this.windowSize = windowSize;
     }
