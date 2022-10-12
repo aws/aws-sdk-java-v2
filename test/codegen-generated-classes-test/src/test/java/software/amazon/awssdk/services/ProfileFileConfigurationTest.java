@@ -30,7 +30,6 @@ import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.profiles.ProfileFile;
@@ -52,7 +51,7 @@ public class ProfileFileConfigurationTest {
                                     "aws_access_key_id = profileIsHonoredForCredentials_akid\n" +
                                     "aws_secret_access_key = profileIsHonoredForCredentials_skid";
             String profileName = "foo";
-            Signer signer = mock(NoOpSigner.class);
+            Signer signer = mock(Signer.class);
 
             ProtocolRestJsonClient client =
                 ProtocolRestJsonClient.builder()
