@@ -14,7 +14,6 @@
  */
 
 package software.amazon.awssdk.utils;
-
 import static java.time.ZoneOffset.UTC;
 import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
@@ -24,7 +23,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static software.amazon.awssdk.utils.DateUtils.ALTERNATE_ISO_8601_DATE_FORMAT;
 import static software.amazon.awssdk.utils.DateUtils.RFC_822_DATE_TIME;
-
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
