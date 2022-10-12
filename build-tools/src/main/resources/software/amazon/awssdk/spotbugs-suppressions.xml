@@ -218,6 +218,12 @@
         <Method name="execute"/>
         <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
     </Match>
+    <Match>
+        <Class name="software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient"/>
+        <Method name="&lt;init&gt;"/>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
+    </Match>
+
 
     <!-- For forward-compatibility with this having members (i.e. the checksum type) -->
     <Match>

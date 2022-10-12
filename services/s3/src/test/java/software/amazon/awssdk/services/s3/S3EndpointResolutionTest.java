@@ -748,7 +748,7 @@ public class S3EndpointResolutionTest {
         mockHttpClient.stubNextResponse(mockListObjectsResponse());
         S3Client s3Client = clientBuilder().region(Region.of("fips-us-gov-east-1"))
                 .serviceConfiguration(S3Configuration.builder().useArnRegionEnabled(false).build()).build();
-        String accessPointArn = "arn:aws:s3:us-gov-east-1:123456789012:accesspoint:foobar";
+        String accessPointArn = "arn:aws-us-gov:s3:us-gov-east-1:123456789012:accesspoint:foobar";
         s3Client.getObject(GetObjectRequest.builder().bucket(accessPointArn).key("someKey").build());
         assertThat(mockHttpClient.getLastRequest().getUri().getHost())
                 .isEqualTo("foobar-123456789012.s3-accesspoint-fips.us-gov-east-1.amazonaws.com");
@@ -759,7 +759,7 @@ public class S3EndpointResolutionTest {
         mockHttpClient.stubNextResponse(mockListObjectsResponse());
         S3Client s3Client = clientBuilder().region(Region.of("fips-us-gov-east-1"))
                 .serviceConfiguration(S3Configuration.builder().useArnRegionEnabled(true).build()).build();
-        String accessPointArn = "arn:aws:s3:us-gov-east-1:123456789012:accesspoint:foobar";
+        String accessPointArn = "arn:aws-us-gov:s3:us-gov-east-1:123456789012:accesspoint:foobar";
         s3Client.getObject(GetObjectRequest.builder().bucket(accessPointArn).key("someKey").build());
         assertThat(mockHttpClient.getLastRequest().getUri().getHost())
                 .isEqualTo("foobar-123456789012.s3-accesspoint-fips.us-gov-east-1.amazonaws.com");
@@ -776,7 +776,7 @@ public class S3EndpointResolutionTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("The region field of the ARN being passed as a bucket parameter to an S3 operation does not "
                                       + "match the region the client was configured with. Cross region access not allowed for fips "
-                                      + "region in client or arn. Provided region: 'us-west-1'; client region:'fips-us-gov-east-1'.");
+                                      + "region in client or arn. Provided region: 'us-west-1'; client region:'us-gov-east-1'.");
     }
 
     @Test
@@ -784,7 +784,7 @@ public class S3EndpointResolutionTest {
         mockHttpClient.stubNextResponse(mockListObjectsResponse());
         S3Client s3Client = clientBuilder().region(Region.of("fips-us-gov-east-1"))
                 .serviceConfiguration(S3Configuration.builder().useArnRegionEnabled(true).dualstackEnabled(true).build()).build();
-        String accessPointArn = "arn:aws:s3:us-gov-east-1:123456789012:accesspoint:foobar";
+        String accessPointArn = "arn:aws-us-gov:s3:us-gov-east-1:123456789012:accesspoint:foobar";
         s3Client.getObject(GetObjectRequest.builder().bucket(accessPointArn).key("someKey").build());
         assertThat(mockHttpClient.getLastRequest().getUri().getHost())
                 .isEqualTo("foobar-123456789012.s3-accesspoint-fips.dualstack.us-gov-east-1.amazonaws.com");

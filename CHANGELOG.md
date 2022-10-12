@@ -1,3 +1,55 @@
+# __2.17.290__ __2022-10-07__
+## __AWS IoT Greengrass V2__
+  - ### Features
+    - This release adds error status details for deployments and components that failed on a device and adds features to improve visibility into component installation.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add the ability to configure connection timeout, and enabling keep-alive with interval/timeout settings on the AwsCrtAsyncHttpClient to support long-running connections
+        - Contributed by: [@nikp](https://github.com/nikp)
+    - Updated service endpoint metadata.
+
+## __Amazon CodeGuru Reviewer__
+  - ### Features
+    - Documentation update to replace broken link.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Amazon QuickSight now supports SecretsManager Secret ARN in place of CredentialPair for DataSource creation and update. This release also has some minor documentation updates and removes CountryCode as a required parameter in GeoSpatialColumnGroup
+
+## __Elastic Load Balancing__
+  - ### Features
+    - Gateway Load Balancer adds a new feature (target_failover) for customers to rebalance existing flows to a healthy target after marked unhealthy or deregistered. This allows graceful patching/upgrades of target appliances during maintenance windows, and helps reduce unhealthy target failover time.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@nikp](https://github.com/nikp)
+# __2.17.289__ __2022-10-06__
+## __AWS Resilience Hub__
+  - ### Features
+    - Documentation change for AWS Resilience Hub. Doc-only update to fix Documentation layout
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+  - ### Bugfixes
+    - Adds support for automatically transforming a FIPS pesudo region (e.g. "fips-us-west-2"), into a standard region name + setting the `fips_enabled` flag to `true`.
+
+# __2.17.288__ __2022-10-05__
+## __AWS Glue__
+  - ### Features
+    - This SDK release adds support to sync glue jobs with source control provider. Additionally, a new parameter called SourceControlDetails will be added to Job model.
+
+## __AWS Network Firewall__
+  - ### Features
+    - StreamExceptionPolicy configures how AWS Network Firewall processes traffic when a network connection breaks midstream
+
+## __AWS Outposts__
+  - ### Features
+    - This release adds the Asset state information to the ListAssets response. The ListAssets request supports filtering on Asset state.
+
 # __2.17.287__ __2022-10-04__
 ## __AWS S3 Control__
   - ### Features

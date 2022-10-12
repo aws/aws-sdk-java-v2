@@ -125,7 +125,7 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
         if (s3Resource.region().isPresent()) {
             validateRegion(s3Resource, serviceConfig, clientRegion, context.fipsEnabled());
         } else {
-            validateGlobalConfiguration(serviceConfig, clientRegion);
+            validateGlobalConfiguration(context);
         }
         validatePartition(s3Resource, clientRegion);
     }
@@ -170,7 +170,8 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
         return !removeFipsIfNeeded(clientRegion.id()).equals(arnRegion);
     }
 
-    private void validateGlobalConfiguration(S3Configuration serviceConfiguration, Region region) {
+    private void validateGlobalConfiguration(S3EndpointResolverContext context) {
+        S3Configuration serviceConfiguration = context.serviceConfiguration();
         Validate.isTrue(serviceConfiguration.multiRegionEnabled(), "An Access Point ARN without a region value was passed as "
                                                                    + "a bucket parameter but multi-region is disabled. Check "
                                                                    + "client configuration, environment variables and system "
@@ -178,7 +179,7 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
 
         Validate.isFalse(isDualstackEnabled(serviceConfiguration), S3_CONFIG_ERROR_MESSAGE,
                          "dualstack, if the ARN contains no region.");
-        Validate.isFalse(isFipsRegion(region.toString()), S3_CONFIG_ERROR_MESSAGE,
+        Validate.isFalse(isFipsEnabled(context), S3_CONFIG_ERROR_MESSAGE,
                          "a FIPS enabled region, if the ARN contains no region.");
     }
 
@@ -275,7 +276,7 @@ public final class S3AccessPointEndpointResolver implements S3EndpointResolver {
         return Optional.empty();
     }
 
-    private boolean isFipsEnabled(S3EndpointResolverContext context) {
+    private static boolean isFipsEnabled(S3EndpointResolverContext context) {
         return context.fipsEnabled() || isFipsRegion(context.region().toString());
     }
 
