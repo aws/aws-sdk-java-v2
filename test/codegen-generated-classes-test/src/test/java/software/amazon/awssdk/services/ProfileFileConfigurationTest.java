@@ -32,6 +32,7 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
@@ -58,7 +59,11 @@ public class ProfileFileConfigurationTest {
                                       .overrideConfiguration(overrideConfig(profileContent, profileName, signer))
                                       .build();
 
-            Mockito.when(signer.sign(any(), any())).thenCallRealMethod();
+            Mockito.when(signer.sign(any(), any())).thenReturn(SdkHttpFullRequest.builder()
+                                                                                 .protocol("https")
+                                                                                 .host("test")
+                                                                                 .method(SdkHttpMethod.GET)
+                                                                                 .build());
 
             try {
                 client.allTypes();
