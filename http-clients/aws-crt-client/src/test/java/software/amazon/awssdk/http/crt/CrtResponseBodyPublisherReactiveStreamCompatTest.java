@@ -25,13 +25,13 @@ import org.reactivestreams.tck.PublisherVerification;
 import org.reactivestreams.tck.TestEnvironment;
 import software.amazon.awssdk.crt.http.HttpClientConnection;
 import software.amazon.awssdk.crt.http.HttpStream;
-import software.amazon.awssdk.http.crt.internal.AwsCrtResponseBodyPublisher;
+import software.amazon.awssdk.http.crt.internal.response.CrtResponseBodyPublisher;
 import software.amazon.awssdk.utils.Logger;
 
-public class AwsCrtResponseBodyPublisherReactiveStreamCompatTest extends PublisherVerification<ByteBuffer> {
-    private static final Logger log = Logger.loggerFor(AwsCrtResponseBodyPublisherReactiveStreamCompatTest.class);
+public class CrtResponseBodyPublisherReactiveStreamCompatTest extends PublisherVerification<ByteBuffer> {
+    private static final Logger log = Logger.loggerFor(CrtResponseBodyPublisherReactiveStreamCompatTest.class);
 
-    public AwsCrtResponseBodyPublisherReactiveStreamCompatTest() {
+    public CrtResponseBodyPublisherReactiveStreamCompatTest() {
         super(new TestEnvironment());
     }
 
@@ -39,7 +39,7 @@ public class AwsCrtResponseBodyPublisherReactiveStreamCompatTest extends Publish
     public Publisher<ByteBuffer> createPublisher(long elements) {
         HttpClientConnection connection = mock(HttpClientConnection.class);
         HttpStream stream = mock(HttpStream.class);
-        AwsCrtResponseBodyPublisher bodyPublisher = new AwsCrtResponseBodyPublisher(connection, stream, new CompletableFuture<>(), Integer.MAX_VALUE);
+        CrtResponseBodyPublisher bodyPublisher = new CrtResponseBodyPublisher(connection, stream, new CompletableFuture<>(), Integer.MAX_VALUE);
 
         for (long i = 0; i < elements; i++) {
             bodyPublisher.queueBuffer(UUID.randomUUID().toString().getBytes());
