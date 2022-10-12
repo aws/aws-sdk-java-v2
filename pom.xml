@@ -700,6 +700,16 @@
         </profile>
 
         <profile>
+            <id>jdk-11-plus</id>
+            <activation>
+                <jdk>[11,)</jdk>
+            </activation>
+            <properties>
+                <maven.compiler.release>8</maven.compiler.release>
+            </properties>
+        </profile>
+      
+        <profile>
             <id>jdk-13-plus</id>
             <activation>
                 <jdk>[13,)</jdk>
