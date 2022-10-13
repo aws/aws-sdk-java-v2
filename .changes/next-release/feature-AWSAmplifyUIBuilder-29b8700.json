@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Amplify UI Builder",
+    "contributor": "",
+    "description": "We are releasing the ability for fields to be configured as arrays."
+}
