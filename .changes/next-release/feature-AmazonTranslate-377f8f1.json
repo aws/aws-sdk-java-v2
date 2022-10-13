@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Translate",
-    "contributor": "",
-    "description": "This release enables customers to specify multiple target languages in asynchronous batch translation requests."
-}

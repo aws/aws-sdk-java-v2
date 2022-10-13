@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Connect Wisdom Service",
-    "contributor": "",
-    "description": "This release updates the GetRecommendations API to include a trigger event list for classifying and grouping recommendations."
-}
