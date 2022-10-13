@@ -32,14 +32,18 @@ import software.amazon.awssdk.utils.Validate;
  * The class provides convenience methods to the users to parse the metadata as a String, List and Document.
  */
 @SdkPublicApi
-public class MetadataResponse {
+public final class MetadataResponse {
 
     private static final JsonNodeParser JSON_NODE_PARSER = JsonNode.parserBuilder().removeErrorLocations(true).build();
     
     private final String body;
 
-    public MetadataResponse(String body) {
+    private MetadataResponse(String body) {
         this.body = Validate.notNull(body, "Metadata is null");
+    }
+
+    public static MetadataResponse create(String body) {
+        return new MetadataResponse(body);
     }
 
     /**
@@ -51,7 +55,7 @@ public class MetadataResponse {
 
     /**
      * Splits the Metadata response body on new line character and returns it as a list.
-     * @return The Metadata response split on each line.j
+     * @return The Metadata response split on each line.
      */
     public List<String> asList() {
         return Arrays.asList(body.split("\n"));

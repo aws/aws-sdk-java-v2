@@ -18,6 +18,7 @@ package software.amazon.awssdk.imds;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.put;
 import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
@@ -27,6 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import org.junit.Before;
 import org.junit.Rule;
@@ -44,6 +46,8 @@ import software.amazon.awssdk.http.apache.ApacheHttpClient;
 public class Ec2MetadataWithApacheClientTest {
 
     private static final String TOKEN_RESOURCE_PATH = "/latest/api/token";
+
+    private static final String TOKEN_HEADER = "x-aws-ec2-metadata-token";
 
     private static final String EC2_METADATA_TOKEN_TTL_HEADER = "x-aws-ec2-metadata-token-ttl-seconds";
 
@@ -63,24 +67,28 @@ public class Ec2MetadataWithApacheClientTest {
     }
 
     @Test
-    public void get_failedThriceWith401() {
+    public void get_failsThrice_shouldThrowException() {
 
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody("some-token")));
-        stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody("{}").withStatus(401)));
+        stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withFault(Fault.EMPTY_RESPONSE)));
 
         assertThatThrownBy(() -> ec2Metadata.get("/latest/meta-data/ami-id"))
             .hasMessageContaining("Exceeded maximum number of retries.")
             .isInstanceOf(SdkClientException.class);
+        WireMock.verify(3, putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+            .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
+        WireMock.verify(3, getRequestedFor(urlPathEqualTo(AMI_ID_RESOURCE))
+            .withHeader(TOKEN_HEADER, equalTo("some-token")));
     }
 
     @Test
-    public void get_failedOnceWith401_shouldSucceedOnSecondAttempt() {
+    public void get_failsOnceWith401_shouldSucceedOnSecondAttempt() {
 
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody("some-token")));
 
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).inScenario("Retry Scenario")
                                                         .whenScenarioStateIs(STARTED)
-                                                        .willReturn(aResponse().withStatus(401))
+                                                        .willReturn(aResponse().withFault(Fault.EMPTY_RESPONSE))
                                                         .willSetStateTo("Cause Success"));
 
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).inScenario("Retry Scenario")
@@ -91,8 +99,10 @@ public class Ec2MetadataWithApacheClientTest {
         MetadataResponse metadataResponse = ec2Metadata.get("/latest/meta-data/ami-id");
         assertThat(metadataResponse.asString()).isEqualTo("{}");
 
-        WireMock.verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH)).withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
-
+        WireMock.verify(2, putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+            .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
+        WireMock.verify(2, getRequestedFor(urlPathEqualTo(AMI_ID_RESOURCE))
+            .withHeader(TOKEN_HEADER, equalTo("some-token")));
     }
 
 }

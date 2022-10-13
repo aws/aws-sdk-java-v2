@@ -41,7 +41,7 @@ public class MetadataResponseTest {
 
         String response = "foobar";
 
-        MetadataResponse metadataResponse = new MetadataResponse(response);
+        MetadataResponse metadataResponse = MetadataResponse.create(response);
         String result = metadataResponse.asString();
         assertThat(result).isEqualTo(response);
 
@@ -53,7 +53,7 @@ public class MetadataResponseTest {
         thrown.expect(NullPointerException.class);
         thrown.expectMessage("Metadata is null");
 
-        MetadataResponse metadataResponse = new MetadataResponse(null);
+        MetadataResponse metadataResponse = MetadataResponse.create(null);
         metadataResponse.asString();
     }
 
@@ -62,7 +62,7 @@ public class MetadataResponseTest {
 
         String response = "sai\ntest";
 
-        MetadataResponse metadataResponse = new MetadataResponse(response);
+        MetadataResponse metadataResponse = MetadataResponse.create(response);
         List<String> result = metadataResponse.asList();
         assertThat(result).hasSize(2);
     }
@@ -72,7 +72,7 @@ public class MetadataResponseTest {
 
         String response = "test1-test2";
 
-        MetadataResponse metadataResponse = new MetadataResponse(response);
+        MetadataResponse metadataResponse = MetadataResponse.create(response);
         List<String> result = metadataResponse.asList();
         assertThat(result).hasSize(1);
     }
@@ -83,7 +83,7 @@ public class MetadataResponseTest {
         thrown.expect(NullPointerException.class);
         thrown.expectMessage("Metadata is null");
 
-        MetadataResponse metadataResponse = new MetadataResponse(null);
+        MetadataResponse metadataResponse = MetadataResponse.create(null);
         metadataResponse.asList();
     }
 
@@ -92,7 +92,7 @@ public class MetadataResponseTest {
         thrown.expect(NullPointerException.class);
         thrown.expectMessage("Metadata is null");
 
-        MetadataResponse metadataResponse = new MetadataResponse(null);
+        MetadataResponse metadataResponse = MetadataResponse.create(null);
         metadataResponse.asDocument();
     }
 
@@ -103,7 +103,7 @@ public class MetadataResponseTest {
                               + "\"devpayProductCodes\":[\"bar\",\"foo\"]"
                               + "}";
 
-        MetadataResponse metadataResponse = new MetadataResponse(jsonResponse);
+        MetadataResponse metadataResponse = MetadataResponse.create(jsonResponse);
         Document document = metadataResponse.asDocument();
         Map<String, Document> expectedMap = new LinkedHashMap<>();
 
@@ -121,7 +121,7 @@ public class MetadataResponseTest {
     public void toDocument_nonJsonFormat_ExpectIllegalArgument() {
         thrown.expectCause(isA(JsonParseException.class));
         String malformed = "this is not json";
-        MetadataResponse metadataResponse = new MetadataResponse(malformed);
+        MetadataResponse metadataResponse = MetadataResponse.create(malformed);
         metadataResponse.asDocument();
     }
 

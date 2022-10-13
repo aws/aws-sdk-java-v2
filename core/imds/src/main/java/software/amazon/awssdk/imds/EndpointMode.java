@@ -32,9 +32,9 @@ public enum EndpointMode {
         this.serviceEndpoint = serviceEndpoint;
     }
 
-    public String getServiceEndpoint() {
-        return this.serviceEndpoint;
-    }
+    // public String getServiceEndpoint() {
+    //     return this.serviceEndpoint;
+    // }
 
     /**
      * Returns the appropriate EndpointMode Value after parsing the parameter.

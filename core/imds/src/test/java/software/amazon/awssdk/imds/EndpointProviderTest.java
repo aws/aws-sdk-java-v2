@@ -29,7 +29,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.core.SdkSystemSetting;
-import software.amazon.awssdk.imds.internal.DefaultEc2MetadataEndpointProvider;
+import software.amazon.awssdk.imds.internal.Ec2MetadataEndpointProvider;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 
@@ -65,8 +65,8 @@ class EndpointProviderTest {
             arguments(null, false, "unused", true, "testIPv6", "[1234:ec2::456]"),
             arguments(null, false, "unused", true, "testIPv4", "http://42.42.42.42"),
 
-            arguments(IPV4, false, "unused", false, "unused", IPV4.getServiceEndpoint()),
-            arguments(IPV6, false, "unused", false, "unused", IPV6.getServiceEndpoint())
+            arguments(IPV4, false, "unused", false, "unused", "http://169.254.169.254"),
+            arguments(IPV6, false, "unused", false, "unused", "http://[fd00:ec2::254]")
         );
     }
 
@@ -91,7 +91,7 @@ class EndpointProviderTest {
                                Paths.get(getClass().getResource(testFile).toURI()).toString());
         }
 
-        DefaultEc2MetadataEndpointProvider endpointProvider = DefaultEc2MetadataEndpointProvider.builder().build();
+        Ec2MetadataEndpointProvider endpointProvider = Ec2MetadataEndpointProvider.builder().build();
         String endpoint = endpointProvider.resolveEndpoint(endpointMode);
         assertThat(endpoint).isEqualTo(expectedValue);
     }
@@ -127,7 +127,7 @@ class EndpointProviderTest {
                            Paths.get(getClass().getResource(testFile).toURI()).toString());
         }
 
-        DefaultEc2MetadataEndpointProvider endpointProvider = DefaultEc2MetadataEndpointProvider.builder().build();
+        Ec2MetadataEndpointProvider endpointProvider = Ec2MetadataEndpointProvider.builder().build();
         EndpointMode endpointMode = endpointProvider.resolveEndpointMode();
 
         assertThat(endpointMode).isEqualTo(expectedValue);

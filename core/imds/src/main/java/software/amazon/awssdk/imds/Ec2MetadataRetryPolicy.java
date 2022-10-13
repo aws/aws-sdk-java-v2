@@ -103,6 +103,10 @@ public class Ec2MetadataRetryPolicy implements ToCopyableBuilder<Ec2MetadataRetr
                         .backoffStrategy(backoffStrategy);
     }
 
+    public static Ec2MetadataRetryPolicy none() {
+        return builder().numRetries(1).build();
+    }
+
     public interface Builder extends CopyableBuilder<Ec2MetadataRetryPolicy.Builder, Ec2MetadataRetryPolicy> {
 
         /**

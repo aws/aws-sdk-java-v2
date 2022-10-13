@@ -49,8 +49,8 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
 
     private static final Logger log = Logger.loggerFor(DefaultEc2Metadata.class);
 
-    private static final DefaultEc2MetadataEndpointProvider ENDPOINT_PROVIDER =
-        DefaultEc2MetadataEndpointProvider.builder().build();
+    private static final Ec2MetadataEndpointProvider ENDPOINT_PROVIDER =
+        Ec2MetadataEndpointProvider.builder().build();
 
     private final Ec2MetadataRetryPolicy retryPolicy;
 
@@ -92,12 +92,13 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
     }
 
     /**
-     * Gets the specified instance metadata value by the given path.
-     * @param path  Input path
-     * @throws UncheckedIOException If an IOException occurs during transfer.
+     * Gets the specified instance metadata value by the given path. Will retry base on the {@link Ec2MetadataRetryPolicy retry
+     * policy} provided, in the case of an IOException during request. Will not retry on SdkClientException, like 4XX/5XX HTTP
+     * error.
+     * @param path  Input path of the resource to get.
      * @throws SdkClientException if the request for a token or the request for the Metadata does not have a 2XX SUCCESS response,
      *                            if the maximum number of retries is reached,
-     *                            or if another unknown problem occurred.
+     *                            or if another IOException is thrown during the request.
      * @return Instance metadata value as part of MetadataResponse Object
      */
     @Override
@@ -107,9 +108,15 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
             RetryPolicyContext retryPolicyContext = RetryPolicyContext.builder().retriesAttempted(tries).build();
             try {
                 String token = getToken();
-                return doRequest(path, token);
+                return sendRequest(path, token);
             } catch (SdkClientException sdkClientException) {
-                lastCause = sdkClientException;
+                String msg = String.format("Error while executing EC2Metadata request. Total attempts: %d. %s",
+                                           tries + 1,
+                                           sdkClientException.getMessage());
+                log.debug(() -> msg);
+                throw sdkClientException;
+            } catch (UncheckedIOException ioe) {
+                lastCause = ioe;
                 String msg = "Error while executing EC2Metadata request, attempting retry. Current attempt: " + tries;
                 log.debug(() -> msg);
             } catch (IOException ioe) {
@@ -130,7 +137,7 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
         throw sdkClientExceptionBuilder.build();
     }
 
-    private MetadataResponse doRequest(String path, String token) throws IOException {
+    private MetadataResponse sendRequest(String path, String token) throws IOException {
 
         HttpExecuteRequest httpExecuteRequest = requestMarshaller.createDataRequest(path, token, tokenTtl);
         HttpExecuteResponse response = httpClient.prepareRequest(httpExecuteRequest).call();
@@ -148,7 +155,7 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
         AbortableInputStream abortableInputStream = responseBody.orElseThrow(
             SdkClientException.builder().message("Response body empty with Status Code " + statusCode)::build);
         String data = uncheckedInputStreamToUtf8(abortableInputStream);
-        return new MetadataResponse(data);
+        return MetadataResponse.create(data);
     }
 
     private void pauseBeforeRetryIfNeeded(RetryPolicyContext retryPolicyContext) {
@@ -170,7 +177,7 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
         HttpExecuteResponse response = httpClient.prepareRequest(httpExecuteRequest).call();
 
         int statusCode = response.httpResponse().statusCode();
-        if (statusCode != 200) {
+        if (!HttpStatusFamily.of(statusCode).isOneOf(HttpStatusFamily.SUCCESSFUL)) {
             response.responseBody().map(this::uncheckedInputStreamToUtf8)
                     .ifPresent(body -> log.debug(() -> "Token request response body: " + body));
             throw SdkClientException.builder()
