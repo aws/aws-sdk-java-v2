@@ -1,3 +1,89 @@
+# __2.17.291__ __2022-10-13__
+## __AWS Amplify UI Builder__
+  - ### Features
+    - We are releasing the ability for fields to be configured as arrays.
+
+## __AWS Directory Service__
+  - ### Features
+    - This release adds support for describing and updating AWS Managed Microsoft AD set up.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental MediaLive now supports forwarding SCTE-35 messages through the Event Signaling and Management (ESAM) API, and can read those SCTE-35 messages from an inactive source.
+
+## __AWS Elemental MediaPackage VOD__
+  - ### Features
+    - This release adds SPEKE v2 support for MediaPackage VOD. Speke v2 is an upgrade to the existing SPEKE API to support multiple encryption keys, based on an encryption contract selected by the customer.
+
+## __AWS Identity and Access Management__
+  - ### Features
+    - Documentation updates for the AWS Identity and Access Management API Reference.
+
+## __AWS IoT FleetWise__
+  - ### Features
+    - Documentation update for AWS IoT FleetWise
+
+## __AWS Panorama__
+  - ### Features
+    - Pause and resume camera stream processing with SignalApplicationInstanceNodeInstances. Reboot an appliance with CreateJobForDevices. More application state information in DescribeApplicationInstance response.
+
+## __AWS RDS DataService__
+  - ### Features
+    - Doc update to reflect no support for schema parameter on BatchExecuteStatement API
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Systems Manager Incident Manager__
+  - ### Features
+    - Update RelatedItem enum to support Tasks
+
+## __AWS Transfer Family__
+  - ### Features
+    - This release adds an option for customers to configure workflows that are triggered when files are only partially received from a client due to premature session disconnect.
+
+## __Amazon Appflow__
+  - ### Features
+    - With this update, you can choose which Salesforce API is used by Amazon AppFlow to transfer data to or from your Salesforce account. You can choose the Salesforce REST API or Bulk API 2.0. You can also choose for Amazon AppFlow to pick the API automatically.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds support for a secondary email and a mobile number for Amazon Connect instance users.
+
+## __Amazon Connect Wisdom Service__
+  - ### Features
+    - This release updates the GetRecommendations API to include a trigger event list for classifying and grouping recommendations.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Add locale converter to enhanced DynamoDB client
+        - Contributed by: [@thomasturrell](https://github.com/thomasturrell)
+
+## __Amazon DynamoDB Enhanced__
+  - ### Features
+    - Treat @java.beans.Transient as @DynamoDbIgnore in BeanTableSchema and ImmutableTableSchema.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Documentation update to address tickets.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Add UnprocessedDataSources to CreateDetectorResponse which specifies the data sources that couldn't be enabled during the CreateDetector request. In addition, update documentations.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Support of AmazonLinux2022 by Patch Manager
+
+## __Amazon Translate__
+  - ### Features
+    - This release enables customers to specify multiple target languages in asynchronous batch translation requests.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@thomasturrell](https://github.com/thomasturrell)
 # __2.17.290__ __2022-10-07__
 ## __AWS IoT Greengrass V2__
   - ### Features
