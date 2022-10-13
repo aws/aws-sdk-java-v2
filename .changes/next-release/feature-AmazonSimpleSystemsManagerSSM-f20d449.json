@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Simple Systems Manager (SSM)",
+    "contributor": "",
+    "description": "Support of AmazonLinux2022 by Patch Manager"
+}
