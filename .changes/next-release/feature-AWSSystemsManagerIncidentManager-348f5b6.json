@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Systems Manager Incident Manager",
+    "contributor": "",
+    "description": "Update RelatedItem enum to support Tasks"
+}
