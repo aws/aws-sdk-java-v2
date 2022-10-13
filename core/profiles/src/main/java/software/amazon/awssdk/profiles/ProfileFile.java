@@ -15,18 +15,25 @@
 
 package software.amazon.awssdk.profiles;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.function.Predicate;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.profiles.internal.ProfileFileReader;
 import software.amazon.awssdk.utils.FunctionalUtils;
@@ -53,6 +60,7 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
 public final class ProfileFile {
     public static final String PROFILES_SECTION_TITLE = "profiles";
     private final Map<String, Map<String, Profile>> profilesAndSectionsMap;
+    private final List<Builder.BuildDetails> buildDetails;
 
     /**
      * @see #builder()
@@ -60,6 +68,7 @@ public final class ProfileFile {
     private ProfileFile(Map<String, Map<String, Map<String, String>>> profilesSectionMap) {
         Validate.paramNotNull(profilesSectionMap, "profilesSectionMap");
         this.profilesAndSectionsMap = convertToProfilesSectionsMap(profilesSectionMap);
+        this.buildDetails = new ArrayList<>();
     }
 
     public Optional<Profile> getSection(String sectionName, String sectionTitle) {
@@ -120,6 +129,53 @@ public final class ProfileFile {
         return profileMap != null ? Collections.unmodifiableMap(profileMap) : profileMap;
     }
 
+    /**
+     * Checks if the profile files have been changed on disk.
+     * This method will always return {@link Boolean#FALSE} if the {@link ProfileFile} instance was built
+     * using {@link Builder#content(InputStream)} since a stream cannot be re-run
+     * or checked if it's been updated.
+     *
+     * @return True if any files used to build this object have been modified.
+     * @see #isStaleAsOf(Instant)
+     */
+    public boolean isStale() {
+        return isStaleIfAny(details -> {
+            Path contentLocation = details.getContentLocation();
+            try {
+                Instant modificationInstant = Files.getLastModifiedTime(contentLocation).toInstant();
+
+                return isStaleAsOf(modificationInstant);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        });
+    }
+
+    /**
+     * Checks if the profile files have been changed on disk as of a particular instant.
+     *
+     * @param instant The time to check against for any file modifications.
+     * @return True if any files used to build this object have been modified.
+     * @see #isStale()
+     */
+    public boolean isStaleAsOf(Instant instant) {
+        return isStaleIfAny(details -> details.wasBuiltBefore(instant));
+    }
+
+    /**
+     * Determines if there are disk modifications and creates a new instance if so.
+     *
+     * @return Either the same instance in case disk has no recent updates, or a newly constructed instance.
+     * @see #isStale()
+     */
+    public ProfileFile reload() {
+        if (!isStale()) {
+            return this;
+        }
+
+        return forceReload();
+    }
+
     @Override
     public String toString() {
         return ToString.builder("ProfileFile")
@@ -142,6 +198,15 @@ public final class ProfileFile {
     @Override
     public int hashCode() {
         return Objects.hashCode(this.profilesAndSectionsMap);
+    }
+
+    /**
+     * Retrieves the records containing the information used to build this instance.
+     *
+     * @return List of BuildDetails objects.
+     */
+    public List<Builder.BuildDetails> getBuildDetails() {
+        return this.buildDetails;
     }
 
     private static void addCredentialsFile(ProfileFile.Aggregator builder) {
@@ -209,6 +274,32 @@ public final class ProfileFile {
         return result;
     }
 
+    private ProfileFile registerBuildDetails(Builder.BuildDetails details) {
+        this.buildDetails.add(details);
+        return this;
+    }
+
+    private ProfileFile registerBuildDetails(Collection<Builder.BuildDetails> details) {
+        this.buildDetails.addAll(details);
+        return this;
+    }
+
+    private boolean isStaleIfAny(Predicate<Builder.BuildDetails> predicate) {
+        return getBuildDetails()
+            .stream()
+            .filter(Builder.BuildDetails::wasBuiltFromFile)
+            .anyMatch(predicate);
+    }
+
+    private ProfileFile forceReload() {
+        Aggregator aggregator = ProfileFile.aggregator();
+        for (Builder.BuildDetails details : this.buildDetails) {
+            Builder builder = details.getBuilder();
+            aggregator.addFile(builder.build());
+        }
+        return aggregator.build();
+    }
+
     /**
      * The supported types of profile files. The type of profile determines the way in which it is parsed.
      */
@@ -249,6 +340,48 @@ public final class ProfileFile {
 
         @Override
         ProfileFile build();
+
+        final class BuildDetails {
+            private final Path contentLocation;
+            private final Builder builder;
+            private final Instant loadInstant;
+
+            public BuildDetails(Path contentLocation, Builder builder, Instant loadInstant) {
+                this.contentLocation = contentLocation;
+                this.builder = builder;
+                this.loadInstant = loadInstant;
+            }
+
+            public Path getContentLocation() {
+                return contentLocation;
+            }
+
+            public Builder getBuilder() {
+                return builder;
+            }
+
+            public Instant getLoadInstant() {
+                return loadInstant;
+            }
+
+            public boolean wasBuiltBefore(Instant instant) {
+                return loadInstant.isBefore(instant);
+            }
+
+            public boolean wasBuiltFromFile() {
+                return Objects.nonNull(contentLocation);
+            }
+
+            @Override
+            public String toString() {
+                return ToString.builder("BuildDetails")
+                               .add("contentLocation", contentLocation)
+                               .add("builder", builder)
+                               .add("loadInstant", loadInstant)
+                               .build();
+            }
+        }
+
     }
 
     private static final class BuilderImpl implements Builder {
@@ -273,7 +406,7 @@ public final class ProfileFile {
         @Override
         public Builder content(Path contentLocation) {
             Validate.paramNotNull(contentLocation, "profileLocation");
-            Validate.validState(contentLocation.toFile().exists(), "Profile file '%s' does not exist.", contentLocation);
+            Validate.validState(Files.exists(contentLocation), "Profile file '%s' does not exist.", contentLocation);
 
             this.content = null;
             this.contentLocation = contentLocation;
@@ -306,7 +439,9 @@ public final class ProfileFile {
             Validate.paramNotNull(stream, "content");
 
             try {
-                return new ProfileFile(ProfileFileReader.parseFile(stream, type));
+                Instant now = Instant.now();
+                return new ProfileFile(ProfileFileReader.parseFile(stream, type))
+                    .registerBuildDetails(new BuildDetails(contentLocation, this, now));
             } finally {
                 IoUtils.closeQuietly(stream, null);
             }
@@ -332,13 +467,17 @@ public final class ProfileFile {
         @Override
         public ProfileFile build() {
             Map<String, Map<String, Map<String, String>>> aggregateRawProfiles = new LinkedHashMap<>();
+            Set<Builder.BuildDetails> buildDetails = new HashSet<>();
             for (int i = files.size() - 1; i >= 0; --i) {
-                files.get(i).profilesAndSectionsMap.entrySet()
-                                                   .forEach(sectionKeyValue -> addToAggregate(aggregateRawProfiles,
-                                                                                              sectionKeyValue.getValue(),
-                                                                                              sectionKeyValue.getKey()));
+                ProfileFile file = files.get(i);
+                file.profilesAndSectionsMap.entrySet()
+                                           .forEach(sectionKeyValue -> addToAggregate(aggregateRawProfiles,
+                                                                                      sectionKeyValue.getValue(),
+                                                                                      sectionKeyValue.getKey()));
+                buildDetails.addAll(file.getBuildDetails());
             }
-            return new ProfileFile(aggregateRawProfiles);
+            return new ProfileFile(aggregateRawProfiles)
+                .registerBuildDetails(buildDetails);
         }
 
         private void addToAggregate(Map<String, Map<String, Map<String, String>>> aggregateRawProfiles,
