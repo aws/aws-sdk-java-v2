@@ -62,6 +62,7 @@ public abstract class BaseTransferManagerBenchmark implements TransferManagerBen
         s3 = S3CrtAsyncClient.builder()
                              .targetThroughputInGbps(config.targetThroughput())
                              .minimumPartSizeInBytes(partSizeInMb)
+                             .backpressureForDownloadEnabled(config.backpressureForDownloadEnabled())
                              .build();
         s3Sync = S3Client.builder()
                          .build();

@@ -26,6 +26,8 @@ public final class TransferManagerBenchmarkConfig {
     private final ChecksumAlgorithm checksumAlgorithm;
     private final Integer iteration;
 
+    private final Boolean backpressureForDownloadEnabled;
+
     private TransferManagerBenchmarkConfig(Builder builder) {
         this.filePath = builder.filePath;
         this.bucket = builder.bucket;
@@ -34,6 +36,7 @@ public final class TransferManagerBenchmarkConfig {
         this.partSizeInMb = builder.partSizeInMb;
         this.checksumAlgorithm = builder.checksumAlgorithm;
         this.iteration = builder.iteration;
+        this.backpressureForDownloadEnabled = builder.backpressureForDownloadEnabled;
     }
 
     public String filePath() {
@@ -64,6 +67,10 @@ public final class TransferManagerBenchmarkConfig {
         return iteration;
     }
 
+    public Boolean backpressureForDownloadEnabled() {
+        return backpressureForDownloadEnabled;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -75,12 +82,16 @@ public final class TransferManagerBenchmarkConfig {
                ", bucket: '" + bucket + '\'' +
                ", key: '" + key + '\'' +
                ", targetThroughput: " + targetThroughput +
-               ", partSizeInMB: " + partSizeInMb + '\'' +
+               ", partSizeInMb: " + partSizeInMb +
                ", checksumAlgorithm: " + checksumAlgorithm +
+               ", iteration: " + iteration +
+               ", backpressureForDownloadEnabled: " + backpressureForDownloadEnabled +
                '}';
     }
 
+
     static final class Builder {
+        private Boolean backpressureForDownloadEnabled;
         private ChecksumAlgorithm checksumAlgorithm;
         private String filePath;
         private String bucket;
@@ -122,6 +133,11 @@ public final class TransferManagerBenchmarkConfig {
 
         public Builder iteration(Integer iteration) {
             this.iteration = iteration;
+            return this;
+        }
+
+        public Builder backpressureForDownloadEnabled(Boolean backpressureForDownloadEnabled) {
+            this.backpressureForDownloadEnabled = backpressureForDownloadEnabled;
             return this;
         }
 

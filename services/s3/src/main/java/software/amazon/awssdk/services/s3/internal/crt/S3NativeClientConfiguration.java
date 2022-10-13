@@ -41,6 +41,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
     private final int maxConcurrency;
     private final URI endpointOverride;
     private final boolean checksumValidationEnabled;
+    private final boolean backpressureForDownloadEnabled;
 
     public S3NativeClientConfiguration(Builder builder) {
         this.signingRegion = builder.signingRegion == null ? DefaultAwsRegionProviderChain.builder().build().getRegion().id() :
@@ -65,6 +66,9 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         this.endpointOverride = builder.endpointOverride;
 
         this.checksumValidationEnabled = builder.checksumValidationEnabled == null || builder.checksumValidationEnabled;
+        this.backpressureForDownloadEnabled = builder.backpressureForDownloadEnabled != null ?
+                                              builder.backpressureForDownloadEnabled :
+                                              true;
     }
 
     public static Builder builder() {
@@ -103,6 +107,10 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         return checksumValidationEnabled;
     }
 
+    public boolean backpressureForDownloadEnabled() {
+        return backpressureForDownloadEnabled;
+    }
+
     @Override
     public void close() {
         clientBootstrap.close();
@@ -118,6 +126,8 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         private URI endpointOverride;
         private ClientAsyncConfiguration asynConfiguration;
         private Boolean checksumValidationEnabled;
+
+        private Boolean backpressureForDownloadEnabled;
 
         private Builder() {
         }
@@ -162,6 +172,11 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
 
         public S3NativeClientConfiguration build() {
             return new S3NativeClientConfiguration(this);
+        }
+
+        public Builder backpressureForDownload(Boolean backpressureForDownloadEnabled) {
+            this.backpressureForDownloadEnabled = backpressureForDownloadEnabled;
+            return this;
         }
     }
 }

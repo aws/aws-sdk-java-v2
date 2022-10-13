@@ -33,6 +33,8 @@ public class BenchmarkRunner {
     private static final String CHECKSUM_ALGORITHM = "checksumAlgo";
     private static final String ITERATION = "iteration";
 
+    private static final String BACKPRESSURE_ENABLED = "backpressure";
+
     private BenchmarkRunner() {
     }
 
@@ -50,6 +52,7 @@ public class BenchmarkRunner {
         options.addOption(null, MAX_THROUGHPUT, true, "The max throughput");
         options.addOption(null, CHECKSUM_ALGORITHM, true, "The checksum algorithm to use");
         options.addOption(null, ITERATION, true, "The number of iterations");
+        options.addOption(null, BACKPRESSURE_ENABLED, true, "Whether backpressure is enabled");
 
         CommandLine cmd = parser.parse(options, args);
         TransferManagerBenchmarkConfig config = parseConfig(cmd);
@@ -80,11 +83,14 @@ public class BenchmarkRunner {
         ChecksumAlgorithm checksumAlgorithm = null;
         if (cmd.getOptionValue(CHECKSUM_ALGORITHM) != null) {
             checksumAlgorithm = ChecksumAlgorithm.fromValue(cmd.getOptionValue(CHECKSUM_ALGORITHM)
-                                                                               .toUpperCase(Locale.ENGLISH));
+                                                               .toUpperCase(Locale.ENGLISH));
         }
 
         Integer iteration = cmd.getOptionValue(ITERATION) == null ? null :
-                          Integer.parseInt(cmd.getOptionValue(ITERATION));
+                            Integer.parseInt(cmd.getOptionValue(ITERATION));
+
+        Boolean backpressureEnabled = cmd.getOptionValue(BACKPRESSURE_ENABLED) == null ? null :
+                                      Boolean.parseBoolean(cmd.getOptionValue(BACKPRESSURE_ENABLED));
 
         return TransferManagerBenchmarkConfig.builder()
                                              .key(key)
@@ -92,6 +98,7 @@ public class BenchmarkRunner {
                                              .partSizeInMb(partSize)
                                              .checksumAlgorithm(checksumAlgorithm)
                                              .targetThroughput(maxThroughput)
+                                             .backpressureForDownloadEnabled(backpressureEnabled)
                                              .filePath(filePath)
                                              .iteration(iteration)
                                              .build();

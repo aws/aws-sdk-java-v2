@@ -96,6 +96,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                                        .signingRegion(builder.region == null ? null : builder.region.id())
                                        .endpointOverride(builder.endpointOverride)
                                        .credentialsProvider(builder.credentialsProvider)
+                .backpressureForDownload(builder.backpressureForDownloadEnabled)
                                        .build();
         return S3CrtAsyncHttpClient.builder()
                                    .s3ClientConfiguration(s3NativeClientConfiguration);
@@ -114,6 +115,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         private Integer maxConcurrency;
         private URI endpointOverride;
         private Boolean checksumValidationEnabled;
+        private Boolean backpressureForDownloadEnabled;
 
         public AwsCredentialsProvider credentialsProvider() {
             return credentialsProvider;
@@ -139,6 +141,9 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
             return endpointOverride;
         }
 
+        public Boolean backpressureForDownloadEnabled() {
+            return backpressureForDownloadEnabled;
+        }
 
         @Override
         public S3CrtAsyncClientBuilder credentialsProvider(AwsCredentialsProvider credentialsProvider) {
@@ -179,6 +184,12 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         @Override
         public S3CrtAsyncClientBuilder checksumValidationEnabled(Boolean checksumValidationEnabled) {
             this.checksumValidationEnabled = checksumValidationEnabled;
+            return this;
+        }
+
+        @Override
+        public S3CrtAsyncClientBuilder backpressureForDownloadEnabled(Boolean backpressureForDownloadEnabled) {
+            this.backpressureForDownloadEnabled = backpressureForDownloadEnabled;
             return this;
         }
 
