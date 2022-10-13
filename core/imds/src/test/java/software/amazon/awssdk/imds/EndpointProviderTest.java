@@ -62,8 +62,8 @@ class EndpointProviderTest {
             arguments(null, true, testIpv4Url, false, "testIPv6", testIpv4Url),
             arguments(null, true, testIpv6Url, false, "testIPv4", testIpv6Url),
 
-            Arguments.of(null, false, "unused", true, "testIPv6", "[1234:ec2::456]"),
-            Arguments.of(null, false, "unused", true, "testIPv4", "http://42.42.42.42"),
+            arguments(null, false, "unused", true, "testIPv6", "[1234:ec2::456]"),
+            arguments(null, false, "unused", true, "testIPv4", "http://42.42.42.42"),
 
             arguments(IPV4, false, "unused", false, "unused", IPV4.getServiceEndpoint()),
             arguments(IPV6, false, "unused", false, "unused", IPV6.getServiceEndpoint())

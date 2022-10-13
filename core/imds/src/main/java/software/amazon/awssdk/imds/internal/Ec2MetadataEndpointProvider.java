@@ -21,7 +21,7 @@ import software.amazon.awssdk.imds.EndpointMode;
 import software.amazon.awssdk.profiles.ProfileFile;
 
 /**
- *
+ * Provides the logic to determine which endpoint and {@link EndpointMode} to use for retrieving the instance metadata.
  */
 @SdkInternalApi
 public interface Ec2MetadataEndpointProvider {
@@ -35,8 +35,8 @@ public interface Ec2MetadataEndpointProvider {
     String resolveEndpoint(EndpointMode endpointMode);
 
     /**
-     * Resolve an {@link EndpointMode}. Encapsulate the logic for determining which Endpoint mode to use.
-     * @return
+     * Encapsulate the logic for determining which Endpoint mode to use.
+     * @return the {@link EndpointMode} to use for the metadata endpoint.
      */
     EndpointMode resolveEndpointMode();
 
