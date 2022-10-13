@@ -16,8 +16,8 @@
 package software.amazon.awssdk.imds;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.CoreMatchers.isA;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -26,6 +26,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import software.amazon.awssdk.core.document.Document;
+import software.amazon.awssdk.thirdparty.jackson.core.JsonParseException;
 
 /**
  * The class tests the utility methods provided by MetadataResponse Class .
@@ -36,7 +37,7 @@ public class MetadataResponseTest {
     public ExpectedException thrown = ExpectedException.none();
 
     @Test
-    public void check_asString_success() throws IOException {
+    public void check_asString_success() {
 
         String response = "foobar";
 
@@ -47,58 +48,56 @@ public class MetadataResponseTest {
     }
 
     @Test
-    public void check_asString_failure() throws IOException {
+    public void check_asString_failure() {
 
         thrown.expect(NullPointerException.class);
         thrown.expectMessage("Metadata is null");
 
         MetadataResponse metadataResponse = new MetadataResponse(null);
-        String result = metadataResponse.asString();
+        metadataResponse.asString();
     }
 
     @Test
-    public void check_asList_success_with_delimiter() throws IOException {
+    public void check_asList_success_with_delimiter() {
 
         String response = "sai\ntest";
 
         MetadataResponse metadataResponse = new MetadataResponse(response);
         List<String> result = metadataResponse.asList();
         assertThat(result).hasSize(2);
-
     }
 
     @Test
-    public void check_asList_success_without_delimiter() throws IOException {
+    public void check_asList_success_without_delimiter() {
 
         String response = "test1-test2";
 
         MetadataResponse metadataResponse = new MetadataResponse(response);
         List<String> result = metadataResponse.asList();
         assertThat(result).hasSize(1);
-
     }
+
     @Test
-    public void check_asList_failure() throws IOException {
+    public void check_asList_failure() {
 
         thrown.expect(NullPointerException.class);
         thrown.expectMessage("Metadata is null");
 
         MetadataResponse metadataResponse = new MetadataResponse(null);
-        List<String> result = metadataResponse.asList();
+        metadataResponse.asList();
     }
 
     @Test
-    public void check_asDocument_failure() throws IOException {
+    public void check_asDocument_failure() {
         thrown.expect(NullPointerException.class);
         thrown.expectMessage("Metadata is null");
 
         MetadataResponse metadataResponse = new MetadataResponse(null);
-        Document document = metadataResponse.asDocument();
-
+        metadataResponse.asDocument();
     }
 
     @Test
-    public void check_asDocument_success() throws IOException {
+    public void check_asDocument_success() {
         String jsonResponse = "{"
                               + "\"instanceType\":\"m1.small\","
                               + "\"devpayProductCodes\":[\"bar\",\"foo\"]"
@@ -116,6 +115,14 @@ public class MetadataResponseTest {
         expectedMap.put("devpayProductCodes", Document.fromList(documentList));
         Document expectedDocumentMap = Document.fromMap(expectedMap);
         assertThat(document).isEqualTo(expectedDocumentMap);
+    }
+
+    @Test
+    public void toDocument_nonJsonFormat_ExpectIllegalArgument() {
+        thrown.expectCause(isA(JsonParseException.class));
+        String malformed = "this is not json";
+        MetadataResponse metadataResponse = new MetadataResponse(malformed);
+        metadataResponse.asDocument();
     }
 
 }

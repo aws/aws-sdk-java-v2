@@ -23,8 +23,18 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 @SdkPublicApi
 public enum EndpointMode {
 
-    IPV4,
-    IPV6;
+    IPV4("http://169.254.169.254"),
+    IPV6("http://[fd00:ec2::254]");
+
+    public final String serviceEndpoint;
+
+    EndpointMode(String serviceEndpoint) {
+        this.serviceEndpoint = serviceEndpoint;
+    }
+
+    public String getServiceEndpoint() {
+        return this.serviceEndpoint;
+    }
 
     /**
      * Returns the appropriate EndpointMode Value after parsing the parameter.

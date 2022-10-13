@@ -46,16 +46,16 @@ public class Ec2MetadataRetryPolicy implements ToCopyableBuilder<Ec2MetadataRetr
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
+    public boolean equals(Object obj) {
+        if (this == obj) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        Ec2MetadataRetryPolicy ec2MetadataRetryPolicy = (Ec2MetadataRetryPolicy) o;
+        Ec2MetadataRetryPolicy ec2MetadataRetryPolicy = (Ec2MetadataRetryPolicy) obj;
 
-        if (!Objects.equals(numRetries, ec2MetadataRetryPolicy.numRetries)) {
+        if (numRetries != ec2MetadataRetryPolicy.numRetries) {
             return false;
         }
         return Objects.equals(backoffStrategy, ec2MetadataRetryPolicy.backoffStrategy);
@@ -64,7 +64,7 @@ public class Ec2MetadataRetryPolicy implements ToCopyableBuilder<Ec2MetadataRetr
     @Override
     public int hashCode() {
 
-        int result = numRetries >= 0 ? numRetries : 0;
+        int result = Math.max(numRetries, 0);
         result = 31 * result + (backoffStrategy != null ? backoffStrategy.hashCode() : 0);
         return result;
     }

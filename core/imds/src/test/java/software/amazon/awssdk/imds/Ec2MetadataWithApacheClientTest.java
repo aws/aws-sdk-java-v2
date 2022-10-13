@@ -35,7 +35,6 @@ import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 
 /**
@@ -52,15 +51,15 @@ public class Ec2MetadataWithApacheClientTest {
 
     private static final String AMI_ID_RESOURCE = EC2_METADATA_ROOT + "/ami-id";
 
-    private SdkHttpClient httpClient;
-
     @Rule
     public WireMockRule mockMetadataEndpoint = new WireMockRule();
+
+    private Ec2Metadata ec2Metadata;
 
     @Before
     public void methodSetup() {
         System.setProperty(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.property(), "http://localhost:" + mockMetadataEndpoint.port());
-        httpClient = ApacheHttpClient.create();
+        this.ec2Metadata = Ec2Metadata.builder().httpClient(ApacheHttpClient.create()).build();
     }
 
     @Test
@@ -69,12 +68,9 @@ public class Ec2MetadataWithApacheClientTest {
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody("some-token")));
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody("{}").withStatus(401)));
 
-        assertThatThrownBy(() -> {
-            Ec2Metadata ec2Metadata =
-                Ec2Metadata.builder().httpClient(httpClient).build();
-            MetadataResponse metadataResponse = ec2Metadata.get("/latest/meta-data/ami-id");
-        }).hasMessageContaining("Exceeded maximum number of retries.")
-          .isInstanceOf(SdkClientException.class);
+        assertThatThrownBy(() -> ec2Metadata.get("/latest/meta-data/ami-id"))
+            .hasMessageContaining("Exceeded maximum number of retries.")
+            .isInstanceOf(SdkClientException.class);
     }
 
     @Test
@@ -92,7 +88,6 @@ public class Ec2MetadataWithApacheClientTest {
                                                         .willReturn(aResponse().withBody("{}")));
 
 
-        Ec2Metadata ec2Metadata = Ec2Metadata.builder().httpClient(httpClient).build();
         MetadataResponse metadataResponse = ec2Metadata.get("/latest/meta-data/ami-id");
         assertThat(metadataResponse.asString()).isEqualTo("{}");
 
