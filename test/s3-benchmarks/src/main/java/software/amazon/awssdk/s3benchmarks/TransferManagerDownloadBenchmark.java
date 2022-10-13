@@ -22,6 +22,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.transfer.s3.model.FileDownload;
 import software.amazon.awssdk.utils.Logger;
@@ -36,20 +37,20 @@ public class TransferManagerDownloadBenchmark extends BaseTransferManagerBenchma
     @Override
     protected void doRunBenchmark() {
         try {
-            downloadToFile(BENCHMARK_ITERATIONS, true);
-            downloadToMemory(BENCHMARK_ITERATIONS, true);
+            downloadToFile(iteration, true);
+            downloadToMemory(iteration, true);
         } catch (Exception exception) {
             logger.error(() -> "Request failed: ", exception);
         }
     }
 
     @Override
-    protected void additionalWarmup() {
-        downloadToMemory(3, false);
-        downloadToFile(3, false);
+    protected void additionalWarmup() throws Exception {
+        downloadToMemory(1, true);
+        downloadToFile(1, true);
     }
 
-    private void downloadToMemory(int count, boolean printoutResult) {
+    private void downloadToMemory(int count, boolean printoutResult) throws Exception {
         List<Double> metrics = new ArrayList<>();
         logger.info(() -> "Starting to download to memory");
         for (int i = 0; i < count; i++) {
@@ -61,7 +62,7 @@ public class TransferManagerDownloadBenchmark extends BaseTransferManagerBenchma
         }
     }
 
-    private void downloadToFile(int count, boolean printoutResult) {
+    private void downloadToFile(int count, boolean printoutResult) throws Exception {
         List<Double> metrics = new ArrayList<>();
         logger.info(() -> "Starting to download to file");
         for (int i = 0; i < count; i++) {
@@ -72,13 +73,13 @@ public class TransferManagerDownloadBenchmark extends BaseTransferManagerBenchma
         }
     }
 
-    private void downloadOnceToFile(List<Double> latencies) {
+    private void downloadOnceToFile(List<Double> latencies) throws Exception {
         Path downloadPath = new File(this.path).toPath();
         long start = System.currentTimeMillis();
         FileDownload download =
             transferManager.downloadFile(b -> b.getObjectRequest(r -> r.bucket(bucket).key(key))
                                                .destination(downloadPath));
-        download.completionFuture().join();
+        download.completionFuture().get(10, TimeUnit.MINUTES);
         long end = System.currentTimeMillis();
         latencies.add((end - start) / 1000.0);
         runAndLogError(logger.logger(),
@@ -86,10 +87,10 @@ public class TransferManagerDownloadBenchmark extends BaseTransferManagerBenchma
                        () -> Files.delete(downloadPath));
     }
 
-    private void downloadOnceToMemory(List<Double> latencies) {
+    private void downloadOnceToMemory(List<Double> latencies) throws Exception {
         long start = System.currentTimeMillis();
         s3.getObject(GetObjectRequest.builder().bucket(bucket).key(key).build(),
-                     new NoOpResponseTransformer()).join();
+                     new NoOpResponseTransformer()).get(10, TimeUnit.MINUTES);
         long end = System.currentTimeMillis();
         latencies.add((end - start) / 1000.0);
     }

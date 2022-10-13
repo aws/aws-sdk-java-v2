@@ -39,8 +39,9 @@ import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.utils.Logger;
 
 public abstract class BaseTransferManagerBenchmark implements TransferManagerBenchmark {
+    private static final int BENCHMARK_ITERATIONS = 10;
+
     protected static final int WARMUP_ITERATIONS = 10;
-    protected static final int BENCHMARK_ITERATIONS = 10;
 
     private static final Logger logger = Logger.loggerFor("TransferManagerBenchmark");
     private static final String WARMUP_KEY = "warmupobject";
@@ -51,6 +52,8 @@ public abstract class BaseTransferManagerBenchmark implements TransferManagerBen
     protected final String bucket;
     protected final String key;
     protected final String path;
+
+    protected final int iteration;
     private final File file;
 
     BaseTransferManagerBenchmark(TransferManagerBenchmarkConfig config) {
@@ -68,6 +71,7 @@ public abstract class BaseTransferManagerBenchmark implements TransferManagerBen
         bucket = config.bucket();
         key = config.key();
         path = config.filePath();
+        iteration = config.iteration() == null ? BENCHMARK_ITERATIONS : config.iteration();
         try {
             file = new RandomTempFile(1024 * 1000L);
             file.deleteOnExit();
@@ -92,7 +96,7 @@ public abstract class BaseTransferManagerBenchmark implements TransferManagerBen
     /**
      * Hook method to allow subclasses to add additional warm up
      */
-    protected void additionalWarmup() {
+    protected void additionalWarmup() throws Exception {
         // default to no-op
     }
 
@@ -126,7 +130,7 @@ public abstract class BaseTransferManagerBenchmark implements TransferManagerBen
         transferManager.close();
     }
 
-    private void warmUp() throws InterruptedException {
+    private void warmUp() throws Exception {
         logger.info(() -> "Starting to warm up");
 
         for (int i = 0; i < WARMUP_ITERATIONS; i++) {

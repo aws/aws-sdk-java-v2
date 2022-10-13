@@ -32,7 +32,7 @@ public class TransferManagerUploadBenchmark extends BaseTransferManagerBenchmark
     @Override
     protected void doRunBenchmark() {
         try {
-            uploadFromFile(BENCHMARK_ITERATIONS, true);
+            uploadFromFile(iteration, true);
         } catch (Exception exception) {
             logger.error(() -> "Request failed: ", exception);
         }
