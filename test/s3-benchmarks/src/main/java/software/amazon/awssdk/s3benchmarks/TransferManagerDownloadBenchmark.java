@@ -46,8 +46,8 @@ public class TransferManagerDownloadBenchmark extends BaseTransferManagerBenchma
 
     @Override
     protected void additionalWarmup() throws Exception {
-        downloadToMemory(1, true);
-        downloadToFile(1, true);
+        downloadToMemory(2, false);
+        downloadToFile(2, false);
     }
 
     private void downloadToMemory(int count, boolean printoutResult) throws Exception {
