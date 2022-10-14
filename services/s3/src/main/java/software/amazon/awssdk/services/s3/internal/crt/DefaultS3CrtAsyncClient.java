@@ -96,7 +96,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                                        .signingRegion(builder.region == null ? null : builder.region.id())
                                        .endpointOverride(builder.endpointOverride)
                                        .credentialsProvider(builder.credentialsProvider)
-                .backpressureForDownload(builder.backpressureForDownloadEnabled)
+                                       .readBufferSizeInBytes(builder.readBufferSizeInBytes)
                                        .build();
         return S3CrtAsyncHttpClient.builder()
                                    .s3ClientConfiguration(s3NativeClientConfiguration);
@@ -108,6 +108,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
     }
 
     public static final class DefaultS3CrtClientBuilder implements S3CrtAsyncClientBuilder {
+        private Long readBufferSizeInBytes;
         private AwsCredentialsProvider credentialsProvider;
         private Region region;
         private Long minimalPartSizeInBytes;
@@ -115,7 +116,6 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         private Integer maxConcurrency;
         private URI endpointOverride;
         private Boolean checksumValidationEnabled;
-        private Boolean backpressureForDownloadEnabled;
 
         public AwsCredentialsProvider credentialsProvider() {
             return credentialsProvider;
@@ -141,8 +141,8 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
             return endpointOverride;
         }
 
-        public Boolean backpressureForDownloadEnabled() {
-            return backpressureForDownloadEnabled;
+        public Long readBufferSizeInBytes() {
+            return readBufferSizeInBytes;
         }
 
         @Override
@@ -188,8 +188,8 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         }
 
         @Override
-        public S3CrtAsyncClientBuilder backpressureForDownloadEnabled(Boolean backpressureForDownloadEnabled) {
-            this.backpressureForDownloadEnabled = backpressureForDownloadEnabled;
+        public S3CrtAsyncClientBuilder readBufferSizeInBytes(Long readBufferSizeInBytes) {
+            this.readBufferSizeInBytes = readBufferSizeInBytes;
             return this;
         }
 

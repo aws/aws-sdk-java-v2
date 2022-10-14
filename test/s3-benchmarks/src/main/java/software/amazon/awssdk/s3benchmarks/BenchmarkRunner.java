@@ -33,7 +33,7 @@ public class BenchmarkRunner {
     private static final String CHECKSUM_ALGORITHM = "checksumAlgo";
     private static final String ITERATION = "iteration";
 
-    private static final String BACKPRESSURE_ENABLED = "backpressure";
+    private static final String READ_BUFFER_IN_MB = "readBufferInMB";
 
     private BenchmarkRunner() {
     }
@@ -52,7 +52,7 @@ public class BenchmarkRunner {
         options.addOption(null, MAX_THROUGHPUT, true, "The max throughput");
         options.addOption(null, CHECKSUM_ALGORITHM, true, "The checksum algorithm to use");
         options.addOption(null, ITERATION, true, "The number of iterations");
-        options.addOption(null, BACKPRESSURE_ENABLED, true, "Whether backpressure is enabled");
+        options.addOption(null, READ_BUFFER_IN_MB, true, "Read buffer size in MB");
 
         CommandLine cmd = parser.parse(options, args);
         TransferManagerBenchmarkConfig config = parseConfig(cmd);
@@ -89,8 +89,8 @@ public class BenchmarkRunner {
         Integer iteration = cmd.getOptionValue(ITERATION) == null ? null :
                             Integer.parseInt(cmd.getOptionValue(ITERATION));
 
-        Boolean backpressureEnabled = cmd.getOptionValue(BACKPRESSURE_ENABLED) == null ? null :
-                                      Boolean.parseBoolean(cmd.getOptionValue(BACKPRESSURE_ENABLED));
+        Long readBufferInMB = cmd.getOptionValue(READ_BUFFER_IN_MB) == null ? null :
+                                      Long.parseLong(cmd.getOptionValue(READ_BUFFER_IN_MB));
 
         return TransferManagerBenchmarkConfig.builder()
                                              .key(key)
@@ -98,7 +98,7 @@ public class BenchmarkRunner {
                                              .partSizeInMb(partSize)
                                              .checksumAlgorithm(checksumAlgorithm)
                                              .targetThroughput(maxThroughput)
-                                             .backpressureForDownloadEnabled(backpressureEnabled)
+                                             .readBufferSizeInMb(readBufferInMB)
                                              .filePath(filePath)
                                              .iteration(iteration)
                                              .build();

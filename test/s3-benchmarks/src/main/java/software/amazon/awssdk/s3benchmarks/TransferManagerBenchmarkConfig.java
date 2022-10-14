@@ -26,7 +26,7 @@ public final class TransferManagerBenchmarkConfig {
     private final ChecksumAlgorithm checksumAlgorithm;
     private final Integer iteration;
 
-    private final Boolean backpressureForDownloadEnabled;
+    private final Long readBufferSizeInMb;
 
     private TransferManagerBenchmarkConfig(Builder builder) {
         this.filePath = builder.filePath;
@@ -36,7 +36,7 @@ public final class TransferManagerBenchmarkConfig {
         this.partSizeInMb = builder.partSizeInMb;
         this.checksumAlgorithm = builder.checksumAlgorithm;
         this.iteration = builder.iteration;
-        this.backpressureForDownloadEnabled = builder.backpressureForDownloadEnabled;
+        this.readBufferSizeInMb = builder.readBufferSizeInMb;
     }
 
     public String filePath() {
@@ -67,8 +67,8 @@ public final class TransferManagerBenchmarkConfig {
         return iteration;
     }
 
-    public Boolean backpressureForDownloadEnabled() {
-        return backpressureForDownloadEnabled;
+    public Long readBufferSizeInMb() {
+        return readBufferSizeInMb;
     }
 
     public static Builder builder() {
@@ -85,13 +85,13 @@ public final class TransferManagerBenchmarkConfig {
                ", partSizeInMb: " + partSizeInMb +
                ", checksumAlgorithm: " + checksumAlgorithm +
                ", iteration: " + iteration +
-               ", backpressureForDownloadEnabled: " + backpressureForDownloadEnabled +
+               ", readBufferSizeInMb: " + readBufferSizeInMb +
                '}';
     }
 
 
     static final class Builder {
-        private Boolean backpressureForDownloadEnabled;
+        private Long readBufferSizeInMb;
         private ChecksumAlgorithm checksumAlgorithm;
         private String filePath;
         private String bucket;
@@ -136,8 +136,8 @@ public final class TransferManagerBenchmarkConfig {
             return this;
         }
 
-        public Builder backpressureForDownloadEnabled(Boolean backpressureForDownloadEnabled) {
-            this.backpressureForDownloadEnabled = backpressureForDownloadEnabled;
+        public Builder readBufferSizeInMb(Long readBufferSizeInMb) {
+            this.readBufferSizeInMb = readBufferSizeInMb;
             return this;
         }
 

@@ -130,10 +130,7 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
      */
     S3CrtAsyncClientBuilder checksumValidationEnabled(Boolean checksumValidationEnabled);
 
-    /**
-     * Enabled by default
-     */
-    S3CrtAsyncClientBuilder backpressureForDownloadEnabled(Boolean backpressureForDownload);
+    S3CrtAsyncClientBuilder readBufferSizeInBytes(Long readBufferSizeInBytes);
 
     @Override
     S3AsyncClient build();

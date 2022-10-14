@@ -41,7 +41,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
     private final int maxConcurrency;
     private final URI endpointOverride;
     private final boolean checksumValidationEnabled;
-    private final boolean backpressureForDownloadEnabled;
+    private final Long readBufferSizeInBytes;
 
     public S3NativeClientConfiguration(Builder builder) {
         this.signingRegion = builder.signingRegion == null ? DefaultAwsRegionProviderChain.builder().build().getRegion().id() :
@@ -66,9 +66,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         this.endpointOverride = builder.endpointOverride;
 
         this.checksumValidationEnabled = builder.checksumValidationEnabled == null || builder.checksumValidationEnabled;
-        this.backpressureForDownloadEnabled = builder.backpressureForDownloadEnabled != null ?
-                                              builder.backpressureForDownloadEnabled :
-                                              true;
+        this.readBufferSizeInBytes = builder.readBufferSizeInBytes;
     }
 
     public static Builder builder() {
@@ -107,8 +105,12 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         return checksumValidationEnabled;
     }
 
+    public Long readBufferSizeInBytes() {
+        return readBufferSizeInBytes;
+    }
+
     public boolean backpressureForDownloadEnabled() {
-        return backpressureForDownloadEnabled;
+        return readBufferSizeInBytes != null;
     }
 
     @Override
@@ -118,6 +120,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
     }
 
     public static final class Builder {
+        public Long readBufferSizeInBytes;
         private String signingRegion;
         private AwsCredentialsProvider credentialsProvider;
         private Long partSizeInBytes;
@@ -126,8 +129,6 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         private URI endpointOverride;
         private ClientAsyncConfiguration asynConfiguration;
         private Boolean checksumValidationEnabled;
-
-        private Boolean backpressureForDownloadEnabled;
 
         private Builder() {
         }
@@ -174,8 +175,8 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
             return new S3NativeClientConfiguration(this);
         }
 
-        public Builder backpressureForDownload(Boolean backpressureForDownloadEnabled) {
-            this.backpressureForDownloadEnabled = backpressureForDownloadEnabled;
+        public Builder readBufferSizeInBytes(Long readBufferSizeInBytes) {
+            this.readBufferSizeInBytes = readBufferSizeInBytes;
             return this;
         }
     }
