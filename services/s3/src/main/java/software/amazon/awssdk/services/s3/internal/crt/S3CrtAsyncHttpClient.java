@@ -60,7 +60,8 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
 
     private S3CrtAsyncHttpClient(Builder builder) {
         s3NativeClientConfiguration = builder.clientConfiguration;
-        long initialWindowSize = (Runtime.getRuntime().freeMemory()/2);
+        long usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+        long initialWindowSize = Runtime.getRuntime().maxMemory() - usedMemory - s3NativeClientConfiguration.partSizeBytes();
 
         log.info(() -> "initial window size " + initialWindowSize);
         S3ClientOptions s3ClientOptions =
