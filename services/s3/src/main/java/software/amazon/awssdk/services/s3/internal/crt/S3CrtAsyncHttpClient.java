@@ -60,8 +60,7 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
 
     private S3CrtAsyncHttpClient(Builder builder) {
         s3NativeClientConfiguration = builder.clientConfiguration;
-        long usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-        long initialWindowSize = Runtime.getRuntime().maxMemory() - usedMemory - s3NativeClientConfiguration.partSizeBytes();
+        Long initialWindowSize = s3NativeClientConfiguration.readBufferSizeInBytes();
 
         log.info(() -> "initial window size " + initialWindowSize);
         S3ClientOptions s3ClientOptions =
@@ -72,9 +71,12 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
                                  .withClientBootstrap(s3NativeClientConfiguration.clientBootstrap())
                                  .withPartSize(s3NativeClientConfiguration.partSizeBytes())
                                  .withComputeContentMd5(false)
-                                 .withInitialReadWindowSize(s3NativeClientConfiguration.readBufferSizeInBytes())
-                                 .withReadBackpressureEnabled(s3NativeClientConfiguration.backpressureForDownloadEnabled())
                                  .withThroughputTargetGbps(s3NativeClientConfiguration.targetThroughputInGbps());
+
+        if (initialWindowSize != null) {
+            s3ClientOptions.withInitialReadWindowSize(initialWindowSize);
+            s3ClientOptions.withReadBackpressureEnabled(true);
+        }
         this.crtS3Client = new S3Client(s3ClientOptions);
     }
 

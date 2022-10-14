@@ -59,7 +59,7 @@ public abstract class BaseTransferManagerBenchmark implements TransferManagerBen
     BaseTransferManagerBenchmark(TransferManagerBenchmarkConfig config) {
         logger.info(() -> "Benchmark config: " + config);
         Long partSizeInMb = config.partSizeInMb() == null ? null : config.partSizeInMb() * MB;
-        Long readBufferSizeInMb = config.readBufferSizeInMb() == null ? null : config.partSizeInMb() * MB;
+        Long readBufferSizeInMb = config.readBufferSizeInMb() == null ? null : config.readBufferSizeInMb() * MB;
         s3 = S3CrtAsyncClient.builder()
                              .targetThroughputInGbps(config.targetThroughput())
                              .minimumPartSizeInBytes(partSizeInMb)
