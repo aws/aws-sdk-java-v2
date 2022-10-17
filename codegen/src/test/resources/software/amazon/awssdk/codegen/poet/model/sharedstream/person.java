@@ -25,12 +25,12 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 @Generated("software.amazon.awssdk:codegen")
 public class Person implements SdkPojo, Serializable, ToCopyableBuilder<Person.Builder, Person>, EventStream {
     private static final SdkField<String> NAME_FIELD = SdkField.<String> builder(MarshallingType.STRING).memberName("Name")
-            .getter(getter(Person::name)).setter(setter(Builder::name))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Name").build()).build();
+                                                               .getter(getter(Person::name)).setter(setter(Builder::name))
+                                                               .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Name").build()).build();
 
     private static final SdkField<Instant> BIRTHDAY_FIELD = SdkField.<Instant> builder(MarshallingType.INSTANT)
-            .memberName("Birthday").getter(getter(Person::birthday)).setter(setter(Builder::birthday))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Birthday").build()).build();
+                                                                    .memberName("Birthday").getter(getter(Person::birthday)).setter(setter(Builder::birthday))
+                                                                    .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Birthday").build()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(NAME_FIELD, BIRTHDAY_FIELD));
 
@@ -47,7 +47,7 @@ public class Person implements SdkPojo, Serializable, ToCopyableBuilder<Person.B
 
     /**
      * Returns the value of the Name property for this object.
-     * 
+     *
      * @return The value of the Name property for this object.
      */
     public final String name() {
@@ -56,7 +56,7 @@ public class Person implements SdkPojo, Serializable, ToCopyableBuilder<Person.B
 
     /**
      * Returns the value of the Birthday property for this object.
-     * 
+     *
      * @return The value of the Birthday property for this object.
      */
     public final Instant birthday() {
@@ -115,12 +115,12 @@ public class Person implements SdkPojo, Serializable, ToCopyableBuilder<Person.B
 
     public final <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-        case "Name":
-            return Optional.ofNullable(clazz.cast(name()));
-        case "Birthday":
-            return Optional.ofNullable(clazz.cast(birthday()));
-        default:
-            return Optional.empty();
+            case "Name":
+                return Optional.ofNullable(clazz.cast(name()));
+            case "Birthday":
+                return Optional.ofNullable(clazz.cast(birthday()));
+            default:
+                return Optional.empty();
         }
     }
 
@@ -201,28 +201,28 @@ public class Person implements SdkPojo, Serializable, ToCopyableBuilder<Person.B
             return name;
         }
 
+        public final void setName(String name) {
+            this.name = name;
+        }
+
         @Override
         public final Builder name(String name) {
             this.name = name;
             return this;
         }
 
-        public final void setName(String name) {
-            this.name = name;
-        }
-
         public final Instant getBirthday() {
             return birthday;
+        }
+
+        public final void setBirthday(Instant birthday) {
+            this.birthday = birthday;
         }
 
         @Override
         public final Builder birthday(Instant birthday) {
             this.birthday = birthday;
             return this;
-        }
-
-        public final void setBirthday(Instant birthday) {
-            this.birthday = birthday;
         }
 
         @Override
@@ -236,4 +236,3 @@ public class Person implements SdkPojo, Serializable, ToCopyableBuilder<Person.B
         }
     }
 }
-

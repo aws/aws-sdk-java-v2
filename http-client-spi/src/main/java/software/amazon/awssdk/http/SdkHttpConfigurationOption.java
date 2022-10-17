@@ -91,6 +91,16 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
             new SdkHttpConfigurationOption<>("ReapIdleConnections", Boolean.class);
 
     /**
+     * Whether to enable or disable TCP KeepAlive.
+     * <p>
+     * When enabled, the actual KeepAlive mechanism is dependent on the Operating System and therefore additional TCP KeepAlive
+     * values (like timeout, number of packets, etc) must be configured via the Operating System (sysctl on Linux/Mac, and
+     * Registry values on Windows).
+     */
+    public static final SdkHttpConfigurationOption<Boolean> TCP_KEEPALIVE =
+        new SdkHttpConfigurationOption<>("TcpKeepalive", Boolean.class);
+
+    /**
      * The {@link TlsKeyManagersProvider} that will be used by the HTTP client when authenticating with a
      * TLS host.
      */
@@ -111,15 +121,30 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
     public static final SdkHttpConfigurationOption<TlsTrustManagersProvider> TLS_TRUST_MANAGERS_PROVIDER =
         new SdkHttpConfigurationOption<>("TlsTrustManagersProvider", TlsTrustManagersProvider.class);
 
+    /**
+     * The maximum amount of time that a TLS handshake is allowed to take from the time the CLIENT HELLO
+     * message is sent to the time the client and server have fully negotiated ciphers and exchanged keys.
+     *
+     * <p>
+     * If not specified, the default value will be the same as the resolved {@link #CONNECTION_TIMEOUT}.
+     */
+    public static final SdkHttpConfigurationOption<Duration> TLS_NEGOTIATION_TIMEOUT =
+        new SdkHttpConfigurationOption<>("TlsNegotiationTimeout", Duration.class);
+
     private static final Duration DEFAULT_SOCKET_READ_TIMEOUT = Duration.ofSeconds(30);
     private static final Duration DEFAULT_SOCKET_WRITE_TIMEOUT = Duration.ofSeconds(30);
     private static final Duration DEFAULT_CONNECTION_TIMEOUT = Duration.ofSeconds(2);
     private static final Duration DEFAULT_CONNECTION_ACQUIRE_TIMEOUT = Duration.ofSeconds(10);
     private static final Duration DEFAULT_CONNECTION_MAX_IDLE_TIMEOUT = Duration.ofSeconds(60);
     private static final Duration DEFAULT_CONNECTION_TIME_TO_LIVE = Duration.ZERO;
+    /**
+     * 5 seconds = 3 seconds (RTO for 2 packets loss) + 2 seconds (startup latency and RTT buffer)
+     */
+    private static final Duration DEFAULT_TLS_NEGOTIATION_TIMEOUT = Duration.ofSeconds(5);
     private static final Boolean DEFAULT_REAP_IDLE_CONNECTIONS = Boolean.TRUE;
     private static final int DEFAULT_MAX_CONNECTIONS = 50;
     private static final int DEFAULT_MAX_CONNECTION_ACQUIRES = 10_000;
+    private static final Boolean DEFAULT_TCP_KEEPALIVE = Boolean.FALSE;
     private static final Boolean DEFAULT_TRUST_ALL_CERTIFICATES = Boolean.FALSE;
 
     private static final Protocol DEFAULT_PROTOCOL = Protocol.HTTP1_1;
@@ -140,8 +165,10 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
             .put(PROTOCOL, DEFAULT_PROTOCOL)
             .put(TRUST_ALL_CERTIFICATES, DEFAULT_TRUST_ALL_CERTIFICATES)
             .put(REAP_IDLE_CONNECTIONS, DEFAULT_REAP_IDLE_CONNECTIONS)
+            .put(TCP_KEEPALIVE, DEFAULT_TCP_KEEPALIVE)
             .put(TLS_KEY_MANAGERS_PROVIDER, DEFAULT_TLS_KEY_MANAGERS_PROVIDER)
             .put(TLS_TRUST_MANAGERS_PROVIDER, DEFAULT_TLS_TRUST_MANAGERS_PROVIDER)
+            .put(TLS_NEGOTIATION_TIMEOUT, DEFAULT_TLS_NEGOTIATION_TIMEOUT)
             .build();
 
     private final String name;

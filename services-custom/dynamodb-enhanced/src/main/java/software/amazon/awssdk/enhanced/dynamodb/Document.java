@@ -16,6 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 
 /**
  * A document representing a table item in the form of a map containing attributes and values.
@@ -23,6 +24,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  * Use the {@link #getItem(MappedTableResource)} method to transform the collection of attributes into a typed item.
  */
 @SdkPublicApi
+@ThreadSafe
 public interface Document {
 
     /**

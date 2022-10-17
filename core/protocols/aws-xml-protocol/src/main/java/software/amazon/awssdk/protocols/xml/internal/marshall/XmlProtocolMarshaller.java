@@ -23,7 +23,7 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkBytes;
@@ -136,13 +136,13 @@ public final class XmlProtocolMarshaller implements ProtocolMarshaller<SdkHttpFu
     }
 
     private void setContentTypeHeaderIfNeeded(String contentType) {
-        if (contentType != null && !request.headers().containsKey(CONTENT_TYPE)) {
+        if (contentType != null && !request.firstMatchingHeader(CONTENT_TYPE).isPresent()) {
             request.putHeader(CONTENT_TYPE, contentType);
         }
     }
 
     private static Map<MarshallLocation, TimestampFormatTrait.Format> getDefaultTimestampFormats() {
-        Map<MarshallLocation, TimestampFormatTrait.Format> formats = new HashMap<>();
+        Map<MarshallLocation, TimestampFormatTrait.Format> formats = new EnumMap<>(MarshallLocation.class);
         formats.put(MarshallLocation.HEADER, TimestampFormatTrait.Format.RFC_822);
         formats.put(MarshallLocation.PAYLOAD, TimestampFormatTrait.Format.ISO_8601);
         formats.put(MarshallLocation.QUERY_PARAM, TimestampFormatTrait.Format.ISO_8601);
@@ -155,6 +155,7 @@ public final class XmlProtocolMarshaller implements ProtocolMarshaller<SdkHttpFu
             .payloadMarshaller(MarshallingType.STRING, XmlPayloadMarshaller.STRING)
             .payloadMarshaller(MarshallingType.INTEGER, XmlPayloadMarshaller.INTEGER)
             .payloadMarshaller(MarshallingType.LONG, XmlPayloadMarshaller.LONG)
+            .payloadMarshaller(MarshallingType.SHORT, XmlPayloadMarshaller.SHORT)
             .payloadMarshaller(MarshallingType.FLOAT, XmlPayloadMarshaller.FLOAT)
             .payloadMarshaller(MarshallingType.DOUBLE, XmlPayloadMarshaller.DOUBLE)
             .payloadMarshaller(MarshallingType.BIG_DECIMAL, XmlPayloadMarshaller.BIG_DECIMAL)
@@ -169,16 +170,19 @@ public final class XmlProtocolMarshaller implements ProtocolMarshaller<SdkHttpFu
             .headerMarshaller(MarshallingType.STRING, HeaderMarshaller.STRING)
             .headerMarshaller(MarshallingType.INTEGER, HeaderMarshaller.INTEGER)
             .headerMarshaller(MarshallingType.LONG, HeaderMarshaller.LONG)
+            .headerMarshaller(MarshallingType.SHORT, HeaderMarshaller.SHORT)
             .headerMarshaller(MarshallingType.DOUBLE, HeaderMarshaller.DOUBLE)
             .headerMarshaller(MarshallingType.FLOAT, HeaderMarshaller.FLOAT)
             .headerMarshaller(MarshallingType.BOOLEAN, HeaderMarshaller.BOOLEAN)
             .headerMarshaller(MarshallingType.INSTANT, HeaderMarshaller.INSTANT)
             .headerMarshaller(MarshallingType.MAP, HeaderMarshaller.MAP)
+            .headerMarshaller(MarshallingType.LIST, HeaderMarshaller.LIST)
             .headerMarshaller(MarshallingType.NULL, XmlMarshaller.NULL)
 
             .queryParamMarshaller(MarshallingType.STRING, QueryParamMarshaller.STRING)
             .queryParamMarshaller(MarshallingType.INTEGER, QueryParamMarshaller.INTEGER)
             .queryParamMarshaller(MarshallingType.LONG, QueryParamMarshaller.LONG)
+            .queryParamMarshaller(MarshallingType.SHORT, QueryParamMarshaller.SHORT)
             .queryParamMarshaller(MarshallingType.DOUBLE, QueryParamMarshaller.DOUBLE)
             .queryParamMarshaller(MarshallingType.FLOAT, QueryParamMarshaller.FLOAT)
             .queryParamMarshaller(MarshallingType.BOOLEAN, QueryParamMarshaller.BOOLEAN)
@@ -190,6 +194,7 @@ public final class XmlProtocolMarshaller implements ProtocolMarshaller<SdkHttpFu
             .pathParamMarshaller(MarshallingType.STRING, SimpleTypePathMarshaller.STRING)
             .pathParamMarshaller(MarshallingType.INTEGER, SimpleTypePathMarshaller.INTEGER)
             .pathParamMarshaller(MarshallingType.LONG, SimpleTypePathMarshaller.LONG)
+            .pathParamMarshaller(MarshallingType.SHORT, SimpleTypePathMarshaller.SHORT)
             .pathParamMarshaller(MarshallingType.NULL, SimpleTypePathMarshaller.NULL)
 
             .greedyPathParamMarshaller(MarshallingType.STRING, SimpleTypePathMarshaller.GREEDY_STRING)

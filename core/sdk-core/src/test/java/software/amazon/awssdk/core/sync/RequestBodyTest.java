@@ -16,14 +16,17 @@
 package software.amazon.awssdk.core.sync;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -51,7 +54,13 @@ public class RequestBodyTest {
     @Test
     public void stringConstructorHasCorrectContentType() {
         RequestBody requestBody = RequestBody.fromString("hello world");
-        assertThat(requestBody.contentType()).isEqualTo(Mimetype.MIMETYPE_TEXT_PLAIN);
+        assertThat(requestBody.contentType()).isEqualTo(Mimetype.MIMETYPE_TEXT_PLAIN + "; charset=UTF-8");
+    }
+
+    @Test
+    public void stringConstructorWithCharsetHasCorrectContentType() {
+        RequestBody requestBody = RequestBody.fromString("hello world", StandardCharsets.US_ASCII);
+        assertThat(requestBody.contentType()).isEqualTo(Mimetype.MIMETYPE_TEXT_PLAIN + "; charset=US-ASCII");
     }
 
     @Test
@@ -102,6 +111,15 @@ public class RequestBodyTest {
     public void emptyBytesConstructorHasCorrectContentType() {
         RequestBody requestBody = RequestBody.empty();
         assertThat(requestBody.contentType()).isEqualTo(Mimetype.MIMETYPE_OCTET_STREAM);
+    }
+
+    @Test
+    public void contentProviderConstuctorWithNullContentLength_NoContentLength() {
+        byte[] bytes = new byte[0];
+        RequestBody requestBody = RequestBody.fromContentProvider(() -> new ByteArrayInputStream(bytes),
+                                                                  Mimetype.MIMETYPE_OCTET_STREAM);
+        assertThat(requestBody.optionalContentLength().isPresent()).isFalse();
+        assertThatThrownBy(() -> requestBody.contentLength()).isInstanceOf(IllegalStateException.class);
     }
 
     @Test

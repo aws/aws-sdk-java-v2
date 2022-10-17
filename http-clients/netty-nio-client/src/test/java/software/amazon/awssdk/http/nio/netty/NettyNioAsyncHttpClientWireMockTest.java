@@ -76,7 +76,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -90,8 +90,8 @@ import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 import software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration;
-import software.amazon.awssdk.http.nio.netty.internal.SdkChannelPoolMap;
 import software.amazon.awssdk.http.nio.netty.internal.SdkChannelPool;
+import software.amazon.awssdk.http.nio.netty.internal.SdkChannelPoolMap;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.utils.AttributeMap;
 
@@ -122,6 +122,49 @@ public class NettyNioAsyncHttpClientWireMockTest {
     public void defaultConnectionIdleTimeout() {
         try (NettyNioAsyncHttpClient client = (NettyNioAsyncHttpClient) NettyNioAsyncHttpClient.builder().build()) {
             assertThat(client.configuration().idleTimeoutMillis()).isEqualTo(5000);
+        }
+    }
+
+    @Test
+    public void defaultTlsHandshakeTimeout() {
+        try (NettyNioAsyncHttpClient client = (NettyNioAsyncHttpClient) NettyNioAsyncHttpClient.create()) {
+            assertThat(client.configuration().tlsHandshakeTimeout().toMillis()).isEqualTo(5000);
+        }
+    }
+
+    @Test
+    public void noTlsTimeout_hasConnectTimeout_shouldResolveToConnectTimeout() {
+        Duration connectTimeout = Duration.ofSeconds(1);
+        try (NettyNioAsyncHttpClient client = (NettyNioAsyncHttpClient) NettyNioAsyncHttpClient.builder()
+                                                                                               .connectionTimeout(connectTimeout)
+                                                                                               .build()) {
+            assertThat(client.configuration().tlsHandshakeTimeout()).isEqualTo(connectTimeout);
+        }
+        Duration timeoutOverride = Duration.ofSeconds(2);
+        try (NettyNioAsyncHttpClient client = (NettyNioAsyncHttpClient) NettyNioAsyncHttpClient.builder()
+                                                                                               .connectionTimeout(timeoutOverride)
+                                                                                               .build()) {
+            assertThat(client.configuration().tlsHandshakeTimeout()).isEqualTo(timeoutOverride);
+        }
+    }
+
+
+    @Test
+    public void tlsTimeoutConfigured_shouldHonor() {
+        Duration connectTimeout = Duration.ofSeconds(1);
+        Duration tlsTimeout = Duration.ofSeconds(3);
+        try (NettyNioAsyncHttpClient client = (NettyNioAsyncHttpClient) NettyNioAsyncHttpClient.builder()
+                                                                                               .tlsNegotiationTimeout(tlsTimeout)
+                                                                                               .connectionTimeout(connectTimeout)
+                                                                                               .build()) {
+            assertThat(client.configuration().tlsHandshakeTimeout()).isEqualTo(tlsTimeout);
+        }
+
+        try (NettyNioAsyncHttpClient client = (NettyNioAsyncHttpClient) NettyNioAsyncHttpClient.builder()
+                                                                                               .connectionTimeout(connectTimeout)
+                                                                                               .tlsNegotiationTimeout(tlsTimeout)
+                                                                                               .build()) {
+            assertThat(client.configuration().tlsHandshakeTimeout()).isEqualTo(tlsTimeout);
         }
     }
 
@@ -680,6 +723,21 @@ public class NettyNioAsyncHttpClientWireMockTest {
 
         customClient.close();
     }
+
+    @Test
+    public void createNettyClient_tlsNegotiationTimeoutNotPositive_shouldThrowException() throws Exception {
+        assertThatThrownBy(() -> NettyNioAsyncHttpClient.builder()
+                                                        .tlsNegotiationTimeout(Duration.ZERO)
+                                                        .build())
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("must be positive");
+        assertThatThrownBy(() -> NettyNioAsyncHttpClient.builder()
+                                                        .tlsNegotiationTimeout(Duration.ofSeconds(-1))
+                                                        .build())
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("must be positive");
+    }
+
 
     @Test
     public void metricsAreCollectedWhenMaxPendingConnectionAcquisitionsAreExceeded() throws Exception {

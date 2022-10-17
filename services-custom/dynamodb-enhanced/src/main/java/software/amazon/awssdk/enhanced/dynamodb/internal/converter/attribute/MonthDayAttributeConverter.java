@@ -45,8 +45,8 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  *
  * Examples:
  * <ul>
- *     <li>{@code MonthDay.of(5, 21)} is stored as as an AttributeValue with the String "--05-21"}</li>
- *     <li>{@code MonthDay.of(12, 1)} is stored as as an AttributeValue with the String "--12-01"}</li>
+ *     <li>{@code MonthDay.of(5, 21)} is stored as as an AttributeValue with the String "--05-21"</li>
+ *     <li>{@code MonthDay.of(12, 1)} is stored as as an AttributeValue with the String "--12-01"</li>
  * </ul>
  *
  * <p>

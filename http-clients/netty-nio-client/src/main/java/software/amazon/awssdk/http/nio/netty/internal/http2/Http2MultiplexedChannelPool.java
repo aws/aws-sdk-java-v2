@@ -55,9 +55,9 @@ import software.amazon.awssdk.http.HttpMetric;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.nio.netty.internal.SdkChannelPool;
 import software.amazon.awssdk.http.nio.netty.internal.utils.BetterFixedChannelPool;
+import software.amazon.awssdk.http.nio.netty.internal.utils.NettyClientLogger;
 import software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils;
 import software.amazon.awssdk.metrics.MetricCollector;
-import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -74,7 +74,7 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkInternalApi
 public class Http2MultiplexedChannelPool implements SdkChannelPool {
-    private static final Logger log = Logger.loggerFor(Http2MultiplexedChannelPool.class);
+    private static final NettyClientLogger log = NettyClientLogger.getLogger(Http2MultiplexedChannelPool.class);
 
     /**
      * Reference to the {@link MultiplexedChannelRecord} on a channel.
@@ -236,19 +236,19 @@ public class Http2MultiplexedChannelPool implements SdkChannelPool {
             Validate.notNull(http2Connection, "initialWindowSize should not be null on channel " + parentChannel);
 
             Http2Stream connectionStream = http2Connection.connectionStream();
-            log.debug(() -> "Expanding connection window size for " + parentChannel + " by " + initialWindowSize);
+            log.debug(parentChannel, () -> "Expanding connection window size for " + parentChannel + " by " + initialWindowSize);
             try {
                 Http2LocalFlowController localFlowController = http2Connection.local().flowController();
                 localFlowController.incrementWindowSize(connectionStream, initialWindowSize);
 
             } catch (Http2Exception e) {
-                log.warn(() -> "Failed to increment windowSize of connection " + parentChannel, e);
+                log.warn(parentChannel, () -> "Failed to increment windowSize of connection " + parentChannel, e);
             }
         });
     }
 
     private Void failAndCloseParent(Promise<Channel> promise, Channel parentChannel, Throwable exception) {
-        log.debug(() -> "Channel acquiring failed, closing connection " + parentChannel, exception);
+        log.debug(parentChannel, () -> "Channel acquiring failed, closing connection " + parentChannel, exception);
         promise.setFailure(exception);
         closeAndReleaseParent(parentChannel);
         return null;
@@ -310,7 +310,7 @@ public class Http2MultiplexedChannelPool implements SdkChannelPool {
             // this pool. Close it and log an error.
             Exception exception = new IOException("Channel (" + childChannel + ") is not associated with any channel records. "
                                                   + "It will be closed, but cannot be released within this pool.");
-            log.error(exception::getMessage);
+            log.error(childChannel, exception::getMessage);
             childChannel.close();
             return promise.setFailure(exception);
         }
@@ -338,7 +338,7 @@ public class Http2MultiplexedChannelPool implements SdkChannelPool {
             // This isn't a parent channel. Notify it that something is wrong.
             Exception exception = new IOException("Channel (" + parentChannel + ") is not a parent channel. It will be closed, "
                                                   + "but cannot be released within this pool.");
-            log.error(exception::getMessage);
+            log.error(parentChannel, exception::getMessage);
             parentChannel.close();
             return resultPromise.setFailure(exception);
         }
@@ -364,7 +364,7 @@ public class Http2MultiplexedChannelPool implements SdkChannelPool {
     }
 
     void handleGoAway(Channel parentChannel, int lastStreamId, GoAwayException exception) {
-        log.debug(() -> "Received GOAWAY on " + parentChannel + " with lastStreamId of " + lastStreamId);
+        log.debug(parentChannel, () -> "Received GOAWAY on " + parentChannel + " with lastStreamId of " + lastStreamId);
         try {
             MultiplexedChannelRecord multiplexedChannel = parentChannel.attr(MULTIPLEXED_CHANNEL).get();
 
@@ -375,7 +375,7 @@ public class Http2MultiplexedChannelPool implements SdkChannelPool {
                 closeAndReleaseParent(parentChannel, exception);
             }
         } catch (Exception e) {
-            log.error(() -> "Failed to handle GOAWAY frame on channel " + parentChannel, e);
+            log.error(parentChannel, () -> "Failed to handle GOAWAY frame on channel " + parentChannel, e);
         }
     }
 

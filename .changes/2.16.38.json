@@ -1,0 +1,60 @@
+{
+    "version": "2.16.38",
+    "date": "2021-04-08",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Kinesis Video Streams Archived Media",
+            "contributor": "",
+            "description": "Documentation updates for archived.kinesisvideo"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "ajs139",
+            "description": "Add a configuration option to enable `TCP_KEEPALIVE` on the ApacheHttpClient."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Resource Access Manager",
+            "contributor": "",
+            "description": "Documentation updates for AWS RAM resource sharing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Customer Profiles",
+            "contributor": "",
+            "description": "Documentation updates for Put-Integration API"
+        },
+        {
+            "type": "feature",
+            "category": "AWS RoboMaker",
+            "contributor": "",
+            "description": "This release allows RoboMaker customers to specify custom tools to run with their simulation job"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lookout for Equipment",
+            "contributor": "",
+            "description": "This release introduces support for Amazon Lookout for Equipment."
+        },
+        {
+            "type": "feature",
+            "category": "Auto Scaling",
+            "contributor": "",
+            "description": "Amazon EC2 Auto Scaling announces Warm Pools that help applications to scale out faster by pre-initializing EC2 instances and save money by requiring fewer continuously running instances"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon AppStream",
+            "contributor": "",
+            "description": "This release provides support for image updates"
+        }
+    ]
+}

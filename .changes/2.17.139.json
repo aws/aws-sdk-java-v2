@@ -1,0 +1,66 @@
+{
+    "version": "2.17.139",
+    "date": "2022-02-28",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Service Catalog App Registry",
+            "contributor": "",
+            "description": "AppRegistry is deprecating Application and Attribute-Group Name update feature. In this release, we are marking the name attributes for Update APIs as deprecated to give a heads up to our customers."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon FSx",
+            "contributor": "",
+            "description": "This release adds support for the following FSx for OpenZFS features: snapshot lifecycle transition messages, force flag for deleting file systems with child resources, LZ4 data compression, custom record sizes, and unsetting volume quotas and reservations."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "This release adds support for new AMI property 'lastLaunchedTime'"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Amplify",
+            "contributor": "",
+            "description": "Add repositoryCloneMethod field for hosting an Amplify app. This field shows what authorization method is used to clone the repo: SSH, TOKEN, or SIGV4."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Fault Injection Simulator",
+            "contributor": "",
+            "description": "This release adds logging support for AWS Fault Injection Simulator experiments. Experiment templates can now be configured to send experiment activity logs to Amazon CloudWatch Logs or to an S3 bucket."
+        },
+        {
+            "type": "feature",
+            "category": "Route53 Recovery Cluster",
+            "contributor": "",
+            "description": "This release adds a new API option to enable overriding safety rules to allow routing control state updates."
+        },
+        {
+            "type": "feature",
+            "category": "FinSpace Public API",
+            "contributor": "",
+            "description": "Add new APIs for managing Users and Permission Groups."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Athena",
+            "contributor": "",
+            "description": "This release adds support for updating an existing named query."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Amplify UI Builder",
+            "contributor": "",
+            "description": "We are adding the ability to configure workflows and actions for components."
+        }
+    ]
+}

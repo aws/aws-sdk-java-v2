@@ -27,4 +27,23 @@ public class AbstractBean {
     public void setAttribute2(String attribute2) {
         this.attribute2 = attribute2;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        AbstractBean that = (AbstractBean) o;
+
+        return attribute2 != null ? attribute2.equals(that.attribute2) : that.attribute2 == null;
+    }
+
+    @Override
+    public int hashCode() {
+        return attribute2 != null ? attribute2.hashCode() : 0;
+    }
 }

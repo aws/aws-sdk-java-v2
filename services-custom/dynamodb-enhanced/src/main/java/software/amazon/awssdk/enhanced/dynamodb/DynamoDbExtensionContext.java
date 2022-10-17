@@ -17,17 +17,21 @@ package software.amazon.awssdk.enhanced.dynamodb;
 
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.enhanced.dynamodb.internal.operations.OperationName;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * A wrapper for the immutable context objects that are visible to the {@link DynamoDbEnhancedClientExtension}s.
  */
 @SdkPublicApi
+@ThreadSafe
 public final class DynamoDbExtensionContext {
     private DynamoDbExtensionContext() {
     }
 
     @SdkPublicApi
+    @ThreadSafe
     public interface Context {
         /**
          * @return The {@link AttributeValue} map of the items that is about to be written or has just been read.
@@ -43,19 +47,33 @@ public final class DynamoDbExtensionContext {
          * @return A {@link TableMetadata} object describing the structure of the modelled table.
          */
         TableMetadata tableMetadata();
+
+        /**
+         * @return A {@link TableSchema} object describing the structure of the modelled table.
+         */
+        default TableSchema<?> tableSchema() {
+            throw new UnsupportedOperationException();
+        }
     }
 
     /**
      * The state of the execution when the {@link DynamoDbEnhancedClientExtension#beforeWrite} method is invoked.
      */
     @SdkPublicApi
+    @ThreadSafe
     public interface BeforeWrite extends Context {
+
+        /**
+         * @return The context under which the operation to be modified is taking place.
+         */
+        OperationName operationName();
     }
 
     /**
      * The state of the execution when the {@link DynamoDbEnhancedClientExtension#afterRead} method is invoked.
      */
     @SdkPublicApi
+    @ThreadSafe
     public interface AfterRead extends Context {
     }
 }

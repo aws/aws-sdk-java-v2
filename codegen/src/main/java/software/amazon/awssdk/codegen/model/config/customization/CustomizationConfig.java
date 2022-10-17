@@ -19,9 +19,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.traits.PayloadTrait;
 import software.amazon.awssdk.utils.AttributeMap;
 
+/**
+ * {@code service-2.json} models can be manually modified via defining properties in an associated {@code customization.config}
+ * file. This class defines the Java bean representation that will be used to parse the JSON customization file. The bean can
+ * then be later queried in the misc. codegen steps.
+ */
 public class CustomizationConfig {
 
     /**
@@ -31,11 +37,10 @@ public class CustomizationConfig {
     private final List<ConvenienceTypeOverload> convenienceTypeOverloads = new ArrayList<>();
 
     /**
-     * Specifies the name of the client configuration class to use if a service
-     * has a specific advanced client configuration class. Null if the service
-     * does not have advanced configuration.
+     * Configuration object for service-specific configuration options.
      */
-    private String serviceSpecificClientConfigClass;
+    private ServiceConfig serviceConfig = new ServiceConfig();
+
     /**
      * Specify shapes to be renamed.
      */
@@ -187,6 +192,15 @@ public class CustomizationConfig {
      */
     private UnderscoresInNameBehavior underscoresInNameBehavior;
 
+    private String userAgent;
+    
+    private RetryMode defaultRetryMode;
+
+    /**
+     * Whether to generate an abstract decorator class that delegates to the async service client
+     */
+    private boolean delegateAsyncClientClass;
+
     private CustomizationConfig() {
     }
 
@@ -224,14 +238,6 @@ public class CustomizationConfig {
 
     public void setShapeModifiers(Map<String, ShapeModifier> shapeModifiers) {
         this.shapeModifiers = shapeModifiers;
-    }
-
-    public String getServiceSpecificClientConfigClass() {
-        return serviceSpecificClientConfigClass;
-    }
-
-    public void setServiceSpecificClientConfigClass(String serviceSpecificClientConfig) {
-        this.serviceSpecificClientConfigClass = serviceSpecificClientConfig;
     }
 
     public List<ConvenienceTypeOverload> getConvenienceTypeOverloads() {
@@ -469,5 +475,42 @@ public class CustomizationConfig {
     public CustomizationConfig withUnderscoresInShapeNameBehavior(UnderscoresInNameBehavior behavior) {
         this.underscoresInNameBehavior = behavior;
         return this;
+    }
+
+    public String getUserAgent() {
+        return userAgent;
+    }
+
+    public void setUserAgent(String userAgent) {
+        this.userAgent = userAgent;
+    }
+
+    public CustomizationConfig withUserAgent(String userAgent) {
+        this.userAgent = userAgent;
+        return this;
+    }
+
+    public RetryMode getDefaultRetryMode() {
+        return defaultRetryMode;
+    }
+
+    public void setDefaultRetryMode(RetryMode defaultRetryMode) {
+        this.defaultRetryMode = defaultRetryMode;
+    }
+
+    public ServiceConfig getServiceConfig() {
+        return serviceConfig;
+    }
+
+    public void setServiceConfig(ServiceConfig serviceConfig) {
+        this.serviceConfig = serviceConfig;
+    }
+
+    public boolean isDelegateAsyncClientClass() {
+        return delegateAsyncClientClass;
+    }
+
+    public void setDelegateAsyncClientClass(boolean delegateAsyncClientClass) {
+        this.delegateAsyncClientClass = delegateAsyncClientClass;
     }
 }

@@ -1,0 +1,54 @@
+{
+    "version": "2.16.27",
+    "date": "2021-03-25",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Lookout for Metrics",
+            "contributor": "",
+            "description": "Amazon Lookout for Metrics is now generally available. You can use Lookout for Metrics to monitor your data for anomalies. For more information, see the Amazon Lookout for Metrics Developer Guide."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Queue Service",
+            "contributor": "",
+            "description": "Documentation updates for Amazon SQS"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "This feature allows customer to specify the environment variables in their CreateTrainingJob requests."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Rekognition",
+            "contributor": "",
+            "description": "\"This release introduces AWS tagging support for Amazon Rekognition collections, stream processors, and Custom Label models.\""
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaLive",
+            "contributor": "",
+            "description": "EML now supports handling HDR10 and HLG 2020 color space from a Link input."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Removing Freemarker version 2.3.24 since this package is not used in the code."
+        },
+        {
+            "type": "feature",
+            "category": "Alexa For Business",
+            "contributor": "",
+            "description": "Added support for enabling and disabling data retention in the CreateProfile and UpdateProfile APIs and retrieving the state of data retention for a profile in the GetProfile API."
+        }
+    ]
+}

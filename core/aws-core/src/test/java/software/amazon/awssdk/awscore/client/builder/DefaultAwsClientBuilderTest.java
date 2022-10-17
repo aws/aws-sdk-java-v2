@@ -16,7 +16,7 @@
 package software.amazon.awssdk.awscore.client.builder;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -39,10 +39,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import software.amazon.awssdk.awscore.internal.defaultsmode.AutoDefaultsModeDiscovery;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -76,6 +77,9 @@ public class DefaultAwsClientBuilderTest {
     @Mock
     private SdkAsyncHttpClient.Builder defaultAsyncHttpClientFactory;
 
+    @Mock
+    private AutoDefaultsModeDiscovery autoModeDiscovery;
+
     @Before
     public void setup() {
         when(defaultHttpClientBuilder.buildWithDefaults(any())).thenReturn(mock(SdkHttpClient.class));
@@ -98,6 +102,17 @@ public class DefaultAwsClientBuilderTest {
             .hasToString("https://" + ENDPOINT_PREFIX + ".us-west-1.amazonaws.com");
         assertThat(client.clientConfiguration.option(SIGNING_REGION)).isEqualTo(Region.US_WEST_1);
         assertThat(client.clientConfiguration.option(SERVICE_SIGNING_NAME)).isEqualTo(SIGNING_NAME);
+    }
+
+    @Test
+    public void buildWithFipsRegionThenNonFipsFipsEnabledFlagUnset() {
+        TestClient client = testClientBuilder()
+            .region(Region.of("us-west-2-fips")) // first call to setter sets the flag
+            .region(Region.of("us-west-2"))// second call should clear
+            .build();
+
+        assertThat(client.clientConfiguration.option(AwsClientOption.AWS_REGION)).isEqualTo(Region.US_WEST_2);
+        assertThat(client.clientConfiguration.option(AwsClientOption.FIPS_ENDPOINT_ENABLED)).isNull();
     }
 
     @Test
@@ -155,23 +170,39 @@ public class DefaultAwsClientBuilderTest {
 
     @Test
     public void explicitClientProvided_ClientIsNotManagedBySdk() {
+        String clientName = "foobarsync";
+        SdkHttpClient sdkHttpClient = mock(SdkHttpClient.class);
         TestClient client = testClientBuilder()
             .region(Region.US_WEST_2)
-            .httpClient(mock(SdkHttpClient.class))
+            .httpClient(sdkHttpClient)
             .build();
+        when(sdkHttpClient.clientName()).thenReturn(clientName);
         assertThat(client.clientConfiguration.option(SdkClientOption.SYNC_HTTP_CLIENT))
             .isInstanceOf(AwsDefaultClientBuilder.NonManagedSdkHttpClient.class);
+
+        assertThat(client.clientConfiguration.option(SdkClientOption.SYNC_HTTP_CLIENT).clientName())
+            .isEqualTo(clientName);
         verify(defaultHttpClientBuilder, never()).buildWithDefaults(any());
     }
 
     @Test
     public void explicitAsyncHttpClientProvided_ClientIsNotManagedBySdk() {
+        String clientName = "foobarasync";
+        SdkAsyncHttpClient sdkAsyncHttpClient = mock(SdkAsyncHttpClient.class);
         TestAsyncClient client = testAsyncClientBuilder()
             .region(Region.US_WEST_2)
-            .httpClient(mock(SdkAsyncHttpClient.class))
+            .httpClient(sdkAsyncHttpClient)
             .build();
         assertThat(client.clientConfiguration.option(SdkClientOption.ASYNC_HTTP_CLIENT))
             .isInstanceOf(AwsDefaultClientBuilder.NonManagedSdkAsyncHttpClient.class);
+
+        when(sdkAsyncHttpClient.clientName()).thenReturn(clientName);
+
+        assertThat(client.clientConfiguration.option(SdkClientOption.ASYNC_HTTP_CLIENT))
+            .isInstanceOf(AwsDefaultClientBuilder.NonManagedSdkAsyncHttpClient.class);
+
+        assertThat(client.clientConfiguration.option(SdkClientOption.ASYNC_HTTP_CLIENT).clientName())
+            .isEqualTo(clientName);
         verify(defaultAsyncHttpClientFactory, never()).buildWithDefaults(any());
     }
 
@@ -232,7 +263,7 @@ public class DefaultAwsClientBuilderTest {
         implements AwsClientBuilder<TestClientBuilder, TestClient> {
 
         public TestClientBuilder() {
-            super(defaultHttpClientBuilder, null);
+            super(defaultHttpClientBuilder, null, autoModeDiscovery);
         }
 
         @Override
@@ -273,7 +304,7 @@ public class DefaultAwsClientBuilderTest {
         implements AwsClientBuilder<TestAsyncClientBuilder, TestAsyncClient> {
 
         public TestAsyncClientBuilder() {
-            super(defaultHttpClientBuilder, defaultAsyncHttpClientFactory);
+            super(defaultHttpClientBuilder, defaultAsyncHttpClientFactory, autoModeDiscovery);
         }
 
         @Override

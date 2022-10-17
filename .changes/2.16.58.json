@@ -1,0 +1,36 @@
+{
+    "version": "2.16.58",
+    "date": "2021-05-06",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "contributor": "",
+            "description": "SSM feature release - ChangeCalendar integration with StateManager."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Cloud Map",
+            "contributor": "",
+            "description": "Bugfix: Improved input validation for RegisterInstance action, InstanceId field"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Managed Streaming for Kafka",
+            "contributor": "",
+            "description": "IAM Access Control for Amazon MSK enables you to create clusters that use IAM to authenticate clients and to allow or deny Apache Kafka actions for those clients."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Import/Export Snowball",
+            "contributor": "",
+            "description": "AWS Snow Family adds APIs for ordering and managing Snow jobs with long term pricing"
+        }
+    ]
+}

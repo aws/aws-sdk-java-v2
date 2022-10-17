@@ -27,7 +27,7 @@ import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.checksums.SdkChecksum;
-import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
@@ -42,6 +42,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.utils.BinaryUtils;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.internal.Base16Lower;
 
 /**
@@ -98,12 +99,17 @@ public final class ChecksumsEnabledValidator {
 
         ClientType actualClientType = executionAttributes.getAttribute(SdkExecutionAttribute.CLIENT_TYPE);
 
-        if (!expectedClientType.equals(actualClientType)) {
+        if (expectedClientType != actualClientType) {
             return false;
         }
 
 
         if (hasServerSideEncryptionHeader(httpRequest)) {
+            return false;
+        }
+
+        //Checksum validation will already be done as a part of HttpChecksum validations if RESOLVED_CHECKSUM_SPECS is present.
+        if (executionAttributes.getOptionalAttribute(SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS).isPresent()) {
             return false;
         }
 
@@ -141,11 +147,13 @@ public final class ChecksumsEnabledValidator {
         if (response.eTag() != null) {
             String contentMd5 = BinaryUtils.toBase64(checksum.getChecksumBytes());
             byte[] digest = BinaryUtils.fromBase64(contentMd5);
-            byte[] ssHash = Base16Lower.decode(response.eTag().replace("\"", ""));
+            byte[] ssHash = Base16Lower.decode(StringUtils.replace(response.eTag(), "\"", ""));
 
             if (!Arrays.equals(digest, ssHash)) {
-                throw SdkClientException.create(
-                    String.format("Data read has a different checksum than expected. Was 0x%s, but expected 0x%s",
+                throw RetryableException.create(
+                    String.format("Data read has a different checksum than expected. Was 0x%s, but expected 0x%s. " +
+                                  "This commonly means that the data was corrupted between the client and " +
+                                  "service. Note: Despite this error, the upload still completed and was persisted in S3.",
                                   BinaryUtils.toHex(digest), BinaryUtils.toHex(ssHash)));
             }
         }

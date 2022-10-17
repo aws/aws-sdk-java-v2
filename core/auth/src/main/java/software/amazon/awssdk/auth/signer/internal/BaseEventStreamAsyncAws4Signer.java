@@ -34,6 +34,7 @@ import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.signer.params.Aws4SignerParams;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.core.checksums.SdkChecksum;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.BinaryUtils;
@@ -98,7 +99,8 @@ public abstract class BaseEventStreamAsyncAws4Signer extends BaseAsyncAws4Signer
      * method which calculates the hash of the whole content for signing.
      */
     @Override
-    protected String calculateContentHash(SdkHttpFullRequest.Builder mutableRequest, Aws4SignerParams signerParams) {
+    protected String calculateContentHash(SdkHttpFullRequest.Builder mutableRequest, Aws4SignerParams signerParams,
+                                          SdkChecksum contentFlexibleChecksum) {
         return HTTP_CONTENT_SHA_256;
     }
 

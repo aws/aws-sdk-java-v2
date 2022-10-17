@@ -40,6 +40,7 @@ class NonCollectionSetters extends AbstractMemberSetters {
         super(intermediateModel, shapeModel, memberModel, typeProvider);
     }
 
+    @Override
     public List<MethodSpec> fluentDeclarations(TypeName returnType) {
         List<MethodSpec> fluentDeclarations = new ArrayList<>();
         fluentDeclarations.add(fluentAbstractSetterDeclaration(memberAsParameter(), returnType)
@@ -149,15 +150,16 @@ class NonCollectionSetters extends AbstractMemberSetters {
     }
 
     private MethodSpec fluentConsumerFluentSetter(TypeName returnType) {
-        ClassName memberClass = poetExtensions.getModelClass(memberModel().getShape().getC2jName());
+        MemberModel memberModel = memberModel();
+        ClassName memberClass = poetExtensions.getModelClass(memberModel.getShape().getC2jName());
         ClassName builderClass = memberClass.nestedClass("Builder");
         return fluentDefaultSetterDeclaration(builderConsumerParam(builderClass), returnType)
             .addModifiers(Modifier.DEFAULT)
             .addStatement("return $N($T.builder().applyMutation($N).build())",
-                          memberModel().getFluentSetterMethodName(),
+                          memberModel.getFluentSetterMethodName(),
                           memberClass,
                           fieldName())
-            .addJavadoc("$L", memberModel().getDefaultConsumerFluentSetterDocumentation())
+            .addJavadoc("$L", memberModel.getDefaultConsumerFluentSetterDocumentation(memberModel.getVariable().getSimpleType()))
             .build();
     }
 

@@ -15,7 +15,20 @@
 
 package software.amazon.awssdk.services.neptune.internal;
 
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.time.Clock;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.TimeZone;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
@@ -24,22 +37,14 @@ import software.amazon.awssdk.core.Protocol;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.neptune.model.CopyDbClusterSnapshotRequest;
 import software.amazon.awssdk.services.neptune.model.NeptuneRequest;
 import software.amazon.awssdk.services.neptune.transform.CopyDbClusterSnapshotRequestMarshaller;
-
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.time.Clock;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.TimeZone;
-
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.when;
 
 /**
  * Unit Tests for {@link RdsPresignInterceptor}
@@ -158,7 +163,9 @@ public class PresignRequestHandlerTest {
 
     private ExecutionAttributes executionAttributes() {
         return new ExecutionAttributes().putAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS, CREDENTIALS)
-                .putAttribute(AwsSignerExecutionAttribute.SIGNING_REGION, DESTINATION_REGION);
+                                        .putAttribute(AwsSignerExecutionAttribute.SIGNING_REGION, DESTINATION_REGION)
+                                        .putAttribute(SdkExecutionAttribute.PROFILE_FILE, ProfileFile.defaultProfileFile())
+                                        .putAttribute(SdkExecutionAttribute.PROFILE_NAME, "default");
     }
 
     private CopyDbClusterSnapshotRequest makeTestRequest() {

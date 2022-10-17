@@ -1,0 +1,36 @@
+{
+    "version": "2.16.68",
+    "date": "2021-05-21",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "AWS OpsWorks CM",
+            "contributor": "",
+            "description": "New PUPPET_API_CRL attribute returned by DescribeServers API; new EngineVersion of 2019 available for Puppet Enterprise servers."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Storage Service",
+            "contributor": "",
+            "description": "Documentation updates for Amazon S3"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Forecast Service",
+            "contributor": "",
+            "description": "Updated attribute statistics in DescribeDatasetImportJob response to support Long values"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic File System",
+            "contributor": "",
+            "description": "EFS now supports account preferences. Utilizing the new capability, users can customize some aspects of their experience using EFS APIs and the EFS Console. The first preference clients are able to set is whether to start using longer File System and Mount Target IDs before EFS migrates to such IDs."
+        }
+    ]
+}

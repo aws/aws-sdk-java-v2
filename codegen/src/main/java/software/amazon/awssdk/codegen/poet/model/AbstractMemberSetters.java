@@ -15,29 +15,34 @@
 
 package software.amazon.awssdk.codegen.poet.model;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singleton;
+import static software.amazon.awssdk.codegen.poet.model.TypeProvider.ShapeTransformation.USE_BUILDER_IMPL;
+
+import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
-import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
-import java.nio.ByteBuffer;
-import java.util.Collection;
-import java.util.Map;
+// CHECKSTYLE:OFF java.beans is required for services that use names starting with 'set' to fix bean-based marshalling.
+import java.beans.Transient;
+// CHECKSTYLE:ON
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
-import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.codegen.poet.PoetExtension;
+import software.amazon.awssdk.codegen.poet.model.TypeProvider.TypeNameOptions;
 import software.amazon.awssdk.core.SdkBytes;
 
 /**
  * Abstract implementation of {@link MemberSetters} to share common functionality.
  */
 abstract class AbstractMemberSetters implements MemberSetters {
-    protected final PoetExtensions poetExtensions;
+    protected final PoetExtension poetExtensions;
     private final ShapeModel shapeModel;
     private final MemberModel memberModel;
     private final TypeProvider typeProvider;
@@ -51,7 +56,7 @@ abstract class AbstractMemberSetters implements MemberSetters {
         this.memberModel = memberModel;
         this.typeProvider = typeProvider;
         this.serviceModelCopiers = new ServiceModelCopiers(intermediateModel);
-        this.poetExtensions = new PoetExtensions(intermediateModel);
+        this.poetExtensions = new PoetExtension(intermediateModel);
     }
 
     protected MethodSpec.Builder fluentAbstractSetterDeclaration(ParameterSpec parameter, TypeName returnType) {
@@ -85,8 +90,17 @@ abstract class AbstractMemberSetters implements MemberSetters {
         return MethodSpec.methodBuilder(methodName)
                          .addParameter(setterParam)
                          .addAnnotation(Override.class)
+                         .addAnnotations(maybeTransient(methodName))
                          .returns(returnType)
                          .addModifiers(Modifier.PUBLIC, Modifier.FINAL);
+    }
+
+    private Iterable<AnnotationSpec> maybeTransient(String methodName) {
+        if (methodName.startsWith("set")) {
+            return singleton(AnnotationSpec.builder(Transient.class).build());
+        }
+
+        return emptyList();
     }
 
     protected MethodSpec.Builder beanStyleSetterBuilder() {
@@ -124,8 +138,8 @@ abstract class AbstractMemberSetters implements MemberSetters {
                                   "this.$1N = $1N != null ? $1N.build() : null",
                                   serviceModelCopiers.copyMethodName());
         }
-        if (memberModel.isCollectionWithBuilderMember()) {
-            return copySetterBody("this.$1N = $2T.$3N($1N)", null, serviceModelCopiers.builderCopyMethodName());
+        if (memberModel.containsBuildable()) {
+            return copySetterBody("this.$1N = $2T.$3N($1N)", null, serviceModelCopiers.copyFromBuilderMethodName());
         }
         return copySetterBody();
     }
@@ -169,47 +183,11 @@ abstract class AbstractMemberSetters implements MemberSetters {
     }
 
     protected ParameterSpec memberAsBeanStyleParameter() {
-        if (memberModel.hasBuilder()) {
-            TypeName builderName = poetExtensions.getModelClass(memberModel.getC2jShape()).nestedClass("BuilderImpl");
-            return ParameterSpec.builder(builderName, fieldName()).build();
-        }
-
-        if (memberModel.isList()) {
-            MemberModel listMember = memberModel.getListModel().getListMemberModel();
-
-            if (hasBuilder(listMember)) {
-                TypeName memberName = poetExtensions.getModelClass(listMember.getC2jShape()).nestedClass("BuilderImpl");
-                TypeName listType = ParameterizedTypeName.get(ClassName.get(Collection.class), memberName);
-                return ParameterSpec.builder(listType, fieldName()).build();
-            } else if (listMember.isSdkBytesType()) {
-                TypeName listType = ParameterizedTypeName.get(Collection.class, ByteBuffer.class);
-                return ParameterSpec.builder(listType, fieldName()).build();
-            }
-        }
-
-        if (memberModel.isMap()) {
-            MemberModel keyModel = memberModel.getMapModel().getKeyModel();
-            TypeName keyType = typeProvider.getTypeNameForSimpleType(keyModel.getVariable().getVariableType());
-            MemberModel valueModel = memberModel.getMapModel().getValueModel();
-            TypeName valueType = null;
-
-            if (hasBuilder(valueModel)) {
-                valueType = poetExtensions.getModelClass(valueModel.getC2jShape()).nestedClass("BuilderImpl");
-            } else if (valueModel.isSdkBytesType()) {
-                valueType = TypeName.get(ByteBuffer.class);
-            }
-
-            if (valueType != null) {
-                TypeName mapType = ParameterizedTypeName.get(ClassName.get(Map.class), keyType, valueType);
-                return ParameterSpec.builder(mapType, fieldName()).build();
-            }
-        }
-
-        if (memberModel.isSdkBytesType()) {
-            return ParameterSpec.builder(ByteBuffer.class, fieldName()).build();
-        }
-
-        return memberAsParameter();
+        TypeName type = typeProvider.typeName(memberModel, new TypeNameOptions().shapeTransformation(USE_BUILDER_IMPL)
+                                                                                .useSubtypeWildcardsForCollections(true)
+                                                                                .useCollectionForList(true)
+                                                                                .useByteBufferTypes(true));
+        return ParameterSpec.builder(type, fieldName()).build();
     }
 
     protected ShapeModel shapeModel() {
@@ -236,17 +214,26 @@ abstract class AbstractMemberSetters implements MemberSetters {
     }
 
     private CodeBlock copySetterBody(String copyAssignment, String regularAssignment, String copyMethodName) {
+        CodeBlock.Builder body = CodeBlock.builder();
+
+        if (shapeModel.isUnion()) {
+            body.addStatement("Object oldValue = this.$N", fieldName());
+        }
+
         Optional<ClassName> copierClass = serviceModelCopiers.copierClassFor(memberModel);
 
-        return copierClass.map(className -> CodeBlock.builder().addStatement(copyAssignment,
-                                                                             fieldName(),
-                                                                             className,
-                                                                             copyMethodName)
-                                                     .build())
-                          .orElseGet(() -> CodeBlock.builder().addStatement(regularAssignment, fieldName()).build());
-    }
+        if (copierClass.isPresent()) {
+            body.addStatement(copyAssignment, fieldName(), copierClass.get(), copyMethodName);
+        } else {
+            body.addStatement(regularAssignment, fieldName());
+        }
 
-    private boolean hasBuilder(MemberModel model) {
-        return model != null && model.hasBuilder();
+        if (shapeModel.isUnion()) {
+            body.addStatement("handleUnionValueChange(Type.$N, oldValue, this.$N)",
+                              memberModel.getUnionEnumTypeName(),
+                              fieldName());
+        }
+
+        return body.build();
     }
 }

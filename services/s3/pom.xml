@@ -21,7 +21,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>services</artifactId>
-        <version>2.16.26-SNAPSHOT</version>
+        <version>2.17.293-SNAPSHOT</version>
     </parent>
     <artifactId>s3</artifactId>
     <name>AWS Java SDK :: Services :: Amazon S3</name>
@@ -40,6 +40,15 @@
                             <Automatic-Module-Name>software.amazon.awssdk.services.s3</Automatic-Module-Name>
                         </manifestEntries>
                     </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <configuration>
+                    <ignoredUsedUndeclaredDependencies>
+                        <ignoredUnusedDeclaredDependency>org.junit.jupiter:*</ignoredUnusedDeclaredDependency>
+                    </ignoredUsedUndeclaredDependencies>
                 </configuration>
             </plugin>
         </plugins>
@@ -65,6 +74,13 @@
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>profiles</artifactId>
             <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk.crt</groupId>
+            <artifactId>aws-crt</artifactId>
+            <version>${awscrt.version}</version>
+            <!-- Only required for certain features such as S3 CRT client -->
+            <optional>true</optional>
         </dependency>
         <!-- Test Dependencies -->
         <dependency>
@@ -103,8 +119,30 @@
         </dependency>
         <dependency>
             <groupId>com.github.tomakehurst</groupId>
-            <artifactId>wiremock</artifactId>
+            <artifactId>wiremock-jre8</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.reactivestreams</groupId>
+            <artifactId>reactive-streams-tck</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>auth-crt</artifactId>
+            <version>${awsjavasdk.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-transport</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.eventstream</groupId>
+            <artifactId>eventstream</artifactId>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 </project>

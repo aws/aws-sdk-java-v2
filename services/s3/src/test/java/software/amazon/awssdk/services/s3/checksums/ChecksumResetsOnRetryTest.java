@@ -24,8 +24,6 @@ import static software.amazon.awssdk.core.async.AsyncResponseTransformer.toBytes
 
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.common.ConsoleNotifier;
-import com.github.tomakehurst.wiremock.common.Slf4jNotifier;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
@@ -53,8 +51,7 @@ import software.amazon.awssdk.utils.BinaryUtils;
  */
 public class ChecksumResetsOnRetryTest {
     @Rule
-    public WireMockRule mockServer = new WireMockRule(new WireMockConfiguration().port(0)
-                                                                                 .notifier(new ConsoleNotifier(true)));
+    public WireMockRule mockServer = new WireMockRule(new WireMockConfiguration().port(0));
 
     private S3Client s3Client;
 

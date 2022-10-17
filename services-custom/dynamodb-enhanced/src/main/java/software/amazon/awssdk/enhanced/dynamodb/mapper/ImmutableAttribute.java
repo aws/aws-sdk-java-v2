@@ -22,12 +22,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.ResolvedImmutableAttribute;
-import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.StaticAttributeType;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -59,6 +60,7 @@ import software.amazon.awssdk.utils.Validate;
  * @param <R> the class that the value of this attribute converts to.
  */
 @SdkPublicApi
+@ThreadSafe
 public final class ImmutableAttribute<T, B, R> {
     private final String name;
     private final Function<T, R> getter;
@@ -160,7 +162,7 @@ public final class ImmutableAttribute<T, B, R> {
 
     ResolvedImmutableAttribute<T, B> resolve(AttributeConverterProvider attributeConverterProvider) {
         return ResolvedImmutableAttribute.create(this,
-                                                 StaticAttributeType.create(converterFrom(attributeConverterProvider)));
+                                                 converterFrom(attributeConverterProvider));
     }
 
     private AttributeConverter<R> converterFrom(AttributeConverterProvider attributeConverterProvider) {
@@ -172,6 +174,7 @@ public final class ImmutableAttribute<T, B, R> {
      * @param <T> the class of the item this attribute maps into.
      * @param <R> the class that the value of this attribute converts to.
      */
+    @NotThreadSafe
     public static final class Builder<T, B, R> {
         private final EnhancedType<R> type;
         private String name;

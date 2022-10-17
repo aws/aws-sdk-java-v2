@@ -32,6 +32,9 @@ public final class SimpleTypePathMarshaller {
     public static final XmlMarshaller<Long> LONG =
         new SimplePathMarshaller<>(ValueToStringConverter.FROM_LONG, PathMarshaller.NON_GREEDY);
 
+    public static final XmlMarshaller<Short> SHORT =
+        new SimplePathMarshaller<>(ValueToStringConverter.FROM_SHORT, PathMarshaller.NON_GREEDY);
+
     /**
      * Marshallers for Strings bound to a greedy path param. No URL encoding is done on the string
      * so that it preserves the path structure.

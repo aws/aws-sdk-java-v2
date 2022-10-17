@@ -108,6 +108,12 @@
       "output_token": "nextMarker",
       "result_key": "domainConfigurations"
     },
+    "ListFleetMetrics": {
+      "input_token": "nextToken",
+      "limit_key": "maxResults",
+      "output_token": "nextToken",
+      "result_key": "fleetMetrics"
+    },
     "ListIndices": {
       "input_token": "nextToken",
       "limit_key": "maxResults",
@@ -126,11 +132,23 @@
       "output_token": "nextToken",
       "result_key": "executionSummaries"
     },
+    "ListJobTemplates": {
+      "input_token": "nextToken",
+      "limit_key": "maxResults",
+      "output_token": "nextToken",
+      "result_key": "jobTemplates"
+    },
     "ListJobs": {
       "input_token": "nextToken",
       "limit_key": "maxResults",
       "output_token": "nextToken",
       "result_key": "jobs"
+    },
+    "ListMetricValues": {
+      "input_token": "nextToken",
+      "limit_key": "maxResults",
+      "output_token": "nextToken",
+      "result_key": "metricDatumList"
     },
     "ListMitigationActions": {
       "input_token": "nextToken",

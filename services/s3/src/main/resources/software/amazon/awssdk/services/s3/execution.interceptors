@@ -11,3 +11,5 @@ software.amazon.awssdk.services.s3.internal.handlers.SyncChecksumValidationInter
 software.amazon.awssdk.services.s3.internal.handlers.EnableTrailingChecksumInterceptor
 software.amazon.awssdk.services.s3.internal.handlers.ExceptionTranslationInterceptor
 software.amazon.awssdk.services.s3.internal.handlers.GetObjectInterceptor
+software.amazon.awssdk.services.s3.internal.handlers.CopySourceInterceptor
+software.amazon.awssdk.services.s3.internal.handlers.SignerOverrideInterceptor

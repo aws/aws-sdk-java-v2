@@ -67,16 +67,9 @@ public final class JsonResponseHandler<T extends SdkPojo> implements HttpRespons
     /**
      * @see HttpResponseHandler#handle(SdkHttpFullResponse, ExecutionAttributes)
      */
+    @Override
     public T handle(SdkHttpFullResponse response, ExecutionAttributes executionAttributes) throws Exception {
         SdkStandardLogger.REQUEST_LOGGER.trace(() -> "Parsing service response JSON.");
-
-        SdkStandardLogger.REQUEST_ID_LOGGER.debug(() -> X_AMZN_REQUEST_ID_HEADER + " : " +
-                                                        response.firstMatchingHeader(X_AMZN_REQUEST_ID_HEADER)
-                                                                .orElse("not available"));
-
-        SdkStandardLogger.REQUEST_ID_LOGGER.debug(() -> X_AMZ_ID_2_HEADER + " : " +
-                                                        response.firstMatchingHeader(X_AMZ_ID_2_HEADER)
-                                                                .orElse("not available"));
 
         try {
             T result = unmarshaller.unmarshall(pojoSupplier.apply(response), response);

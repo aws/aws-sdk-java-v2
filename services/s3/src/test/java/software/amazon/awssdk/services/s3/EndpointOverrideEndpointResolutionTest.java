@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
@@ -38,7 +38,6 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.signer.Presigner;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
@@ -65,6 +64,8 @@ public class EndpointOverrideEndpointResolutionTest {
         this.mockHttpClient = new MockSyncHttpClient();
         this.s3Client = S3Client.builder()
                                 .region(testCase.clientRegion)
+                                .dualstackEnabled(testCase.clientDualstackEnabled)
+                                .fipsEnabled(testCase.clientFipsEnabled)
                                 .credentialsProvider(StaticCredentialsProvider.create(
                                     AwsBasicCredentials.create("dummy-key", "dummy-secret")))
                                 .endpointOverride(testCase.endpointUrl)
@@ -78,10 +79,14 @@ public class EndpointOverrideEndpointResolutionTest {
                                           AwsBasicCredentials.create("dummy-key", "dummy-secret")))
                                       .endpointOverride(testCase.endpointUrl)
                                       .serviceConfiguration(testCase.s3Configuration)
+                                      .dualstackEnabled(testCase.clientDualstackEnabled)
+                                      .fipsEnabled(testCase.clientFipsEnabled)
                                       .build();
         this.s3Utilities = S3Utilities.builder()
                                       .region(testCase.clientRegion)
                                       .s3Configuration(testCase.s3Configuration)
+                                      .dualstackEnabled(testCase.clientDualstackEnabled)
+                                      .fipsEnabled(testCase.clientFipsEnabled)
                                       .build();
 
         this.getObjectRequest = testCase.getObjectBucketName == null
@@ -93,8 +98,8 @@ public class EndpointOverrideEndpointResolutionTest {
                                                   .build();
 
         mockHttpClient.stubNextResponse(S3MockUtils.mockListObjectsResponse());
-        Mockito.when(mockSigner.sign(any(), any())).thenAnswer(r -> r.getArgumentAt(0, SdkHttpFullRequest.class));
-        Mockito.when(mockSigner.presign(any(), any())).thenAnswer(r -> r.getArgumentAt(0, SdkHttpFullRequest.class)
+        Mockito.when(mockSigner.sign(any(), any())).thenAnswer(r -> r.getArgument(0, SdkHttpFullRequest.class));
+        Mockito.when(mockSigner.presign(any(), any())).thenAnswer(r -> r.getArgument(0, SdkHttpFullRequest.class)
                                                                         .copy(h -> h.putRawQueryParameter("X-Amz-SignedHeaders", "host")));
     }
 
@@ -314,12 +319,34 @@ public class EndpointOverrideEndpointResolutionTest {
                                 .setExpectedSigningServiceName("s3")
                                 .setExpectedSigningRegion(Region.US_WEST_2));
 
-        cases.add(new TestCase().setCaseName("outposts access point with dual stack enabled")
+        cases.add(new TestCase().setCaseName("outposts access point with dual stack enabled via s3 config")
                                 .setGetObjectBucketName("arn:aws:s3-outposts:us-west-2:123456789012:outpost:op-01234567890123456:accesspoint:myaccesspoint")
                                 .setEndpointUrl("https://beta.example.com")
                                 .setS3Configuration(c -> c.dualstackEnabled(true))
                                 .setClientRegion(Region.US_WEST_2)
                                 .setExpectedException(IllegalArgumentException.class));
+
+        cases.add(new TestCase().setCaseName("outposts access point with dual stack enabled via client builder")
+                                .setGetObjectBucketName("arn:aws:s3-outposts:us-west-2:123456789012:outpost:op-01234567890123456:accesspoint:myaccesspoint")
+                                .setEndpointUrl("https://beta.example.com")
+                                .setClientDualstackEnabled(true)
+                                .setClientRegion(Region.US_WEST_2)
+                                .setExpectedException(IllegalArgumentException.class));
+
+        cases.add(new TestCase().setCaseName("outposts access point with fips enabled via client builder calling cross-region")
+                                .setGetObjectBucketName("arn:aws:s3-outposts:us-west-2:123456789012:outpost:op-01234567890123456:accesspoint:myaccesspoint")
+                                .setClientFipsEnabled(true)
+                                .setClientRegion(Region.US_EAST_1)
+                                .setExpectedException(IllegalArgumentException.class));
+
+        cases.add(new TestCase().setCaseName("mrap access point with arn region enabled")
+                                .setGetObjectBucketName("arn:aws:s3::123456789012:accesspoint:mfzwi23gnjvgw.mrap")
+                                .setEndpointUrl("https://accesspoint.vpce-123-abc.s3-global.vpce.amazonaws.com")
+                                .setS3Configuration(c -> c.useArnRegionEnabled(true))
+                                .setClientRegion(Region.EU_WEST_1)
+                                .setExpectedEndpoint("https://mfzwi23gnjvgw.mrap.accesspoint.vpce-123-abc.s3-global.vpce.amazonaws.com/object")
+                                .setExpectedSigningServiceName("s3")
+                                .setExpectedSigningRegion(Region.EU_WEST_1));
 
         return cases;
     }
@@ -334,6 +361,8 @@ public class EndpointOverrideEndpointResolutionTest {
         private String expectedSigningServiceName;
         private Region expectedSigningRegion;
         private Class<? extends RuntimeException> expectedException;
+        private Boolean clientDualstackEnabled;
+        private Boolean clientFipsEnabled;
 
         public TestCase setCaseName(String caseName) {
             this.caseName = caseName;
@@ -359,6 +388,16 @@ public class EndpointOverrideEndpointResolutionTest {
 
         public TestCase setClientRegion(Region clientRegion) {
             this.clientRegion = clientRegion;
+            return this;
+        }
+
+        public TestCase setClientDualstackEnabled(Boolean dualstackEnabled) {
+            this.clientDualstackEnabled = dualstackEnabled;
+            return this;
+        }
+
+        public TestCase setClientFipsEnabled(Boolean fipsEnabled) {
+            this.clientFipsEnabled = fipsEnabled;
             return this;
         }
 

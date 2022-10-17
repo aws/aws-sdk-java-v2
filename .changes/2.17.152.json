@@ -1,0 +1,12 @@
+{
+    "version": "2.17.152",
+    "date": "2022-03-18",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "contributor": "",
+            "description": "Added 9 new APIs for AWS Glue Interactive Sessions: ListSessions, StopSession, CreateSession, GetSession, DeleteSession, RunStatement, GetStatement, ListStatements, CancelStatement"
+        }
+    ]
+}

@@ -171,6 +171,16 @@
       "output":{"shape":"AllTypesStructure"},
       "httpChecksumRequired": true
     },
+    "OperationWithNoneAuthType":{
+      "name":"OperationWithNoneAuthType",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2016-03-11/allTypes"
+      },
+      "input":{"shape":"AllTypesStructure"},
+      "output":{"shape":"AllTypesStructure"},
+      "authtype": "none"
+    },
     "StreamingInputOperation":{
       "name":"StreamingInputOperation",
       "http":{
@@ -186,6 +196,58 @@
         "requestUri":"/2016-03-11/streamingOutputOperation"
       },
       "output":{"shape":"StructureWithStreamingMember"}
+    },
+    "PutOperationWithChecksum":{
+      "name":"PutOperationWithChecksum",
+      "http":{
+        "method":"PUT",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ChecksumStructureWithStreaming"},
+      "output":{"shape":"ChecksumStructure"},
+      "httpChecksum" : {
+        "requestChecksumRequired": true,
+        "requestAlgorithmMember": "ChecksumAlgorithm"
+      }
+    },
+    "GetOperationWithChecksum":{
+      "name":"GetOperationWithChecksum",
+      "http":{
+        "method":"GET",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ChecksumStructure"},
+      "output":{"shape":"ChecksumStructureWithStreaming"},
+      "httpChecksum" : {
+        "requestValidationModeMember": "ChecksumMode",
+        "responseAlgorithms": ["CRC32C", "CRC32", "SHA1", "SHA256"]
+      }
+    },
+    "OperationWithChecksumNonStreaming":{
+      "name":"OperationWithChecksumNonStreaming",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ChecksumStructure"},
+      "output":{"shape":"ChecksumStructure"},
+      "httpChecksum" : {
+        "requestChecksumRequired": true,
+        "requestAlgorithmMember": "ChecksumAlgorithm"
+      }
+    },
+    "EventStreamOperation": {
+      "name": "EventStreamOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/2016-03-11/eventStreamOperation"
+      },
+      "input": {
+        "shape": "EventStreamOperationRequest"
+      },
+      "output": {
+        "shape": "EventStreamOutput"
+      }
     }
   },
   "shapes":{
@@ -198,6 +260,7 @@
         "FloatMember":{"shape":"Float"},
         "DoubleMember":{"shape":"Double"},
         "LongMember":{"shape":"Long"},
+        "ShortMember":{"shape":"Short"},
         "EnumMember":{"shape":"EnumType"},
         "SimpleList":{"shape":"ListOfStrings"},
         "ListOfEnums":{"shape":"ListOfEnums"},
@@ -312,6 +375,7 @@
       "member":{"shape":"EnumType"}
     },
     "Long":{"type":"long"},
+    "Short":{"type":"short"},
     "MapOfStringToIntegerList":{
       "type":"map",
       "key":{"shape":"String"},
@@ -374,6 +438,11 @@
           "location":"header",
           "locationName":"x-amz-long"
         },
+        "ShortMember":{
+          "shape":"Short",
+          "location":"header",
+          "locationName":"x-amz-short"
+        },
         "FloatMember":{
           "shape":"Float",
           "location":"header",
@@ -413,6 +482,11 @@
           "shape":"Long",
           "location":"querystring",
           "locationName":"Long"
+        },
+        "ShortQueryParam":{
+          "shape":"Short",
+          "location":"querystring",
+          "locationName":"Short"
         },
         "FloatQueryParam":{
           "shape":"Float",
@@ -598,15 +672,8 @@
     },
     "EventStreamOperationRequest": {
       "type": "structure",
-      "required": [
-        "InputEventStream"
-      ],
       "members": {
-        "InputEventStream": {
-          "shape": "InputEventStream"
-        }
-      },
-      "payload":"InputEventStream"
+      }
     },
     "EventStreamOutput": {
       "type": "structure",
@@ -668,6 +735,57 @@
         }
       },
       "event": true
+    },
+    "ChecksumAlgorithm":{
+      "type":"string",
+      "enum":[
+        "CRC32",
+        "CRC32C",
+        "SHA1",
+        "SHA256"
+      ]
+    },
+    "ChecksumMode":{
+      "type":"string",
+      "enum":["ENABLED"]
+    },
+    "ChecksumStructureWithStreaming":{
+      "type":"structure",
+      "members":{
+        "Body":{
+          "shape":"Body",
+          "documentation":"<p>Object data.</p>",
+          "streaming":true
+        },
+        "ChecksumMode":{
+          "shape":"ChecksumMode",
+          "location":"header",
+          "locationName":"x-amz-checksum-mode"
+        },
+        "ChecksumAlgorithm":{
+          "shape":"ChecksumAlgorithm",
+          "location":"header",
+          "locationName":"x-amz-checksum-algorithm"
+        }
+      },
+      "payload":"Body"
+    },
+    "Body":{"type":"blob"},
+    "ChecksumStructure":{
+      "type":"structure",
+      "members":{
+        "stringMember":{"shape":"String"},
+        "ChecksumMode":{
+          "shape":"ChecksumMode",
+          "location":"header",
+          "locationName":"x-amz-checksum-mode"
+        },
+        "ChecksumAlgorithm":{
+          "shape":"ChecksumAlgorithm",
+          "location":"header",
+          "locationName":"x-amz-checksum-algorithm"
+        }
+      }
     }
   }
 }

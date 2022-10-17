@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.auth.credentials;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -25,15 +24,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
-import software.amazon.awssdk.core.util.json.JacksonUtils;
+import software.amazon.awssdk.protocols.jsoncore.JsonNode;
+import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 import software.amazon.awssdk.utils.DateUtils;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Platform;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 import software.amazon.awssdk.utils.cache.CachedSupplier;
 import software.amazon.awssdk.utils.cache.NonBlocking;
 import software.amazon.awssdk.utils.cache.RefreshResult;
@@ -57,12 +56,23 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
  * </ul>
  */
 @SdkPublicApi
-public final class ProcessCredentialsProvider implements AwsCredentialsProvider {
-    private final List<String> command;
+public final class ProcessCredentialsProvider
+    implements AwsCredentialsProvider,
+               SdkAutoCloseable,
+               ToCopyableBuilder<ProcessCredentialsProvider.Builder, ProcessCredentialsProvider> {
+    private static final JsonNodeParser PARSER = JsonNodeParser.builder()
+                                                               .removeErrorLocations(true)
+                                                               .build();
+
+    private final List<String> executableCommand;
     private final Duration credentialRefreshThreshold;
     private final long processOutputLimit;
 
     private final CachedSupplier<AwsCredentials> processCredentialCache;
+
+    private final String commandFromBuilder;
+
+    private final Boolean asyncCredentialUpdateEnabled;
 
     /**
      * @see #builder()
@@ -82,9 +92,11 @@ public final class ProcessCredentialsProvider implements AwsCredentialsProvider 
 
         cmd.add(builderCommand);
 
-        this.command = Collections.unmodifiableList(cmd);
+        this.executableCommand = Collections.unmodifiableList(cmd);
         this.processOutputLimit = Validate.isPositive(builder.processOutputLimit, "processOutputLimit");
         this.credentialRefreshThreshold = Validate.isPositive(builder.credentialRefreshThreshold, "expirationBuffer");
+        this.commandFromBuilder = builder.command;
+        this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
 
         CachedSupplier.Builder<AwsCredentials> cacheBuilder = CachedSupplier.builder(this::refreshCredentials);
         if (builder.asyncCredentialUpdateEnabled) {
@@ -129,14 +141,14 @@ public final class ProcessCredentialsProvider implements AwsCredentialsProvider 
      * Parse the output from the credentials process.
      */
     private JsonNode parseProcessOutput(String processOutput) {
-        JsonNode credentialsJson = JacksonUtils.sensitiveJsonNodeOf(processOutput);
+        JsonNode credentialsJson = PARSER.parse(processOutput);
 
         if (!credentialsJson.isObject()) {
             throw new IllegalStateException("Process did not return a JSON object.");
         }
 
-        JsonNode version = credentialsJson.get("Version");
-        if (version == null || !version.isInt() || version.asInt() != 1) {
+        JsonNode version = credentialsJson.field("Version").orElse(null);
+        if (version == null || !version.isNumber() || !version.asNumber().equals("1")) {
             throw new IllegalStateException("Unsupported credential version: " + version);
         }
         return credentialsJson;
@@ -174,28 +186,17 @@ public final class ProcessCredentialsProvider implements AwsCredentialsProvider 
     }
 
     /**
-     * Get a textual value from a json object, throwing an exception if the node is missing or not textual.
+     * Get a textual value from a json object.
      */
     private String getText(JsonNode jsonObject, String nodeName) {
-        JsonNode subNode = jsonObject.get(nodeName);
-
-        if (subNode == null) {
-            return null;
-        }
-
-        if (!subNode.isTextual()) {
-            throw new IllegalStateException(nodeName + " from credential process should be textual, but was " +
-                                            subNode.getNodeType());
-        }
-
-        return subNode.asText();
+        return jsonObject.field(nodeName).map(JsonNode::text).orElse(null);
     }
 
     /**
      * Execute the external process to retrieve credentials.
      */
     private String executeCommand() throws IOException, InterruptedException {
-        ProcessBuilder processBuilder = new ProcessBuilder(command);
+        ProcessBuilder processBuilder = new ProcessBuilder(executableCommand);
 
         ByteArrayOutputStream commandOutput = new ByteArrayOutputStream();
 
@@ -215,10 +216,20 @@ public final class ProcessCredentialsProvider implements AwsCredentialsProvider 
         }
     }
 
+    @Override
+    public void close() {
+        processCredentialCache.close();
+    }
+
+    @Override
+    public Builder toBuilder() {
+        return new Builder(this);
+    }
+
     /**
      * Used to configure and create a {@link ProcessCredentialsProvider}. See {@link #builder()} creation.
      */
-    public static class Builder {
+    public static class Builder implements CopyableBuilder<Builder, ProcessCredentialsProvider> {
         private Boolean asyncCredentialUpdateEnabled = false;
         private String command;
         private Duration credentialRefreshThreshold = Duration.ofSeconds(15);
@@ -230,9 +241,17 @@ public final class ProcessCredentialsProvider implements AwsCredentialsProvider 
         private Builder() {
         }
 
+        private Builder(ProcessCredentialsProvider provider) {
+            this.asyncCredentialUpdateEnabled = provider.asyncCredentialUpdateEnabled;
+            this.command = provider.commandFromBuilder;
+            this.credentialRefreshThreshold = provider.credentialRefreshThreshold;
+            this.processOutputLimit = provider.processOutputLimit;
+        }
+
         /**
-         * Configure whether the provider should fetch credentials asynchronously in the background. If this is true, threads are
-         * less likely to block when credentials are loaded, but additional resources are used to maintain the provider.
+         * Configure whether the provider should fetch credentials asynchronously in the background. If this is true,
+         * threads are less likely to block when credentials are loaded, but additional resources are used to maintain
+         * the provider.
          *
          * <p>By default, this is disabled.</p>
          */

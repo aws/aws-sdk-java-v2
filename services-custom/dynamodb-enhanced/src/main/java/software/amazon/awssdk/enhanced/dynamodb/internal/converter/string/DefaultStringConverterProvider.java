@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import software.amazon.awssdk.annotations.Immutable;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
@@ -44,6 +45,7 @@ import software.amazon.awssdk.utils.Validate;
  *     <li>{@link LocalDateStringConverter}</li>
  *     <li>{@link LocalDateTimeStringConverter}</li>
  *     <li>{@link LocalTimeStringConverter}</li>
+ *     <li>{@link LocaleStringConverter}</li>     
  *     <li>{@link LongStringConverter}</li>
  *     <li>{@link MonthDayStringConverter}</li>
  *     <li>{@link OptionalDoubleStringConverter}</li>
@@ -131,6 +133,7 @@ public class DefaultStringConverterProvider implements StringConverterProvider {
                                              .addConverter(LocalDateStringConverter.create())
                                              .addConverter(LocalTimeStringConverter.create())
                                              .addConverter(LocalDateTimeStringConverter.create())
+                                             .addConverter(LocaleStringConverter.create())
                                              .addConverter(OffsetTimeStringConverter.create())
                                              .addConverter(OffsetDateTimeStringConverter.create())
                                              .addConverter(ZonedDateTimeStringConverter.create())
@@ -161,6 +164,7 @@ public class DefaultStringConverterProvider implements StringConverterProvider {
     /**
      * A builder for configuring and creating {@link DefaultStringConverterProvider}s.
      */
+    @NotThreadSafe
     public static class Builder {
         private List<StringConverter<?>> converters = new ArrayList<>();
 

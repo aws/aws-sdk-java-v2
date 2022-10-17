@@ -26,6 +26,8 @@ import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.CreateTableOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DeleteItemOperation;
+import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DeleteTableOperation;
+import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DescribeTableOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.GetItemOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.PaginatedTableOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.PutItemOperation;
@@ -35,14 +37,20 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.operations.TableOperati
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.UpdateItemOperation;
 import software.amazon.awssdk.enhanced.dynamodb.model.CreateTableEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedResponse;
+import software.amazon.awssdk.enhanced.dynamodb.model.DescribeTableEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedResponse;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.DescribeTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.DescribeTableResponse;
 
 @SdkInternalApi
 public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
@@ -75,6 +83,7 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
         return dynamoDbClient;
     }
 
+    @Override
     public String tableName() {
         return tableName;
     }
@@ -111,8 +120,8 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
 
     @Override
     public T deleteItem(DeleteItemEnhancedRequest request) {
-        TableOperation<T, ?, ?, T> operation = DeleteItemOperation.create(request);
-        return operation.executeOnPrimaryIndex(tableSchema, tableName, extension, dynamoDbClient);
+        TableOperation<T, ?, ?, DeleteItemEnhancedResponse<T>> operation = DeleteItemOperation.create(request);
+        return operation.executeOnPrimaryIndex(tableSchema, tableName, extension, dynamoDbClient).attributes();
     }
 
     @Override
@@ -130,6 +139,19 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
     @Override
     public T deleteItem(T keyItem) {
         return deleteItem(keyFrom(keyItem));
+    }
+
+    @Override
+    public DeleteItemEnhancedResponse<T> deleteItemWithResponse(DeleteItemEnhancedRequest request) {
+        TableOperation<T, ?, ?, DeleteItemEnhancedResponse<T>> operation = DeleteItemOperation.create(request);
+        return operation.executeOnPrimaryIndex(tableSchema, tableName, extension, dynamoDbClient);
+    }
+
+    @Override
+    public DeleteItemEnhancedResponse<T> deleteItemWithResponse(Consumer<DeleteItemEnhancedRequest.Builder> requestConsumer) {
+        DeleteItemEnhancedRequest.Builder builder = DeleteItemEnhancedRequest.builder();
+        requestConsumer.accept(builder);
+        return deleteItemWithResponse(builder.build());
     }
 
     @Override
@@ -175,7 +197,7 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
 
     @Override
     public void putItem(PutItemEnhancedRequest<T> request) {
-        TableOperation<T, ?, ?, Void> operation = PutItemOperation.create(request);
+        TableOperation<T, ?, ?, PutItemEnhancedResponse<T>> operation = PutItemOperation.create(request);
         operation.executeOnPrimaryIndex(tableSchema, tableName, extension, dynamoDbClient);
     }
 
@@ -190,6 +212,20 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
     @Override
     public void putItem(T item) {
         putItem(r -> r.item(item));
+    }
+
+    @Override
+    public PutItemEnhancedResponse<T> putItemWithResponse(PutItemEnhancedRequest<T> request) {
+        TableOperation<T, ?, ?, PutItemEnhancedResponse<T>> operation = PutItemOperation.create(request);
+        return operation.executeOnPrimaryIndex(tableSchema, tableName, extension, dynamoDbClient);
+    }
+
+    @Override
+    public PutItemEnhancedResponse<T> putItemWithResponse(Consumer<PutItemEnhancedRequest.Builder<T>> requestConsumer) {
+        PutItemEnhancedRequest.Builder<T> builder =
+            PutItemEnhancedRequest.builder(this.tableSchema.itemType().rawClass());
+        requestConsumer.accept(builder);
+        return putItemWithResponse(builder.build());
     }
 
     @Override
@@ -212,8 +248,8 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
 
     @Override
     public T updateItem(UpdateItemEnhancedRequest<T> request) {
-        TableOperation<T, ?, ?, T> operation = UpdateItemOperation.create(request);
-        return operation.executeOnPrimaryIndex(tableSchema, tableName, extension, dynamoDbClient);
+        TableOperation<T, ?, ?, UpdateItemEnhancedResponse<T>> operation = UpdateItemOperation.create(request);
+        return operation.executeOnPrimaryIndex(tableSchema, tableName, extension, dynamoDbClient).attributes();
     }
 
     @Override
@@ -230,8 +266,35 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
     }
 
     @Override
+    public UpdateItemEnhancedResponse<T> updateItemWithResponse(UpdateItemEnhancedRequest<T> request) {
+        TableOperation<T, ?, ?, UpdateItemEnhancedResponse<T>> operation = UpdateItemOperation.create(request);
+        return operation.executeOnPrimaryIndex(tableSchema, tableName, extension, dynamoDbClient);
+    }
+
+    @Override
+    public UpdateItemEnhancedResponse<T> updateItemWithResponse(Consumer<UpdateItemEnhancedRequest.Builder<T>> requestConsumer) {
+        UpdateItemEnhancedRequest.Builder<T> builder =
+            UpdateItemEnhancedRequest.builder(this.tableSchema.itemType().rawClass());
+        requestConsumer.accept(builder);
+        return updateItemWithResponse(builder.build());
+    }
+
+    @Override
     public Key keyFrom(T item) {
         return createKeyFromItem(item, tableSchema, TableMetadata.primaryIndexName());
+    }
+
+    @Override
+    public void deleteTable() {
+        TableOperation<T, ?, ?, Void> operation = DeleteTableOperation.create();
+        operation.executeOnPrimaryIndex(tableSchema, tableName, extension, dynamoDbClient);
+    }
+
+    @Override
+    public DescribeTableEnhancedResponse describeTable() {
+        TableOperation<T, DescribeTableRequest, DescribeTableResponse, DescribeTableEnhancedResponse> operation =
+            DescribeTableOperation.create();
+        return operation.executeOnPrimaryIndex(tableSchema, tableName, extension, dynamoDbClient);
     }
 
     @Override

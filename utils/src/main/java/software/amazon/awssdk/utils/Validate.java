@@ -77,6 +77,27 @@ public final class Validate {
         }
     }
 
+    // isFalse
+    //---------------------------------------------------------------------------------
+
+    /**
+     * <p>Validate that the argument condition is {@code false}; otherwise
+     * throwing an exception with the specified message. This method is useful when
+     * validating according to an arbitrary boolean expression, such as validating a
+     * primitive number or using your own custom validation expression.</p>
+     *
+     * <pre>
+     * Validate.isFalse(myObject.permitsSomething(), "The object is not allowed to permit something");</pre>
+     *
+     * @param expression  the boolean expression to check
+     * @param message  the {@link String#format(String, Object...)} exception message if not false, not null
+     * @param values  the optional values for the formatted exception message, null array not recommended
+     * @throws IllegalArgumentException if expression is {@code true}
+     */
+    public static void isFalse(final boolean expression, final String message, final Object... values) {
+        isTrue(!expression, message, values);
+    }
+
     // notNull
     //---------------------------------------------------------------------------------
 
@@ -619,7 +640,23 @@ public final class Validate {
         return num;
     }
 
+    public static double isPositive(double num, String fieldName) {
+        if (num <= 0) {
+            throw new IllegalArgumentException(String.format("%s must be positive", fieldName));
+        }
+        return num;
+    }
+
     public static int isNotNegative(int num, String fieldName) {
+
+        if (num < 0) {
+            throw new IllegalArgumentException(String.format("%s must not be negative", fieldName));
+        }
+
+        return num;
+    }
+
+    public static long isNotNegative(long num, String fieldName) {
 
         if (num < 0) {
             throw new IllegalArgumentException(String.format("%s must not be negative", fieldName));
@@ -669,6 +706,21 @@ public final class Validate {
      * @return Duration if positive or null.
      */
     public static Integer isPositiveOrNull(Integer num, String fieldName) {
+        if (num == null) {
+            return null;
+        }
+
+        return isPositive(num, fieldName);
+    }
+
+    /**
+     * Asserts that the given boxed double is positive (non-negative and non-zero) or null.
+     *
+     * @param num Boxed double to validate
+     * @param fieldName Field name to display in exception message if not positive.
+     * @return Duration if double or null.
+     */
+    public static Double isPositiveOrNull(Double num, String fieldName) {
         if (num == null) {
             return null;
         }

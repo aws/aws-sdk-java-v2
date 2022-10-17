@@ -17,18 +17,26 @@ package software.amazon.awssdk.enhanced.dynamodb;
 
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.enhanced.dynamodb.model.CreateTableEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedResponse;
+import software.amazon.awssdk.enhanced.dynamodb.model.DescribeTableEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedResponse;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.ConsumedCapacity;
+import software.amazon.awssdk.services.dynamodb.model.DescribeTableRequest;
+import software.amazon.awssdk.services.dynamodb.waiters.DynamoDbWaiter;
 
 /**
  * Synchronous interface for running commands against an object that is linked to a specific DynamoDb table resource
@@ -40,6 +48,7 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
  * @param <T> The type of the modelled object.
  */
 @SdkPublicApi
+@ThreadSafe
 public interface DynamoDbTable<T> extends MappedTableResource<T> {
     /**
      * Returns a mapped index that can be used to execute commands against a secondary index belonging to the table
@@ -58,9 +67,8 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
      * Use {@link DynamoDbEnhancedClient#table(String, TableSchema)} to define the mapped table resource.
      * <p>
      * This operation calls the low-level DynamoDB API CreateTable operation. Note that this is an asynchronous
-     * operation and that the table may not immediately be available for writes and reads. Currently, there is no
-     * mechanism supported within this library to wait for/check the status of a created table. You must provide this
-     * functionality yourself. Consult the CreateTable documentation for further details and constraints.
+     * operation and that the table may not immediately be available for writes and reads. You can use
+     * {@link DynamoDbWaiter#waitUntilTableExists(DescribeTableRequest)} to wait for the resource to be ready.
      * <p>
      * Example:
      * <pre>
@@ -73,6 +81,8 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
      * mappedTable.createTable(CreateTableEnhancedRequest.builder()
      *                                                   .provisionedThroughput(provisionedThroughput)
      *                                                   .build());
+     *
+     * dynamoDbClient.waiter().waitUntilTableExists(b -> b.tableName(tableName));
      * }
      * </pre>
      *
@@ -89,9 +99,8 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
      * Use {@link DynamoDbEnhancedClient#table(String, TableSchema)} to define the mapped table resource.
      * <p>
      * This operation calls the low-level DynamoDB API CreateTable operation. Note that this is an asynchronous
-     * operation and that the table may not immediately be available for writes and reads. Currently, there is no
-     * mechanism supported within this library to wait for/check the status of a created table. You must provide this
-     * functionality yourself. Consult the CreateTable documentation for further details and constraints.
+     * operation and that the table may not immediately be available for writes and reads. You can use
+     * {@link DynamoDbWaiter#waitUntilTableExists(DescribeTableRequest)} to wait for the resource to be ready.
      * <p>
      * <b>Note:</b> This is a convenience method that creates an instance of the request builder avoiding the need to
      * create one manually via {@link CreateTableEnhancedRequest#builder()}.
@@ -105,6 +114,7 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
      *                                                                    .writeCapacityUnits(50L)
      *                                                                    .build();
      * mappedTable.createTable(r -> r.provisionedThroughput(provisionedThroughput));
+     * dynamoDbClient.waiter().waitUntilTableExists(b -> b.tableName(tableName));
      * }
      * </pre>
      *
@@ -121,15 +131,15 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
      * Use {@link DynamoDbEnhancedClient#table(String, TableSchema)} to define the mapped table resource.
      * <p>
      * This operation calls the low-level DynamoDB API CreateTable operation. Note that this is an asynchronous
-     * operation and that the table may not immediately be available for writes and reads. Currently, there is no
-     * mechanism supported within this library to wait for/check the status of a created table. You must provide this
-     * functionality yourself. Consult the CreateTable documentation for further details and constraints.
+     * operation and that the table may not immediately be available for writes and reads. You can use
+     * {@link DynamoDbWaiter#waitUntilTableExists(DescribeTableRequest)} to wait for the resource to be ready.
      * <p>
      * Example:
      * <pre>
      * {@code
      *
      * mappedTable.createTable();
+     * dynamoDbClient.waiter().waitUntilTableExists(b -> b.tableName(tableName));
      * }
      * </pre>
      *
@@ -231,6 +241,64 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
      * @return The item that was persisted in the database before it was deleted.
      */
     default T deleteItem(T keyItem) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Deletes a single item from the mapped table using a supplied primary {@link Key}.
+     * <p>
+     * The additional configuration parameters that the enhanced client supports are defined
+     * in the {@link DeleteItemEnhancedRequest}.
+     * <p>
+     * This operation calls the low-level DynamoDB API DeleteItem operation. Consult the DeleteItem documentation for
+     * further details and constraints. Unlike {@link #deleteItem(DeleteItemEnhancedRequest)}, this returns a response object,
+     * allowing the user to retrieve additional information from DynamoDB related to the API call, such as
+     * {@link ConsumedCapacity} if specified on the request.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * DeleteItemEnhancedRequest request = DeleteItemEnhancedRequest.builder().key(key).build();
+     * DeleteItemEnhancedResponse<MyItem> response = mappedTable.deleteItemWithResponse(request);
+     * }
+     * </pre>
+     *
+     * @param request A {@link DeleteItemEnhancedRequest} with key and optional directives for deleting an item from the
+     *                table.
+     * @return The response returned by DynamoDB.
+     */
+    default DeleteItemEnhancedResponse<T> deleteItemWithResponse(DeleteItemEnhancedRequest request) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Deletes a single item from the mapped table using a supplied primary {@link Key}.
+     * <p>
+     * The additional configuration parameters that the enhanced client supports are defined
+     * in the {@link DeleteItemEnhancedRequest}.
+     * <p>
+     * This operation calls the low-level DynamoDB API DeleteItem operation. Consult the DeleteItem documentation for
+     * further details and constraints. Unlike {@link #deleteItem(Consumer)}, this returns a response object, allowing the user to
+     * retrieve additional information from DynamoDB related to the API call, such as {@link ConsumedCapacity} if specified on
+     * the request.
+     * <p>
+     * <b>Note:</b> This is a convenience method that creates an instance of the request builder avoiding the need to
+     * create one manually via {@link DeleteItemEnhancedRequest#builder()}.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * DeleteItemEnhancedResponse<MyItem> response = mappedTable.deleteWithResponse(r -> r.key(key));
+     * }
+     * </pre>
+     *
+     * @param requestConsumer A {@link Consumer} of {@link DeleteItemEnhancedRequest} with key and
+     * optional directives for deleting an item from the table.
+     * @return The response returned by DynamoDB.
+     */
+    default DeleteItemEnhancedResponse<T>  deleteItemWithResponse(Consumer<DeleteItemEnhancedRequest.Builder> requestConsumer) {
         throw new UnsupportedOperationException();
     }
 
@@ -496,6 +564,62 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
     }
 
     /**
+     * Puts a single item in the mapped table. If the table contains an item with the same primary key, it will be
+     * replaced with this item. This is similar to {@link #putItem(PutItemEnhancedRequest)} but returns
+     * {@link PutItemEnhancedResponse} for additional information.
+     * <p>
+     * The additional configuration parameters that the enhanced client supports are defined
+     * in the {@link PutItemEnhancedRequest}.
+     * <p>
+     * This operation calls the low-level DynamoDB API PutItem operation. Consult the PutItem documentation for
+     * further details and constraints.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * mappedTable.putItem(PutItemEnhancedRequest.builder(MyItem.class).item(item).build());
+     * }
+     * </pre>
+     *
+     * @param request A {@link PutItemEnhancedRequest} that includes the item to enter into
+     * the table, its class and optional directives.
+     *
+     * @return The response returned by DynamoDB.
+     */
+    default PutItemEnhancedResponse<T> putItemWithResponse(PutItemEnhancedRequest<T> request) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Puts a single item in the mapped table. If the table contains an item with the same primary key, it will be
+     * replaced with this item. This is similar to {@link #putItem(PutItemEnhancedRequest)} but returns
+     * {@link PutItemEnhancedResponse} for additional information.
+     * <p>
+     * The additional configuration parameters that the enhanced client supports are defined
+     * in the {@link PutItemEnhancedRequest}.
+     * <p>
+     * This operation calls the low-level DynamoDB API PutItem operation. Consult the PutItem documentation for
+     * further details and constraints.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * mappedTable.putItem(PutItemEnhancedRequest.builder(MyItem.class).item(item).build());
+     * }
+     * </pre>
+     *
+     * @param requestConsumer A {@link Consumer} of {@link PutItemEnhancedRequest.Builder} that includes the item
+     * to enter into the table, its class and optional directives.
+     *
+     * @return The response returned by DynamoDB.
+     */
+    default PutItemEnhancedResponse<T> putItemWithResponse(Consumer<PutItemEnhancedRequest.Builder<T>> requestConsumer) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
      * Scans the table and retrieves all items.
      * <p>
      * The result can be accessed either through iterable {@link Page}s or items across all pages directly. Each time a
@@ -651,6 +775,96 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
      * @return The updated item
      */
     default T updateItem(T item) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Updates an item in the mapped table, or adds it if it doesn't exist. This is similar to
+     * {@link #updateItem(UpdateItemEnhancedRequest)}} but returns {@link UpdateItemEnhancedResponse} for additional information.
+     * <p>
+     * This operation calls the low-level DynamoDB API UpdateItem operation. Consult the UpdateItem documentation for
+     * further details and constraints.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     * UpdateItemEnhancedRequest<MyItem> request = UpdateItemEnhancedRequest.builder(MyItem.class).item(myItem).build();
+     * UpdateItemEnhancedResponse<MyItem> response = mappedTable.updateItemWithResponse(request);
+     * }
+     * </pre>
+     * <p>
+     *
+     *
+     * @param request the modelled item to be inserted into or updated in the database table.
+     * @return The response returned by DynamoDB.
+     */
+    default UpdateItemEnhancedResponse<T> updateItemWithResponse(UpdateItemEnhancedRequest<T> request) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Updates an item in the mapped table, or adds it if it doesn't exist. This is similar to
+     * {@link #updateItem(Consumer)} but returns {@link UpdateItemEnhancedResponse} for additional information.
+     * <p>
+     * This operation calls the low-level DynamoDB API UpdateItem operation. Consult the UpdateItem documentation for
+     * further details and constraints.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * UpdateItemEnhancedResponse<MyItem> response = mappedTable.updateItemWithResponse(r ->r.item(myItem));
+     * }
+     * </pre>
+     * <p>
+     *
+     *
+     * @param requestConsumer A {@link Consumer} of {@link UpdateItemEnhancedRequest.Builder} that includes the item
+     *      * to be updated, its class and optional directives.
+     * @return The response from DynamoDB.
+     */
+    default UpdateItemEnhancedResponse<T> updateItemWithResponse(Consumer<UpdateItemEnhancedRequest.Builder<T>> requestConsumer) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Deletes a table in DynamoDb with the name and schema already defined for this DynamoDbTable.
+     * <p>
+     * Use {@link DynamoDbEnhancedClient#table(String, TableSchema)} to define the mapped table resource.
+     * <p>
+     * This operation calls the low-level DynamoDB API DeleteTable operation.
+     * Note that this is an asynchronous operation and that the table may not immediately be deleted. You can use
+     * {@link DynamoDbWaiter#waitUntilTableNotExists}
+     * in the underlying client.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * mappedTable.deleteTable();
+     * }
+     * </pre>
+     *
+     */
+    default void deleteTable() {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Describes a table in DynamoDb with the name defined for this {@link DynamoDbTable).
+     * This operation calls the low-level DynamoDB API DescribeTable operation,
+     * see {@link DynamoDbClient#describeTable(DescribeTableRequest)}
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * DescribeTableEnhancedResponse response = mappedTable.describeTable();
+     * }
+     * </pre>
+     *
+     */
+    default DescribeTableEnhancedResponse describeTable() {
         throw new UnsupportedOperationException();
     }
 }

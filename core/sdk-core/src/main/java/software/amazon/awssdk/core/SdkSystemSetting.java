@@ -78,6 +78,8 @@ public enum SdkSystemSetting implements SystemSetting {
      */
     AWS_EC2_METADATA_SERVICE_ENDPOINT("aws.ec2MetadataServiceEndpoint", "http://169.254.169.254"),
 
+    AWS_EC2_METADATA_SERVICE_ENDPOINT_MODE("aws.ec2MetadataServiceEndpointMode", "IPv4"),
+
     /**
      * The elastic container metadata service endpoint that should be called by the ContainerCredentialsProvider
      * when loading data from the container metadata service.
@@ -165,6 +167,22 @@ public enum SdkSystemSetting implements SystemSetting {
      * the number of retries, so aws.maxAttempts = 1 is 0 retries.
      */
     AWS_MAX_ATTEMPTS("aws.maxAttempts", null),
+
+    /**
+     * Which {@code DefaultsMode} to use, case insensitive
+     */
+    AWS_DEFAULTS_MODE("aws.defaultsMode", null),
+
+    /**
+     * Defines whether dualstack endpoints should be resolved during default endpoint resolution instead of non-dualstack
+     * endpoints.
+     */
+    AWS_USE_DUALSTACK_ENDPOINT("aws.useDualstackEndpoint", null),
+
+    /**
+     * Defines whether fips endpoints should be resolved during default endpoint resolution instead of non-fips endpoints.
+     */
+    AWS_USE_FIPS_ENDPOINT("aws.useFipsEndpoint", null),
 
     ;
 

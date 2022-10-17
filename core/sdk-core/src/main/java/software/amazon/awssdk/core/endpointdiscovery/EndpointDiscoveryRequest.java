@@ -19,6 +19,7 @@ import java.net.URI;
 import java.util.Map;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -26,13 +27,15 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 public final class EndpointDiscoveryRequest
     implements ToCopyableBuilder<EndpointDiscoveryRequest.Builder, EndpointDiscoveryRequest> {
 
-    private final Optional<String> operationName;
-    private final Optional<Map<String, String>> identifiers;
-    private final Optional<String> cacheKey;
+    private final RequestOverrideConfiguration requestOverrideConfiguration;
+    private final String operationName;
+    private final Map<String, String> identifiers;
+    private final String cacheKey;
     private final boolean required;
     private final URI defaultEndpoint;
 
     private EndpointDiscoveryRequest(BuilderImpl builder) {
+        this.requestOverrideConfiguration = builder.requestOverrideConfiguration;
         this.operationName = builder.operationName;
         this.identifiers = builder.identifiers;
         this.cacheKey = builder.cacheKey;
@@ -40,16 +43,20 @@ public final class EndpointDiscoveryRequest
         this.defaultEndpoint = builder.defaultEndpoint;
     }
 
+    public Optional<RequestOverrideConfiguration> overrideConfiguration() {
+        return Optional.ofNullable(requestOverrideConfiguration);
+    }
+
     public Optional<String> operationName() {
-        return operationName;
+        return Optional.ofNullable(operationName);
     }
 
     public Optional<Map<String, String>> identifiers() {
-        return identifiers;
+        return Optional.ofNullable(identifiers);
     }
 
     public Optional<String> cacheKey() {
-        return cacheKey;
+        return Optional.ofNullable(cacheKey);
     }
 
     public boolean required() {
@@ -73,6 +80,10 @@ public final class EndpointDiscoveryRequest
      * Builder interface for constructing a {@link EndpointDiscoveryRequest}.
      */
     public interface Builder extends CopyableBuilder<Builder, EndpointDiscoveryRequest> {
+        /**
+         * The request override configuration to be used with the endpoint discovery request.
+         */
+        Builder overrideConfiguration(RequestOverrideConfiguration overrideConfiguration);
 
         /**
          * The name of the operation being used in the customer's request.
@@ -115,9 +126,10 @@ public final class EndpointDiscoveryRequest
     }
 
     static class BuilderImpl implements Builder {
-        private Optional<String> operationName = Optional.empty();
-        private Optional<Map<String, String>> identifiers = Optional.empty();
-        private Optional<String> cacheKey = Optional.empty();
+        private RequestOverrideConfiguration requestOverrideConfiguration;
+        private String operationName;
+        private Map<String, String> identifiers;
+        private String cacheKey;
         private boolean required = false;
         private URI defaultEndpoint;
 
@@ -126,27 +138,35 @@ public final class EndpointDiscoveryRequest
         }
 
         private BuilderImpl(EndpointDiscoveryRequest request) {
+            this.requestOverrideConfiguration = request.requestOverrideConfiguration;
             this.operationName = request.operationName;
             this.identifiers = request.identifiers;
             this.cacheKey = request.cacheKey;
             this.required = request.required;
+            this.defaultEndpoint = request.defaultEndpoint;
+        }
+
+        @Override
+        public Builder overrideConfiguration(RequestOverrideConfiguration overrideConfiguration) {
+            this.requestOverrideConfiguration = overrideConfiguration;
+            return this;
         }
 
         @Override
         public Builder operationName(String operationName) {
-            this.operationName = Optional.ofNullable(operationName);
+            this.operationName = operationName;
             return this;
         }
 
         @Override
         public Builder identifiers(Map<String, String> identifiers) {
-            this.identifiers = Optional.ofNullable(identifiers);
+            this.identifiers = identifiers;
             return this;
         }
 
         @Override
         public Builder cacheKey(String cacheKey) {
-            this.cacheKey = Optional.ofNullable(cacheKey);
+            this.cacheKey = cacheKey;
             return this;
         }
 

@@ -17,14 +17,17 @@ package software.amazon.awssdk.protocols.query.internal.unmarshall;
 
 import static software.amazon.awssdk.awscore.util.AwsHeader.AWS_REQUEST_ID;
 import static software.amazon.awssdk.protocols.query.internal.marshall.SimpleTypeQueryMarshaller.defaultTimestampFormats;
+import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.protocol.MarshallingType;
+import software.amazon.awssdk.core.traits.PayloadTrait;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.protocols.core.StringToInstant;
 import software.amazon.awssdk.protocols.core.StringToValueConverter;
@@ -32,6 +35,7 @@ import software.amazon.awssdk.protocols.query.unmarshall.XmlDomParser;
 import software.amazon.awssdk.protocols.query.unmarshall.XmlElement;
 import software.amazon.awssdk.protocols.query.unmarshall.XmlErrorUnmarshaller;
 import software.amazon.awssdk.utils.CollectionUtils;
+import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.builder.Buildable;
 
@@ -46,6 +50,7 @@ public final class QueryProtocolUnmarshaller implements XmlErrorUnmarshaller {
         .unmarshaller(MarshallingType.STRING, new SimpleTypeQueryUnmarshaller<>(StringToValueConverter.TO_STRING))
         .unmarshaller(MarshallingType.INTEGER, new SimpleTypeQueryUnmarshaller<>(StringToValueConverter.TO_INTEGER))
         .unmarshaller(MarshallingType.LONG, new SimpleTypeQueryUnmarshaller<>(StringToValueConverter.TO_LONG))
+        .unmarshaller(MarshallingType.SHORT, new SimpleTypeQueryUnmarshaller<>(StringToValueConverter.TO_SHORT))
         .unmarshaller(MarshallingType.FLOAT, new SimpleTypeQueryUnmarshaller<>(StringToValueConverter.TO_FLOAT))
         .unmarshaller(MarshallingType.DOUBLE, new SimpleTypeQueryUnmarshaller<>(StringToValueConverter.TO_DOUBLE))
         .unmarshaller(MarshallingType.BOOLEAN, new SimpleTypeQueryUnmarshaller<>(StringToValueConverter.TO_BOOLEAN))
@@ -68,9 +73,24 @@ public final class QueryProtocolUnmarshaller implements XmlErrorUnmarshaller {
 
     public <TypeT extends SdkPojo> Pair<TypeT, Map<String, String>> unmarshall(SdkPojo sdkPojo,
                                                                                SdkHttpFullResponse response) {
-        XmlElement document = response.content().map(XmlDomParser::parse).orElse(XmlElement.empty());
+        if (responsePayloadIsBlob(sdkPojo)) {
+            XmlElement document = XmlElement.builder()
+                                 .textContent(response.content()
+                                                      .map(s -> invokeSafely(() -> IoUtils.toUtf8String(s)))
+                                                      .orElse(""))
+                                 .build();
+            return Pair.of(unmarshall(sdkPojo, document, response), new HashMap<>());
+        }
+
+        XmlElement document = response.content().map(XmlDomParser::parse).orElseGet(XmlElement::empty);
         XmlElement resultRoot = hasResultWrapper ? document.getFirstChild() : document;
         return Pair.of(unmarshall(sdkPojo, resultRoot, response), parseMetadata(document));
+    }
+
+    private boolean responsePayloadIsBlob(SdkPojo sdkPojo) {
+        return sdkPojo.sdkFields().stream()
+                      .anyMatch(field -> field.marshallingType() == MarshallingType.SDK_BYTES &&
+                                         field.containsTrait(PayloadTrait.class));
     }
 
     /**
@@ -108,6 +128,10 @@ public final class QueryProtocolUnmarshaller implements XmlErrorUnmarshaller {
     private SdkPojo unmarshall(QueryUnmarshallerContext context, SdkPojo sdkPojo, XmlElement root) {
         if (root != null) {
             for (SdkField<?> field : sdkPojo.sdkFields()) {
+                if (field.containsTrait(PayloadTrait.class) && field.marshallingType() == MarshallingType.SDK_BYTES) {
+                    field.set(sdkPojo, SdkBytes.fromUtf8String(root.textContent()));
+                }
+
                 List<XmlElement> element = root.getElementsByName(field.unmarshallLocationName());
                 if (!CollectionUtils.isNullOrEmpty(element)) {
                     QueryUnmarshaller<Object> unmarshaller =
@@ -117,6 +141,7 @@ public final class QueryProtocolUnmarshaller implements XmlErrorUnmarshaller {
                 }
             }
         }
+
         return (SdkPojo) ((Buildable) sdkPojo).build();
     }
 

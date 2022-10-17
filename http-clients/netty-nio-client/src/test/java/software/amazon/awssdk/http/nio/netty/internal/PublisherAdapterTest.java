@@ -38,17 +38,20 @@ import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.reactivex.Flowable;
+import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.http.Protocol;
+import software.amazon.awssdk.http.SdkHttpMethod;
+import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import software.amazon.awssdk.http.nio.netty.internal.nrs.DefaultStreamedHttpResponse;
@@ -86,7 +89,13 @@ public class PublisherAdapterTest {
         when(fullHttpResponse.content()).thenReturn(new EmptyByteBuf(ByteBufAllocator.DEFAULT));
         requestContext = new RequestContext(channelPool,
                                             eventLoopGroup,
-                                            AsyncExecuteRequest.builder().responseHandler(responseHandler).build(),
+                                            AsyncExecuteRequest.builder()
+                                                               .request(SdkHttpRequest.builder()
+                                                                                      .uri(URI.create("https://localhost"))
+                                                                                      .method(SdkHttpMethod.GET)
+                                                                                      .build())
+                                                               .responseHandler(responseHandler)
+                                                               .build(),
                                             null);
 
         channel = new MockChannel();
@@ -166,7 +175,6 @@ public class PublisherAdapterTest {
         HttpContent[] contentToIgnore = new HttpContent[8];
         for (int i = 0; i < contentToIgnore.length; ++i) {
             contentToIgnore[i] = mock(HttpContent.class);
-            when(contentToIgnore[i].content()).thenReturn(Unpooled.EMPTY_BUFFER);
         }
 
         Publisher<HttpContent> publisher = subscriber -> subscriber.onSubscribe(new Subscription() {

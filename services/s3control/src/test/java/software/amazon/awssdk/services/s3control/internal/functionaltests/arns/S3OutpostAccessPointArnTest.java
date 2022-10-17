@@ -68,8 +68,20 @@ public class S3OutpostAccessPointArnTest extends S3ControlWireMockTestBase {
         s3ControlForTest.getAccessPoint(b -> b.name(outpostArn));
     }
 
+    @Test
     public void dualstackEnabled_shouldThrowException() {
         S3ControlClient s3ControlForTest = buildClientCustom().serviceConfiguration(b -> b.dualstackEnabled(true)).build();
+
+        String outpostArn = "arn:aws:s3-outposts:us-west-2:123456789012:outpost:op-01234567890123456:accesspoint:myaccesspoint";
+
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("Dual stack");
+        s3ControlForTest.getAccessPoint(b -> b.name(outpostArn));
+    }
+
+    @Test
+    public void dualstackEnabledViaClient_shouldThrowException() {
+        S3ControlClient s3ControlForTest = buildClientCustom().dualstackEnabled(true).build();
 
         String outpostArn = "arn:aws:s3-outposts:us-west-2:123456789012:outpost:op-01234567890123456:accesspoint:myaccesspoint";
 
@@ -206,35 +218,25 @@ public class S3OutpostAccessPointArnTest extends S3ControlWireMockTestBase {
 
     @Test
     public void outpostArnDifferentRegion_useArnRegionSet_shouldUseRegionFromArn() {
-
         String outpostArn = "arn:aws:s3-outposts:us-east-1:123456789012:outpost:op-01234567890123456:accesspoint:myaccesspoint";
-
         String expectedHost = "s3-outposts.us-east-1.amazonaws.com";
         stubResponse();
-
         S3ControlClient s3WithUseArnRegion =
             initializedBuilderForAccessPoint().region(Region.of("us-west-2")).serviceConfiguration(b -> b.useArnRegionEnabled(true)).build();
-
         s3WithUseArnRegion.getAccessPoint(b -> b.name(outpostArn));
-
         verifyOutpostRequest("us-east-1", expectedHost);
     }
 
     @Test
-    public void clientFipsRegion_outpostArnDifferentRegion_useArnRegionSet_shouldUseRegionFromArn() {
+    public void clientFipsRegion_outpostArnDifferentRegion_useArnRegionTrue_throwsIllegalArgumentException() {
 
         String outpostArn = "arn:aws-us-gov:s3-outposts:us-gov-east-1:123456789012:outpost:op-01234567890123456:accesspoint"
                             + ":myaccesspoint";
-
-        String expectedHost = "s3-outposts.us-gov-east-1.amazonaws.com";
-        stubResponse();
-
         S3ControlClient s3WithUseArnRegion = initializedBuilderForAccessPoint().region(Region.of("fips-us-gov-east-1"))
                                                                                .serviceConfiguration(b -> b.useArnRegionEnabled(true)).build();
-
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("FIPS");
         s3WithUseArnRegion.getAccessPoint(b -> b.name(outpostArn));
-
-        verifyOutpostRequest("us-gov-east-1", expectedHost);
     }
 
     private S3ControlClientBuilder initializedBuilderForAccessPoint() {

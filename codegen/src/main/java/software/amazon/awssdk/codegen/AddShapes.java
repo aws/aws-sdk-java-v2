@@ -79,10 +79,13 @@ abstract class AddShapes {
         // contains the list of c2j member names that are required for this shape.
         shapeModel.setRequired(shape.getRequired());
         shapeModel.setDeprecated(shape.isDeprecated());
+        shapeModel.setDeprecatedMessage(shape.getDeprecatedMessage());
         shapeModel.setWrapper(shape.isWrapper());
         shapeModel.withIsEventStream(shape.isEventstream());
         shapeModel.withIsEvent(shape.isEvent());
         shapeModel.withXmlNamespace(shape.getXmlNamespace());
+        shapeModel.withIsUnion(shape.isUnion());
+        shapeModel.withIsFault(shape.isFault());
 
         boolean hasHeaderMember = false;
         boolean hasStatusCodeMember = false;
@@ -172,6 +175,7 @@ abstract class AddShapes {
                    .withJsonValue(c2jMemberDefinition.getJsonvalue());
         memberModel.setDocumentation(c2jMemberDefinition.getDocumentation());
         memberModel.setDeprecated(c2jMemberDefinition.isDeprecated());
+        memberModel.setDeprecatedMessage(c2jMemberDefinition.getDeprecatedMessage());
         memberModel.setSensitive(isSensitiveShapeOrContainer(c2jMemberDefinition, allC2jShapes));
         memberModel
                 .withFluentGetterMethodName(namingStrategy.getFluentGetterMethodName(c2jMemberName, parentShape, shape))
@@ -186,6 +190,8 @@ abstract class AddShapes {
         memberModel.setEventHeader(c2jMemberDefinition.isEventheader());
         memberModel.setEndpointDiscoveryId(c2jMemberDefinition.isEndpointdiscoveryid());
         memberModel.setXmlAttribute(c2jMemberDefinition.isXmlAttribute());
+        memberModel.setUnionEnumTypeName(namingStrategy.getUnionEnumTypeName(memberModel));
+
 
         // Pass the xmlNameSpace from the member reference
         if (c2jMemberDefinition.getXmlNamespace() != null) {

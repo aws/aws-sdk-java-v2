@@ -22,7 +22,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.times;
 
 import com.github.tomakehurst.wiremock.common.ConsoleNotifier;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
@@ -32,7 +31,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
@@ -49,7 +48,7 @@ import software.amazon.awssdk.services.dynamodb.waiters.DynamoDbWaiter;
 public class WaitersUserAgentTest {
 
     @Rule
-    public WireMockRule mockServer = new WireMockRule(options().notifier(new ConsoleNotifier(true)).dynamicHttpsPort());
+    public WireMockRule mockServer = new WireMockRule(options().notifier(new ConsoleNotifier(true)).dynamicHttpsPort().dynamicPort());
 
     private DynamoDbClient dynamoDbClient;
     private DynamoDbAsyncClient dynamoDbAsyncClient;
@@ -85,7 +84,7 @@ public class WaitersUserAgentTest {
         assertThatThrownBy(() -> waiter.waitUntilTableExists(DescribeTableRequest.builder().tableName("table").build())).isNotNull();
 
         ArgumentCaptor<Context.BeforeTransmission> context = ArgumentCaptor.forClass(Context.BeforeTransmission.class);
-        Mockito.verify(interceptor).beforeTransmission(context.capture(), Matchers.any());
+        Mockito.verify(interceptor).beforeTransmission(context.capture(), ArgumentMatchers.any());
 
         assertTrue(context.getValue().httpRequest().headers().get("User-Agent").toString().contains("waiter"));
     }
@@ -96,7 +95,7 @@ public class WaitersUserAgentTest {
         CompletableFuture<WaiterResponse<DescribeTableResponse>> responseFuture = waiter.waitUntilTableExists(DescribeTableRequest.builder().tableName("table").build());
 
         ArgumentCaptor<Context.BeforeTransmission> context = ArgumentCaptor.forClass(Context.BeforeTransmission.class);
-        Mockito.verify(interceptor).beforeTransmission(context.capture(), Matchers.any());
+        Mockito.verify(interceptor).beforeTransmission(context.capture(), ArgumentMatchers.any());
 
         assertTrue(context.getValue().httpRequest().headers().get("User-Agent").toString().contains("waiter"));
 

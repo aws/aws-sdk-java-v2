@@ -18,7 +18,7 @@ package software.amazon.awssdk.services.sts.internal;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.nio.file.Paths;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.internal.ProfileCredentialsUtils;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
@@ -37,7 +37,7 @@ public class WebIdentityTokenCredentialProviderTest {
                                           .type(ProfileFile.Type.CONFIGURATION)
                                           .build();
         assertThat(profiles.profile("test")).hasValueSatisfying(profile -> {
-            assertThat(new ProfileCredentialsUtils(profile, profiles::profile).credentialsProvider()).hasValueSatisfying(credentialsProvider -> {
+            assertThat(new ProfileCredentialsUtils(profiles, profile, profiles::profile).credentialsProvider()).hasValueSatisfying(credentialsProvider -> {
                 assertThat(credentialsProvider).isInstanceOf(SdkAutoCloseable.class);
                 assertThat(credentialsProvider).hasFieldOrProperty("stsClient");
                 ((SdkAutoCloseable) credentialsProvider).close();

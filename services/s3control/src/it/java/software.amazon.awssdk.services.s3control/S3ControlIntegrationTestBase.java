@@ -41,6 +41,7 @@ import software.amazon.awssdk.services.s3.model.ListObjectsResponse;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.model.S3Object;
+import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.testutils.Waiter;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 
@@ -58,6 +59,10 @@ public class S3ControlIntegrationTestBase extends AwsTestBase {
 
     protected static S3AsyncClient s3Async;
 
+    protected static StsClient sts;
+
+    protected static String accountId;
+
     /**
      * Loads the AWS account info for the integration tests and creates an S3
      * client for tests to use.
@@ -66,6 +71,11 @@ public class S3ControlIntegrationTestBase extends AwsTestBase {
     public static void setUp() throws Exception {
         s3 = s3ClientBuilder().build();
         s3Async = s3AsyncClientBuilder().build();
+        sts = StsClient.builder()
+                       .region(DEFAULT_REGION)
+                       .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                       .build();
+        accountId = sts.getCallerIdentity().account();
     }
 
     protected static S3ClientBuilder s3ClientBuilder() {

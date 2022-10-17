@@ -29,10 +29,13 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProviderChain;
+import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.awscore.AwsResponse;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolquery.ProtocolQueryAsyncClient;
 import software.amazon.awssdk.services.protocolquery.model.ProtocolQueryException;
@@ -83,6 +86,26 @@ public class AsyncResponseTransformerTest {
             new TestAsyncResponseTransformer<>();
         assertThatThrownBy(() -> xmlClient.streamingOutputOperation(SdkBuilder::build, responseTransformer).join())
             .hasCauseExactlyInstanceOf(ProtocolQueryException.class);
+        assertThat(responseTransformer.exceptionOccurred).isEqualTo(true);
+    }
+
+    @Test
+    public void jsonClient_incorrectCredentials_shouldNotifyAsyncResponseTransformer() {
+        ProtocolRestJsonAsyncClient clientWithIncorrectCredentials = ProtocolRestJsonAsyncClient
+            .builder()
+            .credentialsProvider(AwsCredentialsProviderChain.of(ProfileCredentialsProvider.create("dummyprofile")))
+            .region(Region.US_EAST_1)
+            .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
+            .build();
+
+        stubFor(post(anyUrl())
+                    .willReturn(aResponse()
+                                    .withStatus(400)));
+
+        TestAsyncResponseTransformer<StreamingOutputOperationResponse> responseTransformer = new TestAsyncResponseTransformer<>();
+        assertThatThrownBy(() -> clientWithIncorrectCredentials.streamingOutputOperation(SdkBuilder::build, responseTransformer).join())
+            .hasCauseExactlyInstanceOf(SdkClientException.class)
+            .hasMessageContaining("Unable to load credentials");
         assertThat(responseTransformer.exceptionOccurred).isEqualTo(true);
     }
 

@@ -35,6 +35,7 @@ class MapSetters extends AbstractMemberSetters {
         this.typeProvider = typeProvider;
     }
 
+    @Override
     public List<MethodSpec> fluentDeclarations(TypeName returnType) {
         List<MethodSpec> fluentDeclarations = new ArrayList<>();
 
@@ -77,9 +78,8 @@ class MapSetters extends AbstractMemberSetters {
 
     @Override
     public List<MethodSpec> beanStyle() {
-        MethodSpec.Builder builder = beanStyleSetterBuilder()
-                .addCode(memberModel().isCollectionWithBuilderMember() ? copySetterBuilderBody() : beanCopySetterBody());
-
+        MethodSpec.Builder builder = beanStyleSetterBuilder();
+        builder.addCode(beanCopySetterBody());
         return Collections.singletonList(builder.build());
     }
 

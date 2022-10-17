@@ -19,6 +19,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
@@ -31,6 +33,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * @param <R> The actual type of the {@link TableSchema} being proxied.
  */
 @SdkPublicApi
+@ThreadSafe
 public abstract class WrappedTableSchema<T, R extends TableSchema<T>> implements TableSchema<T> {
     private final R delegateTableSchema;
 
@@ -52,6 +55,11 @@ public abstract class WrappedTableSchema<T, R extends TableSchema<T>> implements
     @Override
     public T mapToItem(Map<String, AttributeValue> attributeMap) {
         return this.delegateTableSchema.mapToItem(attributeMap);
+    }
+
+    @Override
+    public T mapToItem(Map<String, AttributeValue> attributeMap, boolean preserveEmptyObject) {
+        return this.delegateTableSchema.mapToItem(attributeMap, preserveEmptyObject);
     }
 
     @Override
@@ -87,5 +95,10 @@ public abstract class WrappedTableSchema<T, R extends TableSchema<T>> implements
     @Override
     public boolean isAbstract() {
         return this.delegateTableSchema.isAbstract();
+    }
+
+    @Override
+    public AttributeConverter<T> converterForAttribute(Object key) {
+        return this.delegateTableSchema.converterForAttribute(key);
     }
 }

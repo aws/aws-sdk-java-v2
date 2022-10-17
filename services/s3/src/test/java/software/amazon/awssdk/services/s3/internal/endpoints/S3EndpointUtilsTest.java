@@ -16,11 +16,11 @@
 package software.amazon.awssdk.services.s3.internal.endpoints;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.net.URI;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.services.s3.S3Configuration;
@@ -43,14 +43,6 @@ public class S3EndpointUtilsTest {
     }
 
     @Test
-    public void isFipsRegionProvided() {
-        assertTrue(S3EndpointUtils.isFipsRegionProvided("fips-us-east-1", "us-east-1", false));
-        assertFalse(S3EndpointUtils.isFipsRegionProvided("us-east-1", "fips-us-east-1", false));
-        assertTrue(S3EndpointUtils.isFipsRegionProvided("us-east-1", "us-east-1-fips", true));
-        assertFalse(S3EndpointUtils.isFipsRegionProvided("us-east-1-fips", "us-east-1", true));
-    }
-
-    @Test
     public void isAccelerateEnabled() {
         assertFalse(S3EndpointUtils.isAccelerateEnabled(S3Configuration.builder().build()));
         assertFalse(S3EndpointUtils.isAccelerateEnabled(null));
@@ -66,14 +58,10 @@ public class S3EndpointUtilsTest {
 
     @Test
     public void accelerateEndpoint() {
-        assertThat(S3EndpointUtils.accelerateEndpoint(S3Configuration.builder().build(),
-                                                      "domain",
-                                                      "https"))
+        assertThat(S3EndpointUtils.accelerateEndpoint("domain", "https"))
             .isEqualTo(URI.create("https://s3-accelerate.domain"));
 
-        assertThat(S3EndpointUtils.accelerateEndpoint(S3Configuration.builder().dualstackEnabled(true).build(),
-                                                      "domain",
-                                                      "https"))
+        assertThat(S3EndpointUtils.accelerateDualstackEndpoint("domain", "https"))
             .isEqualTo(URI.create("https://s3-accelerate.dualstack.domain"));
     }
 

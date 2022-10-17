@@ -37,8 +37,13 @@ import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.ConditionCheck;
+import software.amazon.awssdk.enhanced.dynamodb.model.TransactDeleteItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.TransactPutItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.TransactUpdateItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactWriteItemsEnhancedRequest;
+import software.amazon.awssdk.services.dynamodb.model.CancellationReason;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.ReturnValuesOnConditionCheckFailure;
 import software.amazon.awssdk.services.dynamodb.model.TransactionCanceledException;
 
 public class TransactWriteItemsTest extends LocalDynamoDbSyncTestBase {
@@ -364,6 +369,63 @@ public class TransactWriteItemsTest extends LocalDynamoDbSyncTestBase {
         assertThat(mappedTable1.getItem(r -> r.key(k -> k.partitionValue(1))), is(nullValue()));
         assertThat(mappedTable2.getItem(r -> r.key(k -> k.partitionValue(0))), is(RECORDS_2.get(0)));
         assertThat(mappedTable2.getItem(r -> r.key(k -> k.partitionValue(1))), is(nullValue()));
+    }
+
+    @Test
+    public void mixedCommands_returnValuesOnConditionCheckFailureSet_allConditionsFail() {
+        mappedTable1.putItem(r -> r.item(RECORDS_1.get(0)));
+        mappedTable1.putItem(r -> r.item(RECORDS_1.get(1)));
+        mappedTable2.putItem(r -> r.item(RECORDS_2.get(0)));
+
+
+        Expression conditionExpression = Expression.builder()
+                                                   .expression("#attribute = :attribute")
+                                                   .expressionValues(singletonMap(":attribute", stringValue("99")))
+                                                   .expressionNames(singletonMap("#attribute", "attribute"))
+                                                   .build();
+
+        Key key0 = Key.builder().partitionValue(0).build();
+        Key key1 = Key.builder().partitionValue(1).build();
+
+        ReturnValuesOnConditionCheckFailure returnValues = ReturnValuesOnConditionCheckFailure.ALL_OLD;
+        TransactPutItemEnhancedRequest<Record2> putItemRequest = TransactPutItemEnhancedRequest.builder(Record2.class)
+                                                                                               .conditionExpression(conditionExpression)
+                                                                                               .item(RECORDS_2.get(0))
+                                                                                               .returnValuesOnConditionCheckFailure(returnValues)
+                                                                                               .build();
+
+        TransactUpdateItemEnhancedRequest<Record1> updateItemRequest = TransactUpdateItemEnhancedRequest.builder(Record1.class)
+                                                                                                .conditionExpression(conditionExpression)
+                                                                                                .item(RECORDS_1.get(0))
+                                                                                                .returnValuesOnConditionCheckFailure(returnValues)
+                                                                                                .build();
+
+        TransactDeleteItemEnhancedRequest deleteItemRequest = TransactDeleteItemEnhancedRequest.builder()
+                                                                                               .key(key1)
+                                                                                               .conditionExpression(conditionExpression)
+                                                                                               .returnValuesOnConditionCheckFailure(returnValues)
+                                                                                               .build();
+
+        TransactWriteItemsEnhancedRequest transactWriteItemsEnhancedRequest =
+            TransactWriteItemsEnhancedRequest.builder()
+                                             .addPutItem(mappedTable2, putItemRequest)
+                                             .addUpdateItem(mappedTable1, updateItemRequest)
+                                             .addConditionCheck(mappedTable1, ConditionCheck.builder()
+                                                                                            .key(key0)
+                                                                                            .conditionExpression(conditionExpression)
+                                                                                            .returnValuesOnConditionCheckFailure(returnValues)
+                                                                                            .build())
+                                             .addDeleteItem(mappedTable1, deleteItemRequest)
+                                             .build();
+
+        try {
+            enhancedClient.transactWriteItems(transactWriteItemsEnhancedRequest);
+            fail("Expected TransactionCanceledException to be thrown");
+        } catch(TransactionCanceledException e) {
+            List<CancellationReason> cancellationReasons = e.cancellationReasons();
+            assertThat(cancellationReasons.size(), is(4));
+            cancellationReasons.forEach(r -> assertThat(r.item().isEmpty(), is(false)));
+        }
     }
 }
 

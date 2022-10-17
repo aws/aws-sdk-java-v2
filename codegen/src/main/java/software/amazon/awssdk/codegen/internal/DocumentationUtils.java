@@ -36,10 +36,12 @@ public final class DocumentationUtils {
 
     private static final String DEFAULT_GETTER_PARAM = "The value of the %s property for this object.";
 
-    private static final String DEFAULT_EXISTENCE_CHECK = "Returns true if the %s property was specified by the sender "
-                                                          + "(it may be empty), or false if the sender did not specify "
-                                                          + "the value (it will be empty). For responses returned by the SDK, "
-                                                          + "the sender is the AWS service.";
+    private static final String DEFAULT_EXISTENCE_CHECK =
+        "For responses, this returns true if the service returned a value for the %s property. This DOES NOT check that the "
+        + "value is non-empty (for which, you should check the {@code isEmpty()} method on the property). This is useful because "
+        + "the SDK will never return a null collection or map, but you may need to differentiate between the service returning "
+        + "nothing (or null) and the service returning an empty collection or map. For requests, this returns true if a value "
+        + "for the property was specified in the request builder, and false if a value was not specified.";
 
     private static final String DEFAULT_FLUENT_RETURN =
             "Returns a reference to this object so that method calls can be chained together.";
@@ -70,8 +72,8 @@ public final class DocumentationUtils {
         }
 
         if (documentation.startsWith("<")) {
-            int startTagIndex = documentation.indexOf(">");
-            int closingTagIndex = documentation.lastIndexOf("<");
+            int startTagIndex = documentation.indexOf('>');
+            int closingTagIndex = documentation.lastIndexOf('<');
             if (closingTagIndex > startTagIndex) {
                 documentation = stripHtmlTags(documentation.substring(startTagIndex + 1, closingTagIndex));
             } else {

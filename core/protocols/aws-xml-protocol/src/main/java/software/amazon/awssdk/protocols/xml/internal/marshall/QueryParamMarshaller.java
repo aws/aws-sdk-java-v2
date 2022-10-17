@@ -34,6 +34,8 @@ public final class QueryParamMarshaller {
 
     public static final XmlMarshaller<Long> LONG = new SimpleQueryParamMarshaller<>(ValueToStringConverter.FROM_LONG);
 
+    public static final XmlMarshaller<Short> SHORT = new SimpleQueryParamMarshaller<>(ValueToStringConverter.FROM_SHORT);
+
     public static final XmlMarshaller<Double> DOUBLE = new SimpleQueryParamMarshaller<>(ValueToStringConverter.FROM_DOUBLE);
 
     public static final XmlMarshaller<Float> FLOAT = new SimpleQueryParamMarshaller<>(ValueToStringConverter.FROM_FLOAT);
@@ -58,8 +60,7 @@ public final class QueryParamMarshaller {
             return;
         }
 
-        MapTrait mapTrait = sdkField.getOptionalTrait(MapTrait.class)
-                                    .orElseThrow(() -> new IllegalStateException("SdkField of list type is missing List trait"));
+        MapTrait mapTrait = sdkField.getRequiredTrait(MapTrait.class);
         SdkField valueField = mapTrait.valueFieldInfo();
 
         for (Map.Entry<String, ?> entry : map.entrySet()) {

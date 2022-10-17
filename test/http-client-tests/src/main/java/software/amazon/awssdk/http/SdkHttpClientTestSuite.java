@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.absent;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.containing;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
@@ -43,7 +44,7 @@ import javax.net.ssl.TrustManagerFactory;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
 
@@ -57,10 +58,13 @@ import software.amazon.awssdk.utils.Logger;
 public abstract class SdkHttpClientTestSuite {
     private static final Logger LOG = Logger.loggerFor(SdkHttpClientTestSuite.class);
 
+    private static final ConnectionCountingTrafficListener CONNECTION_COUNTER = new ConnectionCountingTrafficListener();
+
     @Rule
     public WireMockRule mockServer = createWireMockRule();
 
     private final Random rng = new Random();
+
 
     @Test
     public void supportsResponseCode200() throws Exception {
@@ -114,6 +118,54 @@ public abstract class SdkHttpClientTestSuite {
     }
 
     @Test
+    public void connectionPoolingWorks() throws Exception {
+        int initialOpenedConnections = CONNECTION_COUNTER.openedConnections();
+
+        SdkHttpClientOptions httpClientOptions = new SdkHttpClientOptions();
+        httpClientOptions.trustAll(true);
+        SdkHttpClient client = createSdkHttpClient(httpClientOptions);
+
+        stubForMockRequest(200);
+
+        for (int i = 0; i < 5; i++) {
+            SdkHttpFullRequest req = mockSdkRequest("http://localhost:" + mockServer.port(), SdkHttpMethod.POST);
+            HttpExecuteResponse response =
+                client.prepareRequest(HttpExecuteRequest.builder()
+                                                        .request(req)
+                                                        .contentStreamProvider(req.contentStreamProvider().orElse(null))
+                                                        .build())
+                      .call();
+            response.responseBody().ifPresent(IoUtils::drainInputStream);
+        }
+
+        assertThat(CONNECTION_COUNTER.openedConnections()).isEqualTo(initialOpenedConnections + 1);
+    }
+
+    @Test
+    public void connectionsAreNotReusedOn5xxErrors() throws Exception {
+        int initialOpenedConnections = CONNECTION_COUNTER.openedConnections();
+
+        SdkHttpClientOptions httpClientOptions = new SdkHttpClientOptions();
+        httpClientOptions.trustAll(true);
+        SdkHttpClient client = createSdkHttpClient(httpClientOptions);
+
+        stubForMockRequest(503);
+
+        for (int i = 0; i < 5; i++) {
+            SdkHttpFullRequest req = mockSdkRequest("http://localhost:" + mockServer.port(), SdkHttpMethod.POST);
+            HttpExecuteResponse response =
+                client.prepareRequest(HttpExecuteRequest.builder()
+                                                        .request(req)
+                                                        .contentStreamProvider(req.contentStreamProvider().orElse(null))
+                                                        .build())
+                      .call();
+            response.responseBody().ifPresent(IoUtils::drainInputStream);
+        }
+
+        assertThat(CONNECTION_COUNTER.openedConnections()).isEqualTo(initialOpenedConnections + 5);
+    }
+
+    @Test
     public void testCustomTlsTrustManager() throws Exception {
         WireMockServer selfSignedServer = HttpTestUtils.createSelfSignedServer();
 
@@ -152,7 +204,7 @@ public abstract class SdkHttpClientTestSuite {
         assertThatThrownBy(() -> createSdkHttpClient(httpClientOptions)).isInstanceOf(IllegalArgumentException.class);
     }
 
-    private void testForResponseCode(int returnCode) throws Exception {
+    protected void testForResponseCode(int returnCode) throws Exception {
         testForResponseCode(returnCode, SdkHttpMethod.POST);
     }
 
@@ -187,7 +239,7 @@ public abstract class SdkHttpClientTestSuite {
         validateResponse(rsp, returnCode, sdkHttpMethod);
     }
 
-    private void stubForMockRequest(int returnCode) {
+    protected void stubForMockRequest(int returnCode) {
         ResponseDefinitionBuilder responseBuilder = aResponse().withStatus(returnCode)
                                                                .withHeader("Some-Header", "With Value")
                                                                .withBody("hello");
@@ -207,7 +259,7 @@ public abstract class SdkHttpClientTestSuite {
                                                                            .withHeader("User-Agent", equalTo("hello-world!"));
 
         if (method == SdkHttpMethod.HEAD) {
-            patternBuilder.withRequestBody(equalTo(""));
+            patternBuilder.withRequestBody(absent());
         } else {
             patternBuilder.withRequestBody(equalTo("Body"));
         }
@@ -225,7 +277,7 @@ public abstract class SdkHttpClientTestSuite {
         mockServer.resetMappings();
     }
 
-    private SdkHttpFullRequest mockSdkRequest(String uriString, SdkHttpMethod method) {
+    protected SdkHttpFullRequest mockSdkRequest(String uriString, SdkHttpMethod method) {
         URI uri = URI.create(uriString);
         SdkHttpFullRequest.Builder requestBuilder = SdkHttpFullRequest.builder()
                                                             .uri(uri)
@@ -279,7 +331,9 @@ public abstract class SdkHttpClientTestSuite {
         int maxAttempts = 5;
         for (int i = 0; i < maxAttempts; ++i) {
             try {
-                return new WireMockRule(wireMockConfig().dynamicPort().dynamicHttpsPort());
+                return new WireMockRule(wireMockConfig().dynamicPort()
+                                                        .dynamicHttpsPort()
+                                                        .networkTrafficListener(CONNECTION_COUNTER));
             } catch (FatalStartupException e) {
                 int attemptNum = i + 1;
                 LOG.debug(() -> "Was not able to start WireMock server. Attempt " + attemptNum, e);
@@ -298,4 +352,5 @@ public abstract class SdkHttpClientTestSuite {
 
         throw new RuntimeException("Unable to setup WireMock rule");
     }
+
 }

@@ -21,7 +21,6 @@ import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTag
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primarySortKey;
 
 import java.util.Objects;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

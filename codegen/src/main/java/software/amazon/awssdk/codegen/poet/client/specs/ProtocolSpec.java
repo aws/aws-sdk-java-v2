@@ -28,10 +28,13 @@ import java.util.stream.Collectors;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
+import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.model.service.AuthType;
-import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.codegen.poet.PoetExtension;
+import software.amazon.awssdk.codegen.utils.BearerAuthUtils;
+import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
 import software.amazon.awssdk.core.runtime.transform.AsyncStreamingRequestMarshaller;
 import software.amazon.awssdk.core.runtime.transform.StreamingRequestMarshaller;
@@ -67,23 +70,34 @@ public interface ProtocolSpec {
         return new ArrayList<>();
     }
 
-    default List<CodeBlock> registerModeledExceptions(IntermediateModel model, PoetExtensions poetExtensions) {
+    default List<CodeBlock> registerModeledExceptions(IntermediateModel model, PoetExtension poetExtensions) {
         return model.getShapes().values().stream()
                     .filter(s -> s.getShapeType() == ShapeType.Exception)
                     .map(e -> CodeBlock.builder()
-                                       .add(".registerModeledException($T.builder().errorCode($S)"
-                                            + ".exceptionBuilderSupplier($T::builder)$L.build())",
+                                       .add(".registerModeledException($T.builder()"
+                                            + ".errorCode($S)"
+                                            + ".exceptionBuilderSupplier($T::builder)"
+                                            + "$L" // populateHttpStatusCode
+                                            + ".build())",
                                             ExceptionMetadata.class,
                                             e.getErrorCode(),
                                             poetExtensions.getModelClass(e.getShapeName()),
-                                            populateHttpStatusCode(e))
+                                            populateHttpStatusCode(e, model))
                                        .build())
                     .collect(Collectors.toList());
     }
 
-    default String populateHttpStatusCode(ShapeModel shapeModel) {
-        return shapeModel.getHttpStatusCode() != null
-               ? String.format(".httpStatusCode(%d)", shapeModel.getHttpStatusCode()) : "";
+    default String populateHttpStatusCode(ShapeModel shapeModel, IntermediateModel model) {
+        Integer statusCode = shapeModel.getHttpStatusCode();
+
+        if (statusCode == null && model.getMetadata().getProtocol() == Protocol.AWS_JSON) {
+            if (shapeModel.isFault()) {
+                statusCode = 500;
+            } else {
+                statusCode = 400;
+            }
+        }
+        return statusCode != null ? String.format(".httpStatusCode(%d)", statusCode) : "";
     }
 
     default String hostPrefixExpression(OperationModel opModel) {
@@ -96,6 +110,15 @@ public interface ProtocolSpec {
         return opModel.getEndpointDiscovery() != null
                ? ".discoveredEndpoint(cachedEndpoint)\n"
                : "";
+    }
+
+    default CodeBlock credentialType(OperationModel opModel, IntermediateModel model) {
+
+        if (BearerAuthUtils.isOpBearerAuth(model, opModel)) {
+            return CodeBlock.of(".credentialType($T.TOKEN)\n", CredentialType.class);
+        } else {
+            return CodeBlock.of("");
+        }
     }
 
     /**
@@ -128,7 +151,7 @@ public interface ProtocolSpec {
             builder.add(".requiresLength(true)");
         }
 
-        if (AuthType.V4_UNSIGNED_BODY.equals(opModel.getAuthType())) {
+        if (opModel.getAuthType() == AuthType.V4_UNSIGNED_BODY) {
             builder.add(".transferEncoding(true)");
         }
 
@@ -154,12 +177,14 @@ public interface ProtocolSpec {
                              + "         runAndLogError(log, \"Exception thrown in exceptionOccurred callback, ignoring\", () "
                              + "-> %s.exceptionOccurred(e));%n"
                              + "     }%n"
-                             + "%s"
+                             + "     endOfStreamFuture.whenComplete((r2, e2) -> {%n"
+                             + "         %s%n"
+                             + "     });"
                              + "})", responseHandlerName, publishMetrics());
 
     }
 
-    default TypeName executeFutureValueType(OperationModel opModel, PoetExtensions poetExtensions) {
+    default TypeName executeFutureValueType(OperationModel opModel, PoetExtension poetExtensions) {
         if (opModel.hasEventStreamOutput()) {
             return ClassName.get(Void.class);
         } else if (opModel.hasStreamingOutput()) {
@@ -174,7 +199,7 @@ public interface ProtocolSpec {
      *
      * @param opModel Operation to get response type for.
      */
-    default TypeName getPojoResponseType(OperationModel opModel, PoetExtensions poetExtensions) {
+    default TypeName getPojoResponseType(OperationModel opModel, PoetExtension poetExtensions) {
         return poetExtensions.getModelClass(opModel.getReturnType().getReturnType());
     }
 

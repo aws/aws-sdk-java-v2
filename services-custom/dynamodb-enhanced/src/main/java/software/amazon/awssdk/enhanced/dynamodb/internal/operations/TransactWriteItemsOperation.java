@@ -40,6 +40,11 @@ public class TransactWriteItemsOperation
     }
 
     @Override
+    public OperationName operationName() {
+        return OperationName.TRANSACT_WRITE_ITEMS;
+    }
+
+    @Override
     public TransactWriteItemsRequest generateRequest(DynamoDbEnhancedClientExtension extension) {
         return TransactWriteItemsRequest.builder()
                                         .transactItems(this.request.transactWriteItems())

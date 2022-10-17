@@ -32,20 +32,29 @@ public final class HeaderUnmarshaller {
     public static final XmlUnmarshaller<String> STRING = new SimpleHeaderUnmarshaller<>(StringToValueConverter.TO_STRING);
     public static final XmlUnmarshaller<Integer> INTEGER = new SimpleHeaderUnmarshaller<>(StringToValueConverter.TO_INTEGER);
     public static final XmlUnmarshaller<Long> LONG = new SimpleHeaderUnmarshaller<>(StringToValueConverter.TO_LONG);
+    public static final XmlUnmarshaller<Short> SHORT = new SimpleHeaderUnmarshaller<>(StringToValueConverter.TO_SHORT);
     public static final XmlUnmarshaller<Float> FLOAT = new SimpleHeaderUnmarshaller<>(StringToValueConverter.TO_FLOAT);
     public static final XmlUnmarshaller<Double> DOUBLE = new SimpleHeaderUnmarshaller<>(StringToValueConverter.TO_DOUBLE);
     public static final XmlUnmarshaller<Boolean> BOOLEAN = new SimpleHeaderUnmarshaller<>(StringToValueConverter.TO_BOOLEAN);
     public static final XmlUnmarshaller<Instant> INSTANT =
         new SimpleHeaderUnmarshaller<>(XmlProtocolUnmarshaller.INSTANT_STRING_TO_VALUE);
 
+    // Only supports string value type
     public static final XmlUnmarshaller<Map<String, ?>> MAP = ((context, content, field) -> {
         Map<String, String> result = new HashMap<>();
-        context.response().headers().entrySet().stream()
-               .filter(e -> startsWithIgnoreCase(e.getKey(), field.locationName()))
-               .forEach(e -> result.put(replacePrefixIgnoreCase(e.getKey(), field.locationName(), ""),
-                                        String.join(",", e.getValue())));
+
+        context.response().forEachHeader((name, value) -> {
+            if (startsWithIgnoreCase(name, field.locationName())) {
+                result.put(replacePrefixIgnoreCase(name, field.locationName(), ""), String.join(",", value));
+            }
+        });
+
         return result;
     });
+
+    // Only supports string value type
+    public static final XmlUnmarshaller<List<?>> LIST = (context, content, field) ->
+        context.response().matchingHeaders(field.locationName());
 
     private HeaderUnmarshaller() {
     }

@@ -19,7 +19,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.containing;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.getAllServeEvents;
 import static com.github.tomakehurst.wiremock.client.WireMock.matching;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
@@ -27,7 +26,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
+import java.net.URI;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -38,9 +37,6 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolquery.ProtocolQueryAsyncClient;
 import software.amazon.awssdk.services.protocolquery.ProtocolQueryClient;
 import software.amazon.awssdk.services.protocolquery.model.IdempotentOperationRequest;
-
-import java.net.URI;
-import java.util.List;
 
 public class QueryRequestTransformTest extends ProtocolTestBase {
 

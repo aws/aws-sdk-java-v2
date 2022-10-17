@@ -16,7 +16,6 @@
 package software.amazon.awssdk.http.nio.netty.internal.utils;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assume.assumeTrue;
 import static software.amazon.awssdk.http.nio.netty.internal.utils.SocketChannelResolver.resolveSocketChannelFactory;
 
 import io.netty.channel.epoll.Epoll;
@@ -26,7 +25,8 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.oio.OioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.channel.socket.oio.OioSocketChannel;
-import org.junit.Test;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.http.nio.netty.internal.DelegatingEventLoopGroup;
 
 public class SocketChannelResolverTest {
@@ -38,7 +38,7 @@ public class SocketChannelResolverTest {
 
     @Test
     public void canDetectEpollEventLoopGroupFactory() {
-        assumeTrue(Epoll.isAvailable());
+        Assumptions.assumeTrue(Epoll.isAvailable());
         assertThat(resolveSocketChannelFactory(new EpollEventLoopGroup()).newChannel()).isInstanceOf(EpollSocketChannel.class);
     }
 

@@ -68,6 +68,11 @@ public class IndexOperationTest {
         private DynamoDbClient lastDynamoDbClient = null;
 
         @Override
+        public OperationName operationName() {
+            return OperationName.NONE;
+        }
+
+        @Override
         public String generateRequest(TableSchema<FakeItem> tableSchema, OperationContext context,
                                       DynamoDbEnhancedClientExtension extension) {
             return null;
@@ -100,5 +105,6 @@ public class IndexOperationTest {
             lastDynamoDbClient = dynamoDbClient;
             return FAKE_RESULT;
         }
+
     }
 }

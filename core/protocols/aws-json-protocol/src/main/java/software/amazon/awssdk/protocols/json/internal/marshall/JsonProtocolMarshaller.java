@@ -16,14 +16,16 @@
 package software.amazon.awssdk.protocols.json.internal.marshall;
 
 import static software.amazon.awssdk.core.internal.util.Mimetype.MIMETYPE_EVENT_STREAM;
+import static software.amazon.awssdk.http.Header.CHUNKED;
 import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
 import static software.amazon.awssdk.http.Header.CONTENT_TYPE;
+import static software.amazon.awssdk.http.Header.TRANSFER_ENCODING;
 
 import java.io.ByteArrayInputStream;
 import java.net.URI;
 import java.time.Instant;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkBytes;
@@ -39,6 +41,8 @@ import software.amazon.awssdk.protocols.core.OperationInfo;
 import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
 import software.amazon.awssdk.protocols.core.ProtocolUtils;
 import software.amazon.awssdk.protocols.core.ValueToStringConverter.ValueToString;
+import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
+import software.amazon.awssdk.protocols.json.AwsJsonProtocolMetadata;
 import software.amazon.awssdk.protocols.json.StructuredJsonGenerator;
 
 /**
@@ -56,7 +60,9 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
     private final StructuredJsonGenerator jsonGenerator;
     private final SdkHttpFullRequest.Builder request;
     private final String contentType;
+    private final AwsJsonProtocolMetadata protocolMetadata;
     private final boolean hasExplicitPayloadMember;
+    private final boolean hasImplicitPayloadMembers;
     private final boolean hasStreamingInput;
 
     private final JsonMarshallerContext marshallerContext;
@@ -66,11 +72,14 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
     JsonProtocolMarshaller(URI endpoint,
                            StructuredJsonGenerator jsonGenerator,
                            String contentType,
-                           OperationInfo operationInfo) {
+                           OperationInfo operationInfo,
+                           AwsJsonProtocolMetadata protocolMetadata) {
         this.endpoint = endpoint;
         this.jsonGenerator = jsonGenerator;
         this.contentType = contentType;
+        this.protocolMetadata = protocolMetadata;
         this.hasExplicitPayloadMember = operationInfo.hasExplicitPayloadMember();
+        this.hasImplicitPayloadMembers = operationInfo.hasImplicitPayloadMembers();
         this.hasStreamingInput = operationInfo.hasStreamingInput();
         this.hasEventStreamingInput = operationInfo.hasEventStreamingInput();
         this.hasEvent = operationInfo.hasEvent();
@@ -89,6 +98,7 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
             .payloadMarshaller(MarshallingType.STRING, SimpleTypeJsonMarshaller.STRING)
             .payloadMarshaller(MarshallingType.INTEGER, SimpleTypeJsonMarshaller.INTEGER)
             .payloadMarshaller(MarshallingType.LONG, SimpleTypeJsonMarshaller.LONG)
+            .payloadMarshaller(MarshallingType.SHORT, SimpleTypeJsonMarshaller.SHORT)
             .payloadMarshaller(MarshallingType.DOUBLE, SimpleTypeJsonMarshaller.DOUBLE)
             .payloadMarshaller(MarshallingType.FLOAT, SimpleTypeJsonMarshaller.FLOAT)
             .payloadMarshaller(MarshallingType.BIG_DECIMAL, SimpleTypeJsonMarshaller.BIG_DECIMAL)
@@ -99,19 +109,23 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
             .payloadMarshaller(MarshallingType.LIST, SimpleTypeJsonMarshaller.LIST)
             .payloadMarshaller(MarshallingType.MAP, SimpleTypeJsonMarshaller.MAP)
             .payloadMarshaller(MarshallingType.NULL, SimpleTypeJsonMarshaller.NULL)
+            .payloadMarshaller(MarshallingType.DOCUMENT, SimpleTypeJsonMarshaller.DOCUMENT)
 
             .headerMarshaller(MarshallingType.STRING, HeaderMarshaller.STRING)
             .headerMarshaller(MarshallingType.INTEGER, HeaderMarshaller.INTEGER)
             .headerMarshaller(MarshallingType.LONG, HeaderMarshaller.LONG)
+            .headerMarshaller(MarshallingType.SHORT, HeaderMarshaller.SHORT)
             .headerMarshaller(MarshallingType.DOUBLE, HeaderMarshaller.DOUBLE)
             .headerMarshaller(MarshallingType.FLOAT, HeaderMarshaller.FLOAT)
             .headerMarshaller(MarshallingType.BOOLEAN, HeaderMarshaller.BOOLEAN)
             .headerMarshaller(MarshallingType.INSTANT, HeaderMarshaller.INSTANT)
+            .headerMarshaller(MarshallingType.LIST, HeaderMarshaller.LIST)
             .headerMarshaller(MarshallingType.NULL, JsonMarshaller.NULL)
 
             .queryParamMarshaller(MarshallingType.STRING, QueryParamMarshaller.STRING)
             .queryParamMarshaller(MarshallingType.INTEGER, QueryParamMarshaller.INTEGER)
             .queryParamMarshaller(MarshallingType.LONG, QueryParamMarshaller.LONG)
+            .queryParamMarshaller(MarshallingType.SHORT, QueryParamMarshaller.SHORT)
             .queryParamMarshaller(MarshallingType.DOUBLE, QueryParamMarshaller.DOUBLE)
             .queryParamMarshaller(MarshallingType.FLOAT, QueryParamMarshaller.FLOAT)
             .queryParamMarshaller(MarshallingType.BOOLEAN, QueryParamMarshaller.BOOLEAN)
@@ -123,6 +137,7 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
             .pathParamMarshaller(MarshallingType.STRING, SimpleTypePathMarshaller.STRING)
             .pathParamMarshaller(MarshallingType.INTEGER, SimpleTypePathMarshaller.INTEGER)
             .pathParamMarshaller(MarshallingType.LONG, SimpleTypePathMarshaller.LONG)
+            .pathParamMarshaller(MarshallingType.SHORT, SimpleTypePathMarshaller.SHORT)
             .pathParamMarshaller(MarshallingType.NULL, SimpleTypePathMarshaller.NULL)
 
             .greedyPathParamMarshaller(MarshallingType.STRING, SimpleTypePathMarshaller.GREEDY_STRING)
@@ -131,7 +146,7 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
     }
 
     private static Map<MarshallLocation, TimestampFormatTrait.Format> getDefaultTimestampFormats() {
-        Map<MarshallLocation, TimestampFormatTrait.Format> formats = new HashMap<>();
+        Map<MarshallLocation, TimestampFormatTrait.Format> formats = new EnumMap<>(MarshallLocation.class);
         // TODO the default is supposedly rfc822. See JAVA-2949
         // We are using ISO_8601 in v1. Investigate which is the right format
         formats.put(MarshallLocation.HEADER, TimestampFormatTrait.Format.RFC_822);
@@ -154,7 +169,8 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
      * members bound to the payload will be added as fields to this object.
      */
     private void startMarshalling() {
-        if (!hasExplicitPayloadMember) {
+        // Create the implicit request object if needed.
+        if (needTopLevelJsonObject()) {
             jsonGenerator.writeStartObject();
         }
     }
@@ -162,27 +178,38 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
     void doMarshall(SdkPojo pojo) {
         for (SdkField<?> field : pojo.sdkFields()) {
             Object val = field.getValueOrDefault(pojo);
-            if (isBinary(field, val)) {
-                request.contentStreamProvider(((SdkBytes) val)::asInputStream);
-            } else {
-                if (val != null && field.containsTrait(PayloadTrait.class)) {
-                    jsonGenerator.writeStartObject();
-                    doMarshall((SdkPojo) val);
-                    jsonGenerator.writeEndObject();
-                } else {
-                    MARSHALLER_REGISTRY.getMarshaller(field.location(), field.marshallingType(), val)
-                                       .marshall(val, marshallerContext, field.locationName(), (SdkField<Object>) field);
+            if (isExplicitBinaryPayload(field)) {
+                if (val != null) {
+                    request.contentStreamProvider(((SdkBytes) val)::asInputStream);
                 }
+            } else if (isExplicitPayloadMember(field)) {
+                marshallExplicitJsonPayload(field, val);
+            } else {
+                marshallField(field, val);
             }
         }
     }
 
-    private boolean isBinary(SdkField<?> field, Object val) {
-        return isExplicitPayloadMember(field) && val instanceof SdkBytes;
+    private boolean isExplicitBinaryPayload(SdkField<?> field) {
+        return isExplicitPayloadMember(field) && MarshallingType.SDK_BYTES.equals(field.marshallingType());
     }
 
     private boolean isExplicitPayloadMember(SdkField<?> field) {
         return field.containsTrait(PayloadTrait.class);
+    }
+
+    private void marshallExplicitJsonPayload(SdkField<?> field, Object val) {
+        // Explicit JSON payloads are always marshalled as an object,
+        // even if they're null, in which case it's an empty object.
+        jsonGenerator.writeStartObject();
+        if (val != null) {
+            if (MarshallingType.DOCUMENT.equals(field.marshallingType())) {
+                marshallField(field, val);
+            } else {
+                doMarshall((SdkPojo) val);
+            }
+        }
+        jsonGenerator.writeEndObject();
     }
 
     @Override
@@ -196,7 +223,7 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
         // Content may already be set if the payload is binary data.
         if (request.contentStreamProvider() == null) {
             // End the implicit request object if needed.
-            if (!hasExplicitPayloadMember) {
+            if (needTopLevelJsonObject()) {
                 jsonGenerator.writeEndObject();
             }
 
@@ -214,10 +241,20 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
         // content-type is determined based on the body of the stream
         // TODO: !request.headers().containsKey(CONTENT_TYPE) does not work because request is created from line 77
         // and not from the original request
-        if (!request.headers().containsKey(CONTENT_TYPE) && !hasEvent) {
+        if (!request.firstMatchingHeader(CONTENT_TYPE).isPresent() && !hasEvent) {
             if (hasEventStreamingInput) {
-                request.putHeader(CONTENT_TYPE, MIMETYPE_EVENT_STREAM);
-            } else if (contentType != null && !hasStreamingInput && request.contentStreamProvider() != null) {
+                AwsJsonProtocol protocol = protocolMetadata.protocol();
+                if (protocol == AwsJsonProtocol.AWS_JSON) {
+                    // For RPC formats, this content type will later be pushed down into the `initial-event` in the body
+                    request.putHeader(CONTENT_TYPE, contentType);
+                } else if (protocol == AwsJsonProtocol.REST_JSON) {
+                    request.putHeader(CONTENT_TYPE, MIMETYPE_EVENT_STREAM);
+                } else {
+                    throw new IllegalArgumentException("Unknown AwsJsonProtocol: " + protocol);
+                }
+                request.removeHeader(CONTENT_LENGTH);
+                request.putHeader(TRANSFER_ENCODING, CHUNKED);
+            } else if (contentType != null && !hasStreamingInput && request.firstMatchingHeader(CONTENT_LENGTH).isPresent()) {
                 request.putHeader(CONTENT_TYPE, contentType);
             }
         }
@@ -225,4 +262,14 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
         return request.build();
     }
 
+    private void marshallField(SdkField<?> field, Object val) {
+        MARSHALLER_REGISTRY.getMarshaller(field.location(), field.marshallingType(), val)
+                           .marshall(val, marshallerContext, field.locationName(), (SdkField<Object>) field);
+    }
+
+    private boolean needTopLevelJsonObject() {
+        return AwsJsonProtocol.AWS_JSON.equals(protocolMetadata.protocol())
+               || (!hasExplicitPayloadMember && hasImplicitPayloadMembers);
+
+    }
 }

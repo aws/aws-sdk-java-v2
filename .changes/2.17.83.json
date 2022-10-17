@@ -1,0 +1,30 @@
+{
+    "version": "2.17.83",
+    "date": "2021-11-16",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Location Service",
+            "contributor": "",
+            "description": "This release adds the support for Relevance, Distance, Time Zone, Language and Interpolated Address for Geocoding and Reverse Geocoding."
+        },
+        {
+            "type": "feature",
+            "category": "AWS CloudTrail",
+            "contributor": "",
+            "description": "CloudTrail Insights now supports ApiErrorRateInsight, which enables customers to identify unusual activity in their AWS account based on API error codes and their rate."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "DynamoDB Enhanced Client",
+            "contributor": "",
+            "description": "Implement `DescribeTable` operation in `DynamoDbTable` and `DynamoDbAsyncTable`"
+        }
+    ]
+}

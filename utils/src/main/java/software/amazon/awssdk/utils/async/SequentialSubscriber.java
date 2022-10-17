@@ -28,7 +28,6 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
  */
 @SdkProtectedApi
 public class SequentialSubscriber<T> implements Subscriber<T> {
-
     private final Consumer<T> consumer;
     private final CompletableFuture<?> future;
     private Subscription subscription;
@@ -47,8 +46,14 @@ public class SequentialSubscriber<T> implements Subscriber<T> {
 
     @Override
     public void onNext(T t) {
-        consumer.accept(t);
-        subscription.request(1);
+        try {
+            consumer.accept(t);
+            subscription.request(1);
+        } catch (RuntimeException e) {
+            // Handle the consumer throwing an exception
+            subscription.cancel();
+            future.completeExceptionally(e);
+        }
     }
 
     @Override

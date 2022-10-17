@@ -51,15 +51,23 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
  */
 @SdkPublicApi
 public final class ProfileFile {
-    private final Map<String, Profile> profiles;
+    public static final String PROFILES_SECTION_TITLE = "profiles";
+    private final Map<String, Map<String, Profile>> profilesAndSectionsMap;
 
     /**
      * @see #builder()
      */
-    private ProfileFile(Map<String, Map<String, String>> rawProfiles) {
-        Validate.paramNotNull(rawProfiles, "rawProfiles");
+    private ProfileFile(Map<String, Map<String, Map<String, String>>> profilesSectionMap) {
+        Validate.paramNotNull(profilesSectionMap, "profilesSectionMap");
+        this.profilesAndSectionsMap = convertToProfilesSectionsMap(profilesSectionMap);
+    }
 
-        this.profiles = Collections.unmodifiableMap(convertToProfilesMap(rawProfiles));
+    public Optional<Profile> getSection(String sectionName, String sectionTitle) {
+        Map<String, Profile> sectionMap = profilesAndSectionsMap.get(sectionName);
+        if (sectionMap != null) {
+            return Optional.ofNullable(sectionMap.get(sectionTitle));
+        }
+        return Optional.empty();
     }
 
     /**
@@ -99,7 +107,8 @@ public final class ProfileFile {
      * @return The profile, if available.
      */
     public Optional<Profile> profile(String profileName) {
-        return Optional.ofNullable(profiles.get(profileName));
+        Map<String, Profile> profileMap = profilesAndSectionsMap.get(PROFILES_SECTION_TITLE);
+        return profileMap != null ? Optional.ofNullable(profileMap.get(profileName)) : Optional.empty();
     }
 
     /**
@@ -107,13 +116,14 @@ public final class ProfileFile {
      * @return An unmodifiable collection of the profiles in this file, keyed by profile name.
      */
     public Map<String, Profile> profiles() {
-        return profiles;
+        Map<String, Profile> profileMap = profilesAndSectionsMap.get(PROFILES_SECTION_TITLE);
+        return profileMap != null ? Collections.unmodifiableMap(profileMap) : profileMap;
     }
 
     @Override
     public String toString() {
         return ToString.builder("ProfileFile")
-                       .add("profiles",  profiles.values())
+                       .add("profilesAndSectionsMap", profilesAndSectionsMap.values())
                        .build();
     }
 
@@ -126,12 +136,12 @@ public final class ProfileFile {
             return false;
         }
         ProfileFile that = (ProfileFile) o;
-        return Objects.equals(profiles, that.profiles);
+        return Objects.equals(profilesAndSectionsMap, that.profilesAndSectionsMap);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(profiles());
+        return Objects.hashCode(this.profilesAndSectionsMap);
     }
 
     private static void addCredentialsFile(ProfileFile.Aggregator builder) {
@@ -151,18 +161,51 @@ public final class ProfileFile {
     }
 
     /**
-     * Convert the sorted map of profile properties into a sorted list of profiles.
+     * Convert the sorted map of profile and section properties into a sorted list of profiles and sections.
+     * Example: sortedProfilesSectionMap
+     * @param sortedProfilesSectionMap : Map of String to Profile/Sessions defined.
+     * <pre>
+     *     {@code
+     *     [profile sso-token]
+     *     sso_session = admin
+     *     [sso-session admin]
+     *     sso_start_url = https://view.awsapps.com/start
+     *  }
+     * </pre> would look like
+     * <pre>
+     *     {@code
+     *          sortedProfilesSectionMap
+     *           profiles --   // Profile Section Title
+     *              sso-token --  // Profile Name
+     *                  sso_session = admin    // Property definition
+     *           sso-session -- // Section title for Sso-sessions
+     *              admin --
+     *                  sso_start_url = https://view.awsapps.com/start
+     *
+     *     }
+     * </pre>
+     * @return Map with keys representing Profiles and sections and value as Map with keys as profile/section name and value as
+     * property definition.
      */
-    private Map<String, Profile> convertToProfilesMap(Map<String, Map<String, String>> sortedProfiles) {
-        Map<String, Profile> result = new LinkedHashMap<>();
-        for (Entry<String, Map<String, String>> rawProfile : sortedProfiles.entrySet()) {
-            Profile profile = Profile.builder()
-                                     .name(rawProfile.getKey())
-                                     .properties(rawProfile.getValue())
-                                     .build();
-            result.put(profile.name(), profile);
-        }
+    private Map<String, Map<String, Profile>> convertToProfilesSectionsMap(
+        Map<String, Map<String, Map<String, String>>> sortedProfilesSectionMap) {
 
+        Map<String, Map<String, Profile>> result = new LinkedHashMap<>();
+
+        sortedProfilesSectionMap.entrySet()
+                                .forEach(sections -> {
+                                    result.put(sections.getKey(), new LinkedHashMap<>());
+                                    Map<String, Profile> stringProfileMap = result.get(sections.getKey());
+                                    sections.getValue().entrySet()
+                                            .forEach(section -> {
+                                                Profile profile = Profile.builder()
+                                                                         .name(section.getKey())
+                                                                         .properties(section.getValue())
+                                                                         .build();
+                                                stringProfileMap.put(section.getKey(), profile);
+
+                                            });
+                                });
         return result;
     }
 
@@ -244,6 +287,7 @@ public final class ProfileFile {
         /**
          * Configure the {@link Type} of file that should be loaded.
          */
+        @Override
         public Builder type(Type type) {
             this.type = type;
             return this;
@@ -287,17 +331,23 @@ public final class ProfileFile {
 
         @Override
         public ProfileFile build() {
-            Map<String, Map<String, String>> aggregateRawProfiles = new LinkedHashMap<>();
+            Map<String, Map<String, Map<String, String>>> aggregateRawProfiles = new LinkedHashMap<>();
             for (int i = files.size() - 1; i >= 0; --i) {
-                addToAggregate(aggregateRawProfiles, files.get(i));
+                files.get(i).profilesAndSectionsMap.entrySet()
+                                                   .forEach(sectionKeyValue -> addToAggregate(aggregateRawProfiles,
+                                                                                              sectionKeyValue.getValue(),
+                                                                                              sectionKeyValue.getKey()));
             }
             return new ProfileFile(aggregateRawProfiles);
         }
 
-        private void addToAggregate(Map<String, Map<String, String>> aggregateRawProfiles, ProfileFile file) {
-            Map<String, Profile> profiles = file.profiles();
+        private void addToAggregate(Map<String, Map<String, Map<String, String>>> aggregateRawProfiles,
+                                    Map<String, Profile> profiles, String sectionName) {
+
+            aggregateRawProfiles.putIfAbsent(sectionName, new LinkedHashMap<>());
+            Map<String, Map<String, String>> profileMap = aggregateRawProfiles.get(sectionName);
             for (Entry<String, Profile> profile : profiles.entrySet()) {
-                aggregateRawProfiles.compute(profile.getKey(), (k, current) -> {
+                profileMap.compute(profile.getKey(), (k, current) -> {
                     if (current == null) {
                         return new HashMap<>(profile.getValue().properties());
                     } else {

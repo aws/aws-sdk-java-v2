@@ -23,11 +23,11 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @Generated("software.amazon.awssdk:codegen")
 public final class StructWithTimestamp implements SdkPojo, Serializable,
-        ToCopyableBuilder<StructWithTimestamp.Builder, StructWithTimestamp> {
+                                                  ToCopyableBuilder<StructWithTimestamp.Builder, StructWithTimestamp> {
     private static final SdkField<Instant> NESTED_TIMESTAMP_FIELD = SdkField.<Instant> builder(MarshallingType.INSTANT)
-            .memberName("NestedTimestamp").getter(getter(StructWithTimestamp::nestedTimestamp))
-            .setter(setter(Builder::nestedTimestamp))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("NestedTimestamp").build()).build();
+                                                                            .memberName("NestedTimestamp").getter(getter(StructWithTimestamp::nestedTimestamp))
+                                                                            .setter(setter(Builder::nestedTimestamp))
+                                                                            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("NestedTimestamp").build()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(NESTED_TIMESTAMP_FIELD));
 
@@ -41,7 +41,7 @@ public final class StructWithTimestamp implements SdkPojo, Serializable,
 
     /**
      * Returns the value of the NestedTimestamp property for this object.
-     * 
+     *
      * @return The value of the NestedTimestamp property for this object.
      */
     public final Instant nestedTimestamp() {
@@ -99,10 +99,10 @@ public final class StructWithTimestamp implements SdkPojo, Serializable,
 
     public final <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-        case "NestedTimestamp":
-            return Optional.ofNullable(clazz.cast(nestedTimestamp()));
-        default:
-            return Optional.empty();
+            case "NestedTimestamp":
+                return Optional.ofNullable(clazz.cast(nestedTimestamp()));
+            default:
+                return Optional.empty();
         }
     }
 
@@ -144,14 +144,14 @@ public final class StructWithTimestamp implements SdkPojo, Serializable,
             return nestedTimestamp;
         }
 
+        public final void setNestedTimestamp(Instant nestedTimestamp) {
+            this.nestedTimestamp = nestedTimestamp;
+        }
+
         @Override
         public final Builder nestedTimestamp(Instant nestedTimestamp) {
             this.nestedTimestamp = nestedTimestamp;
             return this;
-        }
-
-        public final void setNestedTimestamp(Instant nestedTimestamp) {
-            this.nestedTimestamp = nestedTimestamp;
         }
 
         @Override
@@ -165,4 +165,3 @@ public final class StructWithTimestamp implements SdkPojo, Serializable,
         }
     }
 }
-

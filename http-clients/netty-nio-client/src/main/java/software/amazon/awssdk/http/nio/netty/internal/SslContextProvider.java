@@ -30,12 +30,12 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SystemPropertyTlsKeyManagersProvider;
 import software.amazon.awssdk.http.TlsTrustManagersProvider;
-import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.http.nio.netty.internal.utils.NettyClientLogger;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public final class SslContextProvider {
-    private static final Logger log = Logger.loggerFor(SslContextProvider.class);
+    private static final NettyClientLogger log = NettyClientLogger.getLogger(SslContextProvider.class);
     private final Protocol protocol;
     private final SslProvider sslProvider;
     private final TrustManagerFactory trustManagerFactory;
@@ -70,7 +70,7 @@ public final class SslContextProvider {
      * /SslUtils.java
      */
     private List<String> getCiphers() {
-        return protocol.equals(Protocol.HTTP2) ? Http2SecurityUtil.CIPHERS : null;
+        return protocol == Protocol.HTTP2 ? Http2SecurityUtil.CIPHERS : null;
     }
 
     private TrustManagerFactory getTrustManager(NettyConfiguration configuration) {
@@ -83,8 +83,8 @@ public final class SslContextProvider {
         }
 
         if (configuration.trustAllCertificates()) {
-            log.warn(() -> "SSL Certificate verification is disabled. This is not a safe setting and should only be "
-                           + "used for testing.");
+            log.warn(null, () -> "SSL Certificate verification is disabled. This is not a safe setting and should only be "
+                                 + "used for testing.");
             return InsecureTrustManagerFactory.INSTANCE;
         }
 

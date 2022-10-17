@@ -125,7 +125,7 @@ public class ListModel {
     }
 
     public String getSimpleType() {
-        int startIndex = memberType.lastIndexOf(".");
+        int startIndex = memberType.lastIndexOf('.');
         return memberType.substring(startIndex + 1);
     }
 }

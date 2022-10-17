@@ -1,0 +1,36 @@
+{
+    "version": "2.16.67",
+    "date": "2021-05-20",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Identity and Access Management",
+            "contributor": "",
+            "description": "Documentation updates for AWS Identity and Access Management (IAM)."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "contributor": "",
+            "description": "Add ARN based Row Level Security support to CreateDataSet/UpdateDataSet APIs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lex Model Building V2",
+            "contributor": "",
+            "description": "Customers can now use resource-based policies to control access to their Lex V2 bots. This release adds APIs to attach and manage permissions for a bot or a bot alias. For details, see: https://docs.aws.amazon.com/lexv2/latest/dg/security_iam_service-with-iam.html"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Personalize",
+            "contributor": "",
+            "description": "Added new API to stop a solution version creation that is pending or in progress for Amazon Personalize"
+        }
+    ]
+}

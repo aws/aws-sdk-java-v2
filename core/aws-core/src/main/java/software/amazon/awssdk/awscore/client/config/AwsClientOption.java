@@ -17,7 +17,9 @@ package software.amazon.awssdk.awscore.client.config;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
+import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.core.client.config.ClientOption;
 import software.amazon.awssdk.regions.Region;
 
@@ -41,6 +43,18 @@ public final class AwsClientOption<T> extends ClientOption<T> {
     public static final AwsClientOption<Region> SIGNING_REGION = new AwsClientOption<>(Region.class);
 
     /**
+     * Whether the SDK should resolve dualstack endpoints instead of default endpoints. See
+     * {@link AwsClientBuilder#dualstackEnabled(Boolean)}.
+     */
+    public static final AwsClientOption<Boolean> DUALSTACK_ENDPOINT_ENABLED = new AwsClientOption<>(Boolean.class);
+
+    /**
+     * Whether the SDK should resolve fips endpoints instead of default endpoints. See
+     * {@link AwsClientBuilder#fipsEnabled(Boolean)}.
+     */
+    public static final ClientOption<Boolean> FIPS_ENDPOINT_ENABLED = new AwsClientOption<>(Boolean.class);
+
+    /**
      * Scope name to use during signing of a request.
      */
     public static final AwsClientOption<String> SERVICE_SIGNING_NAME = new AwsClientOption<>(String.class);
@@ -52,6 +66,16 @@ public final class AwsClientOption<T> extends ClientOption<T> {
      * For standard services, this should match the "endpointPrefix" field in the AWS model.
      */
     public static final AwsClientOption<String> ENDPOINT_PREFIX = new AwsClientOption<>(String.class);
+
+    /**
+     * Option to specify the {@link DefaultsMode}
+     */
+    public static final AwsClientOption<DefaultsMode> DEFAULTS_MODE = new AwsClientOption<>(DefaultsMode.class);
+
+    /**
+     * Option to specific the {@link SdkTokenProvider} to use for bearer token authorization.
+     */
+    public static final AwsClientOption<SdkTokenProvider> TOKEN_PROVIDER = new AwsClientOption<>(SdkTokenProvider.class);
 
     private AwsClientOption(Class<T> valueClass) {
         super(valueClass);

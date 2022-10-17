@@ -1,11 +1,11 @@
 <!--- Provide a general summary of your changes in the Title above -->
 
-## Description
-<!--- Describe your changes in detail -->
-
 ## Motivation and Context
 <!--- Why is this change required? What problem does it solve? -->
 <!--- If it fixes an open issue, please link to the issue here -->
+
+## Modifications
+<!--- Describe your changes in detail -->
 
 ## Testing
 <!--- Please describe in detail how you tested your changes -->
@@ -22,15 +22,14 @@
 ## Checklist
 <!--- Go over all the following points, and put an `x` in all the boxes that apply -->
 <!--- If you're unsure about any of these, don't hesitate to ask. We're here to help! -->
-- [ ] I have read the **CONTRIBUTING** document
+- [ ] I have read the [CONTRIBUTING](https://github.com/aws/aws-sdk-java-v2/blob/master/CONTRIBUTING.md) document
 - [ ] Local run of `mvn install` succeeds
 - [ ] My code follows the code style of this project
 - [ ] My change requires a change to the Javadoc documentation
 - [ ] I have updated the Javadoc documentation accordingly
-- [ ] I have read the **README** document
 - [ ] I have added tests to cover my changes
 - [ ] All new and existing tests passed
-- [ ] A short description of the change has been added to the **CHANGELOG**
+- [ ] I have added a changelog entry. Adding a new entry must be accomplished by running the `scripts/new-change` script and following the instructions. Commit the new file created by the script in `.changes/next-release` with your changes.
 - [ ] My change is to implement 1.11 parity feature and I have updated [LaunchChangelog](https://github.com/aws/aws-sdk-java-v2/blob/master/docs/LaunchChangelog.md)
 
 ## License

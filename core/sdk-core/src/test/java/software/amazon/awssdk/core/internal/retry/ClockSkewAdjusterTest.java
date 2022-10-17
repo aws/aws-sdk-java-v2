@@ -22,7 +22,7 @@ import static org.assertj.core.api.Assertions.within;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.utils.DateUtils;
 
@@ -47,7 +47,7 @@ public class ClockSkewAdjusterTest {
 
     private SdkHttpFullResponse responseWithDateOffset(int value, ChronoUnit unit) {
         return SdkHttpFullResponse.builder()
-                                  .putHeader("Date", DateUtils.formatRfc1123Date(Instant.now().plus(value, unit)))
+                                  .putHeader("Date", DateUtils.formatRfc822Date(Instant.now().plus(value, unit)))
                                   .build();
     }
 

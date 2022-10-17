@@ -21,7 +21,11 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.IndexMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.KeyAttributeMetadata;
@@ -36,6 +40,7 @@ import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
  * and {@link StaticTableTag} which permit manipulation of the table metadata.
  */
 @SdkPublicApi
+@ThreadSafe
 public final class StaticTableMetadata implements TableMetadata {
     private final Map<String, Object> customMetadata;
     private final Map<String, IndexMetadata> indexByNameMap;
@@ -193,6 +198,7 @@ public final class StaticTableMetadata implements TableMetadata {
     /**
      * Builder for {@link StaticTableMetadata}
      */
+    @NotThreadSafe
     public static class Builder {
         private final Map<String, Object> customMetadata = new LinkedHashMap<>();
         private final Map<String, IndexMetadata> indexByNameMap = new LinkedHashMap<>();
@@ -222,6 +228,41 @@ public final class StaticTableMetadata implements TableMetadata {
             }
 
             customMetadata.put(key, object);
+            return this;
+        }
+
+        /**
+         * Adds collection of custom objects to the custom metadata, keyed by a string.
+         * If a collection is already present then it will append the newly added collection to the existing collection.
+         *
+         * @param key     a string key that will be used to retrieve the custom metadata
+         * @param objects Collection of objects that will be stored in the custom metadata map
+         */
+        public Builder addCustomMetadataObject(String key, Collection<Object> objects) {
+            Object collectionInMetadata = customMetadata.get(key);
+            Object customObjectToPut = collectionInMetadata != null
+                                       ? Stream.concat(((Collection<Object>) collectionInMetadata).stream(),
+                                                       objects.stream()).collect(Collectors.toSet())
+                                       : objects;
+            customMetadata.put(key, customObjectToPut);
+            return this;
+        }
+
+        /**
+         * Adds map of custom objects to the custom metadata, keyed by a string.
+         * If a map is already present then it will merge the new map with the existing map.
+         *
+         * @param key     a string key that will be used to retrieve the custom metadata
+         * @param objectMap Map of objects that will be stored in the custom metadata map
+         */
+        public Builder addCustomMetadataObject(String key, Map<Object, Object> objectMap) {
+            Object collectionInMetadata = customMetadata.get(key);
+            Object customObjectToPut = collectionInMetadata != null
+                                       ? Stream.concat(((Map<Object, Object>) collectionInMetadata).entrySet().stream(),
+                                                       objectMap.entrySet().stream())
+                                               .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
+                                       : objectMap;
+            customMetadata.put(key, customObjectToPut);
             return this;
         }
 
@@ -282,7 +323,7 @@ public final class StaticTableMetadata implements TableMetadata {
         public Builder markAttributeAsKey(String attributeName, AttributeValueType attributeValueType) {
             KeyAttributeMetadata existing = keyAttributes.get(attributeName);
 
-            if (existing != null && !existing.attributeValueType().equals(attributeValueType)) {
+            if (existing != null && existing.attributeValueType() != attributeValueType) {
                 throw new IllegalArgumentException("Attempt to mark an attribute as a key with a different "
                                                    + "AttributeValueType than one that has already been recorded.");
             }
@@ -310,10 +351,20 @@ public final class StaticTableMetadata implements TableMetadata {
                     );
                 });
 
-            other.customMetadata().forEach(this::addCustomMetadataObject);
+            other.customMetadata().forEach(this::mergeCustomMetaDataObject);
             other.keyAttributes().forEach(keyAttribute -> markAttributeAsKey(keyAttribute.name(),
                                                                              keyAttribute.attributeValueType()));
             return this;
+        }
+
+        private void mergeCustomMetaDataObject(String key, Object object) {
+            if (object instanceof Collection) {
+                this.addCustomMetadataObject(key, (Collection<Object>) object);
+            } else if (object instanceof Map) {
+                this.addCustomMetadataObject(key, (Map<Object, Object>) object);
+            } else {
+                this.addCustomMetadataObject(key, object);
+            }
         }
     }
 }

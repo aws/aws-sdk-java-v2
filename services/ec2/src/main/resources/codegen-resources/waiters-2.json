@@ -281,6 +281,24 @@
         }
       ]
     },
+    "InternetGatewayExists": {
+      "operation": "DescribeInternetGateways",
+      "delay": 5,
+      "maxAttempts": 6,
+      "acceptors": [
+        {
+          "expected": true,
+          "matcher": "path",
+          "state": "success",
+          "argument": "length(InternetGateways[].InternetGatewayId) > `0`"
+        },
+        {
+          "expected": "InvalidInternetGateway.NotFound",
+          "matcher": "error",
+          "state": "retry"
+        }
+      ]
+    },
     "KeyPairExists": {
       "operation": "DescribeKeyPairs",
       "delay": 5,
@@ -335,6 +353,24 @@
         }
       ]
     },
+    "NatGatewayDeleted": {
+      "operation": "DescribeNatGateways",
+      "delay": 15,
+      "maxAttempts": 40,
+      "acceptors": [
+        {
+          "state": "success",
+          "matcher": "pathAll",
+          "argument": "NatGateways[].State",
+          "expected": "deleted"
+        },
+        {
+          "state": "success",
+          "matcher": "error",
+          "expected": "NatGatewayNotFound"
+        }
+      ]
+    },
     "NetworkInterfaceAvailable": {
       "operation": "DescribeNetworkInterfaces",
       "delay": 20,
@@ -376,6 +412,12 @@
           "matcher": "pathAll",
           "state": "success",
           "argument": "Snapshots[].State"
+        },
+        {
+          "expected": "error",
+          "matcher": "pathAny",
+          "state": "failure",
+          "argument": "Snapshots[].State"
         }
       ]
     },
@@ -391,7 +433,7 @@
           "argument": "length(SecurityGroups[].GroupId) > `0`"
         },
         {
-          "expected": "InvalidGroupNotFound",
+          "expected": "InvalidGroup.NotFound",
           "matcher": "error",
           "state": "retry"
         }

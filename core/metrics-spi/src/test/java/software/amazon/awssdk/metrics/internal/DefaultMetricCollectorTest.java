@@ -16,6 +16,7 @@
 package software.amazon.awssdk.metrics.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
 import java.util.stream.Stream;
 import org.junit.AfterClass;
 import org.junit.Rule;

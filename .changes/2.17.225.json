@@ -1,0 +1,48 @@
+{
+    "version": "2.17.225",
+    "date": "2022-07-05",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Config",
+            "contributor": "",
+            "description": "Updating documentation service limits"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Systems Manager Incident Manager",
+            "contributor": "",
+            "description": "Adds support for tagging incident-record on creation by providing incident tags in the template within a response-plan."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lex Model Building V2",
+            "contributor": "",
+            "description": "This release introduces additional optional parameters \"messageSelectionStrategy\" to PromptSpecification, which enables the users to configure the bot to play messages in orderly manner."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "contributor": "",
+            "description": "This release allows customers to programmatically create QuickSight accounts with Enterprise and Enterprise + Q editions. It also releases allowlisting domains for embedding QuickSight dashboards at runtime through the embedding APIs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "Adds waiters support for DBCluster."
+        },
+        {
+            "type": "feature",
+            "category": "IAM Roles Anywhere",
+            "contributor": "",
+            "description": "IAM Roles Anywhere allows your workloads such as servers, containers, and applications to obtain temporary AWS credentials and use the same IAM roles and policies that you have configured for your AWS workloads to access AWS resources."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}

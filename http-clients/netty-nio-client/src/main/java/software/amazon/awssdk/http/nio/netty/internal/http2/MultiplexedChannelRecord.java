@@ -40,8 +40,9 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey;
+import software.amazon.awssdk.http.nio.netty.internal.ChannelDiagnostics;
 import software.amazon.awssdk.http.nio.netty.internal.UnusedChannelExceptionHandler;
-import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.http.nio.netty.internal.utils.NettyClientLogger;
 
 /**
  * Contains a {@link Future} for the actual socket channel and tracks available
@@ -49,7 +50,7 @@ import software.amazon.awssdk.utils.Logger;
  */
 @SdkInternalApi
 public class MultiplexedChannelRecord {
-    private static final Logger log = Logger.loggerFor(MultiplexedChannelRecord.class);
+    private static final NettyClientLogger log = NettyClientLogger.getLogger(MultiplexedChannelRecord.class);
 
     private final Channel connection;
     private final long maxConcurrencyPerConnection;
@@ -94,7 +95,7 @@ public class MultiplexedChannelRecord {
                 } else {
                     message = String.format("Connection %s was closed while acquiring new stream.", connection);
                 }
-                log.warn(() -> message);
+                log.warn(connection, () -> message);
                 promise.setFailure(new IOException(message));
                 return;
             }
@@ -111,6 +112,7 @@ public class MultiplexedChannelRecord {
                 Http2StreamChannel channel = future.getNow();
                 channel.pipeline().addLast(UnusedChannelExceptionHandler.getInstance());
                 channel.attr(ChannelAttributeKey.HTTP2_FRAME_STREAM).set(channel.stream());
+                channel.attr(ChannelAttributeKey.CHANNEL_DIAGNOSTICS).set(new ChannelDiagnostics(channel));
                 childChannels.put(channel.id(), channel);
                 promise.setSuccess(channel);
 
@@ -148,7 +150,7 @@ public class MultiplexedChannelRecord {
     private void releaseClaim() {
         if (availableChildChannels.incrementAndGet() > maxConcurrencyPerConnection) {
             assert false;
-            log.warn(() -> "Child channel count was caught attempting to be increased over max concurrency. "
+            log.warn(connection, () -> "Child channel count was caught attempting to be increased over max concurrency. "
                            + "Please report this issue to the AWS SDK for Java team.");
             availableChildChannels.decrementAndGet();
         }
@@ -204,7 +206,9 @@ public class MultiplexedChannelRecord {
     }
 
     private Throwable decorateConnectionException(Throwable t) {
-        String message = "An error occurred on the connection: " + t.getMessage();
+        String message =
+            String.format("An error occurred on the connection: %s, [channel: %s]. All streams will be closed", t,
+                          connection.id());
         if (t instanceof IOException) {
             return new IOException(message, t);
         }
@@ -260,8 +264,9 @@ public class MultiplexedChannelRecord {
             return;
         }
 
-        log.debug(() -> "Connection " + connection + " has been idle for " +
-                        (System.currentTimeMillis() - nonVolatileLastReserveAttemptTimeMillis) + "ms and will be shut down.");
+        log.debug(connection, () -> "Connection " + connection + " has been idle for " +
+                                    (System.currentTimeMillis() - nonVolatileLastReserveAttemptTimeMillis) +
+                                    "ms and will be shut down.");
 
         // Mark ourselves as closed
         state = RecordState.CLOSED;

@@ -1,0 +1,72 @@
+{
+    "version": "2.17.150",
+    "date": "2022-03-15",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Keyspaces",
+            "contributor": "",
+            "description": "Fixing formatting issues in CLI and SDK documentation"
+        },
+        {
+            "type": "feature",
+            "category": "S3 Transfer Manager",
+            "contributor": "",
+            "description": "Add Copy support to S3 Transfer Manager"
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Fixed an issue where NPE could be thrown when a request failed before API call timer started"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Adds the Cascade parameter to the DeleteIpam API. Customers can use this parameter to automatically delete their IPAM, including non-default scopes, pools, cidrs, and allocations. There mustn't be any pools provisioned in the default public scope to use this parameter."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Data Exchange",
+            "contributor": "",
+            "description": "This feature enables data providers to use the RevokeRevision operation to revoke subscriber access to a given revision. Subscribers are unable to interact with assets within a revoked revision."
+        },
+        {
+            "type": "feature",
+            "category": "AWS RoboMaker",
+            "contributor": "",
+            "description": "This release deprecates ROS, Ubuntu and Gazbeo from RoboMaker Simulation Service Software Suites in favor of user-supplied containers and Relaxed Software Suites."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Bump CRT version to `0.15.23`."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Cognito Identity Provider",
+            "contributor": "",
+            "description": "Updated EmailConfigurationType and SmsConfigurationType to reflect that you can now choose Amazon SES and Amazon SNS resources in the same Region."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Location Service",
+            "contributor": "",
+            "description": "New HERE style \"VectorHereExplore\" and \"VectorHereExploreTruck\"."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "contributor": "",
+            "description": "Documentation only update to address tickets"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "Various documentation improvements"
+        }
+    ]
+}

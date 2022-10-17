@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 
 import io.reactivex.Flowable;
 import java.io.IOException;
@@ -44,6 +44,7 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
+import software.amazon.awssdk.services.protocolrestjson.model.ChecksumAlgorithm;
 import software.amazon.awssdk.services.protocolrestxml.ProtocolRestXmlAsyncClient;
 import software.amazon.awssdk.services.protocolrestxml.ProtocolRestXmlClient;
 
@@ -82,7 +83,7 @@ public class HttpChecksumRequiredTest {
         Mockito.when(httpClient.prepareRequest(any())).thenReturn(request);
 
         Mockito.when(httpAsyncClient.execute(any())).thenAnswer(invocation -> {
-            AsyncExecuteRequest asyncExecuteRequest = invocation.getArgumentAt(0, AsyncExecuteRequest.class);
+            AsyncExecuteRequest asyncExecuteRequest = invocation.getArgument(0, AsyncExecuteRequest.class);
             asyncExecuteRequest.responseHandler().onHeaders(successfulHttpResponse);
             asyncExecuteRequest.responseHandler().onStream(Flowable.empty());
             return CompletableFuture.completedFuture(null);
@@ -146,6 +147,18 @@ public class HttpChecksumRequiredTest {
     @Test(expected = CompletionException.class)
     public void asyncStreamingInputXmlFailsWithChecksumRequiredTrait() {
         xmlAsyncClient.streamingInputOperationWithRequiredChecksum(r -> {}, AsyncRequestBody.fromString("foo")).join();
+    }
+
+    @Test
+    public void syncJsonSupportsOperationWithRequestChecksumRequired() {
+        jsonClient.operationWithRequestChecksumRequired(r -> r.stringMember("foo"));
+        assertThat(getSyncRequest().firstMatchingHeader("Content-MD5")).hasValue("g8VCvPTPCMoU01rBlBVt9w==");
+    }
+
+    @Test
+    public void syncJsonSupportsOperationWithCustomRequestChecksum() {
+        jsonClient.operationWithCustomRequestChecksum(r -> r.stringMember("foo").checksumAlgorithm(ChecksumAlgorithm.CRC32));
+        assertThat(getSyncRequest().firstMatchingHeader("Content-MD5")).isNotPresent();
     }
 
     private SdkHttpRequest getSyncRequest() {

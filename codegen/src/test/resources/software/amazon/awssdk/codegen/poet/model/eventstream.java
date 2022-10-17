@@ -1,10 +1,10 @@
 package software.amazon.awssdk.services.jsonprotocoltests.model;
 
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkField;
@@ -14,6 +14,7 @@ import software.amazon.awssdk.services.jsonprotocoltests.model.eventstream.Defau
 import software.amazon.awssdk.services.jsonprotocoltests.model.eventstream.DefaultEventthree;
 import software.amazon.awssdk.services.jsonprotocoltests.model.eventstream.DefaultSecondEventOne;
 import software.amazon.awssdk.services.jsonprotocoltests.model.eventstream.DefaultSecondEventTwo;
+import software.amazon.awssdk.utils.internal.EnumUtils;
 
 /**
  * Base interface for all event types in EventStream.
@@ -103,6 +104,8 @@ public interface EventStream extends SdkPojo {
 
         UNKNOWN_TO_SDK_VERSION(null);
 
+        private static final Map<String, EventType> VALUE_MAP = EnumUtils.uniqueIndex(EventType.class, EventType::toString);
+
         private final String value;
 
         private EventType(String value) {
@@ -125,8 +128,7 @@ public interface EventStream extends SdkPojo {
             if (value == null) {
                 return null;
             }
-            return Stream.of(EventType.values()).filter(e -> e.toString().equals(value)).findFirst()
-                    .orElse(UNKNOWN_TO_SDK_VERSION);
+            return VALUE_MAP.getOrDefault(value, UNKNOWN_TO_SDK_VERSION);
         }
 
         /**
@@ -136,7 +138,9 @@ public interface EventStream extends SdkPojo {
          * @return a {@link Set} of known {@link EventType}s
          */
         public static Set<EventType> knownValues() {
-            return Stream.of(values()).filter(v -> v != UNKNOWN_TO_SDK_VERSION).collect(Collectors.toSet());
+            Set<EventType> knownValues = EnumSet.allOf(EventType.class);
+            knownValues.remove(UNKNOWN_TO_SDK_VERSION);
+            return knownValues;
         }
     }
 }

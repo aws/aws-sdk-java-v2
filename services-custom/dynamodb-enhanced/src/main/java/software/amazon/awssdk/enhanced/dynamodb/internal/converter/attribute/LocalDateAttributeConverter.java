@@ -52,8 +52,8 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  *
  * Examples:
  * <ul>
- *     <li>{@code LocalDate.of(1988, 5, 21)} is stored as as an AttributeValue with the String "1988-05-21"}</li>
- *     <li>{@code LocalDate.of(0, 1, 1)} is stored as as an AttributeValue with the String "0000-01-01"}</li>
+ *     <li>{@code LocalDate.of(1988, 5, 21)} is stored as as an AttributeValue with the String "1988-05-21"</li>
+ *     <li>{@code LocalDate.of(0, 1, 1)} is stored as as an AttributeValue with the String "0000-01-01"</li>
  * </ul>
  *
  * <p>

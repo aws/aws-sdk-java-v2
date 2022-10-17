@@ -15,16 +15,9 @@
 
 package software.amazon.awssdk.regions.internal.util;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -39,13 +32,22 @@ import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
-import software.amazon.awssdk.core.internal.util.UserAgentUtils;
-import software.amazon.awssdk.core.util.json.JacksonUtils;
+import software.amazon.awssdk.core.util.SdkUserAgent;
+import software.amazon.awssdk.protocols.jsoncore.JsonNode;
+import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 import software.amazon.awssdk.regions.util.HttpResourcesUtils;
 import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
 
 /**
- * Utility class for retrieving Amazon EC2 instance metadata.<br>
+
+ *
+ * Utility class for retrieving Amazon EC2 instance metadata.
+ *
+ * <p>
+ * <b>Note</b>: this is an internal API subject to change. Users of the SDK
+ * should not depend on this.
+ *
+ * <p>
  * You can use the data to build more generic AMIs that can be modified by
  * configuration files supplied at launch time. For example, if you run web
  * servers for various small businesses, they can all use the same AMI and
@@ -64,9 +66,9 @@ import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
  * href="http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AESDG-chapter-instancedata.html">Amazon
  * EC2 User Guide: Instance Metadata</a>
  */
-//TODO: cleanup
 @SdkInternalApi
 public final class EC2MetadataUtils {
+    private static final JsonNodeParser JSON_PARSER = JsonNode.parser();
 
     /** Default resource path for credentials in the Amazon EC2 Instance Metadata Service. */
     private static final String REGION = "region";
@@ -78,21 +80,18 @@ public final class EC2MetadataUtils {
 
     private static final String EC2_METADATA_TOKEN_HEADER = "x-aws-ec2-metadata-token";
 
-    private static final int DEFAULT_QUERY_RETRIES = 3;
+    private static final int DEFAULT_QUERY_ATTEMPTS = 3;
     private static final int MINIMUM_RETRY_WAIT_TIME_MILLISECONDS = 250;
-    private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final Logger log = LoggerFactory.getLogger(EC2MetadataUtils.class);
-    private static Map<String, String> cache = new ConcurrentHashMap<>();
+    private static final Map<String, String> CACHE = new ConcurrentHashMap<>();
 
     private static final InstanceProviderTokenEndpointProvider TOKEN_ENDPOINT_PROVIDER =
             new InstanceProviderTokenEndpointProvider();
 
-    private EC2MetadataUtils() {
-    }
+    private static final Ec2MetadataConfigProvider EC2_METADATA_CONFIG_PROVIDER = Ec2MetadataConfigProvider.builder()
+            .build();
 
-    static {
-        MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        MAPPER.setPropertyNamingStrategy(PropertyNamingStrategy.PASCAL_CASE_TO_CAMEL_CASE);
+    private EC2MetadataUtils() {
     }
 
     /**
@@ -217,57 +216,6 @@ public final class EC2MetadataUtils {
     }
 
     /**
-     * Get information about the last time the instance profile was updated,
-     * including the instance's LastUpdated date, InstanceProfileArn, and
-     * InstanceProfileId.
-     */
-    public static IamInfo getIamInstanceProfileInfo() {
-        String json = getData(EC2_METADATA_ROOT + "/iam/info");
-        if (null == json) {
-            return null;
-        }
-
-        try {
-
-            return MAPPER.readValue(json, IamInfo.class);
-
-        } catch (Exception e) {
-            log.warn("Unable to parse IAM Instance profile info (" + json
-                     + "): " + e.getMessage(), e);
-            return null;
-        }
-    }
-
-    /**
-     * The instance info is only guaranteed to be a JSON document per
-     * http://docs
-     * .aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html
-     * <p>
-     * This method is only a best attempt to capture the instance info as a
-     * typed object.
-     * <p>
-     * Get an InstanceInfo object with dynamic information about this instance.
-     */
-    public static InstanceInfo getInstanceInfo() {
-        return doGetInstanceInfo(getData(
-                EC2_DYNAMICDATA_ROOT + INSTANCE_IDENTITY_DOCUMENT));
-    }
-
-    static InstanceInfo doGetInstanceInfo(String json) {
-        if (null != json) {
-            try {
-                InstanceInfo instanceInfo = JacksonUtils.fromJsonString(json,
-                                                                        InstanceInfo.class);
-                return instanceInfo;
-            } catch (Exception e) {
-                log.warn("Unable to parse dynamic EC2 instance info (" + json
-                         + ") : " + e.getMessage(), e);
-            }
-        }
-        return null;
-    }
-
-    /**
      * Get the signature of the instance.
      */
     public static String getInstanceSignature() {
@@ -291,43 +239,15 @@ public final class EC2MetadataUtils {
     static String doGetEC2InstanceRegion(final String json) {
         if (null != json) {
             try {
-                JsonNode node = MAPPER.readTree(json.getBytes(StandardCharsets.UTF_8));
-                JsonNode region = node.findValue(REGION);
-                return region.asText();
+                return JSON_PARSER.parse(json)
+                                  .field(REGION)
+                                  .map(JsonNode::text)
+                                  .orElseThrow(() -> new IllegalStateException("Region not included in metadata."));
             } catch (Exception e) {
-                log.warn("Unable to parse EC2 instance info (" + json
-                         + ") : " + e.getMessage(), e);
+                log.warn("Unable to parse EC2 instance info (" + json + ") : " + e.getMessage(), e);
             }
         }
         return null;
-    }
-
-    /**
-     * Returns the temporary security credentials (AccessKeyId, SecretAccessKey,
-     * SessionToken, and Expiration) associated with the IAM roles on the
-     * instance.
-     */
-    public static Map<String, IamSecurityCredential> getIamSecurityCredentials() {
-        Map<String, IamSecurityCredential> credentialsInfoMap = new HashMap<>();
-
-        List<String> credentials = getItems(EC2_METADATA_ROOT
-                                            + "/iam/security-credentials");
-
-        if (null != credentials) {
-            for (String credential : credentials) {
-                String json = getData(EC2_METADATA_ROOT
-                                      + "/iam/security-credentials/" + credential);
-                try {
-                    IamSecurityCredential credentialInfo = MAPPER
-                            .readValue(json, IamSecurityCredential.class);
-                    credentialsInfoMap.put(credential, credentialInfo);
-                } catch (Exception e) {
-                    log.warn("Unable to process the credential (" + credential
-                             + "). " + e.getMessage(), e);
-                }
-            }
-        }
-        return credentialsInfoMap;
     }
 
     /**
@@ -370,8 +290,65 @@ public final class EC2MetadataUtils {
         return getData(EC2_USERDATA_ROOT);
     }
 
+    /**
+     * Retrieve some of the data from http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html as a typed
+     * object. This entire class will be removed as part of https://github.com/aws/aws-sdk-java-v2/issues/61, so don't rely on
+     * this sticking around.
+     *
+     * This should not be removed until https://github.com/aws/aws-sdk-java-v2/issues/61 is implemented.
+     */
+    public static InstanceInfo getInstanceInfo() {
+        return doGetInstanceInfo(getData(EC2_DYNAMICDATA_ROOT + INSTANCE_IDENTITY_DOCUMENT));
+    }
+
+    static InstanceInfo doGetInstanceInfo(String json) {
+        if (json != null) {
+            try {
+                Map<String, JsonNode> jsonNode = JSON_PARSER.parse(json).asObject();
+                return new InstanceInfo(stringValue(jsonNode.get("pendingTime")),
+                                        stringValue(jsonNode.get("instanceType")),
+                                        stringValue(jsonNode.get("imageId")),
+                                        stringValue(jsonNode.get("instanceId")),
+                                        stringArrayValue(jsonNode.get("billingProducts")),
+                                        stringValue(jsonNode.get("architecture")),
+                                        stringValue(jsonNode.get("accountId")),
+                                        stringValue(jsonNode.get("kernelId")),
+                                        stringValue(jsonNode.get("ramdiskId")),
+                                        stringValue(jsonNode.get("region")),
+                                        stringValue(jsonNode.get("version")),
+                                        stringValue(jsonNode.get("availabilityZone")),
+                                        stringValue(jsonNode.get("privateIp")),
+                                        stringArrayValue(jsonNode.get("devpayProductCodes")),
+                                        stringArrayValue(jsonNode.get("marketplaceProductCodes")));
+            } catch (Exception e) {
+                log.warn("Unable to parse dynamic EC2 instance info (" + json + ") : " + e.getMessage(), e);
+            }
+        }
+        return null;
+    }
+
+    private static String stringValue(JsonNode jsonNode) {
+        if (jsonNode == null || !jsonNode.isString()) {
+            return null;
+        }
+
+        return jsonNode.asString();
+    }
+
+    private static String[] stringArrayValue(JsonNode jsonNode) {
+        if (jsonNode == null || !jsonNode.isArray()) {
+            return null;
+        }
+
+        return jsonNode.asArray()
+                       .stream()
+                       .filter(JsonNode::isString)
+                       .map(JsonNode::asString)
+                       .toArray(String[]::new);
+    }
+
     public static String getData(String path) {
-        return getData(path, DEFAULT_QUERY_RETRIES);
+        return getData(path, DEFAULT_QUERY_ATTEMPTS);
     }
 
     public static String getData(String path, int tries) {
@@ -383,7 +360,7 @@ public final class EC2MetadataUtils {
     }
 
     public static List<String> getItems(String path) {
-        return getItems(path, DEFAULT_QUERY_RETRIES, false);
+        return getItems(path, DEFAULT_QUERY_ATTEMPTS, false);
     }
 
     public static List<String> getItems(String path, int tries) {
@@ -391,8 +368,8 @@ public final class EC2MetadataUtils {
     }
 
     @SdkTestInternalApi
-    static void clearCache() {
-        cache.clear();
+    public static void clearCache() {
+        CACHE.clear();
     }
 
     private static List<String> getItems(String path, int tries, boolean slurp) {
@@ -409,7 +386,7 @@ public final class EC2MetadataUtils {
         String token = getToken();
 
         try {
-            String hostAddress = SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.getStringValueOrThrow();
+            String hostAddress = EC2_METADATA_CONFIG_PROVIDER.getEndpoint();
             String response = doReadResource(new URI(hostAddress + path), token);
             if (slurp) {
                 items = Collections.singletonList(response);
@@ -421,8 +398,13 @@ public final class EC2MetadataUtils {
             log.warn("Unable to retrieve the requested metadata.");
             return null;
         } catch (IOException | URISyntaxException | RuntimeException e) {
+            // If there is no retry available, just throw exception instead of pausing.
+            if (tries - 1 == 0) {
+                throw SdkClientException.builder().message("Unable to contact EC2 metadata service.").cause(e).build();
+            }
+
             // Retry on any other exceptions
-            int pause = (int) (Math.pow(2, DEFAULT_QUERY_RETRIES - tries) * MINIMUM_RETRY_WAIT_TIME_MILLISECONDS);
+            int pause = (int) (Math.pow(2, DEFAULT_QUERY_ATTEMPTS - tries) * MINIMUM_RETRY_WAIT_TIME_MILLISECONDS);
             try {
                 Thread.sleep(pause < MINIMUM_RETRY_WAIT_TIME_MILLISECONDS ? MINIMUM_RETRY_WAIT_TIME_MILLISECONDS
                                                                           : pause);
@@ -457,184 +439,36 @@ public final class EC2MetadataUtils {
         }
     }
 
-
     private static String fetchData(String path) {
         return fetchData(path, false);
     }
 
     private static String fetchData(String path, boolean force) {
+        return fetchData(path, force, DEFAULT_QUERY_ATTEMPTS);
+    }
+
+    /**
+     * Fetch data using the given path
+     *
+     * @param path the path
+     * @param force whether to force to override the value in the cache
+     * @param attempts the number of attempts that should be executed.
+     * @return the value retrieved from the path
+     */
+    public static String fetchData(String path, boolean force, int attempts) {
         if (SdkSystemSetting.AWS_EC2_METADATA_DISABLED.getBooleanValueOrThrow()) {
             throw SdkClientException.builder().message("EC2 metadata usage is disabled.").build();
         }
 
         try {
-            if (force || !cache.containsKey(path)) {
-                cache.put(path, getData(path));
+            if (force || !CACHE.containsKey(path)) {
+                CACHE.put(path, getData(path, attempts));
             }
-            return cache.get(path);
+            return CACHE.get(path);
         } catch (SdkClientException e) {
             throw e;
         } catch (RuntimeException e) {
             return null;
-        }
-    }
-
-    /**
-     * Information about the last time the instance profile was updated,
-     * including the instance's LastUpdated date, InstanceProfileArn, and
-     * InstanceProfileId.
-     */
-    public static class IamInfo {
-        public String code;
-        public String message;
-        public String lastUpdated;
-        public String instanceProfileArn;
-        public String instanceProfileId;
-    }
-
-    /**
-     * The temporary security credentials (AccessKeyId, SecretAccessKey,
-     * SessionToken, and Expiration) associated with the IAM role.
-     */
-    public static class IamSecurityCredential {
-        public String code;
-        public String message;
-        public String lastUpdated;
-        public String type;
-        public String accessKeyId;
-        public String secretAccessKey;
-        public String token;
-        public String expiration;
-
-        /**
-         * @deprecated because it is spelled incorrectly
-         * @see #accessKeyId
-         */
-        @Deprecated
-        public String secretAcessKey;
-    }
-
-    /**
-     * This POJO is a best attempt to capture the instance info which is only
-     * guaranteed to be a JSON document per
-     * http://docs.aws.amazon.com/AWSEC2/latest
-     * /UserGuide/ec2-instance-metadata.html
-     *
-     * Instance info includes dynamic information about the current instance
-     * such as region, instanceId, private IP address, etc.
-     */
-    public static class InstanceInfo {
-        private final String pendingTime;
-        private final String instanceType;
-        private final String imageId;
-        private final String instanceId;
-        private final String[] billingProducts;
-        private final String architecture;
-        private final String accountId;
-        private final String kernelId;
-        private final String ramdiskId;
-        private final String region;
-        private final String version;
-        private final String availabilityZone;
-        private final String privateIp;
-        private final String[] devpayProductCodes;
-        private final String[] marketplaceProductCodes;
-
-        @JsonCreator
-        public InstanceInfo(
-                @JsonProperty(value = "pendingTime", required = true) String pendingTime,
-                @JsonProperty(value = "instanceType", required = true) String instanceType,
-                @JsonProperty(value = "imageId", required = true) String imageId,
-                @JsonProperty(value = "instanceId", required = true) String instanceId,
-                @JsonProperty(value = "billingProducts", required = false) String[] billingProducts,
-                @JsonProperty(value = "architecture", required = true) String architecture,
-                @JsonProperty(value = "accountId", required = true) String accountId,
-                @JsonProperty(value = "kernelId", required = true) String kernelId,
-                @JsonProperty(value = "ramdiskId", required = false) String ramdiskId,
-                @JsonProperty(value = REGION, required = true) String region,
-                @JsonProperty(value = "version", required = true) String version,
-                @JsonProperty(value = "availabilityZone", required = true) String availabilityZone,
-                @JsonProperty(value = "privateIp", required = true) String privateIp,
-                @JsonProperty(value = "devpayProductCodes", required = false) String[] devpayProductCodes,
-                @JsonProperty(value = "marketplaceProductCodes", required = false) String[] marketplaceProductCodes) {
-            this.pendingTime = pendingTime;
-            this.instanceType = instanceType;
-            this.imageId = imageId;
-            this.instanceId = instanceId;
-            this.billingProducts = billingProducts == null
-                                   ? null : billingProducts.clone();
-            this.architecture = architecture;
-            this.accountId = accountId;
-            this.kernelId = kernelId;
-            this.ramdiskId = ramdiskId;
-            this.region = region;
-            this.version = version;
-            this.availabilityZone = availabilityZone;
-            this.privateIp = privateIp;
-            this.devpayProductCodes = devpayProductCodes == null
-                                      ? null : devpayProductCodes.clone();
-            this.marketplaceProductCodes = marketplaceProductCodes == null
-                                           ? null : marketplaceProductCodes.clone();
-        }
-
-        public String getPendingTime() {
-            return pendingTime;
-        }
-
-        public String getInstanceType() {
-            return instanceType;
-        }
-
-        public String getImageId() {
-            return imageId;
-        }
-
-        public String getInstanceId() {
-            return instanceId;
-        }
-
-        public String[] getBillingProducts() {
-            return billingProducts == null ? null : billingProducts.clone();
-        }
-
-        public String getArchitecture() {
-            return architecture;
-        }
-
-        public String getAccountId() {
-            return accountId;
-        }
-
-        public String getKernelId() {
-            return kernelId;
-        }
-
-        public String getRamdiskId() {
-            return ramdiskId;
-        }
-
-        public String getRegion() {
-            return region;
-        }
-
-        public String getVersion() {
-            return version;
-        }
-
-        public String getAvailabilityZone() {
-            return availabilityZone;
-        }
-
-        public String getPrivateIp() {
-            return privateIp;
-        }
-
-        public String[] getDevpayProductCodes() {
-            return devpayProductCodes == null ? null : devpayProductCodes.clone();
-        }
-
-        public String[] getMarketplaceProductCodes() {
-            return marketplaceProductCodes == null ? null : marketplaceProductCodes.clone();
         }
     }
 
@@ -822,7 +656,7 @@ public final class EC2MetadataUtils {
         @Override
         public Map<String, String> headers() {
             Map<String, String> requestHeaders = new HashMap<>();
-            requestHeaders.put("User-Agent", UserAgentUtils.getUserAgent());
+            requestHeaders.put("User-Agent", SdkUserAgent.create().userAgent());
             requestHeaders.put("Accept", "*/*");
             requestHeaders.put("Connection", "keep-alive");
 
@@ -831,6 +665,122 @@ public final class EC2MetadataUtils {
             }
 
             return requestHeaders;
+        }
+    }
+
+
+    public static class InstanceInfo {
+        private final String pendingTime;
+        private final String instanceType;
+        private final String imageId;
+        private final String instanceId;
+        private final String[] billingProducts;
+        private final String architecture;
+        private final String accountId;
+        private final String kernelId;
+        private final String ramdiskId;
+        private final String region;
+        private final String version;
+        private final String availabilityZone;
+        private final String privateIp;
+        private final String[] devpayProductCodes;
+        private final String[] marketplaceProductCodes;
+
+        public InstanceInfo(
+            String pendingTime,
+            String instanceType,
+            String imageId,
+            String instanceId,
+            String[] billingProducts,
+            String architecture,
+            String accountId,
+            String kernelId,
+            String ramdiskId,
+            String region,
+            String version,
+            String availabilityZone,
+            String privateIp,
+            String[] devpayProductCodes,
+            String[] marketplaceProductCodes) {
+
+            this.pendingTime = pendingTime;
+            this.instanceType = instanceType;
+            this.imageId = imageId;
+            this.instanceId = instanceId;
+            this.billingProducts = billingProducts == null
+                                   ? null : billingProducts.clone();
+            this.architecture = architecture;
+            this.accountId = accountId;
+            this.kernelId = kernelId;
+            this.ramdiskId = ramdiskId;
+            this.region = region;
+            this.version = version;
+            this.availabilityZone = availabilityZone;
+            this.privateIp = privateIp;
+            this.devpayProductCodes = devpayProductCodes == null
+                                      ? null : devpayProductCodes.clone();
+            this.marketplaceProductCodes = marketplaceProductCodes == null
+                                           ? null : marketplaceProductCodes.clone();
+        }
+
+        public String getPendingTime() {
+            return pendingTime;
+        }
+
+        public String getInstanceType() {
+            return instanceType;
+        }
+
+        public String getImageId() {
+            return imageId;
+        }
+
+        public String getInstanceId() {
+            return instanceId;
+        }
+
+        public String[] getBillingProducts() {
+            return billingProducts == null ? null : billingProducts.clone();
+        }
+
+        public String getArchitecture() {
+            return architecture;
+        }
+
+        public String getAccountId() {
+            return accountId;
+        }
+
+        public String getKernelId() {
+            return kernelId;
+        }
+
+        public String getRamdiskId() {
+            return ramdiskId;
+        }
+
+        public String getRegion() {
+            return region;
+        }
+
+        public String getVersion() {
+            return version;
+        }
+
+        public String getAvailabilityZone() {
+            return availabilityZone;
+        }
+
+        public String getPrivateIp() {
+            return privateIp;
+        }
+
+        public String[] getDevpayProductCodes() {
+            return devpayProductCodes == null ? null : devpayProductCodes.clone();
+        }
+
+        public String[] getMarketplaceProductCodes() {
+            return marketplaceProductCodes == null ? null : marketplaceProductCodes.clone();
         }
     }
 }

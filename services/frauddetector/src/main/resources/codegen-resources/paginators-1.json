@@ -5,6 +5,16 @@
       "output_token": "nextToken",
       "limit_key": "maxResults"
     },
+    "GetBatchImportJobs": {
+      "input_token": "nextToken",
+      "output_token": "nextToken",
+      "limit_key": "maxResults"
+    },
+    "GetBatchPredictionJobs": {
+      "input_token": "nextToken",
+      "output_token": "nextToken",
+      "limit_key": "maxResults"
+    },
     "GetDetectors": {
       "input_token": "nextToken",
       "output_token": "nextToken",
@@ -46,6 +56,11 @@
       "limit_key": "maxResults"
     },
     "GetVariables": {
+      "input_token": "nextToken",
+      "output_token": "nextToken",
+      "limit_key": "maxResults"
+    },
+    "ListEventPredictions": {
       "input_token": "nextToken",
       "output_token": "nextToken",
       "limit_key": "maxResults"

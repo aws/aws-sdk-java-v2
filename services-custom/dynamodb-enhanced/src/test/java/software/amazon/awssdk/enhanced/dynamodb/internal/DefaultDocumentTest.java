@@ -82,6 +82,7 @@ public class DefaultDocumentTest {
         assertThat(defaultDocument.getItem(mappedTable), is(fakeItem2));
         verify(mockDynamoDbEnhancedClientExtension).afterRead(DefaultDynamoDbExtensionContext.builder()
                                                                                              .tableMetadata(FakeItem.getTableMetadata())
+                                                                                             .tableSchema(FakeItem.getTableSchema())
                                                                                              .operationContext(DefaultOperationContext.create(mappedTable.tableName()))
                                                                                              .items(fakeItemMap).build()
         );

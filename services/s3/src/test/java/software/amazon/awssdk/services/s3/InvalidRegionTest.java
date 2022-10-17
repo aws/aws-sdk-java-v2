@@ -18,10 +18,11 @@ package software.amazon.awssdk.services.s3;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.Duration;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
 public class InvalidRegionTest {
@@ -45,6 +46,17 @@ public class InvalidRegionTest {
             .hasMessageContaining("US_WEST_2")
             .hasMessageContaining("region")
             .hasMessageContaining("us-west-2");
+    }
+
+    @Test
+    public void nonExistentRegionGivesHelpfulMessage() {
+        S3Client s3Client = S3Client.builder()
+                                    .region(Region.of("does-not-exist"))
+                                    .credentialsProvider(AnonymousCredentialsProvider.create())
+                                    .build();
+        assertThatThrownBy(() -> s3Client.headBucket(HeadBucketRequest.builder().bucket("myBucket").build()))
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("UnknownHostException");
     }
 
     @Test

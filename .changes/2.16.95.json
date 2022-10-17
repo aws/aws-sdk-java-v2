@@ -1,0 +1,24 @@
+{
+    "version": "2.16.95",
+    "date": "2021-07-02",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "Bennett-Lynch",
+            "description": "[UrlConnectionHttpClient] Wrap erroneous NPE from HttpURLConnection as IOException"
+        },
+        {
+            "type": "feature",
+            "category": "Elastic Load Balancing",
+            "contributor": "",
+            "description": "Documentation updates for elasticloadbalancingv2"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "This release removes network-insights-boundary"
+        }
+    ]
+}

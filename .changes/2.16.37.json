@@ -1,0 +1,48 @@
+{
+    "version": "2.16.37",
+    "date": "2021-04-07",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Storage Gateway",
+            "contributor": "",
+            "description": "File Gateway APIs now support FSx for Windows as a cloud storage."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon ElastiCache",
+            "contributor": "",
+            "description": "This release adds tagging support for all AWS ElastiCache resources except Global Replication Groups."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Interactive Video Service",
+            "contributor": "",
+            "description": "This release adds support for the Auto-Record to S3 feature. Amazon IVS now enables you to save your live video to Amazon S3."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Access Analyzer",
+            "contributor": "",
+            "description": "IAM Access Analyzer now analyzes your CloudTrail events to identify actions and services that have been used by an IAM entity (user or role) and generates an IAM policy that is based on that activity."
+        },
+        {
+            "type": "feature",
+            "category": "Application Migration Service",
+            "contributor": "",
+            "description": "Add new service - Application Migration Service."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Fix leak of bytebuf on HTTP GoAway"
+        }
+    ]
+}

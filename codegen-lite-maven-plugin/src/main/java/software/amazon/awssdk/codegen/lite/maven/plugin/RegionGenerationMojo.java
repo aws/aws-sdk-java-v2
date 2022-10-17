@@ -26,6 +26,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import software.amazon.awssdk.codegen.lite.CodeGenerator;
+import software.amazon.awssdk.codegen.lite.regions.EndpointTagGenerator;
 import software.amazon.awssdk.codegen.lite.regions.PartitionMetadataGenerator;
 import software.amazon.awssdk.codegen.lite.regions.PartitionMetadataProviderGenerator;
 import software.amazon.awssdk.codegen.lite.regions.RegionGenerator;
@@ -35,6 +36,7 @@ import software.amazon.awssdk.codegen.lite.regions.RegionMetadataProviderGenerat
 import software.amazon.awssdk.codegen.lite.regions.ServiceMetadataGenerator;
 import software.amazon.awssdk.codegen.lite.regions.ServiceMetadataProviderGenerator;
 import software.amazon.awssdk.codegen.lite.regions.model.Partitions;
+import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * The Maven mojo to generate Java client code using software.amazon.awssdk:codegen module.
@@ -57,6 +59,7 @@ public class RegionGenerationMojo extends AbstractMojo {
         "${basedir}/src/main/resources/software/amazon/awssdk/regions/internal/region/endpoints.json")
     private File endpoints;
 
+    @Override
     public void execute() throws MojoExecutionException {
         Path baseSourcesDirectory = Paths.get(outputDirectory).resolve("generated-sources").resolve("sdk");
         Path testsDirectory = Paths.get(outputDirectory).resolve("generated-test-sources").resolve("sdk-tests");
@@ -70,13 +73,14 @@ public class RegionGenerationMojo extends AbstractMojo {
         generatePartitionProvider(baseSourcesDirectory, partitions);
         generateRegionProvider(baseSourcesDirectory, partitions);
         generateServiceProvider(baseSourcesDirectory, partitions);
+        generateEndpointTags(baseSourcesDirectory, partitions);
 
         project.addCompileSourceRoot(baseSourcesDirectory.toFile().getAbsolutePath());
         project.addTestCompileSourceRoot(testsDirectory.toFile().getAbsolutePath());
     }
 
     public void generatePartitionMetadataClass(Path baseSourcesDirectory, Partitions partitions) {
-        Path sourcesDirectory = baseSourcesDirectory.resolve(PARTITION_METADATA_BASE.replace(".", "/"));
+        Path sourcesDirectory = baseSourcesDirectory.resolve(StringUtils.replace(PARTITION_METADATA_BASE, ".", "/"));
         partitions.getPartitions()
                   .forEach(p -> new CodeGenerator(sourcesDirectory.toString(),
                                                   new PartitionMetadataGenerator(p,
@@ -85,12 +89,12 @@ public class RegionGenerationMojo extends AbstractMojo {
     }
 
     public void generateRegionClass(Path baseSourcesDirectory, Partitions partitions) {
-        Path sourcesDirectory = baseSourcesDirectory.resolve(REGION_BASE.replace(".", "/"));
+        Path sourcesDirectory = baseSourcesDirectory.resolve(StringUtils.replace(REGION_BASE, ".", "/"));
         new CodeGenerator(sourcesDirectory.toString(), new RegionGenerator(partitions, REGION_BASE)).generate();
     }
 
     public void generateServiceMetadata(Path baseSourcesDirectory, Partitions partitions) {
-        Path sourcesDirectory = baseSourcesDirectory.resolve(SERVICE_METADATA_BASE.replace(".", "/"));
+        Path sourcesDirectory = baseSourcesDirectory.resolve(StringUtils.replace(SERVICE_METADATA_BASE, ".", "/"));
         Set<String> services = new HashSet<>();
         partitions.getPartitions().forEach(p -> services.addAll(p.getServices().keySet()));
 
@@ -102,7 +106,7 @@ public class RegionGenerationMojo extends AbstractMojo {
     }
 
     public void generateRegions(Path baseSourcesDirectory, Partitions partitions) {
-        Path sourcesDirectory = baseSourcesDirectory.resolve(REGION_METADATA_BASE.replace(".", "/"));
+        Path sourcesDirectory = baseSourcesDirectory.resolve(StringUtils.replace(REGION_METADATA_BASE, ".", "/"));
         partitions.getPartitions()
                   .forEach(p -> p.getRegions().forEach((k, v) ->
                                                            new CodeGenerator(sourcesDirectory.toString(),
@@ -115,7 +119,7 @@ public class RegionGenerationMojo extends AbstractMojo {
     }
 
     public void generatePartitionProvider(Path baseSourcesDirectory, Partitions partitions) {
-        Path sourcesDirectory = baseSourcesDirectory.resolve(REGION_BASE.replace(".", "/"));
+        Path sourcesDirectory = baseSourcesDirectory.resolve(StringUtils.replace(REGION_BASE, ".", "/"));
         new CodeGenerator(sourcesDirectory.toString(), new PartitionMetadataProviderGenerator(partitions,
                                                                                               PARTITION_METADATA_BASE,
                                                                                               REGION_BASE))
@@ -123,7 +127,7 @@ public class RegionGenerationMojo extends AbstractMojo {
     }
 
     public void generateRegionProvider(Path baseSourcesDirectory, Partitions partitions) {
-        Path sourcesDirectory = baseSourcesDirectory.resolve(REGION_BASE.replace(".", "/"));
+        Path sourcesDirectory = baseSourcesDirectory.resolve(StringUtils.replace(REGION_BASE, ".", "/"));
         new CodeGenerator(sourcesDirectory.toString(), new RegionMetadataProviderGenerator(partitions,
                                                                                            REGION_METADATA_BASE,
                                                                                            REGION_BASE))
@@ -131,10 +135,15 @@ public class RegionGenerationMojo extends AbstractMojo {
     }
 
     public void generateServiceProvider(Path baseSourcesDirectory, Partitions partitions) {
-        Path sourcesDirectory = baseSourcesDirectory.resolve(REGION_BASE.replace(".", "/"));
+        Path sourcesDirectory = baseSourcesDirectory.resolve(StringUtils.replace(REGION_BASE, ".", "/"));
         new CodeGenerator(sourcesDirectory.toString(), new ServiceMetadataProviderGenerator(partitions,
                                                                                             SERVICE_METADATA_BASE,
                                                                                             REGION_BASE))
             .generate();
+    }
+
+    public void generateEndpointTags(Path baseSourcesDirectory, Partitions partitions) {
+        Path sourcesDirectory = baseSourcesDirectory.resolve(StringUtils.replace(REGION_BASE, ".", "/"));
+        new CodeGenerator(sourcesDirectory.toString(), new EndpointTagGenerator(partitions, REGION_BASE)).generate();
     }
 }

@@ -1,0 +1,36 @@
+{
+    "version": "2.16.42",
+    "date": "2021-04-14",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Route 53",
+            "contributor": "",
+            "description": "Documentation updates for route53"
+        },
+        {
+            "type": "feature",
+            "category": "AWS MediaConnect",
+            "contributor": "",
+            "description": "For flows that use Listener protocols, you can now easily locate an output's outbound IP address for a private internet. Additionally, MediaConnect now supports the Waiters feature that makes it easier to poll for the status of a flow until it reaches its desired state."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Add a new Optional getter for the content length of RequestBody, also add a new fromContentProvider method allowing contentLength to be null."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Config",
+            "contributor": "",
+            "description": "Add exception for DeleteRemediationConfiguration and DescribeRemediationExecutionStatus"
+        },
+        {
+            "type": "feature",
+            "category": "AWS CodeStar connections",
+            "contributor": "",
+            "description": "This release adds tagging support for CodeStar Connections Host resources"
+        }
+    ]
+}

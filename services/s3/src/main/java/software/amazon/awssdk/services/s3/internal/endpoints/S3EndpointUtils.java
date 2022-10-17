@@ -26,6 +26,7 @@ import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
 import software.amazon.awssdk.services.s3.model.ListBucketsRequest;
+import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * Utilities for working with Amazon S3 bucket names and endpoints.
@@ -41,27 +42,18 @@ public final class S3EndpointUtils {
 
     public static String removeFipsIfNeeded(String region) {
         if (region.startsWith("fips-")) {
-            return region.replace("fips-", "");
+            return StringUtils.replace(region, "fips-", "");
         }
 
         if (region.endsWith("-fips")) {
-            return region.replace("-fips", "");
+            return StringUtils.replace(region, "-fips", "");
         }
         return region;
     }
 
-    /**
-     * Returns whether a FIPS pseudo region is provided.
-     */
-    public static boolean isFipsRegionProvided(String clientRegion, String arnRegion, boolean useArnRegion) {
-        if (useArnRegion) {
-            return isFipsRegion(arnRegion);
-        }
-        return isFipsRegion(clientRegion);
-    }
 
     public static boolean isFipsRegion(String region) {
-        return region.startsWith("fips-") || region.endsWith("-fips");
+        return !StringUtils.isEmpty(region) && (region.startsWith("fips-") || region.endsWith("-fips"));
     }
 
     /**
@@ -82,11 +74,15 @@ public final class S3EndpointUtils {
     /**
      * @return The endpoint for an S3 accelerate enabled operation. S3 accelerate has a single global endpoint.
      */
-    public static URI accelerateEndpoint(S3Configuration serviceConfiguration, String domain, String protocol) {
-        if (serviceConfiguration.dualstackEnabled()) {
-            return toUri(protocol, "s3-accelerate.dualstack." + domain);
-        }
+    public static URI accelerateEndpoint(String domain, String protocol) {
         return toUri(protocol, "s3-accelerate." + domain);
+    }
+
+    /**
+     * @return The endpoint for an S3 accelerate enabled operation. S3 accelerate has a single global endpoint.
+     */
+    public static URI accelerateDualstackEndpoint(String domain, String protocol) {
+        return toUri(protocol, "s3-accelerate.dualstack." + domain);
     }
 
     /**
@@ -101,6 +97,22 @@ public final class S3EndpointUtils {
      */
     public static URI dualstackEndpoint(String id, String domain, String protocol) {
         String serviceEndpoint = String.format("%s.%s.%s.%s", "s3", "dualstack", id, domain);
+        return toUri(protocol, serviceEndpoint);
+    }
+
+    /**
+     * @return fips endpoint from given protocol and region metadata
+     */
+    public static URI fipsEndpoint(String id, String domain, String protocol) {
+        String serviceEndpoint = String.format("%s.%s.%s", "s3-fips", id, domain);
+        return toUri(protocol, serviceEndpoint);
+    }
+
+    /**
+     * @return dual stack + fips endpoint from given protocol and region metadata
+     */
+    public static URI fipsDualstackEndpoint(String id, String domain, String protocol) {
+        String serviceEndpoint = String.format("%s.%s.%s.%s", "s3-fips", "dualstack", id, domain);
         return toUri(protocol, serviceEndpoint);
     }
 

@@ -19,10 +19,15 @@ import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.FileTransformerConfiguration;
 import software.amazon.awssdk.core.ResponseBytes;
+import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.internal.async.ByteArrayAsyncResponseTransformer;
 import software.amazon.awssdk.core.internal.async.FileAsyncResponseTransformer;
+import software.amazon.awssdk.core.internal.async.PublisherAsyncResponseTransformer;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Callback interface to handle a streaming asynchronous response.
@@ -114,9 +119,36 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
      * @param path        Path to file to write to.
      * @param <ResponseT> Pojo Response type.
      * @return AsyncResponseTransformer instance.
+     * @see #toFile(Path, FileTransformerConfiguration)
      */
     static <ResponseT> AsyncResponseTransformer<ResponseT, ResponseT> toFile(Path path) {
         return new FileAsyncResponseTransformer<>(path);
+    }
+
+    /**
+     * Creates an {@link AsyncResponseTransformer} that writes all the content to the given file with the specified {@link
+     * FileTransformerConfiguration}.
+     *
+     * @param path        Path to file to write to.
+     * @param config      configuration for the transformer
+     * @param <ResponseT> Pojo Response type.
+     * @return AsyncResponseTransformer instance.
+     * @see FileTransformerConfiguration
+     */
+    static <ResponseT> AsyncResponseTransformer<ResponseT, ResponseT> toFile(Path path, FileTransformerConfiguration config) {
+        return new FileAsyncResponseTransformer<>(path, config);
+    }
+
+    /**
+     * This is a convenience method that creates an instance of the {@link FileTransformerConfiguration} builder,
+     * avoiding the need to create one manually via {@link FileTransformerConfiguration#builder()}.
+     *
+     * @see #toFile(Path, FileTransformerConfiguration)
+     */
+    static <ResponseT> AsyncResponseTransformer<ResponseT, ResponseT> toFile(
+        Path path, Consumer<FileTransformerConfiguration.Builder> config) {
+        Validate.paramNotNull(config, "config");
+        return new FileAsyncResponseTransformer<>(path, FileTransformerConfiguration.builder().applyMutation(config).build());
     }
 
     /**
@@ -133,6 +165,34 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
     }
 
     /**
+     * Creates an {@link AsyncResponseTransformer} that writes all the content to the given file with the specified {@link
+     * FileTransformerConfiguration}.
+     *
+     * @param file        File to write to.
+     * @param config      configuration for the transformer
+     * @param <ResponseT> Pojo Response type.
+     * @return AsyncResponseTransformer instance.
+     * @see FileTransformerConfiguration
+     */
+    static <ResponseT> AsyncResponseTransformer<ResponseT, ResponseT> toFile(File file, FileTransformerConfiguration config) {
+        return new FileAsyncResponseTransformer<>(file.toPath(), config);
+    }
+
+    /**
+     * This is a convenience method that creates an instance of the {@link FileTransformerConfiguration} builder,
+     * avoiding the need to create one manually via {@link FileTransformerConfiguration#builder()}.
+     *
+     * @see #toFile(File, FileTransformerConfiguration)
+     */
+    static <ResponseT> AsyncResponseTransformer<ResponseT, ResponseT> toFile(
+        File file, Consumer<FileTransformerConfiguration.Builder> config) {
+        Validate.paramNotNull(config, "config");
+        return new FileAsyncResponseTransformer<>(file.toPath(), FileTransformerConfiguration.builder()
+                                                                                             .applyMutation(config)
+                                                                                             .build());
+    }
+
+    /**
      * Creates an {@link AsyncResponseTransformer} that writes all content to a byte array.
      *
      * @param <ResponseT> Pojo response type.
@@ -140,5 +200,36 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
      */
     static <ResponseT> AsyncResponseTransformer<ResponseT, ResponseBytes<ResponseT>> toBytes() {
         return new ByteArrayAsyncResponseTransformer<>();
+    }
+
+    /**
+     * Creates an {@link AsyncResponseTransformer} that publishes the response body content through a {@link ResponsePublisher},
+     * which is an {@link SdkPublisher} that also contains a reference to the {@link SdkResponse} returned by the service.
+     * <p>
+     * When this transformer is used with an async client, the {@link CompletableFuture} that the client returns will be completed
+     * once the {@link SdkResponse} is available and the response body <i>begins</i> streaming. This behavior differs from some
+     * other transformers, like {@link #toFile(Path)} and {@link #toBytes()}, which only have their {@link CompletableFuture}
+     * completed after the entire response body has finished streaming.
+     * <p>
+     * You are responsible for subscribing to this publisher and managing the associated back-pressure. Therefore, this
+     * transformer is only recommended for advanced use cases.
+     * <p>
+     * Example usage:
+     * <pre>
+     * {@code
+     *     CompletableFuture<ResponsePublisher<GetObjectResponse>> responseFuture =
+     *         s3AsyncClient.getObject(getObjectRequest, AsyncResponseTransformer.toPublisher());
+     *     ResponsePublisher<GetObjectResponse> responsePublisher = responseFuture.join();
+     *     System.out.println(responsePublisher.response());
+     *     CompletableFuture<Void> drainPublisherFuture = responsePublisher.subscribe(System.out::println);
+     *     drainPublisherFuture.join();
+     * }
+     * </pre>
+     *
+     * @param <ResponseT> Pojo response type.
+     * @return AsyncResponseTransformer instance.
+     */
+    static <ResponseT extends SdkResponse> AsyncResponseTransformer<ResponseT, ResponsePublisher<ResponseT>> toPublisher() {
+        return new PublisherAsyncResponseTransformer<>();
     }
 }

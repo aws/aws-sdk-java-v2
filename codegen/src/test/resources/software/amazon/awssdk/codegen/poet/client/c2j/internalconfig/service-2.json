@@ -1,0 +1,37 @@
+{
+  "version": "2.0",
+  "metadata": {
+    "apiVersion": "2010-05-08",
+    "endpointPrefix": "json-service-endpoint",
+    "globalEndpoint": "json-service.amazonaws.com",
+    "protocol": "rest-json",
+    "serviceAbbreviation": "Json Service",
+    "serviceFullName": "Some Service That Uses Json Protocol",
+    "serviceId": "Json Service",
+    "signingName": "json-service",
+    "signatureVersion": "v4",
+    "uid": "json-service-2010-05-08",
+    "xmlNamespace": "https://json-service.amazonaws.com/doc/2010-05-08/"
+  },
+  "operations":{
+    "OneOperation":{
+      "name":"OneOperation",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2016-03-11/oneoperation"
+      },
+      "input":{"shape":"OneShape"}
+    }
+  },
+  "shapes": {
+    "OneShape": {
+      "type": "structure",
+      "members": {
+        "StringMember": {
+          "shape": "String"
+        }
+      }
+    },
+    "String":{"type":"string"}
+  }
+}

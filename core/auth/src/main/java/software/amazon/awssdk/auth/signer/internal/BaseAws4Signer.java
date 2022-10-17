@@ -19,6 +19,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.CredentialUtils;
 import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
 import software.amazon.awssdk.auth.signer.params.Aws4SignerParams;
+import software.amazon.awssdk.core.checksums.SdkChecksum;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
@@ -79,6 +80,21 @@ public abstract class BaseAws4Signer extends AbstractAws4Signer<Aws4SignerParams
                                          byte[] signingKey,
                                          Aws4SignerRequestParams signerRequestParams,
                                          Aws4SignerParams signerParams) {
+        processRequestPayload(mutableRequest, signature, signingKey,
+                signerRequestParams, signerParams, null);
+    }
+
+    /**
+     * This method overloads processRequestPayload with sdkChecksum.
+     * The sdkChecksum if passed, is computed while processing request payload.
+     */
+    @Override
+    protected void processRequestPayload(SdkHttpFullRequest.Builder mutableRequest,
+                                         byte[] signature,
+                                         byte[] signingKey,
+                                         Aws4SignerRequestParams signerRequestParams,
+                                         Aws4SignerParams signerParams,
+                                         SdkChecksum sdkChecksum) {
     }
 
     /**

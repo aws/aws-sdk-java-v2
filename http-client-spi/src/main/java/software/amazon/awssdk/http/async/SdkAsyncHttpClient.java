@@ -19,6 +19,7 @@ import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
@@ -64,6 +65,7 @@ public interface SdkAsyncHttpClient extends SdkAutoCloseable {
          * Create a {@link SdkAsyncHttpClient} with global defaults applied. This is useful for reusing an HTTP client across
          * multiple services.
          */
+        @Override
         default SdkAsyncHttpClient build() {
             return buildWithDefaults(AttributeMap.empty());
         }

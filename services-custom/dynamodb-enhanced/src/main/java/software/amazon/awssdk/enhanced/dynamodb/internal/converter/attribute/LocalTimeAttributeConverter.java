@@ -49,8 +49,8 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  *
  * Examples:
  * <ul>
- *     <li>{@code LocalTime.of(5, 30, 0)} is stored as an AttributeValue with the String "05:30"}</li>
- *     <li>{@code LocalTime.of(5, 30, 0, 1)} is stored as an AttributeValue with the String "05:30:00.000000001"}</li>
+ *     <li>{@code LocalTime.of(5, 30, 0)} is stored as an AttributeValue with the String "05:30"</li>
+ *     <li>{@code LocalTime.of(5, 30, 0, 1)} is stored as an AttributeValue with the String "05:30:00.000000001"</li>
  * </ul>
  *
  * <p>

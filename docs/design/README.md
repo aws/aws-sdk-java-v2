@@ -10,8 +10,6 @@ significantly from the state proposed in these documents.*
 
 * [S3 Transfer Manager](services/s3/transfermanager/README.md) -
   Simplifies uploading and downloading of objects to and from Amazon S3.
-* [Dynamo DB Enhanced Client](services/dynamodb/high-level-library/README.md)
-  \- Simplifies writing and reading objects to and from Amazon DynamoDB.
 
 **Proposed**
 
@@ -27,6 +25,8 @@ decided.*
 * [Event Streaming Auto-Reconnect](core/event-streaming/reconnect/README.md)
   \- Automatically reconnects to an event streaming session when they are
   interrupted by a network error.
+* [Tagged Unions](core/tagged-unions/README.md)
+  \- Usability improvements for union types, like DynamoDB's `AttributeValue`.
 
 **Released**
 
@@ -36,7 +36,9 @@ design elements or features can be implemented incrementally based on customer
 demand.*
 
 * [Request Presigners](core/presigners/README.md) - Makes it possible to sign 
-  requests to be executed at a later time. 
+  requests to be executed at a later time.
+* [Dynamo DB Enhanced Client](services/dynamodb/high-level-library/README.md)
+  \- Simplifies writing and reading objects to and from Amazon DynamoDB.
 
 **Rejected**
 
@@ -58,9 +60,10 @@ None
   client configuration objects. 
 * [Optional Usage](UseOfOptional.md) - Conventions governing the use of
   [java.util.Optional](https://docs.oracle.com/javase/8/docs/api/java/util/Optional.html).
-* [Completable Future Usage](UseOfCompletableFuture.java) - Conventions
+* [Completable Future Usage](UseOfCompletableFuture.md) - Conventions
   governing the use of
-  [java.util.concurrent.CompletableFuture](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletableFuture.html).
+* [java.util.concurrent.CompletableFuture](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletableFuture.html).
+* [APIReference](APIReference.md) - Conventions used for API references
 
 **Rejected**
 

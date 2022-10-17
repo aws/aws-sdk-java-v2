@@ -16,17 +16,17 @@
 package software.amazon.awssdk.http.apache.internal.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.net.InetAddress;
 import java.net.URI;
 import java.time.Duration;
-import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.Header;
 import org.apache.http.HttpHeaders;
-import org.junit.Before;
-import org.junit.Test;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -37,7 +37,7 @@ public class ApacheHttpRequestFactoryTest {
     private ApacheHttpRequestConfig requestConfig;
     private ApacheHttpRequestFactory instance;
 
-    @Before
+    @BeforeEach
     public void setup() {
         instance = new ApacheHttpRequestFactory();
         requestConfig = ApacheHttpRequestConfig.builder()

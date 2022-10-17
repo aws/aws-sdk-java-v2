@@ -16,8 +16,9 @@
 package software.amazon.awssdk.core.client.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 
 import java.util.ArrayList;
@@ -26,24 +27,34 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.junit.Test;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.internal.http.request.SlowExecutionInterceptor;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.utils.ImmutableMap;
 
 public class ClientOverrideConfigurationTest {
+    private static final ConcurrentMap<String, ExecutionAttribute<Object>> ATTR_POOL = new ConcurrentHashMap<>();
+
+    private static ExecutionAttribute<Object> attr(String name) {
+        name = ClientOverrideConfigurationTest.class.getName() + ":" + name;
+        return ATTR_POOL.computeIfAbsent(name, ExecutionAttribute::new);
+    }
 
     @Test
     public void addingSameItemTwice_shouldOverride() {
         ClientOverrideConfiguration configuration = ClientOverrideConfiguration.builder()
-                                                                               .putHeader("value", "foo")
-                                                                               .putHeader("value", "bar")
-                                                                               .putAdvancedOption(SdkAdvancedClientOption
-                                                                                                      .USER_AGENT_SUFFIX, "foo")
-                                                                               .putAdvancedOption(SdkAdvancedClientOption
-                                                                                                      .USER_AGENT_SUFFIX, "bar")
-                                                                               .build();
+                .putHeader("value", "foo")
+                .putHeader("value", "bar")
+                .putAdvancedOption(SdkAdvancedClientOption
+                        .USER_AGENT_SUFFIX, "foo")
+                .putAdvancedOption(SdkAdvancedClientOption
+                        .USER_AGENT_SUFFIX, "bar")
+                .build();
 
         assertThat(configuration.headers().get("value")).containsExactly("bar");
         assertThat(configuration.advancedOption(SdkAdvancedClientOption.USER_AGENT_SUFFIX).get()).isEqualTo("bar");
@@ -55,19 +66,19 @@ public class ClientOverrideConfigurationTest {
     @Test
     public void settingCollection_shouldOverrideAddItem() {
         ClientOverrideConfiguration configuration = ClientOverrideConfiguration.builder()
-                                                                               .putHeader("value", "foo")
-                                                                               .headers(ImmutableMap.of("value",
-                                                                                                        Arrays.asList
-                                                                                                                     ("hello",
-                                                                                                                      "world")))
-                                                                               .putAdvancedOption(SdkAdvancedClientOption
-                                                                                                      .USER_AGENT_SUFFIX, "test")
-                                                                               .advancedOptions(new HashMap<>())
-                                                                               .putAdvancedOption(SdkAdvancedClientOption
-                                                                                                      .USER_AGENT_PREFIX, "test")
-                                                                               .addExecutionInterceptor(new SlowExecutionInterceptor())
-                                                                               .executionInterceptors(new ArrayList<>())
-                                                                               .build();
+                .putHeader("value", "foo")
+                .headers(ImmutableMap.of("value",
+                        Arrays.asList
+                                ("hello",
+                                        "world")))
+                .putAdvancedOption(SdkAdvancedClientOption
+                        .USER_AGENT_SUFFIX, "test")
+                .advancedOptions(new HashMap<>())
+                .putAdvancedOption(SdkAdvancedClientOption
+                        .USER_AGENT_PREFIX, "test")
+                .addExecutionInterceptor(new SlowExecutionInterceptor())
+                .executionInterceptors(new ArrayList<>())
+                .build();
 
         assertThat(configuration.headers().get("value")).containsExactly("hello", "world");
         assertFalse(configuration.advancedOption(SdkAdvancedClientOption.USER_AGENT_SUFFIX).isPresent());
@@ -78,11 +89,11 @@ public class ClientOverrideConfigurationTest {
     @Test
     public void addSameItemAfterSetCollection_shouldOverride() {
         ImmutableMap<String, List<String>> map =
-            ImmutableMap.of("value", Arrays.asList("hello", "world"));
+                ImmutableMap.of("value", Arrays.asList("hello", "world"));
         ClientOverrideConfiguration configuration = ClientOverrideConfiguration.builder()
-                                                                               .headers(map)
-                                                                               .putHeader("value", "blah")
-                                                                               .build();
+                .headers(map)
+                .putHeader("value", "blah")
+                .build();
 
         assertThat(configuration.headers().get("value")).containsExactly("blah");
     }
@@ -99,8 +110,8 @@ public class ClientOverrideConfigurationTest {
         executionInterceptors.add(slowExecutionInterceptor);
 
         ClientOverrideConfiguration.Builder configurationBuilder =
-            ClientOverrideConfiguration.builder().executionInterceptors(executionInterceptors)
-                                       .headers(headers);
+                ClientOverrideConfiguration.builder().executionInterceptors(executionInterceptors)
+                        .headers(headers);
 
         headerValues.add("test");
         headers.put("new header", Collections.singletonList("new value"));
@@ -179,5 +190,92 @@ public class ClientOverrideConfigurationTest {
         ClientOverrideConfiguration overrideConfig = builder.build();
 
         assertThat(overrideConfig.metricPublishers()).containsExactly(publishers.get(0), publishers.get(1), thirdAdded);
+    }
+
+    @Test
+    public void executionAttributes_createsCopy() {
+        ExecutionAttributes executionAttributes = new ExecutionAttributes();
+
+        ExecutionAttribute testAttribute = attr("TestAttribute");
+        String expectedValue = "Value1";
+        executionAttributes.putAttribute(testAttribute, expectedValue);
+
+        ClientOverrideConfiguration overrideConfig = ClientOverrideConfiguration.builder()
+                .executionAttributes(executionAttributes)
+                .build();
+
+        executionAttributes.putAttribute(testAttribute, "Value2");
+        assertThat(overrideConfig.executionAttributes().getAttribute(testAttribute)).isEqualTo(expectedValue);
+    }
+
+    @Test
+    public void executionAttributes_isImmutable() {
+        ExecutionAttributes executionAttributes = new ExecutionAttributes();
+
+        ExecutionAttribute testAttribute = attr("TestAttribute");
+        String expectedValue = "Value1";
+        executionAttributes.putAttribute(testAttribute, expectedValue);
+
+        ClientOverrideConfiguration overrideConfig = ClientOverrideConfiguration.builder()
+                .executionAttributes(executionAttributes)
+                .build();
+
+        try {
+            overrideConfig.executionAttributes().putAttribute(testAttribute, 2);
+            fail("Expected unsupported operation exception");
+        } catch(Exception ex) {
+            assertThat(ex instanceof UnsupportedOperationException).isTrue();
+        }
+    }
+
+    @Test
+    public void executionAttributes_maintainsAllAdded() {
+        Map<ExecutionAttribute, Object> executionAttributeObjectMap = new HashMap<>();
+        for (int i = 0; i < 5; i++) {
+            executionAttributeObjectMap.put(attr("Attribute" + i), mock(Object.class));
+        }
+
+        ClientOverrideConfiguration.Builder builder = ClientOverrideConfiguration.builder();
+
+        for (Map.Entry<ExecutionAttribute, Object> attributeObjectEntry : executionAttributeObjectMap.entrySet()) {
+            builder.putExecutionAttribute(attributeObjectEntry.getKey(), attributeObjectEntry.getValue());
+        }
+
+        ClientOverrideConfiguration overrideConfig = builder.build();
+        assertThat(overrideConfig.executionAttributes().getAttributes()).isEqualTo(executionAttributeObjectMap);
+    }
+
+    @Test
+    public void executionAttributes_overwritesPreviouslyAdded() {
+        ExecutionAttributes executionAttributes = new ExecutionAttributes();
+        for (int i = 0; i < 5; i++) {
+            executionAttributes.putAttribute(attr("Attribute" + i), mock(Object.class));
+        }
+
+        ClientOverrideConfiguration.Builder builder = ClientOverrideConfiguration.builder();
+
+        builder.putExecutionAttribute(attr("AddedAttribute"), mock(Object.class));
+        builder.executionAttributes(executionAttributes);
+        ClientOverrideConfiguration overrideConfig = builder.build();
+        assertThat(overrideConfig.executionAttributes().getAttributes()).isEqualTo(executionAttributes.getAttributes());
+    }
+
+    @Test
+    public void executionAttributes_listPreviouslyAdded_appendedToList() {
+        ExecutionAttributes executionAttributes = new ExecutionAttributes();
+        for (int i = 0; i < 5; i++) {
+            executionAttributes.putAttribute(attr("Attribute" + i), mock(Object.class));
+        }
+
+        ClientOverrideConfiguration.Builder builder = ClientOverrideConfiguration.builder();
+
+        builder.executionAttributes(executionAttributes);
+        ExecutionAttribute addedAttribute = attr("AddedAttribute");
+        Object addedValue = mock(Object.class);
+
+        builder.putExecutionAttribute(addedAttribute, addedValue);
+
+        ClientOverrideConfiguration overrideConfig = builder.build();
+        assertThat(overrideConfig.executionAttributes().getAttribute(addedAttribute)).isEqualTo(addedValue);
     }
 }

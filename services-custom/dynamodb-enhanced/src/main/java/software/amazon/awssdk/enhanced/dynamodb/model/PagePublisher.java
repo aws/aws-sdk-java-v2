@@ -16,6 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.async.SdkPublisher;
 
 /**
@@ -30,7 +31,11 @@ import software.amazon.awssdk.core.async.SdkPublisher;
  * {@code
  *
  * PagePublisher<MyItem> publisher = mappedTable.scan();
- * publisher.subscribe(page -> page.items().forEach(item -> System.out.println(item)));
+ * publisher.subscribe(page -> page.items().forEach(item -> System.out.println(item)))
+ *          .exceptionally(failure -> {
+ *              failure.printStackTrace();
+ *              return null;
+ *          });
  * }
  * </pre>
  *
@@ -39,14 +44,20 @@ import software.amazon.awssdk.core.async.SdkPublisher;
  * <pre>
  * {@code
  *
- * PagePublisher<<MyItem> publisher = mappedTable.scan();
- * publisher.items().subscribe(item -> System.out.println(item));
+ * PagePublisher<MyItem> publisher = mappedTable.scan();
+ * publisher.items()
+ *          .subscribe(item -> System.out.println(item))
+ *          .exceptionally(failure -> {
+ *              failure.printStackTrace();
+ *              return null;
+ *          });
  * }
  * </pre>
  *
  * @param <T> The modelled type of the object in a page.
  */
 @SdkPublicApi
+@ThreadSafe
 public interface PagePublisher<T> extends SdkPublisher<Page<T>> {
 
     /**

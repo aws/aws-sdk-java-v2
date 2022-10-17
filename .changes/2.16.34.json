@@ -1,0 +1,30 @@
+{
+    "version": "2.16.34",
+    "date": "2021-04-02",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "zakkak",
+            "description": "Removal of `--report-unsupported-elements-at-runtime` option from SDK core's `native-image.properties` as the option is not meant to be used in production."
+        },
+        {
+            "type": "feature",
+            "category": "EC2 Image Builder",
+            "contributor": "",
+            "description": "This release adds support for Block Device Mappings for container image builds, and adds distribution configuration support for EC2 launch templates in AMI builds."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaPackage",
+            "contributor": "",
+            "description": "SPEKE v2 is an upgrade to the existing SPEKE API to support multiple encryption keys, based on an encryption contract selected by the customer."
+        }
+    ]
+}

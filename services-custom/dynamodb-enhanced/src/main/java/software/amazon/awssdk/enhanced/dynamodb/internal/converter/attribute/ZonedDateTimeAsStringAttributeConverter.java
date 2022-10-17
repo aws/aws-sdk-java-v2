@@ -43,13 +43,13 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * Examples:
  * <ul>
  *     <li>{@code Instant.EPOCH.atZone(ZoneId.of("Europe/Paris"))} is stored as
- *     an AttributeValue with the String "1970-01-01T01:00+01:00[Europe/Paris]"}</li>
+ *     an AttributeValue with the String "1970-01-01T01:00+01:00[Europe/Paris]"</li>
  *     <li>{@code OffsetDateTime.MIN.toZonedDateTime()} is stored as
- *     an AttributeValue with the String "-999999999-01-01T00:00+18:00"}</li>
+ *     an AttributeValue with the String "-999999999-01-01T00:00+18:00"</li>
  *     <li>{@code OffsetDateTime.MAX.toZonedDateTime()} is stored as
- *     an AttributeValue with the String "+999999999-12-31T23:59:59.999999999-18:00"}</li>
+ *     an AttributeValue with the String "+999999999-12-31T23:59:59.999999999-18:00"</li>
  *     <li>{@code Instant.EPOCH.atZone(ZoneOffset.UTC)} is stored as
- *     an AttributeValue with the String "1970-01-01T00:00Z"}</li>
+ *     an AttributeValue with the String "1970-01-01T00:00Z"</li>
  * </ul>
  * See {@link OffsetDateTime} for more details on the serialization format.
  * <p>

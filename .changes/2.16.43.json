@@ -1,0 +1,30 @@
+{
+    "version": "2.16.43",
+    "date": "2021-04-15",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "bugfix",
+            "category": "Amazon DynamoDB",
+            "contributor": "",
+            "description": "Fixed an issue where structure builders containing List<Map<String, Shape>> could not be marshalled using bean-based serializers."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Database Migration Service",
+            "contributor": "",
+            "description": "AWS DMS added support of TLS for Kafka endpoint. Added Describe endpoint setting API for DMS endpoints."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Security Token Service",
+            "contributor": "",
+            "description": "STS now supports assume role with Web Identity using JWT token length upto 20000 characters"
+        }
+    ]
+}

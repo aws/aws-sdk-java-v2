@@ -42,6 +42,7 @@ import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.metrics.MetricCategory;
 import software.amazon.awssdk.metrics.MetricCollection;
@@ -91,8 +92,16 @@ import software.amazon.awssdk.utils.ThreadFactoryBuilder;
  *
  * <p><b>Configuring AWS SDK clients to upload client metrics</b>
  *
- * TODO
+ * <p>
+ * Create a {@link CloudWatchMetricPublisher}, and configure it via
+ * {@link ClientOverrideConfiguration.Builder#addMetricPublisher(MetricPublisher)}
  *
+ * <pre>
+ *     CloudWatchMetricPublisher cloudWatchMetricPublisher = CloudWatchMetricPublisher.create();
+ *     S3Client s3 = S3Client.builder()
+ *                           .overrideConfiguration(o -> o.addMetricPublisher(cloudWatchMetricPublisher))
+ *                           .build();
+ * </pre>
  * <p><b>Uploading your own custom metrics</b>
  *
  * <i>Step 1: Define which metrics you wish to collect</i>

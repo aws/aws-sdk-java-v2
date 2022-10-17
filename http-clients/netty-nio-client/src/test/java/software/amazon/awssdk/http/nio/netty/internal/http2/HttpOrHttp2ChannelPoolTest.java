@@ -16,7 +16,8 @@
 package software.amazon.awssdk.http.nio.netty.internal.http2;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.CONNECTION_ACQUIRE_TIMEOUT;
@@ -39,7 +40,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.http.HttpMetric;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.nio.netty.internal.MockChannel;
@@ -241,7 +242,9 @@ public class HttpOrHttp2ChannelPoolTest {
 
     public void incompleteProtocolFutureDelaysMetricsDelegationAndForwardsSuccessForProtocol(Protocol protocol) throws Exception {
         Promise<Channel> acquirePromise = eventLoopGroup.next().newPromise();
+        Promise<Void> releasePromise = eventLoopGroup.next().newPromise();
         when(mockDelegatePool.acquire()).thenReturn(acquirePromise);
+        when(mockDelegatePool.release(any(Channel.class))).thenReturn(releasePromise);
 
         // startConnection
         httpOrHttp2ChannelPool.acquire();
@@ -258,6 +261,7 @@ public class HttpOrHttp2ChannelPoolTest {
         eventLoopGroup.register(channel);
         channel.attr(PROTOCOL_FUTURE).set(CompletableFuture.completedFuture(protocol));
         acquirePromise.setSuccess(channel);
+        releasePromise.setSuccess(null);
 
         metricsFuture.join();
         MetricCollection metrics = metricCollector.collect();
@@ -266,5 +270,32 @@ public class HttpOrHttp2ChannelPoolTest {
         assertThat(metrics.metricValues(HttpMetric.MAX_CONCURRENCY).get(0)).isEqualTo(4);
         assertThat(metrics.metricValues(HttpMetric.AVAILABLE_CONCURRENCY).get(0)).isBetween(0, 1);
         assertThat(metrics.metricValues(HttpMetric.LEASED_CONCURRENCY).get(0)).isBetween(0, 1);
+    }
+
+    @Test(timeout = 5_000)
+    public void protocolFutureAwaitsReleaseFuture() throws Exception {
+        Promise<Channel> delegateAcquirePromise = eventLoopGroup.next().newPromise();
+        Promise<Void> releasePromise = eventLoopGroup.next().newPromise();
+        when(mockDelegatePool.acquire()).thenReturn(delegateAcquirePromise);
+        when(mockDelegatePool.release(any(Channel.class))).thenReturn(releasePromise);
+
+        MockChannel channel = new MockChannel();
+        eventLoopGroup.register(channel);
+        channel.attr(PROTOCOL_FUTURE).set(CompletableFuture.completedFuture(Protocol.HTTP1_1));
+
+        // Acquire a new connection and save the returned future
+        Future<Channel> acquireFuture = httpOrHttp2ChannelPool.acquire();
+        
+        // Return a successful connection from the delegate pool
+        delegateAcquirePromise.setSuccess(channel);
+
+        // The returned future should not complete until the release completes
+        assertThat(acquireFuture.isDone()).isFalse();
+        
+        // Complete the release
+        releasePromise.setSuccess(null);
+        
+        // Assert the returned future completes (within the test timeout)
+        acquireFuture.await();
     }
 }

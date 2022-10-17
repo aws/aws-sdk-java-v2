@@ -18,6 +18,7 @@ package software.amazon.awssdk.http.nio.netty;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -26,6 +27,9 @@ import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TRUST_ALL_C
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import java.io.IOException;
+import java.util.concurrent.CompletionException;
+import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLHandshakeException;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -172,13 +176,13 @@ public class NettyClientTlsAuthTest extends ClientTlsAuthTestBase {
 
     @Test
     public void nonProxy_noKeyManagerGiven_shouldThrowException() {
-        thrown.expectCause(instanceOf(IOException.class));
-        thrown.expectMessage("The channel was closed");
-
         netty = NettyNioAsyncHttpClient.builder()
                                        .buildWithDefaults(DEFAULTS);
 
-        HttpTestUtils.sendGetRequest(mockProxy.httpsPort(), netty).join();
+        assertThatThrownBy(() -> HttpTestUtils.sendGetRequest(mockProxy.httpsPort(), netty).join())
+            .isInstanceOf(CompletionException.class)
+            .hasMessageContaining("SSL")
+            .hasRootCauseInstanceOf(SSLException.class);
     }
 
     private void sendRequest(SdkAsyncHttpClient client, SdkAsyncHttpResponseHandler responseHandler) {

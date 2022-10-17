@@ -17,7 +17,7 @@ package software.amazon.awssdk.core.pagination;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -29,7 +29,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.core.pagination.sync.PaginatedItemsIterable;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 
@@ -64,7 +64,6 @@ public class PaginatedItemsIterableTest {
 
     @Test
     public void hasNext_ReturnsFalse_WhenItemsAndPagesIteratorHasNoNextElement() {
-        when(singlePageItemsIterator.hasNext()).thenReturn(false);
         when(pagesIterator.hasNext()).thenReturn(false);
 
         assertFalse(itemsIterable.iterator().hasNext());

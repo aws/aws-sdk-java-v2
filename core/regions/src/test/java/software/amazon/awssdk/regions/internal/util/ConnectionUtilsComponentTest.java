@@ -31,7 +31,6 @@ import org.junit.After;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
-import software.amazon.awssdk.regions.internal.util.ConnectionUtils;
 
 public class ConnectionUtilsComponentTest {
 

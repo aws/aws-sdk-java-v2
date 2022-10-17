@@ -17,15 +17,14 @@ package software.amazon.awssdk.protocols.json.internal.unmarshall;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.protocols.json.ErrorCodeParser;
 import software.amazon.awssdk.protocols.json.JsonContent;
-import software.amazon.awssdk.protocols.json.internal.dom.SdkJsonNode;
+import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 
 @SdkInternalApi
 public class JsonErrorCodeParser implements ErrorCodeParser {
@@ -76,27 +75,19 @@ public class JsonErrorCodeParser implements ErrorCodeParser {
      * present in the header.
      */
     private String parseErrorCodeFromHeader(SdkHttpFullResponse response) {
-        Map<String, List<String>> filteredHeaders = response.headers().entrySet().stream()
-                                                            .filter(e -> errorCodeHeaders.stream()
-                                                                                         .anyMatch(e.getKey()::equalsIgnoreCase))
-                                                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        for (String errorCodeHeader : errorCodeHeaders) {
+            Optional<String> errorCode = response.firstMatchingHeader(errorCodeHeader);
 
-        if (filteredHeaders.isEmpty()) {
-            return null;
+            if (errorCode.isPresent()) {
+                if (X_AMZN_ERROR_TYPE.equals(errorCodeHeader)) {
+                    return parseErrorCodeFromXAmzErrorType(errorCode.get());
+                }
+
+                return errorCode.get();
+            }
         }
 
-        if (filteredHeaders.size() > 1) {
-            log.warn("Response contains multiple headers representing the error code: " + filteredHeaders.keySet());
-        }
-
-        String headerKey = filteredHeaders.keySet().stream().findFirst().get();
-        String headerValue = filteredHeaders.get(headerKey).get(0);
-
-        if (X_AMZN_ERROR_TYPE.equalsIgnoreCase(headerKey)) {
-            return parseErrorCodeFromXAmzErrorType(headerValue);
-        }
-
-        return headerValue;
+        return null;
     }
 
     private String parseErrorCodeFromXAmzErrorType(String headerValue) {
@@ -115,16 +106,16 @@ public class JsonErrorCodeParser implements ErrorCodeParser {
      * <b>"prefix#typeName"</b> Examples : "AccessDeniedException",
      * "software.amazon.awssdk.dynamodb.v20111205#ProvisionedThroughputExceededException"
      */
-    private String parseErrorCodeFromContents(SdkJsonNode jsonContents) {
+    private String parseErrorCodeFromContents(JsonNode jsonContents) {
         if (jsonContents == null) {
             return null;
         }
-        SdkJsonNode errorCodeField = jsonContents.get(errorCodeFieldName);
+        JsonNode errorCodeField = jsonContents.field(errorCodeFieldName).orElse(null);
         if (errorCodeField == null) {
             return null;
         }
-        String code = errorCodeField.asText();
-        int separator = code.lastIndexOf("#");
+        String code = errorCodeField.text();
+        int separator = code.lastIndexOf('#');
         return code.substring(separator + 1);
     }
 }

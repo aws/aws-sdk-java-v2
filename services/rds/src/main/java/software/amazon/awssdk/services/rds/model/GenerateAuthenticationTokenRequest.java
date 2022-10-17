@@ -158,31 +158,37 @@ public final class GenerateAuthenticationTokenRequest implements
             this.credentialsProvider = request.credentialsProvider;
         }
 
+        @Override
         public Builder hostname(String endpoint) {
             this.hostname = endpoint;
             return this;
         }
 
+        @Override
         public Builder port(int port) {
             this.port = port;
             return this;
         }
 
+        @Override
         public Builder username(String userName) {
             this.username = userName;
             return this;
         }
 
+        @Override
         public Builder region(Region region) {
             this.region = region;
             return this;
         }
 
+        @Override
         public Builder credentialsProvider(AwsCredentialsProvider credentialsProvider) {
             this.credentialsProvider = credentialsProvider;
             return this;
         }
 
+        @Override
         public GenerateAuthenticationTokenRequest build() {
             return new GenerateAuthenticationTokenRequest(this);
         }

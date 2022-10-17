@@ -19,12 +19,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 
+import java.time.Duration;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
+import software.amazon.awssdk.core.retry.backoff.EqualJitterBackoffStrategy;
+import software.amazon.awssdk.core.retry.backoff.FullJitterBackoffStrategy;
 import software.amazon.awssdk.core.retry.conditions.RetryCondition;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -116,5 +119,70 @@ public class RetryPolicyTest {
             default:
                 Assert.fail();
         }
+    }
+
+    @Test
+    public void legacyRetryMode_shouldUseFullJitterAndEqualJitter() {
+        RetryPolicy legacyRetryPolicy = RetryPolicy.forRetryMode(RetryMode.LEGACY);
+
+        assertThat(legacyRetryPolicy.backoffStrategy()).isInstanceOf(FullJitterBackoffStrategy.class);
+        FullJitterBackoffStrategy backoffStrategy = (FullJitterBackoffStrategy) legacyRetryPolicy.backoffStrategy();
+        assertThat(backoffStrategy.toBuilder().baseDelay()).isEqualTo(Duration.ofMillis(100));
+        assertThat(backoffStrategy.toBuilder().maxBackoffTime()).isEqualTo(Duration.ofSeconds(20));
+
+        assertThat(legacyRetryPolicy.throttlingBackoffStrategy()).isInstanceOf(EqualJitterBackoffStrategy.class);
+        EqualJitterBackoffStrategy throttlingBackoffStrategy =
+            (EqualJitterBackoffStrategy) legacyRetryPolicy.throttlingBackoffStrategy();
+        assertThat(throttlingBackoffStrategy.toBuilder().baseDelay()).isEqualTo(Duration.ofMillis(500));
+        assertThat(throttlingBackoffStrategy.toBuilder().maxBackoffTime()).isEqualTo(Duration.ofSeconds(20));
+    }
+
+    @Test
+    public void standardRetryMode_shouldUseFullJitterOnly() {
+        RetryPolicy standardRetryPolicy = RetryPolicy.forRetryMode(RetryMode.STANDARD);
+
+        assertThat(standardRetryPolicy.backoffStrategy()).isInstanceOf(FullJitterBackoffStrategy.class);
+        FullJitterBackoffStrategy backoffStrategy = (FullJitterBackoffStrategy) standardRetryPolicy.backoffStrategy();
+        assertThat(backoffStrategy.toBuilder().baseDelay()).isEqualTo(Duration.ofMillis(100));
+        assertThat(backoffStrategy.toBuilder().maxBackoffTime()).isEqualTo(Duration.ofSeconds(20));
+
+        assertThat(standardRetryPolicy.throttlingBackoffStrategy()).isInstanceOf(FullJitterBackoffStrategy.class);
+        FullJitterBackoffStrategy throttlingBackoffStrategy =
+            (FullJitterBackoffStrategy) standardRetryPolicy.throttlingBackoffStrategy();
+        assertThat(throttlingBackoffStrategy.toBuilder().baseDelay()).isEqualTo(Duration.ofSeconds(1));
+        assertThat(throttlingBackoffStrategy.toBuilder().maxBackoffTime()).isEqualTo(Duration.ofSeconds(20));
+    }
+
+    @Test
+    public void adaptiveRetryMode_shouldUseFullJitterOnly() {
+        RetryPolicy standardRetryPolicy = RetryPolicy.forRetryMode(RetryMode.ADAPTIVE);
+
+        assertThat(standardRetryPolicy.backoffStrategy()).isInstanceOf(FullJitterBackoffStrategy.class);
+        FullJitterBackoffStrategy backoffStrategy = (FullJitterBackoffStrategy) standardRetryPolicy.backoffStrategy();
+        assertThat(backoffStrategy.toBuilder().baseDelay()).isEqualTo(Duration.ofMillis(100));
+        assertThat(backoffStrategy.toBuilder().maxBackoffTime()).isEqualTo(Duration.ofSeconds(20));
+
+        assertThat(standardRetryPolicy.throttlingBackoffStrategy()).isInstanceOf(FullJitterBackoffStrategy.class);
+        FullJitterBackoffStrategy throttlingBackoffStrategy =
+            (FullJitterBackoffStrategy) standardRetryPolicy.throttlingBackoffStrategy();
+        assertThat(throttlingBackoffStrategy.toBuilder().baseDelay()).isEqualTo(Duration.ofSeconds(1));
+        assertThat(throttlingBackoffStrategy.toBuilder().maxBackoffTime()).isEqualTo(Duration.ofSeconds(20));
+    }
+
+    @Test
+    public void fastFailRateLimitingConfigured_retryModeNotAdaptive_throws() {
+        assertThatThrownBy(() -> RetryPolicy.builder(RetryMode.STANDARD).fastFailRateLimiting(true).build())
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("only valid for the ADAPTIVE retry mode");
+    }
+
+    @Test
+    public void fastFailRateLimitingConfigured_retryModeAdaptive_doesNotThrow() {
+        RetryPolicy.builder(RetryMode.ADAPTIVE).fastFailRateLimiting(true).build();
+    }
+
+    @Test
+    public void hashCodeDoesNotThrow() {
+        RetryPolicy.defaultRetryPolicy().hashCode();
     }
 }

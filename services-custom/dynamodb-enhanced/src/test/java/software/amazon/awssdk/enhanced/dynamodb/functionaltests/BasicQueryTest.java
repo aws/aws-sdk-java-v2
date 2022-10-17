@@ -28,20 +28,31 @@ import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTag
 import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.keyEqualTo;
 import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.sortBetween;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
-import software.amazon.awssdk.enhanced.dynamodb.*;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
+import software.amazon.awssdk.enhanced.dynamodb.Expression;
+import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.NestedAttributeName;
+import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.InnerAttributeRecord;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.NestedTestRecord;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
+import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
@@ -395,9 +406,8 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
         assertThat(firstRecord.getInnerAttributeRecord().getAttribOne(), is("attribOne-1"));
         assertThat(firstRecord.getInnerAttributeRecord().getAttribTwo(), is(nullValue()));
         results =
-                mappedNestedTable.query(b -> b
-                        .queryConditional(keyEqualTo(k -> k.partitionValue("id-value-1")))
-                        .addNestedAttributeToProject(NestedAttributeName.create("sort"))
+            mappedNestedTable.query(b -> b
+                .queryConditional(keyEqualTo(k -> k.partitionValue("id-value-1")))
                 .addAttributeToProject("sort")).iterator();
         assertThat(results.hasNext(), is(true));
         page = results.next();
@@ -409,18 +419,18 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
         assertThat(firstRecord.getInnerAttributeRecord(), is(nullValue()));
     }
 
-
     @Test
     public void queryNestedRecord_withAttributeNameList() {
         insertNestedRecords();
         Iterator<Page<NestedTestRecord>> results =
-                mappedNestedTable.query(b -> b
-                        .queryConditional(keyEqualTo(k -> k.partitionValue("id-value-1")))
-                        .addNestedAttributesToProject(Arrays.asList(
-                                NestedAttributeName.builder().elements("innerAttributeRecord", "attribOne").build(),
-                                NestedAttributeName.builder().addElement("outerAttribOne").build()))
+            mappedNestedTable.query(b -> b
+                .queryConditional(keyEqualTo(k -> k.partitionValue("id-value-1")))
+                .addNestedAttributesToProject(Arrays.asList(
+                    NestedAttributeName.builder().elements("innerAttributeRecord", "attribOne").build(),
+                    NestedAttributeName.builder().addElement("outerAttribOne").build()))
                 .addNestedAttributesToProject(NestedAttributeName.builder()
-                        .addElements(Arrays.asList("innerAttributeRecord","attribTwo")).build())).iterator();
+                                                                 .addElements(Arrays.asList("innerAttributeRecord",
+                                                                                            "attribTwo")).build())).iterator();
         assertThat(results.hasNext(), is(true));
         Page<NestedTestRecord> page = results.next();
         assertThat(results.hasNext(), is(false));

@@ -21,7 +21,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
@@ -43,11 +45,12 @@ import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
  *     <li>Delete items</li>
  *     <li>Use a condition check</li>
  * </ul>
- * It's populated with one or more low-level requests, such as {@link PutItemEnhancedRequest} and each low-level action request
- * is associated with with the table where the action should be applied.
- * On initialization, these requests are transformed into {@link TransactWriteItem} and stored in the request.
+ * It's populated with one or more low-level requests, such as {@link TransactPutItemEnhancedRequest} and each low-level action
+ * request is associated with the table where the action should be applied. On initialization, these requests are transformed
+ * into {@link TransactWriteItem} and stored in the request.
  */
 @SdkPublicApi
+@ThreadSafe
 public final class TransactWriteItemsEnhancedRequest {
 
     private final List<TransactWriteItem> transactWriteItems;
@@ -117,6 +120,7 @@ public final class TransactWriteItemsEnhancedRequest {
      * <p>
      * A valid builder should contain at least one low-level request such as {@link DeleteItemEnhancedRequest}.
      */
+    @NotThreadSafe
     public static final class Builder {
         private List<Supplier<TransactWriteItem>> itemSupplierList = new ArrayList<>();
 
@@ -172,8 +176,27 @@ public final class TransactWriteItemsEnhancedRequest {
          * @param request A {@link DeleteItemEnhancedRequest}
          * @param <T> the type of modelled objects in the table
          * @return a builder of this type
+         *
+         * @deprecated Use {@link #addDeleteItem(MappedTableResource, TransactDeleteItemEnhancedRequest)}
          */
+        @Deprecated
         public <T> Builder addDeleteItem(MappedTableResource<T> mappedTableResource, DeleteItemEnhancedRequest request) {
+            itemSupplierList.add(() -> generateTransactWriteItem(mappedTableResource, DeleteItemOperation.create(request)));
+            return this;
+        }
+
+        /**
+         * Adds a primary lookup key for the item to delete, and its associated table, to the transaction. For more information
+         * on the delete action, see the low-level operation description in for instance
+         * {@link DynamoDbTable#deleteItem(DeleteItemEnhancedRequest)} and how to construct the low-level request in
+         * {@link TransactDeleteItemEnhancedRequest}.
+         *
+         * @param mappedTableResource the table where the key is located
+         * @param request A {@link TransactDeleteItemEnhancedRequest}
+         * @param <T> the type of modelled objects in the table
+         * @return a builder of this type
+         */
+        public <T> Builder addDeleteItem(MappedTableResource<T> mappedTableResource, TransactDeleteItemEnhancedRequest request) {
             itemSupplierList.add(() -> generateTransactWriteItem(mappedTableResource, DeleteItemOperation.create(request)));
             return this;
         }
@@ -189,7 +212,7 @@ public final class TransactWriteItemsEnhancedRequest {
          * @return a builder of this type
          */
         public <T> Builder addDeleteItem(MappedTableResource<T> mappedTableResource, Key key) {
-            return addDeleteItem(mappedTableResource, DeleteItemEnhancedRequest.builder().key(key).build());
+            return addDeleteItem(mappedTableResource, TransactDeleteItemEnhancedRequest.builder().key(key).build());
         }
 
         /**
@@ -215,8 +238,26 @@ public final class TransactWriteItemsEnhancedRequest {
          * @param request A {@link PutItemEnhancedRequest}
          * @param <T> the type of modelled objects in the table
          * @return a builder of this type
+         *
+         * @deprecated Use {@link #addPutItem(MappedTableResource, TransactPutItemEnhancedRequest)}
          */
+        @Deprecated
         public <T> Builder addPutItem(MappedTableResource<T> mappedTableResource, PutItemEnhancedRequest<T> request) {
+            itemSupplierList.add(() -> generateTransactWriteItem(mappedTableResource, PutItemOperation.create(request)));
+            return this;
+        }
+
+        /**
+         * Adds an item to be written, and it's associated table, to the transaction. For more information on the put action,
+         * see the low-level operation description in for instance {@link DynamoDbTable#putItem(PutItemEnhancedRequest)}
+         * and how to construct the low-level request in {@link TransactPutItemEnhancedRequest}.
+         *
+         * @param mappedTableResource the table to write the item to
+         * @param request A {@link TransactPutItemEnhancedRequest}
+         * @param <T> the type of modelled objects in the table
+         * @return a builder of this type
+         */
+        public <T> Builder addPutItem(MappedTableResource<T> mappedTableResource, TransactPutItemEnhancedRequest<T> request) {
             itemSupplierList.add(() -> generateTransactWriteItem(mappedTableResource, PutItemOperation.create(request)));
             return this;
         }
@@ -234,9 +275,9 @@ public final class TransactWriteItemsEnhancedRequest {
         public <T> Builder addPutItem(MappedTableResource<T> mappedTableResource, T item) {
             return addPutItem(
                 mappedTableResource,
-                PutItemEnhancedRequest.builder(mappedTableResource.tableSchema().itemType().rawClass())
-                                      .item(item)
-                                      .build());
+                TransactPutItemEnhancedRequest.builder(mappedTableResource.tableSchema().itemType().rawClass())
+                                              .item(item)
+                                              .build());
         }
 
         /**
@@ -249,9 +290,30 @@ public final class TransactWriteItemsEnhancedRequest {
          * @param request A {@link UpdateItemEnhancedRequest}
          * @param <T> the type of modelled objects in the table
          * @return a builder of this type
+         *
+         * @deprecated Use {@link #addUpdateItem(MappedTableResource, TransactUpdateItemEnhancedRequest)}
          */
+        @Deprecated
         public <T> Builder addUpdateItem(MappedTableResource<T> mappedTableResource,
                                          UpdateItemEnhancedRequest<T> request) {
+            itemSupplierList.add(() -> generateTransactWriteItem(mappedTableResource,
+                                                                 UpdateItemOperation.create(request)));
+            return this;
+        }
+
+        /**
+         * Adds an item to be updated, and it's associated table, to the transaction. For more information on the update
+         * action, see the low-level operation description in for instance
+         * {@link DynamoDbTable#updateItem(UpdateItemEnhancedRequest)} and how to construct the low-level request in
+         * {@link TransactUpdateItemEnhancedRequest}.
+         *
+         * @param mappedTableResource the table to write the item to
+         * @param request A {@link UpdateItemEnhancedRequest}
+         * @param <T> the type of modelled objects in the table
+         * @return a builder of this type
+         */
+        public <T> Builder addUpdateItem(MappedTableResource<T> mappedTableResource,
+                                         TransactUpdateItemEnhancedRequest<T> request) {
             itemSupplierList.add(() -> generateTransactWriteItem(mappedTableResource,
                                                                  UpdateItemOperation.create(request)));
             return this;
@@ -270,9 +332,9 @@ public final class TransactWriteItemsEnhancedRequest {
         public <T> Builder addUpdateItem(MappedTableResource<T> mappedTableResource, T item) {
             return addUpdateItem(
                 mappedTableResource,
-                UpdateItemEnhancedRequest.builder(mappedTableResource.tableSchema().itemType().rawClass())
-                                         .item(item)
-                                         .build());
+                TransactUpdateItemEnhancedRequest.builder(mappedTableResource.tableSchema().itemType().rawClass())
+                                                 .item(item)
+                                                 .build());
         }
 
         /**

@@ -16,8 +16,8 @@
 package software.amazon.awssdk.regions.providers;
 
 import java.util.function.Supplier;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 public class LazyAwsRegionProviderTest {
@@ -26,7 +26,7 @@ public class LazyAwsRegionProviderTest {
 
     private AwsRegionProvider regionProvider = Mockito.mock(AwsRegionProvider.class);
 
-    @Before
+    @BeforeEach
     public void reset() {
         Mockito.reset(regionProvider, regionProviderConstructor);
         Mockito.when(regionProviderConstructor.get()).thenReturn(regionProvider);
@@ -35,7 +35,7 @@ public class LazyAwsRegionProviderTest {
     @Test
     public void creationDoesntInvokeSupplier() {
         new LazyAwsRegionProvider(regionProviderConstructor);
-        Mockito.verifyZeroInteractions(regionProviderConstructor);
+        Mockito.verifyNoMoreInteractions(regionProviderConstructor);
     }
 
     @Test

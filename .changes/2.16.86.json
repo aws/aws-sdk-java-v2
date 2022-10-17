@@ -1,0 +1,30 @@
+{
+    "version": "2.16.86",
+    "date": "2021-06-16",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Key Management Service",
+            "contributor": "",
+            "description": "Adds support for multi-Region keys"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "This release adds support for VLAN-tagged network traffic over an Elastic Network Interface (ENI). This feature is in limited Preview for this release. Contact your account manager if you are interested in this feature."
+        },
+        {
+            "type": "feature",
+            "category": "AWS MediaTailor",
+            "contributor": "",
+            "description": "Adds AWS Secrets Manager Access Token Authentication for Source Locations"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "This release enables fast cloning in Aurora Serverless. You can now clone between Aurora Serverless clusters and Aurora Provisioned clusters."
+        }
+    ]
+}

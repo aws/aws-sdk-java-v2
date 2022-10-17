@@ -54,7 +54,7 @@ public final class ExecutionContext implements ToCopyableBuilder<ExecutionContex
     }
 
     //TODO: We should switch to fully immutable execution contexts. Currently, we mutate it for the interceptor
-    //context, credential providers, etc
+    // context, credential providers, etc
     public ExecutionContext interceptorContext(InterceptorContext interceptorContext) {
         this.interceptorContext = interceptorContext;
         return this;
@@ -91,11 +91,12 @@ public final class ExecutionContext implements ToCopyableBuilder<ExecutionContex
         private Builder() {
         }
 
-        public Builder(ExecutionContext executionContext) {
+        private Builder(ExecutionContext executionContext) {
             this.signer = executionContext.signer;
             this.interceptorContext = executionContext.interceptorContext;
             this.interceptorChain = executionContext.interceptorChain;
             this.executionAttributes = executionContext.executionAttributes;
+            this.metricCollector = executionContext.metricCollector;
         }
 
         public Builder interceptorContext(InterceptorContext interceptorContext) {
@@ -123,6 +124,7 @@ public final class ExecutionContext implements ToCopyableBuilder<ExecutionContex
             return this;
         }
 
+        @Override
         public ExecutionContext build() {
             return new ExecutionContext(this);
         }

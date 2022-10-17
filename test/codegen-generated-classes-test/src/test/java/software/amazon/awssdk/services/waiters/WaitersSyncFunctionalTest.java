@@ -17,15 +17,15 @@ package software.amazon.awssdk.services.waiters;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
@@ -45,7 +45,7 @@ public class WaitersSyncFunctionalTest {
     private RestJsonWithWaitersClient client;
     private RestJsonWithWaitersWaiter waiter;
 
-    @Before
+    @BeforeEach
     public void setup() {
         client = mock(RestJsonWithWaitersClient.class);
         waiter = RestJsonWithWaitersWaiter.builder()
@@ -57,7 +57,7 @@ public class WaitersSyncFunctionalTest {
                                           .build();
     }
 
-    @After
+    @AfterEach
     public void cleanup() {
         client.close();
         waiter.close();

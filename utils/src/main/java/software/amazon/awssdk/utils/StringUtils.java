@@ -591,32 +591,169 @@ public final class StringUtils {
     }
 
     /**
-     * Replace the prefix of the string provided ignoring case considerations.
+     * <p>Replaces a String with another String inside a larger String, once.</p>
      *
-     * <p>
-     * The unmatched part is unchanged.
+     * <p>A {@code null} reference passed to this method is a no-op.</p>
      *
+     * <pre>
+     * StringUtils.replaceOnce(null, *, *)        = null
+     * StringUtils.replaceOnce("", *, *)          = ""
+     * StringUtils.replaceOnce("any", null, *)    = "any"
+     * StringUtils.replaceOnce("any", *, null)    = "any"
+     * StringUtils.replaceOnce("any", "", *)      = "any"
+     * StringUtils.replaceOnce("aba", "a", null)  = "aba"
+     * StringUtils.replaceOnce("aba", "a", "")    = "ba"
+     * StringUtils.replaceOnce("aba", "a", "z")   = "zba"
+     * </pre>
      *
-     * @param str the string to replace
-     * @param prefix the prefix to find
-     * @param replacement the replacement
-     * @return the replaced string
+     * @see #replace(String text, String searchString, String replacement, int max)
+     * @param text  text to search and replace in, may be null
+     * @param searchString  the String to search for, may be null
+     * @param replacement  the String to replace with, may be null
+     * @return the text with any replacements processed,
+     *  {@code null} if null String input
      */
-    public static String replacePrefixIgnoreCase(String str, String prefix, String replacement) {
-        return str.replaceFirst("(?i)" + prefix, replacement);
+    public static String replaceOnce(String text, String searchString, String replacement) {
+        return replace(text, searchString, replacement, 1);
     }
 
+    /**
+     * <p>Replaces a String with another String inside a larger String,
+     * for the first {@code max} values of the search String,
+     * case sensitively/insensitively based on {@code ignoreCase} value.</p>
+     *
+     * <p>A {@code null} reference passed to this method is a no-op.</p>
+     *
+     * <pre>
+     * StringUtils.replace(null, *, *, *, false)         = null
+     * StringUtils.replace("", *, *, *, false)           = ""
+     * StringUtils.replace("any", null, *, *, false)     = "any"
+     * StringUtils.replace("any", *, null, *, false)     = "any"
+     * StringUtils.replace("any", "", *, *, false)       = "any"
+     * StringUtils.replace("any", *, *, 0, false)        = "any"
+     * StringUtils.replace("abaa", "a", null, -1, false) = "abaa"
+     * StringUtils.replace("abaa", "a", "", -1, false)   = "b"
+     * StringUtils.replace("abaa", "a", "z", 0, false)   = "abaa"
+     * StringUtils.replace("abaa", "A", "z", 1, false)   = "abaa"
+     * StringUtils.replace("abaa", "A", "z", 1, true)   = "zbaa"
+     * StringUtils.replace("abAa", "a", "z", 2, true)   = "zbza"
+     * StringUtils.replace("abAa", "a", "z", -1, true)  = "zbzz"
+     * </pre>
+     *
+     * @param text  text to search and replace in, may be null
+     * @param searchString  the String to search for (case insensitive), may be null
+     * @param replacement  the String to replace it with, may be null
+     * @return the text with any replacements processed,
+     *  {@code null} if null String input
+     */
+    public static String replace(String text, String searchString, String replacement) {
+        return replace(text, searchString, replacement, -1);
+    }
 
-    public static String replaceEach(final String text, final String[] searchList, final String[] replacementList) {
+    /**
+     * <p>Replaces a String with another String inside a larger String,
+     * for the first {@code max} values of the search String,
+     * case sensitively/insensitively based on {@code ignoreCase} value.</p>
+     *
+     * <p>A {@code null} reference passed to this method is a no-op.</p>
+     *
+     * <pre>
+     * StringUtils.replace(null, *, *, *, false)         = null
+     * StringUtils.replace("", *, *, *, false)           = ""
+     * StringUtils.replace("any", null, *, *, false)     = "any"
+     * StringUtils.replace("any", *, null, *, false)     = "any"
+     * StringUtils.replace("any", "", *, *, false)       = "any"
+     * StringUtils.replace("any", *, *, 0, false)        = "any"
+     * StringUtils.replace("abaa", "a", null, -1, false) = "abaa"
+     * StringUtils.replace("abaa", "a", "", -1, false)   = "b"
+     * StringUtils.replace("abaa", "a", "z", 0, false)   = "abaa"
+     * StringUtils.replace("abaa", "A", "z", 1, false)   = "abaa"
+     * StringUtils.replace("abaa", "A", "z", 1, true)   = "zbaa"
+     * StringUtils.replace("abAa", "a", "z", 2, true)   = "zbza"
+     * StringUtils.replace("abAa", "a", "z", -1, true)  = "zbzz"
+     * </pre>
+     *
+     * @param text  text to search and replace in, may be null
+     * @param searchString  the String to search for (case insensitive), may be null
+     * @param replacement  the String to replace it with, may be null
+     * @param max  maximum number of values to replace, or {@code -1} if no maximum
+     * @return the text with any replacements processed,
+     *  {@code null} if null String input
+     */
+    private static String replace(String text, String searchString, String replacement, int max) {
+        if (isEmpty(text) || isEmpty(searchString) || replacement == null || max == 0) {
+            return text;
+        }
+        int start = 0;
+        int end = indexOf(text, searchString, start);
+        if (end == -1) {
+            return text;
+        }
+        int replLength = searchString.length();
+        int increase = Math.max(replacement.length() - replLength, 0);
+        increase *= max < 0 ? 16 : Math.min(max, 64);
+        StringBuilder buf = new StringBuilder(text.length() + increase);
+        while (end != -1) {
+            buf.append(text, start, end).append(replacement);
+            start = end + replLength;
+            if (--max == 0) {
+                break;
+            }
+            end = indexOf(text, searchString, start);
+        }
+        buf.append(text, start, text.length());
+        return buf.toString();
+    }
+
+    /**
+     * <p>
+     * Replaces all occurrences of Strings within another String.
+     * </p>
+     *
+     * <p>
+     * A {@code null} reference passed to this method is a no-op, or if
+     * any "search string" or "string to replace" is null, that replace will be
+     * ignored. This will not repeat. For repeating replaces, call the
+     * overloaded method.
+     * </p>
+     *
+     * <pre>
+     *  StringUtils.replaceEach(null, *, *)        = null
+     *  StringUtils.replaceEach("", *, *)          = ""
+     *  StringUtils.replaceEach("aba", null, null) = "aba"
+     *  StringUtils.replaceEach("aba", new String[0], null) = "aba"
+     *  StringUtils.replaceEach("aba", null, new String[0]) = "aba"
+     *  StringUtils.replaceEach("aba", new String[]{"a"}, null)  = "aba"
+     *  StringUtils.replaceEach("aba", new String[]{"a"}, new String[]{""})  = "b"
+     *  StringUtils.replaceEach("aba", new String[]{null}, new String[]{"a"})  = "aba"
+     *  StringUtils.replaceEach("abcde", new String[]{"ab", "d"}, new String[]{"w", "t"})  = "wcte"
+     *  (example of how it does not repeat)
+     *  StringUtils.replaceEach("abcde", new String[]{"ab", "d"}, new String[]{"d", "t"})  = "dcte"
+     * </pre>
+     *
+     * @param text
+     *            text to search and replace in, no-op if null
+     * @param searchList
+     *            the Strings to search for, no-op if null
+     * @param replacementList
+     *            the Strings to replace them with, no-op if null
+     * @return the text with any replacements processed, {@code null} if
+     *         null String input
+     * @throws IllegalArgumentException
+     *             if the lengths of the arrays are not the same (null is ok,
+     *             and/or size 0)
+     * @since 2.4
+     */
+    public static String replaceEach(String text, String[] searchList, String[] replacementList) {
         // mchyzer Performance note: This creates very few new objects (one major goal)
         // let me know if there are performance requests, we can create a harness to measure
 
-        int searchLength = searchList.length;
-        int replacementLength = replacementList.length;
-
-        if (isEmpty(text) || (searchLength == 0 && replacementLength == 0)) {
+        if (isEmpty(text)) {
             return text;
         }
+
+        int searchLength = searchList.length;
+        int replacementLength = replacementList.length;
 
         // make sure lengths are ok, these need to be equal
         if (searchLength != replacementLength) {
@@ -632,7 +769,7 @@ public final class StringUtils {
         // index on index that the match was found
         int textIndex = -1;
         int replaceIndex = -1;
-        int tempIndex = -1;
+        int tempIndex;
 
         // index of replace array that will replace the search string found
         // NOTE: logic duplicated below START
@@ -645,11 +782,9 @@ public final class StringUtils {
             // see if we need to keep searching for this
             if (tempIndex == -1) {
                 noMoreMatchesForReplIndex[i] = true;
-            } else {
-                if (textIndex == -1 || tempIndex < textIndex) {
-                    textIndex = tempIndex;
-                    replaceIndex = i;
-                }
+            } else if (textIndex == -1 || tempIndex < textIndex) {
+                textIndex = tempIndex;
+                replaceIndex = i;
             }
         }
         // NOTE: logic mostly below END
@@ -690,7 +825,6 @@ public final class StringUtils {
 
             textIndex = -1;
             replaceIndex = -1;
-            tempIndex = -1;
             // find the next earliest match
             // NOTE: logic mostly duplicated above START
             for (int i = 0; i < searchLength; i++) {
@@ -703,23 +837,68 @@ public final class StringUtils {
                 // see if we need to keep searching for this
                 if (tempIndex == -1) {
                     noMoreMatchesForReplIndex[i] = true;
-                } else {
-                    if (textIndex == -1 || tempIndex < textIndex) {
-                        textIndex = tempIndex;
-                        replaceIndex = i;
-                    }
+                } else if (textIndex == -1 || tempIndex < textIndex) {
+                    textIndex = tempIndex;
+                    replaceIndex = i;
                 }
             }
             // NOTE: logic duplicated above END
 
         }
-
         int textLength = text.length();
         for (int i = start; i < textLength; i++) {
             buf.append(text.charAt(i));
         }
         return buf.toString();
     }
+
+    /**
+     * <p>Finds the first index within a CharSequence, handling {@code null}.
+     * This method uses {@link String#indexOf(String, int)} if possible.</p>
+     *
+     * <p>A {@code null} CharSequence will return {@code -1}.</p>
+     *
+     * <pre>
+     * StringUtils.indexOf(null, *)          = -1
+     * StringUtils.indexOf(*, null)          = -1
+     * StringUtils.indexOf("", "")           = 0
+     * StringUtils.indexOf("", *)            = -1 (except when * = "")
+     * StringUtils.indexOf("aabaabaa", "a")  = 0
+     * StringUtils.indexOf("aabaabaa", "b")  = 2
+     * StringUtils.indexOf("aabaabaa", "ab") = 1
+     * StringUtils.indexOf("aabaabaa", "")   = 0
+     * </pre>
+     *
+     * @param seq  the CharSequence to check, may be null
+     * @param searchSeq  the CharSequence to find, may be null
+     * @return the first index of the search CharSequence,
+     *  -1 if no match or {@code null} string input
+     * @since 2.0
+     * @since 3.0 Changed signature from indexOf(String, String) to indexOf(CharSequence, CharSequence)
+     */
+    private static int indexOf(String seq, String searchSeq, int start) {
+        if (seq == null || searchSeq == null) {
+            return -1;
+        }
+        return seq.indexOf(searchSeq, start);
+    }
+
+    /**
+     * Replace the prefix of the string provided ignoring case considerations.
+     *
+     * <p>
+     * The unmatched part is unchanged.
+     *
+     *
+     * @param str the string to replace
+     * @param prefix the prefix to find
+     * @param replacement the replacement
+     * @return the replaced string
+     */
+    public static String replacePrefixIgnoreCase(String str, String prefix, String replacement) {
+        return str.replaceFirst("(?i)" + prefix, replacement);
+    }
+
 
     /**
      * Searches a string for the first occurrence of a character specified by a list of characters.
@@ -752,5 +931,44 @@ public final class StringUtils {
         }
 
         throw new IllegalArgumentException("Value was defined as '" + value + "', but should be 'false' or 'true'");
+    }
+    
+    /**
+     * Returns a string whose value is the concatenation of this string repeated {@code count} times.
+     * <p>
+     * If this string is empty or count is zero then the empty string is returned.
+     * <p>
+     * Logical clone of JDK11's {@link String#repeat(int)}.
+     *
+     * @param value the string to repeat
+     * @param count number of times to repeat
+     * @return A string composed of this string repeated {@code count} times or the empty string if this string is empty or count
+     * is zero
+     * @throws IllegalArgumentException if the {@code count} is negative.
+     */
+    public static String repeat(String value, int count) {
+        if (count < 0) {
+            throw new IllegalArgumentException("count is negative: " + count);
+        }
+        if (value == null || value.length() == 0 || count == 1) {
+            return value;
+        }
+        if (count == 0) {
+            return "";
+        }
+        if (value.length() > Integer.MAX_VALUE / count) {
+            throw new OutOfMemoryError("Repeating " + value.length() + " bytes String " + count +
+                                       " times will produce a String exceeding maximum size.");
+        }
+        int len = value.length();
+        int limit = len * count;
+        char[] array = new char[limit];
+        value.getChars(0, len, array, 0);
+        int copied;
+        for (copied = len; copied < limit - copied; copied <<= 1) {
+            System.arraycopy(array, 0, array, copied, copied);
+        }
+        System.arraycopy(array, 0, array, copied, limit - copied);
+        return new String(array);
     }
 }

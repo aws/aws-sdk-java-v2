@@ -1,0 +1,48 @@
+{
+    "version": "2.17.207",
+    "date": "2022-06-08",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Database Migration Service",
+            "contributor": "",
+            "description": "This release adds DMS Fleet Advisor APIs and exposes functionality for DMS Fleet Advisor. It adds functionality to create and modify fleet advisor instances, and to collect and analyze information about the local data infrastructure."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Identity and Access Management",
+            "contributor": "",
+            "description": "Documentation updates for AWS Identity and Access Management (IAM)."
+        },
+        {
+            "type": "feature",
+            "category": "AWSMainframeModernization",
+            "contributor": "",
+            "description": "AWS Mainframe Modernization service is a managed mainframe service and set of tools for planning, migrating, modernizing, and running mainframe workloads on AWS"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Neptune",
+            "contributor": "",
+            "description": "This release adds support for Neptune to be configured as a global database, with a primary DB cluster in one region, and up to five secondary DB clusters in other regions."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Redshift",
+            "contributor": "",
+            "description": "Adds new API GetClusterCredentialsWithIAM to return temporary credentials."
+        },
+        {
+            "type": "removal",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Remove the `netty-reactive-streams-http` depdendency. It is unused after [#1629](https://github.com/aws/aws-sdk-java-v2/issues/1629), and we have no plans to use the upstream version in the future."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}

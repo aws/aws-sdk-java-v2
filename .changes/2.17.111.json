@@ -1,0 +1,60 @@
+{
+    "version": "2.17.111",
+    "date": "2022-01-13",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Lex Runtime V2",
+            "contributor": "",
+            "description": "This release adds support for sending hints to Amazon Lex V2 runtime APIs. Bot developers can provide runtime hints to help improve the recognition of slot values."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon ElastiCache",
+            "contributor": "",
+            "description": "AWS ElastiCache for Redis has added a new Engine Log LogType in LogDelivery feature. You can now publish the Engine Log from your Amazon ElastiCache for Redis clusters to Amazon CloudWatch Logs and Amazon Kinesis Data Firehose."
+        },
+        {
+            "type": "bugfix",
+            "category": "Amazon S3",
+            "contributor": "",
+            "description": "Retry on InternalError error code, which fixes an issue where 200s followed by a failure were not retried."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "contributor": "",
+            "description": "AWS Systems Manager adds category support for DescribeDocument API"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "contributor": "",
+            "description": "This SDK release adds support to pass run properties when starting a workflow run"
+        },
+        {
+            "type": "feature",
+            "category": "AmazonNimbleStudio",
+            "contributor": "",
+            "description": "Amazon Nimble Studio now supports validation for Launch Profiles. Launch Profiles now report static validation results after create/update to detect errors in network or active directory configuration."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Pinpoint",
+            "contributor": "",
+            "description": "Adds JourneyChannelSettings to WriteJourneyRequest"
+        },
+        {
+            "type": "bugfix",
+            "category": "Apache HTTP Client",
+            "contributor": "",
+            "description": "Do not reuse connections that receive a 5xx service response."
+        }
+    ]
+}

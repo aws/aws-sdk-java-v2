@@ -38,7 +38,7 @@ import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.service.HostPrefixProcessor;
-import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.core.ApiName;
 import software.amazon.awssdk.core.signer.Signer;
@@ -64,6 +64,7 @@ final class ClientClassUtils {
         MethodSpec.Builder result = MethodSpec.methodBuilder(spec.name)
                                               .returns(spec.returnType)
                                               .addExceptions(spec.exceptions)
+                                              .addAnnotations(spec.annotations)
                                               .addJavadoc(javadoc)
                                               .addModifiers(Modifier.PUBLIC, Modifier.DEFAULT)
                                               .addTypeVariables(spec.typeVariables)
@@ -84,7 +85,7 @@ final class ClientClassUtils {
         return result.build();
     }
 
-    static MethodSpec applyPaginatorUserAgentMethod(PoetExtensions poetExtensions, IntermediateModel model) {
+    static MethodSpec applyPaginatorUserAgentMethod(PoetExtension poetExtensions, IntermediateModel model) {
 
         TypeVariableName typeVariableName =
             TypeVariableName.get("T", poetExtensions.getModelClass(model.getSdkRequestBaseClassName()));
@@ -118,7 +119,7 @@ final class ClientClassUtils {
                          .build();
     }
 
-    static MethodSpec applySignerOverrideMethod(PoetExtensions poetExtensions, IntermediateModel model) {
+    static MethodSpec applySignerOverrideMethod(PoetExtension poetExtensions, IntermediateModel model) {
         String signerOverrideVariable = "signerOverride";
 
         TypeVariableName typeVariableName =

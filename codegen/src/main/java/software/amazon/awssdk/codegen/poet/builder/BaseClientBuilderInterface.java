@@ -24,10 +24,15 @@ import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 import java.util.function.Consumer;
 import javax.lang.model.element.Modifier;
+import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
+import software.amazon.awssdk.auth.token.credentials.aws.DefaultAwsTokenProvider;
+import software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.codegen.utils.BearerAuthUtils;
+import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 
 
 public class BaseClientBuilderInterface implements ClassSpec {
@@ -57,9 +62,13 @@ public class BaseClientBuilderInterface implements ClassSpec {
             builder.addMethod(endpointDiscovery());
         }
 
-        if (model.getCustomizationConfig().getServiceSpecificClientConfigClass() != null) {
+        if (model.getCustomizationConfig().getServiceConfig().getClassName() != null) {
             builder.addMethod(serviceConfigurationMethod());
             builder.addMethod(serviceConfigurationConsumerBuilderMethod());
+        }
+
+        if (generateTokenProviderMethod()) {
+            builder.addMethod(tokenProviderMethod());
         }
 
         return builder.build();
@@ -91,7 +100,7 @@ public class BaseClientBuilderInterface implements ClassSpec {
 
     private MethodSpec serviceConfigurationMethod() {
         ClassName serviceConfiguration = ClassName.get(basePackage,
-                                                        model.getCustomizationConfig().getServiceSpecificClientConfigClass());
+                                                        model.getCustomizationConfig().getServiceConfig().getClassName());
         return MethodSpec.methodBuilder("serviceConfiguration")
                          .addModifiers(Modifier.ABSTRACT, Modifier.PUBLIC)
                          .returns(TypeVariableName.get("B"))
@@ -101,7 +110,7 @@ public class BaseClientBuilderInterface implements ClassSpec {
 
     private MethodSpec serviceConfigurationConsumerBuilderMethod() {
         ClassName serviceConfiguration = ClassName.get(basePackage,
-                                                        model.getCustomizationConfig().getServiceSpecificClientConfigClass());
+                                                        model.getCustomizationConfig().getServiceConfig().getClassName());
         TypeName consumerBuilder = ParameterizedTypeName.get(ClassName.get(Consumer.class),
                                                              serviceConfiguration.nestedClass("Builder"));
         return MethodSpec.methodBuilder("serviceConfiguration")
@@ -110,6 +119,29 @@ public class BaseClientBuilderInterface implements ClassSpec {
                          .addParameter(consumerBuilder, "serviceConfiguration")
                          .addStatement("return serviceConfiguration($T.builder().applyMutation(serviceConfiguration).build())",
                                        serviceConfiguration)
+                         .build();
+    }
+
+    private boolean generateTokenProviderMethod() {
+        return BearerAuthUtils.usesBearerAuth(model);
+    }
+
+    private MethodSpec tokenProviderMethod() {
+        return MethodSpec.methodBuilder("tokenProvider")
+                         .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                         .returns(TypeVariableName.get("B"))
+                         .addParameter(SdkTokenProvider.class, "tokenProvider")
+                         .addJavadoc("Set the token provider to use for bearer token authorization. This is optional, if none "
+                                     + "is provided, the SDK will use {@link $T}.\n"
+                                     + "<p>\n"
+                                     + "If the service, or any of its operations require Bearer Token Authorization, then the "
+                                     + "SDK will default to this token provider to retrieve the token to use for authorization.\n"
+                                     + "<p>\n"
+                                     + "This provider works in conjunction with the {@code $T.TOKEN_SIGNER} set on the client. "
+                                     + "By default it is {@link $T}.",
+                                     DefaultAwsTokenProvider.class,
+                                     SdkAdvancedClientOption.class,
+                                     BearerTokenSigner.class)
                          .build();
     }
 

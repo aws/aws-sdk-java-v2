@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.client.handler;
 import java.net.URI;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
@@ -47,9 +48,11 @@ public final class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
     private HttpResponseHandler<? extends SdkException> errorResponseHandler;
     private HttpResponseHandler<Response<OutputT>> combinedResponseHandler;
     private boolean fullDuplex;
+    private boolean hasInitialRequestEvent;
     private String hostPrefixExpression;
     private String operationName;
     private URI discoveredEndpoint;
+    private CredentialType credentialType;
     private MetricCollector metricCollector;
     private final ExecutionAttributes attributes = new ExecutionAttributes();
 
@@ -138,6 +141,18 @@ public final class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
         return this;
     }
 
+    public boolean hasInitialRequestEvent() {
+        return hasInitialRequestEvent;
+    }
+
+    /**
+     * Sets whether this is an event streaming request over RPC.
+     */
+    public ClientExecutionParams<InputT, OutputT> withInitialRequestEvent(boolean hasInitialRequestEvent) {
+        this.hasInitialRequestEvent = hasInitialRequestEvent;
+        return this;
+    }
+
     public String getOperationName() {
         return operationName;
     }
@@ -169,6 +184,15 @@ public final class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
 
     public ClientExecutionParams<InputT, OutputT> discoveredEndpoint(URI discoveredEndpoint) {
         this.discoveredEndpoint = discoveredEndpoint;
+        return this;
+    }
+
+    public CredentialType credentialType() {
+        return credentialType;
+    }
+
+    public ClientExecutionParams<InputT, OutputT> credentialType(CredentialType credentialType) {
+        this.credentialType = credentialType;
         return this;
     }
 

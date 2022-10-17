@@ -17,6 +17,7 @@ package software.amazon.awssdk.enhanced.dynamodb.model;
 
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
@@ -38,6 +39,7 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.conditional.SingleKeyIt
  * </pre>
  */
 @SdkPublicApi
+@ThreadSafe
 public interface QueryConditional {
     /**
      * Creates a {@link QueryConditional} that matches when the key of an index is equal to a specific value.

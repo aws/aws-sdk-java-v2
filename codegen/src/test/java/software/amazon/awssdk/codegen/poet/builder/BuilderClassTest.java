@@ -19,7 +19,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static software.amazon.awssdk.codegen.poet.PoetMatchers.generatesTo;
 
 import java.util.function.Function;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.ClientTestModels;
@@ -36,6 +36,21 @@ public class BuilderClassTest {
     @Test
     public void baseClientBuilderClass() throws Exception {
         validateGeneration(BaseClientBuilderClass::new, "test-client-builder-class.java");
+    }
+
+    @Test
+    public void baseClientBuilderInterfaceWithBearerAuthClass() throws Exception {
+        validateBearerAuthGeneration(BaseClientBuilderInterface::new, "test-bearer-auth-client-builder-interface.java");
+    }
+
+    @Test
+    public void baseClientBuilderWithBearerAuthClass() throws Exception {
+        validateBearerAuthGeneration(BaseClientBuilderClass::new, "test-bearer-auth-client-builder-class.java");
+    }
+
+    @Test
+    public void baseClientBuilderClassWithInternalUserAgent() throws Exception {
+        assertThat(new BaseClientBuilderClass(ClientTestModels.internalConfigModels()), generatesTo("test-client-builder-internal-defaults-class.java"));
     }
 
     @Test
@@ -64,7 +79,12 @@ public class BuilderClassTest {
     }
 
     private void validateGeneration(Function<IntermediateModel, ClassSpec> generatorConstructor, String expectedClassName) {
-        assertThat(generatorConstructor.apply(ClientTestModels.jsonServiceModels()), generatesTo(expectedClassName));
+        assertThat(generatorConstructor.apply(ClientTestModels.restJsonServiceModels()), generatesTo(expectedClassName));
+    }
+
+    private void validateBearerAuthGeneration(Function<IntermediateModel, ClassSpec> generatorConstructor,
+                                           String expectedClassName) {
+        assertThat(generatorConstructor.apply(ClientTestModels.bearerAuthServiceModels()), generatesTo(expectedClassName));
     }
 
     private void validateQueryGeneration(Function<IntermediateModel, ClassSpec> generatorConstructor, String expectedClassName) {

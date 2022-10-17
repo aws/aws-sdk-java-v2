@@ -43,6 +43,8 @@ public class XmlPayloadMarshaller {
 
     public static final XmlMarshaller<Long> LONG = new BasePayloadMarshaller<>(ValueToStringConverter.FROM_LONG);
 
+    public static final XmlMarshaller<Short> SHORT = new BasePayloadMarshaller<>(ValueToStringConverter.FROM_SHORT);
+
     public static final XmlMarshaller<Float> FLOAT = new BasePayloadMarshaller<>(ValueToStringConverter.FROM_FLOAT);
 
     public static final XmlMarshaller<Double> DOUBLE = new BasePayloadMarshaller<>(ValueToStringConverter.FROM_DOUBLE);
@@ -79,9 +81,7 @@ public class XmlPayloadMarshaller {
         @Override
         public void marshall(List<?> list, XmlMarshallerContext context, String paramName,
                              SdkField<List<?>> sdkField, ValueToStringConverter.ValueToString<List<?>> converter) {
-            ListTrait listTrait = sdkField
-                .getOptionalTrait(ListTrait.class)
-                .orElseThrow(() -> new IllegalStateException(paramName + " member is missing ListTrait"));
+            ListTrait listTrait = sdkField.getRequiredTrait(ListTrait.class);
 
             if (!listTrait.isFlattened()) {
                 context.xmlGenerator().startElement(paramName);
@@ -123,8 +123,7 @@ public class XmlPayloadMarshaller {
         public void marshall(Map<String, ?> map, XmlMarshallerContext context, String paramName,
                              SdkField<Map<String, ?>> sdkField, ValueToStringConverter.ValueToString<Map<String, ?>> converter) {
 
-            MapTrait mapTrait = sdkField.getOptionalTrait(MapTrait.class)
-                                        .orElseThrow(() -> new IllegalStateException(paramName + " member is missing MapTrait"));
+            MapTrait mapTrait = sdkField.getRequiredTrait(MapTrait.class);
 
             for (Map.Entry<String, ?> entry : map.entrySet()) {
                 context.xmlGenerator().startElement("entry");

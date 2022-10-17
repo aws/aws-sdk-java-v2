@@ -19,7 +19,6 @@ import static org.hamcrest.Matchers.lessThan;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
-import org.apache.log4j.BasicConfigurator;
 import org.junit.Test;
 import software.amazon.awssdk.core.SdkGlobalTime;
 import software.amazon.awssdk.services.sqs.model.ListQueuesRequest;
@@ -36,7 +35,6 @@ public class SqsIntegrationTest extends IntegrationTestBase {
      */
     @Test
     public void clockSkewFailure_CorrectsGlobalTimeOffset() throws Exception {
-        BasicConfigurator.configure();
         final int originalOffset = SdkGlobalTime.getGlobalTimeOffset();
         final int skew = 3600;
 

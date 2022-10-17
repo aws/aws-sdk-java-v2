@@ -17,7 +17,9 @@ package software.amazon.awssdk.enhanced.dynamodb.mapper;
 
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 
 /**
  * Interface for a tag that can be applied to any {@link StaticAttribute}. When a tagged attribute is added to a
@@ -29,6 +31,7 @@ import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
  * {@link StaticAttributeTags}.
  */
 @SdkPublicApi
+@ThreadSafe
 public interface StaticAttributeTag {
     /**
      * A function that modifies an existing {@link StaticTableSchema.Builder} when this tag is applied to a specific
@@ -43,4 +46,16 @@ public interface StaticAttributeTag {
      */
     Consumer<StaticTableMetadata.Builder> modifyMetadata(String attributeName,
                                                          AttributeValueType attributeValueType);
+
+    /**
+     * Function that validates the Converted return type is suitable for the extension.
+     * @param <R> the class that the value of this attribute converts to.
+     * @param attributeName The name of the attribute this tag has been applied to.
+     * @param enhancedType The type of the object to be converted
+     * @param attributeValueType Attribute Value type of the attribute.
+     */
+    default <R> void validateType(String attributeName, EnhancedType<R> enhancedType,
+                                  AttributeValueType attributeValueType) {
+    }
+
 }

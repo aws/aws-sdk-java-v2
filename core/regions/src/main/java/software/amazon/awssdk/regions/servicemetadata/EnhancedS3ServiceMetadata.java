@@ -24,7 +24,9 @@ import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.regions.ServiceEndpointKey;
 import software.amazon.awssdk.regions.ServiceMetadata;
+import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
 import software.amazon.awssdk.regions.ServiceMetadataConfiguration;
 import software.amazon.awssdk.regions.ServicePartitionMetadata;
 import software.amazon.awssdk.utils.Lazy;
@@ -53,21 +55,21 @@ public final class EnhancedS3ServiceMetadata implements ServiceMetadata {
         Supplier<String> profileName = config.profileName() != null ? () -> config.profileName()
                                                                     : ProfileFileSystemSetting.AWS_PROFILE::getStringValueOrThrow;
 
-        this.useUsEast1RegionalEndpoint = new Lazy<>(() -> useUsEast1RegionalEndpoint(profileFile, profileName));
+        this.useUsEast1RegionalEndpoint = new Lazy<>(() -> useUsEast1RegionalEndpoint(profileFile, profileName, config));
         this.s3ServiceMetadata = new S3ServiceMetadata().reconfigure(config);
     }
 
     @Override
-    public URI endpointFor(Region region) {
-        if (Region.US_EAST_1.equals(region) && !useUsEast1RegionalEndpoint.getValue()) {
+    public URI endpointFor(ServiceEndpointKey key) {
+        if (Region.US_EAST_1.equals(key.region()) && key.tags().isEmpty() && !useUsEast1RegionalEndpoint.getValue()) {
             return URI.create("s3.amazonaws.com");
         }
-        return s3ServiceMetadata.endpointFor(region);
+        return s3ServiceMetadata.endpointFor(key);
     }
 
     @Override
-    public Region signingRegion(Region region) {
-        return s3ServiceMetadata.signingRegion(region);
+    public Region signingRegion(ServiceEndpointKey key) {
+        return s3ServiceMetadata.signingRegion(key);
     }
 
     @Override
@@ -80,7 +82,8 @@ public final class EnhancedS3ServiceMetadata implements ServiceMetadata {
         return s3ServiceMetadata.servicePartitions();
     }
 
-    private boolean useUsEast1RegionalEndpoint(Supplier<ProfileFile> profileFile, Supplier<String> profileName) {
+    private boolean useUsEast1RegionalEndpoint(Supplier<ProfileFile> profileFile, Supplier<String> profileName,
+                                               ServiceMetadataConfiguration config) {
         String env = envVarSetting();
 
         if (env != null) {
@@ -93,7 +96,8 @@ public final class EnhancedS3ServiceMetadata implements ServiceMetadata {
             return REGIONAL_SETTING.equalsIgnoreCase(profile);
         }
 
-        return false;
+        return config.advancedOption(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT)
+                     .filter(REGIONAL_SETTING::equalsIgnoreCase).isPresent();
     }
 
     private static String envVarSetting() {

@@ -90,7 +90,7 @@ public final class WaiterExecutorHelper<T> {
 
     public SdkClientException noneMatchException(Either<T, Throwable> responseOrException) {
         return responseOrException.map(
-            r -> SdkClientException.create("No acceptor was matched for the response"),
+            r -> SdkClientException.create("No acceptor was matched for the response: " + r),
             t -> SdkClientException.create("An exception was thrown and did not match any "
                                            + "waiter acceptors", t));
     }

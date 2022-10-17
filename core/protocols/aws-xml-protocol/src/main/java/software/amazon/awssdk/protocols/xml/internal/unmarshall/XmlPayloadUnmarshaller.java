@@ -37,6 +37,7 @@ public final class XmlPayloadUnmarshaller {
     public static final XmlUnmarshaller<String> STRING = new SimpleTypePayloadUnmarshaller<>(StringToValueConverter.TO_STRING);
     public static final XmlUnmarshaller<Integer> INTEGER = new SimpleTypePayloadUnmarshaller<>(StringToValueConverter.TO_INTEGER);
     public static final XmlUnmarshaller<Long> LONG = new SimpleTypePayloadUnmarshaller<>(StringToValueConverter.TO_LONG);
+    public static final XmlUnmarshaller<Short> SHORT = new SimpleTypePayloadUnmarshaller<>(StringToValueConverter.TO_SHORT);
     public static final XmlUnmarshaller<Float> FLOAT = new SimpleTypePayloadUnmarshaller<>(StringToValueConverter.TO_FLOAT);
     public static final XmlUnmarshaller<Double> DOUBLE = new SimpleTypePayloadUnmarshaller<>(StringToValueConverter.TO_DOUBLE);
     public static final XmlUnmarshaller<BigDecimal> BIG_DECIMAL =

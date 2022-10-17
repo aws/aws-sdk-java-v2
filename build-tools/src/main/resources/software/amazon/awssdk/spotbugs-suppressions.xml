@@ -130,6 +130,12 @@
     </Match>
 
     <Match>
+        <Class name="software.amazon.awssdk.authcrt.signer.internal.SdkSigningResult" />
+        <Method name="getSignature" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+
+    <Match>
         <Class name="software.amazon.awssdk.protocols.json.internal.unmarshall.JsonProtocolUnmarshaller" />
         <Method name="unmarshallStructured" />
         <Bug pattern="BC_UNCONFIRMED_CAST" />
@@ -161,6 +167,7 @@
             <Class name="software.amazon.awssdk.protocols.json.internal.dom.JsonDomParser"/>
             <Class name="software.amazon.awssdk.testutils.service.AwsIntegrationTestBase"/>
             <Class name="software.amazon.awssdk.protocol.asserts.marshalling.XmlAsserts" />
+            <Class name="software.amazon.awssdk.testutils.FileUtils"/>
         </Or>
         <Bug pattern="RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE"/>
     </Match>
@@ -200,7 +207,7 @@
     </Match>
 
     <Match>
-        <Class name="software.amazon.awssdk.http.crt.internal.AwsCrtResponseBodyPublisher" />
+        <Class name="software.amazon.awssdk.http.crt.internal.response.CrtResponseBodyPublisher" />
         <Method name="subscribe"/>
         <Bug pattern="SIC_INNER_SHOULD_BE_STATIC_ANON"/>
     </Match>
@@ -211,11 +218,31 @@
         <Method name="execute"/>
         <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
     </Match>
+    <Match>
+        <Class name="software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient"/>
+        <Method name="&lt;init&gt;"/>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
+    </Match>
+
 
     <!-- For forward-compatibility with this having members (i.e. the checksum type) -->
     <Match>
         <Class name="software.amazon.awssdk.core.interceptor.trait.HttpChecksumRequired"/>
         <Method name="create"/>
         <Bug pattern="ISC_INSTANTIATE_STATIC_CLASS"/>
+    </Match>
+
+    <!-- This is very buggy https://github.com/spotbugs/spotbugs/issues/1539 -->
+    <Match>
+        <Bug pattern="DMI_RANDOM_USED_ONLY_ONCE" />
+    </Match>
+
+    <!-- Uses these methods legitimately. -->
+    <Match>
+        <Or>
+            <Class name="software.amazon.awssdk.http.SdkHttpHeaders"/>
+            <Class name="software.amazon.awssdk.http.SdkHttpRequest"/>
+        </Or>
+        <Bug pattern="SDK_BAD_METHOD_CALL"/>
     </Match>
 </FindBugsFilter>

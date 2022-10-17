@@ -23,9 +23,9 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 @Generated("software.amazon.awssdk:codegen")
 public final class SubTypeOne implements SdkPojo, Serializable, ToCopyableBuilder<SubTypeOne.Builder, SubTypeOne> {
     private static final SdkField<String> SUB_TYPE_ONE_MEMBER_FIELD = SdkField.<String> builder(MarshallingType.STRING)
-            .memberName("SubTypeOneMember").getter(getter(SubTypeOne::subTypeOneMember))
-            .setter(setter(Builder::subTypeOneMember))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("SubTypeOneMember").build()).build();
+                                                                              .memberName("SubTypeOneMember").getter(getter(SubTypeOne::subTypeOneMember))
+                                                                              .setter(setter(Builder::subTypeOneMember))
+                                                                              .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("SubTypeOneMember").build()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(SUB_TYPE_ONE_MEMBER_FIELD));
 
@@ -39,7 +39,7 @@ public final class SubTypeOne implements SdkPojo, Serializable, ToCopyableBuilde
 
     /**
      * Returns the value of the SubTypeOneMember property for this object.
-     * 
+     *
      * @return The value of the SubTypeOneMember property for this object.
      */
     public final String subTypeOneMember() {
@@ -97,10 +97,10 @@ public final class SubTypeOne implements SdkPojo, Serializable, ToCopyableBuilde
 
     public final <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-        case "SubTypeOneMember":
-            return Optional.ofNullable(clazz.cast(subTypeOneMember()));
-        default:
-            return Optional.empty();
+            case "SubTypeOneMember":
+                return Optional.ofNullable(clazz.cast(subTypeOneMember()));
+            default:
+                return Optional.empty();
         }
     }
 
@@ -142,14 +142,14 @@ public final class SubTypeOne implements SdkPojo, Serializable, ToCopyableBuilde
             return subTypeOneMember;
         }
 
+        public final void setSubTypeOneMember(String subTypeOneMember) {
+            this.subTypeOneMember = subTypeOneMember;
+        }
+
         @Override
         public final Builder subTypeOneMember(String subTypeOneMember) {
             this.subTypeOneMember = subTypeOneMember;
             return this;
-        }
-
-        public final void setSubTypeOneMember(String subTypeOneMember) {
-            this.subTypeOneMember = subTypeOneMember;
         }
 
         @Override
@@ -163,4 +163,3 @@ public final class SubTypeOne implements SdkPojo, Serializable, ToCopyableBuilde
         }
     }
 }
-

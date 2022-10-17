@@ -1,0 +1,60 @@
+{
+    "version": "2.16.63",
+    "date": "2021-05-14",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Macie 2",
+            "contributor": "",
+            "description": "This release of the Amazon Macie API adds support for defining run-time, S3 bucket criteria for classification jobs. It also adds resources for querying data about AWS resources that Macie monitors."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SecurityHub",
+            "contributor": "",
+            "description": "Updated descriptions to add notes on array lengths."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Detective",
+            "contributor": "",
+            "description": "Updated descriptions of array parameters to add the restrictions on the array and value lengths."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elasticsearch Service",
+            "contributor": "",
+            "description": "Adds support for cold storage."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Transcribe Service",
+            "contributor": "",
+            "description": "Transcribe Medical now supports identification of PHI entities within transcripts"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Events",
+            "contributor": "",
+            "description": "Update InputTransformer variable limit from 10 to 100 variables."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EventBridge",
+            "contributor": "",
+            "description": "Update InputTransformer variable limit from 10 to 100 variables."
+        },
+        {
+            "type": "feature",
+            "category": "EC2 Image Builder",
+            "contributor": "",
+            "description": "Text-only updates for bundled documentation feedback tickets - spring 2021."
+        }
+    ]
+}

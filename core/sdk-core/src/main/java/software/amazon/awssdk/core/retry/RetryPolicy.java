@@ -15,8 +15,10 @@
 
 package software.amazon.awssdk.core.retry;
 
+import java.util.Objects;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ToBuilderIgnoreField;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.internal.retry.SdkDefaultRetrySetting;
 import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
@@ -51,8 +53,8 @@ public final class RetryPolicy implements ToCopyableBuilder<RetryPolicy.Builder,
     private final Integer numRetries;
     private final RetryCondition retryCondition;
     private final RetryCondition retryCapacityCondition;
-
     private final RetryCondition aggregateRetryCondition;
+    private Boolean fastFailRateLimiting;
 
     private RetryPolicy(BuilderImpl builder) {
         this.additionalRetryConditionsAllowed = builder.additionalRetryConditionsAllowed;
@@ -62,8 +64,9 @@ public final class RetryPolicy implements ToCopyableBuilder<RetryPolicy.Builder,
         this.numRetries = builder.numRetries;
         this.retryCondition = builder.retryCondition;
         this.retryCapacityCondition = builder.retryCapacityCondition;
-
         this.aggregateRetryCondition = generateAggregateRetryCondition();
+        this.fastFailRateLimiting = builder.isFastFailRateLimiting();
+        validateFastFailRateLimiting();
     }
 
     /**
@@ -115,6 +118,15 @@ public final class RetryPolicy implements ToCopyableBuilder<RetryPolicy.Builder,
      */
     public RetryMode retryMode() {
         return retryMode;
+    }
+
+    /**
+     * When using {@link RetryMode#ADAPTIVE} retry mode, this controls the client should immediately fail the request when not
+     * enough capacity is immediately available from the rate limiter to execute the request, instead of waiting for capacity
+     * to be available.
+     */
+    public Boolean isFastFailRateLimiting() {
+        return fastFailRateLimiting;
     }
 
     /**
@@ -170,13 +182,16 @@ public final class RetryPolicy implements ToCopyableBuilder<RetryPolicy.Builder,
         return aggregate;
     }
 
+    @Override
+    @ToBuilderIgnoreField("retryMode")
     public Builder toBuilder() {
         return builder(retryMode).additionalRetryConditionsAllowed(additionalRetryConditionsAllowed)
                                  .numRetries(numRetries)
                                  .retryCondition(retryCondition)
                                  .backoffStrategy(backoffStrategy)
                                  .throttlingBackoffStrategy(throttlingBackoffStrategy)
-                                 .retryCapacityCondition(retryCapacityCondition);
+                                 .retryCapacityCondition(retryCapacityCondition)
+                                 .fastFailRateLimiting(fastFailRateLimiting);
     }
 
     @Override
@@ -186,6 +201,7 @@ public final class RetryPolicy implements ToCopyableBuilder<RetryPolicy.Builder,
                        .add("aggregateRetryCondition", aggregateRetryCondition)
                        .add("backoffStrategy", backoffStrategy)
                        .add("throttlingBackoffStrategy", throttlingBackoffStrategy)
+                       .add("fastFailRateLimiting", fastFailRateLimiting)
                        .build();
     }
 
@@ -212,7 +228,7 @@ public final class RetryPolicy implements ToCopyableBuilder<RetryPolicy.Builder,
         if (!throttlingBackoffStrategy.equals(that.throttlingBackoffStrategy)) {
             return false;
         }
-        return true;
+        return Objects.equals(fastFailRateLimiting, that.fastFailRateLimiting);
     }
 
     @Override
@@ -221,7 +237,18 @@ public final class RetryPolicy implements ToCopyableBuilder<RetryPolicy.Builder,
         result = 31 * result + Boolean.hashCode(additionalRetryConditionsAllowed);
         result = 31 * result + backoffStrategy.hashCode();
         result = 31 * result + throttlingBackoffStrategy.hashCode();
+        result = 31 * result + Objects.hashCode(fastFailRateLimiting);
         return result;
+    }
+
+    private void validateFastFailRateLimiting() {
+        if (fastFailRateLimiting == null) {
+            return;
+        }
+
+        Validate.isTrue(RetryMode.ADAPTIVE == retryMode,
+                        "FastFailRateLimiting is enabled, but this setting is only valid for the ADAPTIVE retry mode. The "
+                        + "configured mode is %s.", retryMode.name());
     }
 
     public interface Builder extends CopyableBuilder<Builder, RetryPolicy> {
@@ -308,7 +335,22 @@ public final class RetryPolicy implements ToCopyableBuilder<RetryPolicy.Builder,
          * @see #numRetries(Integer)
          */
         Integer numRetries();
+
+        /**
+         * Whether the client should immediately fail the request when not enough capacity is immediately available from the
+         * rate limiter to execute the request, instead of waiting for capacity to be available.
+         *
+         * @param fastFailRateLimiting Whether to fast fail.
+         */
+        Builder fastFailRateLimiting(Boolean fastFailRateLimiting);
+
+        /**
+         * Whether the client should immediately fail the request when not enough capacity is immediately available from the
+         * rate limiter to execute the request, instead of waiting for capacity to be available.
+         */
+        Boolean isFastFailRateLimiting();
         
+        @Override
         RetryPolicy build();
     }
 
@@ -324,13 +366,14 @@ public final class RetryPolicy implements ToCopyableBuilder<RetryPolicy.Builder,
         private BackoffStrategy throttlingBackoffStrategy;
         private RetryCondition retryCondition;
         private RetryCondition retryCapacityCondition;
+        private Boolean fastFailRateLimiting;
 
         private BuilderImpl(RetryMode retryMode) {
             this.retryMode = retryMode;
             this.numRetries = SdkDefaultRetrySetting.maxAttempts(retryMode) - 1;
             this.additionalRetryConditionsAllowed = true;
-            this.backoffStrategy = BackoffStrategy.defaultStrategy();
-            this.throttlingBackoffStrategy = BackoffStrategy.defaultThrottlingStrategy();
+            this.backoffStrategy = BackoffStrategy.defaultStrategy(retryMode);
+            this.throttlingBackoffStrategy = BackoffStrategy.defaultThrottlingStrategy(retryMode);
             this.retryCondition = RetryCondition.defaultRetryCondition();
             this.retryCapacityCondition = TokenBucketRetryCondition.forRetryMode(retryMode);
         }
@@ -363,6 +406,17 @@ public final class RetryPolicy implements ToCopyableBuilder<RetryPolicy.Builder,
         @Override
         public Integer numRetries() {
             return numRetries;
+        }
+
+        @Override
+        public Builder fastFailRateLimiting(Boolean fastFailRateLimiting) {
+            this.fastFailRateLimiting = fastFailRateLimiting;
+            return this;
+        }
+
+        @Override
+        public Boolean isFastFailRateLimiting() {
+            return fastFailRateLimiting;
         }
 
         @Override

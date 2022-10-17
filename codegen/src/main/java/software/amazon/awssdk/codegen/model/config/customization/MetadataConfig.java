@@ -32,6 +32,11 @@ public class MetadataConfig {
         this.protocol = protocol;
     }
 
+    /**
+     * Gets the Custom value for Content Type Header.
+     * This customization is supported only for JSON protocol.
+     * @return contentType.
+     */
     public String getContentType() {
         return contentType;
     }

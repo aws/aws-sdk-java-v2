@@ -19,7 +19,6 @@ import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 
-import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import org.junit.After;
@@ -30,10 +29,9 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudformation.model.CreateStackRequest;
 import software.amazon.awssdk.services.cloudformation.model.DeleteStackRequest;
 import software.amazon.awssdk.services.cloudformation.model.DescribeStacksRequest;
-import software.amazon.awssdk.services.cloudformation.model.StackStatus;
 import software.amazon.awssdk.services.cloudformation.model.Tag;
 import software.amazon.awssdk.services.cloudformation.model.UpdateStackRequest;
-import software.amazon.awssdk.testutils.Waiter;
+import software.amazon.awssdk.services.cloudformation.waiters.CloudFormationWaiter;
 import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 
 /**
@@ -63,6 +61,7 @@ public class SendEmptyListIntegrationTest extends AwsIntegrationTestBase {
             "}";
 
     private CloudFormationClient cf;
+    private CloudFormationWaiter waiter;
     private String stackName;
 
     @Before
@@ -78,7 +77,8 @@ public class SendEmptyListIntegrationTest extends AwsIntegrationTestBase {
                                          .templateBody(STARTING_TEMPLATE)
                                          .tags(Tag.builder().key("FooKey").value("FooValue").build()).build());
 
-        waitUntilComplete(StackStatus.CREATE_COMPLETE);
+        waiter = cf.waiter();
+        waiter.waitUntilStackCreateComplete(b -> b.stackName(stackName));
     }
 
     @After
@@ -94,7 +94,7 @@ public class SendEmptyListIntegrationTest extends AwsIntegrationTestBase {
                                          .templateBody(STARTING_TEMPLATE)
                                          .tags(Collections.emptyList()).build());
 
-        waitUntilComplete(StackStatus.UPDATE_COMPLETE);
+        waiter.waitUntilStackUpdateComplete(b -> b.stackName(stackName));
         assertThat(getTagsForStack(stackName), empty());
     }
 
@@ -105,15 +105,8 @@ public class SendEmptyListIntegrationTest extends AwsIntegrationTestBase {
                                          .stackName(stackName)
                                          .templateBody(UPDATED_TEMPLATE).build());
 
-        waitUntilComplete(StackStatus.UPDATE_COMPLETE);
+        waiter.waitUntilStackUpdateComplete(b -> b.stackName(stackName));
         assertThat(getTagsForStack(stackName), not(empty()));
-    }
-
-    private void waitUntilComplete(StackStatus expectedStatus) {
-        Waiter.run(() -> cf.describeStacks(r -> r.stackName(stackName)))
-              .until(r -> r.stacks().size() == 1 && r.stacks().get(0).stackStatus() == expectedStatus)
-              .failOn(r -> r.stacks().size() == 1 && r.stacks().get(0).stackStatus() == StackStatus.ROLLBACK_IN_PROGRESS)
-              .orFailAfter(Duration.ofMinutes(5));
     }
 
     private List<Tag> getTagsForStack(String stackName) {

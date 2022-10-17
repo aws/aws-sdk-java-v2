@@ -17,6 +17,8 @@ package software.amazon.awssdk.utils;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.Executor;
+import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
@@ -74,6 +76,72 @@ public final class CompletableFutureUtils {
                 dst.completeExceptionally(e);
             }
         });
+        return src;
+    }
+
+
+    /**
+     * Forward the {@code Throwable} that can be transformed as per the transformationFunction
+     * from {@code src} to {@code dst}.
+     * @param src The source of the {@code Throwable}.
+     * @param dst The destination where the {@code Throwable} will be forwarded to
+     * @param transformationFunction Transformation function taht will be applied on to the forwarded exception.
+     * @return
+     */
+    public static <T> CompletableFuture<T> forwardTransformedExceptionTo(CompletableFuture<T> src,
+                                                                         CompletableFuture<?> dst,
+                                                                         Function<Throwable, Throwable>
+                                                                                 transformationFunction) {
+        src.whenComplete((r, e) -> {
+            if (e != null) {
+                dst.completeExceptionally(transformationFunction.apply(e));
+            }
+        });
+        return src;
+    }
+
+    /**
+     * Completes the {@code dst} future based on the result of the {@code src} future asynchronously on
+     * the provided {@link Executor} and return the {@code src} future.
+     *
+     * @param src The source {@link CompletableFuture}
+     * @param dst The destination where the {@code Throwable} or response will be forwarded to.
+     * @param executor the executor to complete the des future
+     * @return the {@code src} future.
+     */
+    public static <T> CompletableFuture<T> forwardResultTo(CompletableFuture<T> src,
+                                                           CompletableFuture<T> dst,
+                                                           Executor executor) {
+        src.whenCompleteAsync((r, e) -> {
+            if (e != null) {
+                dst.completeExceptionally(e);
+            } else {
+                dst.complete(r);
+            }
+        }, executor);
+
+        return src;
+    }
+
+    /**
+     * Completes the {@code dst} future based on the result of the {@code src} future, synchronously,
+     * after applying the provided transformation {@link Function} if successful.
+     *
+     * @param src The source {@link CompletableFuture}
+     * @param dst The destination where the {@code Throwable} or transformed result will be forwarded to.
+     * @return the {@code src} future.
+     */
+    public static <SourceT, DestT> CompletableFuture<SourceT> forwardTransformedResultTo(CompletableFuture<SourceT> src,
+                                                                                         CompletableFuture<DestT> dst,
+                                                                                         Function<SourceT, DestT> function) {
+        src.whenComplete((r, e) -> {
+            if (e != null) {
+                dst.completeExceptionally(e);
+            } else {
+                dst.complete(function.apply(r));
+            }
+        });
+
         return src;
     }
 }

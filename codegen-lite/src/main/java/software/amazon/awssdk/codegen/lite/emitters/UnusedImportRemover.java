@@ -62,7 +62,7 @@ public class UnusedImportRemover implements CodeTransformer {
     }
 
     private boolean isNotReferenced(String contentWithoutImports, String importToCheck) {
-        String symbol = importToCheck.substring(importToCheck.lastIndexOf(".") + 1);
+        String symbol = importToCheck.substring(importToCheck.lastIndexOf('.') + 1);
         return !Pattern.compile(String.format("\\b%s\\b", symbol)).matcher(contentWithoutImports).find();
     }
 

@@ -23,7 +23,9 @@ import java.util.concurrent.ScheduledExecutorService;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.ServiceConfiguration;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
@@ -137,6 +139,28 @@ public final class SdkClientOption<T> extends ClientOption<T> {
      * Option to specify if the default signer has been overridden on the client.
      */
     public static final SdkClientOption<Boolean> SIGNER_OVERRIDDEN = new SdkClientOption<>(Boolean.class);
+
+    /**
+     * Option to specify additional execution attributes to each client call.
+     */
+    public static final SdkClientOption<ExecutionAttributes> EXECUTION_ATTRIBUTES =
+            new SdkClientOption<>(new UnsafeValueType(ExecutionAttributes.class));
+    /**
+     * Option to specify the internal user agent.
+     */
+    public static final SdkClientOption<String> INTERNAL_USER_AGENT = new SdkClientOption<>(String.class);
+
+    /**
+     * A user agent prefix that is specific to the client (agnostic of the request).
+     */
+    public static final SdkClientOption<String> CLIENT_USER_AGENT = new SdkClientOption<>(String.class);
+
+    /**
+     * Option to specify the default retry mode.
+     *
+     * @see RetryMode.Resolver#defaultRetryMode(RetryMode)
+     */
+    public static final SdkClientOption<RetryMode> DEFAULT_RETRY_MODE = new SdkClientOption<>(RetryMode.class);
 
     private SdkClientOption(Class<T> valueClass) {
         super(valueClass);

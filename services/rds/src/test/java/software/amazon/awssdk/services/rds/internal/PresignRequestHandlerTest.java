@@ -15,11 +15,11 @@
 
 package software.amazon.awssdk.services.rds.internal;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.net.URI;
@@ -28,7 +28,7 @@ import java.time.Clock;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
@@ -37,8 +37,10 @@ import software.amazon.awssdk.core.Protocol;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.rds.model.CopyDbSnapshotRequest;
 import software.amazon.awssdk.services.rds.model.RdsRequest;
@@ -162,7 +164,9 @@ public class PresignRequestHandlerTest {
 
     private ExecutionAttributes executionAttributes() {
         return new ExecutionAttributes().putAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS, CREDENTIALS)
-                                        .putAttribute(AwsSignerExecutionAttribute.SIGNING_REGION, DESTINATION_REGION);
+                                        .putAttribute(AwsSignerExecutionAttribute.SIGNING_REGION, DESTINATION_REGION)
+                                        .putAttribute(SdkExecutionAttribute.PROFILE_FILE, ProfileFile.defaultProfileFile())
+                                        .putAttribute(SdkExecutionAttribute.PROFILE_NAME, "default");
     }
 
     private CopyDbSnapshotRequest makeTestRequest() {

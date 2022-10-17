@@ -68,7 +68,10 @@ public class VersionedRecordExtensionTest {
                     .operationContext(PRIMARY_CONTEXT).build());
 
         assertThat(result.additionalConditionalExpression(),
-                   is(Expression.builder().expression("attribute_not_exists(version)").build()));
+                   is(Expression.builder()
+                                .expression("attribute_not_exists(#AMZN_MAPPED_version)")
+                                .expressionNames(singletonMap("#AMZN_MAPPED_version", "version"))
+                                .build()));
     }
 
     @Test
@@ -123,7 +126,8 @@ public class VersionedRecordExtensionTest {
 
         assertThat(result.additionalConditionalExpression(),
                    is(Expression.builder()
-                                .expression("version = :old_version_value")
+                                .expression("#AMZN_MAPPED_version = :old_version_value")
+                                .expressionNames(singletonMap("#AMZN_MAPPED_version", "version"))
                                 .expressionValues(singletonMap(":old_version_value",
                                                                AttributeValue.builder().n("13").build()))
                                 .build()));
@@ -144,7 +148,6 @@ public class VersionedRecordExtensionTest {
                                                      .tableMetadata(FakeItem.getTableMetadata())
                                                      .operationContext(PRIMARY_CONTEXT).build());
 
-
         assertThat(result.transformedItem(), is(fakeItemWithInitialVersion));
     }
 
@@ -159,7 +162,6 @@ public class VersionedRecordExtensionTest {
                                                                                                                    .operationContext(PRIMARY_CONTEXT)
                                                                                                                    .tableMetadata(FakeItemWithSort.getTableMetadata())
                                                                                                                    .build());
-
         assertThat(writeModification, is(WriteModification.builder().build()));
     }
 

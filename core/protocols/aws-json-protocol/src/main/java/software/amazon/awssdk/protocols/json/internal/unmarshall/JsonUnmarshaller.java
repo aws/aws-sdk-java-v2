@@ -17,7 +17,7 @@ package software.amazon.awssdk.protocols.json.internal.unmarshall;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkField;
-import software.amazon.awssdk.protocols.json.internal.dom.SdkJsonNode;
+import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 
 /**
  * Interface for unmarshalling a field from a JSON based service.
@@ -34,7 +34,7 @@ public interface JsonUnmarshaller<T> {
      * @return Unmarshalled value.
      */
     T unmarshall(JsonUnmarshallerContext context,
-                 SdkJsonNode jsonContent,
+                 JsonNode jsonContent,
                  SdkField<T> field);
 
 }

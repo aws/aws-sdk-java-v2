@@ -19,13 +19,14 @@ import static software.amazon.awssdk.http.HttpMetric.HTTP_CLIENT_NAME;
 import static software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration.EVENTLOOP_SHUTDOWN_FUTURE_TIMEOUT_SECONDS;
 import static software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration.EVENTLOOP_SHUTDOWN_QUIET_PERIOD_SECONDS;
 import static software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration.EVENTLOOP_SHUTDOWN_TIMEOUT_SECONDS;
+import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.runAndLogError;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
-import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslProvider;
+import java.net.SocketOptions;
 import java.net.URI;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
@@ -33,8 +34,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.http.Protocol;
@@ -54,6 +53,7 @@ import software.amazon.awssdk.http.nio.netty.internal.SdkChannelOptions;
 import software.amazon.awssdk.http.nio.netty.internal.SdkChannelPool;
 import software.amazon.awssdk.http.nio.netty.internal.SdkChannelPoolMap;
 import software.amazon.awssdk.http.nio.netty.internal.SharedSdkEventLoopGroup;
+import software.amazon.awssdk.http.nio.netty.internal.utils.NettyClientLogger;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Either;
 import software.amazon.awssdk.utils.Validate;
@@ -68,7 +68,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
     private static final String CLIENT_NAME = "NettyNio";
 
-    private static final Logger log = LoggerFactory.getLogger(NettyNioAsyncHttpClient.class);
+    private static final NettyClientLogger log = NettyClientLogger.getLogger(NettyNioAsyncHttpClient.class);
     private static final long MAX_STREAMS_ALLOWED = 4294967295L; // unsigned 32-bit, 2^32 -1
     private static final int DEFAULT_INITIAL_WINDOW_SIZE = 1_048_576; // 1MiB
 
@@ -209,7 +209,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
             Thread.currentThread().interrupt();
             throw new RuntimeException(e);
         } catch (TimeoutException e) {
-            log.error(String.format("Shutting down Netty EventLoopGroup did not complete within %s seconds",
+            log.error(null, () -> String.format("Shutting down Netty EventLoopGroup did not complete within %s seconds",
                                     EVENTLOOP_SHUTDOWN_FUTURE_TIMEOUT_SECONDS));
         }
     }
@@ -239,7 +239,6 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
          * {@link #maxPendingConnectionAcquires(Integer)}</p>) and can cause increased latencies. If the client is overloaded
          * enough such that the pending connection queue fills up, subsequent requests may be rejected or time out
          * (see {@link #connectionAcquisitionTimeout(Duration)}).
-         * </p>
          *
          * @param maxConcurrency New value for max concurrency.
          * @return This builder for method chaining.
@@ -306,6 +305,18 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         Builder connectionMaxIdleTime(Duration maxIdleConnectionTimeout);
 
         /**
+         * Configure the maximum amount of time that a TLS handshake is allowed to take from the time the CLIENT HELLO
+         * message is sent to the time the client and server have fully negotiated ciphers and exchanged keys.
+         * @param tlsNegotiationTimeout the timeout duration
+         *
+         * <p>
+         * By default, it's 10 seconds.
+         *
+         * @return this builder for method chaining.
+         */
+        Builder tlsNegotiationTimeout(Duration tlsNegotiationTimeout);
+
+        /**
          * Configure whether the idle connections in the connection pool should be closed.
          * <p>
          * When enabled, connections left idling for longer than {@link #connectionMaxIdleTime(Duration)} will be
@@ -358,6 +369,18 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
          * @return This builder for method chaining.
          */
         Builder protocol(Protocol protocol);
+
+        /**
+         * Configure whether to enable or disable TCP KeepAlive.
+         * The configuration will be passed to the socket option {@link SocketOptions#SO_KEEPALIVE}.
+         * <p>
+         * By default, this is disabled.
+         * <p>
+         * When enabled, the actual KeepAlive mechanism is dependent on the Operating System and therefore additional TCP
+         * KeepAlive values (like timeout, number of packets, etc) must be configured via the Operating System (sysctl on
+         * Linux/Mac, and Registry values on Windows).
+         */
+        Builder tcpKeepAlive(Boolean keepConnectionAlive);
 
         /**
          * Configures additional {@link ChannelOption} which will be used to create Netty Http client. This allows custom
@@ -570,6 +593,17 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         }
 
         @Override
+        public Builder tlsNegotiationTimeout(Duration tlsNegotiationTimeout) {
+            Validate.isPositive(tlsNegotiationTimeout, "tlsNegotiationTimeout");
+            standardOptions.put(SdkHttpConfigurationOption.TLS_NEGOTIATION_TIMEOUT, tlsNegotiationTimeout);
+            return this;
+        }
+
+        public void setTlsNegotiationTimeout(Duration tlsNegotiationTimeout) {
+            tlsNegotiationTimeout(tlsNegotiationTimeout);
+        }
+
+        @Override
         public Builder eventLoopGroup(SdkEventLoopGroup eventLoopGroup) {
             this.eventLoopGroup = eventLoopGroup;
             return this;
@@ -597,6 +631,16 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
         public void setProtocol(Protocol protocol) {
             protocol(protocol);
+        }
+
+        @Override
+        public Builder tcpKeepAlive(Boolean keepConnectionAlive) {
+            standardOptions.put(SdkHttpConfigurationOption.TCP_KEEPALIVE, keepConnectionAlive);
+            return this;
+        }
+
+        public void setTcpKeepAlive(Boolean keepConnectionAlive) {
+            tcpKeepAlive(keepConnectionAlive);
         }
 
         @Override
@@ -674,6 +718,11 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
         @Override
         public SdkAsyncHttpClient buildWithDefaults(AttributeMap serviceDefaults) {
+            if (standardOptions.get(SdkHttpConfigurationOption.TLS_NEGOTIATION_TIMEOUT) == null) {
+                standardOptions.put(SdkHttpConfigurationOption.TLS_NEGOTIATION_TIMEOUT,
+                                    standardOptions.get(SdkHttpConfigurationOption.CONNECTION_TIMEOUT));
+            }
+
             return new NettyNioAsyncHttpClient(this, standardOptions.build()
                                                                     .merge(serviceDefaults)
                                                                     .merge(NETTY_HTTP_DEFAULTS)

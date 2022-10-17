@@ -19,46 +19,69 @@ import static software.amazon.awssdk.utils.StringUtils.trim;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.internal.WebIdentityCredentialsUtils;
 import software.amazon.awssdk.auth.credentials.internal.WebIdentityTokenCredentialProperties;
 import software.amazon.awssdk.core.SdkSystemSetting;
+import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.ToString;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * A credential provider that will read web identity token file path, aws role arn
  * and aws session name from system properties or environment variables for using
- * web identity token credentials with STS. Use of this credentials provider requires
- * the 'sts' module to be on the classpath.
+ * web identity token credentials with STS.
+ * <p>
+ *     Use of this credentials provider requires the 'sts' module to be on the classpath.
+ * </p>
+ * <p>
+ * StsWebIdentityTokenFileCredentialsProvider in sts package can be used instead of this class if any one of following is required
+ *<ul>
+ *     <li>Pass a custom StsClient to the provider. </li>
+ *     <li>Periodically update credentials </li>
+ *</ul>
+ * @see AwsCredentialsProvider
  */
 @SdkPublicApi
-public class WebIdentityTokenFileCredentialsProvider implements AwsCredentialsProvider {
+public class WebIdentityTokenFileCredentialsProvider
+    implements AwsCredentialsProvider, SdkAutoCloseable,
+               ToCopyableBuilder<WebIdentityTokenFileCredentialsProvider.Builder, WebIdentityTokenFileCredentialsProvider> {
 
     private final AwsCredentialsProvider credentialsProvider;
     private final RuntimeException loadException;
 
+    private final String roleArn;
+
+    private final String roleSessionName;
+
+    private final Path webIdentityTokenFile;
+
     private WebIdentityTokenFileCredentialsProvider(BuilderImpl builder) {
         AwsCredentialsProvider credentialsProvider = null;
         RuntimeException loadException = null;
+        String roleArn = null;
+        String roleSessionName = null;
+        Path webIdentityTokenFile = null;
 
         try {
-            Path webIdentityTokenFile =
+            webIdentityTokenFile =
                 builder.webIdentityTokenFile != null ? builder.webIdentityTokenFile
                                                      : Paths.get(trim(SdkSystemSetting.AWS_WEB_IDENTITY_TOKEN_FILE
                                                                           .getStringValueOrThrow()));
 
-            String roleArn = builder.roleArn != null ? builder.roleArn
-                                                     : trim(SdkSystemSetting.AWS_ROLE_ARN.getStringValueOrThrow());
+            roleArn = builder.roleArn != null ? builder.roleArn
+                                                   : trim(SdkSystemSetting.AWS_ROLE_ARN.getStringValueOrThrow());
 
-            Optional<String> roleSessionName =
-                builder.roleSessionName != null ? Optional.of(builder.roleSessionName)
-                                                : SdkSystemSetting.AWS_ROLE_SESSION_NAME.getStringValue();
+            roleSessionName =
+                builder.roleSessionName != null ? builder.roleSessionName
+                                                : SdkSystemSetting.AWS_ROLE_SESSION_NAME.getStringValue().orElse(null);
 
             WebIdentityTokenCredentialProperties credentialProperties =
                 WebIdentityTokenCredentialProperties.builder()
                                                     .roleArn(roleArn)
-                                                    .roleSessionName(roleSessionName.orElse(null))
+                                                    .roleSessionName(roleSessionName)
                                                     .webIdentityTokenFile(webIdentityTokenFile)
                                                     .build();
 
@@ -72,6 +95,9 @@ public class WebIdentityTokenFileCredentialsProvider implements AwsCredentialsPr
 
         this.loadException = loadException;
         this.credentialsProvider = credentialsProvider;
+        this.roleArn = roleArn;
+        this.roleSessionName = roleSessionName;
+        this.webIdentityTokenFile = webIdentityTokenFile;
     }
 
     public static WebIdentityTokenFileCredentialsProvider create() {
@@ -96,10 +122,20 @@ public class WebIdentityTokenFileCredentialsProvider implements AwsCredentialsPr
         return ToString.create("WebIdentityTokenCredentialsProvider");
     }
 
+    @Override
+    public Builder toBuilder() {
+        return new BuilderImpl(this);
+    }
+
+    @Override
+    public void close() {
+        IoUtils.closeIfCloseable(credentialsProvider, null);
+    }
+
     /**
      * A builder for creating a custom {@link WebIdentityTokenFileCredentialsProvider}.
      */
-    public interface Builder {
+    public interface Builder extends CopyableBuilder<Builder, WebIdentityTokenFileCredentialsProvider> {
 
         /**
          * Define the role arn that should be used by this credentials provider.
@@ -128,6 +164,12 @@ public class WebIdentityTokenFileCredentialsProvider implements AwsCredentialsPr
         private Path webIdentityTokenFile;
 
         BuilderImpl() {
+        }
+
+        private BuilderImpl(WebIdentityTokenFileCredentialsProvider provider) {
+            this.roleArn = provider.roleArn;
+            this.roleSessionName = provider.roleSessionName;
+            this.webIdentityTokenFile = provider.webIdentityTokenFile;
         }
 
         @Override

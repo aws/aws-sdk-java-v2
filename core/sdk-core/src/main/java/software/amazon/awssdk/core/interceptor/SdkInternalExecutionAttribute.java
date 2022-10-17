@@ -16,7 +16,9 @@
 package software.amazon.awssdk.core.interceptor;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksumRequired;
+import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 
 /**
  * Attributes that can be applied to all sdk requests. Only generated code from the SDK clients should set these values.
@@ -30,6 +32,13 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
      */
     public static final ExecutionAttribute<Boolean> IS_FULL_DUPLEX = new ExecutionAttribute<>("IsFullDuplex");
 
+    /**
+     * If true, indicates that this is an event streaming request being sent over RPC, and therefore the serialized
+     * request object is encapsulated as an event of type {@code initial-request}.
+     */
+    public static final ExecutionAttribute<Boolean> HAS_INITIAL_REQUEST_EVENT = new ExecutionAttribute<>(
+        "HasInitialRequestEvent");
+
     public static final ExecutionAttribute<HttpChecksumRequired> HTTP_CHECKSUM_REQUIRED =
         new ExecutionAttribute<>("HttpChecksumRequired");
 
@@ -39,6 +48,22 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
      */
     public static final ExecutionAttribute<Boolean> DISABLE_HOST_PREFIX_INJECTION =
             new ExecutionAttribute<>("DisableHostPrefixInjection");
+
+    /**
+     * Key to indicate if the Http Checksums that are valid for an operation.
+     */
+    public static final ExecutionAttribute<HttpChecksum> HTTP_CHECKSUM =
+        new ExecutionAttribute<>("HttpChecksum");
+
+    /**
+     * The SDK HTTP attributes that can be passed to the HTTP client
+     */
+    public static final ExecutionAttribute<SdkHttpExecutionAttributes> SDK_HTTP_EXECUTION_ATTRIBUTES =
+        new ExecutionAttribute<>("SdkHttpExecutionAttributes");
+
+    public static final ExecutionAttribute<Boolean> IS_NONE_AUTH_TYPE_REQUEST =
+        new ExecutionAttribute<>("IsNoneAuthTypeRequest");
+
 
     private SdkInternalExecutionAttribute() {
     }

@@ -70,6 +70,9 @@ public final class ChannelAttributeKey {
     public static final AttributeKey<Http2FrameStream> HTTP2_FRAME_STREAM = NettyUtils.getOrCreateAttributeKey(
         "aws.http.nio.netty.async.http2FrameStream");
 
+    public static final AttributeKey<ChannelDiagnostics> CHANNEL_DIAGNOSTICS = NettyUtils.getOrCreateAttributeKey(
+        "aws.http.nio.netty.async.channelDiagnostics");
+
     /**
      * {@link AttributeKey} to keep track of whether we should close the connection after this request
      * has completed.
@@ -87,6 +90,15 @@ public final class ChannelAttributeKey {
 
     static final AttributeKey<Boolean> RESPONSE_COMPLETE_KEY = NettyUtils.getOrCreateAttributeKey(
         "aws.http.nio.netty.async.responseComplete");
+
+    static final AttributeKey<Integer> RESPONSE_STATUS_CODE = NettyUtils.getOrCreateAttributeKey(
+        "aws.http.nio.netty.async.responseStatusCode");
+
+    static final AttributeKey<Long> RESPONSE_CONTENT_LENGTH = NettyUtils.getOrCreateAttributeKey(
+        "aws.http.nio.netty.async.responseContentLength");
+
+    static final AttributeKey<Long> RESPONSE_DATA_READ = NettyUtils.getOrCreateAttributeKey(
+        "aws.http.nio.netty.async.responseDataRead");
 
     /**
      * {@link AttributeKey} to keep track of whether we have received the {@link LastHttpContent}.

@@ -26,21 +26,25 @@ import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
 import software.amazon.awssdk.services.sts.model.Credentials;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * An implementation of {@link AwsCredentialsProvider} that periodically sends an {@link AssumeRoleRequest} to the AWS
- * Security Token Service to maintain short-lived sessions to use for authentication. These sessions are updated asynchronously
- * in the background as they get close to expiring. If the credentials are not successfully updated asynchronously in the
- * background, calls to {@link #resolveCredentials()} will begin to block in an attempt to update the credentials synchronously.
+ * Security Token Service to maintain short-lived sessions to use for authentication. These sessions are updated using a single
+ * calling thread (by default) or asynchronously (if {@link Builder#asyncCredentialUpdateEnabled(Boolean)} is set).
  *
- * This provider creates a thread in the background to periodically update credentials. If this provider is no longer needed,
- * the background thread can be shut down using {@link #close()}.
+ * If the credentials are not successfully updated before expiration, calls to {@link #resolveCredentials()} will block until
+ * they are updated successfully.
+ *
+ * Users of this provider must {@link #close()} it when they are finished using it.
  *
  * This is created using {@link StsAssumeRoleCredentialsProvider#builder()}.
  */
 @SdkPublicApi
 @ThreadSafe
-public final class StsAssumeRoleCredentialsProvider extends StsCredentialsProvider {
+public final class StsAssumeRoleCredentialsProvider
+    extends StsCredentialsProvider
+    implements ToCopyableBuilder<StsAssumeRoleCredentialsProvider.Builder, StsAssumeRoleCredentialsProvider> {
     private Supplier<AssumeRoleRequest> assumeRoleRequestSupplier;
 
     /**
@@ -74,6 +78,11 @@ public final class StsAssumeRoleCredentialsProvider extends StsCredentialsProvid
                        .build();
     }
 
+    @Override
+    public Builder toBuilder() {
+        return new Builder(this);
+    }
+
     /**
      * A builder (created by {@link StsAssumeRoleCredentialsProvider#builder()}) for creating a
      * {@link StsAssumeRoleCredentialsProvider}.
@@ -84,6 +93,11 @@ public final class StsAssumeRoleCredentialsProvider extends StsCredentialsProvid
 
         private Builder() {
             super(StsAssumeRoleCredentialsProvider::new);
+        }
+
+        private Builder(StsAssumeRoleCredentialsProvider provider) {
+            super(StsAssumeRoleCredentialsProvider::new, provider);
+            this.assumeRoleRequestSupplier = provider.assumeRoleRequestSupplier;
         }
 
         /**

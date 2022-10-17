@@ -1,0 +1,48 @@
+{
+    "version": "2.17.53",
+    "date": "2021-10-05",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Application Auto Scaling",
+            "contributor": "",
+            "description": "With this release, Application Auto Scaling adds support for Amazon Neptune. Customers can now automatically add or remove Read Replicas of their Neptune clusters to keep the average CPU Utilization at the target value specified by the customers."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkMail",
+            "contributor": "",
+            "description": "This release allows customers to change their inbound DMARC settings in Amazon WorkMail."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Backup",
+            "contributor": "",
+            "description": "AWS Backup Audit Manager framework report."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB",
+            "contributor": "asanthan-amazon",
+            "description": "Allow parallel scan via DynamoDBEnhanced client and modify ScanEnhancedRequest to support totalSegments and segment parameters.\nThe corresponding github issue is https://github.com/aws/aws-sdk-java-v2/issues/1851"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Location Service",
+            "contributor": "",
+            "description": "Add support for PositionFiltering."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "contributor": "",
+            "description": "This release adds tag as an input of CreateConnection"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Released Capacity Reservation Fleet, a feature of Amazon EC2 Capacity Reservations, which provides a way to manage reserved capacity across instance types. For more information: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/cr-fleets.html"
+        }
+    ]
+}

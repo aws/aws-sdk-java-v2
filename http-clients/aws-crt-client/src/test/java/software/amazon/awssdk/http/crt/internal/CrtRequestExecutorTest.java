@@ -29,7 +29,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.crt.CrtRuntimeException;
 import software.amazon.awssdk.crt.http.HttpClientConnection;
 import software.amazon.awssdk.crt.http.HttpClientConnectionManager;
@@ -38,6 +38,7 @@ import software.amazon.awssdk.http.SdkCancellationException;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
+import software.amazon.awssdk.http.crt.internal.response.CrtResponseAdapter;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CrtRequestExecutorTest {
@@ -82,7 +83,7 @@ public class CrtRequestExecutorTest {
         Mockito.verify(responseHandler).onError(argumentCaptor.capture());
 
         Exception actualException = argumentCaptor.getValue();
-        assertThat(actualException).hasMessageContaining("An exception occurred when acquiring connection");
+        assertThat(actualException).hasMessageContaining("An exception occurred when acquiring a connection");
         assertThat(actualException).hasCause(exception);
         assertThat(executeFuture).hasFailedWithThrowableThat().hasCause(exception).isInstanceOf(IOException.class);
     }
@@ -105,7 +106,7 @@ public class CrtRequestExecutorTest {
         Mockito.when(connectionManager.acquireConnection()).thenReturn(completableFuture);
         completableFuture.complete(httpClientConnection);
 
-        Mockito.when(httpClientConnection.makeRequest(Mockito.any(HttpRequest.class), Mockito.any(AwsCrtAsyncHttpStreamAdapter.class)))
+        Mockito.when(httpClientConnection.makeRequest(Mockito.any(HttpRequest.class), Mockito.any(CrtResponseAdapter.class)))
                .thenThrow(exception);
 
         CompletableFuture<Void> executeFuture = requestExecutor.execute(context);
@@ -136,7 +137,7 @@ public class CrtRequestExecutorTest {
         completableFuture.complete(httpClientConnection);
 
         CompletableFuture<Void> executeFuture = requestExecutor.execute(context);
-        Mockito.verifyZeroInteractions(responseHandler);
+        Mockito.verifyNoMoreInteractions(responseHandler);
     }
 
     @Test

@@ -16,6 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.pagination.sync.PaginatedItemsIterable;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
@@ -52,6 +53,7 @@ import software.amazon.awssdk.enhanced.dynamodb.MappedTableResource;
  * </pre>
  */
 @SdkPublicApi
+@ThreadSafe
 public interface BatchGetResultPageIterable extends SdkIterable<BatchGetResultPage> {
 
     static BatchGetResultPageIterable create(SdkIterable<BatchGetResultPage> pageIterable) {

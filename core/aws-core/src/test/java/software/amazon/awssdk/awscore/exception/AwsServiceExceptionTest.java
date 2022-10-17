@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Duration;
 import java.time.Instant;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.utils.DateUtils;
@@ -52,12 +52,42 @@ public class AwsServiceExceptionTest {
         assertSkewed(SKEWED_SECONDS, "", 403, unskewedDate);
     }
 
+    @Test
+    public void exceptionMessage_withExtendedRequestId() {
+        AwsServiceException e = AwsServiceException.builder()
+                                                   .awsErrorDetails(AwsErrorDetails.builder()
+                                                                                   .errorMessage("errorMessage")
+                                                                                   .serviceName("serviceName")
+                                                                                   .errorCode("errorCode")
+                                                                                   .build())
+                                                   .statusCode(500)
+                                                   .requestId("requestId")
+                                                   .extendedRequestId("extendedRequestId")
+                                                   .build();
+        assertThat(e.getMessage()).isEqualTo("errorMessage (Service: serviceName, Status Code: 500, Request ID: requestId, " 
+                                             + "Extended Request ID: extendedRequestId)");
+    }
+
+    @Test
+    public void exceptionMessage_withoutExtendedRequestId() {
+        AwsServiceException e = AwsServiceException.builder()
+                                                   .awsErrorDetails(AwsErrorDetails.builder()
+                                                                                   .errorMessage("errorMessage")
+                                                                                   .serviceName("serviceName")
+                                                                                   .errorCode("errorCode")
+                                                                                   .build())
+                                                   .statusCode(500)
+                                                   .requestId("requestId")
+                                                   .build();
+        assertThat(e.getMessage()).isEqualTo("errorMessage (Service: serviceName, Status Code: 500, Request ID: requestId)");
+    }
+
     public void assertSkewed(int clientSideTimeOffset,
                              String errorCode,
                              int statusCode,
                              Instant serverDate) {
         AwsServiceException exception = exception(clientSideTimeOffset, errorCode, statusCode,
-                                                  DateUtils.formatRfc1123Date(serverDate));
+                                                  DateUtils.formatRfc822Date(serverDate));
         assertThat(exception.isClockSkewException()).isTrue();
     }
 
@@ -66,7 +96,7 @@ public class AwsServiceExceptionTest {
                                 int statusCode,
                                 Instant serverDate) {
         AwsServiceException exception = exception(clientSideTimeOffset, errorCode, statusCode,
-                                                  DateUtils.formatRfc1123Date(serverDate));
+                                                  DateUtils.formatRfc822Date(serverDate));
         assertThat(exception.isClockSkewException()).isFalse();
     }
 

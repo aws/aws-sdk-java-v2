@@ -20,24 +20,24 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.net.URI;
 import java.util.HashSet;
 import java.util.Set;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class ProxyConfigurationTest {
 
-    @Before
+    @BeforeEach
     public void setup() {
         clearProxyProperties();
     }
 
-    @AfterClass
+    @AfterAll
     public static void cleanup() {
         clearProxyProperties();
     }
 
     @Test
-    public void testEndpointValues_SystemPropertyEnabled() {
+    void testEndpointValues_Http_SystemPropertyEnabled() {
         String host = "foo.com";
         int port = 7777;
         System.setProperty("http.proxyHost", host);
@@ -51,7 +51,23 @@ public class ProxyConfigurationTest {
     }
 
     @Test
-    public void testEndpointValues_SystemPropertyDisabled() {
+    void testEndpointValues_Https_SystemPropertyEnabled() {
+        String host = "foo.com";
+        int port = 7777;
+        System.setProperty("https.proxyHost", host);
+        System.setProperty("https.proxyPort", Integer.toString(port));
+
+        ProxyConfiguration config = ProxyConfiguration.builder()
+                                                      .endpoint(URI.create("https://foo.com:7777"))
+                                                      .useSystemPropertyValues(true).build();
+
+        assertThat(config.host()).isEqualTo(host);
+        assertThat(config.port()).isEqualTo(port);
+        assertThat(config.scheme()).isEqualTo("https");
+    }
+
+    @Test
+    void testEndpointValues_SystemPropertyDisabled() {
         ProxyConfiguration config = ProxyConfiguration.builder()
                                                       .endpoint(URI.create("http://localhost:1234"))
                                                       .useSystemPropertyValues(Boolean.FALSE)
@@ -63,7 +79,7 @@ public class ProxyConfigurationTest {
     }
 
     @Test
-    public void testProxyConfigurationWithSystemPropertyDisabled() throws Exception {
+    void testProxyConfigurationWithSystemPropertyDisabled() throws Exception {
         Set<String> nonProxyHosts = new HashSet<>();
         nonProxyHosts.add("foo.com");
 
@@ -86,7 +102,7 @@ public class ProxyConfigurationTest {
     }
 
     @Test
-    public void testProxyConfigurationWithSystemPropertyEnabled() throws Exception {
+    void testProxyConfigurationWithSystemPropertyEnabled_Http() throws Exception {
         Set<String> nonProxyHosts = new HashSet<>();
         nonProxyHosts.add("foo.com");
 
@@ -105,11 +121,49 @@ public class ProxyConfigurationTest {
         assertThat(config.username()).isEqualTo("user");
     }
 
+    @Test
+    void testProxyConfigurationWithSystemPropertyEnabled_Https() throws Exception {
+        Set<String> nonProxyHosts = new HashSet<>();
+        nonProxyHosts.add("foo.com");
+
+        // system property should not be used
+        System.setProperty("https.proxyHost", "foo.com");
+        System.setProperty("https.proxyPort", "5555");
+        System.setProperty("http.nonProxyHosts", "bar.com");
+        System.setProperty("https.proxyUser", "user");
+
+        ProxyConfiguration config = ProxyConfiguration.builder()
+                                                      .endpoint(URI.create("https://foo.com:1234"))
+                                                      .nonProxyHosts(nonProxyHosts)
+                                                      .build();
+
+        assertThat(config.nonProxyHosts()).isEqualTo(nonProxyHosts);
+        assertThat(config.host()).isEqualTo("foo.com");
+        assertThat(config.username()).isEqualTo("user");
+    }
+
+    @Test
+    void testProxyConfigurationWithoutNonProxyHosts_toBuilder_shouldNotThrowNPE() {
+        ProxyConfiguration proxyConfiguration =
+            ProxyConfiguration.builder()
+                              .endpoint(URI.create("http://localhost:4321"))
+                              .username("username")
+                              .password("password")
+                              .build();
+
+        assertThat(proxyConfiguration.toBuilder()).isNotNull();
+    }
+
     private static void clearProxyProperties() {
         System.clearProperty("http.proxyHost");
         System.clearProperty("http.proxyPort");
         System.clearProperty("http.nonProxyHosts");
         System.clearProperty("http.proxyUser");
         System.clearProperty("http.proxyPassword");
+
+        System.clearProperty("https.proxyHost");
+        System.clearProperty("https.proxyPort");
+        System.clearProperty("https.proxyUser");
+        System.clearProperty("https.proxyPassword");
     }
 }

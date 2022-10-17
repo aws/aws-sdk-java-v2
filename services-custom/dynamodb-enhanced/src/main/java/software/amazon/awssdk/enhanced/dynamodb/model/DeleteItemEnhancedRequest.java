@@ -15,12 +15,19 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
+import java.util.Objects;
 import java.util.function.Consumer;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
+import software.amazon.awssdk.services.dynamodb.model.DeleteItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
+import software.amazon.awssdk.services.dynamodb.model.ReturnItemCollectionMetrics;
 
 /**
  * Defines parameters used to remove an item from a DynamoDb table using the deleteItem() operation (such as
@@ -30,14 +37,19 @@ import software.amazon.awssdk.enhanced.dynamodb.Key;
  * A valid request object must contain a primary {@link Key} to reference the item to delete.
  */
 @SdkPublicApi
+@ThreadSafe
 public final class DeleteItemEnhancedRequest {
 
     private final Key key;
     private final Expression conditionExpression;
+    private final String returnConsumedCapacity;
+    private final String returnItemCollectionMetrics;
 
     private DeleteItemEnhancedRequest(Builder builder) {
         this.key = builder.key;
         this.conditionExpression = builder.conditionExpression;
+        this.returnConsumedCapacity = builder.returnConsumedCapacity;
+        this.returnItemCollectionMetrics = builder.returnItemCollectionMetrics;
     }
 
     /**
@@ -51,7 +63,10 @@ public final class DeleteItemEnhancedRequest {
      * Returns a builder initialized with all existing values on the request object.
      */
     public Builder toBuilder() {
-        return builder().key(key).conditionExpression(conditionExpression);
+        return builder().key(key)
+                        .conditionExpression(conditionExpression)
+                        .returnConsumedCapacity(returnConsumedCapacity)
+                        .returnItemCollectionMetrics(returnItemCollectionMetrics);
     }
 
     /**
@@ -68,6 +83,45 @@ public final class DeleteItemEnhancedRequest {
         return conditionExpression;
     }
 
+    /**
+     * Whether to return the capacity consumed by this operation.
+     *
+     * @see PutItemRequest#returnConsumedCapacity()
+     */
+    public ReturnConsumedCapacity returnConsumedCapacity() {
+        return ReturnConsumedCapacity.fromValue(returnConsumedCapacity);
+    }
+
+    /**
+     * Whether to return the capacity consumed by this operation.
+     * <p>
+     * Similar to {@link #returnConsumedCapacity()} but return the value as a string. This is useful in situations where the
+     * value is not defined in {@link ReturnConsumedCapacity}.
+     */
+    public String returnConsumedCapacityAsString() {
+        return returnConsumedCapacity;
+    }
+
+    /**
+     * Whether to return the item collection metrics.
+     *
+     * @see DeleteItemRequest#returnItemCollectionMetrics()
+     */
+    public ReturnItemCollectionMetrics returnItemCollectionMetrics() {
+        return ReturnItemCollectionMetrics.fromValue(returnItemCollectionMetrics);
+    }
+
+    /**
+     * Whether to return the item collection metrics.
+     * <p>
+     * Similar to {@link #returnItemCollectionMetrics()} but return the value as a string. This is useful in situations
+     * where the
+     * value is not defined in {@link ReturnItemCollectionMetrics}.
+     */
+    public String returnItemCollectionMetricsAsString() {
+        return returnItemCollectionMetrics;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -76,15 +130,20 @@ public final class DeleteItemEnhancedRequest {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-
         DeleteItemEnhancedRequest that = (DeleteItemEnhancedRequest) o;
-
-        return key != null ? key.equals(that.key) : that.key == null;
+        return Objects.equals(key, that.key)
+               && Objects.equals(conditionExpression, that.conditionExpression)
+               && Objects.equals(returnConsumedCapacity, that.returnConsumedCapacity)
+               && Objects.equals(returnItemCollectionMetrics, that.returnItemCollectionMetrics);
     }
 
     @Override
     public int hashCode() {
-        return key != null ? key.hashCode() : 0;
+        int result = key != null ? key.hashCode() : 0;
+        result = 31 * result + (conditionExpression != null ? conditionExpression.hashCode() : 0);
+        result = 31 * result + (returnConsumedCapacity != null ? returnConsumedCapacity.hashCode() : 0);
+        result = 31 * result + (returnItemCollectionMetrics != null ? returnItemCollectionMetrics.hashCode() : 0);
+        return result;
     }
 
     /**
@@ -92,9 +151,12 @@ public final class DeleteItemEnhancedRequest {
      * <p>
      * <b>Note</b>: A valid request builder must define a {@link Key}.
      */
+    @NotThreadSafe
     public static final class Builder {
         private Key key;
         private Expression conditionExpression;
+        private String returnConsumedCapacity;
+        private String returnItemCollectionMetrics;
 
         private Builder() {
         }
@@ -134,6 +196,47 @@ public final class DeleteItemEnhancedRequest {
          */
         public Builder conditionExpression(Expression conditionExpression) {
             this.conditionExpression = conditionExpression;
+            return this;
+        }
+
+        /**
+         * Whether to return the capacity consumed by this operation.
+         *
+         * @see DeleteItemRequest.Builder#returnConsumedCapacity(ReturnConsumedCapacity)
+         */
+        public Builder returnConsumedCapacity(ReturnConsumedCapacity returnConsumedCapacity) {
+            this.returnConsumedCapacity = returnConsumedCapacity == null ? null : returnConsumedCapacity.toString();
+            return this;
+        }
+
+        /**
+         * Whether to return the capacity consumed by this operation.
+         *
+         * @see DeleteItemRequest.Builder#returnConsumedCapacity(String)
+         */
+        public Builder returnConsumedCapacity(String returnConsumedCapacity) {
+            this.returnConsumedCapacity = returnConsumedCapacity;
+            return this;
+        }
+
+        /**
+         * Whether to return the item collection metrics.
+         *
+         * @see DeleteItemRequest.Builder#returnItemCollectionMetrics(ReturnItemCollectionMetrics)
+         */
+        public Builder returnItemCollectionMetrics(ReturnItemCollectionMetrics returnItemCollectionMetrics) {
+            this.returnItemCollectionMetrics = returnItemCollectionMetrics == null ? null :
+                                               returnItemCollectionMetrics.toString();
+            return this;
+        }
+
+        /**
+         * Whether to return the item collection metrics.
+         *
+         * @see DeleteItemRequest.Builder#returnItemCollectionMetrics(String)
+         */
+        public Builder returnItemCollectionMetrics(String returnItemCollectionMetrics) {
+            this.returnItemCollectionMetrics = returnItemCollectionMetrics;
             return this;
         }
 

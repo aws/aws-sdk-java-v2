@@ -80,16 +80,19 @@ public class DefaultTokenBucketExceptionCostFunction implements TokenBucketExcep
         private Integer throttlingExceptionCost;
         private Integer defaultExceptionCost;
 
+        @Override
         public TokenBucketExceptionCostFunction.Builder throttlingExceptionCost(int cost) {
             this.throttlingExceptionCost = cost;
             return this;
         }
 
+        @Override
         public TokenBucketExceptionCostFunction.Builder defaultExceptionCost(int cost) {
             this.defaultExceptionCost = cost;
             return this;
         }
 
+        @Override
         public TokenBucketExceptionCostFunction build() {
             return new DefaultTokenBucketExceptionCostFunction(this);
         }

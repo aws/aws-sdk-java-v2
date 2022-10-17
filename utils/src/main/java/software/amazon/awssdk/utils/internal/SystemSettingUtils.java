@@ -47,6 +47,21 @@ public final class SystemSettingUtils {
     }
 
     /**
+     * Resolve the value of this system setting, loading it from the System by checking:
+     * <ol>
+     *     <li>The system properties.</li>
+     *     <li>The environment variables.</li>
+     * </ol>
+     * <p>
+     * This is similar to {@link #resolveSetting(SystemSetting)} but does not fall back to the default value if neither
+     * the environment variable or system property value are present.
+     */
+    public static Optional<String> resolveNonDefaultSetting(SystemSetting setting) {
+        return firstPresent(resolveProperty(setting), () -> resolveEnvironmentVariable(setting))
+                .map(String::trim);
+    }
+
+    /**
      * Attempt to load this setting from the system properties.
      */
     private static Optional<String> resolveProperty(SystemSetting setting) {
@@ -58,14 +73,19 @@ public final class SystemSettingUtils {
     /**
      * Attempt to load this setting from the environment variables.
      */
-    private static Optional<String> resolveEnvironmentVariable(SystemSetting setting) {
+    public static Optional<String> resolveEnvironmentVariable(SystemSetting setting) {
+        return resolveEnvironmentVariable(setting.environmentVariable());
+    }
+
+    /**
+     * Attempt to load a key from the environment variables.
+     */
+    public static Optional<String> resolveEnvironmentVariable(String key) {
         try {
-            // CHECKSTYLE:OFF - This is the only place we're allowed to use System.getenv
-            return Optional.ofNullable(setting.environmentVariable()).map(System::getenv);
-            // CHECKSTYLE:ON
+            return Optional.ofNullable(key).map(SystemSettingUtilsTestBackdoor::getEnvironmentVariable);
         } catch (SecurityException e) {
             LOG.debug("Unable to load the environment variable '{}' because the security manager did not allow the SDK" +
-                      " to read this system property. This setting will be assumed to be null", setting.environmentVariable(), e);
+                      " to read this system property. This setting will be assumed to be null", key, e);
             return Optional.empty();
         }
     }
@@ -91,4 +111,6 @@ public final class SystemSettingUtils {
         throw new IllegalStateException("Environment variable '" + setting.environmentVariable() + "' or system property '" +
                                         setting.property() + "' was defined as '" + value + "', but should be 'false' or 'true'");
     }
+
+
 }

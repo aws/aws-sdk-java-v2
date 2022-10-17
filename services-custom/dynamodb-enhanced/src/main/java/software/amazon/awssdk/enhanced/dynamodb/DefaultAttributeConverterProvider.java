@@ -22,6 +22,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import software.amazon.awssdk.annotations.Immutable;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.PrimitiveConverter;
@@ -35,6 +36,7 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.Big
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.BooleanAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.ByteArrayAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.ByteAttributeConverter;
+import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.ByteBufferAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.CharSequenceAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.CharacterArrayAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.CharacterAttributeConverter;
@@ -49,6 +51,7 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.Lis
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.LocalDateAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.LocalDateTimeAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.LocalTimeAttributeConverter;
+import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.LocaleAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.LongAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.MapAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.MonthDayAttributeConverter;
@@ -138,8 +141,16 @@ public final class DefaultAttributeConverterProvider implements AttributeConvert
      */
     @SuppressWarnings("unchecked")
     private <T> Optional<AttributeConverter<T>> findConverter(EnhancedType<T> type) {
-        log.debug(() -> "Loading converter for " + type + ".");
+        Optional<AttributeConverter<T>> converter = findConverterInternal(type);
+        if (converter.isPresent()) {
+            log.debug(() -> "Converter for " + type + ": " + converter.get().getClass().getTypeName());
+        } else {
+            log.debug(() -> "No converter available for " + type);
+        }
+        return converter;
+    }
 
+    private <T> Optional<AttributeConverter<T>> findConverterInternal(EnhancedType<T> type) {
         AttributeConverter<T> converter = (AttributeConverter<T>) converterCache.get(type);
         if (converter != null) {
             return Optional.of(converter);
@@ -204,6 +215,7 @@ public final class DefaultAttributeConverterProvider implements AttributeConvert
                                                 .addConverter(BigIntegerAttributeConverter.create())
                                                 .addConverter(BooleanAttributeConverter.create())
                                                 .addConverter(ByteArrayAttributeConverter.create())
+                                                .addConverter(ByteBufferAttributeConverter.create())
                                                 .addConverter(ByteAttributeConverter.create())
                                                 .addConverter(CharacterArrayAttributeConverter.create())
                                                 .addConverter(CharacterAttributeConverter.create())
@@ -215,6 +227,7 @@ public final class DefaultAttributeConverterProvider implements AttributeConvert
                                                 .addConverter(IntegerAttributeConverter.create())
                                                 .addConverter(LocalDateAttributeConverter.create())
                                                 .addConverter(LocalDateTimeAttributeConverter.create())
+                                                .addConverter(LocaleAttributeConverter.create())
                                                 .addConverter(LocalTimeAttributeConverter.create())
                                                 .addConverter(LongAttributeConverter.create())
                                                 .addConverter(MonthDayAttributeConverter.create())
@@ -239,6 +252,7 @@ public final class DefaultAttributeConverterProvider implements AttributeConvert
     /**
      * A builder for configuring and creating {@link DefaultAttributeConverterProvider}s.
      */
+    @NotThreadSafe
     public static class Builder {
         private List<AttributeConverter<?>> converters = new ArrayList<>();
 

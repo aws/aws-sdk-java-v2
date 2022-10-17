@@ -19,9 +19,11 @@ import static software.amazon.awssdk.http.SdkHttpConfigurationOption.CONNECTION_
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.CONNECTION_TIMEOUT;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.MAX_CONNECTIONS;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.MAX_PENDING_CONNECTION_ACQUIRES;
+import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TCP_KEEPALIVE;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES;
 import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 
+import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.TlsKeyManagersProvider;
@@ -96,5 +98,13 @@ public final class NettyConfiguration {
 
     public boolean trustAllCertificates() {
         return configuration.get(TRUST_ALL_CERTIFICATES);
+    }
+
+    public boolean tcpKeepAlive() {
+        return configuration.get(TCP_KEEPALIVE);
+    }
+
+    public Duration tlsHandshakeTimeout() {
+        return configuration.get(SdkHttpConfigurationOption.TLS_NEGOTIATION_TIMEOUT);
     }
 }

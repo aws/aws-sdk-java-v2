@@ -5,6 +5,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.Generated;
+import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
@@ -12,12 +14,16 @@ import software.amazon.awssdk.services.json.model.APostOperationRequest;
 import software.amazon.awssdk.services.json.model.APostOperationResponse;
 import software.amazon.awssdk.services.json.model.APostOperationWithOutputRequest;
 import software.amazon.awssdk.services.json.model.APostOperationWithOutputResponse;
+import software.amazon.awssdk.services.json.model.BearerAuthOperationRequest;
+import software.amazon.awssdk.services.json.model.BearerAuthOperationResponse;
 import software.amazon.awssdk.services.json.model.EventStreamOperationRequest;
 import software.amazon.awssdk.services.json.model.EventStreamOperationResponseHandler;
 import software.amazon.awssdk.services.json.model.EventStreamOperationWithOnlyInputRequest;
 import software.amazon.awssdk.services.json.model.EventStreamOperationWithOnlyInputResponse;
 import software.amazon.awssdk.services.json.model.EventStreamOperationWithOnlyOutputRequest;
 import software.amazon.awssdk.services.json.model.EventStreamOperationWithOnlyOutputResponseHandler;
+import software.amazon.awssdk.services.json.model.GetOperationWithChecksumRequest;
+import software.amazon.awssdk.services.json.model.GetOperationWithChecksumResponse;
 import software.amazon.awssdk.services.json.model.GetWithoutRequiredMembersRequest;
 import software.amazon.awssdk.services.json.model.GetWithoutRequiredMembersResponse;
 import software.amazon.awssdk.services.json.model.InputEventStream;
@@ -28,6 +34,8 @@ import software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKe
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyResponse;
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyRequest;
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyResponse;
+import software.amazon.awssdk.services.json.model.PutOperationWithChecksumRequest;
+import software.amazon.awssdk.services.json.model.PutOperationWithChecksumResponse;
 import software.amazon.awssdk.services.json.model.StreamingInputOperationRequest;
 import software.amazon.awssdk.services.json.model.StreamingInputOperationResponse;
 import software.amazon.awssdk.services.json.model.StreamingInputOutputOperationRequest;
@@ -44,8 +52,16 @@ import software.amazon.awssdk.services.json.paginators.PaginatedOperationWithout
  * A service that is implemented using the query protocol
  */
 @Generated("software.amazon.awssdk:codegen")
+@SdkPublicApi
+@ThreadSafe
 public interface JsonAsyncClient extends SdkClient {
     String SERVICE_NAME = "json-service";
+
+    /**
+     * Value for looking up the service's metadata from the
+     * {@link software.amazon.awssdk.regions.ServiceMetadataProvider}.
+     */
+    String SERVICE_METADATA_ID = "json-service-endpoint";
 
     /**
      * Create a {@link JsonAsyncClient} with the region loaded from the
@@ -85,7 +101,10 @@ public interface JsonAsyncClient extends SdkClient {
      * @sample JsonAsyncClient.APostOperation
      * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/APostOperation" target="_top">AWS
      *      API Documentation</a>
+     *
+     * @deprecated This API is deprecated, use something else
      */
+    @Deprecated
     default CompletableFuture<APostOperationResponse> aPostOperation(APostOperationRequest aPostOperationRequest) {
         throw new UnsupportedOperationException();
     }
@@ -118,7 +137,10 @@ public interface JsonAsyncClient extends SdkClient {
      * @sample JsonAsyncClient.APostOperation
      * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/APostOperation" target="_top">AWS
      *      API Documentation</a>
+     *
+     * @deprecated This API is deprecated, use something else
      */
+    @Deprecated
     default CompletableFuture<APostOperationResponse> aPostOperation(Consumer<APostOperationRequest.Builder> aPostOperationRequest) {
         return aPostOperation(APostOperationRequest.builder().applyMutation(aPostOperationRequest).build());
     }
@@ -185,6 +207,60 @@ public interface JsonAsyncClient extends SdkClient {
         Consumer<APostOperationWithOutputRequest.Builder> aPostOperationWithOutputRequest) {
         return aPostOperationWithOutput(APostOperationWithOutputRequest.builder().applyMutation(aPostOperationWithOutputRequest)
                                                                        .build());
+    }
+
+    /**
+     * Invokes the BearerAuthOperation operation asynchronously.
+     *
+     * @param bearerAuthOperationRequest
+     * @return A Java Future containing the result of the BearerAuthOperation operation returned by the service.<br/>
+     *         The CompletableFuture returned by this method can be completed exceptionally with the following
+     *         exceptions.
+     *         <ul>
+     *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
+     *         Can be used for catch all scenarios.</li>
+     *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
+     *         credentials, etc.</li>
+     *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
+     *         of this type.</li>
+     *         </ul>
+     * @sample JsonAsyncClient.BearerAuthOperation
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/BearerAuthOperation"
+     *      target="_top">AWS API Documentation</a>
+     */
+    default CompletableFuture<BearerAuthOperationResponse> bearerAuthOperation(
+        BearerAuthOperationRequest bearerAuthOperationRequest) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Invokes the BearerAuthOperation operation asynchronously.<br/>
+     * <p>
+     * This is a convenience which creates an instance of the {@link BearerAuthOperationRequest.Builder} avoiding the
+     * need to create one manually via {@link BearerAuthOperationRequest#builder()}
+     * </p>
+     *
+     * @param bearerAuthOperationRequest
+     *        A {@link Consumer} that will call methods on {@link BearerAuthOperationRequest.Builder} to create a
+     *        request.
+     * @return A Java Future containing the result of the BearerAuthOperation operation returned by the service.<br/>
+     *         The CompletableFuture returned by this method can be completed exceptionally with the following
+     *         exceptions.
+     *         <ul>
+     *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
+     *         Can be used for catch all scenarios.</li>
+     *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
+     *         credentials, etc.</li>
+     *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
+     *         of this type.</li>
+     *         </ul>
+     * @sample JsonAsyncClient.BearerAuthOperation
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/BearerAuthOperation"
+     *      target="_top">AWS API Documentation</a>
+     */
+    default CompletableFuture<BearerAuthOperationResponse> bearerAuthOperation(
+        Consumer<BearerAuthOperationRequest.Builder> bearerAuthOperationRequest) {
+        return bearerAuthOperation(BearerAuthOperationRequest.builder().applyMutation(bearerAuthOperationRequest).build());
     }
 
     /**
@@ -361,6 +437,60 @@ public interface JsonAsyncClient extends SdkClient {
         return eventStreamOperationWithOnlyOutput(
             EventStreamOperationWithOnlyOutputRequest.builder().applyMutation(eventStreamOperationWithOnlyOutputRequest)
                                                      .build(), asyncResponseHandler);
+    }
+
+    /**
+     * Invokes the GetOperationWithChecksum operation asynchronously.
+     *
+     * @param getOperationWithChecksumRequest
+     * @return A Java Future containing the result of the GetOperationWithChecksum operation returned by the service.<br/>
+     *         The CompletableFuture returned by this method can be completed exceptionally with the following
+     *         exceptions.
+     *         <ul>
+     *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
+     *         Can be used for catch all scenarios.</li>
+     *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
+     *         credentials, etc.</li>
+     *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
+     *         of this type.</li>
+     *         </ul>
+     * @sample JsonAsyncClient.GetOperationWithChecksum
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/GetOperationWithChecksum"
+     *      target="_top">AWS API Documentation</a>
+     */
+    default CompletableFuture<GetOperationWithChecksumResponse> getOperationWithChecksum(
+        GetOperationWithChecksumRequest getOperationWithChecksumRequest) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Invokes the GetOperationWithChecksum operation asynchronously.<br/>
+     * <p>
+     * This is a convenience which creates an instance of the {@link GetOperationWithChecksumRequest.Builder} avoiding
+     * the need to create one manually via {@link GetOperationWithChecksumRequest#builder()}
+     * </p>
+     *
+     * @param getOperationWithChecksumRequest
+     *        A {@link Consumer} that will call methods on {@link ChecksumStructure.Builder} to create a request.
+     * @return A Java Future containing the result of the GetOperationWithChecksum operation returned by the service.<br/>
+     *         The CompletableFuture returned by this method can be completed exceptionally with the following
+     *         exceptions.
+     *         <ul>
+     *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
+     *         Can be used for catch all scenarios.</li>
+     *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
+     *         credentials, etc.</li>
+     *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
+     *         of this type.</li>
+     *         </ul>
+     * @sample JsonAsyncClient.GetOperationWithChecksum
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/GetOperationWithChecksum"
+     *      target="_top">AWS API Documentation</a>
+     */
+    default CompletableFuture<GetOperationWithChecksumResponse> getOperationWithChecksum(
+        Consumer<GetOperationWithChecksumRequest.Builder> getOperationWithChecksumRequest) {
+        return getOperationWithChecksum(GetOperationWithChecksumRequest.builder().applyMutation(getOperationWithChecksumRequest)
+                                                                       .build());
     }
 
     /**
@@ -1016,6 +1146,190 @@ public interface JsonAsyncClient extends SdkClient {
         Consumer<PaginatedOperationWithoutResultKeyRequest.Builder> paginatedOperationWithoutResultKeyRequest) {
         return paginatedOperationWithoutResultKeyPaginator(PaginatedOperationWithoutResultKeyRequest.builder()
                                                                                                     .applyMutation(paginatedOperationWithoutResultKeyRequest).build());
+    }
+
+    /**
+     * Invokes the PutOperationWithChecksum operation asynchronously.
+     *
+     * @param putOperationWithChecksumRequest
+     * @param requestBody
+     *        Functional interface that can be implemented to produce the request content in a non-blocking manner. The
+     *        size of the content is expected to be known up front. See {@link AsyncRequestBody} for specific details on
+     *        implementing this interface as well as links to precanned implementations for common scenarios like
+     *        uploading from a file. The service documentation for the request content is as follows '
+     *        <p>
+     *        Object data.
+     *        </p>
+     *        '
+     * @param asyncResponseTransformer
+     *        The response transformer for processing the streaming response in a non-blocking manner. See
+     *        {@link AsyncResponseTransformer} for details on how this callback should be implemented and for links to
+     *        precanned implementations for common scenarios like downloading to a file. The service documentation for
+     *        the response content is as follows '
+     *        <p>
+     *        Object data.
+     *        </p>
+     *        '.
+     * @return A future to the transformed result of the AsyncResponseTransformer.<br/>
+     *         The CompletableFuture returned by this method can be completed exceptionally with the following
+     *         exceptions.
+     *         <ul>
+     *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
+     *         Can be used for catch all scenarios.</li>
+     *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
+     *         credentials, etc.</li>
+     *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
+     *         of this type.</li>
+     *         </ul>
+     * @sample JsonAsyncClient.PutOperationWithChecksum
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PutOperationWithChecksum"
+     *      target="_top">AWS API Documentation</a>
+     */
+    default <ReturnT> CompletableFuture<ReturnT> putOperationWithChecksum(
+        PutOperationWithChecksumRequest putOperationWithChecksumRequest, AsyncRequestBody requestBody,
+        AsyncResponseTransformer<PutOperationWithChecksumResponse, ReturnT> asyncResponseTransformer) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Invokes the PutOperationWithChecksum operation asynchronously.<br/>
+     * <p>
+     * This is a convenience which creates an instance of the {@link PutOperationWithChecksumRequest.Builder} avoiding
+     * the need to create one manually via {@link PutOperationWithChecksumRequest#builder()}
+     * </p>
+     *
+     * @param putOperationWithChecksumRequest
+     *        A {@link Consumer} that will call methods on {@link ChecksumStructureWithStreaming.Builder} to create a
+     *        request.
+     * @param requestBody
+     *        Functional interface that can be implemented to produce the request content in a non-blocking manner. The
+     *        size of the content is expected to be known up front. See {@link AsyncRequestBody} for specific details on
+     *        implementing this interface as well as links to precanned implementations for common scenarios like
+     *        uploading from a file. The service documentation for the request content is as follows '
+     *        <p>
+     *        Object data.
+     *        </p>
+     *        '
+     * @param asyncResponseTransformer
+     *        The response transformer for processing the streaming response in a non-blocking manner. See
+     *        {@link AsyncResponseTransformer} for details on how this callback should be implemented and for links to
+     *        precanned implementations for common scenarios like downloading to a file. The service documentation for
+     *        the response content is as follows '
+     *        <p>
+     *        Object data.
+     *        </p>
+     *        '.
+     * @return A future to the transformed result of the AsyncResponseTransformer.<br/>
+     *         The CompletableFuture returned by this method can be completed exceptionally with the following
+     *         exceptions.
+     *         <ul>
+     *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
+     *         Can be used for catch all scenarios.</li>
+     *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
+     *         credentials, etc.</li>
+     *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
+     *         of this type.</li>
+     *         </ul>
+     * @sample JsonAsyncClient.PutOperationWithChecksum
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PutOperationWithChecksum"
+     *      target="_top">AWS API Documentation</a>
+     */
+    default <ReturnT> CompletableFuture<ReturnT> putOperationWithChecksum(
+        Consumer<PutOperationWithChecksumRequest.Builder> putOperationWithChecksumRequest, AsyncRequestBody requestBody,
+        AsyncResponseTransformer<PutOperationWithChecksumResponse, ReturnT> asyncResponseTransformer) {
+        return putOperationWithChecksum(PutOperationWithChecksumRequest.builder().applyMutation(putOperationWithChecksumRequest)
+                                                                       .build(), requestBody, asyncResponseTransformer);
+    }
+
+    /**
+     * Invokes the PutOperationWithChecksum operation asynchronously.
+     *
+     * @param putOperationWithChecksumRequest
+     * @param sourcePath
+     *        {@link Path} to file containing data to send to the service. File will be read entirely and may be read
+     *        multiple times in the event of a retry. If the file does not exist or the current user does not have
+     *        access to read it then an exception will be thrown. The service documentation for the request content is
+     *        as follows '
+     *        <p>
+     *        Object data.
+     *        </p>
+     *        '
+     * @param destinationPath
+     *        {@link Path} to file that response contents will be written to. The file must not exist or this method
+     *        will throw an exception. If the file is not writable by the current user then an exception will be thrown.
+     *        The service documentation for the response content is as follows '
+     *        <p>
+     *        Object data.
+     *        </p>
+     *        '.
+     * @return A future to the transformed result of the AsyncResponseTransformer.<br/>
+     *         The CompletableFuture returned by this method can be completed exceptionally with the following
+     *         exceptions.
+     *         <ul>
+     *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
+     *         Can be used for catch all scenarios.</li>
+     *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
+     *         credentials, etc.</li>
+     *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
+     *         of this type.</li>
+     *         </ul>
+     * @sample JsonAsyncClient.PutOperationWithChecksum
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PutOperationWithChecksum"
+     *      target="_top">AWS API Documentation</a>
+     */
+    default CompletableFuture<PutOperationWithChecksumResponse> putOperationWithChecksum(
+        PutOperationWithChecksumRequest putOperationWithChecksumRequest, Path sourcePath, Path destinationPath) {
+        return putOperationWithChecksum(putOperationWithChecksumRequest, AsyncRequestBody.fromFile(sourcePath),
+                                        AsyncResponseTransformer.toFile(destinationPath));
+    }
+
+    /**
+     * Invokes the PutOperationWithChecksum operation asynchronously.<br/>
+     * <p>
+     * This is a convenience which creates an instance of the {@link PutOperationWithChecksumRequest.Builder} avoiding
+     * the need to create one manually via {@link PutOperationWithChecksumRequest#builder()}
+     * </p>
+     *
+     * @param putOperationWithChecksumRequest
+     *        A {@link Consumer} that will call methods on {@link ChecksumStructureWithStreaming.Builder} to create a
+     *        request.
+     * @param sourcePath
+     *        {@link Path} to file containing data to send to the service. File will be read entirely and may be read
+     *        multiple times in the event of a retry. If the file does not exist or the current user does not have
+     *        access to read it then an exception will be thrown. The service documentation for the request content is
+     *        as follows '
+     *        <p>
+     *        Object data.
+     *        </p>
+     *        '
+     * @param destinationPath
+     *        {@link Path} to file that response contents will be written to. The file must not exist or this method
+     *        will throw an exception. If the file is not writable by the current user then an exception will be thrown.
+     *        The service documentation for the response content is as follows '
+     *        <p>
+     *        Object data.
+     *        </p>
+     *        '.
+     * @return A future to the transformed result of the AsyncResponseTransformer.<br/>
+     *         The CompletableFuture returned by this method can be completed exceptionally with the following
+     *         exceptions.
+     *         <ul>
+     *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
+     *         Can be used for catch all scenarios.</li>
+     *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
+     *         credentials, etc.</li>
+     *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
+     *         of this type.</li>
+     *         </ul>
+     * @sample JsonAsyncClient.PutOperationWithChecksum
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PutOperationWithChecksum"
+     *      target="_top">AWS API Documentation</a>
+     */
+    default CompletableFuture<PutOperationWithChecksumResponse> putOperationWithChecksum(
+        Consumer<PutOperationWithChecksumRequest.Builder> putOperationWithChecksumRequest, Path sourcePath,
+        Path destinationPath) {
+        return putOperationWithChecksum(PutOperationWithChecksumRequest.builder().applyMutation(putOperationWithChecksumRequest)
+                                                                       .build(), sourcePath, destinationPath);
     }
 
     /**

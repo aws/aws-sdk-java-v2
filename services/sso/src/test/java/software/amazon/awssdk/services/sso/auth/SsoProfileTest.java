@@ -18,7 +18,7 @@ package software.amazon.awssdk.services.sso.auth;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.internal.ProfileCredentialsUtils;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.utils.StringInputStream;
@@ -39,7 +39,7 @@ public class SsoProfileTest {
                                           .type(ProfileFile.Type.CONFIGURATION)
                                           .build();
         assertThat(profiles.profile("foo")).hasValueSatisfying(profile -> {
-            assertThatThrownBy(() -> new ProfileCredentialsUtils(profile, profiles::profile).credentialsProvider())
+            assertThatThrownBy(() -> new ProfileCredentialsUtils(profiles, profile, profiles::profile).credentialsProvider())
                 .hasMessageContaining("Profile property 'sso_account_id' was not configured");
         });
     }
@@ -55,7 +55,7 @@ public class SsoProfileTest {
                                           .type(ProfileFile.Type.CONFIGURATION)
                                           .build();
         assertThat(profiles.profile("foo")).hasValueSatisfying(profile -> {
-            assertThatThrownBy(() -> new ProfileCredentialsUtils(profile, profiles::profile).credentialsProvider())
+            assertThatThrownBy(() -> new ProfileCredentialsUtils(profiles, profile, profiles::profile).credentialsProvider())
                 .hasMessageContaining("Profile property 'sso_region' was not configured");
         });
     }
@@ -71,7 +71,7 @@ public class SsoProfileTest {
                                           .type(ProfileFile.Type.CONFIGURATION)
                                           .build();
         assertThat(profiles.profile("foo")).hasValueSatisfying(profile -> {
-            assertThatThrownBy(() -> new ProfileCredentialsUtils(profile, profiles::profile).credentialsProvider())
+            assertThatThrownBy(() -> new ProfileCredentialsUtils(profiles, profile, profiles::profile).credentialsProvider())
                 .hasMessageContaining("Profile property 'sso_role_name' was not configured");
         });
     }
@@ -87,7 +87,7 @@ public class SsoProfileTest {
                                           .type(ProfileFile.Type.CONFIGURATION)
                                           .build();
         assertThat(profiles.profile("foo")).hasValueSatisfying(profile -> {
-            assertThatThrownBy(() -> new ProfileCredentialsUtils(profile, profiles::profile).credentialsProvider())
+            assertThatThrownBy(() -> new ProfileCredentialsUtils(profiles, profile, profiles::profile).credentialsProvider())
                 .hasMessageContaining("Profile property 'sso_start_url' was not configured");
         });
     }

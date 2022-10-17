@@ -16,7 +16,9 @@
 package software.amazon.awssdk.http.nio.netty.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 
 import io.netty.channel.Channel;
@@ -26,6 +28,8 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.pool.ChannelPool;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.Promise;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -170,6 +174,20 @@ public class IdleConnectionCountingChannelPoolTest {
         }
     }
 
+    @Test
+    public void collectChannelPoolMetrics_failes_futureFailed() throws Exception {
+        MockChannel channel = new MockChannel();
+        eventLoopGroup.register(channel);
+
+        RuntimeException errorToThrow = new RuntimeException("failed!");
+        MetricCollector mockMetricCollector = mock(MetricCollector.class);
+        doThrow(errorToThrow).when(mockMetricCollector).reportMetric(any(), any());
+
+        CompletableFuture<Void> collectFuture = idleCountingPool.collectChannelPoolMetrics(mockMetricCollector);
+
+        assertThatThrownBy(() -> collectFuture.get(1, TimeUnit.SECONDS)).hasCause(errorToThrow);
+    }
+
     private int getIdleConnectionCount() {
         MetricCollector metricCollector = MetricCollector.create("test");
         idleCountingPool.collectChannelPoolMetrics(metricCollector).join();
@@ -186,10 +204,10 @@ public class IdleConnectionCountingChannelPoolTest {
     }
 
     private void stubDelegatePoolReleasesForSuccess() {
-        Mockito.when(delegatePool.release(any())).thenAnswer((Answer<Future<Channel>>) invocation -> {
-            Channel channel = invocation.getArgumentAt(0, Channel.class);
-            Promise<Channel> result = channel.eventLoop().newPromise();
-            return result.setSuccess(channel);
+        Mockito.when(delegatePool.release(any(Channel.class), any(Promise.class))).thenAnswer((Answer<Future<Void>>) invocation -> {
+            Promise<Void> promise = invocation.getArgument(1, Promise.class);
+            promise.setSuccess(null);
+            return promise;
         });
     }
 

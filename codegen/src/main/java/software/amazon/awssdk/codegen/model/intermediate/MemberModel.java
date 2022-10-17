@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Optional;
 import software.amazon.awssdk.codegen.internal.TypeUtils;
 import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.protocol.MarshallingType;
 import software.amazon.awssdk.core.util.SdkAutoConstructList;
 import software.amazon.awssdk.core.util.SdkAutoConstructMap;
@@ -54,6 +55,8 @@ public class MemberModel extends DocumentationModel {
     private ParameterHttpMapping http;
 
     private boolean deprecated;
+    
+    private String deprecatedMessage;
 
     private ListModel listModel;
 
@@ -80,6 +83,8 @@ public class MemberModel extends DocumentationModel {
     private String beanStyleGetterName;
 
     private String beanStyleSetterName;
+
+    private String unionEnumTypeName;
 
     private boolean isJsonValue;
 
@@ -300,6 +305,14 @@ public class MemberModel extends DocumentationModel {
         this.deprecated = deprecated;
     }
 
+    public String getDeprecatedMessage() {
+        return deprecatedMessage;
+    }
+
+    public void setDeprecatedMessage(String deprecatedMessage) {
+        this.deprecatedMessage = deprecatedMessage;
+    }
+
     public boolean isEventPayload() {
         return eventPayload;
     }
@@ -422,7 +435,8 @@ public class MemberModel extends DocumentationModel {
 
         if (getAutoConstructClassIfExists().isPresent()) {
             appendParagraph(docBuilder,
-                            "You can use {@link #%s()} to see if a value was sent in this field.",
+                            "This method will never return null. If you would like to know whether the service returned this "
+                            + "field (so that you can differentiate between null and empty), you can use the {@link #%s} method.",
                             getExistenceCheckMethodName());
         }
 
@@ -466,17 +480,18 @@ public class MemberModel extends DocumentationModel {
             + LF;
     }
 
-    public String getDefaultConsumerFluentSetterDocumentation() {
+    public String getDefaultConsumerFluentSetterDocumentation(String variableType) {
         return (StringUtils.isNotBlank(documentation) ? documentation : defaultSetter().replace("%s", name) + "\n")
                + LF
-               + "This is a convenience that creates an instance of the {@link "
-               + variable.getSimpleType()
+               + "This is a convenience method that creates an instance of the {@link "
+               + variableType
                + ".Builder} avoiding the need to create one manually via {@link "
-               + variable.getSimpleType()
+               + variableType
                + "#builder()}.\n"
                + LF
+               + "<p>"
                + "When the {@link Consumer} completes, {@link "
-               + variable.getSimpleType()
+               + variableType
                + ".Builder#build()} is called immediately and its result is passed to {@link #"
                + getFluentGetterMethodName()
                + "("
@@ -486,15 +501,22 @@ public class MemberModel extends DocumentationModel {
                + "@param "
                + variable.getVariableName()
                + " a consumer that will call methods on {@link "
-               + variable.getSimpleType() + ".Builder}"
+               + variableType + ".Builder}"
                + LF
                + "@return " + stripHtmlTags(defaultFluentReturn())
                + LF
                + "@see #"
                + getFluentSetterMethodName()
                + "("
-               + variable.getSimpleType()
+               + variable.getVariableSetterType()
                + ")";
+    }
+
+    public String getUnionConstructorDocumentation() {
+        return "Create an instance of this class with {@link #" + this.getFluentGetterMethodName() +
+               "()} initialized to the given value." +
+               LF + LF +
+               getSetterDocumentation();
     }
 
     private String getParamDoc() {
@@ -615,9 +637,26 @@ public class MemberModel extends DocumentationModel {
     }
 
     @JsonIgnore
-    public boolean isCollectionWithBuilderMember() {
-        return (isList() && getListModel().getListMemberModel() != null && getListModel().getListMemberModel().hasBuilder()) ||
-               (isMap() && getMapModel().getValueModel() != null && getMapModel().getValueModel().hasBuilder());
+    public boolean containsBuildable() {
+        return containsBuildable(true);
+    }
+
+    private boolean containsBuildable(boolean root) {
+        if (!root && hasBuilder()) {
+            return true;
+        }
+
+        if (isList()) {
+            return getListModel().getListMemberModel().containsBuildable(false);
+        }
+
+        if (isMap()) {
+            MapModel mapModel = getMapModel();
+            return mapModel.getKeyModel().containsBuildable(false) ||
+                   mapModel.getValueModel().containsBuildable(false);
+        }
+
+        return false;
     }
 
     @JsonIgnore
@@ -696,5 +735,13 @@ public class MemberModel extends DocumentationModel {
 
     public void setDeprecatedBeanStyleSetterMethodName(String deprecatedBeanStyleSetterMethodName) {
         this.deprecatedBeanStyleSetterMethodName = deprecatedBeanStyleSetterMethodName;
+    }
+
+    public String getUnionEnumTypeName() {
+        return unionEnumTypeName;
+    }
+
+    public void setUnionEnumTypeName(String unionEnumTypeName) {
+        this.unionEnumTypeName = unionEnumTypeName;
     }
 }

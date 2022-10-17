@@ -1,0 +1,30 @@
+{
+    "version": "2.17.76",
+    "date": "2021-11-05",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "abrooksv",
+            "description": "Added the profile key `duration_seconds` to class `ProfileProperty`"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Translate",
+            "contributor": "",
+            "description": "This release enable customers to use their own KMS keys to encrypt output files when they submit a batch transform job."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "DescribeInstances now returns customer-owned IP addresses for instances running on an AWS Outpost."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Resource Groups Tagging API",
+            "contributor": "",
+            "description": "Documentation updates and improvements."
+        }
+    ]
+}

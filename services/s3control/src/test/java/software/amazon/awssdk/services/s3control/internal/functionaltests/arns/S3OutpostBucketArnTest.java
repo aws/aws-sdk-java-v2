@@ -209,16 +209,14 @@ public class S3OutpostBucketArnTest extends S3ControlWireMockTestBase {
     }
 
     @Test
-    public void fipsClientRegion_bucketArnDifferentRegion_useArnRegionSet_shouldUseRegionFromArn() {
+    public void fipsClientRegion_bucketArnDifferentRegion_useArnRegionSet_throwsIllegalArgumentException() {
         String bucketArn = "arn:aws-us-gov:s3-outposts:us-gov-east-1:123456789012:outpost:op-01234567890123456:bucket:mybucket";
         stubResponse();
-
         S3ControlClient s3WithUseArnRegion =
             initializedBuilder().region(Region.of("fips-us-gov-east-1")).serviceConfiguration(b -> b.useArnRegionEnabled(true)).build();
-
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("FIPS");
         s3WithUseArnRegion.getBucket(b -> b.bucket(bucketArn));
-
-        verifyRequest("us-gov-east-1");
     }
 
     @Test

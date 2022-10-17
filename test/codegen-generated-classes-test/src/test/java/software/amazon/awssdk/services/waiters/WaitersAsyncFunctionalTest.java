@@ -17,18 +17,17 @@ package software.amazon.awssdk.services.waiters;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
@@ -49,7 +48,7 @@ public class WaitersAsyncFunctionalTest {
     public RestJsonWithWaitersAsyncClient asyncClient;
     public RestJsonWithWaitersAsyncWaiter asyncWaiter;
 
-    @Before
+    @BeforeEach
     public void setup() {
         asyncClient = mock(RestJsonWithWaitersAsyncClient.class);
         asyncWaiter = RestJsonWithWaitersAsyncWaiter.builder()
@@ -61,14 +60,14 @@ public class WaitersAsyncFunctionalTest {
                                                     .build();
     }
 
-    @After
+    @AfterEach
     public void cleanup() {
         asyncClient.close();
         asyncWaiter.close();
     }
 
     @Test
-    public void allTypeOperation_withAsyncWaiter_shouldReturnResponse() throws ExecutionException, InterruptedException {
+    public void allTypeOperation_withAsyncWaiter_shouldReturnResponse() throws Exception {
         AllTypesResponse response = (AllTypesResponse) AllTypesResponse.builder()
                                                                        .sdkHttpResponse(SdkHttpResponse.builder()
                                                                                                        .statusCode(200)
@@ -89,7 +88,7 @@ public class WaitersAsyncFunctionalTest {
     }
 
     @Test
-    public void allTypeOperationFailed_withAsyncWaiter_shouldReturnException() throws ExecutionException, InterruptedException {
+    public void allTypeOperationFailed_withAsyncWaiter_shouldReturnException() throws Exception {
         CompletableFuture<AllTypesResponse> serviceFuture = new CompletableFuture<>();
 
         when(asyncClient.allTypes(any(AllTypesRequest.class))).thenReturn(serviceFuture);
@@ -102,7 +101,7 @@ public class WaitersAsyncFunctionalTest {
     }
 
     @Test
-    public void allTypeOperationRetry_withAsyncWaiter_shouldReturnResponseAfterException() throws ExecutionException, InterruptedException {
+    public void allTypeOperationRetry_withAsyncWaiter_shouldReturnResponseAfterException() throws Exception {
         AllTypesResponse response2 = (AllTypesResponse) AllTypesResponse.builder()
                                                                         .sdkHttpResponse(SdkHttpResponse.builder()
                                                                                                         .statusCode(200)
@@ -200,6 +199,13 @@ public class WaitersAsyncFunctionalTest {
     }
 
     @Test
+    void errorShouldNotBeWrapped() {
+        when(asyncClient.allTypes(any(AllTypesRequest.class))).thenReturn(CompletableFutureUtils.failedFuture(new OutOfMemoryError()));
+        assertThatThrownBy(() -> asyncWaiter.waitUntilAllTypesSuccess(SdkBuilder::build).join())
+            .hasCauseInstanceOf(Error.class);
+    }
+
+    @Test
     public void closeWaiterCreatedWithClient_clientDoesNotClose() {
         asyncWaiter.close();
         verify(asyncClient, never()).close();
@@ -209,6 +215,7 @@ public class WaitersAsyncFunctionalTest {
     public void closeWaiterCreatedWithExecutorService_executorServiceDoesNotClose() {
         ScheduledExecutorService executorService = mock(ScheduledExecutorService.class);
         RestJsonWithWaitersAsyncWaiter newWaiter = RestJsonWithWaitersAsyncWaiter.builder()
+                                                                                 .client(asyncClient)
                                                                                  .scheduledExecutorService(executorService)
                                                                                  .overrideConfiguration(WaiterOverrideConfiguration.builder()
                                                                                                                  .maxAttempts(3)

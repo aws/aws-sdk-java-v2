@@ -23,6 +23,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
+import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.endpoint.DefaultServiceEndpointBuilder;
 import software.amazon.awssdk.core.Protocol;
 import software.amazon.awssdk.core.SdkRequest;
@@ -32,6 +33,7 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -94,7 +96,7 @@ public abstract class RdsPresignInterceptor<T extends NeptuneRequest> implements
             return request;
         }
 
-        if (request.rawQueryParameters().containsKey(PARAM_PRESIGNED_URL)) {
+        if (request.firstMatchingRawQueryParameter(PARAM_PRESIGNED_URL).isPresent()) {
             return request;
         }
 
@@ -107,7 +109,7 @@ public abstract class RdsPresignInterceptor<T extends NeptuneRequest> implements
 
         String destinationRegion = executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNING_REGION).id();
 
-        URI endpoint = createEndpoint(sourceRegion, SERVICE_NAME);
+        URI endpoint = createEndpoint(sourceRegion, SERVICE_NAME, executionAttributes);
         SdkHttpFullRequest.Builder marshalledRequest = presignableRequest.marshall().toBuilder().uri(endpoint);
 
         SdkHttpFullRequest requestToPresign =
@@ -150,7 +152,7 @@ public abstract class RdsPresignInterceptor<T extends NeptuneRequest> implements
         return signer.presign(request, presignerParams);
     }
 
-    private URI createEndpoint(String regionName, String serviceName) {
+    private URI createEndpoint(String regionName, String serviceName, ExecutionAttributes attributes) {
         Region region = Region.of(regionName);
 
         if (region == null) {
@@ -162,6 +164,10 @@ public abstract class RdsPresignInterceptor<T extends NeptuneRequest> implements
 
         return new DefaultServiceEndpointBuilder(SERVICE_NAME, Protocol.HTTPS.toString())
                 .withRegion(region)
+                .withProfileFile(() -> attributes.getAttribute(SdkExecutionAttribute.PROFILE_FILE))
+                .withProfileName(attributes.getAttribute(SdkExecutionAttribute.PROFILE_NAME))
+                .withDualstackEnabled(attributes.getAttribute(AwsExecutionAttribute.DUALSTACK_ENDPOINT_ENABLED))
+                .withFipsEnabled(attributes.getAttribute(AwsExecutionAttribute.FIPS_ENDPOINT_ENABLED))
                 .getServiceEndpoint();
     }
 }

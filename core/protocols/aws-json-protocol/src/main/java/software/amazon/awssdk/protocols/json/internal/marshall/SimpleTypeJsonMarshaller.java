@@ -23,6 +23,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
+import software.amazon.awssdk.core.document.Document;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.traits.TimestampFormatTrait;
@@ -65,6 +66,13 @@ public final class SimpleTypeJsonMarshaller {
         }
     };
 
+    public static final JsonMarshaller<Short> SHORT = new BaseJsonMarshaller<Short>() {
+        @Override
+        public void marshall(Short val, StructuredJsonGenerator jsonGenerator, JsonMarshallerContext context) {
+            jsonGenerator.writeValue(val);
+        }
+    };
+
     public static final JsonMarshaller<Float> FLOAT = new BaseJsonMarshaller<Float>() {
         @Override
         public void marshall(Float val, StructuredJsonGenerator jsonGenerator, JsonMarshallerContext context) {
@@ -98,14 +106,14 @@ public final class SimpleTypeJsonMarshaller {
         if (paramName != null) {
             jsonGenerator.writeFieldName(paramName);
         }
-        TimestampFormatTrait trait = sdkField.getTrait(TimestampFormatTrait.class);
+        TimestampFormatTrait trait = sdkField != null ? sdkField.getTrait(TimestampFormatTrait.class) : null;
         if (trait != null) {
             switch (trait.format()) {
                 case UNIX_TIMESTAMP:
                     jsonGenerator.writeNumber(DateUtils.formatUnixTimestampInstant(val));
                     break;
                 case RFC_822:
-                    jsonGenerator.writeValue(DateUtils.formatRfc1123Date(val));
+                    jsonGenerator.writeValue(DateUtils.formatRfc822Date(val));
                     break;
                 case ISO_8601:
                     jsonGenerator.writeValue(DateUtils.formatIso8601Date(val));
@@ -175,6 +183,16 @@ public final class SimpleTypeJsonMarshaller {
         @Override
         protected boolean shouldEmit(Map<String, ?> map) {
             return !map.isEmpty() || !(map instanceof SdkAutoConstructMap);
+        }
+    };
+
+    /**
+     * Marshalls Document type members by visiting the document using DocumentTypeJsonMarshaller.
+     */
+    public static final JsonMarshaller<Document> DOCUMENT = new BaseJsonMarshaller<Document>() {
+        @Override
+        public void marshall(Document document, StructuredJsonGenerator jsonGenerator, JsonMarshallerContext context) {
+            document.accept(new DocumentTypeJsonMarshaller(jsonGenerator));
         }
     };
 

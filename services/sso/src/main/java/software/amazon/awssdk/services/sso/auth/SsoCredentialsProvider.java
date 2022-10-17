@@ -20,7 +20,6 @@ import static software.amazon.awssdk.utils.Validate.notNull;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
@@ -31,31 +30,27 @@ import software.amazon.awssdk.services.sso.internal.SessionCredentialsHolder;
 import software.amazon.awssdk.services.sso.model.GetRoleCredentialsRequest;
 import software.amazon.awssdk.services.sso.model.RoleCredentials;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 import software.amazon.awssdk.utils.cache.CachedSupplier;
 import software.amazon.awssdk.utils.cache.NonBlocking;
 import software.amazon.awssdk.utils.cache.RefreshResult;
 
 /**
- * <p>
- * An implementation of {@link AwsCredentialsProvider} that is extended within this package to provide support for
- * periodically updating session credentials. This credential provider maintains a {@link Supplier<GetRoleCredentialsRequest>}
- * for a {@link SsoClient#getRoleCredentials(Consumer)} call to retrieve the credentials needed.
- * </p>
+ * An implementation of {@link AwsCredentialsProvider} that periodically sends a {@link GetRoleCredentialsRequest} to the AWS
+ * Single Sign-On Service to maintain short-lived sessions to use for authentication. These sessions are updated using a single
+ * calling thread (by default) or asynchronously (if {@link Builder#asyncCredentialUpdateEnabled(Boolean)} is set).
  *
- * <p>
- * While creating the {@link GetRoleCredentialsRequest}, an access token is needed to be resolved from a token file.
- * In default, the token is assumed unexpired, and if it's expired then an {@link ExpiredTokenException} will be thrown.
- * If the users want to change the behavior of this, please implement your own token resolving logic and override the
- * {@link Builder#refreshRequest).
- * </p>
+ * If the credentials are not successfully updated before expiration, calls to {@link #resolveCredentials()} will block until
+ * they are updated successfully.
  *
- * <p>
- * When credentials get close to expiration, this class will attempt to update them asynchronously. If the credentials
- * end up expiring, this class will block all calls to {@link #resolveCredentials()} until the credentials can be updated.
- * </p>
+ * Users of this provider must {@link #close()} it when they are finished using it.
+ *
+ * This is created using {@link SsoCredentialsProvider#builder()}.
  */
 @SdkPublicApi
-public final class SsoCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
+public final class SsoCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable,
+                                                     ToCopyableBuilder<SsoCredentialsProvider.Builder, SsoCredentialsProvider> {
 
     private static final Duration DEFAULT_STALE_TIME = Duration.ofMinutes(1);
     private static final Duration DEFAULT_PREFETCH_TIME = Duration.ofMinutes(5);
@@ -70,6 +65,8 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
 
     private final CachedSupplier<SessionCredentialsHolder> credentialCache;
 
+    private final Boolean asyncCredentialUpdateEnabled;
+
     /**
      * @see #builder()
      */
@@ -80,6 +77,7 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
         this.staleTime = Optional.ofNullable(builder.staleTime).orElse(DEFAULT_STALE_TIME);
         this.prefetchTime = Optional.ofNullable(builder.prefetchTime).orElse(DEFAULT_PREFETCH_TIME);
 
+        this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
         CachedSupplier.Builder<SessionCredentialsHolder> cacheBuilder = CachedSupplier.builder(this::updateSsoCredentials);
         if (builder.asyncCredentialUpdateEnabled) {
             cacheBuilder.prefetchStrategy(new NonBlocking(ASYNC_THREAD_NAME));
@@ -145,10 +143,15 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
         credentialCache.close();
     }
 
+    @Override
+    public Builder toBuilder() {
+        return new BuilderImpl(this);
+    }
+
     /**
      * A builder for creating a custom {@link SsoCredentialsProvider}.
      */
-    public interface Builder {
+    public interface Builder extends CopyableBuilder<Builder, SsoCredentialsProvider> {
 
         /**
          * Configure the {@link SsoClient} to use when calling SSO to update the session. This client should not be shut
@@ -175,7 +178,10 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
 
         /**
          * Configure the amount of time, relative to SSO session token expiration, that the cached credentials are considered
-         * close to stale and should be updated. See {@link #asyncCredentialUpdateEnabled}.
+         * close to stale and should be updated.
+         *
+         * Prefetch updates will occur between the specified time and the stale time of the provider. Prefetch updates may be
+         * asynchronous. See {@link #asyncCredentialUpdateEnabled}.
          *
          * <p>By default, this is 5 minutes.</p>
          */
@@ -210,6 +216,14 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
 
         BuilderImpl() {
 
+        }
+
+        public BuilderImpl(SsoCredentialsProvider provider) {
+            this.asyncCredentialUpdateEnabled = provider.asyncCredentialUpdateEnabled;
+            this.ssoClient = provider.ssoClient;
+            this.staleTime = provider.staleTime;
+            this.prefetchTime = provider.prefetchTime;
+            this.getRoleCredentialsRequestSupplier = provider.getRoleCredentialsRequestSupplier;
         }
 
         @Override

@@ -25,12 +25,16 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import software.amazon.awssdk.core.FileTransformerConfiguration;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.async.ResponsePublisher;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.interceptor.Context;
@@ -42,6 +46,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.utils.ImmutableMap;
+import software.amazon.awssdk.utils.Md5Utils;
 
 public class GetObjectAsyncIntegrationTest extends S3IntegrationTestBase {
 
@@ -63,7 +68,9 @@ public class GetObjectAsyncIntegrationTest extends S3IntegrationTestBase {
         s3Async.putObject(PutObjectRequest.builder()
                                           .bucket(BUCKET)
                                           .key(KEY)
-                                          .build(), file.toPath()).join();
+                                          .build(), file.toPath());
+
+        s3Async.waiter().waitUntilObjectExists(b -> b.bucket(BUCKET).key(KEY)).join();
     }
 
     @AfterClass
@@ -85,6 +92,37 @@ public class GetObjectAsyncIntegrationTest extends S3IntegrationTestBase {
     }
 
     @Test
+    public void toFile_replaceExisting_shouldReplace() throws Exception {
+        File fileToWrite = RandomTempFile.createTempFile("temp", UUID.randomUUID().toString());
+        Files.write(fileToWrite.toPath(), RandomStringUtils.random(1024).getBytes(StandardCharsets.UTF_8));
+        GetObjectResponse response = null;
+        try {
+            AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> transformer =
+                AsyncResponseTransformer.toFile(fileToWrite, FileTransformerConfiguration.defaultCreateOrReplaceExisting());
+            s3Async.getObject(getObjectRequest, transformer).join();
+        } finally {
+            assertThat(Md5Utils.md5AsBase64(fileToWrite)).isEqualTo(Md5Utils.md5AsBase64(file));
+            fileToWrite.delete();
+        }
+    }
+
+    @Test
+    public void toFile_appendExisting_shouldAppend() throws Exception {
+        File fileToWrite = RandomTempFile.createTempFile("temp", UUID.randomUUID().toString());
+        byte[] bytes = RandomStringUtils.random(1024).getBytes(StandardCharsets.UTF_8);
+        Files.write(fileToWrite.toPath(), bytes);
+        GetObjectResponse response = null;
+        try {
+            AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> transformer =
+                AsyncResponseTransformer.toFile(fileToWrite, FileTransformerConfiguration.defaultCreateOrAppend());
+            response = s3Async.getObject(getObjectRequest, transformer).join();
+        } finally {
+            assertThat(fileToWrite.length()).isEqualTo(file.length() + bytes.length);
+            fileToWrite.delete();
+        }
+    }
+
+    @Test
     public void dumpToString() throws IOException {
         String returned = s3Async.getObject(getObjectRequest, AsyncResponseTransformer.toBytes()).join().asUtf8String();
         assertThat(returned).isEqualTo(new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8));
@@ -94,6 +132,16 @@ public class GetObjectAsyncIntegrationTest extends S3IntegrationTestBase {
     public void toByteArray() throws IOException {
         byte[] returned = s3Async.getObject(getObjectRequest, AsyncResponseTransformer.toBytes()).join().asByteArray();
         assertThat(returned).isEqualTo(Files.readAllBytes(file.toPath()));
+    }
+    
+    @Test
+    public void toPublisher() throws IOException {
+        ResponsePublisher<GetObjectResponse> responsePublisher =
+            s3Async.getObject(getObjectRequest, AsyncResponseTransformer.toPublisher()).join();
+        ByteBuffer buf = ByteBuffer.allocate(Math.toIntExact(responsePublisher.response().contentLength()));
+        CompletableFuture<Void> drainPublisherFuture = responsePublisher.subscribe(buf::put);
+        drainPublisherFuture.join();
+        assertThat(buf.array()).isEqualTo(Files.readAllBytes(file.toPath()));
     }
 
     @Test

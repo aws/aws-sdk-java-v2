@@ -19,10 +19,9 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -32,7 +31,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
-import org.junit.Test;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.Test;
 
 public class CollectionUtilsTest {
 
@@ -76,6 +77,29 @@ public class CollectionUtilsTest {
     @Test
     public void firstIfPresent_FirstElementNull_ReturnsNull() {
         assertThat(CollectionUtils.firstIfPresent(Arrays.asList(null, "bar", "baz"))).isNull();
+    }
+
+    @Test
+    public void inverseMap_EmptyList_ReturnsNull() {
+        Map<String, String> map = Collections.emptyMap();
+        assertThat(CollectionUtils.inverseMap(map)).isEmpty();
+    }
+
+    @Test
+    public void inverseMap_SingleElementList_InversesKeyAndValue() {
+        assertThat(CollectionUtils.inverseMap(Collections.singletonMap("foo", "bar")).get("bar")).isEqualTo("foo");
+    }
+
+    @Test
+    public void inverseMap_MultipleElementList_InversesKeyAndValue() {
+        Map<String, String> map = new HashMap<>();
+        map.put("key1", "value1");
+        map.put("key2", "value2");
+        map.put("key3", "value3");
+        Map<String, String> inverseMap = CollectionUtils.inverseMap(map);
+        assertThat(inverseMap.get("value1")).isEqualTo("key1");
+        assertThat(inverseMap.get("value2")).isEqualTo("key2");
+        assertThat(inverseMap.get("value3")).isEqualTo("key3");
     }
 
     @Test
@@ -209,5 +233,34 @@ public class CollectionUtilsTest {
         map.put("foo", singletonList("bar"));
 
         mutation.accept(map);
+    }
+
+    @Test
+    public void uniqueIndex_noDuplicateIndices_correctlyIndexes() {
+        Set<String> values = Stream.of("a", "ab", "abc")
+                                   .collect(Collectors.toSet());
+        Map<Integer, String> map = CollectionUtils.uniqueIndex(values, String::length);
+        assertThat(map).hasSize(3)
+                       .containsEntry(1, "a")
+                       .containsEntry(2, "ab")
+                       .containsEntry(3, "abc");
+    }
+
+    @Test
+    public void uniqueIndex_map_isModifiable() {
+        Set<String> values = Stream.of("a", "ab", "abc")
+                                   .collect(Collectors.toSet());
+        Map<Integer, String> map = CollectionUtils.uniqueIndex(values, String::length);
+        map.put(3, "bar");
+        assertThat(map).containsEntry(3, "bar");
+    }
+
+    @Test
+    public void uniqueIndex_duplicateIndices_throws() {
+        Set<String> values = Stream.of("foo", "bar")
+                                   .collect(Collectors.toSet());
+        assertThatThrownBy(() -> CollectionUtils.uniqueIndex(values, String::length))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContainingAll("foo", "bar", "3");
     }
 }

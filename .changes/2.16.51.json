@@ -1,0 +1,30 @@
+{
+    "version": "2.16.51",
+    "date": "2021-04-29",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Macie 2",
+            "contributor": "",
+            "description": "The Amazon Macie API now provides S3 bucket metadata that indicates whether a bucket policy requires server-side encryption of objects when objects are uploaded to the bucket."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Organizations",
+            "contributor": "",
+            "description": "Minor text updates for AWS Organizations API Reference"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "contributor": "",
+            "description": "Add support for EphemeralStorage on TaskDefinition and TaskOverride"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Chime",
+            "contributor": "",
+            "description": "Increase AppInstanceUserId length to 64 characters"
+        }
+    ]
+}

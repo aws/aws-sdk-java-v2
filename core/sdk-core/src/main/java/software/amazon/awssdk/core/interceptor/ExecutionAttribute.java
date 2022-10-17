@@ -15,6 +15,9 @@
 
 package software.amazon.awssdk.core.interceptor;
 
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
@@ -41,7 +44,8 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  */
 @SdkPublicApi
 public final class ExecutionAttribute<T> {
-
+    private static final ConcurrentMap<String, ExecutionAttribute<?>> NAME_HISTORY = new ConcurrentHashMap<>();
+    
     private final String name;
 
     /**
@@ -51,10 +55,53 @@ public final class ExecutionAttribute<T> {
      */
     public ExecutionAttribute(String name) {
         this.name = name;
+        ensureUnique();
+    }
+
+    private void ensureUnique() {
+        ExecutionAttribute<?> prev = NAME_HISTORY.putIfAbsent(name, this);
+        if (prev != null) {
+            throw new IllegalArgumentException(String.format("No duplicate ExecutionAttribute names allowed but both "
+                                                             + "ExecutionAttributes %s and %s have the same name: %s. " 
+                                                             + "ExecutionAttributes should be referenced from a shared static " 
+                                                             + "constant to protect against erroneous or unexpected collisions.",
+                                                             Integer.toHexString(System.identityHashCode(prev)),
+                                                             Integer.toHexString(System.identityHashCode(this)),
+                                                             name));
+        }
     }
 
     @Override
     public String toString() {
         return name;
+    }
+
+    /**
+     * This override considers execution attributes with the same name
+     * to be the same object for the purpose of attribute merge.
+     * @return boolean indicating whether the objects are equal or not.
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        ExecutionAttribute that = (ExecutionAttribute) o;
+        return that.name.equals(this.name);
+    }
+
+    /**
+     * This override considers execution attributes with the same name
+     * to be the same object for the purpose of attribute merge.
+     * @return hash code
+     */
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(name);
     }
 }

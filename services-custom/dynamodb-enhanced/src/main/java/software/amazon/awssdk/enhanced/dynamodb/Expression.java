@@ -18,7 +18,9 @@ package software.amazon.awssdk.enhanced.dynamodb;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
@@ -42,6 +44,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * }
  */
 @SdkPublicApi
+@ThreadSafe
 public final class Expression {
     private final String expression;
     private final Map<String, AttributeValue> expressionValues;
@@ -152,11 +155,11 @@ public final class Expression {
      */
     public static Map<String, String> joinNames(Map<String, String> expressionNames1,
                                                 Map<String, String> expressionNames2) {
-        if (expressionNames1 == null) {
+        if (expressionNames1 == null || expressionNames1.isEmpty()) {
             return expressionNames2;
         }
 
-        if (expressionNames2 == null) {
+        if (expressionNames2 == null || expressionNames2.isEmpty()) {
             return expressionNames1;
         }
 
@@ -184,6 +187,15 @@ public final class Expression {
 
     public Map<String, String> expressionNames() {
         return expressionNames;
+    }
+
+    /**
+     * Coalesces two complete expressions into a single expression joined by an 'AND'.
+     *
+     * @see #join(Expression, Expression, String)
+     */
+    public Expression and(Expression expression) {
+        return join(this, expression, " AND ");
     }
 
     @Override
@@ -218,6 +230,7 @@ public final class Expression {
     /**
      * A builder for {@link Expression}
      */
+    @NotThreadSafe
     public static final class Builder {
         private String expression;
         private Map<String, AttributeValue> expressionValues;

@@ -131,7 +131,10 @@ public final class S3ControlConfiguration implements ServiceConfiguration,
          * </p>
          *
          * @see S3ControlConfiguration#dualstackEnabled().
+         * @deprecated This option has been replaced with {@link S3ControlClientBuilder#dualstackEnabled(Boolean)}. If both are
+         * set, an exception will be thrown.
          */
+        @Deprecated
         Builder dualstackEnabled(Boolean dualstackEnabled);
 
         Boolean fipsModeEnabled();
@@ -144,7 +147,10 @@ public final class S3ControlConfiguration implements ServiceConfiguration,
          * </p>
          *
          * @see S3ControlConfiguration#fipsModeEnabled().
+         * @deprecated This has been deprecated in favor of {@link S3ControlClientBuilder#fipsEnabled(Boolean)}. If both are
+         * set, an exception will be thrown.
          */
+        @Deprecated
         Builder fipsModeEnabled(Boolean fipsModeEnabled);
 
         /**
@@ -186,10 +192,12 @@ public final class S3ControlConfiguration implements ServiceConfiguration,
         private String profileName;
         private Boolean useArnRegionEnabled;
 
+        @Override
         public Boolean dualstackEnabled() {
             return dualstackEnabled;
         }
 
+        @Override
         public Builder dualstackEnabled(Boolean dualstackEnabled) {
             this.dualstackEnabled = dualstackEnabled;
             return this;
@@ -199,10 +207,12 @@ public final class S3ControlConfiguration implements ServiceConfiguration,
             dualstackEnabled(dualstackEnabled);
         }
 
+        @Override
         public Boolean fipsModeEnabled() {
             return fipsModeEnabled;
         }
 
+        @Override
         public Builder fipsModeEnabled(Boolean fipsModeEnabled) {
             this.fipsModeEnabled = fipsModeEnabled;
             return this;
@@ -249,6 +259,7 @@ public final class S3ControlConfiguration implements ServiceConfiguration,
             return this;
         }
 
+        @Override
         public S3ControlConfiguration build() {
             return new S3ControlConfiguration(this);
         }

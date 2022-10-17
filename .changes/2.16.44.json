@@ -1,0 +1,30 @@
+{
+    "version": "2.16.44",
+    "date": "2021-04-19",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "duy310",
+            "description": "Added support for short type in Code generator."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Cost Explorer Service",
+            "contributor": "",
+            "description": "Adding support for Sagemaker savings plans in GetSavingsPlansPurchaseRecommendation API"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Savings Plans",
+            "contributor": "",
+            "description": "Added support for Amazon SageMaker in Machine Learning Savings Plans"
+        }
+    ]
+}

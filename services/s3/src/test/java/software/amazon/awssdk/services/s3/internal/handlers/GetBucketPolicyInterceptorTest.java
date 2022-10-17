@@ -20,7 +20,7 @@ import static software.amazon.awssdk.services.s3.utils.InterceptorTestUtils.modi
 
 import java.io.InputStream;
 import java.util.Optional;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpResponse;

@@ -17,8 +17,8 @@
 package software.amazon.awssdk.core.client;
 
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -29,6 +29,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -119,7 +120,7 @@ public class AsyncClientHandlerInterceptorExceptionTest {
         Answer<CompletableFuture<Void>> prepareRequestAnswer;
         if (hook != Hook.ON_EXECUTION_FAILURE) {
             prepareRequestAnswer = invocationOnMock -> {
-                SdkAsyncHttpResponseHandler handler = invocationOnMock.getArgumentAt(0, AsyncExecuteRequest.class).responseHandler();
+                SdkAsyncHttpResponseHandler handler = invocationOnMock.getArgument(0, AsyncExecuteRequest.class).responseHandler();
                 handler.onHeaders(SdkHttpFullResponse.builder()
                         .statusCode(200)
                         .build());
@@ -128,7 +129,7 @@ public class AsyncClientHandlerInterceptorExceptionTest {
             };
         } else {
             prepareRequestAnswer = invocationOnMock -> {
-                SdkAsyncHttpResponseHandler handler = invocationOnMock.getArgumentAt(0, AsyncExecuteRequest.class).responseHandler();
+                SdkAsyncHttpResponseHandler handler = invocationOnMock.getArgument(0, AsyncExecuteRequest.class).responseHandler();
                 RuntimeException error = new RuntimeException("Something went horribly wrong!");
                 handler.onError(error);
                 return CompletableFutureUtils.failedFuture(error);
@@ -142,7 +143,8 @@ public class AsyncClientHandlerInterceptorExceptionTest {
     @Test
     public void test() {
         if (hook != Hook.ON_EXECUTION_FAILURE) {
-            doVerify(() -> clientHandler.execute(executionParams), (t) -> t.getCause().getCause().getMessage().equals(hook.name()));
+            doVerify(() -> clientHandler.execute(executionParams), (t) -> ExceptionUtils.getRootCause(t).getMessage()
+                                                                                        .equals(hook.name()));
         } else {
             // ON_EXECUTION_FAILURE is handled differently because we don't
             // want an exception thrown from the interceptor to replace the

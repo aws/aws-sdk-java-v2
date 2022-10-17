@@ -1,0 +1,30 @@
+{
+    "version": "2.17.57",
+    "date": "2021-10-11",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Elastic Load Balancing",
+            "contributor": "",
+            "description": "Enable support for ALB IPv6 Target Groups (IP Address Type)"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Documentation update for Amazon EC2."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Fraud Detector",
+            "contributor": "",
+            "description": "New model type: Transaction Fraud Insights, which is optimized for online transaction fraud. Stored Events, which allows customers to send and store data directly within Amazon Fraud Detector. Batch Import, which allows customers to upload a CSV file of historic event data for processing and storage"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaLive",
+            "contributor": "",
+            "description": "This release adds support for Transport Stream files as an input type to MediaLive encoders."
+        }
+    ]
+}

@@ -27,8 +27,10 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static software.amazon.awssdk.enhanced.dynamodb.extensions.VersionedRecordExtension.AttributeTags.versionAttribute;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.nullAttributeValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -1271,6 +1273,75 @@ public class StaticImmutableTableSchemaTest {
                                                                    .composedAttribute("composed-value")
                                                                    .build())
                               .build()));
+    }
+
+    @Test
+    public void mapToItem_preserveEmptyBean_shouldInitializeEmptyBean() {
+        FakeItem fakeItem = new FakeItem();
+
+        Map<String, AttributeValue> itemMap = FakeItem.getTableSchema().itemToMap(fakeItem, false);
+
+        FakeItem result = FakeItem.getTableSchema().mapToItem(itemMap, true);
+        assertThat(result, is(fakeItem));
+    }
+
+
+    @Test
+    public void mapToItem_nestedBeanPreserveEmptyBean_shouldInitializeEmptyBean() {
+        StaticTableSchema<FakeItem> staticTableSchema =
+            StaticTableSchema.builder(FakeItem.class)
+                             .newItemSupplier(FakeItem::new)
+                             .flatten(FakeItemComposedClass.getTableSchema(),
+                                      FakeItem::getComposedObject,
+                                      FakeItem::setComposedObject)
+                             .addAttribute(String.class, a -> a.name("id")
+                                                               .getter(FakeItem::getId)
+                                                               .setter(FakeItem::setId)
+                                                               .addTag(primaryPartitionKey()))
+                             .addAttribute(Integer.class, a -> a.name("version")
+                                                                .getter(FakeItem::getVersion)
+                                                                .setter(FakeItem::setVersion)
+                                                                .addTag(versionAttribute()))
+                             .addAttribute(EnhancedType.documentOf(FakeItemComposedClass.class,
+                                                                   FakeItemComposedClass.getTableSchema(),
+                                                                   b -> b.preserveEmptyObject(true)),
+                                           a -> a.name("composedObject").getter(FakeItem::getComposedObject)
+                                                 .setter(FakeItem::setComposedObject))
+                             .build();
+
+        FakeItemComposedClass nestedBean = new FakeItemComposedClass();
+        FakeItem fakeItem = new FakeItem("1", 1, nestedBean);
+
+        Map<String, AttributeValue> itemMap = staticTableSchema.itemToMap(fakeItem, false);
+
+        FakeItem result = staticTableSchema.mapToItem(itemMap);
+        assertThat(result.getComposedObject(), is(nestedBean));
+    }
+
+    @Test
+    public void itemToMap_nestedBeanIgnoreNulls_shouldOmitNullFields() {
+        StaticTableSchema<FakeItem> staticTableSchema =
+            StaticTableSchema.builder(FakeItem.class)
+                             .newItemSupplier(FakeItem::new)
+                             .addAttribute(String.class, a -> a.name("id")
+                                                               .getter(FakeItem::getId)
+                                                               .setter(FakeItem::setId)
+                                                               .addTag(primaryPartitionKey()))
+                             .addAttribute(EnhancedType.documentOf(FakeItemComposedClass.class,
+                                                                   FakeItemComposedClass.getTableSchema(),
+                                                                   b -> b.ignoreNulls(true)),
+                                           a -> a.name("composedObject").getter(FakeItem::getComposedObject)
+                                                 .setter(FakeItem::setComposedObject))
+                             .build();
+
+        FakeItemComposedClass nestedBean = new FakeItemComposedClass();
+        FakeItem fakeItem = new FakeItem("1", 1, nestedBean);
+
+        Map<String, AttributeValue> itemMap = staticTableSchema.itemToMap(fakeItem, true);
+        AttributeValue expectedAttributeValue = AttributeValue.builder().m(new HashMap<>()).build();
+        assertThat(itemMap.size(), is(2));
+        System.out.println(itemMap);
+        assertThat(itemMap, hasEntry("composedObject", expectedAttributeValue));
     }
 
     @Test

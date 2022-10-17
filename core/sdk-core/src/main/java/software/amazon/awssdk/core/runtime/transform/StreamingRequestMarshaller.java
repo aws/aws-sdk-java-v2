@@ -17,7 +17,6 @@ package software.amazon.awssdk.core.runtime.transform;
 
 import static software.amazon.awssdk.http.Header.CONTENT_TYPE;
 
-import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.internal.transform.AbstractStreamingRequestMarshaller;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -56,7 +55,7 @@ public final class StreamingRequestMarshaller<T> extends AbstractStreamingReques
         // Currently, SDK always require content length in RequestBody. So we always
         // send Content-Length header for sync APIs
         // This change will be useful if SDK relaxes the content-length requirement in RequestBody
-        addHeaders(marshalled, Optional.of(requestBody.contentLength()), requiresLength, transferEncoding, useHttp2);
+        addHeaders(marshalled, requestBody.optionalContentLength(), requiresLength, transferEncoding, useHttp2);
 
         return marshalled.build();
     }

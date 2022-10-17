@@ -99,7 +99,9 @@ class UnmarshallingTestRunner {
 
         ResponseDefinitionBuilder responseBuilder = aResponse().withStatus(200);
         if (givenResponse.getHeaders() != null) {
-            givenResponse.getHeaders().forEach(responseBuilder::withHeader);
+            givenResponse.getHeaders().forEach((key, values) -> {
+                responseBuilder.withHeader(key, values.toArray(new String[0]));
+            });
         }
         if (givenResponse.getStatusCode() != null) {
             responseBuilder.withStatus(givenResponse.getStatusCode());

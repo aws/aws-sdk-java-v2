@@ -20,10 +20,10 @@ import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTag
 import static software.amazon.awssdk.enhanced.dynamodb.mocktests.BatchGetTestUtils.stubResponseWithUnprocessedKeys;
 import static software.amazon.awssdk.enhanced.dynamodb.mocktests.BatchGetTestUtils.stubSuccessfulResponse;
 
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
 import java.util.Iterator;
 import java.util.List;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.util.stream.Collectors;
 import org.junit.Before;
 import org.junit.Rule;
@@ -114,7 +114,7 @@ public class BatchGetItemTest {
 
         BatchGetResultPage secondPage = iterator.next();
         assertThat(secondPage.resultsForTable(table).size()).isEqualTo(1);
-        assertThat(iterator).isEmpty();
+        assertThat(iterator).isExhausted();
     }
 
     @Test

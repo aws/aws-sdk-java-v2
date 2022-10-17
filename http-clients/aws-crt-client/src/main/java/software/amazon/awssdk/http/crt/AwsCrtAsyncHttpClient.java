@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.http.crt;
 
+import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
 import java.net.URI;
@@ -37,6 +38,7 @@ import software.amazon.awssdk.crt.io.TlsCipherPreference;
 import software.amazon.awssdk.crt.io.TlsContext;
 import software.amazon.awssdk.crt.io.TlsContextOptions;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
+import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.crt.internal.CrtRequestContext;
@@ -44,6 +46,7 @@ import software.amazon.awssdk.http.crt.internal.CrtRequestExecutor;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.NumericUtils;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -61,6 +64,14 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
 
     private static final String AWS_COMMON_RUNTIME = "AwsCommonRuntime";
     private static final int DEFAULT_STREAM_WINDOW_SIZE = 16 * 1024 * 1024; // 16 MB
+
+    private static final Duration CRT_SDK_DEFAULT_CONNECTION_TIMEOUT = Duration.ofSeconds(3);
+    // Override default connection timeout for Crt client to be in line with the CRT default:
+    // https://github.com/awslabs/aws-crt-java/blob/main/src/main/java/software/amazon/awssdk/crt/io/SocketOptions.java#L79
+    private static final AttributeMap CRT_HTTP_DEFAULTS =
+        AttributeMap.builder()
+                    .put(SdkHttpConfigurationOption.CONNECTION_TIMEOUT, CRT_SDK_DEFAULT_CONNECTION_TIMEOUT)
+                    .build();
 
     private final Map<URI, HttpClientConnectionManager> connectionPools = new ConcurrentHashMap<>();
     private final LinkedList<CrtResource> ownedSubResources = new LinkedList<>();
@@ -82,7 +93,7 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         Validate.isPositive(builder.readBufferSize, "readBufferSize");
 
         try (ClientBootstrap clientBootstrap = new ClientBootstrap(null, null);
-             SocketOptions clientSocketOptions = new SocketOptions();
+             SocketOptions clientSocketOptions = buildSocketOptions(builder, config);
              TlsContextOptions clientTlsContextOptions = TlsContextOptions.createDefaultClient() // NOSONAR
                      .withCipherPreference(builder.cipherPreference)
                      .withVerifyPeer(!config.get(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES));
@@ -134,6 +145,26 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         }
 
         return clientProxyOptions;
+    }
+
+    private SocketOptions buildSocketOptions(DefaultBuilder builder, AttributeMap config) {
+        SocketOptions clientSocketOptions = new SocketOptions();
+
+        Duration connectionTimeout = config.get(SdkHttpConfigurationOption.CONNECTION_TIMEOUT);
+        if (connectionTimeout != null) {
+            clientSocketOptions.connectTimeoutMs = NumericUtils.saturatedCast(connectionTimeout.toMillis());
+        }
+
+        TcpKeepAliveConfiguration tcpKeepAliveConfiguration = builder.tcpKeepAliveConfiguration;
+        if (tcpKeepAliveConfiguration != null) {
+            clientSocketOptions.keepAliveIntervalSecs =
+                NumericUtils.saturatedCast(tcpKeepAliveConfiguration.keepAliveInterval().getSeconds());
+            clientSocketOptions.keepAliveTimeoutSecs =
+                NumericUtils.saturatedCast(tcpKeepAliveConfiguration.keepAliveTimeout().getSeconds());
+
+        }
+
+        return clientSocketOptions;
     }
 
     /**
@@ -232,7 +263,7 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
          * we have a pool and no one can destroy it underneath us until we've finished submitting the
          * request)
          */
-        try (HttpClientConnectionManager crtConnPool = getOrCreateConnectionPool(asyncRequest.request().getUri())) {
+        try (HttpClientConnectionManager crtConnPool = getOrCreateConnectionPool(poolKey(asyncRequest))) {
             CrtRequestContext context = CrtRequestContext.builder()
                                                          .crtConnPool(crtConnPool)
                                                          .readBufferSize(readBufferSize)
@@ -241,6 +272,12 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
 
             return new CrtRequestExecutor().execute(context);
         }
+    }
+
+    private URI poolKey(AsyncExecuteRequest asyncRequest) {
+        SdkHttpRequest sdkRequest = asyncRequest.request();
+        return invokeSafely(() -> new URI(sdkRequest.protocol(), null, sdkRequest.host(),
+                                          sdkRequest.port(), null, null, null));
     }
 
     @Override
@@ -304,10 +341,10 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         Builder proxyConfiguration(Consumer<ProxyConfiguration.Builder> proxyConfigurationBuilderConsumer);
 
         /**
-         * Configure the health checks for for all connections established by this client.
+         * Configure the health checks for all connections established by this client.
          *
          * <p>
-         * eg: you can set a throughput threshold for the a connection to be considered healthy.
+         * eg: you can set a throughput threshold for a connection to be considered healthy.
          * If the connection falls below this threshold for a configurable amount of time,
          * then the connection is considered unhealthy and will be shut down.
          *
@@ -317,10 +354,10 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         Builder connectionHealthChecksConfiguration(ConnectionHealthChecksConfiguration healthChecksConfiguration);
 
         /**
-         * A convenience method to configure the health checks for for all connections established by this client.
+         * A convenience method to configure the health checks for all connections established by this client.
          *
          * <p>
-         * eg: you can set a throughput threshold for the a connection to be considered healthy.
+         * eg: you can set a throughput threshold for a connection to be considered healthy.
          * If the connection falls below this threshold for a configurable amount of time,
          * then the connection is considered unhealthy and will be shut down.
          *
@@ -332,9 +369,46 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
                                                         healthChecksConfigurationBuilder);
 
         /**
-         * Configure the maximum amount of time that a connection should be allowed to remain open while idle.
+         * The amount of time to wait when initially establishing a connection before giving up and timing out. The maximum
+         * possible value, in ms, is the value of {@link Integer#MAX_VALUE}, any longer duration will be reduced to the maximum
+         * possible value. If not specified, the connection timeout duration will be set to value defined in
+         * {@link AwsCrtAsyncHttpClient#CRT_SDK_DEFAULT_CONNECTION_TIMEOUT}.
          */
         Builder connectionMaxIdleTime(Duration connectionMaxIdleTime);
+
+        /**
+         * Configure connection socket timeout
+         */
+        Builder connectionTimeout(Duration connectionTimeout);
+
+        /**
+         * Configure whether to enable TCP Keep-alive and relevant configuration for all connections established by this client.
+         *
+         * <p>
+         * By default, keepAlive is disabled and this is not required.
+         * tcpKeepAlive is enabled by providing this configuration and specifying
+         * periodic keepalive packet intervals and timeouts
+         * This may be required for certain connections for longer durations than default socket timeouts
+         *
+         * @param tcpKeepAliveConfiguration The TCP keep-alive configuration to use
+         * @return The builder of the method chaining.
+         */
+        Builder tcpKeepAliveConfiguration(TcpKeepAliveConfiguration tcpKeepAliveConfiguration);
+
+        /**
+         * Configure whether to enable TCP Keep-alive and relevant configuration for all connections established by this client.
+         *
+         * <p>
+         * By default, keepAlive is disabled and this is not required.
+         * tcpKeepAlive is enabled by providing this configuration and specifying
+         * periodic keepalive packet intervals and timeouts
+         * This may be required for certain connections for longer durations than default socket timeouts
+         *
+         * @param tcpKeepAliveConfigurationBuilder The TCP keep-alive configuration builder to use
+         * @return The builder of the method chaining.
+         */
+        Builder tcpKeepAliveConfiguration(Consumer<TcpKeepAliveConfiguration.Builder>
+                                              tcpKeepAliveConfigurationBuilder);
     }
 
     /**
@@ -347,6 +421,7 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         private int readBufferSize = DEFAULT_STREAM_WINDOW_SIZE;
         private ProxyConfiguration proxyConfiguration;
         private ConnectionHealthChecksConfiguration connectionHealthChecksConfiguration;
+        private TcpKeepAliveConfiguration tcpKeepAliveConfiguration;
 
         private DefaultBuilder() {
         }
@@ -354,6 +429,7 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         @Override
         public SdkAsyncHttpClient build() {
             return new AwsCrtAsyncHttpClient(this, standardOptions.build()
+                                                                  .merge(CRT_HTTP_DEFAULTS)
                                                                   .merge(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS));
         }
 
@@ -361,6 +437,7 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         public SdkAsyncHttpClient buildWithDefaults(AttributeMap serviceDefaults) {
             return new AwsCrtAsyncHttpClient(this, standardOptions.build()
                                                            .merge(serviceDefaults)
+                                                           .merge(CRT_HTTP_DEFAULTS)
                                                            .merge(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS));
         }
 
@@ -409,8 +486,30 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
 
         @Override
         public Builder connectionMaxIdleTime(Duration connectionMaxIdleTime) {
+            Validate.isPositive(connectionMaxIdleTime, "connectionMaxIdleTime");
             standardOptions.put(SdkHttpConfigurationOption.CONNECTION_MAX_IDLE_TIMEOUT, connectionMaxIdleTime);
             return this;
+        }
+
+        @Override
+        public Builder connectionTimeout(Duration connectionTimeout) {
+            Validate.isPositive(connectionTimeout, "connectionTimeout");
+            standardOptions.put(SdkHttpConfigurationOption.CONNECTION_TIMEOUT, connectionTimeout);
+            return this;
+        }
+
+        @Override
+        public Builder tcpKeepAliveConfiguration(TcpKeepAliveConfiguration tcpKeepAliveConfiguration) {
+            this.tcpKeepAliveConfiguration = tcpKeepAliveConfiguration;
+            return this;
+        }
+
+        @Override
+        public Builder tcpKeepAliveConfiguration(Consumer<TcpKeepAliveConfiguration.Builder>
+                                                             tcpKeepAliveConfigurationBuilder) {
+            TcpKeepAliveConfiguration.Builder builder = TcpKeepAliveConfiguration.builder();
+            tcpKeepAliveConfigurationBuilder.accept(builder);
+            return tcpKeepAliveConfiguration(builder.build());
         }
 
         @Override

@@ -1,0 +1,72 @@
+{
+    "version": "2.17.38",
+    "date": "2021-09-10",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Transcribe Service",
+            "contributor": "",
+            "description": "This release adds an API option for startTranscriptionJob and startMedicalTranscriptionJob that allows the user to specify encryption context key value pairs for batch jobs."
+        },
+        {
+            "type": "bugfix",
+            "category": "S3 Transfer Manager",
+            "contributor": "",
+            "description": "Remove extra question mark when query parameters are provided in transfer manager"
+        },
+        {
+            "type": "bugfix",
+            "category": "DynamoDB Enhanced Client",
+            "contributor": "",
+            "description": "Fixes for `UpdateItemEnhancedRequest`:\n - Include `ConditionExpression` in `toBuilder()`\n - Include `ConditionExpression` in `equals()` and `hashCode()` calculations"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "guillepb10",
+            "description": "Add support for authenticated corporate proxies"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "This release adds support for providing a custom timeout value for finding a scaling point during autoscaling in Aurora Serverless v1."
+        },
+        {
+            "type": "feature",
+            "category": "AWS CloudFormation",
+            "contributor": "",
+            "description": "Doc only update for CloudFormation that fixes several customer-reported issues."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Registry",
+            "contributor": "",
+            "description": "This release updates terminology around KMS keys."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "contributor": "",
+            "description": "Add new data source type for Amazon OpenSearch (successor to Amazon ElasticSearch)."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "This release adds support for \"Lifecycle Configurations\" to SageMaker Studio"
+        },
+        {
+            "type": "bugfix",
+            "category": "DynamoDB Enhanced Client",
+            "contributor": "",
+            "description": "Fix `PutItemEnhancedRequest` and `DeleteItemEnhancedRequest` to include `ConditionExpression` in their `equals()` and `hashCode()` calculations."
+        }
+    ]
+}

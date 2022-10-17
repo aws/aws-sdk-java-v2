@@ -20,15 +20,16 @@ import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.do
 import io.netty.channel.Channel;
 import io.netty.channel.pool.ChannelPool;
 import io.netty.util.AttributeKey;
+import io.netty.util.concurrent.DefaultPromise;
 import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.Promise;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.HttpMetric;
+import software.amazon.awssdk.http.nio.netty.internal.utils.NettyClientLogger;
 import software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils;
 import software.amazon.awssdk.metrics.MetricCollector;
-import software.amazon.awssdk.utils.Logger;
 
 /**
  * A channel pool implementation that tracks the number of "idle" channels in an underlying channel pool.
@@ -38,7 +39,7 @@ import software.amazon.awssdk.utils.Logger;
  */
 @SdkInternalApi
 public class IdleConnectionCountingChannelPool implements SdkChannelPool {
-    private static final Logger log = Logger.loggerFor(IdleConnectionCountingChannelPool.class);
+    private static final NettyClientLogger log = NettyClientLogger.getLogger(IdleConnectionCountingChannelPool.class);
 
     /**
      * The idle channel state for a specific channel. This should only be accessed from the {@link #executor}.
@@ -91,14 +92,13 @@ public class IdleConnectionCountingChannelPool implements SdkChannelPool {
 
     @Override
     public Future<Void> release(Channel channel) {
-        channelReleased(channel);
-        return delegatePool.release(channel);
+        return release(channel, new DefaultPromise<>(executor));
     }
 
     @Override
     public Future<Void> release(Channel channel, Promise<Void> promise) {
-        channelReleased(channel);
-        return delegatePool.release(channel, promise);
+        channelReleased(channel).addListener(f -> delegatePool.release(channel, promise));
+        return promise;
     }
 
     @Override
@@ -112,6 +112,10 @@ public class IdleConnectionCountingChannelPool implements SdkChannelPool {
         doInEventLoop(executor, () -> {
             metrics.reportMetric(HttpMetric.AVAILABLE_CONCURRENCY, idleConnections);
             result.complete(null);
+        }).addListener(f -> {
+            if (!f.isSuccess()) {
+                result.completeExceptionally(f.cause());
+            }
         });
         return result;
     }
@@ -143,8 +147,8 @@ public class IdleConnectionCountingChannelPool implements SdkChannelPool {
                         break;
                     case NOT_IDLE:
                     default:
-                        log.warn(() -> "Failed to update idle connection count metric on acquire, because the channel (" +
-                                       channel + ") was in an unexpected state: " + channelIdleState);
+                        log.warn(channel, () -> "Failed to update idle connection count metric on acquire, because the channel "
+                                                + "(" + channel + ") was in an unexpected state: " + channelIdleState);
                 }
             }
         });
@@ -153,12 +157,13 @@ public class IdleConnectionCountingChannelPool implements SdkChannelPool {
     /**
      * Invoked when a channel is released, marking it idle until it's acquired.
      */
-    private void channelReleased(Channel channel) {
-        doInEventLoop(executor, () -> {
+    private Future<?> channelReleased(Channel channel) {
+        return doInEventLoop(executor, () -> {
             ChannelIdleState channelIdleState = getChannelIdleState(channel);
 
             if (channelIdleState == null) {
-                log.warn(() -> "Failed to update idle connection count metric on release, because the channel (" + channel +
+                log.warn(channel,
+                         () -> "Failed to update idle connection count metric on release, because the channel (" + channel +
                                ") was in an unexpected state: null");
             } else {
                 switch (channelIdleState) {
@@ -170,8 +175,8 @@ public class IdleConnectionCountingChannelPool implements SdkChannelPool {
                         break;
                     case IDLE:
                     default:
-                        log.warn(() -> "Failed to update idle connection count metric on release, because the channel (" +
-                                       channel + ") was in an unexpected state: " + channelIdleState);
+                        log.warn(channel, () -> "Failed to update idle connection count metric on release, because the channel "
+                                                + "(" + channel + ") was in an unexpected state: " + channelIdleState);
                 }
             }
         });
@@ -193,7 +198,8 @@ public class IdleConnectionCountingChannelPool implements SdkChannelPool {
                     case NOT_IDLE:
                         break;
                     default:
-                        log.warn(() -> "Failed to update idle connection count metric on close, because the channel (" + channel +
+                        log.warn(channel,
+                                 () -> "Failed to update idle connection count metric on close, because the channel (" + channel +
                                        ") was in an unexpected state: " + channelIdleState);
                 }
             }
@@ -213,7 +219,7 @@ public class IdleConnectionCountingChannelPool implements SdkChannelPool {
      */
     private void decrementIdleConnections() {
         --idleConnections;
-        log.trace(() -> "Idle connection count decremented, now " + idleConnections);
+        log.trace(null, () -> "Idle connection count decremented, now " + idleConnections);
     }
 
     /**
@@ -221,7 +227,7 @@ public class IdleConnectionCountingChannelPool implements SdkChannelPool {
      */
     private void incrementIdleConnections() {
         ++idleConnections;
-        log.trace(() -> "Idle connection count incremented, now " + idleConnections);
+        log.trace(null, () -> "Idle connection count incremented, now " + idleConnections);
     }
 
     /**

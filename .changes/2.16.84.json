@@ -1,0 +1,24 @@
+{
+    "version": "2.16.84",
+    "date": "2021-06-14",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS IoT Greengrass V2",
+            "contributor": "",
+            "description": "We have verified the APIs being released here and are ready to release"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lookout for Metrics",
+            "contributor": "",
+            "description": "Added \"LEARNING\" status for anomaly detector and updated description for \"Offset\" parameter in MetricSet APIs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT Analytics",
+            "contributor": "",
+            "description": "Adds support for data store partitions."
+        }
+    ]
+}

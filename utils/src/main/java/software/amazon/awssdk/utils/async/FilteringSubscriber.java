@@ -40,11 +40,17 @@ public class FilteringSubscriber<T> extends DelegatingSubscriber<T, T> {
 
     @Override
     public void onNext(T t) {
-        if (predicate.test(t)) {
-            subscriber.onNext(t);
-        } else {
-            // Consumed a demand but didn't deliver. Request other to make up for it
-            subscription.request(1);
+        try {
+            if (predicate.test(t)) {
+                subscriber.onNext(t);
+            } else {
+                // Consumed a demand but didn't deliver. Request other to make up for it
+                subscription.request(1);
+            }
+        } catch (RuntimeException e) {
+            // Handle the predicate throwing an exception
+            subscription.cancel();
+            onError(e);
         }
     }
 }

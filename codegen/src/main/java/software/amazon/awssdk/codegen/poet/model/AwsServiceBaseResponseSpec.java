@@ -25,17 +25,17 @@ import software.amazon.awssdk.awscore.AwsResponse;
 import software.amazon.awssdk.awscore.AwsResponseMetadata;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
-import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 
 public class AwsServiceBaseResponseSpec implements ClassSpec {
     private final IntermediateModel intermediateModel;
-    private final PoetExtensions poetExtensions;
+    private final PoetExtension poetExtensions;
     private final ClassName responseMetadata;
 
     public AwsServiceBaseResponseSpec(IntermediateModel intermediateModel) {
         this.intermediateModel = intermediateModel;
-        this.poetExtensions = new PoetExtensions(this.intermediateModel);
+        this.poetExtensions = new PoetExtension(this.intermediateModel);
         this.responseMetadata = poetExtensions.getResponseMetadataClass();
     }
 

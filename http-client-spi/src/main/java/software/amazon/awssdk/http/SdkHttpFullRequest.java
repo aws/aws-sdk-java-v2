@@ -106,6 +106,7 @@ public interface SdkHttpFullRequest
         /**
          * The port, exactly as it was configured with {@link #port(Integer)}.
          */
+        @Override
         Integer port();
 
         /**
@@ -211,23 +212,6 @@ public interface SdkHttpFullRequest
          */
         @Override
         Builder method(SdkHttpMethod httpMethod);
-
-        /**
-         * Perform a case-insensitive search for a particular header in this request, returning the first matching header, if one
-         * is found.
-         *
-         * <p>This is useful for headers like 'Content-Type' or 'Content-Length' of which there is expected to be only one value
-         * present.</p>
-         *
-         * <p>This is equivalent to invoking {@link SdkHttpUtils#firstMatchingHeader(Map, String)}</p>.
-         *
-         * @param header The header to search for (case insensitively).
-         * @return The first header that matched the requested one, or empty if one was not found.
-         */
-        @Override
-        default Optional<String> firstMatchingHeader(String header) {
-            return SdkHttpUtils.firstMatchingHeader(headers(), header);
-        }
 
         /**
          * The query parameters, exactly as they were configured with {@link #headers(Map)},

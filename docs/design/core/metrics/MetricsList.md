@@ -9,7 +9,7 @@
 
 The set of core metrics includes all metrics collected by the core components
 of the SDK. This includes components like SDK service clients,
-request/resposne marshallers and unmarshallers, and signers.
+request/response marshallers and unmarshallers, and signers.
 
 All the in code constants associated with metric below can be found in the
 [`software.amazon.awssdk.core.metrics.CoreMetric`](https://github.com/aws/aws-sdk-java-v2/blob/8c192e3b04892987bf0872f76ba4f65167f3a872/core/sdk-core/src/main/java/software/amazon/awssdk/core/metrics/CoreMetric.java#L24)
@@ -35,7 +35,7 @@ class within `sdk-core`.
 
 The set of HTTP metrics below are collected by components that implement the [HTTP SPI](https://github.com/aws/aws-sdk-java-v2/tree/sdk-metrics-development-2/http-client-spi). Which metrics are collected depends on the specific HTTP library used to implement the SPI; not all libraries will allow the collection of every metric below.
 
-Note that in the context of an SDK client API call, all `HttpClient` collectors are children of `ApiCallAttept`; i.e. the full path to HTTP client metrics for an individual API call attempt is `ApiCall` > `ApiCallAttept` > `HttpClient`.
+Note that in the context of an SDK client API call, all `HttpClient` collectors are children of `ApiCallAttempt`; i.e. the full path to HTTP client metrics for an individual API call attempt is `ApiCall` > `ApiCallAttept` > `HttpClient`.
 
 ### Common HTTP Metrics
 

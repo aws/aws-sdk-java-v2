@@ -19,9 +19,10 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.handler.codec.http2.Http2ConnectionAdapter;
 import io.netty.handler.codec.http2.Http2GoAwayFrame;
+import java.nio.charset.StandardCharsets;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey;
-import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.http.nio.netty.internal.utils.NettyClientLogger;
 
 /**
  * Handles {@link Http2GoAwayFrame}s sent on a connection. This will pass the frame along to the connection's 
@@ -29,7 +30,7 @@ import software.amazon.awssdk.utils.Logger;
  */
 @SdkInternalApi
 public final class Http2GoAwayEventListener extends Http2ConnectionAdapter {
-    private static final Logger log = Logger.loggerFor(Http2GoAwayEventListener.class);
+    private static final NettyClientLogger log = NettyClientLogger.getLogger(Http2GoAwayEventListener.class);
 
     private final Channel parentChannel;
 
@@ -41,11 +42,12 @@ public final class Http2GoAwayEventListener extends Http2ConnectionAdapter {
     @Override
     public void onGoAwayReceived(int lastStreamId, long errorCode, ByteBuf debugData) {
         Http2MultiplexedChannelPool channelPool = parentChannel.attr(ChannelAttributeKey.HTTP2_MULTIPLEXED_CHANNEL_POOL).get();
-        GoAwayException exception = new GoAwayException(errorCode, debugData.retain());
+        GoAwayException exception = new GoAwayException(errorCode, debugData.toString(StandardCharsets.UTF_8));
         if (channelPool != null) {
             channelPool.handleGoAway(parentChannel, lastStreamId, exception);
         } else {
-            log.warn(() -> "GOAWAY received on a connection (" + parentChannel + ") not associated with any multiplexed "
+            log.warn(parentChannel, () -> "GOAWAY received on a connection (" + parentChannel + ") not associated with any "
+                                         + "multiplexed "
                            + "channel pool.");
             parentChannel.pipeline().fireExceptionCaught(exception);
         }

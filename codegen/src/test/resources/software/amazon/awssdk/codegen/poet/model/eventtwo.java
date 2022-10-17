@@ -24,8 +24,8 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 @Generated("software.amazon.awssdk:codegen")
 public class EventTwo implements SdkPojo, Serializable, ToCopyableBuilder<EventTwo.Builder, EventTwo>, EventStream {
     private static final SdkField<String> BAR_FIELD = SdkField.<String> builder(MarshallingType.STRING).memberName("Bar")
-            .getter(getter(EventTwo::bar)).setter(setter(Builder::bar))
-            .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Bar").build()).build();
+                                                              .getter(getter(EventTwo::bar)).setter(setter(Builder::bar))
+                                                              .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Bar").build()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(BAR_FIELD));
 
@@ -39,7 +39,7 @@ public class EventTwo implements SdkPojo, Serializable, ToCopyableBuilder<EventT
 
     /**
      * Returns the value of the Bar property for this object.
-     * 
+     *
      * @return The value of the Bar property for this object.
      */
     public final String bar() {
@@ -97,10 +97,10 @@ public class EventTwo implements SdkPojo, Serializable, ToCopyableBuilder<EventT
 
     public final <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
-        case "Bar":
-            return Optional.ofNullable(clazz.cast(bar()));
-        default:
-            return Optional.empty();
+            case "Bar":
+                return Optional.ofNullable(clazz.cast(bar()));
+            default:
+                return Optional.empty();
         }
     }
 
@@ -158,14 +158,14 @@ public class EventTwo implements SdkPojo, Serializable, ToCopyableBuilder<EventT
             return bar;
         }
 
+        public final void setBar(String bar) {
+            this.bar = bar;
+        }
+
         @Override
         public final Builder bar(String bar) {
             this.bar = bar;
             return this;
-        }
-
-        public final void setBar(String bar) {
-            this.bar = bar;
         }
 
         @Override
@@ -179,4 +179,3 @@ public class EventTwo implements SdkPojo, Serializable, ToCopyableBuilder<EventT
         }
     }
 }
-

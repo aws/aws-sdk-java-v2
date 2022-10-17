@@ -15,8 +15,11 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
+import java.util.Objects;
 import java.util.function.Consumer;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
@@ -24,6 +27,7 @@ import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.TransactableWriteOperation;
+import software.amazon.awssdk.services.dynamodb.model.ReturnValuesOnConditionCheckFailure;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
 
 /**
@@ -37,13 +41,16 @@ import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
  * @param <T> The type of the modelled object.
  */
 @SdkPublicApi
+@ThreadSafe
 public final class ConditionCheck<T> implements TransactableWriteOperation<T> {
     private final Key key;
     private final Expression conditionExpression;
+    private final String returnValuesOnConditionCheckFailure;
 
-    private ConditionCheck(Key key, Expression conditionExpression) {
-        this.key = key;
-        this.conditionExpression = conditionExpression;
+    private ConditionCheck(Builder builder) {
+        this.key = builder.key;
+        this.conditionExpression = builder.conditionExpression;
+        this.returnValuesOnConditionCheckFailure = builder.returnValuesOnConditionCheckFailure;
     }
 
     /**
@@ -57,26 +64,37 @@ public final class ConditionCheck<T> implements TransactableWriteOperation<T> {
      * Returns a builder initialized with all existing values on the object.
      */
     public Builder toBuilder() {
-        return new Builder().key(key).conditionExpression(conditionExpression);
+        return new Builder().key(key)
+                            .conditionExpression(conditionExpression)
+                            .returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure);
     }
 
     @Override
-    public TransactWriteItem generateTransactWriteItem(TableSchema<T> tableSchema,
-                                                       OperationContext operationContext,
-                                                       DynamoDbEnhancedClientExtension dynamoDbEnhancedClientExtension) {
-        software.amazon.awssdk.services.dynamodb.model.ConditionCheck conditionCheck =
-            software.amazon.awssdk.services.dynamodb.model.ConditionCheck
-                .builder()
-                .tableName(operationContext.tableName())
-                .key(key.keyMap(tableSchema, operationContext.indexName()))
-                .conditionExpression(conditionExpression.expression())
-                .expressionAttributeNames(conditionExpression.expressionNames())
-                .expressionAttributeValues(conditionExpression.expressionValues())
-                .build();
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
-        return TransactWriteItem.builder()
-                                .conditionCheck(conditionCheck)
-                                .build();
+        ConditionCheck<?> that = (ConditionCheck<?>) o;
+
+        if (!Objects.equals(key, that.key)) {
+            return false;
+        }
+        if (!Objects.equals(conditionExpression, that.conditionExpression)) {
+            return false;
+        }
+        return Objects.equals(returnValuesOnConditionCheckFailure, that.returnValuesOnConditionCheckFailure);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hashCode(key);
+        result = 31 * result + Objects.hashCode(conditionExpression);
+        result = 31 * result + Objects.hashCode(returnValuesOnConditionCheckFailure);
+        return result;
     }
 
     /**
@@ -93,29 +111,52 @@ public final class ConditionCheck<T> implements TransactableWriteOperation<T> {
         return conditionExpression;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+    /**
+     * Returns what values to return if the condition check fails.
+     * <p>
+     * If the service returns an enum value that is not available in the current SDK version,
+     * {@link #returnValuesOnConditionCheckFailure} will return
+     * {@link ReturnValuesOnConditionCheckFailure#UNKNOWN_TO_SDK_VERSION}. The raw value returned by the service is
+     * available from {@link #returnValuesOnConditionCheckFailureAsString}.
+     *
+     * @return What values to return on condition check failure.
+     */
+    public ReturnValuesOnConditionCheckFailure returnValuesOnConditionCheckFailure() {
+        return ReturnValuesOnConditionCheckFailure.fromValue(returnValuesOnConditionCheckFailure);
+    }
 
-        ConditionCheck<?> that = (ConditionCheck<?>) o;
-
-        if (key != null ? ! key.equals(that.key) : that.key != null) {
-            return false;
-        }
-        return conditionExpression != null ? conditionExpression.equals(that.conditionExpression) :
-            that.conditionExpression == null;
+    /**
+     * Returns what values to return if the condition check fails.
+     * <p>
+     * If the service returns an enum value that is not available in the current SDK version,
+     * {@link #returnValuesOnConditionCheckFailure} will return
+     * {@link ReturnValuesOnConditionCheckFailure#UNKNOWN_TO_SDK_VERSION}. The raw value returned by the service is
+     * available from {@link #returnValuesOnConditionCheckFailureAsString}.
+     *
+     * @return What values to return on condition check failure.
+     */
+    public String returnValuesOnConditionCheckFailureAsString() {
+        return returnValuesOnConditionCheckFailure;
     }
 
     @Override
-    public int hashCode() {
-        int result = key != null ? key.hashCode() : 0;
-        result = 31 * result + (conditionExpression != null ? conditionExpression.hashCode() : 0);
-        return result;
+    public TransactWriteItem generateTransactWriteItem(TableSchema<T> tableSchema,
+                                                       OperationContext operationContext,
+                                                       DynamoDbEnhancedClientExtension dynamoDbEnhancedClientExtension) {
+        software.amazon.awssdk.services.dynamodb.model.ConditionCheck conditionCheck =
+            software.amazon.awssdk.services.dynamodb.model.ConditionCheck
+                .builder()
+                .tableName(operationContext.tableName())
+                .key(key.keyMap(tableSchema, operationContext.indexName()))
+                .conditionExpression(conditionExpression.expression())
+                .expressionAttributeNames(conditionExpression.expressionNames())
+                .expressionAttributeValues(conditionExpression.expressionValues())
+                .returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure)
+                .build();
+
+        return TransactWriteItem.builder()
+                                .conditionCheck(conditionCheck)
+                                .build();
     }
 
     /**
@@ -123,9 +164,11 @@ public final class ConditionCheck<T> implements TransactableWriteOperation<T> {
      * <p>
      * A valid builder must define both a {@link Key} and an {@link Expression}.
      */
+    @NotThreadSafe
     public static final class Builder  {
         private Key key;
         private Expression conditionExpression;
+        private String returnValuesOnConditionCheckFailure;
 
         private Builder() {
         }
@@ -169,8 +212,36 @@ public final class ConditionCheck<T> implements TransactableWriteOperation<T> {
             return this;
         }
 
+        /**
+         * Use <code>ReturnValuesOnConditionCheckFailure</code> to get the item attributes if the <code>ConditionCheck</code>
+         * condition fails. For <code>ReturnValuesOnConditionCheckFailure</code>, the valid values are: NONE and
+         * ALL_OLD.
+         *
+         * @param returnValuesOnConditionCheckFailure What values to return on condition check failure.
+         * @return a builder of this type
+         */
+        public Builder returnValuesOnConditionCheckFailure(
+            ReturnValuesOnConditionCheckFailure returnValuesOnConditionCheckFailure) {
+            this.returnValuesOnConditionCheckFailure = returnValuesOnConditionCheckFailure == null ? null :
+                                                       returnValuesOnConditionCheckFailure.toString();
+            return this;
+        }
+
+        /**
+         * Use <code>ReturnValuesOnConditionCheckFailure</code> to get the item attributes if the <code>ConditionCheck</code>
+         * condition fails. For <code>ReturnValuesOnConditionCheckFailure</code>, the valid values are: NONE and
+         * ALL_OLD.
+         *
+         * @param returnValuesOnConditionCheckFailure What values to return on condition check failure.
+         * @return a builder of this type
+         */
+        public Builder returnValuesOnConditionCheckFailure(String returnValuesOnConditionCheckFailure) {
+            this.returnValuesOnConditionCheckFailure = returnValuesOnConditionCheckFailure;
+            return this;
+        }
+
         public <T> ConditionCheck<T> build() {
-            return new ConditionCheck<>(key, conditionExpression);
+            return new ConditionCheck<T>(this);
         }
     }
 }

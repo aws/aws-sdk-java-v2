@@ -1,0 +1,72 @@
+{
+    "version": "2.17.190",
+    "date": "2022-05-12",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Lambda",
+            "contributor": "",
+            "description": "Lambda releases NodeJs 16 managed runtime to be available in all commercial regions."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Systems Manager Incident Manager",
+            "contributor": "",
+            "description": "Adding support for dynamic SSM Runbook parameter values. Updating validation pattern for engagements. Adding ConflictException to UpdateReplicationSet API contract."
+        },
+        {
+            "type": "feature",
+            "category": "FinSpace Public API",
+            "contributor": "",
+            "description": "We've now deprecated CreateSnapshot permission for creating a data view, instead use CreateDataView permission."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT",
+            "contributor": "",
+            "description": "Documentation update for China region ListMetricValues for IoT"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkSpaces",
+            "contributor": "",
+            "description": "Increased the character limit of the login message from 600 to 850 characters."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "This release introduces a target type Gateway Load Balancer Endpoint for mirrored traffic. Customers can now specify GatewayLoadBalancerEndpoint option during the creation of a traffic mirror target."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Transfer Family",
+            "contributor": "",
+            "description": "AWS Transfer Family now accepts ECDSA keys for server host keys"
+        },
+        {
+            "type": "feature",
+            "category": "AWSKendraFrontendService",
+            "contributor": "",
+            "description": "Amazon Kendra now provides a data source connector for Jira. For more information, see https://docs.aws.amazon.com/kendra/latest/dg/data-source-jira.html"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Interactive Video Service Chat",
+            "contributor": "",
+            "description": "Documentation-only updates for IVS Chat API Reference."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Outposts",
+            "contributor": "",
+            "description": "Documentation updates for AWS Outposts."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lightsail",
+            "contributor": "",
+            "description": "This release adds support to include inactive database bundles in the response of the GetRelationalDatabaseBundles request."
+        }
+    ]
+}

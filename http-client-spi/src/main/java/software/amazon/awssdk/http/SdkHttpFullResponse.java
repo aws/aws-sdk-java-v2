@@ -23,7 +23,6 @@ import java.util.Map;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
  * An immutable HTTP response with a possible HTTP body.
@@ -63,46 +62,35 @@ public interface SdkHttpFullResponse
         /**
          * The status text, exactly as it was configured with {@link #statusText(String)}.
          */
+        @Override
         String statusText();
 
         /**
          * Configure an {@link SdkHttpResponse#statusText()} to be used in the created HTTP response. This is not validated
          * until the http response is created.
          */
+        @Override
         Builder statusText(String statusText);
 
         /**
          * The status text, exactly as it was configured with {@link #statusCode(int)}.
          */
+        @Override
         int statusCode();
 
         /**
          * Configure an {@link SdkHttpResponse#statusCode()} to be used in the created HTTP response. This is not validated
          * until the http response is created.
          */
+        @Override
         Builder statusCode(int statusCode);
 
         /**
          * The query parameters, exactly as they were configured with {@link #headers(Map)},
          * {@link #putHeader(String, String)} and {@link #putHeader(String, List)}.
          */
+        @Override
         Map<String, List<String>> headers();
-
-        /**
-         * Perform a case-insensitive search for a particular header in this request, returning the first matching header, if one
-         * is found.
-         *
-         * <p>This is useful for headers like 'Content-Type' or 'Content-Length' of which there is expected to be only one value
-         * present.</p>
-         *
-         * <p>This is equivalent to invoking {@link SdkHttpUtils#firstMatchingHeader(Map, String)}</p>.
-         *
-         * @param header The header to search for (case insensitively).
-         * @return The first header that matched the requested one, or empty if one was not found.
-         */
-        default Optional<String> firstMatchingHeader(String header) {
-            return SdkHttpUtils.firstMatchingHeader(headers(), header);
-        }
 
         /**
          * Add a single header to be included in the created HTTP response.
@@ -112,6 +100,7 @@ public interface SdkHttpFullResponse
          * @param headerName The name of the header to add (eg. "Host")
          * @param headerValue The value for the header
          */
+        @Override
         default Builder putHeader(String headerName, String headerValue) {
             return putHeader(headerName, singletonList(headerValue));
         }
@@ -124,6 +113,7 @@ public interface SdkHttpFullResponse
          * @param headerName The name of the header to add
          * @param headerValues The values for the header
          */
+        @Override
         Builder putHeader(String headerName, List<String> headerValues);
 
 
@@ -136,22 +126,26 @@ public interface SdkHttpFullResponse
          * @param headerName The name of the header to add
          * @param headerValue The value for the header
          */
+        @Override
         Builder appendHeader(String headerName, String headerValue);
 
         /**
          * Configure an {@link SdkHttpResponse#headers()} to be used in the created HTTP response. This is not validated
          * until the http response is created. This overrides any values currently configured in the builder.
          */
+        @Override
         Builder headers(Map<String, List<String>> headers);
 
         /**
          * Remove all values for the requested header from this builder.
          */
+        @Override
         Builder removeHeader(String headerName);
 
         /**
          * Removes all headers from this builder.
          */
+        @Override
         Builder clearHeaders();
 
         /**

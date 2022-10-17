@@ -1,0 +1,36 @@
+{
+    "version": "2.16.74",
+    "date": "2021-05-28",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Location Service",
+            "contributor": "",
+            "description": "Adds support for calculation of routes, resource tagging and customer provided KMS keys."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Fixed the issue where the SDK failed to parse timestamps with offsets. See [#2477](https://github.com/aws/aws-sdk-java-v2/issues/2477)"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lookout for Metrics",
+            "contributor": "",
+            "description": "Allowing dot(.) character in table name for RDS and Redshift as source connector."
+        },
+        {
+            "type": "feature",
+            "category": "AWS DataSync",
+            "contributor": "",
+            "description": "Added SecurityDescriptorCopyFlags option that allows for control of which components of SMB security descriptors are copied from source to destination objects."
+        }
+    ]
+}

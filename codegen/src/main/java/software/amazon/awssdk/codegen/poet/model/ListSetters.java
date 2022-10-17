@@ -32,12 +32,12 @@ import java.util.stream.Stream;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
-import software.amazon.awssdk.codegen.poet.PoetExtensions;
+import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.utils.Validate;
 
 class ListSetters extends AbstractMemberSetters {
     private final TypeProvider typeProvider;
-    private final PoetExtensions poetExtensions;
+    private final PoetExtension poetExtensions;
 
     ListSetters(IntermediateModel intermediateModel,
                        ShapeModel shapeModel,
@@ -45,9 +45,10 @@ class ListSetters extends AbstractMemberSetters {
                        TypeProvider typeProvider) {
         super(intermediateModel, shapeModel, memberModel, typeProvider);
         this.typeProvider = typeProvider;
-        this.poetExtensions = new PoetExtensions(intermediateModel);
+        this.poetExtensions = new PoetExtension(intermediateModel);
     }
 
+    @Override
     public List<MethodSpec> fluentDeclarations(TypeName returnType) {
         List<MethodSpec> fluentDeclarations = new ArrayList<>();
 
@@ -62,13 +63,17 @@ class ListSetters extends AbstractMemberSetters {
                 .varargs(true)
                 .build());
 
+        TypeName elementType = listElementType();
+
         if (elementModel().hasBuilder()) {
             fluentDeclarations.add(fluentAbstractSetterDeclaration(ParameterSpec.builder(asConsumerBuilderArray(),
                                                                                          fieldName())
                                                                                 .build(), returnType)
-                                           .varargs(true)
-                                           .addJavadoc("$L", memberModel().getDefaultConsumerFluentSetterDocumentation())
-                                           .build());
+                                       .varargs(true)
+                                       .addJavadoc("$L",
+                                                   memberModel().getDefaultConsumerFluentSetterDocumentation(
+                                                       elementType.toString()))
+                                       .build());
         }
 
         if (enumTypeInListMemberModel() != null) {
@@ -119,9 +124,8 @@ class ListSetters extends AbstractMemberSetters {
 
     @Override
     public List<MethodSpec> beanStyle() {
-        MethodSpec.Builder builder = beanStyleSetterBuilder()
-            .addCode(memberModel().isCollectionWithBuilderMember() ? copySetterBuilderBody() : beanCopySetterBody());
-
+        MethodSpec.Builder builder = beanStyleSetterBuilder();
+        builder.addCode(beanCopySetterBody());
         return Collections.singletonList(builder.build());
 
     }

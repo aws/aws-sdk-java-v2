@@ -33,7 +33,7 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.internal.util.UserAgentUtils;
+import software.amazon.awssdk.core.util.SdkUserAgent;
 import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 
@@ -54,11 +54,10 @@ public class ContainerCredentialsProviderTest {
 
     @Before
     public void setup() {
-        TestCredentialsEndpointProvider endpointProvider =
-            new TestCredentialsEndpointProvider("http://localhost:" + mockServer.port());
-        credentialsProvider = new ContainerCredentialsProvider.BuilderImpl()
-            .credentialsEndpointProvider(endpointProvider)
-            .build();
+        credentialsProvider = ContainerCredentialsProvider.builder()
+                                                          .endpoint("http://localhost:" + mockServer.port())
+                                                          .build();
+        helper.set(AWS_CONTAINER_CREDENTIALS_RELATIVE_URI, CREDENTIALS_PATH);
     }
 
     @AfterClass
@@ -82,8 +81,6 @@ public class ContainerCredentialsProviderTest {
      */
     @Test
     public void testGetCredentialsReturnsValidResponseFromEcsEndpoint() {
-        helper.set(AWS_CONTAINER_CREDENTIALS_RELATIVE_URI, "");
-
         stubForSuccessResponse();
 
         AwsSessionCredentials credentials = (AwsSessionCredentials) credentialsProvider.resolveCredentials();
@@ -99,8 +96,6 @@ public class ContainerCredentialsProviderTest {
      */
     @Test
     public void getCredentialsWithCorruptResponseDoesNotIncludeCredentialsInExceptionMessage() {
-        helper.set(AWS_CONTAINER_CREDENTIALS_RELATIVE_URI, "");
-
         stubForCorruptedSuccessResponse();
 
         assertThatThrownBy(credentialsProvider::resolveCredentials).satisfies(t -> {
@@ -122,7 +117,7 @@ public class ContainerCredentialsProviderTest {
 
     private void stubFor200Response(String body) {
         stubFor(get(urlPathEqualTo(CREDENTIALS_PATH))
-                        .withHeader("User-Agent", equalTo(UserAgentUtils.getUserAgent()))
+                        .withHeader("User-Agent", equalTo(SdkUserAgent.create().userAgent()))
                         .willReturn(aResponse()
                                             .withStatus(200)
                                             .withHeader("Content-Type", "application/json")

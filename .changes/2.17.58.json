@@ -1,0 +1,42 @@
+{
+    "version": "2.17.58",
+    "date": "2021-10-12",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "EncryptionSupport for InstanceStorageInfo added to DescribeInstanceTypes API"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "contributor": "",
+            "description": "Documentation only update to address tickets."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudSearch",
+            "contributor": "",
+            "description": "Adds an additional validation exception for Amazon CloudSearch configuration APIs for better error handling."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Reduce base delay of STANDARD retry mode to 100ms for non-throttling responses. This reduces tail latency in the event of transient failures."
+        },
+        {
+            "type": "feature",
+            "category": "AWS MediaTailor",
+            "contributor": "",
+            "description": "MediaTailor now supports ad prefetching."
+        }
+    ]
+}

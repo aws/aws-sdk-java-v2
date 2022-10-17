@@ -1,16 +1,6 @@
 /*
- * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License").
- * You may not use this file except in compliance with the License.
- * A copy of the License is located at
- *
- *  http://aws.amazon.com/apache2.0
- *
- * or in the "license" file accompanying this file. This file is distributed
- * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the License for the specific language governing
- * permissions and limitations under the License.
+ * Copyright (PD) 2006 The Bitzi Corporation
+ * Please see the end of this file for full license text.
  */
 
 package org.bitpedia.util;
@@ -158,3 +148,46 @@ public class Base32 {
         System.out.println("Reencoded: " + Base32.encode(decoded));
     }
 }
+
+/* (PD) 2003 The Bitzi Corporation
+ *
+ * 1. Authorship. This work and others bearing the above
+ * label were created by, or on behalf of, the Bitzi
+ * Corporation. Often other public domain material by
+ * other authors is also incorporated; this should be
+ * clear from notations in the source code.
+ *
+ * 2. Release. The Bitzi Corporation places these works
+ * into the public domain, disclaiming all rights granted
+ * us by copyright law.
+ *
+ * You are completely free to copy, use, redistribute
+ * and modify this work, though you should be aware of
+ * points (3) and (4), below.
+ *
+ * 3. Trademark Advisory. The Bitzi Corporation reserves
+ * all rights with regard to any of its trademarks which
+ * may appear herein, such as "Bitzi" or "Bitcollider".
+ * Please take care that your uses of this work do not
+ * infringe on our trademarks or imply our endorsement.
+ * For example, you should change labels and identifier
+ *  strings in your derivative works where appropriate.
+ *
+ * 4. Disclaimer. THIS SOFTWARE IS PROVIDED BY THE AUTHOR
+ * ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES,
+ * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+ * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
+ * TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * Please see http://bitzi.com/publicdomain or write
+ * info@bitzi.com for more info.
+ */

@@ -20,7 +20,7 @@ import static software.amazon.awssdk.protocols.xml.internal.unmarshall.XmlRespon
 
 import java.time.Instant;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -85,7 +85,13 @@ public final class XmlProtocolUnmarshaller implements XmlErrorUnmarshaller {
 
             if (root != null && field.location() == MarshallLocation.PAYLOAD) {
                 if (!context.response().content().isPresent()) {
-                    // This is a payload field, but the service sent no content. Do not populate this field (leave it null).
+                    // This is a payload field, but the service sent no content. Do not populate this field (leave it null or
+                    // empty).
+                    if (field.marshallingType() == MarshallingType.SDK_BYTES && field.containsTrait(PayloadTrait.class)) {
+                        // SDK bytes bound directly to the payload field should never be left empty
+                        field.set(sdkPojo, SdkBytes.fromByteArrayUnsafe(new byte[0]));
+                    }
+
                     continue;
                 }
 
@@ -98,9 +104,8 @@ public final class XmlProtocolUnmarshaller implements XmlErrorUnmarshaller {
                                                root.getElementsByName(field.unmarshallLocationName());
 
                     if (!CollectionUtils.isNullOrEmpty(element)) {
-                        boolean isFieldBlobTypePayload = payloadMemberAsBlobType.isPresent()
-                                && payloadMemberAsBlobType.get().equals(field);
-
+                        boolean isFieldBlobTypePayload = payloadMemberAsBlobType.isPresent() &&
+                                                         payloadMemberAsBlobType.get().equals(field);
                         if (isFieldBlobTypePayload) {
                             field.set(sdkPojo, SdkBytes.fromInputStream(context.response().content().get()));
                         } else {
@@ -131,7 +136,7 @@ public final class XmlProtocolUnmarshaller implements XmlErrorUnmarshaller {
     }
 
     private static Map<MarshallLocation, TimestampFormatTrait.Format> getDefaultTimestampFormats() {
-        Map<MarshallLocation, TimestampFormatTrait.Format> formats = new HashMap<>();
+        Map<MarshallLocation, TimestampFormatTrait.Format> formats = new EnumMap<>(MarshallLocation.class);
         formats.put(MarshallLocation.HEADER, TimestampFormatTrait.Format.RFC_822);
         formats.put(MarshallLocation.PAYLOAD, TimestampFormatTrait.Format.ISO_8601);
         return Collections.unmodifiableMap(formats);
@@ -144,15 +149,18 @@ public final class XmlProtocolUnmarshaller implements XmlErrorUnmarshaller {
             .headerUnmarshaller(MarshallingType.STRING, HeaderUnmarshaller.STRING)
             .headerUnmarshaller(MarshallingType.INTEGER, HeaderUnmarshaller.INTEGER)
             .headerUnmarshaller(MarshallingType.LONG, HeaderUnmarshaller.LONG)
+            .headerUnmarshaller(MarshallingType.SHORT, HeaderUnmarshaller.SHORT)
             .headerUnmarshaller(MarshallingType.DOUBLE, HeaderUnmarshaller.DOUBLE)
             .headerUnmarshaller(MarshallingType.BOOLEAN, HeaderUnmarshaller.BOOLEAN)
             .headerUnmarshaller(MarshallingType.INSTANT, HeaderUnmarshaller.INSTANT)
             .headerUnmarshaller(MarshallingType.FLOAT, HeaderUnmarshaller.FLOAT)
             .headerUnmarshaller(MarshallingType.MAP, HeaderUnmarshaller.MAP)
+            .headerUnmarshaller(MarshallingType.LIST, HeaderUnmarshaller.LIST)
 
             .payloadUnmarshaller(MarshallingType.STRING, XmlPayloadUnmarshaller.STRING)
             .payloadUnmarshaller(MarshallingType.INTEGER, XmlPayloadUnmarshaller.INTEGER)
             .payloadUnmarshaller(MarshallingType.LONG, XmlPayloadUnmarshaller.LONG)
+            .payloadUnmarshaller(MarshallingType.SHORT, XmlPayloadUnmarshaller.SHORT)
             .payloadUnmarshaller(MarshallingType.FLOAT, XmlPayloadUnmarshaller.FLOAT)
             .payloadUnmarshaller(MarshallingType.DOUBLE, XmlPayloadUnmarshaller.DOUBLE)
             .payloadUnmarshaller(MarshallingType.BIG_DECIMAL, XmlPayloadUnmarshaller.BIG_DECIMAL)

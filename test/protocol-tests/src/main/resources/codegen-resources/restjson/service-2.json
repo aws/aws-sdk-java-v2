@@ -207,6 +207,14 @@
       "output": {
         "shape": "EventStreamOutput"
       }
+    },
+    "DocumentInputOperation":{
+      "name":"DocumentInputOperation",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2016-03-11/documentInputOperation"
+      },
+      "input":{"shape":"StructureWithDocumentMember"}
     }
   },
   "shapes":{
@@ -219,6 +227,7 @@
         "FloatMember":{"shape":"Float"},
         "DoubleMember":{"shape":"Double"},
         "LongMember":{"shape":"Long"},
+        "ShortMember":{"shape":"Short"},
         "BigDecimalMember":{"shape":"NumericValue"},
         "SimpleList":{"shape":"ListOfStrings"},
         "ListOfMaps":{"shape":"ListOfMapStringToString"},
@@ -238,7 +247,10 @@
         "PolymorphicTypeWithoutSubTypes":{"shape":"SubTypeOne"},
         "EnumMember":{"shape":"EnumType"},
         "ListOfEnums":{"shape":"ListOfEnums"},
-        "MapOfEnumToEnum":{"shape":"MapOfEnumToEnum"}
+        "MapOfEnumToEnum":{"shape":"MapOfEnumToEnum"},
+        "ListOfTimeStamp":{"shape":"ListOfTimeStamp"},
+        "MapOfTimeStamp":{"shape":"MapOfTimeStamp"},
+        "MyDocument":{"shape":"MyDocument"}
       }
     },
     "BaseType":{
@@ -285,6 +297,11 @@
           "shape":"Long",
           "location":"header",
           "locationName":"x-amz-long"
+        },
+        "ShortHeader":{
+          "shape":"Short",
+          "location":"header",
+          "locationName":"x-amz-short"
         },
         "DoubleHeader":{
           "shape":"Double",
@@ -354,6 +371,7 @@
         "StringMember":{"shape":"String"},
         "IntegerMember":{"shape":"Integer"},
         "LongMember":{"shape":"Long"},
+        "ShortMember":{"shape":"Short"},
         "DoubleMember":{"shape":"Double"},
         "FloatMember":{"shape":"Float"},
         "TimestampMember":{"shape":"Timestamp"},
@@ -439,6 +457,7 @@
       "member":{"shape":"String"}
     },
     "Long":{"type":"long"},
+    "Short":{"type":"short"},
     "MapOfEnumToEnum":{
       "type":"map",
       "key":{"shape":"EnumType"},
@@ -486,6 +505,11 @@
           "location":"header",
           "locationName":"x-amz-string"
         },
+        "ListOfStringsMember":{
+          "shape":"ListOfStrings",
+          "location":"header",
+          "locationName":"x-amz-string-list"
+        },
         "BooleanMember":{
           "shape":"Boolean",
           "location":"header",
@@ -500,6 +524,11 @@
           "shape":"Long",
           "location":"header",
           "locationName":"x-amz-long"
+        },
+        "ShortMember":{
+          "shape":"Short",
+          "location":"header",
+          "locationName":"x-amz-short"
         },
         "FloatMember":{
           "shape":"Float",
@@ -545,6 +574,11 @@
           "shape":"Long",
           "location":"querystring",
           "locationName":"Long"
+        },
+        "ShortQueryParam":{
+          "shape":"Short",
+          "location":"querystring",
+          "locationName":"Short"
         },
         "FloatQueryParam":{
           "shape":"Float",
@@ -735,6 +769,15 @@
       }
     },
     "Timestamp":{"type":"timestamp"},
+    "ListOfTimeStamp":{
+      "type":"list",
+      "member":{"shape":"Timestamp"}
+    },
+    "MapOfTimeStamp":{
+      "type":"map",
+      "key":{"shape":"String"},
+      "value":{"shape":"Timestamp"}
+    },
     "EventStreamOperationRequest": {
       "type": "structure",
       "required": [
@@ -811,6 +854,16 @@
         }
       },
       "event": true
+    },
+    "MyDocument": {
+      "type": "structure",
+      "document": true
+    },
+    "StructureWithDocumentMember":{
+      "type":"structure",
+      "members":{
+        "DocumentMember":{"shape":"MyDocument"}
+      }
     }
   }
 }

@@ -16,15 +16,17 @@
 package software.amazon.awssdk.services.metrics;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.time.Duration;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -33,7 +35,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.core.metrics.CoreMetric;
@@ -46,8 +48,11 @@ import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricPublisher;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
 import software.amazon.awssdk.services.protocolrestjson.model.EmptyModeledException;
+import software.amazon.awssdk.services.protocolrestjson.model.SimpleStruct;
+import software.amazon.awssdk.services.protocolrestjson.paginators.PaginatedOperationWithResultKeyIterable;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CoreMetricsTest {
@@ -74,6 +79,7 @@ public class CoreMetricsTest {
     public void setup() throws IOException {
         client = ProtocolRestJsonClient.builder()
                 .httpClient(mockHttpClient)
+                .region(Region.US_WEST_2)
                 .credentialsProvider(mockCredentialsProvider)
                 .overrideConfiguration(c -> c.addMetricPublisher(mockPublisher).retryPolicy(b -> b.numRetries(MAX_RETRIES)))
                 .build();
@@ -121,6 +127,7 @@ public class CoreMetricsTest {
     @Test
     public void testApiCall_noConfiguredPublisher_succeeds() {
         ProtocolRestJsonClient noPublisher = ProtocolRestJsonClient.builder()
+                .region(Region.US_WEST_2)
                 .credentialsProvider(mockCredentialsProvider)
                 .httpClient(mockHttpClient)
                 .build();
@@ -135,7 +142,21 @@ public class CoreMetricsTest {
         client.allTypes(r -> r.overrideConfiguration(o -> o.addMetricPublisher(requestMetricPublisher)));
 
         verify(requestMetricPublisher).publish(any(MetricCollection.class));
-        verifyZeroInteractions(mockPublisher);
+        verifyNoMoreInteractions(mockPublisher);
+    }
+
+    @Test
+    public void testPaginatingApiCall_publisherOverriddenOnRequest_requestPublisherTakesPrecedence() {
+        MetricPublisher requestMetricPublisher = mock(MetricPublisher.class);
+
+        PaginatedOperationWithResultKeyIterable iterable =
+            client.paginatedOperationWithResultKeyPaginator(
+                r -> r.overrideConfiguration(o -> o.addMetricPublisher(requestMetricPublisher)));
+
+        List<SimpleStruct> resultingItems = iterable.items().stream().collect(Collectors.toList());
+
+        verify(requestMetricPublisher).publish(any(MetricCollection.class));
+        verifyNoMoreInteractions(mockPublisher);
     }
 
     @Test

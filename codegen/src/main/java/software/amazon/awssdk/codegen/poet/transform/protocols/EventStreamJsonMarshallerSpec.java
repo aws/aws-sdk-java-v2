@@ -32,8 +32,6 @@ import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
  */
 public final class EventStreamJsonMarshallerSpec extends JsonMarshallerSpec {
 
-    private static final String JSON_CONTENT_TYPE = "application/json";
-
     public EventStreamJsonMarshallerSpec(IntermediateModel model, ShapeModel shapeModel) {
         super(shapeModel);
     }
@@ -51,7 +49,7 @@ public final class EventStreamJsonMarshallerSpec extends JsonMarshallerSpec {
 
         // Add :content-type header only if payload is present
         if (!shapeModel.hasNoEventPayload()) {
-            builder.add(".putHeader(\":content-type\", \"$L\")", determinePayloadContentType());
+            builder.add(".putHeader(\":content-type\", $L)", determinePayloadContentType());
         }
 
         builder.add(".build();");
@@ -67,6 +65,7 @@ public final class EventStreamJsonMarshallerSpec extends JsonMarshallerSpec {
                      .add(".hasExplicitPayloadMember($L)", shapeModel.isHasPayloadMember() ||
                                                            shapeModel.getExplicitEventPayloadMember() != null)
                      .add(".hasPayloadMembers($L)", shapeModel.hasPayloadMembers())
+                     .add(".hasImplicitPayloadMembers($L)", shapeModel.hasImplicitEventPayloadMembers())
                      // Adding httpMethod to avoid validation failure while creating the SdkHttpFullRequest
                      .add(".httpMethod($T.GET)", SdkHttpMethod.class)
                      .add(".hasEvent(true)")
@@ -85,12 +84,12 @@ public final class EventStreamJsonMarshallerSpec extends JsonMarshallerSpec {
             return getPayloadContentType(explicitEventPayload);
         }
 
-        return JSON_CONTENT_TYPE;
+        return "protocolFactory.getContentType()";
     }
 
     private String getPayloadContentType(MemberModel memberModel) {
-        String blobContentType = "application/octet-stream";
-        String stringContentType = "text/plain";
+        String blobContentType = "\"application/octet-stream\"";
+        String stringContentType = "\"text/plain\"";
         String variableType = memberModel.getVariable().getVariableType();
 
         if ("software.amazon.awssdk.core.SdkBytes".equals(variableType)) {
@@ -99,6 +98,6 @@ public final class EventStreamJsonMarshallerSpec extends JsonMarshallerSpec {
             return stringContentType;
         }
 
-        return JSON_CONTENT_TYPE;
+        return "protocolFactory.getContentType()";
     }
 }

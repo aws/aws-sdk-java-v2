@@ -33,7 +33,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
@@ -74,6 +76,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * }
  */
 @SdkPublicApi
+@ThreadSafe
 public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
     private final List<ResolvedImmutableAttribute<T, B>> attributeMappers;
     private final Supplier<B> newBuilderSupplier;
@@ -84,7 +87,7 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
     private final AttributeConverterProvider attributeConverterProvider;
     private final Map<String, FlattenedMapper<T, B, ?>> indexedFlattenedMappers;
     private final List<String> attributeNames;
-    
+
     private static class FlattenedMapper<T, B, T1> {
         private final Function<T, T1> otherItemGetter;
         private final BiConsumer<B, T1> otherItemSetter;
@@ -225,6 +228,7 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
      * @param <T> The immutable data item class object that the {@link StaticImmutableTableSchema} is to map to.
      * @param <B> The builder class object that can be used to construct instances of the immutable data item.
      */
+    @NotThreadSafe
     public static final class Builder<T, B> {
         private final Class<T> itemClass;
         private final Class<B> builderClass;
@@ -438,9 +442,15 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
     }
 
     @Override
-    public T mapToItem(Map<String, AttributeValue> attributeMap) {
-        // Lazily instantiate the builder once we have an attribute to write
+    public T mapToItem(Map<String, AttributeValue> attributeMap, boolean preserveEmptyObject) {
         B builder = null;
+
+        // Instantiate the builder right now if preserveEmtpyBean is true, otherwise lazily instantiate the builder once
+        // we have an attribute to write
+        if (preserveEmptyObject) {
+            builder = constructNewBuilder();
+        }
+
         Map<FlattenedMapper<T, B, ?>, Map<String, AttributeValue>> flattenedAttributeValuesMap = new LinkedHashMap<>();
         
         for (Map.Entry<String, AttributeValue> entry : attributeMap.entrySet()) {
@@ -480,6 +490,12 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
         }
         
         return builder == null ? null : buildItemFunction.apply(builder);
+    }
+
+
+    @Override
+    public T mapToItem(Map<String, AttributeValue> attributeMap) {
+        return mapToItem(attributeMap, false);
     }
 
     @Override
@@ -568,5 +584,13 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
         }
 
         return newBuilderSupplier.get();
+    }
+
+    @Override
+    public AttributeConverter<T> converterForAttribute(Object key) {
+        ResolvedImmutableAttribute<T, B> resolvedImmutableAttribute = indexedMappers.get(key);
+        return resolvedImmutableAttribute != null
+               ? resolvedImmutableAttribute.attributeConverter()
+               : null;
     }
 }

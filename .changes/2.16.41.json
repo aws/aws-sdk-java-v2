@@ -1,0 +1,42 @@
+{
+    "version": "2.16.41",
+    "date": "2021-04-13",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Lightsail",
+            "contributor": "",
+            "description": "Documentation updates for Amazon Lightsail."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Security Token Service",
+            "contributor": "",
+            "description": "This release adds the SourceIdentity parameter that can be set when assuming a role."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "Clarify that enabling or disabling automated backups causes a brief downtime, not an outage."
+        },
+        {
+            "type": "feature",
+            "category": "DynamoDB Enhanced Client",
+            "contributor": "",
+            "description": "Added `DynamoDbIgnoreNulls` attribute level annotation that specifies attributes with null values should be ignored. See [#2303](https://github.com/aws/aws-sdk-java-v2/issues/2303)"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Redshift",
+            "contributor": "",
+            "description": "Added support to enable AQUA in Amazon Redshift clusters."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Comprehend Medical",
+            "contributor": "",
+            "description": "The InferICD10CM API now returns TIME_EXPRESSION entities that refer to medical conditions."
+        }
+    ]
+}

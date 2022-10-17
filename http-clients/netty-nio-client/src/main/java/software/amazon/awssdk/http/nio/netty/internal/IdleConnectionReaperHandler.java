@@ -20,14 +20,14 @@ import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.handler.timeout.IdleStateHandler;
 import java.util.concurrent.TimeUnit;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.http.nio.netty.internal.utils.NettyClientLogger;
 
 /**
  * A handler that closes unused channels that have not had any traffic on them for a configurable amount of time.
  */
 @SdkInternalApi
 public class IdleConnectionReaperHandler extends IdleStateHandler {
-    private static final Logger log = Logger.loggerFor(IdleConnectionReaperHandler.class);
+    private static final NettyClientLogger log = NettyClientLogger.getLogger(IdleConnectionReaperHandler.class);
     private final int maxIdleTimeMillis;
 
     public IdleConnectionReaperHandler(int maxIdleTimeMillis) {
@@ -42,8 +42,8 @@ public class IdleConnectionReaperHandler extends IdleStateHandler {
         boolean channelNotInUse = Boolean.FALSE.equals(ctx.channel().attr(ChannelAttributeKey.IN_USE).get());
 
         if (channelNotInUse && ctx.channel().isOpen()) {
-            log.debug(() -> "Closing unused connection (" + ctx.channel().id() + ") because it has been idle for longer than " +
-                            maxIdleTimeMillis + " milliseconds.");
+            log.debug(ctx.channel(), () -> "Closing unused connection (" + ctx.channel().id() + ") because it has been idle for "
+                                          + "longer than " + maxIdleTimeMillis + " milliseconds.");
             ctx.close();
         }
     }

@@ -1,0 +1,54 @@
+{
+    "version": "2.17.50",
+    "date": "2021-09-30",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon WorkMail",
+            "contributor": "",
+            "description": "This release adds support for mobile device access overrides management in Amazon WorkMail."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkSpaces",
+            "contributor": "",
+            "description": "Added CreateUpdatedWorkspaceImage API to update WorkSpace images with latest software and drivers. Updated DescribeWorkspaceImages API to display if there are updates available for WorkSpace images."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Macie 2",
+            "contributor": "",
+            "description": "Amazon S3 bucket metadata now indicates whether an error or a bucket's permissions settings prevented Amazon Macie from retrieving data about the bucket or the bucket's objects."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Network Firewall",
+            "contributor": "",
+            "description": "This release adds support for strict ordering for stateful rule groups. Using strict ordering, stateful rules are evaluated in the exact order in which you provide them."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Account",
+            "contributor": "",
+            "description": "This release of the Account Management API enables customers to manage the alternate contacts for their AWS accounts. For more information, see https://docs.aws.amazon.com/accounts/latest/reference/accounts-welcome.html"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Data Exchange",
+            "contributor": "",
+            "description": "This release enables subscribers to set up automatic exports of newly published revisions using the new EventAction API."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Cloud Control API",
+            "contributor": "",
+            "description": "Initial release of the SDK for AWS Cloud Control API"
+        }
+    ]
+}

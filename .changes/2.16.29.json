@@ -1,0 +1,42 @@
+{
+    "version": "2.16.29",
+    "date": "2021-03-26",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Events",
+            "contributor": "",
+            "description": "Add support for SageMaker Model Builder Pipelines Targets to EventBridge"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT Wireless",
+            "contributor": "",
+            "description": "Support tag-on-create for WirelessDevice."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Transcribe Service",
+            "contributor": "",
+            "description": "Amazon Transcribe now supports tagging words that match your vocabulary filter for batch transcription."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EventBridge",
+            "contributor": "",
+            "description": "Add support for SageMaker Model Builder Pipelines Targets to EventBridge"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Customer Profiles",
+            "contributor": "",
+            "description": "This release adds an optional parameter named FlowDefinition in PutIntegrationRequest."
+        }
+    ]
+}

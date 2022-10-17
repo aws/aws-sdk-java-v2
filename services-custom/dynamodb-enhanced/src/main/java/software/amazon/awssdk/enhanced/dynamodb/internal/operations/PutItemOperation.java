@@ -16,6 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb.internal.operations;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -25,8 +26,11 @@ import software.amazon.awssdk.enhanced.dynamodb.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.WriteModification;
+import software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedResponse;
+import software.amazon.awssdk.enhanced.dynamodb.model.TransactPutItemEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -36,21 +40,35 @@ import software.amazon.awssdk.services.dynamodb.model.PutItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.PutRequest;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
 import software.amazon.awssdk.services.dynamodb.model.WriteRequest;
+import software.amazon.awssdk.utils.Either;
 
 @SdkInternalApi
 public class PutItemOperation<T>
     implements BatchableWriteOperation<T>,
                TransactableWriteOperation<T>,
-               TableOperation<T, PutItemRequest, PutItemResponse, Void> {
+               TableOperation<T, PutItemRequest, PutItemResponse, PutItemEnhancedResponse<T>> {
 
-    private final PutItemEnhancedRequest<T> request;
+    private final Either<PutItemEnhancedRequest<T>, TransactPutItemEnhancedRequest<T>> request;
 
     private PutItemOperation(PutItemEnhancedRequest<T> request) {
-        this.request = request;
+        this.request = Either.left(request);
+    }
+
+    private PutItemOperation(TransactPutItemEnhancedRequest<T> request) {
+        this.request = Either.right(request);
     }
 
     public static <T> PutItemOperation<T> create(PutItemEnhancedRequest<T> request) {
         return new PutItemOperation<>(request);
+    }
+
+    public static <T> PutItemOperation<T> create(TransactPutItemEnhancedRequest<T> request) {
+        return new PutItemOperation<>(request);
+    }
+
+    @Override
+    public OperationName operationName() {
+        return OperationName.PUT_ITEM;
     }
 
     @Override
@@ -68,7 +86,8 @@ public class PutItemOperation<T>
         tableMetadata.primaryPartitionKey();
 
         boolean alwaysIgnoreNulls = true;
-        Map<String, AttributeValue> itemMap = tableSchema.itemToMap(this.request.item(), alwaysIgnoreNulls);
+        T item = request.map(PutItemEnhancedRequest::item, TransactPutItemEnhancedRequest::item);
+        Map<String, AttributeValue> itemMap = tableSchema.itemToMap(item, alwaysIgnoreNulls);
 
         WriteModification transformation =
             extension != null ? extension.beforeWrite(
@@ -76,6 +95,8 @@ public class PutItemOperation<T>
                                                .items(itemMap)
                                                .operationContext(operationContext)
                                                .tableMetadata(tableMetadata)
+                                               .tableSchema(tableSchema)
+                                               .operationName(operationName())
                                                .build())
                 : null;
 
@@ -87,18 +108,31 @@ public class PutItemOperation<T>
                                                               .tableName(operationContext.tableName())
                                                               .item(itemMap);
 
+        if (request.left().isPresent()) {
+            requestBuilder = addPlainPutItemParameters(requestBuilder, request.left().get());
+        }
+
         requestBuilder = addExpressionsIfExist(requestBuilder, transformation);
 
         return requestBuilder.build();
     }
 
     @Override
-    public Void transformResponse(PutItemResponse response,
-                                  TableSchema<T> tableSchema,
-                                  OperationContext operationContext,
-                                  DynamoDbEnhancedClientExtension extension) {
-        // No results are returned by this operation
-        return null;
+    public PutItemEnhancedResponse<T> transformResponse(PutItemResponse response,
+                                                        TableSchema<T> tableSchema,
+                                                        OperationContext operationContext,
+                                                        DynamoDbEnhancedClientExtension extension) {
+        T attributes = null;
+        if (response.hasAttributes()) {
+            attributes = EnhancedClientUtils.readAndTransformSingleItem(response.attributes(), tableSchema, operationContext,
+                                                                        extension);
+        }
+
+        return PutItemEnhancedResponse.<T>builder(null)
+                                      .attributes(attributes)
+                                      .consumedCapacity(response.consumedCapacity())
+                                      .itemCollectionMetrics(response.itemCollectionMetrics())
+                                      .build();
     }
 
     @Override
@@ -138,28 +172,35 @@ public class PutItemOperation<T>
                                                        DynamoDbEnhancedClientExtension dynamoDbEnhancedClientExtension) {
         PutItemRequest putItemRequest = generateRequest(tableSchema, operationContext, dynamoDbEnhancedClientExtension);
 
-        Put put = Put.builder()
-                     .item(putItemRequest.item())
-                     .tableName(putItemRequest.tableName())
-                     .conditionExpression(putItemRequest.conditionExpression())
-                     .expressionAttributeValues(putItemRequest.expressionAttributeValues())
-                     .expressionAttributeNames(putItemRequest.expressionAttributeNames())
-                     .build();
+        Put.Builder builder = Put.builder()
+                                 .item(putItemRequest.item())
+                                 .tableName(putItemRequest.tableName())
+                                 .conditionExpression(putItemRequest.conditionExpression())
+                                 .expressionAttributeValues(putItemRequest.expressionAttributeValues())
+                                 .expressionAttributeNames(putItemRequest.expressionAttributeNames());
+
+        request.right()
+               .map(TransactPutItemEnhancedRequest::returnValuesOnConditionCheckFailureAsString)
+               .ifPresent(builder::returnValuesOnConditionCheckFailure);
 
         return TransactWriteItem.builder()
-                                .put(put)
+                                .put(builder.build())
                                 .build();
     }
 
     private PutItemRequest.Builder addExpressionsIfExist(PutItemRequest.Builder requestBuilder,
                                                          WriteModification transformation) {
+
+        Expression originalConditionExpression = request.map(r -> Optional.ofNullable(r.conditionExpression()),
+                                                             r -> Optional.ofNullable(r.conditionExpression()))
+                                                        .orElse(null);
         Expression mergedConditionExpression;
 
         if (transformation != null && transformation.additionalConditionalExpression() != null) {
-            mergedConditionExpression = Expression.join(this.request.conditionExpression(),
+            mergedConditionExpression = Expression.join(originalConditionExpression,
                                                         transformation.additionalConditionalExpression(), " AND ");
         } else {
-            mergedConditionExpression = this.request.conditionExpression();
+            mergedConditionExpression = originalConditionExpression;
         }
 
         if (mergedConditionExpression != null) {
@@ -178,4 +219,11 @@ public class PutItemOperation<T>
         return requestBuilder;
     }
 
+    private PutItemRequest.Builder addPlainPutItemParameters(PutItemRequest.Builder requestBuilder,
+                                                             PutItemEnhancedRequest<?> enhancedRequest) {
+        requestBuilder = requestBuilder.returnValues(enhancedRequest.returnValuesAsString());
+        requestBuilder = requestBuilder.returnConsumedCapacity(enhancedRequest.returnConsumedCapacityAsString());
+        requestBuilder = requestBuilder.returnItemCollectionMetrics(enhancedRequest.returnItemCollectionMetricsAsString());
+        return requestBuilder;
+    }
 }

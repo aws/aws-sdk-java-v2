@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.http;
 
+import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.metrics.MetricCategory;
 import software.amazon.awssdk.metrics.MetricLevel;
@@ -99,10 +100,26 @@ public final class HttpMetric {
     /**
      * The status code of the HTTP response.
      *
-     * @implSpec This is reported by the SDK core, and should not be reported by an individual HTTP client implementation.
+     * <p>
+     * This is reported by the SDK core, and should not be reported by an individual HTTP client implementation.
      */
     public static final SdkMetric<Integer> HTTP_STATUS_CODE =
         metric("HttpStatusCode", Integer.class, MetricLevel.TRACE);
+
+    /**
+     * The time taken to acquire a channel from the connection pool.
+     *
+     * <p>For HTTP/1 operations, a channel is equivalent to a TCP connection. For HTTP/2 operations, a channel is equivalent to
+     * an HTTP/2 stream channel. For both protocols, the time to acquire a new channel may include the following:
+     * <ol>
+     *     <li>Awaiting a concurrency permit, as restricted by the client's max concurrency configuration.</li>
+     *     <li>The time to establish a new connection, depending on whether an existing connection is available in the pool or
+     *     not.</li>
+     *     <li>The time taken to perform a TLS handshake/negotiation, if TLS is enabled.</li>
+     * </ol>
+     */
+    public static final SdkMetric<Duration> CONCURRENCY_ACQUIRE_DURATION =
+        metric("ConcurrencyAcquireDuration", Duration.class, MetricLevel.INFO);
 
     private HttpMetric() {
     }

@@ -6,10 +6,12 @@ import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.Aws4UnsignedPayloadSigner;
+import software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.ApiName;
+import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -18,6 +20,7 @@ import software.amazon.awssdk.core.client.handler.SyncClientHandler;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksumRequired;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.runtime.transform.StreamingRequestMarshaller;
@@ -37,6 +40,10 @@ import software.amazon.awssdk.services.json.model.APostOperationRequest;
 import software.amazon.awssdk.services.json.model.APostOperationResponse;
 import software.amazon.awssdk.services.json.model.APostOperationWithOutputRequest;
 import software.amazon.awssdk.services.json.model.APostOperationWithOutputResponse;
+import software.amazon.awssdk.services.json.model.BearerAuthOperationRequest;
+import software.amazon.awssdk.services.json.model.BearerAuthOperationResponse;
+import software.amazon.awssdk.services.json.model.GetOperationWithChecksumRequest;
+import software.amazon.awssdk.services.json.model.GetOperationWithChecksumResponse;
 import software.amazon.awssdk.services.json.model.GetWithoutRequiredMembersRequest;
 import software.amazon.awssdk.services.json.model.GetWithoutRequiredMembersResponse;
 import software.amazon.awssdk.services.json.model.InvalidInputException;
@@ -48,6 +55,8 @@ import software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKe
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyResponse;
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyRequest;
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyResponse;
+import software.amazon.awssdk.services.json.model.PutOperationWithChecksumRequest;
+import software.amazon.awssdk.services.json.model.PutOperationWithChecksumResponse;
 import software.amazon.awssdk.services.json.model.StreamingInputOperationRequest;
 import software.amazon.awssdk.services.json.model.StreamingInputOperationResponse;
 import software.amazon.awssdk.services.json.model.StreamingInputOutputOperationRequest;
@@ -58,10 +67,13 @@ import software.amazon.awssdk.services.json.paginators.PaginatedOperationWithRes
 import software.amazon.awssdk.services.json.paginators.PaginatedOperationWithoutResultKeyIterable;
 import software.amazon.awssdk.services.json.transform.APostOperationRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.APostOperationWithOutputRequestMarshaller;
+import software.amazon.awssdk.services.json.transform.BearerAuthOperationRequestMarshaller;
+import software.amazon.awssdk.services.json.transform.GetOperationWithChecksumRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.GetWithoutRequiredMembersRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.OperationWithChecksumRequiredRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.PaginatedOperationWithResultKeyRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.PaginatedOperationWithoutResultKeyRequestMarshaller;
+import software.amazon.awssdk.services.json.transform.PutOperationWithChecksumRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.StreamingInputOperationRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.StreamingInputOutputOperationRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.StreamingOutputOperationRequestMarshaller;
@@ -194,6 +206,106 @@ final class DefaultJsonClient implements JsonClient {
                              .withErrorResponseHandler(errorResponseHandler).withInput(aPostOperationWithOutputRequest)
                              .withMetricCollector(apiCallMetricCollector)
                              .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory)));
+        } finally {
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+        }
+    }
+
+    /**
+     * Invokes the BearerAuthOperation operation.
+     *
+     * @param bearerAuthOperationRequest
+     * @return Result of the BearerAuthOperation operation returned by the service.
+     * @throws SdkException
+     *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
+     *         catch all scenarios.
+     * @throws SdkClientException
+     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc.
+     * @throws JsonException
+     *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
+     * @sample JsonClient.BearerAuthOperation
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/BearerAuthOperation"
+     *      target="_top">AWS API Documentation</a>
+     */
+    @Override
+    public BearerAuthOperationResponse bearerAuthOperation(BearerAuthOperationRequest bearerAuthOperationRequest)
+        throws AwsServiceException, SdkClientException, JsonException {
+        bearerAuthOperationRequest = applySignerOverride(bearerAuthOperationRequest, BearerTokenSigner.create());
+        JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
+                                                                       .isPayloadJson(true).build();
+
+        HttpResponseHandler<BearerAuthOperationResponse> responseHandler = protocolFactory.createResponseHandler(
+            operationMetadata, BearerAuthOperationResponse::builder);
+
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
+                                                                                                   operationMetadata);
+        List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, bearerAuthOperationRequest
+            .overrideConfiguration().orElse(null));
+        MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
+            .create("ApiCall");
+        try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "BearerAuthOperation");
+
+            return clientHandler.execute(new ClientExecutionParams<BearerAuthOperationRequest, BearerAuthOperationResponse>()
+                                             .withOperationName("BearerAuthOperation").withResponseHandler(responseHandler)
+                                             .withErrorResponseHandler(errorResponseHandler).credentialType(CredentialType.TOKEN)
+                                             .withInput(bearerAuthOperationRequest).withMetricCollector(apiCallMetricCollector)
+                                             .withMarshaller(new BearerAuthOperationRequestMarshaller(protocolFactory)));
+        } finally {
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+        }
+    }
+
+    /**
+     * Invokes the GetOperationWithChecksum operation.
+     *
+     * @param getOperationWithChecksumRequest
+     * @return Result of the GetOperationWithChecksum operation returned by the service.
+     * @throws SdkException
+     *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
+     *         catch all scenarios.
+     * @throws SdkClientException
+     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc.
+     * @throws JsonException
+     *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
+     * @sample JsonClient.GetOperationWithChecksum
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/GetOperationWithChecksum"
+     *      target="_top">AWS API Documentation</a>
+     */
+    @Override
+    public GetOperationWithChecksumResponse getOperationWithChecksum(
+        GetOperationWithChecksumRequest getOperationWithChecksumRequest) throws AwsServiceException, SdkClientException,
+                                                                                JsonException {
+        JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
+                                                                       .isPayloadJson(true).build();
+
+        HttpResponseHandler<GetOperationWithChecksumResponse> responseHandler = protocolFactory.createResponseHandler(
+            operationMetadata, GetOperationWithChecksumResponse::builder);
+
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
+                                                                                                   operationMetadata);
+        List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, getOperationWithChecksumRequest
+            .overrideConfiguration().orElse(null));
+        MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
+            .create("ApiCall");
+        try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "GetOperationWithChecksum");
+
+            return clientHandler
+                .execute(new ClientExecutionParams<GetOperationWithChecksumRequest, GetOperationWithChecksumResponse>()
+                             .withOperationName("GetOperationWithChecksum")
+                             .withResponseHandler(responseHandler)
+                             .withErrorResponseHandler(errorResponseHandler)
+                             .withInput(getOperationWithChecksumRequest)
+                             .withMetricCollector(apiCallMetricCollector)
+                             .putExecutionAttribute(
+                                 SdkInternalExecutionAttribute.HTTP_CHECKSUM,
+                                 HttpChecksum.builder().requestChecksumRequired(true)
+                                             .requestAlgorithm(getOperationWithChecksumRequest.checksumAlgorithmAsString())
+                                             .isRequestStreaming(false).build())
+                             .withMarshaller(new GetOperationWithChecksumRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
@@ -550,6 +662,91 @@ final class DefaultJsonClient implements JsonClient {
                                                                                                     SdkClientException, JsonException {
         return new PaginatedOperationWithoutResultKeyIterable(this,
                                                               applyPaginatorUserAgent(paginatedOperationWithoutResultKeyRequest));
+    }
+
+    /**
+     * Invokes the PutOperationWithChecksum operation.
+     *
+     * @param putOperationWithChecksumRequest
+     * @param requestBody
+     *        The content to send to the service. A {@link RequestBody} can be created using one of several factory
+     *        methods for various sources of data. For example, to create a request body from a file you can do the
+     *        following.
+     *
+     *        <pre>
+     * {@code RequestBody.fromFile(new File("myfile.txt"))}
+     * </pre>
+     *
+     *        See documentation in {@link RequestBody} for additional details and which sources of data are supported.
+     *        The service documentation for the request content is as follows '
+     *        <p>
+     *        Object data.
+     *        </p>
+     *        '
+     * @param responseTransformer
+     *        Functional interface for processing the streamed response content. The unmarshalled
+     *        PutOperationWithChecksumResponse and an InputStream to the response content are provided as parameters to
+     *        the callback. The callback may return a transformed type which will be the return value of this method.
+     *        See {@link software.amazon.awssdk.core.sync.ResponseTransformer} for details on implementing this
+     *        interface and for links to pre-canned implementations for common scenarios like downloading to a file. The
+     *        service documentation for the response content is as follows '
+     *        <p>
+     *        Object data.
+     *        </p>
+     *        '.
+     * @return The transformed result of the ResponseTransformer.
+     * @throws SdkException
+     *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
+     *         catch all scenarios.
+     * @throws SdkClientException
+     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc.
+     * @throws JsonException
+     *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
+     * @sample JsonClient.PutOperationWithChecksum
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/PutOperationWithChecksum"
+     *      target="_top">AWS API Documentation</a>
+     */
+    @Override
+    public <ReturnT> ReturnT putOperationWithChecksum(PutOperationWithChecksumRequest putOperationWithChecksumRequest,
+                                                      RequestBody requestBody, ResponseTransformer<PutOperationWithChecksumResponse, ReturnT> responseTransformer)
+        throws AwsServiceException, SdkClientException, JsonException {
+        JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(true)
+                                                                       .isPayloadJson(false).build();
+
+        HttpResponseHandler<PutOperationWithChecksumResponse> responseHandler = protocolFactory.createResponseHandler(
+            operationMetadata, PutOperationWithChecksumResponse::builder);
+
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
+                                                                                                   operationMetadata);
+        List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, putOperationWithChecksumRequest
+            .overrideConfiguration().orElse(null));
+        MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
+            .create("ApiCall");
+        try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Json Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "PutOperationWithChecksum");
+
+            return clientHandler.execute(
+                new ClientExecutionParams<PutOperationWithChecksumRequest, PutOperationWithChecksumResponse>()
+                    .withOperationName("PutOperationWithChecksum")
+                    .withResponseHandler(responseHandler)
+                    .withErrorResponseHandler(errorResponseHandler)
+                    .withInput(putOperationWithChecksumRequest)
+                    .withMetricCollector(apiCallMetricCollector)
+                    .putExecutionAttribute(
+                        SdkInternalExecutionAttribute.HTTP_CHECKSUM,
+                        HttpChecksum.builder().requestChecksumRequired(false)
+                                    .requestValidationMode(putOperationWithChecksumRequest.checksumModeAsString())
+                                    .responseAlgorithms("CRC32C", "CRC32", "SHA1", "SHA256").isRequestStreaming(true)
+                                    .build())
+                    .withRequestBody(requestBody)
+                    .withMarshaller(
+                        StreamingRequestMarshaller.builder()
+                                                  .delegateMarshaller(new PutOperationWithChecksumRequestMarshaller(protocolFactory))
+                                                  .requestBody(requestBody).build()), responseTransformer);
+        } finally {
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+        }
     }
 
     /**

@@ -45,7 +45,7 @@ public class S3ControlWireMockTest {
     @Test
     public void invalidAccountId_shouldThrowException() {
         assertThatThrownBy(() -> client.getPublicAccessBlock(b -> b.accountId("1234#"))).isInstanceOf(IllegalArgumentException.class)
-                                                                                        .hasMessageContaining("must only contain alphanumeric characters and dashes");
+                                                                                        .hasMessageContaining("The provided getPublicAccessBlockRequest is not valid: the 'AccountId' component must match the pattern \"[A-Za-z0-9\\-]+\".");
     }
 
     @Test

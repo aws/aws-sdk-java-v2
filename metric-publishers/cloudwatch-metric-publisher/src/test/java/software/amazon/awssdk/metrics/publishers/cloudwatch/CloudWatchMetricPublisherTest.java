@@ -15,18 +15,14 @@
 
 package software.amazon.awssdk.metrics.publishers.cloudwatch;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -74,7 +70,7 @@ public class CloudWatchMetricPublisherTest {
         Thread.currentThread().interrupt();
         publisher.close();
         assertThat(publisher.isShutdown()).isTrue();
-        assertThat(Thread.interrupted()).isTrue(); // Clear interrupt flag
+        Thread.interrupted(); // Clear interrupt flag
     }
 
     @Test

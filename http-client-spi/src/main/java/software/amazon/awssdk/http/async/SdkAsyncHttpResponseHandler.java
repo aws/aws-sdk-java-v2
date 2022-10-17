@@ -17,13 +17,13 @@ package software.amazon.awssdk.http.async;
 
 import java.nio.ByteBuffer;
 import org.reactivestreams.Publisher;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.SdkHttpResponse;
 
 /**
  * Handles asynchronous HTTP responses.
  */
-@SdkProtectedApi
+@SdkPublicApi
 public interface SdkAsyncHttpResponseHandler {
     /**
      * Called when the headers have been received.

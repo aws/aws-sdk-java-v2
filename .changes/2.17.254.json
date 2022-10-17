@@ -1,0 +1,24 @@
+{
+    "version": "2.17.254",
+    "date": "2022-08-16",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Service Catalog",
+            "contributor": "",
+            "description": "Documentation updates for Service Catalog"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Rekognition",
+            "contributor": "",
+            "description": "This release adds APIs which support copying an Amazon Rekognition Custom Labels model and managing project policies across AWS account."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}

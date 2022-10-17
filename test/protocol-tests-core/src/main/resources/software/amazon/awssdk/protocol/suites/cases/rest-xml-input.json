@@ -39,6 +39,26 @@
     }
   },
   {
+    "description": "Escape Characters are marshalled correctly as XML in the payload",
+    "given": {
+
+      "input": {
+        "stringMember": "\"'<\r\nNormalCharacters\"'>\r\n"
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "xmlEquals": "<AllTypesRequest xmlns=\"https://restxml/\"><stringMember>&quot;&apos;&lt;&#x0D;&#x0A;NormalCharacters&quot;&apos;&gt;&#x0D;&#x0A;</stringMember></AllTypesRequest>"
+        }
+      }
+    }
+  },
+  {
     "description": "Boolean member with value true is marshalled correctly as XML",
     "given": {
       "input": {
@@ -366,6 +386,188 @@
     "then": {
       "serializedAs": {
         "uri": "/2016-03-11/operationWithGreedyLabel/pathParamValue//foo/bar/baz"
+      }
+    }
+  },
+  {
+    "description": "ListOfStrings in header is serialized as multi-valued header",
+    "given": {
+      "input": {
+        "StringMember": "singleValue",
+        "ListOfStringsMember": [
+          "listValueOne",
+          "listValueTwo"
+        ]
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "MembersInHeaders"
+    },
+    "then": {
+      "serializedAs": {
+        "uri": "/2016-03-11/membersInHeaders",
+        "headers": {
+          "contains": {
+            "x-amz-string": "singleValue",
+            "x-amz-string-list": [
+              "listValueOne",
+              "listValueTwo"
+            ]
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "Null string header member is not serialized",
+    "given": {
+      "input": {
+        "StringMember": null
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "MembersInHeaders"
+    },
+    "then": {
+      "serializedAs": {
+        "uri": "/2016-03-11/membersInHeaders",
+        "headers": {
+          "doesNotContain": [ "x-amz-string" ]
+        }
+      }
+    }
+  },
+  {
+    "description": "Null list header member is not serialized",
+    "given": {
+      "input": {
+        "ListOfStringsMember": null
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "MembersInHeaders"
+    },
+    "then": {
+      "serializedAs": {
+        "uri": "/2016-03-11/membersInHeaders",
+        "headers": {
+          "doesNotContain": [ "x-amz-string-list" ]
+        }
+      }
+    }
+  },
+  {
+    "description": "List header member with only null value is not serialized",
+    "given": {
+      "input": {
+        "ListOfStringsMember": [
+          null
+        ]
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "MembersInHeaders"
+    },
+    "then": {
+      "serializedAs": {
+        "uri": "/2016-03-11/membersInHeaders",
+        "headers": {
+          "doesNotContain": [ "x-amz-string-list" ]
+        }
+      }
+    }
+  },
+  {
+    "description": "List header member's null elements are not serialized",
+    "given": {
+      "input": {
+        "ListOfStringsMember": [
+          "listValueOne",
+          null
+        ]
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "MembersInHeaders"
+    },
+    "then": {
+      "serializedAs": {
+        "uri": "/2016-03-11/membersInHeaders",
+        "headers": {
+          "contains": {
+            "x-amz-string-list": [
+              "listValueOne"
+            ]
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "ListOfStrings in header is serialized as multi-valued header with commas, quotes and double quotes",
+    "given": {
+      "input": {
+        "ListOfStringsMember": [
+          "listValue1,listValue2",
+          "\"listValueTwo\"",
+          "\"\"",
+          "'listValueThree'"
+        ]
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "MembersInHeaders"
+    },
+    "then": {
+      "serializedAs": {
+        "uri": "/2016-03-11/membersInHeaders",
+        "headers": {
+          "contains": {
+            "x-amz-string-list": [
+              "listValue1,listValue2",
+              "\"listValueTwo\"",
+              "\"\"",
+              "'listValueThree'"
+            ]
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "ListOfStrings in header serializes only non empty Strings",
+    "given": {
+      "input": {
+        "ListOfStringsMember": [
+          "listValue1",
+          null,
+          "",
+          "",
+          "listValue6"
+        ]
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "MembersInHeaders"
+    },
+    "then": {
+      "serializedAs": {
+        "uri": "/2016-03-11/membersInHeaders",
+        "headers": {
+          "contains": {
+            "x-amz-string-list": [
+              "listValue1",
+              "listValue6"
+            ]
+          }
+        }
       }
     }
   }

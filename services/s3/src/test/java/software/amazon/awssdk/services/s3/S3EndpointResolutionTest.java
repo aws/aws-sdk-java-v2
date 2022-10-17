@@ -23,10 +23,12 @@ import static software.amazon.awssdk.services.s3.S3MockUtils.mockListObjectsResp
 
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.util.function.Consumer;
 import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
@@ -35,6 +37,7 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.internal.handlers.EndpointAddressInterceptor;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 import software.amazon.awssdk.testutils.service.http.MockSyncHttpClient;
@@ -49,6 +52,8 @@ public class S3EndpointResolutionTest {
     private static final String NON_DNS_COMPATIBLE_BUCKET = "SOME.BUCKET";
     private static final String ENDPOINT_WITHOUT_BUCKET = "https://s3.ap-south-1.amazonaws.com";
     private static final String ENDPOINT_WITH_BUCKET = String.format("https://%s.s3.ap-south-1.amazonaws.com", BUCKET);
+    public static final String USE_ARN_REGION_MESSAGE = "To enable this behavior and prevent this exception set " +
+            "'useArnRegionEnabled' to true in the configuration when building the S3 client.";
 
     private MockSyncHttpClient mockHttpClient;
     private Signer mockSigner;
@@ -95,6 +100,51 @@ public class S3EndpointResolutionTest {
     }
 
     /**
+     * Service level operations for dualstack mode should go to the dualstack endpoint (without virtual addressing).
+     */
+    @Test
+    public void serviceLevelOperation_WithDualstackEnabledAtClientLevel_UsesDualstackEndpoint() throws Exception {
+        mockHttpClient.stubNextResponse(mockListBucketsResponse());
+        S3Client s3Client = buildClient(S3Configuration.builder().build(), b -> b.dualstackEnabled(true));
+
+        s3Client.listBuckets();
+
+        assertThat(mockHttpClient.getLastRequest().getUri())
+            .as("Uses regional S3 endpoint without bucket")
+            .isEqualTo(URI.create("https://s3.dualstack.ap-south-1.amazonaws.com/"));
+    }
+
+    /**
+     * Service level operations for fips mode should go to the fips endpoint (without virtual addressing).
+     */
+    @Test
+    public void serviceLevelOperation_WithFipsEnabled_UsesFipsEndpoint() throws Exception {
+        mockHttpClient.stubNextResponse(mockListBucketsResponse());
+        S3Client s3Client = buildClient(S3Configuration.builder().build(), b -> b.fipsEnabled(true));
+
+        s3Client.listBuckets();
+
+        assertThat(mockHttpClient.getLastRequest().getUri())
+            .as("Uses regional S3 endpoint without bucket")
+            .isEqualTo(URI.create("https://s3-fips.ap-south-1.amazonaws.com/"));
+    }
+
+    /**
+     * Service level operations for fips mode should go to the fips endpoint (without virtual addressing).
+     */
+    @Test
+    public void serviceLevelOperation_WithFipsAndDualstackEnabled_UsesFipsDualstackEndpoint() throws Exception {
+        mockHttpClient.stubNextResponse(mockListBucketsResponse());
+        S3Client s3Client = buildClient(S3Configuration.builder().build(), b -> b.fipsEnabled(true).dualstackEnabled(true));
+
+        s3Client.listBuckets();
+
+        assertThat(mockHttpClient.getLastRequest().getUri())
+            .as("Uses regional S3 endpoint without bucket")
+            .isEqualTo(URI.create("https://s3-fips.dualstack.ap-south-1.amazonaws.com/"));
+    }
+
+    /**
      * When a custom endpoint is provided via the builder we should honor that instead of trying to re-resolve it in the
      * {@link EndpointAddressInterceptor}.
      */
@@ -116,6 +166,42 @@ public class S3EndpointResolutionTest {
         URI customEndpoint = URI.create("https://foobar-12345678910.s3-accesspoint.ap-south-1.amazonaws.com");
         mockHttpClient.stubNextResponse(mockListObjectsResponse());
         S3Client s3Client = clientBuilder().build();
+        String accessPointArn = "arn:aws:s3:ap-south-1:12345678910:accesspoint:foobar";
+
+        s3Client.listObjects(ListObjectsRequest.builder().bucket(accessPointArn).build());
+
+        assertEndpointMatches(mockHttpClient.getLastRequest(), customEndpoint.toString());
+    }
+
+    @Test
+    public void accessPointArn_withDualstack_correctlyRewritesEndpoint() throws Exception {
+        URI customEndpoint = URI.create("https://foobar-12345678910.s3-accesspoint.dualstack.ap-south-1.amazonaws.com");
+        mockHttpClient.stubNextResponse(mockListObjectsResponse());
+        S3Client s3Client = clientBuilder().dualstackEnabled(true).build();
+        String accessPointArn = "arn:aws:s3:ap-south-1:12345678910:accesspoint:foobar";
+
+        s3Client.listObjects(ListObjectsRequest.builder().bucket(accessPointArn).build());
+
+        assertEndpointMatches(mockHttpClient.getLastRequest(), customEndpoint.toString());
+    }
+
+    @Test
+    public void accessPointArn_withFips_correctlyRewritesEndpoint() throws Exception {
+        URI customEndpoint = URI.create("https://foobar-12345678910.s3-accesspoint-fips.ap-south-1.amazonaws.com");
+        mockHttpClient.stubNextResponse(mockListObjectsResponse());
+        S3Client s3Client = clientBuilder().fipsEnabled(true).build();
+        String accessPointArn = "arn:aws:s3:ap-south-1:12345678910:accesspoint:foobar";
+
+        s3Client.listObjects(ListObjectsRequest.builder().bucket(accessPointArn).build());
+
+        assertEndpointMatches(mockHttpClient.getLastRequest(), customEndpoint.toString());
+    }
+
+    @Test
+    public void accessPointArn_withDualstackFips_correctlyRewritesEndpoint() throws Exception {
+        URI customEndpoint = URI.create("https://foobar-12345678910.s3-accesspoint-fips.dualstack.ap-south-1.amazonaws.com");
+        mockHttpClient.stubNextResponse(mockListObjectsResponse());
+        S3Client s3Client = clientBuilder().dualstackEnabled(true).fipsEnabled(true).build();
         String accessPointArn = "arn:aws:s3:ap-south-1:12345678910:accesspoint:foobar";
 
         s3Client.listObjects(ListObjectsRequest.builder().bucket(accessPointArn).build());
@@ -260,12 +346,41 @@ public class S3EndpointResolutionTest {
     }
 
     /**
+     * S3 accelerate and FIPS should not be allowed in use together.
+     */
+    @Test
+    public void accelerateAndFips_Fails() throws Exception {
+        mockHttpClient.stubNextResponse(mockListObjectsResponse());
+        assertThatThrownBy(() -> clientBuilder().fipsEnabled(true)
+                                                .serviceConfiguration(withAccelerateEnabled())
+                                                .build()
+                                                .listObjects(r -> r.bucket(BUCKET)))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("FIPS")
+            .hasMessageContaining("accelerate");
+    }
+
+    /**
      * Dualstack uses regional endpoints that support virtual addressing.
      */
     @Test
     public void dualstackEnabled_UsesVirtualAddressingWithDualstackEndpoint() throws Exception {
         mockHttpClient.stubNextResponse(mockListObjectsResponse());
         S3Client s3Client = buildClient(withDualstackEnabled());
+
+        s3Client.listObjects(ListObjectsRequest.builder().bucket(BUCKET).build());
+
+        assertEndpointMatches(mockHttpClient.getLastRequest(),
+                              String.format("https://%s.s3.dualstack.ap-south-1.amazonaws.com", BUCKET));
+    }
+
+    /**
+     * Dualstack uses regional endpoints that support virtual addressing.
+     */
+    @Test
+    public void dualstackEnabledViaClient_UsesVirtualAddressingWithDualstackEndpoint() throws Exception {
+        mockHttpClient.stubNextResponse(mockListObjectsResponse());
+        S3Client s3Client = buildClient(S3Configuration.builder().build(), b -> b.dualstackEnabled(true));
 
         s3Client.listObjects(ListObjectsRequest.builder().bucket(BUCKET).build());
 
@@ -287,12 +402,52 @@ public class S3EndpointResolutionTest {
     }
 
     /**
+     * Dualstack also supports path style endpoints just like the normal endpoints.
+     */
+    @Test
+    public void dualstackViaClientAndPathStyleEnabled_UsesPathStyleAddressingWithDualstackEndpoint() throws Exception {
+        mockHttpClient.stubNextResponse(mockListObjectsResponse());
+        S3Client s3Client = buildClient(withPathStyle(), b -> b.dualstackEnabled(true));
+
+        s3Client.listObjects(ListObjectsRequest.builder().bucket(BUCKET).build());
+
+        assertEndpointMatches(mockHttpClient.getLastRequest(), "https://s3.dualstack.ap-south-1.amazonaws.com/" + BUCKET);
+    }
+
+    /**
+     * Dualstack and fips also supports path style endpoints just like the normal endpoints.
+     */
+    @Test
+    public void dualstackAndFipsWithPathStyleEnabled_UsesPathStyleAddressingWithDualstackEndpoint() throws Exception {
+        mockHttpClient.stubNextResponse(mockListObjectsResponse());
+        S3Client s3Client = buildClient(withPathStyle(), b -> b.dualstackEnabled(true).fipsEnabled(true));
+
+        s3Client.listObjects(ListObjectsRequest.builder().bucket(BUCKET).build());
+
+        assertEndpointMatches(mockHttpClient.getLastRequest(), "https://s3-fips.dualstack.ap-south-1.amazonaws.com/" + BUCKET);
+    }
+
+    /**
      * When dualstack and accelerate are both enabled there is a special, global dualstack endpoint we must use.
      */
     @Test
     public void dualstackAndAccelerateEnabled_UsesDualstackAccelerateEndpoint() throws Exception {
         mockHttpClient.stubNextResponse(mockListObjectsResponse());
         S3Client s3Client = buildClient(withDualstackAndAccelerateEnabled());
+
+        s3Client.listObjects(ListObjectsRequest.builder().bucket(BUCKET).build());
+
+        assertEndpointMatches(mockHttpClient.getLastRequest(),
+                              String.format("https://%s.s3-accelerate.dualstack.amazonaws.com", BUCKET));
+    }
+
+    /**
+     * When dualstack and accelerate are both enabled there is a special, global dualstack endpoint we must use.
+     */
+    @Test
+    public void dualstackViaClientAndAccelerateEnabled_UsesDualstackAccelerateEndpoint() throws Exception {
+        mockHttpClient.stubNextResponse(mockListObjectsResponse());
+        S3Client s3Client = buildClient(withAccelerateEnabled(), b -> b.dualstackEnabled(true));
 
         s3Client.listObjects(ListObjectsRequest.builder().bucket(BUCKET).build());
 
@@ -324,6 +479,14 @@ public class S3EndpointResolutionTest {
                                    .pathStyleAccessEnabled(true)
                                    .accelerateModeEnabled(true)
                                    .build());
+    }
+
+    /**
+     * Only configure dualstack enabled in one place.
+     */
+    @Test(expected = IllegalStateException.class)
+    public void dualstackInClientAndConfiguration_ThrowsIllegalStateException() {
+        buildClient(withDualstackEnabled(), b -> b.dualstackEnabled(true));
     }
 
     @Test
@@ -415,6 +578,24 @@ public class S3EndpointResolutionTest {
         assertThat(mockHttpClient.getLastRequest().getUri().getHost()).isEqualTo("s3.amazonaws.com");
     }
 
+    @Test
+    public void standardDefaultsMode_usesRegionalIadEndpoint() throws UnsupportedEncodingException {
+        mockHttpClient.stubNextResponse(mockListObjectsResponse());
+
+        S3Client s3Client = S3Client.builder()
+                                    .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid",
+                                                                                                                     "skid")))
+                                    .httpClient(mockHttpClient)
+                                    .defaultsMode(DefaultsMode.STANDARD)
+                                    .serviceConfiguration(S3Configuration.builder()
+                                                                         .pathStyleAccessEnabled(true)
+                                                                         .build())
+                                    .region(Region.US_EAST_1)
+                                    .build();
+        s3Client.listObjects(ListObjectsRequest.builder().bucket(BUCKET).build());
+        assertThat(mockHttpClient.getLastRequest().getUri().getHost()).isEqualTo("s3.us-east-1.amazonaws.com");
+    }
+
     /**
      * Assert that the provided request would have gone to the given endpoint.
      *
@@ -433,6 +614,16 @@ public class S3EndpointResolutionTest {
         return clientBuilder()
                 .serviceConfiguration(s3ServiceConfiguration)
                 .build();
+    }
+
+    /**
+     * @param s3ServiceConfiguration Advanced configuration to use for this client.
+     * @return A built client with the given advanced configuration.
+     */
+    private S3Client buildClient(S3Configuration s3ServiceConfiguration, Consumer<S3ClientBuilder> clientBuilderModifier) {
+        S3ClientBuilder s3ClientBuilder = clientBuilder().serviceConfiguration(s3ServiceConfiguration);
+        clientBuilderModifier.accept(s3ClientBuilder);
+        return s3ClientBuilder.build();
     }
 
     /**
@@ -506,6 +697,121 @@ public class S3EndpointResolutionTest {
                               .dualstackEnabled(true)
                               .accelerateModeEnabled(true)
                               .build();
+    }
+
+    @Test
+    public void accessPointArn_usEast1Region_s3External1_useArnRegionFalse_throwsIllegalArgumentException() throws Exception {
+        mockHttpClient.stubNextResponse(mockListObjectsResponse());
+        S3Client s3Client = clientBuilder().region(Region.of("s3-external-1")).build();
+        String accessPointArn = "arn:aws:s3:us-east-1:12345678910:accesspoint:foobar";
+        assertThatThrownBy(() -> s3Client.listObjects(ListObjectsRequest.builder().bucket(accessPointArn).build()))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining(USE_ARN_REGION_MESSAGE);
+    }
+
+    @Test
+    public void accessPointArn_usEast_1_region_s3External1_seArnRegionTrue() throws Exception {
+        mockHttpClient.stubNextResponse(mockListObjectsResponse());
+        S3Client s3Client = clientBuilder().region(Region.of("s3-external-1"))
+                .serviceConfiguration(S3Configuration.builder().useArnRegionEnabled(true).build()).build();
+        String accessPointArn = "arn:aws:s3:us-east-1:123456789012:accesspoint:foobar";
+        s3Client.getObject(GetObjectRequest.builder().bucket(accessPointArn).key("someKey").build());
+        assertThat(mockHttpClient.getLastRequest().getUri().getHost())
+                .isEqualTo("foobar-123456789012.s3-accesspoint.us-east-1.amazonaws.com");
+
+    }
+
+    @Test
+    public void accessPointArn_usEast1_region_awsGlobal_useArnRegionTrue() throws Exception {
+        mockHttpClient.stubNextResponse(mockListObjectsResponse());
+        S3Client s3Client = clientBuilder().region(Region.AWS_GLOBAL)
+                .serviceConfiguration(S3Configuration.builder().useArnRegionEnabled(true).build()).build();
+        String accessPointArn = "arn:aws:s3:us-east-1:123456789012:accesspoint:foobar";
+        s3Client.getObject(GetObjectRequest.builder().bucket(accessPointArn).key("someKey").build());
+        assertThat(mockHttpClient.getLastRequest().getUri().getHost())
+                .isEqualTo("foobar-123456789012.s3-accesspoint.us-east-1.amazonaws.com");
+
+    }
+
+    @Test
+    public void accessPointArn_usEast1_region_awsGlobal_useArnRegionFalse_throwsIllegalArgumentException() throws Exception {
+        mockHttpClient.stubNextResponse(mockListObjectsResponse());
+        S3Client s3Client = clientBuilder().region(Region.AWS_GLOBAL).build();
+        String accessPointArn = "arn:aws:s3:us-east-1:12345678910:accesspoint:foobar";
+        assertThatThrownBy(() -> s3Client.listObjects(ListObjectsRequest.builder().bucket(accessPointArn).build()))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining(USE_ARN_REGION_MESSAGE);
+    }
+
+    @Test
+    public void accessPointArn_NonFips_usGovEast1_region_FipsUsGovEast1_useArnRegionFalse() throws Exception {
+        mockHttpClient.stubNextResponse(mockListObjectsResponse());
+        S3Client s3Client = clientBuilder().region(Region.of("fips-us-gov-east-1"))
+                .serviceConfiguration(S3Configuration.builder().useArnRegionEnabled(false).build()).build();
+        String accessPointArn = "arn:aws-us-gov:s3:us-gov-east-1:123456789012:accesspoint:foobar";
+        s3Client.getObject(GetObjectRequest.builder().bucket(accessPointArn).key("someKey").build());
+        assertThat(mockHttpClient.getLastRequest().getUri().getHost())
+                .isEqualTo("foobar-123456789012.s3-accesspoint-fips.us-gov-east-1.amazonaws.com");
+    }
+
+    @Test
+    public void accessPointArn_NonFips_usGovEast1_region_FipsUsGovEast1_useArnRegionTrue() throws Exception {
+        mockHttpClient.stubNextResponse(mockListObjectsResponse());
+        S3Client s3Client = clientBuilder().region(Region.of("fips-us-gov-east-1"))
+                .serviceConfiguration(S3Configuration.builder().useArnRegionEnabled(true).build()).build();
+        String accessPointArn = "arn:aws-us-gov:s3:us-gov-east-1:123456789012:accesspoint:foobar";
+        s3Client.getObject(GetObjectRequest.builder().bucket(accessPointArn).key("someKey").build());
+        assertThat(mockHttpClient.getLastRequest().getUri().getHost())
+                .isEqualTo("foobar-123456789012.s3-accesspoint-fips.us-gov-east-1.amazonaws.com");
+    }
+
+    @Test
+    public void accessPointArn_usGovWest1_clientRegion_FipsUsGovEast1_useArnRegionTrue_throwsIllegalArgumentException() throws Exception {
+        mockHttpClient.stubNextResponse(mockListObjectsResponse());
+        S3Client s3Client = clientBuilder().region(Region.of("fips-us-gov-east-1"))
+                .serviceConfiguration(S3Configuration.builder().useArnRegionEnabled(true).build()).build();
+        String accessPointArn = "arn:aws:s3:us-west-1:123456789012:accesspoint:foobar";
+
+        assertThatThrownBy(() -> s3Client.getObject(GetObjectRequest.builder().bucket(accessPointArn).key("someKey").build()))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("The region field of the ARN being passed as a bucket parameter to an S3 operation does not "
+                                      + "match the region the client was configured with. Cross region access not allowed for fips "
+                                      + "region in client or arn. Provided region: 'us-west-1'; client region:'us-gov-east-1'.");
+    }
+
+    @Test
+    public void accessPointArn_NonFips_usGovWest1_region_FipsUsGovEast1_useArnRegionTrue_dualStackEnabled() throws Exception {
+        mockHttpClient.stubNextResponse(mockListObjectsResponse());
+        S3Client s3Client = clientBuilder().region(Region.of("fips-us-gov-east-1"))
+                .serviceConfiguration(S3Configuration.builder().useArnRegionEnabled(true).dualstackEnabled(true).build()).build();
+        String accessPointArn = "arn:aws-us-gov:s3:us-gov-east-1:123456789012:accesspoint:foobar";
+        s3Client.getObject(GetObjectRequest.builder().bucket(accessPointArn).key("someKey").build());
+        assertThat(mockHttpClient.getLastRequest().getUri().getHost())
+                .isEqualTo("foobar-123456789012.s3-accesspoint-fips.dualstack.us-gov-east-1.amazonaws.com");
+    }
+
+    @Test
+    public void accessPointArnRegion_fips_clientRegion_nonFips_useArnRegionTrue_throwsIllegalArgumentException() throws Exception {
+        mockHttpClient.stubNextResponse(mockListObjectsResponse());
+        S3Client s3Client = clientBuilder().region(Region.of("us-west-1"))
+                .serviceConfiguration(S3Configuration.builder().useArnRegionEnabled(true).build()).build();
+        String accessPointArn = "arn:aws:s3:fips-us-west-1:123456789012:accesspoint:myendpoint";
+
+        assertThatThrownBy(() -> s3Client.getObject(GetObjectRequest.builder().bucket(accessPointArn).key("someKey").build()))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Invalid ARN, FIPS region is not allowed in ARN. Provided arn region: 'fips-us-west-1'.");
+    }
+
+    @Test
+    public void accessPointArnRegion_fips_clientRegion_nonFips_useArnRegionFalse_throwsIllegalArgumentException() throws Exception {
+        mockHttpClient.stubNextResponse(mockListObjectsResponse());
+        S3Client s3Client = clientBuilder().region(Region.of("us-west-1"))
+                .serviceConfiguration(S3Configuration.builder().useArnRegionEnabled(false).build()).build();
+        String accessPointArn = "arn:aws:s3:fips-us-west-1:123456789012:accesspoint:myendpoint";
+
+        assertThatThrownBy(() -> s3Client.getObject(GetObjectRequest.builder().bucket(accessPointArn).key("someKey").build()))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Invalid ARN, FIPS region is not allowed in ARN. Provided arn region: 'fips-us-west-1'.");
     }
 
 }

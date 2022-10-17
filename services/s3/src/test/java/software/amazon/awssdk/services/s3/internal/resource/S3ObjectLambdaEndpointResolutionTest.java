@@ -21,8 +21,8 @@ import static software.amazon.awssdk.services.s3.S3MockUtils.mockListObjectsResp
 
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -37,7 +37,7 @@ public class S3ObjectLambdaEndpointResolutionTest {
 
     private MockSyncHttpClient mockHttpClient;
 
-    @Before
+    @BeforeEach
     public void setup() throws UnsupportedEncodingException {
         mockHttpClient = new MockSyncHttpClient();
         mockHttpClient.stubNextResponse(mockListObjectsResponse());
@@ -114,23 +114,23 @@ public class S3ObjectLambdaEndpointResolutionTest {
     }
 
     @Test
-    public void objectLambdaArn_missingRegion_throwsIllegalArgumentException() {
+    public void objectLambdaArn_missingRegion_throwsNullPointerException() {
         S3Client s3Client = clientBuilder().build();
         String objectLambdaArn = "arn:aws:s3-object-lambda::123456789012:accesspoint/myol";
 
         assertThatThrownBy(() -> s3Client.getObject(GetObjectRequest.builder().bucket(objectLambdaArn).key("obj").build()))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("region must not be blank or empty");
+            .isInstanceOf(NullPointerException.class)
+            .hasMessageContaining("region must not be null");
     }
 
     @Test
-    public void objectLambdaArn_missingAccountId_throwsIllegalArgumentException() {
+    public void objectLambdaArn_missingAccountId_throwsNullPointerException() {
         S3Client s3Client = clientBuilder().build();
         String objectLambdaArn = "arn:aws:s3-object-lambda:us-west-2::accesspoint/myol";
 
         assertThatThrownBy(() -> s3Client.getObject(GetObjectRequest.builder().bucket(objectLambdaArn).key("obj").build()))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("accountId must not be blank or empty");
+            .isInstanceOf(NullPointerException.class)
+            .hasMessageContaining("accountId must not be null");
     }
 
     @Test
@@ -140,7 +140,8 @@ public class S3ObjectLambdaEndpointResolutionTest {
 
         assertThatThrownBy(() -> s3Client.getObject(GetObjectRequest.builder().bucket(objectLambdaArn).key("obj").build()))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("component must only contain alphanumeric characters and dashes");
+            .hasMessageContaining("The provided object lambda ARN is not valid: the 'accountId' component must match the "
+                                  + "pattern \"[A-Za-z0-9\\-]+\".");
     }
 
     @Test
@@ -160,7 +161,8 @@ public class S3ObjectLambdaEndpointResolutionTest {
 
         assertThatThrownBy(() -> s3Client.getObject(GetObjectRequest.builder().bucket(objectLambdaArn).key("obj").build()))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("component must only contain alphanumeric characters and dashes");
+            .hasMessageContaining("The provided object lambda ARN is not valid: the 'accessPointName' component must match the "
+                                  + "pattern \"[A-Za-z0-9\\-]+\".");
     }
 
     @Test
@@ -170,7 +172,8 @@ public class S3ObjectLambdaEndpointResolutionTest {
 
         assertThatThrownBy(() -> s3Client.getObject(GetObjectRequest.builder().bucket(objectLambdaArn).key("obj").build()))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("component must only contain alphanumeric characters and dashes");
+            .hasMessageContaining("The provided object lambda ARN is not valid: the 'accessPointName' component must match the "
+                                  + "pattern \"[A-Za-z0-9\\-]+\".");
     }
 
     @Test
@@ -200,6 +203,16 @@ public class S3ObjectLambdaEndpointResolutionTest {
         URI expectedEndpoint = URI.create("myol-123456789012.s3-object-lambda.us-west-2.amazonaws.com");
         S3Client s3Client = clientBuilder().build();
         String objectLambdaArn = "arn:aws:s3-object-lambda:us-west-2:123456789012:accesspoint:myol";
+
+        s3Client.getObject(GetObjectRequest.builder().bucket(objectLambdaArn).key("obj").build());
+        assertEndpointMatches(mockHttpClient.getLastRequest(), expectedEndpoint);
+    }
+
+    @Test
+    public void objectLambdaArn_fips_resolveEndpointCorrectly() {
+        URI expectedEndpoint = URI.create("myol-123456789012.s3-object-lambda-fips.us-west-2.amazonaws.com");
+        S3Client s3Client = clientBuilder().fipsEnabled(true).build();
+        String objectLambdaArn = "arn:aws:s3-object-lambda:us-west-2:123456789012:accesspoint/myol";
 
         s3Client.getObject(GetObjectRequest.builder().bucket(objectLambdaArn).key("obj").build());
         assertEndpointMatches(mockHttpClient.getLastRequest(), expectedEndpoint);

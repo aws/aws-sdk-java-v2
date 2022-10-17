@@ -31,7 +31,7 @@ import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.services.s3.S3Configuration;
-import software.amazon.awssdk.services.s3.internal.presigner.DefaultS3Presigner;
+import software.amazon.awssdk.services.s3.internal.signing.DefaultS3Presigner;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
@@ -61,7 +61,7 @@ import software.amazon.awssdk.services.s3.presigner.model.UploadPartPresignReque
  * requiring access to Alice's credentials.
  * <p/>
  *
- * <b>Signature Duration</b>
+ * <h2>Signature Duration</h2>
  * <p/>
  *
  * Pre-signed requests are only valid for a finite period of time, referred to as the signature duration. This signature
@@ -70,7 +70,7 @@ import software.amazon.awssdk.services.s3.presigner.model.UploadPartPresignReque
  * duration has passed will result in an access denied response from the service.
  * <p/>
  *
- * <b>Example Usage</b>
+ * <h3>Example Usage</h3>
  * <p/>
  *
  * <pre>
@@ -109,7 +109,7 @@ import software.amazon.awssdk.services.s3.presigner.model.UploadPartPresignReque
  * </pre>
  * <p/>
  *
- * <b>Browser Compatibility</b>
+ * <h2>Browser Compatibility</h2>
  * <p/>
  *
  * Some pre-signed requests can be executed by a web browser. These "browser compatible" pre-signed requests
@@ -123,7 +123,24 @@ import software.amazon.awssdk.services.s3.presigner.model.UploadPartPresignReque
  * being browser-compatible.
  * <p />
  *
- * <b>Executing a Pre-Signed Request from Java code</b>
+ * <h3>Configurations that affect browser compatibility</h3>
+ * <h4>Enabling Checking Validation</h4>
+ * If checksum validations are enabled, the presigned URL will no longer be browser compatible because it adds a signed header
+ * that must be included in the HTTP request.
+ *
+ * Checksum validation is disabled in the presigner by default, but when using a custom {@link S3Configuration} when enabling
+ * features like path style access or accelerate mode, it must be explicitly disabled:
+ *
+ * <pre>
+ *         S3Presigner presigner = S3Presigner.builder()
+ *                                            .serviceConfiguration(S3Configuration.builder()
+ *                                                                                 .checksumValidationEnabled(false)
+ *                                                                                 .build())
+ *                                            .build();
+ * </pre>
+ *
+ *
+ * <h2>Executing a Pre-Signed Request from Java code</h2>
  * <p />
  *
  * Browser-compatible requests (see above) can be executed using a web browser. All pre-signed requests can be executed
@@ -282,10 +299,8 @@ public interface S3Presigner extends SdkPresigner {
     /**
      * Presign a {@link PutObjectRequest} so that it can be executed at a later time without requiring additional
      * signing or authentication.
-     * <p/>
-     *
+     * <p>
      * <b>Example Usage</b>
-     * <p/>
      *
      * <pre>
      * {@code
@@ -312,7 +327,7 @@ public interface S3Presigner extends SdkPresigner {
     /**
      * Presign a {@link PutObjectRequest} so that it can be executed at a later time without requiring additional
      * signing or authentication.
-     * <p />
+     * <p>
      * This is a shorter method of invoking {@link #presignPutObject(PutObjectPresignRequest)} without needing
      * to call {@code PutObjectPresignRequest.builder()} or {@code .build()}.
      *
@@ -327,10 +342,8 @@ public interface S3Presigner extends SdkPresigner {
     /**
      * Presign a {@link CreateMultipartUploadRequest} so that it can be executed at a later time without requiring additional
      * signing or authentication.
-     * <p/>
-     *
+     * <p>
      * <b>Example Usage</b>
-     * <p/>
      *
      * <pre>
      * {@code
@@ -357,7 +370,7 @@ public interface S3Presigner extends SdkPresigner {
     /**
      * Presign a {@link CreateMultipartUploadRequest} so that it can be executed at a later time without requiring additional
      * signing or authentication.
-     * <p />
+     * <p>
      * This is a shorter method of invoking {@link #presignCreateMultipartUpload(CreateMultipartUploadPresignRequest)} without
      * needing to call {@code CreateMultipartUploadPresignRequest.builder()} or {@code .build()}.
      *
@@ -373,10 +386,9 @@ public interface S3Presigner extends SdkPresigner {
     /**
      * Presign a {@link UploadPartRequest} so that it can be executed at a later time without requiring additional
      * signing or authentication.
-     * <p/>
+     * <p>
      *
      * <b>Example Usage</b>
-     * <p/>
      *
      * <pre>
      * {@code
@@ -403,7 +415,7 @@ public interface S3Presigner extends SdkPresigner {
     /**
      * Presign a {@link UploadPartRequest} so that it can be executed at a later time without requiring additional
      * signing or authentication.
-     * <p />
+     * <p>
      * This is a shorter method of invoking {@link #presignUploadPart(UploadPartPresignRequest)} without needing
      * to call {@code UploadPartPresignRequest.builder()} or {@code .build()}.
      *
@@ -418,10 +430,9 @@ public interface S3Presigner extends SdkPresigner {
     /**
      * Presign a {@link CompleteMultipartUploadRequest} so that it can be executed at a later time without requiring additional
      * signing or authentication.
-     * <p/>
+     * <p>
      *
      * <b>Example Usage</b>
-     * <p/>
      *
      * <pre>
      * {@code
@@ -448,7 +459,7 @@ public interface S3Presigner extends SdkPresigner {
     /**
      * Presign a {@link CompleteMultipartUploadRequest} so that it can be executed at a later time without requiring additional
      * signing or authentication.
-     * <p />
+     * <p>
      * This is a shorter method of invoking {@link #presignCompleteMultipartUpload(CompleteMultipartUploadPresignRequest)} without
      * needing to call {@code CompleteMultipartUploadPresignRequest.builder()} or {@code .build()}.
      *
@@ -464,10 +475,9 @@ public interface S3Presigner extends SdkPresigner {
     /**
      * Presign a {@link AbortMultipartUploadRequest} so that it can be executed at a later time without requiring additional
      * signing or authentication.
-     * <p/>
+     * <p>
      *
      * <b>Example Usage</b>
-     * <p/>
      *
      * <pre>
      * {@code
@@ -494,7 +504,7 @@ public interface S3Presigner extends SdkPresigner {
     /**
      * Presign a {@link AbortMultipartUploadRequest} so that it can be executed at a later time without requiring additional
      * signing or authentication.
-     * <p />
+     * <p>
      * This is a shorter method of invoking {@link #presignAbortMultipartUpload(AbortMultipartUploadPresignRequest)} without
      * needing to call {@code AbortMultipartUploadPresignRequest.builder()} or {@code .build()}.
      *
@@ -528,6 +538,12 @@ public interface S3Presigner extends SdkPresigner {
 
         @Override
         Builder credentialsProvider(AwsCredentialsProvider credentialsProvider);
+
+        @Override
+        Builder dualstackEnabled(Boolean dualstackEnabled);
+
+        @Override
+        Builder fipsEnabled(Boolean dualstackEnabled);
 
         @Override
         Builder endpointOverride(URI endpointOverride);

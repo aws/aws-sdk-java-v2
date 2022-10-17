@@ -15,17 +15,18 @@
 
 package software.amazon.awssdk.core.internal.http.async;
 
+import static software.amazon.awssdk.core.SdkStandardLogger.logRequestId;
+
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicReference;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.Response;
-import software.amazon.awssdk.core.SdkStandardLogger;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.internal.http.TransformingAsyncResponseHandler;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Detects whether the response succeeded or failed by just checking the HTTP status and delegates to appropriate
@@ -38,7 +39,6 @@ public final class CombinedResponseAsyncHttpResponseHandler<OutputT>
     private final TransformingAsyncResponseHandler<OutputT> successResponseHandler;
     private final TransformingAsyncResponseHandler<? extends SdkException> errorResponseHandler;
     private CompletableFuture<SdkHttpResponse> headersFuture;
-    private final AtomicReference<SdkHttpFullResponse> response = new AtomicReference<>();
 
     public CombinedResponseAsyncHttpResponseHandler(
         TransformingAsyncResponseHandler<OutputT> successResponseHandler,
@@ -50,15 +50,15 @@ public final class CombinedResponseAsyncHttpResponseHandler<OutputT>
 
     @Override
     public void onHeaders(SdkHttpResponse response) {
+        Validate.isTrue(headersFuture != null, "onHeaders() invoked without prepare().");
         headersFuture.complete(response);
+        logRequestId(response);
+
         if (response.isSuccessful()) {
-            SdkStandardLogger.REQUEST_LOGGER.debug(() -> "Received successful response: " + response.statusCode());
             successResponseHandler.onHeaders(response);
         } else {
-            SdkStandardLogger.REQUEST_LOGGER.debug(() -> "Received error response: " + response.statusCode());
             errorResponseHandler.onHeaders(response);
         }
-        this.response.set(toFullResponse(response));
     }
 
     @Override
@@ -72,7 +72,11 @@ public final class CombinedResponseAsyncHttpResponseHandler<OutputT>
 
     @Override
     public void onStream(Publisher<ByteBuffer> publisher) {
-        if (this.response.get().isSuccessful()) {
+        Validate.isTrue(headersFuture != null, "onStream() invoked without prepare().");
+        Validate.isTrue(headersFuture.isDone(), "headersFuture is still not completed when onStream() is "
+                                                + "invoked.");
+        SdkHttpResponse sdkHttpResponse = headersFuture.join();
+        if (sdkHttpResponse.isSuccessful()) {
             successResponseHandler.onStream(publisher);
         } else {
             errorResponseHandler.onStream(publisher);
@@ -81,19 +85,18 @@ public final class CombinedResponseAsyncHttpResponseHandler<OutputT>
 
     @Override
     public CompletableFuture<Response<OutputT>> prepare() {
-        this.response.set(null);
+        headersFuture = new CompletableFuture<>();
         CompletableFuture<OutputT> preparedTransformFuture = successResponseHandler.prepare();
 
         CompletableFuture<? extends SdkException> preparedErrorTransformFuture = errorResponseHandler == null ? null :
             errorResponseHandler.prepare();
 
-        headersFuture = new CompletableFuture<>();
-
         return headersFuture.thenCompose(headers -> {
+            SdkHttpFullResponse sdkHttpFullResponse = toFullResponse(headers);
             if (headers.isSuccessful()) {
                 return preparedTransformFuture.thenApply(
                     r -> Response.<OutputT>builder().response(r)
-                                                    .httpResponse(response.get())
+                                                    .httpResponse(sdkHttpFullResponse)
                                                     .isSuccess(true)
                                                     .build());
             }
@@ -101,12 +104,12 @@ public final class CombinedResponseAsyncHttpResponseHandler<OutputT>
             if (preparedErrorTransformFuture != null) {
                 return preparedErrorTransformFuture.thenApply(
                     e -> Response.<OutputT>builder().exception(e)
-                                                    .httpResponse(response.get())
+                                                    .httpResponse(sdkHttpFullResponse)
                                                     .isSuccess(false)
                                                     .build());
             }
             return CompletableFuture.completedFuture(
-                Response.<OutputT>builder().httpResponse(response.get())
+                Response.<OutputT>builder().httpResponse(sdkHttpFullResponse)
                                            .isSuccess(false)
                                            .build());
         });
@@ -114,8 +117,8 @@ public final class CombinedResponseAsyncHttpResponseHandler<OutputT>
 
     private static SdkHttpFullResponse toFullResponse(SdkHttpResponse response) {
         SdkHttpFullResponse.Builder builder = SdkHttpFullResponse.builder()
-                                                                 .statusCode(response.statusCode())
-                                                                 .headers(response.headers());
+                                                                 .statusCode(response.statusCode());
+        response.forEachHeader(builder::putHeader);
         response.statusText().ifPresent(builder::statusText);
         return builder.build();
     }

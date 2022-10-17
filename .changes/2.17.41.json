@@ -1,0 +1,60 @@
+{
+    "version": "2.17.41",
+    "date": "2021-09-16",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Macie 2",
+            "contributor": "",
+            "description": "This release adds support for specifying which managed data identifiers are used by a classification job, and retrieving a list of managed data identifiers that are available."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Storage Service",
+            "contributor": "",
+            "description": "Add support for access point arn filtering in S3 CW Request Metrics"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Pinpoint",
+            "contributor": "",
+            "description": "This SDK release adds a new feature for Pinpoint campaigns, in-app messaging."
+        },
+        {
+            "type": "feature",
+            "category": "AWS RoboMaker",
+            "contributor": "",
+            "description": "Adding support to create container based Robot and Simulation applications by introducing an environment field"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Transcribe Service",
+            "contributor": "",
+            "description": "This release adds support for subtitling with Amazon Transcribe batch jobs."
+        },
+        {
+            "type": "feature",
+            "category": "Managed Streaming for Kafka Connect",
+            "contributor": "",
+            "description": "This is the initial SDK release for Amazon Managed Streaming for Apache Kafka Connect (MSK Connect)."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Add API for users to retry a failed pipeline execution or resume a stopped one."
+        },
+        {
+            "type": "feature",
+            "category": "DynamoDB Enhanced Client",
+            "contributor": "",
+            "description": "This commit introduces DynamoDbTable#putItemWithResponse() that allows customers to specify additional parameters on the request such as ReturnValues to get additional information the service response."
+        }
+    ]
+}

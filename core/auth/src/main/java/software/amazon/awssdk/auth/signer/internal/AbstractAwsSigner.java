@@ -24,7 +24,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import javax.crypto.Mac;
@@ -33,11 +32,13 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.core.checksums.SdkChecksum;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.io.SdkDigestInputStream;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
@@ -164,12 +165,12 @@ public abstract class AbstractAwsSigner implements Signer {
         return AbstractAwsSigner.doHash(text);
     }
 
-    byte[] hash(InputStream input) throws SdkClientException {
+    byte[] hash(InputStream input, SdkChecksum sdkChecksum) throws SdkClientException {
         try {
             MessageDigest md = getMessageDigestInstance();
             @SuppressWarnings("resource")
             DigestInputStream digestInputStream = new SdkDigestInputStream(
-                    input, md);
+                    input, md, sdkChecksum);
             byte[] buffer = new byte[1024];
             while (digestInputStream.read(buffer) > -1) {
                 ;
@@ -187,13 +188,17 @@ public abstract class AbstractAwsSigner implements Signer {
      * Hashes the binary data using the SHA-256 algorithm.
      *
      * @param data The binary data to hash.
+     * @param sdkChecksum Checksum Instance which gets updated as data is read while hashing.
      * @return The hashed bytes from the specified data.
      * @throws SdkClientException If the hash cannot be computed.
      */
-    byte[] hash(byte[] data) throws SdkClientException {
+    byte[] hash(byte[] data, SdkChecksum sdkChecksum) throws SdkClientException {
         try {
             MessageDigest md = getMessageDigestInstance();
             md.update(data);
+            if (sdkChecksum != null) {
+                sdkChecksum.update(data);
+            }
             return md.digest();
         } catch (Exception e) {
             throw SdkClientException.builder()
@@ -204,6 +209,17 @@ public abstract class AbstractAwsSigner implements Signer {
     }
 
     /**
+     * Hashes the binary data using the SHA-256 algorithm.
+     *
+     * @param data The binary data to hash.
+     * @return The hashed bytes from the specified data.
+     * @throws SdkClientException If the hash cannot be computed.
+     */
+    byte[] hash(byte[] data) throws SdkClientException {
+        return hash(data, null);
+    }
+
+    /**
      * Examines the specified query string parameters and returns a
      * canonicalized form.
      * <p>
@@ -211,10 +227,9 @@ public abstract class AbstractAwsSigner implements Signer {
      * string parameters, then URI encoding both the key and value and then
      * joining them, in order, separating key value pairs with an '&amp;'.
      *
-     * @param parameters The query string parameters to be canonicalized.
      * @return A canonicalized form for the specified query string parameters.
      */
-    protected String getCanonicalizedQueryString(Map<String, List<String>> parameters) {
+    protected void addCanonicalizedQueryString(StringBuilder result, SdkHttpRequest.Builder httpRequest) {
 
         SortedMap<String, List<String>> sorted = new TreeMap<>();
 
@@ -222,11 +237,16 @@ public abstract class AbstractAwsSigner implements Signer {
          * Signing protocol expects the param values also to be sorted after url
          * encoding in addition to sorted parameter names.
          */
-        for (Map.Entry<String, List<String>> entry : parameters.entrySet()) {
-            String encodedParamName = SdkHttpUtils.urlEncode(entry.getKey());
-            List<String> paramValues = entry.getValue();
-            List<String> encodedValues = new ArrayList<>(paramValues.size());
-            for (String value : paramValues) {
+        httpRequest.forEachRawQueryParameter((key, values) -> {
+            if (StringUtils.isEmpty(key)) {
+                // Do not sign empty keys.
+                return;
+            }
+
+            String encodedParamName = SdkHttpUtils.urlEncode(key);
+
+            List<String> encodedValues = new ArrayList<>(values.size());
+            for (String value : values) {
                 String encodedValue = SdkHttpUtils.urlEncode(value);
 
                 // Null values should be treated as empty for the purposes of signing, not missing.
@@ -237,10 +257,9 @@ public abstract class AbstractAwsSigner implements Signer {
             }
             Collections.sort(encodedValues);
             sorted.put(encodedParamName, encodedValues);
+        });
 
-        }
-
-        return SdkHttpUtils.flattenQueryParameters(sorted).orElse("");
+        SdkHttpUtils.flattenQueryParameters(result, sorted);
     }
 
     protected InputStream getBinaryRequestPayloadStream(ContentStreamProvider streamProvider) {
@@ -259,15 +278,15 @@ public abstract class AbstractAwsSigner implements Signer {
         }
     }
 
-    String getCanonicalizedResourcePath(String resourcePath, boolean urlEncode) {
+    protected void addCanonicalizedResourcePath(StringBuilder result, String resourcePath, boolean urlEncode) {
         if (StringUtils.isEmpty(resourcePath)) {
-            return "/";
+            result.append("/");
         } else {
             String value = urlEncode ? SdkHttpUtils.urlEncodeIgnoreSlashes(resourcePath) : resourcePath;
             if (value.startsWith("/")) {
-                return value;
+                result.append(value);
             } else {
-                return "/".concat(value);
+                result.append("/").append(value);
             }
         }
     }

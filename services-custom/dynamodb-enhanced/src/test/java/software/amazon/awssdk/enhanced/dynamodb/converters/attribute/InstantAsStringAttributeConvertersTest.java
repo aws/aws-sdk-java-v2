@@ -21,7 +21,7 @@ import static software.amazon.awssdk.enhanced.dynamodb.converters.attribute.Conv
 import static software.amazon.awssdk.enhanced.dynamodb.converters.attribute.ConverterTestUtils.transformTo;
 
 import java.time.Instant;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.EnhancedAttributeValue;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.InstantAsStringAttributeConverter;
 
@@ -76,12 +76,6 @@ public class InstantAsStringAttributeConvertersTest {
     @Test
     public void InstantAsStringAttributeConverterNotAcceptLocalDateTimeTest() {
         assertFails(() -> transformTo(CONVERTER, EnhancedAttributeValue.fromString("1988-05-21T00:12:00.000000001")
-                                                                       .toAttributeValue()));
-    }
-
-    @Test
-    public void InstantAsStringAttributeConverterNotAcceptOffsetTimeTest() {
-        assertFails(() -> transformTo(CONVERTER, EnhancedAttributeValue.fromString("1988-05-21T00:12:00+01:00")
                                                                        .toAttributeValue()));
     }
 

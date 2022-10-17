@@ -26,9 +26,28 @@
         {"shape":"ResourceAlreadyExistsException"},
         {"shape":"LimitExceededException"},
         {"shape":"ResourceNotFoundException"},
-        {"shape":"ResourceInUseException"}
+        {"shape":"ResourceInUseException"},
+        {"shape":"TooManyTagsException"}
       ],
-      "documentation":"<p>Creates a batch inference job. The operation can handle up to 50 million records and the input file must be in JSON format. For more information, see <a>recommendations-batch</a>.</p>"
+      "documentation":"<p>Creates a batch inference job. The operation can handle up to 50 million records and the input file must be in JSON format. For more information, see <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/creating-batch-inference-job.html\">Creating a batch inference job</a>. </p>"
+    },
+    "CreateBatchSegmentJob":{
+      "name":"CreateBatchSegmentJob",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"CreateBatchSegmentJobRequest"},
+      "output":{"shape":"CreateBatchSegmentJobResponse"},
+      "errors":[
+        {"shape":"InvalidInputException"},
+        {"shape":"ResourceAlreadyExistsException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ResourceInUseException"},
+        {"shape":"TooManyTagsException"}
+      ],
+      "documentation":"<p>Creates a batch segment job. The operation can handle up to 50 million records and the input file must be in JSON format. For more information, see <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/recommendations-batch.html\">Getting batch recommendations and user segments</a>.</p>"
     },
     "CreateCampaign":{
       "name":"CreateCampaign",
@@ -43,9 +62,10 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"ResourceAlreadyExistsException"},
         {"shape":"LimitExceededException"},
-        {"shape":"ResourceInUseException"}
+        {"shape":"ResourceInUseException"},
+        {"shape":"TooManyTagsException"}
       ],
-      "documentation":"<p>Creates a campaign by deploying a solution version. When a client calls the <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_RS_GetRecommendations.html\">GetRecommendations</a> and <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_RS_GetPersonalizedRanking.html\">GetPersonalizedRanking</a> APIs, a campaign is specified in the request.</p> <p> <b>Minimum Provisioned TPS and Auto-Scaling</b> </p> <p>A transaction is a single <code>GetRecommendations</code> or <code>GetPersonalizedRanking</code> call. Transactions per second (TPS) is the throughput and unit of billing for Amazon Personalize. The minimum provisioned TPS (<code>minProvisionedTPS</code>) specifies the baseline throughput provisioned by Amazon Personalize, and thus, the minimum billing charge. </p> <p> If your TPS increases beyond <code>minProvisionedTPS</code>, Amazon Personalize auto-scales the provisioned capacity up and down, but never below <code>minProvisionedTPS</code>. There's a short time delay while the capacity is increased that might cause loss of transactions.</p> <p>The actual TPS used is calculated as the average requests/second within a 5-minute window. You pay for maximum of either the minimum provisioned TPS or the actual TPS. We recommend starting with a low <code>minProvisionedTPS</code>, track your usage using Amazon CloudWatch metrics, and then increase the <code>minProvisionedTPS</code> as necessary.</p> <p> <b>Status</b> </p> <p>A campaign can be in one of the following states:</p> <ul> <li> <p>CREATE PENDING &gt; CREATE IN_PROGRESS &gt; ACTIVE -or- CREATE FAILED</p> </li> <li> <p>DELETE PENDING &gt; DELETE IN_PROGRESS</p> </li> </ul> <p>To get the campaign status, call <a>DescribeCampaign</a>.</p> <note> <p>Wait until the <code>status</code> of the campaign is <code>ACTIVE</code> before asking the campaign for recommendations.</p> </note> <p class=\"title\"> <b>Related APIs</b> </p> <ul> <li> <p> <a>ListCampaigns</a> </p> </li> <li> <p> <a>DescribeCampaign</a> </p> </li> <li> <p> <a>UpdateCampaign</a> </p> </li> <li> <p> <a>DeleteCampaign</a> </p> </li> </ul>",
+      "documentation":"<p>Creates a campaign that deploys a solution version. When a client calls the <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_RS_GetRecommendations.html\">GetRecommendations</a> and <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_RS_GetPersonalizedRanking.html\">GetPersonalizedRanking</a> APIs, a campaign is specified in the request.</p> <p> <b>Minimum Provisioned TPS and Auto-Scaling</b> </p> <p>A transaction is a single <code>GetRecommendations</code> or <code>GetPersonalizedRanking</code> call. Transactions per second (TPS) is the throughput and unit of billing for Amazon Personalize. The minimum provisioned TPS (<code>minProvisionedTPS</code>) specifies the baseline throughput provisioned by Amazon Personalize, and thus, the minimum billing charge. </p> <p> If your TPS increases beyond <code>minProvisionedTPS</code>, Amazon Personalize auto-scales the provisioned capacity up and down, but never below <code>minProvisionedTPS</code>. There's a short time delay while the capacity is increased that might cause loss of transactions.</p> <p>The actual TPS used is calculated as the average requests/second within a 5-minute window. You pay for maximum of either the minimum provisioned TPS or the actual TPS. We recommend starting with a low <code>minProvisionedTPS</code>, track your usage using Amazon CloudWatch metrics, and then increase the <code>minProvisionedTPS</code> as necessary.</p> <p> <b>Status</b> </p> <p>A campaign can be in one of the following states:</p> <ul> <li> <p>CREATE PENDING &gt; CREATE IN_PROGRESS &gt; ACTIVE -or- CREATE FAILED</p> </li> <li> <p>DELETE PENDING &gt; DELETE IN_PROGRESS</p> </li> </ul> <p>To get the campaign status, call <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_DescribeCampaign.html\">DescribeCampaign</a>.</p> <note> <p>Wait until the <code>status</code> of the campaign is <code>ACTIVE</code> before asking the campaign for recommendations.</p> </note> <p class=\"title\"> <b>Related APIs</b> </p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_ListCampaigns.html\">ListCampaigns</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_DescribeCampaign.html\">DescribeCampaign</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_UpdateCampaign.html\">UpdateCampaign</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_DeleteCampaign.html\">DeleteCampaign</a> </p> </li> </ul>",
       "idempotent":true
     },
     "CreateDataset":{
@@ -61,9 +81,29 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"ResourceAlreadyExistsException"},
         {"shape":"LimitExceededException"},
-        {"shape":"ResourceInUseException"}
+        {"shape":"ResourceInUseException"},
+        {"shape":"TooManyTagsException"}
       ],
-      "documentation":"<p>Creates an empty dataset and adds it to the specified dataset group. Use <a>CreateDatasetImportJob</a> to import your training data to a dataset.</p> <p>There are three types of datasets:</p> <ul> <li> <p>Interactions</p> </li> <li> <p>Items</p> </li> <li> <p>Users</p> </li> </ul> <p>Each dataset type has an associated schema with required field types. Only the <code>Interactions</code> dataset is required in order to train a model (also referred to as creating a solution).</p> <p>A dataset can be in one of the following states:</p> <ul> <li> <p>CREATE PENDING &gt; CREATE IN_PROGRESS &gt; ACTIVE -or- CREATE FAILED</p> </li> <li> <p>DELETE PENDING &gt; DELETE IN_PROGRESS</p> </li> </ul> <p>To get the status of the dataset, call <a>DescribeDataset</a>.</p> <p class=\"title\"> <b>Related APIs</b> </p> <ul> <li> <p> <a>CreateDatasetGroup</a> </p> </li> <li> <p> <a>ListDatasets</a> </p> </li> <li> <p> <a>DescribeDataset</a> </p> </li> <li> <p> <a>DeleteDataset</a> </p> </li> </ul>",
+      "documentation":"<p>Creates an empty dataset and adds it to the specified dataset group. Use <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_CreateDatasetImportJob.html\">CreateDatasetImportJob</a> to import your training data to a dataset.</p> <p>There are three types of datasets:</p> <ul> <li> <p>Interactions</p> </li> <li> <p>Items</p> </li> <li> <p>Users</p> </li> </ul> <p>Each dataset type has an associated schema with required field types. Only the <code>Interactions</code> dataset is required in order to train a model (also referred to as creating a solution).</p> <p>A dataset can be in one of the following states:</p> <ul> <li> <p>CREATE PENDING &gt; CREATE IN_PROGRESS &gt; ACTIVE -or- CREATE FAILED</p> </li> <li> <p>DELETE PENDING &gt; DELETE IN_PROGRESS</p> </li> </ul> <p>To get the status of the dataset, call <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_DescribeDataset.html\">DescribeDataset</a>.</p> <p class=\"title\"> <b>Related APIs</b> </p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_CreateDatasetGroup.html\">CreateDatasetGroup</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_ListDatasets.html\">ListDatasets</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_DescribeDataset.html\">DescribeDataset</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_DeleteDataset.html\">DeleteDataset</a> </p> </li> </ul>",
+      "idempotent":true
+    },
+    "CreateDatasetExportJob":{
+      "name":"CreateDatasetExportJob",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"CreateDatasetExportJobRequest"},
+      "output":{"shape":"CreateDatasetExportJobResponse"},
+      "errors":[
+        {"shape":"InvalidInputException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ResourceAlreadyExistsException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"ResourceInUseException"},
+        {"shape":"TooManyTagsException"}
+      ],
+      "documentation":"<p> Creates a job that exports data from your dataset to an Amazon S3 bucket. To allow Amazon Personalize to export the training data, you must specify an service-linked IAM role that gives Amazon Personalize <code>PutObject</code> permissions for your Amazon S3 bucket. For information, see <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/export-data.html\">Exporting a dataset</a> in the Amazon Personalize developer guide. </p> <p> <b>Status</b> </p> <p>A dataset export job can be in one of the following states:</p> <ul> <li> <p>CREATE PENDING &gt; CREATE IN_PROGRESS &gt; ACTIVE -or- CREATE FAILED</p> </li> </ul> <p> To get the status of the export job, call <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_DescribeDatasetExportJob.html\">DescribeDatasetExportJob</a>, and specify the Amazon Resource Name (ARN) of the dataset export job. The dataset export is complete when the status shows as ACTIVE. If the status shows as CREATE FAILED, the response includes a <code>failureReason</code> key, which describes why the job failed. </p>",
       "idempotent":true
     },
     "CreateDatasetGroup":{
@@ -77,9 +117,10 @@
       "errors":[
         {"shape":"InvalidInputException"},
         {"shape":"ResourceAlreadyExistsException"},
-        {"shape":"LimitExceededException"}
+        {"shape":"LimitExceededException"},
+        {"shape":"TooManyTagsException"}
       ],
-      "documentation":"<p>Creates an empty dataset group. A dataset group contains related datasets that supply data for training a model. A dataset group can contain at most three datasets, one for each type of dataset:</p> <ul> <li> <p>Interactions</p> </li> <li> <p>Items</p> </li> <li> <p>Users</p> </li> </ul> <p>To train a model (create a solution), a dataset group that contains an <code>Interactions</code> dataset is required. Call <a>CreateDataset</a> to add a dataset to the group.</p> <p>A dataset group can be in one of the following states:</p> <ul> <li> <p>CREATE PENDING &gt; CREATE IN_PROGRESS &gt; ACTIVE -or- CREATE FAILED</p> </li> <li> <p>DELETE PENDING</p> </li> </ul> <p>To get the status of the dataset group, call <a>DescribeDatasetGroup</a>. If the status shows as CREATE FAILED, the response includes a <code>failureReason</code> key, which describes why the creation failed.</p> <note> <p>You must wait until the <code>status</code> of the dataset group is <code>ACTIVE</code> before adding a dataset to the group.</p> </note> <p>You can specify an AWS Key Management Service (KMS) key to encrypt the datasets in the group. If you specify a KMS key, you must also include an AWS Identity and Access Management (IAM) role that has permission to access the key.</p> <p class=\"title\"> <b>APIs that require a dataset group ARN in the request</b> </p> <ul> <li> <p> <a>CreateDataset</a> </p> </li> <li> <p> <a>CreateEventTracker</a> </p> </li> <li> <p> <a>CreateSolution</a> </p> </li> </ul> <p class=\"title\"> <b>Related APIs</b> </p> <ul> <li> <p> <a>ListDatasetGroups</a> </p> </li> <li> <p> <a>DescribeDatasetGroup</a> </p> </li> <li> <p> <a>DeleteDatasetGroup</a> </p> </li> </ul>"
+      "documentation":"<p>Creates an empty dataset group. A dataset group is a container for Amazon Personalize resources. A dataset group can contain at most three datasets, one for each type of dataset:</p> <ul> <li> <p>Interactions</p> </li> <li> <p>Items</p> </li> <li> <p>Users</p> </li> </ul> <p> A dataset group can be a Domain dataset group, where you specify a domain and use pre-configured resources like recommenders, or a Custom dataset group, where you use custom resources, such as a solution with a solution version, that you deploy with a campaign. If you start with a Domain dataset group, you can still add custom resources such as solutions and solution versions trained with recipes for custom use cases and deployed with campaigns. </p> <p>A dataset group can be in one of the following states:</p> <ul> <li> <p>CREATE PENDING &gt; CREATE IN_PROGRESS &gt; ACTIVE -or- CREATE FAILED</p> </li> <li> <p>DELETE PENDING</p> </li> </ul> <p>To get the status of the dataset group, call <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_DescribeDatasetGroup.html\">DescribeDatasetGroup</a>. If the status shows as CREATE FAILED, the response includes a <code>failureReason</code> key, which describes why the creation failed.</p> <note> <p>You must wait until the <code>status</code> of the dataset group is <code>ACTIVE</code> before adding a dataset to the group.</p> </note> <p>You can specify an Key Management Service (KMS) key to encrypt the datasets in the group. If you specify a KMS key, you must also include an Identity and Access Management (IAM) role that has permission to access the key.</p> <p class=\"title\"> <b>APIs that require a dataset group ARN in the request</b> </p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_CreateDataset.html\">CreateDataset</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_CreateEventTracker.html\">CreateEventTracker</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_CreateSolution.html\">CreateSolution</a> </p> </li> </ul> <p class=\"title\"> <b>Related APIs</b> </p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_ListDatasetGroups.html\">ListDatasetGroups</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_DescribeDatasetGroup.html\">DescribeDatasetGroup</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_DeleteDatasetGroup.html\">DeleteDatasetGroup</a> </p> </li> </ul>"
     },
     "CreateDatasetImportJob":{
       "name":"CreateDatasetImportJob",
@@ -94,9 +135,10 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"ResourceAlreadyExistsException"},
         {"shape":"LimitExceededException"},
-        {"shape":"ResourceInUseException"}
+        {"shape":"ResourceInUseException"},
+        {"shape":"TooManyTagsException"}
       ],
-      "documentation":"<p>Creates a job that imports training data from your data source (an Amazon S3 bucket) to an Amazon Personalize dataset. To allow Amazon Personalize to import the training data, you must specify an AWS Identity and Access Management (IAM) role that has permission to read from the data source, as Amazon Personalize makes a copy of your data and processes it in an internal AWS system.</p> <important> <p>The dataset import job replaces any existing data in the dataset that you imported in bulk.</p> </important> <p> <b>Status</b> </p> <p>A dataset import job can be in one of the following states:</p> <ul> <li> <p>CREATE PENDING &gt; CREATE IN_PROGRESS &gt; ACTIVE -or- CREATE FAILED</p> </li> </ul> <p>To get the status of the import job, call <a>DescribeDatasetImportJob</a>, providing the Amazon Resource Name (ARN) of the dataset import job. The dataset import is complete when the status shows as ACTIVE. If the status shows as CREATE FAILED, the response includes a <code>failureReason</code> key, which describes why the job failed.</p> <note> <p>Importing takes time. You must wait until the status shows as ACTIVE before training a model using the dataset.</p> </note> <p class=\"title\"> <b>Related APIs</b> </p> <ul> <li> <p> <a>ListDatasetImportJobs</a> </p> </li> <li> <p> <a>DescribeDatasetImportJob</a> </p> </li> </ul>"
+      "documentation":"<p>Creates a job that imports training data from your data source (an Amazon S3 bucket) to an Amazon Personalize dataset. To allow Amazon Personalize to import the training data, you must specify an IAM service role that has permission to read from the data source, as Amazon Personalize makes a copy of your data and processes it internally. For information on granting access to your Amazon S3 bucket, see <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/granting-personalize-s3-access.html\">Giving Amazon Personalize Access to Amazon S3 Resources</a>. </p> <important> <p>By default, a dataset import job replaces any existing data in the dataset that you imported in bulk. To add new records without replacing existing data, specify INCREMENTAL for the import mode in the CreateDatasetImportJob operation.</p> </important> <p> <b>Status</b> </p> <p>A dataset import job can be in one of the following states:</p> <ul> <li> <p>CREATE PENDING &gt; CREATE IN_PROGRESS &gt; ACTIVE -or- CREATE FAILED</p> </li> </ul> <p>To get the status of the import job, call <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_DescribeDatasetImportJob.html\">DescribeDatasetImportJob</a>, providing the Amazon Resource Name (ARN) of the dataset import job. The dataset import is complete when the status shows as ACTIVE. If the status shows as CREATE FAILED, the response includes a <code>failureReason</code> key, which describes why the job failed.</p> <note> <p>Importing takes time. You must wait until the status shows as ACTIVE before training a model using the dataset.</p> </note> <p class=\"title\"> <b>Related APIs</b> </p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_ListDatasetImportJobs.html\">ListDatasetImportJobs</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_DescribeDatasetImportJob.html\">DescribeDatasetImportJob</a> </p> </li> </ul>"
     },
     "CreateEventTracker":{
       "name":"CreateEventTracker",
@@ -111,9 +153,10 @@
         {"shape":"ResourceAlreadyExistsException"},
         {"shape":"ResourceNotFoundException"},
         {"shape":"LimitExceededException"},
-        {"shape":"ResourceInUseException"}
+        {"shape":"ResourceInUseException"},
+        {"shape":"TooManyTagsException"}
       ],
-      "documentation":"<p>Creates an event tracker that you use when adding event data to a specified dataset group using the <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_UBS_PutEvents.html\">PutEvents</a> API.</p> <note> <p>Only one event tracker can be associated with a dataset group. You will get an error if you call <code>CreateEventTracker</code> using the same dataset group as an existing event tracker.</p> </note> <p>When you create an event tracker, the response includes a tracking ID, which you pass as a parameter when you use the <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_UBS_PutEvents.html\">PutEvents</a> operation. Amazon Personalize then appends the event data to the Interactions dataset of the dataset group you specify in your event tracker. </p> <p>The event tracker can be in one of the following states:</p> <ul> <li> <p>CREATE PENDING &gt; CREATE IN_PROGRESS &gt; ACTIVE -or- CREATE FAILED</p> </li> <li> <p>DELETE PENDING &gt; DELETE IN_PROGRESS</p> </li> </ul> <p>To get the status of the event tracker, call <a>DescribeEventTracker</a>.</p> <note> <p>The event tracker must be in the ACTIVE state before using the tracking ID.</p> </note> <p class=\"title\"> <b>Related APIs</b> </p> <ul> <li> <p> <a>ListEventTrackers</a> </p> </li> <li> <p> <a>DescribeEventTracker</a> </p> </li> <li> <p> <a>DeleteEventTracker</a> </p> </li> </ul>",
+      "documentation":"<p>Creates an event tracker that you use when adding event data to a specified dataset group using the <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_UBS_PutEvents.html\">PutEvents</a> API.</p> <note> <p>Only one event tracker can be associated with a dataset group. You will get an error if you call <code>CreateEventTracker</code> using the same dataset group as an existing event tracker.</p> </note> <p>When you create an event tracker, the response includes a tracking ID, which you pass as a parameter when you use the <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_UBS_PutEvents.html\">PutEvents</a> operation. Amazon Personalize then appends the event data to the Interactions dataset of the dataset group you specify in your event tracker. </p> <p>The event tracker can be in one of the following states:</p> <ul> <li> <p>CREATE PENDING &gt; CREATE IN_PROGRESS &gt; ACTIVE -or- CREATE FAILED</p> </li> <li> <p>DELETE PENDING &gt; DELETE IN_PROGRESS</p> </li> </ul> <p>To get the status of the event tracker, call <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_DescribeEventTracker.html\">DescribeEventTracker</a>.</p> <note> <p>The event tracker must be in the ACTIVE state before using the tracking ID.</p> </note> <p class=\"title\"> <b>Related APIs</b> </p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_ListEventTrackers.html\">ListEventTrackers</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_DescribeEventTracker.html\">DescribeEventTracker</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_DeleteEventTracker.html\">DeleteEventTracker</a> </p> </li> </ul>",
       "idempotent":true
     },
     "CreateFilter":{
@@ -128,9 +171,29 @@
         {"shape":"InvalidInputException"},
         {"shape":"ResourceAlreadyExistsException"},
         {"shape":"ResourceNotFoundException"},
-        {"shape":"LimitExceededException"}
+        {"shape":"LimitExceededException"},
+        {"shape":"TooManyTagsException"}
       ],
-      "documentation":"<p>Creates a recommendation filter. For more information, see <a>filter</a>.</p>"
+      "documentation":"<p>Creates a recommendation filter. For more information, see <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/filter.html\">Filtering recommendations and user segments</a>.</p>"
+    },
+    "CreateRecommender":{
+      "name":"CreateRecommender",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"CreateRecommenderRequest"},
+      "output":{"shape":"CreateRecommenderResponse"},
+      "errors":[
+        {"shape":"InvalidInputException"},
+        {"shape":"ResourceAlreadyExistsException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"ResourceInUseException"},
+        {"shape":"TooManyTagsException"}
+      ],
+      "documentation":"<p>Creates a recommender with the recipe (a Domain dataset group use case) you specify. You create recommenders for a Domain dataset group and specify the recommender's Amazon Resource Name (ARN) when you make a <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_RS_GetRecommendations.html\">GetRecommendations</a> request. </p> <p> <b>Minimum recommendation requests per second</b> </p> <p>When you create a recommender, you can configure the recommender's minimum recommendation requests per second. The minimum recommendation requests per second (<code>minRecommendationRequestsPerSecond</code>) specifies the baseline recommendation request throughput provisioned by Amazon Personalize. The default minRecommendationRequestsPerSecond is <code>1</code>. A recommendation request is a single <code>GetRecommendations</code> operation. Request throughput is measured in requests per second and Amazon Personalize uses your requests per second to derive your requests per hour and the price of your recommender usage. </p> <p> If your requests per second increases beyond <code>minRecommendationRequestsPerSecond</code>, Amazon Personalize auto-scales the provisioned capacity up and down, but never below <code>minRecommendationRequestsPerSecond</code>. There's a short time delay while the capacity is increased that might cause loss of requests.</p> <p> Your bill is the greater of either the minimum requests per hour (based on minRecommendationRequestsPerSecond) or the actual number of requests. The actual request throughput used is calculated as the average requests/second within a one-hour window. We recommend starting with the default <code>minRecommendationRequestsPerSecond</code>, track your usage using Amazon CloudWatch metrics, and then increase the <code>minRecommendationRequestsPerSecond</code> as necessary. </p> <p> <b>Status</b> </p> <p>A recommender can be in one of the following states:</p> <ul> <li> <p>CREATE PENDING &gt; CREATE IN_PROGRESS &gt; ACTIVE -or- CREATE FAILED</p> </li> <li> <p>STOP PENDING &gt; STOP IN_PROGRESS &gt; INACTIVE &gt; START PENDING &gt; START IN_PROGRESS &gt; ACTIVE</p> </li> <li> <p>DELETE PENDING &gt; DELETE IN_PROGRESS</p> </li> </ul> <p>To get the recommender status, call <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_DescribeRecommender.html\">DescribeRecommender</a>.</p> <note> <p>Wait until the <code>status</code> of the recommender is <code>ACTIVE</code> before asking the recommender for recommendations.</p> </note> <p class=\"title\"> <b>Related APIs</b> </p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_ListRecommenders.html\">ListRecommenders</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_DescribeRecommender.html\">DescribeRecommender</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_UpdateRecommender.html\">UpdateRecommender</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_DeleteRecommender.html\">DeleteRecommender</a> </p> </li> </ul>",
+      "idempotent":true
     },
     "CreateSchema":{
       "name":"CreateSchema",
@@ -145,7 +208,7 @@
         {"shape":"ResourceAlreadyExistsException"},
         {"shape":"LimitExceededException"}
       ],
-      "documentation":"<p>Creates an Amazon Personalize schema from the specified schema string. The schema you create must be in Avro JSON format.</p> <p>Amazon Personalize recognizes three schema variants. Each schema is associated with a dataset type and has a set of required field and keywords. You specify a schema when you call <a>CreateDataset</a>.</p> <p class=\"title\"> <b>Related APIs</b> </p> <ul> <li> <p> <a>ListSchemas</a> </p> </li> <li> <p> <a>DescribeSchema</a> </p> </li> <li> <p> <a>DeleteSchema</a> </p> </li> </ul>",
+      "documentation":"<p>Creates an Amazon Personalize schema from the specified schema string. The schema you create must be in Avro JSON format.</p> <p>Amazon Personalize recognizes three schema variants. Each schema is associated with a dataset type and has a set of required field and keywords. If you are creating a schema for a dataset in a Domain dataset group, you provide the domain of the Domain dataset group. You specify a schema when you call <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_CreateDataset.html\">CreateDataset</a>.</p> <p class=\"title\"> <b>Related APIs</b> </p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_ListSchemas.html\">ListSchemas</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_DescribeSchema.html\">DescribeSchema</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_DeleteSchema.html\">DeleteSchema</a> </p> </li> </ul>",
       "idempotent":true
     },
     "CreateSolution":{
@@ -161,9 +224,10 @@
         {"shape":"ResourceAlreadyExistsException"},
         {"shape":"ResourceNotFoundException"},
         {"shape":"LimitExceededException"},
-        {"shape":"ResourceInUseException"}
+        {"shape":"ResourceInUseException"},
+        {"shape":"TooManyTagsException"}
       ],
-      "documentation":"<p>Creates the configuration for training a model. A trained model is known as a solution. After the configuration is created, you train the model (create a solution) by calling the <a>CreateSolutionVersion</a> operation. Every time you call <code>CreateSolutionVersion</code>, a new version of the solution is created.</p> <p>After creating a solution version, you check its accuracy by calling <a>GetSolutionMetrics</a>. When you are satisfied with the version, you deploy it using <a>CreateCampaign</a>. The campaign provides recommendations to a client through the <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_RS_GetRecommendations.html\">GetRecommendations</a> API.</p> <p>To train a model, Amazon Personalize requires training data and a recipe. The training data comes from the dataset group that you provide in the request. A recipe specifies the training algorithm and a feature transformation. You can specify one of the predefined recipes provided by Amazon Personalize. Alternatively, you can specify <code>performAutoML</code> and Amazon Personalize will analyze your data and select the optimum USER_PERSONALIZATION recipe for you.</p> <note> <p>Amazon Personalize doesn't support configuring the <code>hpoObjective</code> for solution hyperparameter optimization at this time.</p> </note> <p> <b>Status</b> </p> <p>A solution can be in one of the following states:</p> <ul> <li> <p>CREATE PENDING &gt; CREATE IN_PROGRESS &gt; ACTIVE -or- CREATE FAILED</p> </li> <li> <p>DELETE PENDING &gt; DELETE IN_PROGRESS</p> </li> </ul> <p>To get the status of the solution, call <a>DescribeSolution</a>. Wait until the status shows as ACTIVE before calling <code>CreateSolutionVersion</code>.</p> <p class=\"title\"> <b>Related APIs</b> </p> <ul> <li> <p> <a>ListSolutions</a> </p> </li> <li> <p> <a>CreateSolutionVersion</a> </p> </li> <li> <p> <a>DescribeSolution</a> </p> </li> <li> <p> <a>DeleteSolution</a> </p> </li> </ul> <ul> <li> <p> <a>ListSolutionVersions</a> </p> </li> <li> <p> <a>DescribeSolutionVersion</a> </p> </li> </ul>"
+      "documentation":"<p>Creates the configuration for training a model. A trained model is known as a solution. After the configuration is created, you train the model (create a solution) by calling the <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_CreateSolutionVersion.html\">CreateSolutionVersion</a> operation. Every time you call <code>CreateSolutionVersion</code>, a new version of the solution is created.</p> <p>After creating a solution version, you check its accuracy by calling <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_GetSolutionMetrics.html\">GetSolutionMetrics</a>. When you are satisfied with the version, you deploy it using <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_CreateCampaign.html\">CreateCampaign</a>. The campaign provides recommendations to a client through the <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_RS_GetRecommendations.html\">GetRecommendations</a> API.</p> <p>To train a model, Amazon Personalize requires training data and a recipe. The training data comes from the dataset group that you provide in the request. A recipe specifies the training algorithm and a feature transformation. You can specify one of the predefined recipes provided by Amazon Personalize. Alternatively, you can specify <code>performAutoML</code> and Amazon Personalize will analyze your data and select the optimum USER_PERSONALIZATION recipe for you.</p> <note> <p>Amazon Personalize doesn't support configuring the <code>hpoObjective</code> for solution hyperparameter optimization at this time.</p> </note> <p> <b>Status</b> </p> <p>A solution can be in one of the following states:</p> <ul> <li> <p>CREATE PENDING &gt; CREATE IN_PROGRESS &gt; ACTIVE -or- CREATE FAILED</p> </li> <li> <p>DELETE PENDING &gt; DELETE IN_PROGRESS</p> </li> </ul> <p>To get the status of the solution, call <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_DescribeSolution.html\">DescribeSolution</a>. Wait until the status shows as ACTIVE before calling <code>CreateSolutionVersion</code>.</p> <p class=\"title\"> <b>Related APIs</b> </p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_ListSolutions.html\">ListSolutions</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_CreateSolutionVersion.html\">CreateSolutionVersion</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_DescribeSolution.html\">DescribeSolution</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_DeleteSolution.html\">DeleteSolution</a> </p> </li> </ul> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_ListSolutionVersions.html\">ListSolutionVersions</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_DescribeSolutionVersion.html\">DescribeSolutionVersion</a> </p> </li> </ul>"
     },
     "CreateSolutionVersion":{
       "name":"CreateSolutionVersion",
@@ -177,9 +241,10 @@
         {"shape":"InvalidInputException"},
         {"shape":"ResourceNotFoundException"},
         {"shape":"LimitExceededException"},
-        {"shape":"ResourceInUseException"}
+        {"shape":"ResourceInUseException"},
+        {"shape":"TooManyTagsException"}
       ],
-      "documentation":"<p>Trains or retrains an active solution. A solution is created using the <a>CreateSolution</a> operation and must be in the ACTIVE state before calling <code>CreateSolutionVersion</code>. A new version of the solution is created every time you call this operation.</p> <p> <b>Status</b> </p> <p>A solution version can be in one of the following states:</p> <ul> <li> <p>CREATE PENDING &gt; CREATE IN_PROGRESS &gt; ACTIVE -or- CREATE FAILED</p> </li> </ul> <p>To get the status of the version, call <a>DescribeSolutionVersion</a>. Wait until the status shows as ACTIVE before calling <code>CreateCampaign</code>.</p> <p>If the status shows as CREATE FAILED, the response includes a <code>failureReason</code> key, which describes why the job failed.</p> <p class=\"title\"> <b>Related APIs</b> </p> <ul> <li> <p> <a>ListSolutionVersions</a> </p> </li> <li> <p> <a>DescribeSolutionVersion</a> </p> </li> </ul> <ul> <li> <p> <a>ListSolutions</a> </p> </li> <li> <p> <a>CreateSolution</a> </p> </li> <li> <p> <a>DescribeSolution</a> </p> </li> <li> <p> <a>DeleteSolution</a> </p> </li> </ul>"
+      "documentation":"<p>Trains or retrains an active solution in a Custom dataset group. A solution is created using the <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_CreateSolution.html\">CreateSolution</a> operation and must be in the ACTIVE state before calling <code>CreateSolutionVersion</code>. A new version of the solution is created every time you call this operation.</p> <p> <b>Status</b> </p> <p>A solution version can be in one of the following states:</p> <ul> <li> <p>CREATE PENDING</p> </li> <li> <p>CREATE IN_PROGRESS</p> </li> <li> <p>ACTIVE</p> </li> <li> <p>CREATE FAILED</p> </li> <li> <p>CREATE STOPPING</p> </li> <li> <p>CREATE STOPPED</p> </li> </ul> <p>To get the status of the version, call <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_DescribeSolutionVersion.html\">DescribeSolutionVersion</a>. Wait until the status shows as ACTIVE before calling <code>CreateCampaign</code>.</p> <p>If the status shows as CREATE FAILED, the response includes a <code>failureReason</code> key, which describes why the job failed.</p> <p class=\"title\"> <b>Related APIs</b> </p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_ListSolutionVersions.html\">ListSolutionVersions</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_DescribeSolutionVersion.html\">DescribeSolutionVersion</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_ListSolutions.html\">ListSolutions</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_CreateSolution.html\">CreateSolution</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_DescribeSolution.html\">DescribeSolution</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_DeleteSolution.html\">DeleteSolution</a> </p> </li> </ul>"
     },
     "DeleteCampaign":{
       "name":"DeleteCampaign",
@@ -193,7 +258,7 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"ResourceInUseException"}
       ],
-      "documentation":"<p>Removes a campaign by deleting the solution deployment. The solution that the campaign is based on is not deleted and can be redeployed when needed. A deleted campaign can no longer be specified in a <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_RS_GetRecommendations.html\">GetRecommendations</a> request. For more information on campaigns, see <a>CreateCampaign</a>.</p>",
+      "documentation":"<p>Removes a campaign by deleting the solution deployment. The solution that the campaign is based on is not deleted and can be redeployed when needed. A deleted campaign can no longer be specified in a <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_RS_GetRecommendations.html\">GetRecommendations</a> request. For information on creating campaigns, see <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_CreateCampaign.html\">CreateCampaign</a>.</p>",
       "idempotent":true
     },
     "DeleteDataset":{
@@ -208,7 +273,7 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"ResourceInUseException"}
       ],
-      "documentation":"<p>Deletes a dataset. You can't delete a dataset if an associated <code>DatasetImportJob</code> or <code>SolutionVersion</code> is in the CREATE PENDING or IN PROGRESS state. For more information on datasets, see <a>CreateDataset</a>.</p>",
+      "documentation":"<p>Deletes a dataset. You can't delete a dataset if an associated <code>DatasetImportJob</code> or <code>SolutionVersion</code> is in the CREATE PENDING or IN PROGRESS state. For more information on datasets, see <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_CreateDataset.html\">CreateDataset</a>.</p>",
       "idempotent":true
     },
     "DeleteDatasetGroup":{
@@ -238,7 +303,7 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"ResourceInUseException"}
       ],
-      "documentation":"<p>Deletes the event tracker. Does not delete the event-interactions dataset from the associated dataset group. For more information on event trackers, see <a>CreateEventTracker</a>.</p>",
+      "documentation":"<p>Deletes the event tracker. Does not delete the event-interactions dataset from the associated dataset group. For more information on event trackers, see <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_CreateEventTracker.html\">CreateEventTracker</a>.</p>",
       "idempotent":true
     },
     "DeleteFilter":{
@@ -255,6 +320,21 @@
       ],
       "documentation":"<p>Deletes a filter.</p>"
     },
+    "DeleteRecommender":{
+      "name":"DeleteRecommender",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DeleteRecommenderRequest"},
+      "errors":[
+        {"shape":"InvalidInputException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ResourceInUseException"}
+      ],
+      "documentation":"<p>Deactivates and removes a recommender. A deleted recommender can no longer be specified in a <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_RS_GetRecommendations.html\">GetRecommendations</a> request.</p>",
+      "idempotent":true
+    },
     "DeleteSchema":{
       "name":"DeleteSchema",
       "http":{
@@ -267,7 +347,7 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"ResourceInUseException"}
       ],
-      "documentation":"<p>Deletes a schema. Before deleting a schema, you must delete all datasets referencing the schema. For more information on schemas, see <a>CreateSchema</a>.</p>",
+      "documentation":"<p>Deletes a schema. Before deleting a schema, you must delete all datasets referencing the schema. For more information on schemas, see <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_CreateSchema.html\">CreateSchema</a>.</p>",
       "idempotent":true
     },
     "DeleteSolution":{
@@ -282,7 +362,7 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"ResourceInUseException"}
       ],
-      "documentation":"<p>Deletes all versions of a solution and the <code>Solution</code> object itself. Before deleting a solution, you must delete all campaigns based on the solution. To determine what campaigns are using the solution, call <a>ListCampaigns</a> and supply the Amazon Resource Name (ARN) of the solution. You can't delete a solution if an associated <code>SolutionVersion</code> is in the CREATE PENDING or IN PROGRESS state. For more information on solutions, see <a>CreateSolution</a>.</p>",
+      "documentation":"<p>Deletes all versions of a solution and the <code>Solution</code> object itself. Before deleting a solution, you must delete all campaigns based on the solution. To determine what campaigns are using the solution, call <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_ListCampaigns.html\">ListCampaigns</a> and supply the Amazon Resource Name (ARN) of the solution. You can't delete a solution if an associated <code>SolutionVersion</code> is in the CREATE PENDING or IN PROGRESS state. For more information on solutions, see <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_CreateSolution.html\">CreateSolution</a>.</p>",
       "idempotent":true
     },
     "DescribeAlgorithm":{
@@ -315,6 +395,21 @@
       "documentation":"<p>Gets the properties of a batch inference job including name, Amazon Resource Name (ARN), status, input and output configurations, and the ARN of the solution version used to generate the recommendations.</p>",
       "idempotent":true
     },
+    "DescribeBatchSegmentJob":{
+      "name":"DescribeBatchSegmentJob",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DescribeBatchSegmentJobRequest"},
+      "output":{"shape":"DescribeBatchSegmentJobResponse"},
+      "errors":[
+        {"shape":"InvalidInputException"},
+        {"shape":"ResourceNotFoundException"}
+      ],
+      "documentation":"<p>Gets the properties of a batch segment job including name, Amazon Resource Name (ARN), status, input and output configurations, and the ARN of the solution version used to generate segments.</p>",
+      "idempotent":true
+    },
     "DescribeCampaign":{
       "name":"DescribeCampaign",
       "http":{
@@ -327,7 +422,7 @@
         {"shape":"InvalidInputException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Describes the given campaign, including its status.</p> <p>A campaign can be in one of the following states:</p> <ul> <li> <p>CREATE PENDING &gt; CREATE IN_PROGRESS &gt; ACTIVE -or- CREATE FAILED</p> </li> <li> <p>DELETE PENDING &gt; DELETE IN_PROGRESS</p> </li> </ul> <p>When the <code>status</code> is <code>CREATE FAILED</code>, the response includes the <code>failureReason</code> key, which describes why.</p> <p>For more information on campaigns, see <a>CreateCampaign</a>.</p>",
+      "documentation":"<p>Describes the given campaign, including its status.</p> <p>A campaign can be in one of the following states:</p> <ul> <li> <p>CREATE PENDING &gt; CREATE IN_PROGRESS &gt; ACTIVE -or- CREATE FAILED</p> </li> <li> <p>DELETE PENDING &gt; DELETE IN_PROGRESS</p> </li> </ul> <p>When the <code>status</code> is <code>CREATE FAILED</code>, the response includes the <code>failureReason</code> key, which describes why.</p> <p>For more information on campaigns, see <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_CreateCampaign.html\">CreateCampaign</a>.</p>",
       "idempotent":true
     },
     "DescribeDataset":{
@@ -342,7 +437,22 @@
         {"shape":"InvalidInputException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Describes the given dataset. For more information on datasets, see <a>CreateDataset</a>.</p>",
+      "documentation":"<p>Describes the given dataset. For more information on datasets, see <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_CreateDataset.html\">CreateDataset</a>.</p>",
+      "idempotent":true
+    },
+    "DescribeDatasetExportJob":{
+      "name":"DescribeDatasetExportJob",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DescribeDatasetExportJobRequest"},
+      "output":{"shape":"DescribeDatasetExportJobResponse"},
+      "errors":[
+        {"shape":"InvalidInputException"},
+        {"shape":"ResourceNotFoundException"}
+      ],
+      "documentation":"<p>Describes the dataset export job created by <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_CreateDatasetExportJob.html\">CreateDatasetExportJob</a>, including the export job status.</p>",
       "idempotent":true
     },
     "DescribeDatasetGroup":{
@@ -357,7 +467,7 @@
         {"shape":"InvalidInputException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Describes the given dataset group. For more information on dataset groups, see <a>CreateDatasetGroup</a>.</p>",
+      "documentation":"<p>Describes the given dataset group. For more information on dataset groups, see <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_CreateDatasetGroup.html\">CreateDatasetGroup</a>.</p>",
       "idempotent":true
     },
     "DescribeDatasetImportJob":{
@@ -372,7 +482,7 @@
         {"shape":"InvalidInputException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Describes the dataset import job created by <a>CreateDatasetImportJob</a>, including the import job status.</p>",
+      "documentation":"<p>Describes the dataset import job created by <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_CreateDatasetImportJob.html\">CreateDatasetImportJob</a>, including the import job status.</p>",
       "idempotent":true
     },
     "DescribeEventTracker":{
@@ -387,7 +497,7 @@
         {"shape":"InvalidInputException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Describes an event tracker. The response includes the <code>trackingId</code> and <code>status</code> of the event tracker. For more information on event trackers, see <a>CreateEventTracker</a>.</p>",
+      "documentation":"<p>Describes an event tracker. The response includes the <code>trackingId</code> and <code>status</code> of the event tracker. For more information on event trackers, see <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_CreateEventTracker.html\">CreateEventTracker</a>.</p>",
       "idempotent":true
     },
     "DescribeFeatureTransformation":{
@@ -432,7 +542,22 @@
         {"shape":"InvalidInputException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Describes a recipe.</p> <p>A recipe contains three items:</p> <ul> <li> <p>An algorithm that trains a model.</p> </li> <li> <p>Hyperparameters that govern the training.</p> </li> <li> <p>Feature transformation information for modifying the input data before training.</p> </li> </ul> <p>Amazon Personalize provides a set of predefined recipes. You specify a recipe when you create a solution with the <a>CreateSolution</a> API. <code>CreateSolution</code> trains a model by using the algorithm in the specified recipe and a training dataset. The solution, when deployed as a campaign, can provide recommendations using the <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_RS_GetRecommendations.html\">GetRecommendations</a> API.</p>",
+      "documentation":"<p>Describes a recipe.</p> <p>A recipe contains three items:</p> <ul> <li> <p>An algorithm that trains a model.</p> </li> <li> <p>Hyperparameters that govern the training.</p> </li> <li> <p>Feature transformation information for modifying the input data before training.</p> </li> </ul> <p>Amazon Personalize provides a set of predefined recipes. You specify a recipe when you create a solution with the <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_CreateSolution.html\">CreateSolution</a> API. <code>CreateSolution</code> trains a model by using the algorithm in the specified recipe and a training dataset. The solution, when deployed as a campaign, can provide recommendations using the <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_RS_GetRecommendations.html\">GetRecommendations</a> API.</p>",
+      "idempotent":true
+    },
+    "DescribeRecommender":{
+      "name":"DescribeRecommender",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DescribeRecommenderRequest"},
+      "output":{"shape":"DescribeRecommenderResponse"},
+      "errors":[
+        {"shape":"InvalidInputException"},
+        {"shape":"ResourceNotFoundException"}
+      ],
+      "documentation":"<p>Describes the given recommender, including its status.</p> <p>A recommender can be in one of the following states:</p> <ul> <li> <p>CREATE PENDING &gt; CREATE IN_PROGRESS &gt; ACTIVE -or- CREATE FAILED</p> </li> <li> <p>STOP PENDING &gt; STOP IN_PROGRESS &gt; INACTIVE &gt; START PENDING &gt; START IN_PROGRESS &gt; ACTIVE</p> </li> <li> <p>DELETE PENDING &gt; DELETE IN_PROGRESS</p> </li> </ul> <p>When the <code>status</code> is <code>CREATE FAILED</code>, the response includes the <code>failureReason</code> key, which describes why.</p> <p>The <code>modelMetrics</code> key is null when the recommender is being created or deleted.</p> <p>For more information on recommenders, see <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_CreateRecommender.html\">CreateRecommender</a>.</p>",
       "idempotent":true
     },
     "DescribeSchema":{
@@ -447,7 +572,7 @@
         {"shape":"InvalidInputException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Describes a schema. For more information on schemas, see <a>CreateSchema</a>.</p>",
+      "documentation":"<p>Describes a schema. For more information on schemas, see <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_CreateSchema.html\">CreateSchema</a>.</p>",
       "idempotent":true
     },
     "DescribeSolution":{
@@ -462,7 +587,7 @@
         {"shape":"InvalidInputException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Describes a solution. For more information on solutions, see <a>CreateSolution</a>.</p>",
+      "documentation":"<p>Describes a solution. For more information on solutions, see <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_CreateSolution.html\">CreateSolution</a>.</p>",
       "idempotent":true
     },
     "DescribeSolutionVersion":{
@@ -477,7 +602,7 @@
         {"shape":"InvalidInputException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Describes a specific version of a solution. For more information on solutions, see <a>CreateSolution</a>.</p>",
+      "documentation":"<p>Describes a specific version of a solution. For more information on solutions, see <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_CreateSolution.html\">CreateSolution</a> </p>",
       "idempotent":true
     },
     "GetSolutionMetrics":{
@@ -510,6 +635,21 @@
       "documentation":"<p>Gets a list of the batch inference jobs that have been performed off of a solution version.</p>",
       "idempotent":true
     },
+    "ListBatchSegmentJobs":{
+      "name":"ListBatchSegmentJobs",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ListBatchSegmentJobsRequest"},
+      "output":{"shape":"ListBatchSegmentJobsResponse"},
+      "errors":[
+        {"shape":"InvalidInputException"},
+        {"shape":"InvalidNextTokenException"}
+      ],
+      "documentation":"<p>Gets a list of the batch segment jobs that have been performed off of a solution version that you specify.</p>",
+      "idempotent":true
+    },
     "ListCampaigns":{
       "name":"ListCampaigns",
       "http":{
@@ -522,7 +662,22 @@
         {"shape":"InvalidInputException"},
         {"shape":"InvalidNextTokenException"}
       ],
-      "documentation":"<p>Returns a list of campaigns that use the given solution. When a solution is not specified, all the campaigns associated with the account are listed. The response provides the properties for each campaign, including the Amazon Resource Name (ARN). For more information on campaigns, see <a>CreateCampaign</a>.</p>",
+      "documentation":"<p>Returns a list of campaigns that use the given solution. When a solution is not specified, all the campaigns associated with the account are listed. The response provides the properties for each campaign, including the Amazon Resource Name (ARN). For more information on campaigns, see <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_CreateCampaign.html\">CreateCampaign</a>.</p>",
+      "idempotent":true
+    },
+    "ListDatasetExportJobs":{
+      "name":"ListDatasetExportJobs",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ListDatasetExportJobsRequest"},
+      "output":{"shape":"ListDatasetExportJobsResponse"},
+      "errors":[
+        {"shape":"InvalidInputException"},
+        {"shape":"InvalidNextTokenException"}
+      ],
+      "documentation":"<p>Returns a list of dataset export jobs that use the given dataset. When a dataset is not specified, all the dataset export jobs associated with the account are listed. The response provides the properties for each dataset export job, including the Amazon Resource Name (ARN). For more information on dataset export jobs, see <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_CreateDatasetExportJob.html\">CreateDatasetExportJob</a>. For more information on datasets, see <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_CreateDataset.html\">CreateDataset</a>.</p>",
       "idempotent":true
     },
     "ListDatasetGroups":{
@@ -536,7 +691,7 @@
       "errors":[
         {"shape":"InvalidNextTokenException"}
       ],
-      "documentation":"<p>Returns a list of dataset groups. The response provides the properties for each dataset group, including the Amazon Resource Name (ARN). For more information on dataset groups, see <a>CreateDatasetGroup</a>.</p>",
+      "documentation":"<p>Returns a list of dataset groups. The response provides the properties for each dataset group, including the Amazon Resource Name (ARN). For more information on dataset groups, see <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_CreateDatasetGroup.html\">CreateDatasetGroup</a>.</p>",
       "idempotent":true
     },
     "ListDatasetImportJobs":{
@@ -551,7 +706,7 @@
         {"shape":"InvalidInputException"},
         {"shape":"InvalidNextTokenException"}
       ],
-      "documentation":"<p>Returns a list of dataset import jobs that use the given dataset. When a dataset is not specified, all the dataset import jobs associated with the account are listed. The response provides the properties for each dataset import job, including the Amazon Resource Name (ARN). For more information on dataset import jobs, see <a>CreateDatasetImportJob</a>. For more information on datasets, see <a>CreateDataset</a>.</p>",
+      "documentation":"<p>Returns a list of dataset import jobs that use the given dataset. When a dataset is not specified, all the dataset import jobs associated with the account are listed. The response provides the properties for each dataset import job, including the Amazon Resource Name (ARN). For more information on dataset import jobs, see <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_CreateDatasetImportJob.html\">CreateDatasetImportJob</a>. For more information on datasets, see <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_CreateDataset.html\">CreateDataset</a>.</p>",
       "idempotent":true
     },
     "ListDatasets":{
@@ -566,7 +721,7 @@
         {"shape":"InvalidInputException"},
         {"shape":"InvalidNextTokenException"}
       ],
-      "documentation":"<p>Returns the list of datasets contained in the given dataset group. The response provides the properties for each dataset, including the Amazon Resource Name (ARN). For more information on datasets, see <a>CreateDataset</a>.</p>",
+      "documentation":"<p>Returns the list of datasets contained in the given dataset group. The response provides the properties for each dataset, including the Amazon Resource Name (ARN). For more information on datasets, see <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_CreateDataset.html\">CreateDataset</a>.</p>",
       "idempotent":true
     },
     "ListEventTrackers":{
@@ -581,7 +736,7 @@
         {"shape":"InvalidInputException"},
         {"shape":"InvalidNextTokenException"}
       ],
-      "documentation":"<p>Returns the list of event trackers associated with the account. The response provides the properties for each event tracker, including the Amazon Resource Name (ARN) and tracking ID. For more information on event trackers, see <a>CreateEventTracker</a>.</p>",
+      "documentation":"<p>Returns the list of event trackers associated with the account. The response provides the properties for each event tracker, including the Amazon Resource Name (ARN) and tracking ID. For more information on event trackers, see <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_CreateEventTracker.html\">CreateEventTracker</a>.</p>",
       "idempotent":true
     },
     "ListFilters":{
@@ -608,9 +763,25 @@
       "input":{"shape":"ListRecipesRequest"},
       "output":{"shape":"ListRecipesResponse"},
       "errors":[
-        {"shape":"InvalidNextTokenException"}
+        {"shape":"InvalidNextTokenException"},
+        {"shape":"InvalidInputException"}
       ],
       "documentation":"<p>Returns a list of available recipes. The response provides the properties for each recipe, including the recipe's Amazon Resource Name (ARN).</p>",
+      "idempotent":true
+    },
+    "ListRecommenders":{
+      "name":"ListRecommenders",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ListRecommendersRequest"},
+      "output":{"shape":"ListRecommendersResponse"},
+      "errors":[
+        {"shape":"InvalidInputException"},
+        {"shape":"InvalidNextTokenException"}
+      ],
+      "documentation":"<p>Returns a list of recommenders in a given Domain dataset group. When a Domain dataset group is not specified, all the recommenders associated with the account are listed. The response provides the properties for each recommender, including the Amazon Resource Name (ARN). For more information on recommenders, see <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_CreateRecommender.html\">CreateRecommender</a>.</p>",
       "idempotent":true
     },
     "ListSchemas":{
@@ -624,7 +795,7 @@
       "errors":[
         {"shape":"InvalidNextTokenException"}
       ],
-      "documentation":"<p>Returns the list of schemas associated with the account. The response provides the properties for each schema, including the Amazon Resource Name (ARN). For more information on schemas, see <a>CreateSchema</a>.</p>",
+      "documentation":"<p>Returns the list of schemas associated with the account. The response provides the properties for each schema, including the Amazon Resource Name (ARN). For more information on schemas, see <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_CreateSchema.html\">CreateSchema</a>.</p>",
       "idempotent":true
     },
     "ListSolutionVersions":{
@@ -640,7 +811,7 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"InvalidNextTokenException"}
       ],
-      "documentation":"<p>Returns a list of solution versions for the given solution. When a solution is not specified, all the solution versions associated with the account are listed. The response provides the properties for each solution version, including the Amazon Resource Name (ARN). For more information on solutions, see <a>CreateSolution</a>.</p>",
+      "documentation":"<p>Returns a list of solution versions for the given solution. When a solution is not specified, all the solution versions associated with the account are listed. The response provides the properties for each solution version, including the Amazon Resource Name (ARN).</p>",
       "idempotent":true
     },
     "ListSolutions":{
@@ -655,8 +826,103 @@
         {"shape":"InvalidInputException"},
         {"shape":"InvalidNextTokenException"}
       ],
-      "documentation":"<p>Returns a list of solutions that use the given dataset group. When a dataset group is not specified, all the solutions associated with the account are listed. The response provides the properties for each solution, including the Amazon Resource Name (ARN). For more information on solutions, see <a>CreateSolution</a>.</p>",
+      "documentation":"<p>Returns a list of solutions that use the given dataset group. When a dataset group is not specified, all the solutions associated with the account are listed. The response provides the properties for each solution, including the Amazon Resource Name (ARN). For more information on solutions, see <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_CreateSolution.html\">CreateSolution</a>.</p>",
       "idempotent":true
+    },
+    "ListTagsForResource":{
+      "name":"ListTagsForResource",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ListTagsForResourceRequest"},
+      "output":{"shape":"ListTagsForResourceResponse"},
+      "errors":[
+        {"shape":"InvalidInputException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ResourceInUseException"}
+      ],
+      "documentation":"<p>Get a list of <a href=\"https://docs.aws.amazon.com/personalize/latest/dev/tagging-resources.html\">tags</a> attached to a resource.</p>"
+    },
+    "StartRecommender":{
+      "name":"StartRecommender",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"StartRecommenderRequest"},
+      "output":{"shape":"StartRecommenderResponse"},
+      "errors":[
+        {"shape":"InvalidInputException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ResourceInUseException"}
+      ],
+      "documentation":"<p>Starts a recommender that is INACTIVE. Starting a recommender does not create any new models, but resumes billing and automatic retraining for the recommender.</p>",
+      "idempotent":true
+    },
+    "StopRecommender":{
+      "name":"StopRecommender",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"StopRecommenderRequest"},
+      "output":{"shape":"StopRecommenderResponse"},
+      "errors":[
+        {"shape":"InvalidInputException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ResourceInUseException"}
+      ],
+      "documentation":"<p>Stops a recommender that is ACTIVE. Stopping a recommender halts billing and automatic retraining for the recommender.</p>",
+      "idempotent":true
+    },
+    "StopSolutionVersionCreation":{
+      "name":"StopSolutionVersionCreation",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"StopSolutionVersionCreationRequest"},
+      "errors":[
+        {"shape":"InvalidInputException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ResourceInUseException"}
+      ],
+      "documentation":"<p>Stops creating a solution version that is in a state of CREATE_PENDING or CREATE IN_PROGRESS. </p> <p>Depending on the current state of the solution version, the solution version state changes as follows:</p> <ul> <li> <p>CREATE_PENDING &gt; CREATE_STOPPED</p> <p>or</p> </li> <li> <p>CREATE_IN_PROGRESS &gt; CREATE_STOPPING &gt; CREATE_STOPPED</p> </li> </ul> <p>You are billed for all of the training completed up until you stop the solution version creation. You cannot resume creating a solution version once it has been stopped.</p>",
+      "idempotent":true
+    },
+    "TagResource":{
+      "name":"TagResource",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"TagResourceRequest"},
+      "output":{"shape":"TagResourceResponse"},
+      "errors":[
+        {"shape":"InvalidInputException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"TooManyTagsException"},
+        {"shape":"ResourceInUseException"},
+        {"shape":"LimitExceededException"}
+      ],
+      "documentation":"<p>Add a list of tags to a resource.</p>"
+    },
+    "UntagResource":{
+      "name":"UntagResource",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"UntagResourceRequest"},
+      "output":{"shape":"UntagResourceResponse"},
+      "errors":[
+        {"shape":"InvalidInputException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"TooManyTagKeysException"},
+        {"shape":"ResourceInUseException"}
+      ],
+      "documentation":"<p>Remove <a href=\"https://docs.aws.amazon.com/personalize/latest/dev/tagging-resources.html\">tags</a> that are attached to a resource.</p>"
     },
     "UpdateCampaign":{
       "name":"UpdateCampaign",
@@ -671,7 +937,23 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"ResourceInUseException"}
       ],
-      "documentation":"<p>Updates a campaign by either deploying a new solution or changing the value of the campaign's <code>minProvisionedTPS</code> parameter.</p> <p>To update a campaign, the campaign status must be ACTIVE or CREATE FAILED. Check the campaign status using the <a>DescribeCampaign</a> API.</p> <note> <p>You must wait until the <code>status</code> of the updated campaign is <code>ACTIVE</code> before asking the campaign for recommendations.</p> </note> <p>For more information on campaigns, see <a>CreateCampaign</a>.</p>",
+      "documentation":"<p>Updates a campaign by either deploying a new solution or changing the value of the campaign's <code>minProvisionedTPS</code> parameter.</p> <p>To update a campaign, the campaign status must be ACTIVE or CREATE FAILED. Check the campaign status using the <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_DescribeCampaign.html\">DescribeCampaign</a> operation.</p> <note> <p>You can still get recommendations from a campaign while an update is in progress. The campaign will use the previous solution version and campaign configuration to generate recommendations until the latest campaign update status is <code>Active</code>. </p> </note> <p>For more information on campaigns, see <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_CreateCampaign.html\">CreateCampaign</a>.</p>",
+      "idempotent":true
+    },
+    "UpdateRecommender":{
+      "name":"UpdateRecommender",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"UpdateRecommenderRequest"},
+      "output":{"shape":"UpdateRecommenderResponse"},
+      "errors":[
+        {"shape":"InvalidInputException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ResourceInUseException"}
+      ],
+      "documentation":"<p>Updates the recommender to modify the recommender configuration.</p>",
       "idempotent":true
     }
   },
@@ -763,7 +1045,7 @@
           "documentation":"<p>The list of candidate recipes.</p>"
         }
       },
-      "documentation":"<p>When the solution performs AutoML (<code>performAutoML</code> is true in <a>CreateSolution</a>), Amazon Personalize determines which recipe, from the specified list, optimizes the given metric. Amazon Personalize then uses that recipe for the solution.</p>"
+      "documentation":"<p>When the solution performs AutoML (<code>performAutoML</code> is true in <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_CreateSolution.html\">CreateSolution</a>), Amazon Personalize determines which recipe, from the specified list, optimizes the given metric. Amazon Personalize then uses that recipe for the solution.</p>"
     },
     "AutoMLResult":{
       "type":"structure",
@@ -773,7 +1055,7 @@
           "documentation":"<p>The Amazon Resource Name (ARN) of the best recipe.</p>"
         }
       },
-      "documentation":"<p>When the solution performs AutoML (<code>performAutoML</code> is true in <a>CreateSolution</a>), specifies the recipe that best optimized the specified metric.</p>"
+      "documentation":"<p>When the solution performs AutoML (<code>performAutoML</code> is true in <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_CreateSolution.html\">CreateSolution</a>), specifies the recipe that best optimized the specified metric.</p>"
     },
     "AvroSchema":{
       "type":"string",
@@ -842,7 +1124,7 @@
       "members":{
         "itemExplorationConfig":{
           "shape":"HyperParameters",
-          "documentation":"<p>A string to string map specifying the exploration configuration hyperparameters, including <code>explorationWeight</code> and <code>explorationItemAgeCutOff</code>, you want to use to configure the amount of item exploration Amazon Personalize uses when recommending items. See <a>native-recipe-new-item-USER_PERSONALIZATION</a>.</p>"
+          "documentation":"<p>A string to string map specifying the exploration configuration hyperparameters, including <code>explorationWeight</code> and <code>explorationItemAgeCutOff</code>, you want to use to configure the amount of item exploration Amazon Personalize uses when recommending items. See <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/native-recipe-new-item-USER_PERSONALIZATION.html\">User-Personalization</a>.</p>"
         }
       },
       "documentation":"<p>The configuration details of a batch inference job.</p>"
@@ -901,11 +1183,120 @@
           "documentation":"<p>The ARN of the solution version used by the batch inference job.</p>"
         }
       },
-      "documentation":"<p>A truncated version of the <a>BatchInferenceJob</a> datatype. The <a>ListBatchInferenceJobs</a> operation returns a list of batch inference job summaries.</p>"
+      "documentation":"<p>A truncated version of the <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_BatchInferenceJob.html\">BatchInferenceJob</a>. The <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_ListBatchInferenceJobs.html\">ListBatchInferenceJobs</a> operation returns a list of batch inference job summaries.</p>"
     },
     "BatchInferenceJobs":{
       "type":"list",
       "member":{"shape":"BatchInferenceJobSummary"},
+      "max":100
+    },
+    "BatchSegmentJob":{
+      "type":"structure",
+      "members":{
+        "jobName":{
+          "shape":"Name",
+          "documentation":"<p>The name of the batch segment job.</p>"
+        },
+        "batchSegmentJobArn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the batch segment job.</p>"
+        },
+        "filterArn":{
+          "shape":"Arn",
+          "documentation":"<p>The ARN of the filter used on the batch segment job.</p>"
+        },
+        "failureReason":{
+          "shape":"FailureReason",
+          "documentation":"<p>If the batch segment job failed, the reason for the failure.</p>"
+        },
+        "solutionVersionArn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the solution version used by the batch segment job to generate batch segments.</p>"
+        },
+        "numResults":{
+          "shape":"NumBatchResults",
+          "documentation":"<p>The number of predicted users generated by the batch segment job for each line of input data.</p>"
+        },
+        "jobInput":{
+          "shape":"BatchSegmentJobInput",
+          "documentation":"<p>The Amazon S3 path that leads to the input data used to generate the batch segment job.</p>"
+        },
+        "jobOutput":{
+          "shape":"BatchSegmentJobOutput",
+          "documentation":"<p>The Amazon S3 bucket that contains the output data generated by the batch segment job.</p>"
+        },
+        "roleArn":{
+          "shape":"RoleArn",
+          "documentation":"<p>The ARN of the Amazon Identity and Access Management (IAM) role that requested the batch segment job.</p>"
+        },
+        "status":{
+          "shape":"Status",
+          "documentation":"<p>The status of the batch segment job. The status is one of the following values:</p> <ul> <li> <p>PENDING</p> </li> <li> <p>IN PROGRESS</p> </li> <li> <p>ACTIVE</p> </li> <li> <p>CREATE FAILED</p> </li> </ul>"
+        },
+        "creationDateTime":{
+          "shape":"Date",
+          "documentation":"<p>The time at which the batch segment job was created.</p>"
+        },
+        "lastUpdatedDateTime":{
+          "shape":"Date",
+          "documentation":"<p>The time at which the batch segment job last updated.</p>"
+        }
+      },
+      "documentation":"<p>Contains information on a batch segment job.</p>"
+    },
+    "BatchSegmentJobInput":{
+      "type":"structure",
+      "required":["s3DataSource"],
+      "members":{
+        "s3DataSource":{"shape":"S3DataConfig"}
+      },
+      "documentation":"<p>The input configuration of a batch segment job.</p>"
+    },
+    "BatchSegmentJobOutput":{
+      "type":"structure",
+      "required":["s3DataDestination"],
+      "members":{
+        "s3DataDestination":{"shape":"S3DataConfig"}
+      },
+      "documentation":"<p>The output configuration parameters of a batch segment job.</p>"
+    },
+    "BatchSegmentJobSummary":{
+      "type":"structure",
+      "members":{
+        "batchSegmentJobArn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the batch segment job.</p>"
+        },
+        "jobName":{
+          "shape":"Name",
+          "documentation":"<p>The name of the batch segment job.</p>"
+        },
+        "status":{
+          "shape":"Status",
+          "documentation":"<p>The status of the batch segment job. The status is one of the following values:</p> <ul> <li> <p>PENDING</p> </li> <li> <p>IN PROGRESS</p> </li> <li> <p>ACTIVE</p> </li> <li> <p>CREATE FAILED</p> </li> </ul>"
+        },
+        "creationDateTime":{
+          "shape":"Date",
+          "documentation":"<p>The time at which the batch segment job was created.</p>"
+        },
+        "lastUpdatedDateTime":{
+          "shape":"Date",
+          "documentation":"<p>The time at which the batch segment job was last updated.</p>"
+        },
+        "failureReason":{
+          "shape":"FailureReason",
+          "documentation":"<p>If the batch segment job failed, the reason for the failure.</p>"
+        },
+        "solutionVersionArn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the solution version used by the batch segment job to generate batch segments.</p>"
+        }
+      },
+      "documentation":"<p>A truncated version of the <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_BatchSegmentJob.html\">BatchSegmentJob</a> datatype. <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_ListBatchSegmentJobs.html\">ListBatchSegmentJobs</a> operation returns a list of batch segment job summaries.</p>"
+    },
+    "BatchSegmentJobs":{
+      "type":"list",
+      "member":{"shape":"BatchSegmentJobSummary"},
       "max":100
     },
     "Boolean":{"type":"boolean"},
@@ -950,14 +1341,14 @@
         },
         "latestCampaignUpdate":{"shape":"CampaignUpdateSummary"}
       },
-      "documentation":"<p>Describes a deployed solution version, otherwise known as a campaign. For more information on campaigns, see <a>CreateCampaign</a>.</p>"
+      "documentation":"<p>An object that describes the deployment of a solution version. For more information on campaigns, see <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_CreateCampaign.html\">CreateCampaign</a>.</p>"
     },
     "CampaignConfig":{
       "type":"structure",
       "members":{
         "itemExplorationConfig":{
           "shape":"HyperParameters",
-          "documentation":"<p>A string to string map specifying the exploration configuration hyperparameters, including <code>explorationWeight</code> and <code>explorationItemAgeCutOff</code>, you want to use to configure the amount of item exploration Amazon Personalize uses when recommending items. Provide <code>itemExplorationConfig</code> data only if your solution uses the <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/native-recipe-new-item-USER_PERSONALIZATION.html\">User-Personalization</a> recipe.</p>"
+          "documentation":"<p>Specifies the exploration configuration hyperparameters, including <code>explorationWeight</code> and <code>explorationItemAgeCutOff</code>, you want to use to configure the amount of item exploration Amazon Personalize uses when recommending items. Provide <code>itemExplorationConfig</code> data only if your solution uses the <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/native-recipe-new-item-USER_PERSONALIZATION.html\">User-Personalization</a> recipe.</p>"
         }
       },
       "documentation":"<p>The configuration details of a campaign.</p>"
@@ -990,7 +1381,7 @@
           "documentation":"<p>If a campaign fails, the reason behind the failure.</p>"
         }
       },
-      "documentation":"<p>Provides a summary of the properties of a campaign. For a complete listing, call the <a>DescribeCampaign</a> API.</p>"
+      "documentation":"<p>Provides a summary of the properties of a campaign. For a complete listing, call the <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_DescribeCampaign.html\">DescribeCampaign</a> API.</p>"
     },
     "CampaignUpdateSummary":{
       "type":"structure",
@@ -1021,7 +1412,7 @@
           "documentation":"<p>The date and time (in Unix time) that the campaign update was last updated.</p>"
         }
       },
-      "documentation":"<p>Provides a summary of the properties of a campaign update. For a complete listing, call the <a>DescribeCampaign</a> API.</p>"
+      "documentation":"<p>Provides a summary of the properties of a campaign update. For a complete listing, call the <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_DescribeCampaign.html\">DescribeCampaign</a> API.</p>"
     },
     "Campaigns":{
       "type":"list",
@@ -1107,11 +1498,11 @@
         },
         "filterArn":{
           "shape":"Arn",
-          "documentation":"<p>The ARN of the filter to apply to the batch inference job. For more information on using filters, see Using Filters with Amazon Personalize.</p>"
+          "documentation":"<p>The ARN of the filter to apply to the batch inference job. For more information on using filters, see <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/filter-batch.html\">Filtering batch recommendations</a>.</p>"
         },
         "numResults":{
           "shape":"NumBatchResults",
-          "documentation":"<p>The number of recommendations to retreive.</p>"
+          "documentation":"<p>The number of recommendations to retrieve.</p>"
         },
         "jobInput":{
           "shape":"BatchInferenceJobInput",
@@ -1123,11 +1514,15 @@
         },
         "roleArn":{
           "shape":"RoleArn",
-          "documentation":"<p>The ARN of the Amazon Identity and Access Management role that has permissions to read and write to your input and out Amazon S3 buckets respectively.</p>"
+          "documentation":"<p>The ARN of the Amazon Identity and Access Management role that has permissions to read and write to your input and output Amazon S3 buckets respectively.</p>"
         },
         "batchInferenceJobConfig":{
           "shape":"BatchInferenceJobConfig",
           "documentation":"<p>The configuration details of a batch inference job.</p>"
+        },
+        "tags":{
+          "shape":"Tags",
+          "documentation":"<p>A list of <a href=\"https://docs.aws.amazon.com/personalize/latest/dev/tagging-resources.html\">tags</a> to apply to the batch inference job.</p>"
         }
       }
     },
@@ -1140,12 +1535,64 @@
         }
       }
     },
+    "CreateBatchSegmentJobRequest":{
+      "type":"structure",
+      "required":[
+        "jobName",
+        "solutionVersionArn",
+        "jobInput",
+        "jobOutput",
+        "roleArn"
+      ],
+      "members":{
+        "jobName":{
+          "shape":"Name",
+          "documentation":"<p>The name of the batch segment job to create.</p>"
+        },
+        "solutionVersionArn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the solution version you want the batch segment job to use to generate batch segments.</p>"
+        },
+        "filterArn":{
+          "shape":"Arn",
+          "documentation":"<p>The ARN of the filter to apply to the batch segment job. For more information on using filters, see <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/filter-batch.html\">Filtering batch recommendations</a>.</p>"
+        },
+        "numResults":{
+          "shape":"NumBatchResults",
+          "documentation":"<p>The number of predicted users generated by the batch segment job for each line of input data.</p>"
+        },
+        "jobInput":{
+          "shape":"BatchSegmentJobInput",
+          "documentation":"<p>The Amazon S3 path for the input data used to generate the batch segment job.</p>"
+        },
+        "jobOutput":{
+          "shape":"BatchSegmentJobOutput",
+          "documentation":"<p>The Amazon S3 path for the bucket where the job's output will be stored.</p>"
+        },
+        "roleArn":{
+          "shape":"RoleArn",
+          "documentation":"<p>The ARN of the Amazon Identity and Access Management role that has permissions to read and write to your input and output Amazon S3 buckets respectively.</p>"
+        },
+        "tags":{
+          "shape":"Tags",
+          "documentation":"<p>A list of <a href=\"https://docs.aws.amazon.com/personalize/latest/dev/tagging-resources.html\">tags</a> to apply to the batch segment job.</p>"
+        }
+      }
+    },
+    "CreateBatchSegmentJobResponse":{
+      "type":"structure",
+      "members":{
+        "batchSegmentJobArn":{
+          "shape":"Arn",
+          "documentation":"<p>The ARN of the batch segment job.</p>"
+        }
+      }
+    },
     "CreateCampaignRequest":{
       "type":"structure",
       "required":[
         "name",
-        "solutionVersionArn",
-        "minProvisionedTPS"
+        "solutionVersionArn"
       ],
       "members":{
         "name":{
@@ -1163,6 +1610,10 @@
         "campaignConfig":{
           "shape":"CampaignConfig",
           "documentation":"<p>The configuration details of a campaign.</p>"
+        },
+        "tags":{
+          "shape":"Tags",
+          "documentation":"<p>A list of <a href=\"https://docs.aws.amazon.com/personalize/latest/dev/tagging-resources.html\">tags</a> to apply to the campaign.</p>"
         }
       }
     },
@@ -1172,6 +1623,50 @@
         "campaignArn":{
           "shape":"Arn",
           "documentation":"<p>The Amazon Resource Name (ARN) of the campaign.</p>"
+        }
+      }
+    },
+    "CreateDatasetExportJobRequest":{
+      "type":"structure",
+      "required":[
+        "jobName",
+        "datasetArn",
+        "roleArn",
+        "jobOutput"
+      ],
+      "members":{
+        "jobName":{
+          "shape":"Name",
+          "documentation":"<p>The name for the dataset export job.</p>"
+        },
+        "datasetArn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the dataset that contains the data to export.</p>"
+        },
+        "ingestionMode":{
+          "shape":"IngestionMode",
+          "documentation":"<p>The data to export, based on how you imported the data. You can choose to export only <code>BULK</code> data that you imported using a dataset import job, only <code>PUT</code> data that you imported incrementally (using the console, PutEvents, PutUsers and PutItems operations), or <code>ALL</code> for both types. The default value is <code>PUT</code>. </p>"
+        },
+        "roleArn":{
+          "shape":"RoleArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the IAM service role that has permissions to add data to your output Amazon S3 bucket.</p>"
+        },
+        "jobOutput":{
+          "shape":"DatasetExportJobOutput",
+          "documentation":"<p>The path to the Amazon S3 bucket where the job's output is stored.</p>"
+        },
+        "tags":{
+          "shape":"Tags",
+          "documentation":"<p>A list of <a href=\"https://docs.aws.amazon.com/personalize/latest/dev/tagging-resources.html\">tags</a> to apply to the dataset export job.</p>"
+        }
+      }
+    },
+    "CreateDatasetExportJobResponse":{
+      "type":"structure",
+      "members":{
+        "datasetExportJobArn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the dataset export job.</p>"
         }
       }
     },
@@ -1185,11 +1680,19 @@
         },
         "roleArn":{
           "shape":"RoleArn",
-          "documentation":"<p>The ARN of the IAM role that has permissions to access the KMS key. Supplying an IAM role is only valid when also specifying a KMS key.</p>"
+          "documentation":"<p>The ARN of the Identity and Access Management (IAM) role that has permissions to access the Key Management Service (KMS) key. Supplying an IAM role is only valid when also specifying a KMS key.</p>"
         },
         "kmsKeyArn":{
           "shape":"KmsKeyArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of a KMS key used to encrypt the datasets.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of a Key Management Service (KMS) key used to encrypt the datasets.</p>"
+        },
+        "domain":{
+          "shape":"Domain",
+          "documentation":"<p>The domain of the dataset group. Specify a domain to create a Domain dataset group. The domain you specify determines the default schemas for datasets and the use cases available for recommenders. If you don't specify a domain, you create a Custom dataset group with solution versions that you deploy with a campaign. </p>"
+        },
+        "tags":{
+          "shape":"Tags",
+          "documentation":"<p>A list of <a href=\"https://docs.aws.amazon.com/personalize/latest/dev/tagging-resources.html\">tags</a> to apply to the dataset group.</p>"
         }
       }
     },
@@ -1199,6 +1702,10 @@
         "datasetGroupArn":{
           "shape":"Arn",
           "documentation":"<p>The Amazon Resource Name (ARN) of the new dataset group.</p>"
+        },
+        "domain":{
+          "shape":"Domain",
+          "documentation":"<p>The domain for the new Domain dataset group.</p>"
         }
       }
     },
@@ -1226,6 +1733,14 @@
         "roleArn":{
           "shape":"RoleArn",
           "documentation":"<p>The ARN of the IAM role that has permissions to read from the Amazon S3 data source.</p>"
+        },
+        "tags":{
+          "shape":"Tags",
+          "documentation":"<p>A list of <a href=\"https://docs.aws.amazon.com/personalize/latest/dev/tagging-resources.html\">tags</a> to apply to the dataset import job.</p>"
+        },
+        "importMode":{
+          "shape":"ImportMode",
+          "documentation":"<p>Specify how to add the new records to an existing dataset. The default import mode is <code>FULL</code>. If you haven't imported bulk records into the dataset previously, you can only specify <code>FULL</code>.</p> <ul> <li> <p>Specify <code>FULL</code> to overwrite all existing bulk data in your dataset. Data you imported individually is not replaced.</p> </li> <li> <p>Specify <code>INCREMENTAL</code> to append the new records to the existing data in your dataset. Amazon Personalize replaces any record with the same ID with the new one.</p> </li> </ul>"
         }
       }
     },
@@ -1262,6 +1777,10 @@
         "datasetType":{
           "shape":"DatasetType",
           "documentation":"<p>The type of dataset.</p> <p>One of the following (case insensitive) values:</p> <ul> <li> <p>Interactions</p> </li> <li> <p>Items</p> </li> <li> <p>Users</p> </li> </ul>"
+        },
+        "tags":{
+          "shape":"Tags",
+          "documentation":"<p>A list of <a href=\"https://docs.aws.amazon.com/personalize/latest/dev/tagging-resources.html\">tags</a> to apply to the dataset.</p>"
         }
       }
     },
@@ -1288,6 +1807,10 @@
         "datasetGroupArn":{
           "shape":"Arn",
           "documentation":"<p>The Amazon Resource Name (ARN) of the dataset group that receives the event data.</p>"
+        },
+        "tags":{
+          "shape":"Tags",
+          "documentation":"<p>A list of <a href=\"https://docs.aws.amazon.com/personalize/latest/dev/tagging-resources.html\">tags</a> to apply to the event tracker.</p>"
         }
       }
     },
@@ -1322,7 +1845,11 @@
         },
         "filterExpression":{
           "shape":"FilterExpression",
-          "documentation":"<p>The filter expression defines which items are included or excluded from recommendations. Filter expression must follow specific format rules. For information about filter expression structure and syntax, see <a>filter-expressions</a>.</p>"
+          "documentation":"<p>The filter expression defines which items are included or excluded from recommendations. Filter expression must follow specific format rules. For information about filter expression structure and syntax, see <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/filter-expressions.html\">Filter expressions</a>.</p>"
+        },
+        "tags":{
+          "shape":"Tags",
+          "documentation":"<p>A list of <a href=\"https://docs.aws.amazon.com/personalize/latest/dev/tagging-resources.html\">tags</a> to apply to the filter.</p>"
         }
       }
     },
@@ -1332,6 +1859,45 @@
         "filterArn":{
           "shape":"Arn",
           "documentation":"<p>The ARN of the new filter.</p>"
+        }
+      }
+    },
+    "CreateRecommenderRequest":{
+      "type":"structure",
+      "required":[
+        "name",
+        "datasetGroupArn",
+        "recipeArn"
+      ],
+      "members":{
+        "name":{
+          "shape":"Name",
+          "documentation":"<p>The name of the recommender.</p>"
+        },
+        "datasetGroupArn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the destination domain dataset group for the recommender.</p>"
+        },
+        "recipeArn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the recipe that the recommender will use. For a recommender, a recipe is a Domain dataset group use case. Only Domain dataset group use cases can be used to create a recommender. For information about use cases see <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/domain-use-cases.html\">Choosing recommender use cases</a>. </p>"
+        },
+        "recommenderConfig":{
+          "shape":"RecommenderConfig",
+          "documentation":"<p>The configuration details of the recommender.</p>"
+        },
+        "tags":{
+          "shape":"Tags",
+          "documentation":"<p>A list of <a href=\"https://docs.aws.amazon.com/personalize/latest/dev/tagging-resources.html\">tags</a> to apply to the recommender.</p>"
+        }
+      }
+    },
+    "CreateRecommenderResponse":{
+      "type":"structure",
+      "members":{
+        "recommenderArn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the recommender.</p>"
         }
       }
     },
@@ -1349,6 +1915,10 @@
         "schema":{
           "shape":"AvroSchema",
           "documentation":"<p>A schema in Avro JSON format.</p>"
+        },
+        "domain":{
+          "shape":"Domain",
+          "documentation":"<p>The domain for the schema. If you are creating a schema for a dataset in a Domain dataset group, specify the domain you chose when you created the Domain dataset group.</p>"
         }
       }
     },
@@ -1395,6 +1965,10 @@
         "solutionConfig":{
           "shape":"SolutionConfig",
           "documentation":"<p>The configuration to use with the solution. When <code>performAutoML</code> is set to true, Amazon Personalize only evaluates the <code>autoMLConfig</code> section of the solution configuration.</p> <note> <p>Amazon Personalize doesn't support configuring the <code>hpoObjective</code> at this time.</p> </note>"
+        },
+        "tags":{
+          "shape":"Tags",
+          "documentation":"<p>A list of <a href=\"https://docs.aws.amazon.com/personalize/latest/dev/tagging-resources.html\">tags</a> to apply to the solution.</p>"
         }
       }
     },
@@ -1418,6 +1992,10 @@
         "trainingMode":{
           "shape":"TrainingMode",
           "documentation":"<p>The scope of training to be performed when creating the solution version. The <code>FULL</code> option trains the solution version based on the entirety of the input solution's training data, while the <code>UPDATE</code> option processes only the data that has changed in comparison to the input solution. Choose <code>UPDATE</code> when you want to incrementally update your solution version instead of creating an entirely new one.</p> <important> <p>The <code>UPDATE</code> option can only be used when you already have an active solution version created from the input solution using the <code>FULL</code> option and the input solution was trained with the <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/native-recipe-new-item-USER_PERSONALIZATION.html\">User-Personalization</a> recipe or the <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/native-recipe-hrnn-coldstart.html\">HRNN-Coldstart</a> recipe.</p> </important>"
+        },
+        "tags":{
+          "shape":"Tags",
+          "documentation":"<p>A list of <a href=\"https://docs.aws.amazon.com/personalize/latest/dev/tagging-resources.html\">tags</a> to apply to the solution version.</p>"
         }
       }
     },
@@ -1435,7 +2013,7 @@
       "members":{
         "dataLocation":{
           "shape":"S3Location",
-          "documentation":"<p>The path to the Amazon S3 bucket where the data that you want to upload to your dataset is stored. For example: </p> <p> <code>s3://bucket-name/training-data.csv</code> </p>"
+          "documentation":"<p>The path to the Amazon S3 bucket where the data that you want to upload to your dataset is stored. For example: </p> <p> <code>s3://bucket-name/folder-name/</code> </p>"
         }
       },
       "documentation":"<p>Describes the data source that contains the data to upload to a dataset.</p>"
@@ -1478,6 +2056,95 @@
       },
       "documentation":"<p>Provides metadata for a dataset.</p>"
     },
+    "DatasetExportJob":{
+      "type":"structure",
+      "members":{
+        "jobName":{
+          "shape":"Name",
+          "documentation":"<p>The name of the export job.</p>"
+        },
+        "datasetExportJobArn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the dataset export job.</p>"
+        },
+        "datasetArn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the dataset to export.</p>"
+        },
+        "ingestionMode":{
+          "shape":"IngestionMode",
+          "documentation":"<p>The data to export, based on how you imported the data. You can choose to export <code>BULK</code> data that you imported using a dataset import job, <code>PUT</code> data that you imported incrementally (using the console, PutEvents, PutUsers and PutItems operations), or <code>ALL</code> for both types. The default value is <code>PUT</code>. </p>"
+        },
+        "roleArn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the IAM service role that has permissions to add data to your output Amazon S3 bucket.</p>"
+        },
+        "status":{
+          "shape":"Status",
+          "documentation":"<p>The status of the dataset export job.</p> <p>A dataset export job can be in one of the following states:</p> <ul> <li> <p>CREATE PENDING &gt; CREATE IN_PROGRESS &gt; ACTIVE -or- CREATE FAILED</p> </li> </ul>"
+        },
+        "jobOutput":{
+          "shape":"DatasetExportJobOutput",
+          "documentation":"<p>The path to the Amazon S3 bucket where the job's output is stored. For example:</p> <p> <code>s3://bucket-name/folder-name/</code> </p>"
+        },
+        "creationDateTime":{
+          "shape":"Date",
+          "documentation":"<p>The creation date and time (in Unix time) of the dataset export job.</p>"
+        },
+        "lastUpdatedDateTime":{
+          "shape":"Date",
+          "documentation":"<p>The date and time (in Unix time) the status of the dataset export job was last updated.</p>"
+        },
+        "failureReason":{
+          "shape":"FailureReason",
+          "documentation":"<p>If a dataset export job fails, provides the reason why.</p>"
+        }
+      },
+      "documentation":"<p>Describes a job that exports a dataset to an Amazon S3 bucket. For more information, see <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_CreateDatasetExportJob.html\">CreateDatasetExportJob</a>.</p> <p>A dataset export job can be in one of the following states:</p> <ul> <li> <p>CREATE PENDING &gt; CREATE IN_PROGRESS &gt; ACTIVE -or- CREATE FAILED</p> </li> </ul>"
+    },
+    "DatasetExportJobOutput":{
+      "type":"structure",
+      "required":["s3DataDestination"],
+      "members":{
+        "s3DataDestination":{"shape":"S3DataConfig"}
+      },
+      "documentation":"<p>The output configuration parameters of a dataset export job.</p>"
+    },
+    "DatasetExportJobSummary":{
+      "type":"structure",
+      "members":{
+        "datasetExportJobArn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the dataset export job.</p>"
+        },
+        "jobName":{
+          "shape":"Name",
+          "documentation":"<p>The name of the dataset export job.</p>"
+        },
+        "status":{
+          "shape":"Status",
+          "documentation":"<p>The status of the dataset export job.</p> <p>A dataset export job can be in one of the following states:</p> <ul> <li> <p>CREATE PENDING &gt; CREATE IN_PROGRESS &gt; ACTIVE -or- CREATE FAILED</p> </li> </ul>"
+        },
+        "creationDateTime":{
+          "shape":"Date",
+          "documentation":"<p>The date and time (in Unix time) that the dataset export job was created.</p>"
+        },
+        "lastUpdatedDateTime":{
+          "shape":"Date",
+          "documentation":"<p>The date and time (in Unix time) that the dataset export job status was last updated.</p>"
+        },
+        "failureReason":{
+          "shape":"FailureReason",
+          "documentation":"<p>If a dataset export job fails, the reason behind the failure.</p>"
+        }
+      },
+      "documentation":"<p>Provides a summary of the properties of a dataset export job. For a complete listing, call the <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_DescribeDatasetExportJob.html\">DescribeDatasetExportJob</a> API.</p>"
+    },
+    "DatasetExportJobs":{
+      "type":"list",
+      "member":{"shape":"DatasetExportJobSummary"},
+      "max":100
+    },
     "DatasetGroup":{
       "type":"structure",
       "members":{
@@ -1499,7 +2166,7 @@
         },
         "kmsKeyArn":{
           "shape":"KmsKeyArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the KMS key used to encrypt the datasets.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Key Management Service (KMS) key used to encrypt the datasets.</p>"
         },
         "creationDateTime":{
           "shape":"Date",
@@ -1512,9 +2179,13 @@
         "failureReason":{
           "shape":"FailureReason",
           "documentation":"<p>If creating a dataset group fails, provides the reason why.</p>"
+        },
+        "domain":{
+          "shape":"Domain",
+          "documentation":"<p>The domain of a Domain dataset group.</p>"
         }
       },
-      "documentation":"<p>A dataset group is a collection of related datasets (Interactions, User, and Item). You create a dataset group by calling <a>CreateDatasetGroup</a>. You then create a dataset and add it to a dataset group by calling <a>CreateDataset</a>. The dataset group is used to create and train a solution by calling <a>CreateSolution</a>. A dataset group can contain only one of each type of dataset.</p> <p>You can specify an AWS Key Management Service (KMS) key to encrypt the datasets in the group.</p>"
+      "documentation":"<p>A dataset group is a collection of related datasets (Interactions, User, and Item). You create a dataset group by calling <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_CreateDatasetGroup.html\">CreateDatasetGroup</a>. You then create a dataset and add it to a dataset group by calling <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_CreateDataset.html\">CreateDataset</a>. The dataset group is used to create and train a solution by calling <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_CreateSolution.html\">CreateSolution</a>. A dataset group can contain only one of each type of dataset.</p> <p>You can specify an Key Management Service (KMS) key to encrypt the datasets in the group.</p>"
     },
     "DatasetGroupSummary":{
       "type":"structure",
@@ -1542,9 +2213,13 @@
         "failureReason":{
           "shape":"FailureReason",
           "documentation":"<p>If creating a dataset group fails, the reason behind the failure.</p>"
+        },
+        "domain":{
+          "shape":"Domain",
+          "documentation":"<p>The domain of a Domain dataset group.</p>"
         }
       },
-      "documentation":"<p>Provides a summary of the properties of a dataset group. For a complete listing, call the <a>DescribeDatasetGroup</a> API.</p>"
+      "documentation":"<p>Provides a summary of the properties of a dataset group. For a complete listing, call the <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_DescribeDatasetGroup.html\">DescribeDatasetGroup</a> API.</p>"
     },
     "DatasetGroups":{
       "type":"list",
@@ -1572,7 +2247,7 @@
         },
         "roleArn":{
           "shape":"Arn",
-          "documentation":"<p>The ARN of the AWS Identity and Access Management (IAM) role that has permissions to read from the Amazon S3 data source.</p>"
+          "documentation":"<p>The ARN of the IAM role that has permissions to read from the Amazon S3 data source.</p>"
         },
         "status":{
           "shape":"Status",
@@ -1589,9 +2264,13 @@
         "failureReason":{
           "shape":"FailureReason",
           "documentation":"<p>If a dataset import job fails, provides the reason why.</p>"
+        },
+        "importMode":{
+          "shape":"ImportMode",
+          "documentation":"<p>The import mode used by the dataset import job to import new records.</p>"
         }
       },
-      "documentation":"<p>Describes a job that imports training data from a data source (Amazon S3 bucket) to an Amazon Personalize dataset. For more information, see <a>CreateDatasetImportJob</a>.</p> <p>A dataset import job can be in one of the following states:</p> <ul> <li> <p>CREATE PENDING &gt; CREATE IN_PROGRESS &gt; ACTIVE -or- CREATE FAILED</p> </li> </ul>"
+      "documentation":"<p>Describes a job that imports training data from a data source (Amazon S3 bucket) to an Amazon Personalize dataset. For more information, see <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_CreateDatasetImportJob.html\">CreateDatasetImportJob</a>.</p> <p>A dataset import job can be in one of the following states:</p> <ul> <li> <p>CREATE PENDING &gt; CREATE IN_PROGRESS &gt; ACTIVE -or- CREATE FAILED</p> </li> </ul>"
     },
     "DatasetImportJobSummary":{
       "type":"structure",
@@ -1614,14 +2293,18 @@
         },
         "lastUpdatedDateTime":{
           "shape":"Date",
-          "documentation":"<p>The date and time (in Unix time) that the dataset was last updated.</p>"
+          "documentation":"<p>The date and time (in Unix time) that the dataset import job status was last updated.</p>"
         },
         "failureReason":{
           "shape":"FailureReason",
           "documentation":"<p>If a dataset import job fails, the reason behind the failure.</p>"
+        },
+        "importMode":{
+          "shape":"ImportMode",
+          "documentation":"<p>The import mode the dataset import job used to update the data in the dataset. For more information see <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/updating-existing-bulk-data.html\">Updating existing bulk data</a>. </p>"
         }
       },
-      "documentation":"<p>Provides a summary of the properties of a dataset import job. For a complete listing, call the <a>DescribeDatasetImportJob</a> API.</p>"
+      "documentation":"<p>Provides a summary of the properties of a dataset import job. For a complete listing, call the <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_DescribeDatasetImportJob.html\">DescribeDatasetImportJob</a> API.</p>"
     },
     "DatasetImportJobs":{
       "type":"list",
@@ -1650,9 +2333,13 @@
         "lastUpdatedDateTime":{
           "shape":"Date",
           "documentation":"<p>The date and time (in Unix time) that the schema was last updated.</p>"
+        },
+        "domain":{
+          "shape":"Domain",
+          "documentation":"<p>The domain of a schema that you created for a dataset in a Domain dataset group.</p>"
         }
       },
-      "documentation":"<p>Describes the schema for a dataset. For more information on schemas, see <a>CreateSchema</a>.</p>"
+      "documentation":"<p>Describes the schema for a dataset. For more information on schemas, see <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_CreateSchema.html\">CreateSchema</a>.</p>"
     },
     "DatasetSchemaSummary":{
       "type":"structure",
@@ -1672,9 +2359,13 @@
         "lastUpdatedDateTime":{
           "shape":"Date",
           "documentation":"<p>The date and time (in Unix time) that the schema was last updated.</p>"
+        },
+        "domain":{
+          "shape":"Domain",
+          "documentation":"<p>The domain of a schema that you created for a dataset in a Domain dataset group.</p>"
         }
       },
-      "documentation":"<p>Provides a summary of the properties of a dataset schema. For a complete listing, call the <a>DescribeSchema</a> API.</p>"
+      "documentation":"<p>Provides a summary of the properties of a dataset schema. For a complete listing, call the <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_DescribeSchema.html\">DescribeSchema</a> API.</p>"
     },
     "DatasetSummary":{
       "type":"structure",
@@ -1704,7 +2395,7 @@
           "documentation":"<p>The date and time (in Unix time) that the dataset was last updated.</p>"
         }
       },
-      "documentation":"<p>Provides a summary of the properties of a dataset. For a complete listing, call the <a>DescribeDataset</a> API.</p>"
+      "documentation":"<p>Provides a summary of the properties of a dataset. For a complete listing, call the <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_DescribeDataset.html\">DescribeDataset</a> API.</p>"
     },
     "DatasetType":{
       "type":"string",
@@ -1861,6 +2552,16 @@
         }
       }
     },
+    "DeleteRecommenderRequest":{
+      "type":"structure",
+      "required":["recommenderArn"],
+      "members":{
+        "recommenderArn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the recommender to delete.</p>"
+        }
+      }
+    },
     "DeleteSchemaRequest":{
       "type":"structure",
       "required":["schemaArn"],
@@ -1919,6 +2620,25 @@
         }
       }
     },
+    "DescribeBatchSegmentJobRequest":{
+      "type":"structure",
+      "required":["batchSegmentJobArn"],
+      "members":{
+        "batchSegmentJobArn":{
+          "shape":"Arn",
+          "documentation":"<p>The ARN of the batch segment job to describe.</p>"
+        }
+      }
+    },
+    "DescribeBatchSegmentJobResponse":{
+      "type":"structure",
+      "members":{
+        "batchSegmentJob":{
+          "shape":"BatchSegmentJob",
+          "documentation":"<p>Information on the specified batch segment job.</p>"
+        }
+      }
+    },
     "DescribeCampaignRequest":{
       "type":"structure",
       "required":["campaignArn"],
@@ -1935,6 +2655,25 @@
         "campaign":{
           "shape":"Campaign",
           "documentation":"<p>The properties of the campaign.</p>"
+        }
+      }
+    },
+    "DescribeDatasetExportJobRequest":{
+      "type":"structure",
+      "required":["datasetExportJobArn"],
+      "members":{
+        "datasetExportJobArn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the dataset export job to describe.</p>"
+        }
+      }
+    },
+    "DescribeDatasetExportJobResponse":{
+      "type":"structure",
+      "members":{
+        "datasetExportJob":{
+          "shape":"DatasetExportJob",
+          "documentation":"<p>Information about the dataset export job, including the status.</p> <p>The status is one of the following values:</p> <ul> <li> <p>CREATE PENDING</p> </li> <li> <p>CREATE IN_PROGRESS</p> </li> <li> <p>ACTIVE</p> </li> <li> <p>CREATE FAILED</p> </li> </ul>"
         }
       }
     },
@@ -2071,6 +2810,25 @@
         }
       }
     },
+    "DescribeRecommenderRequest":{
+      "type":"structure",
+      "required":["recommenderArn"],
+      "members":{
+        "recommenderArn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the recommender to describe.</p>"
+        }
+      }
+    },
+    "DescribeRecommenderResponse":{
+      "type":"structure",
+      "members":{
+        "recommender":{
+          "shape":"Recommender",
+          "documentation":"<p>The properties of the recommender.</p>"
+        }
+      }
+    },
     "DescribeSchemaRequest":{
       "type":"structure",
       "required":["schemaArn"],
@@ -2133,6 +2891,13 @@
       "type":"string",
       "max":256
     },
+    "Domain":{
+      "type":"string",
+      "enum":[
+        "ECOMMERCE",
+        "VIDEO_ON_DEMAND"
+      ]
+    },
     "ErrorMessage":{"type":"string"},
     "EventTracker":{
       "type":"structure",
@@ -2147,7 +2912,7 @@
         },
         "accountId":{
           "shape":"AccountId",
-          "documentation":"<p>The Amazon AWS account that owns the event tracker.</p>"
+          "documentation":"<p>The Amazon Web Services account that owns the event tracker.</p>"
         },
         "trackingId":{
           "shape":"TrackingId",
@@ -2196,7 +2961,7 @@
           "documentation":"<p>The date and time (in Unix time) that the event tracker was last updated.</p>"
         }
       },
-      "documentation":"<p>Provides a summary of the properties of an event tracker. For a complete listing, call the <a>DescribeEventTracker</a> API.</p>"
+      "documentation":"<p>Provides a summary of the properties of an event tracker. For a complete listing, call the <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_DescribeEventTracker.html\">DescribeEventTracker</a> API.</p>"
     },
     "EventTrackers":{
       "type":"list",
@@ -2283,7 +3048,7 @@
         },
         "filterExpression":{
           "shape":"FilterExpression",
-          "documentation":"<p>Specifies the type of item interactions to filter out of recommendation results. The filter expression must follow specific format rules. For information about filter expression structure and syntax, see <a>filter-expressions</a>.</p>"
+          "documentation":"<p>Specifies the type of item interactions to filter out of recommendation results. The filter expression must follow specific format rules. For information about filter expression structure and syntax, see <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/filter-expressions.html\">Filter expressions</a>.</p>"
         },
         "status":{
           "shape":"Status",
@@ -2356,7 +3121,7 @@
         },
         "metrics":{
           "shape":"Metrics",
-          "documentation":"<p>The metrics for the solution version.</p>"
+          "documentation":"<p>The metrics for the solution version. For more information, see <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/working-with-training-metrics.html\"> Evaluating a solution version with metrics </a>.</p>"
         }
       }
     },
@@ -2442,6 +3207,21 @@
       "value":{"shape":"ParameterValue"},
       "max":100
     },
+    "ImportMode":{
+      "type":"string",
+      "enum":[
+        "FULL",
+        "INCREMENTAL"
+      ]
+    },
+    "IngestionMode":{
+      "type":"string",
+      "enum":[
+        "BULK",
+        "PUT",
+        "ALL"
+      ]
+    },
     "IntegerHyperParameterRange":{
       "type":"structure",
       "members":{
@@ -2489,7 +3269,16 @@
       "documentation":"<p>The token is not valid.</p>",
       "exception":true
     },
-    "KmsKeyArn":{"type":"string"},
+    "ItemAttribute":{
+      "type":"string",
+      "max":150,
+      "min":1
+    },
+    "KmsKeyArn":{
+      "type":"string",
+      "max":2048,
+      "pattern":"arn:aws.*:kms:.*:[0-9]{12}:key/.*"
+    },
     "LimitExceededException":{
       "type":"structure",
       "members":{
@@ -2524,7 +3313,37 @@
         },
         "nextToken":{
           "shape":"NextToken",
-          "documentation":"<p>The token to use to retreive the next page of results. The value is <code>null</code> when there are no more results to return.</p>"
+          "documentation":"<p>The token to use to retrieve the next page of results. The value is <code>null</code> when there are no more results to return.</p>"
+        }
+      }
+    },
+    "ListBatchSegmentJobsRequest":{
+      "type":"structure",
+      "members":{
+        "solutionVersionArn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the solution version that the batch segment jobs used to generate batch segments.</p>"
+        },
+        "nextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>The token to request the next page of results.</p>"
+        },
+        "maxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The maximum number of batch segment job results to return in each page. The default value is 100.</p>"
+        }
+      }
+    },
+    "ListBatchSegmentJobsResponse":{
+      "type":"structure",
+      "members":{
+        "batchSegmentJobs":{
+          "shape":"BatchSegmentJobs",
+          "documentation":"<p>A list containing information on each job that is returned.</p>"
+        },
+        "nextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>The token to use to retrieve the next page of results. The value is <code>null</code> when there are no more results to return.</p>"
         }
       }
     },
@@ -2537,7 +3356,7 @@
         },
         "nextToken":{
           "shape":"NextToken",
-          "documentation":"<p>A token returned from the previous call to <code>ListCampaigns</code> for getting the next set of campaigns (if they exist).</p>"
+          "documentation":"<p>A token returned from the previous call to <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_ListCampaigns.html\">ListCampaigns</a> for getting the next set of campaigns (if they exist).</p>"
         },
         "maxResults":{
           "shape":"MaxResults",
@@ -2555,6 +3374,36 @@
         "nextToken":{
           "shape":"NextToken",
           "documentation":"<p>A token for getting the next set of campaigns (if they exist).</p>"
+        }
+      }
+    },
+    "ListDatasetExportJobsRequest":{
+      "type":"structure",
+      "members":{
+        "datasetArn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the dataset to list the dataset export jobs for.</p>"
+        },
+        "nextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>A token returned from the previous call to <code>ListDatasetExportJobs</code> for getting the next set of dataset export jobs (if they exist).</p>"
+        },
+        "maxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The maximum number of dataset export jobs to return.</p>"
+        }
+      }
+    },
+    "ListDatasetExportJobsResponse":{
+      "type":"structure",
+      "members":{
+        "datasetExportJobs":{
+          "shape":"DatasetExportJobs",
+          "documentation":"<p>The list of dataset export jobs.</p>"
+        },
+        "nextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>A token for getting the next set of dataset export jobs (if they exist).</p>"
         }
       }
     },
@@ -2718,6 +3567,10 @@
         "maxResults":{
           "shape":"MaxResults",
           "documentation":"<p>The maximum number of recipes to return.</p>"
+        },
+        "domain":{
+          "shape":"Domain",
+          "documentation":"<p> Filters returned recipes by domain for a Domain dataset group. Only recipes (Domain dataset group use cases) for this domain are included in the response. If you don't specify a domain, all recipes are returned. </p>"
         }
       }
     },
@@ -2731,6 +3584,36 @@
         "nextToken":{
           "shape":"NextToken",
           "documentation":"<p>A token for getting the next set of recipes.</p>"
+        }
+      }
+    },
+    "ListRecommendersRequest":{
+      "type":"structure",
+      "members":{
+        "datasetGroupArn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Domain dataset group to list the recommenders for. When a Domain dataset group is not specified, all the recommenders associated with the account are listed.</p>"
+        },
+        "nextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>A token returned from the previous call to <code>ListRecommenders</code> for getting the next set of recommenders (if they exist).</p>"
+        },
+        "maxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The maximum number of recommenders to return.</p>"
+        }
+      }
+    },
+    "ListRecommendersResponse":{
+      "type":"structure",
+      "members":{
+        "recommenders":{
+          "shape":"Recommenders",
+          "documentation":"<p>A list of the recommenders.</p>"
+        },
+        "nextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>A token for getting the next set of recommenders (if they exist).</p>"
         }
       }
     },
@@ -2820,6 +3703,25 @@
         }
       }
     },
+    "ListTagsForResourceRequest":{
+      "type":"structure",
+      "required":["resourceArn"],
+      "members":{
+        "resourceArn":{
+          "shape":"Arn",
+          "documentation":"<p>The resource's Amazon Resource Name.</p>"
+        }
+      }
+    },
+    "ListTagsForResourceResponse":{
+      "type":"structure",
+      "members":{
+        "tags":{
+          "shape":"Tags",
+          "documentation":"<p>The resource's tags.</p>"
+        }
+      }
+    },
     "MaxResults":{
       "type":"integer",
       "max":100,
@@ -2848,9 +3750,32 @@
     },
     "NextToken":{
       "type":"string",
-      "max":1300
+      "max":1500
     },
     "NumBatchResults":{"type":"integer"},
+    "ObjectiveSensitivity":{
+      "type":"string",
+      "enum":[
+        "LOW",
+        "MEDIUM",
+        "HIGH",
+        "OFF"
+      ]
+    },
+    "OptimizationObjective":{
+      "type":"structure",
+      "members":{
+        "itemAttribute":{
+          "shape":"ItemAttribute",
+          "documentation":"<p>The numerical metadata column in an Items dataset related to the optimization objective. For example, VIDEO_LENGTH (to maximize streaming minutes), or PRICE (to maximize revenue).</p>"
+        },
+        "objectiveSensitivity":{
+          "shape":"ObjectiveSensitivity",
+          "documentation":"<p>Specifies how Amazon Personalize balances the importance of your optimization objective versus relevance.</p>"
+        }
+      },
+      "documentation":"<p>Describes the additional objective for the solution, such as maximizing streaming minutes or increasing revenue. For more information see <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/optimizing-solution-for-objective.html\">Optimizing a solution</a>.</p>"
+    },
     "ParameterName":{
       "type":"string",
       "max":256
@@ -2901,7 +3826,7 @@
           "documentation":"<p>The date and time (in Unix format) that the recipe was last updated.</p>"
         }
       },
-      "documentation":"<p>Provides information about a recipe. Each recipe provides an algorithm that Amazon Personalize uses in model training when you use the <a>CreateSolution</a> operation. </p>"
+      "documentation":"<p>Provides information about a recipe. Each recipe provides an algorithm that Amazon Personalize uses in model training when you use the <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_CreateSolution.html\">CreateSolution</a> operation. </p>"
     },
     "RecipeProvider":{
       "type":"string",
@@ -2929,9 +3854,13 @@
         "lastUpdatedDateTime":{
           "shape":"Date",
           "documentation":"<p>The date and time (in Unix time) that the recipe was last updated.</p>"
+        },
+        "domain":{
+          "shape":"Domain",
+          "documentation":"<p>The domain of the recipe (if the recipe is a Domain dataset group use case).</p>"
         }
       },
-      "documentation":"<p>Provides a summary of the properties of a recipe. For a complete listing, call the <a>DescribeRecipe</a> API.</p>"
+      "documentation":"<p>Provides a summary of the properties of a recipe. For a complete listing, call the <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_DescribeRecipe.html\">DescribeRecipe</a> API.</p>"
     },
     "RecipeType":{
       "type":"string",
@@ -2940,6 +3869,139 @@
     "Recipes":{
       "type":"list",
       "member":{"shape":"RecipeSummary"},
+      "max":100
+    },
+    "Recommender":{
+      "type":"structure",
+      "members":{
+        "recommenderArn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the recommender.</p>"
+        },
+        "datasetGroupArn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Domain dataset group that contains the recommender.</p>"
+        },
+        "name":{
+          "shape":"Name",
+          "documentation":"<p>The name of the recommender.</p>"
+        },
+        "recipeArn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the recipe (Domain dataset group use case) that the recommender was created for. </p>"
+        },
+        "recommenderConfig":{
+          "shape":"RecommenderConfig",
+          "documentation":"<p>The configuration details of the recommender.</p>"
+        },
+        "creationDateTime":{
+          "shape":"Date",
+          "documentation":"<p>The date and time (in Unix format) that the recommender was created.</p>"
+        },
+        "lastUpdatedDateTime":{
+          "shape":"Date",
+          "documentation":"<p>The date and time (in Unix format) that the recommender was last updated.</p>"
+        },
+        "status":{
+          "shape":"Status",
+          "documentation":"<p>The status of the recommender.</p> <p>A recommender can be in one of the following states:</p> <ul> <li> <p>CREATE PENDING &gt; CREATE IN_PROGRESS &gt; ACTIVE -or- CREATE FAILED</p> </li> <li> <p>STOP PENDING &gt; STOP IN_PROGRESS &gt; INACTIVE &gt; START PENDING &gt; START IN_PROGRESS &gt; ACTIVE</p> </li> <li> <p>DELETE PENDING &gt; DELETE IN_PROGRESS</p> </li> </ul>"
+        },
+        "failureReason":{
+          "shape":"FailureReason",
+          "documentation":"<p>If a recommender fails, the reason behind the failure.</p>"
+        },
+        "latestRecommenderUpdate":{
+          "shape":"RecommenderUpdateSummary",
+          "documentation":"<p>Provides a summary of the latest updates to the recommender. </p>"
+        },
+        "modelMetrics":{
+          "shape":"Metrics",
+          "documentation":"<p>Provides evaluation metrics that help you determine the performance of a recommender. For more information, see <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/evaluating-recommenders.html\"> Evaluating a recommender</a>.</p>"
+        }
+      },
+      "documentation":"<p>Describes a recommendation generator for a Domain dataset group. You create a recommender in a Domain dataset group for a specific domain use case (domain recipe), and specify the recommender in a <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_RS_GetRecommendations.html\">GetRecommendations</a> request.</p>"
+    },
+    "RecommenderConfig":{
+      "type":"structure",
+      "members":{
+        "itemExplorationConfig":{
+          "shape":"HyperParameters",
+          "documentation":"<p>Specifies the exploration configuration hyperparameters, including <code>explorationWeight</code> and <code>explorationItemAgeCutOff</code>, you want to use to configure the amount of item exploration Amazon Personalize uses when recommending items. Provide <code>itemExplorationConfig</code> data only if your recommenders generate personalized recommendations for a user (not popular items or similar items).</p>"
+        },
+        "minRecommendationRequestsPerSecond":{
+          "shape":"TransactionsPerSecond",
+          "documentation":"<p>Specifies the requested minimum provisioned recommendation requests per second that Amazon Personalize will support.</p>"
+        }
+      },
+      "documentation":"<p>The configuration details of the recommender.</p>"
+    },
+    "RecommenderSummary":{
+      "type":"structure",
+      "members":{
+        "name":{
+          "shape":"Name",
+          "documentation":"<p>The name of the recommender.</p>"
+        },
+        "recommenderArn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the recommender.</p>"
+        },
+        "datasetGroupArn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Domain dataset group that contains the recommender.</p>"
+        },
+        "recipeArn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the recipe (Domain dataset group use case) that the recommender was created for.</p>"
+        },
+        "recommenderConfig":{
+          "shape":"RecommenderConfig",
+          "documentation":"<p>The configuration details of the recommender.</p>"
+        },
+        "status":{
+          "shape":"Status",
+          "documentation":"<p>The status of the recommender. A recommender can be in one of the following states:</p> <ul> <li> <p>CREATE PENDING &gt; CREATE IN_PROGRESS &gt; ACTIVE -or- CREATE FAILED</p> </li> <li> <p>STOP PENDING &gt; STOP IN_PROGRESS &gt; INACTIVE &gt; START PENDING &gt; START IN_PROGRESS &gt; ACTIVE</p> </li> <li> <p>DELETE PENDING &gt; DELETE IN_PROGRESS</p> </li> </ul>"
+        },
+        "creationDateTime":{
+          "shape":"Date",
+          "documentation":"<p>The date and time (in Unix format) that the recommender was created.</p>"
+        },
+        "lastUpdatedDateTime":{
+          "shape":"Date",
+          "documentation":"<p>The date and time (in Unix format) that the recommender was last updated.</p>"
+        }
+      },
+      "documentation":"<p>Provides a summary of the properties of the recommender.</p>"
+    },
+    "RecommenderUpdateSummary":{
+      "type":"structure",
+      "members":{
+        "recommenderConfig":{
+          "shape":"RecommenderConfig",
+          "documentation":"<p>The configuration details of the recommender update.</p>"
+        },
+        "creationDateTime":{
+          "shape":"Date",
+          "documentation":"<p>The date and time (in Unix format) that the recommender update was created.</p>"
+        },
+        "lastUpdatedDateTime":{
+          "shape":"Date",
+          "documentation":"<p>The date and time (in Unix time) that the recommender update was last updated.</p>"
+        },
+        "status":{
+          "shape":"Status",
+          "documentation":"<p>The status of the recommender update.</p> <p>A recommender can be in one of the following states:</p> <ul> <li> <p>CREATE PENDING &gt; CREATE IN_PROGRESS &gt; ACTIVE -or- CREATE FAILED</p> </li> <li> <p>STOP PENDING &gt; STOP IN_PROGRESS &gt; INACTIVE &gt; START PENDING &gt; START IN_PROGRESS &gt; ACTIVE</p> </li> <li> <p>DELETE PENDING &gt; DELETE IN_PROGRESS</p> </li> </ul>"
+        },
+        "failureReason":{
+          "shape":"FailureReason",
+          "documentation":"<p>If a recommender update fails, the reason behind the failure.</p>"
+        }
+      },
+      "documentation":"<p>Provides a summary of the properties of a recommender update. For a complete listing, call the <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_DescribeRecommender.html\">DescribeRecommender</a> API.</p>"
+    },
+    "Recommenders":{
+      "type":"list",
+      "member":{"shape":"RecommenderSummary"},
       "max":100
     },
     "ResourceAlreadyExistsException":{
@@ -2987,14 +4049,15 @@
         },
         "kmsKeyArn":{
           "shape":"KmsKeyArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the Amazon Key Management Service (KMS) key that Amazon Personalize uses to encrypt or decrypt the input and output files of a batch inference job.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Key Management Service (KMS) key that Amazon Personalize uses to encrypt or decrypt the input and output files.</p>"
         }
       },
       "documentation":"<p>The configuration details of an Amazon S3 input or output bucket.</p>"
     },
     "S3Location":{
       "type":"string",
-      "max":256
+      "max":256,
+      "pattern":"(s3|http|https)://.+"
     },
     "Schemas":{
       "type":"list",
@@ -3080,7 +4143,11 @@
         },
         "autoMLConfig":{
           "shape":"AutoMLConfig",
-          "documentation":"<p>The <a>AutoMLConfig</a> object containing a list of recipes to search when AutoML is performed.</p>"
+          "documentation":"<p>The <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_AutoMLConfig.html\">AutoMLConfig</a> object containing a list of recipes to search when AutoML is performed.</p>"
+        },
+        "optimizationObjective":{
+          "shape":"OptimizationObjective",
+          "documentation":"<p>Describes the additional objective for the solution, such as maximizing streaming minutes or increasing revenue. For more information see <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/optimizing-solution-for-objective.html\">Optimizing a solution</a>.</p>"
         }
       },
       "documentation":"<p>Describes the configuration properties for the solution.</p>"
@@ -3109,7 +4176,7 @@
           "documentation":"<p>The date and time (in Unix time) that the solution was last updated.</p>"
         }
       },
-      "documentation":"<p>Provides a summary of the properties of a solution. For a complete listing, call the <a>DescribeSolution</a> API.</p>"
+      "documentation":"<p>Provides a summary of the properties of a solution. For a complete listing, call the <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_DescribeSolution.html\">DescribeSolution</a> API.</p>"
     },
     "SolutionVersion":{
       "type":"structure",
@@ -3160,7 +4227,7 @@
         },
         "status":{
           "shape":"Status",
-          "documentation":"<p>The status of the solution version.</p> <p>A solution version can be in one of the following states:</p> <ul> <li> <p>CREATE PENDING</p> </li> <li> <p>CREATE IN_PROGRESS</p> </li> <li> <p>ACTIVE</p> </li> <li> <p>CREATE FAILED</p> </li> </ul>"
+          "documentation":"<p>The status of the solution version.</p> <p>A solution version can be in one of the following states:</p> <ul> <li> <p>CREATE PENDING</p> </li> <li> <p>CREATE IN_PROGRESS</p> </li> <li> <p>ACTIVE</p> </li> <li> <p>CREATE FAILED</p> </li> <li> <p>CREATE STOPPING</p> </li> <li> <p>CREATE STOPPED</p> </li> </ul>"
         },
         "failureReason":{
           "shape":"FailureReason",
@@ -3175,7 +4242,7 @@
           "documentation":"<p>The date and time (in Unix time) that the solution was last updated.</p>"
         }
       },
-      "documentation":"<p>An object that provides information about a specific version of a <a>Solution</a>.</p>"
+      "documentation":"<p>An object that provides information about a specific version of a <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_Solution.html\">Solution</a> in a Custom dataset group.</p>"
     },
     "SolutionVersionSummary":{
       "type":"structure",
@@ -3201,7 +4268,7 @@
           "documentation":"<p>If a solution version fails, the reason behind the failure.</p>"
         }
       },
-      "documentation":"<p>Provides a summary of the properties of a solution version. For a complete listing, call the <a>DescribeSolutionVersion</a> API.</p>"
+      "documentation":"<p>Provides a summary of the properties of a solution version. For a complete listing, call the <a href=\"https://docs.aws.amazon.com/personalize/latest/dg/API_DescribeSolutionVersion.html\">DescribeSolutionVersion</a> API.</p>"
     },
     "SolutionVersions":{
       "type":"list",
@@ -3213,9 +4280,137 @@
       "member":{"shape":"SolutionSummary"},
       "max":100
     },
+    "StartRecommenderRequest":{
+      "type":"structure",
+      "required":["recommenderArn"],
+      "members":{
+        "recommenderArn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the recommender to start.</p>"
+        }
+      }
+    },
+    "StartRecommenderResponse":{
+      "type":"structure",
+      "members":{
+        "recommenderArn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the recommender you started.</p>"
+        }
+      }
+    },
     "Status":{
       "type":"string",
       "max":256
+    },
+    "StopRecommenderRequest":{
+      "type":"structure",
+      "required":["recommenderArn"],
+      "members":{
+        "recommenderArn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the recommender to stop.</p>"
+        }
+      }
+    },
+    "StopRecommenderResponse":{
+      "type":"structure",
+      "members":{
+        "recommenderArn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the recommender you stopped.</p>"
+        }
+      }
+    },
+    "StopSolutionVersionCreationRequest":{
+      "type":"structure",
+      "required":["solutionVersionArn"],
+      "members":{
+        "solutionVersionArn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the solution version you want to stop creating.</p>"
+        }
+      }
+    },
+    "Tag":{
+      "type":"structure",
+      "required":[
+        "tagKey",
+        "tagValue"
+      ],
+      "members":{
+        "tagKey":{
+          "shape":"TagKey",
+          "documentation":"<p>One part of a key-value pair that makes up a tag. A key is a general label that acts like a category for more specific tag values.</p>"
+        },
+        "tagValue":{
+          "shape":"TagValue",
+          "documentation":"<p>The optional part of a key-value pair that makes up a tag. A value acts as a descriptor within a tag category (key).</p>"
+        }
+      },
+      "documentation":"<p>The optional metadata that you apply to resources to help you categorize and organize them. Each tag consists of a key and an optional value, both of which you define. For more information see <a href=\"https://docs.aws.amazon.com/personalize/latest/dev/tagging-resources.html\">Tagging Personalize resources</a>. </p>"
+    },
+    "TagKey":{
+      "type":"string",
+      "max":128,
+      "min":1,
+      "pattern":"^([\\p{L}\\p{Z}\\p{N}_.:/=+\\-@]*)$"
+    },
+    "TagKeys":{
+      "type":"list",
+      "member":{"shape":"TagKey"},
+      "max":200,
+      "min":0
+    },
+    "TagResourceRequest":{
+      "type":"structure",
+      "required":[
+        "resourceArn",
+        "tags"
+      ],
+      "members":{
+        "resourceArn":{
+          "shape":"Arn",
+          "documentation":"<p>The resource's Amazon Resource Name (ARN).</p>"
+        },
+        "tags":{
+          "shape":"Tags",
+          "documentation":"<p>Tags to apply to the resource. For more information see <a href=\"https://docs.aws.amazon.com/personalize/latest/dev/tagging-resources.html\">Tagging Personalize resources</a>.</p>"
+        }
+      }
+    },
+    "TagResourceResponse":{
+      "type":"structure",
+      "members":{
+      }
+    },
+    "TagValue":{
+      "type":"string",
+      "max":256,
+      "min":0,
+      "pattern":"^([\\p{L}\\p{Z}\\p{N}_.:/=+\\-@]*)$"
+    },
+    "Tags":{
+      "type":"list",
+      "member":{"shape":"Tag"},
+      "max":200,
+      "min":0
+    },
+    "TooManyTagKeysException":{
+      "type":"structure",
+      "members":{
+        "message":{"shape":"ErrorMessage"}
+      },
+      "documentation":"<p>The request contains more tag keys than can be associated with a resource (50 tag keys per resource). </p>",
+      "exception":true
+    },
+    "TooManyTagsException":{
+      "type":"structure",
+      "members":{
+        "message":{"shape":"ErrorMessage"}
+      },
+      "documentation":"<p>You have exceeded the maximum number of tags you can apply to this resource. </p>",
+      "exception":true
     },
     "TrackingId":{
       "type":"string",
@@ -3251,6 +4446,28 @@
       },
       "documentation":"<p>If hyperparameter optimization (HPO) was performed, contains the hyperparameter values of the best performing model.</p>"
     },
+    "UntagResourceRequest":{
+      "type":"structure",
+      "required":[
+        "resourceArn",
+        "tagKeys"
+      ],
+      "members":{
+        "resourceArn":{
+          "shape":"Arn",
+          "documentation":"<p>The resource's Amazon Resource Name (ARN).</p>"
+        },
+        "tagKeys":{
+          "shape":"TagKeys",
+          "documentation":"<p>Keys to remove from the resource's tags.</p>"
+        }
+      }
+    },
+    "UntagResourceResponse":{
+      "type":"structure",
+      "members":{
+      }
+    },
     "UpdateCampaignRequest":{
       "type":"structure",
       "required":["campaignArn"],
@@ -3279,6 +4496,32 @@
         "campaignArn":{
           "shape":"Arn",
           "documentation":"<p>The same campaign ARN as given in the request.</p>"
+        }
+      }
+    },
+    "UpdateRecommenderRequest":{
+      "type":"structure",
+      "required":[
+        "recommenderArn",
+        "recommenderConfig"
+      ],
+      "members":{
+        "recommenderArn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the recommender to modify.</p>"
+        },
+        "recommenderConfig":{
+          "shape":"RecommenderConfig",
+          "documentation":"<p>The configuration details of the recommender.</p>"
+        }
+      }
+    },
+    "UpdateRecommenderResponse":{
+      "type":"structure",
+      "members":{
+        "recommenderArn":{
+          "shape":"Arn",
+          "documentation":"<p>The same recommender Amazon Resource Name (ARN) as given in the request.</p>"
         }
       }
     }

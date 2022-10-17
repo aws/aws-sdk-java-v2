@@ -22,6 +22,7 @@ import java.util.Map;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkPojo;
+import software.amazon.awssdk.core.document.Document;
 
 /**
  * Represents the various types supported for marshalling.
@@ -59,6 +60,10 @@ public interface MarshallingType<T> {
     MarshallingType<List<?>> LIST = newType(List.class);
 
     MarshallingType<Map<String, ?>> MAP = newType(Map.class);
+
+    MarshallingType<Short> SHORT = newType(Short.class);
+
+    MarshallingType<Document> DOCUMENT = newType(Document.class);
 
     Class<? super T> getTargetClass();
 

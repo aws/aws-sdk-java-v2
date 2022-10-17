@@ -15,8 +15,10 @@
 
 package software.amazon.awssdk.awscore.client.builder;
 
+import static software.amazon.awssdk.awscore.client.config.AwsClientOption.DEFAULTS_MODE;
+
 import java.net.URI;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
@@ -25,8 +27,16 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.awscore.client.config.AwsAdvancedClientOption;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.awscore.endpoint.DefaultServiceEndpointBuilder;
+import software.amazon.awssdk.awscore.endpoint.DualstackEnabledProvider;
+import software.amazon.awssdk.awscore.endpoint.FipsEnabledProvider;
+import software.amazon.awssdk.awscore.eventstream.EventStreamInitialRequestInterceptor;
 import software.amazon.awssdk.awscore.interceptor.HelpfulUnknownHostExceptionInterceptor;
+import software.amazon.awssdk.awscore.interceptor.TraceIdExecutionInterceptor;
+import software.amazon.awssdk.awscore.internal.defaultsmode.AutoDefaultsModeDiscovery;
+import software.amazon.awssdk.awscore.internal.defaultsmode.DefaultsModeConfiguration;
+import software.amazon.awssdk.awscore.internal.defaultsmode.DefaultsModeResolver;
 import software.amazon.awssdk.awscore.retry.AwsRetryPolicy;
 import software.amazon.awssdk.core.client.builder.SdkDefaultClientBuilder;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
@@ -40,9 +50,13 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.ServiceMetadata;
+import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
+import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Pair;
+import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * An SDK-internal implementation of the methods in {@link AwsClientBuilder}, {@link AwsAsyncClientBuilder} and
@@ -66,16 +80,24 @@ import software.amazon.awssdk.utils.CollectionUtils;
 public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<BuilderT, ClientT>, ClientT>
     extends SdkDefaultClientBuilder<BuilderT, ClientT>
     implements AwsClientBuilder<BuilderT, ClientT> {
+    private static final Logger log = Logger.loggerFor(AwsClientBuilder.class);
     private static final String DEFAULT_ENDPOINT_PROTOCOL = "https";
+    private static final String[] FIPS_SEARCH = {"fips-", "-fips"};
+    private static final String[] FIPS_REPLACE = {"", ""};
+
+    private final AutoDefaultsModeDiscovery autoDefaultsModeDiscovery;
 
     protected AwsDefaultClientBuilder() {
         super();
+        autoDefaultsModeDiscovery = new AutoDefaultsModeDiscovery();
     }
 
     @SdkTestInternalApi
     AwsDefaultClientBuilder(SdkHttpClient.Builder defaultHttpClientBuilder,
-                            SdkAsyncHttpClient.Builder defaultAsyncHttpClientFactory) {
+                            SdkAsyncHttpClient.Builder defaultAsyncHttpClientFactory,
+                            AutoDefaultsModeDiscovery autoDefaultsModeDiscovery) {
         super(defaultHttpClientBuilder, defaultAsyncHttpClientFactory);
+        this.autoDefaultsModeDiscovery = autoDefaultsModeDiscovery;
     }
 
     /**
@@ -103,6 +125,19 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
     }
 
     /**
+     * Return HTTP related defaults with the following chain of priorities.
+     * <ol>
+     * <li>Service-Specific Defaults</li>
+     * <li>Defaults vended by {@link DefaultsMode}</li>
+     * </ol>
+     */
+    @Override
+    protected final AttributeMap childHttpConfig(SdkClientConfiguration configuration) {
+        AttributeMap attributeMap = serviceHttpConfig();
+        return mergeSmartHttpDefaults(configuration, attributeMap);
+    }
+
+    /**
      * Optionally overridden by child classes to define service-specific HTTP configuration defaults.
      */
     protected AttributeMap serviceHttpConfig() {
@@ -112,12 +147,12 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
     @Override
     protected final SdkClientConfiguration mergeChildDefaults(SdkClientConfiguration configuration) {
         SdkClientConfiguration config = mergeServiceDefaults(configuration);
-
-        return config.merge(c -> c.option(AwsAdvancedClientOption.ENABLE_DEFAULT_REGION_DETECTION, true)
-                                  .option(SdkAdvancedClientOption.DISABLE_HOST_PREFIX_INJECTION, false)
-                                  .option(AwsClientOption.SERVICE_SIGNING_NAME, signingName())
-                                  .option(SdkClientOption.SERVICE_NAME, serviceName())
-                                  .option(AwsClientOption.ENDPOINT_PREFIX, serviceEndpointPrefix()));
+        config = config.merge(c -> c.option(AwsAdvancedClientOption.ENABLE_DEFAULT_REGION_DETECTION, true)
+                                    .option(SdkAdvancedClientOption.DISABLE_HOST_PREFIX_INJECTION, false)
+                                    .option(AwsClientOption.SERVICE_SIGNING_NAME, signingName())
+                                    .option(SdkClientOption.SERVICE_NAME, serviceName())
+                                    .option(AwsClientOption.ENDPOINT_PREFIX, serviceEndpointPrefix()));
+        return mergeInternalDefaults(config);
     }
 
     /**
@@ -127,13 +162,32 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
         return configuration;
     }
 
+    /**
+     * Optionally overridden by child classes to define internal default configuration.
+     */
+    protected SdkClientConfiguration mergeInternalDefaults(SdkClientConfiguration configuration) {
+        return configuration;
+    }
+
+    /**
+     * Return a client configuration object, populated with the following chain of priorities.
+     * <ol>
+     *     <li>Defaults vended from {@link DefaultsMode} </li>
+     *     <li>AWS Global Defaults</li>
+     * </ol>
+     */
     @Override
     protected final SdkClientConfiguration finalizeChildConfiguration(SdkClientConfiguration configuration) {
         configuration = finalizeServiceConfiguration(configuration);
 
         configuration = configuration.toBuilder()
                                      .option(AwsClientOption.AWS_REGION, resolveRegion(configuration))
+                                     .option(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED,
+                                             resolveDualstackEndpointEnabled(configuration))
+                                     .option(AwsClientOption.FIPS_ENDPOINT_ENABLED, resolveFipsEndpointEnabled(configuration))
                                      .build();
+
+        configuration = mergeSmartDefaults(configuration);
 
         return configuration.toBuilder()
                             .option(AwsClientOption.CREDENTIALS_PROVIDER, resolveCredentials(configuration))
@@ -144,11 +198,32 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
                             .build();
     }
 
+    private SdkClientConfiguration mergeSmartDefaults(SdkClientConfiguration configuration) {
+        DefaultsMode defaultsMode = resolveDefaultsMode(configuration);
+        AttributeMap defaultConfig = DefaultsModeConfiguration.defaultConfig(defaultsMode);
+        return configuration.toBuilder()
+                            .option(DEFAULTS_MODE, defaultsMode)
+                            .build()
+                            .merge(c -> c.option(SdkClientOption.DEFAULT_RETRY_MODE,
+                                                 defaultConfig.get(SdkClientOption.DEFAULT_RETRY_MODE))
+                                         .option(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT,
+                                                 defaultConfig.get(
+                                                     ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT)));
+    }
+
     /**
      * Optionally overridden by child classes to derive service-specific configuration from the default-applied configuration.
      */
     protected SdkClientConfiguration finalizeServiceConfiguration(SdkClientConfiguration configuration) {
         return configuration;
+    }
+
+    /**
+     * Merged the HTTP defaults specified for each {@link DefaultsMode}
+     */
+    private AttributeMap mergeSmartHttpDefaults(SdkClientConfiguration configuration, AttributeMap attributeMap) {
+        DefaultsMode defaultsMode = configuration.option(DEFAULTS_MODE);
+        return attributeMap.merge(DefaultsModeConfiguration.defaultHttpConfig(defaultsMode));
     }
 
     /**
@@ -170,8 +245,12 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
     private URI endpointFromConfig(SdkClientConfiguration config) {
         return new DefaultServiceEndpointBuilder(serviceEndpointPrefix(), DEFAULT_ENDPOINT_PROTOCOL)
             .withRegion(config.option(AwsClientOption.AWS_REGION))
-            .withProfileFile(config.option(SdkClientOption.PROFILE_FILE))
+            .withProfileFile(() -> config.option(SdkClientOption.PROFILE_FILE))
             .withProfileName(config.option(SdkClientOption.PROFILE_NAME))
+            .putAdvancedOption(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT,
+                               config.option(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT))
+            .withDualstackEnabled(config.option(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED))
+            .withFipsEnabled(config.option(AwsClientOption.FIPS_ENDPOINT_ENABLED))
             .getServiceEndpoint();
     }
 
@@ -202,6 +281,71 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
                                             .getRegion();
     }
 
+    private DefaultsMode resolveDefaultsMode(SdkClientConfiguration config) {
+        DefaultsMode defaultsMode =
+            config.option(AwsClientOption.DEFAULTS_MODE) != null ?
+            config.option(AwsClientOption.DEFAULTS_MODE) :
+            DefaultsModeResolver.create()
+                                .profileFile(() -> config.option(SdkClientOption.PROFILE_FILE))
+                                .profileName(config.option(SdkClientOption.PROFILE_NAME))
+                                .resolve();
+
+        if (defaultsMode == DefaultsMode.AUTO) {
+            defaultsMode = autoDefaultsModeDiscovery.discover(config.option(AwsClientOption.AWS_REGION));
+            DefaultsMode finalDefaultsMode = defaultsMode;
+            log.debug(() -> String.format("Resolved %s client's AUTO configuration mode to %s", serviceName(),
+                      finalDefaultsMode));
+        }
+
+        return defaultsMode;
+    }
+
+    /**
+     * Resolve whether a dualstack endpoint should be used for this client.
+     */
+    private Boolean resolveDualstackEndpointEnabled(SdkClientConfiguration config) {
+        return config.option(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED) != null
+               ? config.option(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED)
+               : resolveUseDualstackFromDefaultProvider(config);
+    }
+
+    /**
+     * Load the dualstack endpoint setting from the default provider logic.
+     */
+    private Boolean resolveUseDualstackFromDefaultProvider(SdkClientConfiguration config) {
+        ProfileFile profileFile = config.option(SdkClientOption.PROFILE_FILE);
+        String profileName = config.option(SdkClientOption.PROFILE_NAME);
+        return DualstackEnabledProvider.builder()
+                                       .profileFile(() -> profileFile)
+                                       .profileName(profileName)
+                                       .build()
+                                       .isDualstackEnabled()
+                                       .orElse(null);
+    }
+
+    /**
+     * Resolve whether a dualstack endpoint should be used for this client.
+     */
+    private Boolean resolveFipsEndpointEnabled(SdkClientConfiguration config) {
+        return config.option(AwsClientOption.FIPS_ENDPOINT_ENABLED) != null
+               ? config.option(AwsClientOption.FIPS_ENDPOINT_ENABLED)
+               : resolveUseFipsFromDefaultProvider(config);
+    }
+
+    /**
+     * Load the dualstack endpoint setting from the default provider logic.
+     */
+    private Boolean resolveUseFipsFromDefaultProvider(SdkClientConfiguration config) {
+        ProfileFile profileFile = config.option(SdkClientOption.PROFILE_FILE);
+        String profileName = config.option(SdkClientOption.PROFILE_NAME);
+        return FipsEnabledProvider.builder()
+                                  .profileFile(() -> profileFile)
+                                  .profileName(profileName)
+                                  .build()
+                                  .isFipsEnabled()
+                                  .orElse(null);
+    }
+
     /**
      * Resolve the credentials that should be used based on the customer's configuration.
      */
@@ -228,18 +372,49 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
         RetryMode retryMode = RetryMode.resolver()
                                        .profileFile(() -> config.option(SdkClientOption.PROFILE_FILE))
                                        .profileName(config.option(SdkClientOption.PROFILE_NAME))
+                                       .defaultRetryMode(config.option(SdkClientOption.DEFAULT_RETRY_MODE))
                                        .resolve();
         return AwsRetryPolicy.forRetryMode(retryMode);
     }
 
     @Override
     public final BuilderT region(Region region) {
-        clientConfiguration.option(AwsClientOption.AWS_REGION, region);
+        Region regionToSet = region;
+        Boolean fipsEnabled = null;
+
+        if (region != null) {
+            Pair<Region, Optional<Boolean>> transformedRegion = transformFipsPseudoRegionIfNecessary(region);
+            regionToSet = transformedRegion.left();
+            fipsEnabled = transformedRegion.right().orElse(null);
+        }
+
+        clientConfiguration.option(AwsClientOption.AWS_REGION, regionToSet);
+        clientConfiguration.option(AwsClientOption.FIPS_ENDPOINT_ENABLED, fipsEnabled);
         return thisBuilder();
     }
 
     public final void setRegion(Region region) {
         region(region);
+    }
+
+    @Override
+    public BuilderT dualstackEnabled(Boolean dualstackEndpointEnabled) {
+        clientConfiguration.option(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED, dualstackEndpointEnabled);
+        return thisBuilder();
+    }
+
+    public final void setDualstackEnabled(Boolean dualstackEndpointEnabled) {
+        dualstackEnabled(dualstackEndpointEnabled);
+    }
+
+    @Override
+    public BuilderT fipsEnabled(Boolean dualstackEndpointEnabled) {
+        clientConfiguration.option(AwsClientOption.FIPS_ENDPOINT_ENABLED, dualstackEndpointEnabled);
+        return thisBuilder();
+    }
+
+    public final void setFipsEnabled(Boolean fipsEndpointEnabled) {
+        fipsEnabled(fipsEndpointEnabled);
     }
 
     @Override
@@ -259,6 +434,34 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
     }
 
     private List<ExecutionInterceptor> awsInterceptors() {
-        return Collections.singletonList(new HelpfulUnknownHostExceptionInterceptor());
+        return Arrays.asList(new HelpfulUnknownHostExceptionInterceptor(),
+                             new EventStreamInitialRequestInterceptor(),
+                             new TraceIdExecutionInterceptor());
+    }
+
+    @Override
+    public final BuilderT defaultsMode(DefaultsMode defaultsMode) {
+        clientConfiguration.option(DEFAULTS_MODE, defaultsMode);
+        return thisBuilder();
+    }
+
+    public final void setDefaultsMode(DefaultsMode defaultsMode) {
+        defaultsMode(defaultsMode);
+    }
+
+    /**
+     * If the region is a FIPS pseudo region (contains "fips"), this method returns a pair of values, the left side being the
+     * region with the "fips" string removed, and the right being {@code true}. Otherwise, the region is returned
+     * unchanged, and the right will be empty.
+     */
+    private static Pair<Region, Optional<Boolean>> transformFipsPseudoRegionIfNecessary(Region region) {
+        String id = region.id();
+        String newId = StringUtils.replaceEach(id, FIPS_SEARCH, FIPS_REPLACE);
+        if (!newId.equals(id)) {
+            log.info(() -> String.format("Replacing input region %s with %s and setting fipsEnabled to true", id, newId));
+            return Pair.of(Region.of(newId), Optional.of(true));
+        }
+
+        return Pair.of(region, Optional.empty());
     }
 }
