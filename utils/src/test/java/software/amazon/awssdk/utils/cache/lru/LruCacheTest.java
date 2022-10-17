@@ -15,23 +15,16 @@
 
 package software.amazon.awssdk.utils.cache.lru;
 
-import java.io.Closeable;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -50,90 +43,21 @@ public class LruCacheTest {
 
     private static final int MAX_SIMPLE_TEST_ENTRIES = 10;
     private static final int MAX_SIMPLE_CACHE_SIZE = 3;
-    private static final List<Key> simpleTestKeys = IntStream.range(0, MAX_SIMPLE_TEST_ENTRIES)
-                                                             .mapToObj(Key::new)
+    private static final List<Integer> simpleTestKeys = IntStream.range(0, MAX_SIMPLE_TEST_ENTRIES)
+                                                             .mapToObj(Integer::new)
                                                              .collect(Collectors.toList());
-    private static final List<Value> simpleTestValues = IntStream.range(0, MAX_SIMPLE_TEST_ENTRIES)
+    private static final List<String> simpleTestValues = IntStream.range(0, MAX_SIMPLE_TEST_ENTRIES)
                                                                  .mapToObj(Integer::toString)
-                                                                 .map(Value::new)
+                                                                 .map(String::new)
                                                                  .collect(Collectors.toList());
     @Spy
-    private Function<Key, Value> simpleValueSupplier = new SimpleValueSupplier(simpleTestValues);
-
-    /**
-     * An implementation of {@link Function} that allows us to (more or less) manually schedule threads so that we can make sure
-     * the cache is only calling the underlying supplier when we expect it to.
-     */
-    private static class WaitingSupplier implements Function<Key, Value>, Closeable {
-        /**
-         * A semaphore that is counted up each time a "get" is started. This is useful during testing for waiting for a certain
-         * number of "gets" to start.
-         */
-        private final Semaphore startedGetPermits = new Semaphore(0);
-
-        /**
-         * A semaphore that is counted down each time a "get" is started. This is useful during testing for blocking the threads
-         * performing the "get" until it is time for them to complete.
-         */
-        private final Semaphore permits = new Semaphore(0);
-
-        /**
-         * A semaphore that is counted up each time a "get" is finished. This is useful during testing for waiting for a certain
-         * number of "gets" to finish.
-         */
-        private final Semaphore finishedGetPermits = new Semaphore(0);
-
-        private WaitingSupplier() {
-        }
-
-        @Override
-        public Value apply(Key key) {
-            startedGetPermits.release(1);
-
-            try {
-                permits.acquire(1);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-                fail();
-            }
-
-            finishedGetPermits.release(1);
-            return simpleTestValues.get(key.key());
-        }
-
-        /**
-         * Wait for a certain number of "gets" to have started. This will time out and fail the test after a certain amount of
-         * time if the "gets" never actually start.
-         */
-        public void waitForGetsToHaveStarted(int numExpectedGets) {
-            assertTrue(invokeSafely(() -> startedGetPermits.tryAcquire(numExpectedGets, 10, TimeUnit.SECONDS)));
-        }
-
-        /**
-         * Wait for a certain number of "gets" to have finished. This will time out and fail the test after a certain amount of
-         * time if the "gets" never finish.
-         */
-        public void waitForGetsToHaveFinished(int numExpectedGets) {
-            assertTrue(invokeSafely(() -> finishedGetPermits.tryAcquire(numExpectedGets, 10, TimeUnit.SECONDS)));
-        }
-
-        /**
-         * Release all threads blocked in this supplier.
-         */
-        @Override
-        public void close() {
-            permits.release(50);
-        }
-    }
-
+    private Function<Integer, String> simpleValueSupplier = new SimpleValueSupplier(simpleTestValues);
 
     private ExecutorService executorService;
     private List<Future<?>> allExecutions;
-    private Supplier<LruCache<Key, Value>> simpleCache = () -> LruCache.builder(simpleValueSupplier)
-                                                                       .maxSize(MAX_SIMPLE_CACHE_SIZE)
-                                                                       .build();
-
-
+    private final Supplier<LruCache<Integer, String>> simpleCache = () -> LruCache.builder(simpleValueSupplier)
+                                                                             .maxSize(MAX_SIMPLE_CACHE_SIZE)
+                                                                             .build();
 
     @BeforeEach
     public void setup() {
@@ -149,64 +73,129 @@ public class LruCacheTest {
 
     @Test
     void when_cacheHasMiss_ValueIsCalculatedAndCached() {
-        LruCache<Key, Value> cache = simpleCache.get();
+        LruCache<Integer, String> cache = simpleCache.get();
         populateAndVerify(cache, 1);
     }
 
     @Test
     void when_cacheHasHit_ValueIsRetrievedFromCache() {
-        LruCache<Key, Value> cache = simpleCache.get();
+        LruCache<Integer, String> cache = simpleCache.get();
 
         populateAndVerify(cache, MAX_SIMPLE_CACHE_SIZE);
-        Value result = cache.get(simpleTestKeys.get(2));
+
+        //get 2, the last added value. Should get it from cache
+        String result = cache.get(simpleTestKeys.get(2));
         assertThat(cache.size()).isEqualTo(MAX_SIMPLE_CACHE_SIZE);
         assertThat(result).isNotNull();
         assertThat(result).isEqualTo(simpleTestValues.get(2));
 
-        cache.get(simpleTestKeys.get(2));
-
-        int onlyOneInvocation = 1;
-        verify(simpleValueSupplier, times(onlyOneInvocation)).apply(simpleTestKeys.get(2));
+        //item 2 was only retrieved once from the supplier, but twice from cache
+        verify(simpleValueSupplier, times(1)).apply(simpleTestKeys.get(2));
     }
 
     @Test
     void when_cacheFillsUp_ValuesAreEvictedFromCache() {
-        LruCache<Key, Value> cache = simpleCache.get();
+        LruCache<Integer, String> cache = simpleCache.get();
 
+        //fill cache [2, 1, 0]
         populateAndVerify(cache, MAX_SIMPLE_CACHE_SIZE);
 
-        //evict 1
-        Value result = cache.get(simpleTestKeys.get(4));
-        assertCacheState(cache, result, MAX_SIMPLE_CACHE_SIZE, 4);
-
-        //move 3 up
-        result = cache.get(simpleTestKeys.get(3));
+        //new item requested, evict 0 -> [3, 2, 1]
+        String result = cache.get(simpleTestKeys.get(3));
         assertCacheState(cache, result, MAX_SIMPLE_CACHE_SIZE, 3);
 
-        //evict 2
-        result = cache.get(simpleTestKeys.get(5));
-        assertCacheState(cache, result, MAX_SIMPLE_CACHE_SIZE, 5);
+        //move 2 up -> [2, 3, 1]
+        cache.get(simpleTestKeys.get(2));
 
-        //move 4 up
-        result = cache.get(simpleTestKeys.get(4));
-        assertCacheState(cache, result, MAX_SIMPLE_CACHE_SIZE, 4);
+        //evict 1 -> [4, 2, 3]
+        cache.get(simpleTestKeys.get(4));
 
-        //evict 3
-        result = cache.get(simpleTestKeys.get(2));
-        assertCacheState(cache, result, MAX_SIMPLE_CACHE_SIZE, 2);
+        //move 2 up -> [2, 4, 3]
+        cache.get(simpleTestKeys.get(2));
 
-        verify(simpleValueSupplier, times(1)).apply(simpleTestKeys.get(1));
-        verify(simpleValueSupplier, times(2)).apply(simpleTestKeys.get(2));
+        //get 1 back -> [1, 2, 4]
+        result = cache.get(simpleTestKeys.get(1));
+        assertCacheState(cache, result, MAX_SIMPLE_CACHE_SIZE, 1);
+
+        //each item in the test is only retrieved once except for 1
+        verify(simpleValueSupplier, times(1)).apply(simpleTestKeys.get(0));
+        verify(simpleValueSupplier, times(2)).apply(simpleTestKeys.get(1));
+        verify(simpleValueSupplier, times(1)).apply(simpleTestKeys.get(2));
         verify(simpleValueSupplier, times(1)).apply(simpleTestKeys.get(3));
         verify(simpleValueSupplier, times(1)).apply(simpleTestKeys.get(4));
-        verify(simpleValueSupplier, times(1)).apply(simpleTestKeys.get(5));
+    }
+
+    @Test
+    void when_mostRecentValueIsHit_ValuesAreReorderedCorrectly() {
+        LruCache<Integer, String> cache = simpleCache.get();
+
+        //fill cache [2, 1, 0]
+        populateAndVerify(cache, MAX_SIMPLE_CACHE_SIZE);
+
+        //get current mru (most recently used). Cache should stay the same: [2, 1, 0]
+        cache.get(simpleTestKeys.get(2));
+
+        //evict items 1,2 -> [3, 4, 2]
+        cache.get(simpleTestKeys.get(3));
+        cache.get(simpleTestKeys.get(4));
+
+        //get 2, it should come from cache -> [2, 3, 4]
+        cache.get(simpleTestKeys.get(2));
+
+        //each value in the test is only retrieved once
+        verify(simpleValueSupplier, times(1)).apply(simpleTestKeys.get(0));
+        verify(simpleValueSupplier, times(1)).apply(simpleTestKeys.get(1));
+        verify(simpleValueSupplier, times(1)).apply(simpleTestKeys.get(2));
+        verify(simpleValueSupplier, times(1)).apply(simpleTestKeys.get(3));
+        verify(simpleValueSupplier, times(1)).apply(simpleTestKeys.get(4));
+    }
+
+    @Test
+    void when_leastRecentValueIsHit_ValuesAreReorderedCorrectly() {
+        LruCache<Integer, String> cache = simpleCache.get();
+
+        //fill cache [2, 1, 0]
+        populateAndVerify(cache, MAX_SIMPLE_CACHE_SIZE);
+
+        //get current lru (least recently used) and move up
+        cache.get(simpleTestKeys.get(0));
+
+        //evict items 1, 2 -> [3, 4, 0]
+        cache.get(simpleTestKeys.get(3));
+        cache.get(simpleTestKeys.get(4));
+
+        //get 0, should return cached value -> [0, 3, 4]
+        cache.get(simpleTestKeys.get(0));
+
+        //get 1, should get from supplier
+        cache.get(simpleTestKeys.get(1));
+
+        //get 2, should get from supplier
+        cache.get(simpleTestKeys.get(2));
+
+        //1, 2 fell out of cache and were retrieved
+        verify(simpleValueSupplier, times(1)).apply(simpleTestKeys.get(0));
+        verify(simpleValueSupplier, times(2)).apply(simpleTestKeys.get(1));
+        verify(simpleValueSupplier, times(2)).apply(simpleTestKeys.get(2));
+    }
+
+    @Test
+    void when_cacheHasMiss_AndNoValueIsFound_ReturnsNull() {
+        LruCache<Integer, String> cache = simpleCache.get();
+        populateAndVerify(cache, 1);
+
+        Integer keyMissingValue = 200;
+        String value = cache.get(keyMissingValue);
+        assertThat(value).isNull();
+        cache.get(keyMissingValue);
+        verify(simpleValueSupplier, times(1)).apply(keyMissingValue);
     }
 
     @Test
     void when_multipleCallers_oneCallerBlocks_simple() throws InterruptedException {
         ExecutorService executor = Executors.newCachedThreadPool();
         try  {
-            LruCache<Key, Value> cache = simpleCache.get();
+            LruCache<Integer, String> cache = simpleCache.get();
 
             for (int i = 0; i < 1000; i++) {
                 int numEntry = ThreadLocalRandom.current().nextInt(MAX_SIMPLE_TEST_ENTRIES - 1);
@@ -220,31 +209,15 @@ public class LruCacheTest {
         }
     }
 
-    @Test
-    void when_multipleCallers_oneCallerBlock_doesnt_Work() {
-
-        try (WaitingSupplier waitingSupplier = new WaitingSupplier()) {
-            LruCache<Key, Value> cachedSupplier = LruCache.builder(waitingSupplier)
-                                                          .maxSize(5)
-                                                          .build();
-
-            waitingSupplier.permits.release(5);
-            waitFor(performAsyncGets(cachedSupplier, 8));
-
-            // Make extra sure only 2 "gets" actually happened.
-            waitingSupplier.waitForGetsToHaveFinished(2);
-        }
-    }
-
-    private void assertCacheState(LruCache<Key, Value> cache, Value result, int size, int index) {
+    private void assertCacheState(LruCache<Integer, String> cache, String result, int size, int index) {
         assertThat(cache.size()).isEqualTo(size);
         assertThat(result).isNotNull();
         assertThat(result).isEqualTo(simpleTestValues.get(index));
     }
 
-    private void populateAndVerify(LruCache<Key, Value> cache, int numEntries) {
+    private void populateAndVerify(LruCache<Integer, String> cache, int numEntries) {
         IntStream.range(0, numEntries).forEach(i -> {
-            Value result = cache.get(simpleTestKeys.get(i));
+            String result = cache.get(simpleTestKeys.get(i));
             assertThat(cache.size()).isEqualTo(i + 1);
             assertThat(result).isNotNull();
             assertThat(result).isEqualTo(simpleTestValues.get(i));
@@ -252,121 +225,23 @@ public class LruCacheTest {
         });
     }
 
-    /**
-     * Asynchronously perform a "get" on the provided supplier, returning the future that will be completed when the "get"
-     * finishes.
-     */
-    private Future<Value> performAsyncGet(LruCache<Key, Value> supplier, Key key) {
-        return executorService.submit(() -> supplier.get(key));
-    }
+    private static class SimpleValueSupplier implements Function<Integer, String> {
 
-    /**
-     * Asynchronously perform multiple "gets" on the provided supplier, returning the collection of futures to be completed when
-     * the "get" finishes.
-     */
-    private List<Future<?>> performAsyncGets(LruCache<Key, Value> supplier, int count) {
-        List<Future<?>> futures = new ArrayList<>();
-        for (int i = 0; i < count; ++i) {
-            futures.add(performAsyncGet(supplier, simpleTestKeys.get(count % 2)));
-        }
-        allExecutions.addAll(futures);
-        return futures;
-    }
+        List<String> values;
 
-    /**
-     * Wait for the provided future to complete, failing the test if it does not.
-     */
-    private void waitFor(Future<?> future) {
-        invokeSafely(() -> future.get(10, TimeUnit.SECONDS));
-    }
-
-    /**
-     * Wait for all futures in the provided collection fo complete, failing the test if they do not all complete.
-     */
-    private void waitFor(Collection<Future<?>> futures) {
-        futures.forEach(this::waitFor);
-    }
-
-    /**
-     * Wait for all async gets ever created by this class to complete, failing the test if they do not all complete.
-     */
-    private void waitForAsyncGetsToFinish() {
-        waitFor(allExecutions);
-    }
-
-    private static final class Key {
-        private final Integer key;
-
-        private Key(Integer key) {
-            this.key = key;
-        }
-
-        static Key create(Integer key) {
-            return new Key(key);
-        }
-
-        Integer key() {
-            return key;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if ((o == null) || getClass() != o.getClass()) {
-                return false;
-            }
-            Key that = (Key) o;
-            return Objects.equals(key, that.key);
-        }
-
-        @Override
-        public int hashCode() {
-            return key != null? key.hashCode() : 0;
-        }
-    }
-
-    private static final class Value {
-        private final String param1;
-
-        Value(String param1) {
-            this.param1 = param1;
-        }
-
-        String param1() {
-            return param1;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if ((o == null) || getClass() != o.getClass()) {
-                return false;
-            }
-            Value that = (Value) o;
-            return Objects.equals(param1, that.param1);
-        }
-
-        @Override
-        public int hashCode() {
-            return param1 != null ? param1.hashCode() : 0;
-        }
-    }
-
-    private static class SimpleValueSupplier implements Function<Key, Value> {
-
-        List<Value> values;
-
-        SimpleValueSupplier(List<Value> values) {
+        SimpleValueSupplier(List<String> values) {
             this.values = values;
         }
 
         @Override
-        public Value apply(Key key) {
-            return values.get(key.key());
+        public String apply(Integer key) {
+            String value = null;
+            try {
+                value = values.get(key);
+            } catch (Exception ignored) {
+
+            }
+            return value;
         }
     }
 }
