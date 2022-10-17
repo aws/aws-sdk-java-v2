@@ -91,7 +91,7 @@ public class RegionMetadataProviderGenerator implements PoetClass {
     }
 
     private String regionClass(String region) {
-        return region.replace("-", "_").toUpperCase(Locale.US);
+        return region.replace('-', '_').toUpperCase(Locale.US);
     }
 
     private ClassName regionMetadataClass(String region) {

@@ -147,7 +147,7 @@ public class RegionGenerator implements PoetClass {
     }
 
     private String regionName(String region) {
-        return region.replace("-", "_").toUpperCase(Locale.US);
+        return region.replace('-', '_').toUpperCase(Locale.US);
     }
 
     private MethodSpec regionOf() {

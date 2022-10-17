@@ -112,7 +112,7 @@ public class ServiceMetadataGenerator implements PoetClass {
 
     @Override
     public ClassName className() {
-        String sanitizedServiceName = serviceEndpointPrefix.replace(".", "-");
+        String sanitizedServiceName = serviceEndpointPrefix.replace('.', '-');
         return ClassName.get(basePackage, Stream.of(sanitizedServiceName.split("-"))
                                                 .map(Utils::capitalize)
                                                 .collect(Collectors.joining()) + "ServiceMetadata");
