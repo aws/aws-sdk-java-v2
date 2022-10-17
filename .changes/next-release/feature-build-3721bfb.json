@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "build",
+    "contributor": "DavidOgunsAWS",
+    "description": "Enable JDK9+ builds to produce JRE8 compatible jar."
+}
