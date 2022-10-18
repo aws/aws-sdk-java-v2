@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Cloud Map",
-    "contributor": "",
-    "description": "Updated the ListNamespaces API to support the NAME and HTTP_NAME filters, and the BEGINS_WITH filter condition."
-}

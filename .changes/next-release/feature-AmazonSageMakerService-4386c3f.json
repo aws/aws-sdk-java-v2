@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon SageMaker Service",
-    "contributor": "",
-    "description": "This change allows customers to enable data capturing while running a batch transform job, and configure monitoring schedule to monitoring the captured data."
-}
