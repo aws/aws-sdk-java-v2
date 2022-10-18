@@ -91,7 +91,7 @@
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
         <awsjavasdk.previous.version>2.17.293</awsjavasdk.previous.version>
         <jackson.version>2.13.2</jackson.version>
-        <jackson.databind.version>2.13.2.2</jackson.databind.version>
+        <jackson.databind.version>2.13.4.2</jackson.databind.version>
         <jacksonjr.version>2.13.2</jacksonjr.version>
         <eventstream.version>1.0.1</eventstream.version>
         <commons.lang.version>3.12.0</commons.lang.version>
@@ -702,7 +702,7 @@
                 <maven.compiler.release>8</maven.compiler.release>
             </properties>
         </profile>
-      
+
         <profile>
             <id>jdk-13-plus</id>
             <activation>
