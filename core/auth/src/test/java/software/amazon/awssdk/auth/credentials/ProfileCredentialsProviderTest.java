@@ -15,11 +15,10 @@
 
 package software.amazon.awssdk.auth.credentials;
 
-import static java.time.temporal.ChronoUnit.HOURS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.in;
 
+import com.google.common.jimfs.Jimfs;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
@@ -32,15 +31,14 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.temporal.TemporalAmount;
+import java.util.function.Supplier;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.utils.StringInputStream;
-import com.google.common.jimfs.Jimfs;
 
 /**
  * Verify functionality of {@link ProfileCredentialsProvider}.
@@ -138,7 +136,7 @@ public class ProfileCredentialsProviderTest {
     }
 
     @Test
-    public void resolveCredentials_profileModifiedNoRefreshIntervalRequestWithinJitterPeriod_doesNotReloadCredentials() {
+    void resolveCredentials_profileModifiedNoRefreshIntervalRequestWithinJitterPeriod_doesNotReloadCredentials() {
         Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
         ProfileFile file = profileFile(credentialsFilePath);
 
@@ -159,7 +157,7 @@ public class ProfileCredentialsProviderTest {
     }
 
     @Test
-    public void resolveCredentials_profileModifiedNoRefreshIntervalRequestOutsideJitterPeriod_doesNotReloadCredentials() {
+    void resolveCredentials_profileModifiedNoRefreshIntervalRequestOutsideJitterPeriod_doesNotReloadCredentials() {
         Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
         ProfileFile file = profileFile(credentialsFilePath);
 
@@ -180,7 +178,7 @@ public class ProfileCredentialsProviderTest {
     }
 
     @Test
-    public void resolveCredentials_profileModifiedBeforeRefreshIntervalExpires_doesNotReloadCredentials() {
+    void resolveCredentials_profileModifiedBeforeRefreshIntervalExpires_doesNotReloadCredentials() {
         Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
         ProfileFile file = profileFile(credentialsFilePath);
 
@@ -202,7 +200,7 @@ public class ProfileCredentialsProviderTest {
     }
 
     @Test
-    public void resolveCredentials_profileModifiedAfterRefreshIntervalExpires_reloadsCredentials() {
+    void resolveCredentials_profileModifiedAfterRefreshIntervalExpires_reloadsCredentials() {
         Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
         ProfileFile file = profileFile(credentialsFilePath);
 
@@ -224,6 +222,32 @@ public class ProfileCredentialsProviderTest {
             assertThat(credentials.accessKeyId()).isEqualTo("modifiedAccessKey");
             assertThat(credentials.secretAccessKey()).isEqualTo("modifiedSecretAccessKey");
         });
+    }
+
+    @Test
+    void resolveCredentials_errorIsThrownWithinConstructor_rethrowsErrorInResolveCredentials() throws IOException {
+        Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
+        ProfileFile file = profileFile(credentialsFilePath);
+        Files.deleteIfExists(credentialsFilePath);
+
+        ProfileCredentialsProvider provider = builderWithConstructorException(() -> { throw new IllegalArgumentException(); })
+            .build();
+
+        assertThatThrownBy(() -> provider.resolveCredentials()).isInstanceOf(RuntimeException.class);
+    }
+
+    @Test
+    void resolveCredentials_errorIsThrownWithinResolveCredentials_throwsException() throws IOException {
+        Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
+        ProfileFile file = profileFile(credentialsFilePath);
+        ProfileCredentialsProvider provider = ProfileCredentialsProvider.builder()
+                                                                        .profileFile(file)
+                                                                        .profileName("default")
+                                                                        .build();
+
+        Files.deleteIfExists(credentialsFilePath);
+
+        assertThatThrownBy(() -> provider.resolveCredentials()).isInstanceOf(RuntimeException.class);
     }
 
     private ProfileFile profileFile(String string) {
@@ -261,6 +285,15 @@ public class ProfileCredentialsProviderTest {
         ProfileCredentialsProvider.Builder builder = ProfileCredentialsProvider.builder();
         ProfileCredentialsProvider.BuilderImpl builderImpl = (ProfileCredentialsProvider.BuilderImpl) builder;
         builderImpl.clock(clock);
+
+        return builder;
+    }
+
+    private ProfileCredentialsProvider.Builder builderWithConstructorException(Supplier<ProfileFile> supplier) {
+        ProfileCredentialsProvider.Builder builder = ProfileCredentialsProvider.builder();
+        ProfileCredentialsProvider.BuilderImpl builderImpl = (ProfileCredentialsProvider.BuilderImpl) builder;
+        builderImpl.profileFile((ProfileFile) null);
+        builderImpl.defaultProfileFileLoader(supplier);
 
         return builder;
     }

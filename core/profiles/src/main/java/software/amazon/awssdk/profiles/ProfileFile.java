@@ -139,16 +139,7 @@ public final class ProfileFile {
      * @see #isStaleAsOf(Instant)
      */
     public boolean isStale() {
-        return isStaleIfAny(details -> {
-            Path contentLocation = details.getContentLocation();
-            try {
-                Instant modificationInstant = Files.getLastModifiedTime(contentLocation).toInstant();
-
-                return isStaleAsOf(modificationInstant);
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
-        });
+        return isStaleIfAny(diskFileWasModifiedSinceLoad());
     }
 
     /**
@@ -160,20 +151,6 @@ public final class ProfileFile {
      */
     public boolean isStaleAsOf(Instant instant) {
         return isStaleIfAny(details -> details.wasBuiltBefore(instant));
-    }
-
-    /**
-     * Determines if there are disk modifications and creates a new instance if so.
-     *
-     * @return Either the same instance in case disk has no recent updates, or a newly constructed instance.
-     * @see #isStale()
-     */
-    public ProfileFile reload() {
-        if (!isStale()) {
-            return this;
-        }
-
-        return forceReload();
     }
 
     @Override
@@ -223,6 +200,19 @@ public final class ProfileFile {
                                                                       .content(l)
                                                                       .type(ProfileFile.Type.CONFIGURATION)
                                                                       .build()));
+    }
+
+    private Predicate<Builder.BuildDetails> diskFileWasModifiedSinceLoad() {
+        return details -> {
+            Path contentLocation = details.getContentLocation();
+            try {
+                Instant modificationInstant = Files.getLastModifiedTime(contentLocation).toInstant();
+
+                return isStaleAsOf(modificationInstant);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        };
     }
 
     /**
@@ -289,15 +279,6 @@ public final class ProfileFile {
             .stream()
             .filter(Builder.BuildDetails::wasBuiltFromFile)
             .anyMatch(predicate);
-    }
-
-    private ProfileFile forceReload() {
-        Aggregator aggregator = ProfileFile.aggregator();
-        for (Builder.BuildDetails details : this.buildDetails) {
-            Builder builder = details.getBuilder();
-            aggregator.addFile(builder.build());
-        }
-        return aggregator.build();
     }
 
     /**

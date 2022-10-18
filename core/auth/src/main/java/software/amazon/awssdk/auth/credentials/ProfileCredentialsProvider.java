@@ -15,14 +15,9 @@
 
 package software.amazon.awssdk.auth.credentials;
 
-import static software.amazon.awssdk.utils.cache.CachedSupplier.StaleValueBehavior.STRICT;
-
 import java.time.Clock;
 import java.time.Duration;
-import java.time.Instant;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -31,13 +26,12 @@ import software.amazon.awssdk.auth.credentials.internal.ProfileCredentialsUtils;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
+import software.amazon.awssdk.profiles.internal.ProfileFileRefresher;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
-import software.amazon.awssdk.utils.cache.CachedSupplier;
-import software.amazon.awssdk.utils.cache.RefreshResult;
 
 /**
  * Credentials provider based on AWS configuration profiles. This loads credentials from a {@link ProfileFile}, allowing you to
@@ -55,33 +49,47 @@ public final class ProfileCredentialsProvider
     implements AwsCredentialsProvider,
                SdkAutoCloseable,
                ToCopyableBuilder<ProfileCredentialsProvider.Builder, ProfileCredentialsProvider> {
-    private final AtomicReference<AwsCredentials> credentials;
+    private volatile AwsCredentials credentials;
     private final RuntimeException loadException;
 
-    private final AtomicReference<ProfileFile> profileFile;
+    private final ProfileFileRefresher profileFileRefresher;
     private final String profileName;
     private final Supplier<ProfileFile> defaultProfileFileLoader;
 
-    private final CachedSupplier<AwsCredentials> credentialsCache;
     private final Clock clock;
-    private final Duration refreshInterval;
-    private final Duration pollingInterval;
+    private final Duration refreshDuration;
+    private final Duration pollingDuration;
 
     /**
      * @see #builder()
      */
     private ProfileCredentialsProvider(BuilderImpl builder) {
+        this.defaultProfileFileLoader = builder.defaultProfileFileLoader;
+        this.clock = builder.clock;
+        this.refreshDuration = builder.refreshInterval;
+        this.pollingDuration = builder.pollingInterval;
+
         RuntimeException thrownException = null;
-        ProfileFile selectedProfile = null;
         String selectedProfileName = null;
+        ProfileFileRefresher profileRefresher = null;
 
         try {
-            selectedProfileName = builder.profileName != null ? builder.profileName
-                                                              : ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow();
+            selectedProfileName = Optional.ofNullable(builder.profileName)
+                                          .orElseGet(ProfileFileSystemSetting.AWS_PROFILE::getStringValueOrThrow);
 
-            // Load the profiles file
-            selectedProfile = Optional.ofNullable(builder.profileFile)
-                                      .orElseGet(builder.defaultProfileFileLoader);
+            ProfileFile selectedProfile = Optional.ofNullable(builder.profileFile)
+                                                  .orElseGet(builder.defaultProfileFileLoader);
+
+            profileRefresher = ProfileFileRefresher.builder()
+                                                   .profileFile(selectedProfile)
+                                                   .exceptionHandler(e -> { throw e; })
+                                                   .onProfileFileReload(this::handleProfileFileReload)
+                                                   .refresh(this.refreshDuration, this.pollingDuration)
+                                                   .clock(builder.clock)
+                                                   .asyncRefreshEnabled(false)
+                                                   .build();
+
+            updateCredentials(selectedProfile, selectedProfileName);
         } catch (RuntimeException e) {
             // If we couldn't load the credentials provider for some reason, save an exception describing why. This exception
             // will only be raised on calls to resolveCredentials. We don't want to raise an exception here because it may be
@@ -90,17 +98,8 @@ public final class ProfileCredentialsProvider
         }
 
         this.loadException = thrownException;
-        this.credentials = new AtomicReference<>();
-        this.profileFile = new AtomicReference<>(selectedProfile);
         this.profileName = selectedProfileName;
-        this.defaultProfileFileLoader = builder.defaultProfileFileLoader;
-        this.clock = builder.clock;
-        this.credentialsCache = CachedSupplier.builder(this::refreshCredentials)
-                                              .staleValueBehavior(STRICT)
-                                              .clock(this.clock)
-                                              .build();
-        this.refreshInterval = builder.refreshInterval;
-        this.pollingInterval = builder.pollingInterval;
+        this.profileFileRefresher = profileRefresher;
     }
 
     /**
@@ -130,20 +129,42 @@ public final class ProfileCredentialsProvider
 
     @Override
     public AwsCredentials resolveCredentials() {
-        return credentialsCache.get();
+        if (loadException != null) {
+            throw loadException;
+        }
+
+        refreshProfileFile();
+
+        return credentials;
+    }
+
+    private void handleProfileFileReload(ProfileFile profileFile) {
+        updateCredentials(profileFile, profileName);
+    }
+
+    private void updateCredentials(ProfileFile profileFile, String profileName) {
+        AwsCredentialsProvider credentialsProvider = createCredentialsProvider(profileFile, profileName);
+
+        this.credentials = credentialsProvider.resolveCredentials();
+
+        IoUtils.closeIfCloseable(credentialsProvider, null);
+    }
+
+    private ProfileFile refreshProfileFile() {
+        return profileFileRefresher.refreshIfStale();
     }
 
     @Override
     public String toString() {
         return ToString.builder("ProfileCredentialsProvider")
                        .add("profileName", profileName)
-                       .add("profileFile", profileFile)
+                       .add("profileFile", refreshProfileFile())
                        .build();
     }
 
     @Override
     public void close() {
-        credentialsCache.close();
+        profileFileRefresher.close();
     }
 
     @Override
@@ -160,59 +181,6 @@ public final class ProfileCredentialsProvider
                                                                   "profile '%s': %s", profileName, profileFile);
                               return SdkClientException.builder().message(errorMessage).build();
                           });
-    }
-
-    private boolean needToReloadCredentials() {
-        return Objects.isNull(credentials.get()) || profileFile.get().isStale();
-    }
-
-    private RefreshResult<AwsCredentials> refreshCredentials() {
-        if (loadException != null) {
-            throw loadException;
-        }
-
-        Instant now = clock.instant();
-        Instant staleTime;
-        AwsCredentials nextCredentials;
-        if (needToReloadCredentials()) {
-            synchronized (this) {
-                ProfileFile previousProfileFile = profileFile.get();
-                ProfileFile newProfileFile = previousProfileFile.reload();
-                profileFile.set(newProfileFile);
-
-                AwsCredentialsProvider credentialsProvider = createCredentialsProvider(newProfileFile, this.profileName);
-                nextCredentials = credentialsProvider.resolveCredentials();
-                credentials.set(nextCredentials);
-
-                // The delegate credentials provider may be closeable (eg. if it's an STS credentials provider). In this case,
-                // we should clean it up when this credentials provider is closed.
-                IoUtils.closeIfCloseable(credentialsProvider, null);
-            }
-            staleTime = staleTime(now);
-        } else {
-            nextCredentials = credentials.get();
-            staleTime = pollTime(now);
-        }
-
-        return RefreshResult.builder(nextCredentials)
-                            .staleTime(staleTime)
-                            .build();
-    }
-
-    private Instant staleTime(Instant now) {
-        if (Objects.isNull(now) || Objects.isNull(refreshInterval)) {
-            return Instant.MAX;
-        }
-
-        return now.plus(refreshInterval);
-    }
-
-    private Instant pollTime(Instant now) {
-        if (Objects.isNull(now) || Objects.isNull(pollingInterval)) {
-            return staleTime(now);
-        }
-
-        return now.plus(pollingInterval);
     }
 
     /**
@@ -242,6 +210,8 @@ public final class ProfileCredentialsProvider
          * Define the frequency with which the credentials provider will check whether the profile file may have outstanding
          * changes and needs to be reloaded.
          *
+         * <p>The automatic refreshing of the ProfileFile can be disabled by setting both intervals to null</p>
+         *
          * @param refreshInterval Once credentials are loaded, the credentials provider will suspend refreshing and
          *                        only restart until this period has elapsed.
          * @param pollingInterval Once the credentials provider has started refreshing, the profile file will be checked
@@ -268,12 +238,12 @@ public final class ProfileCredentialsProvider
         }
 
         BuilderImpl(ProfileCredentialsProvider provider) {
-            this.profileFile = provider.profileFile.get();
+            this.profileFile = provider.profileFileRefresher.refreshIfStale();
             this.profileName = provider.profileName;
             this.defaultProfileFileLoader = provider.defaultProfileFileLoader;
             this.clock = provider.clock;
-            this.refreshInterval = provider.refreshInterval;
-            this.pollingInterval = provider.pollingInterval;
+            this.refreshInterval = provider.refreshDuration;
+            this.pollingInterval = provider.pollingDuration;
         }
 
         @Override

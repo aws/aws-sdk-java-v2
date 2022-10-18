@@ -25,7 +25,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.attribute.FileTime;
 import java.time.Instant;
 import java.util.AbstractMap;
 import java.util.HashMap;
@@ -584,7 +583,7 @@ public class ProfileFileTest {
     }
 
     @Test
-    public void getBuildDetails_builtFromAggregator_returnsMergedBuildDetailsOfIndividualFiles() {
+    void getBuildDetails_builtFromAggregator_returnsMergedBuildDetailsOfIndividualFiles() {
         ProfileFile aggregatedProfileFiles = ProfileFile.aggregator()
                                                         .addFile(configFile("[profile profile1]\n"
                                                                             + "sso_session = sso-token1\n"
@@ -602,7 +601,7 @@ public class ProfileFileTest {
     }
 
     @Test
-    public void isStaleAsOf_profileSourcedFromInputStreamCheckingAgainstPriorInstant_returnsFalse() {
+    void isStaleAsOf_profileSourcedFromInputStreamCheckingAgainstPriorInstant_returnsFalse() {
         Instant comparisonInstant = Instant.now().minusSeconds(1);
 
         ProfileFile profileFile = ProfileFile.aggregator()
@@ -614,7 +613,7 @@ public class ProfileFileTest {
     }
 
     @Test
-    public void isStaleAsOf_profileSourcedFromInputStreamLoadedBeforeComparisonInstant_returnsFalse() {
+    void isStaleAsOf_profileSourcedFromInputStreamLoadedBeforeComparisonInstant_returnsFalse() {
         ProfileFile profileFile = ProfileFile.aggregator()
                                              .addFile(credentialFile("[in valid 2]\n"
                                                                      + "name2 = value2"))
@@ -626,7 +625,7 @@ public class ProfileFileTest {
     }
 
     @Test
-    public void isStaleAsOf_profileSourcedFromSingleFileLoadedAfterComparisonInstant_returnsFalse() {
+    void isStaleAsOf_profileSourcedFromSingleFileLoadedAfterComparisonInstant_returnsFalse() {
         Instant comparisonInstant = Instant.now().minusSeconds(1);
 
         ProfileFile profileFile = ProfileFile.aggregator()
@@ -639,7 +638,7 @@ public class ProfileFileTest {
     }
 
     @Test
-    public void isStaleAsOf_profileSourcedFromSingleFileLoadedBeforeComparisonInstant_returnsTrue() {
+    void isStaleAsOf_profileSourcedFromSingleFileLoadedBeforeComparisonInstant_returnsTrue() {
         ProfileFile profileFile = ProfileFile.aggregator()
                                              .addFile(credentialFile("[in valid 2]\n"
                                                                      + "name2 = value2",
@@ -652,7 +651,7 @@ public class ProfileFileTest {
     }
 
     @Test
-    public void isStaleAsOf_profileSourcedFromMultipleFilesNoneLoadedBeforeComparisonInstant_returnsFalse() {
+    void isStaleAsOf_profileSourcedFromMultipleFilesNoneLoadedBeforeComparisonInstant_returnsFalse() {
         Instant comparisonInstant = Instant.now().minusSeconds(1);
 
         ProfileFile profileFile = ProfileFile.aggregator()
@@ -668,7 +667,7 @@ public class ProfileFileTest {
     }
 
     @Test
-    public void isStaleAsOf_profileSourcedFromMultipleFilesAtLeastOneLoadedBeforeComparisonInstant_returnsTrue() {
+    void isStaleAsOf_profileSourcedFromMultipleFilesAtLeastOneLoadedBeforeComparisonInstant_returnsTrue() {
         ProfileFile credentialFile = credentialFile("[in valid 2]\n"
                                                     + "name2 = value2",
                                                     "creds.txt");
@@ -683,78 +682,6 @@ public class ProfileFileTest {
                                              .build();
 
         assertThat(profileFile.isStaleAsOf(comparisonInstant)).isTrue();
-    }
-
-    @Test
-    public void reload_sourcedFromStream_returnsSameInstance() {
-        ProfileFile profileFile = ProfileFile.aggregator()
-                                             .addFile(credentialFile("[in valid 2]\n"
-                                                                     + "name2 = value2"))
-                                             .build();
-
-        ProfileFile reloadedProfileFile = profileFile.reload();
-
-        assertThat(reloadedProfileFile).isSameAs(profileFile);
-    }
-
-    @Test
-    public void reload_sourcedFromSingleFileNotModified_returnsSameInstance() {
-        ProfileFile profileFile = ProfileFile.aggregator()
-                                             .addFile(credentialFile("[in valid 2]\n"
-                                                                     + "name2 = value2",
-                                                                     "creds.txt"))
-                                             .build();
-
-        ProfileFile reloadedProfileFile = profileFile.reload();
-
-        assertThat(reloadedProfileFile).isSameAs(profileFile);
-    }
-
-    @Test
-    public void reload_sourcedFromSingleFileModified_returnsNewInstance() throws IOException {
-        ProfileFile profileFile = ProfileFile.aggregator()
-                                             .addFile(credentialFile("[in valid 2]\n"
-                                                                     + "name2 = value2",
-                                                                     "creds.txt"))
-                                             .build();
-
-        Path path = profileFile.getBuildDetails().get(0).getContentLocation();
-        Files.setLastModifiedTime(path, FileTime.from(Instant.now().plusSeconds(1)));
-
-        ProfileFile reloadedProfileFile = profileFile.reload();
-
-        assertThat(reloadedProfileFile).isNotSameAs(profileFile);
-    }
-
-    @Test
-    public void reload_sourcedFromMultipleFilesAndReloaded_updatesLoadInstantOfSources() throws IOException {
-        ProfileFile profileFile = ProfileFile.aggregator()
-                                             .addFile(credentialFile("[in valid 2]\n"
-                                                                     + "name2 = value2",
-                                                                     "creds.txt"))
-                                             .addFile(configFile("[sso-session sso-token1]\n"
-                                                                 + "start_url = startUrl1\n",
-                                                                 "config.txt"))
-                                             .build();
-
-        Instant modificationInstant = Instant.now();
-        Path path = profileFile.getBuildDetails().get(0).getContentLocation();
-        Files.setLastModifiedTime(path, FileTime.from(modificationInstant));
-
-        // try { Thread.sleep(1); } catch (InterruptedException e) { throw new IllegalStateException(e); }
-
-        ProfileFile reloadedProfileFile = profileFile.reload();
-
-        for (ProfileFile.Builder.BuildDetails details : reloadedProfileFile.getBuildDetails()) {
-            assertThat(details.getLoadInstant()).as("Expecting reloaded instant %s be on or after %s",
-                                                    details.getLoadInstant(), modificationInstant)
-                                                .isAfterOrEqualTo(modificationInstant);
-        }
-        for (ProfileFile.Builder.BuildDetails details : profileFile.getBuildDetails()) {
-            assertThat(details.getLoadInstant()).as("Expecting loaded instant %s be on or before %s",
-                                                    details.getLoadInstant(), modificationInstant)
-                                                .isBeforeOrEqualTo(modificationInstant);
-        }
     }
 
     private ProfileFile configFile(String configFile) {
