@@ -126,7 +126,12 @@ public abstract class BaseTransferManagerBenchmark implements TransferManagerBen
     }
 
     private void cleanup() {
-        s3Sync.deleteObject(b -> b.bucket(bucket).key(WARMUP_KEY));
+        try {
+            s3Sync.deleteObject(b -> b.bucket(bucket).key(WARMUP_KEY));
+        } catch (Exception exception) {
+            logger.error(() -> "Failed to delete object: " + WARMUP_KEY);
+        }
+
         s3.close();
         s3Sync.close();
         transferManager.close();

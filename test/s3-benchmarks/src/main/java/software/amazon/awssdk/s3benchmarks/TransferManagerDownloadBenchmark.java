@@ -44,12 +44,6 @@ public class TransferManagerDownloadBenchmark extends BaseTransferManagerBenchma
         }
     }
 
-    @Override
-    protected void additionalWarmup() throws Exception {
-        //downloadToMemory(2, false);
-        //downloadToFile(2, false);
-    }
-
     private void downloadToMemory(int count, boolean printoutResult) throws Exception {
         List<Double> metrics = new ArrayList<>();
         logger.info(() -> "Starting to download to memory");

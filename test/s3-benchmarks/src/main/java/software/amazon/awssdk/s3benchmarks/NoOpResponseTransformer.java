@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.s3benchmarks;
 
-import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
@@ -41,7 +40,7 @@ public class NoOpResponseTransformer implements AsyncResponseTransformer<GetObje
 
     @Override
     public void onStream(SdkPublisher<ByteBuffer> publisher) {
-        publisher.subscribe(new SimpleSubscriber(Buffer::clear) {
+        publisher.subscribe(new SimpleSubscriber(ignore -> {}) {
             @Override
             public void onComplete() {
                 super.onComplete();
