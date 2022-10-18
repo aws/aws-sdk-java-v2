@@ -15,7 +15,12 @@
 
 package software.amazon.awssdk.s3benchmarks;
 
+import static software.amazon.awssdk.s3benchmarks.BenchmarkUtils.printOutResult;
+
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import software.amazon.awssdk.utils.Logger;
@@ -40,17 +45,21 @@ public class TransferManagerUploadBenchmark extends BaseTransferManagerBenchmark
 
     @Override
     protected void additionalWarmup() {
-        uploadFromFile(3, false);
+        try {
+            uploadFromFile(3, false);
+        } catch (Exception exception) {
+            logger.error(() -> "Warmup failed: ", exception);
+        }
     }
 
-    private void uploadFromFile(int count, boolean printOutResult) {
+    private void uploadFromFile(int count, boolean printOutResult) throws IOException {
         List<Double> metrics = new ArrayList<>();
         logger.info(() -> "Starting to upload from file");
         for (int i = 0; i < count; i++) {
             uploadOnceFromFile(metrics);
         }
         if (printOutResult) {
-            printOutResult(metrics, "Upload from File");
+            printOutResult(metrics, "Upload from File", Files.size(Paths.get(path)));
         }
     }
 

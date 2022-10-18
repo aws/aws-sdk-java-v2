@@ -40,7 +40,8 @@ public class NoOpResponseTransformer implements AsyncResponseTransformer<GetObje
 
     @Override
     public void onStream(SdkPublisher<ByteBuffer> publisher) {
-        publisher.subscribe(new SimpleSubscriber(ignore -> {}) {
+        publisher.subscribe(new SimpleSubscriber(ignore -> {
+        }) {
             @Override
             public void onComplete() {
                 super.onComplete();

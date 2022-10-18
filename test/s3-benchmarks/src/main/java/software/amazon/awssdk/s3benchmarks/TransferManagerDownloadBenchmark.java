@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.s3benchmarks;
 
+import static software.amazon.awssdk.s3benchmarks.BenchmarkUtils.printOutResult;
 import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
 import java.io.File;
@@ -29,16 +30,22 @@ import software.amazon.awssdk.utils.Logger;
 
 public class TransferManagerDownloadBenchmark extends BaseTransferManagerBenchmark {
     private static final Logger logger = Logger.loggerFor("TransferManagerDownloadBenchmark");
-
+    private final long contentLength;
     public TransferManagerDownloadBenchmark(TransferManagerBenchmarkConfig config) {
         super(config);
+        this.contentLength = s3Sync.headObject(b -> b.bucket(bucket).key(key)).contentLength();
     }
 
     @Override
     protected void doRunBenchmark() {
         try {
-            downloadToFile(iteration, true);
             downloadToMemory(iteration, true);
+        } catch (Exception exception) {
+            logger.error(() -> "Request failed: ", exception);
+        }
+
+        try {
+            downloadToFile(iteration, true);
         } catch (Exception exception) {
             logger.error(() -> "Request failed: ", exception);
         }
@@ -52,7 +59,7 @@ public class TransferManagerDownloadBenchmark extends BaseTransferManagerBenchma
         }
 
         if (printoutResult) {
-            printOutResult(metrics, "Download to Memory");
+            printOutResult(metrics, "Download to Memory", contentLength);
         }
     }
 
@@ -63,7 +70,7 @@ public class TransferManagerDownloadBenchmark extends BaseTransferManagerBenchma
             downloadOnceToFile(metrics);
         }
         if (printoutResult) {
-            printOutResult(metrics, "Download to File");
+            printOutResult(metrics, "Download to File", contentLength);
         }
     }
 
