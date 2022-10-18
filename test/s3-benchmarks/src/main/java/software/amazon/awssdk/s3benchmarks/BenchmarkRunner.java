@@ -55,7 +55,8 @@ public class BenchmarkRunner {
         options.addOption(null, CHECKSUM_ALGORITHM, true, "The checksum algorithm to use");
         options.addOption(null, ITERATION, true, "The number of iterations");
         options.addOption(null, READ_BUFFER_IN_MB, true, "Read buffer size in MB");
-        options.addOption(null, VERSION, true, "The major version of the transfer manager to run test: v1 | v2, default: v2");
+        options.addOption(null, VERSION, true, "The major version of the transfer manager to run test: v1 | v2 | crt, default: "
+                                               + "v2");
 
         CommandLine cmd = parser.parse(options, args);
         TransferManagerBenchmarkConfig config = parseConfig(cmd);
@@ -63,24 +64,37 @@ public class BenchmarkRunner {
                                                                                  .toUpperCase(Locale.ENGLISH));
         SdkVersion version = SdkVersion.valueOf(cmd.getOptionValue(VERSION, "V2")
                                                    .toUpperCase(Locale.ENGLISH));
-        switch (operation) {
-            case DOWNLOAD:
-                if (version == SdkVersion.V2) {
-                    TransferManagerBenchmark.download(config).run();
-                } else {
-                    TransferManagerBenchmark.v1Download(config).run();
-                }
-                break;
-            case UPLOAD:
-                if (version == SdkVersion.V2) {
-                    TransferManagerBenchmark.upload(config).run();
-                } else {
+
+        if (operation == TransferManagerOperation.UPLOAD) {
+            switch (version) {
+                case V1:
                     TransferManagerBenchmark.v1Upload(config).run();
-                }
-                break;
-            default:
-                throw new UnsupportedOperationException();
+                    return;
+                case V2:
+                    TransferManagerBenchmark.upload(config).run();
+                    return;
+                default:
+                    throw new UnsupportedOperationException();
+            }
         }
+
+        if (operation == TransferManagerOperation.DOWNLOAD) {
+            switch (version) {
+                case V1:
+                    TransferManagerBenchmark.v1Download(config).run();
+                    return;
+                case V2:
+                    TransferManagerBenchmark.download(config).run();
+                    return;
+                case CRT:
+                    new CrtS3ClientBenchmark(config).run();
+                    return;
+                default:
+                    throw new UnsupportedOperationException();
+            }
+        }
+
+        throw new UnsupportedOperationException("Unsupported operation");
     }
 
     private static TransferManagerBenchmarkConfig parseConfig(CommandLine cmd) {
@@ -124,6 +138,7 @@ public class BenchmarkRunner {
 
     private enum SdkVersion {
         V1,
-        V2
+        V2,
+        CRT
     }
 }

@@ -89,7 +89,6 @@ public final class TransferManagerBenchmarkConfig {
                '}';
     }
 
-
     static final class Builder {
         private Long readBufferSizeInMb;
         private ChecksumAlgorithm checksumAlgorithm;
