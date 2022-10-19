@@ -18,6 +18,7 @@ package software.amazon.awssdk.codegen.model.intermediate;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import software.amazon.awssdk.codegen.checksum.HttpChecksum;
 import software.amazon.awssdk.codegen.docs.ClientType;
 import software.amazon.awssdk.codegen.docs.DocConfiguration;
@@ -26,6 +27,7 @@ import software.amazon.awssdk.codegen.docs.SimpleMethodOverload;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.model.service.EndpointTrait;
+import software.amazon.awssdk.codegen.model.service.StaticContextParam;
 
 public class OperationModel extends DocumentationModel {
 
@@ -68,6 +70,9 @@ public class OperationModel extends DocumentationModel {
     private boolean httpChecksumRequired;
 
     private HttpChecksum httpChecksum;
+
+    @JsonIgnore
+    private Map<String, StaticContextParam> staticContextParams;
 
     public String getOperationName() {
         return operationName;
@@ -302,5 +307,13 @@ public class OperationModel extends DocumentationModel {
 
     public void setHttpChecksum(HttpChecksum httpChecksum) {
         this.httpChecksum = httpChecksum;
+    }
+
+    public Map<String, StaticContextParam> getStaticContextParams() {
+        return staticContextParams;
+    }
+
+    public void setStaticContextParams(Map<String, StaticContextParam> staticContextParams) {
+        this.staticContextParams = staticContextParams;
     }
 }

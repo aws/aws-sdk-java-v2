@@ -46,7 +46,7 @@ public class EventStreamFunctionalTests {
     private void runTest(BiFunction<GeneratorTaskParams, OperationModel, ClassSpec> specFactory,
                          String expectedTestFile) {
         IntermediateModel model = ClientTestModels.restJsonServiceModels();
-        GeneratorTaskParams dependencies = GeneratorTaskParams.create(model, "sources/", "tests/");
+        GeneratorTaskParams dependencies = GeneratorTaskParams.create(model, "sources/", "tests/", "resources/");
         ClassSpec classSpec = specFactory.apply(dependencies, model.getOperation("EventStreamOperation"));
         assertThat(classSpec, generatesTo(expectedTestFile));
     }

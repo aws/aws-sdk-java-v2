@@ -4,6 +4,8 @@ import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.services.json.endpoints.JsonEndpointProvider;
 
 /**
  * Internal implementation of {@link JsonAsyncClientBuilder}.
@@ -12,6 +14,12 @@ import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 @SdkInternalApi
 final class DefaultJsonAsyncClientBuilder extends DefaultJsonBaseClientBuilder<JsonAsyncClientBuilder, JsonAsyncClient> implements
                                                                                                                         JsonAsyncClientBuilder {
+    @Override
+    public DefaultJsonAsyncClientBuilder endpointProvider(JsonEndpointProvider endpointProvider) {
+        clientConfiguration.option(SdkClientOption.ENDPOINT_PROVIDER, endpointProvider);
+        return this;
+    }
+
     @Override
     public DefaultJsonAsyncClientBuilder tokenProvider(SdkTokenProvider tokenProvider) {
         clientConfiguration.option(AwsClientOption.TOKEN_PROVIDER, tokenProvider);

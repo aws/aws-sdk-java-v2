@@ -25,16 +25,23 @@ public class GeneratorPathProvider {
 
     private final IntermediateModel model;
     private final String sourceDirectory;
+    private final String resourcesDirectory;
     private final String testDirectory;
 
-    public GeneratorPathProvider(IntermediateModel model, String sourceDirectory, String testDirectory) {
+    public GeneratorPathProvider(IntermediateModel model, String sourceDirectory, String testDirectory,
+                                 String resourcesDirectory) {
         this.model = model;
         this.sourceDirectory = sourceDirectory;
+        this.resourcesDirectory = resourcesDirectory;
         this.testDirectory = testDirectory;
     }
 
     public String getSourceDirectory() {
         return sourceDirectory;
+    }
+
+    public String getResourcesDirectory() {
+        return resourcesDirectory;
     }
 
     public String getTestDirectory() {
@@ -53,6 +60,10 @@ public class GeneratorPathProvider {
         return sourceDirectory + "/" + Utils.packageToDirectory(model.getMetadata().getFullClientPackageName());
     }
 
+    public String getClientInternalDirectory() {
+        return sourceDirectory + "/" + Utils.packageToDirectory(model.getMetadata().getFullClientInternalPackageName());
+    }
+
     public String getPaginatorsDirectory() {
         return sourceDirectory + "/" + Utils.packageToDirectory(model.getMetadata().getFullPaginatorsPackageName());
     }
@@ -67,5 +78,21 @@ public class GeneratorPathProvider {
 
     public String getWaitersInternalDirectory() {
         return sourceDirectory + "/" + Utils.packageToDirectory(model.getMetadata().getFullWaitersInternalPackageName());
+    }
+
+    public String getEndpointRulesDirectory() {
+        return sourceDirectory + "/" + Utils.packageToDirectory(model.getMetadata().getFullEndpointRulesPackageName());
+    }
+
+    public String getEndpointRulesInternalDirectory() {
+        return sourceDirectory + "/" + Utils.packageToDirectory(model.getMetadata().getFullInternalEndpointRulesPackageName());
+    }
+
+    public String getEndpointRulesInternalResourcesDirectory() {
+        return resourcesDirectory + "/" + Utils.packageToDirectory(model.getMetadata().getFullInternalEndpointRulesPackageName());
+    }
+
+    public String getEndpointRulesTestDirectory() {
+        return testDirectory + "/" + Utils.packageToDirectory(model.getMetadata().getFullEndpointRulesPackageName());
     }
 }
