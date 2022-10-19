@@ -42,6 +42,11 @@ public final class MetadataResponse {
         this.body = Validate.notNull(body, "Metadata is null");
     }
 
+    /**
+     * Create a {@link MetadataResponse} with the given body as it's content.
+     * @param body the content of the response
+     * @return a {@link MetadataResponse} with the given body as it's content.
+     */
     public static MetadataResponse create(String body) {
         return new MetadataResponse(body);
     }

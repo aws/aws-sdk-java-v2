@@ -158,7 +158,7 @@ public class Ec2MetadataTest {
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody("some-token")));
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withFixedDelay(2_000)));
 
-        SdkHttpClient client = UrlConnectionHttpClient.builder().socketTimeout(Duration.ofSeconds(1)).build();
+        SdkHttpClient client = UrlConnectionHttpClient.builder().socketTimeout(Duration.ofMillis(500)).build();
         Ec2Metadata ec2MetadataRequest = Ec2Metadata.builder()
                                                     .httpClient(client)
                                                     .endpoint(URI.create("http://localhost:" + mockMetadataEndpoint.port()))
@@ -167,9 +167,9 @@ public class Ec2MetadataTest {
             .hasMessageContaining("Exceeded maximum number of retries.")
             .isInstanceOf(SdkClientException.class);
 
-        WireMock.verify(3, putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+        WireMock.verify(4, putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
             .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
-        WireMock.verify(3, getRequestedFor(urlPathEqualTo(AMI_ID_RESOURCE))
+        WireMock.verify(4, getRequestedFor(urlPathEqualTo(AMI_ID_RESOURCE))
             .withHeader(TOKEN_HEADER, equalTo("some-token")));
     }
 
@@ -180,7 +180,7 @@ public class Ec2MetadataTest {
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH))
                     .willReturn(aResponse().withBody("some-token").withFixedDelay(2_000)));
 
-        SdkHttpClient client = UrlConnectionHttpClient.builder().socketTimeout(Duration.ofSeconds(1)).build();
+        SdkHttpClient client = UrlConnectionHttpClient.builder().socketTimeout(Duration.ofMillis(500)).build();
         Ec2Metadata ec2MetadataRequest = Ec2Metadata.builder()
                                                     .endpoint(URI.create("http://localhost:" + mockMetadataEndpoint.port()))
                                                     .httpClient(client)
@@ -189,7 +189,7 @@ public class Ec2MetadataTest {
             .hasMessageContaining("Exceeded maximum number of retries.")
             .isInstanceOf(SdkClientException.class);
 
-        WireMock.verify(3, putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+        WireMock.verify(4, putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
             .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
         WireMock.verify(0, getRequestedFor(urlPathEqualTo(AMI_ID_RESOURCE))
             .withHeader(TOKEN_HEADER, equalTo("some-token")));
@@ -330,7 +330,7 @@ public class Ec2MetadataTest {
     }
 
     @Test
-    public void get_failsThrice_shouldThrowOnThirdAttempt() {
+    public void get_failsEveryAttempt_shouldThrowOnFourthAttempt() {
 
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody("some-token")));
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withFault(MALFORMED_RESPONSE_CHUNK)));
@@ -339,9 +339,9 @@ public class Ec2MetadataTest {
             .hasMessageContaining("Exceeded maximum number of retries.")
             .isInstanceOf(SdkClientException.class);
 
-        WireMock.verify(3, putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+        WireMock.verify(4, putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
             .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
-        WireMock.verify(3, getRequestedFor(urlPathEqualTo(AMI_ID_RESOURCE))
+        WireMock.verify(4, getRequestedFor(urlPathEqualTo(AMI_ID_RESOURCE))
             .withHeader(TOKEN_HEADER, equalTo("some-token")));
     }
 
@@ -350,7 +350,7 @@ public class Ec2MetadataTest {
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody("some-token")));
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withFault(RANDOM_DATA_THEN_CLOSE)));
 
-        int numRetries = 6;
+        int numRetries = 7;
         BackoffStrategy noWait = FixedDelayBackoffStrategy.create(Duration.ofMillis(10));
         Ec2Metadata ec2MetadataRequest = Ec2Metadata.builder()
                                                     .endpoint(URI.create("http://localhost:" + mockMetadataEndpoint.port()))
@@ -363,9 +363,9 @@ public class Ec2MetadataTest {
             .hasMessageContaining("Exceeded maximum number of retries.")
             .isInstanceOf(SdkClientException.class);
 
-        WireMock.verify(6, putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+        WireMock.verify(8, putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
             .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
-        WireMock.verify(6, getRequestedFor(urlPathEqualTo(AMI_ID_RESOURCE))
+        WireMock.verify(8, getRequestedFor(urlPathEqualTo(AMI_ID_RESOURCE))
             .withHeader(TOKEN_HEADER, equalTo("some-token")));
     }
 

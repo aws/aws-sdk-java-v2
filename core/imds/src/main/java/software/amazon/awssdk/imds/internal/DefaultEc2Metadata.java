@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
 import software.amazon.awssdk.http.AbortableInputStream;
@@ -93,7 +94,7 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
 
     /**
      * Gets the specified instance metadata value by the given path. Will retry base on the {@link Ec2MetadataRetryPolicy retry
-     * policy} provided, in the case of an IOException during request. Will not retry on SdkClientException, like 4XX/5XX HTTP
+     * policy} provided, in the case of an IOException during request. Will not retry on SdkClientException, like 4XX HTTP
      * error.
      * @param path  Input path of the resource to get.
      * @throws SdkClientException if the request for a token or the request for the Metadata does not have a 2XX SUCCESS response,
@@ -104,25 +105,26 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
     @Override
     public MetadataResponse get(String path) {
         Throwable lastCause = null;
-        for (int tries = 0; tries < retryPolicy.numRetries(); tries++) {
-            RetryPolicyContext retryPolicyContext = RetryPolicyContext.builder().retriesAttempted(tries).build();
+        // 3 retries means 4 total attempts
+        for (int attempt = 0; attempt < retryPolicy.numRetries() + 1; attempt++) {
+            RetryPolicyContext retryPolicyContext = RetryPolicyContext.builder().retriesAttempted(attempt).build();
             try {
                 String token = getToken();
                 return sendRequest(path, token);
+            } catch (UncheckedIOException | RetryableException e) {
+                lastCause = e;
+                int currentTry = attempt;
+                log.debug(() -> "Error while executing EC2Metadata request, attempting retry. Current attempt: " + currentTry);
             } catch (SdkClientException sdkClientException) {
-                String msg = String.format("Error while executing EC2Metadata request. Total attempts: %d. %s",
-                                           tries + 1,
-                                           sdkClientException.getMessage());
-                log.debug(() -> msg);
+                int totalTries = attempt + 1;
+                log.debug(() -> String.format("Error while executing EC2Metadata request. Total attempts: %d. %s",
+                                           totalTries,
+                                           sdkClientException.getMessage()));
                 throw sdkClientException;
-            } catch (UncheckedIOException ioe) {
-                lastCause = ioe;
-                String msg = "Error while executing EC2Metadata request, attempting retry. Current attempt: " + tries;
-                log.debug(() -> msg);
             } catch (IOException ioe) {
                 lastCause = new UncheckedIOException(ioe);
-                String msg = "Error while executing EC2Metadata request, attempting retry. Current attempt: " + tries;
-                log.debug(() -> msg);
+                int currentTry = attempt;
+                log.debug(() -> "Error while executing EC2Metadata request, attempting retry. Current attempt: " + currentTry);
             }
             pauseBeforeRetryIfNeeded(retryPolicyContext);
         }
@@ -145,11 +147,18 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
         int statusCode = response.httpResponse().statusCode();
         Optional<AbortableInputStream> responseBody = response.responseBody();
 
+        if (HttpStatusFamily.of(statusCode).isOneOf(HttpStatusFamily.SERVER_ERROR)) {
+            responseBody.map(this::uncheckedInputStreamToUtf8)
+                        .ifPresent(str -> log.debug(() -> "Metadata request response body: " + str));
+            throw RetryableException.builder()
+                                    .message("The requested metadata at path ( " + path + " ) returned Http code " + statusCode).build();
+        }
+
         if (!HttpStatusFamily.of(statusCode).isOneOf(HttpStatusFamily.SUCCESSFUL)) {
             responseBody.map(this::uncheckedInputStreamToUtf8)
                         .ifPresent(str -> log.debug(() -> "Metadata request response body: " + str));
             throw SdkClientException.builder()
-                        .message("The requested metadata at path ( " + path + " ) return Http code " + statusCode).build();
+                        .message("The requested metadata at path ( " + path + " ) returned Http code " + statusCode).build();
         }
 
         AbortableInputStream abortableInputStream = responseBody.orElseThrow(
@@ -177,6 +186,14 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
         HttpExecuteResponse response = httpClient.prepareRequest(httpExecuteRequest).call();
 
         int statusCode = response.httpResponse().statusCode();
+
+        if (HttpStatusFamily.of(statusCode).isOneOf(HttpStatusFamily.SERVER_ERROR)) {
+            response.responseBody().map(this::uncheckedInputStreamToUtf8)
+                        .ifPresent(str -> log.debug(() -> "Metadata request response body: " + str));
+            throw RetryableException.builder()
+                                    .message("Could not retrieve token, " + statusCode + " error occurred").build();
+        }
+
         if (!HttpStatusFamily.of(statusCode).isOneOf(HttpStatusFamily.SUCCESSFUL)) {
             response.responseBody().map(this::uncheckedInputStreamToUtf8)
                     .ifPresent(body -> log.debug(() -> "Token request response body: " + body));

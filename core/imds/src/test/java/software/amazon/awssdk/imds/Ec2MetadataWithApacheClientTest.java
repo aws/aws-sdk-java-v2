@@ -75,9 +75,9 @@ public class Ec2MetadataWithApacheClientTest {
         assertThatThrownBy(() -> ec2Metadata.get("/latest/meta-data/ami-id"))
             .hasMessageContaining("Exceeded maximum number of retries.")
             .isInstanceOf(SdkClientException.class);
-        WireMock.verify(3, putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+        WireMock.verify(4, putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
             .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
-        WireMock.verify(3, getRequestedFor(urlPathEqualTo(AMI_ID_RESOURCE))
+        WireMock.verify(4, getRequestedFor(urlPathEqualTo(AMI_ID_RESOURCE))
             .withHeader(TOKEN_HEADER, equalTo("some-token")));
     }
 
