@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Config",
+    "contributor": "",
+    "description": "This release adds resourceType enums for AppConfig, AppSync, DataSync, EC2, EKS, Glue, GuardDuty, SageMaker, ServiceDiscovery, SES, Route53 types."
+}
