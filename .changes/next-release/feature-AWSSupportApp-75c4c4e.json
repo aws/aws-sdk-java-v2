@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Support App",
+    "contributor": "",
+    "description": "This release adds the RegisterSlackWorkspaceForOrganization API. You can use the API to register a Slack workspace for an AWS account that is part of an organization."
+}
