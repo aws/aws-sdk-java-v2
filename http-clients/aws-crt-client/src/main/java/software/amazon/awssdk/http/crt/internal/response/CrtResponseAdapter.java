@@ -80,7 +80,7 @@ public final class CrtResponseAdapter implements HttpStreamResponseHandler {
 
     @Override
     public int onResponseBody(HttpStream stream, byte[] bodyBytesIn) {
-        CompletableFuture<Void> writeFuture = responsePublisher.write(ByteBuffer.wrap(bodyBytesIn));
+        CompletableFuture<Void> writeFuture = responsePublisher.send(ByteBuffer.wrap(bodyBytesIn));
 
         if (writeFuture.isDone() && !writeFuture.isCompletedExceptionally()) {
             // Optimization: If write succeeded immediately, return non-zero to avoid the extra call back into the CRT.
@@ -89,7 +89,7 @@ public final class CrtResponseAdapter implements HttpStreamResponseHandler {
 
         writeFuture.whenComplete((result, failure) -> {
             if (failure != null) {
-                die(stream, failure);
+                failResponseHandlerAndFuture(stream, failure);
                 return;
             }
 
@@ -111,7 +111,7 @@ public final class CrtResponseAdapter implements HttpStreamResponseHandler {
     private void onSuccessfulResponseComplete(HttpStream stream) {
         responsePublisher.complete().whenComplete((result, failure) -> {
             if (failure != null) {
-                die(stream, failure);
+                failResponseHandlerAndFuture(stream, failure);
                 return;
             }
 
@@ -128,10 +128,10 @@ public final class CrtResponseAdapter implements HttpStreamResponseHandler {
     private void onFailedResponseComplete(HttpStream stream, HttpException error) {
         log.error(() -> "HTTP response encountered an error.", error);
         responsePublisher.error(error);
-        die(stream, error);
+        failResponseHandlerAndFuture(stream, error);
     }
 
-    private void die(HttpStream stream, Throwable error) {
+    private void failResponseHandlerAndFuture(HttpStream stream, Throwable error) {
         callResponseHandlerOnError(error);
         completionFuture.completeExceptionally(error);
         connection.shutdown();

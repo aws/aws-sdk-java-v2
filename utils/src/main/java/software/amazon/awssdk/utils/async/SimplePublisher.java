@@ -33,31 +33,31 @@ import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * A {@link Publisher} to which callers can {@link #write(Object)} messages, simplifying the process of implementing a publisher.
+ * A {@link Publisher} to which callers can {@link #send(Object)} messages, simplifying the process of implementing a publisher.
  *
  * <p><b>Operations</b>
  *
  * <p>The {@code SimplePublisher} supports three simplified operations:
  * <ol>
- *     <li>{@link #write(Object)} for sending messages</li>
+ *     <li>{@link #send(Object)} for sending messages</li>
  *     <li>{@link #complete()} for indicating the successful end of messages</li>
  *     <li>{@link #error(Throwable)} for indicating the unsuccessful end of messages</li>
  * </ol>
  *
  * Each of these operations returns a {@link CompletableFuture} for indicating when the message has been successfully sent.
  *
- * <p>Callers are expected to invoke a series of {@link #write(Object)}s followed by a single {@link #complete()} or
+ * <p>Callers are expected to invoke a series of {@link #send(Object)}s followed by a single {@link #complete()} or
  * {@link #error(Throwable)}. See the documentation on each operation for more details.
  *
  * <p>This publisher will store an unbounded number of messages. It is recommended that callers limit the number of in-flight
- * {@link #write(Object)} operations in order to bound the amount of memory used by this publisher.
+ * {@link #send(Object)} operations in order to bound the amount of memory used by this publisher.
  */
-@SdkPublicApi
+@SdkProtectedApi
 public final class SimplePublisher<T> implements Publisher<T> {
     private static final Logger log = Logger.loggerFor(SimplePublisher.class);
 
@@ -86,7 +86,7 @@ public final class SimplePublisher<T> implements Publisher<T> {
     private final AtomicBoolean processingQueue = new AtomicBoolean(false);
 
     /**
-     * An exception that should be raised to any failed {@link #write(Object)}, {@link #complete()} or {@link #error(Throwable)}
+     * An exception that should be raised to any failed {@link #send(Object)}, {@link #complete()} or {@link #error(Throwable)}
      * operations. This is used to stop accepting messages after the downstream subscription is cancelled or after the
      * caller sends a {@code complete()} or {@code #error()}.
      *
@@ -100,30 +100,30 @@ public final class SimplePublisher<T> implements Publisher<T> {
     private Subscriber<? super T> subscriber;
 
     /**
-     * Write a message to this publisher.
+     * Send a message using this publisher.
      *
-     * <p>Messages written to this publisher will eventually be sent to a downstream subscriber, in the order they were
+     * <p>Messages sent using this publisher will eventually be sent to a downstream subscriber, in the order they were
      * written. When the message is sent to the subscriber, the returned future will be completed successfully.
      *
      * <p>This method may be invoked concurrently when the order of messages is not important.
      *
      * <p>In the time between when this method is invoked and the returned future is not completed, this publisher stores the
-     * request message in memory. Callers are recommended to limit the number of writes in progress at a time to bound the
+     * request message in memory. Callers are recommended to limit the number of sends in progress at a time to bound the
      * amount of memory used by this publisher.
      *
      * <p>The returned future will be completed exceptionally if the downstream subscriber cancels the subscription, or
-     * if the write call was performed after a {@link #complete()} or {@link #error(Throwable)} call.
+     * if the {@code send} call was performed after a {@link #complete()} or {@link #error(Throwable)} call.
      *
      * @param value The message to send. Must not be null.
      * @return A future that is completed when the message is sent to the subscriber.
      */
-    public CompletableFuture<Void> write(T value) {
-        log.trace(() -> "Received write() with " + value);
+    public CompletableFuture<Void> send(T value) {
+        log.trace(() -> "Received send() with " + value);
 
         OnNextQueueEntry<T> entry = new OnNextQueueEntry<>(value);
         try {
             Validate.notNull(value, "Null cannot be written.");
-            checkRejectException();
+            validateRejectState();
             eventQueue.add(entry);
             processEventQueue();
         } catch (RuntimeException t) {
@@ -133,13 +133,13 @@ public final class SimplePublisher<T> implements Publisher<T> {
     }
 
     /**
-     * Indicate that no more {@link #write(Object)} calls will be made, and that stream of messages is completed successfully.
+     * Indicate that no more {@link #send(Object)} calls will be made, and that stream of messages is completed successfully.
      *
-     * <p>This can be called before any in-flight {@code write} calls are complete. Such messages will be processed before the
+     * <p>This can be called before any in-flight {@code send} calls are complete. Such messages will be processed before the
      * stream is treated as complete. The returned future will be completed successfully when the {@code complete} is sent to
      * the downstream subscriber.
      *
-     * <p>After this method is invoked, any future {@link #write(Object)}, {@code complete()} or {@link #error(Throwable)}
+     * <p>After this method is invoked, any future {@link #send(Object)}, {@code complete()} or {@link #error(Throwable)}
      * calls will be completed exceptionally and not be processed.
      *
      * <p>The returned future will be completed exceptionally if the downstream subscriber cancels the subscription, or
@@ -153,7 +153,7 @@ public final class SimplePublisher<T> implements Publisher<T> {
         OnCompleteQueueEntry<T> entry = new OnCompleteQueueEntry<>();
 
         try {
-            checkRejectException();
+            validateRejectState();
             setRejectExceptionOrThrow(() -> new IllegalStateException("complete() has been invoked"));
             eventQueue.add(entry);
             processEventQueue();
@@ -164,13 +164,13 @@ public final class SimplePublisher<T> implements Publisher<T> {
     }
 
     /**
-     * Indicate that no more {@link #write(Object)} calls will be made, and that streaming of messages has failed.
+     * Indicate that no more {@link #send(Object)} calls will be made, and that streaming of messages has failed.
      *
-     * <p>This can be called before any in-flight {@code write} calls are complete. Such messages will be processed before the
+     * <p>This can be called before any in-flight {@code send} calls are complete. Such messages will be processed before the
      * stream is treated as being in-error. The returned future will be completed successfully when the {@code error} is
      * sent to the downstream subscriber.
      *
-     * <p>After this method is invoked, any future {@link #write(Object)}, {@link #complete()} or {@code #error(Throwable)}
+     * <p>After this method is invoked, any future {@link #send(Object)}, {@link #complete()} or {@code #error(Throwable)}
      * calls will be completed exceptionally and not be processed.
      *
      * <p>The returned future will be completed exceptionally if the downstream subscriber cancels the subscription, or
@@ -185,7 +185,7 @@ public final class SimplePublisher<T> implements Publisher<T> {
         OnErrorQueueEntry<T> entry = new OnErrorQueueEntry<>(error);
 
         try {
-            checkRejectException();
+            validateRejectState();
             setRejectExceptionOrThrow(() -> new IllegalStateException("error() has been invoked"));
             eventQueue.add(entry);
             processEventQueue();
@@ -270,8 +270,6 @@ public final class SimplePublisher<T> implements Publisher<T> {
                         entryTypesToFail.addAll(asList(ON_NEXT, ON_COMPLETE, ON_ERROR));
                         log.trace(() -> "Calling onComplete()");
                         subscriber.onComplete();
-                        outstandingDemand.set(0);
-                        log.trace(() -> "Set demand to 0");
                         break;
                     case ON_ERROR:
                         OnErrorQueueEntry<T> onErrorEntry = (OnErrorQueueEntry<T>) entry;
@@ -279,8 +277,6 @@ public final class SimplePublisher<T> implements Publisher<T> {
                         entryTypesToFail.addAll(asList(ON_NEXT, ON_COMPLETE, ON_ERROR));
                         log.trace(() -> "Calling onError() with " + onErrorEntry.failure, onErrorEntry.failure);
                         subscriber.onError(onErrorEntry.failure);
-                        outstandingDemand.set(0);
-                        log.trace(() -> "Set demand to 0");
                         break;
                     case CANCEL:
                         subscriber = null; // Allow subscriber to be garbage collected after cancellation.
@@ -338,7 +334,7 @@ public final class SimplePublisher<T> implements Publisher<T> {
             RuntimeException failure = new IllegalStateException("Encountered fatal error in publisher", cause);
             rejectException.compareAndSet(null, () -> failure);
             entryTypesToFail.addAll(asList(QueueEntry.Type.values()));
-            subscriber.onError(failure);
+            subscriber.onError(cause instanceof Error ? cause : failure);
 
             while (true) {
                 QueueEntry<T> entry = eventQueue.poll();
@@ -356,7 +352,7 @@ public final class SimplePublisher<T> implements Publisher<T> {
     /**
      * Ensure that {@link #rejectException} is null. If it is not, throw the exception.
      */
-    private void checkRejectException() {
+    private void validateRejectState() {
         if (rejectException.get() != null) {
             throw rejectException.get().get();
         }
@@ -385,10 +381,16 @@ public final class SimplePublisher<T> implements Publisher<T> {
                                                                                 + "amount of data: " + n);
                 rejectException.compareAndSet(null, () -> failure);
                 eventQueue.add(new OnErrorQueueEntry<>(failure));
-                entryTypesToFail.add(ON_NEXT);
+                entryTypesToFail.addAll(asList(ON_NEXT, ON_COMPLETE));
                 processEventQueue();
             } else {
-                long newDemand = outstandingDemand.addAndGet(n);
+                long newDemand = outstandingDemand.updateAndGet(current -> {
+                    if (Long.MAX_VALUE - current < n) {
+                        return Long.MAX_VALUE;
+                    }
+
+                    return current + n;
+                });
                 log.trace(() -> "Increased demand to " + newDemand);
                 processEventQueue();
             }
@@ -412,7 +414,7 @@ public final class SimplePublisher<T> implements Publisher<T> {
      */
     abstract static class QueueEntry<T> {
         /**
-         * The future that was returned to a {@link #write(Object)}, {@link #complete()} or {@link #error(Throwable)} message.
+         * The future that was returned to a {@link #send(Object)}, {@link #complete()} or {@link #error(Throwable)} message.
          */
         protected final CompletableFuture<Void> resultFuture = new CompletableFuture<>();
 
@@ -430,7 +432,7 @@ public final class SimplePublisher<T> implements Publisher<T> {
     }
 
     /**
-     * An entry added when we get a {@link #write(Object)} call.
+     * An entry added when we get a {@link #send(Object)} call.
      */
     private static final class OnNextQueueEntry<T> extends QueueEntry<T> {
         private final T value;

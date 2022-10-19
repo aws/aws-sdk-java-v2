@@ -16,10 +16,7 @@
 package software.amazon.awssdk.utils.async;
 
 import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
 import org.reactivestreams.tck.PublisherVerification;
-import org.reactivestreams.tck.SubscriberWhiteboxVerification;
 import org.reactivestreams.tck.TestEnvironment;
 
 public class SimplePublisherTckTest extends PublisherVerification<Integer> {
@@ -31,7 +28,7 @@ public class SimplePublisherTckTest extends PublisherVerification<Integer> {
     public Publisher<Integer> createPublisher(long elements) {
         SimplePublisher<Integer> publisher = new SimplePublisher<>();
         for (int i = 0; i < elements; i++) {
-            publisher.write(i);
+            publisher.send(i);
         }
         publisher.complete();
         return publisher;

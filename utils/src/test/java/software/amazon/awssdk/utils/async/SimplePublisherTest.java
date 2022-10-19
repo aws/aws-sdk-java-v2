@@ -81,14 +81,14 @@ public class SimplePublisherTest {
     public void writeAfterCompleteFails() {
         SimplePublisher<Integer> publisher = new SimplePublisher<>();
         publisher.complete();
-        assertThat(publisher.write(5)).isCompletedExceptionally();
+        assertThat(publisher.send(5)).isCompletedExceptionally();
     }
 
     @Test
     public void writeAfterErrorFails() {
         SimplePublisher<Integer> publisher = new SimplePublisher<>();
         publisher.error(new Throwable());
-        assertThat(publisher.write(5)).isCompletedExceptionally();
+        assertThat(publisher.send(5)).isCompletedExceptionally();
     }
 
     @Test
@@ -125,8 +125,8 @@ public class SimplePublisherTest {
         StoringSubscriber<Integer> subscriber = new StoringSubscriber<>(1);
         publisher.subscribe(subscriber);
 
-        publisher.write(1);
-        publisher.write(2);
+        publisher.send(1);
+        publisher.send(2);
         publisher.complete();
 
         assertThat(subscriber.peek().get().type()).isEqualTo(EventType.ON_NEXT);
@@ -146,28 +146,32 @@ public class SimplePublisherTest {
     @Test
     public void highDemandWorks() {
         SimplePublisher<Integer> publisher = new SimplePublisher<>();
-        StoringSubscriber<Integer> subscriber = new StoringSubscriber<>(Integer.MAX_VALUE);
+        ControllableSubscriber<Integer> subscriber = new ControllableSubscriber<>();
         publisher.subscribe(subscriber);
+        subscriber.subscription.request(Long.MAX_VALUE);
 
-        publisher.write(1);
-        publisher.write(2);
+        publisher.send(1);
+        subscriber.subscription.request(Long.MAX_VALUE);
+        publisher.send(2);
+        subscriber.subscription.request(Long.MAX_VALUE);
         publisher.complete();
+        subscriber.subscription.request(Long.MAX_VALUE);
 
-        assertThat(subscriber.peek().get().type()).isEqualTo(EventType.ON_NEXT);
-        assertThat(subscriber.peek().get().value()).isEqualTo(1);
+        assertThat(subscriber.eventQueue.peek().get().type()).isEqualTo(EventType.ON_NEXT);
+        assertThat(subscriber.eventQueue.peek().get().value()).isEqualTo(1);
 
-        subscriber.poll();
+        subscriber.eventQueue.poll();
 
-        assertThat(subscriber.peek().get().type()).isEqualTo(EventType.ON_NEXT);
-        assertThat(subscriber.peek().get().value()).isEqualTo(2);
+        assertThat(subscriber.eventQueue.peek().get().type()).isEqualTo(EventType.ON_NEXT);
+        assertThat(subscriber.eventQueue.peek().get().value()).isEqualTo(2);
 
-        subscriber.poll();
+        subscriber.eventQueue.poll();
 
-        assertThat(subscriber.peek().get().type()).isEqualTo(EventType.ON_COMPLETE);
+        assertThat(subscriber.eventQueue.peek().get().type()).isEqualTo(EventType.ON_COMPLETE);
 
-        subscriber.poll();
+        subscriber.eventQueue.poll();
 
-        assertThat(subscriber.poll()).isNotPresent();
+        assertThat(subscriber.eventQueue.poll()).isNotPresent();
     }
 
     @Test
@@ -176,7 +180,7 @@ public class SimplePublisherTest {
         ControllableSubscriber<Integer> subscriber = new ControllableSubscriber<>();
         publisher.subscribe(subscriber);
 
-        CompletableFuture<Void> writeFuture = publisher.write(5);
+        CompletableFuture<Void> writeFuture = publisher.send(5);
 
         assertThat(subscriber.eventQueue.peek()).isNotPresent();
         assertThat(writeFuture).isNotCompleted();
@@ -194,7 +198,7 @@ public class SimplePublisherTest {
         ControllableSubscriber<Integer> subscriber = new ControllableSubscriber<>();
 
         publisher.subscribe(subscriber);
-        publisher.write(5);
+        publisher.send(5);
         CompletableFuture<Void> completeFuture = publisher.complete();
 
         assertThat(subscriber.eventQueue.peek()).isNotPresent();
@@ -215,7 +219,7 @@ public class SimplePublisherTest {
         ControllableSubscriber<Integer> subscriber = new ControllableSubscriber<>();
 
         publisher.subscribe(subscriber);
-        publisher.write(5);
+        publisher.send(5);
         CompletableFuture<Void> errorFuture = publisher.error(error);
 
         assertThat(subscriber.eventQueue.peek()).isNotPresent();
@@ -256,7 +260,7 @@ public class SimplePublisherTest {
         SimplePublisher<Integer> publisher = new SimplePublisher<>();
         StoringSubscriber<Integer> subscriber = new StoringSubscriber<>(Integer.MAX_VALUE);
 
-        publisher.write(5);
+        publisher.send(5);
         publisher.subscribe(subscriber);
         assertThat(subscriber.peek().get().type()).isEqualTo(EventType.ON_NEXT);
         assertThat(subscriber.peek().get().value()).isEqualTo(5);
@@ -268,7 +272,7 @@ public class SimplePublisherTest {
         ControllableSubscriber<Integer> subscriber = new ControllableSubscriber<>();
 
         publisher.subscribe(subscriber);
-        CompletableFuture<Void> writeFuture = publisher.write(5);
+        CompletableFuture<Void> writeFuture = publisher.send(5);
         CompletableFuture<Void> completeFuture = publisher.complete();
 
         subscriber.subscription.cancel();
@@ -285,9 +289,24 @@ public class SimplePublisherTest {
         publisher.subscribe(subscriber);
         subscriber.subscription.cancel();
 
-        assertThat(publisher.write(5)).isCompletedExceptionally();
+        assertThat(publisher.send(5)).isCompletedExceptionally();
         assertThat(publisher.complete()).isCompletedExceptionally();
         assertThat(publisher.error(new Throwable())).isCompletedExceptionally();
+    }
+
+    @Test
+    public void negativeDemandSkipsOutstandingMessages() {
+        SimplePublisher<Integer> publisher = new SimplePublisher<>();
+        ControllableSubscriber<Integer> subscriber = new ControllableSubscriber<>();
+
+        publisher.subscribe(subscriber);
+        CompletableFuture<Void> sendFuture = publisher.send(0);
+        CompletableFuture<Void> completeFuture = publisher.complete();
+        subscriber.subscription.request(-1);
+
+        assertThat(sendFuture).isCompletedExceptionally();
+        assertThat(completeFuture).isCompletedExceptionally();
+        assertThat(subscriber.eventQueue.poll().get().type()).isEqualTo(EventType.ON_ERROR);
     }
 
     @Test
@@ -296,7 +315,7 @@ public class SimplePublisherTest {
         ControllableSubscriber<Integer> subscriber = new ControllableSubscriber<>();
         subscriber.failureInOnNext = new RuntimeException();
 
-        CompletableFuture<Void> writeFuture = publisher.write(5);
+        CompletableFuture<Void> writeFuture = publisher.send(5);
         CompletableFuture<Void> completeFuture = publisher.complete();
 
         publisher.subscribe(subscriber);
@@ -343,7 +362,7 @@ public class SimplePublisherTest {
 
                 Future<?> writeCall = executor.submit(() -> {
                     waitForStart.run();
-                    publisher.write(0).join();
+                    publisher.send(0).join();
                 });
 
                 Future<?> completeCall = executor.submit(() -> {
@@ -404,7 +423,7 @@ public class SimplePublisherTest {
                 producers.add(executor.submit(() -> {
                     while (runProducers.get()) {
                         productionLimiter.acquire();
-                        publisher.write(messageCount.getAndIncrement());
+                        publisher.send(messageCount.getAndIncrement());
                     }
                     publisher.complete(); // All but one producer sending this will fail.
                     return null;
