@@ -45,11 +45,11 @@ public class BenchmarkRunner {
 
         Options options = new Options();
 
-        options.addRequiredOption(null, FILE, true, "Destination file path to be written or source file path to be "
-                                                    + "uploaded");
         options.addRequiredOption(null, BUCKET, true, "The s3 bucket");
         options.addRequiredOption(null, KEY, true, "The s3 key");
         options.addRequiredOption(null, OPERATION, true, "The operation to run tests: download | upload");
+        options.addOption(null, FILE, true, "Destination file path to be written to or source file path to be "
+                                            + "uploaded");
         options.addOption(null, PART_SIZE_IN_MB, true, "Part size in MB");
         options.addOption(null, MAX_THROUGHPUT, true, "The max throughput");
         options.addOption(null, CHECKSUM_ALGORITHM, true, "The checksum algorithm to use");

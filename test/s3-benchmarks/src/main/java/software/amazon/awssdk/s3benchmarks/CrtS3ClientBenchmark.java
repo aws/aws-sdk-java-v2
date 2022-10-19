@@ -40,11 +40,11 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.services.s3.internal.crt.S3NativeClientConfiguration;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Validate;
 
 public class CrtS3ClientBenchmark implements TransferManagerBenchmark {
     private final String bucket;
     private final String key;
-    private final String path;
     private final int iteration;
     private final S3NativeClientConfiguration s3NativeClientConfiguration;
     private final S3Client crtS3Client;
@@ -56,15 +56,17 @@ public class CrtS3ClientBenchmark implements TransferManagerBenchmark {
     private static final Logger logger = Logger.loggerFor("CrtS3ClientBenchmark");
 
     public CrtS3ClientBenchmark(TransferManagerBenchmarkConfig config) {
-
         logger.info(() -> "Benchmark config: " + config);
+        Validate.isNull(config.filePath(), "File path is not supported in CrtS3ClientBenchmark");
 
         Long readBufferSizeInMb = config.readBufferSizeInMb() == null ? null : config.readBufferSizeInMb() * MB;
 
         Long partSizeInBytes = config.partSizeInMb() == null ? null : config.partSizeInMb() * MB;
         s3NativeClientConfiguration = S3NativeClientConfiguration.builder()
                                                                  .partSizeInBytes(partSizeInBytes)
-                                                                 .targetThroughputInGbps(config.targetThroughput())
+                                                                 .targetThroughputInGbps(config.targetThroughput() == null ?
+                                                                                         100.0 : config.targetThroughput())
+                                                                 .checksumValidationEnabled(true)
                                                                  .build();
 
 
@@ -80,7 +82,6 @@ public class CrtS3ClientBenchmark implements TransferManagerBenchmark {
 
         bucket = config.bucket();
         key = config.key();
-        path = config.filePath();
         iteration = config.iteration() == null ? BENCHMARK_ITERATIONS : config.iteration();
 
         if (readBufferSizeInMb != null) {
@@ -142,7 +143,7 @@ public class CrtS3ClientBenchmark implements TransferManagerBenchmark {
         S3MetaRequestResponseHandler responseHandler = new S3MetaRequestResponseHandler() {
             @Override
             public int onResponseBody(ByteBuffer bodyBytesIn, long objectRangeStart, long objectRangeEnd) {
-                return 0;
+                return bodyBytesIn.remaining();
             }
 
             @Override

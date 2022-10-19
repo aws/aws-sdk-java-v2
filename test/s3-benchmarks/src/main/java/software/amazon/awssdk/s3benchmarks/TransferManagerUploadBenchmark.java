@@ -24,6 +24,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Validate;
 
 public class TransferManagerUploadBenchmark extends BaseTransferManagerBenchmark {
     private static final Logger logger = Logger.loggerFor("TransferManagerUploadBenchmark");
@@ -31,6 +32,7 @@ public class TransferManagerUploadBenchmark extends BaseTransferManagerBenchmark
 
     public TransferManagerUploadBenchmark(TransferManagerBenchmarkConfig config) {
         super(config);
+        Validate.notNull(config.filePath(), "File path must not be null");
         this.config = config;
     }
 

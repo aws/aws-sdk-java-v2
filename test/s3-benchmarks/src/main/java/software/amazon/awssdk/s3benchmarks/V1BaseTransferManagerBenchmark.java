@@ -38,6 +38,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Validate;
 
 abstract class V1BaseTransferManagerBenchmark implements TransferManagerBenchmark {
     private static final int MAX_CONCURRENCY = 100;
@@ -54,6 +55,7 @@ abstract class V1BaseTransferManagerBenchmark implements TransferManagerBenchmar
 
     V1BaseTransferManagerBenchmark(TransferManagerBenchmarkConfig config) {
         logger.info(() -> "Benchmark config: " + config);
+        Validate.notNull(config.filePath(), "File path must not be null");
         Long partSizeInMb = config.partSizeInMb() == null ? null : config.partSizeInMb() * MB;
         s3Client = AmazonS3Client.builder()
                                  .withClientConfiguration(new ClientConfiguration().withMaxConnections(MAX_CONCURRENCY))

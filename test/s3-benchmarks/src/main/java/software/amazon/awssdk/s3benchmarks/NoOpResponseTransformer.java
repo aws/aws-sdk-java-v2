@@ -44,8 +44,8 @@ public class NoOpResponseTransformer implements AsyncResponseTransformer<GetObje
         }) {
             @Override
             public void onComplete() {
-                super.onComplete();
                 future.complete(null);
+                super.onComplete();
             }
         });
     }

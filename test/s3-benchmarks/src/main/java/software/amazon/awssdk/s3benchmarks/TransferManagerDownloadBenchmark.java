@@ -38,10 +38,13 @@ public class TransferManagerDownloadBenchmark extends BaseTransferManagerBenchma
 
     @Override
     protected void doRunBenchmark() {
-        try {
-            downloadToMemory(iteration, true);
-        } catch (Exception exception) {
-            logger.error(() -> "Request failed: ", exception);
+        if (path == null) {
+            try {
+                downloadToMemory(iteration, true);
+            } catch (Exception exception) {
+                logger.error(() -> "Request failed: ", exception);
+            }
+            return;
         }
 
         try {
