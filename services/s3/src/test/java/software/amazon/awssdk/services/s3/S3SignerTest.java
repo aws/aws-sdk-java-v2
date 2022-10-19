@@ -77,7 +77,7 @@ public class S3SignerTest {
                                                                                             AwsS3V4Signer.create()).build())
                        .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
                        .region(Region.US_EAST_2).endpointOverride(endpoint)
-                       .serviceConfiguration(S3Configuration.builder().checksumValidationEnabled(false).build())
+                       .serviceConfiguration(c -> c.checksumValidationEnabled(false).pathStyleAccessEnabled(true))
                        .build();
     }
 

@@ -78,6 +78,7 @@ public class SelectObjectContentTest {
     public void setup() {
         s3 = S3AsyncClient.builder()
                           .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
+                          .serviceConfiguration(c -> c.pathStyleAccessEnabled(true))
                           .region(TEST_REGION)
                           .credentialsProvider(TEST_CREDENTIALS)
                           .build();

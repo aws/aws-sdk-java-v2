@@ -30,6 +30,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.signer.Presigner;
 import software.amazon.awssdk.core.signer.Signer;
@@ -156,7 +157,7 @@ public class EndpointOverrideEndpointResolutionTest {
                                 .setGetAccessPointRequest(r -> r.name("arn:aws:s3-outposts:us-west-2:123456789012:outpost:op-01234567890123456:accesspoint:myaccesspoint"))
                                 .setEndpointUrl("https://beta.example.com")
                                 .setClientRegion(Region.US_WEST_2)
-                                .setExpectedEndpoint("https://beta.example.com/v20180820/accesspoint/myaccesspoint")
+                                .setExpectedEndpoint("https://beta.example.com/v20180820/accesspoint/arn%3Aaws%3As3-outposts%3Aus-west-2%3A123456789012%3Aoutpost%3Aop-01234567890123456%3Aaccesspoint%3Amyaccesspoint")
                                 .setExpectedSigningServiceName("s3-outposts")
                                 .setExpectedSigningRegion(Region.US_WEST_2));
 
@@ -164,7 +165,7 @@ public class EndpointOverrideEndpointResolutionTest {
                                 .setGetAccessPointRequest(r -> r.name("arn:aws:s3-outposts:us-west-2:123456789012:outpost:op-01234567890123456:accesspoint:myaccesspoint"))
                                 .setEndpointUrl("http://beta.example.com:1234/path?foo=bar")
                                 .setClientRegion(Region.US_WEST_2)
-                                .setExpectedEndpoint("http://beta.example.com:1234/path/v20180820/accesspoint/myaccesspoint?foo=bar")
+                                .setExpectedEndpoint("http://beta.example.com:1234/path/v20180820/accesspoint/arn%3Aaws%3As3-outposts%3Aus-west-2%3A123456789012%3Aoutpost%3Aop-01234567890123456%3Aaccesspoint%3Amyaccesspoint?foo=bar")
                                 .setExpectedSigningServiceName("s3-outposts")
                                 .setExpectedSigningRegion(Region.US_WEST_2));
 
@@ -188,7 +189,7 @@ public class EndpointOverrideEndpointResolutionTest {
                                 .setGetBucketRequest(r -> r.bucket("arn:aws:s3-outposts:us-west-2:123456789012:outpost:op-01234567890123456:bucket:mybucket"))
                                 .setEndpointUrl("https://beta.example.com")
                                 .setClientRegion(Region.US_WEST_2)
-                                .setExpectedEndpoint("https://beta.example.com/v20180820/bucket/mybucket")
+                                .setExpectedEndpoint("https://beta.example.com/v20180820/bucket/arn%3Aaws%3As3-outposts%3Aus-west-2%3A123456789012%3Aoutpost%3Aop-01234567890123456%3Abucket%3Amybucket")
                                 .setExpectedSigningServiceName("s3-outposts")
                                 .setExpectedSigningRegion(Region.US_WEST_2));
 
@@ -196,7 +197,7 @@ public class EndpointOverrideEndpointResolutionTest {
                                 .setGetBucketRequest(r -> r.bucket("arn:aws:s3-outposts:us-west-2:123456789012:outpost:op-01234567890123456:bucket:mybucket"))
                                 .setEndpointUrl("http://beta.example.com:1234/path?foo=bar")
                                 .setClientRegion(Region.US_WEST_2)
-                                .setExpectedEndpoint("http://beta.example.com:1234/path/v20180820/bucket/mybucket?foo=bar")
+                                .setExpectedEndpoint("http://beta.example.com:1234/path/v20180820/bucket/arn%3Aaws%3As3-outposts%3Aus-west-2%3A123456789012%3Aoutpost%3Aop-01234567890123456%3Abucket%3Amybucket?foo=bar")
                                 .setExpectedSigningServiceName("s3-outposts")
                                 .setExpectedSigningRegion(Region.US_WEST_2));
 
@@ -205,35 +206,35 @@ public class EndpointOverrideEndpointResolutionTest {
                                 .setEndpointUrl("https://beta.example.com")
                                 .setS3ControlConfiguration(c -> c.dualstackEnabled(true))
                                 .setClientRegion(Region.US_WEST_2)
-                                .setExpectedException(IllegalArgumentException.class));
+                                .setExpectedException(SdkClientException.class));
 
         cases.add(new TestCase().setCaseName("get-access-point by access point name with dualstack via client builder")
                                 .setGetAccessPointRequest(r -> r.name("apname").accountId("123456789012"))
                                 .setEndpointUrl("https://beta.example.com")
                                 .setClientDualstackEnabled(true)
                                 .setClientRegion(Region.US_WEST_2)
-                                .setExpectedException(IllegalArgumentException.class));
+                                .setExpectedException(SdkClientException.class));
 
         cases.add(new TestCase().setCaseName("get-access-point by outpost access point arn with dualstack")
                                 .setGetAccessPointRequest(r -> r.name("arn:aws:s3-outposts:us-west-2:123456789012:outpost:op-01234567890123456:accesspoint:myaccesspoint"))
                                 .setEndpointUrl("https://beta.example.com")
                                 .setS3ControlConfiguration(c -> c.dualstackEnabled(true))
                                 .setClientRegion(Region.US_WEST_2)
-                                .setExpectedException(IllegalArgumentException.class));
+                                .setExpectedException(SdkClientException.class));
 
         cases.add(new TestCase().setCaseName("create-bucket with outpost ID with dualstack")
                                 .setCreateBucketRequest(r -> r.bucket("bucketname").outpostId("op-123"))
                                 .setEndpointUrl("https://beta.example.com")
                                 .setS3ControlConfiguration(c -> c.dualstackEnabled(true))
                                 .setClientRegion(Region.US_WEST_2)
-                                .setExpectedException(IllegalArgumentException.class));
+                                .setExpectedException(SdkClientException.class));
 
         cases.add(new TestCase().setCaseName("get-bucket with outpost bucket arn with dualstack")
                                 .setGetBucketRequest(r -> r.bucket("arn:aws:s3-outposts:us-west-2:123456789012:outpost:op-01234567890123456:bucket:mybucket"))
                                 .setEndpointUrl("https://beta.example.com")
                                 .setS3ControlConfiguration(c -> c.dualstackEnabled(true))
                                 .setClientRegion(Region.US_WEST_2)
-                                .setExpectedException(IllegalArgumentException.class));
+                                .setExpectedException(SdkClientException.class));
 
         return cases;
     }

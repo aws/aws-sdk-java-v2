@@ -25,6 +25,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -51,8 +52,8 @@ public class S3ObjectLambdaEndpointResolutionTest {
         String objectLambdaArn = "arn:aws:s3-object-lambda:us-east-1:123456789012:accesspoint/myol";
 
         assertThatThrownBy(() -> s3Client.getObject(GetObjectRequest.builder().bucket(objectLambdaArn).key("obj").build()))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("does not match the region the client was configured with");
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("Invalid configuration: region from ARN `us-east-1` does not match client region `us-west-2` and UseArnRegion is `false`");
 
     }
 
@@ -65,8 +66,8 @@ public class S3ObjectLambdaEndpointResolutionTest {
         String objectLambdaArn = "arn:aws:s3-object-lambda:us-west-2:123456789012:accesspoint/myol";
 
         assertThatThrownBy(() -> s3Client.getObject(GetObjectRequest.builder().bucket(objectLambdaArn).key("obj").build()))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("dualstack");
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("S3 Object Lambda does not support Dual-stack");
     }
 
     @Test
@@ -77,8 +78,8 @@ public class S3ObjectLambdaEndpointResolutionTest {
         String objectLambdaArn = "arn:aws-cn:s3-object-lambda:cn-north-1:123456789012:accesspoint/myol";
 
         assertThatThrownBy(() -> s3Client.getObject(GetObjectRequest.builder().bucket(objectLambdaArn).key("obj").build()))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("does not match the partition the S3 client has been configured with");
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("Client was configured for partition `aws` but ARN (`arn:aws-cn:s3-object-lambda:cn-north-1:123456789012:accesspoint/myol`) has `aws-cn`");
     }
 
     @Test
@@ -89,8 +90,8 @@ public class S3ObjectLambdaEndpointResolutionTest {
         String objectLambdaArn = "arn:aws:s3-object-lambda:us-west-2:123456789012:accesspoint/myol";
 
         assertThatThrownBy(() -> s3Client.getObject(GetObjectRequest.builder().bucket(objectLambdaArn).key("obj").build()))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("accelerate");
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("S3 Object Lambda does not support S3 Accelerate");
     }
 
     @Test
@@ -99,8 +100,8 @@ public class S3ObjectLambdaEndpointResolutionTest {
         String objectLambdaArn = "arn:aws:sqs:us-west-2:123456789012:someresource";
 
         assertThatThrownBy(() -> s3Client.getObject(GetObjectRequest.builder().bucket(objectLambdaArn).key("obj").build()))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("Unknown ARN type");
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("Invalid ARN: Unrecognized format: arn:aws:sqs:us-west-2:123456789012:someresource (type: someresource)");
     }
 
     @Test
@@ -109,8 +110,8 @@ public class S3ObjectLambdaEndpointResolutionTest {
         String objectLambdaArn = "arn:aws:s3-object-lambda:us-west-2:123456789012:bucket_name:mybucket";
 
         assertThatThrownBy(() -> s3Client.getObject(GetObjectRequest.builder().bucket(objectLambdaArn).key("obj").build()))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("does not appear to be a valid S3 access point ARN");
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("Invalid ARN: Object Lambda ARNs only support `accesspoint` arn types, but found: `bucket_name`");
     }
 
     @Test
@@ -119,8 +120,8 @@ public class S3ObjectLambdaEndpointResolutionTest {
         String objectLambdaArn = "arn:aws:s3-object-lambda::123456789012:accesspoint/myol";
 
         assertThatThrownBy(() -> s3Client.getObject(GetObjectRequest.builder().bucket(objectLambdaArn).key("obj").build()))
-            .isInstanceOf(NullPointerException.class)
-            .hasMessageContaining("region must not be null");
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("Invalid ARN: bucket ARN is missing a region");
     }
 
     @Test
@@ -129,8 +130,8 @@ public class S3ObjectLambdaEndpointResolutionTest {
         String objectLambdaArn = "arn:aws:s3-object-lambda:us-west-2::accesspoint/myol";
 
         assertThatThrownBy(() -> s3Client.getObject(GetObjectRequest.builder().bucket(objectLambdaArn).key("obj").build()))
-            .isInstanceOf(NullPointerException.class)
-            .hasMessageContaining("accountId must not be null");
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("Invalid ARN: Missing account id");
     }
 
     @Test
@@ -139,9 +140,8 @@ public class S3ObjectLambdaEndpointResolutionTest {
         String objectLambdaArn = "arn:aws:s3-object-lambda:us-west-2:123.45678.9012:accesspoint:mybucket";
 
         assertThatThrownBy(() -> s3Client.getObject(GetObjectRequest.builder().bucket(objectLambdaArn).key("obj").build()))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("The provided object lambda ARN is not valid: the 'accountId' component must match the "
-                                  + "pattern \"[A-Za-z0-9\\-]+\".");
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("Invalid ARN: The account id may only contain a-z, A-Z, 0-9 and `-`. Found: `123.45678.9012`");
     }
 
     @Test
@@ -150,8 +150,8 @@ public class S3ObjectLambdaEndpointResolutionTest {
         String objectLambdaArn = "arn:aws:s3-object-lambda:us-west-2:123456789012:accesspoint";
 
         assertThatThrownBy(() -> s3Client.getObject(GetObjectRequest.builder().bucket(objectLambdaArn).key("obj").build()))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("Unknown ARN type");
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("Invalid ARN: Expected a resource of the format `accesspoint:<accesspoint name>` but no name was provided");
     }
 
     @Test
@@ -160,9 +160,8 @@ public class S3ObjectLambdaEndpointResolutionTest {
         String objectLambdaArn = "arn:aws:s3-object-lambda:us-west-2:123456789012:accesspoint:*";
 
         assertThatThrownBy(() -> s3Client.getObject(GetObjectRequest.builder().bucket(objectLambdaArn).key("obj").build()))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("The provided object lambda ARN is not valid: the 'accessPointName' component must match the "
-                                  + "pattern \"[A-Za-z0-9\\-]+\".");
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("Invalid ARN: The access point name may only contain a-z, A-Z, 0-9 and `-`. Found: `*`");
     }
 
     @Test
@@ -171,9 +170,8 @@ public class S3ObjectLambdaEndpointResolutionTest {
         String objectLambdaArn = "arn:aws:s3-object-lambda:us-west-2:123456789012:accesspoint:my.bucket";
 
         assertThatThrownBy(() -> s3Client.getObject(GetObjectRequest.builder().bucket(objectLambdaArn).key("obj").build()))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("The provided object lambda ARN is not valid: the 'accessPointName' component must match the "
-                                  + "pattern \"[A-Za-z0-9\\-]+\".");
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("Invalid ARN: The access point name may only contain a-z, A-Z, 0-9 and `-`. Found: `my.bucket`");
     }
 
     @Test
@@ -182,8 +180,8 @@ public class S3ObjectLambdaEndpointResolutionTest {
         String objectLambdaArn = "arn:aws:s3-object-lambda:us-west-2:123456789012:accesspoint:mybucket:object:foo";
 
         assertThatThrownBy(() -> s3Client.getObject(GetObjectRequest.builder().bucket(objectLambdaArn).key("obj").build()))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("S3 object lambda access point arn shouldn't contain any sub resources");
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("Invalid ARN: The ARN may only contain a single resource component after `accesspoint`.");
     }
 
     // Valid endpoint tests
