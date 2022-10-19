@@ -1,3 +1,52 @@
+# __2.17.295__ __2022-10-19__
+## __AWS CloudTrail__
+  - ### Features
+    - This release includes support for exporting CloudTrail Lake query results to an Amazon S3 bucket.
+
+## __AWS Config__
+  - ### Features
+    - This release adds resourceType enums for AppConfig, AppSync, DataSync, EC2, EKS, Glue, GuardDuty, SageMaker, ServiceDiscovery, SES, Route53 types.
+
+## __AWS S3 Control__
+  - ### Features
+    - Updates internal logic for constructing API endpoints. We have added rule-based endpoints and internal model parameters.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Support App__
+  - ### Features
+    - This release adds the RegisterSlackWorkspaceForOrganization API. You can use the API to register a Slack workspace for an AWS account that is part of an organization.
+
+## __Amazon Chime SDK Messaging__
+  - ### Features
+    - Documentation updates for Chime Messaging SDK
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds API support for managing phone numbers that can be used across multiple AWS regions through telephony traffic distribution.
+
+## __Amazon EventBridge__
+  - ### Features
+    - Updates internal logic for constructing API endpoints. We have added rule-based endpoints and internal model parameters.
+
+## __Amazon Managed Blockchain__
+  - ### Features
+    - Adding new Accessor APIs for Amazon Managed Blockchain
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Updates internal logic for constructing API endpoints. We have added rule-based endpoints and internal model parameters.
+
+## __Amazon WorkSpaces Web__
+  - ### Features
+    - WorkSpaces Web now supports user access logging for recording session start, stop, and URL navigation.
+
+## __WS SDK for Java v2__
+  - ### Bugfixes
+    - Fix bug in FIPS configuration handling where setting a non-FIPS region clears the setting.
+
 # __2.17.294__ __2022-10-18__
 ## __AWS Cloud Map__
   - ### Features

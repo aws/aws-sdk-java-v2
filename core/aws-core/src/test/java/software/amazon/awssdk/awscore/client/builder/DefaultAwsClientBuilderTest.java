@@ -105,14 +105,25 @@ public class DefaultAwsClientBuilderTest {
     }
 
     @Test
-    public void buildWithFipsRegionThenNonFipsFipsEnabledFlagUnset() {
+    public void buildWithFipsRegionThenNonFipsFipsEnabledRemainsSet() {
         TestClient client = testClientBuilder()
             .region(Region.of("us-west-2-fips")) // first call to setter sets the flag
             .region(Region.of("us-west-2"))// second call should clear
             .build();
 
         assertThat(client.clientConfiguration.option(AwsClientOption.AWS_REGION)).isEqualTo(Region.US_WEST_2);
-        assertThat(client.clientConfiguration.option(AwsClientOption.FIPS_ENDPOINT_ENABLED)).isNull();
+        assertThat(client.clientConfiguration.option(AwsClientOption.FIPS_ENDPOINT_ENABLED)).isTrue();
+    }
+
+    @Test
+    public void buildWithSetFipsTrueAndNonFipsRegionFipsEnabledRemainsSet() {
+        TestClient client = testClientBuilder()
+            .fipsEnabled(true)
+            .region(Region.of("us-west-2"))
+            .build();
+
+        assertThat(client.clientConfiguration.option(AwsClientOption.AWS_REGION)).isEqualTo(Region.US_WEST_2);
+        assertThat(client.clientConfiguration.option(AwsClientOption.FIPS_ENDPOINT_ENABLED)).isTrue();
     }
 
     @Test
