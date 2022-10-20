@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.auth.credentials;
 
-import java.time.Clock;
-import java.time.Duration;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -26,7 +24,6 @@ import software.amazon.awssdk.auth.credentials.internal.ProfileCredentialsUtils;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
-import software.amazon.awssdk.profiles.internal.ProfileFileRefresher;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.ToString;
@@ -49,57 +46,55 @@ public final class ProfileCredentialsProvider
     implements AwsCredentialsProvider,
                SdkAutoCloseable,
                ToCopyableBuilder<ProfileCredentialsProvider.Builder, ProfileCredentialsProvider> {
-    private volatile AwsCredentials credentials;
+    private final AwsCredentialsProvider credentialsProvider;
     private final RuntimeException loadException;
 
-    private final ProfileFileRefresher profileFileRefresher;
+    private final ProfileFile profileFile;
     private final String profileName;
-    private final Supplier<ProfileFile> defaultProfileFileLoader;
 
-    private final Clock clock;
-    private final Duration refreshDuration;
-    private final Duration pollingDuration;
+    private final Supplier<ProfileFile> defaultProfileFileLoader;
 
     /**
      * @see #builder()
      */
     private ProfileCredentialsProvider(BuilderImpl builder) {
-        this.defaultProfileFileLoader = builder.defaultProfileFileLoader;
-        this.clock = builder.clock;
-        this.refreshDuration = builder.refreshInterval;
-        this.pollingDuration = builder.pollingInterval;
-
-        RuntimeException thrownException = null;
-        String selectedProfileName = null;
-        ProfileFileRefresher profileRefresher = null;
+        AwsCredentialsProvider credentialsProvider = null;
+        RuntimeException loadException = null;
+        ProfileFile profileFile = null;
+        String profileName = null;
 
         try {
-            selectedProfileName = Optional.ofNullable(builder.profileName)
-                                          .orElseGet(ProfileFileSystemSetting.AWS_PROFILE::getStringValueOrThrow);
+            profileName = builder.profileName != null ? builder.profileName
+                                                      : ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow();
 
-            ProfileFile selectedProfile = Optional.ofNullable(builder.profileFile)
-                                                  .orElseGet(builder.defaultProfileFileLoader);
+            // Load the profiles file
+            profileFile = Optional.ofNullable(builder.profileFile)
+                                  .orElseGet(builder.defaultProfileFileLoader);
 
-            profileRefresher = ProfileFileRefresher.builder()
-                                                   .profileFile(selectedProfile)
-                                                   .exceptionHandler(e -> { throw e; })
-                                                   .onProfileFileReload(this::handleProfileFileReload)
-                                                   .refresh(this.refreshDuration, this.pollingDuration)
-                                                   .clock(builder.clock)
-                                                   .asyncRefreshEnabled(false)
-                                                   .build();
-
-            updateCredentials(selectedProfile, selectedProfileName);
+            // Load the profile and credentials provider
+            String finalProfileName = profileName;
+            ProfileFile finalProfileFile = profileFile;
+            credentialsProvider =
+                    profileFile.profile(profileName)
+                               .flatMap(p -> new ProfileCredentialsUtils(finalProfileFile, p, finalProfileFile::profile)
+                                       .credentialsProvider())
+                               .orElseThrow(() -> {
+                                   String errorMessage = String.format("Profile file contained no credentials for " +
+                                                                       "profile '%s': %s", finalProfileName, finalProfileFile);
+                                   return SdkClientException.builder().message(errorMessage).build();
+                               });
         } catch (RuntimeException e) {
             // If we couldn't load the credentials provider for some reason, save an exception describing why. This exception
             // will only be raised on calls to resolveCredentials. We don't want to raise an exception here because it may be
             // expected (eg. in the default credential chain).
-            thrownException = e;
+            loadException = e;
         }
 
-        this.loadException = thrownException;
-        this.profileName = selectedProfileName;
-        this.profileFileRefresher = profileRefresher;
+        this.loadException = loadException;
+        this.credentialsProvider = credentialsProvider;
+        this.profileFile = profileFile;
+        this.profileName = profileName;
+        this.defaultProfileFileLoader = builder.defaultProfileFileLoader;
     }
 
     /**
@@ -132,55 +127,27 @@ public final class ProfileCredentialsProvider
         if (loadException != null) {
             throw loadException;
         }
-
-        refreshProfileFile();
-
-        return credentials;
-    }
-
-    private void handleProfileFileReload(ProfileFile profileFile) {
-        updateCredentials(profileFile, profileName);
-    }
-
-    private void updateCredentials(ProfileFile profileFile, String profileName) {
-        AwsCredentialsProvider credentialsProvider = createCredentialsProvider(profileFile, profileName);
-
-        this.credentials = credentialsProvider.resolveCredentials();
-
-        IoUtils.closeIfCloseable(credentialsProvider, null);
-    }
-
-    private ProfileFile refreshProfileFile() {
-        return profileFileRefresher.refreshIfStale();
+        return credentialsProvider.resolveCredentials();
     }
 
     @Override
     public String toString() {
         return ToString.builder("ProfileCredentialsProvider")
                        .add("profileName", profileName)
-                       .add("profileFile", refreshProfileFile())
+                       .add("profileFile", profileFile)
                        .build();
     }
 
     @Override
     public void close() {
-        profileFileRefresher.close();
+        // The delegate credentials provider may be closeable (eg. if it's an STS credentials provider). In this case, we should
+        // clean it up when this credentials provider is closed.
+        IoUtils.closeIfCloseable(credentialsProvider, null);
     }
 
     @Override
     public Builder toBuilder() {
         return new BuilderImpl(this);
-    }
-
-    private AwsCredentialsProvider createCredentialsProvider(ProfileFile profileFile, String profileName) {
-        // Load the profile and credentials provider
-        return profileFile.profile(profileName)
-                          .flatMap(p -> new ProfileCredentialsUtils(profileFile, p, profileFile::profile).credentialsProvider())
-                          .orElseThrow(() -> {
-                              String errorMessage = String.format("Profile file contained no credentials for " +
-                                                                  "profile '%s': %s", profileName, profileFile);
-                              return SdkClientException.builder().message(errorMessage).build();
-                          });
     }
 
     /**
@@ -207,19 +174,6 @@ public final class ProfileCredentialsProvider
         Builder profileName(String profileName);
 
         /**
-         * Define the frequency with which the credentials provider will check whether the profile file may have outstanding
-         * changes and needs to be reloaded.
-         *
-         * <p>The automatic refreshing of the ProfileFile can be disabled by setting both intervals to null</p>
-         *
-         * @param refreshInterval Once credentials are loaded, the credentials provider will suspend refreshing and
-         *                        only restart until this period has elapsed.
-         * @param pollingInterval Once the credentials provider has started refreshing, the profile file will be checked
-         *                        for changes with this frequency.
-         */
-        Builder refresh(Duration refreshInterval, Duration pollingInterval);
-
-        /**
          * Create a {@link ProfileCredentialsProvider} using the configuration applied to this builder.
          */
         @Override
@@ -230,20 +184,14 @@ public final class ProfileCredentialsProvider
         private ProfileFile profileFile;
         private String profileName;
         private Supplier<ProfileFile> defaultProfileFileLoader = ProfileFile::defaultProfileFile;
-        private Clock clock = Clock.systemUTC();
-        private Duration refreshInterval;
-        private Duration pollingInterval;
 
         BuilderImpl() {
         }
 
         BuilderImpl(ProfileCredentialsProvider provider) {
-            this.profileFile = provider.profileFileRefresher.refreshIfStale();
+            this.profileFile = provider.profileFile;
             this.profileName = provider.profileName;
             this.defaultProfileFileLoader = provider.defaultProfileFileLoader;
-            this.clock = provider.clock;
-            this.refreshInterval = provider.refreshDuration;
-            this.pollingInterval = provider.pollingDuration;
         }
 
         @Override
@@ -269,18 +217,6 @@ public final class ProfileCredentialsProvider
 
         public void setProfileName(String profileName) {
             profileName(profileName);
-        }
-
-        Builder clock(Clock clock) {
-            this.clock = clock;
-            return this;
-        }
-
-        @Override
-        public Builder refresh(Duration refreshInterval, Duration pollingInterval) {
-            this.refreshInterval = refreshInterval;
-            this.pollingInterval = pollingInterval;
-            return this;
         }
 
         @Override

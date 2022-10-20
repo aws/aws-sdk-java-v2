@@ -19,19 +19,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.google.common.jimfs.Jimfs;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.FileSystem;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.time.Instant;
 import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.utils.StringInputStream;
 
@@ -39,25 +30,6 @@ import software.amazon.awssdk.utils.StringInputStream;
  * Validate the functionality of {@link ProfileFile}.
  */
 public class ProfileFileTest {
-
-    private static FileSystem jimfs;
-    private static Path testDirectory;
-
-    @BeforeAll
-    public static void setup() {
-        jimfs = Jimfs.newFileSystem();
-        testDirectory = jimfs.getPath("test");
-    }
-
-    @AfterAll
-    public static void tearDown() {
-        try {
-            jimfs.close();
-        } catch (IOException e) {
-            // no-op
-        }
-    }
-
     @Test
     public void emptyFilesHaveNoProfiles() {
         assertThat(configFileProfiles("")).isEmpty();
@@ -484,7 +456,7 @@ public class ProfileFileTest {
                 , property("sso_session", "session"),
                                         property("role_arn", "some_Arn"))));
 
-
+        ;
         assertThat(profileFile.getSection("sso-session", "session")).isNotPresent();
     }
 
@@ -506,7 +478,7 @@ public class ProfileFileTest {
 
         assertThat(aggregatedProfileFiles.profiles())
             .isEqualTo(profiles(profile("section", property("sso_session", "sso invalid")),
-                                profile("validSection", property("sso_session", "validSso"))));
+                       profile("validSection", property("sso_session", "validSso"))));
 
         assertThat(aggregatedProfileFiles.getSection("sso-session", "sso")).isNotPresent();
         assertThat(aggregatedProfileFiles.getSection("sso-session", "sso invalid")).isNotPresent();
@@ -582,108 +554,6 @@ public class ProfileFileTest {
         ProfileFile.defaultProfileFile();
     }
 
-    @Test
-    void getBuildDetails_builtFromAggregator_returnsMergedBuildDetailsOfIndividualFiles() {
-        ProfileFile aggregatedProfileFiles = ProfileFile.aggregator()
-                                                        .addFile(configFile("[profile profile1]\n"
-                                                                            + "sso_session = sso-token1\n"
-                                                                            + "[profile profile2]\n"
-                                                                            + "region  = us-west-2\n"
-                                                                            + "[default]\n"
-                                                                            + "default_property = property1\n"))
-                                                        .addFile(configFile("[sso-session sso-token1]\n"
-                                                                            + "start_url = startUrl1\n"
-                                                                            + "[profile profile3]\n"
-                                                                            + "region = us-east-1\n")
-                                                        ).build();
-
-        assertThat(aggregatedProfileFiles.getBuildDetails()).hasSize(2);
-    }
-
-    @Test
-    void isStaleAsOf_profileSourcedFromInputStreamCheckingAgainstPriorInstant_returnsFalse() {
-        Instant comparisonInstant = Instant.now().minusSeconds(1);
-
-        ProfileFile profileFile = ProfileFile.aggregator()
-                                             .addFile(credentialFile("[in valid 2]\n"
-                                                                     + "name2 = value2"))
-                                             .build();
-
-        assertThat(profileFile.isStaleAsOf(comparisonInstant)).isFalse();
-    }
-
-    @Test
-    void isStaleAsOf_profileSourcedFromInputStreamLoadedBeforeComparisonInstant_returnsFalse() {
-        ProfileFile profileFile = ProfileFile.aggregator()
-                                             .addFile(credentialFile("[in valid 2]\n"
-                                                                     + "name2 = value2"))
-                                             .build();
-
-        Instant comparisonInstant = Instant.now().plusSeconds(1);
-
-        assertThat(profileFile.isStaleAsOf(comparisonInstant)).isFalse();
-    }
-
-    @Test
-    void isStaleAsOf_profileSourcedFromSingleFileLoadedAfterComparisonInstant_returnsFalse() {
-        Instant comparisonInstant = Instant.now().minusSeconds(1);
-
-        ProfileFile profileFile = ProfileFile.aggregator()
-                                             .addFile(credentialFile("[in valid 2]\n"
-                                                                     + "name2 = value2",
-                                                                     "creds.txt"))
-                                             .build();
-
-        assertThat(profileFile.isStaleAsOf(comparisonInstant)).isFalse();
-    }
-
-    @Test
-    void isStaleAsOf_profileSourcedFromSingleFileLoadedBeforeComparisonInstant_returnsTrue() {
-        ProfileFile profileFile = ProfileFile.aggregator()
-                                             .addFile(credentialFile("[in valid 2]\n"
-                                                                     + "name2 = value2",
-                                                                     "creds.txt"))
-                                             .build();
-
-        Instant comparisonInstant = Instant.now().plusMillis(10);
-
-        assertThat(profileFile.isStaleAsOf(comparisonInstant)).isTrue();
-    }
-
-    @Test
-    void isStaleAsOf_profileSourcedFromMultipleFilesNoneLoadedBeforeComparisonInstant_returnsFalse() {
-        Instant comparisonInstant = Instant.now().minusSeconds(1);
-
-        ProfileFile profileFile = ProfileFile.aggregator()
-                                             .addFile(credentialFile("[in valid 2]\n"
-                                                                     + "name2 = value2",
-                                                                     "creds.txt"))
-                                             .addFile(configFile("[sso-session sso-token1]\n"
-                                                                 + "start_url = startUrl1\n",
-                                                                 "config.txt"))
-                                             .build();
-
-        assertThat(profileFile.isStaleAsOf(comparisonInstant)).isFalse();
-    }
-
-    @Test
-    void isStaleAsOf_profileSourcedFromMultipleFilesAtLeastOneLoadedBeforeComparisonInstant_returnsTrue() {
-        ProfileFile credentialFile = credentialFile("[in valid 2]\n"
-                                                    + "name2 = value2",
-                                                    "creds.txt");
-
-        Instant comparisonInstant = Instant.now().plusMillis(10);
-
-        ProfileFile profileFile = ProfileFile.aggregator()
-                                             .addFile(credentialFile)
-                                             .addFile(configFile("[sso-session sso-token1]\n"
-                                                                 + "start_url = startUrl1\n",
-                                                                 "config.txt"))
-                                             .build();
-
-        assertThat(profileFile.isStaleAsOf(comparisonInstant)).isTrue();
-    }
-
     private ProfileFile configFile(String configFile) {
         return ProfileFile.builder()
                           .content(new StringInputStream(configFile))
@@ -730,32 +600,4 @@ public class ProfileFileTest {
     private Map.Entry<String, String> property(String name, String value) {
         return new AbstractMap.SimpleImmutableEntry<>(name, value);
     }
-
-    private ProfileFile configFile(String configFile, String filename) {
-        Path configFilePath = generateTestFile(configFile, filename);
-
-        return ProfileFile.builder()
-                          .content(configFilePath)
-                          .type(ProfileFile.Type.CONFIGURATION)
-                          .build();
-    }
-
-    private ProfileFile credentialFile(String credentialFile, String filename) {
-        Path credentialFilePath = generateTestFile(credentialFile, filename);
-
-        return ProfileFile.builder()
-                          .content(credentialFilePath)
-                          .type(ProfileFile.Type.CREDENTIALS)
-                          .build();
-    }
-
-    private Path generateTestFile(String contents, String filename) {
-        try {
-            Files.createDirectories(testDirectory);
-            return Files.write(testDirectory.resolve(filename), contents.getBytes(StandardCharsets.UTF_8));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
 }
