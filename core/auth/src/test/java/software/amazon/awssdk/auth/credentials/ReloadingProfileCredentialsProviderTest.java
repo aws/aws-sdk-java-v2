@@ -36,7 +36,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.profiles.ProfileFile;
-import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.utils.StringInputStream;
 
 public class ReloadingProfileCredentialsProviderTest {
@@ -60,14 +59,27 @@ public class ReloadingProfileCredentialsProviderTest {
     }
 
     @Test
-    void resolveCredentials_missingProfileFileCausesExceptionInMethod_throwsException() {
+    void resolveCredentials_missingProfileFileCausesExceptionInConstructor_throwsException() {
         ReloadingProfileCredentialsProvider provider =
             new ReloadingProfileCredentialsProvider.BuilderImpl()
-                .defaultProfileFileLoader(() -> ProfileFile.builder()
-                                                           .content(new StringInputStream(""))
-                                                           .type(ProfileFile.Type.CONFIGURATION)
-                                                           .build())
-                .build();
+                .profileFileSupplier(() -> ProfileFile.builder()
+                                                      .content(new StringInputStream(""))
+                                                      .type(ProfileFile.Type.CONFIGURATION)
+                                                      .build())
+            .build();
+
+        assertThatThrownBy(provider::resolveCredentials).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void resolveCredentials_missingProfileFileCausesExceptionInMethod_throwsException() {
+        ReloadingProfileCredentialsProvider.BuilderImpl builder = new ReloadingProfileCredentialsProvider.BuilderImpl();
+        builder.defaultProfileFileLoader(() -> ProfileFile.builder()
+                                                          .content(new StringInputStream(""))
+                                                          .type(ProfileFile.Type.CONFIGURATION)
+                                                          .build());
+        builder.defaultProfileFileReloadPredicate(r -> true);
+        ReloadingProfileCredentialsProvider provider = builder.build();
 
         assertThatThrownBy(provider::resolveCredentials).isInstanceOf(SdkClientException.class);
     }
@@ -79,7 +91,11 @@ public class ReloadingProfileCredentialsProviderTest {
                                        + "aws_secret_access_key = defaultSecretAccessKey");
 
         ReloadingProfileCredentialsProvider provider =
-            ReloadingProfileCredentialsProvider.builder().profileFileSupplier(() -> file).profileName("foo").build();
+            ReloadingProfileCredentialsProvider.builder()
+                                               .profileFileSupplier(() -> file)
+                                               .profileFileReloadPredicate(rec -> true)
+                                               .profileName("foo")
+                                               .build();
 
         assertThatThrownBy(provider::resolveCredentials).isInstanceOf(SdkClientException.class);
     }
@@ -89,7 +105,11 @@ public class ReloadingProfileCredentialsProviderTest {
         ProfileFile file = profileFile("[default]");
 
         ReloadingProfileCredentialsProvider provider =
-            ReloadingProfileCredentialsProvider.builder().profileFileSupplier(() -> file).profileName("default").build();
+            ReloadingProfileCredentialsProvider.builder()
+                                               .profileFileSupplier(() -> file)
+                                               .profileFileReloadPredicate(rec -> true)
+                                               .profileName("default")
+                                               .build();
 
         assertThatThrownBy(provider::resolveCredentials).isInstanceOf(SdkClientException.class);
     }
@@ -101,7 +121,11 @@ public class ReloadingProfileCredentialsProviderTest {
                                        + "aws_secret_access_key = defaultSecretAccessKey");
 
         ReloadingProfileCredentialsProvider provider =
-            ReloadingProfileCredentialsProvider.builder().profileFileSupplier(() -> file).profileName("default").build();
+            ReloadingProfileCredentialsProvider.builder()
+                                               .profileFileSupplier(() -> file)
+                                               .profileName("default")
+                                               .profileFileReloadPredicate(rec -> true)
+                                               .build();
 
         assertThat(provider.resolveCredentials()).satisfies(credentials -> {
             assertThat(credentials.accessKeyId()).isEqualTo("defaultAccessKey");

@@ -19,6 +19,7 @@ import java.nio.file.Path;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -87,11 +88,16 @@ public final class ReloadingProfileCredentialsProvider
             selectedProfileName = Optional.ofNullable(builder.profileName)
                                           .orElseGet(ProfileFileSystemSetting.AWS_PROFILE::getStringValueOrThrow);
 
-            Supplier<ProfileFile> selectedProfile = Optional.ofNullable(builder.profileFileSupplier)
-                                                            .orElse(builder.defaultProfileFileLoader);
+            Supplier<ProfileFile> selectedProfile = builder.profileFileSupplier;
+            Predicate<ProfileFileRefresher.ProfileFileRefreshRecord> selectedPredicate = builder.profileFileReloadPredicate;
+            if (Objects.isNull(builder.profileFileSupplier)) {
+                selectedProfile = builder.defaultProfileFileLoader;
+                selectedPredicate = builder.defaultProfileFileReloadPredicate;
+            }
 
-            Predicate<ProfileFileRefresher.ProfileFileRefreshRecord> selectedPredicate
-                = Optional.ofNullable(builder.profileFileReloadPredicate).orElse(builder.defaultProfileFileReloadPredicate);
+            if (Objects.nonNull(selectedProfile) && Objects.isNull(selectedPredicate)) {
+                throw new IllegalArgumentException("Need to specify profileFileReloadPredicate when passing profileFileSupplier");
+            }
 
             profileRefresher = ProfileFileRefresher.builder()
                                                    .profileFileSupplier(selectedProfile)
@@ -203,6 +209,12 @@ public final class ReloadingProfileCredentialsProvider
         return ProfileFileRefresher.diskFileHasUpdatedModificationTime(contentLocation);
     }
 
+    static Function<RuntimeException, ProfileFile> exceptionhandler() {
+        return e -> {
+            throw SdkClientException.builder().cause(e).build();
+        };
+    }
+
     /**
      * A builder for creating a custom {@link ReloadingProfileCredentialsProvider}.
      */
@@ -283,7 +295,7 @@ public final class ReloadingProfileCredentialsProvider
         private Supplier<ProfileFile> defaultProfileFileLoader = ProfileFile::defaultProfileFile;
         private Predicate<ProfileFileRefresher.ProfileFileRefreshRecord> defaultProfileFileReloadPredicate
             = refreshRecord -> refreshRecord.wasCreatedBeforeFileModified(ProfileFileLocation.credentialsFilePath());
-        private Function<RuntimeException, ProfileFile> exceptionHandler = e -> { throw e; };
+        private Function<RuntimeException, ProfileFile> exceptionHandler = exceptionhandler();
         private Clock clock = Clock.systemUTC();
         private Duration refreshDuration;
         private Duration pollingDuration;
