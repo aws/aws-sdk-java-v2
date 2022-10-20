@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Resilience Hub",
+    "contributor": "",
+    "description": "In this release, we are introducing support for regional optimization for AWS Resilience Hub applications. It also includes a few documentation updates to improve clarity."
+}
