@@ -48,7 +48,7 @@ public final class PackageInfoGeneratorTasks extends BaseGeneratorTasks {
         return Collections.singletonList(new SimpleGeneratorTask(baseDirectory,
                                                                  "package-info.java",
                                                                  model.getFileHeader(),
-                                                                 packageInfoContents));
+                                                                 () -> packageInfoContents));
     }
 
 }

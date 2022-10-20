@@ -51,6 +51,13 @@ public final class AwsExecutionAttribute extends SdkExecutionAttribute {
     public static final ExecutionAttribute<Boolean> FIPS_ENDPOINT_ENABLED =
         new ExecutionAttribute<>("FipsEndpointsEnabled");
 
+    /**
+     * Whether the client was configured to use the service's global endpoint. This is used as part of endpoint computation by
+     * the endpoint providers.
+     */
+    public static final ExecutionAttribute<Boolean> USE_GLOBAL_ENDPOINT =
+        new ExecutionAttribute<>("UseGlobalEndpoint");
+
     private AwsExecutionAttribute() {
     }
 }
