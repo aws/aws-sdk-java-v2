@@ -17,9 +17,9 @@ package software.amazon.awssdk.utils;
 
 import java.util.HashMap;
 import java.util.Map;
-import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
-@SdkPublicApi
+@SdkProtectedApi
 public final class MapUtils {
     private MapUtils() {
     }
