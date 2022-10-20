@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Global Accelerator",
-    "contributor": "",
-    "description": "Global Accelerator now supports AddEndpoints and RemoveEndpoints operations for standard endpoint groups."
-}
