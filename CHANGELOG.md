@@ -1,3 +1,37 @@
+# __2.18.0__ __2022-10-20__
+## __AWS Global Accelerator__
+  - ### Features
+    - Global Accelerator now supports AddEndpoints and RemoveEndpoints operations for standard endpoint groups.
+
+## __AWS Resilience Hub__
+  - ### Features
+    - In this release, we are introducing support for regional optimization for AWS Resilience Hub applications. It also includes a few documentation updates to improve clarity.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - This release updates internal logic for constructing API endpoints. 
+
+      We have added rule-based endpoint providers. Additionally there are new interfaces for endpoint providers and parameters at the service client level.
+
+      The SDK provides service-specific `EndpointProvider` interfaces (e.g. `S3EndpointProvider`), that have a single method `resolveEndpoint`. `resolveEndpoint` accepts a set of parameters (also service specific) and computes an endpoint based on those parameters. All clients have a default implementation, but users are free to implement these to customize their endpoint logic.
+
+      It is important to know that `EndpointProvider`s and the endpoint override on the client are not mutually exclusive. In all existing cases, the endpoint override is passed as a parameter to the the provider and the provider *may* modify it. For example, the S3 provider may add the bucket name as a prefix to the endpoint override for virtual bucket addressing.
+
+      There may be some behavior changes related to endpoint resolution as as the the endpoint resolution is now standardised across SDKs so this release also bumps the minor version of the SDK to `2.18`.
+
+      Notably, there are some changes in S3: when including and endpoint override, the SDK will use virtual bucket addressing as long as the bucket is a valid DNS label. This is different from the previous behavior where this only happens if the endpoint override begins with 's3'.
+
+      In many situations, the exception thrown for validations like including an endpoint override and enabling DualStack has changed to `SdkClientExcpetion` and error messages have changed as well.
+    - Updated endpoint and partition metadata.
+
+## __Amazon DevOps Guru__
+  - ### Features
+    - This release adds information about the resources DevOps Guru is analyzing.
+
+## __CloudWatch RUM__
+  - ### Features
+    - CloudWatch RUM now supports Extended CloudWatch Metrics with Additional Dimensions
+
 # __2.17.295__ __2022-10-19__
 ## __AWS CloudTrail__
   - ### Features

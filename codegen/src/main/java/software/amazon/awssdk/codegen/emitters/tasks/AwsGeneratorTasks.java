@@ -26,6 +26,7 @@ public class AwsGeneratorTasks extends CompositeGeneratorTask {
               new AsyncClientGeneratorTasks(params),
               new PaginatorsGeneratorTasks(params),
               new EventStreamGeneratorTasks(params),
-              new WaitersGeneratorTasks(params));
+              new WaitersGeneratorTasks(params),
+              new EndpointProviderTasks(params));
     }
 }

@@ -60,7 +60,7 @@ public class PutObjectHeaderTest {
         s3Client = S3Client.builder()
                            .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
                            .region(Region.US_WEST_2).endpointOverride(URI.create(getEndpoint()))
-                           .serviceConfiguration(S3Configuration.builder().checksumValidationEnabled(false).build())
+                           .serviceConfiguration(S3Configuration.builder().checksumValidationEnabled(false).pathStyleAccessEnabled(true).build())
                            .build();
         putObjectRequest = PutObjectRequest.builder().bucket("test").key("test").build();
     }

@@ -70,12 +70,14 @@ public class ChecksumResetsOnRetryTest {
                            .credentialsProvider(credentials)
                            .region(Region.US_WEST_2)
                            .endpointOverride(URI.create("http://localhost:" + mockServer.port()))
+                           .serviceConfiguration(c -> c.pathStyleAccessEnabled(true))
                            .build();
 
         s3AsyncClient = S3AsyncClient.builder()
                                      .credentialsProvider(credentials)
                                      .region(Region.US_WEST_2)
                                      .endpointOverride(URI.create("http://localhost:" + mockServer.port()))
+                                     .serviceConfiguration(c -> c.pathStyleAccessEnabled(true))
                                      .build();
 
         body = "foo".getBytes(StandardCharsets.UTF_8);

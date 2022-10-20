@@ -70,17 +70,14 @@ public class InvalidRegionTest {
         assertThatThrownBy(() -> client.getObject(r -> r.bucket("arn:aws:s3:US_EAST_1:123456789012:accesspoint/test")
                                                         .key("test")))
             .isInstanceOf(SdkClientException.class)
-            .hasMessageContaining("US_EAST_1")
-            .hasMessageContaining("URI");
+            .hasMessageContaining("Invalid region in ARN: `US_EAST_1` (invalid DNS name)");
     }
 
     @Test
     public void invalidS3PresignerRegionAtClientGivesHelpfulMessage() {
         assertThatThrownBy(() -> S3Presigner.builder().region(Region.of("US_EAST_1")).build())
             .isInstanceOf(SdkClientException.class)
-            .hasMessageContaining("US_EAST_1")
-            .hasMessageContaining("region")
-            .hasMessageContaining("us-east-1");
+            .hasMessageContaining("Configured region (US_EAST_1) and tags ([]) resulted in an invalid URI");
     }
 
     @Test
@@ -95,7 +92,6 @@ public class InvalidRegionTest {
         assertThatThrownBy(() -> presigner.presignGetObject(r -> r.getObjectRequest(g -> g.bucket(arn).key("test"))
                                                                   .signatureDuration(Duration.ofMinutes(15))))
             .isInstanceOf(SdkClientException.class)
-            .hasMessageContaining("US_EAST_1")
-            .hasMessageContaining("URI");
+            .hasMessageContaining("Invalid region in ARN: `US_EAST_1` (invalid DNS name)");
     }
 }
