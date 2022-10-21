@@ -99,7 +99,7 @@ public final class AwsExecutionContextBuilder {
             .putAttribute(SdkExecutionAttribute.SIGNER_OVERRIDDEN, clientConfig.option(SdkClientOption.SIGNER_OVERRIDDEN))
             .putAttribute(AwsExecutionAttribute.USE_GLOBAL_ENDPOINT,
                           clientConfig.option(AwsClientOption.USE_GLOBAL_ENDPOINT))
-            .putAttribute(RESOLVED_CHECKSUM_SPECS, HttpChecksumResolver.getResolvedChecksumSpecs(executionAttributes));
+            .putAttribute(RESOLVED_CHECKSUM_SPECS, HttpChecksumResolver.resolveChecksumSpecs(executionAttributes));
 
         ExecutionInterceptorChain executionInterceptorChain =
                 new ExecutionInterceptorChain(clientConfig.option(SdkClientOption.EXECUTION_INTERCEPTORS));
