@@ -52,6 +52,8 @@ public final class Ec2MetadataEndpointProvider {
         this.profileName = builder.profileName;
     }
 
+    public static final Ec2MetadataEndpointProvider DEFAULT_ENDPOINT_PROVIDER = builder().build();
+
     /**
      * Resolve the endpoint to be used for the {@link DefaultEc2Metadata} client. Users may manually provide an endpoint through
      * the {@code AWS_EC2_METADATA_SERVICE_ENDPOINT} environment variable or th {@code ec2_metadata_service_endpoint} key in
