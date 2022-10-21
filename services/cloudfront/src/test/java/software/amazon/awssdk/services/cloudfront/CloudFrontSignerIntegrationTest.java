@@ -116,7 +116,7 @@ public class CloudFrontSignerIntegrationTest extends IntegrationTestBase {
     private static String domainName = "dbvkchd2z8bpx.cloudfront.net";
     private static String distributionId = "E3GN6IWUWAFY2";
     private static KeyPair keyPair;
-    private static File keyFile = new File("key.pem");
+    private static File keyFile = new File("src/test/key.pem");
     private static String keyGroupId = "bff6c847-086e-4886-af89-28b3250b9e0d";
     private static String originAccessId = "E2TR2JP2I1U6QH";
     private static String distributionETag;
