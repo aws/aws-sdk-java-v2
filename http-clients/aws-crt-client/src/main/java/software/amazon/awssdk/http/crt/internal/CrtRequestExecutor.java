@@ -61,7 +61,7 @@ public final class CrtRequestExecutor {
 
             HttpRequest crtRequest = CrtRequestAdapter.toCrtRequest(executionContext);
             HttpStreamResponseHandler crtResponseHandler =
-                CrtResponseAdapter.toCrtResponseHandler(crtConn, requestFuture, executionContext);
+                CrtResponseAdapter.toCrtResponseHandler(crtConn, requestFuture, asyncRequest.responseHandler());
 
             // Submit the request on the connection
             try {

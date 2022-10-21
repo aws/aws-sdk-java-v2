@@ -59,6 +59,11 @@ public interface NamingStrategy {
     String getWaitersPackageName(String serviceName);
 
     /**
+     * Retrieve the endpoint rules package name that should be used based on the service name.
+     */
+    String getEndpointRulesPackageName(String serviceName);
+
+    /**
      * Retrieve the smote test package name that should be used based on the service name.
      */
     String getSmokeTestPackageName(String serviceName);

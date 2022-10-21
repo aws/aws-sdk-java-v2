@@ -20,6 +20,7 @@
         "http-client-spi": { "packageName": "AwsJavaSdk-HttpClient" },
         "json-utils": { "packageName": "AwsJavaSdk-Core-JsonUtils" },
         "metrics-spi": { "packageName": "AwsJavaSdk-Core-MetricsSpi" },
+        "endpoints-spi": { "packageName": "AwsJavaSdk-Core-EndpointsSpi" },
         "netty-nio-client": { "packageName": "AwsJavaSdk-HttpClient-NettyNioClient" },
         "profiles": { "packageName": "AwsJavaSdk-Core-Profiles" },
         "protocol-core": { "packageName": "AwsJavaSdk-Core-ProtocolCore" },
@@ -41,6 +42,9 @@
             "packageName": "AwsJavaSdk-ThirdParty-JacksonDataformatCbor",
             "artifactType": "JAR",
             "includes": ["target/aws-sdk-java-third-party-jackson-dataformat-cbor-*.jar"]
+        },
+        "ruleset-testing-core": {
+            "packageName": "AwsJavaSdk-Test-RuleSetTestingCore"
         },
 
         "archetype-app-quickstart": { "skipImport": true },
@@ -113,6 +117,10 @@
         "software.amazon.awssdk.crt:aws-crt": { "packageName": "Aws-crt-java", "packageVersion": "1.0.x" },
         "software.amazon.eventstream:eventstream": { "packageName": "AwsFlowJava", "packageVersion": "1.0" },
         "software.amazon.ion:ion-java": { "packageName": "Maven-software-amazon-ion_ion-java", "packageVersion": "1.x" },
-        "software.amazon:flow": { "packageName": "AwsFlowJava", "packageVersion": "1.0" }
+        "software.amazon:flow": { "packageName": "AwsFlowJava", "packageVersion": "1.0" },
+        "org.junit.jupiter:junit-jupiter": { "packageName": "JUnit5", "packageVersion": "5.x" },
+        "org.mockito:mockito-core": { "packageName": "Mockito", "packageVersion": "3.x" },
+        "io.reactivex.rxjava3:rxjava": { "packageName": "RxJava", ",packageVersion": "3.x" },
+        "org.assertj:assertj-core": { "packageName": "AssertJ", ",packageVersion": "3.22.x" }
     }
 }
