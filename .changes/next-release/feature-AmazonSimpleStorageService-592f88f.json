@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Simple Storage Service",
+    "contributor": "",
+    "description": "S3 on Outposts launches support for automatic bucket-style alias. You can use the automatic access point alias instead of an access point ARN for any object-level operation in an Outposts bucket."
+}
