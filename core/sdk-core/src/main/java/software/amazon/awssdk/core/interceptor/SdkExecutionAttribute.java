@@ -66,8 +66,7 @@ public class SdkExecutionAttribute {
     public static final ExecutionAttribute<Boolean> ENDPOINT_OVERRIDDEN = new ExecutionAttribute<>("EndpointOverridden");
 
     /**
-     * The endpoint resolved at client creation time. This is either the endpointOverride (if {@link #ENDPOINT_OVERRIDDEN} is
-     * true) or the endpoint derived from the region metadata (if {@link #ENDPOINT_OVERRIDDEN} is false).
+     * This is the endpointOverride (if {@link #ENDPOINT_OVERRIDDEN} is true), otherwise null.
      */
     public static final ExecutionAttribute<URI> CLIENT_ENDPOINT = new ExecutionAttribute<>("EndpointOverride");
 

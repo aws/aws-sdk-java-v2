@@ -191,6 +191,7 @@ abstract class AddShapes {
         memberModel.setEndpointDiscoveryId(c2jMemberDefinition.isEndpointdiscoveryid());
         memberModel.setXmlAttribute(c2jMemberDefinition.isXmlAttribute());
         memberModel.setUnionEnumTypeName(namingStrategy.getUnionEnumTypeName(memberModel));
+        memberModel.setContextParam(c2jMemberDefinition.getContextParam());
 
 
         // Pass the xmlNameSpace from the member reference

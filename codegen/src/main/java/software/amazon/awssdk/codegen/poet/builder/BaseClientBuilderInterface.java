@@ -28,22 +28,28 @@ import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.auth.token.credentials.aws.DefaultAwsTokenProvider;
 import software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
+import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.service.ClientContextParam;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.codegen.utils.BearerAuthUtils;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
+import software.amazon.awssdk.utils.internal.CodegenNamingUtils;
 
 
 public class BaseClientBuilderInterface implements ClassSpec {
     private final IntermediateModel model;
     private final String basePackage;
     private final ClassName builderInterfaceName;
+    private final EndpointRulesSpecUtils endpointRulesSpecUtils;
 
     public BaseClientBuilderInterface(IntermediateModel model) {
         this.model = model;
         this.basePackage = model.getMetadata().getFullClientPackageName();
         this.builderInterfaceName = ClassName.get(basePackage, model.getMetadata().getBaseBuilderInterface());
+        this.endpointRulesSpecUtils = new EndpointRulesSpecUtils(model);
     }
 
     @Override
@@ -65,6 +71,14 @@ public class BaseClientBuilderInterface implements ClassSpec {
         if (model.getCustomizationConfig().getServiceConfig().getClassName() != null) {
             builder.addMethod(serviceConfigurationMethod());
             builder.addMethod(serviceConfigurationConsumerBuilderMethod());
+        }
+
+        builder.addMethod(endpointProviderMethod());
+
+        if (hasClientContextParams()) {
+            model.getClientContextParams().forEach((n, m) -> {
+                builder.addMethod(clientContextParamSetter(n, m));
+            });
         }
 
         if (generateTokenProviderMethod()) {
@@ -122,6 +136,31 @@ public class BaseClientBuilderInterface implements ClassSpec {
                          .build();
     }
 
+    private MethodSpec endpointProviderMethod() {
+        return MethodSpec.methodBuilder("endpointProvider")
+                         .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                         .addParameter(endpointRulesSpecUtils.providerInterfaceName(), "endpointProvider")
+            .addJavadoc("Set the {@link $T} implementation that will be used by the client to determine the endpoint for each "
+                        + "request. This is optional; if none is provided a default implementation will be used the SDK.",
+                        endpointRulesSpecUtils.providerInterfaceName())
+                         .returns(TypeVariableName.get("B"))
+                         .build();
+    }
+
+    private MethodSpec clientContextParamSetter(String name, ClientContextParam param) {
+        String setterName = Utils.unCapitalize(CodegenNamingUtils.pascalCase(name));
+        TypeName type = endpointRulesSpecUtils.toJavaType(param.getType());
+
+        MethodSpec.Builder b = MethodSpec.methodBuilder(setterName)
+            .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+            .addParameter(type, setterName)
+            .returns(TypeVariableName.get("B"));
+
+        PoetUtils.addJavadoc(b::addJavadoc, param.getDocumentation());
+
+        return b.build();
+    }
+
     private boolean generateTokenProviderMethod() {
         return BearerAuthUtils.usesBearerAuth(model);
     }
@@ -148,5 +187,9 @@ public class BaseClientBuilderInterface implements ClassSpec {
     @Override
     public ClassName className() {
         return builderInterfaceName;
+    }
+
+    private boolean hasClientContextParams() {
+        return model.getClientContextParams() != null && !model.getClientContextParams().isEmpty();
     }
 }

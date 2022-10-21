@@ -15,26 +15,38 @@
 
 package software.amazon.awssdk.services;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import io.reactivex.Flowable;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.net.URI;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import org.assertj.core.api.AbstractThrowableAssert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.stubbing.Answer;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryFailedException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.internal.SdkInternalTestAdvancedClientOption;
+import software.amazon.awssdk.http.AbortableInputStream;
+import software.amazon.awssdk.http.ExecutableHttpRequest;
+import software.amazon.awssdk.http.HttpExecuteResponse;
+import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.http.async.AsyncExecuteRequest;
+import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.endpointdiscoverytest.EndpointDiscoveryTestAsyncClient;
 import software.amazon.awssdk.services.endpointdiscoverytest.EndpointDiscoveryTestClient;
@@ -45,41 +57,53 @@ public class EndpointDiscoveryTest {
     @Rule
     public WireMockRule wireMock = new WireMockRule(0);
 
+    private SdkHttpClient mockSyncClient;
+
+    private SdkAsyncHttpClient mockAsyncClient;
+
     private EndpointDiscoveryTestClient client;
 
     private EndpointDiscoveryTestAsyncClient asyncClient;
 
     @Before
     public void setupClient() {
+        mockSyncClient = mock(SdkHttpClient.class);
+
         client = EndpointDiscoveryTestClient.builder()
-                                            .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
+                                            .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(
+                                                "akid", "skid")))
                                             .region(Region.US_EAST_1)
                                             .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
                                             .endpointDiscoveryEnabled(true)
                                             .overrideConfiguration(c -> c.putAdvancedOption(
                                                 SdkInternalTestAdvancedClientOption.ENDPOINT_OVERRIDDEN_OVERRIDE, false))
+                                            .httpClient(mockSyncClient)
                                             .build();
 
+        mockAsyncClient = mock(SdkAsyncHttpClient.class);
         asyncClient = EndpointDiscoveryTestAsyncClient.builder()
                                                       .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
                                                       .region(Region.US_EAST_1)
                                                       .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
                                                       .endpointDiscoveryEnabled(true)
                                                       .overrideConfiguration(c -> c.putAdvancedOption(
-                                                          SdkInternalTestAdvancedClientOption.ENDPOINT_OVERRIDDEN_OVERRIDE, false))
+                                                          SdkInternalTestAdvancedClientOption.ENDPOINT_OVERRIDDEN_OVERRIDE,
+                                                          false))
+                                                      .httpClient(mockAsyncClient)
                                                       .build();
     }
 
     @Test
     public void syncRequiredOperation_EmptyEndpointDiscoveryResponse_CausesEndpointDiscoveryFailedException() {
-        stubEmptyResponse();
-        assertThatThrownBy(() -> client.testDiscoveryRequired(r -> {}))
+        stubResponse(mockSyncClient, 200, "{}");
+        assertThatThrownBy(() -> client.testDiscoveryRequired(r -> {
+        }))
             .isInstanceOf(EndpointDiscoveryFailedException.class);
     }
 
     @Test
     public void asyncRequiredOperation_EmptyEndpointDiscoveryResponse_CausesEndpointDiscoveryFailedException() {
-        stubEmptyResponse();
+        stubResponse(mockAsyncClient, 200, "{}");
         assertAsyncRequiredOperationCallThrowable()
             .isInstanceOf(EndpointDiscoveryFailedException.class)
             .hasCauseInstanceOf(IllegalArgumentException.class);
@@ -87,30 +111,36 @@ public class EndpointDiscoveryTest {
 
     @Test
     public void syncRequiredOperation_NonRetryableEndpointDiscoveryResponse_CausesEndpointDiscoveryFailedException() {
-        stubDescribeEndpointsResponse(404);
-        assertThatThrownBy(() -> client.testDiscoveryRequired(r -> {}))
+        stubResponse(mockSyncClient, 404, "localhost", 60);
+
+        assertThatThrownBy(() -> client.testDiscoveryRequired(r -> {
+        }))
             .isInstanceOf(EndpointDiscoveryFailedException.class)
             .hasCauseInstanceOf(EndpointDiscoveryTestException.class);
     }
 
     @Test
     public void asyncRequiredOperation_NonRetryableEndpointDiscoveryResponse_CausesEndpointDiscoveryFailedException() {
-        stubDescribeEndpointsResponse(404);
+        stubResponse(mockAsyncClient, 404, "localhost", 60);
+
         assertAsyncRequiredOperationCallThrowable()
             .isInstanceOf(EndpointDiscoveryFailedException.class);
     }
 
     @Test
     public void syncRequiredOperation_RetryableEndpointDiscoveryResponse_CausesEndpointDiscoveryFailedException() {
-        stubDescribeEndpointsResponse(500);
-        assertThatThrownBy(() -> client.testDiscoveryRequired(r -> {}))
+        stubResponse(mockSyncClient, 500, "localhost", 60);
+
+        assertThatThrownBy(() -> client.testDiscoveryRequired(r -> {
+        }))
             .isInstanceOf(EndpointDiscoveryFailedException.class)
             .hasCauseInstanceOf(EndpointDiscoveryTestException.class);
     }
 
     @Test
     public void asyncRequiredOperation_RetryableEndpointDiscoveryResponse_CausesEndpointDiscoveryFailedException() {
-        stubDescribeEndpointsResponse(500);
+        stubResponse(mockAsyncClient, 500, "localhost", 60);
+
         assertAsyncRequiredOperationCallThrowable()
             .isInstanceOf(EndpointDiscoveryFailedException.class)
             .hasCauseInstanceOf(EndpointDiscoveryTestException.class);
@@ -118,47 +148,100 @@ public class EndpointDiscoveryTest {
 
     @Test
     public void syncRequiredOperation_InvalidEndpointEndpointDiscoveryResponse_CausesSdkException() {
-        stubDescribeEndpointsResponse(200, "invalid", 15);
-        assertThatThrownBy(() -> client.testDiscoveryRequired(r -> {}))
+        stubResponse(mockSyncClient, 500, "invalid", 15);
+
+        assertThatThrownBy(() -> client.testDiscoveryRequired(r -> {
+        }))
             .isInstanceOf(SdkClientException.class);
     }
 
     @Test
     public void asyncRequiredOperation_InvalidEndpointEndpointDiscoveryResponse_CausesSdkException() {
-        stubDescribeEndpointsResponse(200, "invalid", 15);
+        stubResponse(mockAsyncClient, 500, "invalid", 15);
+
         assertAsyncRequiredOperationCallThrowable()
             .isInstanceOf(SdkClientException.class);
     }
 
-    private void stubEmptyResponse() {
-        stubFor(post(anyUrl())
-                    .willReturn(aResponse().withStatus(200)
-                                           .withBody("{}")));
-    }
-
-    private void stubDescribeEndpointsResponse(int status) {
-        stubDescribeEndpointsResponse(status, "localhost", 60);
-    }
-
-    private void stubDescribeEndpointsResponse(int status, String address, long cachePeriodInMinutes) {
-        stubFor(post(urlPathEqualTo("/DescribeEndpoints"))
-                    .willReturn(aResponse().withStatus(status)
-                                           .withBody("{" +
-                                                     "  \"Endpoints\": [{" +
-                                                     "    \"Address\": \"" + address + "\"," +
-                                                     "    \"CachePeriodInMinutes\": " + cachePeriodInMinutes +
-                                                     "  }]" +
-                                                     "}")));
-    }
-
     private AbstractThrowableAssert<?, ? extends Throwable> assertAsyncRequiredOperationCallThrowable() {
         try {
-            asyncClient.testDiscoveryRequired(r -> {}).get();
+            asyncClient.testDiscoveryRequired(r -> {
+            }).get();
             throw new AssertionError();
         } catch (InterruptedException e) {
             return assertThat(e);
         } catch (ExecutionException e) {
             return assertThat(e.getCause());
         }
+    }
+
+    private static class TestExecutableHttpRequest implements ExecutableHttpRequest {
+        private final HttpExecuteResponse response;
+
+        TestExecutableHttpRequest(HttpExecuteResponse response) {
+            this.response = response;
+        }
+
+        @Override
+        public void abort() {
+        }
+
+        @Override
+        public HttpExecuteResponse call() throws IOException {
+            return response;
+        }
+    }
+
+    private void stubResponse(SdkAsyncHttpClient mockClient, int statusCode, String address, long cachePeriod) {
+        String responseBody = "{" +
+                              "  \"Endpoints\": [{" +
+                              "    \"Address\": \"" + address + "\"," +
+                              "    \"CachePeriodInMinutes\": " + cachePeriod +
+                              "  }]" +
+                              "}";
+
+        stubResponse(mockClient, statusCode, responseBody);
+    }
+
+    private void stubResponse(SdkAsyncHttpClient mockClient, int statusCode, String responseBody) {
+        when(mockClient.execute(any())).thenAnswer(
+            stubAsyncResponse(SdkHttpResponse.builder().statusCode(statusCode).build(),
+                              ByteBuffer.wrap(responseBody.getBytes(StandardCharsets.UTF_8))));
+    }
+
+    private void stubResponse(SdkHttpClient mockClient, int statusCode, String address, long cachePeriod) {
+        String responseBody = "{" +
+                              "  \"Endpoints\": [{" +
+                              "    \"Address\": \"" + address + "\"," +
+                              "    \"CachePeriodInMinutes\": " + cachePeriod +
+                              "  }]" +
+                              "}";
+
+        stubResponse(mockClient, statusCode, responseBody);
+    }
+
+    private void stubResponse(SdkHttpClient mockClient, int statusCode, String responseBody) {
+        when(mockClient.prepareRequest(any())).thenReturn(new TestExecutableHttpRequest(
+            HttpExecuteResponse.builder()
+                               .response(SdkHttpResponse.builder()
+                                                        .statusCode(statusCode)
+                                                        .build())
+                               .responseBody(AbortableInputStream.create(
+                                   new ByteArrayInputStream(responseBody.getBytes(StandardCharsets.UTF_8))))
+                               .build()
+        ));
+    }
+
+    private Answer<CompletableFuture<Void>> stubAsyncResponse(SdkHttpResponse response, ByteBuffer content) {
+        return (i) -> {
+            AsyncExecuteRequest request = i.getArgument(0, AsyncExecuteRequest.class);
+            request.responseHandler().onHeaders(response);
+            request.responseHandler().onStream(Flowable.just(content));
+
+            CompletableFuture<Void> cf = new CompletableFuture<>();
+            cf.complete(null);
+
+            return cf;
+        };
     }
 }
