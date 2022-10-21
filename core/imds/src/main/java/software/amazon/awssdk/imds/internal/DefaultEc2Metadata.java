@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.imds.internal;
 
+import static software.amazon.awssdk.imds.internal.Ec2MetadataEndpointProvider.DEFAULT_ENDPOINT_PROVIDER;
+
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URI;
@@ -50,9 +52,6 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
 
     private static final Logger log = Logger.loggerFor(DefaultEc2Metadata.class);
 
-    private static final Ec2MetadataEndpointProvider ENDPOINT_PROVIDER =
-        Ec2MetadataEndpointProvider.builder().build();
-
     private final Ec2MetadataRetryPolicy retryPolicy;
 
     private final URI endpoint;
@@ -69,9 +68,9 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
         this.retryPolicy = builder.retryPolicy != null ? builder.retryPolicy
                                                        : Ec2MetadataRetryPolicy.builder().build();
         this.endpointMode = builder.endpointMode != null ? builder.endpointMode
-                                                         : ENDPOINT_PROVIDER.resolveEndpointMode();
+                                                         : DEFAULT_ENDPOINT_PROVIDER.resolveEndpointMode();
         this.endpoint = builder.endpoint != null ? builder.endpoint
-                                                 : URI.create(ENDPOINT_PROVIDER.resolveEndpoint(this.endpointMode));
+                                                 : URI.create(DEFAULT_ENDPOINT_PROVIDER.resolveEndpoint(this.endpointMode));
         this.tokenTtl = builder.tokenTtl != null ? builder.tokenTtl
                                                  : Duration.ofSeconds(21600);
         this.httpClient = builder.httpClient != null ? builder.httpClient
@@ -141,7 +140,10 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
 
     private MetadataResponse sendRequest(String path, String token) throws IOException {
 
-        HttpExecuteRequest httpExecuteRequest = requestMarshaller.createDataRequest(path, token, tokenTtl);
+        HttpExecuteRequest httpExecuteRequest =
+            HttpExecuteRequest.builder()
+                              .request(requestMarshaller.createDataRequest(path, token, tokenTtl))
+                              .build();
         HttpExecuteResponse response = httpClient.prepareRequest(httpExecuteRequest).call();
 
         int statusCode = response.httpResponse().statusCode();
@@ -183,7 +185,9 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
     }
 
     private String getToken() throws IOException {
-        HttpExecuteRequest httpExecuteRequest = requestMarshaller.createTokenRequest(tokenTtl);
+        HttpExecuteRequest httpExecuteRequest = HttpExecuteRequest.builder()
+                                                                  .request(requestMarshaller.createTokenRequest(tokenTtl))
+                                                                  .build();
         HttpExecuteResponse response = httpClient.prepareRequest(httpExecuteRequest).call();
 
         int statusCode = response.httpResponse().statusCode();
