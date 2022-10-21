@@ -1,3 +1,16 @@
+# __2.18.1__ __2022-10-21__
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - This release adds a new "DeletionProtection" field to the UserPool in Cognito. Application admins can configure this value with either ACTIVE or INACTIVE value. Setting this field to ACTIVE will prevent a user pool from accidental deletion.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - CreateInferenceRecommenderjob API now supports passing endpoint details directly, that will help customers to identify the max invocation and max latency they can achieve for their model and the associated endpoint along with getting recommendations on other instances.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - S3 on Outposts launches support for automatic bucket-style alias. You can use the automatic access point alias instead of an access point ARN for any object-level operation in an Outposts bucket.
+
 # __2.18.0__ __2022-10-20__
 ## __AWS Global Accelerator__
   - ### Features

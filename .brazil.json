@@ -20,6 +20,7 @@
         "http-client-spi": { "packageName": "AwsJavaSdk-HttpClient" },
         "json-utils": { "packageName": "AwsJavaSdk-Core-JsonUtils" },
         "metrics-spi": { "packageName": "AwsJavaSdk-Core-MetricsSpi" },
+        "endpoints-spi": { "packageName": "AwsJavaSdk-Core-EndpointsSpi" },
         "netty-nio-client": { "packageName": "AwsJavaSdk-HttpClient-NettyNioClient" },
         "profiles": { "packageName": "AwsJavaSdk-Core-Profiles" },
         "protocol-core": { "packageName": "AwsJavaSdk-Core-ProtocolCore" },

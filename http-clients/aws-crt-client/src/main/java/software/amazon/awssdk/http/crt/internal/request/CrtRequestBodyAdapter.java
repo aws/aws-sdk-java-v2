@@ -19,24 +19,27 @@ import java.nio.ByteBuffer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.http.HttpRequestBodyStream;
 import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
-import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.async.ByteBufferStoringSubscriber;
+import software.amazon.awssdk.utils.async.ByteBufferStoringSubscriber.TransferResult;
 
-/**
- * Implements the CrtHttpStreamHandler API and converts CRT callbacks into calls to SDK AsyncExecuteRequest methods
- */
 @SdkInternalApi
 final class CrtRequestBodyAdapter implements HttpRequestBodyStream {
-    private final int windowSize;
-    private final CrtRequestBodySubscriber requestBodySubscriber;
+    private final SdkHttpContentPublisher requestPublisher;
+    private final ByteBufferStoringSubscriber requestBodySubscriber;
 
-    CrtRequestBodyAdapter(SdkHttpContentPublisher requestPublisher, int windowSize) {
-        this.windowSize = Validate.isPositive(windowSize, "windowSize is <= 0");
-        this.requestBodySubscriber = new CrtRequestBodySubscriber(windowSize);
+    CrtRequestBodyAdapter(SdkHttpContentPublisher requestPublisher, int readLimit) {
+        this.requestPublisher = requestPublisher;
+        this.requestBodySubscriber = new ByteBufferStoringSubscriber(readLimit);
         requestPublisher.subscribe(requestBodySubscriber);
     }
 
     @Override
     public boolean sendRequestBody(ByteBuffer bodyBytesOut) {
-        return requestBodySubscriber.transferRequestBody(bodyBytesOut);
+        return requestBodySubscriber.transferTo(bodyBytesOut) == TransferResult.END_OF_STREAM;
+    }
+
+    @Override
+    public long getLength() {
+        return requestPublisher.contentLength().orElse(0L);
     }
 }
