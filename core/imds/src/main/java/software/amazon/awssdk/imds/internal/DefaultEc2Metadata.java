@@ -151,7 +151,8 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
             responseBody.map(this::uncheckedInputStreamToUtf8)
                         .ifPresent(str -> log.debug(() -> "Metadata request response body: " + str));
             throw RetryableException.builder()
-                                    .message("The requested metadata at path ( " + path + " ) returned Http code " + statusCode).build();
+                                    .message("The requested metadata at path ( " + path + " ) returned Http code " + statusCode)
+                                    .build();
         }
 
         if (!HttpStatusFamily.of(statusCode).isOneOf(HttpStatusFamily.SUCCESSFUL)) {
