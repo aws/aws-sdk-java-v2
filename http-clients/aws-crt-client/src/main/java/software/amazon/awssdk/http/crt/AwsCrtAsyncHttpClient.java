@@ -322,6 +322,8 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
          *
          * @param readBufferSize The number of bytes that can be buffered
          * @return The builder of the method chaining.
+         *
+         * TODO: This is also used for the write buffer size. Should we rename it?
          */
         Builder readBufferSize(int readBufferSize);
 
