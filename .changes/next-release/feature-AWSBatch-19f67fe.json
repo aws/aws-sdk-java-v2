@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Batch",
-    "contributor": "",
-    "description": "This release adds support for AWS Batch on Amazon EKS."
-}
