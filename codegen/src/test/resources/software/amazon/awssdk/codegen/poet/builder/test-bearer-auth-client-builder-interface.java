@@ -3,6 +3,7 @@ package software.amazon.awssdk.services.json;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
+import software.amazon.awssdk.services.json.endpoints.JsonEndpointProvider;
 
 /**
  * This includes configuration specific to Json Service that is supported by both {@link JsonClientBuilder} and
@@ -10,6 +11,12 @@ import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
  */
 @Generated("software.amazon.awssdk:codegen")
 public interface JsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C>, C> extends AwsClientBuilder<B, C> {
+    /**
+     * Set the {@link JsonEndpointProvider} implementation that will be used by the client to determine the endpoint for
+     * each request. This is optional; if none is provided a default implementation will be used the SDK.
+     */
+    B endpointProvider(JsonEndpointProvider endpointProvider);
+
     /**
      * Set the token provider to use for bearer token authorization. This is optional, if none is provided, the SDK will
      * use {@link software.amazon.awssdk.auth.token.credentials.aws.DefaultAwsTokenProvider}.

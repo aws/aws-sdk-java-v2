@@ -29,8 +29,12 @@ public final class PoetGeneratorTask extends GeneratorTask {
     private final String fileHeader;
 
     public PoetGeneratorTask(String outputDirectory, String fileHeader, ClassSpec classSpec) {
+        this (outputDirectory, fileHeader, classSpec, false);
+    }
+
+    public PoetGeneratorTask(String outputDirectory, String fileHeader, ClassSpec classSpec, boolean disableFormatting) {
         this.fileHeader = fileHeader;
-        this.writer = new CodeWriter(outputDirectory, classSpec.className().simpleName());
+        this.writer = new CodeWriter(outputDirectory, classSpec.className().simpleName(), disableFormatting);
         this.classSpec = classSpec;
     }
 

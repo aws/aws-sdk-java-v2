@@ -91,9 +91,14 @@ public final class AwsExecutionContextBuilder {
             .putAttribute(SdkExecutionAttribute.OPERATION_NAME, executionParams.getOperationName())
             .putAttribute(SdkExecutionAttribute.CLIENT_ENDPOINT, clientConfig.option(SdkClientOption.ENDPOINT))
             .putAttribute(SdkExecutionAttribute.ENDPOINT_OVERRIDDEN, clientConfig.option(SdkClientOption.ENDPOINT_OVERRIDDEN))
+            .putAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER, clientConfig.option(SdkClientOption.ENDPOINT_PROVIDER))
+            .putAttribute(SdkInternalExecutionAttribute.CLIENT_CONTEXT_PARAMS,
+                          clientConfig.option(SdkClientOption.CLIENT_CONTEXT_PARAMS))
             .putAttribute(SdkInternalExecutionAttribute.DISABLE_HOST_PREFIX_INJECTION,
                           clientConfig.option(SdkAdvancedClientOption.DISABLE_HOST_PREFIX_INJECTION))
             .putAttribute(SdkExecutionAttribute.SIGNER_OVERRIDDEN, clientConfig.option(SdkClientOption.SIGNER_OVERRIDDEN))
+            .putAttribute(AwsExecutionAttribute.USE_GLOBAL_ENDPOINT,
+                          clientConfig.option(AwsClientOption.USE_GLOBAL_ENDPOINT))
             .putAttribute(RESOLVED_CHECKSUM_SPECS, HttpChecksumResolver.getResolvedChecksumSpecs(executionAttributes));
 
         ExecutionInterceptorChain executionInterceptorChain =

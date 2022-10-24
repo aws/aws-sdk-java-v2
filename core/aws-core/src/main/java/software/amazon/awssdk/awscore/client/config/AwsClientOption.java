@@ -73,6 +73,11 @@ public final class AwsClientOption<T> extends ClientOption<T> {
     public static final AwsClientOption<DefaultsMode> DEFAULTS_MODE = new AwsClientOption<>(DefaultsMode.class);
 
     /**
+     * Option to specify whether global endpoint should be used.
+     */
+    public static final AwsClientOption<Boolean> USE_GLOBAL_ENDPOINT = new AwsClientOption<>(Boolean.class);
+
+    /**
      * Option to specific the {@link SdkTokenProvider} to use for bearer token authorization.
      */
     public static final AwsClientOption<SdkTokenProvider> TOKEN_PROVIDER = new AwsClientOption<>(SdkTokenProvider.class);

@@ -38,8 +38,7 @@ public class CodeWriter extends StringWriter {
     /**
      * The code transformation that should be applied before code is written.
      */
-    private final CodeTransformer codeWriteTransformer = CodeTransformer.chain(new UnusedImportRemover(),
-                                                                               new JavaCodeFormatter());
+    private final CodeTransformer codeWriteTransformer;
 
     /**
      * The code transformation that should be applied before source code is "compared" for equality. This is only used when
@@ -59,7 +58,11 @@ public class CodeWriter extends StringWriter {
      *             name of the file without .java suffix.
      */
     public CodeWriter(String dir, String file) {
-        this(dir, file, JAVA_FILE_NAME_SUFFIX);
+        this(dir, file, JAVA_FILE_NAME_SUFFIX, false);
+    }
+
+    public CodeWriter(String dir, String file, boolean disableFormatter) {
+        this(dir, file, JAVA_FILE_NAME_SUFFIX, disableFormatter);
     }
 
     /**
@@ -72,7 +75,7 @@ public class CodeWriter extends StringWriter {
      * @param fileNameSuffix
      *             suffix to be appended at the end of file name.
      */
-    public CodeWriter(String dir, String file, String fileNameSuffix) {
+    public CodeWriter(String dir, String file, String fileNameSuffix, boolean disableFormatter) {
         if (dir == null) {
             throw new IllegalArgumentException(
                     "Output Directory cannot be null.");
@@ -93,6 +96,13 @@ public class CodeWriter extends StringWriter {
         this.dir = dir;
         this.file = file;
         Utils.createDirectory(dir);
+
+        if (disableFormatter) {
+            codeWriteTransformer = CodeTransformer.chain(new UnusedImportRemover());
+        } else {
+            codeWriteTransformer = CodeTransformer.chain(new UnusedImportRemover(),
+                                                         new JavaCodeFormatter());
+        }
     }
 
     /**
