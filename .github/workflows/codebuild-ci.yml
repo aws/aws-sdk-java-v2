@@ -19,6 +19,7 @@ jobs:
           aws-region: us-west-2
       - name: Run JDK8 build
         uses: aws-actions/aws-codebuild-run-build@v1
+        timeout-minutes: 120
         with:
           project-name: aws-sdk-java-v2
   jdk11-build:
@@ -31,6 +32,7 @@ jobs:
           aws-region: us-west-2
       - name: Run JDK11 build
         uses: aws-actions/aws-codebuild-run-build@v1
+        timeout-minutes: 120
         with:
           project-name: aws-sdk-java-v2-JDK11
   jdk17-build:
@@ -43,6 +45,7 @@ jobs:
           aws-region: us-west-2
       - name: Run JDK17 build
         uses: aws-actions/aws-codebuild-run-build@v1
+        timeout-minutes: 120
         with:
           project-name: aws-sdk-java-v2-JDK17
   windows-jdk8-build:
@@ -79,6 +82,7 @@ jobs:
           aws-region: us-west-2
       - name: Run sonar-cloud analysis
         uses: aws-actions/aws-codebuild-run-build@v1
+        timeout-minutes: 120
         with:
           project-name: aws-sdk-java-v2-sonar
           env-vars-for-codebuild: |
