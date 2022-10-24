@@ -173,7 +173,7 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
                 case AWS_S3_CONTROL_USE_ARN_REGION:
                 // end of S3 specific builtins
                 case AWS_STS_USE_GLOBAL_ENDPOINT:
-                    // TODO: handle this
+                    // V2 doesn't support this, only regional endpoints
                     return;
                 default:
                     throw new RuntimeException("Don't know how to set built-in " + m.getBuiltInEnum());

@@ -24,12 +24,15 @@ import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
+import software.amazon.awssdk.regions.servicemetadata.EnhancedS3ServiceMetadata;
 import software.amazon.awssdk.utils.Lazy;
 import software.amazon.awssdk.utils.Logger;
 
 /**
- * Note: Most of the logic is copied from EnhancedS3ServiceMetadata
- * // TODO: should probably refactor that class to reuse the same logic
+ * Resolve the use global endpoint setting for S3.
+ * <p>
+ * This logic is identical to that in {@link EnhancedS3ServiceMetadata}, there's no good way to share it aside from creating a
+ * protected API that both the s3 and regions module consume.
  */
 @SdkInternalApi
 public class UseGlobalEndpointResolver {
