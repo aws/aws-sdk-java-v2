@@ -125,4 +125,12 @@ public class MetadataResponseTest {
         metadataResponse.asDocument();
     }
 
+    @Test
+    public void equals_hasCode() {
+        MetadataResponse metadataResponse = MetadataResponse.create("Line 1");
+        assertThat(metadataResponse).isEqualTo(MetadataResponse.create("Line 1"))
+                                    .hasSameHashCodeAs("Line 1");
+        assertThat(metadataResponse.equals(null)).isFalse();
+    }
+
 }

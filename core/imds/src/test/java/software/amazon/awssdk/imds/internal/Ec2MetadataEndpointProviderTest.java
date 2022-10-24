@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.imds;
+package software.amazon.awssdk.imds.internal;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
@@ -47,12 +47,15 @@ import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
 import software.amazon.awssdk.core.retry.backoff.FixedDelayBackoffStrategy;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
+import software.amazon.awssdk.imds.Ec2Metadata;
+import software.amazon.awssdk.imds.Ec2MetadataRetryPolicy;
+import software.amazon.awssdk.imds.MetadataResponse;
 
 /**
  * Unit Tests to test the Ec2Metadata Client functionality
  */
 @RunWith(MockitoJUnitRunner.class)
-public class Ec2MetadataTest {
+public class Ec2MetadataEndpointProviderTest {
 
     private static final String TOKEN_RESOURCE_PATH = "/latest/api/token";
 
