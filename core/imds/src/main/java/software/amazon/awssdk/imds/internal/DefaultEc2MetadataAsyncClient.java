@@ -91,7 +91,7 @@ public final class DefaultEc2MetadataAsyncClient implements Ec2MetadataAsyncClie
             AsyncExecuteRequest.builder()
                                .request(baseTokenRequest)
                                .requestContentPublisher(new SimpleHttpContentPublisher(baseTokenRequest))
-                               .responseHandler(stringResponseHandler(tokenFuture))
+                               .responseHandler(new StringResponseHandler(tokenFuture))
                                .build();
         httpClient.execute(tokenRequest);
         CompletableFuture<MetadataResponse> result = tokenFuture.thenComposeAsync(token -> sendRequest(path, token));
@@ -111,10 +111,14 @@ public final class DefaultEc2MetadataAsyncClient implements Ec2MetadataAsyncClie
 
     // todo encapsulate this logic so it can be reused by both the sync and async client
     private boolean shouldRetry(RetryPolicyContext retryPolicyContext, MetadataResponse response, Throwable error) {
-        return response == null
-               || retryPolicyContext.retriesAttempted() < retryPolicy.numRetries()
-               || error instanceof RetryableException
-               || error.getCause() instanceof RetryableException;
+        if (response != null) {
+            return false;
+        }
+        boolean maxAttemptReached = retryPolicyContext.retriesAttempted() >= retryPolicy.numRetries();
+        if (maxAttemptReached) {
+            return false;
+        }
+        return error instanceof RetryableException || error.getCause() instanceof RetryableException;
     }
 
     private CompletableFuture<MetadataResponse> sendRequest(String path, String token) {
@@ -124,43 +128,10 @@ public final class DefaultEc2MetadataAsyncClient implements Ec2MetadataAsyncClie
             AsyncExecuteRequest.builder()
                                .request(baseMetadataRequest)
                                .requestContentPublisher(new SimpleHttpContentPublisher(baseMetadataRequest))
-                               .responseHandler(stringResponseHandler(metadataFuture))
+                               .responseHandler(new StringResponseHandler(metadataFuture))
                                .build();
         httpClient.execute(metadataRequest);
         return metadataFuture.thenApply(MetadataResponse::create);
-    }
-
-    private SdkAsyncHttpResponseHandler stringResponseHandler(CompletableFuture<String> future) {
-       return new SdkAsyncHttpResponseHandler() {
-            @Override
-            public void onHeaders(SdkHttpResponse headers) {
-                int statusCode = headers.statusCode();
-                if (HttpStatusFamily.of(statusCode).isOneOf(HttpStatusFamily.CLIENT_ERROR)) {
-                    log.debug(() -> String.format("Error while executing EC2Metadata request, received status %d",
-                                                  statusCode));
-                    // non-retryable error
-                    future.completeExceptionally(SdkClientException.create("Error: Status code " + statusCode));
-                }
-                if (HttpStatusFamily.of(statusCode).isOneOf(HttpStatusFamily.SERVER_ERROR)) {
-                    log.debug(() -> String.format("Error while executing EC2Metadata request, received status %d",
-                                                  statusCode));
-                    // retryable error
-                    future.completeExceptionally(RetryableException.create("Error: Status code " + statusCode));
-                }
-            }
-
-            @Override
-            public void onError(Throwable error) {
-                log.debug(() -> String.format("Error while executing EC2Metadata request: %s", error.getMessage()));
-                future.completeExceptionally(RetryableException.create(error.getMessage(), error));
-            }
-
-            @Override
-            public void onStream(Publisher<ByteBuffer> stream) {
-                stream.subscribe(new SimpleSubscriber(b ->
-                    future.complete(new String(b.array(), StandardCharsets.UTF_8))));
-            }
-        };
     }
 
     @Override
@@ -181,6 +152,43 @@ public final class DefaultEc2MetadataAsyncClient implements Ec2MetadataAsyncClie
     @Override
     public void close() {
         httpClient.close();
+    }
+
+    private static final class StringResponseHandler implements SdkAsyncHttpResponseHandler {
+
+        private final CompletableFuture<String> future;
+
+        private StringResponseHandler(CompletableFuture<String> future) {
+            this.future = future;
+        }
+
+        @Override
+        public void onHeaders(SdkHttpResponse headers) {
+            HttpStatusFamily statusCode = HttpStatusFamily.of(headers.statusCode());
+            if (statusCode.isOneOf(HttpStatusFamily.CLIENT_ERROR)) {
+                // non-retryable error
+                log.debug(() -> String.format("Error while executing EC2Metadata request, received status %d",
+                                              headers.statusCode()));
+                future.completeExceptionally(SdkClientException.create("Error: Status code " + statusCode));
+            }
+            if (statusCode.isOneOf(HttpStatusFamily.SERVER_ERROR)) {
+                // retryable error
+                log.debug(() -> String.format("Error while executing EC2Metadata request, received status %d",
+                                              headers.statusCode()));
+                future.completeExceptionally(RetryableException.create("Error: Status code " + statusCode));
+            }
+        }
+
+        @Override
+        public void onError(Throwable error) {
+            log.debug(() -> String.format("Error while executing EC2Metadata request: %s", error.getMessage()));
+            future.completeExceptionally(RetryableException.create(error.getMessage(), error));
+        }
+
+        @Override
+        public void onStream(Publisher<ByteBuffer> stream) {
+            stream.subscribe(new SimpleSubscriber(b -> future.complete(new String(b.array(), StandardCharsets.UTF_8))));
+        }
     }
 
     private static final class Ec2MetadataAsyncBuilder implements Ec2MetadataAsyncClient.Builder {

@@ -28,6 +28,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.fail;
 
 import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
@@ -82,6 +83,8 @@ public class DefaultEc2MetadataAsyncClientTest {
                 .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("1024")));
             verify(exactly(1), getRequestedFor(urlPathEqualTo(AMI_ID_RESOURCE))
                 .withHeader(TOKEN_HEADER, equalTo("some-token")));
+        } catch (Exception e) {
+            fail("Unexpected exception while executing test", e);
         }
     }
 
@@ -108,6 +111,8 @@ public class DefaultEc2MetadataAsyncClientTest {
                 .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("1024")));
             verify(exactly(4), getRequestedFor(urlPathEqualTo(AMI_ID_RESOURCE))
                 .withHeader(TOKEN_HEADER, equalTo("some-token")));
+        } catch (Exception e) {
+            fail("Unexpected exception while executing test", e);
         }
     }
 
@@ -133,6 +138,8 @@ public class DefaultEc2MetadataAsyncClientTest {
                 .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("1024")));
             verify(exactly(0), getRequestedFor(urlPathEqualTo(AMI_ID_RESOURCE))
                 .withHeader(TOKEN_HEADER, equalTo("some-token")));
+        } catch (Exception e) {
+            fail("Unexpected exception while executing test", e);
         }
     }
 
@@ -157,6 +164,8 @@ public class DefaultEc2MetadataAsyncClientTest {
                 .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("1024")));
             verify(exactly(1), getRequestedFor(urlPathEqualTo(AMI_ID_RESOURCE))
                 .withHeader(TOKEN_HEADER, equalTo("some-token")));
+        } catch (Exception e) {
+            fail("Unexpected exception while executing test", e);
         }
 
     }
@@ -195,6 +204,8 @@ public class DefaultEc2MetadataAsyncClientTest {
                 .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("1024")));
             verify(exactly(totalRequest), getRequestedFor(urlPathMatching(AMI_ID_RESOURCE + "/" + "\\d"))
                 .withHeader(TOKEN_HEADER, equalTo("some-token")));
+        } catch (Exception e) {
+            fail("Unexpected exception while executing test", e);
         }
     }
 }
