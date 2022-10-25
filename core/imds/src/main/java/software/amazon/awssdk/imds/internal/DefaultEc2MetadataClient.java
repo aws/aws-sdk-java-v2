@@ -26,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
@@ -48,7 +49,7 @@ import software.amazon.awssdk.utils.Logger;
 @SdkInternalApi
 @Immutable
 @ThreadSafe
-public final class DefaultEc2MetadataClient implements Ec2MetadataClient {
+public final class DefaultEc2MetadataClient implements Ec2MetadataClient, SdkClient {
 
     private static final Logger log = Logger.loggerFor(DefaultEc2MetadataClient.class);
 
@@ -76,6 +77,16 @@ public final class DefaultEc2MetadataClient implements Ec2MetadataClient {
         this.httpClient = builder.httpClient != null ? builder.httpClient
                                                      : UrlConnectionHttpClient.create();
         this.requestMarshaller = new RequestMarshaller(this.endpoint);
+    }
+
+    @Override
+    public String serviceName() {
+        return SERVICE_NAME;
+    }
+
+    @Override
+    public void close() {
+        httpClient.close();
     }
 
     public static Ec2MetadataClient.Builder builder() {

@@ -24,9 +24,12 @@ import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.imds.internal.DefaultEc2MetadataAsyncClient;
 
+/**
+ *  Interface to represent the Ec2Metadata Client Class. Used to access instance metadata from a running instance.
+ */
 @SdkPublicApi
 public interface Ec2MetadataAsyncClient extends SdkClient {
-    String SERVICE_NAME = "ec2metadata";
+    String SERVICE_NAME = "EC2metadata";
 
     CompletableFuture<MetadataResponse> get(String path);
 

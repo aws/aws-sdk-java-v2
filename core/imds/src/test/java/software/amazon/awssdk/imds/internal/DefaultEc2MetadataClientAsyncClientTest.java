@@ -214,6 +214,49 @@ public class DefaultEc2MetadataClientAsyncClientTest {
     }
 
     @Test
+    public void getToken_failsThenSucceed_shouldSucceed() {
+        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).inScenario("Retry Scenario")
+                                                        .whenScenarioStateIs(STARTED)
+                                                        .willReturn(aResponse().withFault(MALFORMED_RESPONSE_CHUNK))
+                                                        .willSetStateTo("Cause Success"));
+        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).inScenario("Retry Scenario")
+                                                        .whenScenarioStateIs("Cause Success")
+                                                        .willReturn(aResponse().withBody("some-token")));
+        stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).inScenario("Retry Scenario")
+                                                    .whenScenarioStateIs("Cause Success")
+                                                    .willReturn(aResponse().withBody("Success")));
+
+        System.setProperty(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.property(),
+                           "http://localhost:" + mockMetadataEndpoint.port());
+        Ec2MetadataRetryPolicy retryPolicy =
+            Ec2MetadataRetryPolicy.builder()
+                                  .numRetries(5)
+                                  .backoffStrategy(FixedDelayBackoffStrategy.create(Duration.ofMillis(300)))
+                                  .build();
+        try (Ec2MetadataAsyncClient client =
+                 Ec2MetadataAsyncClient.builder()
+                                       .endpoint(URI.create("http://localhost:" + mockMetadataEndpoint.port()))
+                                       .tokenTtl(Duration.ofSeconds(1024))
+                                       .httpClient(AwsCrtAsyncHttpClient.builder().maxConcurrency(10).build())
+                                       .retryPolicy(retryPolicy)
+                                       .scheduledExecutorService(Executors.newSingleThreadScheduledExecutor())
+                                       .build())
+        {
+            CompletableFuture<MetadataResponse> res = client.get(AMI_ID_RESOURCE);
+            assertThat(res).isNotCompleted();
+            MetadataResponse response = res.get();
+            assertThat(res).isCompleted();
+            assertThat(response.asString()).isEqualTo("Success");
+            verify(exactly(2), putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+                .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("1024")));
+            verify(exactly(1), getRequestedFor(urlPathEqualTo(AMI_ID_RESOURCE))
+                .withHeader(TOKEN_HEADER, equalTo("some-token")));
+        } catch (Exception e) {
+            fail("Unexpected exception while executing test", e);
+        }
+    }
+
+    @Test
     public void get_multipleAsyncRequest_shouldCompleteSuccessfully() {
         int totalRequests = 128;
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(
