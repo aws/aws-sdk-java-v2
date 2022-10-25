@@ -137,18 +137,10 @@ public class Ec2MetadataRetryPolicy implements ToCopyableBuilder<Ec2MetadataRetr
             return this;
         }
 
-        public void setNumRetries(Integer numRetries) {
-            numRetries(numRetries);
-        }
-
         @Override
         public Builder backoffStrategy(BackoffStrategy backoffStrategy) {
             this.backoffStrategy = backoffStrategy;
             return this;
-        }
-
-        public void setBackoffStrategy(BackoffStrategy backoffStrategy) {
-            backoffStrategy(backoffStrategy);
         }
 
         @Override
