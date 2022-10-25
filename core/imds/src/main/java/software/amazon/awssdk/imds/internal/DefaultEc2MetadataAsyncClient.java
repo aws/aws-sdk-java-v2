@@ -22,6 +22,10 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.Immutable;
@@ -50,28 +54,30 @@ import software.amazon.awssdk.utils.Logger;
 @ThreadSafe
 public final class DefaultEc2MetadataAsyncClient implements Ec2MetadataAsyncClient {
 
-    private static final Logger log = Logger.loggerFor(DefaultEc2Metadata.class);
+    private static final Logger log = Logger.loggerFor(DefaultEc2MetadataClient.class);
 
     private final Ec2MetadataRetryPolicy retryPolicy;
     private final SdkAsyncHttpClient httpClient;
-    private final RequestMarshaller requestMarshaller;
-    private final URI endpoint;
-    private final Duration tokenTtl;
     private final EndpointMode endpointMode;
+    private final URI endpoint;
+    private final RequestMarshaller requestMarshaller;
+    private final Duration tokenTtl;
+    private final ScheduledExecutorService asyncRetryScheduler;
 
     private DefaultEc2MetadataAsyncClient(Ec2MetadataAsyncBuilder builder) {
         this.retryPolicy = builder.retryPolicy != null ? builder.retryPolicy
                                                        : Ec2MetadataRetryPolicy.builder().build();
+        this.httpClient = builder.httpClient != null ? builder.httpClient
+                                                     : AwsCrtAsyncHttpClient.create();
         this.endpointMode = builder.endpointMode != null ? builder.endpointMode
                                                          : DEFAULT_ENDPOINT_PROVIDER.resolveEndpointMode();
         this.endpoint = builder.endpoint != null ? builder.endpoint
                                                  : URI.create(DEFAULT_ENDPOINT_PROVIDER.resolveEndpoint(this.endpointMode));
+        this.requestMarshaller = new RequestMarshaller(this.endpoint);
         this.tokenTtl = builder.tokenTtl != null ? builder.tokenTtl
                                                  : Duration.ofSeconds(21600);
-        this.requestMarshaller = new RequestMarshaller(this.endpoint);
-
-        this.httpClient = builder.httpClient != null ? builder.httpClient
-                                                     : AwsCrtAsyncHttpClient.create();
+        this.asyncRetryScheduler = builder.scheduledExecutorService != null ? builder.scheduledExecutorService
+                                                                            : Executors.newScheduledThreadPool(0);
     }
 
     public static Ec2MetadataAsyncClient.Builder builder() {
@@ -105,11 +111,18 @@ public final class DefaultEc2MetadataAsyncClient implements Ec2MetadataAsyncClie
                                   .retriesAttempted(retryPolicyContext.retriesAttempted() + 1)
                                   .exception(SdkClientException.create(error.getMessage(), error))
                                   .build();
-            return get(path, newContext);
+            return scheduledRetry(path, newContext);
         }).thenComposeAsync(Function.identity()); // only java 12 has .exceptionallyCompose()
     }
 
-    // todo encapsulate this logic so it can be reused by both the sync and async client
+    private CompletableFuture<MetadataResponse> scheduledRetry(String path, RetryPolicyContext retryPolicyContext) {
+        Duration retryDelay = retryPolicy.backoffStrategy().computeDelayBeforeNextRetry(retryPolicyContext);
+        Executor retryExecutor = retryAttempt -> asyncRetryScheduler.schedule(retryAttempt, retryDelay.toMillis(),
+                                                                              TimeUnit.MILLISECONDS);
+        return CompletableFuture.supplyAsync(() -> get(path, retryPolicyContext), retryExecutor)
+                                .thenComposeAsync(Function.identity());
+    }
+
     private boolean shouldRetry(RetryPolicyContext retryPolicyContext, MetadataResponse response, Throwable error) {
         if (response != null) {
             return false;
@@ -203,6 +216,8 @@ public final class DefaultEc2MetadataAsyncClient implements Ec2MetadataAsyncClie
 
         private SdkAsyncHttpClient httpClient;
 
+        private ScheduledExecutorService scheduledExecutorService;
+
         private Ec2MetadataAsyncBuilder() {
         }
 
@@ -252,7 +267,14 @@ public final class DefaultEc2MetadataAsyncClient implements Ec2MetadataAsyncClie
 
         @Override
         public Builder httpClient(SdkAsyncHttpClient httpClient) {
-            return null;
+            this.httpClient = httpClient;
+            return this;
+        }
+
+        @Override
+        public Builder scheduledExecutorService(ScheduledExecutorService scheduledExecutorService) {
+            this.scheduledExecutorService = scheduledExecutorService;
+            return this;
         }
 
         @Override

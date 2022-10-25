@@ -43,7 +43,7 @@ import software.amazon.awssdk.http.apache.ApacheHttpClient;
  * Unit Tests to test the Ec2Metadata Client functionality with Apache HttpClient.
  */
 @RunWith(MockitoJUnitRunner.class)
-public class Ec2MetadataWithApacheClientTest {
+public class Ec2MetadataClientWithApacheClientTest {
 
     private static final String TOKEN_RESOURCE_PATH = "/latest/api/token";
 
@@ -58,12 +58,12 @@ public class Ec2MetadataWithApacheClientTest {
     @Rule
     public WireMockRule mockMetadataEndpoint = new WireMockRule();
 
-    private Ec2Metadata ec2Metadata;
+    private Ec2MetadataClient ec2MetadataClient;
 
     @Before
     public void methodSetup() {
         System.setProperty(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.property(), "http://localhost:" + mockMetadataEndpoint.port());
-        this.ec2Metadata = Ec2Metadata.builder().httpClient(ApacheHttpClient.create()).build();
+        this.ec2MetadataClient = Ec2MetadataClient.builder().httpClient(ApacheHttpClient.create()).build();
     }
 
     @Test
@@ -72,7 +72,7 @@ public class Ec2MetadataWithApacheClientTest {
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody("some-token")));
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withFault(Fault.EMPTY_RESPONSE)));
 
-        assertThatThrownBy(() -> ec2Metadata.get("/latest/meta-data/ami-id"))
+        assertThatThrownBy(() -> ec2MetadataClient.get("/latest/meta-data/ami-id"))
             .hasMessageContaining("Exceeded maximum number of retries.")
             .isInstanceOf(SdkClientException.class);
         WireMock.verify(4, putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
@@ -96,7 +96,7 @@ public class Ec2MetadataWithApacheClientTest {
                                                         .willReturn(aResponse().withBody("{}")));
 
 
-        MetadataResponse metadataResponse = ec2Metadata.get("/latest/meta-data/ami-id");
+        MetadataResponse metadataResponse = ec2MetadataClient.get("/latest/meta-data/ami-id");
         assertThat(metadataResponse.asString()).isEqualTo("{}");
 
         WireMock.verify(2, putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))

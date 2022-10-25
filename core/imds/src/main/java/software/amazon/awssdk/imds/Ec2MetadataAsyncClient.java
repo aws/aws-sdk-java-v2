@@ -18,6 +18,7 @@ package software.amazon.awssdk.imds;
 import java.net.URI;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ScheduledExecutorService;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
@@ -43,7 +44,7 @@ public interface Ec2MetadataAsyncClient extends SdkClient {
     }
 
     /**
-     * The builder definition for a {@link Ec2Metadata}.
+     * The builder definition for a {@link Ec2MetadataClient}.
      */
     interface Builder  {
 
@@ -86,6 +87,14 @@ public interface Ec2MetadataAsyncClient extends SdkClient {
          * @return Returns a reference to this builder
          */
         Builder httpClient(SdkAsyncHttpClient httpClient);
+
+        /**
+         * Define the {@link ScheduledExecutorService} used to schedule asynchronous retry attempts.
+         *
+         * @param scheduledExecutorService the ScheduledExecutorService to use for retry attempt.
+         * @return a reference to this builder
+         */
+        Builder scheduledExecutorService(ScheduledExecutorService scheduledExecutorService);
 
         Ec2MetadataAsyncClient build();
 

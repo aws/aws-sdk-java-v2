@@ -35,7 +35,7 @@ import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.HttpStatusFamily;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
-import software.amazon.awssdk.imds.Ec2Metadata;
+import software.amazon.awssdk.imds.Ec2MetadataClient;
 import software.amazon.awssdk.imds.Ec2MetadataRetryPolicy;
 import software.amazon.awssdk.imds.EndpointMode;
 import software.amazon.awssdk.imds.MetadataResponse;
@@ -48,9 +48,9 @@ import software.amazon.awssdk.utils.Logger;
 @SdkInternalApi
 @Immutable
 @ThreadSafe
-public final class DefaultEc2Metadata implements Ec2Metadata {
+public final class DefaultEc2MetadataClient implements Ec2MetadataClient {
 
-    private static final Logger log = Logger.loggerFor(DefaultEc2Metadata.class);
+    private static final Logger log = Logger.loggerFor(DefaultEc2MetadataClient.class);
 
     private final Ec2MetadataRetryPolicy retryPolicy;
 
@@ -64,7 +64,7 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
 
     private final RequestMarshaller requestMarshaller;
 
-    private DefaultEc2Metadata(DefaultEc2Metadata.Ec2MetadataBuilder builder) {
+    private DefaultEc2MetadataClient(DefaultEc2MetadataClient.Ec2MetadataBuilder builder) {
         this.retryPolicy = builder.retryPolicy != null ? builder.retryPolicy
                                                        : Ec2MetadataRetryPolicy.builder().build();
         this.endpointMode = builder.endpointMode != null ? builder.endpointMode
@@ -78,12 +78,12 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
         this.requestMarshaller = new RequestMarshaller(this.endpoint);
     }
 
-    public static Ec2Metadata.Builder builder() {
-        return new DefaultEc2Metadata.Ec2MetadataBuilder();
+    public static Ec2MetadataClient.Builder builder() {
+        return new DefaultEc2MetadataClient.Ec2MetadataBuilder();
     }
 
     @Override
-    public Ec2Metadata.Builder toBuilder() {
+    public Ec2MetadataClient.Builder toBuilder() {
         return builder().retryPolicy(retryPolicy)
                         .endpoint(endpoint)
                         .tokenTtl(tokenTtl)
@@ -223,7 +223,7 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
         }
     }
 
-    private static final class Ec2MetadataBuilder implements Ec2Metadata.Builder {
+    private static final class Ec2MetadataBuilder implements Ec2MetadataClient.Builder {
 
         private Ec2MetadataRetryPolicy retryPolicy;
 
@@ -290,8 +290,8 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
         }
 
         @Override
-        public Ec2Metadata build() {
-            return new DefaultEc2Metadata(this);
+        public Ec2MetadataClient build() {
+            return new DefaultEc2MetadataClient(this);
         }
     }
 }

@@ -19,14 +19,14 @@ import java.net.URI;
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.imds.internal.DefaultEc2Metadata;
+import software.amazon.awssdk.imds.internal.DefaultEc2MetadataClient;
 
 
 /**
  *  Interface to represent the Ec2Metadata Client Class. Used to access instance metadata from a running instance.
  */
 @SdkPublicApi
-public interface Ec2Metadata {
+public interface Ec2MetadataClient {
 
     /**
      * Gets the specified instance metadata value by the given path.
@@ -38,24 +38,24 @@ public interface Ec2Metadata {
     /**
      * @return The Builder Object consisting all the fields.
      */
-    Ec2Metadata.Builder toBuilder();
+    Ec2MetadataClient.Builder toBuilder();
 
     /**
      * Create an {@code Ec2Metadata} using the default values.
      */
-    static Ec2Metadata create() {
+    static Ec2MetadataClient create() {
         return builder().build();
     }
 
     /**
-     * Creates a default builder for {@link Ec2Metadata}.
+     * Creates a default builder for {@link Ec2MetadataClient}.
      */
-    static Ec2Metadata.Builder builder() {
-        return DefaultEc2Metadata.builder();
+    static Ec2MetadataClient.Builder builder() {
+        return DefaultEc2MetadataClient.builder();
     }
 
     /**
-     * The builder definition for a {@link Ec2Metadata}.
+     * The builder definition for a {@link Ec2MetadataClient}.
      */
     interface Builder  {
 
@@ -99,7 +99,7 @@ public interface Ec2Metadata {
          */
         Builder httpClient(SdkHttpClient httpClient);
 
-        Ec2Metadata build();
+        Ec2MetadataClient build();
 
     }
 

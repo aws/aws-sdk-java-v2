@@ -52,7 +52,7 @@ import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
  * Unit Tests to test the Ec2Metadata Client functionality
  */
 @RunWith(MockitoJUnitRunner.class)
-public class Ec2MetadataTest {
+public class Ec2MetadataClientTest {
 
     private static final String TOKEN_RESOURCE_PATH = "/latest/api/token";
 
@@ -67,14 +67,14 @@ public class Ec2MetadataTest {
     @Rule
     public WireMockRule mockMetadataEndpoint = new WireMockRule();
 
-    public Ec2Metadata ec2Metadata;
+    public Ec2MetadataClient ec2MetadataClient;
 
     @Before
     public void methodSetup() {
         System.setProperty(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.property(), "http://localhost:" + mockMetadataEndpoint.port());
-        this.ec2Metadata = Ec2Metadata.builder()
-                                             .endpoint(URI.create("http://localhost:" + mockMetadataEndpoint.port()))
-                                             .build();
+        this.ec2MetadataClient = Ec2MetadataClient.builder()
+                                                  .endpoint(URI.create("http://localhost:" + mockMetadataEndpoint.port()))
+                                                  .build();
     }
 
     @Test
@@ -82,7 +82,7 @@ public class Ec2MetadataTest {
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody("some-token")));
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody("{}")));
 
-        MetadataResponse metadataResponse = ec2Metadata.get("/latest/meta-data/ami-id");
+        MetadataResponse metadataResponse = ec2MetadataClient.get("/latest/meta-data/ami-id");
         assertThat(metadataResponse.asString()).isEqualTo("{}");
 
         WireMock.verify(1, putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
@@ -97,7 +97,7 @@ public class Ec2MetadataTest {
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody("some-token")));
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody("{}").withStatus(404)));
 
-        assertThatThrownBy(() -> ec2Metadata.get("/latest/meta-data/ami-id"))
+        assertThatThrownBy(() -> ec2MetadataClient.get("/latest/meta-data/ami-id"))
             .hasMessageContaining("metadata")
             .isInstanceOf(SdkClientException.class);
         WireMock.verify(1, putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
@@ -112,7 +112,7 @@ public class Ec2MetadataTest {
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody("some-token")));
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody("{}").withStatus(401)));
 
-        assertThatThrownBy(() -> ec2Metadata.get("/latest/meta-data/ami-id"))
+        assertThatThrownBy(() -> ec2MetadataClient.get("/latest/meta-data/ami-id"))
             .hasMessageContaining("401")
             .isInstanceOf(SdkClientException.class);
 
@@ -128,7 +128,7 @@ public class Ec2MetadataTest {
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withStatus(403)));
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody("{}")));
 
-        assertThatThrownBy(() -> ec2Metadata.get("/latest/meta-data/ami-id"))
+        assertThatThrownBy(() -> ec2MetadataClient.get("/latest/meta-data/ami-id"))
             .hasMessageContaining("token")
             .isInstanceOf(SdkClientException.class);
         WireMock.verify(exactly(1), putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
@@ -143,7 +143,7 @@ public class Ec2MetadataTest {
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withStatus(401)));
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody("{}")));
 
-        assertThatThrownBy(() -> ec2Metadata.get("/latest/meta-data/ami-id"))
+        assertThatThrownBy(() -> ec2MetadataClient.get("/latest/meta-data/ami-id"))
             .hasMessageContaining("token")
             .isInstanceOf(SdkClientException.class);
         WireMock.verify(exactly(1), putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
@@ -159,10 +159,10 @@ public class Ec2MetadataTest {
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withFixedDelay(2_000)));
 
         SdkHttpClient client = UrlConnectionHttpClient.builder().socketTimeout(Duration.ofMillis(500)).build();
-        Ec2Metadata ec2MetadataRequest = Ec2Metadata.builder()
-                                                    .httpClient(client)
-                                                    .endpoint(URI.create("http://localhost:" + mockMetadataEndpoint.port()))
-                                                    .build();
+        Ec2MetadataClient ec2MetadataRequest = Ec2MetadataClient.builder()
+                                                                .httpClient(client)
+                                                                .endpoint(URI.create("http://localhost:" + mockMetadataEndpoint.port()))
+                                                                .build();
         assertThatThrownBy(() -> ec2MetadataRequest.get("/latest/meta-data/ami-id"))
             .hasMessageContaining("Exceeded maximum number of retries.")
             .isInstanceOf(SdkClientException.class);
@@ -181,10 +181,10 @@ public class Ec2MetadataTest {
                     .willReturn(aResponse().withBody("some-token").withFixedDelay(2_000)));
 
         SdkHttpClient client = UrlConnectionHttpClient.builder().socketTimeout(Duration.ofMillis(500)).build();
-        Ec2Metadata ec2MetadataRequest = Ec2Metadata.builder()
-                                                    .endpoint(URI.create("http://localhost:" + mockMetadataEndpoint.port()))
-                                                    .httpClient(client)
-                                                    .build();
+        Ec2MetadataClient ec2MetadataRequest = Ec2MetadataClient.builder()
+                                                                .endpoint(URI.create("http://localhost:" + mockMetadataEndpoint.port()))
+                                                                .httpClient(client)
+                                                                .build();
         assertThatThrownBy(() -> ec2MetadataRequest.get("/latest/meta-data/ami-id"))
             .hasMessageContaining("Exceeded maximum number of retries.")
             .isInstanceOf(SdkClientException.class);
@@ -209,7 +209,7 @@ public class Ec2MetadataTest {
 
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody("{}")));
 
-        MetadataResponse metadataResponse = ec2Metadata.get("/latest/meta-data/ami-id");
+        MetadataResponse metadataResponse = ec2MetadataClient.get("/latest/meta-data/ami-id");
         assertThat(metadataResponse.asString()).isEqualTo("{}");
 
         WireMock.verify(2, putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
@@ -233,7 +233,7 @@ public class Ec2MetadataTest {
                                                         .willReturn(aResponse().withBody("{}")));
 
 
-        MetadataResponse metadataResponse = ec2Metadata.get("/latest/meta-data/ami-id");
+        MetadataResponse metadataResponse = ec2MetadataClient.get("/latest/meta-data/ami-id");
         assertThat(metadataResponse.asString()).isEqualTo("{}");
 
         WireMock.verify(2, putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
@@ -260,7 +260,7 @@ public class Ec2MetadataTest {
                                                     .willReturn(aResponse().withBody("{}")));
 
 
-        MetadataResponse metadataResponse = ec2Metadata.get("/latest/meta-data/ami-id");
+        MetadataResponse metadataResponse = ec2MetadataClient.get("/latest/meta-data/ami-id");
         assertThat(metadataResponse.asString()).isEqualTo("{}");
 
         WireMock.verify(2, putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
@@ -290,7 +290,7 @@ public class Ec2MetadataTest {
                     .withHeader(TOKEN_HEADER, equalTo("some-token"))
                     .willReturn(aResponse().withBody("{}")));
 
-        MetadataResponse metadataResponse = ec2Metadata.get("/latest/meta-data/ami-id");
+        MetadataResponse metadataResponse = ec2MetadataClient.get("/latest/meta-data/ami-id");
         assertThat(metadataResponse.asString()).isEqualTo("{}");
 
         WireMock.verify(3, putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
@@ -320,7 +320,7 @@ public class Ec2MetadataTest {
                     .withHeader(TOKEN_HEADER, equalTo("valid-token"))
                     .willReturn(aResponse().withBody("{}")));
 
-        MetadataResponse metadataResponse = ec2Metadata.get("/latest/meta-data/ami-id");
+        MetadataResponse metadataResponse = ec2MetadataClient.get("/latest/meta-data/ami-id");
         assertThat(metadataResponse.asString()).isEqualTo("{}");
 
         WireMock.verify(3, putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
@@ -335,7 +335,7 @@ public class Ec2MetadataTest {
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody("some-token")));
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withFault(MALFORMED_RESPONSE_CHUNK)));
 
-        assertThatThrownBy(() -> ec2Metadata.get("/latest/meta-data/ami-id"))
+        assertThatThrownBy(() -> ec2MetadataClient.get("/latest/meta-data/ami-id"))
             .hasMessageContaining("Exceeded maximum number of retries.")
             .isInstanceOf(SdkClientException.class);
 
@@ -352,13 +352,13 @@ public class Ec2MetadataTest {
 
         int numRetries = 7;
         BackoffStrategy noWait = FixedDelayBackoffStrategy.create(Duration.ofMillis(10));
-        Ec2Metadata ec2MetadataRequest = Ec2Metadata.builder()
-                                                    .endpoint(URI.create("http://localhost:" + mockMetadataEndpoint.port()))
-                                                    .retryPolicy(Ec2MetadataRetryPolicy.builder()
+        Ec2MetadataClient ec2MetadataRequest = Ec2MetadataClient.builder()
+                                                                .endpoint(URI.create("http://localhost:" + mockMetadataEndpoint.port()))
+                                                                .retryPolicy(Ec2MetadataRetryPolicy.builder()
                                                                                        .backoffStrategy(noWait)
                                                                                        .numRetries(numRetries)
                                                                                        .build())
-                                                    .build();
+                                                                .build();
         assertThatThrownBy(() -> ec2MetadataRequest.get("/latest/meta-data/ami-id"))
             .hasMessageContaining("Exceeded maximum number of retries.")
             .isInstanceOf(SdkClientException.class);
@@ -374,10 +374,10 @@ public class Ec2MetadataTest {
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody("some-token")));
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withFault(RANDOM_DATA_THEN_CLOSE)));
 
-        Ec2Metadata ec2MetadataRequest = Ec2Metadata.builder()
-                                                    .endpoint(URI.create("http://localhost:" + mockMetadataEndpoint.port()))
-                                                    .retryPolicy(Ec2MetadataRetryPolicy.none())
-                                                    .build();
+        Ec2MetadataClient ec2MetadataRequest = Ec2MetadataClient.builder()
+                                                                .endpoint(URI.create("http://localhost:" + mockMetadataEndpoint.port()))
+                                                                .retryPolicy(Ec2MetadataRetryPolicy.none())
+                                                                .build();
         assertThatThrownBy(() -> ec2MetadataRequest.get("/latest/meta-data/ami-id"))
             .hasMessageContaining("Exceeded maximum number of retries.")
             .isInstanceOf(SdkClientException.class);

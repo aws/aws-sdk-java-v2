@@ -30,6 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.fail;
 
+import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
@@ -37,6 +38,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.Rule;
@@ -46,11 +48,15 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.SdkSystemSetting;
+import software.amazon.awssdk.core.retry.backoff.FixedDelayBackoffStrategy;
+import software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient;
 import software.amazon.awssdk.imds.Ec2MetadataAsyncClient;
+import software.amazon.awssdk.imds.Ec2MetadataRetryPolicy;
+import software.amazon.awssdk.imds.EndpointMode;
 import software.amazon.awssdk.imds.MetadataResponse;
 
 @RunWith(MockitoJUnitRunner.class)
-public class DefaultEc2MetadataAsyncClientTest {
+public class DefaultEc2MetadataClientAsyncClientTest {
 
     private static final String TOKEN_RESOURCE_PATH = "/latest/api/token";
     private static final String TOKEN_HEADER = "x-aws-ec2-metadata-token";
@@ -62,7 +68,7 @@ public class DefaultEc2MetadataAsyncClientTest {
     public WireMockRule mockMetadataEndpoint = new WireMockRule();
 
     @Test
-    public void get_successOnFirstTry_shouldNotRetryAndCompleteSuccessfully() throws Exception {
+    public void get_successOnFirstTry_shouldNotRetryAndCompleteSuccessfully() {
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody("some-token")));
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody("{}")));
 
@@ -101,8 +107,6 @@ public class DefaultEc2MetadataAsyncClientTest {
                                        .tokenTtl(Duration.ofSeconds(1024))
                                        .build())
         {
-            Logger log = LoggerFactory.getLogger(DefaultEc2MetadataAsyncClientTest.class);
-            log.error("TEST LOGGER TEST");
             CompletableFuture<MetadataResponse> res = client.get(AMI_ID_RESOURCE);
             assertThat(res).isNotCompleted();
             assertThatThrownBy(res::get).isInstanceOf(ExecutionException.class);
@@ -128,7 +132,7 @@ public class DefaultEc2MetadataAsyncClientTest {
                                        .tokenTtl(Duration.ofSeconds(1024))
                                        .build())
         {
-            Logger log = LoggerFactory.getLogger(DefaultEc2MetadataAsyncClientTest.class);
+            Logger log = LoggerFactory.getLogger(DefaultEc2MetadataClientAsyncClientTest.class);
             log.error("TEST LOGGER TEST");
             CompletableFuture<MetadataResponse> res = client.get(AMI_ID_RESOURCE);
             assertThat(res).isNotCompleted();
@@ -171,13 +175,36 @@ public class DefaultEc2MetadataAsyncClientTest {
     }
 
     @Test
-    public void get_multipleAsyncRequest_shouldCompleteSuccessfully() throws Exception {
+    public void get_builderWithAlCustomProperty_shouldSucceed() {
+        Ec2MetadataRetryPolicy retryPolicy =
+            Ec2MetadataRetryPolicy.builder()
+                                  .numRetries(5)
+                                  .backoffStrategy(FixedDelayBackoffStrategy.create(Duration.ofMillis(100))).build();
+        Ec2MetadataAsyncClient.Builder builder =
+            Ec2MetadataAsyncClient.builder()
+                                  .endpoint(URI.create("custom/end-point"))
+                                  .endpointMode(EndpointMode.IPV6)
+                                  .httpClient(AwsCrtAsyncHttpClient.builder().maxConcurrency(10).build())
+                                  .retryPolicy(retryPolicy)
+                                  .tokenTtl(Duration.ofSeconds(1024))
+                                  .scheduledExecutorService(Executors.newSingleThreadScheduledExecutor());
+        try (Ec2MetadataAsyncClient client = builder.build()) {
+
+        } catch (Exception e) {
+            fail("Unexpected exception while executing test", e);
+        }
+    }
+
+    @Test
+    public void get_multipleAsyncRequest_shouldCompleteSuccessfully() {
         int totalRequest = 10;
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(
             aResponse().withFixedDelay(1000).withBody("some-token")));
         for (int i = 0; i < totalRequest; i++) {
-            stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE + "/" + i)).willReturn(
-                aResponse().withFixedDelay(1000).withStatus(200).withBody("response::" + i)));
+            ResponseDefinitionBuilder responseStub = aResponse().withFixedDelay(1000)
+                                                                .withStatus(200)
+                                                                .withBody("response::" + i);
+            stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE + "/" + i)).willReturn(responseStub));
         }
         try (Ec2MetadataAsyncClient client =
                  Ec2MetadataAsyncClient.builder()
