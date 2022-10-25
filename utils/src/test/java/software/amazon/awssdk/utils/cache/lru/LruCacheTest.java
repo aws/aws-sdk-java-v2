@@ -15,14 +15,13 @@
 
 package software.amazon.awssdk.utils.cache.lru;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -33,8 +32,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -49,41 +46,19 @@ public class LruCacheTest {
     private static final int MAX_SIMPLE_TEST_ENTRIES = 10;
     private static final int MAX_SIMPLE_CACHE_SIZE = 3;
     private static final List<Integer> simpleTestKeys = IntStream.range(0, MAX_SIMPLE_TEST_ENTRIES)
-                                                             .mapToObj(Integer::new)
-                                                             .collect(Collectors.toList());
-    private static final List<String> simpleTestValues = IntStream.range(0, MAX_SIMPLE_TEST_ENTRIES)
-                                                                 .mapToObj(Integer::toString)
-                                                                 .map(String::new)
+                                                                 .boxed()
                                                                  .collect(Collectors.toList());
+    private static final List<String> simpleTestValues = IntStream.range(0, MAX_SIMPLE_TEST_ENTRIES)
+                                                                  .mapToObj(Integer::toString)
+                                                                  .map(String::new)
+                                                                  .collect(Collectors.toList());
     @Spy
     private Function<Integer, String> simpleValueSupplier = new SimpleValueSupplier(simpleTestValues);
     private final Function<Integer, String> identitySupplier = key -> Integer.toString(key);
 
-    private Function<Integer, String> sleepySupplier(long sleepDurationMillis, Function<Integer, String> wrappedSupplier) {
-        return num -> {
-            invokeSafely(() -> Thread.sleep(sleepDurationMillis));
-            return wrappedSupplier.apply(num);
-        };
-    }
-
-    private ExecutorService executorService;
-    private List<Future<?>> allExecutions;
     private final Supplier<LruCache<Integer, String>> simpleCache = () -> LruCache.builder(simpleValueSupplier)
-                                                                             .maxSize(MAX_SIMPLE_CACHE_SIZE)
-                                                                             .build();
-
-    @BeforeEach
-    public void setup() {
-        executorService = Executors.newFixedThreadPool(50);
-        allExecutions = new ArrayList<>();
-    }
-
-
-    @AfterEach
-    public void shutdown() {
-        executorService.shutdown();
-    }
-
+                                                                                  .maxSize(MAX_SIMPLE_CACHE_SIZE)
+                                                                                  .build();
     @Test
     void when_cacheHasMiss_ValueIsCalculatedAndCached() {
         LruCache<Integer, String> cache = simpleCache.get();
@@ -204,89 +179,46 @@ public class LruCacheTest {
         verify(simpleValueSupplier, times(1)).apply(keyMissingValue);
     }
 
-    @Test
-    void when_multipleCallers_oneCallerBlocks_simple() throws InterruptedException {
-        ExecutorService executor = Executors.newCachedThreadPool();
-        try  {
-            LruCache<Integer, String> cache = simpleCache.get();
-
-            for (int i = 0; i < 1000; i++) {
-                int numEntry = ThreadLocalRandom.current().nextInt(MAX_SIMPLE_TEST_ENTRIES - 1);
-                executor.submit(() -> cache.get(simpleTestKeys.get(numEntry)));
-            }
-
-            executor.shutdown();
-            assertThat(executor.awaitTermination(10, TimeUnit.SECONDS)).isTrue();
-        } finally {
-            executor.shutdownNow();
-        }
-    }
-
     @ParameterizedTest
     @MethodSource("concurrencyTestValues")
-    void when_multipleCallersAndHittingWholeCache_noExceptionIsThrown(Integer numCaches,
-                                                                 Integer numGetsPerCache,
-                                                                 Integer sleepDurationMillis,
-                                                                 Integer cacheSize) throws InterruptedException {
+    void when_multipleThreadsAreCallingCache_WorksAsExpected(Integer numThreads,
+                                                             Integer numGetsPerThread,
+                                                             boolean sleep,
+                                                             Integer cacheSize) throws Exception {
         ExecutorService executor = Executors.newCachedThreadPool();
-        try  {
-            for (int i = 0; i < numCaches; i++) {
-                Function<Integer, String> sleepySupplier = num -> {
-                    invokeSafely(() -> Thread.sleep(sleepDurationMillis));
-                    return identitySupplier.apply(num);
-                };
-                LruCache<Integer, String> cache = LruCache.builder(sleepySupplier(sleepDurationMillis, identitySupplier))
-                                                          .maxSize(cacheSize)
-                                                          .build();
-                executor.submit(() -> {
-                    for (int j = 0; j < numGetsPerCache; j++) {
-                        int numEntry = ThreadLocalRandom.current().nextInt(cacheSize - 1);
-                        String value = cache.get(numEntry);
-                        assertThat(value).isNotNull();
+        try {
+            Function<Integer, String> sleepySupplier = num -> {
+                if (sleep) {
+                    invokeSafely(() -> Thread.sleep(ThreadLocalRandom.current().nextInt(0, 5)));
+                }
+                return identitySupplier.apply(num);
+            };
+            LruCache<Integer, String> cache = LruCache.builder(sleepySupplier)
+                                                      .maxSize(cacheSize)
+                                                      .build();
+            List<Future<?>> results = new ArrayList<>();
+            for (int i = 0; i < numThreads; i++) {
+                results.add(executor.submit(() -> {
+                    for (int j = 0; j < numGetsPerThread; j++) {
+                        int key = ThreadLocalRandom.current().nextInt(cacheSize * 2);
+                        String value = cache.get(key);
+                        assertThat(value).isEqualTo(Integer.toString(key));
                     }
-                });
+                }));
             }
-            executor.shutdown();
-            assertThat(executor.awaitTermination(20, TimeUnit.SECONDS)).isTrue();
-        } finally {
-            executor.shutdownNow();
-        }
-    }
-
-    @ParameterizedTest
-    @MethodSource("concurrencyTestValues")
-    void when_multipleCallersAndHittingSingleItem_noExceptionIsThrown(Integer numCaches,
-                                                                      Integer numGetsPerCache,
-                                                                      Integer sleepDurationMillis,
-                                                                      Integer cacheSize) throws InterruptedException {
-        ExecutorService executor = Executors.newCachedThreadPool();
-        try  {
-            for (int i = 0; i < numCaches; i++) {
-                LruCache<Integer, String> cache = LruCache.builder(sleepySupplier(sleepDurationMillis, identitySupplier))
-                                                          .maxSize(cacheSize)
-                                                          .build();
-                executor.submit(() -> {
-                    primeCache(cache, cache.size());
-                    for (int j = 0; j < numGetsPerCache; j++) {
-                        String value = cache.get(1);
-                        assertThat(value).isNotNull();
-                    }
-                });
+            for (Future<?> result : results) {
+                result.get(20, TimeUnit.SECONDS);
             }
-            executor.shutdown();
-            assertThat(executor.awaitTermination(20, TimeUnit.SECONDS)).isTrue();
         } finally {
             executor.shutdownNow();
         }
     }
 
     private static Stream<Arguments> concurrencyTestValues() {
-        // numCaches, numGetsPerCache, sleepDurationMillis, cacheSize
-        return Stream.of(Arguments.of(1000, 1000, 100, 5),
-                         Arguments.of(1000, 1000, 100, 50),
-                         Arguments.of(50, 10000, 100, 5),
-                         Arguments.of(50, 1000, 100, 50),
-                         Arguments.of(50, 100, 1000, 5)
+        // numThreads, numGetsPerThreads, sleepDurationMillis, cacheSize
+        return Stream.of(Arguments.of(1000, 5000, false, 5),
+                         Arguments.of(1000, 5000, false, 50),
+                         Arguments.of(100, 1000, true, 5)
                          );
     }
 
@@ -304,10 +236,6 @@ public class LruCacheTest {
             assertThat(result).isEqualTo(simpleTestValues.get(i));
             verify(simpleValueSupplier).apply(simpleTestKeys.get(i));
         });
-    }
-
-    private void primeCache(LruCache<Integer, String> cache, int numEntries) {
-        IntStream.range(0, numEntries).forEach(cache::get);
     }
 
     private static class SimpleValueSupplier implements Function<Integer, String> {

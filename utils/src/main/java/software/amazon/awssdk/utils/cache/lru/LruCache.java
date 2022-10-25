@@ -20,25 +20,35 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * An LRU (Least Recently Used) cache implementation.
+ * A thread-safe LRU (Least Recently Used) cache implementation that returns the value for a specified key,
+ * retrieving it by either getting the stored value from the cache or using a supplied function to calculate that value
+ * and add it to the cache.
  * <p>
- * The user can configure the maximum size of the cache, which is set to a default of 100. Null values are accepted.
+ * When the cache is full, a new value will push out the least recently used value.
+ * When the cache is queried for an already stored value (cache hit), this value is moved to the back of the queue
+ * before it's returned so that the order of most recently used to least recently used can be maintained.
+ * <p>
+ * The user can configure the maximum size of the cache, which is set to a default of 100.
+ * <p>
+ * Null values are accepted.
  */
 @SdkProtectedApi
+@ThreadSafe
 public final class LruCache<K, V>  {
 
     private static final int DEFAULT_SIZE = 100;
 
     private final Map<K, CacheEntry<K, V>> cache;
     private final Function<K, V> valueSupplier;
+    private final Object listLock = new Object();
+    private final int maxCacheSize;
 
     private CacheEntry<K, V> leastRecentlyUsed = null;
     private CacheEntry<K, V> mostRecentlyUsed = null;
-    private final Object listLock = new Object();
-    private final int maxCacheSize;
 
     private LruCache(Builder<K, V> b) {
         this.valueSupplier = b.supplier;
@@ -47,15 +57,21 @@ public final class LruCache<K, V>  {
         this.cache = new ConcurrentHashMap<>();
     }
 
-
     /**
      * Get a value based on the key. If the value exists in the cache, it's returned, and it's position in the cache is updated.
      * Otherwise, the value is calculated based on the supplied function {@link Builder#builder(Function)}.
      */
     public V get(K key) {
-        CacheEntry<K, V> cachedEntry = cache.computeIfAbsent(key, this::newEntry);
-        updateCacheOrder(cachedEntry);
-        return cachedEntry.value();
+        while (true) {
+            CacheEntry<K, V> cachedEntry = cache.computeIfAbsent(key, this::newEntry);
+            synchronized (listLock) {
+                if (cachedEntry.evicted()) {
+                    continue;
+                }
+                moveToBackOfQueue(cachedEntry);
+                return cachedEntry.value();
+            }
+        }
     }
 
     private CacheEntry<K, V> newEntry(K key) {
@@ -64,55 +80,32 @@ public final class LruCache<K, V>  {
     }
 
     /**
-     * Sets an existing entry as the most recently used (MRU). If the entry is already the MRU, do nothing.
-     * <p>
-     * If the entry is the least recently used item (LRU), set the LRU pointer to the item before the current LRU; the list is
-     * guaranteed to have at least 2 items otherwise execution would have returned already (if only one item it was the MRU too).
+     * Moves an entry to the back of the queue and sets it as the most recently used. If the entry is already the
+     * most recently used, do nothing.
      * <p>
      * Summary of cache update:
      * <ol>
-     * <li>Detach the entry from its current place in the double linked list by letting its previous neighbor point to its
-     *    next neighbor, and vice versa.</li>
-     * <li>This is the new most recently used item so there is no previous entry. Point to the most recently used entry.</li>
-     * <li>Set the most recently used pointer to point to the new entry.</li>
+     * <li>Detach the entry from its current place in the double linked list.</li>
+     * <li>Add it to the back of the queue (most recently used)</li>
      *</ol>
      */
-    private void updateCacheOrder(CacheEntry<K, V> entry) {
-        synchronized (listLock) {
-            if (entry.equals(mostRecentlyUsed)) {
-                return;
-            }
-            if (entry.equals(leastRecentlyUsed)) {
-                leastRecentlyUsed = entry.previous();
-            }
-            detachIfNeeded(entry);
-            if (listIsNotInitialized()) {
-                leastRecentlyUsed = entry;
-            } else {
-                entry.setNext(mostRecentlyUsed);
-                mostRecentlyUsed.setPrevious(entry);
-            }
-            mostRecentlyUsed = entry;
-            if (size() > maxCacheSize) {
-                evict();
-            }
+    private void moveToBackOfQueue(CacheEntry<K, V> entry) {
+        if (entry.equals(mostRecentlyUsed)) {
+            return;
         }
-    }
-
-    private boolean listIsNotInitialized() {
-        return mostRecentlyUsed == null && leastRecentlyUsed == null;
+        removeFromQueue(entry);
+        addToQueue(entry);
     }
 
     /**
      * Detaches an entry from its neighbors in the cache. Remove the entry from its current place in the double linked list
      * by letting its previous neighbor point to its next neighbor, and vice versa, if those exist.
      * <p>
-     * An entry may not have a previous neighbor if it's currently the first one in the list. It may not have a next neighbor
-     * if it's the last entry.
+     * The least-recently-used and most-recently-used pointers are reset if needed.
      * <p>
      * <b>Note:</b> Detaching an entry does not delete it from the cache hash map.
      */
-    private void detachIfNeeded(CacheEntry<K, V> entry) {
+    private void removeFromQueue(CacheEntry<K, V> entry) {
         CacheEntry<K, V> previousEntry = entry.previous();
         if (previousEntry != null) {
             previousEntry.setNext(entry.next());
@@ -121,17 +114,40 @@ public final class LruCache<K, V>  {
         if (nextEntry != null) {
             nextEntry.setPrevious(entry.previous());
         }
-        entry.setPrevious(null);
+        if (entry.equals(leastRecentlyUsed)) {
+            leastRecentlyUsed = entry.previous();
+        }
+        if (entry.equals(mostRecentlyUsed)) {
+            mostRecentlyUsed = entry.next();
+        }
     }
 
     /**
-     * Removes the least recently used entry from the cache.
-     * The pointer to the least recently used entry is updated to point to the next-but-last entry.
-     * The next pointer of the new least recently used entry is updated to null, since it's last.
+     * Adds an entry to the queue as the most recently used, adjusts all pointers and triggers an evict
+     * event if the cache is now full.
+     */
+    private void addToQueue(CacheEntry<K, V> entry) {
+        if (mostRecentlyUsed != null) {
+            mostRecentlyUsed.setPrevious(entry);
+            entry.setNext(mostRecentlyUsed);
+        }
+        entry.setPrevious(null);
+        mostRecentlyUsed = entry;
+        if (leastRecentlyUsed == null) {
+            leastRecentlyUsed = entry;
+        }
+        if (size() > maxCacheSize) {
+            evict();
+        }
+    }
+
+    /**
+     * Removes the least recently used entry from the cache, marks it as evicted and removes it from the queue.
      */
     private void evict() {
+        leastRecentlyUsed.isEvicted(true);
         cache.remove(leastRecentlyUsed.key());
-        leastRecentlyUsed = leastRecentlyUsed.previous();
+        removeFromQueue(leastRecentlyUsed);
     }
 
     public int size() {
@@ -145,13 +161,13 @@ public final class LruCache<K, V>  {
     public static final class Builder<K, V> {
 
         private final Function<K, V> supplier;
-        private int maxSize;
+        private Integer maxSize;
 
         private Builder(Function<K, V> supplier) {
             this.supplier = supplier;
         }
 
-        public Builder<K, V> maxSize(int maxSize) {
+        public Builder<K, V> maxSize(Integer maxSize) {
             this.maxSize = maxSize;
             return this;
         }
@@ -165,6 +181,8 @@ public final class LruCache<K, V>  {
 
         private final K key;
         private final V value;
+
+        private boolean evicted = false;
 
         private CacheEntry<K, V> previous;
         private CacheEntry<K, V> next;
@@ -180,6 +198,14 @@ public final class LruCache<K, V>  {
 
         V value() {
             return value;
+        }
+
+        boolean evicted() {
+            return evicted;
+        }
+
+        void isEvicted(boolean evicted) {
+            this.evicted = evicted;
         }
 
         CacheEntry<K, V> next() {
@@ -218,6 +244,5 @@ public final class LruCache<K, V>  {
             result = 31 * result + (value != null ? value.hashCode() : 0);
             return result;
         }
-
     }
 }
