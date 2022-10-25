@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.imds.internal;
 
-import java.io.IOException;
 import java.net.URI;
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -31,8 +30,10 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 @SdkInternalApi
 public class RequestMarshaller {
 
+    private static final String TOKEN_RESOURCE_PATH = "/latest/api/token";
+
     private static final String TOKEN_HEADER = "x-aws-ec2-metadata-token";
-   
+
     private static final String EC2_METADATA_TOKEN_TTL_HEADER = "x-aws-ec2-metadata-token-ttl-seconds";
 
     private static final String USER_AGENT = "user_agent";
@@ -41,37 +42,35 @@ public class RequestMarshaller {
 
     private static final String CONNECTION = "connection";
 
-    public HttpExecuteRequest createTokenRequest(URI uri, SdkHttpMethod method, Duration tokenTtl) throws IOException {
+    private final URI basePath;
+    private final URI tokenPath;
 
-        SdkHttpRequest sdkHttpRequest = getHttpBuilder().method(method)
-                                                         .uri(uri)
-                                                         .putHeader(EC2_METADATA_TOKEN_TTL_HEADER,
-                                                                    String.valueOf(tokenTtl.getSeconds()))
-                                                         .build();
-
-        return HttpExecuteRequest.builder()
-                                 .request(sdkHttpRequest)
-                                 .build();
+    public RequestMarshaller(URI basePath) {
+        this.basePath = basePath;
+        this.tokenPath = URI.create(basePath + TOKEN_RESOURCE_PATH);
     }
 
-    public HttpExecuteRequest createDataRequest(URI uri, SdkHttpMethod method, String token, Duration tokenTtl)
-            throws IOException {
-
-        SdkHttpRequest sdkHttpRequest = getHttpBuilder().method(method)
-                                                         .uri(uri)
-                                                         .putHeader(EC2_METADATA_TOKEN_TTL_HEADER,
-                                                                    String.valueOf(tokenTtl.getSeconds()))
-                                                         .putHeader(TOKEN_HEADER, token)
-                                                         .build();
-
-        return HttpExecuteRequest.builder()
-                                 .request(sdkHttpRequest)
-                                 .build();
+    public HttpExecuteRequest createTokenRequest(Duration tokenTtl) {
+        SdkHttpRequest sdkHttpRequest = defaulttHttpBuilder()
+            .method(SdkHttpMethod.PUT)
+            .uri(tokenPath)
+            .putHeader(EC2_METADATA_TOKEN_TTL_HEADER, String.valueOf(tokenTtl.getSeconds()))
+            .build();
+        return HttpExecuteRequest.builder().request(sdkHttpRequest).build();
     }
 
+    public HttpExecuteRequest createDataRequest(String path, String token, Duration tokenTtl) {
+        URI resourcePath = URI.create(basePath + path);
+        SdkHttpRequest sdkHttpRequest = defaulttHttpBuilder()
+            .method(SdkHttpMethod.GET)
+            .uri(resourcePath)
+            .putHeader(EC2_METADATA_TOKEN_TTL_HEADER, String.valueOf(tokenTtl.getSeconds()))
+            .putHeader(TOKEN_HEADER, token)
+            .build();
+        return HttpExecuteRequest.builder().request(sdkHttpRequest).build();
+    }
 
-
-    private SdkHttpRequest.Builder getHttpBuilder() {
+    private SdkHttpRequest.Builder defaulttHttpBuilder() {
         return SdkHttpRequest.builder()
                              .putHeader(USER_AGENT, SdkUserAgent.create().userAgent())
                              .putHeader(ACCEPT, "*/*")

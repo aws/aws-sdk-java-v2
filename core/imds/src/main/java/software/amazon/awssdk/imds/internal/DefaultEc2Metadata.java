@@ -16,20 +16,22 @@
 package software.amazon.awssdk.imds.internal;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.URI;
 import java.time.Duration;
-import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.HttpExecuteResponse;
+import software.amazon.awssdk.http.HttpStatusFamily;
 import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.imds.Ec2Metadata;
 import software.amazon.awssdk.imds.Ec2MetadataRetryPolicy;
@@ -46,13 +48,10 @@ import software.amazon.awssdk.utils.Logger;
 @ThreadSafe
 public final class DefaultEc2Metadata implements Ec2Metadata {
 
-    private static final String TOKEN_RESOURCE_PATH = "/latest/api/token";
-
     private static final Logger log = Logger.loggerFor(DefaultEc2Metadata.class);
 
-    private static final RequestMarshaller REQUEST_MARSHALLER = new RequestMarshaller();
-
-    private static final EndpointProvider ENDPOINT_PROVIDER = EndpointProvider.builder().build();
+    private static final Ec2MetadataEndpointProvider ENDPOINT_PROVIDER =
+        Ec2MetadataEndpointProvider.builder().build();
 
     private final Ec2MetadataRetryPolicy retryPolicy;
 
@@ -62,18 +61,22 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
 
     private final EndpointMode endpointMode;
 
-    private final String httpDebugOutput;
-
     private final SdkHttpClient httpClient;
 
-    private DefaultEc2Metadata(DefaultEc2Metadata.Ec2MetadataBuilder builder) {
+    private final RequestMarshaller requestMarshaller;
 
-        this.retryPolicy = builder.retryPolicy != null ? builder.retryPolicy : Ec2MetadataRetryPolicy.builder().build();
-        this.endpoint = URI.create(ENDPOINT_PROVIDER.resolveEndpoint(builder.endpoint, builder.endpointMode));
-        this.tokenTtl = builder.tokenTtl != null ? builder.tokenTtl : Duration.ofSeconds(21600);
-        this.endpointMode = ENDPOINT_PROVIDER.resolveEndpointMode(builder.endpointMode);
-        this.httpDebugOutput = builder.httpDebugOutput;
-        this.httpClient = builder.httpClient != null ? builder.httpClient : UrlConnectionHttpClient.create();
+    private DefaultEc2Metadata(DefaultEc2Metadata.Ec2MetadataBuilder builder) {
+        this.retryPolicy = builder.retryPolicy != null ? builder.retryPolicy
+                                                       : Ec2MetadataRetryPolicy.builder().build();
+        this.endpointMode = builder.endpointMode != null ? builder.endpointMode
+                                                         : ENDPOINT_PROVIDER.resolveEndpointMode();
+        this.endpoint = builder.endpoint != null ? builder.endpoint
+                                                 : URI.create(ENDPOINT_PROVIDER.resolveEndpoint(this.endpointMode));
+        this.tokenTtl = builder.tokenTtl != null ? builder.tokenTtl
+                                                 : Duration.ofSeconds(21600);
+        this.httpClient = builder.httpClient != null ? builder.httpClient
+                                                     : UrlConnectionHttpClient.create();
+        this.requestMarshaller = new RequestMarshaller(this.endpoint);
     }
 
     public static Ec2Metadata.Builder builder() {
@@ -86,191 +89,134 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
                         .endpoint(endpoint)
                         .tokenTtl(tokenTtl)
                         .endpointMode(endpointMode)
-                        .httpDebugOutput(httpDebugOutput)
                         .httpClient(httpClient);
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null || getClass() != obj.getClass()) {
-            return false;
-        }
-        DefaultEc2Metadata ec2Metadata = (DefaultEc2Metadata) obj;
-
-        if (!Objects.equals(retryPolicy, ec2Metadata.retryPolicy)) {
-            return false;
-        }
-        if (!Objects.equals(endpoint, ec2Metadata.endpoint)) {
-            return false;
-        }
-        if (!Objects.equals(tokenTtl, ec2Metadata.tokenTtl)) {
-            return false;
-        }
-        if (!Objects.equals(endpointMode, ec2Metadata.endpointMode)) {
-            return false;
-        }
-        if (!Objects.equals(httpDebugOutput, ec2Metadata.httpDebugOutput)) {
-            return false;
-        }
-        return Objects.equals(httpClient, ec2Metadata.httpClient);
-    }
-
-    @Override
-    public int hashCode() {
-
-        int result = retryPolicy != null ? retryPolicy.hashCode() : 0;
-        result = 31 * result + (endpoint != null ? endpoint.hashCode() : 0);
-        result = 31 * result + (tokenTtl != null ? tokenTtl.hashCode() : 0);
-        result = 31 * result + (endpointMode != null ? endpointMode.hashCode() : 0);
-        result = 31 * result + (httpDebugOutput != null ? httpDebugOutput.hashCode() : 0);
-        result = 31 * result + (httpClient != null ? httpClient.hashCode() : 0);
-
-        return result;
-    }
-
-    @Override
-    public String toString() {
-        return "DefaultEc2Metadata{" +
-               "retries=" + retryPolicy +
-               ", endpoint='" + endpoint + '\'' +
-               ", tokenTtl=" + tokenTtl +
-               ", endpointMode='" + endpointMode + '\'' +
-               ", httpDebugOutput='" + httpDebugOutput + '\'' +
-               ", httpClient= " + httpClient.clientName() +
-               '}';
-    }
-
     /**
-     * Gets the specified instance metadata value by the given path.
-     * @param path  Input path
+     * Gets the specified instance metadata value by the given path. Will retry base on the {@link Ec2MetadataRetryPolicy retry
+     * policy} provided, in the case of an IOException during request. Will not retry on SdkClientException, like 4XX HTTP
+     * error.
+     * @param path  Input path of the resource to get.
+     * @throws SdkClientException if the request for a token or the request for the Metadata does not have a 2XX SUCCESS response,
+     *                            if the maximum number of retries is reached,
+     *                            or if another IOException is thrown during the request.
      * @return Instance metadata value as part of MetadataResponse Object
      */
     @Override
     public MetadataResponse get(String path) {
-
-        MetadataResponse metadataResponse = null;
-        AbortableInputStream abortableInputStream = null;
-
-        for (int tries = 1 ; tries <= retryPolicy.numRetries() + 1; tries ++) {
-
+        Throwable lastCause = null;
+        // 3 retries means 4 total attempts
+        for (int attempt = 0; attempt < retryPolicy.numRetries() + 1; attempt++) {
+            RetryPolicyContext retryPolicyContext = RetryPolicyContext.builder().retriesAttempted(attempt).build();
             try {
-                Optional<String> token = getToken();
-                if (token.isPresent()) {
-                    HttpExecuteResponse response = getDataHttpResponse(path, token.get());
-
-                    int statusCode = response.httpResponse().statusCode();
-                    Optional<AbortableInputStream> responseBody = response.responseBody();
-
-                    if (statusCode == 200) {
-                        if (!responseBody.isPresent()) {
-                            throw SdkClientException.builder()
-                                                     .message("Response body empty with Status Code "  + statusCode).build();
-                        }
-                        abortableInputStream = responseBody.get();
-                        String data = IoUtils.toUtf8String(abortableInputStream);
-                        metadataResponse = new MetadataResponse(data);
-                        return metadataResponse;
-                    }
-                    handleException(statusCode, path);
-                }
-                //TODO Create IMDS Custom Exception
-            } catch (IOException io) {
-                log.warn(() -> "Received an IOException ", io);
-            } finally {
-                IoUtils.closeQuietly(abortableInputStream, log.logger());
+                String token = getToken();
+                return sendRequest(path, token);
+            } catch (UncheckedIOException | RetryableException e) {
+                lastCause = e;
+                int currentTry = attempt;
+                log.debug(() -> "Error while executing EC2Metadata request, attempting retry. Current attempt: " + currentTry);
+            } catch (SdkClientException sdkClientException) {
+                int totalTries = attempt + 1;
+                log.debug(() -> String.format("Error while executing EC2Metadata request. Total attempts: %d. %s",
+                                           totalTries,
+                                           sdkClientException.getMessage()));
+                throw sdkClientException;
+            } catch (IOException ioe) {
+                lastCause = new UncheckedIOException(ioe);
+                int currentTry = attempt;
+                log.debug(() -> "Error while executing EC2Metadata request, attempting retry. Current attempt: " + currentTry);
             }
-            pauseBeforeRetryIfNeeded(tries);
+            pauseBeforeRetryIfNeeded(retryPolicyContext);
         }
-        return metadataResponse;
+
+        SdkClientException.Builder sdkClientExceptionBuilder = SdkClientException
+            .builder()
+            .message("Exceeded maximum number of retries. Total attempts: " + retryPolicy.numRetries() + ".");
+        if (lastCause != null) {
+            String msg = sdkClientExceptionBuilder.message() + " " + lastCause.getMessage();
+            sdkClientExceptionBuilder.cause(lastCause).message(msg);
+        }
+        throw sdkClientExceptionBuilder.build();
     }
 
-    private void handleException(int statusCode, String path) {
-        if (statusCode == 404) {
+    private MetadataResponse sendRequest(String path, String token) throws IOException {
+
+        HttpExecuteRequest httpExecuteRequest = requestMarshaller.createDataRequest(path, token, tokenTtl);
+        HttpExecuteResponse response = httpClient.prepareRequest(httpExecuteRequest).call();
+
+        int statusCode = response.httpResponse().statusCode();
+        Optional<AbortableInputStream> responseBody = response.responseBody();
+
+        if (HttpStatusFamily.of(statusCode).isOneOf(HttpStatusFamily.SERVER_ERROR)) {
+            responseBody.map(this::uncheckedInputStreamToUtf8)
+                        .ifPresent(str -> log.debug(() -> "Metadata request response body: " + str));
+            throw RetryableException.builder()
+                                    .message("The requested metadata at path ( " + path + " ) returned Http code " + statusCode)
+                                    .build();
+        }
+
+        if (!HttpStatusFamily.of(statusCode).isOneOf(HttpStatusFamily.SUCCESSFUL)) {
+            responseBody.map(this::uncheckedInputStreamToUtf8)
+                        .ifPresent(str -> log.debug(() -> "Metadata request response body: " + str));
             throw SdkClientException.builder()
-                                 .message("The requested metadata at path ( " + path + " ) is not found ").build();
-        }
-    }
-
-    private void pauseBeforeRetryIfNeeded(int tries) {
-
-        if (tries == retryPolicy.numRetries() + 1) {
-            throw SdkClientException.builder().message("Exceeded maximum number of retries.").build();
+                        .message("The requested metadata at path ( " + path + " ) returned Http code " + statusCode).build();
         }
 
-        try {
-            long backoffTimeMillis = getBackoffDuration(tries);
-            Thread.sleep(backoffTimeMillis);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw SdkClientException.builder().message("Thread interrupted while trying to sleep").cause(e).build();
-        }
+        AbortableInputStream abortableInputStream = responseBody.orElseThrow(
+            SdkClientException.builder().message("Response body empty with Status Code " + statusCode)::build);
+        String data = uncheckedInputStreamToUtf8(abortableInputStream);
+        return MetadataResponse.create(data);
     }
 
-    private HttpExecuteResponse getDataHttpResponse(String path, String token) throws IOException {
-
-        URI uri = URI.create(endpoint + path);
-        HttpExecuteRequest httpExecuteRequest = REQUEST_MARSHALLER.createDataRequest(uri, SdkHttpMethod.GET, token,
-                                                                                     tokenTtl);
-        return httpClient.prepareRequest(httpExecuteRequest).call();
-    }
-
-    private long getBackoffDuration(int tries) {
-
-        long backoffTime = 0L;
-        if (tries >= 1) {
-            backoffTime = retryPolicy.backoffStrategy()
-                                              .computeDelayBeforeNextRetry(RetryPolicyContext.builder()
-                                                                                             .retriesAttempted(tries - 1)
-                                                                                             .build()).toMillis();
-        }
-
-        return backoffTime;
-    }
-
-    private Optional<String> getToken() throws IOException {
-
-        AbortableInputStream abortableInputStream = null;
-        try {
-            HttpExecuteResponse response = getTokenHttpResponse();
-            int statusCode = response.httpResponse().statusCode();
-            Optional<AbortableInputStream> responseBody = response.responseBody();
-
-            if (statusCode == 200) {
-                if (!responseBody.isPresent()) {
-                    throw SdkClientException.builder()
-                                             .message("Response body empty with Status Code "  + statusCode).build();
-                }
-                abortableInputStream = responseBody.get();
-                return Optional.of(IoUtils.toUtf8String(abortableInputStream));
+    private void pauseBeforeRetryIfNeeded(RetryPolicyContext retryPolicyContext) {
+        long backoffTimeMillis = retryPolicy.backoffStrategy()
+                          .computeDelayBeforeNextRetry(retryPolicyContext)
+                          .toMillis();
+        if (backoffTimeMillis > 0) {
+            try {
+                TimeUnit.MILLISECONDS.sleep(backoffTimeMillis);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw SdkClientException.builder().message("Thread interrupted while trying to sleep").cause(e).build();
             }
-            handleErrorResponse(statusCode);
-        } catch (IOException e) {
-            log.warn(() -> "Received an IOException ", e);
-            throw e;
+        }
+    }
+
+    private String getToken() throws IOException {
+        HttpExecuteRequest httpExecuteRequest = requestMarshaller.createTokenRequest(tokenTtl);
+        HttpExecuteResponse response = httpClient.prepareRequest(httpExecuteRequest).call();
+
+        int statusCode = response.httpResponse().statusCode();
+
+        if (HttpStatusFamily.of(statusCode).isOneOf(HttpStatusFamily.SERVER_ERROR)) {
+            response.responseBody().map(this::uncheckedInputStreamToUtf8)
+                        .ifPresent(str -> log.debug(() -> "Metadata request response body: " + str));
+            throw RetryableException.builder()
+                                    .message("Could not retrieve token, " + statusCode + " error occurred").build();
+        }
+
+        if (!HttpStatusFamily.of(statusCode).isOneOf(HttpStatusFamily.SUCCESSFUL)) {
+            response.responseBody().map(this::uncheckedInputStreamToUtf8)
+                    .ifPresent(body -> log.debug(() -> "Token request response body: " + body));
+            throw SdkClientException.builder()
+                                    .message("Could not retrieve token, " + statusCode + " error occurred.")
+                                    .build();
+        }
+
+        AbortableInputStream abortableInputStream = response.responseBody().orElseThrow(
+            SdkClientException.builder().message("Empty response body")::build);
+
+        return IoUtils.toUtf8String(abortableInputStream);
+    }
+
+    private String uncheckedInputStreamToUtf8(AbortableInputStream inputStream) {
+        try {
+            return IoUtils.toUtf8String(inputStream);
+        } catch (IOException ioe) {
+            throw new UncheckedIOException(ioe);
         } finally {
-            IoUtils.closeQuietly(abortableInputStream, log.logger());
+            IoUtils.closeQuietly(inputStream, log.logger());
         }
-        return Optional.empty();
-    }
-
-    private void handleErrorResponse(int statusCode) {
-
-        if (statusCode == 403 || statusCode == 400) {
-            throw SdkClientException.builder()
-                                     .message("Could not retrieve token as " + statusCode + " error occurred.").build();
-        }
-    }
-
-
-    private HttpExecuteResponse getTokenHttpResponse() throws IOException {
-
-        URI uri = URI.create(endpoint + TOKEN_RESOURCE_PATH);
-        HttpExecuteRequest httpExecuteRequest = REQUEST_MARSHALLER.createTokenRequest(uri, SdkHttpMethod.PUT, tokenTtl);
-        return httpClient.prepareRequest(httpExecuteRequest).call();
-
     }
 
     private static final class Ec2MetadataBuilder implements Ec2Metadata.Builder {
@@ -282,8 +228,6 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
         private Duration tokenTtl;
 
         private EndpointMode endpointMode;
-
-        private String httpDebugOutput;
 
         private SdkHttpClient httpClient;
 
@@ -304,10 +248,6 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
 
         public void setEndpointMode(EndpointMode endpointMode) {
             this.endpointMode = endpointMode;
-        }
-
-        public void setHttpDebugOutput(String httpDebugOutput) {
-            this.httpDebugOutput = httpDebugOutput;
         }
 
         public void setHttpClient(SdkHttpClient httpClient) {
@@ -339,13 +279,8 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
         }
 
         @Override
-        public Builder httpDebugOutput(String httpDebugOutput) {
-            this.httpDebugOutput = httpDebugOutput;
-            return this;
-        }
-
-        @Override
         public Builder httpClient(SdkHttpClient httpClient) {
+
             this.httpClient = httpClient;
             return this;
         }

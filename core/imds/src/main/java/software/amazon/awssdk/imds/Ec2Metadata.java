@@ -23,7 +23,7 @@ import software.amazon.awssdk.imds.internal.DefaultEc2Metadata;
 
 
 /**
- *  Interface to represent the Ec2Metadata Client Class.
+ *  Interface to represent the Ec2Metadata Client Class. Used to access instance metadata from a running instance.
  */
 @SdkPublicApi
 public interface Ec2Metadata {
@@ -84,20 +84,12 @@ public interface Ec2Metadata {
         Builder tokenTtl(Duration tokenTtl);
 
         /**
-         * Define the endpoint mode of IMDS.Supported values include IPv4 and IPv6.
+         * Define the endpoint mode of IMDS. Supported values include IPv4 and IPv6.
          *
          * @param endpointMode The endpoint mode of IMDS.Supported values include IPv4 and IPv6.
          * @return Returns a reference to this builder
          */
         Builder endpointMode(EndpointMode endpointMode);
-
-        /**
-         * Define the output stream for debugging.
-         *
-         * @param httpDebugOutput TThe output stream for debugging.
-         * @return Returns a reference to this builder
-         */
-        Builder httpDebugOutput(String httpDebugOutput);
 
         /**
          * Define the SdkHttpClient instance to make the http requests.

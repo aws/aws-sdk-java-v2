@@ -56,7 +56,7 @@ public final class DocumentUnmarshaller implements JsonNodeVisitor<Document> {
     @Override
     public Document visitObject(Map<String, JsonNode> object) {
         return Document.fromMap(object.entrySet()
-                                      .stream().collect(Collectors.toMap(entry -> entry.getKey(),
+                                      .stream().collect(Collectors.toMap(Map.Entry::getKey,
                                                                          entry -> entry.getValue().visit(this),
                                                                          (left, right) -> left,
                                                                          LinkedHashMap::new)));

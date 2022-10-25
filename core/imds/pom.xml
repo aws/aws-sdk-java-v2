@@ -55,11 +55,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>url-connection-client</artifactId>
             <version>${awsjavasdk.version}</version>
@@ -96,6 +91,12 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>json-utils</artifactId>
+            <version>${awsjavasdk.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>third-party-jackson-core</artifactId>
             <version>${awsjavasdk.version}</version>
             <scope>compile</scope>
         </dependency>

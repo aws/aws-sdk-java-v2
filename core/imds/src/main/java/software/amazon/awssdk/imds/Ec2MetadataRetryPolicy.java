@@ -46,16 +46,16 @@ public class Ec2MetadataRetryPolicy implements ToCopyableBuilder<Ec2MetadataRetr
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
+    public boolean equals(Object obj) {
+        if (this == obj) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        Ec2MetadataRetryPolicy ec2MetadataRetryPolicy = (Ec2MetadataRetryPolicy) o;
+        Ec2MetadataRetryPolicy ec2MetadataRetryPolicy = (Ec2MetadataRetryPolicy) obj;
 
-        if (!Objects.equals(numRetries, ec2MetadataRetryPolicy.numRetries)) {
+        if (numRetries != ec2MetadataRetryPolicy.numRetries) {
             return false;
         }
         return Objects.equals(backoffStrategy, ec2MetadataRetryPolicy.backoffStrategy);
@@ -64,7 +64,7 @@ public class Ec2MetadataRetryPolicy implements ToCopyableBuilder<Ec2MetadataRetr
     @Override
     public int hashCode() {
 
-        int result = numRetries >= 0 ? numRetries : 0;
+        int result = Math.max(numRetries, 0);
         result = 31 * result + (backoffStrategy != null ? backoffStrategy.hashCode() : 0);
         return result;
     }
@@ -103,6 +103,10 @@ public class Ec2MetadataRetryPolicy implements ToCopyableBuilder<Ec2MetadataRetr
                         .backoffStrategy(backoffStrategy);
     }
 
+    public static Ec2MetadataRetryPolicy none() {
+        return builder().numRetries(0).build();
+    }
+
     public interface Builder extends CopyableBuilder<Ec2MetadataRetryPolicy.Builder, Ec2MetadataRetryPolicy> {
 
         /**
@@ -133,18 +137,10 @@ public class Ec2MetadataRetryPolicy implements ToCopyableBuilder<Ec2MetadataRetr
             return this;
         }
 
-        public void setNumRetries(Integer numRetries) {
-            numRetries(numRetries);
-        }
-
         @Override
         public Builder backoffStrategy(BackoffStrategy backoffStrategy) {
             this.backoffStrategy = backoffStrategy;
             return this;
-        }
-
-        public void setBackoffStrategy(BackoffStrategy backoffStrategy) {
-            backoffStrategy(backoffStrategy);
         }
 
         @Override
