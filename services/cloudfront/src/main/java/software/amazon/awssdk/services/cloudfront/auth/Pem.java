@@ -23,11 +23,11 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.regex.Pattern;
-import java.util.Base64;
 
-public enum PEM {
+public enum Pem {
     ;
     private static final String BEGIN_MARKER = "-----BEGIN ";
     private static final Pattern BEGIN = Pattern.compile("BEGIN", Pattern.LITERAL);
@@ -41,15 +41,14 @@ public enum PEM {
      * @throws IllegalArgumentException
      *             if no private key is found.
      */
-    public static PrivateKey readPrivateKey(InputStream is)
-        throws InvalidKeySpecException, IOException {
-        List<PEMObject> objects = readPEMObjects(is);
-        for (PEMObject object : objects) {
-            switch (object.getPEMObjectType()) {
+    public static PrivateKey readPrivateKey(InputStream is) throws InvalidKeySpecException, IOException {
+        List<PemObject> objects = readPemObjects(is);
+        for (PemObject object : objects) {
+            switch (object.getPemObjectType()) {
                 case PRIVATE_KEY_PKCS1:
-                    return RSA.privateKeyFromPKCS1(object.getDerBytes());
+                    return Rsa.privateKeyFromPkcs1(object.getDerBytes());
                 case PRIVATE_KEY_PKCS8:
-                    return RSA.privateKeyFromPKCS8(object.getDerBytes());
+                    return Rsa.privateKeyFromPkcs8(object.getDerBytes());
                 default:
                     break;
             }
@@ -66,12 +65,11 @@ public enum PEM {
      * @throws IllegalArgumentException
      *             if no public key is found.
      */
-    public static PublicKey readPublicKey(InputStream is)
-        throws InvalidKeySpecException, IOException {
-        List<PEMObject> objects = readPEMObjects(is);
-        for (PEMObject object : objects) {
-            if (object.getPEMObjectType() == PEMObjectType.PUBLIC_KEY_X509) {
-                return RSA.publicKeyFrom(object.getDerBytes());
+    public static PublicKey readPublicKey(InputStream is) throws InvalidKeySpecException, IOException {
+        List<PemObject> objects = readPemObjects(is);
+        for (PemObject object : objects) {
+            if (object.getPemObjectType() == PemObjectType.PUBLIC_KEY_X509) {
+                return Rsa.publicKeyFrom(object.getDerBytes());
             }
         }
         throw new IllegalArgumentException("Found no public key");
@@ -84,9 +82,8 @@ public enum PEM {
      * This method can be useful if more than one PEM object of different types
      * are embedded in the same PEM file.
      */
-    public static List<PEMObject> readPEMObjects(InputStream is)
-        throws IOException {
-        List<PEMObject> pemContents = new ArrayList<>();
+    public static List<PemObject> readPemObjects(InputStream is) throws IOException {
+        List<PemObject> pemContents = new ArrayList<>();
         /*
          * State of reading: set to true if reading content between a
          * begin-marker and end-marker; false otherwise.
@@ -100,8 +97,7 @@ public enum PEM {
             while ((line = reader.readLine()) != null) {
                 if (readingContent) {
                     if (line.contains(endMarker)) {
-                        pemContents.add( // completed reading one PEM object
-                                         new PEMObject(beginMarker, Base64.getDecoder().decode(sb.toString())));
+                        pemContents.add(new PemObject(beginMarker, Base64.getDecoder().decode(sb.toString())));
                         readingContent = false;
                     } else {
                         sb.append(line.trim());
