@@ -15,11 +15,14 @@
 
 package software.amazon.awssdk.services.cloudfront.auth;
 
-public class PEMObject {
+import software.amazon.awssdk.annotations.SdkInternalApi;
+
+@SdkInternalApi
+public class PemObject {
     private final String beginMarker;
     private final byte[] derBytes;
 
-    public PEMObject(String beginMarker, byte[] derBytes) {
+    public PemObject(String beginMarker, byte[] derBytes) {
         this.beginMarker = beginMarker;
         this.derBytes = derBytes.clone();
     }
@@ -32,7 +35,7 @@ public class PEMObject {
         return derBytes.clone();
     }
 
-    public PEMObjectType getPEMObjectType() {
-        return PEMObjectType.fromBeginMarker(beginMarker);
+    public PemObjectType getPemObjectType() {
+        return PemObjectType.fromBeginMarker(beginMarker);
     }
 }

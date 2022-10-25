@@ -32,14 +32,13 @@ import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 import java.time.ZonedDateTime;
 import java.util.Base64;
-
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.services.cloudfront.auth.PEM;
-import software.amazon.awssdk.services.cloudfront.auth.RSA;
+import software.amazon.awssdk.services.cloudfront.auth.Pem;
+import software.amazon.awssdk.services.cloudfront.auth.Rsa;
 import software.amazon.awssdk.utils.StringUtils;
 
-@SdkInternalApi
+@SdkPublicApi
 public final class CloudFrontSignerUtils {
 
     public static final Charset UTF8 = StandardCharsets.UTF_8;
@@ -108,6 +107,7 @@ public final class CloudFrontSignerUtils {
                )
                + "}}]}";
     }
+
     /**
      * Converts the given data to be safe for use in signed URLs for a private
      * distribution by using specialized Base64 encoding.
@@ -115,8 +115,8 @@ public final class CloudFrontSignerUtils {
     public static String makeBytesUrlSafe(byte[] bytes) {
         byte[] encoded = Base64.getEncoder().encode(bytes);
 
-        for (int i=0; i < encoded.length; i++) {
-            switch(encoded[i]) {
+        for (int i = 0; i < encoded.length; i++) {
+            switch (encoded[i]) {
                 case '+':
                     encoded[i] = '-';
                     continue;
@@ -154,7 +154,7 @@ public final class CloudFrontSignerUtils {
      * Signs the data given with the private key given, using the SHA1withRSA
      * algorithm provided by bouncy castle.
      */
-    public static byte[] signWithSha1RSA(byte[] dataToSign, PrivateKey privateKey) throws InvalidKeyException {
+    public static byte[] signWithSha1Rsa(byte[] dataToSign, PrivateKey privateKey) throws InvalidKeyException {
         try {
             Signature signature = Signature.getInstance("SHA1withRSA");
             SecureRandom random = new SecureRandom();
@@ -173,14 +173,14 @@ public final class CloudFrontSignerUtils {
      */
     public static PrivateKey loadPrivateKey(File privateKeyFile) throws InvalidKeySpecException, IOException {
         Path path = privateKeyFile.toPath();
-        if ( StringUtils.lowerCase(privateKeyFile.getAbsolutePath()).endsWith(".pem") ) {
+        if (StringUtils.lowerCase(privateKeyFile.getAbsolutePath()).endsWith(".pem")) {
             try (InputStream is = Files.newInputStream(path)) {
-                return PEM.readPrivateKey(is);
+                return Pem.readPrivateKey(is);
             }
         }
-        if ( StringUtils.lowerCase(privateKeyFile.getAbsolutePath()).endsWith(".der") ) {
+        if (StringUtils.lowerCase(privateKeyFile.getAbsolutePath()).endsWith(".der")) {
             try (InputStream is = Files.newInputStream(path)) {
-                return RSA.privateKeyFromPKCS8(toByteArray(is));
+                return Rsa.privateKeyFromPkcs8(toByteArray(is));
             }
         }
         throw SdkClientException.create("Unsupported file type for private key");

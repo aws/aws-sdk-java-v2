@@ -27,14 +27,14 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.RSAPrivateCrtKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
-public enum RSA {
+public enum Rsa {
     ;
     private static final String RSA = "RSA";
 
     /**
      * Returns a private key constructed from the given DER bytes in PKCS#8 format.
      */
-    public static PrivateKey privateKeyFromPKCS8(byte[] pkcs8) throws InvalidKeySpecException {
+    public static PrivateKey privateKeyFromPkcs8(byte[] pkcs8) throws InvalidKeySpecException {
         try {
             EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(pkcs8);
             KeyFactory keyFactory = KeyFactory.getInstance(RSA);
@@ -47,9 +47,9 @@ public enum RSA {
     /**
      * Returns a private key constructed from the given DER bytes in PKCS#1 format.
      */
-    public static PrivateKey privateKeyFromPKCS1(byte[] pkcs1) throws InvalidKeySpecException {
+    public static PrivateKey privateKeyFromPkcs1(byte[] pkcs1) throws InvalidKeySpecException {
         try {
-            RSAPrivateCrtKeySpec privateKeySpec= newRSAPrivateCrtKeySpec(pkcs1);
+            RSAPrivateCrtKeySpec privateKeySpec = newRsaPrivateCrtKeySpec(pkcs1);
             KeyFactory keyFactory = KeyFactory.getInstance(RSA);
             return keyFactory.generatePrivate(privateKeySpec);
         } catch (IOException e) {
@@ -119,7 +119,7 @@ public enum RSA {
      * @param keyInPkcs1 PKCS#1 encoded key
      * @throws IOException
      */
-    private static RSAPrivateCrtKeySpec newRSAPrivateCrtKeySpec(byte[] keyInPkcs1) throws IOException {
+    private static RSAPrivateCrtKeySpec newRsaPrivateCrtKeySpec(byte[] keyInPkcs1) throws IOException {
         DerParser parser = new DerParser(keyInPkcs1);
 
         Asn1Object sequence = parser.read();

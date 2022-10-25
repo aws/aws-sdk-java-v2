@@ -17,7 +17,7 @@ package software.amazon.awssdk.services.cloudfront.auth;
 
 import java.util.Arrays;
 
-public enum PEMObjectType {
+public enum PemObjectType {
     PRIVATE_KEY_PKCS1("-----BEGIN RSA PRIVATE KEY-----"),
     PRIVATE_KEY_PKCS8("-----BEGIN PRIVATE KEY-----"),
     PUBLIC_KEY_X509("-----BEGIN PUBLIC KEY-----"),
@@ -25,16 +25,15 @@ public enum PEMObjectType {
     ;
     private final String beginMarker;
 
+    PemObjectType(String beginMarker) {
+        this.beginMarker = beginMarker;
+    }
+
     public String getBeginMarker() {
         return beginMarker;
     }
 
-    PEMObjectType(String beginMarker) {
-        this.beginMarker = beginMarker;
-    }
-
-    public static PEMObjectType fromBeginMarker(String beginMarker) {
+    public static PemObjectType fromBeginMarker(String beginMarker) {
         return Arrays.stream(values()).filter(e -> e.getBeginMarker().equals(beginMarker)).findFirst().orElse(null);
     }
 }
-

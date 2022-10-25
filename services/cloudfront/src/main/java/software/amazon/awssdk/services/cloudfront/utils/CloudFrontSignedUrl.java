@@ -15,9 +15,6 @@
 
 package software.amazon.awssdk.services.cloudfront.utils;
 
-import java.time.ZonedDateTime;
-import software.amazon.awssdk.annotations.SdkInternalApi;
-
 import static software.amazon.awssdk.services.cloudfront.utils.CloudFrontSignerUtils.UTF8;
 import static software.amazon.awssdk.services.cloudfront.utils.CloudFrontSignerUtils.buildCannedPolicy;
 import static software.amazon.awssdk.services.cloudfront.utils.CloudFrontSignerUtils.buildCustomPolicy;
@@ -25,20 +22,22 @@ import static software.amazon.awssdk.services.cloudfront.utils.CloudFrontSignerU
 import static software.amazon.awssdk.services.cloudfront.utils.CloudFrontSignerUtils.loadPrivateKey;
 import static software.amazon.awssdk.services.cloudfront.utils.CloudFrontSignerUtils.makeBytesUrlSafe;
 import static software.amazon.awssdk.services.cloudfront.utils.CloudFrontSignerUtils.makeStringUrlSafe;
-import static software.amazon.awssdk.services.cloudfront.utils.CloudFrontSignerUtils.signWithSha1RSA;
-import software.amazon.awssdk.services.cloudfront.utils.CloudFrontSignerUtils.Protocol;
-import software.amazon.awssdk.core.exception.SdkClientException;
+import static software.amazon.awssdk.services.cloudfront.utils.CloudFrontSignerUtils.signWithSha1Rsa;
 
 import java.io.File;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.PrivateKey;
 import java.security.spec.InvalidKeySpecException;
+import java.time.ZonedDateTime;
+import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.services.cloudfront.utils.CloudFrontSignerUtils.Protocol;
 
-@SdkInternalApi
+@SdkPublicApi
 public final class CloudFrontSignedUrl {
 
-    private CloudFrontSignedUrl(){
+    private CloudFrontSignedUrl() {
     }
 
     /**
@@ -63,7 +62,7 @@ public final class CloudFrontSignedUrl {
      *            The expiration date of the signed URL in UTC
      * @return The signed URL.
      */
-    public static String getSignedURLWithCannedPolicy(Protocol protocol,
+    public static String getSignedUrlWithCannedPolicy(Protocol protocol,
                                                       String distributionDomain,
                                                       String s3ObjectKey,
                                                       File privateKeyFile,
@@ -71,7 +70,7 @@ public final class CloudFrontSignedUrl {
                                                       ZonedDateTime expirationDate) throws InvalidKeySpecException, IOException {
         PrivateKey privateKey = loadPrivateKey(privateKeyFile);
         String resourceUrl = generateResourceUrl(protocol, distributionDomain, s3ObjectKey);
-        return getSignedURLWithCannedPolicy(resourceUrl, privateKey, keyPairId, expirationDate);
+        return getSignedUrlWithCannedPolicy(resourceUrl, privateKey, keyPairId, expirationDate);
     }
 
     /**
@@ -103,13 +102,13 @@ public final class CloudFrontSignedUrl {
      *         and S3 object.
      */
 
-    public static String getSignedURLWithCannedPolicy(String resourceUrl,
+    public static String getSignedUrlWithCannedPolicy(String resourceUrl,
                                                       PrivateKey privateKey,
                                                       String keyPairId,
                                                       ZonedDateTime expirationDate) {
         try {
             String cannedPolicy = buildCannedPolicy(resourceUrl, expirationDate);
-            byte[] signatureBytes = signWithSha1RSA(cannedPolicy.getBytes(UTF8), privateKey);
+            byte[] signatureBytes = signWithSha1Rsa(cannedPolicy.getBytes(UTF8), privateKey);
             String urlSafeSignature = makeBytesUrlSafe(signatureBytes);
             return resourceUrl
                    + (resourceUrl.indexOf('?') >= 0 ? "&" : "?")
@@ -148,7 +147,7 @@ public final class CloudFrontSignedUrl {
      *            request, in CIDR form (e.g. 192.168.0.1/24).
      * @return The signed URL.
      */
-    public static String getSignedURLWithCustomPolicy(Protocol protocol,
+    public static String getSignedUrlWithCustomPolicy(Protocol protocol,
                                                       String distributionDomain,
                                                       String s3ObjectKey,
                                                       File privateKeyFile,
@@ -159,7 +158,7 @@ public final class CloudFrontSignedUrl {
         PrivateKey privateKey = loadPrivateKey(privateKeyFile);
         String resourceUrl = generateResourceUrl(protocol, distributionDomain, s3ObjectKey);
         String policy = buildCustomPolicyForSignedUrl(resourceUrl, activeDate, expirationDate, ipRange);
-        return getSignedURLWithCustomPolicy(resourceUrl, privateKey, keyPairId, policy);
+        return getSignedUrlWithCustomPolicy(resourceUrl, privateKey, keyPairId, policy);
     }
 
     /**
@@ -191,12 +190,12 @@ public final class CloudFrontSignedUrl {
      * @return A signed URL that will permit access to distribution and S3
      *         objects as specified in the policy document.
      */
-    public static String getSignedURLWithCustomPolicy(String resourceUrl,
+    public static String getSignedUrlWithCustomPolicy(String resourceUrl,
                                                       PrivateKey privateKey,
                                                       String keyPairId,
                                                       String policy) {
         try {
-            byte[] signatureBytes = signWithSha1RSA(policy.getBytes(UTF8), privateKey);
+            byte[] signatureBytes = signWithSha1Rsa(policy.getBytes(UTF8), privateKey);
             String urlSafePolicy = makeStringUrlSafe(policy);
             String urlSafeSignature = makeBytesUrlSafe(signatureBytes);
             return resourceUrl
@@ -253,13 +252,13 @@ public final class CloudFrontSignedUrl {
     public static String buildCustomPolicyForSignedUrl(String resourceUrl,
                                                        ZonedDateTime activeDate,
                                                        ZonedDateTime expirationDate,
-                                                       String limitToIpAddressCIDR) {
+                                                       String limitToIpAddressCidr) {
         if (expirationDate == null) {
             throw SdkClientException.create("Expiration date must be provided to sign CloudFront URLs");
         }
         if (resourceUrl == null) {
             resourceUrl = "*";
         }
-        return buildCustomPolicy(resourceUrl, activeDate, expirationDate, limitToIpAddressCIDR);
+        return buildCustomPolicy(resourceUrl, activeDate, expirationDate, limitToIpAddressCidr);
     }
 }

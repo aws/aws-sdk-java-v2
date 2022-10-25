@@ -15,15 +15,6 @@
 
 package software.amazon.awssdk.services.cloudfront.utils;
 
-import java.io.File;
-import java.io.IOException;
-import java.security.InvalidKeyException;
-import java.security.PrivateKey;
-import java.security.spec.InvalidKeySpecException;
-import java.time.ZonedDateTime;
-import java.util.Map;
-import software.amazon.awssdk.annotations.SdkInternalApi;
-
 import static software.amazon.awssdk.services.cloudfront.utils.CloudFrontSignerUtils.UTF8;
 import static software.amazon.awssdk.services.cloudfront.utils.CloudFrontSignerUtils.buildCannedPolicy;
 import static software.amazon.awssdk.services.cloudfront.utils.CloudFrontSignerUtils.buildCustomPolicy;
@@ -31,12 +22,20 @@ import static software.amazon.awssdk.services.cloudfront.utils.CloudFrontSignerU
 import static software.amazon.awssdk.services.cloudfront.utils.CloudFrontSignerUtils.loadPrivateKey;
 import static software.amazon.awssdk.services.cloudfront.utils.CloudFrontSignerUtils.makeBytesUrlSafe;
 import static software.amazon.awssdk.services.cloudfront.utils.CloudFrontSignerUtils.makeStringUrlSafe;
-import static software.amazon.awssdk.services.cloudfront.utils.CloudFrontSignerUtils.signWithSha1RSA;
+import static software.amazon.awssdk.services.cloudfront.utils.CloudFrontSignerUtils.signWithSha1Rsa;
 
+import java.io.File;
+import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.PrivateKey;
+import java.security.spec.InvalidKeySpecException;
+import java.time.ZonedDateTime;
+import java.util.Map;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.cloudfront.utils.CloudFrontSignerUtils.Protocol;
 
-@SdkInternalApi
+@SdkPublicApi
 public final class CloudFrontSignedCookie {
 
     private static final String EXPIRES_KEY = "CloudFront-Expires";
@@ -99,7 +98,7 @@ public final class CloudFrontSignedCookie {
                                                                    ZonedDateTime expirationDate) {
         try {
             String cannedPolicy = buildCannedPolicy(resourceUrl, expirationDate);
-            byte[] signatureBytes = signWithSha1RSA(cannedPolicy.getBytes(UTF8), privateKey);
+            byte[] signatureBytes = signWithSha1Rsa(cannedPolicy.getBytes(UTF8), privateKey);
             String urlSafeSignature = makeBytesUrlSafe(signatureBytes);
             // Create the cookies
             CookiesForCannedPolicy cookies = new CookiesForCannedPolicy();
@@ -125,7 +124,8 @@ public final class CloudFrontSignedCookie {
      * @param keyPairId          The key pair id corresponding to the private key file given.
      * @param activeDate         The date from which content can be accessed using the generated cookies.
      * @param expirationDate     The expiration date till which content can be accessed using the generated cookies.
-     * @param ipRange            The allowed IP address range of the client making the GET request, in CIDR form (e.g. 192.168.0.1/24).
+     * @param ipRange            The allowed IP address range of the client making the GET request,
+     *                           in CIDR form (e.g. 192.168.0.1/24).
      * @return The signed cookies.
      */
     public static CookiesForCustomPolicy getCookiesForCustomPolicy(Protocol protocol,
@@ -152,7 +152,8 @@ public final class CloudFrontSignedCookie {
      * @param keyPairId         The key pair id corresponding to the private key file given.
      * @param activeDate        The date from which content can be accessed using the generated cookies.
      * @param expirationDate    The expiration date till which content can be accessed using the generated cookies.
-     * @param ipRange           The allowed IP address range of the client making the GET request, in CIDR form (e.g. 192.168.0.1/24).
+     * @param ipRange           The allowed IP address range of the client making the GET request,
+     *                          in CIDR form (e.g. 192.168.0.1/24).
      * @return The signed cookies.
      */
     public static CookiesForCustomPolicy getCookiesForCustomPolicy(String resourceUrl,
@@ -163,7 +164,7 @@ public final class CloudFrontSignedCookie {
                                                                    String ipRange) {
         try {
             String policy = buildCustomPolicy(resourceUrl, activeDate, expirationDate, ipRange);
-            byte[] signatureBytes = signWithSha1RSA(policy.getBytes(UTF8), privateKey);
+            byte[] signatureBytes = signWithSha1Rsa(policy.getBytes(UTF8), privateKey);
             String urlSafePolicy = makeStringUrlSafe(policy);
             String urlSafeSignature = makeBytesUrlSafe(signatureBytes);
             // Create the cookies

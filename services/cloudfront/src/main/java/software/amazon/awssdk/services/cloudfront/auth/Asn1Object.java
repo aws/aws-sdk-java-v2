@@ -17,7 +17,9 @@ package software.amazon.awssdk.services.cloudfront.auth;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
+@SdkInternalApi
 public class Asn1Object {
     protected final int type;
     protected final int length;
