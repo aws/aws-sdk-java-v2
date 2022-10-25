@@ -19,7 +19,6 @@ import static software.amazon.awssdk.imds.internal.Ec2MetadataEndpointProvider.D
 
 import java.net.URI;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -33,20 +32,25 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.internal.http.TransformingAsyncResponseHandler;
+import software.amazon.awssdk.core.internal.http.async.AsyncResponseHandler;
 import software.amazon.awssdk.core.internal.http.async.SimpleHttpContentPublisher;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
 import software.amazon.awssdk.http.HttpStatusFamily;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
-import software.amazon.awssdk.http.async.SimpleSubscriber;
+import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 import software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient;
 import software.amazon.awssdk.imds.Ec2MetadataAsyncClient;
 import software.amazon.awssdk.imds.Ec2MetadataRetryPolicy;
 import software.amazon.awssdk.imds.EndpointMode;
 import software.amazon.awssdk.imds.MetadataResponse;
+import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
 
 @SdkInternalApi
@@ -55,6 +59,7 @@ import software.amazon.awssdk.utils.Logger;
 public final class DefaultEc2MetadataAsyncClient implements Ec2MetadataAsyncClient {
 
     private static final Logger log = Logger.loggerFor(DefaultEc2MetadataClient.class);
+    private static final int DEFAULT_RETRY_THREAD_POOL_SIZE = 3;
 
     private final Ec2MetadataRetryPolicy retryPolicy;
     private final SdkAsyncHttpClient httpClient;
@@ -76,8 +81,9 @@ public final class DefaultEc2MetadataAsyncClient implements Ec2MetadataAsyncClie
         this.requestMarshaller = new RequestMarshaller(this.endpoint);
         this.tokenTtl = builder.tokenTtl != null ? builder.tokenTtl
                                                  : Duration.ofSeconds(21600);
-        this.asyncRetryScheduler = builder.scheduledExecutorService != null ? builder.scheduledExecutorService
-                                                                            : Executors.newScheduledThreadPool(0);
+        this.asyncRetryScheduler = builder.scheduledExecutorService != null
+                                   ? builder.scheduledExecutorService
+                                   : Executors.newScheduledThreadPool(DEFAULT_RETRY_THREAD_POOL_SIZE);
     }
 
     public static Ec2MetadataAsyncClient.Builder builder() {
@@ -89,33 +95,44 @@ public final class DefaultEc2MetadataAsyncClient implements Ec2MetadataAsyncClie
         return get(path, RetryPolicyContext.builder().retriesAttempted(0).build());
     }
 
-    public CompletableFuture<MetadataResponse> get(String path, RetryPolicyContext retryPolicyContext) {
-        log.error(() -> String.format("Attempt %d", retryPolicyContext.retriesAttempted()));
-        CompletableFuture<String> tokenFuture = new CompletableFuture<>();
+    private CompletableFuture<MetadataResponse> get(String path, RetryPolicyContext retryPolicyContext) {
         SdkHttpFullRequest baseTokenRequest = requestMarshaller.createTokenRequest(tokenTtl);
-        AsyncExecuteRequest tokenRequest =
-            AsyncExecuteRequest.builder()
-                               .request(baseTokenRequest)
-                               .requestContentPublisher(new SimpleHttpContentPublisher(baseTokenRequest))
-                               .responseHandler(new StringResponseHandler(tokenFuture))
-                               .build();
-        httpClient.execute(tokenRequest);
-        CompletableFuture<MetadataResponse> result = tokenFuture.thenComposeAsync(token -> sendRequest(path, token));
+
+        CompletableFuture<MetadataResponse> result = createAsyncRequest(baseTokenRequest)
+            .thenComposeAsync(token -> {
+                SdkHttpFullRequest baseMetadataRequest = requestMarshaller.createDataRequest(path, token, tokenTtl);
+                return createAsyncRequest(baseMetadataRequest);
+            }).thenApply(MetadataResponse::create);
+
         return result.handleAsync((response, error) -> {
             if (!shouldRetry(retryPolicyContext, response, error)) {
                 return result;
             }
+            int newAttempt = retryPolicyContext.retriesAttempted() + 1;
+            log.debug(() -> "Retrying request: Attempt " + newAttempt);
             RetryPolicyContext newContext =
                 RetryPolicyContext.builder()
                                   .request(baseTokenRequest)
-                                  .retriesAttempted(retryPolicyContext.retriesAttempted() + 1)
+                                  .retriesAttempted(newAttempt)
                                   .exception(SdkClientException.create(error.getMessage(), error))
                                   .build();
-            return scheduledRetry(path, newContext);
+            return scheduledRetryAttempt(path, newContext);
         }).thenComposeAsync(Function.identity()); // only java 12 has .exceptionallyCompose()
     }
 
-    private CompletableFuture<MetadataResponse> scheduledRetry(String path, RetryPolicyContext retryPolicyContext) {
+    private CompletableFuture<String> createAsyncRequest(SdkHttpFullRequest baseRequest) {
+        StringAsyncResponseHandler responseHandler = new StringAsyncResponseHandler();
+        SdkHttpContentPublisher requestContentPublisher = new SimpleHttpContentPublisher(baseRequest);
+        AsyncExecuteRequest metadataRequest = AsyncExecuteRequest.builder()
+                                                                 .request(baseRequest)
+                                                                 .requestContentPublisher(requestContentPublisher)
+                                                                 .responseHandler(responseHandler)
+                                                                 .build();
+        httpClient.execute(metadataRequest);
+        return responseHandler.getResult();
+    }
+
+    private CompletableFuture<MetadataResponse> scheduledRetryAttempt(String path, RetryPolicyContext retryPolicyContext) {
         Duration retryDelay = retryPolicy.backoffStrategy().computeDelayBeforeNextRetry(retryPolicyContext);
         Executor retryExecutor = retryAttempt -> asyncRetryScheduler.schedule(retryAttempt, retryDelay.toMillis(),
                                                                               TimeUnit.MILLISECONDS);
@@ -132,19 +149,6 @@ public final class DefaultEc2MetadataAsyncClient implements Ec2MetadataAsyncClie
             return false;
         }
         return error instanceof RetryableException || error.getCause() instanceof RetryableException;
-    }
-
-    private CompletableFuture<MetadataResponse> sendRequest(String path, String token) {
-        CompletableFuture<String> metadataFuture = new CompletableFuture<>();
-        SdkHttpFullRequest baseMetadataRequest = requestMarshaller.createDataRequest(path, token, tokenTtl);
-        AsyncExecuteRequest metadataRequest =
-            AsyncExecuteRequest.builder()
-                               .request(baseMetadataRequest)
-                               .requestContentPublisher(new SimpleHttpContentPublisher(baseMetadataRequest))
-                               .responseHandler(new StringResponseHandler(metadataFuture))
-                               .build();
-        httpClient.execute(metadataRequest);
-        return metadataFuture.thenApply(MetadataResponse::create);
     }
 
     @Override
@@ -167,40 +171,61 @@ public final class DefaultEc2MetadataAsyncClient implements Ec2MetadataAsyncClie
         httpClient.close();
     }
 
-    private static final class StringResponseHandler implements SdkAsyncHttpResponseHandler {
+    private static final class StringResponseHandler implements HttpResponseHandler<String> {
+        @Override
+        public String handle(SdkHttpFullResponse response, ExecutionAttributes executionAttributes) throws Exception {
+            return IoUtils.toUtf8String(response.content().orElseThrow(() ->
+                SdkClientException.create("Unexpected error: empty response content")));
+        }
+    }
 
+    private static final class StringAsyncResponseHandler implements TransformingAsyncResponseHandler<String> {
+
+        private final AsyncResponseHandler<String> delegate;
         private final CompletableFuture<String> future;
 
-        private StringResponseHandler(CompletableFuture<String> future) {
-            this.future = future;
+        private StringAsyncResponseHandler() {
+            this.delegate = new AsyncResponseHandler<>(new StringResponseHandler(),
+                                                       Function.identity(),
+                                                       new ExecutionAttributes());
+            this.future = prepare();
+        }
+
+        public CompletableFuture<String> getResult() {
+            return this.future;
+        }
+
+        @Override
+        public CompletableFuture<String> prepare() {
+            return delegate.prepare();
         }
 
         @Override
         public void onHeaders(SdkHttpResponse headers) {
+            delegate.onHeaders(headers);
             HttpStatusFamily statusCode = HttpStatusFamily.of(headers.statusCode());
             if (statusCode.isOneOf(HttpStatusFamily.CLIENT_ERROR)) {
                 // non-retryable error
-                log.debug(() -> String.format("Error while executing EC2Metadata request, received status %d",
+                log.debug(() -> String.format("Error while executing EC2Metadata request: received http status %d",
                                               headers.statusCode()));
                 future.completeExceptionally(SdkClientException.create("Error: Status code " + statusCode));
-            }
-            if (statusCode.isOneOf(HttpStatusFamily.SERVER_ERROR)) {
+            } else if (statusCode.isOneOf(HttpStatusFamily.SERVER_ERROR)) {
                 // retryable error
-                log.debug(() -> String.format("Error while executing EC2Metadata request, received status %d",
+                log.debug(() -> String.format("Error while executing EC2Metadata request: received http status %d",
                                               headers.statusCode()));
                 future.completeExceptionally(RetryableException.create("Error: Status code " + statusCode));
             }
         }
 
         @Override
-        public void onError(Throwable error) {
-            log.debug(() -> String.format("Error while executing EC2Metadata request: %s", error.getMessage()));
-            future.completeExceptionally(RetryableException.create(error.getMessage(), error));
+        public void onStream(Publisher<ByteBuffer> publisher) {
+            delegate.onStream(publisher);
         }
 
         @Override
-        public void onStream(Publisher<ByteBuffer> stream) {
-            stream.subscribe(new SimpleSubscriber(b -> future.complete(new String(b.array(), StandardCharsets.UTF_8))));
+        public void onError(Throwable error) {
+            log.debug(() -> String.format("Error while executing EC2Metadata request: %s", error.getMessage()));
+            future.completeExceptionally(RetryableException.create(error.getMessage(), error));
         }
     }
 
