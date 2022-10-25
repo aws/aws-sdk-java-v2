@@ -80,7 +80,6 @@
         <dependency>
             <groupId>com.github.tomakehurst</groupId>
             <artifactId>wiremock-jre8</artifactId>
-            <version>2.34.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -124,11 +123,6 @@
             <artifactId>aws-crt-client</artifactId>
             <version>2.17.209-SNAPSHOT-PREVIEW</version>
             <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-slf4j-impl</artifactId>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 
