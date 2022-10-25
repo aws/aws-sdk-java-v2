@@ -16,11 +16,13 @@
 package software.amazon.awssdk.core.internal.util;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.checksums.Algorithm;
 import software.amazon.awssdk.core.checksums.ChecksumSpecs;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.utils.StringUtils;
@@ -35,6 +37,11 @@ public final class HttpChecksumResolver {
     }
 
     public static ChecksumSpecs getResolvedChecksumSpecs(ExecutionAttributes executionAttributes) {
+        return Optional.ofNullable(executionAttributes.getAttribute(SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS))
+                       .orElseGet(() -> resolveChecksumSpecs(executionAttributes));
+    }
+
+    public static ChecksumSpecs resolveChecksumSpecs(ExecutionAttributes executionAttributes) {
         HttpChecksum httpChecksumTraitInOperation = executionAttributes.getAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM);
         if (httpChecksumTraitInOperation == null) {
             return null;

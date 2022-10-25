@@ -31,21 +31,22 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
-import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
-import software.amazon.awssdk.awscore.internal.AwsExecutionContextBuilder;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
+import software.amazon.awssdk.core.checksums.ChecksumSpecs;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.http.ExecutionContext;
-import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
+import software.amazon.awssdk.core.internal.util.HttpChecksumUtils;
 import software.amazon.awssdk.core.signer.Signer;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -119,6 +120,63 @@ public class AwsExecutionContextBuilderTest {
                                                                                    testClientConfiguration().build());
 
         assertThat(executionContext.signer()).isEqualTo(clientOverrideSigner);
+    }
+
+    @Test
+    public void invokeInterceptorsAndCreateExecutionContext_noHttpChecksumTrait_resolvesChecksumSpecs() {
+        ExecutionContext executionContext =
+            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(clientExecutionParams(),
+                                                                                   testClientConfiguration().build());
+
+        ExecutionAttributes executionAttributes = executionContext.executionAttributes();
+        Optional<ChecksumSpecs> checksumSpecs1 = HttpChecksumUtils.checksumSpecWithRequestAlgorithm(executionAttributes);
+        Optional<ChecksumSpecs> checksumSpecs2 = HttpChecksumUtils.checksumSpecWithRequestAlgorithm(executionAttributes);
+
+        assertThat(checksumSpecs1).isNotPresent();
+        assertThat(checksumSpecs2).isNotPresent();
+        assertThat(checksumSpecs1).isSameAs(checksumSpecs2);
+    }
+
+    @Test
+    public void invokeInterceptorsAndCreateExecutionContext_singleExecutionContext_resolvesChecksumSpecsOnce() {
+        HttpChecksum httpCrc32Checksum =
+            HttpChecksum.builder().requestAlgorithm("crc32").isRequestStreaming(true).build();
+        ClientExecutionParams<SdkRequest, SdkResponse> executionParams = clientExecutionParams()
+            .putExecutionAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM, httpCrc32Checksum);
+
+        ExecutionContext executionContext =
+            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(executionParams,
+                                                                                   testClientConfiguration().build());
+
+        ExecutionAttributes executionAttributes = executionContext.executionAttributes();
+        ChecksumSpecs checksumSpecs1 = HttpChecksumUtils.checksumSpecWithRequestAlgorithm(executionAttributes).get();
+        ChecksumSpecs checksumSpecs2 = HttpChecksumUtils.checksumSpecWithRequestAlgorithm(executionAttributes).get();
+
+        assertThat(checksumSpecs1).isSameAs(checksumSpecs2);
+    }
+
+    @Test
+    public void invokeInterceptorsAndCreateExecutionContext_multipleExecutionContexts_resolvesChecksumSpecsOncePerContext() {
+        HttpChecksum httpCrc32Checksum = HttpChecksum.builder().requestAlgorithm("crc32").isRequestStreaming(true).build();
+        ClientExecutionParams<SdkRequest, SdkResponse> executionParams = clientExecutionParams()
+            .putExecutionAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM, httpCrc32Checksum);
+        SdkClientConfiguration clientConfig = testClientConfiguration().build();
+
+        ExecutionContext executionContext1 =
+            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(executionParams,
+                                                                                   clientConfig);
+        ExecutionAttributes executionAttributes1 = executionContext1.executionAttributes();
+        ChecksumSpecs checksumSpecs1 = HttpChecksumUtils.checksumSpecWithRequestAlgorithm(executionAttributes1).get();
+
+        ExecutionContext executionContext2 =
+            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(executionParams,
+                                                                                   clientConfig);
+        ExecutionAttributes executionAttributes2 = executionContext2.executionAttributes();
+        ChecksumSpecs checksumSpecs2 = HttpChecksumUtils.checksumSpecWithRequestAlgorithm(executionAttributes2).get();
+        ChecksumSpecs checksumSpecs3 = HttpChecksumUtils.checksumSpecWithRequestAlgorithm(executionAttributes2).get();
+
+        assertThat(checksumSpecs1).isNotSameAs(checksumSpecs2);
+        assertThat(checksumSpecs2).isSameAs(checksumSpecs3);
     }
     
     private ClientExecutionParams<SdkRequest, SdkResponse> clientExecutionParams() {
