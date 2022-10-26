@@ -81,7 +81,6 @@ class CloudFrontSignerTest {
         String b64 = Base64.getEncoder().encodeToString(input);
         assertThat(expectedB64).isEqualTo(b64);
         String encoded = makeBytesUrlSafe(input);
-
         assertThat(expectedEnc).isEqualTo(encoded);
     }
 
@@ -91,7 +90,6 @@ class CloudFrontSignerTest {
         ZonedDateTime activeDate = ZonedDateTime.of(2022, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC"));
         ZonedDateTime expirationDate = ZonedDateTime.of(2024, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC"));
         String policy = buildCustomPolicyForSignedUrl("resourcePath", activeDate, expirationDate, "limitToIpAddressCIDR");
-
         assertThat(expected).isEqualTo(policy);
     }
 
@@ -100,7 +98,6 @@ class CloudFrontSignerTest {
         String expected = "{\"Statement\":[{\"Resource\":\"resourceUrlOrPath\",\"Condition\":{\"DateLessThan\":{\"AWS:EpochTime\":1704067200}}}]}";
         ZonedDateTime expirationDate = ZonedDateTime.of(2024, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC"));
         String policy = buildCannedPolicy("resourceUrlOrPath", expirationDate);
-
         assertThat(expected).isEqualTo(policy);
     }
 
@@ -111,7 +108,6 @@ class CloudFrontSignerTest {
         ZonedDateTime expirationDate = ZonedDateTime.of(2024, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC"));
         String ipAddress = "1.2.3.4";
         String policy = buildCustomPolicy("resourcePath", activeDate, expirationDate, ipAddress);
-
         assertThat(expected).isEqualTo(policy);
     }
 
@@ -121,24 +117,21 @@ class CloudFrontSignerTest {
         ZonedDateTime expirationDate = ZonedDateTime.of(2024, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC"));
 
         {
-            String signedUrl = CloudFrontSignedUrl.getSignedUrlWithCannedPolicy(Protocol.HTTPS, "distributionDomain",
+            String signedUrl = getSignedUrlWithCannedPolicy(Protocol.HTTPS, "distributionDomain",
                                                                                 "s3ObjectKey", keyFile, "keyPairId", expirationDate);
             String signature = signedUrl.substring(signedUrl.indexOf("&Signature"), signedUrl.indexOf("&Key-Pair-Id"));
             String expected = "https://distributionDomain/s3ObjectKey?Expires=1704067200"
                               + signature
                               + "&Key-Pair-Id=keyPairId";
-
             assertThat(expected).isEqualTo(signedUrl);
         }
         {
             PrivateKey pk =  loadPrivateKey(keyFile);
-            String signedUrl = getSignedUrlWithCannedPolicy("https://distributionDomain/s3ObjectKey", pk,
-                                                            "keyPairId", expirationDate);
+            String signedUrl = getSignedUrlWithCannedPolicy("https://distributionDomain/s3ObjectKey", pk,"keyPairId", expirationDate);
             String signature = signedUrl.substring(signedUrl.indexOf("&Signature"), signedUrl.indexOf("&Key-Pair-Id"));
             String expected = "https://distributionDomain/s3ObjectKey?Expires=1704067200"
                               + signature
                               + "&Key-Pair-Id=keyPairId";
-
             assertThat(expected).isEqualTo(signedUrl);
         }
     }
@@ -149,14 +142,12 @@ class CloudFrontSignerTest {
         ZonedDateTime expirationDate = ZonedDateTime.of(2024, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC"));
         String ipRange = "1.2.3.4";
         {
-            String signedUrl = CloudFrontSignedUrl.getSignedUrlWithCustomPolicy(CloudFrontSignerUtils.Protocol.HTTPS, "distributionDomain",
-                                                                                "s3ObjectKey", keyFile, "keyPairId", activeDate, expirationDate, ipRange);
+            String signedUrl = getSignedUrlWithCustomPolicy(CloudFrontSignerUtils.Protocol.HTTPS, "distributionDomain","s3ObjectKey", keyFile, "keyPairId", activeDate, expirationDate, ipRange);
             String signature = signedUrl.substring(signedUrl.indexOf("&Signature"), signedUrl.indexOf("&Key-Pair-Id"));
             String expected = "https://distributionDomain/s3ObjectKey?Policy"
                               + "=eyJTdGF0ZW1lbnQiOiBbeyJSZXNvdXJjZSI6Imh0dHBzOi8vZGlzdHJpYnV0aW9uRG9tYWluL3MzT2JqZWN0S2V5IiwiQ29uZGl0aW9uIjp7IkRhdGVMZXNzVGhhbiI6eyJBV1M6RXBvY2hUaW1lIjoxNzA0MDY3MjAwfSwiSXBBZGRyZXNzIjp7IkFXUzpTb3VyY2VJcCI6IjEuMi4zLjQifSwiRGF0ZUdyZWF0ZXJUaGFuIjp7IkFXUzpFcG9jaFRpbWUiOjE2NDA5OTUyMDB9fX1dfQ__"
                               + signature
                               + "&Key-Pair-Id=keyPairId";
-
             assertThat(expected).isEqualTo(signedUrl);
         }
         {
@@ -168,7 +159,6 @@ class CloudFrontSignerTest {
                               + "=eyJTdGF0ZW1lbnQiOiBbeyJSZXNvdXJjZSI6Imh0dHBzOi8vZGlzdHJpYnV0aW9uRG9tYWluL3MzT2JqZWN0S2V5IiwiQ29uZGl0aW9uIjp7IkRhdGVMZXNzVGhhbiI6eyJBV1M6RXBvY2hUaW1lIjoxNzA0MDY3MjAwfSwiSXBBZGRyZXNzIjp7IkFXUzpTb3VyY2VJcCI6IjEuMi4zLjQifSwiRGF0ZUdyZWF0ZXJUaGFuIjp7IkFXUzpFcG9jaFRpbWUiOjE2NDA5OTUyMDB9fX1dfQ__"
                               + signature
                               + "&Key-Pair-Id=keyPairId";
-
             assertThat(expected).isEqualTo(signedUrl);
         }
     }
@@ -180,7 +170,6 @@ class CloudFrontSignerTest {
         ZonedDateTime activeDate = ZonedDateTime.of(2022, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC"));
         ZonedDateTime expirationDate = ZonedDateTime.of(2024, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC"));
         String generatedPolicy = buildCustomPolicyForSignedUrl(resourcePath, activeDate, expirationDate, null);
-
         assertThat(expectedPolicy).isEqualTo(generatedPolicy);
     }
 
@@ -190,9 +179,7 @@ class CloudFrontSignerTest {
         ZonedDateTime activeDate = ZonedDateTime.of(2022, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC"));
         ZonedDateTime expirationDate = ZonedDateTime.of(2024, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC"));
         String urlSafePolicy = makeStringUrlSafe(expectedPolicy);
-        String signedUrl = CloudFrontSignedUrl.getSignedUrlWithCustomPolicy(Protocol.HTTPS, "distributionDomain", "s3ObjectKey",
-                                                                            keyFile, "keyPairId", activeDate, expirationDate, null);
-
+        String signedUrl = getSignedUrlWithCustomPolicy(Protocol.HTTPS, "distributionDomain", "s3ObjectKey", keyFile, "keyPairId", activeDate, expirationDate, null);
         assertThat(signedUrl).contains("Policy=" + urlSafePolicy + "&");
     }
 

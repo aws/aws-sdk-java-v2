@@ -241,7 +241,7 @@ public final class CloudFrontSignedUrl {
      *            is created.
      * @param expirationDate
      *            The UTC time and date when the signed URL will expire. REQUIRED.
-     * @param limitToIpAddressCIDR
+     * @param limitToIpAddressCidr
      *            An optional range of client IP addresses that will be allowed
      *            to access the distribution, specified as a CIDR range. If
      *            null, the CIDR will be omitted and any client will be
