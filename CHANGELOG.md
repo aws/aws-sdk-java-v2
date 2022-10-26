@@ -1,3 +1,32 @@
+# __2.18.4__ __2022-10-26__
+## __AWS Identity and Access Management__
+  - ### Features
+    - Doc only update that corrects instances of CLI not using an entity.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Update EnhancedAttributeValue to accept Collection
+        - Contributed by: [@L-Applin](https://github.com/L-Applin)
+
+  - ### Bugfixes
+    - HttpChecksumResolver.getResolvedChecksumSpecs() first attempts retrieval of checksum from ExecutionAttributes before resolving it
+
+## __Amazon Neptune__
+  - ### Features
+    - Added a new cluster-level attribute to set the capacity range for Neptune Serverless instances.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker Automatic Model Tuning now supports specifying Grid Search strategy for tuning jobs, which evaluates all hyperparameter combinations exhaustively based on the categorical hyperparameters provided.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - This release adds support for Tiered Storage. UpdateStorage allows you to control the Storage Mode for supported storage tiers.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@L-Applin](https://github.com/L-Applin)
 # __2.18.3__ __2022-10-25__
 ## __AWS MediaTailor__
   - ### Features
