@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
-import software.amazon.awssdk.services.protocolrestjson.endpoints.internal.EndpointRuleset;
+import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.EndpointRuleset;
 
 public class EndpointTestSuite {
     public static final String SERVICE = "service";
