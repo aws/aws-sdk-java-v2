@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Identity and Access Management",
+    "contributor": "",
+    "description": "Doc only update that corrects instances of CLI not using an entity."
+}
