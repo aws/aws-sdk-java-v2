@@ -144,6 +144,15 @@
                                     <release>9</release>
                                 </configuration>
                             </execution>
+                            <!-- turn off dual compile -->
+                            <execution>
+                                <id>java-8-compile</id>
+                                <phase>none</phase>
+                            </execution>
+                            <execution>
+                                <id>java-9-compile</id>
+                                <phase>none</phase>
+                            </execution>
                         </executions>
                         <configuration>
                             <jdkToolchain>

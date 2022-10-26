@@ -142,6 +142,7 @@
         <maven-javadoc-plugin.version>3.4.1</maven-javadoc-plugin.version>
         <maven.build.timestamp.format>yyyy</maven.build.timestamp.format>
         <maven-dependency-plugin.version>3.1.1</maven-dependency-plugin.version>
+        <maven-enforcer-plugin.version>3.1.0</maven-enforcer-plugin.version>
         <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
         <checkstyle.version>8.42</checkstyle.version>
         <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
@@ -242,6 +243,12 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-dependency-plugin</artifactId>
                     <version>${maven-dependency-plugin.version}</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-enforcer-plugin</artifactId>
+                    <version>${maven-enforcer-plugin.version}</version>
                 </plugin>
 
                 <plugin>
@@ -668,9 +675,123 @@
         </profile>
 
         <profile>
+            <id>dual-compile</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-enforcer-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>enforce-jdk9plus</id>
+                                <goals>
+                                    <goal>enforce</goal>
+                                </goals>
+                                <configuration>
+                                    <rules>
+                                        <requireJavaVersion>
+                                            <version>9</version>
+                                        </requireJavaVersion>
+                                    </rules>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>default-compile</id>
+                                <phase>none</phase>
+                            </execution>
+                            <execution>
+                                <id>default-testCompile</id>
+                                <configuration>
+                                    <release>9</release>
+                                    <encoding>UTF-8</encoding>
+                                    <forceJavacCompilerUse>true</forceJavacCompilerUse>
+                                    <compilerArgument>-proc:none</compilerArgument>
+                                    <fork>false</fork>
+                                    <compilerArgument>-proc:none</compilerArgument>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>java-9-compile</id>
+                                <goals>
+                                    <goal>compile</goal>
+                                </goals>
+                                <configuration>
+                                    <release>9</release>
+                                    <encoding>UTF-8</encoding>
+                                    <forceJavacCompilerUse>true</forceJavacCompilerUse>
+                                    <compilerArgument>-proc:none</compilerArgument>
+                                    <fork>false</fork>
+                                    <compilerArgument>-proc:none</compilerArgument>
+                                    <excludes>
+                                        <exclude>software/amazon/awssdk/services/kinesis/model/SubscribeToShardEvent.java</exclude>
+                                        <exclude>software/amazon/awssdk/services/kinesis/KinesisAsyncClient.java</exclude>
+                                        <exclude>software/amazon/awssdk/services/kinesis/DefaultKinesisAsyncClient.java</exclude>
+                                        <exclude>software/amazon/awssdk/services/kinesis/DefaultKinesisBaseClientBuilder.java</exclude>
+                                        <exclude>software/amazon/awssdk/services/sms/model/InternalError.java</exclude>
+                                        <exclude>software/amazon/awssdk/services/kinesis/transform/SubscribeToShardResponseUnmarshaller.java</exclude>
+                                    </excludes>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>java-8-compile</id>
+                                <goals>
+                                    <goal>compile</goal>
+                                </goals>
+                                <configuration>
+                                    <source>${jre.version}</source>
+                                    <target>${jre.version}</target>
+                                    <encoding>UTF-8</encoding>
+                                    <forceJavacCompilerUse>true</forceJavacCompilerUse>
+                                    <compilerArgument>-proc:none</compilerArgument>
+                                    <fork>false</fork>
+                                    <compilerArgument>-proc:none</compilerArgument>
+                                    <excludes>
+                                        <exclude>software/amazon/awssdk/services/kinesis/model/SubscribeToShardEvent.java</exclude>
+                                        <exclude>software/amazon/awssdk/services/kinesis/KinesisAsyncClient.java</exclude>
+                                        <exclude>software/amazon/awssdk/services/kinesis/DefaultKinesisAsyncClient.java</exclude>
+                                        <exclude>software/amazon/awssdk/services/kinesis/DefaultKinesisBaseClientBuilder.java</exclude>
+                                        <exclude>software/amazon/awssdk/services/sms/model/InternalError.java</exclude>
+                                        <exclude>software/amazon/awssdk/services/kinesis/transform/SubscribeToShardResponseUnmarshaller.java</exclude>
+                                        <!-- recompile everything for target VM except the module-info.java -->
+                                        <exclude>module-info.java</exclude>
+                                    </excludes>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
             <id>publishing</id>
             <build>
                 <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-enforcer-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>enforce-dual-compile</id>
+                                <goals>
+                                    <goal>enforce</goal>
+                                </goals>
+                                <configuration>
+                                    <rules>
+                                        <requireActiveProfile>
+                                            <profiles>dual-compile</profiles>
+                                        </requireActiveProfile>
+                                    </rules>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
