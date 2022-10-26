@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
@@ -33,10 +34,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Base64;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -47,10 +45,8 @@ import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.services.cloudfront.model.Aliases;
-import software.amazon.awssdk.services.cloudfront.model.AllowedMethods;
 import software.amazon.awssdk.services.cloudfront.model.CacheBehavior;
 import software.amazon.awssdk.services.cloudfront.model.CacheBehaviors;
-import software.amazon.awssdk.services.cloudfront.model.CachedMethods;
 import software.amazon.awssdk.services.cloudfront.model.CloudFrontOriginAccessIdentityConfig;
 import software.amazon.awssdk.services.cloudfront.model.CookiePreference;
 import software.amazon.awssdk.services.cloudfront.model.CreateCloudFrontOriginAccessIdentityRequest;
@@ -60,8 +56,6 @@ import software.amazon.awssdk.services.cloudfront.model.CreateDistributionRespon
 import software.amazon.awssdk.services.cloudfront.model.CreateKeyGroupRequest;
 import software.amazon.awssdk.services.cloudfront.model.CreatePublicKeyRequest;
 import software.amazon.awssdk.services.cloudfront.model.CreatePublicKeyResponse;
-import software.amazon.awssdk.services.cloudfront.model.CustomErrorResponses;
-import software.amazon.awssdk.services.cloudfront.model.CustomHeaders;
 import software.amazon.awssdk.services.cloudfront.model.DefaultCacheBehavior;
 import software.amazon.awssdk.services.cloudfront.model.DeleteCloudFrontOriginAccessIdentityRequest;
 import software.amazon.awssdk.services.cloudfront.model.DeleteDistributionRequest;
@@ -69,34 +63,25 @@ import software.amazon.awssdk.services.cloudfront.model.DeleteKeyGroupRequest;
 import software.amazon.awssdk.services.cloudfront.model.DeletePublicKeyRequest;
 import software.amazon.awssdk.services.cloudfront.model.DistributionConfig;
 import software.amazon.awssdk.services.cloudfront.model.ForwardedValues;
-import software.amazon.awssdk.services.cloudfront.model.GeoRestriction;
-import software.amazon.awssdk.services.cloudfront.model.GeoRestrictionType;
+import software.amazon.awssdk.services.cloudfront.model.GetCloudFrontOriginAccessIdentityRequest;
 import software.amazon.awssdk.services.cloudfront.model.GetDistributionConfigRequest;
 import software.amazon.awssdk.services.cloudfront.model.GetDistributionConfigResponse;
+import software.amazon.awssdk.services.cloudfront.model.GetKeyGroupRequest;
 import software.amazon.awssdk.services.cloudfront.model.GetPublicKeyRequest;
 import software.amazon.awssdk.services.cloudfront.model.Headers;
-import software.amazon.awssdk.services.cloudfront.model.HttpVersion;
 import software.amazon.awssdk.services.cloudfront.model.KeyGroup;
 import software.amazon.awssdk.services.cloudfront.model.KeyGroupConfig;
-import software.amazon.awssdk.services.cloudfront.model.LambdaFunctionAssociations;
 import software.amazon.awssdk.services.cloudfront.model.LoggingConfig;
-import software.amazon.awssdk.services.cloudfront.model.Method;
-import software.amazon.awssdk.services.cloudfront.model.MinimumProtocolVersion;
 import software.amazon.awssdk.services.cloudfront.model.Origin;
 import software.amazon.awssdk.services.cloudfront.model.Origins;
 import software.amazon.awssdk.services.cloudfront.model.PriceClass;
 import software.amazon.awssdk.services.cloudfront.model.PublicKeyConfig;
-import software.amazon.awssdk.services.cloudfront.model.QueryStringCacheKeys;
-import software.amazon.awssdk.services.cloudfront.model.Restrictions;
 import software.amazon.awssdk.services.cloudfront.model.S3OriginConfig;
 import software.amazon.awssdk.services.cloudfront.model.TrustedKeyGroups;
-import software.amazon.awssdk.services.cloudfront.model.UpdateDistributionRequest;
 import software.amazon.awssdk.services.cloudfront.model.UpdateDistributionResponse;
-import software.amazon.awssdk.services.cloudfront.model.ViewerCertificate;
 import software.amazon.awssdk.services.cloudfront.model.ViewerProtocolPolicy;
 import software.amazon.awssdk.services.cloudfront.utils.CloudFrontSignedCookie.CookiesForCannedPolicy;
 import software.amazon.awssdk.services.cloudfront.utils.CloudFrontSignedCookie.CookiesForCustomPolicy;
-import software.amazon.awssdk.services.cloudfront.utils.CloudFrontSignedUrl;
 import software.amazon.awssdk.services.cloudfront.utils.CloudFrontSignerUtils.Protocol;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -112,28 +97,48 @@ public class CloudFrontSignerIntegrationTest extends IntegrationTestBase {
                                              + "." + callerReference;
     private static final String s3ObjectKey = "s3ObjectKey";
     private static String dnsName = bucketName + ".s3.amazonaws.com";
-    private static String publicKeyId = "KP9IR4CG11D8E";
-    private static String domainName = "d1vd7uvtptv2pi.cloudfront.net";
-    private static String distributionId = "E1SG95APD30ALK";
+    private static String publicKeyId;
+    private static String domainName;
+    private static String distributionId;
     private static KeyPair keyPair;
-    private static File keyFile = new File("src/test/key.pem");
-    private static String keyGroupId = "f939967f-5e8c-44bb-820a-3074c8a2ee7a";
-    private static String originAccessId = "E7OHWSGGA0YS0";
+    private static File keyFile;
+    private static String keyGroupId;
+    private static String originAccessId;
     private static String distributionETag;
 
     @BeforeAll
     public static void initial() throws IOException, InterruptedException, NoSuchAlgorithmException {
         IntegrationTestBase.setUp();
-        //initKeys();
-        //setUpDistribution();
+        initKeys();
+        setUpDistribution();
+    }
+
+    @AfterAll
+    public static void tearDown() throws InterruptedException {
+        disableDistribution();
+        if (distributionId != null) {
+            try {
+                cloudFrontClient.deleteDistribution(DeleteDistributionRequest.builder().ifMatch(distributionETag).id(distributionId).build());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        deleteBucketAndAllContents(bucketName);
+        String keyGroupETag = cloudFrontClient.getKeyGroup(GetKeyGroupRequest.builder().id(keyGroupId).build()).eTag();
+        cloudFrontClient.deleteKeyGroup(DeleteKeyGroupRequest.builder().ifMatch(keyGroupETag).id(keyGroupId).build());
+        String publicKeyETag = cloudFrontClient.getPublicKey(GetPublicKeyRequest.builder().id(publicKeyId).build()).eTag();
+        cloudFrontClient.deletePublicKey(DeletePublicKeyRequest.builder().ifMatch(publicKeyETag).id(publicKeyId).build());
+        String originAccessIdETag = cloudFrontClient.getCloudFrontOriginAccessIdentity(GetCloudFrontOriginAccessIdentityRequest.builder().id(originAccessId).build()).eTag();
+        cloudFrontClient.deleteCloudFrontOriginAccessIdentity(DeleteCloudFrontOriginAccessIdentityRequest.builder().ifMatch(originAccessIdETag).id(originAccessId).build());
+        keyFile.deleteOnExit();
     }
 
     @Test
     void getSignedURLWithCannedPolicy_shouldWork() throws Exception {
         InputStream originalBucketContent = s3Client.getObject(GetObjectRequest.builder().bucket(bucketName).key(s3ObjectKey).build());
         ZonedDateTime expirationDate = ZonedDateTime.of(2050, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC"));
-        String signedUrl = CloudFrontSignedUrl.getSignedUrlWithCannedPolicy(Protocol.HTTPS, domainName, s3ObjectKey, keyFile,
-                                                                            publicKeyId, expirationDate);
+        String signedUrl = getSignedUrlWithCannedPolicy(Protocol.HTTPS, domainName, s3ObjectKey, keyFile, publicKeyId, expirationDate);
         String encodedPath = signedUrl.substring(signedUrl.indexOf("s3ObjectKey"));
         SdkHttpClient client = ApacheHttpClient.create();
         HttpExecuteResponse response =
@@ -155,8 +160,7 @@ public class CloudFrontSignerIntegrationTest extends IntegrationTestBase {
     @Test
     void getSignedURLWithCannedPolicy_withExpiredDate_shouldReturn403Response() throws Exception {
         ZonedDateTime expirationDate = ZonedDateTime.of(2020, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC"));
-        String signedUrl = CloudFrontSignedUrl.getSignedUrlWithCannedPolicy(Protocol.HTTPS, domainName, s3ObjectKey, keyFile,
-                                                                            publicKeyId, expirationDate);
+        String signedUrl = getSignedUrlWithCannedPolicy(Protocol.HTTPS, domainName, s3ObjectKey, keyFile, publicKeyId, expirationDate);
         String encodedPath = signedUrl.substring(signedUrl.indexOf("s3ObjectKey"));
         SdkHttpClient client = ApacheHttpClient.create();
         HttpExecuteResponse response =
@@ -177,7 +181,7 @@ public class CloudFrontSignerIntegrationTest extends IntegrationTestBase {
         InputStream originalBucketContent = s3Client.getObject(GetObjectRequest.builder().bucket(bucketName).key(s3ObjectKey).build());
         ZonedDateTime activeDate = ZonedDateTime.of(2020, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC"));
         ZonedDateTime expirationDate = ZonedDateTime.of(2050, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC"));
-        String signedUrl = CloudFrontSignedUrl.getSignedUrlWithCustomPolicy(Protocol.HTTPS, domainName, s3ObjectKey, keyFile, publicKeyId, activeDate, expirationDate, null);
+        String signedUrl = getSignedUrlWithCustomPolicy(Protocol.HTTPS, domainName, s3ObjectKey, keyFile, publicKeyId, activeDate, expirationDate, null);
         String encodedPath = signedUrl.substring(signedUrl.indexOf("s3ObjectKey"));
         SdkHttpClient client = ApacheHttpClient.create();
         HttpExecuteResponse response =
@@ -200,7 +204,7 @@ public class CloudFrontSignerIntegrationTest extends IntegrationTestBase {
     void getSignedURLWithCustomPolicy_withFutureActiveDate_shouldReturn403Response() throws Exception {
         ZonedDateTime activeDate = ZonedDateTime.of(2040, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC"));
         ZonedDateTime expirationDate = ZonedDateTime.of(2050, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC"));
-        String signedUrl = CloudFrontSignedUrl.getSignedUrlWithCustomPolicy(Protocol.HTTPS, domainName, s3ObjectKey, keyFile, publicKeyId, activeDate, expirationDate, null);
+        String signedUrl = getSignedUrlWithCustomPolicy(Protocol.HTTPS, domainName, s3ObjectKey, keyFile, publicKeyId, activeDate, expirationDate, null);
         String encodedPath = signedUrl.substring(signedUrl.indexOf("s3ObjectKey"));
         SdkHttpClient client = ApacheHttpClient.create();
         HttpExecuteResponse response =
@@ -222,16 +226,24 @@ public class CloudFrontSignerIntegrationTest extends IntegrationTestBase {
         ZonedDateTime expirationDate = ZonedDateTime.of(2050, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC"));
         CookiesForCannedPolicy cookies = getCookiesForCannedPolicy(Protocol.HTTPS, domainName, s3ObjectKey, keyFile, publicKeyId, expirationDate);
         String encodedPath = generateResourceUrl(Protocol.HTTPS, domainName, s3ObjectKey);
-        HttpClient httpClient = new DefaultHttpClient();
-        HttpGet httpGet = new HttpGet(encodedPath);
-        httpGet.addHeader("Cookie", cookies.getExpires().getKey() + "=" + cookies.getExpires().getValue());
-        httpGet.addHeader("Cookie", cookies.getSignature().getKey() + "=" + cookies.getSignature().getValue());
-        httpGet.addHeader("Cookie", cookies.getKeyPairId().getKey() + "=" + cookies.getKeyPairId().getValue());
-        HttpResponse responseCookie = httpClient.execute(httpGet);
-        int expectedStatus = 200;
-        assertThat(responseCookie.getStatusLine().getStatusCode()).isEqualTo(expectedStatus);
 
-        InputStream retrievedBucketContent = responseCookie.getEntity().getContent();
+        SdkHttpClient client = ApacheHttpClient.create();
+        HttpExecuteResponse response =
+            client.prepareRequest(HttpExecuteRequest.builder()
+                                                    .request(SdkHttpRequest.builder()
+                                                                           .uri(URI.create(encodedPath))
+                                                                           .appendHeader("Cookie",cookies.getExpires().getKey() + "=" + cookies.getExpires().getValue())
+                                                                           .appendHeader("Cookie",
+                                                                                         cookies.getSignature().getKey() + "=" + cookies.getSignature().getValue())
+                                                                           .appendHeader("Cookie",
+                                                                                         cookies.getKeyPairId().getKey() + "=" + cookies.getKeyPairId().getValue())
+                                                                           .method(SdkHttpMethod.GET)
+                                                                           .build())
+                                                    .build()).call();
+        int expectedStatus = 200;
+        assertThat(response.httpResponse().statusCode()).isEqualTo(expectedStatus);
+
+        InputStream retrievedBucketContent = response.responseBody().get();
         assertThat(retrievedBucketContent).hasSameContentAs(originalBucketContent);
     }
 
@@ -240,14 +252,22 @@ public class CloudFrontSignerIntegrationTest extends IntegrationTestBase {
         ZonedDateTime expirationDate = ZonedDateTime.of(2020, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC"));
         CookiesForCannedPolicy cookies = getCookiesForCannedPolicy(Protocol.HTTPS, domainName, s3ObjectKey, keyFile, publicKeyId, expirationDate);
         String encodedPath = generateResourceUrl(Protocol.HTTPS, domainName, s3ObjectKey);
-        HttpClient httpClient = new DefaultHttpClient();
-        HttpGet httpGet = new HttpGet(encodedPath);
-        httpGet.addHeader("Cookie", cookies.getExpires().getKey() + "=" + cookies.getExpires().getValue());
-        httpGet.addHeader("Cookie", cookies.getSignature().getKey() + "=" + cookies.getSignature().getValue());
-        httpGet.addHeader("Cookie", cookies.getKeyPairId().getKey() + "=" + cookies.getKeyPairId().getValue());
-        HttpResponse responseCookie = httpClient.execute(httpGet);
+
+        SdkHttpClient client = ApacheHttpClient.create();
+        HttpExecuteResponse response =
+            client.prepareRequest(HttpExecuteRequest.builder()
+                                                    .request(SdkHttpRequest.builder()
+                                                                           .uri(URI.create(encodedPath))
+                                                                           .appendHeader("Cookie",cookies.getExpires().getKey() + "=" + cookies.getExpires().getValue())
+                                                                           .appendHeader("Cookie",
+                                                                                         cookies.getSignature().getKey() + "=" + cookies.getSignature().getValue())
+                                                                           .appendHeader("Cookie",
+                                                                                         cookies.getKeyPairId().getKey() + "=" + cookies.getKeyPairId().getValue())
+                                                                           .method(SdkHttpMethod.GET)
+                                                                           .build())
+                                                    .build()).call();
         int expectedStatus = 403;
-        assertThat(responseCookie.getStatusLine().getStatusCode()).isEqualTo(expectedStatus);
+        assertThat(response.httpResponse().statusCode()).isEqualTo(expectedStatus);
     }
 
     @Test
@@ -257,16 +277,25 @@ public class CloudFrontSignerIntegrationTest extends IntegrationTestBase {
         ZonedDateTime expirationDate = ZonedDateTime.of(2023, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC"));
         CookiesForCustomPolicy cookies = getCookiesForCustomPolicy(Protocol.HTTPS, domainName, s3ObjectKey, keyFile, publicKeyId, activeDate, expirationDate, null);
         String encodedPath = generateResourceUrl(Protocol.HTTPS, domainName, s3ObjectKey);
-        HttpClient httpClient = new DefaultHttpClient();
-        HttpGet httpGet = new HttpGet(encodedPath);
-        httpGet.addHeader("Cookie", cookies.getPolicy().getKey() + "=" + cookies.getPolicy().getValue());
-        httpGet.addHeader("Cookie", cookies.getSignature().getKey() + "=" + cookies.getSignature().getValue());
-        httpGet.addHeader("Cookie", cookies.getKeyPairId().getKey() + "=" + cookies.getKeyPairId().getValue());
-        HttpResponse responseCookie = httpClient.execute(httpGet);
-        int expectedStatus = 200;
-        assertThat(responseCookie.getStatusLine().getStatusCode()).isEqualTo(expectedStatus);
 
-        InputStream retrievedBucketContent = responseCookie.getEntity().getContent();
+        SdkHttpClient client = ApacheHttpClient.create();
+        HttpExecuteResponse response =
+            client.prepareRequest(HttpExecuteRequest.builder()
+                                                    .request(SdkHttpRequest.builder()
+                                                                           .uri(URI.create(encodedPath))
+                                                                           .appendHeader("Cookie",
+                                                                                         cookies.getPolicy().getKey() + "=" + cookies.getPolicy().getValue())
+                                                                           .appendHeader("Cookie",
+                                                                                         cookies.getSignature().getKey() + "=" + cookies.getSignature().getValue())
+                                                                           .appendHeader("Cookie",
+                                                                                         cookies.getKeyPairId().getKey() + "=" + cookies.getKeyPairId().getValue())
+                                                                           .method(SdkHttpMethod.GET)
+                                                                           .build())
+                                                    .build()).call();
+        int expectedStatus = 200;
+        assertThat(response.httpResponse().statusCode()).isEqualTo(expectedStatus);
+
+        InputStream retrievedBucketContent = response.responseBody().get();
         assertThat(retrievedBucketContent).hasSameContentAs(originalBucketContent);
     }
 
@@ -276,35 +305,24 @@ public class CloudFrontSignerIntegrationTest extends IntegrationTestBase {
         ZonedDateTime expirationDate = ZonedDateTime.of(2050, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC"));
         CookiesForCustomPolicy cookies = getCookiesForCustomPolicy(Protocol.HTTPS, domainName, s3ObjectKey, keyFile, publicKeyId, activeDate, expirationDate, null);
         String encodedPath = generateResourceUrl(Protocol.HTTPS, domainName, s3ObjectKey);
-        HttpClient httpClient = new DefaultHttpClient();
-        HttpGet httpGet = new HttpGet(encodedPath);
-        httpGet.addHeader("Cookie", cookies.getPolicy().getKey() + "=" + cookies.getPolicy().getValue());
-        httpGet.addHeader("Cookie", cookies.getSignature().getKey() + "=" + cookies.getSignature().getValue());
-        httpGet.addHeader("Cookie", cookies.getKeyPairId().getKey() + "=" + cookies.getKeyPairId().getValue());
-        HttpResponse responseCookie = httpClient.execute(httpGet);
+
+        SdkHttpClient client = ApacheHttpClient.create();
+        HttpExecuteResponse response =
+            client.prepareRequest(HttpExecuteRequest.builder()
+                                                    .request(SdkHttpRequest.builder()
+                                                                           .uri(URI.create(encodedPath))
+                                                                           .appendHeader("Cookie",
+                                                                                         cookies.getPolicy().getKey() + "=" + cookies.getPolicy().getValue())
+                                                                           .appendHeader("Cookie",
+                                                                                         cookies.getSignature().getKey() + "=" + cookies.getSignature().getValue())
+                                                                           .appendHeader("Cookie",
+                                                                                         cookies.getKeyPairId().getKey() + "=" + cookies.getKeyPairId().getValue())
+                                                                           .method(SdkHttpMethod.GET)
+                                                                           .build())
+                                                    .build()).call();
         int expectedStatus = 403;
-        assertThat(responseCookie.getStatusLine().getStatusCode()).isEqualTo(expectedStatus);
+        assertThat(response.httpResponse().statusCode()).isEqualTo(expectedStatus);
     }
-
-    /*@AfterAll
-    public static void tearDown() throws InterruptedException {
-        //unable to disable distribution through API
-        disableDistribution();
-
-        if (distributionId != null) {
-            try {
-                cloudFrontClient.deleteDistribution(DeleteDistributionRequest.builder().ifMatch(distributionETag).id(distributionId).build());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        deleteBucketAndAllContents(bucketName);
-        cloudFrontClient.deleteKeyGroup(DeleteKeyGroupRequest.builder().id(keyGroupId).build());
-        String publicKeyETag = cloudFrontClient.getPublicKey(GetPublicKeyRequest.builder().id(publicKeyId).build()).eTag();
-        cloudFrontClient.deletePublicKey(DeletePublicKeyRequest.builder().ifMatch(publicKeyETag).id(publicKeyId).build());
-        cloudFrontClient.deleteCloudFrontOriginAccessIdentity(DeleteCloudFrontOriginAccessIdentityRequest.builder().id(originAccessId).build());
-    }*/
 
     static void setUpDistribution() throws IOException, InterruptedException {
         //Create Origin Access Identity
@@ -335,21 +353,21 @@ public class CloudFrontSignerIntegrationTest extends IntegrationTestBase {
 
         //Distribution Config Parameters
         DefaultCacheBehavior defaultCacheBehavior = DefaultCacheBehavior.builder()
-            .forwardedValues(ForwardedValues.builder()
-                                            .queryString(false).cookies(CookiePreference.builder().forward("none").build())
-                                            .headers(Headers.builder().quantity(0).build()).build()).minTTL(10000L).maxTTL(10000L).defaultTTL(10000L)
-                                               .viewerProtocolPolicy(ViewerProtocolPolicy.ALLOW_ALL)
-                                               .targetOriginId("1")
-                                               .trustedKeyGroups(TrustedKeyGroups.builder().enabled(true).quantity(1).items(keyGroup.id()).build()).build();
+                                                                        .forwardedValues(ForwardedValues.builder()
+                                                                                                        .queryString(false).cookies(CookiePreference.builder().forward("none").build())
+                                                                                                        .headers(Headers.builder().quantity(0).build()).build()).minTTL(10000L).maxTTL(10000L).defaultTTL(10000L)
+                                                                        .targetOriginId("1")
+                                                                        .viewerProtocolPolicy(ViewerProtocolPolicy.ALLOW_ALL)
+                                                                        .trustedKeyGroups(TrustedKeyGroups.builder().enabled(true).quantity(1).items(keyGroup.id()).build()).build();
 
         CacheBehavior cacheBehavior = CacheBehavior.builder()
                                                    .forwardedValues(ForwardedValues.builder()
                                                                                    .queryString(false).cookies(CookiePreference.builder().forward("none").build())
                                                                                    .headers(Headers.builder().quantity(0).build()).build()).minTTL(10000L).maxTTL(10000L).defaultTTL(10000L)
-                                                 .targetOriginId("1")
-                                                 .viewerProtocolPolicy(ViewerProtocolPolicy.ALLOW_ALL)
-                                                 .trustedKeyGroups(TrustedKeyGroups.builder().enabled(true).quantity(1).items(keyGroup.id()).build())
-                                                 .pathPattern("*").build();
+                                                   .targetOriginId("1")
+                                                   .viewerProtocolPolicy(ViewerProtocolPolicy.ALLOW_ALL)
+                                                   .trustedKeyGroups(TrustedKeyGroups.builder().enabled(true).quantity(1).items(keyGroup.id()).build())
+                                                   .pathPattern("*").build();
 
         Origin origin = Origin.builder()
                               .domainName(dnsName)
@@ -436,63 +454,12 @@ public class CloudFrontSignerIntegrationTest extends IntegrationTestBase {
         distributionETag = distributionConfigResponse.eTag();
         DistributionConfig originalConfig = distributionConfigResponse.distributionConfig();
 
-        Origin origin = Origin.builder()
-            .originPath("")
-            .customHeaders(CustomHeaders.builder().quantity(0).build())
-                              .domainName(dnsName)
-                              .id("1")
-                              .s3OriginConfig(S3OriginConfig.builder().originAccessIdentity("origin-access-identity/cloudfront/" + originAccessId).build()).build();
-
-        DefaultCacheBehavior defaultCacheBehavior = DefaultCacheBehavior.builder()
-                                                                        .targetOriginId("1")
-                                                                        .minTTL(10000L).maxTTL(10000L).defaultTTL(10000L)
-                                                                        .forwardedValues(ForwardedValues.builder()
-                                                                                                        .queryString(false).queryStringCacheKeys(QueryStringCacheKeys.builder().quantity(0).build()).cookies(CookiePreference.builder().forward("all").build())
-                                                                                                        .headers(Headers.builder().quantity(0).build()).build())
-                                                                        .viewerProtocolPolicy(ViewerProtocolPolicy.ALLOW_ALL)
-                                                                        .allowedMethods(AllowedMethods.builder().quantity(2).items(Method.GET, Method.HEAD).cachedMethods(CachedMethods.builder().quantity(2).items(Method.HEAD, Method.GET).build()).build())
-                                                                        .smoothStreaming(false)
-                                                                        .compress(false)
-                                                                        .lambdaFunctionAssociations(LambdaFunctionAssociations.builder().quantity(0).build())
-                                                                        .fieldLevelEncryptionId("")
-                                                                        .build();
-
-        CacheBehavior cacheBehavior = CacheBehavior.builder()
-                                                   .targetOriginId("1")
-                                                   .minTTL(10000L).maxTTL(10000L).defaultTTL(10000L)
-                                                   .forwardedValues(ForwardedValues.builder()
-                                                                                   .queryString(false).queryStringCacheKeys(QueryStringCacheKeys.builder().quantity(0).build()).cookies(CookiePreference.builder().forward("all").build())
-                                                                                   .headers(Headers.builder().quantity(0).build()).build())
-                                                   .pathPattern("*")
-                                                   .viewerProtocolPolicy(ViewerProtocolPolicy.ALLOW_ALL)
-                                                   .allowedMethods(AllowedMethods.builder().quantity(2).items(Method.GET, Method.HEAD).cachedMethods(CachedMethods.builder().quantity(2).items(Method.HEAD, Method.GET).build()).build())
-                                                   .smoothStreaming(false)
-                                                   .compress(false)
-                                                   .lambdaFunctionAssociations(LambdaFunctionAssociations.builder().quantity(0).build())
-                                                   .fieldLevelEncryptionId("")
-                                                   .build();
-
-        DistributionConfig updatedConfig= DistributionConfig.builder()
-                                                      .enabled(false)
-                                                      .callerReference(callerReference)
-                                                      .aliases(Aliases.builder().quantity(0).build())
-                                                      .defaultRootObject("")
-                                                      .origins(Origins.builder().quantity(1).items(origin).build())
-                                                      .defaultCacheBehavior(defaultCacheBehavior)
-                                                      .cacheBehaviors(CacheBehaviors.builder().quantity(1).items(cacheBehavior).build())
-                                                      .customErrorResponses(CustomErrorResponses.builder().quantity(0).build())
-                                                      .comment("Disable Distribution Before Deleting")
-                                                      .logging(LoggingConfig.builder().includeCookies(false).enabled(false).bucket(bucketName).prefix("").build())
-                                                      .priceClass(PriceClass.PRICE_CLASS_100)
-                                                      .viewerCertificate(ViewerCertificate.builder().minimumProtocolVersion(MinimumProtocolVersion.SSL_V3).build())
-                                                      .restrictions(Restrictions.builder().geoRestriction(GeoRestriction.builder().quantity(1).restrictionType(GeoRestrictionType.NONE).build()).build())
-                                                      .webACLId("")
-                                                      .httpVersion(HttpVersion.HTTP3).build();
-
-        //CloudFrontException: Rate Exceeded Error
         UpdateDistributionResponse updateDistributionResponse =
-            cloudFrontClient.updateDistribution(UpdateDistributionRequest.builder().id(distributionId).ifMatch(distributionETag).distributionConfig(updatedConfig).build());
-
+            cloudFrontClient.updateDistribution(r -> r.id(distributionId)
+                                                      .ifMatch(distributionETag)
+                                                      .distributionConfig(originalConfig.toBuilder()
+                                                                                        .enabled(false)
+                                                                                        .build()));
         distributionETag = updateDistributionResponse.eTag();
         waitForDistributionToDeploy(distributionId);
     }
