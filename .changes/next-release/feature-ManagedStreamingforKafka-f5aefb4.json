@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Managed Streaming for Kafka",
+    "contributor": "",
+    "description": "This release adds support for Tiered Storage. UpdateStorage allows you to control the Storage Mode for supported storage tiers."
+}
