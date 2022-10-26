@@ -201,6 +201,18 @@ public class CustomizationConfig {
      */
     private boolean delegateAsyncClientClass;
 
+    /**
+     * Whether to skip generating endpoint tests from endpoint-tests.json
+     */
+    private boolean skipEndpointTestGeneration;
+
+    /**
+     * A mapping from the skipped test's description to the reason why it's being skipped.
+     */
+    private Map<String, String> skipEndpointTests;
+
+    private boolean useGlobalEndpoint;
+
     private CustomizationConfig() {
     }
 
@@ -513,4 +525,29 @@ public class CustomizationConfig {
     public void setDelegateAsyncClientClass(boolean delegateAsyncClientClass) {
         this.delegateAsyncClientClass = delegateAsyncClientClass;
     }
+
+    public boolean isSkipEndpointTestGeneration() {
+        return skipEndpointTestGeneration;
+    }
+
+    public void setSkipEndpointTestGeneration(boolean skipEndpointTestGeneration) {
+        this.skipEndpointTestGeneration = skipEndpointTestGeneration;
+    }
+
+    public boolean useGlobalEndpoint() {
+        return useGlobalEndpoint;
+    }
+
+    public void setUseGlobalEndpoint(boolean useGlobalEndpoint) {
+        this.useGlobalEndpoint = useGlobalEndpoint;
+    }
+
+    public Map<String, String> getSkipEndpointTests() {
+        return skipEndpointTests;
+    }
+
+    public void setSkipEndpointTests(Map<String, String> skipEndpointTests) {
+        this.skipEndpointTests = skipEndpointTests;
+    }
+
 }

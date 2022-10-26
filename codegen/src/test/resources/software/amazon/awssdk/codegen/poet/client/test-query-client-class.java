@@ -41,8 +41,12 @@ import software.amazon.awssdk.services.query.model.GetOperationWithChecksumRespo
 import software.amazon.awssdk.services.query.model.InvalidInputException;
 import software.amazon.awssdk.services.query.model.OperationWithChecksumRequiredRequest;
 import software.amazon.awssdk.services.query.model.OperationWithChecksumRequiredResponse;
+import software.amazon.awssdk.services.query.model.OperationWithContextParamRequest;
+import software.amazon.awssdk.services.query.model.OperationWithContextParamResponse;
 import software.amazon.awssdk.services.query.model.OperationWithNoneAuthTypeRequest;
 import software.amazon.awssdk.services.query.model.OperationWithNoneAuthTypeResponse;
+import software.amazon.awssdk.services.query.model.OperationWithStaticContextParamsRequest;
+import software.amazon.awssdk.services.query.model.OperationWithStaticContextParamsResponse;
 import software.amazon.awssdk.services.query.model.PutOperationWithChecksumRequest;
 import software.amazon.awssdk.services.query.model.PutOperationWithChecksumResponse;
 import software.amazon.awssdk.services.query.model.QueryException;
@@ -56,7 +60,9 @@ import software.amazon.awssdk.services.query.transform.APostOperationWithOutputR
 import software.amazon.awssdk.services.query.transform.BearerAuthOperationRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.GetOperationWithChecksumRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.OperationWithChecksumRequiredRequestMarshaller;
+import software.amazon.awssdk.services.query.transform.OperationWithContextParamRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.OperationWithNoneAuthTypeRequestMarshaller;
+import software.amazon.awssdk.services.query.transform.OperationWithStaticContextParamsRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.PutOperationWithChecksumRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.StreamingInputOperationRequestMarshaller;
 import software.amazon.awssdk.services.query.transform.StreamingOutputOperationRequestMarshaller;
@@ -329,6 +335,50 @@ final class DefaultQueryClient implements QueryClient {
     }
 
     /**
+     * Invokes the OperationWithContextParam operation.
+     *
+     * @param operationWithContextParamRequest
+     * @return Result of the OperationWithContextParam operation returned by the service.
+     * @throws SdkException
+     *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
+     *         catch all scenarios.
+     * @throws SdkClientException
+     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc.
+     * @throws QueryException
+     *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
+     * @sample QueryClient.OperationWithContextParam
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/query-service-2010-05-08/OperationWithContextParam"
+     *      target="_top">AWS API Documentation</a>
+     */
+    @Override
+    public OperationWithContextParamResponse operationWithContextParam(
+        OperationWithContextParamRequest operationWithContextParamRequest) throws AwsServiceException, SdkClientException,
+                                                                                  QueryException {
+
+        HttpResponseHandler<OperationWithContextParamResponse> responseHandler = protocolFactory
+            .createResponseHandler(OperationWithContextParamResponse::builder);
+
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
+        List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, operationWithContextParamRequest
+            .overrideConfiguration().orElse(null));
+        MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
+            .create("ApiCall");
+        try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "OperationWithContextParam");
+
+            return clientHandler
+                .execute(new ClientExecutionParams<OperationWithContextParamRequest, OperationWithContextParamResponse>()
+                             .withOperationName("OperationWithContextParam").withResponseHandler(responseHandler)
+                             .withErrorResponseHandler(errorResponseHandler).withInput(operationWithContextParamRequest)
+                             .withMetricCollector(apiCallMetricCollector)
+                             .withMarshaller(new OperationWithContextParamRequestMarshaller(protocolFactory)));
+        } finally {
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+        }
+    }
+
+    /**
      * Invokes the OperationWithNoneAuthType operation.
      *
      * @param operationWithNoneAuthTypeRequest
@@ -368,6 +418,50 @@ final class DefaultQueryClient implements QueryClient {
                              .withMetricCollector(apiCallMetricCollector)
                              .putExecutionAttribute(SdkInternalExecutionAttribute.IS_NONE_AUTH_TYPE_REQUEST, false)
                              .withMarshaller(new OperationWithNoneAuthTypeRequestMarshaller(protocolFactory)));
+        } finally {
+            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+        }
+    }
+
+    /**
+     * Invokes the OperationWithStaticContextParams operation.
+     *
+     * @param operationWithStaticContextParamsRequest
+     * @return Result of the OperationWithStaticContextParams operation returned by the service.
+     * @throws SdkException
+     *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
+     *         catch all scenarios.
+     * @throws SdkClientException
+     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc.
+     * @throws QueryException
+     *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
+     * @sample QueryClient.OperationWithStaticContextParams
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/query-service-2010-05-08/OperationWithStaticContextParams"
+     *      target="_top">AWS API Documentation</a>
+     */
+    @Override
+    public OperationWithStaticContextParamsResponse operationWithStaticContextParams(
+        OperationWithStaticContextParamsRequest operationWithStaticContextParamsRequest) throws AwsServiceException,
+                                                                                                SdkClientException, QueryException {
+
+        HttpResponseHandler<OperationWithStaticContextParamsResponse> responseHandler = protocolFactory
+            .createResponseHandler(OperationWithStaticContextParamsResponse::builder);
+
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
+        List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
+                                                                         operationWithStaticContextParamsRequest.overrideConfiguration().orElse(null));
+        MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
+            .create("ApiCall");
+        try {
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Query Service");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "OperationWithStaticContextParams");
+
+            return clientHandler
+                .execute(new ClientExecutionParams<OperationWithStaticContextParamsRequest, OperationWithStaticContextParamsResponse>()
+                             .withOperationName("OperationWithStaticContextParams").withResponseHandler(responseHandler)
+                             .withErrorResponseHandler(errorResponseHandler).withInput(operationWithStaticContextParamsRequest)
+                             .withMetricCollector(apiCallMetricCollector)
+                             .withMarshaller(new OperationWithStaticContextParamsRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }

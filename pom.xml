@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>aws-sdk-java-pom</artifactId>
-    <version>2.17.291-SNAPSHOT</version>
+    <version>2.18.4-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Parent</name>
     <description>The Amazon Web Services SDK for Java provides Java APIs
@@ -83,15 +83,16 @@
         <module>test/s3-benchmarks</module>
         <module>test/auth-tests</module>
         <module>test/region-testing</module>
+        <module>test/ruleset-testing-core</module>
     </modules>
     <scm>
         <url>https://github.com/aws/aws-sdk-java-v2.git</url>
     </scm>
     <properties>
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
-        <awsjavasdk.previous.version>2.17.290</awsjavasdk.previous.version>
+        <awsjavasdk.previous.version>2.18.3</awsjavasdk.previous.version>
         <jackson.version>2.13.2</jackson.version>
-        <jackson.databind.version>2.13.2.2</jackson.databind.version>
+        <jackson.databind.version>2.13.4.2</jackson.databind.version>
         <jacksonjr.version>2.13.2</jacksonjr.version>
         <eventstream.version>1.0.1</eventstream.version>
         <commons.lang.version>3.12.0</commons.lang.version>
@@ -319,6 +320,20 @@
                             </configuration>
                         </execution>
                         <execution>
+                            <id>add-generated-resources</id>
+                            <phase>generate-sources</phase>
+                            <goals>
+                                <goal>add-resource</goal>
+                            </goals>
+                            <configuration>
+                                <resources>
+                                    <resource>
+                                        <directory>${basedir}/target/generated-resources/sdk-resources</directory>
+                                    </resource>
+                                </resources>
+                            </configuration>
+                        </execution>
+                        <execution>
                             <id>add-license-notice</id>
                             <phase>generate-sources</phase>
                             <goals>
@@ -470,6 +485,7 @@
                     </ignoredUsedUndeclaredDependencies>
                     <ignoredUnusedDeclaredDependencies>
                         <ignoredUnusedDeclaredDependency>org.junit.jupiter:*</ignoredUnusedDeclaredDependency>
+                        <ignoredUnusedDeclaredDependency>org.mockito:*</ignoredUnusedDeclaredDependency>
                         <ignoredUnusedDeclaredDependency>org.junit.vintage:*</ignoredUnusedDeclaredDependency>
                         <ignoredUnusedDeclaredDependency>software.amazon.awssdk:aws-sdk-java</ignoredUnusedDeclaredDependency>
                         <!-- Declared by the codegen maven plugins (lite and normal). Not used directly but used to override a transitive dependecy -->
@@ -592,13 +608,7 @@
                             <exclude>*.internal.*</exclude>
                             <exclude>software.amazon.awssdk.thirdparty.*</exclude>
                             <exclude>software.amazon.awssdk.regions.*</exclude>
-
-                            <!-- Fixed constructor visibility -->
-                            <exclude>software.amazon.awssdk.core.http.ExecutionContext$Builder</exclude>
-                            <exclude>software.amazon.awssdk.enhanced.dynamodb.update.AddAction$Builder</exclude>
-                            <exclude>software.amazon.awssdk.enhanced.dynamodb.update.DeleteAction$Builder</exclude>
-                            <exclude>software.amazon.awssdk.enhanced.dynamodb.update.RemoveAction$Builder</exclude>
-                            <exclude>software.amazon.awssdk.enhanced.dynamodb.update.SetAction$Builder</exclude>
+                            <exclude>software.amazon.awssdk.core.signer.NoOpSigner</exclude>
                         </excludes>
 
                         <ignoreMissingOldVersion>true</ignoreMissingOldVersion>
@@ -696,6 +706,16 @@
             </activation>
             <properties>
                 <additionalparam>-Xdoclint:none</additionalparam>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>jdk-11-plus</id>
+            <activation>
+                <jdk>[11,)</jdk>
+            </activation>
+            <properties>
+                <maven.compiler.release>8</maven.compiler.release>
             </properties>
         </profile>
 

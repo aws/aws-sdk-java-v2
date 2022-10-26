@@ -205,6 +205,7 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
     public Builder toBuilder() {
         return builder()
                 .dualstackEnabled(dualstackEnabled.valueOrNullIfDefault())
+                .multiRegionEnabled(multiRegionEnabled.valueOrNullIfDefault())
                 .accelerateModeEnabled(accelerateModeEnabled.valueOrNullIfDefault())
                 .pathStyleAccessEnabled(pathStyleAccessEnabled.valueOrNullIfDefault())
                 .checksumValidationEnabled(checksumValidationEnabled.valueOrNullIfDefault())

@@ -57,6 +57,7 @@ public class RetriesOn200Test {
                                   .credentialsProvider(AnonymousCredentialsProvider.create())
                                   .overrideConfiguration(c -> c.retryPolicy(RetryMode.STANDARD)
                                                                .addExecutionInterceptor(countingInterceptor))
+                                  .serviceConfiguration(c -> c.pathStyleAccessEnabled(true))
                                   .build();
 
 

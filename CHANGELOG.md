@@ -1,3 +1,271 @@
+# __2.18.3__ __2022-10-25__
+## __AWS MediaTailor__
+  - ### Features
+    - This release is a documentation update
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Access Analyzer__
+  - ### Features
+    - This release adds support for six new resource types in IAM Access Analyzer to help you easily identify public and cross-account access to your AWS resources. Updated service API, documentation, and paginators.
+
+## __Amazon Location Service__
+  - ### Features
+    - Added new map styles with satellite imagery for map resources using HERE as a data provider.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Relational Database Service - This release adds support for exporting DB cluster data to Amazon S3.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - This release adds new enums for supporting Workspaces Core features, including creating Manual running mode workspaces, importing regular Workspaces Core images and importing g4dn Workspaces Core images.
+
+# __2.18.2__ __2022-10-24__
+## __AWS Batch__
+  - ### Features
+    - This release adds support for AWS Batch on Amazon EKS.
+
+## __AWS Certificate Manager Private Certificate Authority__
+  - ### Features
+    - AWS Private Certificate Authority (AWS Private CA) now offers usage modes which are combination of features to address specific use cases.
+
+## __AWS DataSync__
+  - ### Features
+    - Added support for self-signed certificates when using object storage locations; added BytesCompressed to the TaskExecution response.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - SageMaker Inference Recommender now supports a new API ListInferenceRecommendationJobSteps to return the details of all the benchmark we create for an inference recommendation job.
+
+# __2.18.1__ __2022-10-21__
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - This release adds a new "DeletionProtection" field to the UserPool in Cognito. Application admins can configure this value with either ACTIVE or INACTIVE value. Setting this field to ACTIVE will prevent a user pool from accidental deletion.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - CreateInferenceRecommenderjob API now supports passing endpoint details directly, that will help customers to identify the max invocation and max latency they can achieve for their model and the associated endpoint along with getting recommendations on other instances.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - S3 on Outposts launches support for automatic bucket-style alias. You can use the automatic access point alias instead of an access point ARN for any object-level operation in an Outposts bucket.
+
+# __2.18.0__ __2022-10-20__
+## __AWS Global Accelerator__
+  - ### Features
+    - Global Accelerator now supports AddEndpoints and RemoveEndpoints operations for standard endpoint groups.
+
+## __AWS Resilience Hub__
+  - ### Features
+    - In this release, we are introducing support for regional optimization for AWS Resilience Hub applications. It also includes a few documentation updates to improve clarity.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - This release updates internal logic for constructing API endpoints. 
+
+      We have added rule-based endpoint providers. Additionally there are new interfaces for endpoint providers and parameters at the service client level.
+
+      The SDK provides service-specific `EndpointProvider` interfaces (e.g. `S3EndpointProvider`), that have a single method `resolveEndpoint`. `resolveEndpoint` accepts a set of parameters (also service specific) and computes an endpoint based on those parameters. All clients have a default implementation, but users are free to implement these to customize their endpoint logic.
+
+      It is important to know that `EndpointProvider`s and the endpoint override on the client are not mutually exclusive. In all existing cases, the endpoint override is passed as a parameter to the the provider and the provider *may* modify it. For example, the S3 provider may add the bucket name as a prefix to the endpoint override for virtual bucket addressing.
+
+      There may be some behavior changes related to endpoint resolution as as the the endpoint resolution is now standardised across SDKs so this release also bumps the minor version of the SDK to `2.18`.
+
+      Notably, there are some changes in S3: when including and endpoint override, the SDK will use virtual bucket addressing as long as the bucket is a valid DNS label. This is different from the previous behavior where this only happens if the endpoint override begins with 's3'.
+
+      In many situations, the exception thrown for validations like including an endpoint override and enabling DualStack has changed to `SdkClientExcpetion` and error messages have changed as well.
+    - Updated endpoint and partition metadata.
+
+## __Amazon DevOps Guru__
+  - ### Features
+    - This release adds information about the resources DevOps Guru is analyzing.
+
+## __CloudWatch RUM__
+  - ### Features
+    - CloudWatch RUM now supports Extended CloudWatch Metrics with Additional Dimensions
+
+# __2.17.295__ __2022-10-19__
+## __AWS CloudTrail__
+  - ### Features
+    - This release includes support for exporting CloudTrail Lake query results to an Amazon S3 bucket.
+
+## __AWS Config__
+  - ### Features
+    - This release adds resourceType enums for AppConfig, AppSync, DataSync, EC2, EKS, Glue, GuardDuty, SageMaker, ServiceDiscovery, SES, Route53 types.
+
+## __AWS S3 Control__
+  - ### Features
+    - Updates internal logic for constructing API endpoints. We have added rule-based endpoints and internal model parameters.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Support App__
+  - ### Features
+    - This release adds the RegisterSlackWorkspaceForOrganization API. You can use the API to register a Slack workspace for an AWS account that is part of an organization.
+
+## __Amazon Chime SDK Messaging__
+  - ### Features
+    - Documentation updates for Chime Messaging SDK
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds API support for managing phone numbers that can be used across multiple AWS regions through telephony traffic distribution.
+
+## __Amazon EventBridge__
+  - ### Features
+    - Updates internal logic for constructing API endpoints. We have added rule-based endpoints and internal model parameters.
+
+## __Amazon Managed Blockchain__
+  - ### Features
+    - Adding new Accessor APIs for Amazon Managed Blockchain
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Updates internal logic for constructing API endpoints. We have added rule-based endpoints and internal model parameters.
+
+## __Amazon WorkSpaces Web__
+  - ### Features
+    - WorkSpaces Web now supports user access logging for recording session start, stop, and URL navigation.
+
+## __WS SDK for Java v2__
+  - ### Bugfixes
+    - Fix bug in FIPS configuration handling where setting a non-FIPS region clears the setting.
+
+# __2.17.294__ __2022-10-18__
+## __AWS Cloud Map__
+  - ### Features
+    - Updated the ListNamespaces API to support the NAME and HTTP_NAME filters, and the BEGINS_WITH filter condition.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Bump jackson-databind version to 2.13.4.2
+    - Updated service endpoint metadata.
+
+## __Amazon Fraud Detector__
+  - ### Features
+    - Documentation Updates for Amazon Fraud Detector
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This change allows customers to enable data capturing while running a batch transform job, and configure monitoring schedule to monitoring the captured data.
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - This release allows subscribers to enable Dedicated IPs (managed) to send email via a fully managed dedicated IP experience. It also adds identities' VerificationStatus in the response of GetEmailIdentity and ListEmailIdentities APIs, and ImportJobs counts in the response of ListImportJobs API.
+
+# __2.17.293__ __2022-10-17__
+## __AWS Greengrass__
+  - ### Features
+    - This change allows customers to specify FunctionRuntimeOverride in FunctionDefinitionVersion. This configuration can be used if the runtime on the device is different from the AWS Lambda runtime specified for that function.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds support for C7g, C6g, C6gd, C6gn, M6g, M6gd, R6g, and R6gn Graviton instance types in Amazon SageMaker Inference.
+
+# __2.17.292__ __2022-10-14__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - MediaConvert now supports specifying the minimum percentage of the HRD buffer available at the end of each encoded video segment.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+# __2.17.291__ __2022-10-13__
+## __AWS Amplify UI Builder__
+  - ### Features
+    - We are releasing the ability for fields to be configured as arrays.
+
+## __AWS Directory Service__
+  - ### Features
+    - This release adds support for describing and updating AWS Managed Microsoft AD set up.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental MediaLive now supports forwarding SCTE-35 messages through the Event Signaling and Management (ESAM) API, and can read those SCTE-35 messages from an inactive source.
+
+## __AWS Elemental MediaPackage VOD__
+  - ### Features
+    - This release adds SPEKE v2 support for MediaPackage VOD. Speke v2 is an upgrade to the existing SPEKE API to support multiple encryption keys, based on an encryption contract selected by the customer.
+
+## __AWS Identity and Access Management__
+  - ### Features
+    - Documentation updates for the AWS Identity and Access Management API Reference.
+
+## __AWS IoT FleetWise__
+  - ### Features
+    - Documentation update for AWS IoT FleetWise
+
+## __AWS Panorama__
+  - ### Features
+    - Pause and resume camera stream processing with SignalApplicationInstanceNodeInstances. Reboot an appliance with CreateJobForDevices. More application state information in DescribeApplicationInstance response.
+
+## __AWS RDS DataService__
+  - ### Features
+    - Doc update to reflect no support for schema parameter on BatchExecuteStatement API
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated service endpoint metadata.
+
+## __AWS Systems Manager Incident Manager__
+  - ### Features
+    - Update RelatedItem enum to support Tasks
+
+## __AWS Transfer Family__
+  - ### Features
+    - This release adds an option for customers to configure workflows that are triggered when files are only partially received from a client due to premature session disconnect.
+
+## __Amazon Appflow__
+  - ### Features
+    - With this update, you can choose which Salesforce API is used by Amazon AppFlow to transfer data to or from your Salesforce account. You can choose the Salesforce REST API or Bulk API 2.0. You can also choose for Amazon AppFlow to pick the API automatically.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds support for a secondary email and a mobile number for Amazon Connect instance users.
+
+## __Amazon Connect Wisdom Service__
+  - ### Features
+    - This release updates the GetRecommendations API to include a trigger event list for classifying and grouping recommendations.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Add locale converter to enhanced DynamoDB client
+        - Contributed by: [@thomasturrell](https://github.com/thomasturrell)
+
+## __Amazon DynamoDB Enhanced__
+  - ### Features
+    - Treat @java.beans.Transient as @DynamoDbIgnore in BeanTableSchema and ImmutableTableSchema.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Documentation update to address tickets.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Add UnprocessedDataSources to CreateDetectorResponse which specifies the data sources that couldn't be enabled during the CreateDetector request. In addition, update documentations.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Support of AmazonLinux2022 by Patch Manager
+
+## __Amazon Translate__
+  - ### Features
+    - This release enables customers to specify multiple target languages in asynchronous batch translation requests.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@thomasturrell](https://github.com/thomasturrell)
 # __2.17.290__ __2022-10-07__
 ## __AWS IoT Greengrass V2__
   - ### Features
