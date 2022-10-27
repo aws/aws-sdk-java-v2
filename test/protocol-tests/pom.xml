@@ -49,11 +49,6 @@
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
-            <artifactId>json-utils</artifactId>
-            <version>${awsjavasdk.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
             <artifactId>aws-query-protocol</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
@@ -91,11 +86,6 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>metrics-spi</artifactId>
-            <version>${awsjavasdk.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>endpoints-spi</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
