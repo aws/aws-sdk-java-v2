@@ -73,11 +73,14 @@ public class BaseClientBuilderInterface implements ClassSpec {
             builder.addMethod(serviceConfigurationConsumerBuilderMethod());
         }
 
-        if (hasClientContextParams() && endpointRulesSpecUtils.isEndpointRulesEnabled()) {
+        if (endpointRulesSpecUtils.isEndpointRulesEnabled()) {
             builder.addMethod(endpointProviderMethod());
-            model.getClientContextParams().forEach((n, m) -> {
-                builder.addMethod(clientContextParamSetter(n, m));
-            });
+
+            if (hasClientContextParams()) {
+                model.getClientContextParams().forEach((n, m) -> {
+                    builder.addMethod(clientContextParamSetter(n, m));
+                });
+            }
         }
 
         if (generateTokenProviderMethod()) {
