@@ -61,6 +61,7 @@ public abstract class BaseAwsJsonProtocolFactory {
     private final List<ExceptionMetadata> modeledExceptions;
     private final Supplier<SdkPojo> defaultServiceExceptionSupplier;
     private final String customErrorCodeFieldName;
+    private final boolean hasAwsQueryCompatible;
     private final SdkClientConfiguration clientConfiguration;
     private final JsonProtocolUnmarshaller protocolUnmarshaller;
 
@@ -69,6 +70,7 @@ public abstract class BaseAwsJsonProtocolFactory {
         this.modeledExceptions = unmodifiableList(builder.modeledExceptions);
         this.defaultServiceExceptionSupplier = builder.defaultServiceExceptionSupplier;
         this.customErrorCodeFieldName = builder.customErrorCodeFieldName;
+        this.hasAwsQueryCompatible = builder.hasAwsQueryCompatible;
         this.clientConfiguration = builder.clientConfiguration;
         this.protocolUnmarshaller = JsonProtocolUnmarshaller
             .builder()
@@ -199,6 +201,7 @@ public abstract class BaseAwsJsonProtocolFactory {
         private Supplier<SdkPojo> defaultServiceExceptionSupplier;
         private String customErrorCodeFieldName;
         private SdkClientConfiguration clientConfiguration;
+        private boolean hasAwsQueryCompatible;
 
         protected Builder() {
         }
@@ -278,6 +281,18 @@ public abstract class BaseAwsJsonProtocolFactory {
          */
         public final SubclassT clientConfiguration(SdkClientConfiguration clientConfiguration) {
             this.clientConfiguration = clientConfiguration;
+            return getSubclass();
+        }
+
+        /**
+         * Provides a check on whether AwsQueryCompatible trait is found in Metadata.
+         * If true, custom error codes can be provided
+         *
+         * @param hasAwsQueryCompatible boolean of whether the AwsQueryCompatible trait is found
+         * @return This builder for method chaining.
+         */
+        public final SubclassT hasAwsQueryCompatible(boolean hasAwsQueryCompatible) {
+            this.hasAwsQueryCompatible = hasAwsQueryCompatible;
             return getSubclass();
         }
 

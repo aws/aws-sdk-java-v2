@@ -76,7 +76,8 @@ final class AddMetadata {
                 .withUid(serviceMetadata.getUid())
                 .withServiceId(serviceMetadata.getServiceId())
                 .withSupportsH2(supportsH2(serviceMetadata))
-                .withJsonVersion(getJsonVersion(metadata, serviceMetadata));
+                .withJsonVersion(getJsonVersion(metadata, serviceMetadata))
+                .withAwsQueryCompatible(serviceMetadata.getAwsQueryCompatible());
 
         return metadata;
     }

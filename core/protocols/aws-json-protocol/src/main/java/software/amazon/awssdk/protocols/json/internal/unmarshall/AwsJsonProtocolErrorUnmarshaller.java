@@ -46,6 +46,9 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
     private final JsonFactory jsonFactory;
     private final Supplier<SdkPojo> defaultExceptionSupplier;
     private final ErrorCodeParser errorCodeParser;
+    private final boolean hasAwsQueryCompatible;
+
+    private static final String QUERY_ERROR_DELIMITER = ";";
 
     private AwsJsonProtocolErrorUnmarshaller(Builder builder) {
         this.jsonProtocolUnmarshaller = builder.jsonProtocolUnmarshaller;
@@ -54,6 +57,7 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
         this.jsonFactory = builder.jsonFactory;
         this.defaultExceptionSupplier = builder.defaultExceptionSupplier;
         this.exceptions = builder.exceptions;
+        this.hasAwsQueryCompatible = builder.hasAwsQueryCompatible;
     }
 
     @Override
@@ -77,7 +81,7 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
             .unmarshall(sdkPojo, response, jsonContent.getJsonNode())).toBuilder();
         String errorMessage = errorMessageParser.parseErrorMessage(response, jsonContent.getJsonNode());
         exception.awsErrorDetails(extractAwsErrorDetails(response, executionAttributes, jsonContent,
-                                                         errorCode, errorMessage));
+                                                         getEffectiveErrorCode(response, errorCode), errorMessage));
         exception.clockSkew(getClockSkew(executionAttributes));
         // Status code and request id are sdk level fields
         exception.message(errorMessage);
@@ -85,6 +89,20 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
         exception.requestId(response.firstMatchingHeader(X_AMZN_REQUEST_ID_HEADERS).orElse(null));
         exception.extendedRequestId(response.firstMatchingHeader(X_AMZ_ID_2_HEADER).orElse(null));
         return exception.build();
+    }
+
+    private String getEffectiveErrorCode(SdkHttpFullResponse response, String errorCode) {
+        List<String> queryErrorValues = response.headers().get(X_AMZN_QUERY_ERROR);
+        if (this.hasAwsQueryCompatible && queryErrorValues != null && !queryErrorValues.isEmpty()) {
+            String queryErrorValue = queryErrorValues.get(0).trim();
+            if (!queryErrorValue.isEmpty()) {
+                int delimiter = queryErrorValue.indexOf(QUERY_ERROR_DELIMITER);
+                if (delimiter != -1 && delimiter != 0) {
+                    return queryErrorValue.substring(0, delimiter);
+                }
+            }
+        }
+        return errorCode;
     }
 
     private Duration getClockSkew(ExecutionAttributes executionAttributes) {
@@ -146,6 +164,7 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
         private JsonFactory jsonFactory;
         private Supplier<SdkPojo> defaultExceptionSupplier;
         private ErrorCodeParser errorCodeParser;
+        private boolean hasAwsQueryCompatible;
 
         private Builder() {
         }
@@ -217,6 +236,18 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
 
         public AwsJsonProtocolErrorUnmarshaller build() {
             return new AwsJsonProtocolErrorUnmarshaller(this);
+        }
+
+        /**
+         * Provides a check on whether AwsQueryCompatible trait is found in Metadata.
+         * If true, custom error codes can be provided
+         *
+         * @param hasAwsQueryCompatible boolean of whether the AwsQueryCompatible trait is found
+         * @return This builder for method chaining.
+         */
+        public Builder hasAwsQueryCompatible(boolean hasAwsQueryCompatible) {
+            this.hasAwsQueryCompatible = hasAwsQueryCompatible;
+            return this;
         }
     }
 }

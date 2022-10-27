@@ -40,6 +40,7 @@ public interface HttpResponseHandler<T> {
                                                                                   X_AMZN_REQUEST_ID_HEADER_ALTERNATE)
                                                                               .collect(Collectors.toSet()));
     String X_AMZ_ID_2_HEADER = "x-amz-id-2";
+    String X_AMZN_QUERY_ERROR = "x-amzn-query-error";
 
     /**
      * Accepts an HTTP response object, and returns an object of type T.

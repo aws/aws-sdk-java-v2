@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "core",
+    "contributor": "ziyanli-amazon",
+    "description": "Support for clients with AWS Query protocol migrating towards AwsJson in order to support custom error codes."
+}
