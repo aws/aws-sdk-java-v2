@@ -44,6 +44,7 @@ public final class ProfileFileRefresher implements SdkAutoCloseable {
     private static final String THREAD_CLASS_NAME = "sdk-profile-file-refresher";
     private final CachedSupplier<ProfileFileRefreshRecord> profileFileCache;
     private volatile ProfileFileRefreshRecord currentRefreshRecord;
+    private final ProfileFileRefreshRecord emptyRefreshRecord;
     private final Supplier<ProfileFile> profileFileSupplier;
     private final Predicate<ProfileFileRefreshRecord> profileFileReloadPredicate;
     private final Function<RuntimeException, ProfileFile> exceptionHandler;
@@ -68,9 +69,10 @@ public final class ProfileFileRefresher implements SdkAutoCloseable {
             cachedSupplierBuilder.prefetchStrategy(new NonBlocking(THREAD_CLASS_NAME));
         }
         this.profileFileCache = cachedSupplierBuilder.build();
-        this.currentRefreshRecord = ProfileFileRefreshRecord.builder()
+        this.emptyRefreshRecord = ProfileFileRefreshRecord.builder()
                                                             .refreshTime(Instant.MIN)
                                                             .build();
+        this.currentRefreshRecord = this.emptyRefreshRecord;
     }
 
     /**
@@ -122,7 +124,7 @@ public final class ProfileFileRefresher implements SdkAutoCloseable {
         Instant staleTime;
         ProfileFileRefreshRecord refreshRecord;
 
-        if (shouldReloadProfileFile()) {
+        if (shouldReloadProfileFile() || hasNotBeenPreviouslyLoaded()) {
             staleTime = staleTime(now);
             ProfileFile reloadedProfileFile = reload(profileFileSupplier, onProfileFileReload);
             refreshRecord = ProfileFileRefreshRecord.builder()
@@ -185,6 +187,10 @@ public final class ProfileFileRefresher implements SdkAutoCloseable {
 
     private boolean shouldReloadProfileFile() {
         return profileFileReloadPredicate.test(currentRefreshRecord);
+    }
+
+    private boolean hasNotBeenPreviouslyLoaded() {
+        return currentRefreshRecord == emptyRefreshRecord;
     }
 
 
