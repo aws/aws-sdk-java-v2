@@ -59,6 +59,8 @@ public class Member {
 
     private String deprecatedName;
 
+    private ContextParam contextParam;
+
     public String getShape() {
         return shape;
     }
@@ -225,5 +227,13 @@ public class Member {
 
     public String getDeprecatedName() {
         return deprecatedName;
+    }
+
+    public ContextParam getContextParam() {
+        return contextParam;
+    }
+
+    public void setContextParam(ContextParam contextParam) {
+        this.contextParam = contextParam;
     }
 }

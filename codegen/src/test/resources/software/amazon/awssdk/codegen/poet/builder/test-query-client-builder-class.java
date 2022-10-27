@@ -1,6 +1,6 @@
 package software.amazon.awssdk.services.query;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -38,20 +38,24 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
     @Override
     protected final SdkClientConfiguration mergeServiceDefaults(SdkClientConfiguration config) {
         return config.merge(c -> c.option(SdkAdvancedClientOption.SIGNER, defaultSigner())
-                     .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
-                     .option(AwsClientOption.TOKEN_PROVIDER, defaultTokenProvider())
-                     .option(SdkAdvancedClientOption.TOKEN_SIGNER, defaultTokenSigner()));
+                                  .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
+                                  .option(AwsClientOption.TOKEN_PROVIDER, defaultTokenProvider())
+                                  .option(SdkAdvancedClientOption.TOKEN_SIGNER, defaultTokenSigner()));
     }
 
     @Override
     protected final SdkClientConfiguration finalizeServiceConfiguration(SdkClientConfiguration config) {
+        List<ExecutionInterceptor> endpointInterceptors = new ArrayList<>();
         ClasspathInterceptorChainFactory interceptorFactory = new ClasspathInterceptorChainFactory();
         List<ExecutionInterceptor> interceptors = interceptorFactory
             .getInterceptors("software/amazon/awssdk/services/query/execution.interceptors");
+        List<ExecutionInterceptor> additionalInterceptors = new ArrayList<>();
+        additionalInterceptors.add(new QueryParametersToBodyInterceptor());
+        interceptors = CollectionUtils.mergeLists(endpointInterceptors, interceptors);
+        interceptors = CollectionUtils.mergeLists(interceptors, additionalInterceptors);
         interceptors = CollectionUtils.mergeLists(interceptors, config.option(SdkClientOption.EXECUTION_INTERCEPTORS));
-        List<ExecutionInterceptor> protocolInterceptors = Collections.singletonList(new QueryParametersToBodyInterceptor());
-        interceptors = CollectionUtils.mergeLists(interceptors, protocolInterceptors);
-        return config.toBuilder().option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors).build();
+        return config.toBuilder().option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors)
+                     .option(SdkClientOption.CLIENT_CONTEXT_PARAMS, clientContextParams.build()).build();
     }
 
     private Signer defaultSigner() {

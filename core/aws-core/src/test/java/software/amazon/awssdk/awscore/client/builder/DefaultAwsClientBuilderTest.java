@@ -42,7 +42,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
-import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
+import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.internal.defaultsmode.AutoDefaultsModeDiscovery;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -102,6 +102,28 @@ public class DefaultAwsClientBuilderTest {
             .hasToString("https://" + ENDPOINT_PREFIX + ".us-west-1.amazonaws.com");
         assertThat(client.clientConfiguration.option(SIGNING_REGION)).isEqualTo(Region.US_WEST_1);
         assertThat(client.clientConfiguration.option(SERVICE_SIGNING_NAME)).isEqualTo(SIGNING_NAME);
+    }
+
+    @Test
+    public void buildWithFipsRegionThenNonFipsFipsEnabledRemainsSet() {
+        TestClient client = testClientBuilder()
+            .region(Region.of("us-west-2-fips")) // first call to setter sets the flag
+            .region(Region.of("us-west-2"))// second call should clear
+            .build();
+
+        assertThat(client.clientConfiguration.option(AwsClientOption.AWS_REGION)).isEqualTo(Region.US_WEST_2);
+        assertThat(client.clientConfiguration.option(AwsClientOption.FIPS_ENDPOINT_ENABLED)).isTrue();
+    }
+
+    @Test
+    public void buildWithSetFipsTrueAndNonFipsRegionFipsEnabledRemainsSet() {
+        TestClient client = testClientBuilder()
+            .fipsEnabled(true)
+            .region(Region.of("us-west-2"))
+            .build();
+
+        assertThat(client.clientConfiguration.option(AwsClientOption.AWS_REGION)).isEqualTo(Region.US_WEST_2);
+        assertThat(client.clientConfiguration.option(AwsClientOption.FIPS_ENDPOINT_ENABLED)).isTrue();
     }
 
     @Test

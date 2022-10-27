@@ -27,6 +27,7 @@ class CommonGeneratorTasks extends CompositeGeneratorTask {
               new MarshallerGeneratorTasks(params),
               new ModelClassGeneratorTasks(params),
               new PackageInfoGeneratorTasks(params),
-              new BaseExceptionClassGeneratorTasks(params));
+              new BaseExceptionClassGeneratorTasks(params),
+              new ClientOptionsClassGeneratorTasks(params));
     }
 }
