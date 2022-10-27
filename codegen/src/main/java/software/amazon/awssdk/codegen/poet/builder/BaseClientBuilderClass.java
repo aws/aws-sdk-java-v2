@@ -110,9 +110,11 @@ public class BaseClientBuilderClass implements ClassSpec {
         builder.addMethod(finalizeServiceConfigurationMethod());
         defaultAwsAuthSignerMethod().ifPresent(builder::addMethod);
         builder.addMethod(signingNameMethod());
-        builder.addMethod(defaultEndpointProviderMethod());
+        if (endpointRulesSpecUtils.isEndpointRulesEnabled()) {
+            builder.addMethod(defaultEndpointProviderMethod());
+        }
 
-        if (hasClientContextParams()) {
+        if (hasClientContextParams() && endpointRulesSpecUtils.isEndpointRulesEnabled()) {
             model.getClientContextParams().forEach((n, m) -> {
                 builder.addMethod(clientContextParamSetter(n, m));
             });
@@ -184,9 +186,11 @@ public class BaseClientBuilderClass implements ClassSpec {
                                                .addModifiers(PROTECTED, FINAL)
                                                .returns(SdkClientConfiguration.class)
                                                .addParameter(SdkClientConfiguration.class, "config")
-                                               .addCode("return config.merge(c -> c")
-                                               .addCode(".option($T.ENDPOINT_PROVIDER, defaultEndpointProvider())",
-                                                        SdkClientOption.class);
+                                               .addCode("return config.merge(c -> c");
+
+        if (endpointRulesSpecUtils.isEndpointRulesEnabled()) {
+            builder.addCode(".option($T.ENDPOINT_PROVIDER, defaultEndpointProvider())", SdkClientOption.class);
+        }
 
         if (defaultAwsAuthSignerMethod().isPresent()) {
             builder.addCode(".option($T.SIGNER, defaultSigner())\n", SdkAdvancedClientOption.class);
@@ -252,9 +256,11 @@ public class BaseClientBuilderClass implements ClassSpec {
                              ParameterizedTypeName.get(List.class, ExecutionInterceptor.class),
                              ArrayList.class);
 
-        builder.addStatement("endpointInterceptors.add(new $T())", endpointRulesSpecUtils.resolverInterceptorName());
-        builder.addStatement("endpointInterceptors.add(new $T())", endpointRulesSpecUtils.authSchemesInterceptorName());
-        builder.addStatement("endpointInterceptors.add(new $T())", endpointRulesSpecUtils.requestModifierInterceptorName());
+        if (endpointRulesSpecUtils.isEndpointRulesEnabled()) {
+            builder.addStatement("endpointInterceptors.add(new $T())", endpointRulesSpecUtils.resolverInterceptorName());
+            builder.addStatement("endpointInterceptors.add(new $T())", endpointRulesSpecUtils.authSchemesInterceptorName());
+            builder.addStatement("endpointInterceptors.add(new $T())", endpointRulesSpecUtils.requestModifierInterceptorName());
+        }
 
         builder.addCode("$1T interceptorFactory = new $1T();\n", ClasspathInterceptorChainFactory.class)
                .addCode("$T<$T> interceptors = interceptorFactory.getInterceptors($S);\n",

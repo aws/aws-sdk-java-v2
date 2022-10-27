@@ -213,6 +213,11 @@ public class CustomizationConfig {
 
     private boolean useGlobalEndpoint;
 
+    /**
+     * Whether Endpoints 2.0/rule based endpoints should be used for endpoint resolution.
+     */
+    private boolean useRuleBasedEndpoints = false;
+
     private CustomizationConfig() {
     }
 
@@ -550,4 +555,11 @@ public class CustomizationConfig {
         this.skipEndpointTests = skipEndpointTests;
     }
 
+    public boolean useRuleBasedEndpoints() {
+        return useRuleBasedEndpoints;
+    }
+
+    public void setUseRuleBasedEndpoints(boolean useRuleBasedEndpoints) {
+        this.useRuleBasedEndpoints = useRuleBasedEndpoints;
+    }
 }
