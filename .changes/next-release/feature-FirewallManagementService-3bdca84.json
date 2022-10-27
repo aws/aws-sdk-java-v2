@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Firewall Management Service",
-    "contributor": "",
-    "description": "Add support NetworkFirewall Managed Rule Group Override flag in GetViolationDetails API"
-}

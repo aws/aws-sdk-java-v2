@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Compute Cloud",
-    "contributor": "",
-    "description": "Feature supports the replacement of instance root volume using an updated AMI without requiring customers to stop their instance."
-}

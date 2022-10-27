@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Redshift",
-    "contributor": "",
-    "description": "This release clarifies use for the ElasticIp parameter of the CreateCluster and RestoreFromClusterSnapshot APIs."
-}
