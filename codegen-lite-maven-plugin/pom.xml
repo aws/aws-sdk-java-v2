@@ -74,6 +74,10 @@
             <artifactId>maven-project</artifactId>
             <groupId>org.apache.maven</groupId>
         </dependency>
+        <dependency>
+            <artifactId>plexus-utils</artifactId>
+            <groupId>org.codehaus.plexus</groupId>
+        </dependency>
     </dependencies>
 
     <build>
