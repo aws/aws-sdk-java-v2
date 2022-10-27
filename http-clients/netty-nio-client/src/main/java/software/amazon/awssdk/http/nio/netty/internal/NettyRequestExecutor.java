@@ -23,6 +23,7 @@ import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.KEEP_ALIVE;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.LAST_HTTP_CONTENT_RECEIVED_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.REQUEST_CONTEXT_KEY;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.RESPONSE_100_CONTINUE_MESSAGE;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.RESPONSE_COMPLETE_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.RESPONSE_CONTENT_LENGTH;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.RESPONSE_DATA_READ;
@@ -196,6 +197,7 @@ public final class NettyRequestExecutor {
         channel.attr(REQUEST_CONTEXT_KEY).set(context);
         channel.attr(RESPONSE_COMPLETE_KEY).set(false);
         channel.attr(LAST_HTTP_CONTENT_RECEIVED_KEY).set(false);
+        channel.attr(RESPONSE_100_CONTINUE_MESSAGE).set(false);
         channel.attr(RESPONSE_CONTENT_LENGTH).set(null);
         channel.attr(RESPONSE_DATA_READ).set(null);
         channel.attr(CHANNEL_DIAGNOSTICS).get().incrementRequestCount();

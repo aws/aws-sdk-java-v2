@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http.nio.netty.internal;
 
 import io.netty.channel.Channel;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.codec.http2.Http2Connection;
 import io.netty.handler.codec.http2.Http2FrameStream;
@@ -72,6 +73,12 @@ public final class ChannelAttributeKey {
 
     public static final AttributeKey<ChannelDiagnostics> CHANNEL_DIAGNOSTICS = NettyUtils.getOrCreateAttributeKey(
         "aws.http.nio.netty.async.channelDiagnostics");
+
+    /**
+     * {@link AttributeKey} to keep track of whether we have received Continue in {@link HttpResponseStatus}.
+     */
+    public static final AttributeKey<Boolean> RESPONSE_100_CONTINUE_MESSAGE = NettyUtils.getOrCreateAttributeKey(
+        "aws.http.nio.netty.async.100ContinueMessage");
 
     /**
      * {@link AttributeKey} to keep track of whether we should close the connection after this request

@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.http.nio.netty.internal.nrs;
 
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.RESPONSE_100_CONTINUE_MESSAGE;
+
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
 import io.netty.handler.codec.http.FullHttpRequest;
@@ -168,6 +170,7 @@ public class HttpStreamsClientHandler extends HttpStreamsHandler<HttpResponse, H
             ReferenceCountUtil.release(msg);
             if (msg instanceof LastHttpContent) {
                 ignoreResponseBody = false;
+                ctx.channel().attr(RESPONSE_100_CONTINUE_MESSAGE).set(true);
             }
         } else {
             super.channelRead(ctx, msg);

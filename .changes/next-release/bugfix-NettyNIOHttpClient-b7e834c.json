@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Netty NIO Http Client",
+    "contributor": "",
+    "description": "Fix for Netty based client request getting stuck if connection is reset after recieveing Http Continue response."
+}

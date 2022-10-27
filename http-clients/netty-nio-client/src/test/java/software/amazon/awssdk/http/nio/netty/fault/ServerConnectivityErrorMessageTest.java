@@ -38,6 +38,8 @@ import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.DefaultHttpResponse;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
 import io.netty.handler.codec.http.HttpContent;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -50,6 +52,7 @@ import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
 import io.reactivex.Flowable;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
@@ -93,6 +96,17 @@ public class ServerConnectivityErrorMessageTest {
                              new TestCase(CloseTime.DURING_RESPONSE_PAYLOAD, "Response had content-length"));
     }
 
+    public static Collection<TestCase> testCasesForHttpContinueResponse() {
+        return Arrays.asList(new TestCase(CloseTime.DURING_INIT, "The connection was closed during the request."),
+                             new TestCase(CloseTime.BEFORE_SSL_HANDSHAKE, "The connection was closed during the request."),
+                             new TestCase(CloseTime.DURING_SSL_HANDSHAKE, "The connection was closed during the request."),
+                             new TestCase(CloseTime.BEFORE_REQUEST_PAYLOAD, "The connection was closed during the request."),
+                             new TestCase(CloseTime.DURING_REQUEST_PAYLOAD, "The connection was closed during the request."),
+                             new TestCase(CloseTime.BEFORE_RESPONSE_HEADERS, "The connection was closed during the request."),
+                             new TestCase(CloseTime.BEFORE_RESPONSE_PAYLOAD, "The connection was closed during the request."),
+                             new TestCase(CloseTime.DURING_RESPONSE_PAYLOAD, "The connection was closed during the request."));
+    }
+
     @AfterEach
     public void teardown() throws InterruptedException {
         if (server != null) {
@@ -108,14 +122,23 @@ public class ServerConnectivityErrorMessageTest {
 
     @ParameterizedTest
     @MethodSource("testCases")
-    public void closeTimeHasCorrectMessage(TestCase testCase) throws Exception {
+    void closeTimeHasCorrectMessage(TestCase testCase) throws Exception {
+        server = new Server(ServerConfig.builder().httpResponseStatus(HttpResponseStatus.OK).build());
         setupTestCase(testCase);
         server.closeTime = testCase.closeTime;
-        assertThat(captureException()).hasMessageContaining(testCase.errorMessageSubstring);
+        assertThat(captureExceptionWithHttpOkResponse()).hasMessageContaining(testCase.errorMessageSubstring);
+    }
+
+    @ParameterizedTest
+    @MethodSource("testCasesForHttpContinueResponse")
+    void closeTimeHasCorrectMessageWith100ContinueResponse(TestCase testCase) throws Exception {
+        server = new Server(ServerConfig.builder().httpResponseStatus(HttpResponseStatus.CONTINUE).build());
+        setupTestCase(testCase);
+        server.closeTime = testCase.closeTime;
+        assertThat(captureExceptionWithHttpContinueResponse()).hasMessageContaining(testCase.errorMessageSubstring);
     }
 
     public void setupTestCase(TestCase testCase) throws Exception {
-        server = new Server();
         server.init(testCase.closeTime);
 
         netty = NettyNioAsyncHttpClient.builder()
@@ -125,7 +148,7 @@ public class ServerConnectivityErrorMessageTest {
                                        .buildWithDefaults(AttributeMap.builder().put(TRUST_ALL_CERTIFICATES, true).build());
     }
 
-    private Throwable captureException() {
+    private Throwable captureExceptionWithHttpOkResponse() {
         try {
             sendGetRequest().get(10, TimeUnit.SECONDS);
         } catch (InterruptedException | TimeoutException e) {
@@ -136,6 +159,20 @@ public class ServerConnectivityErrorMessageTest {
 
         throw new AssertionError("Call did not fail as expected.");
     }
+
+    private Throwable captureExceptionWithHttpContinueResponse() {
+        try {
+            sendPutRequestWithExpectContinue().get(10, TimeUnit.SECONDS);
+        } catch (InterruptedException | TimeoutException e) {
+            throw new Error(e);
+        } catch (ExecutionException e) {
+            return e.getCause();
+        }
+
+        throw new AssertionError("Call did not fail as expected.");
+    }
+
+
 
     private CompletableFuture<Void> sendGetRequest() {
         AsyncExecuteRequest req = AsyncExecuteRequest.builder()
@@ -164,6 +201,40 @@ public class ServerConnectivityErrorMessageTest {
                                                                                 .port(server.port())
                                                                                 .build())
                                                      .requestContentPublisher(new EmptyPublisher())
+                                                     .build();
+
+        return netty.execute(req);
+    }
+
+    private CompletableFuture<Void> sendPutRequestWithExpectContinue() {
+        AsyncExecuteRequest req = AsyncExecuteRequest.builder()
+                                                     .responseHandler(new SdkAsyncHttpResponseHandler() {
+                                                         private SdkHttpResponse headers;
+
+                                                         @Override
+                                                         public void onHeaders(SdkHttpResponse headers) {
+                                                             this.headers = headers;
+                                                         }
+
+                                                         @Override
+                                                         public void onStream(Publisher<ByteBuffer> stream) {
+                                                             Flowable.fromPublisher(stream).forEach(b -> {
+                                                             });
+                                                         }
+
+                                                         @Override
+                                                         public void onError(Throwable error) {
+                                                         }
+                                                     })
+                                                     .request(SdkHttpFullRequest.builder()
+                                                                                .method(SdkHttpMethod.PUT)
+                                                                                .protocol("https")
+                                                                                .putHeader(HttpHeaderNames.EXPECT.toString(),
+                                                                                           HttpHeaderValues.CONTINUE.toString())
+                                                                                .host("localhost")
+                                                                                .port(server.port())
+                                                                                .build())
+                                                     .requestContentPublisher(new SdkTestHttpContentPublisher("reqBody".getBytes(StandardCharsets.UTF_8)))
                                                      .build();
 
         return netty.execute(req);
@@ -198,12 +269,37 @@ public class ServerConnectivityErrorMessageTest {
         DURING_RESPONSE_PAYLOAD
     }
 
+    private static class ServerConfig {
+        private final HttpResponseStatus httpResponseStatus;
+        public static Builder builder(){
+            return new Builder();
+        }
+        private ServerConfig(Builder builder) {
+            this.httpResponseStatus = builder.httpResponseStatus;
+        }
+        public static class Builder {
+            private HttpResponseStatus httpResponseStatus;
+            public Builder httpResponseStatus(HttpResponseStatus httpResponseStatus){
+                this.httpResponseStatus = httpResponseStatus;
+                return this;
+            }
+            public ServerConfig build() {
+                return new ServerConfig(this);
+            }
+        }
+    }
+
     private static class Server extends ChannelInitializer<Channel> {
         private final NioEventLoopGroup group = new NioEventLoopGroup();
         private CloseTime closeTime;
         private ServerBootstrap bootstrap;
         private ServerSocketChannel serverSock;
         private SslContext sslCtx;
+        private ServerConfig serverConfig;
+
+        public Server(ServerConfig serverConfig) {
+            this.serverConfig = serverConfig;
+        }
 
         private void init(CloseTime closeTime) throws Exception {
             SelfSignedCertificate ssc = new SelfSignedCertificate();
@@ -240,7 +336,9 @@ public class ServerConnectivityErrorMessageTest {
             ChannelPipeline pipeline = ch.pipeline();
             pipeline.addLast(new SslHandler(new FaultInjectionSslEngine(sslCtx.newEngine(ch.alloc()), ch), false));
             pipeline.addLast(new HttpServerCodec());
-            pipeline.addLast(new FaultInjectionHttpHandler());
+            FaultInjectionHttpHandler faultInjectionHttpHandler = new FaultInjectionHttpHandler();
+            faultInjectionHttpHandler.setHttpResponseStatus(serverConfig.httpResponseStatus);
+            pipeline.addLast(faultInjectionHttpHandler);
 
             LOGGER.info(() -> "Channel initialized " + ch);
         }
@@ -287,6 +385,13 @@ public class ServerConnectivityErrorMessageTest {
         }
 
         private class FaultInjectionHttpHandler extends SimpleChannelInboundHandler<Object> {
+
+            private HttpResponseStatus httpResponseStatus = HttpResponseStatus.OK;
+
+            public void setHttpResponseStatus(HttpResponseStatus httpResponseStatus) {
+                this.httpResponseStatus = httpResponseStatus;
+            }
+
             @Override
             protected void channelRead0(ChannelHandlerContext ctx, Object msg) {
                 LOGGER.info(() -> "Reading " + msg);
@@ -321,7 +426,7 @@ public class ServerConnectivityErrorMessageTest {
             private void writeResponse(ChannelHandlerContext ctx) {
                 int responseLength = 10 * 1024 * 1024; // 10 MB
                 HttpHeaders headers = new DefaultHttpHeaders().add("Content-Length", responseLength);
-                ctx.writeAndFlush(new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, headers)).addListener(x -> {
+                ctx.writeAndFlush(new DefaultHttpResponse(HttpVersion.HTTP_1_1, this.httpResponseStatus, headers)).addListener(x -> {
                     if (closeTime == CloseTime.BEFORE_RESPONSE_PAYLOAD) {
                         LOGGER.info(() -> "Closing channel before response payload " + ctx.channel());
                         ctx.close();

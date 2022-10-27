@@ -21,6 +21,7 @@ import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.KEEP_ALIVE;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.LAST_HTTP_CONTENT_RECEIVED_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.REQUEST_CONTEXT_KEY;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.RESPONSE_100_CONTINUE_MESSAGE;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.RESPONSE_COMPLETE_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.RESPONSE_CONTENT_LENGTH;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.RESPONSE_DATA_READ;
@@ -463,16 +464,26 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
     private void notifyIfResponseNotCompleted(ChannelHandlerContext handlerCtx) {
         RequestContext requestCtx = handlerCtx.channel().attr(REQUEST_CONTEXT_KEY).get();
         Boolean responseCompleted = handlerCtx.channel().attr(RESPONSE_COMPLETE_KEY).get();
-        Boolean lastHttpContentReceived = handlerCtx.channel().attr(LAST_HTTP_CONTENT_RECEIVED_KEY).get();
+        boolean isLastByteWithout100Continue = isLastByteWithout100Response(handlerCtx);
         handlerCtx.channel().attr(KEEP_ALIVE).set(false);
 
-        if (!Boolean.TRUE.equals(responseCompleted) && !Boolean.TRUE.equals(lastHttpContentReceived)) {
+        if (!Boolean.TRUE.equals(responseCompleted) && !isLastByteWithout100Continue) {
             IOException err = new IOException(NettyUtils.closedChannelMessage(handlerCtx.channel()));
             runAndLogError(handlerCtx.channel(), () -> "Fail to execute SdkAsyncHttpResponseHandler#onError",
                            () -> requestCtx.handler().onError(err));
             executeFuture(handlerCtx).completeExceptionally(err);
             runAndLogError(handlerCtx.channel(), () -> "Could not release channel", () -> closeAndRelease(handlerCtx));
+        } else if (!Boolean.TRUE.equals(responseCompleted)) {
+            log.trace(handlerCtx.channel(),
+                      () -> "Run error skipped because lastHttpContentReceived is "
+                            + handlerCtx.channel().attr(LAST_HTTP_CONTENT_RECEIVED_KEY).get() + " and 100ContinueMessage is "
+                            + handlerCtx.channel().attr(RESPONSE_100_CONTINUE_MESSAGE).get());
         }
+    }
+
+    private boolean isLastByteWithout100Response(ChannelHandlerContext handlerCtx) {
+        return Boolean.TRUE.equals(handlerCtx.channel().attr(LAST_HTTP_CONTENT_RECEIVED_KEY).get())
+               && Boolean.FALSE.equals(handlerCtx.channel().attr(RESPONSE_100_CONTINUE_MESSAGE).get());
     }
 
     private static final class DataCountingPublisher implements Publisher<ByteBuffer> {
