@@ -96,18 +96,16 @@ public class CloudFrontSignerIntegrationTest extends IntegrationTestBase {
     private static final String bucketName = StringUtils.lowerCase(CloudFrontSignerIntegrationTest.class.getSimpleName())
                                              + "." + callerReference;
     private static final String s3ObjectKey = "s3ObjectKey";
-    private static String dnsName = bucketName + ".s3.amazonaws.com";
     private static String publicKeyId;
     private static String domainName;
     private static String distributionId;
-    private static KeyPair keyPair;
     private static File keyFile;
     private static String keyGroupId;
     private static String originAccessId;
     private static String distributionETag;
 
     @BeforeAll
-    public static void initial() throws IOException, InterruptedException, NoSuchAlgorithmException {
+    public static void init() throws IOException, InterruptedException, NoSuchAlgorithmException {
         IntegrationTestBase.setUp();
         initKeys();
         setUpDistribution();
@@ -116,14 +114,7 @@ public class CloudFrontSignerIntegrationTest extends IntegrationTestBase {
     @AfterAll
     public static void tearDown() throws InterruptedException {
         disableDistribution();
-        if (distributionId != null) {
-            try {
-                cloudFrontClient.deleteDistribution(DeleteDistributionRequest.builder().ifMatch(distributionETag).id(distributionId).build());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
+        cloudFrontClient.deleteDistribution(DeleteDistributionRequest.builder().ifMatch(distributionETag).id(distributionId).build());
         deleteBucketAndAllContents(bucketName);
         String keyGroupETag = cloudFrontClient.getKeyGroup(GetKeyGroupRequest.builder().id(keyGroupId).build()).eTag();
         cloudFrontClient.deleteKeyGroup(DeleteKeyGroupRequest.builder().ifMatch(keyGroupETag).id(keyGroupId).build());
@@ -135,7 +126,24 @@ public class CloudFrontSignerIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
-    void getSignedURLWithCannedPolicy_shouldWork() throws Exception {
+    void unsignedUrl_shouldReturn403Response() throws Exception {
+        String unsignedUrl = generateResourceUrl(Protocol.HTTPS, domainName, s3ObjectKey);
+        SdkHttpClient client = ApacheHttpClient.create();
+        HttpExecuteResponse response =
+            client.prepareRequest(HttpExecuteRequest.builder()
+                                                    .request(SdkHttpRequest.builder()
+                                                                           .encodedPath(unsignedUrl)
+                                                                           .host(domainName)
+                                                                           .method(SdkHttpMethod.GET)
+                                                                           .protocol("https")
+                                                                           .build())
+                                                    .build()).call();
+        int expectedStatus = 403;
+        assertThat(response.httpResponse().statusCode()).isEqualTo(expectedStatus);
+    }
+
+    @Test
+    void getSignedUrlWithCannedPolicy_shouldWork() throws Exception {
         InputStream originalBucketContent = s3Client.getObject(GetObjectRequest.builder().bucket(bucketName).key(s3ObjectKey).build());
         ZonedDateTime expirationDate = ZonedDateTime.of(2050, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC"));
         String signedUrl = getSignedUrlWithCannedPolicy(Protocol.HTTPS, domainName, s3ObjectKey, keyFile, publicKeyId, expirationDate);
@@ -158,7 +166,7 @@ public class CloudFrontSignerIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
-    void getSignedURLWithCannedPolicy_withExpiredDate_shouldReturn403Response() throws Exception {
+    void getSignedUrlWithCannedPolicy_withExpiredDate_shouldReturn403Response() throws Exception {
         ZonedDateTime expirationDate = ZonedDateTime.of(2020, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC"));
         String signedUrl = getSignedUrlWithCannedPolicy(Protocol.HTTPS, domainName, s3ObjectKey, keyFile, publicKeyId, expirationDate);
         String encodedPath = signedUrl.substring(signedUrl.indexOf("s3ObjectKey"));
@@ -177,7 +185,7 @@ public class CloudFrontSignerIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
-    void getSignedURLWithCustomPolicy_shouldWork() throws Exception {
+    void getSignedUrlWithCustomPolicy_shouldWork() throws Exception {
         InputStream originalBucketContent = s3Client.getObject(GetObjectRequest.builder().bucket(bucketName).key(s3ObjectKey).build());
         ZonedDateTime activeDate = ZonedDateTime.of(2020, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC"));
         ZonedDateTime expirationDate = ZonedDateTime.of(2050, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC"));
@@ -201,7 +209,7 @@ public class CloudFrontSignerIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
-    void getSignedURLWithCustomPolicy_withFutureActiveDate_shouldReturn403Response() throws Exception {
+    void getSignedUrlWithCustomPolicy_withFutureActiveDate_shouldReturn403Response() throws Exception {
         ZonedDateTime activeDate = ZonedDateTime.of(2040, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC"));
         ZonedDateTime expirationDate = ZonedDateTime.of(2050, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC"));
         String signedUrl = getSignedUrlWithCustomPolicy(Protocol.HTTPS, domainName, s3ObjectKey, keyFile, publicKeyId, activeDate, expirationDate, null);
@@ -232,7 +240,8 @@ public class CloudFrontSignerIntegrationTest extends IntegrationTestBase {
             client.prepareRequest(HttpExecuteRequest.builder()
                                                     .request(SdkHttpRequest.builder()
                                                                            .uri(URI.create(encodedPath))
-                                                                           .appendHeader("Cookie",cookies.getExpires().getKey() + "=" + cookies.getExpires().getValue())
+                                                                           .appendHeader("Cookie",
+                                                                                         cookies.getExpires().getKey() + "=" + cookies.getExpires().getValue())
                                                                            .appendHeader("Cookie",
                                                                                          cookies.getSignature().getKey() + "=" + cookies.getSignature().getValue())
                                                                            .appendHeader("Cookie",
@@ -258,7 +267,8 @@ public class CloudFrontSignerIntegrationTest extends IntegrationTestBase {
             client.prepareRequest(HttpExecuteRequest.builder()
                                                     .request(SdkHttpRequest.builder()
                                                                            .uri(URI.create(encodedPath))
-                                                                           .appendHeader("Cookie",cookies.getExpires().getKey() + "=" + cookies.getExpires().getValue())
+                                                                           .appendHeader("Cookie",
+                                                                                         cookies.getExpires().getKey() + "=" + cookies.getExpires().getValue())
                                                                            .appendHeader("Cookie",
                                                                                          cookies.getSignature().getKey() + "=" + cookies.getSignature().getValue())
                                                                            .appendHeader("Cookie",
@@ -274,7 +284,7 @@ public class CloudFrontSignerIntegrationTest extends IntegrationTestBase {
     void getCookiesForCustomPolicy_shouldWork() throws Exception {
         InputStream originalBucketContent = s3Client.getObject(GetObjectRequest.builder().bucket(bucketName).key(s3ObjectKey).build());
         ZonedDateTime activeDate = ZonedDateTime.of(2020, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC"));
-        ZonedDateTime expirationDate = ZonedDateTime.of(2023, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC"));
+        ZonedDateTime expirationDate = ZonedDateTime.of(2050, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC"));
         CookiesForCustomPolicy cookies = getCookiesForCustomPolicy(Protocol.HTTPS, domainName, s3ObjectKey, keyFile, publicKeyId, activeDate, expirationDate, null);
         String encodedPath = generateResourceUrl(Protocol.HTTPS, domainName, s3ObjectKey);
 
@@ -325,7 +335,6 @@ public class CloudFrontSignerIntegrationTest extends IntegrationTestBase {
     }
 
     static void setUpDistribution() throws IOException, InterruptedException {
-        //Create Origin Access Identity
         CreateCloudFrontOriginAccessIdentityResponse response = cloudFrontClient.createCloudFrontOriginAccessIdentity(
             CreateCloudFrontOriginAccessIdentityRequest.builder()
                                                        .cloudFrontOriginAccessIdentityConfig(CloudFrontOriginAccessIdentityConfig.builder()
@@ -335,7 +344,6 @@ public class CloudFrontSignerIntegrationTest extends IntegrationTestBase {
                                                        .build());
         originAccessId = response.cloudFrontOriginAccessIdentity().id();
 
-        // Create Cloudfront trusted key group
         KeyGroup keyGroup =
             cloudFrontClient.createKeyGroup(CreateKeyGroupRequest.builder().keyGroupConfig(KeyGroupConfig.builder()
                                                                                                      .name("TestKeyGroup")
@@ -343,15 +351,10 @@ public class CloudFrontSignerIntegrationTest extends IntegrationTestBase {
                                                                                                      .build()).build()).keyGroup();
         keyGroupId = keyGroup.id();
 
-        // Create S3 Bucket
         s3Client.createBucket(CreateBucketRequest.builder().bucket(bucketName).build());
-        dnsName = bucketName + ".s3.amazonaws.com";
-
-        //Upload temp file to bucket
-        File content = new RandomTempFile("" + System.currentTimeMillis(), 1000L);
+        File content = new RandomTempFile("testFile", 1000L);
         s3Client.putObject(PutObjectRequest.builder().bucket(bucketName).key(s3ObjectKey).build(), RequestBody.fromFile(content));
 
-        //Distribution Config Parameters
         DefaultCacheBehavior defaultCacheBehavior = DefaultCacheBehavior.builder()
                                                                         .forwardedValues(ForwardedValues.builder()
                                                                                                         .queryString(false).cookies(CookiePreference.builder().forward("none").build())
@@ -366,15 +369,13 @@ public class CloudFrontSignerIntegrationTest extends IntegrationTestBase {
                                                                                    .headers(Headers.builder().quantity(0).build()).build()).minTTL(10000L).maxTTL(10000L).defaultTTL(10000L)
                                                    .targetOriginId("1")
                                                    .viewerProtocolPolicy(ViewerProtocolPolicy.ALLOW_ALL)
-                                                   .trustedKeyGroups(TrustedKeyGroups.builder().enabled(true).quantity(1).items(keyGroup.id()).build())
-                                                   .pathPattern("*").build();
+                                                   .trustedKeyGroups(TrustedKeyGroups.builder().enabled(true).quantity(1).items(keyGroup.id()).build()).pathPattern("*").build();
 
         Origin origin = Origin.builder()
-                              .domainName(dnsName)
+                              .domainName(bucketName + ".s3.amazonaws.com")
                               .id("1")
                               .s3OriginConfig(S3OriginConfig.builder().originAccessIdentity("origin-access-identity/cloudfront/" + originAccessId).build()).build();
 
-        // Create CloudFront Distribution
         DistributionConfig distributionConfiguration = DistributionConfig.builder()
                                                                          .priceClass(PriceClass.PRICE_CLASS_100)
                                                                          .defaultCacheBehavior(defaultCacheBehavior)
@@ -404,7 +405,6 @@ public class CloudFrontSignerIntegrationTest extends IntegrationTestBase {
 
         waitForDistributionToDeploy(distributionId);
 
-        // Add bucket policy for Origin Access Identity to read bucket object
         String bucketPolicy = "{\n"
                               + "\"Version\":\"2012-10-17\",\n"
                               + "\"Id\":\"PolicyForCloudFrontPrivateContent\",\n"
@@ -424,12 +424,10 @@ public class CloudFrontSignerIntegrationTest extends IntegrationTestBase {
     }
 
     static void initKeys() throws NoSuchAlgorithmException, IOException {
-        //Generate key pair
         KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
         kpg.initialize(2048);
-        keyPair = kpg.generateKeyPair();
+        KeyPair keyPair = kpg.generateKeyPair();
 
-        //Write private key to file
         keyFile = new File("src/test/key.pem");
         FileWriter writer = new FileWriter(keyFile);
         writer.write("-----BEGIN PRIVATE KEY-----\n");
@@ -437,8 +435,8 @@ public class CloudFrontSignerIntegrationTest extends IntegrationTestBase {
         writer.write("\n-----END PRIVATE KEY-----\n");
         writer.close();
 
-        //Upload public key to Cloudfront
-        String encodedKey = "-----BEGIN PUBLIC KEY-----\n" + encoder.encodeToString(keyPair.getPublic().getEncoded())
+        String encodedKey = "-----BEGIN PUBLIC KEY-----\n"
+                            + encoder.encodeToString(keyPair.getPublic().getEncoded())
                             + "\n-----END PUBLIC KEY-----\n";
         CreatePublicKeyResponse publicKeyResponse =
             cloudFrontClient.createPublicKey(CreatePublicKeyRequest.builder().publicKeyConfig(PublicKeyConfig.builder()
@@ -453,7 +451,6 @@ public class CloudFrontSignerIntegrationTest extends IntegrationTestBase {
             cloudFrontClient.getDistributionConfig(GetDistributionConfigRequest.builder().id(distributionId).build());
         distributionETag = distributionConfigResponse.eTag();
         DistributionConfig originalConfig = distributionConfigResponse.distributionConfig();
-
         UpdateDistributionResponse updateDistributionResponse =
             cloudFrontClient.updateDistribution(r -> r.id(distributionId)
                                                       .ifMatch(distributionETag)
