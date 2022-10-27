@@ -140,7 +140,6 @@ public class FaultStatusCodeMappingTest {
         private final String queryErrorHeader;
         private final String expectedErrorCode;
 
-
         public QueryErrorTestCase(String queryErrorHeader, String expectedErrorCode) {
             this.queryErrorHeader = queryErrorHeader;
             this.expectedErrorCode = expectedErrorCode;
