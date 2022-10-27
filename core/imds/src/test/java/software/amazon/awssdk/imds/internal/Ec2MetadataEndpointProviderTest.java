@@ -47,7 +47,7 @@ import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
 import software.amazon.awssdk.core.retry.backoff.FixedDelayBackoffStrategy;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
-import software.amazon.awssdk.imds.Ec2Metadata;
+import software.amazon.awssdk.imds.Ec2MetadataClient;
 import software.amazon.awssdk.imds.Ec2MetadataRetryPolicy;
 import software.amazon.awssdk.imds.MetadataResponse;
 
@@ -70,14 +70,15 @@ public class Ec2MetadataEndpointProviderTest {
     @Rule
     public WireMockRule mockMetadataEndpoint = new WireMockRule();
 
-    public Ec2Metadata ec2Metadata;
+    public Ec2MetadataClient ec2Metadata;
 
     @Before
     public void methodSetup() {
-        System.setProperty(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.property(), "http://localhost:" + mockMetadataEndpoint.port());
-        this.ec2Metadata = Ec2Metadata.builder()
-                                             .endpoint(URI.create("http://localhost:" + mockMetadataEndpoint.port()))
-                                             .build();
+        System.setProperty(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.property(),
+                           "http://localhost:" + mockMetadataEndpoint.port());
+        this.ec2Metadata = Ec2MetadataClient.builder()
+                                            .endpoint(URI.create("http://localhost:" + mockMetadataEndpoint.port()))
+                                            .build();
     }
 
     @Test
@@ -162,10 +163,10 @@ public class Ec2MetadataEndpointProviderTest {
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withFixedDelay(2_000)));
 
         SdkHttpClient client = UrlConnectionHttpClient.builder().socketTimeout(Duration.ofMillis(500)).build();
-        Ec2Metadata ec2MetadataRequest = Ec2Metadata.builder()
-                                                    .httpClient(client)
-                                                    .endpoint(URI.create("http://localhost:" + mockMetadataEndpoint.port()))
-                                                    .build();
+        Ec2MetadataClient ec2MetadataRequest = Ec2MetadataClient.builder()
+                                                                .httpClient(client)
+                                                                .endpoint(URI.create("http://localhost:" + mockMetadataEndpoint.port()))
+                                                                .build();
         assertThatThrownBy(() -> ec2MetadataRequest.get("/latest/meta-data/ami-id"))
             .hasMessageContaining("Exceeded maximum number of retries.")
             .isInstanceOf(SdkClientException.class);
@@ -184,10 +185,10 @@ public class Ec2MetadataEndpointProviderTest {
                     .willReturn(aResponse().withBody("some-token").withFixedDelay(2_000)));
 
         SdkHttpClient client = UrlConnectionHttpClient.builder().socketTimeout(Duration.ofMillis(500)).build();
-        Ec2Metadata ec2MetadataRequest = Ec2Metadata.builder()
-                                                    .endpoint(URI.create("http://localhost:" + mockMetadataEndpoint.port()))
-                                                    .httpClient(client)
-                                                    .build();
+        Ec2MetadataClient ec2MetadataRequest = Ec2MetadataClient.builder()
+                                                                .endpoint(URI.create("http://localhost:" + mockMetadataEndpoint.port()))
+                                                                .httpClient(client)
+                                                                .build();
         assertThatThrownBy(() -> ec2MetadataRequest.get("/latest/meta-data/ami-id"))
             .hasMessageContaining("Exceeded maximum number of retries.")
             .isInstanceOf(SdkClientException.class);
@@ -216,7 +217,7 @@ public class Ec2MetadataEndpointProviderTest {
         assertThat(metadataResponse.asString()).isEqualTo("{}");
 
         WireMock.verify(2, putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
-                            .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
+            .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
         WireMock.verify(1, getRequestedFor(urlPathEqualTo(AMI_ID_RESOURCE))
             .withHeader(TOKEN_HEADER, equalTo("some-token")));
     }
@@ -227,13 +228,13 @@ public class Ec2MetadataEndpointProviderTest {
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody("some-token")));
 
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).inScenario("Retry Scenario")
-                                                        .whenScenarioStateIs(STARTED)
-                                                        .willReturn(aResponse().withFault(RANDOM_DATA_THEN_CLOSE))
-                                                        .willSetStateTo("Cause Success"));
+                                                    .whenScenarioStateIs(STARTED)
+                                                    .willReturn(aResponse().withFault(RANDOM_DATA_THEN_CLOSE))
+                                                    .willSetStateTo("Cause Success"));
 
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).inScenario("Retry Scenario")
-                                                        .whenScenarioStateIs("Cause Success")
-                                                        .willReturn(aResponse().withBody("{}")));
+                                                    .whenScenarioStateIs("Cause Success")
+                                                    .willReturn(aResponse().withBody("{}")));
 
 
         MetadataResponse metadataResponse = ec2Metadata.get("/latest/meta-data/ami-id");
@@ -355,13 +356,14 @@ public class Ec2MetadataEndpointProviderTest {
 
         int numRetries = 7;
         BackoffStrategy noWait = FixedDelayBackoffStrategy.create(Duration.ofMillis(10));
-        Ec2Metadata ec2MetadataRequest = Ec2Metadata.builder()
-                                                    .endpoint(URI.create("http://localhost:" + mockMetadataEndpoint.port()))
-                                                    .retryPolicy(Ec2MetadataRetryPolicy.builder()
-                                                                                       .backoffStrategy(noWait)
-                                                                                       .numRetries(numRetries)
-                                                                                       .build())
-                                                    .build();
+        Ec2MetadataClient ec2MetadataRequest =
+            Ec2MetadataClient.builder()
+                             .endpoint(URI.create("http://localhost:" + mockMetadataEndpoint.port()))
+                             .retryPolicy(Ec2MetadataRetryPolicy.builder()
+                                                                .backoffStrategy(noWait)
+                                                                .numRetries(numRetries)
+                                                                .build())
+                             .build();
         assertThatThrownBy(() -> ec2MetadataRequest.get("/latest/meta-data/ami-id"))
             .hasMessageContaining("Exceeded maximum number of retries.")
             .isInstanceOf(SdkClientException.class);
@@ -377,10 +379,10 @@ public class Ec2MetadataEndpointProviderTest {
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody("some-token")));
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withFault(RANDOM_DATA_THEN_CLOSE)));
 
-        Ec2Metadata ec2MetadataRequest = Ec2Metadata.builder()
-                                                    .endpoint(URI.create("http://localhost:" + mockMetadataEndpoint.port()))
-                                                    .retryPolicy(Ec2MetadataRetryPolicy.none())
-                                                    .build();
+        Ec2MetadataClient ec2MetadataRequest = Ec2MetadataClient.builder()
+                                                                .endpoint(URI.create("http://localhost:" + mockMetadataEndpoint.port()))
+                                                                .retryPolicy(Ec2MetadataRetryPolicy.none())
+                                                                .build();
         assertThatThrownBy(() -> ec2MetadataRequest.get("/latest/meta-data/ami-id"))
             .hasMessageContaining("Exceeded maximum number of retries.")
             .isInstanceOf(SdkClientException.class);
