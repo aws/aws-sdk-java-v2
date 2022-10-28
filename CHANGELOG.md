@@ -1,3 +1,40 @@
+# __2.18.6__ __2022-10-28__
+## __AWS App Runner__
+  - ### Features
+    - AWS App Runner adds .NET 6, Go 1, PHP 8.1 and Ruby 3.1 runtimes.
+
+## __AWS Cloud9__
+  - ### Features
+    - Update to the documentation section of the Cloud9 API Reference guide.
+
+## __AWS CloudFormation__
+  - ### Features
+    - This release adds more fields to improves visibility of AWS CloudFormation StackSets information in following APIs: ListStackInstances, DescribeStackInstance, ListStackSetOperationResults, ListStackSetOperations, DescribeStackSetOperation.
+
+## __AWS MediaTailor__
+  - ### Features
+    - This release introduces support for SCTE-35 segmentation descriptor messages which can be sent within time signal messages.
+
+## __AWS Private 5G__
+  - ### Features
+    - Fix incorrect endpoint-prefix in endpoint ruleset.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Support App__
+  - ### Features
+    - Fix incorrect endpoint-prefix in endpoint ruleset.
+
+## __Amazon AppStream__
+  - ### Features
+    - This release includes CertificateBasedAuthProperties in CreateDirectoryConfig and UpdateDirectoryConfig.
+
+## __GameSparks__
+  - ### Features
+    - Add LATEST as a possible GameSDK Version on snapshot
+
 # __2.18.5__ __2022-10-27__
 ## __AWS Glue__
   - ### Features
