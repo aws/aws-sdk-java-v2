@@ -28,6 +28,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.CrtRuntimeException;
 import software.amazon.awssdk.crt.http.HttpClientConnection;
 import software.amazon.awssdk.crt.http.HttpClientConnectionManager;
+import software.amazon.awssdk.crt.http.HttpException;
 import software.amazon.awssdk.crt.http.HttpManagerMetrics;
 import software.amazon.awssdk.crt.http.HttpRequest;
 import software.amazon.awssdk.crt.http.HttpStreamResponseHandler;
@@ -140,12 +141,20 @@ public final class CrtRequestExecutor {
     private void reportFailure(Throwable cause,
                                CompletableFuture<Void> executeFuture,
                                SdkAsyncHttpResponseHandler responseHandler) {
+        Throwable reportableError = cause;
+
+        if (reportableError instanceof HttpException) {
+            // HTTP exceptions from CRT should trigger a retry via. an IOException.
+            // It also IS semantically an IOException. An Http exception refers to an
+            // error condition of the underlying transport protocol, not an error code being returned.
+            reportableError = new IOException(cause);
+        }
         try {
-            responseHandler.onError(cause);
+            responseHandler.onError(reportableError);
         } catch (Exception e) {
             log.error(() -> "SdkAsyncHttpResponseHandler " + responseHandler + " threw an exception in onError. It will be "
                             + "ignored.", e);
         }
-        executeFuture.completeExceptionally(cause);
+        executeFuture.completeExceptionally(reportableError);
     }
 }
