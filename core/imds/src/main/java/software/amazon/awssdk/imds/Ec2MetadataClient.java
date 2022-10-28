@@ -18,17 +18,16 @@ package software.amazon.awssdk.imds;
 import java.net.URI;
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.imds.internal.DefaultEc2MetadataClient;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 
 /**
  *  Interface to represent the Ec2Metadata Client Class. Used to access instance metadata from a running instance.
  */
 @SdkPublicApi
-public interface Ec2MetadataClient extends SdkClient {
-    String SERVICE_NAME = "EC2metadata";
+public interface Ec2MetadataClient extends SdkAutoCloseable {
 
     /**
      * Gets the specified instance metadata value by the given path.

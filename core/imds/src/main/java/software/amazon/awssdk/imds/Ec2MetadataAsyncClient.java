@@ -20,16 +20,15 @@ import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.imds.internal.DefaultEc2MetadataAsyncClient;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**
  *  Interface to represent the Ec2Metadata Client Class. Used to access instance metadata from a running instance.
  */
 @SdkPublicApi
-public interface Ec2MetadataAsyncClient extends SdkClient {
-    String SERVICE_NAME = "EC2metadata";
+public interface Ec2MetadataAsyncClient extends SdkAutoCloseable {
 
     CompletableFuture<MetadataResponse> get(String path);
 

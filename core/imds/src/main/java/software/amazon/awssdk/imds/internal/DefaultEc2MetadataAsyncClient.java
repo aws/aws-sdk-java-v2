@@ -38,6 +38,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.internal.http.TransformingAsyncResponseHandler;
 import software.amazon.awssdk.core.internal.http.async.AsyncResponseHandler;
 import software.amazon.awssdk.core.internal.http.async.SimpleHttpContentPublisher;
+import software.amazon.awssdk.core.internal.http.loader.DefaultSdkAsyncHttpClientBuilder;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
 import software.amazon.awssdk.http.HttpStatusFamily;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -46,11 +47,11 @@ import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
-import software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient;
 import software.amazon.awssdk.imds.Ec2MetadataAsyncClient;
 import software.amazon.awssdk.imds.Ec2MetadataRetryPolicy;
 import software.amazon.awssdk.imds.EndpointMode;
 import software.amazon.awssdk.imds.MetadataResponse;
+import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
 
@@ -73,8 +74,6 @@ public final class DefaultEc2MetadataAsyncClient implements Ec2MetadataAsyncClie
     private DefaultEc2MetadataAsyncClient(Ec2MetadataAsyncBuilder builder) {
         this.retryPolicy = builder.retryPolicy != null ? builder.retryPolicy
                                                        : Ec2MetadataRetryPolicy.builder().build();
-        this.httpClient = builder.httpClient != null ? builder.httpClient
-                                                     : AwsCrtAsyncHttpClient.create();
         this.endpointMode = builder.endpointMode != null ? builder.endpointMode
                                                          : DEFAULT_ENDPOINT_PROVIDER.resolveEndpointMode();
         this.endpoint = builder.endpoint != null ? builder.endpoint
@@ -85,6 +84,9 @@ public final class DefaultEc2MetadataAsyncClient implements Ec2MetadataAsyncClie
         this.asyncRetryScheduler = builder.scheduledExecutorService != null
                                    ? builder.scheduledExecutorService
                                    : Executors.newScheduledThreadPool(DEFAULT_RETRY_THREAD_POOL_SIZE);
+        this.httpClient = builder.httpClient != null
+                          ? builder.httpClient
+                          : new DefaultSdkAsyncHttpClientBuilder().buildWithDefaults(AttributeMap.empty());
     }
 
     public static Ec2MetadataAsyncClient.Builder builder() {
@@ -161,11 +163,6 @@ public final class DefaultEc2MetadataAsyncClient implements Ec2MetadataAsyncClie
     }
 
     @Override
-    public String serviceName() {
-        return SERVICE_NAME;
-    }
-
-    @Override
     public void close() {
         httpClient.close();
     }
@@ -229,6 +226,7 @@ public final class DefaultEc2MetadataAsyncClient implements Ec2MetadataAsyncClie
     }
 
     private static final class Ec2MetadataAsyncBuilder implements Ec2MetadataAsyncClient.Builder {
+
 
         private Ec2MetadataRetryPolicy retryPolicy;
 

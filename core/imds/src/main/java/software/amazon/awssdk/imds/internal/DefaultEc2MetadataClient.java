@@ -26,20 +26,20 @@ import java.util.concurrent.TimeUnit;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.HttpStatusFamily;
 import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.imds.Ec2MetadataClient;
 import software.amazon.awssdk.imds.Ec2MetadataRetryPolicy;
 import software.amazon.awssdk.imds.EndpointMode;
 import software.amazon.awssdk.imds.MetadataResponse;
+import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
 
@@ -49,7 +49,7 @@ import software.amazon.awssdk.utils.Logger;
 @SdkInternalApi
 @Immutable
 @ThreadSafe
-public final class DefaultEc2MetadataClient implements Ec2MetadataClient, SdkClient {
+public final class DefaultEc2MetadataClient implements Ec2MetadataClient {
 
     private static final Logger log = Logger.loggerFor(DefaultEc2MetadataClient.class);
 
@@ -74,14 +74,10 @@ public final class DefaultEc2MetadataClient implements Ec2MetadataClient, SdkCli
                                                  : URI.create(DEFAULT_ENDPOINT_PROVIDER.resolveEndpoint(this.endpointMode));
         this.tokenTtl = builder.tokenTtl != null ? builder.tokenTtl
                                                  : Duration.ofSeconds(21600);
-        this.httpClient = builder.httpClient != null ? builder.httpClient
-                                                     : UrlConnectionHttpClient.create();
+        this.httpClient = builder.httpClient != null
+                          ? builder.httpClient
+                          : new DefaultSdkHttpClientBuilder().buildWithDefaults(AttributeMap.empty());
         this.requestMarshaller = new RequestMarshaller(this.endpoint);
-    }
-
-    @Override
-    public String serviceName() {
-        return SERVICE_NAME;
     }
 
     @Override

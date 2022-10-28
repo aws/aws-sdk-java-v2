@@ -64,6 +64,9 @@ public class DefaultEc2MetadataAsyncClientTest {
     private static final String EC2_METADATA_ROOT = "/latest/meta-data";
     private static final String AMI_ID_RESOURCE = EC2_METADATA_ROOT + "/ami-id";
 
+    private static final int DEFAULT_TOTAL_ATTEMPTS = 4;
+
+
     @Rule
     public WireMockRule mockMetadataEndpoint = new WireMockRule();
 
@@ -111,9 +114,9 @@ public class DefaultEc2MetadataAsyncClientTest {
             assertThat(res).isNotCompleted();
             assertThatThrownBy(res::get).isInstanceOf(ExecutionException.class);
             assertThat(res).isCompletedExceptionally();
-            verify(exactly(4), putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+            verify(exactly(DEFAULT_TOTAL_ATTEMPTS), putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
                 .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("1024")));
-            verify(exactly(4), getRequestedFor(urlPathEqualTo(AMI_ID_RESOURCE))
+            verify(exactly(DEFAULT_TOTAL_ATTEMPTS), getRequestedFor(urlPathEqualTo(AMI_ID_RESOURCE))
                 .withHeader(TOKEN_HEADER, equalTo("some-token")));
         } catch (Exception e) {
             fail("Unexpected exception while executing test", e);
@@ -136,7 +139,7 @@ public class DefaultEc2MetadataAsyncClientTest {
             assertThat(res).isNotCompleted();
             assertThatThrownBy(res::get).isInstanceOf(ExecutionException.class);
             assertThat(res).isCompletedExceptionally();
-            verify(exactly(4), putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+            verify(exactly(DEFAULT_TOTAL_ATTEMPTS), putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
                 .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("1024")));
             verify(exactly(0), getRequestedFor(urlPathEqualTo(AMI_ID_RESOURCE))
                 .withHeader(TOKEN_HEADER, equalTo("some-token")));

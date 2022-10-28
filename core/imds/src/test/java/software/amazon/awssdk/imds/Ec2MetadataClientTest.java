@@ -92,7 +92,7 @@ public class Ec2MetadataClientTest {
     }
 
     @Test
-    public void get_doesNotRetryOn404() {
+    public void get_doesNotRetryOn4XX() {
 
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody("some-token")));
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody("{}").withStatus(404)));
@@ -107,40 +107,9 @@ public class Ec2MetadataClientTest {
     }
 
     @Test
-    public void get_doesNotRetryOn401() {
-
-        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody("some-token")));
-        stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody("{}").withStatus(401)));
-
-        assertThatThrownBy(() -> ec2MetadataClient.get("/latest/meta-data/ami-id"))
-            .hasMessageContaining("401")
-            .isInstanceOf(SdkClientException.class);
-
-        WireMock.verify(1, putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
-            .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
-        WireMock.verify(1, getRequestedFor(urlPathEqualTo(AMI_ID_RESOURCE))
-            .withHeader(TOKEN_HEADER, equalTo("some-token")));
-    }
-
-    @Test
-    public void getToken_doesNotRetryOn403() {
+    public void getToken_doesNotRetryOn4XX() {
 
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withStatus(403)));
-        stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody("{}")));
-
-        assertThatThrownBy(() -> ec2MetadataClient.get("/latest/meta-data/ami-id"))
-            .hasMessageContaining("token")
-            .isInstanceOf(SdkClientException.class);
-        WireMock.verify(exactly(1), putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
-            .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
-        WireMock.verify(0, getRequestedFor(urlPathEqualTo(AMI_ID_RESOURCE))
-            .withHeader(TOKEN_HEADER, equalTo("some-token")));
-    }
-
-    @Test
-    public void getToken_doesNotRetryOn401() {
-
-        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withStatus(401)));
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody("{}")));
 
         assertThatThrownBy(() -> ec2MetadataClient.get("/latest/meta-data/ami-id"))
