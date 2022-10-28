@@ -16,11 +16,13 @@
 package software.amazon.awssdk.http.crt.internal;
 
 import static software.amazon.awssdk.http.HttpMetric.AVAILABLE_CONCURRENCY;
+import static software.amazon.awssdk.http.HttpMetric.CONCURRENCY_ACQUIRE_DURATION;
 import static software.amazon.awssdk.http.HttpMetric.LEASED_CONCURRENCY;
 import static software.amazon.awssdk.http.HttpMetric.MAX_CONCURRENCY;
 import static software.amazon.awssdk.http.HttpMetric.PENDING_CONCURRENCY_ACQUIRES;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.CrtRuntimeException;
@@ -43,20 +45,43 @@ public final class CrtRequestExecutor {
     private static final Logger log = Logger.loggerFor(CrtRequestExecutor.class);
 
     public CompletableFuture<Void> execute(CrtRequestContext executionContext) {
+        // go ahead and get a reference to the metricCollector since multiple futures will
+        // need it regardless.
+        MetricCollector metricCollector = executionContext.metricCollector();
+        boolean shouldPublishMetrics = metricCollector != null && !(metricCollector instanceof NoOpMetricCollector);
+
+        long acquireStartTime = 0;
+
+        if (shouldPublishMetrics) {
+            // go ahead and get acquireStartTime for the concurrency timer as early as possible
+            // so it's as accurate as possible, but only do it in a branch since clock_gettime()
+            // results in a full sys call barrier (multiple mutexes and a hw interrupt).
+            acquireStartTime = System.nanoTime();
+        }
+
         CompletableFuture<Void> requestFuture = createExecutionFuture(executionContext.sdkRequest());
 
         // When a Connection is ready from the Connection Pool, schedule the Request on the connection
         CompletableFuture<HttpClientConnection> httpClientConnectionCompletableFuture =
             executionContext.crtConnPool().acquireConnection();
 
+        long finalAcquireStartTime = acquireStartTime;
+
         httpClientConnectionCompletableFuture.whenComplete((crtConn, throwable) -> {
             AsyncExecuteRequest asyncRequest = executionContext.sdkRequest();
+
             // If we didn't get a connection for some reason, fail the request
             if (throwable != null) {
                 reportFailure(new IOException("An exception occurred when acquiring a connection", throwable),
                               requestFuture,
                               asyncRequest.responseHandler());
                 return;
+            }
+
+            if (shouldPublishMetrics) {
+                long acquireCompletionTime = System.nanoTime();
+                Duration acquireTimeTaken = Duration.ofNanos(acquireCompletionTime - finalAcquireStartTime);
+                metricCollector.reportMetric(CONCURRENCY_ACQUIRE_DURATION, acquireTimeTaken);
             }
 
             HttpRequest crtRequest = CrtRequestAdapter.toCrtRequest(executionContext);
@@ -74,9 +99,7 @@ public final class CrtRequestExecutor {
         });
 
         requestFuture.whenComplete((obj, err) -> {
-            MetricCollector metricCollector = executionContext.metricCollector();
-
-            if (metricCollector != null && !(metricCollector instanceof NoOpMetricCollector)) {
+            if (shouldPublishMetrics) {
                 HttpClientConnectionManager connManager = executionContext.crtConnPool();
                 HttpManagerMetrics managerMetrics = connManager.getManagerMetrics();
                 // currently this executor only handles HTTP 1.1. Until H2 is added, the max concurrency settings are 1:1 with TCP
