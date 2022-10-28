@@ -28,7 +28,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
-import software.amazon.awssdk.services.protocolrestjson.endpoints.internal.EndpointRuleset;
+import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.EndpointRuleset;
 import software.amazon.awssdk.services.rules.testutil.TestDiscovery;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)

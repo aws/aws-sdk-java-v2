@@ -22,10 +22,10 @@ import java.util.Collections;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
-import software.amazon.awssdk.services.protocolrestjson.endpoints.internal.EndpointRuleset;
-import software.amazon.awssdk.services.protocolrestjson.endpoints.internal.Identifier;
-import software.amazon.awssdk.services.protocolrestjson.endpoints.internal.RuleEngine;
-import software.amazon.awssdk.services.protocolrestjson.endpoints.internal.Value;
+import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.EndpointRuleset;
+import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.Identifier;
+import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.RuleEngine;
+import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.Value;
 import software.amazon.awssdk.utils.MapUtils;
 
 public class RuleEngineTest {

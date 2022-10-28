@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -400,13 +399,13 @@ public class SimplePublisherTest {
         }
     }
 
-    private void seemsThreadSafeWithProducerCount(int producerCount) throws InterruptedException, ExecutionException {
+    private void seemsThreadSafeWithProducerCount(int producerCount) {
         assertTimeoutPreemptively(STOCHASTIC_TEST_DURATION.plusSeconds(5), () -> {
             AtomicBoolean runProducers = new AtomicBoolean(true);
             AtomicBoolean runConsumers = new AtomicBoolean(true);
             AtomicInteger completesReceived = new AtomicInteger(0);
 
-            AtomicLong messageCount = new AtomicLong(0);
+            AtomicLong messageSendCount = new AtomicLong(0);
             AtomicLong messageReceiveCount = new AtomicLong(0);
 
             Semaphore productionLimiter = new Semaphore(101);
@@ -418,14 +417,15 @@ public class SimplePublisherTest {
             publisher.subscribe(subscriber);
 
             // Producer tasks
+            CompletableFuture<?> completed = new CompletableFuture<>();
             List<Future<?>> producers = new ArrayList<>();
             for (int i = 0; i < producerCount; i++) {
                 producers.add(executor.submit(() -> {
                     while (runProducers.get()) {
                         productionLimiter.acquire();
-                        publisher.send(messageCount.getAndIncrement());
+                        publisher.send(messageSendCount.getAndIncrement());
                     }
-                    publisher.complete(); // All but one producer sending this will fail.
+                    publisher.complete().thenRun(() -> completed.complete(null)); // All but one producer sending this will fail.
                     return null;
                 }));
             }
@@ -476,17 +476,21 @@ public class SimplePublisherTest {
                 producer.get();
             }
 
+            // Make sure to flush out everything left in the queue.
+            completed.get();
+            subscriber.subscription.request(Long.MAX_VALUE);
+
             // Shut down consumers
             runConsumers.set(false);
             requestLimiter.release();
             requester.get();
             consumer.get();
 
+            assertThat(messageReceiveCount.get()).isEqualTo(messageSendCount.get());
             assertThat(completesReceived.get()).isEqualTo(1);
-            assertThat(messageReceiveCount.get()).isEqualTo(messageCount.get());
 
             // Make sure we actually tested something
-            assertThat(messageCount.get()).isGreaterThan(10);
+            assertThat(messageSendCount.get()).isGreaterThan(10);
         });
     }
 

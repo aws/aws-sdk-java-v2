@@ -120,7 +120,7 @@
         "software.amazon:flow": { "packageName": "AwsFlowJava", "packageVersion": "1.0" },
         "org.junit.jupiter:junit-jupiter": { "packageName": "JUnit5", "packageVersion": "5.x" },
         "org.mockito:mockito-core": { "packageName": "Mockito", "packageVersion": "3.x" },
-        "io.reactivex.rxjava3:rxjava": { "packageName": "RxJava", ",packageVersion": "3.x" },
-        "org.assertj:assertj-core": { "packageName": "AssertJ", ",packageVersion": "3.22.x" }
+        "io.reactivex.rxjava3:rxjava": { "packageName": "RxJava", "packageVersion": "3.x" },
+        "org.assertj:assertj-core": { "packageName": "AssertJ", "packageVersion": "3.22.x" }
     }
 }

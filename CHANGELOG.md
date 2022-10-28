@@ -1,3 +1,124 @@
+# __2.18.5__ __2022-10-27__
+## __AWS Glue__
+  - ### Features
+    - Added support for custom datatypes when using custom csv classifier.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS WAFV2__
+  - ### Features
+    - This release adds the following: Challenge rule action, to silently verify client browsers; rule group rule action override to any valid rule action, not just Count; token sharing between protected applications for challenge/CAPTCHA token; targeted rules option for Bot Control managed rule group.
+
+## __AWs SDK for Java v2__
+  - ### Bugfixes
+    - We are only enabling rules based endpoints for S3, S3Control, and EventBridge for now in order to roll back incorrect hostprefix handling in the Java SDK. EventBridge are unaffected by this issue because it does not have a `hostPrefix` in its service model. S3 and S3Control have `hostPrefix` in the model, it is handled by the rule set.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Feature supports the replacement of instance root volume using an updated AMI without requiring customers to stop their instance.
+
+## __Amazon Redshift__
+  - ### Features
+    - This release clarifies use for the ElasticIp parameter of the CreateCluster and RestoreFromClusterSnapshot APIs.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This change allows customers to provide a custom entrypoint script for the docker container to be run while executing training jobs, and provide custom arguments to the entrypoint script.
+
+## __Firewall Management Service__
+  - ### Features
+    - Add support NetworkFirewall Managed Rule Group Override flag in GetViolationDetails API
+
+# __2.18.4__ __2022-10-26__
+## __AWS Identity and Access Management__
+  - ### Features
+    - Doc only update that corrects instances of CLI not using an entity.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Update EnhancedAttributeValue to accept Collection
+        - Contributed by: [@L-Applin](https://github.com/L-Applin)
+
+  - ### Bugfixes
+    - HttpChecksumResolver.getResolvedChecksumSpecs() first attempts retrieval of checksum from ExecutionAttributes before resolving it
+
+## __Amazon Neptune__
+  - ### Features
+    - Added a new cluster-level attribute to set the capacity range for Neptune Serverless instances.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker Automatic Model Tuning now supports specifying Grid Search strategy for tuning jobs, which evaluates all hyperparameter combinations exhaustively based on the categorical hyperparameters provided.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - This release adds support for Tiered Storage. UpdateStorage allows you to control the Storage Mode for supported storage tiers.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@L-Applin](https://github.com/L-Applin)
+# __2.18.3__ __2022-10-25__
+## __AWS MediaTailor__
+  - ### Features
+    - This release is a documentation update
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Access Analyzer__
+  - ### Features
+    - This release adds support for six new resource types in IAM Access Analyzer to help you easily identify public and cross-account access to your AWS resources. Updated service API, documentation, and paginators.
+
+## __Amazon Location Service__
+  - ### Features
+    - Added new map styles with satellite imagery for map resources using HERE as a data provider.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Relational Database Service - This release adds support for exporting DB cluster data to Amazon S3.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - This release adds new enums for supporting Workspaces Core features, including creating Manual running mode workspaces, importing regular Workspaces Core images and importing g4dn Workspaces Core images.
+
+# __2.18.2__ __2022-10-24__
+## __AWS Batch__
+  - ### Features
+    - This release adds support for AWS Batch on Amazon EKS.
+
+## __AWS Certificate Manager Private Certificate Authority__
+  - ### Features
+    - AWS Private Certificate Authority (AWS Private CA) now offers usage modes which are combination of features to address specific use cases.
+
+## __AWS DataSync__
+  - ### Features
+    - Added support for self-signed certificates when using object storage locations; added BytesCompressed to the TaskExecution response.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - SageMaker Inference Recommender now supports a new API ListInferenceRecommendationJobSteps to return the details of all the benchmark we create for an inference recommendation job.
+
+# __2.18.1__ __2022-10-21__
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - This release adds a new "DeletionProtection" field to the UserPool in Cognito. Application admins can configure this value with either ACTIVE or INACTIVE value. Setting this field to ACTIVE will prevent a user pool from accidental deletion.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - CreateInferenceRecommenderjob API now supports passing endpoint details directly, that will help customers to identify the max invocation and max latency they can achieve for their model and the associated endpoint along with getting recommendations on other instances.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - S3 on Outposts launches support for automatic bucket-style alias. You can use the automatic access point alias instead of an access point ARN for any object-level operation in an Outposts bucket.
+
 # __2.18.0__ __2022-10-20__
 ## __AWS Global Accelerator__
   - ### Features

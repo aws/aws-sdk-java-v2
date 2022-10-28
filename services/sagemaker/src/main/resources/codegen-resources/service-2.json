@@ -619,7 +619,7 @@
         {"shape":"ResourceLimitExceeded"},
         {"shape":"ResourceNotFound"}
       ],
-      "documentation":"<p>Starts a model training job. After training completes, SageMaker saves the resulting model artifacts to an Amazon S3 location that you specify. </p> <p>If you choose to host your model using SageMaker hosting services, you can use the resulting model artifacts as part of the model. You can also use the artifacts in a machine learning service other than SageMaker, provided that you know how to use them for inference. </p> <p>In the request body, you provide the following: </p> <ul> <li> <p> <code>AlgorithmSpecification</code> - Identifies the training algorithm to use. </p> </li> <li> <p> <code>HyperParameters</code> - Specify these algorithm-specific parameters to enable the estimation of model parameters during training. Hyperparameters can be tuned to optimize this learning process. For a list of hyperparameters for each training algorithm provided by SageMaker, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/algos.html\">Algorithms</a>. </p> <important> <p>Do not include any security-sensitive information including account access IDs, secrets or tokens in any hyperparameter field. If the use of security-sensitive credentials are detected, SageMaker will reject your training job request and return an exception error.</p> </important> </li> <li> <p> <code>InputDataConfig</code> - Describes the training dataset and the Amazon S3, EFS, or FSx location where it is stored.</p> </li> <li> <p> <code>OutputDataConfig</code> - Identifies the Amazon S3 bucket where you want SageMaker to save the results of model training. </p> </li> <li> <p> <code>ResourceConfig</code> - Identifies the resources, ML compute instances, and ML storage volumes to deploy for model training. In distributed training, you specify more than one instance. </p> </li> <li> <p> <code>EnableManagedSpotTraining</code> - Optimize the cost of training machine learning models by up to 80% by using Amazon EC2 Spot instances. For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/model-managed-spot-training.html\">Managed Spot Training</a>. </p> </li> <li> <p> <code>RoleArn</code> - The Amazon Resource Name (ARN) that SageMaker assumes to perform tasks on your behalf during model training. You must grant this role the necessary permissions so that SageMaker can successfully complete model training. </p> </li> <li> <p> <code>StoppingCondition</code> - To help cap training costs, use <code>MaxRuntimeInSeconds</code> to set a time limit for training. Use <code>MaxWaitTimeInSeconds</code> to specify how long a managed spot training job has to complete. </p> </li> <li> <p> <code>Environment</code> - The environment variables to set in the Docker container.</p> </li> <li> <p> <code>RetryStrategy</code> - The number of times to retry the job when the job fails due to an <code>InternalServerError</code>.</p> </li> </ul> <p> For more information about SageMaker, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/how-it-works.html\">How It Works</a>. </p>"
+      "documentation":"<p>Starts a model training job. After training completes, SageMaker saves the resulting model artifacts to an Amazon S3 location that you specify. </p> <p>If you choose to host your model using SageMaker hosting services, you can use the resulting model artifacts as part of the model. You can also use the artifacts in a machine learning service other than SageMaker, provided that you know how to use them for inference. </p> <p>In the request body, you provide the following: </p> <ul> <li> <p> <code>AlgorithmSpecification</code> - Identifies the training algorithm to use. </p> </li> <li> <p> <code>HyperParameters</code> - Specify these algorithm-specific parameters to enable the estimation of model parameters during training. Hyperparameters can be tuned to optimize this learning process. For a list of hyperparameters for each training algorithm provided by SageMaker, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/algos.html\">Algorithms</a>. </p> <important> <p>Do not include any security-sensitive information including account access IDs, secrets or tokens in any hyperparameter field. If the use of security-sensitive credentials are detected, SageMaker will reject your training job request and return an exception error.</p> </important> </li> <li> <p> <code>InputDataConfig</code> - Describes the input required by the training job and the Amazon S3, EFS, or FSx location where it is stored.</p> </li> <li> <p> <code>OutputDataConfig</code> - Identifies the Amazon S3 bucket where you want SageMaker to save the results of model training. </p> </li> <li> <p> <code>ResourceConfig</code> - Identifies the resources, ML compute instances, and ML storage volumes to deploy for model training. In distributed training, you specify more than one instance. </p> </li> <li> <p> <code>EnableManagedSpotTraining</code> - Optimize the cost of training machine learning models by up to 80% by using Amazon EC2 Spot instances. For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/model-managed-spot-training.html\">Managed Spot Training</a>. </p> </li> <li> <p> <code>RoleArn</code> - The Amazon Resource Name (ARN) that SageMaker assumes to perform tasks on your behalf during model training. You must grant this role the necessary permissions so that SageMaker can successfully complete model training. </p> </li> <li> <p> <code>StoppingCondition</code> - To help cap training costs, use <code>MaxRuntimeInSeconds</code> to set a time limit for training. Use <code>MaxWaitTimeInSeconds</code> to specify how long a managed spot training job has to complete. </p> </li> <li> <p> <code>Environment</code> - The environment variables to set in the Docker container.</p> </li> <li> <p> <code>RetryStrategy</code> - The number of times to retry the job when the job fails due to an <code>InternalServerError</code>.</p> </li> </ul> <p> For more information about SageMaker, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/how-it-works.html\">How It Works</a>. </p>"
     },
     "CreateTransformJob":{
       "name":"CreateTransformJob",
@@ -2170,6 +2170,16 @@
       "output":{"shape":"ListImagesResponse"},
       "documentation":"<p>Lists the images in your account and their properties. The list can be filtered by creation time or modified time, and whether the image name contains a specified string.</p>"
     },
+    "ListInferenceRecommendationsJobSteps":{
+      "name":"ListInferenceRecommendationsJobSteps",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ListInferenceRecommendationsJobStepsRequest"},
+      "output":{"shape":"ListInferenceRecommendationsJobStepsResponse"},
+      "documentation":"<p>Returns a list of the subtasks for an Inference Recommender job.</p> <p>The supported subtasks are benchmarks, which evaluate the performance of your model on different instance types.</p>"
+    },
     "ListInferenceRecommendationsJobs":{
       "name":"ListInferenceRecommendationsJobs",
       "http":{
@@ -3443,6 +3453,14 @@
         "EnableSageMakerMetricsTimeSeries":{
           "shape":"Boolean",
           "documentation":"<p>To generate and save time-series metrics during training, set to <code>true</code>. The default is <code>false</code> and time-series metrics aren't generated except in the following cases:</p> <ul> <li> <p>You use one of the SageMaker built-in algorithms</p> </li> <li> <p>You use one of the following <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/pre-built-containers-frameworks-deep-learning.html\">Prebuilt SageMaker Docker Images</a>:</p> <ul> <li> <p>Tensorflow (version &gt;= 1.15)</p> </li> <li> <p>MXNet (version &gt;= 1.6)</p> </li> <li> <p>PyTorch (version &gt;= 1.3)</p> </li> </ul> </li> <li> <p>You specify at least one <a>MetricDefinition</a> </p> </li> </ul>"
+        },
+        "ContainerEntrypoint":{
+          "shape":"TrainingContainerEntrypoint",
+          "documentation":"<p>The <a href=\"https://docs.docker.com/engine/reference/builder/\">entrypoint script for a Docker container</a> used to run a training job. This script takes precedence over the default train processing instructions. See <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/your-algorithms-training-algo-dockerfile.html\">How Amazon SageMaker Runs Your Training Image</a> for more information.</p>"
+        },
+        "ContainerArguments":{
+          "shape":"TrainingContainerArguments",
+          "documentation":"<p>The arguments for a container used to run a training job. See <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/your-algorithms-training-algo-dockerfile.html\">How Amazon SageMaker Runs Your Training Image</a> for additional information.</p>"
         }
       },
       "documentation":"<p>Specifies the training algorithm to use in a <a>CreateTrainingJob</a> request.</p> <p>For more information about algorithms provided by SageMaker, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/algos.html\">Algorithms</a>. For information about using your own algorithms, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/your-algorithms.html\">Using Your Own Algorithms with Amazon SageMaker</a>. </p>"
@@ -4540,7 +4558,8 @@
         "PrecisionMacro",
         "Recall",
         "RecallMacro",
-        "LogLoss"
+        "LogLoss",
+        "InferenceLatency"
       ]
     },
     "AutoMLMode":{
@@ -11187,6 +11206,10 @@
         "InferenceRecommendations":{
           "shape":"InferenceRecommendations",
           "documentation":"<p>The recommendations made by Inference Recommender.</p>"
+        },
+        "EndpointPerformances":{
+          "shape":"EndpointPerformances",
+          "documentation":"<p>The performance results from running an Inference Recommender job on an existing endpoint.</p>"
         }
       }
     },
@@ -13893,6 +13916,17 @@
       "type":"list",
       "member":{"shape":"EndpointConfigSummary"}
     },
+    "EndpointInfo":{
+      "type":"structure",
+      "required":["EndpointName"],
+      "members":{
+        "EndpointName":{
+          "shape":"EndpointName",
+          "documentation":"<p>The name of a customer's endpoint.</p>"
+        }
+      },
+      "documentation":"<p>Details about a customer endpoint that was compared in an Inference Recommender job.</p>"
+    },
     "EndpointInput":{
       "type":"structure",
       "required":[
@@ -14006,6 +14040,26 @@
       },
       "documentation":"<p>The endpoint configuration made by Inference Recommender during a recommendation job.</p>"
     },
+    "EndpointPerformance":{
+      "type":"structure",
+      "required":[
+        "Metrics",
+        "EndpointInfo"
+      ],
+      "members":{
+        "Metrics":{
+          "shape":"InferenceMetrics",
+          "documentation":"<p>The metrics for an existing endpoint.</p>"
+        },
+        "EndpointInfo":{"shape":"EndpointInfo"}
+      },
+      "documentation":"<p>The performance results from running an Inference Recommender job on an existing endpoint.</p>"
+    },
+    "EndpointPerformances":{
+      "type":"list",
+      "member":{"shape":"EndpointPerformance"},
+      "max":1
+    },
     "EndpointSortKey":{
       "type":"string",
       "enum":[
@@ -14063,6 +14117,11 @@
     "EndpointSummaryList":{
       "type":"list",
       "member":{"shape":"EndpointSummary"}
+    },
+    "Endpoints":{
+      "type":"list",
+      "member":{"shape":"EndpointInfo"},
+      "max":1
     },
     "EntityDescription":{
       "type":"string",
@@ -15706,7 +15765,8 @@
       "enum":[
         "Bayesian",
         "Random",
-        "Hyperband"
+        "Hyperband",
+        "Grid"
       ]
     },
     "HyperParameterTuningJobSummaries":{
@@ -16115,6 +16175,24 @@
       "type":"string",
       "max":256
     },
+    "InferenceMetrics":{
+      "type":"structure",
+      "required":[
+        "MaxInvocations",
+        "ModelLatency"
+      ],
+      "members":{
+        "MaxInvocations":{
+          "shape":"Integer",
+          "documentation":"<p>The expected maximum number of requests per minute for the instance.</p>"
+        },
+        "ModelLatency":{
+          "shape":"Integer",
+          "documentation":"<p>The expected model latency at maximum invocations per minute for the instance.</p>"
+        }
+      },
+      "documentation":"<p>The metrics for an existing endpoint compared in an Inference Recommender job.</p>"
+    },
     "InferenceRecommendation":{
       "type":"structure",
       "required":[
@@ -16199,6 +16277,37 @@
         }
       },
       "documentation":"<p>A structure that contains a list of recommendation jobs.</p>"
+    },
+    "InferenceRecommendationsJobStep":{
+      "type":"structure",
+      "required":[
+        "StepType",
+        "JobName",
+        "Status"
+      ],
+      "members":{
+        "StepType":{
+          "shape":"RecommendationStepType",
+          "documentation":"<p>The type of the subtask.</p> <p> <code>BENCHMARK</code>: Evaluate the performance of your model on different instance types.</p>"
+        },
+        "JobName":{
+          "shape":"RecommendationJobName",
+          "documentation":"<p>The name of the Inference Recommender job.</p>"
+        },
+        "Status":{
+          "shape":"RecommendationJobStatus",
+          "documentation":"<p>The current status of the benchmark.</p>"
+        },
+        "InferenceBenchmark":{
+          "shape":"RecommendationJobInferenceBenchmark",
+          "documentation":"<p>The details for a specific benchmark.</p>"
+        }
+      },
+      "documentation":"<p>A returned array object for the <code>Steps</code> response field in the <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_InferenceRecommendationsJobStep.html\">ListInferenceRecommendationsJobSteps</a> API command.</p>"
+    },
+    "InferenceRecommendationsJobSteps":{
+      "type":"list",
+      "member":{"shape":"InferenceRecommendationsJobStep"}
     },
     "InferenceRecommendationsJobs":{
       "type":"list",
@@ -18409,6 +18518,45 @@
         "NextToken":{
           "shape":"NextToken",
           "documentation":"<p>A token for getting the next set of images, if there are any.</p>"
+        }
+      }
+    },
+    "ListInferenceRecommendationsJobStepsRequest":{
+      "type":"structure",
+      "required":["JobName"],
+      "members":{
+        "JobName":{
+          "shape":"RecommendationJobName",
+          "documentation":"<p>The name for the Inference Recommender job.</p>"
+        },
+        "Status":{
+          "shape":"RecommendationJobStatus",
+          "documentation":"<p>A filter to return benchmarks of a specified status. If this field is left empty, then all benchmarks are returned.</p>"
+        },
+        "StepType":{
+          "shape":"RecommendationStepType",
+          "documentation":"<p>A filter to return details about the specified type of subtask.</p> <p> <code>BENCHMARK</code>: Evaluate the performance of your model on different instance types.</p>"
+        },
+        "MaxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The maximum number of results to return.</p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>A token that you can specify to return more results from the list. Specify this field if you have a token that was returned from a previous request.</p>"
+        }
+      }
+    },
+    "ListInferenceRecommendationsJobStepsResponse":{
+      "type":"structure",
+      "members":{
+        "Steps":{
+          "shape":"InferenceRecommendationsJobSteps",
+          "documentation":"<p>A list of all subtask details in Inference Recommender.</p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>A token that you can specify in your next request to return more results from the list.</p>"
         }
       }
     },
@@ -24539,6 +24687,7 @@
       "type":"list",
       "member":{"shape":"ProductionVariantInstanceType"}
     },
+    "RecommendationFailureReason":{"type":"string"},
     "RecommendationJobArn":{
       "type":"string",
       "max":256,
@@ -24592,6 +24741,20 @@
       "type":"string",
       "max":128
     },
+    "RecommendationJobInferenceBenchmark":{
+      "type":"structure",
+      "required":["ModelConfiguration"],
+      "members":{
+        "Metrics":{"shape":"RecommendationMetrics"},
+        "EndpointConfiguration":{"shape":"EndpointOutputConfiguration"},
+        "ModelConfiguration":{"shape":"ModelConfiguration"},
+        "FailureReason":{
+          "shape":"RecommendationFailureReason",
+          "documentation":"<p>The reason why a benchmark failed.</p>"
+        }
+      },
+      "documentation":"<p>The details for a specific benchmark from an Inference Recommender job.</p>"
+    },
     "RecommendationJobInputConfig":{
       "type":"structure",
       "required":["ModelPackageVersionArn"],
@@ -24623,6 +24786,10 @@
         "ContainerConfig":{
           "shape":"RecommendationJobContainerConfig",
           "documentation":"<p>Specifies mandatory fields for running an Inference Recommender job. The fields specified in <code>ContainerConfig</code> override the corresponding fields in the model package.</p>"
+        },
+        "Endpoints":{
+          "shape":"Endpoints",
+          "documentation":"<p>Existing customer endpoints on which to run an Inference Recommender job.</p>"
         }
       },
       "documentation":"<p>The input configuration of the recommendation job.</p>"
@@ -24742,6 +24909,10 @@
         }
       },
       "documentation":"<p>The metrics of recommendations.</p>"
+    },
+    "RecommendationStepType":{
+      "type":"string",
+      "enum":["BENCHMARK"]
     },
     "RecordWrapper":{
       "type":"string",
@@ -25041,10 +25212,7 @@
     },
     "ResourceLimits":{
       "type":"structure",
-      "required":[
-        "MaxNumberOfTrainingJobs",
-        "MaxParallelTrainingJobs"
-      ],
+      "required":["MaxParallelTrainingJobs"],
       "members":{
         "MaxNumberOfTrainingJobs":{
           "shape":"MaxNumberOfTrainingJobs",
@@ -26598,6 +26766,28 @@
       "type":"string",
       "enum":["PHASES"]
     },
+    "TrainingContainerArgument":{
+      "type":"string",
+      "max":256,
+      "pattern":".*"
+    },
+    "TrainingContainerArguments":{
+      "type":"list",
+      "member":{"shape":"TrainingContainerArgument"},
+      "max":100,
+      "min":1
+    },
+    "TrainingContainerEntrypoint":{
+      "type":"list",
+      "member":{"shape":"TrainingContainerEntrypointString"},
+      "max":10,
+      "min":1
+    },
+    "TrainingContainerEntrypointString":{
+      "type":"string",
+      "max":256,
+      "pattern":".*"
+    },
     "TrainingEnvironmentKey":{
       "type":"string",
       "max":512,
@@ -27345,7 +27535,7 @@
         },
         "InstanceCount":{
           "shape":"TransformInstanceCount",
-          "documentation":"<p>The number of ML compute instances to use in the transform job. For distributed transform jobs, specify a value greater than 1. The default value is <code>1</code>.</p>"
+          "documentation":"<p>The number of ML compute instances to use in the transform job. The default value is <code>1</code>, and the maximum is <code>100</code>. For distributed transform jobs, specify a value greater than <code>1</code>.</p>"
         },
         "VolumeKmsKeyId":{
           "shape":"KmsKeyId",
