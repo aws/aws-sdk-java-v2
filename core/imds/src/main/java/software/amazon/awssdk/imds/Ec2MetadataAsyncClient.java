@@ -47,7 +47,9 @@ public interface Ec2MetadataAsyncClient extends SdkClient {
     }
 
     /**
-     * The builder definition for a {@link Ec2MetadataClient}.
+     * The builder definition for a {@link Ec2MetadataClient}. All parameters are optional and have default values if not
+     * specified. Therefore, an instance can be simply created with {@code Ec2MetadataAsyncClient.builder().build()} or {@code
+     * Ec2MetadataAsyncClient.create()}, both having the same result.
      */
     interface Builder  {
 

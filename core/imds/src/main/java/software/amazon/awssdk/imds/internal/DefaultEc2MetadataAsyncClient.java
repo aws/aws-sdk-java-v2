@@ -26,6 +26,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -98,10 +99,11 @@ public final class DefaultEc2MetadataAsyncClient implements Ec2MetadataAsyncClie
     private CompletableFuture<MetadataResponse> get(String path, RetryPolicyContext retryPolicyContext) {
         SdkHttpFullRequest baseTokenRequest = requestMarshaller.createTokenRequest(tokenTtl);
 
-        CompletableFuture<MetadataResponse> result = createAsyncRequest(baseTokenRequest)
+        CompletableFuture<String> tokenRequest = sendAsyncRequest(baseTokenRequest);
+        CompletableFuture<MetadataResponse> result = tokenRequest
             .thenCompose(token -> {
                 SdkHttpFullRequest baseMetadataRequest = requestMarshaller.createDataRequest(path, token, tokenTtl);
-                return createAsyncRequest(baseMetadataRequest);
+                return sendAsyncRequest(baseMetadataRequest);
             }).thenApply(MetadataResponse::create);
 
         return result.handle((response, error) -> {
@@ -116,11 +118,11 @@ public final class DefaultEc2MetadataAsyncClient implements Ec2MetadataAsyncClie
                                   .retriesAttempted(newAttempt)
                                   .exception(SdkClientException.create(error.getMessage(), error))
                                   .build();
-            return scheduledRetryAttempt(path, newContext);
+            return scheduledRetryAttempt(() -> get(path, newContext), newContext);
         }).thenCompose(Function.identity()); // only java 12 has .exceptionallyCompose()
     }
 
-    private CompletableFuture<String> createAsyncRequest(SdkHttpFullRequest baseRequest) {
+    private CompletableFuture<String> sendAsyncRequest(SdkHttpFullRequest baseRequest) {
         StringAsyncResponseHandler responseHandler = new StringAsyncResponseHandler();
         SdkHttpContentPublisher requestContentPublisher = new SimpleHttpContentPublisher(baseRequest);
         AsyncExecuteRequest metadataRequest = AsyncExecuteRequest.builder()
@@ -132,12 +134,12 @@ public final class DefaultEc2MetadataAsyncClient implements Ec2MetadataAsyncClie
         return responseHandler.getResult();
     }
 
-    private CompletableFuture<MetadataResponse> scheduledRetryAttempt(String path, RetryPolicyContext retryPolicyContext) {
+    private CompletableFuture<MetadataResponse> scheduledRetryAttempt(Supplier<CompletableFuture<MetadataResponse>> supplier,
+                                                                      RetryPolicyContext retryPolicyContext) {
         Duration retryDelay = retryPolicy.backoffStrategy().computeDelayBeforeNextRetry(retryPolicyContext);
         Executor retryExecutor = retryAttempt -> asyncRetryScheduler.schedule(retryAttempt, retryDelay.toMillis(),
                                                                               TimeUnit.MILLISECONDS);
-        return CompletableFuture.supplyAsync(() -> get(path, retryPolicyContext), retryExecutor)
-                                .thenCompose(Function.identity());
+        return CompletableFuture.supplyAsync(supplier, retryExecutor).thenCompose(Function.identity());
     }
 
     private boolean shouldRetry(RetryPolicyContext retryPolicyContext, Throwable error) {
@@ -241,26 +243,6 @@ public final class DefaultEc2MetadataAsyncClient implements Ec2MetadataAsyncClie
         private ScheduledExecutorService scheduledExecutorService;
 
         private Ec2MetadataAsyncBuilder() {
-        }
-
-        public void setRetryPolicy(Ec2MetadataRetryPolicy retryPolicy) {
-            this.retryPolicy = retryPolicy;
-        }
-
-        public void setEndpoint(URI endpoint) {
-            this.endpoint = endpoint;
-        }
-
-        public void setTokenTtl(Duration tokenTtl) {
-            this.tokenTtl = tokenTtl;
-        }
-
-        public void setEndpointMode(EndpointMode endpointMode) {
-            this.endpointMode = endpointMode;
-        }
-
-        public void setHttpClient(SdkAsyncHttpClient httpClient) {
-            this.httpClient = httpClient;
         }
 
         @Override
