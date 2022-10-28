@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Support App",
+    "contributor": "",
+    "description": "Fix incorrect endpoint-prefix in endpoint ruleset."
+}
