@@ -168,7 +168,7 @@ public interface DynamoDbEnhancedClient extends DynamoDbEnhancedResource {
      * The additional configuration parameters that the enhanced client supports are defined
      * in the {@link BatchWriteItemEnhancedRequest}.
      * <p>
-     * A single call of BatchWriteItem has the same limit of items of the low-level DynamoDB API BatchWriteItem operation,
+     * A single call to BatchWriteItem has the same limit of items as the low-level DynamoDB API BatchWriteItem operation,
      * considering all items across all WriteBatches.
      * <p>
      * <b>Note: </b> BatchWriteItem cannot update items. Instead, use the individual updateItem operation
@@ -221,7 +221,7 @@ public interface DynamoDbEnhancedClient extends DynamoDbEnhancedResource {
      * The additional configuration parameters that the enhanced client supports are defined
      * in the {@link BatchWriteItemEnhancedRequest}.
      * <p>
-     * A single call of BatchWriteItem has the same limit of items of the low-level DynamoDB API BatchWriteItem operation,
+     * A single call to BatchWriteItem has the same limit of items as the low-level DynamoDB API BatchWriteItem operation,
      * considering all items across all WriteBatches.
      * <p>
      * <b>Note: </b> BatchWriteItem cannot update items. Instead, use the individual updateItem operation
