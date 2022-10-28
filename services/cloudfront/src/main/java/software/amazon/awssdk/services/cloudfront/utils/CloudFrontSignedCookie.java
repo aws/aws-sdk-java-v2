@@ -31,17 +31,14 @@ import java.security.PrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.time.ZonedDateTime;
 import java.util.Map;
+import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.cloudfront.utils.CloudFrontSignerUtils.Protocol;
 
+@Immutable
 @SdkPublicApi
 public final class CloudFrontSignedCookie {
-
-    private static final String EXPIRES_KEY = "CloudFront-Expires";
-    private static final String SIGNATURE_KEY = "CloudFront-Signature";
-    private static final String POLICY_KEY = "CloudFront-Policy";
-    private static final String KEY_PAIR_ID_KEY = "CloudFront-Key-Pair-Id";
 
     private CloudFrontSignedCookie() {
     }
@@ -227,7 +224,7 @@ public final class CloudFrontSignedCookie {
         }
 
         public void setKeyPairId(String keyPairId) {
-            this.keyPairId = new CookieKeyValuePair(KEY_PAIR_ID_KEY, keyPairId);
+            this.keyPairId = new CookieKeyValuePair("CloudFront-Key-Pair-Id", keyPairId);
         }
 
         public Map.Entry<String, String> getSignature() {
@@ -235,7 +232,7 @@ public final class CloudFrontSignedCookie {
         }
 
         public void setSignature(String signature) {
-            this.signature = new CookieKeyValuePair(SIGNATURE_KEY, signature);
+            this.signature = new CookieKeyValuePair("CloudFront-Signature", signature);
         }
     }
 
@@ -251,7 +248,7 @@ public final class CloudFrontSignedCookie {
         }
 
         public void setExpires(String expires) {
-            this.expires = new CookieKeyValuePair(EXPIRES_KEY, expires);
+            this.expires = new CookieKeyValuePair("CloudFront-Expires", expires);
         }
     }
 
@@ -267,7 +264,7 @@ public final class CloudFrontSignedCookie {
         }
 
         public void setPolicy(String policy) {
-            this.policy = new CookieKeyValuePair(POLICY_KEY, policy);
+            this.policy = new CookieKeyValuePair("CloudFront-Policy", policy);
         }
     }
 }

@@ -32,12 +32,14 @@ import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 import java.time.ZonedDateTime;
 import java.util.Base64;
+import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.cloudfront.auth.Pem;
 import software.amazon.awssdk.services.cloudfront.auth.Rsa;
 import software.amazon.awssdk.utils.StringUtils;
 
+@Immutable
 @SdkPublicApi
 public final class CloudFrontSignerUtils {
 
@@ -186,7 +188,7 @@ public final class CloudFrontSignerUtils {
         throw SdkClientException.create("Unsupported file type for private key");
     }
 
-    public static byte[] toByteArray(InputStream is) throws IOException {
+    private static byte[] toByteArray(InputStream is) throws IOException {
         try (ByteArrayOutputStream output = new ByteArrayOutputStream()) {
             byte[] b = new byte[1024 * 4];
             int n = 0;

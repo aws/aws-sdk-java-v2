@@ -30,10 +30,12 @@ import java.security.InvalidKeyException;
 import java.security.PrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.time.ZonedDateTime;
+import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.cloudfront.utils.CloudFrontSignerUtils.Protocol;
 
+@Immutable
 @SdkPublicApi
 public final class CloudFrontSignedUrl {
 
