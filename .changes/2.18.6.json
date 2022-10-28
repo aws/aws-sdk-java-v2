@@ -1,0 +1,60 @@
+{
+    "version": "2.18.6",
+    "date": "2022-10-28",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS App Runner",
+            "contributor": "",
+            "description": "AWS App Runner adds .NET 6, Go 1, PHP 8.1 and Ruby 3.1 runtimes."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Cloud9",
+            "contributor": "",
+            "description": "Update to the documentation section of the Cloud9 API Reference guide."
+        },
+        {
+            "type": "feature",
+            "category": "AWS CloudFormation",
+            "contributor": "",
+            "description": "This release adds more fields to improves visibility of AWS CloudFormation StackSets information in following APIs: ListStackInstances, DescribeStackInstance, ListStackSetOperationResults, ListStackSetOperations, DescribeStackSetOperation."
+        },
+        {
+            "type": "feature",
+            "category": "AWS MediaTailor",
+            "contributor": "",
+            "description": "This release introduces support for SCTE-35 segmentation descriptor messages which can be sent within time signal messages."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Private 5G",
+            "contributor": "",
+            "description": "Fix incorrect endpoint-prefix in endpoint ruleset."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Support App",
+            "contributor": "",
+            "description": "Fix incorrect endpoint-prefix in endpoint ruleset."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon AppStream",
+            "contributor": "",
+            "description": "This release includes CertificateBasedAuthProperties in CreateDirectoryConfig and UpdateDirectoryConfig."
+        },
+        {
+            "type": "feature",
+            "category": "GameSparks",
+            "contributor": "",
+            "description": "Add LATEST as a possible GameSDK Version on snapshot"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}
