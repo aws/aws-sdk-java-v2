@@ -99,13 +99,13 @@ public final class DefaultEc2MetadataAsyncClient implements Ec2MetadataAsyncClie
         SdkHttpFullRequest baseTokenRequest = requestMarshaller.createTokenRequest(tokenTtl);
 
         CompletableFuture<MetadataResponse> result = createAsyncRequest(baseTokenRequest)
-            .thenComposeAsync(token -> {
+            .thenCompose(token -> {
                 SdkHttpFullRequest baseMetadataRequest = requestMarshaller.createDataRequest(path, token, tokenTtl);
                 return createAsyncRequest(baseMetadataRequest);
             }).thenApply(MetadataResponse::create);
 
-        return result.handleAsync((response, error) -> {
-            if (!shouldRetry(retryPolicyContext, response, error)) {
+        return result.handle((response, error) -> {
+            if (response != null || !shouldRetry(retryPolicyContext, error)) {
                 return result;
             }
             int newAttempt = retryPolicyContext.retriesAttempted() + 1;
@@ -117,7 +117,7 @@ public final class DefaultEc2MetadataAsyncClient implements Ec2MetadataAsyncClie
                                   .exception(SdkClientException.create(error.getMessage(), error))
                                   .build();
             return scheduledRetryAttempt(path, newContext);
-        }).thenComposeAsync(Function.identity()); // only java 12 has .exceptionallyCompose()
+        }).thenCompose(Function.identity()); // only java 12 has .exceptionallyCompose()
     }
 
     private CompletableFuture<String> createAsyncRequest(SdkHttpFullRequest baseRequest) {
@@ -137,13 +137,10 @@ public final class DefaultEc2MetadataAsyncClient implements Ec2MetadataAsyncClie
         Executor retryExecutor = retryAttempt -> asyncRetryScheduler.schedule(retryAttempt, retryDelay.toMillis(),
                                                                               TimeUnit.MILLISECONDS);
         return CompletableFuture.supplyAsync(() -> get(path, retryPolicyContext), retryExecutor)
-                                .thenComposeAsync(Function.identity());
+                                .thenCompose(Function.identity());
     }
 
-    private boolean shouldRetry(RetryPolicyContext retryPolicyContext, MetadataResponse response, Throwable error) {
-        if (response != null) {
-            return false;
-        }
+    private boolean shouldRetry(RetryPolicyContext retryPolicyContext, Throwable error) {
         boolean maxAttemptReached = retryPolicyContext.retriesAttempted() >= retryPolicy.numRetries();
         if (maxAttemptReached) {
             return false;
