@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Private 5G",
-    "contributor": "",
-    "description": "Fix incorrect endpoint-prefix in endpoint ruleset."
-}
