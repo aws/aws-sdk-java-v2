@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS MediaTailor",
+    "contributor": "",
+    "description": "This release introduces support for SCTE-35 segmentation descriptor messages which can be sent within time signal messages."
+}
