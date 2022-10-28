@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.s3.internal.handlers;
 
 import static software.amazon.awssdk.utils.http.SdkHttpUtils.urlEncodeIgnoreSlashes;
 
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.interceptor.Context.ModifyRequest;
@@ -97,9 +98,12 @@ public final class CopySourceInterceptor implements ExecutionInterceptor {
 
     private static String constructCopySource(String sourceBucket, String sourceKey, String sourceVersionId) {
         StringBuilder copySource = new StringBuilder();
-        copySource.append("/");
+        Optional<S3ResourceType> arnTypeOptional = S3ArnUtils.getArnType(sourceBucket);
+        if (!arnTypeOptional.isPresent()) {
+            copySource.append("/");
+        }
         copySource.append(urlEncodeIgnoreSlashes(sourceBucket));
-        S3ArnUtils.getArnType(sourceBucket).ifPresent(arnType -> {
+        arnTypeOptional.ifPresent(arnType -> {
             if (arnType == S3ResourceType.ACCESS_POINT || arnType == S3ResourceType.OUTPOST) {
                 copySource.append("/object");
             }

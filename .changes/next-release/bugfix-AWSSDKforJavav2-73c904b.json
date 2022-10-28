@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Update CopySourceInterceptor to remove leading slash in header value for ARN source buckets"
+}
