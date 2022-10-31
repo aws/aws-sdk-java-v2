@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon CloudWatch Logs",
+    "contributor": "",
+    "description": "SDK release to support tagging for destinations and log groups with TagResource. Also supports tag on create with PutDestination."
+}
