@@ -35,6 +35,11 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
 @SdkPublicApi
 public interface Ec2MetadataAsyncClient extends SdkAutoCloseable {
 
+    /**
+     * Gets the specified instance metadata value by the given path.
+     * @param path  Input path
+     * @return A CompletableFuture that completes when the MetadataResponse is made available.
+     */
     CompletableFuture<MetadataResponse> get(String path);
 
     /**
