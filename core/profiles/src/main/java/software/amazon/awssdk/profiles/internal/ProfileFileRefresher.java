@@ -70,8 +70,8 @@ public final class ProfileFileRefresher implements SdkAutoCloseable {
         }
         this.profileFileCache = cachedSupplierBuilder.build();
         this.emptyRefreshRecord = ProfileFileRefreshRecord.builder()
-                                                            .refreshTime(Instant.MIN)
-                                                            .build();
+                                                          .refreshTime(Instant.MIN)
+                                                          .build();
         this.currentRefreshRecord = this.emptyRefreshRecord;
     }
 

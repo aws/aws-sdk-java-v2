@@ -63,7 +63,7 @@ public class ProfileCredentialsProviderTest {
     }
 
     @Test
-    void missingCredentialsFileThrowsExceptionInGetCredentials() {
+    void missingCredentialsFileThrowsExceptionInResolveCredentials() {
         ProfileCredentialsProvider provider =
             new ProfileCredentialsProvider.BuilderImpl()
                 .defaultProfileFileLoader(() -> { throw new IllegalStateException(); })
@@ -73,7 +73,7 @@ public class ProfileCredentialsProviderTest {
     }
 
     @Test
-    void missingProfileFileThrowsExceptionInGetCredentials() {
+    void missingProfileFileThrowsExceptionInResolveCredentials() {
         ProfileCredentialsProvider provider =
             new ProfileCredentialsProvider.BuilderImpl()
                 .defaultProfileFileLoader(() -> ProfileFile.builder()
@@ -86,7 +86,7 @@ public class ProfileCredentialsProviderTest {
     }
 
     @Test
-    void missingProfileThrowsExceptionInGetCredentials() {
+    void missingProfileThrowsExceptionInResolveCredentials() {
         ProfileFile file = profileFile("[default]\n"
                                        + "aws_access_key_id = defaultAccessKey\n"
                                        + "aws_secret_access_key = defaultSecretAccessKey");
@@ -98,7 +98,7 @@ public class ProfileCredentialsProviderTest {
     }
 
     @Test
-    void profileWithoutCredentialsThrowsExceptionInGetCredentials() {
+    void profileWithoutCredentialsThrowsExceptionInResolveCredentials() {
         ProfileFile file = profileFile("[default]");
 
         ProfileCredentialsProvider provider =
@@ -135,7 +135,7 @@ public class ProfileCredentialsProviderTest {
     }
 
     @Test
-    void resolveCredentials_missingCredentialsFileWithCustomExceptionHandler_ThrowsExceptionInGetCredentials() {
+    void resolveCredentials_missingCredentialsFileWithCustomExceptionHandler_ThrowsExceptionInResolveCredentials() {
         try (ProfileCredentialsProvider provider =
                  new ProfileCredentialsProvider.BuilderImpl()
                      .defaultProfileFileLoader(() -> { throw new IllegalStateException(); })

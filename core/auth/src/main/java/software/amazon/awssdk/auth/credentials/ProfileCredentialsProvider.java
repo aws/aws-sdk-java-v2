@@ -29,7 +29,6 @@ import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.auth.credentials.internal.ProfileCredentialsUtils;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.profiles.ProfileFile;
-import software.amazon.awssdk.profiles.ProfileFileLocation;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.profiles.internal.ProfileFileRefresher;
 import software.amazon.awssdk.utils.IoUtils;
@@ -306,7 +305,7 @@ public final class ProfileCredentialsProvider
         private String profileName;
         private Supplier<ProfileFile> defaultProfileFileLoader = ProfileFile::defaultProfileFile;
         private Predicate<ProfileFileRefresher.ProfileFileRefreshRecord> defaultProfileFileReloadPredicate
-            = refreshRecord -> refreshRecord.wasCreatedBeforeFileModified(ProfileFileLocation.credentialsFilePath());
+            = refreshRecord -> false;
         private Function<RuntimeException, ProfileFile> exceptionHandler = exceptionHandler();
         private Clock clock = Clock.systemUTC();
         private Duration refreshDuration;
