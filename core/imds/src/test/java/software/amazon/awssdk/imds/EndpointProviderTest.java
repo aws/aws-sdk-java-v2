@@ -25,11 +25,13 @@ import java.nio.file.Paths;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.imds.internal.Ec2MetadataEndpointProvider;
+import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 
@@ -132,5 +134,32 @@ class EndpointProviderTest {
 
         assertThat(endpointMode).isEqualTo(expectedValue);
     }
+
+    @Test
+    void endpointFromBuilder_withIpv4_shouldBesetCorrectly() {
+        ProfileFile.Builder content = ProfileFile.builder()
+            .type(ProfileFile.Type.CONFIGURATION)
+                                                 .content(Paths.get("src/test/resources/profile-config/test-profiles.tst"));
+        Ec2MetadataEndpointProvider provider = Ec2MetadataEndpointProvider.builder()
+                                                                          .profileFile(content::build)
+                                                                          .profileName("testIPv4")
+                                                                          .build();
+        assertThat(provider.resolveEndpointMode()).isEqualTo(IPV4);
+        assertThat(provider.resolveEndpoint(IPV4)).isEqualTo("http://42.42.42.42");
+    }
+
+    @Test
+    void endpointFromBuilder_withIpv6_shouldBesetCorrectly() {
+        ProfileFile.Builder content = ProfileFile.builder()
+                                                 .type(ProfileFile.Type.CONFIGURATION)
+                                                 .content(Paths.get("src/test/resources/profile-config/test-profiles.tst"));
+        Ec2MetadataEndpointProvider provider = Ec2MetadataEndpointProvider.builder()
+                                                                          .profileFile(content::build)
+                                                                          .profileName("testIPv6")
+                                                                          .build();
+        assertThat(provider.resolveEndpointMode()).isEqualTo(IPV6);
+        assertThat(provider.resolveEndpoint(IPV6)).isEqualTo("[1234:ec2::456]");
+    }
+
 
 }

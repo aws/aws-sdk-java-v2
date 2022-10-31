@@ -80,7 +80,7 @@ public final class DefaultEc2MetadataAsyncClient implements Ec2MetadataAsyncClie
                                                  : URI.create(DEFAULT_ENDPOINT_PROVIDER.resolveEndpoint(this.endpointMode));
         this.requestMarshaller = new RequestMarshaller(this.endpoint);
         this.tokenTtl = builder.tokenTtl != null ? builder.tokenTtl
-                                                 : Duration.ofSeconds(21600);
+                                                 : Duration.ofSeconds(21_600);
         this.asyncRetryScheduler = builder.scheduledExecutorService != null
                                    ? builder.scheduledExecutorService
                                    : Executors.newScheduledThreadPool(DEFAULT_RETRY_THREAD_POOL_SIZE);
