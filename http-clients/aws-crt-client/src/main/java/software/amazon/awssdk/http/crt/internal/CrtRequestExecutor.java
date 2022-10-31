@@ -28,7 +28,6 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.CrtRuntimeException;
 import software.amazon.awssdk.crt.http.HttpClientConnection;
 import software.amazon.awssdk.crt.http.HttpClientConnectionManager;
-import software.amazon.awssdk.crt.http.HttpException;
 import software.amazon.awssdk.crt.http.HttpManagerMetrics;
 import software.amazon.awssdk.crt.http.HttpRequest;
 import software.amazon.awssdk.crt.http.HttpStreamResponseHandler;
@@ -54,7 +53,7 @@ public final class CrtRequestExecutor {
         long acquireStartTime = 0;
 
         if (shouldPublishMetrics) {
-            // go ahead and get acquireStartTime for the concurrency timer as early as possible
+            // go ahead and get acquireStartTime for the concurrency timer as early as possible,
             // so it's as accurate as possible, but only do it in a branch since clock_gettime()
             // results in a full sys call barrier (multiple mutexes and a hw interrupt).
             acquireStartTime = System.nanoTime();
@@ -138,23 +137,15 @@ public final class CrtRequestExecutor {
     /**
      * Notify the provided response handler and future of the failure.
      */
-    private void reportFailure(Throwable cause,
+    private void reportFailure(IOException cause,
                                CompletableFuture<Void> executeFuture,
                                SdkAsyncHttpResponseHandler responseHandler) {
-        Throwable reportableError = cause;
-
-        if (reportableError instanceof HttpException) {
-            // HTTP exceptions from CRT should trigger a retry via. an IOException.
-            // It also IS semantically an IOException. An Http exception refers to an
-            // error condition of the underlying transport protocol, not an error code being returned.
-            reportableError = new IOException(cause);
-        }
         try {
-            responseHandler.onError(reportableError);
+            responseHandler.onError(cause);
         } catch (Exception e) {
             log.error(() -> "SdkAsyncHttpResponseHandler " + responseHandler + " threw an exception in onError. It will be "
                             + "ignored.", e);
         }
-        executeFuture.completeExceptionally(reportableError);
+        executeFuture.completeExceptionally(cause);
     }
 }
