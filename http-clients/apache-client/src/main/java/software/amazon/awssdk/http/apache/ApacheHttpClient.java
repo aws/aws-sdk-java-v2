@@ -333,9 +333,10 @@ public final class ApacheHttpClient implements SdkHttpClient {
      * client builder for more information on configuring the HTTP layer.
      *
      * <pre class="brush: java">
-     * SdkHttpClient httpClient = SdkHttpClient.builder()
-     * .socketTimeout(Duration.ofSeconds(10))
-     * .build();
+     * SdkHttpClient httpClient =
+     *     ApacheHttpClient.builder()
+     *                     .socketTimeout(Duration.ofSeconds(10))
+     *                     .build();
      * </pre>
      */
     public interface Builder extends SdkHttpClient.Builder<ApacheHttpClient.Builder> {
