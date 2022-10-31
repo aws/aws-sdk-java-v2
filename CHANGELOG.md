@@ -1,3 +1,36 @@
+# __2.18.7__ __2022-10-31__
+## __AWS App Runner__
+  - ### Features
+    - This release adds support for private App Runner services. Services may now be configured to be made private and only accessible from a VPC. The changes include a new VpcIngressConnection resource and several new and modified APIs.
+
+## __AWS IoT__
+  - ### Features
+    - This release adds the Amazon Location action to IoT Rules Engine.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - SDK release to support tagging for destinations and log groups with TagResource. Also supports tag on create with PutDestination.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon connect now support a new API DismissUserContact to dismiss or remove terminated contacts in Agent CCP
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Elastic IP transfer is a new Amazon VPC feature that allows you to transfer your Elastic IP addresses from one AWS Account to another.
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - This release includes support for interacting with the Virtual Deliverability Manager, allowing you to opt in/out of the feature and to retrieve recommendations and metric data.
+
+## __Amazon Textract__
+  - ### Features
+    - This release introduces additional support for 30+ normalized fields such as vendor address and currency. It also includes OCR output in the response and accuracy improvements for the already supported fields in previous version
+
 # __2.18.6__ __2022-10-28__
 ## __AWS App Runner__
   - ### Features
