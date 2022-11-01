@@ -1,3 +1,115 @@
+# __2.18.8__ __2022-11-01__
+## __Amazon Relational Database Service__
+  - ### Features
+    - Relational Database Service - This release adds support for configuring Storage Throughput on RDS database instances.
+
+## __Amazon Textract__
+  - ### Features
+    - Add ocr results in AnalyzeIDResponse as blocks
+
+# __2.18.7__ __2022-10-31__
+## __AWS App Runner__
+  - ### Features
+    - This release adds support for private App Runner services. Services may now be configured to be made private and only accessible from a VPC. The changes include a new VpcIngressConnection resource and several new and modified APIs.
+
+## __AWS IoT__
+  - ### Features
+    - This release adds the Amazon Location action to IoT Rules Engine.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - SDK release to support tagging for destinations and log groups with TagResource. Also supports tag on create with PutDestination.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon connect now support a new API DismissUserContact to dismiss or remove terminated contacts in Agent CCP
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Elastic IP transfer is a new Amazon VPC feature that allows you to transfer your Elastic IP addresses from one AWS Account to another.
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - This release includes support for interacting with the Virtual Deliverability Manager, allowing you to opt in/out of the feature and to retrieve recommendations and metric data.
+
+## __Amazon Textract__
+  - ### Features
+    - This release introduces additional support for 30+ normalized fields such as vendor address and currency. It also includes OCR output in the response and accuracy improvements for the already supported fields in previous version
+
+# __2.18.6__ __2022-10-28__
+## __AWS App Runner__
+  - ### Features
+    - AWS App Runner adds .NET 6, Go 1, PHP 8.1 and Ruby 3.1 runtimes.
+
+## __AWS Cloud9__
+  - ### Features
+    - Update to the documentation section of the Cloud9 API Reference guide.
+
+## __AWS CloudFormation__
+  - ### Features
+    - This release adds more fields to improves visibility of AWS CloudFormation StackSets information in following APIs: ListStackInstances, DescribeStackInstance, ListStackSetOperationResults, ListStackSetOperations, DescribeStackSetOperation.
+
+## __AWS MediaTailor__
+  - ### Features
+    - This release introduces support for SCTE-35 segmentation descriptor messages which can be sent within time signal messages.
+
+## __AWS Private 5G__
+  - ### Features
+    - Fix incorrect endpoint-prefix in endpoint ruleset.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Support App__
+  - ### Features
+    - Fix incorrect endpoint-prefix in endpoint ruleset.
+
+## __Amazon AppStream__
+  - ### Features
+    - This release includes CertificateBasedAuthProperties in CreateDirectoryConfig and UpdateDirectoryConfig.
+
+## __GameSparks__
+  - ### Features
+    - Add LATEST as a possible GameSDK Version on snapshot
+
+# __2.18.5__ __2022-10-27__
+## __AWS Glue__
+  - ### Features
+    - Added support for custom datatypes when using custom csv classifier.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS WAFV2__
+  - ### Features
+    - This release adds the following: Challenge rule action, to silently verify client browsers; rule group rule action override to any valid rule action, not just Count; token sharing between protected applications for challenge/CAPTCHA token; targeted rules option for Bot Control managed rule group.
+
+## __AWs SDK for Java v2__
+  - ### Bugfixes
+    - We are only enabling rules based endpoints for S3, S3Control, and EventBridge for now in order to roll back incorrect hostprefix handling in the Java SDK. EventBridge are unaffected by this issue because it does not have a `hostPrefix` in its service model. S3 and S3Control have `hostPrefix` in the model, it is handled by the rule set.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Feature supports the replacement of instance root volume using an updated AMI without requiring customers to stop their instance.
+
+## __Amazon Redshift__
+  - ### Features
+    - This release clarifies use for the ElasticIp parameter of the CreateCluster and RestoreFromClusterSnapshot APIs.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This change allows customers to provide a custom entrypoint script for the docker container to be run while executing training jobs, and provide custom arguments to the entrypoint script.
+
+## __Firewall Management Service__
+  - ### Features
+    - Add support NetworkFirewall Managed Rule Group Override flag in GetViolationDetails API
+
 # __2.18.4__ __2022-10-26__
 ## __AWS Identity and Access Management__
   - ### Features

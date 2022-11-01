@@ -3,10 +3,10 @@ package software.amazon.awssdk.services.rules;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
-import software.amazon.awssdk.services.protocolrestjson.endpoints.internal.EndpointResult;
-import software.amazon.awssdk.services.protocolrestjson.endpoints.internal.Identifier;
-import software.amazon.awssdk.services.protocolrestjson.endpoints.internal.Literal;
-import software.amazon.awssdk.services.protocolrestjson.endpoints.internal.Template;
+import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.EndpointResult;
+import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.Identifier;
+import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.Literal;
+import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.Template;
 
 /**
  * Validate that URIs start with a scheme
