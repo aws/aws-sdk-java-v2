@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>aws-sdk-java-pom</artifactId>
-    <version>2.18.4-SNAPSHOT</version>
+    <version>2.18.8-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Parent</name>
     <description>The Amazon Web Services SDK for Java provides Java APIs
@@ -90,7 +90,7 @@
     </scm>
     <properties>
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
-        <awsjavasdk.previous.version>2.18.3</awsjavasdk.previous.version>
+        <awsjavasdk.previous.version>2.18.7</awsjavasdk.previous.version>
         <jackson.version>2.13.2</jackson.version>
         <jackson.databind.version>2.13.4.2</jackson.databind.version>
         <jacksonjr.version>2.13.2</jacksonjr.version>
@@ -599,10 +599,10 @@
                             <!-- Service modules that are heavily customized should be included -->
                             <includeModule>s3</includeModule>
                             <includeModule>s3-control</includeModule>
-                            <includeModule>sqs</includeModule>
-                            <includeModule>rds</includeModule>
-                            <includeModule>apigateway</includeModule>
-                            <includeModule>polly</includeModule>
+                            <!-- <includeModule>sqs</includeModule> -->
+                            <!-- <includeModule>rds</includeModule> -->
+                            <!-- <includeModule>apigateway</includeModule> -->
+                            <!-- <includeModule>polly</includeModule> -->
                         </includeModules>
                         <excludes>
                             <exclude>*.internal.*</exclude>

@@ -1,27 +1,27 @@
 package software.amazon.awssdk.services.rules;
 
 import java.util.List;
-import software.amazon.awssdk.services.protocolrestjson.endpoints.internal.BooleanEqualsFn;
-import software.amazon.awssdk.services.protocolrestjson.endpoints.internal.EndpointResult;
-import software.amazon.awssdk.services.protocolrestjson.endpoints.internal.Expr;
-import software.amazon.awssdk.services.protocolrestjson.endpoints.internal.ExprVisitor;
-import software.amazon.awssdk.services.protocolrestjson.endpoints.internal.Fn;
-import software.amazon.awssdk.services.protocolrestjson.endpoints.internal.FnVisitor;
-import software.amazon.awssdk.services.protocolrestjson.endpoints.internal.GetAttr;
-import software.amazon.awssdk.services.protocolrestjson.endpoints.internal.IsSet;
-import software.amazon.awssdk.services.protocolrestjson.endpoints.internal.IsValidHostLabel;
-import software.amazon.awssdk.services.protocolrestjson.endpoints.internal.IsVirtualHostableS3Bucket;
-import software.amazon.awssdk.services.protocolrestjson.endpoints.internal.Literal;
-import software.amazon.awssdk.services.protocolrestjson.endpoints.internal.Not;
-import software.amazon.awssdk.services.protocolrestjson.endpoints.internal.ParseArn;
-import software.amazon.awssdk.services.protocolrestjson.endpoints.internal.ParseUrl;
-import software.amazon.awssdk.services.protocolrestjson.endpoints.internal.PartitionFn;
-import software.amazon.awssdk.services.protocolrestjson.endpoints.internal.Ref;
-import software.amazon.awssdk.services.protocolrestjson.endpoints.internal.Rule;
-import software.amazon.awssdk.services.protocolrestjson.endpoints.internal.RuleValueVisitor;
-import software.amazon.awssdk.services.protocolrestjson.endpoints.internal.StringEqualsFn;
-import software.amazon.awssdk.services.protocolrestjson.endpoints.internal.Substring;
-import software.amazon.awssdk.services.protocolrestjson.endpoints.internal.UriEncodeFn;
+import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.BooleanEqualsFn;
+import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.EndpointResult;
+import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.Expr;
+import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.ExprVisitor;
+import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.Fn;
+import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.FnVisitor;
+import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.GetAttr;
+import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.IsSet;
+import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.IsValidHostLabel;
+import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.IsVirtualHostableS3Bucket;
+import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.Literal;
+import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.Not;
+import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.ParseArn;
+import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.ParseUrl;
+import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.PartitionFn;
+import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.Ref;
+import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.Rule;
+import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.RuleValueVisitor;
+import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.StringEqualsFn;
+import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.Substring;
+import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.UriEncodeFn;
 
 public abstract class DefaultVisitor<R> implements RuleValueVisitor<R>, ExprVisitor<R>, FnVisitor<R> {
     public abstract R getDefault();

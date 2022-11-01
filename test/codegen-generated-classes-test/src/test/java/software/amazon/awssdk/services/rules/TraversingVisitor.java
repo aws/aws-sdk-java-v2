@@ -2,12 +2,12 @@ package software.amazon.awssdk.services.rules;
 
 import java.util.List;
 import java.util.stream.Stream;
-import software.amazon.awssdk.services.protocolrestjson.endpoints.internal.Condition;
-import software.amazon.awssdk.services.protocolrestjson.endpoints.internal.EndpointResult;
-import software.amazon.awssdk.services.protocolrestjson.endpoints.internal.EndpointRuleset;
-import software.amazon.awssdk.services.protocolrestjson.endpoints.internal.Expr;
-import software.amazon.awssdk.services.protocolrestjson.endpoints.internal.Fn;
-import software.amazon.awssdk.services.protocolrestjson.endpoints.internal.Rule;
+import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.Condition;
+import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.EndpointResult;
+import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.EndpointRuleset;
+import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.Expr;
+import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.Fn;
+import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.Rule;
 
 public abstract class TraversingVisitor<R> extends DefaultVisitor<Stream<R>> {
     public Stream<R> visitRuleset(EndpointRuleset ruleset) {
