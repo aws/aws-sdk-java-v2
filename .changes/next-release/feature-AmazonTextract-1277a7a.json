@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Textract",
-    "contributor": "",
-    "description": "Add ocr results in AnalyzeIDResponse as blocks"
-}
