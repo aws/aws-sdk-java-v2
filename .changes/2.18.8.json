@@ -1,0 +1,18 @@
+{
+    "version": "2.18.8",
+    "date": "2022-11-01",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "Relational Database Service - This release adds support for configuring Storage Throughput on RDS database instances."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Textract",
+            "contributor": "",
+            "description": "Add ocr results in AnalyzeIDResponse as blocks"
+        }
+    ]
+}
