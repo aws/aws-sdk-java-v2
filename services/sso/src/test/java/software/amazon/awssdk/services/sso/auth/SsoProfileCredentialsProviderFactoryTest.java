@@ -15,8 +15,22 @@
 
 package software.amazon.awssdk.services.sso.auth;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.any;
+import static com.github.tomakehurst.wiremock.client.WireMock.ok;
+import static com.github.tomakehurst.wiremock.client.WireMock.requestMatching;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.when;
 
+import com.github.tomakehurst.wiremock.client.MappingBuilder;
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import com.github.tomakehurst.wiremock.matching.MatchResult;
 import com.google.common.collect.ImmutableList;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
@@ -25,29 +39,53 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Stream;
+import org.junit.Rule;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.ArgumentMatchers;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.ProviderSpec;
+import software.amazon.awssdk.auth.token.credentials.SdkToken;
+import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.profiles.Profile;
+import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.services.sso.internal.SsoAccessToken;
 import software.amazon.awssdk.services.sso.internal.SsoAccessTokenProvider;
+import software.amazon.awssdk.utils.StringInputStream;
 
 /**
  * Validate the code path of creating the {@link SsoCredentialsProvider} with {@link SsoProfileCredentialsProviderFactory}.
  */
+
+@ExtendWith(MockitoExtension.class)
 public class SsoProfileCredentialsProviderFactoryTest {
+
+    @Mock SdkTokenProvider sdkTokenProvider;
 
     @Test
     public void createSsoCredentialsProviderWithFactorySucceed() throws IOException {
         String startUrl = "https//d-abc123.awsapps.com/start";
         String generatedTokenFileName = "6a888bdb653a4ba345dd68f21b896ec2e218c6f4.json";
 
-        Map<String, String> properties = new HashMap<>();
-        properties.put("sso_account_id", "accountId");
-        properties.put("sso_region", "region");
-        properties.put("sso_role_name", "roleName");
-        properties.put("sso_start_url", "https//d-abc123.awsapps.com/start");
-        Profile profile = Profile.builder().name("foo").properties(properties).build();
+
+        ProfileFile profileFile = configFile("[profile foo]\n" +
+                                             "sso_account_id=accountId\n" +
+                                             "sso_region=region\n" +
+                                             "sso_role_name=roleName\n" +
+                                             "sso_start_url=https//d-abc123.awsapps.com/start");
+
 
         String tokenFile = "{\n" +
                            "\"accessToken\": \"base64string\",\n" +
@@ -55,11 +93,14 @@ public class SsoProfileCredentialsProviderFactoryTest {
                            "\"region\": \"us-west-2\", \n" +
                            "\"startUrl\": \""+ startUrl +"\"\n" +
                            "}";
+        Path cachedTokenFilePath = prepareTestCachedTokenFile(tokenFile, generatedTokenFileName);
         SsoAccessTokenProvider tokenProvider = new SsoAccessTokenProvider(
-            prepareTestCachedTokenFile(tokenFile, generatedTokenFileName));
+            cachedTokenFilePath);
 
         SsoProfileCredentialsProviderFactory factory = new SsoProfileCredentialsProviderFactory();
-        assertThat(factory.create(profile, tokenProvider)).isInstanceOf(AwsCredentialsProvider.class);
+        assertThat(factory.create(profileFile.profile("foo").get(),
+                                  profileFile,
+                                  tokenProvider)).isInstanceOf(AwsCredentialsProvider.class);
     }
 
     private Path prepareTestCachedTokenFile(String tokenFileContent, String generatedTokenFileName) throws IOException {
@@ -71,5 +112,76 @@ public class SsoProfileCredentialsProviderFactoryTest {
         Files.write(cachedTokenFilePath, ImmutableList.of(tokenFileContent), StandardCharsets.UTF_8);
 
         return cachedTokenFilePath;
+    }
+
+    private static ProfileFile configFile(String configFile) {
+        return ProfileFile.builder()
+                          .content(new StringInputStream(configFile))
+                          .type(ProfileFile.Type.CONFIGURATION)
+                          .build();
+    }
+
+    @ParameterizedTest
+    @MethodSource("ssoErrorValues")
+    void validateSsoFactoryErrorWithIncorrectProfiles(ProfileFile profiles, String expectedValue) {
+
+        assertThat(profiles.profile("test")).hasValueSatisfying(profile -> {
+            SsoProfileCredentialsProviderFactory factory = new SsoProfileCredentialsProviderFactory();
+            assertThatThrownBy(() -> factory.create(ProviderSpec.builder()
+                                                        .profileFile(profiles)
+                                                        .profile(profile)
+                                                                .build())).hasMessageContaining(expectedValue);
+        });
+    }
+
+    private static Stream<Arguments> ssoErrorValues() {
+        // Session title is missing
+        return Stream.of(Arguments.of( configFile("[profile test]\n" +
+                                                  "sso_account_id=accountId\n" +
+                                                  "sso_role_name=roleName\n" +
+                                                  "sso_session=foo\n" +
+                                                  "[sso-session bar]\n" +
+                                                  "sso_start_url=https//d-abc123.awsapps.com/start\n" +
+                                                  "sso_region=region")
+                             , "Sso-session section not found with sso-session title foo."),
+                         // No sso_region in sso_session
+                         Arguments.of( configFile("[profile test]\n" +
+                                                  "sso_account_id=accountId\n" +
+                                                  "sso_role_name=roleName\n" +
+                                                  "sso_session=foo\n" +
+                                                  "[sso-session foo]\n" +
+                                                  "sso_start_url=https//d-abc123.awsapps.com/start")
+                             , "'sso_region' must be set to use role-based credential loading in the 'foo' profile."),
+                         Arguments.of( configFile("[profile test]\n" +
+                                                  "sso_account_id=accountId\n" +
+                                                  "sso_role_name=roleName\n" +
+                                                  "sso_region=regionOne\n" +
+                                                  "sso_session=foo\n" +
+                                                  "[sso-session foo]\n" +
+                                                  "sso_region=regionTwo\n" +
+                                                  "sso_start_url=https//d-abc123.awsapps.com/start")
+                             , "Sso-session region regionTwo and profile region regionOne are not same.")
+        );
+    }
+
+    @Test
+    public void tokenResolvedFromTokenProvider(@Mock SdkTokenProvider sdkTokenProvider){
+        ProfileFile profileFile = configFile("[profile test]\n" +
+                                             "sso_account_id=accountId\n" +
+                                             "sso_role_name=roleName\n" +
+                                             "sso_region=region\n" +
+                                             "sso_session=foo\n" +
+                                             "[sso-session foo]\n" +
+                                             "sso_region=region\n" +
+                                             "sso_start_url=https//d-abc123.awsapps.com/start");
+        SsoProfileCredentialsProviderFactory factory = new SsoProfileCredentialsProviderFactory();
+        when(sdkTokenProvider.resolveToken()).thenReturn(SsoAccessToken.builder().accessToken("sample").expiresAt(Instant.now()).build());
+        AwsCredentialsProvider credentialsProvider = factory.create(profileFile.profile("test").get(), profileFile, sdkTokenProvider);
+        try {
+            credentialsProvider.resolveCredentials();
+        } catch (Exception e) {
+            // sso client created internally which cannot be mocked.
+        }
+        Mockito.verify(sdkTokenProvider, times(1)).resolveToken();
     }
 }

@@ -24,6 +24,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.auth.token.credentials.SdkToken;
+import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 import software.amazon.awssdk.services.sso.auth.ExpiredTokenException;
@@ -37,7 +39,7 @@ import software.amazon.awssdk.utils.Validate;
  * resolve the access token in their own way and add it to the {@link SsoCredentialsProvider.Builder#refreshRequest}.
  */
 @SdkInternalApi
-public final class SsoAccessTokenProvider {
+public final class SsoAccessTokenProvider implements SdkTokenProvider {
     private static final JsonNodeParser PARSER = JsonNodeParser.builder().removeErrorLocations(true).build();
 
     private final Path cachedTokenFilePath;
@@ -46,7 +48,12 @@ public final class SsoAccessTokenProvider {
         this.cachedTokenFilePath = cachedTokenFilePath;
     }
 
-    public String resolveAccessToken() {
+    @Override
+    public SdkToken resolveToken() {
+        return tokenFromFile();
+    }
+
+    private SdkToken tokenFromFile() {
         try (InputStream cachedTokenStream = Files.newInputStream(cachedTokenFilePath)) {
             return getTokenFromJson(IoUtils.toUtf8String(cachedTokenStream));
         } catch (IOException e) {
@@ -54,7 +61,7 @@ public final class SsoAccessTokenProvider {
         }
     }
 
-    private String getTokenFromJson(String json) {
+    private SdkToken getTokenFromJson(String json) {
         JsonNode jsonNode = PARSER.parse(json);
         String expiration = jsonNode.field("expiresAt").map(JsonNode::text).orElse(null);
 
@@ -67,7 +74,10 @@ public final class SsoAccessTokenProvider {
                                                           + " login with the corresponding profile.").build();
         }
 
-        return jsonNode.asObject().get("accessToken").text();
+        return SsoAccessToken.builder()
+                             .accessToken(jsonNode.asObject().get("accessToken").text())
+                             .expiresAt(Instant.parse(expiration)).build();
+
     }
 
     private boolean tokenIsInvalid(String expirationTime) {

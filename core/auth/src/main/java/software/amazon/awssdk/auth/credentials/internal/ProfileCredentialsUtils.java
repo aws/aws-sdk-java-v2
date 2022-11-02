@@ -36,12 +36,14 @@ import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsPro
 import software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.ProcessCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProviderFactory;
+import software.amazon.awssdk.auth.credentials.ProviderSpec;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.SystemPropertyCredentialsProvider;
 import software.amazon.awssdk.core.internal.util.ClassLoaderHelper;
 import software.amazon.awssdk.profiles.Profile;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileProperty;
+import software.amazon.awssdk.profiles.internal.ProfileSection;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.Validate;
 
@@ -110,8 +112,11 @@ public final class ProfileCredentialsUtils {
             return Optional.ofNullable(roleAndWebIdentityTokenProfileCredentialsProvider());
         }
 
-        if (properties.containsKey(ProfileProperty.SSO_ROLE_NAME) || properties.containsKey(ProfileProperty.SSO_ACCOUNT_ID)
-            || properties.containsKey(ProfileProperty.SSO_REGION) || properties.containsKey(ProfileProperty.SSO_START_URL)) {
+        if (properties.containsKey(ProfileProperty.SSO_ROLE_NAME)
+            || properties.containsKey(ProfileProperty.SSO_ACCOUNT_ID)
+            || properties.containsKey(ProfileProperty.SSO_REGION)
+            || properties.containsKey(ProfileProperty.SSO_START_URL)
+            || properties.containsKey(ProfileSection.SSO_SESSION.getPropertyKeyName())) {
             return Optional.ofNullable(ssoProfileCredentialsProvider());
         }
 
@@ -182,11 +187,21 @@ public final class ProfileCredentialsUtils {
      * Create the SSO credentials provider based on the related profile properties.
      */
     private AwsCredentialsProvider ssoProfileCredentialsProvider() {
-        requireProperties(ProfileProperty.SSO_ACCOUNT_ID,
-                          ProfileProperty.SSO_REGION,
-                          ProfileProperty.SSO_ROLE_NAME,
-                          ProfileProperty.SSO_START_URL);
-        return ssoCredentialsProviderFactory().create(profile);
+        validateRequiredPropertiesForSsoCredentialsProvider();
+        return ssoCredentialsProviderFactory().create(ProviderSpec.builder().profile(profile).profileFile(profileFile).build());
+    }
+
+    private void validateRequiredPropertiesForSsoCredentialsProvider() {
+        if (!properties.containsKey(ProfileSection.SSO_SESSION.getPropertyKeyName())) {
+            requireProperties(ProfileProperty.SSO_ACCOUNT_ID,
+                              ProfileProperty.SSO_REGION,
+                              ProfileProperty.SSO_ROLE_NAME,
+                              ProfileProperty.SSO_START_URL);
+        } else {
+            requireProperties(ProfileProperty.SSO_ACCOUNT_ID,
+                              ProfileProperty.SSO_ROLE_NAME,
+                              ProfileSection.SSO_SESSION.getPropertyKeyName());
+        }
     }
 
     private AwsCredentialsProvider roleAndWebIdentityTokenProfileCredentialsProvider() {

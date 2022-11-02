@@ -577,7 +577,7 @@
                         <includeModules>
                             <includeModule>annotations</includeModule>
                             <includeModule>arns</includeModule>
-                            <includeModule>auth</includeModule>
+<!--                            <includeModule>auth</includeModule>-->
                             <includeModule>auth-crt</includeModule>
                             <includeModule>aws-core</includeModule>
                             <includeModule>json-utils</includeModule>
