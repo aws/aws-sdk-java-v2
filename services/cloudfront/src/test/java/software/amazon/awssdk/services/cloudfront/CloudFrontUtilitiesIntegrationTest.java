@@ -26,8 +26,8 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.Base64;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -75,11 +75,6 @@ import software.amazon.awssdk.services.cloudfront.model.S3OriginConfig;
 import software.amazon.awssdk.services.cloudfront.model.TrustedKeyGroups;
 import software.amazon.awssdk.services.cloudfront.model.UpdateDistributionResponse;
 import software.amazon.awssdk.services.cloudfront.model.ViewerProtocolPolicy;
-import software.amazon.awssdk.services.cloudfront.utils.CloudFrontSignedCookie;
-import software.amazon.awssdk.services.cloudfront.utils.CloudFrontSignedUrl;
-import software.amazon.awssdk.services.cloudfront.utils.CloudFrontSignerUtils;
-import software.amazon.awssdk.services.cloudfront.utils.CloudFrontSignedCookie.CookiesForCannedPolicy;
-import software.amazon.awssdk.services.cloudfront.utils.CloudFrontSignedCookie.CookiesForCustomPolicy;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutBucketPolicyRequest;
@@ -87,10 +82,10 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.utils.StringUtils;
 
-public class CloudFrontSignerIntegrationTest extends IntegrationTestBase {
+public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
     private static final Base64.Encoder encoder = Base64.getEncoder();
     private static final String callerReference = Instant.now().toString().substring(0,10);
-    private static final String bucketName = StringUtils.lowerCase(CloudFrontSignerIntegrationTest.class.getSimpleName())
+    private static final String bucketName = StringUtils.lowerCase(CloudFrontUtilitiesIntegrationTest.class.getSimpleName())
                                              + "." + callerReference;
     private static final String s3ObjectKey = "s3ObjectKey";
     private static String publicKeyId;
@@ -117,14 +112,16 @@ public class CloudFrontSignerIntegrationTest extends IntegrationTestBase {
         cloudFrontClient.deleteKeyGroup(DeleteKeyGroupRequest.builder().ifMatch(keyGroupETag).id(keyGroupId).build());
         String publicKeyETag = cloudFrontClient.getPublicKey(GetPublicKeyRequest.builder().id(publicKeyId).build()).eTag();
         cloudFrontClient.deletePublicKey(DeletePublicKeyRequest.builder().ifMatch(publicKeyETag).id(publicKeyId).build());
-        String originAccessIdETag = cloudFrontClient.getCloudFrontOriginAccessIdentity(GetCloudFrontOriginAccessIdentityRequest.builder().id(originAccessId).build()).eTag();
-        cloudFrontClient.deleteCloudFrontOriginAccessIdentity(DeleteCloudFrontOriginAccessIdentityRequest.builder().ifMatch(originAccessIdETag).id(originAccessId).build());
+        String originAccessIdETag = cloudFrontClient.getCloudFrontOriginAccessIdentity(GetCloudFrontOriginAccessIdentityRequest
+                                                                                           .builder().id(originAccessId).build()).eTag();
+        cloudFrontClient.deleteCloudFrontOriginAccessIdentity(DeleteCloudFrontOriginAccessIdentityRequest
+                                                                  .builder().ifMatch(originAccessIdETag).id(originAccessId).build());
         keyFile.deleteOnExit();
     }
 
     @Test
     void unsignedUrl_shouldReturn403Response() throws Exception {
-        String unsignedUrl = CloudFrontSignerUtils.generateResourceUrl(CloudFrontSignerUtils.Protocol.HTTPS, domainName, s3ObjectKey);
+        String unsignedUrl = CloudFrontUtilities.generateResourceUrl(CloudFrontUtilities.Protocol.HTTPS, domainName, s3ObjectKey);
         SdkHttpClient client = ApacheHttpClient.create();
         HttpExecuteResponse response =
             client.prepareRequest(HttpExecuteRequest.builder()
@@ -142,10 +139,10 @@ public class CloudFrontSignerIntegrationTest extends IntegrationTestBase {
     @Test
     void getSignedUrlWithCannedPolicy_shouldWork() throws Exception {
         InputStream originalBucketContent = s3Client.getObject(GetObjectRequest.builder().bucket(bucketName).key(s3ObjectKey).build());
-        ZonedDateTime expirationDate = ZonedDateTime.of(2050, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC"));
-        String signedUrl = CloudFrontSignedUrl.getSignedUrlWithCannedPolicy(CloudFrontSignerUtils.Protocol.HTTPS, domainName, s3ObjectKey, keyFile,
-                                                                            publicKeyId, expirationDate);
-        String encodedPath = signedUrl.substring(signedUrl.indexOf("s3ObjectKey"));
+        Instant expirationDate = LocalDate.of(2050, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
+        String signedUrl = CloudFrontUtilities.getSignedUrlWithCannedPolicy(CloudFrontUtilities.Protocol.HTTPS, domainName,
+                                                                            s3ObjectKey, keyFile, publicKeyId, expirationDate);
+        String encodedPath = CloudFrontUtilities.extractEncodedPath(signedUrl, s3ObjectKey);
         SdkHttpClient client = ApacheHttpClient.create();
         HttpExecuteResponse response =
             client.prepareRequest(HttpExecuteRequest.builder()
@@ -165,10 +162,10 @@ public class CloudFrontSignerIntegrationTest extends IntegrationTestBase {
 
     @Test
     void getSignedUrlWithCannedPolicy_withExpiredDate_shouldReturn403Response() throws Exception {
-        ZonedDateTime expirationDate = ZonedDateTime.of(2020, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC"));
-        String signedUrl = CloudFrontSignedUrl.getSignedUrlWithCannedPolicy(CloudFrontSignerUtils.Protocol.HTTPS, domainName, s3ObjectKey, keyFile,
-                                                                            publicKeyId, expirationDate);
-        String encodedPath = signedUrl.substring(signedUrl.indexOf("s3ObjectKey"));
+        Instant expirationDate = LocalDate.of(2020, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
+        String signedUrl = CloudFrontUtilities.getSignedUrlWithCannedPolicy(CloudFrontUtilities.Protocol.HTTPS, domainName, s3ObjectKey,
+                                                                            keyFile, publicKeyId, expirationDate);
+        String encodedPath = CloudFrontUtilities.extractEncodedPath(signedUrl, s3ObjectKey);
         SdkHttpClient client = ApacheHttpClient.create();
         HttpExecuteResponse response =
             client.prepareRequest(HttpExecuteRequest.builder()
@@ -186,11 +183,11 @@ public class CloudFrontSignerIntegrationTest extends IntegrationTestBase {
     @Test
     void getSignedUrlWithCustomPolicy_shouldWork() throws Exception {
         InputStream originalBucketContent = s3Client.getObject(GetObjectRequest.builder().bucket(bucketName).key(s3ObjectKey).build());
-        ZonedDateTime activeDate = ZonedDateTime.of(2020, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC"));
-        ZonedDateTime expirationDate = ZonedDateTime.of(2050, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC"));
-        String signedUrl = CloudFrontSignedUrl.getSignedUrlWithCustomPolicy(CloudFrontSignerUtils.Protocol.HTTPS, domainName, s3ObjectKey, keyFile,
-                                                                            publicKeyId, activeDate, expirationDate, null);
-        String encodedPath = signedUrl.substring(signedUrl.indexOf("s3ObjectKey"));
+        Instant activeDate = LocalDate.of(2022, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
+        Instant expirationDate = LocalDate.of(2050, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
+        String signedUrl = CloudFrontUtilities.getSignedUrlWithCustomPolicy(CloudFrontUtilities.Protocol.HTTPS, domainName, s3ObjectKey,
+                                                                            keyFile, publicKeyId, activeDate, expirationDate, null);
+        String encodedPath = CloudFrontUtilities.extractEncodedPath(signedUrl, s3ObjectKey);
         SdkHttpClient client = ApacheHttpClient.create();
         HttpExecuteResponse response =
             client.prepareRequest(HttpExecuteRequest.builder()
@@ -210,11 +207,11 @@ public class CloudFrontSignerIntegrationTest extends IntegrationTestBase {
 
     @Test
     void getSignedUrlWithCustomPolicy_withFutureActiveDate_shouldReturn403Response() throws Exception {
-        ZonedDateTime activeDate = ZonedDateTime.of(2040, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC"));
-        ZonedDateTime expirationDate = ZonedDateTime.of(2050, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC"));
-        String signedUrl = CloudFrontSignedUrl.getSignedUrlWithCustomPolicy(CloudFrontSignerUtils.Protocol.HTTPS, domainName, s3ObjectKey, keyFile,
-                                                                            publicKeyId, activeDate, expirationDate, null);
-        String encodedPath = signedUrl.substring(signedUrl.indexOf("s3ObjectKey"));
+        Instant activeDate = LocalDate.of(2040, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
+        Instant expirationDate = LocalDate.of(2050, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
+        String signedUrl = CloudFrontUtilities.getSignedUrlWithCustomPolicy(CloudFrontUtilities.Protocol.HTTPS, domainName, s3ObjectKey,
+                                                                            keyFile, publicKeyId, activeDate, expirationDate, null);
+        String encodedPath = CloudFrontUtilities.extractEncodedPath(signedUrl, s3ObjectKey);
         SdkHttpClient client = ApacheHttpClient.create();
         HttpExecuteResponse response =
             client.prepareRequest(HttpExecuteRequest.builder()
@@ -232,10 +229,10 @@ public class CloudFrontSignerIntegrationTest extends IntegrationTestBase {
     @Test
     void getCookiesForCannedPolicy_shouldWork() throws Exception {
         InputStream originalBucketContent = s3Client.getObject(GetObjectRequest.builder().bucket(bucketName).key(s3ObjectKey).build());
-        ZonedDateTime expirationDate = ZonedDateTime.of(2050, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC"));
-        CookiesForCannedPolicy cookies = CloudFrontSignedCookie.getCookiesForCannedPolicy(CloudFrontSignerUtils.Protocol.HTTPS, domainName,
-                                                                                          s3ObjectKey, keyFile, publicKeyId, expirationDate);
-        String encodedPath = CloudFrontSignerUtils.generateResourceUrl(CloudFrontSignerUtils.Protocol.HTTPS, domainName, s3ObjectKey);
+        Instant expirationDate = LocalDate.of(2050, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
+        CloudFrontUtilities.SignedCookie cookies = CloudFrontUtilities.getCookiesForCannedPolicy(CloudFrontUtilities.Protocol.HTTPS, domainName,
+                                                                                                 s3ObjectKey, keyFile, publicKeyId, expirationDate);
+        String encodedPath = CloudFrontUtilities.generateResourceUrl(CloudFrontUtilities.Protocol.HTTPS, domainName, s3ObjectKey);
 
         SdkHttpClient client = ApacheHttpClient.create();
         HttpExecuteResponse response =
@@ -243,11 +240,11 @@ public class CloudFrontSignerIntegrationTest extends IntegrationTestBase {
                                                     .request(SdkHttpRequest.builder()
                                                                            .uri(URI.create(encodedPath))
                                                                            .appendHeader("Cookie",
-                                                                                         cookies.getExpires().getKey() + "=" + cookies.getExpires().getValue())
+                                                                                         cookies.cookieHeaderValue("Expires"))
                                                                            .appendHeader("Cookie",
-                                                                                         cookies.getSignature().getKey() + "=" + cookies.getSignature().getValue())
+                                                                                         cookies.cookieHeaderValue("Signature"))
                                                                            .appendHeader("Cookie",
-                                                                                         cookies.getKeyPairId().getKey() + "=" + cookies.getKeyPairId().getValue())
+                                                                                         cookies.cookieHeaderValue("KeyPairId"))
                                                                            .method(SdkHttpMethod.GET)
                                                                            .build())
                                                     .build()).call();
@@ -260,10 +257,10 @@ public class CloudFrontSignerIntegrationTest extends IntegrationTestBase {
 
     @Test
     void getCookiesForCannedPolicy_withExpiredDate_shouldReturn403Response() throws Exception {
-        ZonedDateTime expirationDate = ZonedDateTime.of(2020, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC"));
-        CookiesForCannedPolicy cookies = CloudFrontSignedCookie.getCookiesForCannedPolicy(CloudFrontSignerUtils.Protocol.HTTPS, domainName, s3ObjectKey,
-                                                                                          keyFile, publicKeyId, expirationDate);
-        String encodedPath = CloudFrontSignerUtils.generateResourceUrl(CloudFrontSignerUtils.Protocol.HTTPS, domainName, s3ObjectKey);
+        Instant expirationDate = LocalDate.of(2020, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
+        CloudFrontUtilities.SignedCookie cookies = CloudFrontUtilities.getCookiesForCannedPolicy(CloudFrontUtilities.Protocol.HTTPS,
+                                                                                                 domainName, s3ObjectKey, keyFile, publicKeyId, expirationDate);
+        String encodedPath = CloudFrontUtilities.generateResourceUrl(CloudFrontUtilities.Protocol.HTTPS, domainName, s3ObjectKey);
 
         SdkHttpClient client = ApacheHttpClient.create();
         HttpExecuteResponse response =
@@ -271,11 +268,11 @@ public class CloudFrontSignerIntegrationTest extends IntegrationTestBase {
                                                     .request(SdkHttpRequest.builder()
                                                                            .uri(URI.create(encodedPath))
                                                                            .appendHeader("Cookie",
-                                                                                         cookies.getExpires().getKey() + "=" + cookies.getExpires().getValue())
+                                                                                         cookies.cookieHeaderValue("Expires"))
                                                                            .appendHeader("Cookie",
-                                                                                         cookies.getSignature().getKey() + "=" + cookies.getSignature().getValue())
+                                                                                         cookies.cookieHeaderValue("Signature"))
                                                                            .appendHeader("Cookie",
-                                                                                         cookies.getKeyPairId().getKey() + "=" + cookies.getKeyPairId().getValue())
+                                                                                         cookies.cookieHeaderValue("KeyPairId"))
                                                                            .method(SdkHttpMethod.GET)
                                                                            .build())
                                                     .build()).call();
@@ -286,11 +283,11 @@ public class CloudFrontSignerIntegrationTest extends IntegrationTestBase {
     @Test
     void getCookiesForCustomPolicy_shouldWork() throws Exception {
         InputStream originalBucketContent = s3Client.getObject(GetObjectRequest.builder().bucket(bucketName).key(s3ObjectKey).build());
-        ZonedDateTime activeDate = ZonedDateTime.of(2020, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC"));
-        ZonedDateTime expirationDate = ZonedDateTime.of(2050, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC"));
-        CookiesForCustomPolicy cookies = CloudFrontSignedCookie.getCookiesForCustomPolicy(CloudFrontSignerUtils.Protocol.HTTPS, domainName, s3ObjectKey,
-                                                                                          keyFile, publicKeyId, activeDate, expirationDate, null);
-        String encodedPath = CloudFrontSignerUtils.generateResourceUrl(CloudFrontSignerUtils.Protocol.HTTPS, domainName, s3ObjectKey);
+        Instant activeDate = LocalDate.of(2022, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
+        Instant expirationDate = LocalDate.of(2050, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
+        CloudFrontUtilities.SignedCookie cookies = CloudFrontUtilities.getCookiesForCustomPolicy(CloudFrontUtilities.Protocol.HTTPS, domainName, s3ObjectKey,
+                                                                                                 keyFile, publicKeyId, activeDate, expirationDate, null);
+        String encodedPath = CloudFrontUtilities.generateResourceUrl(CloudFrontUtilities.Protocol.HTTPS, domainName, s3ObjectKey);
 
         SdkHttpClient client = ApacheHttpClient.create();
         HttpExecuteResponse response =
@@ -298,11 +295,11 @@ public class CloudFrontSignerIntegrationTest extends IntegrationTestBase {
                                                     .request(SdkHttpRequest.builder()
                                                                            .uri(URI.create(encodedPath))
                                                                            .appendHeader("Cookie",
-                                                                                         cookies.getPolicy().getKey() + "=" + cookies.getPolicy().getValue())
+                                                                                         cookies.cookieHeaderValue("Policy"))
                                                                            .appendHeader("Cookie",
-                                                                                         cookies.getSignature().getKey() + "=" + cookies.getSignature().getValue())
+                                                                                         cookies.cookieHeaderValue("Signature"))
                                                                            .appendHeader("Cookie",
-                                                                                         cookies.getKeyPairId().getKey() + "=" + cookies.getKeyPairId().getValue())
+                                                                                         cookies.cookieHeaderValue("KeyPairId"))
                                                                            .method(SdkHttpMethod.GET)
                                                                            .build())
                                                     .build()).call();
@@ -315,11 +312,11 @@ public class CloudFrontSignerIntegrationTest extends IntegrationTestBase {
 
     @Test
     void getCookiesForCustomPolicy_withFutureActiveDate_shouldReturn403Response() throws Exception {
-        ZonedDateTime activeDate = ZonedDateTime.of(2040, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC"));
-        ZonedDateTime expirationDate = ZonedDateTime.of(2050, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC"));
-        CookiesForCustomPolicy cookies = CloudFrontSignedCookie.getCookiesForCustomPolicy(CloudFrontSignerUtils.Protocol.HTTPS, domainName, s3ObjectKey,
+        Instant activeDate = LocalDate.of(2040, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
+        Instant expirationDate = LocalDate.of(2050, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
+        CloudFrontUtilities.SignedCookie cookies = CloudFrontUtilities.getCookiesForCustomPolicy(CloudFrontUtilities.Protocol.HTTPS, domainName, s3ObjectKey,
                                                                                           keyFile, publicKeyId, activeDate, expirationDate, null);
-        String encodedPath = CloudFrontSignerUtils.generateResourceUrl(CloudFrontSignerUtils.Protocol.HTTPS, domainName, s3ObjectKey);
+        String encodedPath = CloudFrontUtilities.generateResourceUrl(CloudFrontUtilities.Protocol.HTTPS, domainName, s3ObjectKey);
 
         SdkHttpClient client = ApacheHttpClient.create();
         HttpExecuteResponse response =
@@ -327,11 +324,11 @@ public class CloudFrontSignerIntegrationTest extends IntegrationTestBase {
                                                     .request(SdkHttpRequest.builder()
                                                                            .uri(URI.create(encodedPath))
                                                                            .appendHeader("Cookie",
-                                                                                         cookies.getPolicy().getKey() + "=" + cookies.getPolicy().getValue())
+                                                                                         cookies.cookieHeaderValue("Policy"))
                                                                            .appendHeader("Cookie",
-                                                                                         cookies.getSignature().getKey() + "=" + cookies.getSignature().getValue())
+                                                                                         cookies.cookieHeaderValue("Signature"))
                                                                            .appendHeader("Cookie",
-                                                                                         cookies.getKeyPairId().getKey() + "=" + cookies.getKeyPairId().getValue())
+                                                                                         cookies.cookieHeaderValue("KeyPairId"))
                                                                            .method(SdkHttpMethod.GET)
                                                                            .build())
                                                     .build()).call();

@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.cloudfront.auth;
+package software.amazon.awssdk.services.cloudfront.internal.auth;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
