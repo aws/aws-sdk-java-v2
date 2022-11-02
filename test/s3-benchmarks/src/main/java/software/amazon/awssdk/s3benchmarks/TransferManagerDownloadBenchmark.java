@@ -31,6 +31,7 @@ import software.amazon.awssdk.utils.Logger;
 public class TransferManagerDownloadBenchmark extends BaseTransferManagerBenchmark {
     private static final Logger logger = Logger.loggerFor("TransferManagerDownloadBenchmark");
     private final long contentLength;
+
     public TransferManagerDownloadBenchmark(TransferManagerBenchmarkConfig config) {
         super(config);
         this.contentLength = s3Sync.headObject(b -> b.bucket(bucket).key(key)).contentLength();

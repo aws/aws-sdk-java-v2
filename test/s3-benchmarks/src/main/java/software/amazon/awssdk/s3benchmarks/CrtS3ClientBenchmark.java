@@ -43,6 +43,9 @@ import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 public class CrtS3ClientBenchmark implements TransferManagerBenchmark {
+
+    private static final Logger logger = Logger.loggerFor("CrtS3ClientBenchmark");
+
     private final String bucket;
     private final String key;
     private final int iteration;
@@ -52,8 +55,6 @@ public class CrtS3ClientBenchmark implements TransferManagerBenchmark {
     private final Region region;
 
     private final long contentLength;
-
-    private static final Logger logger = Logger.loggerFor("CrtS3ClientBenchmark");
 
     public CrtS3ClientBenchmark(TransferManagerBenchmarkConfig config) {
         logger.info(() -> "Benchmark config: " + config);
@@ -65,7 +66,8 @@ public class CrtS3ClientBenchmark implements TransferManagerBenchmark {
         s3NativeClientConfiguration = S3NativeClientConfiguration.builder()
                                                                  .partSizeInBytes(partSizeInBytes)
                                                                  .targetThroughputInGbps(config.targetThroughput() == null ?
-                                                                                         100.0 : config.targetThroughput())
+                                                                                         Double.valueOf(100.0) :
+                                                                                         config.targetThroughput())
                                                                  .checksumValidationEnabled(true)
                                                                  .build();
 
@@ -140,23 +142,7 @@ public class CrtS3ClientBenchmark implements TransferManagerBenchmark {
 
         CompletableFuture<Void> resultFuture = new CompletableFuture<>();
 
-        S3MetaRequestResponseHandler responseHandler = new S3MetaRequestResponseHandler() {
-            @Override
-            public int onResponseBody(ByteBuffer bodyBytesIn, long objectRangeStart, long objectRangeEnd) {
-                return bodyBytesIn.remaining();
-            }
-
-            @Override
-            public void onFinished(S3FinishedResponseContext context) {
-                if (context.getErrorCode() != 0) {
-                    resultFuture.completeExceptionally(
-                        new CrtS3RuntimeException(context.getErrorCode(), context.getResponseStatus(),
-                                                  context.getErrorPayload()));
-                    return;
-                }
-                resultFuture.complete(null);
-            }
-        };
+        S3MetaRequestResponseHandler responseHandler = new TestS3MetaRequestResponseHandler(resultFuture);
 
         String endpoint = bucket + ".s3." + region + ".amazonaws.com";
 
@@ -176,5 +162,29 @@ public class CrtS3ClientBenchmark implements TransferManagerBenchmark {
         }
         long end = System.currentTimeMillis();
         latencies.add((end - start) / 1000.0);
+    }
+
+    private static final class TestS3MetaRequestResponseHandler implements S3MetaRequestResponseHandler {
+        private final CompletableFuture<Void> resultFuture;
+
+        private TestS3MetaRequestResponseHandler(CompletableFuture<Void> resultFuture) {
+            this.resultFuture = resultFuture;
+        }
+
+        @Override
+        public int onResponseBody(ByteBuffer bodyBytesIn, long objectRangeStart, long objectRangeEnd) {
+            return bodyBytesIn.remaining();
+        }
+
+        @Override
+        public void onFinished(S3FinishedResponseContext context) {
+            if (context.getErrorCode() != 0) {
+                resultFuture.completeExceptionally(
+                    new CrtS3RuntimeException(context.getErrorCode(), context.getResponseStatus(),
+                                              context.getErrorPayload()));
+                return;
+            }
+            resultFuture.complete(null);
+        }
     }
 }

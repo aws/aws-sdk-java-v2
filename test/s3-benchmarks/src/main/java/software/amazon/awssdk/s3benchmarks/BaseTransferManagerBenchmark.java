@@ -62,7 +62,7 @@ public abstract class BaseTransferManagerBenchmark implements TransferManagerBen
                              .minimumPartSizeInBytes(partSizeInMb)
                              .initialReadBufferSizeInBytes(readBufferSizeInMb)
                              .targetThroughputInGbps(config.targetThroughput() == null ?
-                                                     100.0 : config.targetThroughput())
+                                                     Double.valueOf(100.0) : config.targetThroughput())
                              .build();
         s3Sync = S3Client.builder()
                          .build();
