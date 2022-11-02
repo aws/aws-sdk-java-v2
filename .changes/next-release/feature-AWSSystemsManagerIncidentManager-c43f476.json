@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Systems Manager Incident Manager",
-    "contributor": "",
-    "description": "Adds support for tagging replication-set on creation."
-}
