@@ -18,17 +18,20 @@ package software.amazon.awssdk.http.crt.internal;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.http.HttpClientConnectionManager;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
+import software.amazon.awssdk.metrics.MetricCollector;
 
 @SdkInternalApi
 public final class CrtRequestContext {
     private final AsyncExecuteRequest request;
     private final int readBufferSize;
     private final HttpClientConnectionManager crtConnPool;
+    private final MetricCollector metricCollector;
 
     private CrtRequestContext(Builder builder) {
         this.request = builder.request;
         this.readBufferSize = builder.readBufferSize;
         this.crtConnPool = builder.crtConnPool;
+        this.metricCollector = request.metricCollector().orElse(null);
     }
 
     public static Builder builder() {
@@ -45,6 +48,10 @@ public final class CrtRequestContext {
 
     public HttpClientConnectionManager crtConnPool() {
         return crtConnPool;
+    }
+
+    public MetricCollector metricCollector() {
+        return metricCollector;
     }
 
     public static class Builder {
