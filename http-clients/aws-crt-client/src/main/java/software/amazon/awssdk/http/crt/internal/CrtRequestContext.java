@@ -19,7 +19,6 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.http.HttpClientConnectionManager;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.metrics.MetricCollector;
-import software.amazon.awssdk.metrics.NoOpMetricCollector;
 
 @SdkInternalApi
 public final class CrtRequestContext {
@@ -51,7 +50,9 @@ public final class CrtRequestContext {
         return crtConnPool;
     }
 
-    public MetricCollector metricCollector() { return metricCollector; }
+    public MetricCollector metricCollector() {
+        return metricCollector;
+    }
 
     public static class Builder {
         private AsyncExecuteRequest request;

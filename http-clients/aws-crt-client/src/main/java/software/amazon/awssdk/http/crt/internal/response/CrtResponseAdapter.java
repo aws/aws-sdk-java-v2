@@ -127,7 +127,7 @@ public final class CrtResponseAdapter implements HttpStreamResponseHandler {
     }
 
     private void onFailedResponseComplete(HttpStream stream, HttpException error) {
-        log.error(() -> "HTTP response encountered an error.", error);
+        log.debug(() -> "HTTP response encountered an error.", error);
 
         IOException wrappedError = new IOException(error);
         responsePublisher.error(wrappedError);
