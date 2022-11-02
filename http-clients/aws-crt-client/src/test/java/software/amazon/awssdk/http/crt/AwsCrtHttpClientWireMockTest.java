@@ -28,15 +28,11 @@ import static software.amazon.awssdk.http.crt.CrtHttpClientTestUtils.createReque
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
 import java.util.concurrent.TimeUnit;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import software.amazon.awssdk.crt.CrtResource;
-import software.amazon.awssdk.crt.io.EventLoopGroup;
-import software.amazon.awssdk.crt.io.HostResolver;
-import software.amazon.awssdk.http.RecordingNetworkTrafficListener;
 import software.amazon.awssdk.http.RecordingResponseHandler;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
@@ -45,29 +41,19 @@ import software.amazon.awssdk.utils.Logger;
 
 public class AwsCrtHttpClientWireMockTest {
     private static final Logger log = Logger.loggerFor(AwsCrtHttpClientWireMockTest.class);
-    private final RecordingNetworkTrafficListener wiremockTrafficListener = new RecordingNetworkTrafficListener();
 
     @Rule
     public WireMockRule mockServer = new WireMockRule(wireMockConfig()
-                                                          .dynamicPort()
-                                                          .dynamicHttpsPort()
-                                                          .networkTrafficListener(wiremockTrafficListener));
+                                                          .dynamicPort());
 
     @BeforeClass
     public static void setup() {
         System.setProperty("aws.crt.debugnative", "true");
     }
 
-    @Before
-    public void methodSetup() {
-        wiremockTrafficListener.reset();
-    }
-
-    @After
-    public void tearDown() {
+    @AfterClass
+    public static void tearDown() {
         // Verify there is no resource leak.
-        EventLoopGroup.closeStaticDefault();
-        HostResolver.closeStaticDefault();
         CrtResource.waitForNoResources();
     }
 
