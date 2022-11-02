@@ -31,6 +31,7 @@ import software.amazon.awssdk.utils.Logger;
 /**
  * Publisher of the response data from crt. Tracks outstanding demand and delivers the data to the subscriber
  */
+//TODO: use SimplePublisher
 @SdkInternalApi
 public class S3CrtDataPublisher implements SdkPublisher<ByteBuffer> {
     private static final Logger log = Logger.loggerFor(S3CrtDataPublisher.class);
@@ -161,16 +162,10 @@ public class S3CrtDataPublisher implements SdkPublisher<ByteBuffer> {
 
                 int size = dataEvent.data().remaining();
 
-                // TODO: CRT may send empty byte buffer
-                //  we should remove size check once it's fixed on CRT side
-                // https://github.com/awslabs/aws-c-s3/pull/220
-                if (size > 0) {
-                    outstandingDemand.decrementAndGet();
-                    log.debug(() -> "incrementing read window by " + size);
-                    metaRequest.incrementReadWindow(size);
-                    subscriberRef.get().onNext(dataEvent.data());
-                }
-
+                outstandingDemand.decrementAndGet();
+                log.debug(() -> "incrementing read window by " + size);
+                metaRequest.incrementReadWindow(size);
+                subscriberRef.get().onNext(dataEvent.data());
             }
             isDelivering.set(false);
         }

@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.s3;
 
 import java.net.URI;
 import java.nio.file.Path;
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
@@ -28,6 +29,7 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
  * Builder API to build instance of Common Run Time based S3AsyncClient.
  */
 @SdkPublicApi
+@SdkPreviewApi
 public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuilder, S3AsyncClient> {
 
 
@@ -130,7 +132,18 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
      */
     S3CrtAsyncClientBuilder checksumValidationEnabled(Boolean checksumValidationEnabled);
 
-    S3CrtAsyncClientBuilder readBufferSizeInBytes(Long readBufferSizeInBytes);
+    /**
+     * Configure the starting buffer size the client will use to buffer the parts downloaded from S3. Maintain a larger window to
+     * keep up a high download throughput; parts cannot download in parallel unless the window is large enough to hold multiple
+     * parts. Maintain a smaller window to limit the amount of data buffered in memory.
+     *
+     * <p>
+     * By default, it is equal to the resolved part size * 10
+     *
+     * @param initialReadBufferSizeInBytes the initial read buffer size
+     * @return this builder for method chaining.
+     */
+    S3CrtAsyncClientBuilder initialReadBufferSizeInBytes(Long initialReadBufferSizeInBytes);
 
     @Override
     S3AsyncClient build();

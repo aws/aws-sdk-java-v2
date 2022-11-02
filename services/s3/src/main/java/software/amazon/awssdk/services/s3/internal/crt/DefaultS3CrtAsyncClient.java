@@ -188,7 +188,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         }
 
         @Override
-        public S3CrtAsyncClientBuilder readBufferSizeInBytes(Long readBufferSizeInBytes) {
+        public S3CrtAsyncClientBuilder initialReadBufferSizeInBytes(Long readBufferSizeInBytes) {
             this.readBufferSizeInBytes = readBufferSizeInBytes;
             return this;
         }

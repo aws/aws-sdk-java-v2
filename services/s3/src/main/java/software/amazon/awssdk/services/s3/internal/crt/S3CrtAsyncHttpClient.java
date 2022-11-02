@@ -51,7 +51,6 @@ import software.amazon.awssdk.utils.Logger;
  */
 @SdkInternalApi
 public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
-    private static final long MAX_WINDOW_SIZE = 100 * 1024 * 1024; // 100 MB //TODO: Run some perf tests
     private static final Logger log = Logger.loggerFor(S3CrtAsyncHttpClient.class);
 
     private final S3Client crtS3Client;
@@ -62,7 +61,6 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         s3NativeClientConfiguration = builder.clientConfiguration;
         Long initialWindowSize = s3NativeClientConfiguration.readBufferSizeInBytes();
 
-        log.info(() -> "initial window size " + initialWindowSize);
         S3ClientOptions s3ClientOptions =
             new S3ClientOptions().withRegion(s3NativeClientConfiguration.signingRegion())
                                  .withEndpoint(s3NativeClientConfiguration.endpointOverride() == null ? null :
@@ -71,12 +69,9 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
                                  .withClientBootstrap(s3NativeClientConfiguration.clientBootstrap())
                                  .withPartSize(s3NativeClientConfiguration.partSizeBytes())
                                  .withComputeContentMd5(false)
-                                 .withThroughputTargetGbps(s3NativeClientConfiguration.targetThroughputInGbps());
-
-        if (initialWindowSize != null) {
-            s3ClientOptions.withInitialReadWindowSize(initialWindowSize);
-            s3ClientOptions.withReadBackpressureEnabled(true);
-        }
+                                 .withThroughputTargetGbps(s3NativeClientConfiguration.targetThroughputInGbps())
+                                 .withInitialReadWindowSize(initialWindowSize)
+                                 .withReadBackpressureEnabled(true);
         this.crtS3Client = new S3Client(s3ClientOptions);
     }
 

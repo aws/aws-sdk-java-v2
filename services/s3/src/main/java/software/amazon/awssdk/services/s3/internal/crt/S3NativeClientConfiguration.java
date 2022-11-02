@@ -32,6 +32,7 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
 public class S3NativeClientConfiguration implements SdkAutoCloseable {
     private static final long DEFAULT_PART_SIZE_IN_BYTES = 8L * 1024 * 1024;
     private static final long DEFAULT_TARGET_THROUGHPUT_IN_GBPS = 5;
+
     private final String signingRegion;
     private final ClientBootstrap clientBootstrap;
     private final CrtCredentialsProviderAdapter credentialProviderAdapter;
@@ -66,7 +67,8 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         this.endpointOverride = builder.endpointOverride;
 
         this.checksumValidationEnabled = builder.checksumValidationEnabled == null || builder.checksumValidationEnabled;
-        this.readBufferSizeInBytes = builder.readBufferSizeInBytes;
+        this.readBufferSizeInBytes = builder.readBufferSizeInBytes == null ?
+                                     partSizeInBytes * 10 : builder.readBufferSizeInBytes;
     }
 
     public static Builder builder() {
@@ -107,10 +109,6 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
 
     public Long readBufferSizeInBytes() {
         return readBufferSizeInBytes;
-    }
-
-    public boolean backpressureForDownloadEnabled() {
-        return readBufferSizeInBytes != null;
     }
 
     @Override
