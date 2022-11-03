@@ -1,6 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "contributor": "", 
-    "type": "bugfix", 
-    "description": "HttpChecksumResolver.getResolvedChecksumSpecs() first attempts retrieval of checksum from ExecutionAttributes before resolving it"
-}

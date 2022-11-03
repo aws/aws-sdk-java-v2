@@ -35,10 +35,10 @@ import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.services.protocolquery.model.AllTypesRequest;
-import software.amazon.awssdk.services.protocolquery.endpoints.internal.ProtocolQueryEndpointAuthSchemeInterceptor;
+import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.RestJsonEndpointProvidersEndpointAuthSchemeInterceptor;
 
 public class EndpointAuthSchemeInterceptorTest {
-    private static final ExecutionInterceptor INTERCEPTOR = new ProtocolQueryEndpointAuthSchemeInterceptor();
+    private static final ExecutionInterceptor INTERCEPTOR = new RestJsonEndpointProvidersEndpointAuthSchemeInterceptor();
 
     @Test
     public void modifyRequest_sigV4Scheme_overridesCorrectSigner() {

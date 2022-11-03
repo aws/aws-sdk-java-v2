@@ -6,13 +6,13 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
-import software.amazon.awssdk.services.protocolrestjson.endpoints.internal.EndpointRuleset;
-import software.amazon.awssdk.services.protocolrestjson.endpoints.internal.Identifier;
-import software.amazon.awssdk.services.protocolrestjson.endpoints.internal.Parameter;
-import software.amazon.awssdk.services.protocolrestjson.endpoints.internal.ParameterType;
-import software.amazon.awssdk.services.protocolrestjson.endpoints.internal.RuleEngine;
-import software.amazon.awssdk.services.protocolrestjson.endpoints.internal.RuleError;
-import software.amazon.awssdk.services.protocolrestjson.endpoints.internal.Value;
+import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.EndpointRuleset;
+import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.Identifier;
+import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.Parameter;
+import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.ParameterType;
+import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.RuleEngine;
+import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.RuleError;
+import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.Value;
 import software.amazon.awssdk.utils.Pair;
 
 public class EndpointTest {

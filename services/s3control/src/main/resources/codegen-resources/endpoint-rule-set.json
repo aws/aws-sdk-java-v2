@@ -306,8 +306,8 @@
                                                                                                                                 {
                                                                                                                                     "name": "sigv4",
                                                                                                                                     "disableDoubleEncoding": true,
-                                                                                                                                    "signingRegion": "{Region}",
-                                                                                                                                    "signingName": "s3-outposts"
+                                                                                                                                    "signingName": "s3-outposts",
+                                                                                                                                    "signingRegion": "{Region}"
                                                                                                                                 }
                                                                                                                             ]
                                                                                                                         },
@@ -334,8 +334,8 @@
                                                                                                                                 {
                                                                                                                                     "name": "sigv4",
                                                                                                                                     "disableDoubleEncoding": true,
-                                                                                                                                    "signingRegion": "{Region}",
-                                                                                                                                    "signingName": "s3-outposts"
+                                                                                                                                    "signingName": "s3-outposts",
+                                                                                                                                    "signingRegion": "{Region}"
                                                                                                                                 }
                                                                                                                             ]
                                                                                                                         },
@@ -352,8 +352,8 @@
                                                                                                                                 {
                                                                                                                                     "name": "sigv4",
                                                                                                                                     "disableDoubleEncoding": true,
-                                                                                                                                    "signingRegion": "{Region}",
-                                                                                                                                    "signingName": "s3-outposts"
+                                                                                                                                    "signingName": "s3-outposts",
+                                                                                                                                    "signingRegion": "{Region}"
                                                                                                                                 }
                                                                                                                             ]
                                                                                                                         },
@@ -823,8 +823,8 @@
                                                                                                                                                                                                                                                                                 {
                                                                                                                                                                                                                                                                                     "name": "sigv4",
                                                                                                                                                                                                                                                                                     "disableDoubleEncoding": true,
-                                                                                                                                                                                                                                                                                    "signingRegion": "{accessPointArn#region}",
-                                                                                                                                                                                                                                                                                    "signingName": "s3-outposts"
+                                                                                                                                                                                                                                                                                    "signingName": "s3-outposts",
+                                                                                                                                                                                                                                                                                    "signingRegion": "{accessPointArn#region}"
                                                                                                                                                                                                                                                                                 }
                                                                                                                                                                                                                                                                             ]
                                                                                                                                                                                                                                                                         },
@@ -866,8 +866,8 @@
                                                                                                                                                                                                                                                                                 {
                                                                                                                                                                                                                                                                                     "name": "sigv4",
                                                                                                                                                                                                                                                                                     "disableDoubleEncoding": true,
-                                                                                                                                                                                                                                                                                    "signingRegion": "{accessPointArn#region}",
-                                                                                                                                                                                                                                                                                    "signingName": "s3-outposts"
+                                                                                                                                                                                                                                                                                    "signingName": "s3-outposts",
+                                                                                                                                                                                                                                                                                    "signingRegion": "{accessPointArn#region}"
                                                                                                                                                                                                                                                                                 }
                                                                                                                                                                                                                                                                             ]
                                                                                                                                                                                                                                                                         },
@@ -891,8 +891,8 @@
                                                                                                                                                                                                                                                                                 {
                                                                                                                                                                                                                                                                                     "name": "sigv4",
                                                                                                                                                                                                                                                                                     "disableDoubleEncoding": true,
-                                                                                                                                                                                                                                                                                    "signingRegion": "{accessPointArn#region}",
-                                                                                                                                                                                                                                                                                    "signingName": "s3-outposts"
+                                                                                                                                                                                                                                                                                    "signingName": "s3-outposts",
+                                                                                                                                                                                                                                                                                    "signingRegion": "{accessPointArn#region}"
                                                                                                                                                                                                                                                                                 }
                                                                                                                                                                                                                                                                             ]
                                                                                                                                                                                                                                                                         },
@@ -1455,8 +1455,8 @@
                                                                                                                                                                                                                                                                                 {
                                                                                                                                                                                                                                                                                     "name": "sigv4",
                                                                                                                                                                                                                                                                                     "disableDoubleEncoding": true,
-                                                                                                                                                                                                                                                                                    "signingRegion": "{bucketArn#region}",
-                                                                                                                                                                                                                                                                                    "signingName": "s3-outposts"
+                                                                                                                                                                                                                                                                                    "signingName": "s3-outposts",
+                                                                                                                                                                                                                                                                                    "signingRegion": "{bucketArn#region}"
                                                                                                                                                                                                                                                                                 }
                                                                                                                                                                                                                                                                             ]
                                                                                                                                                                                                                                                                         },
@@ -1498,8 +1498,8 @@
                                                                                                                                                                                                                                                                                 {
                                                                                                                                                                                                                                                                                     "name": "sigv4",
                                                                                                                                                                                                                                                                                     "disableDoubleEncoding": true,
-                                                                                                                                                                                                                                                                                    "signingRegion": "{bucketArn#region}",
-                                                                                                                                                                                                                                                                                    "signingName": "s3-outposts"
+                                                                                                                                                                                                                                                                                    "signingName": "s3-outposts",
+                                                                                                                                                                                                                                                                                    "signingRegion": "{bucketArn#region}"
                                                                                                                                                                                                                                                                                 }
                                                                                                                                                                                                                                                                             ]
                                                                                                                                                                                                                                                                         },
@@ -1523,8 +1523,8 @@
                                                                                                                                                                                                                                                                                 {
                                                                                                                                                                                                                                                                                     "name": "sigv4",
                                                                                                                                                                                                                                                                                     "disableDoubleEncoding": true,
-                                                                                                                                                                                                                                                                                    "signingRegion": "{bucketArn#region}",
-                                                                                                                                                                                                                                                                                    "signingName": "s3-outposts"
+                                                                                                                                                                                                                                                                                    "signingName": "s3-outposts",
+                                                                                                                                                                                                                                                                                    "signingRegion": "{bucketArn#region}"
                                                                                                                                                                                                                                                                                 }
                                                                                                                                                                                                                                                                             ]
                                                                                                                                                                                                                                                                         },
@@ -1877,8 +1877,8 @@
                                                                                                                                 {
                                                                                                                                     "name": "sigv4",
                                                                                                                                     "disableDoubleEncoding": true,
-                                                                                                                                    "signingRegion": "{Region}",
-                                                                                                                                    "signingName": "s3"
+                                                                                                                                    "signingName": "s3",
+                                                                                                                                    "signingRegion": "{Region}"
                                                                                                                                 }
                                                                                                                             ]
                                                                                                                         },
@@ -1895,8 +1895,8 @@
                                                                                                                                 {
                                                                                                                                     "name": "sigv4",
                                                                                                                                     "disableDoubleEncoding": true,
-                                                                                                                                    "signingRegion": "{Region}",
-                                                                                                                                    "signingName": "s3"
+                                                                                                                                    "signingName": "s3",
+                                                                                                                                    "signingRegion": "{Region}"
                                                                                                                                 }
                                                                                                                             ]
                                                                                                                         },
@@ -1965,8 +1965,8 @@
                                                                                                                         {
                                                                                                                             "name": "sigv4",
                                                                                                                             "disableDoubleEncoding": true,
-                                                                                                                            "signingRegion": "{Region}",
-                                                                                                                            "signingName": "s3"
+                                                                                                                            "signingName": "s3",
+                                                                                                                            "signingRegion": "{Region}"
                                                                                                                         }
                                                                                                                     ]
                                                                                                                 },
@@ -2002,8 +2002,8 @@
                                                                                                                         {
                                                                                                                             "name": "sigv4",
                                                                                                                             "disableDoubleEncoding": true,
-                                                                                                                            "signingRegion": "{Region}",
-                                                                                                                            "signingName": "s3"
+                                                                                                                            "signingName": "s3",
+                                                                                                                            "signingRegion": "{Region}"
                                                                                                                         }
                                                                                                                     ]
                                                                                                                 },
@@ -2064,8 +2064,8 @@
                                                                                                                         {
                                                                                                                             "name": "sigv4",
                                                                                                                             "disableDoubleEncoding": true,
-                                                                                                                            "signingRegion": "{Region}",
-                                                                                                                            "signingName": "s3"
+                                                                                                                            "signingName": "s3",
+                                                                                                                            "signingRegion": "{Region}"
                                                                                                                         }
                                                                                                                     ]
                                                                                                                 },
@@ -2101,8 +2101,8 @@
                                                                                                                         {
                                                                                                                             "name": "sigv4",
                                                                                                                             "disableDoubleEncoding": true,
-                                                                                                                            "signingRegion": "{Region}",
-                                                                                                                            "signingName": "s3"
+                                                                                                                            "signingName": "s3",
+                                                                                                                            "signingRegion": "{Region}"
                                                                                                                         }
                                                                                                                     ]
                                                                                                                 },
@@ -2163,8 +2163,8 @@
                                                                                                                         {
                                                                                                                             "name": "sigv4",
                                                                                                                             "disableDoubleEncoding": true,
-                                                                                                                            "signingRegion": "{Region}",
-                                                                                                                            "signingName": "s3"
+                                                                                                                            "signingName": "s3",
+                                                                                                                            "signingRegion": "{Region}"
                                                                                                                         }
                                                                                                                     ]
                                                                                                                 },
@@ -2200,8 +2200,8 @@
                                                                                                                         {
                                                                                                                             "name": "sigv4",
                                                                                                                             "disableDoubleEncoding": true,
-                                                                                                                            "signingRegion": "{Region}",
-                                                                                                                            "signingName": "s3"
+                                                                                                                            "signingName": "s3",
+                                                                                                                            "signingRegion": "{Region}"
                                                                                                                         }
                                                                                                                     ]
                                                                                                                 },
@@ -2262,8 +2262,8 @@
                                                                                                                         {
                                                                                                                             "name": "sigv4",
                                                                                                                             "disableDoubleEncoding": true,
-                                                                                                                            "signingRegion": "{Region}",
-                                                                                                                            "signingName": "s3"
+                                                                                                                            "signingName": "s3",
+                                                                                                                            "signingRegion": "{Region}"
                                                                                                                         }
                                                                                                                     ]
                                                                                                                 },
@@ -2299,8 +2299,8 @@
                                                                                                                         {
                                                                                                                             "name": "sigv4",
                                                                                                                             "disableDoubleEncoding": true,
-                                                                                                                            "signingRegion": "{Region}",
-                                                                                                                            "signingName": "s3"
+                                                                                                                            "signingName": "s3",
+                                                                                                                            "signingRegion": "{Region}"
                                                                                                                         }
                                                                                                                     ]
                                                                                                                 },

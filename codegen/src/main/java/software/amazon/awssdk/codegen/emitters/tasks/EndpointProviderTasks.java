@@ -18,6 +18,7 @@ package software.amazon.awssdk.codegen.emitters.tasks;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.codegen.emitters.GeneratorTask;
@@ -45,6 +46,10 @@ public final class EndpointProviderTasks extends BaseGeneratorTasks {
 
     @Override
     protected List<GeneratorTask> createTasks() throws Exception {
+        if (!generatorTaskParams.getModel().getCustomizationConfig().useRuleBasedEndpoints()) {
+            return Collections.emptyList();
+        }
+
         List<GeneratorTask> tasks = new ArrayList<>();
         tasks.add(generateInterface());
         tasks.add(generateParams());

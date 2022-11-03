@@ -13,7 +13,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
-import software.amazon.awssdk.services.protocolrestjson.endpoints.internal.EndpointRuleset;
+import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.internal.EndpointRuleset;
 import software.amazon.awssdk.services.rules.EndpointTest;
 import software.amazon.awssdk.services.rules.EndpointTestSuite;
 

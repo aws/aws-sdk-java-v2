@@ -175,7 +175,7 @@
                                 {
                                     "conditions": [],
                                     "endpoint": {
-                                        "url": "https://support-app-fips.{Region}.{PartitionResult#dualStackDnsSuffix}",
+                                        "url": "https://supportapp-fips.{Region}.{PartitionResult#dualStackDnsSuffix}",
                                         "properties": {},
                                         "headers": {}
                                     },
@@ -227,7 +227,7 @@
                                 {
                                     "conditions": [],
                                     "endpoint": {
-                                        "url": "https://support-app-fips.{Region}.{PartitionResult#dnsSuffix}",
+                                        "url": "https://supportapp-fips.{Region}.{PartitionResult#dnsSuffix}",
                                         "properties": {},
                                         "headers": {}
                                     },
@@ -279,7 +279,7 @@
                                 {
                                     "conditions": [],
                                     "endpoint": {
-                                        "url": "https://support-app.{Region}.{PartitionResult#dualStackDnsSuffix}",
+                                        "url": "https://supportapp.{Region}.{PartitionResult#dualStackDnsSuffix}",
                                         "properties": {},
                                         "headers": {}
                                     },
@@ -297,7 +297,7 @@
                 {
                     "conditions": [],
                     "endpoint": {
-                        "url": "https://support-app.{Region}.{PartitionResult#dnsSuffix}",
+                        "url": "https://supportapp.{Region}.{PartitionResult#dnsSuffix}",
                         "properties": {},
                         "headers": {}
                     },
