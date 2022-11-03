@@ -220,7 +220,6 @@ public final class NettyRequestExecutor {
                 throw new IOException("Unknown protocol: " + protocol);
         }
 
-        pipeline.addLast(LastHttpContentHandler.create());
         if (protocol == Protocol.HTTP2) {
             pipeline.addLast(FlushOnReadHandler.getInstance());
         }

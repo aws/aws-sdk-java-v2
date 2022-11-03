@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.http.nio.netty.internal.nrs;
 
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.LAST_HTTP_CONTENT_RECEIVED_KEY;
+
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -30,6 +32,7 @@ import java.util.Queue;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.http.nio.netty.internal.utils.NettyClientLogger;
 
 /**
  * This class contains source imported from https://github.com/playframework/netty-reactive-streams,
@@ -42,6 +45,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 @SdkInternalApi
 abstract class HttpStreamsHandler<InT extends HttpMessage, OutT extends HttpMessage> extends ChannelDuplexHandler {
 
+    private static final NettyClientLogger logger = NettyClientLogger.getLogger(HttpStreamsHandler.class);
     private final Queue<Outgoing> outgoing = new LinkedList<>();
     private final Class<InT> inClass;
     private final Class<OutT> outClass;
@@ -211,7 +215,8 @@ abstract class HttpStreamsHandler<InT extends HttpMessage, OutT extends HttpMess
     private void handleReadHttpContent(ChannelHandlerContext ctx, HttpContent content) {
         if (!ignoreBodyRead) {
             if (content instanceof LastHttpContent) {
-
+                ctx.channel().attr(LAST_HTTP_CONTENT_RECEIVED_KEY).set(true);
+                logger.debug(ctx.channel(), () -> "Received LastHttpContent " + ctx.channel());
                 if (content.content().readableBytes() > 0 ||
                         !((LastHttpContent) content).trailingHeaders().isEmpty()) {
                     // It has data or trailing headers, send them
