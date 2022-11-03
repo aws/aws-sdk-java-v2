@@ -31,6 +31,11 @@ public class BenchmarkRunner {
     private static final String KEY = "key";
     private static final String OPERATION = "operation";
     private static final String CHECKSUM_ALGORITHM = "checksumAlgo";
+    private static final String ITERATION = "iteration";
+
+    private static final String READ_BUFFER_IN_MB = "readBufferInMB";
+
+    private static final String VERSION = "version";
 
     private BenchmarkRunner() {
     }
@@ -40,29 +45,56 @@ public class BenchmarkRunner {
 
         Options options = new Options();
 
-        options.addRequiredOption(null, FILE, true, "Destination file path to be written or source file path to be "
-                                                    + "uploaded");
         options.addRequiredOption(null, BUCKET, true, "The s3 bucket");
         options.addRequiredOption(null, KEY, true, "The s3 key");
-        options.addRequiredOption(null, OPERATION, true, "The operation to benchmark against");
+        options.addRequiredOption(null, OPERATION, true, "The operation to run tests: download | upload");
+        options.addOption(null, FILE, true, "Destination file path to be written to or source file path to be "
+                                            + "uploaded");
         options.addOption(null, PART_SIZE_IN_MB, true, "Part size in MB");
         options.addOption(null, MAX_THROUGHPUT, true, "The max throughput");
         options.addOption(null, CHECKSUM_ALGORITHM, true, "The checksum algorithm to use");
+        options.addOption(null, ITERATION, true, "The number of iterations");
+        options.addOption(null, READ_BUFFER_IN_MB, true, "Read buffer size in MB");
+        options.addOption(null, VERSION, true, "The major version of the transfer manager to run test: v1 | v2 | crt, default: "
+                                               + "v2");
 
         CommandLine cmd = parser.parse(options, args);
         TransferManagerBenchmarkConfig config = parseConfig(cmd);
         TransferManagerOperation operation = TransferManagerOperation.valueOf(cmd.getOptionValue(OPERATION)
                                                                                  .toUpperCase(Locale.ENGLISH));
-        switch (operation) {
-            case DOWNLOAD:
-                TransferManagerBenchmark.download(config).run();
-                break;
-            case UPLOAD:
-                TransferManagerBenchmark.upload(config).run();
-                break;
-            default:
-                throw new UnsupportedOperationException();
+        SdkVersion version = SdkVersion.valueOf(cmd.getOptionValue(VERSION, "V2")
+                                                   .toUpperCase(Locale.ENGLISH));
+
+        if (operation == TransferManagerOperation.UPLOAD) {
+            switch (version) {
+                case V1:
+                    TransferManagerBenchmark.v1Upload(config).run();
+                    return;
+                case V2:
+                    TransferManagerBenchmark.upload(config).run();
+                    return;
+                default:
+                    throw new UnsupportedOperationException();
+            }
         }
+
+        if (operation == TransferManagerOperation.DOWNLOAD) {
+            switch (version) {
+                case V1:
+                    TransferManagerBenchmark.v1Download(config).run();
+                    return;
+                case V2:
+                    TransferManagerBenchmark.download(config).run();
+                    return;
+                case CRT:
+                    new CrtS3ClientBenchmark(config).run();
+                    return;
+                default:
+                    throw new UnsupportedOperationException();
+            }
+        }
+
+        throw new UnsupportedOperationException("Unsupported operation");
     }
 
     private static TransferManagerBenchmarkConfig parseConfig(CommandLine cmd) {
@@ -74,23 +106,39 @@ public class BenchmarkRunner {
 
         Double maxThroughput = cmd.getOptionValue(MAX_THROUGHPUT) == null ? null :
                                Double.parseDouble(cmd.getOptionValue(MAX_THROUGHPUT));
+
         ChecksumAlgorithm checksumAlgorithm = null;
         if (cmd.getOptionValue(CHECKSUM_ALGORITHM) != null) {
             checksumAlgorithm = ChecksumAlgorithm.fromValue(cmd.getOptionValue(CHECKSUM_ALGORITHM)
-                                                                               .toUpperCase(Locale.ENGLISH));
+                                                               .toUpperCase(Locale.ENGLISH));
         }
+
+        Integer iteration = cmd.getOptionValue(ITERATION) == null ? null :
+                            Integer.parseInt(cmd.getOptionValue(ITERATION));
+
+        Long readBufferInMB = cmd.getOptionValue(READ_BUFFER_IN_MB) == null ? null :
+                                      Long.parseLong(cmd.getOptionValue(READ_BUFFER_IN_MB));
+
         return TransferManagerBenchmarkConfig.builder()
                                              .key(key)
                                              .bucket(bucket)
                                              .partSizeInMb(partSize)
                                              .checksumAlgorithm(checksumAlgorithm)
                                              .targetThroughput(maxThroughput)
+                                             .readBufferSizeInMb(readBufferInMB)
                                              .filePath(filePath)
+                                             .iteration(iteration)
                                              .build();
     }
 
     private enum TransferManagerOperation {
         DOWNLOAD,
         UPLOAD
+    }
+
+    private enum SdkVersion {
+        V1,
+        V2,
+        CRT
     }
 }

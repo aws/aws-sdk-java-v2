@@ -32,6 +32,7 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
 public class S3NativeClientConfiguration implements SdkAutoCloseable {
     private static final long DEFAULT_PART_SIZE_IN_BYTES = 8L * 1024 * 1024;
     private static final long DEFAULT_TARGET_THROUGHPUT_IN_GBPS = 5;
+
     private final String signingRegion;
     private final ClientBootstrap clientBootstrap;
     private final CrtCredentialsProviderAdapter credentialProviderAdapter;
@@ -41,6 +42,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
     private final int maxConcurrency;
     private final URI endpointOverride;
     private final boolean checksumValidationEnabled;
+    private final Long readBufferSizeInBytes;
 
     public S3NativeClientConfiguration(Builder builder) {
         this.signingRegion = builder.signingRegion == null ? DefaultAwsRegionProviderChain.builder().build().getRegion().id() :
@@ -65,6 +67,8 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         this.endpointOverride = builder.endpointOverride;
 
         this.checksumValidationEnabled = builder.checksumValidationEnabled == null || builder.checksumValidationEnabled;
+        this.readBufferSizeInBytes = builder.readBufferSizeInBytes == null ?
+                                     partSizeInBytes * 10 : builder.readBufferSizeInBytes;
     }
 
     public static Builder builder() {
@@ -103,6 +107,10 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         return checksumValidationEnabled;
     }
 
+    public Long readBufferSizeInBytes() {
+        return readBufferSizeInBytes;
+    }
+
     @Override
     public void close() {
         clientBootstrap.close();
@@ -110,6 +118,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
     }
 
     public static final class Builder {
+        public Long readBufferSizeInBytes;
         private String signingRegion;
         private AwsCredentialsProvider credentialsProvider;
         private Long partSizeInBytes;
@@ -162,6 +171,11 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
 
         public S3NativeClientConfiguration build() {
             return new S3NativeClientConfiguration(this);
+        }
+
+        public Builder readBufferSizeInBytes(Long readBufferSizeInBytes) {
+            this.readBufferSizeInBytes = readBufferSizeInBytes;
+            return this;
         }
     }
 }

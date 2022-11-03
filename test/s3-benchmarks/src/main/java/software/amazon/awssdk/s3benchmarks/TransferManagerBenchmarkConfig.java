@@ -24,6 +24,9 @@ public final class TransferManagerBenchmarkConfig {
     private final Double targetThroughput;
     private final Long partSizeInMb;
     private final ChecksumAlgorithm checksumAlgorithm;
+    private final Integer iteration;
+
+    private final Long readBufferSizeInMb;
 
     private TransferManagerBenchmarkConfig(Builder builder) {
         this.filePath = builder.filePath;
@@ -32,6 +35,8 @@ public final class TransferManagerBenchmarkConfig {
         this.targetThroughput = builder.targetThroughput;
         this.partSizeInMb = builder.partSizeInMb;
         this.checksumAlgorithm = builder.checksumAlgorithm;
+        this.iteration = builder.iteration;
+        this.readBufferSizeInMb = builder.readBufferSizeInMb;
     }
 
     public String filePath() {
@@ -58,6 +63,14 @@ public final class TransferManagerBenchmarkConfig {
         return checksumAlgorithm;
     }
 
+    public Integer iteration() {
+        return iteration;
+    }
+
+    public Long readBufferSizeInMb() {
+        return readBufferSizeInMb;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -69,18 +82,23 @@ public final class TransferManagerBenchmarkConfig {
                ", bucket: '" + bucket + '\'' +
                ", key: '" + key + '\'' +
                ", targetThroughput: " + targetThroughput +
-               ", partSizeInMB: " + partSizeInMb + '\'' +
+               ", partSizeInMb: " + partSizeInMb +
                ", checksumAlgorithm: " + checksumAlgorithm +
+               ", iteration: " + iteration +
+               ", readBufferSizeInMb: " + readBufferSizeInMb +
                '}';
     }
 
     static final class Builder {
+        private Long readBufferSizeInMb;
         private ChecksumAlgorithm checksumAlgorithm;
         private String filePath;
         private String bucket;
         private String key;
         private Double targetThroughput;
         private Long partSizeInMb;
+
+        private Integer iteration;
 
         public Builder filePath(String filePath) {
             this.filePath = filePath;
@@ -109,6 +127,16 @@ public final class TransferManagerBenchmarkConfig {
 
         public Builder checksumAlgorithm(ChecksumAlgorithm checksumAlgorithm) {
             this.checksumAlgorithm = checksumAlgorithm;
+            return this;
+        }
+
+        public Builder iteration(Integer iteration) {
+            this.iteration = iteration;
+            return this;
+        }
+
+        public Builder readBufferSizeInMb(Long readBufferSizeInMb) {
+            this.readBufferSizeInMb = readBufferSizeInMb;
             return this;
         }
 

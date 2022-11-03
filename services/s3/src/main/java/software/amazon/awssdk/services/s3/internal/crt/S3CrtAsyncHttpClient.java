@@ -59,6 +59,7 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
 
     private S3CrtAsyncHttpClient(Builder builder) {
         s3NativeClientConfiguration = builder.clientConfiguration;
+        Long initialWindowSize = s3NativeClientConfiguration.readBufferSizeInBytes();
 
         S3ClientOptions s3ClientOptions =
             new S3ClientOptions().withRegion(s3NativeClientConfiguration.signingRegion())
@@ -68,7 +69,9 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
                                  .withClientBootstrap(s3NativeClientConfiguration.clientBootstrap())
                                  .withPartSize(s3NativeClientConfiguration.partSizeBytes())
                                  .withComputeContentMd5(false)
-                                 .withThroughputTargetGbps(s3NativeClientConfiguration.targetThroughputInGbps());
+                                 .withThroughputTargetGbps(s3NativeClientConfiguration.targetThroughputInGbps())
+                                 .withInitialReadWindowSize(initialWindowSize)
+                                 .withReadBackpressureEnabled(true);
         this.crtS3Client = new S3Client(s3ClientOptions);
     }
 
@@ -109,6 +112,9 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         S3MetaRequest s3MetaRequest = crtS3Client.makeMetaRequest(requestOptions);
         S3MetaRequestPauseObservable observable =
             asyncRequest.httpExecutionAttributes().getAttribute(METAREQUEST_PAUSE_OBSERVABLE);
+
+        responseHandler.metaRequest(s3MetaRequest);
+
         if (observable != null) {
             observable.subscribe(s3MetaRequest);
         }

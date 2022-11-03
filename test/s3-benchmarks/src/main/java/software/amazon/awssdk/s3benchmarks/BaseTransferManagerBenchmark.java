@@ -15,7 +15,8 @@
 
 package software.amazon.awssdk.s3benchmarks;
 
-import static software.amazon.awssdk.transfer.s3.SizeConstant.GB;
+import static software.amazon.awssdk.s3benchmarks.BenchmarkUtils.BENCHMARK_ITERATIONS;
+import static software.amazon.awssdk.s3benchmarks.BenchmarkUtils.WARMUP_KEY;
 import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
 import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
@@ -32,18 +33,16 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.utils.Logger;
 
 public abstract class BaseTransferManagerBenchmark implements TransferManagerBenchmark {
+
     protected static final int WARMUP_ITERATIONS = 10;
-    protected static final int BENCHMARK_ITERATIONS = 10;
 
     private static final Logger logger = Logger.loggerFor("TransferManagerBenchmark");
-    private static final String WARMUP_KEY = "warmupobject";
 
     protected final S3TransferManager transferManager;
     protected final S3AsyncClient s3;
@@ -51,14 +50,19 @@ public abstract class BaseTransferManagerBenchmark implements TransferManagerBen
     protected final String bucket;
     protected final String key;
     protected final String path;
+    protected final int iteration;
     private final File file;
 
     BaseTransferManagerBenchmark(TransferManagerBenchmarkConfig config) {
         logger.info(() -> "Benchmark config: " + config);
         Long partSizeInMb = config.partSizeInMb() == null ? null : config.partSizeInMb() * MB;
+        Long readBufferSizeInMb = config.readBufferSizeInMb() == null ? null : config.readBufferSizeInMb() * MB;
         s3 = S3CrtAsyncClient.builder()
                              .targetThroughputInGbps(config.targetThroughput())
                              .minimumPartSizeInBytes(partSizeInMb)
+                             .initialReadBufferSizeInBytes(readBufferSizeInMb)
+                             .targetThroughputInGbps(config.targetThroughput() == null ?
+                                                     Double.valueOf(100.0) : config.targetThroughput())
                              .build();
         s3Sync = S3Client.builder()
                          .build();
@@ -68,6 +72,7 @@ public abstract class BaseTransferManagerBenchmark implements TransferManagerBen
         bucket = config.bucket();
         key = config.key();
         path = config.filePath();
+        iteration = config.iteration() == null ? BENCHMARK_ITERATIONS : config.iteration();
         try {
             file = new RandomTempFile(1024 * 1000L);
             file.deleteOnExit();
@@ -92,41 +97,25 @@ public abstract class BaseTransferManagerBenchmark implements TransferManagerBen
     /**
      * Hook method to allow subclasses to add additional warm up
      */
-    protected void additionalWarmup() {
+    protected void additionalWarmup() throws Exception {
         // default to no-op
     }
 
     protected abstract void doRunBenchmark();
 
-    protected final void printOutResult(List<Double> metrics, String name) {
-        logger.info(() -> String.format("===============  %s Result ================", name));
-        logger.info(() -> String.valueOf(metrics));
-        double averageLatency = metrics.stream()
-                                       .mapToDouble(a -> a)
-                                       .average()
-                                       .orElse(0.0);
-
-        double lowestLatency = metrics.stream()
-                                      .mapToDouble(a -> a)
-                                      .min().orElse(0.0);
-
-        HeadObjectResponse headObjectResponse = s3Sync.headObject(b -> b.bucket(bucket).key(key));
-        double contentLengthInGigabit = ((double) headObjectResponse.contentLength() / GB) * 8.0;
-        logger.info(() -> "Average latency (s): " + averageLatency);
-        logger.info(() -> "Object size (Gigabit): " + contentLengthInGigabit);
-        logger.info(() -> "Average throughput (Gbps): " + contentLengthInGigabit / averageLatency);
-        logger.info(() -> "Highest average throughput (Gbps): " + contentLengthInGigabit / lowestLatency);
-        logger.info(() -> "==========================================================");
-    }
-
     private void cleanup() {
-        s3Sync.deleteObject(b -> b.bucket(bucket).key(WARMUP_KEY));
+        try {
+            s3Sync.deleteObject(b -> b.bucket(bucket).key(WARMUP_KEY));
+        } catch (Exception exception) {
+            logger.error(() -> "Failed to delete object: " + WARMUP_KEY);
+        }
+
         s3.close();
         s3Sync.close();
         transferManager.close();
     }
 
-    private void warmUp() throws InterruptedException {
+    private void warmUp() throws Exception {
         logger.info(() -> "Starting to warm up");
 
         for (int i = 0; i < WARMUP_ITERATIONS; i++) {

@@ -29,20 +29,26 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import software.amazon.awssdk.crt.s3.S3MetaRequest;
 
-public class S3CrtDataPublisherTest {
+class S3CrtDataPublisherTest {
 
     private S3CrtDataPublisher dataPublisher;
+    private S3MetaRequest s3MetaRequest;
+
 
     @BeforeEach
     public void setup() {
         dataPublisher = new S3CrtDataPublisher();
+        s3MetaRequest = Mockito.mock(S3MetaRequest.class);
+        dataPublisher.metaRequest(s3MetaRequest);
     }
 
     @Test
-    public void publisherFinishesSuccessfully_shouldInvokeOnComplete() throws InterruptedException {
+    void publisherFinishesSuccessfully_shouldInvokeOnComplete() throws InterruptedException {
         AtomicBoolean errorOccurred = new AtomicBoolean(false);
         CountDownLatch countDownLatch = new CountDownLatch(1);
         Queue<ByteBuffer> events = new ConcurrentLinkedQueue<>();
@@ -81,10 +87,11 @@ public class S3CrtDataPublisherTest {
         countDownLatch.await(5, TimeUnit.SECONDS);
         assertThat(errorOccurred).isFalse();
         assertThat(events.size()).isEqualTo(numOfData);
+        Mockito.verify(s3MetaRequest, Mockito.times(numOfData)).incrementReadWindow(Mockito.anyLong());
     }
 
     @Test
-    public void publisherHasOneByteBuffer_subscriberRequestOnce_shouldInvokeComplete() throws InterruptedException {
+    void publisherHasOneByteBuffer_subscriberRequestOnce_shouldInvokeComplete() throws InterruptedException {
         AtomicBoolean errorOccurred = new AtomicBoolean(false);
         CountDownLatch countDownLatch = new CountDownLatch(1);
         Queue<ByteBuffer> events = new ConcurrentLinkedQueue<>();
@@ -123,10 +130,11 @@ public class S3CrtDataPublisherTest {
         assertThat(countDownLatch.getCount()).isEqualTo(0);
         assertThat(errorOccurred).isFalse();
         assertThat(events.size()).isEqualTo(numOfData);
+        Mockito.verify(s3MetaRequest, Mockito.times(numOfData)).incrementReadWindow(Mockito.anyLong());
     }
 
     @Test
-    public void publisherThrowsError_shouldInvokeOnError() throws InterruptedException {
+    void publisherThrowsError_shouldInvokeOnError() throws InterruptedException {
         AtomicBoolean onCompleteCalled = new AtomicBoolean(false);
         CountDownLatch countDownLatch = new CountDownLatch(1);
         Queue<ByteBuffer> events = new ConcurrentLinkedQueue<>();
@@ -165,10 +173,11 @@ public class S3CrtDataPublisherTest {
         countDownLatch.await(5, TimeUnit.SECONDS);
         assertThat(onCompleteCalled).isFalse();
         assertThat(events.size()).isEqualTo(numOfData);
+        Mockito.verify(s3MetaRequest, Mockito.times(numOfData)).incrementReadWindow(Mockito.anyLong());
     }
 
     @Test
-    public void subscriberCancels_shouldNotInvokeTerminalMethods() {
+    void subscriberCancels_shouldNotInvokeTerminalMethods() {
         AtomicBoolean onCompleteCalled = new AtomicBoolean(false);
         AtomicBoolean errorOccurred = new AtomicBoolean(false);
 

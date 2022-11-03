@@ -30,6 +30,7 @@
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
+        <sdk-v1.version>1.12.1</sdk-v1.version>
     </properties>
     <name>AWS Java SDK :: Test :: S3 Benchmarks</name>
     <description>Contains benchmark code for S3 and TransferManager</description>
@@ -54,6 +55,11 @@
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>s3-transfer-manager</artifactId>
             <version>${awsjavasdk.version}-PREVIEW</version>
+        </dependency>
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-s3</artifactId>
+            <version>${sdk-v1.version}</version>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>

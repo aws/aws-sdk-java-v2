@@ -33,6 +33,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.s3.S3FinishedResponseContext;
+import software.amazon.awssdk.crt.s3.S3MetaRequest;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 
@@ -48,6 +49,9 @@ public class S3CrtResponseHandlerAdapterTest {
 
     @Mock
     private S3FinishedResponseContext context;
+
+    @Mock
+    private S3MetaRequest s3MetaRequest;
     private CompletableFuture<Void> future;
 
     @Before
@@ -56,6 +60,8 @@ public class S3CrtResponseHandlerAdapterTest {
         responseHandlerAdapter = new S3CrtResponseHandlerAdapter(future,
                                                                  sdkResponseHandler,
                                                                  crtDataPublisher);
+
+        responseHandlerAdapter.metaRequest(s3MetaRequest);
     }
 
     @Test
@@ -79,6 +85,31 @@ public class S3CrtResponseHandlerAdapterTest {
 
         responseHandlerAdapter.onFinished(stubResponseContext(0, 0, null));
         assertThat(future).isCompleted();
+        verify(s3MetaRequest).close();
+    }
+
+    @Test
+    public void nullByteBuffer_shouldCompleteFutureExceptionally() {
+        HttpHeader[] httpHeaders = new HttpHeader[2];
+        httpHeaders[0] = new HttpHeader("foo", "1");
+        httpHeaders[1] = new HttpHeader("bar", "2");
+
+        int statusCode = 200;
+        responseHandlerAdapter.onResponseHeaders(statusCode, httpHeaders);
+        responseHandlerAdapter.onResponseBody(null, 0, 0);
+
+        ArgumentCaptor<SdkHttpResponse> argumentCaptor = ArgumentCaptor.forClass(SdkHttpResponse.class);
+        verify(sdkResponseHandler).onHeaders(argumentCaptor.capture());
+
+        ArgumentCaptor<Exception> exceptionArgumentCaptor = ArgumentCaptor.forClass(Exception.class);
+        verify(crtDataPublisher).notifyError(exceptionArgumentCaptor.capture());
+        verify(sdkResponseHandler).onError(exceptionArgumentCaptor.capture());
+
+        Exception actualException = exceptionArgumentCaptor.getValue();
+        assertThat(actualException).isInstanceOf(IllegalStateException.class).hasMessageContaining("ByteBuffer delivered is "
+                                                                                                   + "null");
+        assertThat(future).isCompletedExceptionally();
+        verify(s3MetaRequest).close();
     }
 
     @Test
@@ -107,6 +138,7 @@ public class S3CrtResponseHandlerAdapterTest {
         assertThat(actualByteBuffer).isEqualTo(ByteBuffer.wrap(errorPayload));
 
         assertThat(future).isCompleted();
+        verify(s3MetaRequest).close();
     }
 
     @Test
@@ -121,6 +153,7 @@ public class S3CrtResponseHandlerAdapterTest {
         Exception actualException = exceptionArgumentCaptor.getValue();
         assertThat(actualException).isInstanceOf(SdkClientException.class);
         assertThat(future).isCompletedExceptionally();
+        verify(s3MetaRequest).close();
     }
 
     private S3FinishedResponseContext stubResponseContext(int errorCode, int responseStatus, byte[] errorPayload) {

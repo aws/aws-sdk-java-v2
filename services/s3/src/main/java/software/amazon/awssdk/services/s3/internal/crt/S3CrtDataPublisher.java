@@ -25,11 +25,13 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.crt.s3.S3MetaRequest;
 import software.amazon.awssdk.utils.Logger;
 
 /**
  * Publisher of the response data from crt. Tracks outstanding demand and delivers the data to the subscriber
  */
+//TODO: use SimplePublisher
 @SdkInternalApi
 public class S3CrtDataPublisher implements SdkPublisher<ByteBuffer> {
     private static final Logger log = Logger.loggerFor(S3CrtDataPublisher.class);
@@ -44,6 +46,8 @@ public class S3CrtDataPublisher implements SdkPublisher<ByteBuffer> {
     private final AtomicReference<Subscriber<? super ByteBuffer>> subscriberRef = new AtomicReference<>(null);
 
     private volatile boolean isDone;
+
+    private volatile S3MetaRequest metaRequest;
 
     @Override
     public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
@@ -81,6 +85,7 @@ public class S3CrtDataPublisher implements SdkPublisher<ByteBuffer> {
     }
 
     public void deliverData(ByteBuffer byteBuffer) {
+        log.trace(() -> "Received data: " + byteBuffer);
         // If the subscription is cancelled, no op
         if (isDone) {
             return;
@@ -122,6 +127,7 @@ public class S3CrtDataPublisher implements SdkPublisher<ByteBuffer> {
     }
 
     private void flushBuffer() {
+
         if (buffer.isEmpty()) {
             return;
         }
@@ -153,11 +159,20 @@ public class S3CrtDataPublisher implements SdkPublisher<ByteBuffer> {
                 }
 
                 DataEvent dataEvent = (DataEvent) event;
+
+                int size = dataEvent.data().remaining();
+
                 outstandingDemand.decrementAndGet();
+                log.debug(() -> "incrementing read window by " + size);
+                metaRequest.incrementReadWindow(size);
                 subscriberRef.get().onNext(dataEvent.data());
             }
             isDelivering.set(false);
         }
+    }
+
+    public void metaRequest(S3MetaRequest s3MetaRequest) {
+        this.metaRequest = s3MetaRequest;
     }
 
     private final class DataSubscription implements Subscription {

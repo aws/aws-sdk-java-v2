@@ -47,6 +47,7 @@ import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.utils.CollectionUtils;
+import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient implements S3CrtAsyncClient {
@@ -87,6 +88,11 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
 
     private static S3CrtAsyncHttpClient.Builder initializeS3CrtAsyncHttpClient(DefaultS3CrtClientBuilder builder) {
         validateCrtInClassPath();
+        Validate.isPositiveOrNull(builder.readBufferSizeInBytes, "initialReadBufferSizeInBytes");
+        Validate.isPositiveOrNull(builder.maxConcurrency, "maxConcurrency");
+        Validate.isPositiveOrNull(builder.targetThroughputInGbps, "targetThroughputInGbps");
+        Validate.isPositiveOrNull(builder.minimalPartSizeInBytes, "minimalPartSizeInBytes");
+
         s3NativeClientConfiguration =
             S3NativeClientConfiguration.builder()
                                        .checksumValidationEnabled(builder.checksumValidationEnabled)
@@ -96,6 +102,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                                        .signingRegion(builder.region == null ? null : builder.region.id())
                                        .endpointOverride(builder.endpointOverride)
                                        .credentialsProvider(builder.credentialsProvider)
+                                       .readBufferSizeInBytes(builder.readBufferSizeInBytes)
                                        .build();
         return S3CrtAsyncHttpClient.builder()
                                    .s3ClientConfiguration(s3NativeClientConfiguration);
@@ -107,6 +114,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
     }
 
     public static final class DefaultS3CrtClientBuilder implements S3CrtAsyncClientBuilder {
+        private Long readBufferSizeInBytes;
         private AwsCredentialsProvider credentialsProvider;
         private Region region;
         private Long minimalPartSizeInBytes;
@@ -139,6 +147,9 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
             return endpointOverride;
         }
 
+        public Long readBufferSizeInBytes() {
+            return readBufferSizeInBytes;
+        }
 
         @Override
         public S3CrtAsyncClientBuilder credentialsProvider(AwsCredentialsProvider credentialsProvider) {
@@ -179,6 +190,12 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         @Override
         public S3CrtAsyncClientBuilder checksumValidationEnabled(Boolean checksumValidationEnabled) {
             this.checksumValidationEnabled = checksumValidationEnabled;
+            return this;
+        }
+
+        @Override
+        public S3CrtAsyncClientBuilder initialReadBufferSizeInBytes(Long readBufferSizeInBytes) {
+            this.readBufferSizeInBytes = readBufferSizeInBytes;
             return this;
         }
 
