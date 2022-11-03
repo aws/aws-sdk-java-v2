@@ -40,7 +40,7 @@ class CloudFrontUtilitiesTest {
     private static File keyFile;
 
     @BeforeAll
-    static void setUp() throws NoSuchAlgorithmException, IOException {
+    static void setUp() throws Exception {
         initKeys();
     }
 
@@ -49,7 +49,7 @@ class CloudFrontUtilitiesTest {
         keyFile.deleteOnExit();
     }
 
-    static void initKeys() throws NoSuchAlgorithmException, IOException {
+    static void initKeys() throws Exception {
         kpg = KeyPairGenerator.getInstance("RSA");
         kpg.initialize(2048);
         keyPair = kpg.generateKeyPair();

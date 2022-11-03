@@ -165,7 +165,7 @@ public final class CloudFrontSignerRequest
 
         private DefaultBuilder(CloudFrontSignerRequest request) {
             this.resourceUrl = request.resourceUrl;
-            this.privateKey = request.privateKey();
+            this.privateKey = request.privateKey;
             this.keyPairId = request.keyPairId;
             this.expirationDate = request.expirationDate;
             this.activeDate = request.activeDate;
