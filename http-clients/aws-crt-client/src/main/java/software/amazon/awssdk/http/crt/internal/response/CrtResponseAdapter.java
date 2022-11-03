@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.http.crt.internal.response;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -126,9 +127,11 @@ public final class CrtResponseAdapter implements HttpStreamResponseHandler {
     }
 
     private void onFailedResponseComplete(HttpStream stream, HttpException error) {
-        log.error(() -> "HTTP response encountered an error.", error);
-        responsePublisher.error(error);
-        failResponseHandlerAndFuture(stream, error);
+        log.debug(() -> "HTTP response encountered an error.", error);
+
+        IOException wrappedError = new IOException(error);
+        responsePublisher.error(wrappedError);
+        failResponseHandlerAndFuture(stream, wrappedError);
     }
 
     private void failResponseHandlerAndFuture(HttpStream stream, Throwable error) {

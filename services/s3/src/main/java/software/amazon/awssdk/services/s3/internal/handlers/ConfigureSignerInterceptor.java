@@ -22,14 +22,15 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 
 /**
- * Don't double-url-encode path elements for S3. S3 expects path elements to be encoded only once in
- * the canonical URI.
+ * Don't double-url-encode or normalize path elements for S3, as per
+ * https://docs.aws.amazon.com/general/latest/gr/sigv4-create-canonical-request.html
  */
 @SdkInternalApi
-public final class DisableDoubleUrlEncodingInterceptor implements ExecutionInterceptor {
+public final class ConfigureSignerInterceptor implements ExecutionInterceptor {
 
     @Override
     public void beforeExecution(Context.BeforeExecution context, ExecutionAttributes executionAttributes) {
         executionAttributes.putAttribute(AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE, Boolean.FALSE);
+        executionAttributes.putAttribute(AwsSignerExecutionAttribute.SIGNER_NORMALIZE_PATH, Boolean.FALSE);
     }
 }
