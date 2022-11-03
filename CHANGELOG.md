@@ -1,3 +1,16 @@
+# __2.18.10__ __2022-11-03__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fixed an issue that could result in signature mismatch exceptions when requests included . or ..
+
+## __Amazon MemoryDB__
+  - ### Features
+    - Adding support for r6gd instances for MemoryDB Redis with data tiering. In a cluster with data tiering enabled, when available memory capacity is exhausted, the least recently used data is automatically tiered to solid state drives for cost-effective capacity scaling with minimal performance impact.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker now supports running training jobs on ml.trn1 instance types.
+
 # __2.18.9__ __2022-11-02__
 ## __AWS IoT SiteWise__
   - ### Features

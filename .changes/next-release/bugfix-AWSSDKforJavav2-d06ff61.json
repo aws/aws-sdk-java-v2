@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "Fixed an issue that could result in signature mismatch exceptions when requests included . or .."
-}
