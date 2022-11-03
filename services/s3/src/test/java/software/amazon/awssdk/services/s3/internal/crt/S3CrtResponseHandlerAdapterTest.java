@@ -89,6 +89,30 @@ public class S3CrtResponseHandlerAdapterTest {
     }
 
     @Test
+    public void nullByteBuffer_shouldCompleteFutureExceptionally() {
+        HttpHeader[] httpHeaders = new HttpHeader[2];
+        httpHeaders[0] = new HttpHeader("foo", "1");
+        httpHeaders[1] = new HttpHeader("bar", "2");
+
+        int statusCode = 200;
+        responseHandlerAdapter.onResponseHeaders(statusCode, httpHeaders);
+        responseHandlerAdapter.onResponseBody(null, 0, 0);
+
+        ArgumentCaptor<SdkHttpResponse> argumentCaptor = ArgumentCaptor.forClass(SdkHttpResponse.class);
+        verify(sdkResponseHandler).onHeaders(argumentCaptor.capture());
+
+        ArgumentCaptor<Exception> exceptionArgumentCaptor = ArgumentCaptor.forClass(Exception.class);
+        verify(crtDataPublisher).notifyError(exceptionArgumentCaptor.capture());
+        verify(sdkResponseHandler).onError(exceptionArgumentCaptor.capture());
+
+        Exception actualException = exceptionArgumentCaptor.getValue();
+        assertThat(actualException).isInstanceOf(IllegalStateException.class).hasMessageContaining("ByteBuffer delivered is "
+                                                                                                   + "null");
+        assertThat(future).isCompletedExceptionally();
+        verify(s3MetaRequest).close();
+    }
+
+    @Test
     public void errorResponse_shouldCompleteFutureSuccessfully() {
         int statusCode = 400;
         responseHandlerAdapter.onResponseHeaders(statusCode, new HttpHeader[0]);
