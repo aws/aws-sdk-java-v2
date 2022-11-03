@@ -66,6 +66,9 @@ public class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseHandler
 
     @Override
     public int onResponseBody(ByteBuffer bodyBytesIn, long objectRangeStart, long objectRangeEnd) {
+        if (bodyBytesIn == null) {
+            notifyError(new IllegalStateException("ByteBuffer delivered is null"));
+        }
         publisher.deliverData(bodyBytesIn);
         // Returning 0 to disable flow control because it is enforced in publisher
         return 0;

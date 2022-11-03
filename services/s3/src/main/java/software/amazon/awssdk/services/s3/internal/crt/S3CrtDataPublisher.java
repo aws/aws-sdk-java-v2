@@ -85,7 +85,7 @@ public class S3CrtDataPublisher implements SdkPublisher<ByteBuffer> {
     }
 
     public void deliverData(ByteBuffer byteBuffer) {
-        log.trace(() -> "received data of size: " + byteBuffer.remaining());
+        log.trace(() -> "Received data: " + byteBuffer);
         // If the subscription is cancelled, no op
         if (isDone) {
             return;

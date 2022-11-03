@@ -47,6 +47,7 @@ import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.utils.CollectionUtils;
+import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient implements S3CrtAsyncClient {
@@ -87,6 +88,11 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
 
     private static S3CrtAsyncHttpClient.Builder initializeS3CrtAsyncHttpClient(DefaultS3CrtClientBuilder builder) {
         validateCrtInClassPath();
+        Validate.isPositiveOrNull(builder.readBufferSizeInBytes, "initialReadBufferSizeInBytes");
+        Validate.isPositiveOrNull(builder.maxConcurrency, "maxConcurrency");
+        Validate.isPositiveOrNull(builder.targetThroughputInGbps, "targetThroughputInGbps");
+        Validate.isPositiveOrNull(builder.minimalPartSizeInBytes, "minimalPartSizeInBytes");
+
         s3NativeClientConfiguration =
             S3NativeClientConfiguration.builder()
                                        .checksumValidationEnabled(builder.checksumValidationEnabled)
