@@ -30,9 +30,11 @@ import java.util.Base64;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.services.cloudfront.model.CloudFrontSignerRequest;
 
 
 class CloudFrontUtilitiesTest {
+    private static final String resourceUrl = "https://distributionDomain/s3ObjectKey";
     private static KeyPairGenerator kpg;
     private static KeyPair keyPair;
     private static File keyFile;
@@ -40,7 +42,6 @@ class CloudFrontUtilitiesTest {
     @BeforeAll
     static void setUp() throws NoSuchAlgorithmException, IOException {
         initKeys();
-        writeKeys();
     }
 
     @AfterAll
@@ -48,13 +49,11 @@ class CloudFrontUtilitiesTest {
         keyFile.deleteOnExit();
     }
 
-    static void initKeys() throws NoSuchAlgorithmException {
+    static void initKeys() throws NoSuchAlgorithmException, IOException {
         kpg = KeyPairGenerator.getInstance("RSA");
         kpg.initialize(2048);
         keyPair = kpg.generateKeyPair();
-    }
 
-    static void writeKeys() throws IOException {
         Base64.Encoder encoder = Base64.getEncoder();
         keyFile = new File("key.pem");
         FileWriter writer = new FileWriter(keyFile);
@@ -68,8 +67,12 @@ class CloudFrontUtilitiesTest {
     void getSignedURLWithCannedPolicy_shouldWork() throws Exception {
 
         Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
-        String signedUrl = CloudFrontUtilities.getSignedUrlWithCannedPolicy(CloudFrontUtilities.Protocol.HTTPS, "distributionDomain",
-                                                                            "s3ObjectKey", keyFile, "keyPairId", expirationDate);
+        CloudFrontSignerRequest request = CloudFrontSignerRequest.builder()
+                                                                 .resourceUrl(resourceUrl)
+                                                                 .privateKey(CloudFrontUtilities.loadPrivateKey(keyFile))
+                                                                 .keyPairId("keyPairId")
+                                                                 .expirationDate(expirationDate).build();
+        String signedUrl = CloudFrontUtilities.getSignedUrlWithCannedPolicy(request);
         String signature = signedUrl.substring(signedUrl.indexOf("&Signature"), signedUrl.indexOf("&Key-Pair-Id"));
         String expected = "https://distributionDomain/s3ObjectKey?Expires=1704067200"
                           + signature
@@ -78,11 +81,18 @@ class CloudFrontUtilitiesTest {
     }
 
     @Test
-    void getSignedURLWithCustomPolicy_shouldWork() throws Exception {
+    void getSignedURLWithCustomPolicy_shouldWork() {
         Instant activeDate = LocalDate.of(2022, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         String ipRange = "1.2.3.4";
-        String signedUrl = CloudFrontUtilities.getSignedUrlWithCustomPolicy(CloudFrontUtilities.Protocol.HTTPS, "distributionDomain","s3ObjectKey", keyFile, "keyPairId", activeDate, expirationDate, ipRange);
+        CloudFrontSignerRequest request = CloudFrontSignerRequest.builder()
+                                                                 .resourceUrl(resourceUrl)
+                                                                 .privateKey(keyPair.getPrivate())
+                                                                 .keyPairId("keyPairId")
+                                                                 .expirationDate(expirationDate)
+                                                                 .activeDate(activeDate)
+                                                                 .ipRange(ipRange).build();
+        String signedUrl = CloudFrontUtilities.getSignedUrlWithCustomPolicy(request);
         String signature = signedUrl.substring(signedUrl.indexOf("&Signature"), signedUrl.indexOf("&Key-Pair-Id"));
         String expected = "https://distributionDomain/s3ObjectKey?Policy"
                           + "=eyJTdGF0ZW1lbnQiOiBbeyJSZXNvdXJjZSI6Imh0dHBzOi8vZGlzdHJpYnV0aW9uRG9tYWluL3MzT2JqZWN0S2V5IiwiQ29uZGl0aW9uIjp7IkRhdGVMZXNzVGhhbiI6eyJBV1M6RXBvY2hUaW1lIjoxNzA0MDY3MjAwfSwiSXBBZGRyZXNzIjp7IkFXUzpTb3VyY2VJcCI6IjEuMi4zLjQifSwiRGF0ZUdyZWF0ZXJUaGFuIjp7IkFXUzpFcG9jaFRpbWUiOjE2NDA5OTUyMDB9fX1dfQ__"
@@ -92,25 +102,21 @@ class CloudFrontUtilitiesTest {
     }
 
     @Test
-    void extractEncodedPath_shouldWork() throws Exception {
+    void extractEncodedPath_shouldWork() {
         String s3ObjectKey = "s3ObjectKey";
         Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
-        String signedUrl = CloudFrontUtilities.getSignedUrlWithCannedPolicy(CloudFrontUtilities.Protocol.HTTPS, "distributionDomain",
-                                                                            s3ObjectKey, keyFile, "keyPairId", expirationDate);
+        CloudFrontSignerRequest request = CloudFrontSignerRequest.builder()
+                                                                 .resourceUrl(resourceUrl)
+                                                                 .privateKey(keyPair.getPrivate())
+                                                                 .keyPairId("keyPairId")
+                                                                 .expirationDate(expirationDate).build();
+        String signedUrl = CloudFrontUtilities.getSignedUrlWithCannedPolicy(request);
         String encodedPath = CloudFrontUtilities.extractEncodedPath(signedUrl, s3ObjectKey);
         String signature = signedUrl.substring(signedUrl.indexOf("&Signature"), signedUrl.indexOf("&Key-Pair-Id"));
         String expected = "s3ObjectKey?Expires=1704067200"
                           + signature
                           + "&Key-Pair-Id=keyPairId";
         assertThat(encodedPath).isEqualTo(expected);
-    }
-
-    @Test
-    void generateResourceUrl_shouldWork() {
-        String resourceUrl = CloudFrontUtilities.generateResourceUrl(CloudFrontUtilities.Protocol.HTTPS, "domainName",
-                                                                     "resourcePath");
-        String expected = "https://domainName/resourcePath";
-        assertThat(resourceUrl).isEqualTo(expected);
     }
 
     @Test
