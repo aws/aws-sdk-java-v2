@@ -1,6 +1,6 @@
 [
   {
-    "name": "software.amazon.awssdk.services.s3control.internal.interceptors.DisableDoubleUrlEncodingForSigningInterceptor",
+    "name": "software.amazon.awssdk.services.s3control.internal.interceptors.ConfigureSignerInterceptor",
     "methods": [
       {
         "name": "<init>",
