@@ -24,5 +24,5 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 @FunctionalInterface
 @SdkProtectedApi
 public interface ProfileCredentialsProviderFactory {
-    AwsCredentialsProvider create(ProviderSpec providerSpec);
+    AwsCredentialsProvider create(ProfileProviderCredentialsContext profileProviderCredentialsContext);
 }

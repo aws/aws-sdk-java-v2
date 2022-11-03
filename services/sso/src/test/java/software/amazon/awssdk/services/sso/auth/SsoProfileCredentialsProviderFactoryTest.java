@@ -15,22 +15,13 @@
 
 package software.amazon.awssdk.services.sso.auth;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static com.github.tomakehurst.wiremock.client.WireMock.requestMatching;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
-import com.github.tomakehurst.wiremock.client.MappingBuilder;
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
-import com.github.tomakehurst.wiremock.matching.MatchResult;
 import com.google.common.collect.ImmutableList;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
@@ -40,26 +31,18 @@ import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Stream;
-import org.junit.Rule;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.auth.credentials.ProviderSpec;
-import software.amazon.awssdk.auth.token.credentials.SdkToken;
+import software.amazon.awssdk.auth.credentials.ProfileProviderCredentialsContext;
 import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
-import software.amazon.awssdk.profiles.Profile;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.services.sso.internal.SsoAccessToken;
 import software.amazon.awssdk.services.sso.internal.SsoAccessTokenProvider;
@@ -127,10 +110,10 @@ public class SsoProfileCredentialsProviderFactoryTest {
 
         assertThat(profiles.profile("test")).hasValueSatisfying(profile -> {
             SsoProfileCredentialsProviderFactory factory = new SsoProfileCredentialsProviderFactory();
-            assertThatThrownBy(() -> factory.create(ProviderSpec.builder()
-                                                        .profileFile(profiles)
-                                                        .profile(profile)
-                                                                .build())).hasMessageContaining(expectedValue);
+            assertThatThrownBy(() -> factory.create(ProfileProviderCredentialsContext.builder()
+                                                                                     .profileFile(profiles)
+                                                                                     .profile(profile)
+                                                                                     .build())).hasMessageContaining(expectedValue);
         });
     }
 

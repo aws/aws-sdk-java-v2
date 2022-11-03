@@ -22,7 +22,7 @@ import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import software.amazon.awssdk.auth.credentials.ProviderSpec;
+import software.amazon.awssdk.auth.credentials.ProfileProviderCredentialsContext;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.services.sso.auth.SsoProfileCredentialsProviderFactory;
 import software.amazon.awssdk.utils.StringInputStream;
@@ -40,7 +40,7 @@ public class ProfileCredentialProviderTest {
                                                  "[sso-session foo]\n" +
                                                  "sso_start_url=https//d-abc123.awsapps.com/start\n" +
                                                  "sso_region=region")
-                             , "Unable to load token from any of the providers in the chain AwsTokenProviderChain"),
+                             , "Unable to load SSO token"),
                          Arguments.of(configFile("[profile test]\n" +
                                                  "sso_account_id=accountId\n" +
                                                  "sso_role_name=roleName\n" +
@@ -71,10 +71,10 @@ public class ProfileCredentialProviderTest {
     void validateSsoFactoryErrorWithIncorrectProfiles(ProfileFile profiles, String expectedValue) {
         assertThat(profiles.profile("test")).hasValueSatisfying(profile -> {
             SsoProfileCredentialsProviderFactory factory = new SsoProfileCredentialsProviderFactory();
-            assertThatThrownBy(() -> factory.create(ProviderSpec.builder()
-                                                                .profile(profile)
-                                                                .profileFile(profiles)
-                                                                .build())).hasMessageContaining(expectedValue);
+            assertThatThrownBy(() -> factory.create(ProfileProviderCredentialsContext.builder()
+                                                                                     .profile(profile)
+                                                                                     .profileFile(profiles)
+                                                                                     .build())).hasMessageContaining(expectedValue);
         });
     }
 

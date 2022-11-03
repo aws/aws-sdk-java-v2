@@ -21,13 +21,16 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.profiles.Profile;
 import software.amazon.awssdk.profiles.ProfileFile;
 
+/**
+ * Context class that defines the required properties for creation of a Credentials provider*
+ */
 @SdkProtectedApi
-public final class ProviderSpec {
+public final class ProfileProviderCredentialsContext {
 
     private final Profile profile;
     private final ProfileFile profileFile;
 
-    private ProviderSpec(Profile profile, ProfileFile profileFile) {
+    private ProfileProviderCredentialsContext(Profile profile, ProfileFile profileFile) {
         this.profile = profile;
         this.profileFile = profileFile;
     }
@@ -36,10 +39,18 @@ public final class ProviderSpec {
         return new Builder();
     }
 
+    /**
+     * *
+     * @return The profile that should be used to load the configuration necessary to create the credential provider.
+     */
     public Profile profile() {
         return profile;
     }
 
+    /**
+     * *
+     * @return ProfileFile that has the profile which is used to create the credential provider.
+     */
     public ProfileFile profileFile() {
         return profileFile;
     }
@@ -53,7 +64,7 @@ public final class ProviderSpec {
             return false;
         }
 
-        ProviderSpec that = (ProviderSpec) o;
+        ProfileProviderCredentialsContext that = (ProfileProviderCredentialsContext) o;
         return Objects.equals(profile, that.profile) && Objects.equals(profileFile, that.profileFile);
     }
 
@@ -68,18 +79,33 @@ public final class ProviderSpec {
         private Profile profile;
         private ProfileFile profileFile;
 
+        private Builder() {
+        }
+
+        /**
+         * *
+         * @param profile The profile that should be used to load the configuration necessary to create the credential provider.
+         * @return Returns a reference to this object so that method calls can be chained together.
+         */
         public Builder profile(Profile profile) {
             this.profile = profile;
             return this;
         }
 
+        /**
+         * *
+         * @param profileFile : ProfileFile that has the profile which is used to create the credential provider.
+         *                    This is required to fetch the titles like sso-session defined in profile property*
+         *                    *
+         * @return Returns a reference to this object so that method calls can be chained together.
+         */
         public Builder profileFile(ProfileFile profileFile) {
             this.profileFile = profileFile;
             return this;
         }
 
-        public ProviderSpec build() {
-            return new ProviderSpec(profile, profileFile);
+        public ProfileProviderCredentialsContext build() {
+            return new ProfileProviderCredentialsContext(profile, profileFile);
         }
     }
 }

@@ -27,11 +27,10 @@ import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProviderFactory;
-import software.amazon.awssdk.auth.credentials.ProviderSpec;
+import software.amazon.awssdk.auth.credentials.ProfileProviderCredentialsContext;
 import software.amazon.awssdk.auth.token.credentials.ProfileTokenProvider;
 import software.amazon.awssdk.auth.token.credentials.SdkToken;
 import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
-import software.amazon.awssdk.auth.token.credentials.SdkTokenProviderChain;
 import software.amazon.awssdk.auth.token.internal.LazyTokenProvider;
 import software.amazon.awssdk.profiles.Profile;
 import software.amazon.awssdk.profiles.ProfileFile;
@@ -59,14 +58,15 @@ public class SsoProfileCredentialsProviderFactory implements ProfileCredentialsP
 
     /**
      * Default method to create the {@link SsoProfileCredentialsProvider} with a {@link SsoAccessTokenProvider} object created
-     * with the start url from {@link Profile}  in the {@link ProviderSpec} or environment variables and the * default token file
-     * directory.
+     * with the start url from {@link Profile}  in the {@link ProfileProviderCredentialsContext} or environment variables and the
+     * default token file directory.
      */
     @Override
-    public AwsCredentialsProvider create(ProviderSpec providerSpec) {
-        return new SsoProfileCredentialsProvider(providerSpec.profile(),
-                                                 providerSpec.profileFile(),
-                                                 sdkTokenProvider(providerSpec.profile(), providerSpec.profileFile()));
+    public AwsCredentialsProvider create(ProfileProviderCredentialsContext credentialsContext) {
+        return new SsoProfileCredentialsProvider(credentialsContext.profile(),
+                                                 credentialsContext.profileFile(),
+                                                 sdkTokenProvider(credentialsContext.profile(),
+                                                                  credentialsContext.profileFile()));
     }
 
     /**
@@ -80,9 +80,10 @@ public class SsoProfileCredentialsProviderFactory implements ProfileCredentialsP
     }
 
     /**
-     * A wrapper for a {@link SsoCredentialsProvider} that is returned by this factory when {@link #create(ProviderSpec)}
-     * * or {@link #create(Profile, ProfileFile, SdkTokenProvider)} is invoked. This wrapper is important because it ensures
-     * * the parent credentials provider is closed when the sso credentials provider is no longer needed.
+     * A wrapper for a {@link SsoCredentialsProvider} that is returned by this factory when {@link
+     * #create(ProfileProviderCredentialsContext)} * or {@link #create(Profile, ProfileFile, SdkTokenProvider)} is invoked. This
+     * wrapper is important because it ensures * the parent credentials provider is closed when the sso credentials provider is no
+     * longer needed.
      */
     private static final class SsoProfileCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
         private final SsoClient ssoClient;
@@ -161,15 +162,19 @@ public class SsoProfileCredentialsProviderFactory implements ProfileCredentialsP
 
     private static SdkTokenProvider sdkTokenProvider(Profile profile, ProfileFile profileFile) {
         Optional<String> ssoSession = profile.property(ProfileSection.SSO_SESSION.getPropertyKeyName());
-        return ssoSession.isPresent() ?
-               LazyTokenProvider.create(
-                   () -> SdkTokenProviderChain.of(
-                       ProfileTokenProvider.builder()
-                                           .profileFile(() -> profileFile)
-                                           .profileName(profile.name())
-                                           .build())) :
-               new SsoAccessTokenProvider(generateCachedTokenPath(
-                   profile.properties().get(ProfileProperty.SSO_START_URL), TOKEN_DIRECTORY));
+
+
+        if (ssoSession.isPresent()) {
+            return LazyTokenProvider.create(
+                () -> ProfileTokenProvider.builder()
+                                          .profileFile(() -> profileFile)
+                                          .profileName(profile.name())
+                                          .build());
+        } else {
+            return new SsoAccessTokenProvider(generateCachedTokenPath(
+                profile.properties().get(ProfileProperty.SSO_START_URL), TOKEN_DIRECTORY));
+
+        }
     }
 
 }

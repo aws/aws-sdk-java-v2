@@ -29,10 +29,8 @@ public class SsoAccessToken implements SdkToken {
     private final Instant expiresAt;
 
     private SsoAccessToken(BuilderImpl builder) {
-        Validate.paramNotNull(builder.accessToken, "accessToken");
-        Validate.paramNotNull(builder.expiresAt, "expiresAt");
-        this.accessToken = builder.accessToken;
-        this.expiresAt = builder.expiresAt;
+        this.accessToken = Validate.paramNotNull(builder.accessToken, "accessToken");
+        this.expiresAt = Validate.paramNotNull(builder.expiresAt, "expiresAt");
     }
 
     public static Builder builder() {
