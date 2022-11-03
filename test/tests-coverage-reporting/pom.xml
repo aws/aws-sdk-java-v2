@@ -128,6 +128,11 @@
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
+            <artifactId>auth-tests</artifactId>
+            <groupId>software.amazon.awssdk</groupId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
             <artifactId>codegen</artifactId>
             <groupId>software.amazon.awssdk</groupId>
             <version>${awsjavasdk.version}</version>
@@ -220,6 +225,11 @@
             <artifactId>s3-transfer-manager</artifactId>
             <groupId>software.amazon.awssdk</groupId>
             <version>${awsjavasdk.version}-PREVIEW</version>
+        </dependency>
+        <dependency>
+            <artifactId>sso</artifactId>
+            <groupId>software.amazon.awssdk</groupId>
+            <version>${awsjavasdk.version}</version>
         </dependency>
     </dependencies>
 
