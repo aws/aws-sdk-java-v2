@@ -15,19 +15,16 @@
 
 package software.amazon.awssdk.imds.internal;
 
-import static software.amazon.awssdk.imds.internal.Ec2MetadataEndpointProvider.DEFAULT_ENDPOINT_PROVIDER;
-
 import java.net.URI;
-import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
@@ -40,10 +37,10 @@ import software.amazon.awssdk.core.internal.http.async.AsyncResponseHandler;
 import software.amazon.awssdk.core.internal.http.async.SimpleHttpContentPublisher;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkAsyncHttpClientBuilder;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
+import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.HttpStatusFamily;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
-import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
@@ -52,41 +49,35 @@ import software.amazon.awssdk.imds.Ec2MetadataRetryPolicy;
 import software.amazon.awssdk.imds.EndpointMode;
 import software.amazon.awssdk.imds.MetadataResponse;
 import software.amazon.awssdk.utils.AttributeMap;
-import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.ThreadFactoryBuilder;
+import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 @Immutable
 @ThreadSafe
-public final class DefaultEc2MetadataAsyncClient implements Ec2MetadataAsyncClient {
+public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient implements Ec2MetadataAsyncClient {
 
     private static final Logger log = Logger.loggerFor(DefaultEc2MetadataClient.class);
     private static final int DEFAULT_RETRY_THREAD_POOL_SIZE = 3;
 
-    private final Ec2MetadataRetryPolicy retryPolicy;
     private final SdkAsyncHttpClient httpClient;
-    private final EndpointMode endpointMode;
-    private final URI endpoint;
-    private final RequestMarshaller requestMarshaller;
-    private final Duration tokenTtl;
     private final ScheduledExecutorService asyncRetryScheduler;
+    private final boolean isHttpClientManaged;
+    private final boolean isRetryExecutorManaged;
 
     private DefaultEc2MetadataAsyncClient(Ec2MetadataAsyncBuilder builder) {
-        this.retryPolicy = builder.retryPolicy != null ? builder.retryPolicy
-                                                       : Ec2MetadataRetryPolicy.builder().build();
-        this.endpointMode = builder.endpointMode != null ? builder.endpointMode
-                                                         : DEFAULT_ENDPOINT_PROVIDER.resolveEndpointMode();
-        this.endpoint = builder.endpoint != null ? builder.endpoint
-                                                 : URI.create(DEFAULT_ENDPOINT_PROVIDER.resolveEndpoint(this.endpointMode));
-        this.requestMarshaller = new RequestMarshaller(this.endpoint);
-        this.tokenTtl = builder.tokenTtl != null ? builder.tokenTtl
-                                                 : Duration.ofSeconds(21_600);
-        this.asyncRetryScheduler = builder.scheduledExecutorService != null
-                                   ? builder.scheduledExecutorService
-                                   : Executors.newScheduledThreadPool(DEFAULT_RETRY_THREAD_POOL_SIZE);
-        this.httpClient = builder.httpClient != null
-                          ? builder.httpClient
-                          : new DefaultSdkAsyncHttpClientBuilder().buildWithDefaults(AttributeMap.empty());
+        super(builder);
+        this.httpClient = Validate.getOrDefault(builder.httpClient,
+            () -> new DefaultSdkAsyncHttpClientBuilder().buildWithDefaults(AttributeMap.empty()));
+        this.asyncRetryScheduler = Validate.getOrDefault(builder.scheduledExecutorService,
+            () -> {
+                ThreadFactory threadFactory = new ThreadFactoryBuilder().threadNamePrefix("IMDS-ScheduledExecutor").build();
+                return Executors.newScheduledThreadPool(DEFAULT_RETRY_THREAD_POOL_SIZE, threadFactory);
+            });
+        this.isHttpClientManaged = builder.httpClient == null;
+        this.isRetryExecutorManaged = builder.scheduledExecutorService == null;
     }
 
     public static Ec2MetadataAsyncClient.Builder builder() {
@@ -95,22 +86,31 @@ public final class DefaultEc2MetadataAsyncClient implements Ec2MetadataAsyncClie
 
     @Override
     public CompletableFuture<MetadataResponse> get(String path) {
-        return get(path, RetryPolicyContext.builder().retriesAttempted(0).build());
+        CompletableFuture<MetadataResponse> returnFuture = new CompletableFuture<>();
+        get(path, RetryPolicyContext.builder().retriesAttempted(0).build(), returnFuture);
+        return returnFuture;
     }
 
-    private CompletableFuture<MetadataResponse> get(String path, RetryPolicyContext retryPolicyContext) {
+    private void get(String path, RetryPolicyContext retryPolicyContext, CompletableFuture<MetadataResponse> returnFuture) {
         SdkHttpFullRequest baseTokenRequest = requestMarshaller.createTokenRequest(tokenTtl);
+        CompletableFuture<String> tokenFuture = sendAsyncRequest(baseTokenRequest);
+        CompletableFutureUtils.forwardExceptionTo(returnFuture, tokenFuture);
 
-        CompletableFuture<String> tokenRequest = sendAsyncRequest(baseTokenRequest);
-        CompletableFuture<MetadataResponse> result = tokenRequest
-            .thenCompose(token -> {
-                SdkHttpFullRequest baseMetadataRequest = requestMarshaller.createDataRequest(path, token, tokenTtl);
-                return sendAsyncRequest(baseMetadataRequest);
-            }).thenApply(MetadataResponse::create);
+        CompletableFuture<MetadataResponse> result = tokenFuture.thenCompose(token -> {
+            SdkHttpFullRequest baseMetadataRequest = requestMarshaller.createDataRequest(path, token, tokenTtl);
+            return sendAsyncRequest(baseMetadataRequest);
+        }).thenApply(MetadataResponse::create);
 
-        return result.handle((response, error) -> {
-            if (response != null || !shouldRetry(retryPolicyContext, error)) {
-                return result;
+        CompletableFutureUtils.forwardExceptionTo(tokenFuture, result);
+
+        result.whenComplete((response, error) -> {
+            if (response != null) {
+                returnFuture.complete(response);
+                return;
+            }
+            if (!shouldRetry(retryPolicyContext, error)) {
+                returnFuture.completeExceptionally(error);
+                return;
             }
             int newAttempt = retryPolicyContext.retriesAttempted() + 1;
             log.debug(() -> "Retrying request: Attempt " + newAttempt);
@@ -120,28 +120,33 @@ public final class DefaultEc2MetadataAsyncClient implements Ec2MetadataAsyncClie
                                   .retriesAttempted(newAttempt)
                                   .exception(SdkClientException.create(error.getMessage(), error))
                                   .build();
-            return scheduledRetryAttempt(() -> get(path, newContext), newContext);
-        }).thenCompose(Function.identity()); // only java 12 has .exceptionallyCompose()
+            scheduledRetryAttempt(() -> get(path, newContext, returnFuture), newContext);
+        });
     }
 
     private CompletableFuture<String> sendAsyncRequest(SdkHttpFullRequest baseRequest) {
-        StringAsyncResponseHandler responseHandler = new StringAsyncResponseHandler();
         SdkHttpContentPublisher requestContentPublisher = new SimpleHttpContentPublisher(baseRequest);
+        StringResponseHandler stringResponseHandler = new StringResponseHandler();
+        TransformingAsyncResponseHandler<String> responseHandler = new AsyncResponseHandler<>(stringResponseHandler,
+                                                                                              Function.identity(),
+                                                                                              new ExecutionAttributes());
+        CompletableFuture<String> future = responseHandler.prepare();
+        stringResponseHandler.setFuture(future);
         AsyncExecuteRequest metadataRequest = AsyncExecuteRequest.builder()
                                                                  .request(baseRequest)
                                                                  .requestContentPublisher(requestContentPublisher)
                                                                  .responseHandler(responseHandler)
                                                                  .build();
-        httpClient.execute(metadataRequest);
-        return responseHandler.getResult();
+        CompletableFuture<Void> executeFuture = httpClient.execute(metadataRequest);
+        CompletableFutureUtils.forwardExceptionTo(future, executeFuture);
+        return future;
     }
 
-    private CompletableFuture<MetadataResponse> scheduledRetryAttempt(Supplier<CompletableFuture<MetadataResponse>> supplier,
-                                                                      RetryPolicyContext retryPolicyContext) {
+    private void scheduledRetryAttempt(Runnable runnable, RetryPolicyContext retryPolicyContext) {
         Duration retryDelay = retryPolicy.backoffStrategy().computeDelayBeforeNextRetry(retryPolicyContext);
-        Executor retryExecutor = retryAttempt -> asyncRetryScheduler.schedule(retryAttempt, retryDelay.toMillis(),
-                                                                              TimeUnit.MILLISECONDS);
-        return CompletableFuture.supplyAsync(supplier, retryExecutor).thenCompose(Function.identity());
+        Executor retryExecutor = retryAttempt ->
+            asyncRetryScheduler.schedule(retryAttempt, retryDelay.toMillis(), TimeUnit.MILLISECONDS);
+        CompletableFuture.runAsync(runnable, retryExecutor);
     }
 
     private boolean shouldRetry(RetryPolicyContext retryPolicyContext, Throwable error) {
@@ -153,80 +158,47 @@ public final class DefaultEc2MetadataAsyncClient implements Ec2MetadataAsyncClie
     }
 
     @Override
-    public Builder toBuilder() {
-        return builder()
-            .endpoint(this.endpoint)
-            .endpointMode(this.endpointMode)
-            .httpClient(this.httpClient)
-            .retryPolicy(this.retryPolicy)
-            .tokenTtl(this.tokenTtl);
-    }
-
-    @Override
     public void close() {
-        httpClient.close();
+        if (isHttpClientManaged) {
+            httpClient.close();
+        }
+        if (isRetryExecutorManaged) {
+            asyncRetryScheduler.shutdown();
+        }
     }
 
     private static final class StringResponseHandler implements HttpResponseHandler<String> {
+        private CompletableFuture<String> future;
+
+        public void setFuture(CompletableFuture<String> future) {
+            this.future = future;
+        }
+
         @Override
         public String handle(SdkHttpFullResponse response, ExecutionAttributes executionAttributes) throws Exception {
-            return IoUtils.toUtf8String(response.content().orElseThrow(() ->
-                SdkClientException.create("Unexpected error: empty response content")));
-        }
-    }
-
-    private static final class StringAsyncResponseHandler implements TransformingAsyncResponseHandler<String> {
-
-        private final AsyncResponseHandler<String> delegate;
-        private final CompletableFuture<String> future;
-
-        private StringAsyncResponseHandler() {
-            this.delegate = new AsyncResponseHandler<>(new StringResponseHandler(),
-                                                       Function.identity(),
-                                                       new ExecutionAttributes());
-            this.future = prepare();
-        }
-
-        public CompletableFuture<String> getResult() {
-            return this.future;
-        }
-
-        @Override
-        public CompletableFuture<String> prepare() {
-            return delegate.prepare();
-        }
-
-        @Override
-        public void onHeaders(SdkHttpResponse headers) {
-            delegate.onHeaders(headers);
-            HttpStatusFamily statusCode = HttpStatusFamily.of(headers.statusCode());
+            HttpStatusFamily statusCode = HttpStatusFamily.of(response.statusCode());
             if (statusCode.isOneOf(HttpStatusFamily.CLIENT_ERROR)) {
                 // non-retryable error
-                log.debug(() -> String.format("Error while executing EC2Metadata request: received http status %d",
-                                              headers.statusCode()));
-                future.completeExceptionally(SdkClientException.create("Error: Status code " + statusCode));
+                Supplier<String> msg = () -> String.format("Error while executing EC2Metadata request: received http"
+                                                           + " status %d",
+                                                           response.statusCode());
+                log.debug(msg);
+                future.completeExceptionally(SdkClientException.create(msg.get()));
             } else if (statusCode.isOneOf(HttpStatusFamily.SERVER_ERROR)) {
                 // retryable error
-                log.debug(() -> String.format("Error while executing EC2Metadata request: received http status %d",
-                                              headers.statusCode()));
-                future.completeExceptionally(RetryableException.create("Error: Status code " + statusCode));
+                Supplier<String> msg = () -> String.format("Error while executing EC2Metadata request: received http"
+                                                           + " status %d",
+                                                           response.statusCode());
+                log.debug(msg);
+                future.completeExceptionally(RetryableException.create(msg.get()));
             }
-        }
-
-        @Override
-        public void onStream(Publisher<ByteBuffer> publisher) {
-            delegate.onStream(publisher);
-        }
-
-        @Override
-        public void onError(Throwable error) {
-            log.debug(() -> String.format("Error while executing EC2Metadata request: %s", error.getMessage()));
-            future.completeExceptionally(RetryableException.create(error.getMessage(), error));
+            AbortableInputStream inputStream = response
+                .content().orElseThrow(() -> SdkClientException.create("Unexpected error: empty response content"));
+            return uncheckedInputStreamToUtf8(inputStream);
         }
     }
 
     private static final class Ec2MetadataAsyncBuilder implements Ec2MetadataAsyncClient.Builder {
-
 
         private Ec2MetadataRetryPolicy retryPolicy;
 
@@ -244,39 +216,59 @@ public final class DefaultEc2MetadataAsyncClient implements Ec2MetadataAsyncClie
         }
 
         @Override
-        public Builder retryPolicy(Ec2MetadataRetryPolicy retryPolicy) {
+        public Ec2MetadataAsyncBuilder retryPolicy(Ec2MetadataRetryPolicy retryPolicy) {
             this.retryPolicy = retryPolicy;
             return this;
         }
 
         @Override
-        public Builder endpoint(URI endpoint) {
+        public Ec2MetadataAsyncBuilder endpoint(URI endpoint) {
             this.endpoint = endpoint;
             return this;
         }
 
         @Override
-        public Builder tokenTtl(Duration tokenTtl) {
+        public Ec2MetadataAsyncBuilder tokenTtl(Duration tokenTtl) {
             this.tokenTtl = tokenTtl;
             return this;
         }
 
         @Override
-        public Builder endpointMode(EndpointMode endpointMode) {
+        public Ec2MetadataAsyncBuilder endpointMode(EndpointMode endpointMode) {
             this.endpointMode = endpointMode;
             return this;
         }
 
         @Override
-        public Builder httpClient(SdkAsyncHttpClient httpClient) {
+        public Ec2MetadataAsyncBuilder httpClient(SdkAsyncHttpClient httpClient) {
             this.httpClient = httpClient;
             return this;
         }
 
         @Override
-        public Builder scheduledExecutorService(ScheduledExecutorService scheduledExecutorService) {
+        public Ec2MetadataAsyncBuilder scheduledExecutorService(ScheduledExecutorService scheduledExecutorService) {
             this.scheduledExecutorService = scheduledExecutorService;
             return this;
+        }
+
+        @Override
+        public Ec2MetadataRetryPolicy getRetryPolicy() {
+            return this.retryPolicy;
+        }
+
+        @Override
+        public URI getEndpoint() {
+            return this.endpoint;
+        }
+
+        @Override
+        public Duration getTokenTtl() {
+            return this.tokenTtl;
+        }
+
+        @Override
+        public EndpointMode getEndpointMode() {
+            return this.endpointMode;
         }
 
         @Override

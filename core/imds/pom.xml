@@ -114,8 +114,8 @@
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
-            <artifactId>aws-crt-client</artifactId>
-            <version>${awsjavasdk.version}-PREVIEW</version>
+            <artifactId>netty-nio-client</artifactId>
+            <version>${awsjavasdk.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
