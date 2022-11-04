@@ -143,8 +143,7 @@ public class SsoProfileCredentialsProviderFactoryTest {
                                     "[sso-session foo]\n" +
                                     "sso_region=regionTwo\n" +
                                     "sso_start_url=https//d-abc123.awsapps.com/startOne")
-                , "Sso-session sso_start_url https//d-abc123.awsapps.com/startTwo and profile sso_start_url https//d-abc123"
-                  + ".awsapps.com/startOne are not same."),
+                , "Profile test and Sso-session foo has different sso_start_url."),
             // sso_region mismatch in sso-session and profile
             Arguments.of(configFile("[profile test]\n" +
                                     "sso_account_id=accountId\n" +
@@ -154,7 +153,7 @@ public class SsoProfileCredentialsProviderFactoryTest {
                                     "[sso-session foo]\n" +
                                     "sso_region=regionTwo\n" +
                                     "sso_start_url=https//d-abc123.awsapps.com/start")
-                , "Sso-session sso_region regionOne and profile sso_region regionTwo are not same.")
+                , "Profile test and Sso-session foo has different sso_region.")
         );
     }
 

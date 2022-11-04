@@ -40,7 +40,7 @@ public final class ProfileProviderCredentialsContext {
     }
 
     /**
-     * *
+     * Getter method for profile.
      * @return The profile that should be used to load the configuration necessary to create the credential provider.
      */
     public Profile profile() {
@@ -48,7 +48,7 @@ public final class ProfileProviderCredentialsContext {
     }
 
     /**
-     * *
+     * Getter for profileFile.
      * @return ProfileFile that has the profile which is used to create the credential provider.
      */
     public ProfileFile profileFile() {
@@ -83,7 +83,7 @@ public final class ProfileProviderCredentialsContext {
         }
 
         /**
-         * *
+         * Builder interface to set profile.
          * @param profile The profile that should be used to load the configuration necessary to create the credential provider.
          * @return Returns a reference to this object so that method calls can be chained together.
          */
@@ -93,7 +93,7 @@ public final class ProfileProviderCredentialsContext {
         }
 
         /**
-         * *
+         * Builder interface to set ProfileFile.
          * @param profileFile The ProfileFile that has the profile which is used to create the credential provider. This is *
          *                    required to fetch the titles like sso-session defined in profile property* *
          * @return Returns a reference to this object so that method calls can be chained together.

@@ -183,8 +183,8 @@ public class SsoProfileCredentialsProviderFactory implements ProfileCredentialsP
         profile.property(propertyName).ifPresent(
             property ->
                 Validate.isTrue(property.equalsIgnoreCase(ssoSessionProfileFile.property(propertyName).get()),
-                                "Sso-session " + propertyName + " " + property + " and profile " + propertyName + " "
-                                + ssoSessionProfileFile.property(propertyName).get() + " are not same."));
+                                "Profile " + profile.name() + " and Sso-session " + ssoSessionProfileFile.name() + " has "
+                                + "different " + propertyName + "."));
 
     }
 
