@@ -36,6 +36,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.profiles.ProfileFileSupplier;
 import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.utils.StringInputStream;
 
@@ -135,38 +136,12 @@ public class ProfileCredentialsProviderTest {
     }
 
     @Test
-    void resolveCredentials_missingCredentialsFileWithCustomExceptionHandler_ThrowsExceptionInResolveCredentials() {
-        try (ProfileCredentialsProvider provider =
-                 new ProfileCredentialsProvider.BuilderImpl()
-                     .defaultProfileFileLoader(() -> { throw new IllegalStateException(); })
-                     .exceptionHandler(e -> { throw SdkClientException.builder().cause(e).build(); })
-                     .build()) {
-
-            assertThatThrownBy(provider::resolveCredentials).isInstanceOf(SdkClientException.class);
-        }
-    }
-
-    @Test
-    void resolveCredentials_missingProfileFileCausesExceptionInConstructor_throwsException() {
-        ProfileCredentialsProvider provider =
-            new ProfileCredentialsProvider.BuilderImpl()
-                .profileFileSupplier(() -> ProfileFile.builder()
-                                                      .content(new StringInputStream(""))
-                                                      .type(ProfileFile.Type.CONFIGURATION)
-                                                      .build())
-                .build();
-
-        assertThatThrownBy(provider::resolveCredentials).isInstanceOf(IllegalArgumentException.class);
-    }
-
-    @Test
     void resolveCredentials_missingProfileFileCausesExceptionInMethod_throwsException() {
         ProfileCredentialsProvider.BuilderImpl builder = new ProfileCredentialsProvider.BuilderImpl();
         builder.defaultProfileFileLoader(() -> ProfileFile.builder()
                                                           .content(new StringInputStream(""))
                                                           .type(ProfileFile.Type.CONFIGURATION)
                                                           .build());
-        builder.defaultProfileFileReloadPredicate(r -> true);
         ProfileCredentialsProvider provider = builder.build();
 
         assertThatThrownBy(provider::resolveCredentials).isInstanceOf(SdkClientException.class);
@@ -181,7 +156,6 @@ public class ProfileCredentialsProviderTest {
         ProfileCredentialsProvider provider =
             ProfileCredentialsProvider.builder()
                                       .profileFileSupplier(() -> file)
-                                      .profileFileReloadPredicate(rec -> true)
                                       .profileName("foo")
                                       .build();
 
@@ -195,7 +169,6 @@ public class ProfileCredentialsProviderTest {
         ProfileCredentialsProvider provider =
             ProfileCredentialsProvider.builder()
                                       .profileFileSupplier(() -> file)
-                                      .profileFileReloadPredicate(rec -> true)
                                       .profileName("default")
                                       .build();
 
@@ -212,7 +185,6 @@ public class ProfileCredentialsProviderTest {
             ProfileCredentialsProvider.builder()
                                       .profileFileSupplier(() -> file)
                                       .profileName("default")
-                                      .profileFileReloadPredicate(rec -> true)
                                       .build();
 
         assertThat(provider.resolveCredentials()).satisfies(credentials -> {
@@ -222,90 +194,44 @@ public class ProfileCredentialsProviderTest {
     }
 
     @Test
-    void resolveCredentials_profileModifiedNoRefreshIntervalRequestWithinJitterPeriod_doesNotReloadCredentials() {
+    void resolveCredentials_profileModifiedWithinJitterPeriod_doesNotReloadCredentials() {
         Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
 
         AdjustableClock clock = new AdjustableClock();
-        Duration intervalWithinJitter = Duration.ofMillis(100);
-        ProfileCredentialsProvider provider = builderWithClock(clock)
-            .profileFileSupplier(() -> profileFile(credentialsFilePath))
-            .profileFileReloadPredicate(ProfileCredentialsProvider.wasRefreshedBeforeFileModificationTime(credentialsFilePath))
-            .profileName("default")
-            .build();
-        AwsCredentials credentials1 = provider.resolveCredentials();
-
-        generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey");
-
-        clock.tickForward(intervalWithinJitter);
-        AwsCredentials credentials2 = provider.resolveCredentials();
-
-        assertThat(credentials2).isSameAs(credentials1);
-    }
-
-    @Test
-    void resolveCredentials_profileModifiedNoRefreshIntervalRequestOutsideJitterPeriod_doesNotReloadCredentials() {
-        Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
-
-        AdjustableClock clock = new AdjustableClock();
-        Duration intervalOutsideJitter = Duration.ofMinutes(10);
-        ProfileCredentialsProvider provider = builderWithClock(clock)
-            .profileFileSupplier(() -> profileFile(credentialsFilePath))
-            .profileFileReloadPredicate(record -> record.wasCreatedBeforeFileModified(credentialsFilePath))
-            .profileName("default")
-            .build();
-        AwsCredentials credentials1 = provider.resolveCredentials();
-
-        generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey");
-
-        clock.tickForward(intervalOutsideJitter);
-        AwsCredentials credentials2 = provider.resolveCredentials();
-
-        assertThat(credentials2).isSameAs(credentials1);
-    }
-
-    @Test
-    void resolveCredentials_profileModifiedBeforeRefreshIntervalExpires_doesNotReloadCredentials() {
-        Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
-
-        AdjustableClock clock = new AdjustableClock();
-        Duration refreshInterval = Duration.ofSeconds(10);
+        Duration durationWithinJitter = Duration.ofMillis(10);
         ProfileCredentialsProvider provider = ProfileCredentialsProvider
             .builder()
-            .profileFileSupplier(() -> profileFile(credentialsFilePath))
-            .profileFileReloadPredicate(record -> record.wasCreatedBeforeFileModified(credentialsFilePath))
+            .profileFileSupplier(ProfileFileSupplier.builder().reloadWhenModified(credentialsFilePath).clock(clock).build())
             .profileName("default")
-            .refreshDuration(refreshInterval)
-            .pollingDuration(Duration.ofSeconds(1))
             .build();
         AwsCredentials credentials1 = provider.resolveCredentials();
 
         generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey");
+        updateModificationTime(credentialsFilePath, clock.instant().plus(durationWithinJitter));
 
-        clock.tickForward(refreshInterval.dividedBy(2));
+        clock.tickForward(durationWithinJitter);
         AwsCredentials credentials2 = provider.resolveCredentials();
 
         assertThat(credentials2).isSameAs(credentials1);
     }
 
     @Test
-    void resolveCredentials_profileModifiedAfterRefreshIntervalExpires_reloadsCredentials() {
+    void resolveCredentials_profileModifiedOutsideJitterPeriod_reloadsCredentials() {
         Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
 
         AdjustableClock clock = new AdjustableClock();
-        Duration refreshInterval = Duration.ofSeconds(15);
-        ProfileCredentialsProvider provider = builderWithClock(clock)
-            .profileFileSupplier(() -> profileFile(credentialsFilePath))
-            .profileFileReloadPredicate(record -> record.wasCreatedBeforeFileModified(credentialsFilePath))
+        Duration durationOutsideJitter = Duration.ofSeconds(1);
+        ProfileCredentialsProvider provider = ProfileCredentialsProvider
+            .builder()
+            .profileFileSupplier(ProfileFileSupplier.builder().reloadWhenModified(credentialsFilePath).clock(clock).build())
             .profileName("default")
-            .refreshDuration(refreshInterval)
-            .pollingDuration(Duration.ofSeconds(1))
             .build();
         provider.resolveCredentials();
 
         generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey");
-        updateModificationTime(credentialsFilePath, clock.instant().plusMillis(1));
+        updateModificationTime(credentialsFilePath, clock.instant().plus(durationOutsideJitter));
 
-        clock.tickForward(refreshInterval.plusSeconds(10));
+        clock.tickForward(durationOutsideJitter);
 
         assertThat(provider.resolveCredentials()).satisfies(credentials -> {
             assertThat(credentials.accessKeyId()).isEqualTo("modifiedAccessKey");
@@ -336,7 +262,7 @@ public class ProfileCredentialsProviderTest {
     }
 
     @Test
-    void toString_anyProfileCredentialsProvider_returnsStringWithExxpectedParameters() {
+    void toString_anyProfileCredentialsProvider_returnsStringWithExpectedParameters() {
         ProfileCredentialsProvider provider =
             new ProfileCredentialsProvider.BuilderImpl()
                 .defaultProfileFileLoader(() -> ProfileFile.builder()
@@ -367,10 +293,6 @@ public class ProfileCredentialsProviderTest {
         return ProfileFile.builder().content(new StringInputStream(string)).type(ProfileFile.Type.CONFIGURATION).build();
     }
 
-    private ProfileFile profileFile(Path path) {
-        return ProfileFile.builder().content(path).type(ProfileFile.Type.CREDENTIALS).build();
-    }
-
     private Path generateTestFile(String contents, String filename) {
         try {
             Files.createDirectories(testDirectory);
@@ -392,14 +314,6 @@ public class ProfileCredentialsProviderTest {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private ProfileCredentialsProvider.Builder builderWithClock(Clock clock) {
-        ProfileCredentialsProvider.Builder builder = ProfileCredentialsProvider.builder();
-        ProfileCredentialsProvider.BuilderImpl builderImpl = (ProfileCredentialsProvider.BuilderImpl) builder;
-        builderImpl.clock(clock);
-
-        return builder;
     }
 
     private static class AdjustableClock extends Clock {

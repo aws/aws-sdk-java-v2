@@ -20,19 +20,16 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Clock;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.cache.CachedSupplier;
-import software.amazon.awssdk.utils.cache.NonBlocking;
 import software.amazon.awssdk.utils.cache.RefreshResult;
 
 /**
@@ -41,34 +38,24 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
 @SdkInternalApi
 public final class ProfileFileRefresher implements SdkAutoCloseable {
 
-    private static final String THREAD_CLASS_NAME = "sdk-profile-file-refresher";
     private final CachedSupplier<ProfileFileRefreshRecord> profileFileCache;
     private volatile ProfileFileRefreshRecord currentRefreshRecord;
     private final ProfileFileRefreshRecord emptyRefreshRecord;
-    private final Supplier<ProfileFile> profileFileSupplier;
-    private final Predicate<ProfileFileRefreshRecord> profileFileReloadPredicate;
+    private final Supplier<ProfileFile> profileFile;
+    private final Path profileFilePath;
     private final Function<RuntimeException, ProfileFile> exceptionHandler;
     private final Consumer<ProfileFile> onProfileFileReload;
-    private final Duration staleDuration;
-    private final Duration pollDuration;
-    private final Duration prefetchTime;
     private final Clock clock;
 
     private ProfileFileRefresher(Builder builder) {
-        this.staleDuration = builder.refreshDuration;
-        this.pollDuration = builder.pollingDuration;
-        this.prefetchTime = builder.prefetchTime;
         this.exceptionHandler = builder.exceptionHandler;
         this.clock = builder.clock;
-        this.profileFileSupplier = builder.profileFileSupplier;
-        this.profileFileReloadPredicate = builder.profileFileReloadPredicate;
+        this.profileFile = builder.profileFile;
+        this.profileFilePath = builder.profileFilePath;
         this.onProfileFileReload = builder.onProfileFileReload;
-        CachedSupplier.Builder<ProfileFileRefreshRecord> cachedSupplierBuilder = CachedSupplier.builder(this::refreshResult)
-                                                                                               .clock(this.clock);
-        if (builder.asyncRefreshEnabled.booleanValue()) {
-            cachedSupplierBuilder.prefetchStrategy(new NonBlocking(THREAD_CLASS_NAME));
-        }
-        this.profileFileCache = cachedSupplierBuilder.build();
+        this.profileFileCache = CachedSupplier.builder(this::refreshResult)
+                                              .clock(this.clock)
+                                              .build();
         this.emptyRefreshRecord = ProfileFileRefreshRecord.builder()
                                                           .refreshTime(Instant.MIN)
                                                           .build();
@@ -101,38 +88,33 @@ public final class ProfileFileRefresher implements SdkAutoCloseable {
     }
 
     private RefreshResult<ProfileFileRefreshRecord> refreshResult() {
-        return refreshResultIfStale();
-    }
-
-    private RefreshResult<ProfileFileRefreshRecord> refreshResultIfStale() {
         try {
             return reloadAsRefreshResultIfStale();
         } catch (RuntimeException exception) {
             Instant now = Instant.now();
+            Instant staleTime = now;
             ProfileFile exceptionProfileFile = exceptionHandler.apply(exception);
             ProfileFileRefreshRecord refreshRecord = ProfileFileRefreshRecord.builder()
                                                                              .profileFile(exceptionProfileFile)
                                                                              .refreshTime(now)
                                                                              .build();
 
-            return wrapIntoRefreshResult(refreshRecord, staleTime(now));
+            return wrapIntoRefreshResult(refreshRecord, staleTime);
         }
     }
 
     private RefreshResult<ProfileFileRefreshRecord> reloadAsRefreshResultIfStale() {
         Instant now = clock.instant();
-        Instant staleTime;
+        Instant staleTime = now;
         ProfileFileRefreshRecord refreshRecord;
 
-        if (shouldReloadProfileFile() || hasNotBeenPreviouslyLoaded()) {
-            staleTime = staleTime(now);
-            ProfileFile reloadedProfileFile = reload(profileFileSupplier, onProfileFileReload);
+        if (canReloadProfileFile() || hasNotBeenPreviouslyLoaded()) {
+            ProfileFile reloadedProfileFile = reload(profileFile, onProfileFileReload);
             refreshRecord = ProfileFileRefreshRecord.builder()
                                                     .profileFile(reloadedProfileFile)
                                                     .refreshTime(now)
                                                     .build();
         } else {
-            staleTime = pollTime(now);
             refreshRecord = currentRefreshRecord;
         }
 
@@ -142,7 +124,6 @@ public final class ProfileFileRefresher implements SdkAutoCloseable {
     private <T> RefreshResult<T> wrapIntoRefreshResult(T value, Instant staleTime) {
         return RefreshResult.builder(value)
                             .staleTime(staleTime)
-                            .prefetchTime(prefetchTime(staleTime))
                             .build();
     }
 
@@ -157,36 +138,21 @@ public final class ProfileFileRefresher implements SdkAutoCloseable {
         return reloadedProfileFile;
     }
 
-    private Instant staleTime(Instant now) {
-        if (Objects.isNull(now) || Objects.isNull(staleDuration)) {
-            return Instant.MAX;
-        }
-
-        return now.plus(staleDuration);
-    }
-
-    private Instant pollTime(Instant now) {
-        if (Objects.isNull(now) || Objects.isNull(pollDuration)) {
-            return staleTime(now);
-        }
-
-        return now.plus(pollDuration);
-    }
-
-    private Instant prefetchTime(Instant staleTime) {
-        if (Objects.isNull(staleTime) || Objects.isNull(prefetchTime)) {
-            return null;
-        }
-
-        return staleTime.minus(prefetchTime);
-    }
-
     private boolean isNewProfileFile(ProfileFile profileFile) {
         return currentRefreshRecord.profileFile != profileFile;
     }
 
-    private boolean shouldReloadProfileFile() {
-        return profileFileReloadPredicate.test(currentRefreshRecord);
+    private boolean canReloadProfileFile() {
+        if (Objects.isNull(profileFilePath)) {
+            return false;
+        }
+
+        try {
+            Instant lastModifiedInstant = Files.getLastModifiedTime(profileFilePath).toInstant();
+            return currentRefreshRecord.refreshTime.isBefore(lastModifiedInstant);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     private boolean hasNotBeenPreviouslyLoaded() {
@@ -194,94 +160,24 @@ public final class ProfileFileRefresher implements SdkAutoCloseable {
     }
 
 
-    /**
-     * Convenience method for specifying an argument to {@link Builder#profileFileReloadPredicate(Predicate)}. This predicate 
-     * returns true when the time given occurs prior to the file modified timestamp.
-     * @param contentLocation A Path object representing the file to test against.
-     * @return A Predicate instance.
-     * @see ProfileFileRefreshRecord#diskFileHasUpdatedModificationTime(Path)
-     */
-    public static Predicate<Instant> diskFileHasUpdatedModificationTime(Path contentLocation) {
-        return instant -> {
-            try {
-                Instant lastModifiedInstant = getFileLastModifiedTimeAsInstant(contentLocation);
-                return instant.isBefore(lastModifiedInstant);
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
-        };
-    }
-
-    static Instant getFileLastModifiedTimeAsInstant(Path contentLocation) throws IOException {
-        return Files.getLastModifiedTime(contentLocation).toInstant();
-    }
-
-
     public static final class Builder {
 
-        private Supplier<ProfileFile> profileFileSupplier;
-        private Predicate<ProfileFileRefreshRecord> profileFileReloadPredicate;
+        private Supplier<ProfileFile> profileFile;
+        private Path profileFilePath;
         private Consumer<ProfileFile> onProfileFileReload = p -> { };
         private Function<RuntimeException, ProfileFile> exceptionHandler;
-        private Duration refreshDuration;
-        private Duration pollingDuration;
-        private Duration prefetchTime;
-        private Boolean asyncRefreshEnabled = Boolean.FALSE;
         private Clock clock = Clock.systemUTC();
 
         private Builder() {
         }
 
-        /**
-         * Define the mechanism for loading profile files.
-         *
-         * @param profileFileSupplier Supplier for generating a ProfileFile instance.
-         */
-        public Builder profileFileSupplier(Supplier<ProfileFile> profileFileSupplier) {
-            this.profileFileSupplier = profileFileSupplier;
+        public Builder profileFile(Supplier<ProfileFile> profileFile) {
+            this.profileFile = profileFile;
             return this;
         }
 
-        /**
-         * Define the condition for reloading a profile file.
-         *
-         * @param predicate Predicate for determining whether to execute the profileFileSupplier.
-         */
-        public Builder profileFileReloadPredicate(Predicate<ProfileFileRefreshRecord> predicate) {
-            this.profileFileReloadPredicate = predicate;
-            return this;
-        }
-
-        /**
-         * Define the frequency with which the profile file refresher will check whether the profile file may have outstanding
-         * changes and needs to be reloaded.
-         *
-         * @param refreshDuration Once credentials are loaded, the credentials provider will suspend refreshing and
-         *                        only restart until this period has elapsed.
-         */
-        public Builder refreshDuration(Duration refreshDuration) {
-            this.refreshDuration = refreshDuration;
-            return this;
-        }
-
-        /**
-         * Define the frequency with which the profile file refresher will check whether the profile file may have outstanding
-         * changes and needs to be reloaded.
-         *
-         * @param pollingDuration Once the credentials provider has started refreshing, the profile file will be checked
-         *                        for changes with this frequency.
-         */
-        public Builder pollingDuration(Duration pollingDuration) {
-            this.pollingDuration = pollingDuration;
-            return this;
-        }
-
-        /**
-         * Configure the amount of time, relative to refresh and polling time, that the cached profile file is considered
-         * close to stale and should be updated. See {@link #asyncRefreshEnabled}.
-         */
-        public Builder prefetchTime(Duration prefetchTime) {
-            this.prefetchTime = prefetchTime;
+        public Builder profileFilePath(Path profileFilePath) {
+            this.profileFilePath = profileFilePath;
             return this;
         }
 
@@ -295,18 +191,6 @@ public final class ProfileFileRefresher implements SdkAutoCloseable {
         }
 
         /**
-         * Configure whether this refresher should fetch tokens asynchronously in the background. If this is true, threads are
-         * less likely to block when {@link #refreshIfStale()} is called, but additional resources are used to maintain the
-         * provider.
-         *
-         * <p>By default, this is disabled.</p>
-         */
-        public Builder asyncRefreshEnabled(Boolean asyncRefreshEnabled) {
-            this.asyncRefreshEnabled = asyncRefreshEnabled;
-            return this;
-        }
-
-        /**
          * @param exceptionHandler Handler which takes action when a Runtime exception occurs while loading a profile file.
          *                         Handler can return a previously stored profile file or throw back the exception.
          */
@@ -316,14 +200,13 @@ public final class ProfileFileRefresher implements SdkAutoCloseable {
         }
 
         /**
-         * Adds a custom action to perform when a profile file is reloaded. This action is executed when both the cache is stale
+         * Sets a custom action to perform when a profile file is reloaded. This action is executed when both the cache is stale
          * and the disk file associated with the profile file has been modified since the last load.
          *
          * @param consumer The action to perform.
          */
-        public Builder addOnProfileFileReload(Consumer<ProfileFile> consumer) {
-            this.onProfileFileReload = Objects.isNull(this.onProfileFileReload) ? consumer :
-                                       this.onProfileFileReload.andThen(consumer);
+        public Builder onProfileFileReload(Consumer<ProfileFile> consumer) {
+            this.onProfileFileReload = consumer;
             return this;
         }
 
@@ -356,14 +239,6 @@ public final class ProfileFileRefresher implements SdkAutoCloseable {
          */
         public Instant refreshTime() {
             return refreshTime;
-        }
-
-        /**
-         * Specifies whether this instance was created before the modified timestamp of a given file.
-         * @param path The Path object to the file to test against.
-         */
-        public boolean wasCreatedBeforeFileModified(Path path) {
-            return diskFileHasUpdatedModificationTime(path).test(refreshTime);
         }
 
         static Builder builder() {

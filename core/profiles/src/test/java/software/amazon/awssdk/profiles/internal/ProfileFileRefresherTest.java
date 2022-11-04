@@ -28,6 +28,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.temporal.TemporalAmount;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -56,19 +57,19 @@ public class ProfileFileRefresherTest {
     }
 
     @Test
-    void refreshIfStale_profileModifiedNoRefreshIntervalRequestWithinJitterPeriod_doesNotReloadProfileFile() {
+    void refreshIfStale_profileModifiedNoPathSpecified_doesNotReloadProfileFile() {
         Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
 
         AdjustableClock clock = new AdjustableClock();
         try (ProfileFileRefresher refresher = refresherWithClock(clock)
-            .profileFileSupplier(() -> profileFile(credentialsFilePath))
-            .profileFileReloadPredicate(record -> record.wasCreatedBeforeFileModified(credentialsFilePath))
+            .profileFile(() -> profileFile(credentialsFilePath))
             .build()) {
             Duration intervalWithinJitter = Duration.ofMillis(100);
 
             ProfileFile file1 = refresher.refreshIfStale();
 
             generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey");
+            updateModificationTime(credentialsFilePath, clock.instant().plusMillis(1));
 
             clock.tickForward(intervalWithinJitter);
             ProfileFile file2 = refresher.refreshIfStale();
@@ -78,62 +79,63 @@ public class ProfileFileRefresherTest {
     }
 
     @Test
-    void refreshIfStale_profileModifiedNoRefreshIntervalRequestOutsideJitterPeriod_doesNotReloadProfileFile() {
+    void refreshIfStale_profileModifiedWithinJitterPeriod_doesNotReloadProfileFile() {
         Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
 
         AdjustableClock clock = new AdjustableClock();
         try (ProfileFileRefresher refresher = refresherWithClock(clock)
-            .profileFileSupplier(() -> profileFile(credentialsFilePath))
-            .profileFileReloadPredicate(record -> record.wasCreatedBeforeFileModified(credentialsFilePath))
+            .profileFile(() -> profileFile(credentialsFilePath))
+            .profileFilePath(credentialsFilePath)
             .build()) {
-            Duration intervalOutsideJitter = Duration.ofMinutes(10);
+            Duration intervalWithinJitter = Duration.ofMillis(100);
 
             ProfileFile file1 = refresher.refreshIfStale();
 
+            clock.tickForward(intervalWithinJitter);
             generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey");
+            updateModificationTime(credentialsFilePath, clock.instant());
+
+            ProfileFile file2 = refresher.refreshIfStale();
+
+            Assertions.assertThat(file2).isSameAs(file1);
+        }
+    }
+
+    @Test
+    void refreshIfStale_profileModifiedOutsideJitterPeriod_reloadsProfileFile() {
+        Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
+
+        AdjustableClock clock = new AdjustableClock();
+        try (ProfileFileRefresher refresher = refresherWithClock(clock)
+            .profileFile(() -> profileFile(credentialsFilePath))
+            .profileFilePath(credentialsFilePath)
+            .build()) {
+            Duration intervalOutsideJitter = Duration.ofMillis(1_000);
+
+            ProfileFile file1 = refresher.refreshIfStale();
 
             clock.tickForward(intervalOutsideJitter);
-            ProfileFile file2 = refresher.refreshIfStale();
-
-            Assertions.assertThat(file2).isSameAs(file1);
-        }
-    }
-
-    @Test
-    void refreshIfStale_profileModifiedBeforeRefreshIntervalExpires_doesNotReloadProfileFile() {
-        Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
-
-        AdjustableClock clock = new AdjustableClock();
-        Duration refreshInterval = Duration.ofSeconds(10);
-        try (ProfileFileRefresher refresher = refresherWithClock(clock)
-            .profileFileSupplier(() -> profileFile(credentialsFilePath))
-            .profileFileReloadPredicate(record -> record.wasCreatedBeforeFileModified(credentialsFilePath))
-            .refreshDuration(refreshInterval)
-            .pollingDuration(refreshInterval)
-            .build()) {
-            ProfileFile file1 = refresher.refreshIfStale();
-
             generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey");
+            updateModificationTime(credentialsFilePath, clock.instant());
 
-            clock.tickForward(refreshInterval.dividedBy(2));
             ProfileFile file2 = refresher.refreshIfStale();
 
-            Assertions.assertThat(file2).isSameAs(file1);
+            Assertions.assertThat(file2).isNotSameAs(file1);
         }
     }
 
     @Test
-    void refreshIfStale_profileModifiedAfterRefreshIntervalExpires_reloadsProfileFile() {
+    void refreshIfStale_profileModified_reloadsProfileFile() {
         Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
 
         AdjustableClock clock = new AdjustableClock();
-        Duration refreshInterval = Duration.ofSeconds(15);
         try (ProfileFileRefresher refresher = refresherWithClock(clock)
-            .profileFileSupplier(() -> profileFile(credentialsFilePath))
-            .profileFileReloadPredicate(record -> record.wasCreatedBeforeFileModified(credentialsFilePath))
-            .refreshDuration(refreshInterval)
-            .pollingDuration(refreshInterval)
+            .profileFile(() -> profileFile(credentialsFilePath))
+            .profileFilePath(credentialsFilePath)
             .build()) {
+
+            Duration refreshInterval = Duration.ofSeconds(15);
+
             ProfileFile file1 = refresher.refreshIfStale();
 
             generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey");
@@ -147,26 +149,23 @@ public class ProfileFileRefresherTest {
     }
 
     @Test
-    void refreshIfStale_profileModifiedBeforeRefreshIntervalExpiresButRefreshedMultipleTimes_reloadsProfileFileOnce() {
+    void refreshIfStale_profileModifiedOnceButRefreshedMultipleTimes_reloadsProfileFileOnce() {
         Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
 
         AdjustableClock clock = new AdjustableClock();
-        Duration refreshInterval = Duration.ofSeconds(15);
         try (ProfileFileRefresher refresher = refresherWithClock(clock)
-            .profileFileSupplier(() -> profileFile(credentialsFilePath))
-            .profileFileReloadPredicate(record -> record.wasCreatedBeforeFileModified(credentialsFilePath))
-            .refreshDuration(refreshInterval)
-            .pollingDuration(Duration.ofSeconds(1))
+            .profileFile(() -> profileFile(credentialsFilePath))
+            .profileFilePath(credentialsFilePath)
             .build()) {
             ProfileFile file1 = refresher.refreshIfStale();
+
+            clock.tickForward(Duration.ofSeconds(5));
+            ProfileFile file2 = refresher.refreshIfStale();
 
             generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey");
             updateModificationTime(credentialsFilePath, clock.instant().plusMillis(1));
 
-            clock.tickForward(refreshInterval.minusSeconds(1));
-            ProfileFile file2 = refresher.refreshIfStale();
-
-            clock.tickForward(Duration.ofSeconds(4));
+            clock.tickForward(Duration.ofSeconds(5));
             ProfileFile file3 = refresher.refreshIfStale();
 
             Assertions.assertThat(file2).isSameAs(file1);
@@ -175,70 +174,85 @@ public class ProfileFileRefresherTest {
     }
 
     @Test
-    void refreshIfStale_profileModifiedAfterRefreshIntervalExpiresButRefreshedMultipleTimes_reloadsProfileFileOnce() {
+    void refreshIfStale_profileModifiedMultipleTimes_reloadsProfileFileOncePerChange() {
         Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
 
         AdjustableClock clock = new AdjustableClock();
-        Duration refreshInterval = Duration.ofSeconds(15);
         try (ProfileFileRefresher refresher = refresherWithClock(clock)
-            .profileFileSupplier(() -> profileFile(credentialsFilePath))
-            .profileFileReloadPredicate(record -> record.wasCreatedBeforeFileModified(credentialsFilePath))
-            .refreshDuration(refreshInterval)
-            .pollingDuration(Duration.ofSeconds(1))
+            .profileFile(() -> profileFile(credentialsFilePath))
+            .profileFilePath(credentialsFilePath)
             .build()) {
+            Duration duration = Duration.ofSeconds(5);
+
             ProfileFile file1 = refresher.refreshIfStale();
 
-            clock.tickForward(refreshInterval.plusSeconds(1));
+            clock.tickForward(duration);
             ProfileFile file2 = refresher.refreshIfStale();
 
             generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey");
             updateModificationTime(credentialsFilePath, clock.instant().plusMillis(1));
 
-            clock.tickForward(Duration.ofSeconds(4));
-            ProfileFile file3 = refresher.refreshIfStale();
-
-            Assertions.assertThat(file2).isSameAs(file1);
-            Assertions.assertThat(file3).isNotSameAs(file2);
-        }
-    }
-
-    @Test
-    void refreshIfStale_profileModifiedMultipleTimes_reloadsProfileFileWhenCacheIsStale() {
-        Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
-
-        AdjustableClock clock = new AdjustableClock();
-        Duration refreshInterval = Duration.ofSeconds(15);
-        try (ProfileFileRefresher refresher = refresherWithClock(clock)
-            .profileFileSupplier(() -> profileFile(credentialsFilePath))
-            .profileFileReloadPredicate(record -> record.wasCreatedBeforeFileModified(credentialsFilePath))
-            .refreshDuration(refreshInterval)
-            .pollingDuration(Duration.ofSeconds(1))
-            .build()) {
-            ProfileFile file1 = refresher.refreshIfStale();
-
-            clock.tickForward(refreshInterval.plusSeconds(1));
-            ProfileFile file2 = refresher.refreshIfStale();
-
-            generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey");
-            updateModificationTime(credentialsFilePath, clock.instant().plusMillis(1));
-
-            clock.tickForward(Duration.ofSeconds(4));
+            clock.tickForward(duration);
             ProfileFile file3 = refresher.refreshIfStale();
 
             generateTestCredentialsFile("updatedAccessKey", "updatedSecretAccessKey");
             updateModificationTime(credentialsFilePath, clock.instant().plusMillis(1));
 
-            clock.tickForward(Duration.ofSeconds(4));
+            clock.tickForward(duration);
             ProfileFile file4 = refresher.refreshIfStale();
 
-            clock.tickForward(refreshInterval.plusSeconds(1));
+            clock.tickForward(duration);
             ProfileFile file5 = refresher.refreshIfStale();
 
             Assertions.assertThat(file2).isSameAs(file1);
             Assertions.assertThat(file3).isNotSameAs(file2);
-            Assertions.assertThat(file4).isSameAs(file3);
-            Assertions.assertThat(file5).isNotSameAs(file4);
+            Assertions.assertThat(file4).isNotSameAs(file3);
+            Assertions.assertThat(file5).isSameAs(file4);
         }
+    }
+
+    @Test
+    void refreshIfStale_givenOnReloadConsumer_callsConsumerOncePerChange() {
+        int actualRefreshOperations = 3;
+        AtomicInteger refreshOperationsCounter = new AtomicInteger();
+
+        Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
+
+        AdjustableClock clock = new AdjustableClock();
+        try (ProfileFileRefresher refresher = refresherWithClock(clock)
+            .profileFile(() -> profileFile(credentialsFilePath))
+            .profileFilePath(credentialsFilePath)
+            .onProfileFileReload(f -> refreshOperationsCounter.incrementAndGet())
+            .build()) {
+            Duration duration = Duration.ofSeconds(5);
+
+            ProfileFile file1 = refresher.refreshIfStale();
+
+            clock.tickForward(duration);
+            ProfileFile file2 = refresher.refreshIfStale();
+
+            generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey");
+            updateModificationTime(credentialsFilePath, clock.instant().plusMillis(1));
+
+            clock.tickForward(duration);
+            ProfileFile file3 = refresher.refreshIfStale();
+
+            generateTestCredentialsFile("updatedAccessKey", "updatedSecretAccessKey");
+            updateModificationTime(credentialsFilePath, clock.instant().plusMillis(1));
+
+            clock.tickForward(duration);
+            ProfileFile file4 = refresher.refreshIfStale();
+
+            clock.tickForward(duration);
+            ProfileFile file5 = refresher.refreshIfStale();
+
+            Assertions.assertThat(file2).isSameAs(file1);
+            Assertions.assertThat(file3).isNotSameAs(file2);
+            Assertions.assertThat(file4).isNotSameAs(file3);
+            Assertions.assertThat(file5).isSameAs(file4);
+        }
+
+        Assertions.assertThat(refreshOperationsCounter.get()).isEqualTo(actualRefreshOperations);
     }
 
     @Test
@@ -247,12 +261,9 @@ public class ProfileFileRefresherTest {
         ProfileFile fallbackProfile = credentialFile("[test]\nx = y");
 
         AdjustableClock clock = new AdjustableClock();
-        Duration refreshInterval = Duration.ofSeconds(15);
         try (ProfileFileRefresher refresher = refresherWithClock(clock)
-            .profileFileSupplier(() -> profileFile(credentialsFilePath))
-            .profileFileReloadPredicate(record -> record.wasCreatedBeforeFileModified(credentialsFilePath))
-            .refreshDuration(refreshInterval)
-            .pollingDuration(refreshInterval)
+            .profileFile(() -> profileFile(credentialsFilePath))
+            .profileFilePath(credentialsFilePath)
             .exceptionHandler(e -> fallbackProfile)
             .build()) {
 
