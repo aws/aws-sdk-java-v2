@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Compute Cloud",
+    "contributor": "",
+    "description": "This release adds API support for the recipient of an AMI account share to remove shared AMI launch permissions."
+}
