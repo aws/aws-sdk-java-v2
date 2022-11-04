@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.http.nio.netty.internal.nrs;
 
-import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.LAST_HTTP_CONTENT_RECEIVED_KEY;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.STREAMING_COMPLETE_KEY;
 
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelFuture;
@@ -213,12 +213,15 @@ abstract class HttpStreamsHandler<InT extends HttpMessage, OutT extends HttpMess
     }
 
     private void handleReadHttpContent(ChannelHandlerContext ctx, HttpContent content) {
+        boolean lastHttpContent = content instanceof LastHttpContent;
+        if (lastHttpContent) {
+            ctx.channel().attr(STREAMING_COMPLETE_KEY).set(true);
+        }
         if (!ignoreBodyRead) {
-            if (content instanceof LastHttpContent) {
-                ctx.channel().attr(LAST_HTTP_CONTENT_RECEIVED_KEY).set(true);
+            if (lastHttpContent) {
                 logger.debug(ctx.channel(), () -> "Received LastHttpContent " + ctx.channel());
                 if (content.content().readableBytes() > 0 ||
-                        !((LastHttpContent) content).trailingHeaders().isEmpty()) {
+                    !((LastHttpContent) content).trailingHeaders().isEmpty()) {
                     // It has data or trailing headers, send them
                     ctx.fireChannelRead(content);
                 } else {
@@ -235,7 +238,7 @@ abstract class HttpStreamsHandler<InT extends HttpMessage, OutT extends HttpMess
 
         } else {
             ReferenceCountUtil.release(content);
-            if (content instanceof LastHttpContent) {
+            if (lastHttpContent) {
                 ignoreBodyRead = false;
                 if (currentlyStreamedMessage != null) {
                     removeHandlerIfActive(ctx, ctx.name() + "-body-publisher");
