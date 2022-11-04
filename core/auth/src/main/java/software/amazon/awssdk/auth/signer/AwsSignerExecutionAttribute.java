@@ -59,6 +59,12 @@ public final class AwsSignerExecutionAttribute extends SdkExecutionAttribute {
     public static final ExecutionAttribute<Boolean> SIGNER_DOUBLE_URL_ENCODE = new ExecutionAttribute<>("DoubleUrlEncode");
 
     /**
+     * The key to specify whether to normalize the resource path during signing.
+     */
+    public static final ExecutionAttribute<Boolean> SIGNER_NORMALIZE_PATH =
+        new ExecutionAttribute<>("NormalizePath");
+
+    /**
      * The key to specify the expiration time when pre-signing aws requests.
      */
     public static final ExecutionAttribute<Instant> PRESIGNER_EXPIRATION = new ExecutionAttribute<>("PresignerExpiration");

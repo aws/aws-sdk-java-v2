@@ -1,3 +1,58 @@
+# __2.18.11__ __2022-11-04__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Doc-only update for bug fixes and support of export to buckets encrypted with SSE-KMS
+
+## __Amazon EMR Containers__
+  - ### Features
+    - Adding support for Job templates. Job templates allow you to create and store templates to configure Spark applications parameters. This helps you ensure consistent settings across applications by reusing and enforcing configuration overrides in data pipelines.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds API support for the recipient of an AMI account share to remove shared AMI launch permissions.
+
+# __2.18.10__ __2022-11-03__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fixed an issue that could result in signature mismatch exceptions when requests included . or ..
+
+## __Amazon MemoryDB__
+  - ### Features
+    - Adding support for r6gd instances for MemoryDB Redis with data tiering. In a cluster with data tiering enabled, when available memory capacity is exhausted, the least recently used data is automatically tiered to solid state drives for cost-effective capacity scaling with minimal performance impact.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker now supports running training jobs on ml.trn1 instance types.
+
+# __2.18.9__ __2022-11-02__
+## __AWS IoT SiteWise__
+  - ### Features
+    - This release adds the ListAssetModelProperties and ListAssetProperties APIs. You can list all properties that belong to a single asset model or asset using these two new APIs.
+
+## __AWS S3 Control__
+  - ### Features
+    - S3 on Outposts launches support for Lifecycle configuration for Outposts buckets. With S3 Lifecycle configuration, you can mange objects so they are stored cost effectively. You can manage objects using size-based rules and specify how many noncurrent versions bucket will retain.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Systems Manager Incident Manager__
+  - ### Features
+    - Adds support for tagging replication-set on creation.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Update CopySourceInterceptor to remove leading slash in header value for ARN source buckets
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release updates Framework model regex for ModelPackage to support new Framework version xgboost, sklearn.
+
 # __2.18.8__ __2022-11-01__
 ## __Amazon Relational Database Service__
   - ### Features
