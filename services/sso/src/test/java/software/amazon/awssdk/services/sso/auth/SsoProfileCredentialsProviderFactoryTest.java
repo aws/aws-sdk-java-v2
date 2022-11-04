@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.services.sso.auth;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.ok;
-import static com.github.tomakehurst.wiremock.client.WireMock.requestMatching;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.times;
@@ -119,31 +117,44 @@ public class SsoProfileCredentialsProviderFactoryTest {
 
     private static Stream<Arguments> ssoErrorValues() {
         // Session title is missing
-        return Stream.of(Arguments.of( configFile("[profile test]\n" +
-                                                  "sso_account_id=accountId\n" +
-                                                  "sso_role_name=roleName\n" +
-                                                  "sso_session=foo\n" +
-                                                  "[sso-session bar]\n" +
-                                                  "sso_start_url=https//d-abc123.awsapps.com/start\n" +
-                                                  "sso_region=region")
-                             , "Sso-session section not found with sso-session title foo."),
-                         // No sso_region in sso_session
-                         Arguments.of( configFile("[profile test]\n" +
-                                                  "sso_account_id=accountId\n" +
-                                                  "sso_role_name=roleName\n" +
-                                                  "sso_session=foo\n" +
-                                                  "[sso-session foo]\n" +
-                                                  "sso_start_url=https//d-abc123.awsapps.com/start")
-                             , "'sso_region' must be set to use role-based credential loading in the 'foo' profile."),
-                         Arguments.of( configFile("[profile test]\n" +
-                                                  "sso_account_id=accountId\n" +
-                                                  "sso_role_name=roleName\n" +
-                                                  "sso_region=regionOne\n" +
-                                                  "sso_session=foo\n" +
-                                                  "[sso-session foo]\n" +
-                                                  "sso_region=regionTwo\n" +
-                                                  "sso_start_url=https//d-abc123.awsapps.com/start")
-                             , "Sso-session region regionTwo and profile region regionOne are not same.")
+        return Stream.of(
+            Arguments.of(configFile("[profile test]\n" +
+                                    "sso_account_id=accountId\n" +
+                                    "sso_role_name=roleName\n" +
+                                    "sso_session=foo\n" +
+                                    "[sso-session bar]\n" +
+                                    "sso_start_url=https//d-abc123.awsapps.com/start\n" +
+                                    "sso_region=region")
+                , "Sso-session section not found with sso-session title foo."),
+            // No sso_region in sso_session
+            Arguments.of(configFile("[profile test]\n" +
+                                    "sso_account_id=accountId\n" +
+                                    "sso_role_name=roleName\n" +
+                                    "sso_session=foo\n" +
+                                    "[sso-session foo]\n" +
+                                    "sso_start_url=https//d-abc123.awsapps.com/start")
+                , "'sso_region' must be set to use role-based credential loading in the 'foo' profile."),
+            // sso_start_url mismatch in sso-session and profile
+            Arguments.of(configFile("[profile test]\n" +
+                                    "sso_account_id=accountId\n" +
+                                    "sso_role_name=roleName\n" +
+                                    "sso_start_url=https//d-abc123.awsapps.com/startTwo\n" +
+                                    "sso_session=foo\n" +
+                                    "[sso-session foo]\n" +
+                                    "sso_region=regionTwo\n" +
+                                    "sso_start_url=https//d-abc123.awsapps.com/startOne")
+                , "Sso-session sso_start_url https//d-abc123.awsapps.com/startTwo and profile sso_start_url https//d-abc123"
+                  + ".awsapps.com/startOne are not same."),
+            // sso_region mismatch in sso-session and profile
+            Arguments.of(configFile("[profile test]\n" +
+                                    "sso_account_id=accountId\n" +
+                                    "sso_role_name=roleName\n" +
+                                    "sso_region=regionOne\n" +
+                                    "sso_session=foo\n" +
+                                    "[sso-session foo]\n" +
+                                    "sso_region=regionTwo\n" +
+                                    "sso_start_url=https//d-abc123.awsapps.com/start")
+                , "Sso-session sso_region regionOne and profile sso_region regionTwo are not same.")
         );
     }
 

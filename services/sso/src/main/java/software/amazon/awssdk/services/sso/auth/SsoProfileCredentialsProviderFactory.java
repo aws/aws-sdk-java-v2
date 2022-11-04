@@ -130,26 +130,14 @@ public class SsoProfileCredentialsProviderFactory implements ProfileCredentialsP
 
         private static String regionFromProfileOrSession(Profile profile, ProfileFile profileFile) {
             Optional<String> ssoSession = profile.property(ProfileSection.SSO_SESSION.getPropertyKeyName());
-
             String profileRegion = profile.properties().get(ProfileProperty.SSO_REGION);
-
-            String ssoRegion = ssoSession.isPresent() ?
-                               propertyFromSsoSession(ssoSession.get(), profileFile, ProfileProperty.SSO_REGION) :
-                               profileRegion;
-
-            if (profileRegion != null && !ssoRegion.equalsIgnoreCase(profileRegion)) {
-                throw new IllegalArgumentException(
-                    "Sso-session region " + ssoRegion + " and profile region " + profileRegion + " are not same.");
-            }
-            return ssoRegion;
+            return ssoSession.isPresent() ?
+                   propertyFromSsoSession(ssoSession.get(), profileFile, ProfileProperty.SSO_REGION) :
+                   profileRegion;
         }
 
         private static String propertyFromSsoSession(String sessionName, ProfileFile profileFile, String propertyName) {
-            Profile ssoProfile =
-                profileFile.getSection(
-                    ProfileSection.SSO_SESSION.getSectionTitle(),
-                    sessionName).orElseThrow(() -> new IllegalArgumentException(
-                    "Sso-session section not found with sso-session title " + sessionName + "."));
+            Profile ssoProfile = ssoSessionInProfile(sessionName, profileFile);
             return requireProperty(ssoProfile, propertyName);
         }
 
@@ -160,11 +148,25 @@ public class SsoProfileCredentialsProviderFactory implements ProfileCredentialsP
         }
     }
 
+    private static Profile ssoSessionInProfile(String sessionName, ProfileFile profileFile) {
+        Profile ssoProfile =
+            profileFile.getSection(
+                ProfileSection.SSO_SESSION.getSectionTitle(),
+                sessionName).orElseThrow(() -> new IllegalArgumentException(
+                "Sso-session section not found with sso-session title " + sessionName + "."));
+        return ssoProfile;
+    }
+
     private static SdkTokenProvider sdkTokenProvider(Profile profile, ProfileFile profileFile) {
         Optional<String> ssoSession = profile.property(ProfileSection.SSO_SESSION.getPropertyKeyName());
 
 
         if (ssoSession.isPresent()) {
+            Profile ssoSessionProfileFile = ssoSessionInProfile(ssoSession.get(), profileFile);
+
+            validateCommonProfileProperties(profile, ssoSessionProfileFile, ProfileProperty.SSO_REGION);
+            validateCommonProfileProperties(profile, ssoSessionProfileFile, ProfileProperty.SSO_START_URL);
+
             return LazyTokenProvider.create(
                 () -> ProfileTokenProvider.builder()
                                           .profileFile(() -> profileFile)
@@ -175,6 +177,15 @@ public class SsoProfileCredentialsProviderFactory implements ProfileCredentialsP
                 profile.properties().get(ProfileProperty.SSO_START_URL), TOKEN_DIRECTORY));
 
         }
+    }
+
+    private static void validateCommonProfileProperties(Profile profile, Profile ssoSessionProfileFile, String propertyName) {
+        profile.property(propertyName).ifPresent(
+            property ->
+                Validate.isTrue(property.equalsIgnoreCase(ssoSessionProfileFile.property(propertyName).get()),
+                                "Sso-session " + propertyName + " " + property + " and profile " + propertyName + " "
+                                + ssoSessionProfileFile.property(propertyName).get() + " are not same."));
+
     }
 
 }

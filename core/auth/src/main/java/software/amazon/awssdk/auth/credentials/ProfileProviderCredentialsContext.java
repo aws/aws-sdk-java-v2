@@ -94,9 +94,8 @@ public final class ProfileProviderCredentialsContext {
 
         /**
          * *
-         * @param profileFile : ProfileFile that has the profile which is used to create the credential provider.
-         *                    This is required to fetch the titles like sso-session defined in profile property*
-         *                    *
+         * @param profileFile The ProfileFile that has the profile which is used to create the credential provider. This is *
+         *                    required to fetch the titles like sso-session defined in profile property* *
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         public Builder profileFile(ProfileFile profileFile) {
