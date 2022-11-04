@@ -75,6 +75,7 @@ import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.http.SimpleHttpContentPublisher;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
@@ -147,7 +148,7 @@ public class ServerConnectivityErrorMessageTest {
                                                  .httpMethod(SdkHttpMethod.PUT)
                                                  .addHeaderKeyValue(HttpHeaderNames.EXPECT.toString(),
                                                                     Arrays.asList(HttpHeaderValues.CONTINUE.toString()))
-                                                 .contentPublisher(new SdkTestHttpContentPublisher("reqBody".getBytes(StandardCharsets.UTF_8)))
+                                                 .contentPublisher(new SimpleHttpContentPublisher("reqBody".getBytes(StandardCharsets.UTF_8)))
                                                  .build()));
     }
 
