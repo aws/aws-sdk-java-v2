@@ -26,10 +26,15 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.RSAPrivateCrtKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
-public enum Rsa {
-    ;
+@SdkInternalApi
+public final class Rsa {
+
     private static final String RSA = "RSA";
+
+    private Rsa() {
+    }
 
     /**
      * Returns a private key constructed from the given DER bytes in PKCS#8 format.

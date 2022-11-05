@@ -16,7 +16,9 @@
 package software.amazon.awssdk.services.cloudfront.internal.auth;
 
 import java.util.Arrays;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
+@SdkInternalApi
 public enum PemObjectType {
     PRIVATE_KEY_PKCS1("-----BEGIN RSA PRIVATE KEY-----"),
     PRIVATE_KEY_PKCS8("-----BEGIN PRIVATE KEY-----"),

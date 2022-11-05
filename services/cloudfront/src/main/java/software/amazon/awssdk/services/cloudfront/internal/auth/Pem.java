@@ -26,11 +26,16 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.regex.Pattern;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
-public enum Pem {
-    ;
+@SdkInternalApi
+public final class Pem {
+
     private static final String BEGIN_MARKER = "-----BEGIN ";
     private static final Pattern BEGIN = Pattern.compile("BEGIN", Pattern.LITERAL);
+
+    private Pem() {
+    }
 
     /**
      * Returns the first private key that is found from the input stream of a

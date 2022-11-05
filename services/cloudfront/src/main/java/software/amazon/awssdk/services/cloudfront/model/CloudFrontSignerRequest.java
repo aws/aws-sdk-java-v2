@@ -19,7 +19,6 @@ import java.security.PrivateKey;
 import java.time.Instant;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.NotThreadSafe;
-import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -122,7 +121,9 @@ public final class CloudFrontSignerRequest
         Builder resourceUrl(String resourceUrl);
 
         /**
-         * Configure the private key to be used to sign the policy
+         * Configure the private key to be used to sign the policy.
+         * If you have a key file, use {@link software.amazon.awssdk.services.cloudfront.CloudFrontUtilities#loadPrivateKey}
+         * to load the key file
          */
         Builder privateKey(PrivateKey privateKey);
 
@@ -151,7 +152,6 @@ public final class CloudFrontSignerRequest
         Builder ipRange(String ipRange);
     }
 
-    @SdkInternalApi
     private static final class DefaultBuilder implements Builder {
         private String resourceUrl;
         private PrivateKey privateKey;

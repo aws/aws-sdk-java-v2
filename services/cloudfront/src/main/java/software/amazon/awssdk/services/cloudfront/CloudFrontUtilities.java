@@ -35,9 +35,15 @@ import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.services.cloudfront.cookie.DefaultCookiesForCannedPolicy;
+import software.amazon.awssdk.services.cloudfront.cookie.DefaultCookiesForCustomPolicy;
 import software.amazon.awssdk.services.cloudfront.internal.auth.Pem;
 import software.amazon.awssdk.services.cloudfront.internal.auth.Rsa;
+import software.amazon.awssdk.services.cloudfront.internal.cookies.CookiesForCannedPolicy;
+import software.amazon.awssdk.services.cloudfront.internal.cookies.CookiesForCustomPolicy;
+import software.amazon.awssdk.services.cloudfront.internal.url.SignedUrl;
 import software.amazon.awssdk.services.cloudfront.model.CloudFrontSignerRequest;
+import software.amazon.awssdk.services.cloudfront.url.DefaultSignedUrl;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.StringUtils;
 
@@ -77,16 +83,17 @@ public final class CloudFrontUtilities {
      * @return A signed URL that will permit access to a specific distribution
      *         and S3 object.
      */
-    public static String getSignedUrlWithCannedPolicy(CloudFrontSignerRequest request) {
+    public static SignedUrl getSignedUrlWithCannedPolicy(CloudFrontSignerRequest request) {
         try {
             String cannedPolicy = buildCannedPolicy(request.resourceUrl(), request.expirationDate());
             byte[] signatureBytes = signWithSha1Rsa(cannedPolicy.getBytes(UTF_8), request.privateKey());
             String urlSafeSignature = makeBytesUrlSafe(signatureBytes);
-            return request.resourceUrl()
+            String signedUrl = request.resourceUrl()
                    + (request.resourceUrl().indexOf('?') >= 0 ? "&" : "?")
                    + "Expires=" + request.expirationDate().getEpochSecond()
                    + "&Signature=" + urlSafeSignature
                    + "&Key-Pair-Id=" + request.keyPairId();
+            return DefaultSignedUrl.builder().url(signedUrl).build();
         } catch (InvalidKeyException e) {
             throw SdkClientException.create("Could not sign url", e);
         }
@@ -107,18 +114,19 @@ public final class CloudFrontUtilities {
      * @return A signed URL that will permit access to distribution and S3
      *         objects as specified in the policy document.
      */
-    public static String getSignedUrlWithCustomPolicy(CloudFrontSignerRequest request) {
+    public static SignedUrl getSignedUrlWithCustomPolicy(CloudFrontSignerRequest request) {
         try {
             String policy = buildCustomPolicyForSignedUrl(request.resourceUrl(), request.activeDate(), request.expirationDate(),
-                                                                                request.ipRange());
+                                                          request.ipRange());
             byte[] signatureBytes = signWithSha1Rsa(policy.getBytes(UTF_8), request.privateKey());
             String urlSafePolicy = makeStringUrlSafe(policy);
             String urlSafeSignature = makeBytesUrlSafe(signatureBytes);
-            return request.resourceUrl()
+            String signedUrl = request.resourceUrl()
                    + (request.resourceUrl().indexOf('?') >= 0 ? "&" : "?")
                    + "Policy=" + urlSafePolicy
                    + "&Signature=" + urlSafeSignature
                    + "&Key-Pair-Id=" + request.keyPairId();
+            return DefaultSignedUrl.builder().url(signedUrl).build();
         } catch (InvalidKeyException e) {
             throw SdkClientException.create("Could not sign url", e);
         }
@@ -137,17 +145,17 @@ public final class CloudFrontUtilities {
      *            resourceUrl, privateKey, keyPairId, expirationDate
      * @return The signed cookies with canned policy.
      */
-    public static CloudFrontSignedCookie getCookiesForCannedPolicy(CloudFrontSignerRequest request) {
+    public static CookiesForCannedPolicy getCookiesForCannedPolicy(CloudFrontSignerRequest request) {
         try {
             String cannedPolicy = buildCannedPolicy(request.resourceUrl(), request.expirationDate());
             byte[] signatureBytes = signWithSha1Rsa(cannedPolicy.getBytes(UTF_8), request.privateKey());
             String urlSafeSignature = makeBytesUrlSafe(signatureBytes);
             String expiry = String.valueOf(request.expirationDate().getEpochSecond());
-            return CloudFrontSignedCookie.builder()
-                                         .isCustom(false)
-                                         .keyPairId(request.keyPairId())
-                                         .signature(urlSafeSignature)
-                                         .expires(expiry).build();
+            return DefaultCookiesForCannedPolicy.builder()
+                                                .resourceUrl(request.resourceUrl())
+                                                .keyPairId(request.keyPairId())
+                                                .signature(urlSafeSignature)
+                                                .expires(expiry).build();
         } catch (InvalidKeyException e) {
             throw SdkClientException.create("Could not sign canned policy cookie", e);
         }
@@ -164,34 +172,21 @@ public final class CloudFrontUtilities {
      *            resourceUrl, privateKey, keyPairId, expirationDate, activeDate, ipRange
      * @return The signed cookies with custom policy.
      */
-    public static CloudFrontSignedCookie getCookiesForCustomPolicy(CloudFrontSignerRequest request) {
+    public static CookiesForCustomPolicy getCookiesForCustomPolicy(CloudFrontSignerRequest request) {
         try {
             String policy =
                 buildCustomPolicy(request.resourceUrl(), request.activeDate(), request.expirationDate(), request.ipRange());
             byte[] signatureBytes = signWithSha1Rsa(policy.getBytes(UTF_8), request.privateKey());
             String urlSafePolicy = makeStringUrlSafe(policy);
             String urlSafeSignature = makeBytesUrlSafe(signatureBytes);
-            return CloudFrontSignedCookie.builder()
-                                         .isCustom(true)
-                                         .keyPairId(request.keyPairId())
-                                         .signature(urlSafeSignature)
-                                         .policy(urlSafePolicy).build();
+            return DefaultCookiesForCustomPolicy.builder()
+                               .resourceUrl(request.resourceUrl())
+                               .keyPairId(request.keyPairId())
+                               .signature(urlSafeSignature)
+                               .policy(urlSafePolicy).build();
         } catch (InvalidKeyException e) {
             throw SdkClientException.create("Could not sign custom policy cookie", e);
         }
-    }
-
-    /**
-     * Extracts the encoded path from a signed URL to be provided to a HttpRequest
-     *
-     * @param signedUrl
-     *          The generated signed URL
-     * @param s3ObjectKey
-     *          The s3 key of the object
-     * @return The encoded path to be provided to a HttpRequest
-     */
-    public static String extractEncodedPath(String signedUrl, String s3ObjectKey) {
-        return signedUrl.substring(signedUrl.indexOf(s3ObjectKey));
     }
 
     /**

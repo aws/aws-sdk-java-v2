@@ -19,10 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -30,6 +28,7 @@ import java.util.Base64;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.services.cloudfront.internal.url.SignedUrl;
 import software.amazon.awssdk.services.cloudfront.model.CloudFrontSignerRequest;
 
 
@@ -72,12 +71,12 @@ class CloudFrontUtilitiesTest {
                                                                  .privateKey(CloudFrontUtilities.loadPrivateKey(keyFile))
                                                                  .keyPairId("keyPairId")
                                                                  .expirationDate(expirationDate).build();
-        String signedUrl = CloudFrontUtilities.getSignedUrlWithCannedPolicy(request);
-        String signature = signedUrl.substring(signedUrl.indexOf("&Signature"), signedUrl.indexOf("&Key-Pair-Id"));
+        SignedUrl signedUrl = CloudFrontUtilities.getSignedUrlWithCannedPolicy(request);
+        String signature = signedUrl.url().substring(signedUrl.url().indexOf("&Signature"), signedUrl.url().indexOf("&Key-Pair-Id"));
         String expected = "https://distributionDomain/s3ObjectKey?Expires=1704067200"
                           + signature
                           + "&Key-Pair-Id=keyPairId";
-        assertThat(expected).isEqualTo(signedUrl);
+        assertThat(expected).isEqualTo(signedUrl.url());
     }
 
     @Test
@@ -92,31 +91,13 @@ class CloudFrontUtilitiesTest {
                                                                  .expirationDate(expirationDate)
                                                                  .activeDate(activeDate)
                                                                  .ipRange(ipRange).build();
-        String signedUrl = CloudFrontUtilities.getSignedUrlWithCustomPolicy(request);
-        String signature = signedUrl.substring(signedUrl.indexOf("&Signature"), signedUrl.indexOf("&Key-Pair-Id"));
+        SignedUrl signedUrl = CloudFrontUtilities.getSignedUrlWithCustomPolicy(request);
+        String signature = signedUrl.url().substring(signedUrl.url().indexOf("&Signature"), signedUrl.url().indexOf("&Key-Pair-Id"));
         String expected = "https://distributionDomain/s3ObjectKey?Policy"
                           + "=eyJTdGF0ZW1lbnQiOiBbeyJSZXNvdXJjZSI6Imh0dHBzOi8vZGlzdHJpYnV0aW9uRG9tYWluL3MzT2JqZWN0S2V5IiwiQ29uZGl0aW9uIjp7IkRhdGVMZXNzVGhhbiI6eyJBV1M6RXBvY2hUaW1lIjoxNzA0MDY3MjAwfSwiSXBBZGRyZXNzIjp7IkFXUzpTb3VyY2VJcCI6IjEuMi4zLjQifSwiRGF0ZUdyZWF0ZXJUaGFuIjp7IkFXUzpFcG9jaFRpbWUiOjE2NDA5OTUyMDB9fX1dfQ__"
                           + signature
                           + "&Key-Pair-Id=keyPairId";
-        assertThat(expected).isEqualTo(signedUrl);
-    }
-
-    @Test
-    void extractEncodedPath_shouldWork() {
-        String s3ObjectKey = "s3ObjectKey";
-        Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
-        CloudFrontSignerRequest request = CloudFrontSignerRequest.builder()
-                                                                 .resourceUrl(resourceUrl)
-                                                                 .privateKey(keyPair.getPrivate())
-                                                                 .keyPairId("keyPairId")
-                                                                 .expirationDate(expirationDate).build();
-        String signedUrl = CloudFrontUtilities.getSignedUrlWithCannedPolicy(request);
-        String encodedPath = CloudFrontUtilities.extractEncodedPath(signedUrl, s3ObjectKey);
-        String signature = signedUrl.substring(signedUrl.indexOf("&Signature"), signedUrl.indexOf("&Key-Pair-Id"));
-        String expected = "s3ObjectKey?Expires=1704067200"
-                          + signature
-                          + "&Key-Pair-Id=keyPairId";
-        assertThat(encodedPath).isEqualTo(expected);
+        assertThat(expected).isEqualTo(signedUrl.url());
     }
 
     @Test
