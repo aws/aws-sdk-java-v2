@@ -17,10 +17,13 @@ package software.amazon.awssdk.services.cloudfront.model;
 
 import java.security.PrivateKey;
 import java.time.Instant;
+import java.util.Objects;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.services.cloudfront.cookie.DefaultCookiesForCustomPolicy;
+import software.amazon.awssdk.services.cloudfront.url.DefaultSignedUrl;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -101,6 +104,35 @@ public final class CloudFrontSignerRequest
      */
     public String ipRange() {
         return ipRange;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        CloudFrontSignerRequest cookie = (CloudFrontSignerRequest) o;
+        return Objects.equals(resourceUrl, cookie.resourceUrl)
+               && Objects.equals(privateKey, cookie.privateKey)
+               && Objects.equals(keyPairId, cookie.keyPairId)
+               && Objects.equals(expirationDate, cookie.expirationDate)
+               && Objects.equals(activeDate, cookie.activeDate)
+               && Objects.equals(ipRange, cookie.ipRange);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = resourceUrl != null ? resourceUrl.hashCode() : 0;
+        result = 31 * result + (privateKey != null ? privateKey.hashCode() : 0);
+        result = 31 * result + (keyPairId != null ? keyPairId.hashCode() : 0);
+        result = 31 * result + (expirationDate != null ? expirationDate.hashCode() : 0);
+        result = 31 * result + (activeDate != null ? activeDate.hashCode() : 0);
+        result = 31 * result + (ipRange != null ? ipRange.hashCode() : 0);
+        return result;
     }
 
     @NotThreadSafe
