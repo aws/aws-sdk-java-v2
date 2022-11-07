@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "The SSOCredentialProvider should resolve to SSO Token Provider if the profile has sso_session property defined in it."
-}

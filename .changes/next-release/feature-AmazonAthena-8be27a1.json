@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Athena",
-    "contributor": "",
-    "description": "Adds support for using Query Result Reuse"
-}
