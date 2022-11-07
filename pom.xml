@@ -609,6 +609,7 @@
                             <exclude>software.amazon.awssdk.thirdparty.*</exclude>
                             <exclude>software.amazon.awssdk.regions.*</exclude>
                             <exclude>software.amazon.awssdk.core.signer.NoOpSigner</exclude>
+                            <exclude>software.amazon.awssdk.auth.credentials.ProfileCredentialsProviderFactory</exclude>
                         </excludes>
 
                         <ignoreMissingOldVersion>true</ignoreMissingOldVersion>
