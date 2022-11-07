@@ -22,8 +22,6 @@ import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.services.cloudfront.cookie.DefaultCookiesForCustomPolicy;
-import software.amazon.awssdk.services.cloudfront.url.DefaultSignedUrl;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
