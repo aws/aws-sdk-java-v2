@@ -1,3 +1,53 @@
+# __2.18.12__ __2022-11-07__
+## __AWS CloudTrail__
+  - ### Features
+    - This release includes support for configuring a delegated administrator to manage an AWS Organizations organization CloudTrail trails and event data stores, and AWS Key Management Service encryption of CloudTrail Lake event data stores.
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - The AWS Elemental MediaConvert SDK has added support for setting the SDR reference white point for HDR conversions and conversion of HDR10 to DolbyVision without mastering metadata.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - The SSOCredentialProvider should resolve to SSO Token Provider if the profile has sso_session property defined in it.
+    - Updated endpoint and partition metadata.
+
+## __AWS WAFV2__
+  - ### Features
+    - The geo match statement now adds labels for country and region. You can match requests at the region level by combining a geo match statement with label match statements.
+
+## __AWS Well-Architected Tool__
+  - ### Features
+    - This release adds support for integrations with AWS Trusted Advisor and AWS Service Catalog AppRegistry to improve workload discovery and speed up your workload reviews.
+
+## __Amazon Athena__
+  - ### Features
+    - Adds support for using Query Result Reuse
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Added support for IPv6 and dual stack for Memcached and Redis clusters. Customers can now launch new Redis and Memcached clusters with IPv6 and dual stack networking support.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for two new attributes for attribute-based instance type selection - NetworkBandwidthGbps and AllowedInstanceTypes.
+
+## __Amazon Lex Model Building V2__
+  - ### Features
+    - Amazon Lex now supports new APIs for viewing and editing Custom Vocabulary in bots.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - This release includes support for applying a CloudWatch alarm to multi account multi region Systems Manager Automation
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - This release adds protocols attribute to workspaces properties data type. This enables customers to migrate workspaces from PC over IP (PCoIP) to WorkSpaces Streaming Protocol (WSP) using create and modify workspaces public APIs.
+
+## __Auto Scaling__
+  - ### Features
+    - This release adds support for two new attributes for attribute-based instance type selection - NetworkBandwidthGbps and AllowedInstanceTypes.
+
 # __2.18.11__ __2022-11-04__
 ## __AWS SDK for Java v2__
   - ### Features
