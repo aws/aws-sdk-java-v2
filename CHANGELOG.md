@@ -1,3 +1,44 @@
+# __2.18.13__ __2022-11-08__
+## __AWS Certificate Manager__
+  - ### Features
+    - Support added for requesting elliptic curve certificate key algorithm types P-256 (EC_prime256v1) and P-384 (EC_secp384r1).
+
+## __AWS Resource Explorer__
+  - ### Features
+    - This is the initial SDK release for AWS Resource Explorer. AWS Resource Explorer lets your users search for and discover your AWS resources across the AWS Regions in your account.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWSBillingConductor__
+  - ### Features
+    - This release adds the Recurring Custom Line Item feature along with a new API ListCustomLineItemVersions.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release enables sharing of EC2 Placement Groups across accounts and within AWS Organizations using Resource Access Manager
+
+## __Amazon Lightsail__
+  - ### Features
+    - This release adds support for Amazon Lightsail to automate the delegation of domains registered through Amazon Route 53 to Lightsail DNS management and to automate record creation for DNS validation of Lightsail SSL/TLS certificates.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - Amazon OpenSearch Service now offers managed VPC endpoints to connect to your Amazon OpenSearch Service VPC-enabled domain in a Virtual Private Cloud (VPC). This feature allows you to privately access OpenSearch Service domain without using public IPs or requiring traffic to traverse the Internet.
+
+## __Amazon Polly__
+  - ### Features
+    - Amazon Polly adds new voices: Elin (sv-SE), Ida (nb-NO), Laura (nl-NL) and Suvi (fi-FI). They are available as neural voices only.
+
+## __Amazon Route 53__
+  - ### Features
+    - Amazon Route 53 now supports the Europe (Zurich) Region (eu-central-2) for latency records, geoproximity records, and private DNS for Amazon VPCs in that region.
+
+## __Firewall Management Service__
+  - ### Features
+    - AWS Firewall Manager now supports importing existing AWS Network Firewall firewalls into Firewall Manager policies.
+
 # __2.18.12__ __2022-11-07__
 ## __AWS CloudTrail__
   - ### Features
