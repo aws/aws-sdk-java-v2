@@ -51,6 +51,7 @@ import software.amazon.awssdk.crt.http.HttpException;
 import software.amazon.awssdk.crt.io.EventLoopGroup;
 import software.amazon.awssdk.crt.io.HostResolver;
 import software.amazon.awssdk.http.RecordingResponseHandler;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SdkHttpResponse;
@@ -129,6 +130,27 @@ public class AwsCrtHttpClientSpiVerificationTest {
             client.execute(AsyncExecuteRequest.builder().request(request).requestContentPublisher(createProvider("")).responseHandler(recorder).build());
             assertThatThrownBy(() -> recorder.completeFuture().get(5, TimeUnit.SECONDS)).hasCauseInstanceOf(IOException.class)
                                                                                         .hasRootCauseInstanceOf(HttpException.class);
+        }
+    }
+
+    @Test
+    public void requestFailed_notRetryable_shouldNotWrapException() {
+        try (SdkAsyncHttpClient client = AwsCrtAsyncHttpClient.builder().build()) {
+            URI uri = URI.create("http://localhost:" + mockServer.port());
+            stubFor(any(urlPathEqualTo("/")).willReturn(aResponse().withFault(Fault.RANDOM_DATA_THEN_CLOSE)));
+            // make it invalid by doing a non-zero content length with no request body...
+            SdkHttpFullRequest request = SdkHttpFullRequest.builder()
+                              .uri(uri)
+                              .method(SdkHttpMethod.PUT)
+                              .encodedPath("/")
+                              .applyMutation(b -> {
+                                  b.putHeader("Host", uri.getHost());
+                                  b.putHeader("Content-Length", "1");
+                              }).build();
+            RecordingResponseHandler recorder = new RecordingResponseHandler();
+            client.execute(AsyncExecuteRequest.builder().request(request).responseHandler(recorder).build());
+            // invalid request should have returned an HttpException and not an IOException.
+            assertThatThrownBy(() -> recorder.completeFuture().get(5, TimeUnit.SECONDS)).hasCauseInstanceOf(HttpException.class);
         }
     }
 
