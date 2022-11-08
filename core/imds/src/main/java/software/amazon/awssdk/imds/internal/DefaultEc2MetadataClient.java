@@ -26,19 +26,21 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.HttpStatusFamily;
 import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
-import software.amazon.awssdk.imds.Ec2Metadata;
+import software.amazon.awssdk.imds.Ec2MetadataClient;
 import software.amazon.awssdk.imds.Ec2MetadataRetryPolicy;
 import software.amazon.awssdk.imds.EndpointMode;
 import software.amazon.awssdk.imds.MetadataResponse;
+import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * An Implementation of the Ec2Metadata Interface.
@@ -46,50 +48,29 @@ import software.amazon.awssdk.utils.Logger;
 @SdkInternalApi
 @Immutable
 @ThreadSafe
-public final class DefaultEc2Metadata implements Ec2Metadata {
+public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implements Ec2MetadataClient {
 
-    private static final Logger log = Logger.loggerFor(DefaultEc2Metadata.class);
-
-    private static final Ec2MetadataEndpointProvider ENDPOINT_PROVIDER =
-        Ec2MetadataEndpointProvider.builder().build();
-
-    private final Ec2MetadataRetryPolicy retryPolicy;
-
-    private final URI endpoint;
-
-    private final Duration tokenTtl;
-
-    private final EndpointMode endpointMode;
+    private static final Logger log = Logger.loggerFor(DefaultEc2MetadataClient.class);
 
     private final SdkHttpClient httpClient;
+    private final boolean httpClientIsInternal;
 
-    private final RequestMarshaller requestMarshaller;
-
-    private DefaultEc2Metadata(DefaultEc2Metadata.Ec2MetadataBuilder builder) {
-        this.retryPolicy = builder.retryPolicy != null ? builder.retryPolicy
-                                                       : Ec2MetadataRetryPolicy.builder().build();
-        this.endpointMode = builder.endpointMode != null ? builder.endpointMode
-                                                         : ENDPOINT_PROVIDER.resolveEndpointMode();
-        this.endpoint = builder.endpoint != null ? builder.endpoint
-                                                 : URI.create(ENDPOINT_PROVIDER.resolveEndpoint(this.endpointMode));
-        this.tokenTtl = builder.tokenTtl != null ? builder.tokenTtl
-                                                 : Duration.ofSeconds(21600);
-        this.httpClient = builder.httpClient != null ? builder.httpClient
-                                                     : UrlConnectionHttpClient.create();
-        this.requestMarshaller = new RequestMarshaller(this.endpoint);
-    }
-
-    public static Ec2Metadata.Builder builder() {
-        return new DefaultEc2Metadata.Ec2MetadataBuilder();
+    private DefaultEc2MetadataClient(DefaultEc2MetadataClient.Ec2MetadataBuilder builder) {
+        super(builder);
+        this.httpClient = Validate.getOrDefault(builder.httpClient,
+            () -> new DefaultSdkHttpClientBuilder().buildWithDefaults(AttributeMap.empty()));
+        this.httpClientIsInternal = builder.httpClient == null;
     }
 
     @Override
-    public Ec2Metadata.Builder toBuilder() {
-        return builder().retryPolicy(retryPolicy)
-                        .endpoint(endpoint)
-                        .tokenTtl(tokenTtl)
-                        .endpointMode(endpointMode)
-                        .httpClient(httpClient);
+    public void close() {
+        if (httpClientIsInternal) {
+            httpClient.close();
+        }
+    }
+
+    public static Ec2MetadataBuilder builder() {
+        return new DefaultEc2MetadataClient.Ec2MetadataBuilder();
     }
 
     /**
@@ -141,14 +122,17 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
 
     private MetadataResponse sendRequest(String path, String token) throws IOException {
 
-        HttpExecuteRequest httpExecuteRequest = requestMarshaller.createDataRequest(path, token, tokenTtl);
+        HttpExecuteRequest httpExecuteRequest =
+            HttpExecuteRequest.builder()
+                              .request(requestMarshaller.createDataRequest(path, token, tokenTtl))
+                              .build();
         HttpExecuteResponse response = httpClient.prepareRequest(httpExecuteRequest).call();
 
         int statusCode = response.httpResponse().statusCode();
         Optional<AbortableInputStream> responseBody = response.responseBody();
 
         if (HttpStatusFamily.of(statusCode).isOneOf(HttpStatusFamily.SERVER_ERROR)) {
-            responseBody.map(this::uncheckedInputStreamToUtf8)
+            responseBody.map(BaseEc2MetadataClient::uncheckedInputStreamToUtf8)
                         .ifPresent(str -> log.debug(() -> "Metadata request response body: " + str));
             throw RetryableException.builder()
                                     .message("The requested metadata at path ( " + path + " ) returned Http code " + statusCode)
@@ -156,7 +140,7 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
         }
 
         if (!HttpStatusFamily.of(statusCode).isOneOf(HttpStatusFamily.SUCCESSFUL)) {
-            responseBody.map(this::uncheckedInputStreamToUtf8)
+            responseBody.map(BaseEc2MetadataClient::uncheckedInputStreamToUtf8)
                         .ifPresent(str -> log.debug(() -> "Metadata request response body: " + str));
             throw SdkClientException.builder()
                         .message("The requested metadata at path ( " + path + " ) returned Http code " + statusCode).build();
@@ -183,20 +167,22 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
     }
 
     private String getToken() throws IOException {
-        HttpExecuteRequest httpExecuteRequest = requestMarshaller.createTokenRequest(tokenTtl);
+        HttpExecuteRequest httpExecuteRequest = HttpExecuteRequest.builder()
+                                                                  .request(requestMarshaller.createTokenRequest(tokenTtl))
+                                                                  .build();
         HttpExecuteResponse response = httpClient.prepareRequest(httpExecuteRequest).call();
 
         int statusCode = response.httpResponse().statusCode();
 
         if (HttpStatusFamily.of(statusCode).isOneOf(HttpStatusFamily.SERVER_ERROR)) {
-            response.responseBody().map(this::uncheckedInputStreamToUtf8)
+            response.responseBody().map(BaseEc2MetadataClient::uncheckedInputStreamToUtf8)
                         .ifPresent(str -> log.debug(() -> "Metadata request response body: " + str));
             throw RetryableException.builder()
                                     .message("Could not retrieve token, " + statusCode + " error occurred").build();
         }
 
         if (!HttpStatusFamily.of(statusCode).isOneOf(HttpStatusFamily.SUCCESSFUL)) {
-            response.responseBody().map(this::uncheckedInputStreamToUtf8)
+            response.responseBody().map(BaseEc2MetadataClient::uncheckedInputStreamToUtf8)
                     .ifPresent(body -> log.debug(() -> "Token request response body: " + body));
             throw SdkClientException.builder()
                                     .message("Could not retrieve token, " + statusCode + " error occurred.")
@@ -209,17 +195,7 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
         return IoUtils.toUtf8String(abortableInputStream);
     }
 
-    private String uncheckedInputStreamToUtf8(AbortableInputStream inputStream) {
-        try {
-            return IoUtils.toUtf8String(inputStream);
-        } catch (IOException ioe) {
-            throw new UncheckedIOException(ioe);
-        } finally {
-            IoUtils.closeQuietly(inputStream, log.logger());
-        }
-    }
-
-    private static final class Ec2MetadataBuilder implements Ec2Metadata.Builder {
+    private static final class Ec2MetadataBuilder implements Ec2MetadataClient.Builder {
 
         private Ec2MetadataRetryPolicy retryPolicy;
 
@@ -234,60 +210,59 @@ public final class DefaultEc2Metadata implements Ec2Metadata {
         private Ec2MetadataBuilder() {
         }
 
-        public void setRetryPolicy(Ec2MetadataRetryPolicy retryPolicy) {
-            this.retryPolicy = retryPolicy;
-        }
-
-        public void setEndpoint(URI endpoint) {
-            this.endpoint = endpoint;
-        }
-
-        public void setTokenTtl(Duration tokenTtl) {
-            this.tokenTtl = tokenTtl;
-        }
-
-        public void setEndpointMode(EndpointMode endpointMode) {
-            this.endpointMode = endpointMode;
-        }
-
-        public void setHttpClient(SdkHttpClient httpClient) {
-            this.httpClient = httpClient;
-        }
-
         @Override
-        public Builder retryPolicy(Ec2MetadataRetryPolicy retryPolicy) {
+        public Ec2MetadataBuilder retryPolicy(Ec2MetadataRetryPolicy retryPolicy) {
             this.retryPolicy = retryPolicy;
             return this;
         }
 
         @Override
-        public Builder endpoint(URI endpoint) {
+        public Ec2MetadataBuilder endpoint(URI endpoint) {
             this.endpoint = endpoint;
             return this;
         }
 
         @Override
-        public Builder tokenTtl(Duration tokenTtl) {
+        public Ec2MetadataBuilder tokenTtl(Duration tokenTtl) {
             this.tokenTtl = tokenTtl;
             return this;
         }
 
         @Override
-        public Builder endpointMode(EndpointMode endpointMode) {
+        public Ec2MetadataBuilder endpointMode(EndpointMode endpointMode) {
             this.endpointMode = endpointMode;
             return this;
         }
 
         @Override
-        public Builder httpClient(SdkHttpClient httpClient) {
-
+        public Ec2MetadataBuilder httpClient(SdkHttpClient httpClient) {
             this.httpClient = httpClient;
             return this;
         }
 
         @Override
-        public Ec2Metadata build() {
-            return new DefaultEc2Metadata(this);
+        public Ec2MetadataRetryPolicy getRetryPolicy() {
+            return this.retryPolicy;
+        }
+
+        @Override
+        public URI getEndpoint() {
+            return this.endpoint;
+        }
+
+        @Override
+        public Duration getTokenTtl() {
+            return this.tokenTtl;
+        }
+
+        @Override
+        public EndpointMode getEndpointMode() {
+            return this.endpointMode;
+        }
+
+        @Override
+        public Ec2MetadataClient build() {
+            return new DefaultEc2MetadataClient(this);
         }
     }
 }

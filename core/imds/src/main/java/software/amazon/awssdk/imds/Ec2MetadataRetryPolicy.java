@@ -34,12 +34,14 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 @SdkPublicApi
 public class Ec2MetadataRetryPolicy implements ToCopyableBuilder<Ec2MetadataRetryPolicy.Builder, Ec2MetadataRetryPolicy> {
 
+    private static final int DEFAULT_RETRY_ATTEMPTS = 3;
+
     private final BackoffStrategy backoffStrategy;
     private final int numRetries;
 
     private Ec2MetadataRetryPolicy(BuilderImpl builder) {
 
-        this.numRetries = builder.numRetries != null ? builder.numRetries : 3;
+        this.numRetries = builder.numRetries != null ? builder.numRetries : DEFAULT_RETRY_ATTEMPTS;
 
         this.backoffStrategy = builder.backoffStrategy != null ? builder.backoffStrategy :
                                BackoffStrategy.defaultStrategy(RetryMode.STANDARD);

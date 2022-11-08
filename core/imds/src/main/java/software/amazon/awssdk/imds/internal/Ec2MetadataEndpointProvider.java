@@ -36,6 +36,8 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 public final class Ec2MetadataEndpointProvider {
 
+    public static final Ec2MetadataEndpointProvider DEFAULT_ENDPOINT_PROVIDER = builder().build();
+
     private static final EnumMap<EndpointMode, String> DEFAULT_ENDPOINT_MODE;
 
     static {
@@ -52,9 +54,11 @@ public final class Ec2MetadataEndpointProvider {
         this.profileName = builder.profileName;
     }
 
+
     /**
-     * Resolve the endpoint to be used for the {@link DefaultEc2Metadata} client. Users may manually provide an endpoint through
-     * the {@code AWS_EC2_METADATA_SERVICE_ENDPOINT} environment variable or th {@code ec2_metadata_service_endpoint} key in
+     * Resolve the endpoint to be used for the {@link DefaultEc2MetadataClient} client. Users may manually provide an endpoint
+     * through the {@code AWS_EC2_METADATA_SERVICE_ENDPOINT} environment variable or the {@code ec2_metadata_service_endpoint}
+     * key in
      * their aws config file.
      * If an endpoint is specified is this manner, use it. If no value are provide, the defaults to:
      * <ol>
