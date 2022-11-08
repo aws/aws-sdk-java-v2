@@ -49,7 +49,7 @@ public final class ProfileCredentialsProvider
                SdkAutoCloseable,
                ToCopyableBuilder<ProfileCredentialsProvider.Builder, ProfileCredentialsProvider> {
 
-    private AwsCredentials credentials;
+    private AwsCredentialsProvider credentialsProvider;
     private final RuntimeException loadException;
     private final ProfileFileSupplier profileFileSupplier;
     private volatile ProfileFile currentProfileFile;
@@ -123,27 +123,19 @@ public final class ProfileCredentialsProvider
             handleProfileFileReload(cachedOrRefreshedProfileFile);
         }
 
-        return credentials;
+        return credentialsProvider.resolveCredentials();
     }
 
     private void handleProfileFileReload(ProfileFile profileFile) {
-        updateCredentials(profileFile, profileName);
-    }
-
-    private void updateCredentials(ProfileFile profileFile, String profileName) {
-        AwsCredentialsProvider credentialsProvider = createCredentialsProvider(profileFile, profileName);
-
-        this.credentials = credentialsProvider.resolveCredentials();
-
-        IoUtils.closeIfCloseable(credentialsProvider, null);
+        credentialsProvider = createCredentialsProvider(profileFile, profileName);
     }
 
     private ProfileFile refreshProfileFile() {
-        return profileFileSupplier.getProfileFile();
+        return profileFileSupplier.profileFile();
     }
 
     private boolean isNewProfileFile(ProfileFile profileFile) {
-        return currentProfileFile != profileFile;
+        return !Objects.equals(currentProfileFile, profileFile);
     }
 
     @Override
@@ -157,6 +149,9 @@ public final class ProfileCredentialsProvider
     @Override
     public void close() {
         profileFileSupplier.close();
+        // The delegate credentials provider may be closeable (eg. if it's an STS credentials provider). In this case, we should
+        // clean it up when this credentials provider is closed.
+        IoUtils.closeIfCloseable(credentialsProvider, null);
     }
 
     @Override

@@ -28,6 +28,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.temporal.TemporalAmount;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -61,11 +62,11 @@ class ProfileFileSupplierTest {
                                                           .fixedProfileFile(credentialsFilePath)
                                                           .build();
 
-        ProfileFile file1 = supplier.getProfileFile();
+        ProfileFile file1 = supplier.profileFile();
 
         generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey");
 
-        ProfileFile file2 = supplier.getProfileFile();
+        ProfileFile file2 = supplier.profileFile();
 
         Assertions.assertThat(file2).isSameAs(file1);
     }
@@ -81,13 +82,13 @@ class ProfileFileSupplierTest {
                                                           .build();
 
         Duration duration = Duration.ofSeconds(10);
-        ProfileFile file1 = supplier.getProfileFile();
+        ProfileFile file1 = supplier.profileFile();
 
         generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey");
         updateModificationTime(credentialsFilePath, clock.instant().plusMillis(1));
 
         clock.tickForward(duration);
-        ProfileFile file2 = supplier.getProfileFile();
+        ProfileFile file2 = supplier.profileFile();
 
         Assertions.assertThat(file2).isNotSameAs(file1);
     }
@@ -101,16 +102,16 @@ class ProfileFileSupplierTest {
                                                           .reloadWhenModified(credentialsFilePath)
                                                           .clock(clock)
                                                           .build();
-        ProfileFile file1 = supplier.getProfileFile();
+        ProfileFile file1 = supplier.profileFile();
 
         clock.tickForward(Duration.ofSeconds(5));
-        ProfileFile file2 = supplier.getProfileFile();
+        ProfileFile file2 = supplier.profileFile();
 
         generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey");
         updateModificationTime(credentialsFilePath, clock.instant().plusMillis(1));
 
         clock.tickForward(Duration.ofSeconds(5));
-        ProfileFile file3 = supplier.getProfileFile();
+        ProfileFile file3 = supplier.profileFile();
 
         Assertions.assertThat(file2).isSameAs(file1);
         Assertions.assertThat(file3).isNotSameAs(file2);
@@ -127,30 +128,68 @@ class ProfileFileSupplierTest {
                                                           .build();
         Duration duration = Duration.ofSeconds(5);
 
-        ProfileFile file1 = supplier.getProfileFile();
+        ProfileFile file1 = supplier.profileFile();
 
         clock.tickForward(duration);
-        ProfileFile file2 = supplier.getProfileFile();
+        ProfileFile file2 = supplier.profileFile();
 
         generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey");
         updateModificationTime(credentialsFilePath, clock.instant().plusMillis(1));
 
         clock.tickForward(duration);
-        ProfileFile file3 = supplier.getProfileFile();
+        ProfileFile file3 = supplier.profileFile();
 
         generateTestCredentialsFile("updatedAccessKey", "updatedSecretAccessKey");
         updateModificationTime(credentialsFilePath, clock.instant().plusMillis(1));
 
         clock.tickForward(duration);
-        ProfileFile file4 = supplier.getProfileFile();
+        ProfileFile file4 = supplier.profileFile();
 
         clock.tickForward(duration);
-        ProfileFile file5 = supplier.getProfileFile();
+        ProfileFile file5 = supplier.profileFile();
 
         Assertions.assertThat(file2).isSameAs(file1);
         Assertions.assertThat(file3).isNotSameAs(file2);
         Assertions.assertThat(file4).isNotSameAs(file3);
         Assertions.assertThat(file5).isSameAs(file4);
+    }
+
+    @Test
+    void refreshIfStale_givenOnLoadAction_callsActionOncePerNewProfileFile() {
+        int actualProfilesCount = 3;
+        AtomicInteger blockCount = new AtomicInteger();
+
+        Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
+
+        AdjustableClock clock = new AdjustableClock();
+        ProfileFileSupplier supplier = ProfileFileSupplier.builder()
+                                                          .reloadWhenModified(credentialsFilePath)
+                                                          .clock(clock)
+                                                          .onProfileFileLoad(f -> blockCount.incrementAndGet())
+                                                          .build();
+        Duration duration = Duration.ofSeconds(5);
+
+        ProfileFile file1 = supplier.profileFile();
+
+        clock.tickForward(duration);
+        ProfileFile file2 = supplier.profileFile();
+
+        generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey");
+        updateModificationTime(credentialsFilePath, clock.instant().plusMillis(1));
+
+        clock.tickForward(duration);
+        ProfileFile file3 = supplier.profileFile();
+
+        generateTestCredentialsFile("updatedAccessKey", "updatedSecretAccessKey");
+        updateModificationTime(credentialsFilePath, clock.instant().plusMillis(1));
+
+        clock.tickForward(duration);
+        ProfileFile file4 = supplier.profileFile();
+
+        clock.tickForward(duration);
+        ProfileFile file5 = supplier.profileFile();
+
+        Assertions.assertThat(blockCount.get()).isEqualTo(actualProfilesCount);
     }
 
     private Path generateTestFile(String contents, String filename) {

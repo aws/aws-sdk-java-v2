@@ -153,13 +153,14 @@ public class ProfileCredentialsProviderTest {
                                        + "aws_access_key_id = defaultAccessKey\n"
                                        + "aws_secret_access_key = defaultSecretAccessKey");
 
-        ProfileCredentialsProvider provider =
-            ProfileCredentialsProvider.builder()
-                                      .profileFileSupplier(() -> file)
-                                      .profileName("foo")
-                                      .build();
+        try (ProfileCredentialsProvider provider =
+                 ProfileCredentialsProvider.builder()
+                                           .profileFileSupplier(() -> file)
+                                           .profileName("foo")
+                                           .build()) {
 
-        assertThatThrownBy(provider::resolveCredentials).isInstanceOf(SdkClientException.class);
+            assertThatThrownBy(provider::resolveCredentials).isInstanceOf(SdkClientException.class);
+        }
     }
 
     @Test

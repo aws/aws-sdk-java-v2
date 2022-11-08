@@ -38,9 +38,11 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
 @SdkInternalApi
 public final class ProfileFileRefresher implements SdkAutoCloseable {
 
+    private static final ProfileFileRefreshRecord EMPTY_REFRESH_RECORD = ProfileFileRefreshRecord.builder()
+                                                                                                 .refreshTime(Instant.MIN)
+                                                                                                 .build();
     private final CachedSupplier<ProfileFileRefreshRecord> profileFileCache;
     private volatile ProfileFileRefreshRecord currentRefreshRecord;
-    private final ProfileFileRefreshRecord emptyRefreshRecord;
     private final Supplier<ProfileFile> profileFile;
     private final Path profileFilePath;
     private final Function<RuntimeException, ProfileFile> exceptionHandler;
@@ -56,10 +58,7 @@ public final class ProfileFileRefresher implements SdkAutoCloseable {
         this.profileFileCache = CachedSupplier.builder(this::refreshResult)
                                               .clock(this.clock)
                                               .build();
-        this.emptyRefreshRecord = ProfileFileRefreshRecord.builder()
-                                                          .refreshTime(Instant.MIN)
-                                                          .build();
-        this.currentRefreshRecord = this.emptyRefreshRecord;
+        this.currentRefreshRecord = EMPTY_REFRESH_RECORD;
     }
 
     /**
@@ -156,7 +155,7 @@ public final class ProfileFileRefresher implements SdkAutoCloseable {
     }
 
     private boolean hasNotBeenPreviouslyLoaded() {
-        return currentRefreshRecord == emptyRefreshRecord;
+        return currentRefreshRecord == EMPTY_REFRESH_RECORD;
     }
 
 

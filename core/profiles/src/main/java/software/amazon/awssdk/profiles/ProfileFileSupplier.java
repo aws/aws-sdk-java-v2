@@ -27,7 +27,7 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
 /**
  * Encapsulates the logic for supplying either a single or multiple ProfileFile instances.
  * <p>
- * Each call to the {@link #getProfileFile()} method will result in either a new or previously supplied profile based on the
+ * Each call to the {@link #profileFile()} method will result in either a new or previously supplied profile based on the
  * implementation's rules.
  */
 @SdkPublicApi
@@ -37,18 +37,20 @@ public interface ProfileFileSupplier extends SdkAutoCloseable {
     /**
      * @return A ProfileFile instance.
      */
-    ProfileFile getProfileFile();
+    ProfileFile profileFile();
 
     @Override
     default void close() {
     }
 
     /**
-     * Creates a {@link ProfileFileSupplier} capable of producing multiple profile objects from a file. See
-     * {@link ProfileFileSupplier#builder()} to create a customized implementation.
+     * Creates a {@link ProfileFileSupplier} capable of producing multiple profile objects from a file. This supplier will
+     * return a new ProfileFile instance only once the disk file has been modified. Multiple calls to the supplier while the
+     * disk file is unchanged will return the same object. See {@link ProfileFileSupplier#builder()} to create a customized
+     * implementation.
      *
      * @param path Path to the file read from.
-     * @return Implementation of {@link ProfileFileSupplier} that is capable of supplying  a new profile when the file
+     * @return Implementation of {@link ProfileFileSupplier} that is capable of supplying a new profile when the file
      *         has been modified.
      */
     static ProfileFileSupplier reloadWhenModified(Path path) {
@@ -64,7 +66,7 @@ public interface ProfileFileSupplier extends SdkAutoCloseable {
                                                                  .build();
 
             @Override
-            public ProfileFile getProfileFile() {
+            public ProfileFile profileFile() {
                 return refresher.refreshIfStale();
             }
 
@@ -131,9 +133,8 @@ public interface ProfileFileSupplier extends SdkAutoCloseable {
             ProfileFileRefresher refresher = refresherBuilder.build();
 
             return new ProfileFileSupplier() {
-
                 @Override
-                public ProfileFile getProfileFile() {
+                public ProfileFile profileFile() {
                     return refresher.refreshIfStale();
                 }
 
