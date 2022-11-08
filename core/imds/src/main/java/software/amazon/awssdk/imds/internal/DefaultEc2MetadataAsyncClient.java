@@ -64,8 +64,8 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
 
     private final SdkAsyncHttpClient httpClient;
     private final ScheduledExecutorService asyncRetryScheduler;
-    private final boolean isHttpClientManaged;
-    private final boolean isRetryExecutorManaged;
+    private final boolean httpClientIsInternal;
+    private final boolean retryExecutorIsInternal;
 
     private DefaultEc2MetadataAsyncClient(Ec2MetadataAsyncBuilder builder) {
         super(builder);
@@ -76,8 +76,8 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
                 ThreadFactory threadFactory = new ThreadFactoryBuilder().threadNamePrefix("IMDS-ScheduledExecutor").build();
                 return Executors.newScheduledThreadPool(DEFAULT_RETRY_THREAD_POOL_SIZE, threadFactory);
             });
-        this.isHttpClientManaged = builder.httpClient == null;
-        this.isRetryExecutorManaged = builder.scheduledExecutorService == null;
+        this.httpClientIsInternal = builder.httpClient == null;
+        this.retryExecutorIsInternal = builder.scheduledExecutorService == null;
     }
 
     public static Ec2MetadataAsyncClient.Builder builder() {
@@ -130,16 +130,16 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
         TransformingAsyncResponseHandler<String> responseHandler = new AsyncResponseHandler<>(stringResponseHandler,
                                                                                               Function.identity(),
                                                                                               new ExecutionAttributes());
-        CompletableFuture<String> future = responseHandler.prepare();
-        stringResponseHandler.setFuture(future);
+        CompletableFuture<String> responseHandlerFuture = responseHandler.prepare();
+        stringResponseHandler.setFuture(responseHandlerFuture);
         AsyncExecuteRequest metadataRequest = AsyncExecuteRequest.builder()
                                                                  .request(baseRequest)
                                                                  .requestContentPublisher(requestContentPublisher)
                                                                  .responseHandler(responseHandler)
                                                                  .build();
         CompletableFuture<Void> executeFuture = httpClient.execute(metadataRequest);
-        CompletableFutureUtils.forwardExceptionTo(future, executeFuture);
-        return future;
+        CompletableFutureUtils.forwardExceptionTo(responseHandlerFuture, executeFuture);
+        return responseHandlerFuture;
     }
 
     private void scheduledRetryAttempt(Runnable runnable, RetryPolicyContext retryPolicyContext) {
@@ -159,10 +159,10 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
 
     @Override
     public void close() {
-        if (isHttpClientManaged) {
+        if (httpClientIsInternal) {
             httpClient.close();
         }
-        if (isRetryExecutorManaged) {
+        if (retryExecutorIsInternal) {
             asyncRetryScheduler.shutdown();
         }
     }

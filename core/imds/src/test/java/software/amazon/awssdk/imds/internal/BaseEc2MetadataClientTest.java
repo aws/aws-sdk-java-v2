@@ -226,9 +226,8 @@ public abstract class BaseEc2MetadataClientTest<T, B extends Ec2MetadataClientBu
 
     @Test
     public void builder_setEndpoint_shouldUseEndpoint() {
-        String customEndpoint = "http://123.456.123.456";
-        BaseEc2MetadataClient client = overrideClient(builder -> builder.endpoint(URI.create(customEndpoint)));
-        assertThat(client.endpoint).hasToString(customEndpoint);
+        BaseEc2MetadataClient client = overrideClient(builder -> builder.endpoint(URI.create("http://localhost:" + 12312)));
+        assertThat(client.endpoint).hasToString("http://localhost:" + 12312);
     }
 
     @ParameterizedTest

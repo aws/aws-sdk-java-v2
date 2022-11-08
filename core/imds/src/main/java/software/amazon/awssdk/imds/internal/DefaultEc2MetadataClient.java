@@ -53,18 +53,18 @@ public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implem
     private static final Logger log = Logger.loggerFor(DefaultEc2MetadataClient.class);
 
     private final SdkHttpClient httpClient;
-    private final boolean isHttpClientManaged;
+    private final boolean httpClientIsInternal;
 
     private DefaultEc2MetadataClient(DefaultEc2MetadataClient.Ec2MetadataBuilder builder) {
         super(builder);
         this.httpClient = Validate.getOrDefault(builder.httpClient,
             () -> new DefaultSdkHttpClientBuilder().buildWithDefaults(AttributeMap.empty()));
-        this.isHttpClientManaged = builder.httpClient == null;
+        this.httpClientIsInternal = builder.httpClient == null;
     }
 
     @Override
     public void close() {
-        if (isHttpClientManaged) {
+        if (httpClientIsInternal) {
             httpClient.close();
         }
     }
