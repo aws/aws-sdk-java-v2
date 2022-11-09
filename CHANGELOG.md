@@ -1,3 +1,28 @@
+# __2.18.14__ __2022-11-09__
+## __AWS Elemental MediaPackage VOD__
+  - ### Features
+    - This release adds "IncludeIframeOnlyStream" for Dash endpoints.
+
+## __AWS Ground Station__
+  - ### Features
+    - This release adds the preview of customer-provided ephemeris support for AWS Ground Station, allowing space vehicle owners to provide their own position and trajectory information for a satellite.
+
+## __Amazon Connect Cases__
+  - ### Features
+    - This release adds the ability to disable templates through the UpdateTemplate API. Disabling templates prevents customers from creating cases using the template. For more information see https://docs.aws.amazon.com/cases/latest/APIReference/Welcome.html
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds new fields SignInUrl, UserArn, and UserId to GetFederationToken response payload.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon EC2 Trn1 instances, powered by AWS Trainium chips, are purpose built for high-performance deep learning training. u-24tb1.112xlarge and u-18tb1.112xlarge High Memory instances are purpose-built to run large in-memory databases.
+
+## __Amazon Transcribe Streaming Service__
+  - ### Features
+    - This will release hi-IN and th-TH
+
 # __2.18.13__ __2022-11-08__
 ## __AWS Certificate Manager__
   - ### Features
