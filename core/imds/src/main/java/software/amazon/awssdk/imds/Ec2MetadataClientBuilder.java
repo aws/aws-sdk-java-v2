@@ -83,4 +83,18 @@ public interface Ec2MetadataClientBuilder<B, T> extends SdkBuilder<Ec2MetadataCl
 
     EndpointMode getEndpointMode();
 
+    /**
+     * Define the token caching strategy for the IMDS requests.
+     * <p>
+     * If not specified, defaults to {@link TokenCacheStrategy#NONE}, and a request to fetch a token will be executed for each
+     * metadata request.
+     *
+     * </p>
+     * @param tokenCacheStrategy
+     * @return
+     */
+    B tokenCacheStrategy(TokenCacheStrategy tokenCacheStrategy);
+
+    TokenCacheStrategy getTokenCacheStrategy();
+
 }

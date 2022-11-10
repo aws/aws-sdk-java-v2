@@ -40,6 +40,6 @@ class Ec2MetadataRetryPolicyTest {
         Ec2MetadataRetryPolicy policy = Ec2MetadataRetryPolicy.builder()
                                                               .numRetries(3)
                                                               .build();
-        assertThat(policy.numRetries()).isEqualTo(3);
+        assertThat(policy.getNumRetries()).isEqualTo(3);
     }
 }

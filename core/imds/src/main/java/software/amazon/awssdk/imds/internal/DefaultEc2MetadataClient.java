@@ -19,8 +19,10 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URI;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
@@ -37,10 +39,12 @@ import software.amazon.awssdk.imds.Ec2MetadataClient;
 import software.amazon.awssdk.imds.Ec2MetadataRetryPolicy;
 import software.amazon.awssdk.imds.EndpointMode;
 import software.amazon.awssdk.imds.MetadataResponse;
+import software.amazon.awssdk.imds.TokenCacheStrategy;
 import software.amazon.awssdk.utils.AttributeMap;
-import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.cache.CachedSupplier;
+import software.amazon.awssdk.utils.cache.RefreshResult;
 
 /**
  * An Implementation of the Ec2Metadata Interface.
@@ -53,12 +57,15 @@ public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implem
     private static final Logger log = Logger.loggerFor(DefaultEc2MetadataClient.class);
 
     private final SdkHttpClient httpClient;
+    private final Supplier<String> tokenCache;
     private final boolean httpClientIsInternal;
 
-    private DefaultEc2MetadataClient(DefaultEc2MetadataClient.Ec2MetadataBuilder builder) {
+    private DefaultEc2MetadataClient(Ec2MetadataBuilder builder) {
         super(builder);
         this.httpClient = Validate.getOrDefault(builder.httpClient,
-            () -> new DefaultSdkHttpClientBuilder().buildWithDefaults(AttributeMap.empty()));
+                                                () -> new DefaultSdkHttpClientBuilder().buildWithDefaults(AttributeMap.empty()));
+        this.tokenCache = createCachedTokenSupplier(Validate.getOrDefault(builder.tokenCacheStrategy,
+                                                                          () -> TokenCacheStrategy.NONE));
         this.httpClientIsInternal = builder.httpClient == null;
     }
 
@@ -73,24 +80,37 @@ public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implem
         return new DefaultEc2MetadataClient.Ec2MetadataBuilder();
     }
 
+    private Supplier<String> createCachedTokenSupplier(TokenCacheStrategy tokenCacheStrategy) {
+        if (tokenCacheStrategy == TokenCacheStrategy.NONE) {
+            return this::getToken;
+        }
+        CachedSupplier.PrefetchStrategy prefetchStrategy = getPrefetchStrategy(tokenCacheStrategy);
+        return CachedSupplier.builder(() -> RefreshResult.builder(getToken())
+                                                         .staleTime(Instant.now().plus(tokenTtl))
+                                                         .build())
+                             .prefetchStrategy(prefetchStrategy)
+                             .build();
+    }
+
     /**
-     * Gets the specified instance metadata value by the given path. Will retry base on the {@link Ec2MetadataRetryPolicy retry
-     * policy} provided, in the case of an IOException during request. Will not retry on SdkClientException, like 4XX HTTP
-     * error.
-     * @param path  Input path of the resource to get.
-     * @throws SdkClientException if the request for a token or the request for the Metadata does not have a 2XX SUCCESS response,
-     *                            if the maximum number of retries is reached,
-     *                            or if another IOException is thrown during the request.
+     * Gets the specified instance metadata value by the given path. Will retry base on the
+     * {@link Ec2MetadataRetryPolicy retry policy} provided, in the case of an IOException during request. Will not retry on
+     * SdkClientException, like 4XX HTTP error.
+     *
+     * @param path Input path of the resource to get.
      * @return Instance metadata value as part of MetadataResponse Object
+     * @throws SdkClientException if the request for a token or the request for the Metadata does not have a 2XX SUCCESS response,
+     *                            if the maximum number of retries is reached, or if another IOException is thrown during the
+     *                            request.
      */
     @Override
     public MetadataResponse get(String path) {
         Throwable lastCause = null;
         // 3 retries means 4 total attempts
-        for (int attempt = 0; attempt < retryPolicy.numRetries() + 1; attempt++) {
+        for (int attempt = 0; attempt < retryPolicy.getNumRetries() + 1; attempt++) {
             RetryPolicyContext retryPolicyContext = RetryPolicyContext.builder().retriesAttempted(attempt).build();
             try {
-                String token = getToken();
+                String token = tokenCache.get();
                 return sendRequest(path, token);
             } catch (UncheckedIOException | RetryableException e) {
                 lastCause = e;
@@ -99,8 +119,8 @@ public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implem
             } catch (SdkClientException sdkClientException) {
                 int totalTries = attempt + 1;
                 log.debug(() -> String.format("Error while executing EC2Metadata request. Total attempts: %d. %s",
-                                           totalTries,
-                                           sdkClientException.getMessage()));
+                                              totalTries,
+                                              sdkClientException.getMessage()));
                 throw sdkClientException;
             } catch (IOException ioe) {
                 lastCause = new UncheckedIOException(ioe);
@@ -112,7 +132,7 @@ public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implem
 
         SdkClientException.Builder sdkClientExceptionBuilder = SdkClientException
             .builder()
-            .message("Exceeded maximum number of retries. Total attempts: " + retryPolicy.numRetries() + ".");
+            .message("Exceeded maximum number of retries. Total attempts: " + retryPolicy.getNumRetries() + ".");
         if (lastCause != null) {
             String msg = sdkClientExceptionBuilder.message() + " " + lastCause.getMessage();
             sdkClientExceptionBuilder.cause(lastCause).message(msg);
@@ -143,7 +163,7 @@ public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implem
             responseBody.map(BaseEc2MetadataClient::uncheckedInputStreamToUtf8)
                         .ifPresent(str -> log.debug(() -> "Metadata request response body: " + str));
             throw SdkClientException.builder()
-                        .message("The requested metadata at path ( " + path + " ) returned Http code " + statusCode).build();
+                                    .message("The requested metadata at path ( " + path + " ) returned Http code " + statusCode).build();
         }
 
         AbortableInputStream abortableInputStream = responseBody.orElseThrow(
@@ -153,9 +173,9 @@ public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implem
     }
 
     private void pauseBeforeRetryIfNeeded(RetryPolicyContext retryPolicyContext) {
-        long backoffTimeMillis = retryPolicy.backoffStrategy()
-                          .computeDelayBeforeNextRetry(retryPolicyContext)
-                          .toMillis();
+        long backoffTimeMillis = retryPolicy.getBackoffStrategy()
+                                            .computeDelayBeforeNextRetry(retryPolicyContext)
+                                            .toMillis();
         if (backoffTimeMillis > 0) {
             try {
                 TimeUnit.MILLISECONDS.sleep(backoffTimeMillis);
@@ -166,17 +186,22 @@ public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implem
         }
     }
 
-    private String getToken() throws IOException {
+    private String getToken() {
         HttpExecuteRequest httpExecuteRequest = HttpExecuteRequest.builder()
                                                                   .request(requestMarshaller.createTokenRequest(tokenTtl))
                                                                   .build();
-        HttpExecuteResponse response = httpClient.prepareRequest(httpExecuteRequest).call();
+        HttpExecuteResponse response = null;
+        try {
+            response = httpClient.prepareRequest(httpExecuteRequest).call();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
 
         int statusCode = response.httpResponse().statusCode();
 
         if (HttpStatusFamily.of(statusCode).isOneOf(HttpStatusFamily.SERVER_ERROR)) {
             response.responseBody().map(BaseEc2MetadataClient::uncheckedInputStreamToUtf8)
-                        .ifPresent(str -> log.debug(() -> "Metadata request response body: " + str));
+                    .ifPresent(str -> log.debug(() -> "Metadata request response body: " + str));
             throw RetryableException.builder()
                                     .message("Could not retrieve token, " + statusCode + " error occurred").build();
         }
@@ -192,7 +217,7 @@ public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implem
         AbortableInputStream abortableInputStream = response.responseBody().orElseThrow(
             SdkClientException.builder().message("Empty response body")::build);
 
-        return IoUtils.toUtf8String(abortableInputStream);
+        return uncheckedInputStreamToUtf8(abortableInputStream);
     }
 
     private static final class Ec2MetadataBuilder implements Ec2MetadataClient.Builder {
@@ -206,6 +231,8 @@ public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implem
         private EndpointMode endpointMode;
 
         private SdkHttpClient httpClient;
+
+        private TokenCacheStrategy tokenCacheStrategy;
 
         private Ec2MetadataBuilder() {
         }
@@ -258,6 +285,17 @@ public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implem
         @Override
         public EndpointMode getEndpointMode() {
             return this.endpointMode;
+        }
+
+        @Override
+        public Builder tokenCacheStrategy(TokenCacheStrategy tokenCacheStrategy) {
+            this.tokenCacheStrategy = tokenCacheStrategy;
+            return this;
+        }
+
+        @Override
+        public TokenCacheStrategy getTokenCacheStrategy() {
+            return this.tokenCacheStrategy;
         }
 
         @Override
