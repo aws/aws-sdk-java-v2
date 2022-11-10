@@ -292,6 +292,7 @@ public final class InstanceProfileCredentialsProvider
         /**
          * Build a {@link InstanceProfileCredentialsProvider} from the provided configuration.
          */
+        @Override
         InstanceProfileCredentialsProvider build();
     }
 
