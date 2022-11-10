@@ -13,33 +13,33 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.cloudfront.cookie;
+package software.amazon.awssdk.services.cloudfront.internal.cookie;
 
 import java.net.URI;
 import java.util.Objects;
 import software.amazon.awssdk.annotations.Immutable;
-import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.services.cloudfront.internal.cookies.CookiesForCustomPolicy;
+import software.amazon.awssdk.services.cloudfront.cookie.CookiesForCannedPolicy;
 
 @Immutable
 @ThreadSafe
-@SdkPublicApi
-public final class DefaultCookiesForCustomPolicy implements CookiesForCustomPolicy {
+@SdkInternalApi
+public final class DefaultCookiesForCannedPolicy implements CookiesForCannedPolicy {
 
     private final String keyPairIdValue;
     private final String signatureValue;
     private final String resourceUrl;
-    private final String policyValue;
+    private final String expiresValue;
 
-    private DefaultCookiesForCustomPolicy(DefaultBuilder builder) {
+    private DefaultCookiesForCannedPolicy(DefaultBuilder builder) {
         this.keyPairIdValue = builder.keyPairIdValue;
         this.signatureValue = builder.signatureValue;
         this.resourceUrl = builder.resourceUrl;
-        this.policyValue = builder.policyValue;
+        this.expiresValue = builder.expiresValue;
     }
 
     public static Builder builder() {
@@ -60,11 +60,11 @@ public final class DefaultCookiesForCustomPolicy implements CookiesForCustomPoli
             return false;
         }
 
-        DefaultCookiesForCustomPolicy cookie = (DefaultCookiesForCustomPolicy) o;
+        DefaultCookiesForCannedPolicy cookie = (DefaultCookiesForCannedPolicy) o;
         return Objects.equals(keyPairIdValue, cookie.keyPairIdValue)
                && Objects.equals(signatureValue, cookie.signatureValue)
                && Objects.equals(resourceUrl, cookie.resourceUrl)
-               && Objects.equals(policyValue, cookie.policyValue);
+               && Objects.equals(expiresValue, cookie.expiresValue);
     }
 
     @Override
@@ -72,16 +72,16 @@ public final class DefaultCookiesForCustomPolicy implements CookiesForCustomPoli
         int result = keyPairIdValue != null ? keyPairIdValue.hashCode() : 0;
         result = 31 * result + (signatureValue != null ? signatureValue.hashCode() : 0);
         result = 31 * result + (resourceUrl != null ? resourceUrl.hashCode() : 0);
-        result = 31 * result + (policyValue != null ? policyValue.hashCode() : 0);
+        result = 31 * result + (expiresValue != null ? expiresValue.hashCode() : 0);
         return result;
     }
 
     @Override
     public String toString() {
-        return "CloudFront Cookies for Custom Policy:\n"
+        return "CloudFront Cookies for Canned Policy:\n"
                + "Key-Pair-ID = " + keyPairIdValue + "\n"
                + "Signature = " + signatureValue + "\n"
-               + "Policy = " + policyValue + "\n"
+               + "Expires = " + expiresValue + "\n"
                + "Resource URL = " + resourceUrl;
     }
 
@@ -96,8 +96,8 @@ public final class DefaultCookiesForCustomPolicy implements CookiesForCustomPoli
     }
 
     @Override
-    public String policyKey() {
-        return POLICY_KEY;
+    public String expiresKey() {
+        return EXPIRES_KEY;
     }
 
     @Override
@@ -111,8 +111,8 @@ public final class DefaultCookiesForCustomPolicy implements CookiesForCustomPoli
     }
 
     @Override
-    public String policyValue() {
-        return policyValue;
+    public String expiresValue() {
+        return expiresValue;
     }
 
     @Override
@@ -125,7 +125,7 @@ public final class DefaultCookiesForCustomPolicy implements CookiesForCustomPoli
         return SdkHttpRequest.builder()
                              .uri(URI.create(resourceUrl))
                              .appendHeader("Cookie",
-                                           cookieHeaderValue(CookieType.POLICY))
+                                           cookieHeaderValue(CookieType.EXPIRES))
                              .appendHeader("Cookie",
                                            cookieHeaderValue(CookieType.SIGNATURE))
                              .appendHeader("Cookie",
@@ -141,26 +141,26 @@ public final class DefaultCookiesForCustomPolicy implements CookiesForCustomPoli
                 return KEY_PAIR_ID_KEY + "=" + keyPairIdValue;
             case SIGNATURE:
                 return SIGNATURE_KEY + "=" + signatureValue;
-            case POLICY:
-                return POLICY_KEY + "=" + policyValue;
+            case EXPIRES:
+                return EXPIRES_KEY + "=" + expiresValue;
             default:
                 throw SdkClientException.create("Did not provide a valid cookie type");
         }
     }
 
-    private static final class DefaultBuilder implements CookiesForCustomPolicy.Builder {
+    private static final class DefaultBuilder implements CookiesForCannedPolicy.Builder {
         private String keyPairIdValue;
         private String signatureValue;
-        private String policyValue;
+        private String expiresValue;
         private String resourceUrl;
 
         private DefaultBuilder() {
         }
 
-        private DefaultBuilder(DefaultCookiesForCustomPolicy cookies) {
+        private DefaultBuilder(DefaultCookiesForCannedPolicy cookies) {
             this.keyPairIdValue = cookies.keyPairIdValue;
             this.signatureValue = cookies.signatureValue;
-            this.policyValue = cookies.policyValue;
+            this.expiresValue = cookies.expiresValue;
             this.resourceUrl = cookies.resourceUrl;
         }
 
@@ -177,8 +177,8 @@ public final class DefaultCookiesForCustomPolicy implements CookiesForCustomPoli
         }
 
         @Override
-        public Builder policy(String policy) {
-            this.policyValue = policy;
+        public Builder expires(String expires) {
+            this.expiresValue = expires;
             return this;
         }
 
@@ -189,8 +189,8 @@ public final class DefaultCookiesForCustomPolicy implements CookiesForCustomPoli
         }
 
         @Override
-        public DefaultCookiesForCustomPolicy build() {
-            return new DefaultCookiesForCustomPolicy(this);
+        public DefaultCookiesForCannedPolicy build() {
+            return new DefaultCookiesForCannedPolicy(this);
         }
     }
 

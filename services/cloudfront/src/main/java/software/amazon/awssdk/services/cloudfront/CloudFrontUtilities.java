@@ -35,15 +35,15 @@ import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.services.cloudfront.cookie.DefaultCookiesForCannedPolicy;
-import software.amazon.awssdk.services.cloudfront.cookie.DefaultCookiesForCustomPolicy;
+import software.amazon.awssdk.services.cloudfront.cookie.CookiesForCannedPolicy;
+import software.amazon.awssdk.services.cloudfront.cookie.CookiesForCustomPolicy;
 import software.amazon.awssdk.services.cloudfront.internal.auth.Pem;
 import software.amazon.awssdk.services.cloudfront.internal.auth.Rsa;
-import software.amazon.awssdk.services.cloudfront.internal.cookies.CookiesForCannedPolicy;
-import software.amazon.awssdk.services.cloudfront.internal.cookies.CookiesForCustomPolicy;
-import software.amazon.awssdk.services.cloudfront.internal.url.SignedUrl;
+import software.amazon.awssdk.services.cloudfront.internal.cookie.DefaultCookiesForCannedPolicy;
+import software.amazon.awssdk.services.cloudfront.internal.cookie.DefaultCookiesForCustomPolicy;
+import software.amazon.awssdk.services.cloudfront.internal.url.DefaultSignedUrl;
 import software.amazon.awssdk.services.cloudfront.model.CloudFrontSignerRequest;
-import software.amazon.awssdk.services.cloudfront.url.DefaultSignedUrl;
+import software.amazon.awssdk.services.cloudfront.url.SignedUrl;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.StringUtils;
 
@@ -67,6 +67,8 @@ import software.amazon.awssdk.utils.StringUtils;
 @SdkPublicApi
 public final class CloudFrontUtilities {
 
+    private static final String CLOUDFRONT_NET = "cloudfront.net";
+
     private CloudFrontUtilities() {
     }
 
@@ -85,15 +87,18 @@ public final class CloudFrontUtilities {
      */
     public static SignedUrl getSignedUrlWithCannedPolicy(CloudFrontSignerRequest request) {
         try {
-            String cannedPolicy = buildCannedPolicy(request.resourceUrl(), request.expirationDate());
+            String resourceUrl = request.resourceUrl();
+            String cannedPolicy = buildCannedPolicy(resourceUrl, request.expirationDate());
             byte[] signatureBytes = signWithSha1Rsa(cannedPolicy.getBytes(UTF_8), request.privateKey());
             String urlSafeSignature = makeBytesUrlSafe(signatureBytes);
-            String signedUrl = request.resourceUrl()
+            String protocol = resourceUrl.substring(0, resourceUrl.indexOf("://"));
+            String domain = resourceUrl.substring(resourceUrl.indexOf("://") + 3, resourceUrl.indexOf(CLOUDFRONT_NET) + 14);
+            String encodedPath = resourceUrl.substring(resourceUrl.indexOf(CLOUDFRONT_NET) + 15)
                    + (request.resourceUrl().indexOf('?') >= 0 ? "&" : "?")
                    + "Expires=" + request.expirationDate().getEpochSecond()
                    + "&Signature=" + urlSafeSignature
                    + "&Key-Pair-Id=" + request.keyPairId();
-            return DefaultSignedUrl.builder().url(signedUrl).build();
+            return DefaultSignedUrl.builder().protocol(protocol).domain(domain).encodedPath(encodedPath).build();
         } catch (InvalidKeyException e) {
             throw SdkClientException.create("Could not sign url", e);
         }
@@ -116,17 +121,20 @@ public final class CloudFrontUtilities {
      */
     public static SignedUrl getSignedUrlWithCustomPolicy(CloudFrontSignerRequest request) {
         try {
+            String resourceUrl = request.resourceUrl();
             String policy = buildCustomPolicyForSignedUrl(request.resourceUrl(), request.activeDate(), request.expirationDate(),
                                                           request.ipRange());
             byte[] signatureBytes = signWithSha1Rsa(policy.getBytes(UTF_8), request.privateKey());
             String urlSafePolicy = makeStringUrlSafe(policy);
             String urlSafeSignature = makeBytesUrlSafe(signatureBytes);
-            String signedUrl = request.resourceUrl()
+            String protocol = resourceUrl.substring(0, resourceUrl.indexOf("://"));
+            String domain = resourceUrl.substring(resourceUrl.indexOf("://") + 3, resourceUrl.indexOf(CLOUDFRONT_NET) + 14);
+            String encodedPath = resourceUrl.substring(resourceUrl.indexOf(CLOUDFRONT_NET) + 15)
                    + (request.resourceUrl().indexOf('?') >= 0 ? "&" : "?")
                    + "Policy=" + urlSafePolicy
                    + "&Signature=" + urlSafeSignature
                    + "&Key-Pair-Id=" + request.keyPairId();
-            return DefaultSignedUrl.builder().url(signedUrl).build();
+            return DefaultSignedUrl.builder().protocol(protocol).domain(domain).encodedPath(encodedPath).build();
         } catch (InvalidKeyException e) {
             throw SdkClientException.create("Could not sign url", e);
         }

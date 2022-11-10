@@ -13,17 +13,28 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.cloudfront.internal.url;
+package software.amazon.awssdk.services.cloudfront.url;
 
-import software.amazon.awssdk.annotations.NotThreadSafe;
-import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.utils.builder.CopyableBuilder;
-import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
-@SdkInternalApi
-public interface SignedUrl extends ToCopyableBuilder<SignedUrl.Builder, SignedUrl> {
+@SdkPublicApi
+public interface SignedUrl {
+
+    /**
+     * Returns the protocol
+     */
+    String protocol();
+
+    /**
+     * Returns the domain
+     */
+    String domain();
+
+    /**
+     * Returns the encoded path
+     */
+    String encodedPath();
 
     /**
      * Returns the signed URL
@@ -34,15 +45,5 @@ public interface SignedUrl extends ToCopyableBuilder<SignedUrl.Builder, SignedUr
      * Generates an HTTP request that can be executed by an HTTP client to access the resource
      */
     SdkHttpRequest generateHttpRequest();
-
-    @NotThreadSafe
-    @SdkPublicApi
-    interface Builder extends CopyableBuilder<Builder, SignedUrl> {
-
-        /**
-         * Configure the signed URL
-         */
-        Builder url(String url);
-    }
 
 }

@@ -28,12 +28,12 @@ import java.util.Base64;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.services.cloudfront.internal.url.SignedUrl;
+import software.amazon.awssdk.services.cloudfront.url.SignedUrl;
 import software.amazon.awssdk.services.cloudfront.model.CloudFrontSignerRequest;
 
 
 class CloudFrontUtilitiesTest {
-    private static final String resourceUrl = "https://distributionDomain/s3ObjectKey";
+    private static final String resourceUrl = "https://distributionDomain-cloudfront.net/s3ObjectKey";
     private static KeyPairGenerator kpg;
     private static KeyPair keyPair;
     private static File keyFile;
@@ -73,7 +73,7 @@ class CloudFrontUtilitiesTest {
                                                                  .expirationDate(expirationDate).build();
         SignedUrl signedUrl = CloudFrontUtilities.getSignedUrlWithCannedPolicy(request);
         String signature = signedUrl.url().substring(signedUrl.url().indexOf("&Signature"), signedUrl.url().indexOf("&Key-Pair-Id"));
-        String expected = "https://distributionDomain/s3ObjectKey?Expires=1704067200"
+        String expected = "https://distributionDomain-cloudfront.net/s3ObjectKey?Expires=1704067200"
                           + signature
                           + "&Key-Pair-Id=keyPairId";
         assertThat(expected).isEqualTo(signedUrl.url());
@@ -93,8 +93,8 @@ class CloudFrontUtilitiesTest {
                                                                  .ipRange(ipRange).build();
         SignedUrl signedUrl = CloudFrontUtilities.getSignedUrlWithCustomPolicy(request);
         String signature = signedUrl.url().substring(signedUrl.url().indexOf("&Signature"), signedUrl.url().indexOf("&Key-Pair-Id"));
-        String expected = "https://distributionDomain/s3ObjectKey?Policy"
-                          + "=eyJTdGF0ZW1lbnQiOiBbeyJSZXNvdXJjZSI6Imh0dHBzOi8vZGlzdHJpYnV0aW9uRG9tYWluL3MzT2JqZWN0S2V5IiwiQ29uZGl0aW9uIjp7IkRhdGVMZXNzVGhhbiI6eyJBV1M6RXBvY2hUaW1lIjoxNzA0MDY3MjAwfSwiSXBBZGRyZXNzIjp7IkFXUzpTb3VyY2VJcCI6IjEuMi4zLjQifSwiRGF0ZUdyZWF0ZXJUaGFuIjp7IkFXUzpFcG9jaFRpbWUiOjE2NDA5OTUyMDB9fX1dfQ__"
+        String expected = "https://distributionDomain-cloudfront.net/s3ObjectKey?Policy"
+                          + "=eyJTdGF0ZW1lbnQiOiBbeyJSZXNvdXJjZSI6Imh0dHBzOi8vZGlzdHJpYnV0aW9uRG9tYWluLWNsb3VkZnJvbnQubmV0L3MzT2JqZWN0S2V5IiwiQ29uZGl0aW9uIjp7IkRhdGVMZXNzVGhhbiI6eyJBV1M6RXBvY2hUaW1lIjoxNzA0MDY3MjAwfSwiSXBBZGRyZXNzIjp7IkFXUzpTb3VyY2VJcCI6IjEuMi4zLjQifSwiRGF0ZUdyZWF0ZXJUaGFuIjp7IkFXUzpFcG9jaFRpbWUiOjE2NDA5OTUyMDB9fX1dfQ__"
                           + signature
                           + "&Key-Pair-Id=keyPairId";
         assertThat(expected).isEqualTo(signedUrl.url());

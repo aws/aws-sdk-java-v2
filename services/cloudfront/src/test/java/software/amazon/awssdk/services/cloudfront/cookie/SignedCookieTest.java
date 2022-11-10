@@ -13,17 +13,14 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.cloudfront;
+package software.amazon.awssdk.services.cloudfront.cookie;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.services.cloudfront.cookie.DefaultCookiesForCannedPolicy;
-import software.amazon.awssdk.services.cloudfront.cookie.DefaultCookiesForCustomPolicy;
-import software.amazon.awssdk.services.cloudfront.internal.cookies.CookiesForCannedPolicy;
-import software.amazon.awssdk.services.cloudfront.internal.cookies.CookiesForCustomPolicy;
-import software.amazon.awssdk.services.cloudfront.internal.cookies.SignedCookie;
+import software.amazon.awssdk.services.cloudfront.internal.cookie.DefaultCookiesForCannedPolicy;
+import software.amazon.awssdk.services.cloudfront.internal.cookie.DefaultCookiesForCustomPolicy;
 
 class SignedCookieTest {
 

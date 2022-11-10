@@ -13,21 +13,27 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.cloudfront;
+package software.amazon.awssdk.services.cloudfront.url;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.services.cloudfront.internal.url.SignedUrl;
-import software.amazon.awssdk.services.cloudfront.url.DefaultSignedUrl;
+import software.amazon.awssdk.services.cloudfront.internal.url.DefaultSignedUrl;
 
 class SignedUrlTest {
 
     @Test
     void signedUrl_shouldWork() {
-        String url = "URL";
-        SignedUrl signedUrl = DefaultSignedUrl.builder().url(url).build();
+        String protocol = "https";
+        String domain = "domain";
+        String encodedPath = "encodedPath";
+        String url = protocol + "://" + domain + "/" + encodedPath;
+        SignedUrl signedUrl = DefaultSignedUrl.builder().protocol(protocol).domain(domain).encodedPath(encodedPath).build();
+
+        assertThat(signedUrl.protocol()).isEqualTo(protocol);
+        assertThat(signedUrl.domain()).isEqualTo(domain);
+        assertThat(signedUrl.encodedPath()).isEqualTo(encodedPath);
         assertThat(signedUrl.url()).isEqualTo(url);
     }
 

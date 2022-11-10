@@ -13,33 +13,31 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.cloudfront.internal.cookies;
+package software.amazon.awssdk.services.cloudfront.cookie;
 
 import software.amazon.awssdk.annotations.NotThreadSafe;
-import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
-@SdkInternalApi
-public interface CookiesForCannedPolicy extends SignedCookie,
-                                                ToCopyableBuilder<CookiesForCannedPolicy.Builder, CookiesForCannedPolicy> {
+@SdkPublicApi
+public interface CookiesForCustomPolicy extends SignedCookie,
+                                                ToCopyableBuilder<CookiesForCustomPolicy.Builder, CookiesForCustomPolicy> {
 
-    String EXPIRES_KEY = "CloudFront-Expires";
-
-    /**
-     * Returns the expires key
-     */
-    String expiresKey();
+    String POLICY_KEY = "CloudFront-Policy";
 
     /**
-     * Returns the expires value
+     * Returns the policy key
      */
-    String expiresValue();
+    String policyKey();
+
+    /**
+     * Returns the policy value
+     */
+    String policyValue();
 
     @NotThreadSafe
-    @SdkPublicApi
-    interface Builder extends CopyableBuilder<CookiesForCannedPolicy.Builder, CookiesForCannedPolicy> {
+    interface Builder extends CopyableBuilder<CookiesForCustomPolicy.Builder, CookiesForCustomPolicy> {
 
         /**
          * Configure the key pair ID value
@@ -57,9 +55,9 @@ public interface CookiesForCannedPolicy extends SignedCookie,
         Builder resourceUrl(String resourceUrl);
 
         /**
-         * Configure the expiration value
+         * Configure the policy value
          */
-        Builder expires(String expires);
+        Builder policy(String policy);
     }
 
 }
