@@ -221,7 +221,7 @@ public class ProfileCredentialsProviderTest {
     }
 
     @Test
-    void create_gvenProfileName_returnsProfileCredentialsProviderToResolveForGivenName() {
+    void create_givenProfileName_returnsProfileCredentialsProviderToResolveForGivenName() {
         ProfileCredentialsProvider provider = ProfileCredentialsProvider.create("override");
         String toString = provider.toString();
 
@@ -231,8 +231,10 @@ public class ProfileCredentialsProviderTest {
     }
 
     @Test
-    void toString_anyProfileCredentialsProviderAfterResolvingCredentials_returnsProfileFile() {
-        ProfileCredentialsProvider provider = ProfileCredentialsProvider.create();
+    void toString_anyProfileCredentialsProviderAfterResolvingCredentialsFileDoesExists_returnsProfileFile() {
+        ProfileCredentialsProvider provider = new ProfileCredentialsProvider.BuilderImpl()
+            .defaultProfileFileLoader(() -> profileFile("[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n"))
+            .build();
         provider.resolveCredentials();
         String toString = provider.toString();
 
@@ -243,7 +245,19 @@ public class ProfileCredentialsProviderTest {
     }
 
     @Test
-    void toString_anyProfileCredentialsProviderBeforeResolvingCredentials_rdoesNotReturnProfileFile() {
+    void toString_anyProfileCredentialsProviderAfterResolvingCredentialsFileDoesNotExist_throwsException() {
+        ProfileCredentialsProvider provider = new ProfileCredentialsProvider.BuilderImpl()
+            .defaultProfileFileLoader(() -> ProfileFile.builder()
+                                                       .content(new StringInputStream(""))
+                                                       .type(ProfileFile.Type.CONFIGURATION)
+                                                       .build())
+            .build();
+
+        assertThatThrownBy(provider::resolveCredentials).isInstanceOf(SdkClientException.class);
+    }
+
+    @Test
+    void toString_anyProfileCredentialsProviderBeforeResolvingCredentials_doesNotReturnProfileFile() {
         ProfileCredentialsProvider provider =
             new ProfileCredentialsProvider.BuilderImpl()
                 .defaultProfileFileLoader(() -> ProfileFile.builder()
