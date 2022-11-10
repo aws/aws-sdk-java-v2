@@ -17,7 +17,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.18.14</version>
+        <version>2.18.15</version>
     </parent>
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
@@ -339,6 +339,7 @@
         <module>migrationhuborchestrator</module>
         <module>connectcases</module>
         <module>resourceexplorer2</module>
+        <module>scheduler</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
