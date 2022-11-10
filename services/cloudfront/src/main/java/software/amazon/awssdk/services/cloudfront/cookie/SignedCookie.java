@@ -57,9 +57,9 @@ public interface SignedCookie {
     String resourceUrl();
 
     /**
-     * Generates an HTTP request that can be executed by an HTTP client to access the resource
+     * Generates an HTTP GET request that can be executed by an HTTP client to access the resource
      */
-    SdkHttpRequest generateHttpRequest();
+    SdkHttpRequest generateHttpGetRequest();
 
     /**
      * Returns the cookie header value for the specified cookie type.

@@ -52,31 +52,6 @@ public final class DefaultCookiesForCustomPolicy implements CookiesForCustomPoli
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        DefaultCookiesForCustomPolicy cookie = (DefaultCookiesForCustomPolicy) o;
-        return Objects.equals(keyPairIdValue, cookie.keyPairIdValue)
-               && Objects.equals(signatureValue, cookie.signatureValue)
-               && Objects.equals(resourceUrl, cookie.resourceUrl)
-               && Objects.equals(policyValue, cookie.policyValue);
-    }
-
-    @Override
-    public int hashCode() {
-        int result = keyPairIdValue != null ? keyPairIdValue.hashCode() : 0;
-        result = 31 * result + (signatureValue != null ? signatureValue.hashCode() : 0);
-        result = 31 * result + (resourceUrl != null ? resourceUrl.hashCode() : 0);
-        result = 31 * result + (policyValue != null ? policyValue.hashCode() : 0);
-        return result;
-    }
-
-    @Override
     public String toString() {
         return "CloudFront Cookies for Custom Policy:\n"
                + "Key-Pair-ID = " + keyPairIdValue + "\n"
@@ -121,7 +96,7 @@ public final class DefaultCookiesForCustomPolicy implements CookiesForCustomPoli
     }
 
     @Override
-    public SdkHttpRequest generateHttpRequest() {
+    public SdkHttpRequest generateHttpGetRequest() {
         return SdkHttpRequest.builder()
                              .uri(URI.create(resourceUrl))
                              .appendHeader("Cookie",
@@ -146,6 +121,31 @@ public final class DefaultCookiesForCustomPolicy implements CookiesForCustomPoli
             default:
                 throw SdkClientException.create("Did not provide a valid cookie type");
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DefaultCookiesForCustomPolicy cookie = (DefaultCookiesForCustomPolicy) o;
+        return Objects.equals(keyPairIdValue, cookie.keyPairIdValue)
+               && Objects.equals(signatureValue, cookie.signatureValue)
+               && Objects.equals(resourceUrl, cookie.resourceUrl)
+               && Objects.equals(policyValue, cookie.policyValue);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = keyPairIdValue != null ? keyPairIdValue.hashCode() : 0;
+        result = 31 * result + (signatureValue != null ? signatureValue.hashCode() : 0);
+        result = 31 * result + (resourceUrl != null ? resourceUrl.hashCode() : 0);
+        result = 31 * result + (policyValue != null ? policyValue.hashCode() : 0);
+        return result;
     }
 
     private static final class DefaultBuilder implements CookiesForCustomPolicy.Builder {

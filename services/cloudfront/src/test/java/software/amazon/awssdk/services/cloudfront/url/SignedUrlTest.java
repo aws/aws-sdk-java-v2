@@ -19,22 +19,34 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.services.cloudfront.internal.url.DefaultSignedUrl;
 
 class SignedUrlTest {
 
+    private static final String PROTOCOL = "https";
+    private static final String DOMAIN = "domain-cloudfront.net";
+    private static final String ENCODED_PATH = "encodedPath";
+
     @Test
     void signedUrl_shouldWork() {
-        String protocol = "https";
-        String domain = "domain";
-        String encodedPath = "encodedPath";
-        String url = protocol + "://" + domain + "/" + encodedPath;
-        SignedUrl signedUrl = DefaultSignedUrl.builder().protocol(protocol).domain(domain).encodedPath(encodedPath).build();
+        SignedUrl signedUrl = DefaultSignedUrl.builder().protocol(PROTOCOL).domain(DOMAIN).encodedPath(ENCODED_PATH).build();
+        String url = PROTOCOL + "://" + DOMAIN + "/" + ENCODED_PATH;
 
-        assertThat(signedUrl.protocol()).isEqualTo(protocol);
-        assertThat(signedUrl.domain()).isEqualTo(domain);
-        assertThat(signedUrl.encodedPath()).isEqualTo(encodedPath);
+        assertThat(signedUrl.protocol()).isEqualTo(PROTOCOL);
+        assertThat(signedUrl.domain()).isEqualTo(DOMAIN);
+        assertThat(signedUrl.encodedPath()).isEqualTo(ENCODED_PATH);
         assertThat(signedUrl.url()).isEqualTo(url);
+    }
+
+    @Test
+    void generateHttpGetRequest_shouldWork() {
+        SignedUrl signedUrl = DefaultSignedUrl.builder().protocol(PROTOCOL).domain(DOMAIN).encodedPath(ENCODED_PATH).build();
+        SdkHttpRequest httpRequest = signedUrl.generateHttpGetRequest();
+
+        assertThat(httpRequest.protocol()).isEqualTo(PROTOCOL);
+        assertThat(httpRequest.host()).isEqualTo(DOMAIN);
+        assertThat(httpRequest.encodedPath()).isEqualTo("/" + ENCODED_PATH);
     }
 
     @Test

@@ -42,8 +42,8 @@ public interface SignedUrl {
     String url();
 
     /**
-     * Generates an HTTP request that can be executed by an HTTP client to access the resource
+     * Generates an HTTP GET request that can be executed by an HTTP client to access the resource
      */
-    SdkHttpRequest generateHttpRequest();
+    SdkHttpRequest generateHttpGetRequest();
 
 }

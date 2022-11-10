@@ -49,29 +49,6 @@ public final class DefaultSignedUrl implements SignedUrl, ToCopyableBuilder<Defa
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        DefaultSignedUrl signedUrl = (DefaultSignedUrl) o;
-        return Objects.equals(protocol, signedUrl.protocol)
-            && Objects.equals(domain, signedUrl.domain)
-            && Objects.equals(encodedPath, signedUrl.encodedPath);
-    }
-
-    @Override
-    public int hashCode() {
-        int result = protocol != null ? protocol.hashCode() : 0;
-        result = 31 * result + (domain != null ? domain.hashCode() : 0);
-        result = 31 * result + (encodedPath != null ? encodedPath.hashCode() : 0);
-        return result;
-    }
-
-    @Override
     public String toString() {
         return "CloudFront Signed URL: " + url();
     }
@@ -99,13 +76,36 @@ public final class DefaultSignedUrl implements SignedUrl, ToCopyableBuilder<Defa
     }
 
     @Override
-    public SdkHttpRequest generateHttpRequest() {
+    public SdkHttpRequest generateHttpGetRequest() {
         return SdkHttpRequest.builder()
                              .encodedPath(encodedPath)
                              .host(domain)
                              .method(SdkHttpMethod.GET)
                              .protocol(protocol)
                              .build();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DefaultSignedUrl signedUrl = (DefaultSignedUrl) o;
+        return Objects.equals(protocol, signedUrl.protocol)
+               && Objects.equals(domain, signedUrl.domain)
+               && Objects.equals(encodedPath, signedUrl.encodedPath);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = protocol != null ? protocol.hashCode() : 0;
+        result = 31 * result + (domain != null ? domain.hashCode() : 0);
+        result = 31 * result + (encodedPath != null ? encodedPath.hashCode() : 0);
+        return result;
     }
 
     public static final class Builder implements CopyableBuilder<Builder, DefaultSignedUrl> {

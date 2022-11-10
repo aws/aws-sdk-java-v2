@@ -152,7 +152,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
         SignedUrl signedUrl = CloudFrontUtilities.getSignedUrlWithCannedPolicy(request);
         SdkHttpClient client = ApacheHttpClient.create();
         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
-                                                                               .request(signedUrl.generateHttpRequest())
+                                                                               .request(signedUrl.generateHttpGetRequest())
                                                                                .build()).call();
         int expectedStatus = 200;
         assertThat(response.httpResponse().statusCode()).isEqualTo(expectedStatus);
@@ -172,7 +172,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
         SignedUrl signedUrl = CloudFrontUtilities.getSignedUrlWithCannedPolicy(request);
         SdkHttpClient client = ApacheHttpClient.create();
         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
-                                                                               .request(signedUrl.generateHttpRequest())
+                                                                               .request(signedUrl.generateHttpGetRequest())
                                                                                .build()).call();
         int expectedStatus = 403;
         assertThat(response.httpResponse().statusCode()).isEqualTo(expectedStatus);
@@ -192,7 +192,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
         SignedUrl signedUrl = CloudFrontUtilities.getSignedUrlWithCustomPolicy(request);
         SdkHttpClient client = ApacheHttpClient.create();
         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
-                                                                               .request(signedUrl.generateHttpRequest())
+                                                                               .request(signedUrl.generateHttpGetRequest())
                                                                                .build()).call();
         int expectedStatus = 200;
         assertThat(response.httpResponse().statusCode()).isEqualTo(expectedStatus);
@@ -214,7 +214,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
         SignedUrl signedUrl = CloudFrontUtilities.getSignedUrlWithCustomPolicy(request);
         SdkHttpClient client = ApacheHttpClient.create();
         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
-                                                                               .request(signedUrl.generateHttpRequest())
+                                                                               .request(signedUrl.generateHttpGetRequest())
                                                                                .build()).call();
         int expectedStatus = 403;
         assertThat(response.httpResponse().statusCode()).isEqualTo(expectedStatus);
@@ -233,7 +233,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
 
         SdkHttpClient client = ApacheHttpClient.create();
         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
-                                                                               .request(cookies.generateHttpRequest())
+                                                                               .request(cookies.generateHttpGetRequest())
                                                                                .build()).call();
         int expectedStatus = 200;
         assertThat(response.httpResponse().statusCode()).isEqualTo(expectedStatus);
@@ -254,7 +254,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
 
         SdkHttpClient client = ApacheHttpClient.create();
         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
-                                                                               .request(cookies.generateHttpRequest())
+                                                                               .request(cookies.generateHttpGetRequest())
                                                                                .build()).call();
         int expectedStatus = 403;
         assertThat(response.httpResponse().statusCode()).isEqualTo(expectedStatus);
@@ -275,7 +275,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
 
         SdkHttpClient client = ApacheHttpClient.create();
         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
-                                                                               .request(cookies.generateHttpRequest())
+                                                                               .request(cookies.generateHttpGetRequest())
                                                                                .build()).call();
         int expectedStatus = 200;
         assertThat(response.httpResponse().statusCode()).isEqualTo(expectedStatus);
@@ -298,7 +298,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
 
         SdkHttpClient client = ApacheHttpClient.create();
         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
-                                                                               .request(cookies.generateHttpRequest())
+                                                                               .request(cookies.generateHttpGetRequest())
                                                                                .build()).call();
         int expectedStatus = 403;
         assertThat(response.httpResponse().statusCode()).isEqualTo(expectedStatus);
