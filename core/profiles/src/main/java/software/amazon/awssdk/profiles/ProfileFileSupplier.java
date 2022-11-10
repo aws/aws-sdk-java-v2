@@ -16,7 +16,6 @@
 package software.amazon.awssdk.profiles;
 
 import java.nio.file.Path;
-import java.time.Clock;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -27,17 +26,12 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
 /**
  * Encapsulates the logic for supplying either a single or multiple ProfileFile instances.
  * <p>
- * Each call to the {@link #profileFile()} method will result in either a new or previously supplied profile based on the
+ * Each call to the {@link #get()} method will result in either a new or previously supplied profile based on the
  * implementation's rules.
  */
 @SdkPublicApi
 @FunctionalInterface
-public interface ProfileFileSupplier extends SdkAutoCloseable {
-
-    /**
-     * @return A ProfileFile instance.
-     */
-    ProfileFile profileFile();
+public interface ProfileFileSupplier extends Supplier<ProfileFile>, SdkAutoCloseable {
 
     @Override
     default void close() {
@@ -46,27 +40,26 @@ public interface ProfileFileSupplier extends SdkAutoCloseable {
     /**
      * Creates a {@link ProfileFileSupplier} capable of producing multiple profile objects from a file. This supplier will
      * return a new ProfileFile instance only once the disk file has been modified. Multiple calls to the supplier while the
-     * disk file is unchanged will return the same object. See {@link ProfileFileSupplier#builder()} to create a customized
-     * implementation.
+     * disk file is unchanged will return the same object.
      *
-     * @param path Path to the file read from.
+     * @param path Path to the file to read from.
      * @return Implementation of {@link ProfileFileSupplier} that is capable of supplying a new profile when the file
      *         has been modified.
      */
     static ProfileFileSupplier reloadWhenModified(Path path) {
         return new ProfileFileSupplier() {
 
-            ProfileFile.Builder builder = ProfileFile.builder()
-                                                     .content(path)
-                                                     .type(ProfileFile.Type.CREDENTIALS);
+            final ProfileFile.Builder builder = ProfileFile.builder()
+                                                           .content(path)
+                                                           .type(ProfileFile.Type.CREDENTIALS);
 
-            ProfileFileRefresher refresher = ProfileFileRefresher.builder()
-                                                                 .profileFile(builder::build)
-                                                                 .profileFilePath(path)
-                                                                 .build();
+            final ProfileFileRefresher refresher = ProfileFileRefresher.builder()
+                                                                       .profileFile(builder::build)
+                                                                       .profileFilePath(path)
+                                                                       .build();
 
             @Override
-            public ProfileFile profileFile() {
+            public ProfileFile get() {
                 return refresher.refreshIfStale();
             }
 
@@ -78,10 +71,9 @@ public interface ProfileFileSupplier extends SdkAutoCloseable {
     }
 
     /**
-     * Creates a {@link ProfileFileSupplier} capable of producing a single profile object from a file. See
-     * {@link ProfileFileSupplier#builder()} to create a customized implementation.
+     * Creates a {@link ProfileFileSupplier} capable of producing a single profile object from a file.
      *
-     * @param path Path to the file read from.
+     * @param path Path to the file to read from.
      * @return Implementation of {@link ProfileFileSupplier} that is capable of supplying a single profile.
      */
     static ProfileFileSupplier fixedProfileFile(Path path) {
@@ -94,8 +86,7 @@ public interface ProfileFileSupplier extends SdkAutoCloseable {
     }
 
     /**
-     * Creates a {@link ProfileFileSupplier} that produces an existing profile. See
-     * {@link ProfileFileSupplier#builder()} to create a customized implementation.
+     * Creates a {@link ProfileFileSupplier} that produces an existing profile.
      *
      * @param profileFile Profile object to supply.
      * @return Implementation of {@link ProfileFileSupplier} that is capable of supplying a single profile.
@@ -105,98 +96,42 @@ public interface ProfileFileSupplier extends SdkAutoCloseable {
     }
 
     /**
-     * @return Builder instance to construct a {@link ProfileFileSupplier}.
+     * creates a {@link ProfileFileSupplier} that produces an existing non-null profile. If the given profile
+     * is null, then the created supplier will also be null.
+     *
+     * @param profileFile Profile object to supply.
+     * @return Implementation of {@link ProfileFileSupplier} that is capable of supplying a single profile.
      */
-    static Builder builder() {
-        return new Builder();
-    }
-
-    /**
-     * Completes {@link ProfileFileSupplier} build.
-     * @param builder Object to complete build.
-     * @return Implementation of {@link ProfileFileSupplier}.
-     */
-    static ProfileFileSupplier fromBuilder(Builder builder) {
-        if (builder.reloadingSupplier) {
-
-            ProfileFileRefresher.Builder refresherBuilder = ProfileFileRefresher.builder()
-                                                                                .profileFile(builder.profileFile)
-                                                                                .profileFilePath(builder.profileFilePath);
-
-            if (Objects.nonNull(builder.clock)) {
-                refresherBuilder.clock(builder.clock);
-            }
-            if (Objects.nonNull(builder.onProfileFileLoad)) {
-                refresherBuilder.onProfileFileReload(builder.onProfileFileLoad);
-            }
-
-            ProfileFileRefresher refresher = refresherBuilder.build();
-
-            return new ProfileFileSupplier() {
-                @Override
-                public ProfileFile profileFile() {
-                    return refresher.refreshIfStale();
-                }
-
-                @Override
-                public void close() {
-                    refresher.close();
-                }
-            };
-        } else {
-            return () -> builder.profileFile.get();
-        }
+    static ProfileFileSupplier wrapIntoNullableSupplier(ProfileFile profileFile) {
+        return Objects.nonNull(profileFile) ? () -> profileFile : null;
     }
 
     /**
      * A builder for {@link ProfileFileSupplier}.
      */
-    final class Builder {
-
-        private boolean reloadingSupplier = false;
-        private Supplier<ProfileFile> profileFile;
-        private Path profileFilePath;
-        private Clock clock;
-        private Consumer<ProfileFile> onProfileFileLoad;
-
-        private Builder() {
-        }
+    interface Builder {
 
         /**
          * Sets a supplier for reloading the contents of a file.
          *
-         * <p>Calling {@link #fixedProfileFile(Path)} or {@link #fixedProfileFile(ProfileFile)} will remove rhe reloading
+         * <p>Calling {@link #fixedProfileFile(Path)} or {@link #fixedProfileFile(ProfileFile)} will remove the reloading
          * functionality</p>
          *
-         * @param path Path to the file read from.
+         * @param path Path to the file to read from.
          * @return This builder for method chaining.
          */
-        public Builder reloadWhenModified(Path path) {
-            ProfileFile.Builder builder = ProfileFile.builder()
-                                                     .content(path)
-                                                     .type(ProfileFile.Type.CREDENTIALS);
-            this.profileFile = builder::build;
-            this.profileFilePath = path;
-            this.reloadingSupplier = true;
-            return this;
-        }
+        Builder reloadWhenModified(Path path);
 
         /**
          * Sets a supplier for loading the contents of a file once.
          *
          * <p>Calling {@link #reloadWhenModified(Path)} will remove the fixed functionality</p>
          *
-         * @param path Path to the file read from.
+         * @param path Path to the file to read from.
          * @return This builder for method chaining.
          * @see #fixedProfileFile(ProfileFile)
          */
-        public Builder fixedProfileFile(Path path) {
-            ProfileFile profileFileInstance = ProfileFile.builder()
-                                                         .content(path)
-                                                         .type(ProfileFile.Type.CREDENTIALS)
-                                                         .build();
-            return fixedProfileFile(profileFileInstance);
-        }
+        Builder fixedProfileFile(Path path);
 
         /**
          * Sets a supplier for returning a specific profile instance.
@@ -207,33 +142,18 @@ public interface ProfileFileSupplier extends SdkAutoCloseable {
          * @return This builder for method chaining.
          * @see #fixedProfileFile(Path)
          */
-        public Builder fixedProfileFile(ProfileFile profileFile) {
-            this.profileFile = () -> profileFile;
-            this.profileFilePath = null;
-            this.reloadingSupplier = false;
-            return this;
-        }
+        Builder fixedProfileFile(ProfileFile profileFile);
 
         /**
-         * Sets an action to execute whenever a new profile object is supplied. This action may be called zere, one, or many
+         * Sets an action to execute whenever a new profile object is supplied. This action may be called zero, one, or many
          * times depending on the {@link ProfileFileSupplier} implementation.
          *
          * @param action The block to execute.
          * @return This builder for method chaining.
          */
-        public Builder onProfileFileLoad(Consumer<ProfileFile> action) {
-            this.onProfileFileLoad = action;
-            return this;
-        }
+        Builder onProfileFileLoad(Consumer<ProfileFile> action);
 
-        public Builder clock(Clock clock) {
-            this.clock = clock;
-            return this;
-        }
-
-        public ProfileFileSupplier build() {
-            return fromBuilder(this);
-        }
+        ProfileFileSupplier build();
     }
 
 }

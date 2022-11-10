@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.profiles;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.google.common.jimfs.Jimfs;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -28,11 +30,12 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.temporal.TemporalAmount;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.profiles.ProfileFileSupplierBuilder;
 
 class ProfileFileSupplierTest {
 
@@ -55,141 +58,271 @@ class ProfileFileSupplierTest {
     }
 
     @Test
-    void refreshIfStale_profileFileFixed_doesNotReloadProfileFile() {
+    void get_profileFileFixed_doesNotReloadProfileFile() {
         Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
 
-        ProfileFileSupplier supplier = ProfileFileSupplier.builder()
-                                                          .fixedProfileFile(credentialsFilePath)
-                                                          .build();
+        ProfileFileSupplier supplier = builder()
+            .fixedProfileFile(credentialsFilePath)
+            .build();
 
-        ProfileFile file1 = supplier.profileFile();
+        ProfileFile file1 = supplier.get();
 
         generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey");
 
-        ProfileFile file2 = supplier.profileFile();
+        ProfileFile file2 = supplier.get();
 
-        Assertions.assertThat(file2).isSameAs(file1);
+        assertThat(file2).isSameAs(file1);
     }
 
     @Test
-    void refreshIfStale_profileModified_reloadsProfileFile() {
+    void get_profileModifiedWithinJitterPeriod_doesNotReloadCredentials() {
         Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
 
         AdjustableClock clock = new AdjustableClock();
-        ProfileFileSupplier supplier = ProfileFileSupplier.builder()
-                                                          .reloadWhenModified(credentialsFilePath)
-                                                          .clock(clock)
-                                                          .build();
+        Duration durationWithinJitter = Duration.ofMillis(10);
+        ProfileFileSupplier supplier = builderWithClock(clock)
+            .reloadWhenModified(credentialsFilePath)
+            .build();
+
+        ProfileFile file1 = supplier.get();
+
+        generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey");
+        updateModificationTime(credentialsFilePath, clock.instant().plus(durationWithinJitter));
+
+        clock.tickForward(durationWithinJitter);
+        ProfileFile file2 = supplier.get();
+
+        assertThat(file2).isSameAs(file1);
+    }
+
+    @Test
+    void get_profileModifiedOutsideJitterPeriod_reloadsCredentials() {
+        Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
+
+        AdjustableClock clock = new AdjustableClock();
+
+        ProfileFileSupplier supplier = builderWithClock(clock)
+            .reloadWhenModified(credentialsFilePath)
+            .build();
+
+        Duration durationOutsideJitter = Duration.ofSeconds(1);
+
+        supplier.get();
+
+        generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey");
+        updateModificationTime(credentialsFilePath, clock.instant().plus(durationOutsideJitter));
+
+        clock.tickForward(durationOutsideJitter);
+
+        Optional<Profile> fileOptional = supplier.get().profile("default");
+        assertThat(fileOptional).isPresent();
+
+        assertThat(fileOptional.get()).satisfies(profile -> {
+            Optional<String> awsAccessKeyIdOptional = profile.property("aws_access_key_id");
+            assertThat(awsAccessKeyIdOptional).isPresent();
+            String awsAccessKeyId = awsAccessKeyIdOptional.get();
+            assertThat(awsAccessKeyId).isEqualTo("modifiedAccessKey");
+
+            Optional<String> awsSecretAccessKeyOptional = profile.property("aws_secret_access_key");
+            assertThat(awsSecretAccessKeyOptional).isPresent();
+            String awsSecretAccessKey = awsSecretAccessKeyOptional.get();
+            assertThat(awsSecretAccessKey).isEqualTo("modifiedSecretAccessKey");
+        });
+    }
+
+    @Test
+    void get_profileModified_reloadsProfileFile() {
+        Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
+
+        AdjustableClock clock = new AdjustableClock();
+        ProfileFileSupplier supplier = builderWithClock(clock)
+            .reloadWhenModified(credentialsFilePath)
+            .build();
 
         Duration duration = Duration.ofSeconds(10);
-        ProfileFile file1 = supplier.profileFile();
+        ProfileFile file1 = supplier.get();
 
         generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey");
         updateModificationTime(credentialsFilePath, clock.instant().plusMillis(1));
 
         clock.tickForward(duration);
-        ProfileFile file2 = supplier.profileFile();
+        ProfileFile file2 = supplier.get();
 
-        Assertions.assertThat(file2).isNotSameAs(file1);
+        assertThat(file2).isNotSameAs(file1);
     }
 
     @Test
-    void refreshIfStale_profileModifiedOnceButRefreshedMultipleTimes_reloadsProfileFileOnce() {
+    void get_profileModifiedOnceButRefreshedMultipleTimes_reloadsProfileFileOnce() {
         Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
 
         AdjustableClock clock = new AdjustableClock();
-        ProfileFileSupplier supplier = ProfileFileSupplier.builder()
-                                                          .reloadWhenModified(credentialsFilePath)
-                                                          .clock(clock)
-                                                          .build();
-        ProfileFile file1 = supplier.profileFile();
+        ProfileFileSupplier supplier = builderWithClock(clock)
+            .reloadWhenModified(credentialsFilePath)
+            .build();
+        ProfileFile file1 = supplier.get();
 
         clock.tickForward(Duration.ofSeconds(5));
-        ProfileFile file2 = supplier.profileFile();
+        ProfileFile file2 = supplier.get();
 
         generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey");
         updateModificationTime(credentialsFilePath, clock.instant().plusMillis(1));
 
         clock.tickForward(Duration.ofSeconds(5));
-        ProfileFile file3 = supplier.profileFile();
+        ProfileFile file3 = supplier.get();
 
-        Assertions.assertThat(file2).isSameAs(file1);
-        Assertions.assertThat(file3).isNotSameAs(file2);
+        assertThat(file2).isSameAs(file1);
+        assertThat(file3).isNotSameAs(file2);
     }
 
     @Test
-    void refreshIfStale_profileModifiedMultipleTimes_reloadsProfileFileOncePerChange() {
+    void get_profileModifiedMultipleTimes_reloadsProfileFileOncePerChange() {
         Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
 
         AdjustableClock clock = new AdjustableClock();
-        ProfileFileSupplier supplier = ProfileFileSupplier.builder()
-                                                          .reloadWhenModified(credentialsFilePath)
-                                                          .clock(clock)
-                                                          .build();
+        ProfileFileSupplier supplier = builderWithClock(clock)
+            .reloadWhenModified(credentialsFilePath)
+            .build();
         Duration duration = Duration.ofSeconds(5);
 
-        ProfileFile file1 = supplier.profileFile();
+        ProfileFile file1 = supplier.get();
 
         clock.tickForward(duration);
-        ProfileFile file2 = supplier.profileFile();
+        ProfileFile file2 = supplier.get();
 
         generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey");
         updateModificationTime(credentialsFilePath, clock.instant().plusMillis(1));
 
         clock.tickForward(duration);
-        ProfileFile file3 = supplier.profileFile();
+        ProfileFile file3 = supplier.get();
 
         generateTestCredentialsFile("updatedAccessKey", "updatedSecretAccessKey");
         updateModificationTime(credentialsFilePath, clock.instant().plusMillis(1));
 
         clock.tickForward(duration);
-        ProfileFile file4 = supplier.profileFile();
+        ProfileFile file4 = supplier.get();
 
         clock.tickForward(duration);
-        ProfileFile file5 = supplier.profileFile();
+        ProfileFile file5 = supplier.get();
 
-        Assertions.assertThat(file2).isSameAs(file1);
-        Assertions.assertThat(file3).isNotSameAs(file2);
-        Assertions.assertThat(file4).isNotSameAs(file3);
-        Assertions.assertThat(file5).isSameAs(file4);
+        assertThat(file2).isSameAs(file1);
+        assertThat(file3).isNotSameAs(file2);
+        assertThat(file4).isNotSameAs(file3);
+        assertThat(file5).isSameAs(file4);
     }
 
     @Test
-    void refreshIfStale_givenOnLoadAction_callsActionOncePerNewProfileFile() {
+    void get_supplierBuiltByReloadWhenModified_loadsProfileFile() {
+        Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
+
+        ProfileFileSupplier supplier = ProfileFileSupplier.reloadWhenModified(credentialsFilePath);
+        ProfileFile file = supplier.get();
+
+        Optional<Profile> profileOptional = file.profile("default");
+        assertThat(profileOptional).isPresent();
+
+        assertThat(profileOptional.get()).satisfies(profile -> {
+            Optional<String> awsAccessKeyIdOptional = profile.property("aws_access_key_id");
+            assertThat(awsAccessKeyIdOptional).isPresent();
+            String awsAccessKeyId = awsAccessKeyIdOptional.get();
+            assertThat(awsAccessKeyId).isEqualTo("defaultAccessKey");
+
+            Optional<String> awsSecretAccessKeyOptional = profile.property("aws_secret_access_key");
+            assertThat(awsSecretAccessKeyOptional).isPresent();
+            String awsSecretAccessKey = awsSecretAccessKeyOptional.get();
+            assertThat(awsSecretAccessKey).isEqualTo("defaultSecretAccessKey");
+        });
+    }
+
+    @Test
+    void get_supplierBuiltByFixedProfileFilePath_loadsProfileFile() {
+        Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
+
+        ProfileFileSupplier supplier = ProfileFileSupplier.fixedProfileFile(credentialsFilePath);
+        ProfileFile file = supplier.get();
+
+        Optional<Profile> profileOptional = file.profile("default");
+        assertThat(profileOptional).isPresent();
+
+        assertThat(profileOptional.get()).satisfies(profile -> {
+            Optional<String> awsAccessKeyIdOptional = profile.property("aws_access_key_id");
+            assertThat(awsAccessKeyIdOptional).isPresent();
+            String awsAccessKeyId = awsAccessKeyIdOptional.get();
+            assertThat(awsAccessKeyId).isEqualTo("defaultAccessKey");
+
+            Optional<String> awsSecretAccessKeyOptional = profile.property("aws_secret_access_key");
+            assertThat(awsSecretAccessKeyOptional).isPresent();
+            String awsSecretAccessKey = awsSecretAccessKeyOptional.get();
+            assertThat(awsSecretAccessKey).isEqualTo("defaultSecretAccessKey");
+        });
+    }
+
+    @Test
+    void get_supplierBuiltByFixedProfileFileObject_returnsProfileFileInstance() {
+        ProfileFile file = ProfileFile.defaultProfileFile();
+        ProfileFileSupplier supplier = ProfileFileSupplier.fixedProfileFile(file);
+
+        assertThat(supplier.get()).isSameAs(file);
+    }
+
+    @Test
+    void wrapIntoNullableSupplier_nonNullProfileFile_returnsNonNullSupplier() {
+        ProfileFile file = ProfileFile.defaultProfileFile();
+        ProfileFileSupplier supplier = ProfileFileSupplier.wrapIntoNullableSupplier(file);
+
+        assertThat(supplier).isNotNull();
+    }
+
+    @Test
+    void wrapIntoNullableSupplier_nullProfileFile_returnsNullSupplier() {
+        ProfileFile file = null;
+        ProfileFileSupplier supplier = ProfileFileSupplier.wrapIntoNullableSupplier(file);
+
+        assertThat(supplier).isNull();
+    }
+
+    @Test
+    void fixedProfileFile_nullProfileFile_returnsNonNullSupplier() {
+        ProfileFile file = null;
+        ProfileFileSupplier supplier = ProfileFileSupplier.fixedProfileFile(file);
+
+        assertThat(supplier).isNotNull();
+    }
+
+    @Test
+    void get_givenOnLoadAction_callsActionOncePerNewProfileFile() {
         int actualProfilesCount = 3;
         AtomicInteger blockCount = new AtomicInteger();
 
         Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
 
         AdjustableClock clock = new AdjustableClock();
-        ProfileFileSupplier supplier = ProfileFileSupplier.builder()
-                                                          .reloadWhenModified(credentialsFilePath)
-                                                          .clock(clock)
-                                                          .onProfileFileLoad(f -> blockCount.incrementAndGet())
-                                                          .build();
+        ProfileFileSupplier supplier = builderWithClock(clock)
+            .reloadWhenModified(credentialsFilePath)
+            .onProfileFileLoad(f -> blockCount.incrementAndGet())
+            .build();
         Duration duration = Duration.ofSeconds(5);
 
-        ProfileFile file1 = supplier.profileFile();
+        supplier.get();
 
         clock.tickForward(duration);
-        ProfileFile file2 = supplier.profileFile();
+        supplier.get();
 
         generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey");
         updateModificationTime(credentialsFilePath, clock.instant().plusMillis(1));
 
         clock.tickForward(duration);
-        ProfileFile file3 = supplier.profileFile();
+        supplier.get();
 
         generateTestCredentialsFile("updatedAccessKey", "updatedSecretAccessKey");
         updateModificationTime(credentialsFilePath, clock.instant().plusMillis(1));
 
         clock.tickForward(duration);
-        ProfileFile file4 = supplier.profileFile();
+        supplier.get();
 
         clock.tickForward(duration);
-        ProfileFile file5 = supplier.profileFile();
+        supplier.get();
 
-        Assertions.assertThat(blockCount.get()).isEqualTo(actualProfilesCount);
+        assertThat(blockCount.get()).isEqualTo(actualProfilesCount);
     }
 
     private Path generateTestFile(String contents, String filename) {
@@ -213,6 +346,14 @@ class ProfileFileSupplierTest {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private ProfileFileSupplier.Builder builder() {
+        return new ProfileFileSupplierBuilder();
+    }
+
+    private ProfileFileSupplier.Builder builderWithClock(Clock clock) {
+        return new ProfileFileSupplierBuilder().clock(clock);
     }
 
     private static final class AdjustableClock extends Clock {

@@ -155,7 +155,7 @@ public class ProfileCredentialsProviderTest {
 
         try (ProfileCredentialsProvider provider =
                  ProfileCredentialsProvider.builder()
-                                           .profileFileSupplier(() -> file)
+                                           .profileFile(() -> file)
                                            .profileName("foo")
                                            .build()) {
 
@@ -169,7 +169,7 @@ public class ProfileCredentialsProviderTest {
 
         ProfileCredentialsProvider provider =
             ProfileCredentialsProvider.builder()
-                                      .profileFileSupplier(() -> file)
+                                      .profileFile(() -> file)
                                       .profileName("default")
                                       .build();
 
@@ -184,7 +184,7 @@ public class ProfileCredentialsProviderTest {
 
         ProfileCredentialsProvider provider =
             ProfileCredentialsProvider.builder()
-                                      .profileFileSupplier(() -> file)
+                                      .profileFile(() -> file)
                                       .profileName("default")
                                       .build();
 
@@ -195,48 +195,18 @@ public class ProfileCredentialsProviderTest {
     }
 
     @Test
-    void resolveCredentials_profileModifiedWithinJitterPeriod_doesNotReloadCredentials() {
-        Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
+    void resolveCredentials_presentProfileFileSupplier_returnsCredentials() {
+        Path path = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
 
-        AdjustableClock clock = new AdjustableClock();
-        Duration durationWithinJitter = Duration.ofMillis(10);
-        ProfileCredentialsProvider provider = ProfileCredentialsProvider
-            .builder()
-            .profileFileSupplier(ProfileFileSupplier.builder().reloadWhenModified(credentialsFilePath).clock(clock).build())
-            .profileName("default")
-            .build();
-        AwsCredentials credentials1 = provider.resolveCredentials();
-
-        generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey");
-        updateModificationTime(credentialsFilePath, clock.instant().plus(durationWithinJitter));
-
-        clock.tickForward(durationWithinJitter);
-        AwsCredentials credentials2 = provider.resolveCredentials();
-
-        assertThat(credentials2).isSameAs(credentials1);
-    }
-
-    @Test
-    void resolveCredentials_profileModifiedOutsideJitterPeriod_reloadsCredentials() {
-        Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
-
-        AdjustableClock clock = new AdjustableClock();
-        Duration durationOutsideJitter = Duration.ofSeconds(1);
-        ProfileCredentialsProvider provider = ProfileCredentialsProvider
-            .builder()
-            .profileFileSupplier(ProfileFileSupplier.builder().reloadWhenModified(credentialsFilePath).clock(clock).build())
-            .profileName("default")
-            .build();
-        provider.resolveCredentials();
-
-        generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey");
-        updateModificationTime(credentialsFilePath, clock.instant().plus(durationOutsideJitter));
-
-        clock.tickForward(durationOutsideJitter);
+        ProfileCredentialsProvider provider =
+            ProfileCredentialsProvider.builder()
+                                      .profileFile(ProfileFileSupplier.reloadWhenModified(path))
+                                      .profileName("default")
+                                      .build();
 
         assertThat(provider.resolveCredentials()).satisfies(credentials -> {
-            assertThat(credentials.accessKeyId()).isEqualTo("modifiedAccessKey");
-            assertThat(credentials.secretAccessKey()).isEqualTo("modifiedSecretAccessKey");
+            assertThat(credentials.accessKeyId()).isEqualTo("defaultAccessKey");
+            assertThat(credentials.secretAccessKey()).isEqualTo("defaultSecretAccessKey");
         });
     }
 
@@ -247,23 +217,33 @@ public class ProfileCredentialsProviderTest {
 
         assertThat(toString).satisfies(s -> {
             assertThat(s).contains("profileName=default");
-            assertThat(s).contains("profileFileSupplier");
         });
     }
 
     @Test
-    void create_givenProfileName_returnsProfileCredentialsProviderToResolveForGivenName() {
+    void create_gvenProfileName_returnsProfileCredentialsProviderToResolveForGivenName() {
         ProfileCredentialsProvider provider = ProfileCredentialsProvider.create("override");
         String toString = provider.toString();
 
         assertThat(toString).satisfies(s -> {
             assertThat(s).contains("profileName=override");
-            assertThat(s).contains("profileFileSupplier");
         });
     }
 
     @Test
-    void toString_anyProfileCredentialsProvider_returnsStringWithExpectedParameters() {
+    void toString_anyProfileCredentialsProviderAfterResolvingCredentials_returnsProfileFile() {
+        ProfileCredentialsProvider provider = ProfileCredentialsProvider.create();
+        provider.resolveCredentials();
+        String toString = provider.toString();
+
+        assertThat(toString).satisfies(s -> {
+            assertThat(s).contains("profileName=default");
+            assertThat(s).contains("profileFile=");
+        });
+    }
+
+    @Test
+    void toString_anyProfileCredentialsProviderBeforeResolvingCredentials_rdoesNotReturnProfileFile() {
         ProfileCredentialsProvider provider =
             new ProfileCredentialsProvider.BuilderImpl()
                 .defaultProfileFileLoader(() -> ProfileFile.builder()
@@ -276,7 +256,7 @@ public class ProfileCredentialsProviderTest {
 
         assertThat(toString).satisfies(s -> {
             assertThat(s).contains("profileName");
-            assertThat(s).contains("profileFileSupplier");
+            assertThat(s).doesNotContain("profileFile");
         });
     }
 

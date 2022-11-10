@@ -138,7 +138,7 @@ public final class ProfileFileRefresher implements SdkAutoCloseable {
     }
 
     private boolean isNewProfileFile(ProfileFile profileFile) {
-        return currentRefreshRecord.profileFile != profileFile;
+        return !Objects.equals(currentRefreshRecord.profileFile, profileFile);
     }
 
     private boolean canReloadProfileFile() {

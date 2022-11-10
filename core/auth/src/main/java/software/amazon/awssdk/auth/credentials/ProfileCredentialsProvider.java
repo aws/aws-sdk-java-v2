@@ -131,7 +131,7 @@ public final class ProfileCredentialsProvider
     }
 
     private ProfileFile refreshProfileFile() {
-        return profileFileSupplier.profileFile();
+        return profileFileSupplier.get();
     }
 
     private boolean isNewProfileFile(ProfileFile profileFile) {
@@ -142,7 +142,7 @@ public final class ProfileCredentialsProvider
     public String toString() {
         return ToString.builder("ProfileCredentialsProvider")
                        .add("profileName", profileName)
-                       .add("profileFileSupplier", profileFileSupplier)
+                       .add("profileFile", currentProfileFile)
                        .build();
     }
 
@@ -178,6 +178,7 @@ public final class ProfileCredentialsProvider
         /**
          * Define the profile file that should be used by this credentials provider. By default, the
          * {@link ProfileFile#defaultProfileFile()} is used.
+         * @see #profileFile(ProfileFileSupplier) 
          */
         Builder profileFile(ProfileFile profileFile);
 
@@ -188,17 +189,18 @@ public final class ProfileCredentialsProvider
         Builder profileFile(Consumer<ProfileFile.Builder> profileFile);
 
         /**
+         * Define the mechanism for loading profile files.
+         *
+         * @param profileFileSupplier Supplier interface for generating a ProfileFile instance.
+         * @see #profileFile(ProfileFile) 
+         */
+        Builder profileFile(ProfileFileSupplier profileFileSupplier);
+
+        /**
          * Define the name of the profile that should be used by this credentials provider. By default, the value in
          * {@link ProfileFileSystemSetting#AWS_PROFILE} is used.
          */
         Builder profileName(String profileName);
-
-        /**
-         * Define the mechanism for loading profile files.
-         *
-         * @param profileFileSupplier Supplier interface for generating a ProfileFile instance.
-         */
-        Builder profileFileSupplier(ProfileFileSupplier profileFileSupplier);
 
         /**
          * Create a {@link ProfileCredentialsProvider} using the configuration applied to this builder.
@@ -223,9 +225,7 @@ public final class ProfileCredentialsProvider
 
         @Override
         public Builder profileFile(ProfileFile profileFile) {
-            ProfileFileSupplier supplier = Objects.nonNull(profileFile) ? () -> profileFile : null;
-
-            return profileFileSupplier(supplier);
+            return profileFile(ProfileFileSupplier.wrapIntoNullableSupplier(profileFile));
         }
 
         public void setProfileFile(ProfileFile profileFile) {
@@ -238,6 +238,16 @@ public final class ProfileCredentialsProvider
         }
 
         @Override
+        public Builder profileFile(ProfileFileSupplier profileFileSupplier) {
+            this.profileFileSupplier = profileFileSupplier;
+            return this;
+        }
+
+        public void setProfileFile(ProfileFileSupplier supplier) {
+            profileFile(supplier);
+        }
+
+        @Override
         public Builder profileName(String profileName) {
             this.profileName = profileName;
             return this;
@@ -245,16 +255,6 @@ public final class ProfileCredentialsProvider
 
         public void setProfileName(String profileName) {
             profileName(profileName);
-        }
-
-        @Override
-        public Builder profileFileSupplier(ProfileFileSupplier profileFileSupplier) {
-            this.profileFileSupplier = profileFileSupplier;
-            return this;
-        }
-
-        public void setProfileFileSupplier(ProfileFileSupplier supplier) {
-            profileFileSupplier(supplier);
         }
 
         @Override
