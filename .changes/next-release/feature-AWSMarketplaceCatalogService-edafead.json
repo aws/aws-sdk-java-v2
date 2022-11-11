@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Marketplace Catalog Service",
+    "contributor": "",
+    "description": "Added three new APIs to support tagging and tag-based authorization: TagResource, UntagResource, and ListTagsForResource. Added optional parameters to the StartChangeSet API to support tagging a resource while making a request to create it."
+}
