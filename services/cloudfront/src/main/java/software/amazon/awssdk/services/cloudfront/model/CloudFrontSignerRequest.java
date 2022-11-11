@@ -176,7 +176,8 @@ public final class CloudFrontSignerRequest
          * Configure the IP range of the signed URL or signed cookie - for custom policies (optional field)
          * <p>
          *     The allowed IP address range of the client making the GET
-         *     request, in CIDR form (e.g. 192.168.0.1/24).
+         *     request, in IPv4 CIDR form (e.g. 192.168.0.1/24).
+         *     IPv6 format is not supported.
          * </p>
          */
         Builder ipRange(String ipRange);

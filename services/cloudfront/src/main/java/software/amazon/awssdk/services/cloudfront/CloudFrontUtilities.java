@@ -220,9 +220,9 @@ public final class CloudFrontUtilities {
      *            The UTC time and date when the signed URL will expire. REQUIRED.
      * @param limitToIpAddressCidr
      *            An optional range of client IP addresses that will be allowed
-     *            to access the distribution, specified as a CIDR range. If
-     *            null, the CIDR will be omitted and any client will be
-     *            permitted.
+     *            to access the distribution, specified as an IPv4 CIDR range
+     *            (IPv6 format is not supported). If null, the CIDR will be omitted
+     *            and any client will be permitted.
      * @return A policy document describing the access permission to apply when
      *         generating a signed URL.
      */
