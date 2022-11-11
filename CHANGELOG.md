@@ -1,3 +1,36 @@
+# __2.18.16__ __2022-11-11__
+## __AWS Glue__
+  - ### Features
+    - Added links related to enabling job bookmarks.
+
+## __AWS IoT__
+  - ### Features
+    - This release add new api listRelatedResourcesForAuditFinding and new member type IssuerCertificates for Iot device device defender Audit.
+
+## __AWS License Manager__
+  - ### Features
+    - AWS License Manager now supports onboarded Management Accounts or Delegated Admins to view granted licenses aggregated from all accounts in the organization.
+
+## __AWS Marketplace Catalog Service__
+  - ### Features
+    - Added three new APIs to support tagging and tag-based authorization: TagResource, UntagResource, and ListTagsForResource. Added optional parameters to the StartChangeSet API to support tagging a resource while making a request to create it.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Documentation updates for Security Hub
+
+## __AWS Systems Manager Incident Manager__
+  - ### Features
+    - RelatedItems now have an ID field which can be used for referencing them else where. Introducing event references in TimelineEvent API and increasing maximum length of "eventData" to 12K characters.
+
+## __Amazon Rekognition__
+  - ### Features
+    - Adding support for ImageProperties feature to detect dominant colors and image brightness, sharpness, and contrast, inclusion and exclusion filters for labels and label categories, new fields to the API response, "aliases" and "categories"
+
 # __2.18.15__ __2022-11-10__
 ## __AWS Resource Explorer__
   - ### Features
