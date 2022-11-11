@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS IoT",
+    "contributor": "",
+    "description": "This release add new api listRelatedResourcesForAuditFinding and new member type IssuerCertificates for Iot device device defender Audit."
+}
