@@ -168,7 +168,7 @@ public final class CloudFrontSignerRequest
         Builder expirationDate(Instant expirationDate);
 
         /**
-         * Configure the active date of the signed URL or signed cookie - for custom policies
+         * Configure the active date of the signed URL or signed cookie - for custom policies (optional field)
          */
         Builder activeDate(Instant activeDate);
 

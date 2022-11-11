@@ -198,17 +198,12 @@ public final class CloudFrontUtilities {
      * apply via a private distribution's signed URL.
      *
      * @param resourceUrl
-     *            An optional HTTP/S or RTMP resource path that restricts which
-     *            distribution and S3 objects will be accessible in a signed
-     *            URL. For standard distributions the resource URL will be
-     *            <tt>"http://" + distributionName + "/" + objectKey</tt> (may
-     *            also include URL parameters. For distributions with the HTTPS
-     *            required protocol, the resource URL must start with
-     *            <tt>"https://"</tt>. RTMP resources do not take the form of a
-     *            URL, and instead the resource path is nothing but the stream's
-     *            name. The '*' and '?' characters can be used as a wildcards to
-     *            allow multi-character or single-character matches
-     *            respectively:
+     *            The HTTP/S resource path that restricts which distribution and
+     *            S3 objects will be accessible in a signed URL, i.e.,
+     *            <tt>"https://" + distributionName + "/" + objectKey</tt> (may
+     *            also include URL parameters). The '*' and '?' characters can
+     *            be used as a wildcards to allow multi-character or single-character
+     *            matches respectively:
      *            <ul>
      *            <li><tt>*</tt> : All distributions/objects will be accessible</li>
      *            <li><tt>a1b2c3d4e5f6g7.cloudfront.net/*</tt> : All objects
@@ -217,9 +212,6 @@ public final class CloudFrontUtilities {
      *            : Only the S3 object named <tt>path/to/object.txt</tt> in the
      *            distribution a1b2c3d4e5f6g7 will be accessible.</li>
      *            </ul>
-     *            If this parameter is null the policy will permit access to all
-     *            distributions and S3 objects associated with the certificate
-     *            keypair used to generate the signed URL.
      * @param activeDate
      *            An optional UTC time and date when the signed URL will become
      *            active. If null, the signed URL will be active as soon as it
