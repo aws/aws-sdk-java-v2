@@ -215,11 +215,12 @@ abstract class HttpStreamsHandler<InT extends HttpMessage, OutT extends HttpMess
     private void handleReadHttpContent(ChannelHandlerContext ctx, HttpContent content) {
         boolean lastHttpContent = content instanceof LastHttpContent;
         if (lastHttpContent) {
+            logger.debug(ctx.channel(),
+                         () -> "Received LastHttpContent " + ctx.channel() + " with ignoreBodyRead as " + ignoreBodyRead);
             ctx.channel().attr(STREAMING_COMPLETE_KEY).set(true);
         }
         if (!ignoreBodyRead) {
             if (lastHttpContent) {
-                logger.debug(ctx.channel(), () -> "Received LastHttpContent " + ctx.channel());
                 if (content.content().readableBytes() > 0 ||
                     !((LastHttpContent) content).trailingHeaders().isEmpty()) {
                     // It has data or trailing headers, send them
