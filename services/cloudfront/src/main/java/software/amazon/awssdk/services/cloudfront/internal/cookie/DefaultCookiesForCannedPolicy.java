@@ -20,7 +20,6 @@ import java.util.Objects;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.services.cloudfront.cookie.CookiesForCannedPolicy;
@@ -61,66 +60,34 @@ public final class DefaultCookiesForCannedPolicy implements CookiesForCannedPoli
     }
 
     @Override
-    public String keyPairIdKey() {
-        return KEY_PAIR_ID_KEY;
-    }
-
-    @Override
-    public String signatureKey() {
-        return SIGNATURE_KEY;
-    }
-
-    @Override
-    public String expiresKey() {
-        return EXPIRES_KEY;
-    }
-
-    @Override
-    public String keyPairIdValue() {
-        return keyPairIdValue;
-    }
-
-    @Override
-    public String signatureValue() {
-        return signatureValue;
-    }
-
-    @Override
-    public String expiresValue() {
-        return expiresValue;
-    }
-
-    @Override
     public String resourceUrl() {
         return resourceUrl;
     }
 
     @Override
-    public SdkHttpRequest generateHttpGetRequest() {
+    public SdkHttpRequest createHttpGetRequest() {
         return SdkHttpRequest.builder()
                              .uri(URI.create(resourceUrl))
-                             .appendHeader("Cookie",
-                                           cookieHeaderValue(CookieType.EXPIRES))
-                             .appendHeader("Cookie",
-                                           cookieHeaderValue(CookieType.SIGNATURE))
-                             .appendHeader("Cookie",
-                                           cookieHeaderValue(CookieType.KEY_PAIR_ID))
+                             .appendHeader(COOKIE, expiresHeaderValue())
+                             .appendHeader(COOKIE, signatureHeaderValue())
+                             .appendHeader(COOKIE, keyPairIdHeaderValue())
                              .method(SdkHttpMethod.GET)
                              .build();
     }
 
     @Override
-    public String cookieHeaderValue(CookieType cookieType) {
-        switch (cookieType) {
-            case KEY_PAIR_ID:
-                return KEY_PAIR_ID_KEY + "=" + keyPairIdValue;
-            case SIGNATURE:
-                return SIGNATURE_KEY + "=" + signatureValue;
-            case EXPIRES:
-                return EXPIRES_KEY + "=" + expiresValue;
-            default:
-                throw SdkClientException.create("Did not provide a valid cookie type");
-        }
+    public String signatureHeaderValue() {
+        return SIGNATURE_KEY + "=" + signatureValue;
+    }
+
+    @Override
+    public String keyPairIdHeaderValue() {
+        return KEY_PAIR_ID_KEY + "=" + keyPairIdValue;
+    }
+
+    @Override
+    public String expiresHeaderValue() {
+        return EXPIRES_KEY + "=" + expiresValue;
     }
 
     @Override

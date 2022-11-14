@@ -30,6 +30,7 @@ import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 public class IntegrationTestBase extends AwsIntegrationTestBase {
 
     protected static CloudFrontClient cloudFrontClient;
+    protected static CloudFrontUtilities cloudFrontUtilities;
     protected static S3Client s3Client;
 
     /**
@@ -42,6 +43,8 @@ public class IntegrationTestBase extends AwsIntegrationTestBase {
                                            .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                                            .region(Region.AWS_GLOBAL)
                                            .build();
+
+        cloudFrontUtilities = cloudFrontClient.utilities();
 
         s3Client = S3Client.builder()
                      .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)

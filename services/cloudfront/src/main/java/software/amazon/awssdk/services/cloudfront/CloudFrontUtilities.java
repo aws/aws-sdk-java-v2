@@ -17,31 +17,22 @@ package software.amazon.awssdk.services.cloudfront;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.net.URI;
 import java.security.InvalidKeyException;
-import java.security.PrivateKey;
-import java.security.spec.InvalidKeySpecException;
-import java.time.Instant;
 import software.amazon.awssdk.annotations.Immutable;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.cloudfront.cookie.CookiesForCannedPolicy;
 import software.amazon.awssdk.services.cloudfront.cookie.CookiesForCustomPolicy;
-import software.amazon.awssdk.services.cloudfront.internal.auth.Pem;
-import software.amazon.awssdk.services.cloudfront.internal.auth.Rsa;
 import software.amazon.awssdk.services.cloudfront.internal.cookie.DefaultCookiesForCannedPolicy;
 import software.amazon.awssdk.services.cloudfront.internal.cookie.DefaultCookiesForCustomPolicy;
 import software.amazon.awssdk.services.cloudfront.internal.url.DefaultSignedUrl;
 import software.amazon.awssdk.services.cloudfront.internal.utils.SigningUtils;
-import software.amazon.awssdk.services.cloudfront.model.CloudFrontSignerRequest;
+import software.amazon.awssdk.services.cloudfront.model.CannedSignerRequest;
+import software.amazon.awssdk.services.cloudfront.model.CustomSignerRequest;
 import software.amazon.awssdk.services.cloudfront.url.SignedUrl;
-import software.amazon.awssdk.utils.IoUtils;
-import software.amazon.awssdk.utils.StringUtils;
 
 /**
  *
@@ -63,9 +54,13 @@ import software.amazon.awssdk.utils.StringUtils;
 @SdkPublicApi
 public final class CloudFrontUtilities {
 
-    private static final String CLOUDFRONT_NET = "cloudfront.net";
-
     private CloudFrontUtilities() {
+    }
+
+    // Used by low-level client
+    @SdkInternalApi
+    static CloudFrontUtilities create() {
+        return new CloudFrontUtilities();
     }
 
     /**
@@ -81,20 +76,19 @@ public final class CloudFrontUtilities {
      * @return A signed URL that will permit access to a specific distribution
      *         and S3 object.
      */
-    public static SignedUrl getSignedUrlWithCannedPolicy(CloudFrontSignerRequest request) {
+    public SignedUrl getSignedUrlWithCannedPolicy(CannedSignerRequest request) {
         try {
             String resourceUrl = request.resourceUrl();
             String cannedPolicy = SigningUtils.buildCannedPolicy(resourceUrl, request.expirationDate());
             byte[] signatureBytes = SigningUtils.signWithSha1Rsa(cannedPolicy.getBytes(UTF_8), request.privateKey());
             String urlSafeSignature = SigningUtils.makeBytesUrlSafe(signatureBytes);
-            String protocol = resourceUrl.substring(0, resourceUrl.indexOf("://"));
-            String domain = resourceUrl.substring(resourceUrl.indexOf("://") + 3, resourceUrl.indexOf(CLOUDFRONT_NET) + 14);
-            String encodedPath = resourceUrl.substring(resourceUrl.indexOf(CLOUDFRONT_NET) + 15)
+            URI uri = URI.create(resourceUrl);
+            String encodedPath = uri.getPath()
                    + (request.resourceUrl().indexOf('?') >= 0 ? "&" : "?")
                    + "Expires=" + request.expirationDate().getEpochSecond()
                    + "&Signature=" + urlSafeSignature
                    + "&Key-Pair-Id=" + request.keyPairId();
-            return DefaultSignedUrl.builder().protocol(protocol).domain(domain).encodedPath(encodedPath).build();
+            return DefaultSignedUrl.builder().protocol(uri.getScheme()).domain(uri.getHost()).encodedPath(encodedPath).build();
         } catch (InvalidKeyException e) {
             throw SdkClientException.create("Could not sign url", e);
         }
@@ -115,22 +109,21 @@ public final class CloudFrontUtilities {
      * @return A signed URL that will permit access to distribution and S3
      *         objects as specified in the policy document.
      */
-    public static SignedUrl getSignedUrlWithCustomPolicy(CloudFrontSignerRequest request) {
+    public SignedUrl getSignedUrlWithCustomPolicy(CustomSignerRequest request) {
         try {
             String resourceUrl = request.resourceUrl();
-            String policy = buildCustomPolicyForSignedUrl(request.resourceUrl(), request.activeDate(), request.expirationDate(),
-                                                          request.ipRange());
+            String policy = SigningUtils.buildCustomPolicyForSignedUrl(request.resourceUrl(), request.activeDate(),
+                                                                       request.expirationDate(), request.ipRange());
             byte[] signatureBytes = SigningUtils.signWithSha1Rsa(policy.getBytes(UTF_8), request.privateKey());
             String urlSafePolicy = SigningUtils.makeStringUrlSafe(policy);
             String urlSafeSignature = SigningUtils.makeBytesUrlSafe(signatureBytes);
-            String protocol = resourceUrl.substring(0, resourceUrl.indexOf("://"));
-            String domain = resourceUrl.substring(resourceUrl.indexOf("://") + 3, resourceUrl.indexOf(CLOUDFRONT_NET) + 14);
-            String encodedPath = resourceUrl.substring(resourceUrl.indexOf(CLOUDFRONT_NET) + 15)
+            URI uri = URI.create(resourceUrl);
+            String encodedPath = uri.getPath()
                    + (request.resourceUrl().indexOf('?') >= 0 ? "&" : "?")
                    + "Policy=" + urlSafePolicy
                    + "&Signature=" + urlSafeSignature
                    + "&Key-Pair-Id=" + request.keyPairId();
-            return DefaultSignedUrl.builder().protocol(protocol).domain(domain).encodedPath(encodedPath).build();
+            return DefaultSignedUrl.builder().protocol(uri.getScheme()).domain(uri.getHost()).encodedPath(encodedPath).build();
         } catch (InvalidKeyException e) {
             throw SdkClientException.create("Could not sign url", e);
         }
@@ -149,7 +142,7 @@ public final class CloudFrontUtilities {
      *            resourceUrl, privateKey, keyPairId, expirationDate
      * @return The signed cookies with canned policy.
      */
-    public static CookiesForCannedPolicy getCookiesForCannedPolicy(CloudFrontSignerRequest request) {
+    public CookiesForCannedPolicy getCookiesForCannedPolicy(CannedSignerRequest request) {
         try {
             String cannedPolicy = SigningUtils.buildCannedPolicy(request.resourceUrl(), request.expirationDate());
             byte[] signatureBytes = SigningUtils.signWithSha1Rsa(cannedPolicy.getBytes(UTF_8), request.privateKey());
@@ -176,7 +169,7 @@ public final class CloudFrontUtilities {
      *            resourceUrl, privateKey, keyPairId, expirationDate, activeDate, ipRange
      * @return The signed cookies with custom policy.
      */
-    public static CookiesForCustomPolicy getCookiesForCustomPolicy(CloudFrontSignerRequest request) {
+    public CookiesForCustomPolicy getCookiesForCustomPolicy(CustomSignerRequest request) {
         try {
             String policy = SigningUtils.buildCustomPolicy(request.resourceUrl(), request.activeDate(), request.expirationDate(),
                                                            request.ipRange());
@@ -192,73 +185,5 @@ public final class CloudFrontUtilities {
             throw SdkClientException.create("Could not sign custom policy cookie", e);
         }
     }
-
-    /**
-     * Generate a policy document that describes custom access permissions to
-     * apply via a private distribution's signed URL.
-     *
-     * @param resourceUrl
-     *            The HTTP/S resource path that restricts which distribution and
-     *            S3 objects will be accessible in a signed URL, i.e.,
-     *            <tt>"https://" + distributionName + "/" + objectKey</tt> (may
-     *            also include URL parameters). The '*' and '?' characters can
-     *            be used as a wildcards to allow multi-character or single-character
-     *            matches respectively:
-     *            <ul>
-     *            <li><tt>*</tt> : All distributions/objects will be accessible</li>
-     *            <li><tt>a1b2c3d4e5f6g7.cloudfront.net/*</tt> : All objects
-     *            within the distribution a1b2c3d4e5f6g7 will be accessible</li>
-     *            <li><tt>a1b2c3d4e5f6g7.cloudfront.net/path/to/object.txt</tt>
-     *            : Only the S3 object named <tt>path/to/object.txt</tt> in the
-     *            distribution a1b2c3d4e5f6g7 will be accessible.</li>
-     *            </ul>
-     * @param activeDate
-     *            An optional UTC time and date when the signed URL will become
-     *            active. If null, the signed URL will be active as soon as it
-     *            is created.
-     * @param expirationDate
-     *            The UTC time and date when the signed URL will expire. REQUIRED.
-     * @param limitToIpAddressCidr
-     *            An optional range of client IP addresses that will be allowed
-     *            to access the distribution, specified as an IPv4 CIDR range
-     *            (IPv6 format is not supported). If null, the CIDR will be omitted
-     *            and any client will be permitted.
-     * @return A policy document describing the access permission to apply when
-     *         generating a signed URL.
-     */
-    public static String buildCustomPolicyForSignedUrl(String resourceUrl,
-                                                       Instant activeDate,
-                                                       Instant expirationDate,
-                                                       String limitToIpAddressCidr) {
-        if (expirationDate == null) {
-            throw SdkClientException.create("Expiration date must be provided to sign CloudFront URLs");
-        }
-        if (resourceUrl == null) {
-            resourceUrl = "*";
-        }
-        return SigningUtils.buildCustomPolicy(resourceUrl, activeDate, expirationDate, limitToIpAddressCidr);
-    }
-
-    /**
-     * Creates a private key from the file given, either in RSA private key
-     * (.pem) or pkcs8 (.der) format. Other formats will cause an exception to
-     * be thrown.
-     */
-    public static PrivateKey loadPrivateKey(File privateKeyFile) throws InvalidKeySpecException, IOException {
-        Path path = privateKeyFile.toPath();
-        if (StringUtils.lowerCase(privateKeyFile.getAbsolutePath()).endsWith(".pem")) {
-            try (InputStream is = Files.newInputStream(path)) {
-                return Pem.readPrivateKey(is);
-            }
-        }
-        if (StringUtils.lowerCase(privateKeyFile.getAbsolutePath()).endsWith(".der")) {
-            try (InputStream is = Files.newInputStream(path)) {
-                return Rsa.privateKeyFromPkcs8(IoUtils.toByteArray(is));
-            }
-        }
-        throw SdkClientException.create("Unsupported file type for private key");
-    }
-
-
 
 }

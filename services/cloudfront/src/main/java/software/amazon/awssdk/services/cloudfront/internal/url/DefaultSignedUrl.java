@@ -44,6 +44,7 @@ public final class DefaultSignedUrl implements SignedUrl, ToCopyableBuilder<Defa
         return new Builder();
     }
 
+    @Override
     public Builder toBuilder() {
         return new Builder(this);
     }
@@ -70,13 +71,11 @@ public final class DefaultSignedUrl implements SignedUrl, ToCopyableBuilder<Defa
 
     @Override
     public String url() {
-        return protocol + "://"
-            + domain + "/"
-            + encodedPath;
+        return protocol + "://" + domain + encodedPath;
     }
 
     @Override
-    public SdkHttpRequest generateHttpGetRequest() {
+    public SdkHttpRequest createHttpGetRequest() {
         return SdkHttpRequest.builder()
                              .encodedPath(encodedPath)
                              .host(domain)

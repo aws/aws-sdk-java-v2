@@ -31,7 +31,7 @@ class SignedUrlTest {
     @Test
     void signedUrl_shouldWork() {
         SignedUrl signedUrl = DefaultSignedUrl.builder().protocol(PROTOCOL).domain(DOMAIN).encodedPath(ENCODED_PATH).build();
-        String url = PROTOCOL + "://" + DOMAIN + "/" + ENCODED_PATH;
+        String url = PROTOCOL + "://" + DOMAIN + ENCODED_PATH;
 
         assertThat(signedUrl.protocol()).isEqualTo(PROTOCOL);
         assertThat(signedUrl.domain()).isEqualTo(DOMAIN);
@@ -42,7 +42,7 @@ class SignedUrlTest {
     @Test
     void generateHttpGetRequest_shouldWork() {
         SignedUrl signedUrl = DefaultSignedUrl.builder().protocol(PROTOCOL).domain(DOMAIN).encodedPath(ENCODED_PATH).build();
-        SdkHttpRequest httpRequest = signedUrl.generateHttpGetRequest();
+        SdkHttpRequest httpRequest = signedUrl.createHttpGetRequest();
 
         assertThat(httpRequest.protocol()).isEqualTo(PROTOCOL);
         assertThat(httpRequest.host()).isEqualTo(DOMAIN);

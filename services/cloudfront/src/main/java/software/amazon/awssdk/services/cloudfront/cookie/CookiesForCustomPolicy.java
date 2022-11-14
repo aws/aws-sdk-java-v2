@@ -20,6 +20,9 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
+/**
+ * Base interface class for CloudFront cookies with custom policies
+ */
 @SdkPublicApi
 public interface CookiesForCustomPolicy extends SignedCookie,
                                                 ToCopyableBuilder<CookiesForCustomPolicy.Builder, CookiesForCustomPolicy> {
@@ -27,14 +30,9 @@ public interface CookiesForCustomPolicy extends SignedCookie,
     String POLICY_KEY = "CloudFront-Policy";
 
     /**
-     * Returns the policy key
+     * Returns the cookie policy header value
      */
-    String policyKey();
-
-    /**
-     * Returns the policy value
-     */
-    String policyValue();
+    String policyHeaderValue();
 
     @NotThreadSafe
     interface Builder extends CopyableBuilder<CookiesForCustomPolicy.Builder, CookiesForCustomPolicy> {

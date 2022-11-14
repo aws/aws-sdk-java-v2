@@ -20,6 +20,9 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
+/**
+ * Base interface class for CloudFront cookies with canned policies
+ */
 @SdkPublicApi
 public interface CookiesForCannedPolicy extends SignedCookie,
                                                 ToCopyableBuilder<CookiesForCannedPolicy.Builder, CookiesForCannedPolicy> {
@@ -27,14 +30,9 @@ public interface CookiesForCannedPolicy extends SignedCookie,
     String EXPIRES_KEY = "CloudFront-Expires";
 
     /**
-     * Returns the expires key
+     * Returns the cookie expires header value
      */
-    String expiresKey();
-
-    /**
-     * Returns the expires value
-     */
-    String expiresValue();
+    String expiresHeaderValue();
 
     @NotThreadSafe
     interface Builder extends CopyableBuilder<CookiesForCannedPolicy.Builder, CookiesForCannedPolicy> {

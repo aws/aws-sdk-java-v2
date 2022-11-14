@@ -30,26 +30,7 @@ public interface SignedCookie {
 
     String KEY_PAIR_ID_KEY = "CloudFront-Key-Pair-Id";
     String SIGNATURE_KEY = "CloudFront-Signature";
-
-    /**
-     * Returns the key pair ID key
-     */
-    String keyPairIdKey();
-
-    /**
-     * Returns the signature key
-     */
-    String signatureKey();
-
-    /**
-     * Returns the key pair ID value
-     */
-    String keyPairIdValue();
-
-    /**
-     * Returns the signature value
-     */
-    String signatureValue();
+    String COOKIE = "Cookie";
 
     /**
      * Returns the resource URL
@@ -59,21 +40,16 @@ public interface SignedCookie {
     /**
      * Generates an HTTP GET request that can be executed by an HTTP client to access the resource
      */
-    SdkHttpRequest generateHttpGetRequest();
+    SdkHttpRequest createHttpGetRequest();
 
     /**
-     * Returns the cookie header value for the specified cookie type.
-     *
-     * @param cookieType The type of the cookie header value to retrieve
-     * @return The cookie header value to pass into an HTTP request
+     * Returns the cookie signature header value
      */
-    String cookieHeaderValue(CookieType cookieType);
+    String signatureHeaderValue();
 
     /**
-     * The types of CloudFront cookies
+     * Returns the cookie key-pair header value
      */
-    enum CookieType {
-        KEY_PAIR_ID, SIGNATURE, EXPIRES, POLICY
-    }
+    String keyPairIdHeaderValue();
 
 }

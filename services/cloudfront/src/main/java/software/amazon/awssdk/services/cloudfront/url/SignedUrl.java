@@ -18,6 +18,9 @@ package software.amazon.awssdk.services.cloudfront.url;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.SdkHttpRequest;
 
+/**
+ * Base interface class for CloudFront signed URLs
+ */
 @SdkPublicApi
 public interface SignedUrl {
 
@@ -44,6 +47,6 @@ public interface SignedUrl {
     /**
      * Generates an HTTP GET request that can be executed by an HTTP client to access the resource
      */
-    SdkHttpRequest generateHttpGetRequest();
+    SdkHttpRequest createHttpGetRequest();
 
 }

@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.nio.file.Path;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.time.LocalDate;
@@ -28,8 +29,10 @@ import java.util.Base64;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.services.cloudfront.internal.utils.SigningUtils;
+import software.amazon.awssdk.services.cloudfront.model.CannedSignerRequest;
+import software.amazon.awssdk.services.cloudfront.model.CustomSignerRequest;
 import software.amazon.awssdk.services.cloudfront.url.SignedUrl;
-import software.amazon.awssdk.services.cloudfront.model.CloudFrontSignerRequest;
 
 
 class CloudFrontUtilitiesTest {
@@ -37,10 +40,13 @@ class CloudFrontUtilitiesTest {
     private static KeyPairGenerator kpg;
     private static KeyPair keyPair;
     private static File keyFile;
+    private static Path keyFilePath;
+    private static CloudFrontUtilities cloudFrontUtilities;
 
     @BeforeAll
     static void setUp() throws Exception {
         initKeys();
+        cloudFrontUtilities = CloudFrontClient.create().utilities();
     }
 
     @AfterAll
@@ -60,18 +66,19 @@ class CloudFrontUtilitiesTest {
         writer.write(encoder.encodeToString(keyPair.getPrivate().getEncoded()));
         writer.write("\n-----END PRIVATE KEY-----\n");
         writer.close();
+        keyFilePath = keyFile.toPath();
     }
 
     @Test
     void getSignedURLWithCannedPolicy_shouldWork() throws Exception {
 
         Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
-        CloudFrontSignerRequest request = CloudFrontSignerRequest.builder()
-                                                                 .resourceUrl(resourceUrl)
-                                                                 .privateKey(CloudFrontUtilities.loadPrivateKey(keyFile))
-                                                                 .keyPairId("keyPairId")
-                                                                 .expirationDate(expirationDate).build();
-        SignedUrl signedUrl = CloudFrontUtilities.getSignedUrlWithCannedPolicy(request);
+        CannedSignerRequest request = CannedSignerRequest.builder()
+                                                         .resourceUrl(resourceUrl)
+                                                         .privateKey(SigningUtils.loadPrivateKey(keyFilePath))
+                                                         .keyPairId("keyPairId")
+                                                         .expirationDate(expirationDate).build();
+        SignedUrl signedUrl = cloudFrontUtilities.getSignedUrlWithCannedPolicy(request);
         String signature = signedUrl.url().substring(signedUrl.url().indexOf("&Signature"), signedUrl.url().indexOf("&Key-Pair-Id"));
         String expected = "https://distributionDomain-cloudfront.net/s3ObjectKey?Expires=1704067200"
                           + signature
@@ -84,29 +91,20 @@ class CloudFrontUtilitiesTest {
         Instant activeDate = LocalDate.of(2022, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         String ipRange = "1.2.3.4";
-        CloudFrontSignerRequest request = CloudFrontSignerRequest.builder()
-                                                                 .resourceUrl(resourceUrl)
-                                                                 .privateKey(keyPair.getPrivate())
-                                                                 .keyPairId("keyPairId")
-                                                                 .expirationDate(expirationDate)
-                                                                 .activeDate(activeDate)
-                                                                 .ipRange(ipRange).build();
-        SignedUrl signedUrl = CloudFrontUtilities.getSignedUrlWithCustomPolicy(request);
+        CustomSignerRequest request = CustomSignerRequest.builder()
+                                                         .resourceUrl(resourceUrl)
+                                                         .privateKey(keyPair.getPrivate())
+                                                         .keyPairId("keyPairId")
+                                                         .expirationDate(expirationDate)
+                                                         .activeDate(activeDate)
+                                                         .ipRange(ipRange).build();
+        SignedUrl signedUrl = cloudFrontUtilities.getSignedUrlWithCustomPolicy(request);
         String signature = signedUrl.url().substring(signedUrl.url().indexOf("&Signature"), signedUrl.url().indexOf("&Key-Pair-Id"));
         String expected = "https://distributionDomain-cloudfront.net/s3ObjectKey?Policy"
                           + "=eyJTdGF0ZW1lbnQiOiBbeyJSZXNvdXJjZSI6Imh0dHBzOi8vZGlzdHJpYnV0aW9uRG9tYWluLWNsb3VkZnJvbnQubmV0L3MzT2JqZWN0S2V5IiwiQ29uZGl0aW9uIjp7IkRhdGVMZXNzVGhhbiI6eyJBV1M6RXBvY2hUaW1lIjoxNzA0MDY3MjAwfSwiSXBBZGRyZXNzIjp7IkFXUzpTb3VyY2VJcCI6IjEuMi4zLjQifSwiRGF0ZUdyZWF0ZXJUaGFuIjp7IkFXUzpFcG9jaFRpbWUiOjE2NDA5OTUyMDB9fX1dfQ__"
                           + signature
                           + "&Key-Pair-Id=keyPairId";
         assertThat(expected).isEqualTo(signedUrl.url());
-    }
-
-    @Test
-    void buildCustomPolicyForSignedUrl_shouldWork() {
-        String expected = "{\"Statement\": [{\"Resource\":\"resourcePath\",\"Condition\":{\"DateLessThan\":{\"AWS:EpochTime\":1704067200},\"IpAddress\":{\"AWS:SourceIp\":\"limitToIpAddressCIDR\"},\"DateGreaterThan\":{\"AWS:EpochTime\":1640995200}}}]}";
-        Instant activeDate = LocalDate.of(2022, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
-        Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
-        String policy = CloudFrontUtilities.buildCustomPolicyForSignedUrl("resourcePath", activeDate, expirationDate, "limitToIpAddressCIDR");
-        assertThat(expected).isEqualTo(policy);
     }
 
 }
