@@ -23,6 +23,8 @@ import java.net.URI;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.exception.RetryableException;
+import software.amazon.awssdk.core.retry.RetryPolicyContext;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.imds.Ec2MetadataClientBuilder;
 import software.amazon.awssdk.imds.Ec2MetadataRetryPolicy;
@@ -69,16 +71,15 @@ public abstract class BaseEc2MetadataClient {
     }
 
     protected CachedSupplier.PrefetchStrategy getPrefetchStrategy(TokenCacheStrategy strategy) {
-        if (strategy == null) {
-            return null;
-        }
+        Validate.notNull(strategy, "TokenCacheStrategy must not be null");
         switch (strategy) {
             case NONE: return null;
             case BLOCKING: return new OneCallerBlocks();
             case NON_BLOCKING: return new NonBlocking("IMDS-TokenCache");
+            default:
+                throw new IllegalArgumentException(
+                    String.format("TokenCacheStrategy '%s' does not have a corresponding PrefetchStrategy", strategy));
         }
-        throw new IllegalArgumentException(
-            String.format("TokenCacheStrategy '%s' does not have a corresponding PrefetchStrategy", strategy));
     }
 
     protected static String uncheckedInputStreamToUtf8(AbortableInputStream inputStream) {
@@ -89,6 +90,14 @@ public abstract class BaseEc2MetadataClient {
         } finally {
             IoUtils.closeQuietly(inputStream, log.logger());
         }
+    }
+
+    protected boolean shouldRetry(RetryPolicyContext retryPolicyContext, Throwable error) {
+        boolean maxAttemptReached = retryPolicyContext.retriesAttempted() >= retryPolicy.getNumRetries();
+        if (maxAttemptReached) {
+            return false;
+        }
+        return error instanceof RetryableException || error.getCause() instanceof RetryableException;
     }
 
 }

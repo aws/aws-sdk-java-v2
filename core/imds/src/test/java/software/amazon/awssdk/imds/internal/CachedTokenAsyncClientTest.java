@@ -33,88 +33,55 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
 import java.time.Duration;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.imds.Ec2MetadataClient;
+import software.amazon.awssdk.imds.Ec2MetadataAsyncClient;
 import software.amazon.awssdk.imds.MetadataResponse;
 import software.amazon.awssdk.imds.TokenCacheStrategy;
 
-public class Ec2MetadataCachedTokenClientTest {
+public class CachedTokenAsyncClientTest {
     @Rule
     public WireMockRule mockMetadataEndpoint = new WireMockRule();
+
+    private Ec2MetadataAsyncClient.Builder clientBuilder;
 
     @After
     public void reset() {
         mockMetadataEndpoint.resetAll();
     }
 
-    @Test
-    public void get_multipleCallsSuccess_blockingTokenCache_shouldReuseToken() throws Exception {
-        int tokenTTlSeconds = 5;
-        Ec2MetadataClient client = Ec2MetadataClient.builder()
-                                                    .endpoint(URI.create("http://localhost:" + mockMetadataEndpoint.port()))
-                                                    .tokenTtl(Duration.ofSeconds(tokenTTlSeconds))
-                                                    .tokenCacheStrategy(TokenCacheStrategy.BLOCKING)
-                                                    .build();
-        stubFor(put(urlPathEqualTo("/latest/api/token")).willReturn(aResponse().withBody("some-token")));
-        stubFor(get(urlPathEqualTo("/latest/meta-data/ami-id")).willReturn(aResponse().withBody("{}")));
-
-        int totalRequests = 10;
-        for (int i = 0; i < totalRequests; i++) {
-            MetadataResponse response = client.get("/latest/meta-data/ami-id");
-            assertThat(response.asString()).isEqualTo("{}");
-        }
-        verify(exactly(1), putRequestedFor(urlPathEqualTo("/latest/api/token"))
-            .withHeader("x-aws-ec2-metadata-token-ttl-seconds", equalTo(String.valueOf(tokenTTlSeconds))));
-        verify(exactly(totalRequests), getRequestedFor(urlPathEqualTo("/latest/meta-data/ami-id"))
-            .withHeader("x-aws-ec2-metadata-token", equalTo("some-token")));
-        Thread.sleep((tokenTTlSeconds + 1) * 1000);
-        for (int i = 0; i < totalRequests; i++) {
-            MetadataResponse response = client.get("/latest/meta-data/ami-id");
-            assertThat(response.asString()).isEqualTo("{}");
-        }
-        verify(exactly(2), putRequestedFor(urlPathEqualTo("/latest/api/token"))
-            .withHeader("x-aws-ec2-metadata-token-ttl-seconds", equalTo(String.valueOf(tokenTTlSeconds))));
-        verify(exactly(totalRequests * 2), getRequestedFor(urlPathEqualTo("/latest/meta-data/ami-id"))
-            .withHeader("x-aws-ec2-metadata-token", equalTo("some-token")));
+    @Before
+    public void init() {
+        this.clientBuilder = Ec2MetadataAsyncClient.builder()
+                                                   .endpoint(URI.create("http://localhost:" + mockMetadataEndpoint.port()))
+                                                   .tokenCacheStrategy(TokenCacheStrategy.BLOCKING);
     }
-
     @Test
-    public void get_tokenFailsError4xx_blockingTokenCache_shouldNotRetry() {
-        Ec2MetadataClient client = Ec2MetadataClient.builder()
-                                                    .endpoint(URI.create("http://localhost:" + mockMetadataEndpoint.port()))
-                                                    .tokenCacheStrategy(TokenCacheStrategy.BLOCKING)
-                                                    .build();
+    public void get_tokenFailsError4xx_shouldNotRetry() {
         stubFor(put(urlPathEqualTo("/latest/api/token")).willReturn(aResponse().withStatus(400).withBody("ERROR 400")));
         stubFor(get(urlPathEqualTo("/latest/meta-data/ami-id")).willReturn(aResponse().withBody("{}")));
 
-        assertThatThrownBy(() -> client.get("/latest/meta-data/ami-id")).isInstanceOf(SdkClientException.class);
+        assertThatThrownBy(() -> clientBuilder.build().get("/latest/meta-data/ami-id").join())
+            .getCause().isInstanceOf(SdkClientException.class);
         verify(exactly(1), putRequestedFor(urlPathEqualTo("/latest/api/token"))
             .withHeader("x-aws-ec2-metadata-token-ttl-seconds", equalTo("21600")));
     }
 
     @Test
-    public void getToken_failsError5xx_blockingTokenCache_shouldRetryUntilMaxRetriesIsReached() {
-        Ec2MetadataClient client = Ec2MetadataClient.builder()
-                                                    .endpoint(URI.create("http://localhost:" + mockMetadataEndpoint.port()))
-                                                    .tokenCacheStrategy(TokenCacheStrategy.BLOCKING)
-                                                    .build();
+    public void getToken_failsError5xx_shouldRetryUntilMaxRetriesIsReached() {
         stubFor(put(urlPathEqualTo("/latest/api/token")).willReturn(aResponse().withStatus(500).withBody("ERROR 500")));
         stubFor(get(urlPathEqualTo("/latest/meta-data/ami-id")).willReturn(aResponse().withBody("{}")));
 
-        assertThatThrownBy(() -> client.get("/latest/meta-data/ami-id")).isInstanceOf(SdkClientException.class);
+        assertThatThrownBy(() -> clientBuilder.build().get("/latest/meta-data/ami-id").join())
+            .getCause().isInstanceOf(SdkClientException.class);
         verify(exactly(4), putRequestedFor(urlPathEqualTo("/latest/api/token"))
             .withHeader("x-aws-ec2-metadata-token-ttl-seconds", equalTo("21600")));
     }
 
     @Test
     public void getToken_failsThanSucceeds_doesCacheTokenThatSucceeds() {
-        Ec2MetadataClient client = Ec2MetadataClient.builder()
-                                                    .endpoint(URI.create("http://localhost:" + mockMetadataEndpoint.port()))
-                                                    .tokenCacheStrategy(TokenCacheStrategy.BLOCKING)
-                                                    .build();
-
         stubFor(put(urlPathEqualTo("/latest/api/token")).inScenario("Retry Scenario")
                                                         .whenScenarioStateIs(STARTED)
                                                         .willReturn(aResponse().withStatus(500).withBody("Error 500"))
@@ -127,11 +94,12 @@ public class Ec2MetadataCachedTokenClientTest {
                                                                .willReturn(aResponse().withBody("Success")));
 
         // 3 requests
-        MetadataResponse response = client.get("/latest/meta-data/ami-id");
+        Ec2MetadataAsyncClient client = clientBuilder.build();
+        MetadataResponse response = client.get("/latest/meta-data/ami-id").join();
         assertThat(response.asString()).isEqualTo("Success");
-        response = client.get("/latest/meta-data/ami-id");
+        response = client.get("/latest/meta-data/ami-id").join();
         assertThat(response.asString()).isEqualTo("Success");
-        response = client.get("/latest/meta-data/ami-id");
+        response = client.get("/latest/meta-data/ami-id").join();
         assertThat(response.asString()).isEqualTo("Success");
 
         verify(exactly(2), putRequestedFor(urlPathEqualTo("/latest/api/token"))
@@ -140,6 +108,47 @@ public class Ec2MetadataCachedTokenClientTest {
             .withHeader("x-aws-ec2-metadata-token", equalTo("token-ok")));
     }
 
+    @Test
+    public void get_multipleCallsSuccess_shouldReuseToken() throws Exception {
+        stubFor(put(urlPathEqualTo("/latest/api/token")).willReturn(aResponse().withBody("some-token")));
+        stubFor(get(urlPathEqualTo("/latest/meta-data/ami-id"))
+                    .willReturn(aResponse().withBody("{}").withFixedDelay(1000)));
 
+        int tokenTTlSeconds = 4;
+        Ec2MetadataAsyncClient client = clientBuilder.tokenTtl(Duration.ofSeconds(tokenTTlSeconds)).build();
+
+        int totalRequests = 10;
+        for (int i = 0; i < totalRequests; i++) {
+            MetadataResponse response = client.get("/latest/meta-data/ami-id").join();
+            assertThat(response.asString()).isEqualTo("{}");
+        }
+        verify(exactly(3), putRequestedFor(urlPathEqualTo("/latest/api/token"))
+            .withHeader("x-aws-ec2-metadata-token-ttl-seconds", equalTo(String.valueOf(tokenTTlSeconds))));
+        verify(exactly(totalRequests), getRequestedFor(urlPathEqualTo("/latest/meta-data/ami-id"))
+            .withHeader("x-aws-ec2-metadata-token", equalTo("some-token")));
+    }
+
+    @Test
+    public void get_nonBlockingTokenCache_shouldReuseToken() throws Exception {
+        stubFor(put(urlPathEqualTo("/latest/api/token")).willReturn(aResponse().withBody("some-token")));
+        stubFor(get(urlPathEqualTo("/latest/meta-data/ami-id"))
+                    .willReturn(aResponse().withBody("{}").withFixedDelay(1000)));
+
+        int tokenTTlSeconds = 4;
+        Ec2MetadataAsyncClient client = clientBuilder.tokenCacheStrategy(TokenCacheStrategy.NON_BLOCKING)
+                                                .tokenTtl(Duration.ofSeconds(tokenTTlSeconds))
+                                                .build();
+
+        int totalRequests = 10;
+        for (int i = 0; i < totalRequests; i++) {
+            MetadataResponse response = client.get("/latest/meta-data/ami-id").join();
+            assertThat(response.asString()).isEqualTo("{}");
+        }
+        verify(exactly(3), putRequestedFor(urlPathEqualTo("/latest/api/token"))
+            .withHeader("x-aws-ec2-metadata-token-ttl-seconds", equalTo(String.valueOf(tokenTTlSeconds))));
+        verify(exactly(totalRequests), getRequestedFor(urlPathEqualTo("/latest/meta-data/ami-id"))
+            .withHeader("x-aws-ec2-metadata-token", equalTo("some-token")));
+
+    }
 
 }

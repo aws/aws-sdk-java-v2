@@ -154,16 +154,19 @@ public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implem
         if (HttpStatusFamily.of(statusCode).isOneOf(HttpStatusFamily.SERVER_ERROR)) {
             responseBody.map(BaseEc2MetadataClient::uncheckedInputStreamToUtf8)
                         .ifPresent(str -> log.debug(() -> "Metadata request response body: " + str));
-            throw RetryableException.builder()
-                                    .message("The requested metadata at path ( " + path + " ) returned Http code " + statusCode)
-                                    .build();
+            throw RetryableException
+                .builder()
+                .message(String.format("The requested metadata at path ( %s ) returned Http code %s", path, statusCode))
+                .build();
         }
 
         if (!HttpStatusFamily.of(statusCode).isOneOf(HttpStatusFamily.SUCCESSFUL)) {
             responseBody.map(BaseEc2MetadataClient::uncheckedInputStreamToUtf8)
                         .ifPresent(str -> log.debug(() -> "Metadata request response body: " + str));
-            throw SdkClientException.builder()
-                                    .message("The requested metadata at path ( " + path + " ) returned Http code " + statusCode).build();
+            throw SdkClientException
+                .builder()
+                .message(String.format("The requested metadata at path ( %s ) returned Http code %s", path, statusCode))
+                .build();
         }
 
         AbortableInputStream abortableInputStream = responseBody.orElseThrow(

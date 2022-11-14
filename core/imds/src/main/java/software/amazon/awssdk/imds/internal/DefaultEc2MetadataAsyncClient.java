@@ -69,7 +69,8 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
 
     private final SdkAsyncHttpClient httpClient;
     private final ScheduledExecutorService asyncRetryScheduler;
-    private final Supplier<CompletableFuture<String>> cachedToken;
+    private final TokenCacheStrategy tokenCacheStrategy;
+    private Supplier<CompletableFuture<String>> tokenCache;
     private final boolean httpClientIsInternal;
     private final boolean retryExecutorIsInternal;
 
@@ -81,13 +82,11 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
         this.asyncRetryScheduler = Validate.getOrDefault(
             builder.scheduledExecutorService,
             () -> {
-                ThreadFactory threadFactory =
-                    new ThreadFactoryBuilder().threadNamePrefix("IMDS-ScheduledExecutor").build();
+                ThreadFactory threadFactory = new ThreadFactoryBuilder().threadNamePrefix("IMDS-ScheduledExecutor").build();
                 return Executors.newScheduledThreadPool(DEFAULT_RETRY_THREAD_POOL_SIZE, threadFactory);
             });
-        this.cachedToken = createCachedTokenSupplier(Validate.getOrDefault(
-            builder.tokenCacheStrategy,
-            () -> TokenCacheStrategy.NONE));
+        this.tokenCacheStrategy = Validate.getOrDefault(builder.tokenCacheStrategy, () -> TokenCacheStrategy.NONE);
+        this.tokenCache = createCachedTokenSupplier(this.tokenCacheStrategy);
         this.httpClientIsInternal = builder.httpClient == null;
         this.retryExecutorIsInternal = builder.scheduledExecutorService == null;
     }
@@ -96,7 +95,7 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
         return new DefaultEc2MetadataAsyncClient.Ec2MetadataAsyncBuilder();
     }
 
-    public Supplier<CompletableFuture<String>> createCachedTokenSupplier(TokenCacheStrategy tokenCacheStrategy) {
+    private Supplier<CompletableFuture<String>> createCachedTokenSupplier(TokenCacheStrategy tokenCacheStrategy) {
         SdkHttpFullRequest baseTokenRequest = requestMarshaller.createTokenRequest(tokenTtl);
         if (tokenCacheStrategy == TokenCacheStrategy.NONE) {
             return () -> sendAsyncRequest(baseTokenRequest);
@@ -120,7 +119,9 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
     }
 
     private void get(String path, RetryPolicyContext retryPolicyContext, CompletableFuture<MetadataResponse> returnFuture) {
-        CompletableFuture<String> tokenFuture = cachedToken.get();
+        // SdkHttpFullRequest baseTokenRequest = requestMarshaller.createTokenRequest(tokenTtl);
+        // CompletableFuture<String> tokenFuture = sendAsyncRequest(baseTokenRequest);
+        CompletableFuture<String> tokenFuture = tokenCache.get();
         CompletableFutureUtils.forwardExceptionTo(returnFuture, tokenFuture);
 
         CompletableFuture<MetadataResponse> result = tokenFuture.thenCompose(token -> {
@@ -146,6 +147,8 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
                                   .retriesAttempted(newAttempt)
                                   .exception(SdkClientException.create(error.getMessage(), error))
                                   .build();
+            // force token refresh on retryable error
+            // this.tokenCache = createCachedTokenSupplier(this.tokenCacheStrategy);
             scheduledRetryAttempt(() -> get(path, newContext, returnFuture), newContext);
         });
     }
@@ -175,14 +178,6 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
         CompletableFuture.runAsync(runnable, retryExecutor);
     }
 
-    private boolean shouldRetry(RetryPolicyContext retryPolicyContext, Throwable error) {
-        boolean maxAttemptReached = retryPolicyContext.retriesAttempted() >= retryPolicy.getNumRetries();
-        if (maxAttemptReached) {
-            return false;
-        }
-        return error instanceof RetryableException || error.getCause() instanceof RetryableException;
-    }
-
     @Override
     public void close() {
         if (httpClientIsInternal) {
@@ -191,8 +186,8 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
         if (retryExecutorIsInternal) {
             asyncRetryScheduler.shutdown();
         }
-        if (cachedToken instanceof SdkAutoCloseable) {
-            ((SdkAutoCloseable) cachedToken).close();
+        if (tokenCache instanceof SdkAutoCloseable) {
+            ((SdkAutoCloseable) tokenCache).close();
         }
     }
 
@@ -206,24 +201,25 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
         @Override
         public String handle(SdkHttpFullResponse response, ExecutionAttributes executionAttributes) throws Exception {
             HttpStatusFamily statusCode = HttpStatusFamily.of(response.statusCode());
+            AbortableInputStream inputStream = response
+                .content().orElseThrow(() -> SdkClientException.create("Unexpected error: empty response content"));
+            String responseContent = uncheckedInputStreamToUtf8(inputStream);
             if (statusCode.isOneOf(HttpStatusFamily.CLIENT_ERROR)) {
                 // non-retryable error
                 Supplier<String> msg = () -> String.format("Error while executing EC2Metadata request: received http"
                                                            + " status %d",
                                                            response.statusCode());
                 log.debug(msg);
-                future.completeExceptionally(SdkClientException.create(msg.get()));
+                future.completeExceptionally(SdkClientException.create(responseContent));
             } else if (statusCode.isOneOf(HttpStatusFamily.SERVER_ERROR)) {
                 // retryable error
                 Supplier<String> msg = () -> String.format("Error while executing EC2Metadata request: received http"
                                                            + " status %d",
                                                            response.statusCode());
                 log.debug(msg);
-                future.completeExceptionally(RetryableException.create(msg.get()));
+                future.completeExceptionally(RetryableException.create(responseContent));
             }
-            AbortableInputStream inputStream = response
-                .content().orElseThrow(() -> SdkClientException.create("Unexpected error: empty response content"));
-            return uncheckedInputStreamToUtf8(inputStream);
+            return responseContent;
         }
     }
 
