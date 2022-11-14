@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon WorkDocs",
+    "contributor": "",
+    "description": "Added 2 new document related operations, DeleteDocumentVersion and RestoreDocumentVersions."
+}
