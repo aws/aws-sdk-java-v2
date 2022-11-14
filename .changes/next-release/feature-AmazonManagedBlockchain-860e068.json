@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Managed Blockchain",
-    "contributor": "",
-    "description": "Updating the API docs data type: NetworkEthereumAttributes, and the operations DeleteNode, and CreateNode to also include the supported Goerli network."
-}
