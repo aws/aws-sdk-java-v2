@@ -127,26 +127,4 @@ public class CachedTokenClientTest {
             .withHeader("x-aws-ec2-metadata-token", equalTo("some-token")));
     }
 
-    @Test
-    public void get_nonBlockingTokenCache_shouldReuseToken() throws Exception {
-        stubFor(put(urlPathEqualTo("/latest/api/token")).willReturn(aResponse().withBody("some-token")));
-        stubFor(get(urlPathEqualTo("/latest/meta-data/ami-id"))
-                    .willReturn(aResponse().withBody("{}").withFixedDelay(1000)));
-
-        int tokenTTlSeconds = 4;
-        Ec2MetadataClient client = clientBuilder.tokenCacheStrategy(TokenCacheStrategy.NON_BLOCKING)
-                                                .tokenTtl(Duration.ofSeconds(tokenTTlSeconds))
-                                                .build();
-
-        int totalRequests = 10;
-        for (int i = 0; i < totalRequests; i++) {
-            MetadataResponse response = client.get("/latest/meta-data/ami-id");
-            assertThat(response.asString()).isEqualTo("{}");
-        }
-        verify(exactly(3), putRequestedFor(urlPathEqualTo("/latest/api/token"))
-            .withHeader("x-aws-ec2-metadata-token-ttl-seconds", equalTo(String.valueOf(tokenTTlSeconds))));
-        verify(exactly(totalRequests), getRequestedFor(urlPathEqualTo("/latest/meta-data/ami-id"))
-            .withHeader("x-aws-ec2-metadata-token", equalTo("some-token")));
-
-    }
 }

@@ -29,13 +29,9 @@ import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.imds.Ec2MetadataClientBuilder;
 import software.amazon.awssdk.imds.Ec2MetadataRetryPolicy;
 import software.amazon.awssdk.imds.EndpointMode;
-import software.amazon.awssdk.imds.TokenCacheStrategy;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
-import software.amazon.awssdk.utils.cache.CachedSupplier;
-import software.amazon.awssdk.utils.cache.NonBlocking;
-import software.amazon.awssdk.utils.cache.OneCallerBlocks;
 
 @SdkInternalApi
 public abstract class BaseEc2MetadataClient {
@@ -68,18 +64,6 @@ public abstract class BaseEc2MetadataClient {
         }
         EndpointMode resolvedEndpointMode = DEFAULT_ENDPOINT_PROVIDER.resolveEndpointMode();
         return URI.create(DEFAULT_ENDPOINT_PROVIDER.resolveEndpoint(resolvedEndpointMode));
-    }
-
-    protected CachedSupplier.PrefetchStrategy getPrefetchStrategy(TokenCacheStrategy strategy) {
-        Validate.notNull(strategy, "TokenCacheStrategy must not be null");
-        switch (strategy) {
-            case NONE: return null;
-            case BLOCKING: return new OneCallerBlocks();
-            case NON_BLOCKING: return new NonBlocking("IMDS-TokenCache");
-            default:
-                throw new IllegalArgumentException(
-                    String.format("TokenCacheStrategy '%s' does not have a corresponding PrefetchStrategy", strategy));
-        }
     }
 
     protected static String uncheckedInputStreamToUtf8(AbortableInputStream inputStream) {

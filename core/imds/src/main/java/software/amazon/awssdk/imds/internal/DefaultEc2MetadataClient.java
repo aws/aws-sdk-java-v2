@@ -84,11 +84,9 @@ public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implem
         if (tokenCacheStrategy == TokenCacheStrategy.NONE) {
             return this::getToken;
         }
-        CachedSupplier.PrefetchStrategy prefetchStrategy = getPrefetchStrategy(tokenCacheStrategy);
         return CachedSupplier.builder(() -> RefreshResult.builder(getToken())
                                                          .staleTime(Instant.now().plus(tokenTtl))
                                                          .build())
-                             .prefetchStrategy(prefetchStrategy)
                              .build();
     }
 

@@ -107,7 +107,6 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
                                     .staleTime(Instant.now().plus(tokenTtl))
                                     .build();
             })
-            .prefetchStrategy(getPrefetchStrategy(tokenCacheStrategy))
             .build();
     }
 
