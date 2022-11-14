@@ -17,6 +17,9 @@ package software.amazon.awssdk.imds;
 
 import java.util.concurrent.ScheduledExecutorService;
 
+/**
+ * Defines the different caching strategies for the token required when executing Ec2 Metadata requests.
+ */
 public enum TokenCacheStrategy {
     /**
      * No caching, a token request will be performed for every metadata requests.
@@ -26,13 +29,13 @@ public enum TokenCacheStrategy {
 
     /**
      * Cache the token until it expires. When a request for metadata is performed while the token is expired, the Client will
-     * block every request and perform a token call before executing the metadata request.
+     * block every request and perform a token call before resuming execution of the metadata requests.
      */
     BLOCKING,
 
     /**
      * A background process asynchronously refreshes the token used by the Ec2 Client when its about to get expires. This
-     * process runs automatically as soon as the Ec2Metadata Client is created and is handled by a
+     * process runs automatically in a background thread as soon as the Ec2Metadata Client is created and is handled by a
      * {@link ScheduledExecutorService}.
      */
     NON_BLOCKING

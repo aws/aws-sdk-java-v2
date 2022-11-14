@@ -81,7 +81,7 @@ public class CachedTokenAsyncClientTest {
     }
 
     @Test
-    public void getToken_failsThanSucceeds_doesCacheTokenThatSucceeds() {
+    public void getToken_failsThenSucceeds_doesCacheTokenThatSucceeds() {
         stubFor(put(urlPathEqualTo("/latest/api/token")).inScenario("Retry Scenario")
                                                         .whenScenarioStateIs(STARTED)
                                                         .willReturn(aResponse().withStatus(500).withBody("Error 500"))
@@ -148,7 +148,6 @@ public class CachedTokenAsyncClientTest {
             .withHeader("x-aws-ec2-metadata-token-ttl-seconds", equalTo(String.valueOf(tokenTTlSeconds))));
         verify(exactly(totalRequests), getRequestedFor(urlPathEqualTo("/latest/meta-data/ami-id"))
             .withHeader("x-aws-ec2-metadata-token", equalTo("some-token")));
-
     }
 
 }

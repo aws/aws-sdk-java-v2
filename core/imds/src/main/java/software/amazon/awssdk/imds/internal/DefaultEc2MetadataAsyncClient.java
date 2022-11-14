@@ -70,9 +70,9 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
     private final SdkAsyncHttpClient httpClient;
     private final ScheduledExecutorService asyncRetryScheduler;
     private final TokenCacheStrategy tokenCacheStrategy;
-    private Supplier<CompletableFuture<String>> tokenCache;
     private final boolean httpClientIsInternal;
     private final boolean retryExecutorIsInternal;
+    private Supplier<CompletableFuture<String>> tokenCache;
 
     private DefaultEc2MetadataAsyncClient(Ec2MetadataAsyncBuilder builder) {
         super(builder);
@@ -119,8 +119,6 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
     }
 
     private void get(String path, RetryPolicyContext retryPolicyContext, CompletableFuture<MetadataResponse> returnFuture) {
-        // SdkHttpFullRequest baseTokenRequest = requestMarshaller.createTokenRequest(tokenTtl);
-        // CompletableFuture<String> tokenFuture = sendAsyncRequest(baseTokenRequest);
         CompletableFuture<String> tokenFuture = tokenCache.get();
         CompletableFutureUtils.forwardExceptionTo(returnFuture, tokenFuture);
 
@@ -147,8 +145,6 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
                                   .retriesAttempted(newAttempt)
                                   .exception(SdkClientException.create(error.getMessage(), error))
                                   .build();
-            // force token refresh on retryable error
-            // this.tokenCache = createCachedTokenSupplier(this.tokenCacheStrategy);
             scheduledRetryAttempt(() -> get(path, newContext, returnFuture), newContext);
         });
     }
@@ -172,6 +168,8 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
     }
 
     private void scheduledRetryAttempt(Runnable runnable, RetryPolicyContext retryPolicyContext) {
+        // force token refresh on retryable error
+        this.tokenCache = createCachedTokenSupplier(this.tokenCacheStrategy);
         Duration retryDelay = retryPolicy.getBackoffStrategy().computeDelayBeforeNextRetry(retryPolicyContext);
         Executor retryExecutor = retryAttempt ->
             asyncRetryScheduler.schedule(retryAttempt, retryDelay.toMillis(), TimeUnit.MILLISECONDS);

@@ -80,7 +80,7 @@ public class CachedTokenClientTest {
     }
 
     @Test
-    public void getToken_failsThanSucceeds_doesCacheTokenThatSucceeds() {
+    public void getToken_failsThenSucceeds_doesCacheTokenThatSucceeds() {
         stubFor(put(urlPathEqualTo("/latest/api/token")).inScenario("Retry Scenario")
                                                         .whenScenarioStateIs(STARTED)
                                                         .willReturn(aResponse().withStatus(500).withBody("Error 500"))
