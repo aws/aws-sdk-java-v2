@@ -145,7 +145,11 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
                                   .retriesAttempted(newAttempt)
                                   .exception(SdkClientException.create(error.getMessage(), error))
                                   .build();
-            scheduledRetryAttempt(() -> get(path, newContext, returnFuture), newContext);
+            scheduledRetryAttempt(() -> {
+                // force token refresh on retryable error
+                this.tokenCache = createCachedTokenSupplier(this.tokenCacheStrategy);
+                get(path, newContext, returnFuture);
+            }, newContext);
         });
     }
 
@@ -168,8 +172,6 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
     }
 
     private void scheduledRetryAttempt(Runnable runnable, RetryPolicyContext retryPolicyContext) {
-        // force token refresh on retryable error
-        this.tokenCache = createCachedTokenSupplier(this.tokenCacheStrategy);
         Duration retryDelay = retryPolicy.getBackoffStrategy().computeDelayBeforeNextRetry(retryPolicyContext);
         Executor retryExecutor = retryAttempt ->
             asyncRetryScheduler.schedule(retryAttempt, retryDelay.toMillis(), TimeUnit.MILLISECONDS);
