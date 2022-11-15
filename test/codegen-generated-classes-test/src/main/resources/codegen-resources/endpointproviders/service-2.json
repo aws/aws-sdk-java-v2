@@ -23,6 +23,16 @@
     }
   },
   "operations":{
+    "OperationWithHostPrefix": {
+      "name": "OperationWithStaticContextParamA",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "endpoint": {
+        "hostPrefix": "foo."
+      }
+    },
     "OperationWithStaticContextParamA": {
       "name": "OperationWithStaticContextParamA",
       "http": {

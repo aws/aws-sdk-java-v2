@@ -10,6 +10,7 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.services.query.endpoints.QueryClientContextParams;
@@ -30,6 +31,11 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
             .getAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER);
         try {
             Endpoint result = provider.resolveEndpoint(ruleParams(context, executionAttributes)).join();
+            Optional<String> hostPrefix = hostPrefix(executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME),
+                                                     context.request());
+            if (hostPrefix.isPresent() && !AwsEndpointProviderUtils.disableHostPrefixInjection(executionAttributes)) {
+                result = AwsEndpointProviderUtils.addHostPrefix(result, hostPrefix.get());
+            }
             executionAttributes.putAttribute(SdkInternalExecutionAttribute.RESOLVED_ENDPOINT, result);
             return context.request();
         } catch (CompletionException e) {
@@ -87,5 +93,15 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
             params::booleanContextParam);
         Optional.ofNullable(clientContextParams.get(QueryClientContextParams.STRING_CONTEXT_PARAM)).ifPresent(
             params::stringContextParam);
+    }
+
+    private static Optional<String> hostPrefix(String operationName, SdkRequest request) {
+        switch (operationName) {
+            case "APostOperation": {
+                return Optional.of("foo-");
+            }
+            default:
+                return Optional.empty();
+        }
     }
 }

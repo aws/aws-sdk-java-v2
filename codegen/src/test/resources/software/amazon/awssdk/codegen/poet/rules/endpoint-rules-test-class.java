@@ -54,7 +54,7 @@ public class QueryClientEndpointTests extends BaseRuleSetClientTest {
                 builder.region(Region.of("us-east-1"));
                 APostOperationRequest request = APostOperationRequest.builder().build();
                 builder.build().aPostOperation(request);
-            }, Expect.builder().endpoint(Endpoint.builder().url(URI.create("https://myservice.aws")).build()).build()),
+            }, Expect.builder().endpoint(Endpoint.builder().url(URI.create("https://foo-myservice.aws")).build()).build()),
             new SyncTestCase("test case 2", () -> {
                 QueryClientBuilder builder = QueryClient.builder();
                 builder.credentialsProvider(BaseRuleSetClientTest.CREDENTIALS_PROVIDER);
@@ -64,7 +64,7 @@ public class QueryClientEndpointTests extends BaseRuleSetClientTest {
                 builder.stringContextParam("this is a test");
                 APostOperationRequest request = APostOperationRequest.builder().build();
                 builder.build().aPostOperation(request);
-            }, Expect.builder().endpoint(Endpoint.builder().url(URI.create("https://myservice.aws")).build()).build()),
+            }, Expect.builder().endpoint(Endpoint.builder().url(URI.create("https://foo-myservice.aws")).build()).build()),
             new SyncTestCase("test case 3", () -> {
                 QueryClientBuilder builder = QueryClient.builder();
                 builder.credentialsProvider(BaseRuleSetClientTest.CREDENTIALS_PROVIDER);
@@ -110,7 +110,7 @@ public class QueryClientEndpointTests extends BaseRuleSetClientTest {
                 builder.region(Region.of("us-east-1"));
                 APostOperationRequest request = APostOperationRequest.builder().build();
                 return builder.build().aPostOperation(request);
-            }, Expect.builder().endpoint(Endpoint.builder().url(URI.create("https://myservice.aws")).build()).build()),
+            }, Expect.builder().endpoint(Endpoint.builder().url(URI.create("https://foo-myservice.aws")).build()).build()),
             new AsyncTestCase("test case 2", () -> {
                 QueryAsyncClientBuilder builder = QueryAsyncClient.builder();
                 builder.credentialsProvider(BaseRuleSetClientTest.CREDENTIALS_PROVIDER);
@@ -120,7 +120,7 @@ public class QueryClientEndpointTests extends BaseRuleSetClientTest {
                 builder.stringContextParam("this is a test");
                 APostOperationRequest request = APostOperationRequest.builder().build();
                 return builder.build().aPostOperation(request);
-            }, Expect.builder().endpoint(Endpoint.builder().url(URI.create("https://myservice.aws")).build()).build()),
+            }, Expect.builder().endpoint(Endpoint.builder().url(URI.create("https://foo-myservice.aws")).build()).build()),
             new AsyncTestCase("test case 3", () -> {
                 QueryAsyncClientBuilder builder = QueryAsyncClient.builder();
                 builder.credentialsProvider(BaseRuleSetClientTest.CREDENTIALS_PROVIDER);
