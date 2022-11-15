@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS IoT Greengrass V2",
+    "contributor": "",
+    "description": "Adds new parent target ARN paramater to CreateDeployment, GetDeployment, and ListDeployments APIs for the new subdeployments feature."
+}
