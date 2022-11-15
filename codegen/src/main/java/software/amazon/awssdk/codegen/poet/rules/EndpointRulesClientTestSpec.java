@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.codegen.poet.rules;
 
+import static software.amazon.awssdk.codegen.poet.rules.TestGeneratorUtils.getHostPrefixTemplate;
+
 import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.jr.stree.JrsArray;
 import com.fasterxml.jackson.jr.stree.JrsObject;
@@ -217,7 +219,8 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
                               SyncTestCase.class,
                               test.getDocumentation(),
                               syncOperationCallLambda(opModel, test.getParams(), opInput.getOperationParams()),
-                              TestGeneratorUtils.createExpect(test.getExpect()), getSkipReasonBlock(test.getDocumentation()));
+                              TestGeneratorUtils.createExpect(test.getExpect(), opModel, opInput.getOperationParams()),
+                              getSkipReasonBlock(test.getDocumentation()));
 
                     if (operationInputsIter.hasNext()) {
                         b.addCode(",");
@@ -228,7 +231,8 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
                           SyncTestCase.class,
                           test.getDocumentation(),
                           syncOperationCallLambda(defaultOpModel, test.getParams(), Collections.emptyMap()),
-                          TestGeneratorUtils.createExpect(test.getExpect()), getSkipReasonBlock(test.getDocumentation()));
+                          TestGeneratorUtils.createExpect(test.getExpect(), defaultOpModel, null),
+                          getSkipReasonBlock(test.getDocumentation()));
             }
 
             if (testIter.hasNext()) {
@@ -355,7 +359,8 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
                               AsyncTestCase.class,
                               test.getDocumentation(),
                               asyncOperationCallLambda(opModel, test.getParams(), opInput.getOperationParams()),
-                              TestGeneratorUtils.createExpect(test.getExpect()), getSkipReasonBlock(test.getDocumentation()));
+                              TestGeneratorUtils.createExpect(test.getExpect(), opModel, opInput.getOperationParams()),
+                              getSkipReasonBlock(test.getDocumentation()));
 
                     if (operationInputsIter.hasNext()) {
                         b.addCode(",");
@@ -366,7 +371,8 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
                           AsyncTestCase.class,
                           test.getDocumentation(),
                           asyncOperationCallLambda(defaultOpModel, test.getParams(), Collections.emptyMap()),
-                          TestGeneratorUtils.createExpect(test.getExpect()), getSkipReasonBlock(test.getDocumentation()));
+                          TestGeneratorUtils.createExpect(test.getExpect(), defaultOpModel, null),
+                          getSkipReasonBlock(test.getDocumentation()));
             }
 
             if (testIter.hasNext()) {
@@ -399,8 +405,10 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
             return b.add(".build()").build();
         }
 
+        String hostPrefix = getHostPrefixTemplate(opModel).orElse("");
+
         inputShape.getMembers().forEach(m -> {
-            if (!boundToPath(m)) {
+            if (!boundToPath(m) && !hostPrefix.contains("{" + m.getC2jName() + "}")) {
                 return;
             }
 
@@ -442,6 +450,12 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
         }
 
         if (opModel.hasStreamingOutput() || opModel.hasStreamingInput()) {
+            return false;
+        }
+
+        String hostPrefix = getHostPrefixTemplate(opModel).orElse("");
+
+        if (hostPrefix.contains("{") && hostPrefix.contains("}")) {
             return false;
         }
 

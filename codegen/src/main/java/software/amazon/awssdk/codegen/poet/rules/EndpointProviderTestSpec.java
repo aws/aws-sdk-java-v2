@@ -88,7 +88,7 @@ public class EndpointProviderTestSpec implements ClassSpec {
             b.addStatement("testCases.add(new $T($L, $L))",
                            EndpointProviderTestCase.class,
                            createTestCase(test),
-                           TestGeneratorUtils.createExpect(test.getExpect()));
+                           TestGeneratorUtils.createExpect(test.getExpect(), null, null));
         });
 
         b.addStatement("return testCases");

@@ -182,8 +182,4 @@ public class EndpointRulesSpecUtils {
     public TypeName resolverReturnType() {
         return ParameterizedTypeName.get(CompletableFuture.class, Endpoint.class);
     }
-
-    public boolean isEndpointRulesEnabled() {
-        return intermediateModel.getCustomizationConfig().useRuleBasedEndpoints();
-    }
 }

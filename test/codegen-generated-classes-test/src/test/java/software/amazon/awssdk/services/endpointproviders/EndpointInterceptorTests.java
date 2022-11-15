@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -34,6 +35,38 @@ import software.amazon.awssdk.services.restjsonendpointproviders.RestJsonEndpoin
 import software.amazon.awssdk.services.restjsonendpointproviders.RestJsonEndpointProvidersClientBuilder;
 
 public class EndpointInterceptorTests {
+
+    @Test
+    public void sync_hostPrefixInjectDisabled_hostPrefixNotAdded() {
+        CapturingInterceptor interceptor = new CapturingInterceptor();
+        RestJsonEndpointProvidersClient client = syncClientBuilder()
+            .overrideConfiguration(o -> o.addExecutionInterceptor(interceptor)
+                                         .putAdvancedOption(SdkAdvancedClientOption.DISABLE_HOST_PREFIX_INJECTION, true))
+            .build();
+
+        assertThatThrownBy(() -> client.operationWithHostPrefix(r -> {}))
+            .hasMessageContaining("stop");
+
+        Endpoint endpoint = interceptor.executionAttributes().getAttribute(SdkInternalExecutionAttribute.RESOLVED_ENDPOINT);
+
+        assertThat(endpoint.url().getHost()).isEqualTo("restjson.us-west-2.amazonaws.com");
+    }
+
+    @Test
+    public void async_hostPrefixInjectDisabled_hostPrefixNotAdded() {
+        CapturingInterceptor interceptor = new CapturingInterceptor();
+        RestJsonEndpointProvidersAsyncClient client = asyncClientBuilder()
+            .overrideConfiguration(o -> o.addExecutionInterceptor(interceptor)
+                                         .putAdvancedOption(SdkAdvancedClientOption.DISABLE_HOST_PREFIX_INJECTION, true))
+            .build();
+
+        assertThatThrownBy(() -> client.operationWithHostPrefix(r -> {}).join())
+            .hasMessageContaining("stop");
+
+        Endpoint endpoint = interceptor.executionAttributes().getAttribute(SdkInternalExecutionAttribute.RESOLVED_ENDPOINT);
+
+        assertThat(endpoint.url().getHost()).isEqualTo("restjson.us-west-2.amazonaws.com");
+    }
 
     @Test
     public void sync_clientContextParamsSetOnBuilder_includedInExecutionAttributes() {
