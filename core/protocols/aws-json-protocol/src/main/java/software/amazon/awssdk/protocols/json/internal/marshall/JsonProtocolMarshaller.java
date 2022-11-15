@@ -132,7 +132,7 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
             .queryParamMarshaller(MarshallingType.INSTANT, QueryParamMarshaller.INSTANT)
             .queryParamMarshaller(MarshallingType.LIST, QueryParamMarshaller.LIST)
             .queryParamMarshaller(MarshallingType.MAP, QueryParamMarshaller.MAP)
-            .queryParamMarshaller(MarshallingType.NULL, JsonMarshaller.NULL)
+            .queryParamMarshaller(MarshallingType.NULL, QueryParamMarshaller.NULL)
 
             .pathParamMarshaller(MarshallingType.STRING, SimpleTypePathMarshaller.STRING)
             .pathParamMarshaller(MarshallingType.INTEGER, SimpleTypePathMarshaller.INTEGER)

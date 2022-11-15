@@ -23,6 +23,7 @@ import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.traits.ListTrait;
 import software.amazon.awssdk.core.traits.MapTrait;
+import software.amazon.awssdk.core.traits.RequiredTrait;
 import software.amazon.awssdk.protocols.core.ValueToStringConverter;
 
 @SdkInternalApi
@@ -75,6 +76,12 @@ public final class QueryParamMarshaller {
 
                 context.request().putRawQueryParameter(entry.getKey(), valueMarshaller.convert(entry.getValue(), null));
             }
+        }
+    };
+
+    public static final XmlMarshaller<Void> NULL = (val, context, paramName, sdkField) -> {
+        if (sdkField.containsTrait(RequiredTrait.class)) {
+            throw new IllegalArgumentException(String.format("Parameter '%s' must not be null", paramName));
         }
     };
 

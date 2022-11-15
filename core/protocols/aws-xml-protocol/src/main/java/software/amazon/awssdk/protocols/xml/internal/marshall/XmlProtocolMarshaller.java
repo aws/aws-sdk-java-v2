@@ -189,7 +189,7 @@ public final class XmlProtocolMarshaller implements ProtocolMarshaller<SdkHttpFu
             .queryParamMarshaller(MarshallingType.INSTANT, QueryParamMarshaller.INSTANT)
             .queryParamMarshaller(MarshallingType.LIST, QueryParamMarshaller.LIST)
             .queryParamMarshaller(MarshallingType.MAP, QueryParamMarshaller.MAP)
-            .queryParamMarshaller(MarshallingType.NULL, XmlMarshaller.NULL)
+            .queryParamMarshaller(MarshallingType.NULL, QueryParamMarshaller.NULL)
 
             .pathParamMarshaller(MarshallingType.STRING, SimpleTypePathMarshaller.STRING)
             .pathParamMarshaller(MarshallingType.INTEGER, SimpleTypePathMarshaller.INTEGER)
