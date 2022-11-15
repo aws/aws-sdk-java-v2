@@ -45,6 +45,7 @@ import software.amazon.awssdk.core.traits.ListTrait;
 import software.amazon.awssdk.core.traits.LocationTrait;
 import software.amazon.awssdk.core.traits.MapTrait;
 import software.amazon.awssdk.core.traits.PayloadTrait;
+import software.amazon.awssdk.core.traits.RequiredTrait;
 import software.amazon.awssdk.core.traits.TimestampFormatTrait;
 import software.amazon.awssdk.core.traits.XmlAttributeTrait;
 import software.amazon.awssdk.core.traits.XmlAttributesTrait;
@@ -184,6 +185,9 @@ class ShapeModelSpec {
         if (m.isXmlAttribute()) {
             traits.add(createXmlAttributeTrait());
         }
+        if (m.isRequired()) {
+            traits.add(createRequiredTrait());
+        }
 
         if (!traits.isEmpty()) {
             return CodeBlock.builder()
@@ -268,6 +272,12 @@ class ShapeModelSpec {
                         .build();
     }
 
+    private CodeBlock createRequiredTrait() {
+        return CodeBlock.builder()
+                        .add("$T.create()", ClassName.get(RequiredTrait.class))
+                        .build();
+    }
+
     private CodeBlock createMapTrait(MemberModel m) {
         return CodeBlock.builder()
                         .add("$T.builder()\n"
@@ -306,7 +316,7 @@ class ShapeModelSpec {
         String uri = xmlNamespace.getUri();
         String prefix = xmlNamespace.getPrefix();
         CodeBlock.Builder codeBlockBuilder = CodeBlock.builder()
-                                         .add("$T.create(", ClassName.get(XmlAttributesTrait.class));
+                                                      .add("$T.create(", ClassName.get(XmlAttributesTrait.class));
 
         String namespacePrefix = "xmlns:" + prefix;
         codeBlockBuilder.add("$T.of($S, $T.builder().attributeGetter((ignore) -> $S).build())",
