@@ -17,6 +17,7 @@ package software.amazon.awssdk.auth.credentials;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
@@ -40,11 +41,13 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
 /**
  * A credentials provider that can load credentials from an external process. This is used to support the credential_process
  * setting in the profile credentials file. See
- * https://docs.aws.amazon.com/cli/latest/topic/config-vars.html#sourcing-credentials-from-external-processes for more
- * information.
+ * <a href="https://docs.aws.amazon.com/cli/latest/topic/config-vars.html#sourcing-credentials-from-external-processes">sourcing credentials
+ * from external processes</a> for more information.
  *
- * Created using {@link #builder()}.
+ * <p>
+ * This class can be initialized using {@link #builder()}.
  *
+ * <p>
  * Available settings:
  * <ul>
  *     <li>Command - The command that should be executed to retrieve credentials.</li>
@@ -207,7 +210,11 @@ public final class ProcessCredentialsProvider
             process.waitFor();
 
             if (process.exitValue() != 0) {
-                throw new IllegalStateException("Command returned non-zero exit value: " + process.exitValue());
+                try (InputStream errorStream = process.getErrorStream()) {
+                    String errorMessage = IoUtils.toUtf8String(errorStream);
+                    throw new IllegalStateException(String.format("Command returned non-zero exit value (%s) with error message: "
+                                                                  + "%s", process.exitValue(), errorMessage));
+                }
             }
 
             return new String(commandOutput.toByteArray(), StandardCharsets.UTF_8);
