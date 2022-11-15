@@ -35,6 +35,7 @@ import static org.mockito.Mockito.when;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -45,10 +46,12 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
+import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.imds.Ec2MetadataAsyncClient;
 import software.amazon.awssdk.imds.MetadataResponse;
 
-public class Ec2MetadataAsyncClientTest extends BaseEc2MetadataClientTest<Ec2MetadataAsyncClient, Ec2MetadataAsyncClient.Builder> {
+public class Ec2MetadataAsyncClientTest extends BaseEc2MetadataClientTest<Ec2MetadataAsyncClient,
+    Ec2MetadataAsyncClient.Builder> {
 
     private Ec2MetadataAsyncClient client;
 
@@ -91,12 +94,18 @@ public class Ec2MetadataAsyncClientTest extends BaseEc2MetadataClientTest<Ec2Met
     public void get_multipleAsyncRequest_shouldCompleteSuccessfully() {
         int totalRequests = 128;
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH))
-                    .willReturn(aResponse().withFixedDelay(100).withBody("some-token")));
+                    .willReturn(aResponse().withFixedDelay(200).withBody("some-token")));
         for (int i = 0; i < totalRequests; i++) {
             ResponseDefinitionBuilder responseStub = aResponse()
-                .withFixedDelay(200).withStatus(200).withBody("response::" + i);
+                .withFixedDelay(300).withStatus(200).withBody("response::" + i);
             stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE + "/" + i)).willReturn(responseStub));
         }
+        overrideClient(b -> b.httpClient(
+                                 NettyNioAsyncHttpClient.builder()
+                                                        .connectionTimeout(Duration.ofSeconds(10))
+                                                        .readTimeout(Duration.ofSeconds(10))
+                                                        .build())
+                             .endpoint(URI.create("http://localhost:" + mockMetadataEndpoint.port())));
         List<CompletableFuture<MetadataResponse>> requests = Stream.iterate(0, x -> x + 1)
                                                                    .map(i -> client.get(AMI_ID_RESOURCE + "/" + i))
                                                                    .limit(totalRequests)
