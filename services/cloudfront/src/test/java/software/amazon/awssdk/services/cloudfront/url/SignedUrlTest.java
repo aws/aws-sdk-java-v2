@@ -25,28 +25,35 @@ import software.amazon.awssdk.services.cloudfront.internal.url.DefaultSignedUrl;
 class SignedUrlTest {
 
     private static final String PROTOCOL = "https";
-    private static final String DOMAIN = "domain-cloudfront.net";
-    private static final String ENCODED_PATH = "encodedPath";
+    private static final String DOMAIN = "d1npcfkc2mojrf.cloudfront.net";
+    private static final String ENCODED_PATH = "/encodedPath";
+    private static final String URL = PROTOCOL + "://" + DOMAIN + ENCODED_PATH;
 
     @Test
     void signedUrl_shouldWork() {
-        SignedUrl signedUrl = DefaultSignedUrl.builder().protocol(PROTOCOL).domain(DOMAIN).encodedPath(ENCODED_PATH).build();
-        String url = PROTOCOL + "://" + DOMAIN + ENCODED_PATH;
+        SignedUrl signedUrl = DefaultSignedUrl.builder()
+                                              .protocol(PROTOCOL).
+                                              domain(DOMAIN).
+                                              encodedPath(ENCODED_PATH).
+                                              url(URL).build();
 
         assertThat(signedUrl.protocol()).isEqualTo(PROTOCOL);
         assertThat(signedUrl.domain()).isEqualTo(DOMAIN);
         assertThat(signedUrl.encodedPath()).isEqualTo(ENCODED_PATH);
-        assertThat(signedUrl.url()).isEqualTo(url);
+        assertThat(signedUrl.url()).isEqualTo(URL);
     }
 
     @Test
     void generateHttpGetRequest_shouldWork() {
-        SignedUrl signedUrl = DefaultSignedUrl.builder().protocol(PROTOCOL).domain(DOMAIN).encodedPath(ENCODED_PATH).build();
+        SignedUrl signedUrl = DefaultSignedUrl.builder()
+                                              .protocol(PROTOCOL)
+                                              .domain(DOMAIN)
+                                              .encodedPath(ENCODED_PATH).build();
         SdkHttpRequest httpRequest = signedUrl.createHttpGetRequest();
 
         assertThat(httpRequest.protocol()).isEqualTo(PROTOCOL);
         assertThat(httpRequest.host()).isEqualTo(DOMAIN);
-        assertThat(httpRequest.encodedPath()).isEqualTo("/" + ENCODED_PATH);
+        assertThat(httpRequest.encodedPath()).isEqualTo(ENCODED_PATH);
     }
 
     @Test

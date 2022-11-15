@@ -27,10 +27,9 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 public interface CookiesForCustomPolicy extends SignedCookie,
                                                 ToCopyableBuilder<CookiesForCustomPolicy.Builder, CookiesForCustomPolicy> {
 
-    String POLICY_KEY = "CloudFront-Policy";
-
     /**
-     * Returns the cookie policy header value
+     * Returns the cookie policy header value that can be appended to an HTTP GET request
+     * i.e., "CloudFront-Policy=[POLICY_VALUE]"
      */
     String policyHeaderValue();
 
@@ -38,24 +37,24 @@ public interface CookiesForCustomPolicy extends SignedCookie,
     interface Builder extends CopyableBuilder<CookiesForCustomPolicy.Builder, CookiesForCustomPolicy> {
 
         /**
-         * Configure the key pair ID value
-         */
-        Builder keyPairId(String keyPairId);
-
-        /**
-         * Configure the signature value
-         */
-        Builder signature(String signature);
-
-        /**
          * Configure the resource URL
          */
         Builder resourceUrl(String resourceUrl);
 
         /**
-         * Configure the policy value
+         * Configure the cookie signature header value
          */
-        Builder policy(String policy);
+        Builder signatureHeaderValue(String signatureHeaderValue);
+
+        /**
+         * Configure the cookie key pair ID header value
+         */
+        Builder keyPairIdHeaderValue(String keyPairIdHeaderValue);
+
+        /**
+         * Configure the cookie policy header value
+         */
+        Builder policyHeaderValue(String policyHeaderValue);
     }
 
 }

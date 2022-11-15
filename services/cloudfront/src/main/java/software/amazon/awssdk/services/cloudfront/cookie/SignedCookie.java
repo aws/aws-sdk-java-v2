@@ -28,8 +28,6 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 @SdkPublicApi
 public interface SignedCookie {
 
-    String KEY_PAIR_ID_KEY = "CloudFront-Key-Pair-Id";
-    String SIGNATURE_KEY = "CloudFront-Signature";
     String COOKIE = "Cookie";
 
     /**
@@ -43,12 +41,14 @@ public interface SignedCookie {
     SdkHttpRequest createHttpGetRequest();
 
     /**
-     * Returns the cookie signature header value
+     * Returns the cookie signature header value that can be appended to an HTTP GET request
+     * i.e., "CloudFront-Signature=[SIGNATURE_VALUE]"
      */
     String signatureHeaderValue();
 
     /**
-     * Returns the cookie key-pair header value
+     * Returns the cookie key-pair-Id header value that can be appended to an HTTP GET request
+     * i.e., "CloudFront-Key-Pair-Id=[KEY_PAIR_ID_VALUE]"
      */
     String keyPairIdHeaderValue();
 

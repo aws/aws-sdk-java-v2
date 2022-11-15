@@ -25,22 +25,22 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 public interface SignedUrl {
 
     /**
-     * Returns the protocol
+     * Returns the protocol, i.e., HTTPS / HTTP
      */
     String protocol();
 
     /**
-     * Returns the domain
+     * Returns the CloudFront domain, e.g., d1npcfkc2mojrf.cloudfront.net
      */
     String domain();
 
     /**
-     * Returns the encoded path
+     * Returns the encoded path of the signed URL
      */
     String encodedPath();
 
     /**
-     * Returns the signed URL
+     * Returns the signed URL that can be provided to users to access your private content
      */
     String url();
 

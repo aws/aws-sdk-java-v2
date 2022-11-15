@@ -29,16 +29,16 @@ import software.amazon.awssdk.services.cloudfront.cookie.CookiesForCustomPolicy;
 @SdkInternalApi
 public final class DefaultCookiesForCustomPolicy implements CookiesForCustomPolicy {
 
-    private final String keyPairIdValue;
-    private final String signatureValue;
     private final String resourceUrl;
-    private final String policyValue;
+    private final String signatureHeaderValue;
+    private final String keyPairIdHeaderValue;
+    private final String policyHeaderValue;
 
     private DefaultCookiesForCustomPolicy(DefaultBuilder builder) {
-        this.keyPairIdValue = builder.keyPairIdValue;
-        this.signatureValue = builder.signatureValue;
         this.resourceUrl = builder.resourceUrl;
-        this.policyValue = builder.policyValue;
+        this.signatureHeaderValue = builder.signatureHeaderValue;
+        this.keyPairIdHeaderValue = builder.keyPairIdHeaderValue;
+        this.policyHeaderValue = builder.policyHeaderValue;
     }
 
     public static Builder builder() {
@@ -53,9 +53,9 @@ public final class DefaultCookiesForCustomPolicy implements CookiesForCustomPoli
     @Override
     public String toString() {
         return "CloudFront Cookies for Custom Policy:\n"
-               + "Key-Pair-ID = " + keyPairIdValue + "\n"
-               + "Signature = " + signatureValue + "\n"
-               + "Policy = " + policyValue + "\n"
+               + "Key-Pair-Id Header Value = " + keyPairIdHeaderValue + "\n"
+               + "Signature Header Value = " + signatureHeaderValue + "\n"
+               + "Policy Header Value = " + policyHeaderValue + "\n"
                + "Resource URL = " + resourceUrl;
     }
 
@@ -77,17 +77,17 @@ public final class DefaultCookiesForCustomPolicy implements CookiesForCustomPoli
 
     @Override
     public String signatureHeaderValue() {
-        return SIGNATURE_KEY + "=" + signatureValue;
+        return signatureHeaderValue;
     }
 
     @Override
     public String keyPairIdHeaderValue() {
-        return KEY_PAIR_ID_KEY + "=" + keyPairIdValue;
+        return keyPairIdHeaderValue;
     }
 
     @Override
     public String policyHeaderValue() {
-        return POLICY_KEY + "=" + policyValue;
+        return policyHeaderValue;
     }
 
     @Override
@@ -100,58 +100,58 @@ public final class DefaultCookiesForCustomPolicy implements CookiesForCustomPoli
         }
 
         DefaultCookiesForCustomPolicy cookie = (DefaultCookiesForCustomPolicy) o;
-        return Objects.equals(keyPairIdValue, cookie.keyPairIdValue)
-               && Objects.equals(signatureValue, cookie.signatureValue)
+        return Objects.equals(keyPairIdHeaderValue, cookie.keyPairIdHeaderValue)
+               && Objects.equals(signatureHeaderValue, cookie.signatureHeaderValue)
                && Objects.equals(resourceUrl, cookie.resourceUrl)
-               && Objects.equals(policyValue, cookie.policyValue);
+               && Objects.equals(policyHeaderValue, cookie.policyHeaderValue);
     }
 
     @Override
     public int hashCode() {
-        int result = keyPairIdValue != null ? keyPairIdValue.hashCode() : 0;
-        result = 31 * result + (signatureValue != null ? signatureValue.hashCode() : 0);
+        int result = keyPairIdHeaderValue != null ? keyPairIdHeaderValue.hashCode() : 0;
+        result = 31 * result + (signatureHeaderValue != null ? signatureHeaderValue.hashCode() : 0);
         result = 31 * result + (resourceUrl != null ? resourceUrl.hashCode() : 0);
-        result = 31 * result + (policyValue != null ? policyValue.hashCode() : 0);
+        result = 31 * result + (policyHeaderValue != null ? policyHeaderValue.hashCode() : 0);
         return result;
     }
 
     private static final class DefaultBuilder implements CookiesForCustomPolicy.Builder {
-        private String keyPairIdValue;
-        private String signatureValue;
-        private String policyValue;
         private String resourceUrl;
+        private String signatureHeaderValue;
+        private String keyPairIdHeaderValue;
+        private String policyHeaderValue;
 
         private DefaultBuilder() {
         }
 
         private DefaultBuilder(DefaultCookiesForCustomPolicy cookies) {
-            this.keyPairIdValue = cookies.keyPairIdValue;
-            this.signatureValue = cookies.signatureValue;
-            this.policyValue = cookies.policyValue;
             this.resourceUrl = cookies.resourceUrl;
-        }
-
-        @Override
-        public Builder keyPairId(String keyPairId) {
-            this.keyPairIdValue = keyPairId;
-            return this;
-        }
-
-        @Override
-        public Builder signature(String signature) {
-            this.signatureValue = signature;
-            return this;
-        }
-
-        @Override
-        public Builder policy(String policy) {
-            this.policyValue = policy;
-            return this;
+            this.signatureHeaderValue = cookies.signatureHeaderValue;
+            this.keyPairIdHeaderValue = cookies.keyPairIdHeaderValue;
+            this.policyHeaderValue = cookies.policyHeaderValue;
         }
 
         @Override
         public Builder resourceUrl(String resourceUrl) {
             this.resourceUrl = resourceUrl;
+            return this;
+        }
+
+        @Override
+        public Builder signatureHeaderValue(String signatureHeaderValue) {
+            this.signatureHeaderValue = signatureHeaderValue;
+            return this;
+        }
+
+        @Override
+        public Builder keyPairIdHeaderValue(String keyPairIdHeaderValue) {
+            this.keyPairIdHeaderValue = keyPairIdHeaderValue;
+            return this;
+        }
+
+        @Override
+        public Builder policyHeaderValue(String policyHeaderValue) {
+            this.policyHeaderValue = policyHeaderValue;
             return this;
         }
 

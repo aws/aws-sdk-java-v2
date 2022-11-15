@@ -29,16 +29,16 @@ import software.amazon.awssdk.services.cloudfront.cookie.CookiesForCannedPolicy;
 @SdkInternalApi
 public final class DefaultCookiesForCannedPolicy implements CookiesForCannedPolicy {
 
-    private final String keyPairIdValue;
-    private final String signatureValue;
     private final String resourceUrl;
-    private final String expiresValue;
+    private final String keyPairIdHeaderValue;
+    private final String signatureHeaderValue;
+    private final String expiresHeaderValue;
 
     private DefaultCookiesForCannedPolicy(DefaultBuilder builder) {
-        this.keyPairIdValue = builder.keyPairIdValue;
-        this.signatureValue = builder.signatureValue;
         this.resourceUrl = builder.resourceUrl;
-        this.expiresValue = builder.expiresValue;
+        this.keyPairIdHeaderValue = builder.keyPairIdHeaderValue;
+        this.signatureHeaderValue = builder.signatureHeaderValue;
+        this.expiresHeaderValue = builder.expiresHeaderValue;
     }
 
     public static Builder builder() {
@@ -53,10 +53,10 @@ public final class DefaultCookiesForCannedPolicy implements CookiesForCannedPoli
     @Override
     public String toString() {
         return "CloudFront Cookies for Canned Policy:\n"
-               + "Key-Pair-ID = " + keyPairIdValue + "\n"
-               + "Signature = " + signatureValue + "\n"
-               + "Expires = " + expiresValue + "\n"
-               + "Resource URL = " + resourceUrl;
+               + "Resource URL = " + resourceUrl + "\n"
+               + "Signature Header Value = " + signatureHeaderValue + "\n"
+               + "Key-Pair-Id Header Value = " + keyPairIdHeaderValue + "\n"
+               + "Expires Header Value = " + expiresHeaderValue;
     }
 
     @Override
@@ -68,26 +68,26 @@ public final class DefaultCookiesForCannedPolicy implements CookiesForCannedPoli
     public SdkHttpRequest createHttpGetRequest() {
         return SdkHttpRequest.builder()
                              .uri(URI.create(resourceUrl))
-                             .appendHeader(COOKIE, expiresHeaderValue())
                              .appendHeader(COOKIE, signatureHeaderValue())
                              .appendHeader(COOKIE, keyPairIdHeaderValue())
+                             .appendHeader(COOKIE, expiresHeaderValue())
                              .method(SdkHttpMethod.GET)
                              .build();
     }
 
     @Override
     public String signatureHeaderValue() {
-        return SIGNATURE_KEY + "=" + signatureValue;
+        return signatureHeaderValue;
     }
 
     @Override
     public String keyPairIdHeaderValue() {
-        return KEY_PAIR_ID_KEY + "=" + keyPairIdValue;
+        return keyPairIdHeaderValue;
     }
 
     @Override
     public String expiresHeaderValue() {
-        return EXPIRES_KEY + "=" + expiresValue;
+        return expiresHeaderValue;
     }
 
     @Override
@@ -100,58 +100,59 @@ public final class DefaultCookiesForCannedPolicy implements CookiesForCannedPoli
         }
 
         DefaultCookiesForCannedPolicy cookie = (DefaultCookiesForCannedPolicy) o;
-        return Objects.equals(keyPairIdValue, cookie.keyPairIdValue)
-               && Objects.equals(signatureValue, cookie.signatureValue)
+        return Objects.equals(keyPairIdHeaderValue, cookie.keyPairIdHeaderValue)
+               && Objects.equals(signatureHeaderValue, cookie.signatureHeaderValue)
                && Objects.equals(resourceUrl, cookie.resourceUrl)
-               && Objects.equals(expiresValue, cookie.expiresValue);
+               && Objects.equals(expiresHeaderValue, cookie.expiresHeaderValue);
     }
 
     @Override
     public int hashCode() {
-        int result = keyPairIdValue != null ? keyPairIdValue.hashCode() : 0;
-        result = 31 * result + (signatureValue != null ? signatureValue.hashCode() : 0);
+        int result = keyPairIdHeaderValue != null ? keyPairIdHeaderValue.hashCode() : 0;
+        result = 31 * result + (signatureHeaderValue != null ? signatureHeaderValue.hashCode() : 0);
         result = 31 * result + (resourceUrl != null ? resourceUrl.hashCode() : 0);
-        result = 31 * result + (expiresValue != null ? expiresValue.hashCode() : 0);
+        result = 31 * result + (expiresHeaderValue != null ? expiresHeaderValue.hashCode() : 0);
         return result;
     }
 
     private static final class DefaultBuilder implements CookiesForCannedPolicy.Builder {
-        private String keyPairIdValue;
-        private String signatureValue;
-        private String expiresValue;
+
         private String resourceUrl;
+        private String signatureHeaderValue;
+        private String keyPairIdHeaderValue;
+        private String expiresHeaderValue;
 
         private DefaultBuilder() {
         }
 
         private DefaultBuilder(DefaultCookiesForCannedPolicy cookies) {
-            this.keyPairIdValue = cookies.keyPairIdValue;
-            this.signatureValue = cookies.signatureValue;
-            this.expiresValue = cookies.expiresValue;
             this.resourceUrl = cookies.resourceUrl;
-        }
-
-        @Override
-        public Builder keyPairId(String keyPairId) {
-            this.keyPairIdValue = keyPairId;
-            return this;
-        }
-
-        @Override
-        public Builder signature(String signature) {
-            this.signatureValue = signature;
-            return this;
-        }
-
-        @Override
-        public Builder expires(String expires) {
-            this.expiresValue = expires;
-            return this;
+            this.signatureHeaderValue = cookies.signatureHeaderValue;
+            this.keyPairIdHeaderValue = cookies.keyPairIdHeaderValue;
+            this.expiresHeaderValue = cookies.expiresHeaderValue;
         }
 
         @Override
         public Builder resourceUrl(String resourceUrl) {
             this.resourceUrl = resourceUrl;
+            return this;
+        }
+
+        @Override
+        public Builder signatureHeaderValue(String signatureHeaderValue) {
+            this.signatureHeaderValue = signatureHeaderValue;
+            return this;
+        }
+
+        @Override
+        public Builder keyPairIdHeaderValue(String keyPairIdHeaderValue) {
+            this.keyPairIdHeaderValue = keyPairIdHeaderValue;
+            return this;
+        }
+
+        @Override
+        public Builder expiresHeaderValue(String expiresHeaderValue) {
+            this.expiresHeaderValue = expiresHeaderValue;
             return this;
         }
 

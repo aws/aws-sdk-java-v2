@@ -30,22 +30,24 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 public interface CloudFrontSignerRequest {
 
     /**
-     * Returns the resource URL
+     * Returns the resource URL, i.e., the unsigned URL
      */
     String resourceUrl();
 
     /**
-     * Returns the private key
+     * Returns the private key used to generate the signature
      */
     PrivateKey privateKey();
 
     /**
-     * Returns the key pair ID
+     * Returns the key pair ID, i.e., the public key ID for the CloudFront public key whose corresponding private key you're
+     * using to generate the signature
      */
     String keyPairId();
 
     /**
-     * Returns the expiration date
+     * Returns the expiration date, after which users will no longer be able to use the signed URL/cookie to access your
+     * private content
      */
     Instant expirationDate();
 }

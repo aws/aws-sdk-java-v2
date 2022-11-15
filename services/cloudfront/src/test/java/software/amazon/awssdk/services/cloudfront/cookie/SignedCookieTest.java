@@ -36,7 +36,7 @@ class SignedCookieTest {
     private static final String SIGNATURE_VALUE = "signatureValue";
     private static final String EXPIRES_VALUE = "expiresValue";
     private static final String POLICY_VALUE = "policyValue";
-    private static final String RESOURCE_URL = "https://domain-cloudfront.net/resourcePath";
+    private static final String RESOURCE_URL = "https://d1npcfkc2mojrf.cloudfront.net/resourcePath";
     private static final String EXPECTED_KEY_PAIR_ID_HEADER = KEY_PAIR_ID_KEY + "=" + KEY_PAIR_ID_VALUE;
     private static final String EXPECTED_SIGNATURE_HEADER = SIGNATURE_KEY + "=" + SIGNATURE_VALUE;
     private static final String EXPECTED_EXPIRES_HEADER = EXPIRES_KEY + "=" + EXPIRES_VALUE;
@@ -44,43 +44,35 @@ class SignedCookieTest {
 
     @Test
     void cookiesForCannedPolicy_shouldWork() {
-        CookiesForCannedPolicy cookies = DefaultCookiesForCannedPolicy.builder()
-                                                                      .keyPairId(KEY_PAIR_ID_VALUE)
-                                                                      .signature(SIGNATURE_VALUE)
-                                                                      .resourceUrl(RESOURCE_URL)
-                                                                      .expires(EXPIRES_VALUE).build();
-        assertThat(cookies.resourceUrl()).isEqualTo(RESOURCE_URL);
+        CookiesForCannedPolicy cookiesForCannedPolicy = DefaultCookiesForCannedPolicy.builder()
+                                                                                     .resourceUrl(RESOURCE_URL)
+                                                                                     .keyPairIdHeaderValue(KEY_PAIR_ID_KEY +
+                                                                                                           "=" + KEY_PAIR_ID_VALUE)
+                                                                                     .signatureHeaderValue(SIGNATURE_KEY +
+                                                                                                           "=" + SIGNATURE_VALUE)
+                                                                                     .expiresHeaderValue(EXPIRES_KEY +
+                                                                                                         "=" + EXPIRES_VALUE)
+                                                                                     .build();
+
+        assertThat(cookiesForCannedPolicy.resourceUrl()).isEqualTo(RESOURCE_URL);
+        assertThat(cookiesForCannedPolicy.keyPairIdHeaderValue()).isEqualTo(EXPECTED_KEY_PAIR_ID_HEADER);
+        assertThat(cookiesForCannedPolicy.signatureHeaderValue()).isEqualTo(EXPECTED_SIGNATURE_HEADER);
+        assertThat(cookiesForCannedPolicy.expiresHeaderValue()).isEqualTo(EXPECTED_EXPIRES_HEADER);
     }
 
     @Test
     void cookiesForCustomPolicy_shouldWork() {
-        CookiesForCustomPolicy cookies = DefaultCookiesForCustomPolicy.builder()
-                                                                      .keyPairId(KEY_PAIR_ID_VALUE)
-                                                                      .signature(SIGNATURE_VALUE)
-                                                                      .resourceUrl(RESOURCE_URL)
-                                                                      .policy(POLICY_VALUE).build();
-
-        assertThat(cookies.resourceUrl()).isEqualTo(RESOURCE_URL);
-    }
-
-    @Test
-    void cookieHeaderValue_shouldWork() {
-        CookiesForCannedPolicy cookiesForCannedPolicy = DefaultCookiesForCannedPolicy.builder()
-                                                                      .keyPairId(KEY_PAIR_ID_VALUE)
-                                                                      .signature(SIGNATURE_VALUE)
-                                                                      .resourceUrl(RESOURCE_URL)
-                                                                      .expires(EXPIRES_VALUE).build();
-
-        assertThat(cookiesForCannedPolicy.keyPairIdHeaderValue()).isEqualTo(EXPECTED_KEY_PAIR_ID_HEADER);
-        assertThat(cookiesForCannedPolicy.signatureHeaderValue()).isEqualTo(EXPECTED_SIGNATURE_HEADER);
-        assertThat(cookiesForCannedPolicy.expiresHeaderValue()).isEqualTo(EXPECTED_EXPIRES_HEADER);
-
         CookiesForCustomPolicy cookiesForCustomPolicy = DefaultCookiesForCustomPolicy.builder()
-                                                                      .keyPairId(KEY_PAIR_ID_VALUE)
-                                                                      .signature(SIGNATURE_VALUE)
-                                                                      .resourceUrl(RESOURCE_URL)
-                                                                      .policy(POLICY_VALUE).build();
+                                                                                     .resourceUrl(RESOURCE_URL)
+                                                                                     .keyPairIdHeaderValue(KEY_PAIR_ID_KEY +
+                                                                                                           "=" + KEY_PAIR_ID_VALUE)
+                                                                                     .signatureHeaderValue(SIGNATURE_KEY +
+                                                                                                           "=" + SIGNATURE_VALUE)
+                                                                                     .policyHeaderValue(POLICY_KEY +
+                                                                                                        "=" + POLICY_VALUE)
+                                                                                     .build();
 
+        assertThat(cookiesForCustomPolicy.resourceUrl()).isEqualTo(RESOURCE_URL);
         assertThat(cookiesForCustomPolicy.keyPairIdHeaderValue()).isEqualTo(EXPECTED_KEY_PAIR_ID_HEADER);
         assertThat(cookiesForCustomPolicy.signatureHeaderValue()).isEqualTo(EXPECTED_SIGNATURE_HEADER);
         assertThat(cookiesForCustomPolicy.policyHeaderValue()).isEqualTo(EXPECTED_POLICY_HEADER);
@@ -89,24 +81,31 @@ class SignedCookieTest {
     @Test
     void generateHttpGetRequest_shouldWork() {
         CookiesForCannedPolicy cookiesForCannedPolicy = DefaultCookiesForCannedPolicy.builder()
-                                                                      .keyPairId(KEY_PAIR_ID_VALUE)
-                                                                      .signature(SIGNATURE_VALUE)
-                                                                      .resourceUrl(RESOURCE_URL)
-                                                                      .expires(EXPIRES_VALUE).build();
+                                                                                     .resourceUrl(RESOURCE_URL)
+                                                                                     .keyPairIdHeaderValue(KEY_PAIR_ID_KEY +
+                                                                                                           "=" + KEY_PAIR_ID_VALUE)
+                                                                                     .signatureHeaderValue(SIGNATURE_KEY +
+                                                                                                           "=" + SIGNATURE_VALUE)
+                                                                                     .expiresHeaderValue(EXPIRES_KEY +
+                                                                                                         "=" + EXPIRES_VALUE)
+                                                                                     .build();
         SdkHttpRequest httpRequestCannedPolicy = cookiesForCannedPolicy.createHttpGetRequest();
         Map<String, List<String>> headersCannedPolicy = httpRequestCannedPolicy.headers();
         List<String> headerValuesCannedPolicy = headersCannedPolicy.get("Cookie");
-
         assertThat(httpRequestCannedPolicy.getUri()).isEqualTo(URI.create(RESOURCE_URL));
-        assertThat(headerValuesCannedPolicy.get(0)).isEqualTo(EXPECTED_EXPIRES_HEADER);
-        assertThat(headerValuesCannedPolicy.get(1)).isEqualTo(EXPECTED_SIGNATURE_HEADER);
-        assertThat(headerValuesCannedPolicy.get(2)).isEqualTo(EXPECTED_KEY_PAIR_ID_HEADER);
+        assertThat(headerValuesCannedPolicy.get(0)).isEqualTo(EXPECTED_SIGNATURE_HEADER);
+        assertThat(headerValuesCannedPolicy.get(1)).isEqualTo(EXPECTED_KEY_PAIR_ID_HEADER);
+        assertThat(headerValuesCannedPolicy.get(2)).isEqualTo(EXPECTED_EXPIRES_HEADER);
 
         CookiesForCustomPolicy cookiesForCustomPolicy = DefaultCookiesForCustomPolicy.builder()
-                                                                                     .keyPairId(KEY_PAIR_ID_VALUE)
-                                                                                     .signature(SIGNATURE_VALUE)
                                                                                      .resourceUrl(RESOURCE_URL)
-                                                                                     .policy(POLICY_VALUE).build();
+                                                                                     .keyPairIdHeaderValue(KEY_PAIR_ID_KEY +
+                                                                                                           "=" + KEY_PAIR_ID_VALUE)
+                                                                                     .signatureHeaderValue(SIGNATURE_KEY +
+                                                                                                           "=" + SIGNATURE_VALUE)
+                                                                                     .policyHeaderValue(POLICY_KEY +
+                                                                                                        "=" + POLICY_VALUE)
+                                                                                     .build();
         SdkHttpRequest httpRequestCustomPolicy = cookiesForCustomPolicy.createHttpGetRequest();
         Map<String, List<String>> headersCustomPolicy = httpRequestCustomPolicy.headers();
         List<String> headerValuesCustomPolicy = headersCustomPolicy.get("Cookie");

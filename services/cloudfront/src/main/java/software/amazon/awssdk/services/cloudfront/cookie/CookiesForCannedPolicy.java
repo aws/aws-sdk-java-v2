@@ -27,10 +27,9 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 public interface CookiesForCannedPolicy extends SignedCookie,
                                                 ToCopyableBuilder<CookiesForCannedPolicy.Builder, CookiesForCannedPolicy> {
 
-    String EXPIRES_KEY = "CloudFront-Expires";
-
     /**
-     * Returns the cookie expires header value
+     * Returns the cookie expires header value that can be appended to an HTTP GET request
+     * i.e., "CloudFront-Expires=[EXPIRES_VALUE]"
      */
     String expiresHeaderValue();
 
@@ -38,24 +37,24 @@ public interface CookiesForCannedPolicy extends SignedCookie,
     interface Builder extends CopyableBuilder<CookiesForCannedPolicy.Builder, CookiesForCannedPolicy> {
 
         /**
-         * Configure the key pair ID value
-         */
-        Builder keyPairId(String keyPairId);
-
-        /**
-         * Configure the signature value
-         */
-        Builder signature(String signature);
-
-        /**
          * Configure the resource URL
          */
         Builder resourceUrl(String resourceUrl);
 
         /**
-         * Configure the expiration value
+         * Configure the cookie signature header value
          */
-        Builder expires(String expires);
+        Builder signatureHeaderValue(String signatureHeaderValue);
+
+        /**
+         * Configure the cookie key pair ID header value
+         */
+        Builder keyPairIdHeaderValue(String keyPairIdHeaderValue);
+
+        /**
+         * Configure the cookie expires header value
+         */
+        Builder expiresHeaderValue(String expiresHeaderValue);
     }
 
 }

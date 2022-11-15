@@ -33,11 +33,13 @@ public final class DefaultSignedUrl implements SignedUrl, ToCopyableBuilder<Defa
     private final String protocol;
     private final String domain;
     private final String encodedPath;
+    private final String url;
 
     private DefaultSignedUrl(Builder builder) {
         this.protocol = builder.protocol;
         this.domain = builder.domain;
         this.encodedPath = builder.encodedPath;
+        this.url = builder.url;
     }
 
     public static Builder builder() {
@@ -71,7 +73,7 @@ public final class DefaultSignedUrl implements SignedUrl, ToCopyableBuilder<Defa
 
     @Override
     public String url() {
-        return protocol + "://" + domain + encodedPath;
+        return url;
     }
 
     @Override
@@ -96,7 +98,8 @@ public final class DefaultSignedUrl implements SignedUrl, ToCopyableBuilder<Defa
         DefaultSignedUrl signedUrl = (DefaultSignedUrl) o;
         return Objects.equals(protocol, signedUrl.protocol)
                && Objects.equals(domain, signedUrl.domain)
-               && Objects.equals(encodedPath, signedUrl.encodedPath);
+               && Objects.equals(encodedPath, signedUrl.encodedPath)
+               && Objects.equals(url, signedUrl.url);
     }
 
     @Override
@@ -104,6 +107,7 @@ public final class DefaultSignedUrl implements SignedUrl, ToCopyableBuilder<Defa
         int result = protocol != null ? protocol.hashCode() : 0;
         result = 31 * result + (domain != null ? domain.hashCode() : 0);
         result = 31 * result + (encodedPath != null ? encodedPath.hashCode() : 0);
+        result = 31 * result + (url != null ? url.hashCode() : 0);
         return result;
     }
 
@@ -111,6 +115,7 @@ public final class DefaultSignedUrl implements SignedUrl, ToCopyableBuilder<Defa
         private String protocol;
         private String domain;
         private String encodedPath;
+        private String url;
 
         private Builder() {
         }
@@ -119,6 +124,7 @@ public final class DefaultSignedUrl implements SignedUrl, ToCopyableBuilder<Defa
             this.protocol = signedUrl.protocol;
             this.domain = signedUrl.domain;
             this.encodedPath = signedUrl.encodedPath;
+            this.url = signedUrl.url;
         }
 
         /**
@@ -142,6 +148,14 @@ public final class DefaultSignedUrl implements SignedUrl, ToCopyableBuilder<Defa
          */
         public Builder encodedPath(String encodedPath) {
             this.encodedPath = encodedPath;
+            return this;
+        }
+
+        /**
+         * Configure the signed URL
+         */
+        public Builder url(String url) {
+            this.url = url;
             return this;
         }
 

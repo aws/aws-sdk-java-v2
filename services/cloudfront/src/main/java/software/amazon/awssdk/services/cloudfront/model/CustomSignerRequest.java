@@ -85,14 +85,15 @@ public final class CustomSignerRequest implements CloudFrontSignerRequest,
     }
 
     /**
-     * Returns the active date
+     * Returns the active date, before which users will not yet be able to use the signed URL/cookie to access your private
+     * content
      */
     public Instant activeDate() {
         return activeDate;
     }
 
     /**
-     * Returns the IP range
+     * Returns the IP range of the users allowed to access your private content
      */
     public String ipRange() {
         return ipRange;

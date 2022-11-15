@@ -105,14 +105,14 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
     private static String distributionETag;
 
     @BeforeAll
-    public static void init() throws IOException, InterruptedException, NoSuchAlgorithmException {
+    public static void init() throws Exception {
         IntegrationTestBase.setUp();
         initKeys();
         setUpDistribution();
     }
 
     @AfterAll
-    public static void tearDown() throws InterruptedException {
+    public static void tearDown() throws Exception {
         disableDistribution();
         cloudFrontClient.deleteDistribution(DeleteDistributionRequest.builder().ifMatch(distributionETag).id(distributionId).build());
         deleteBucketAndAllContents(bucketName);
@@ -167,12 +167,10 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
     @Test
     void getSignedUrlWithCannedPolicy_withExpiredDate_shouldReturn403Response() throws Exception {
         Instant expirationDate = LocalDate.of(2020, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
-        CannedSignerRequest request = CannedSignerRequest.builder()
-                                                         .resourceUrl(resourceUrl)
-                                                         .privateKey(keyPair.getPrivate())
-                                                         .keyPairId(keyPairId)
-                                                         .expirationDate(expirationDate).build();
-        SignedUrl signedUrl = cloudFrontUtilities.getSignedUrlWithCannedPolicy(request);
+        SignedUrl signedUrl = cloudFrontUtilities.getSignedUrlWithCannedPolicy(r -> r.resourceUrl(resourceUrl)
+                                                                                      .privateKey(keyPair.getPrivate())
+                                                                                      .keyPairId(keyPairId)
+                                                                                      .expirationDate(expirationDate));
         SdkHttpClient client = ApacheHttpClient.create();
         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
                                                                                .request(signedUrl.createHttpGetRequest())
@@ -208,13 +206,11 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
     void getSignedUrlWithCustomPolicy_withFutureActiveDate_shouldReturn403Response() throws Exception {
         Instant activeDate = LocalDate.of(2040, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         Instant expirationDate = LocalDate.of(2050, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
-        CustomSignerRequest request = CustomSignerRequest.builder()
-                                                         .resourceUrl(resourceUrl)
-                                                         .privateKey(keyPair.getPrivate())
-                                                         .keyPairId(keyPairId)
-                                                         .expirationDate(expirationDate)
-                                                         .activeDate(activeDate).build();
-        SignedUrl signedUrl = cloudFrontUtilities.getSignedUrlWithCustomPolicy(request);
+        SignedUrl signedUrl = cloudFrontUtilities.getSignedUrlWithCustomPolicy(r -> r.resourceUrl(resourceUrl)
+                                                                                      .privateKey(keyPair.getPrivate())
+                                                                                      .keyPairId(keyPairId)
+                                                                                      .expirationDate(expirationDate)
+                                                                                      .activeDate(activeDate));
         SdkHttpClient client = ApacheHttpClient.create();
         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
                                                                                .request(signedUrl.createHttpGetRequest())
@@ -227,12 +223,10 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
     void getCookiesForCannedPolicy_shouldWork() throws Exception {
         InputStream originalBucketContent = s3Client.getObject(GetObjectRequest.builder().bucket(bucketName).key(s3ObjectKey).build());
         Instant expirationDate = LocalDate.of(2050, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
-        CannedSignerRequest request = CannedSignerRequest.builder()
-                                                         .resourceUrl(resourceUrl)
-                                                         .privateKey(keyFilePath)
-                                                         .keyPairId(keyPairId)
-                                                         .expirationDate(expirationDate).build();
-        CookiesForCannedPolicy cookies = cloudFrontUtilities.getCookiesForCannedPolicy(request);
+        CookiesForCannedPolicy cookies = cloudFrontUtilities.getCookiesForCannedPolicy(r -> r.resourceUrl(resourceUrl)
+                                                                                             .privateKey(keyPair.getPrivate())
+                                                                                             .keyPairId(keyPairId)
+                                                                                             .expirationDate(expirationDate));
 
         SdkHttpClient client = ApacheHttpClient.create();
         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
@@ -250,7 +244,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
         Instant expirationDate = LocalDate.of(2020, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         CannedSignerRequest request = CannedSignerRequest.builder()
                                                          .resourceUrl(resourceUrl)
-                                                         .privateKey(keyPair.getPrivate())
+                                                         .privateKey(keyFilePath)
                                                          .keyPairId(keyPairId)
                                                          .expirationDate(expirationDate).build();
         CookiesForCannedPolicy cookies = cloudFrontUtilities.getCookiesForCannedPolicy(request);
@@ -268,13 +262,11 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
         InputStream originalBucketContent = s3Client.getObject(GetObjectRequest.builder().bucket(bucketName).key(s3ObjectKey).build());
         Instant activeDate = LocalDate.of(2022, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         Instant expirationDate = LocalDate.of(2050, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
-        CustomSignerRequest request = CustomSignerRequest.builder()
-                                                         .resourceUrl(resourceUrl)
-                                                         .privateKey(keyFilePath)
-                                                         .keyPairId(keyPairId)
-                                                         .expirationDate(expirationDate)
-                                                         .activeDate(activeDate).build();
-        CookiesForCustomPolicy cookies = cloudFrontUtilities.getCookiesForCustomPolicy(request);
+        CookiesForCustomPolicy cookies = cloudFrontUtilities.getCookiesForCustomPolicy(r -> r.resourceUrl(resourceUrl)
+                                                                                             .privateKey(keyPair.getPrivate())
+                                                                                             .keyPairId(keyPairId)
+                                                                                             .expirationDate(expirationDate)
+                                                                                             .activeDate(activeDate));
 
         SdkHttpClient client = ApacheHttpClient.create();
         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
@@ -293,7 +285,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
         Instant expirationDate = LocalDate.of(2050, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         CustomSignerRequest request = CustomSignerRequest.builder()
                                                          .resourceUrl(resourceUrl)
-                                                         .privateKey(keyPair.getPrivate())
+                                                         .privateKey(keyFilePath)
                                                          .keyPairId(keyPairId)
                                                          .expirationDate(expirationDate)
                                                          .activeDate(activeDate).build();

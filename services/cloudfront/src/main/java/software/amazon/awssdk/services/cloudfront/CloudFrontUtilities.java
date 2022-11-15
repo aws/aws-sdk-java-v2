@@ -19,8 +19,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.net.URI;
 import java.security.InvalidKeyException;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Immutable;
-import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -54,12 +54,15 @@ import software.amazon.awssdk.services.cloudfront.url.SignedUrl;
 @SdkPublicApi
 public final class CloudFrontUtilities {
 
+    private static final String KEY_PAIR_ID_KEY = "CloudFront-Key-Pair-Id";
+    private static final String SIGNATURE_KEY = "CloudFront-Signature";
+    private static final String EXPIRES_KEY = "CloudFront-Expires";
+    private static final String POLICY_KEY = "CloudFront-Policy";
+
     private CloudFrontUtilities() {
     }
 
-    // Used by low-level client
-    @SdkInternalApi
-    static CloudFrontUtilities create() {
+    public static CloudFrontUtilities create() {
         return new CloudFrontUtilities();
     }
 
@@ -70,8 +73,28 @@ public final class CloudFrontUtilities {
      * "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-creating-signed-url-canned-policy.html"
      * >Creating a signed URL using a canned policy</a>.
      *
+     * <p>
+     *     This is a convenience which creates an instance of the {@link CannedSignerRequest.Builder} avoiding the need to
+     *     create one manually via {@link CannedSignerRequest#builder()}
+     * </p>
+     *
+     * @param request A {@link Consumer} that will call methods on {@link CannedSignerRequest.Builder} to create a request.
+     * @return A signed URL that will permit access to a specific distribution
+     *         and S3 object.
+     */
+    public SignedUrl getSignedUrlWithCannedPolicy(Consumer<CannedSignerRequest.Builder> request) {
+        return getSignedUrlWithCannedPolicy(CannedSignerRequest.builder().applyMutation(request).build());
+    }
+
+    /**
+     * Returns a signed URL with a canned policy that grants universal access to
+     * private content until a given date.
+     * For more information, see <a href=
+     * "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-creating-signed-url-canned-policy.html"
+     * >Creating a signed URL using a canned policy</a>.
+     *
      * @param request
-     *            A CloudFrontSignerRequest configured with the following values:
+     *            A {@link CannedSignerRequest} configured with the following values:
      *            resourceUrl, privateKey, keyPairId, expirationDate
      * @return A signed URL that will permit access to a specific distribution
      *         and S3 object.
@@ -83,12 +106,15 @@ public final class CloudFrontUtilities {
             byte[] signatureBytes = SigningUtils.signWithSha1Rsa(cannedPolicy.getBytes(UTF_8), request.privateKey());
             String urlSafeSignature = SigningUtils.makeBytesUrlSafe(signatureBytes);
             URI uri = URI.create(resourceUrl);
+            String protocol = uri.getScheme();
+            String domain = uri.getHost();
             String encodedPath = uri.getPath()
                    + (request.resourceUrl().indexOf('?') >= 0 ? "&" : "?")
                    + "Expires=" + request.expirationDate().getEpochSecond()
                    + "&Signature=" + urlSafeSignature
                    + "&Key-Pair-Id=" + request.keyPairId();
-            return DefaultSignedUrl.builder().protocol(uri.getScheme()).domain(uri.getHost()).encodedPath(encodedPath).build();
+            return DefaultSignedUrl.builder().protocol(protocol).domain(domain).encodedPath(encodedPath)
+                                   .url(protocol + "://" + domain + encodedPath).build();
         } catch (InvalidKeyException e) {
             throw SdkClientException.create("Could not sign url", e);
         }
@@ -103,9 +129,31 @@ public final class CloudFrontUtilities {
      * "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-creating-signed-url-custom-policy.html"
      * >Creating a signed URL using a custom policy</a>.
      *
+     * <p>
+     *     This is a convenience which creates an instance of the {@link CustomSignerRequest.Builder} avoiding the need to
+     *     create one manually via {@link CustomSignerRequest#builder()}
+     * </p>
+     *
+     * @param request A {@link Consumer} that will call methods on {@link CustomSignerRequest.Builder} to create a request.
+     * @return A signed URL that will permit access to distribution and S3
+     *         objects as specified in the policy document.
+     */
+    public SignedUrl getSignedUrlWithCustomPolicy(Consumer<CustomSignerRequest.Builder> request) {
+        return getSignedUrlWithCustomPolicy(CustomSignerRequest.builder().applyMutation(request).build());
+    }
+
+    /**
+     * Returns a signed URL that provides tailored access to private content
+     * based on an access time window and an ip range. The custom policy itself
+     * is included as part of the signed URL (For a signed URL with canned
+     * policy, there is no policy included in the signed URL).
+     * For more information, see <a href=
+     * "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-creating-signed-url-custom-policy.html"
+     * >Creating a signed URL using a custom policy</a>.
+     *
      * @param request
-     *            A CloudFrontSignerRequest configured with the following values:
-     *            resourceUrl, privateKey, keyPairId, expirationDate, activeDate, ipRange
+     *            A {@link CustomSignerRequest} configured with the following values:
+     *            resourceUrl, privateKey, keyPairId, expirationDate, activeDate (optional), ipRange (optional)
      * @return A signed URL that will permit access to distribution and S3
      *         objects as specified in the policy document.
      */
@@ -118,12 +166,15 @@ public final class CloudFrontUtilities {
             String urlSafePolicy = SigningUtils.makeStringUrlSafe(policy);
             String urlSafeSignature = SigningUtils.makeBytesUrlSafe(signatureBytes);
             URI uri = URI.create(resourceUrl);
+            String protocol = uri.getScheme();
+            String domain = uri.getHost();
             String encodedPath = uri.getPath()
                    + (request.resourceUrl().indexOf('?') >= 0 ? "&" : "?")
                    + "Policy=" + urlSafePolicy
                    + "&Signature=" + urlSafeSignature
                    + "&Key-Pair-Id=" + request.keyPairId();
-            return DefaultSignedUrl.builder().protocol(uri.getScheme()).domain(uri.getHost()).encodedPath(encodedPath).build();
+            return DefaultSignedUrl.builder().protocol(protocol).domain(domain).encodedPath(encodedPath)
+                                   .url(protocol + "://" + domain + encodedPath).build();
         } catch (InvalidKeyException e) {
             throw SdkClientException.create("Could not sign url", e);
         }
@@ -137,8 +188,28 @@ public final class CloudFrontUtilities {
      * "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-setting-signed-cookie-canned-policy.html"
      * >Setting signed cookies using a canned policy</a>.
      *
+     * <p>
+     *     This is a convenience which creates an instance of the {@link CannedSignerRequest.Builder} avoiding the need to
+     *     create one manually via {@link CannedSignerRequest#builder()}
+     * </p>
+     *
+     * @param request A {@link Consumer} that will call methods on {@link CannedSignerRequest.Builder} to create a request.
+     * @return The signed cookies with canned policy.
+     */
+    public CookiesForCannedPolicy getCookiesForCannedPolicy(Consumer<CannedSignerRequest.Builder> request) {
+        return getCookiesForCannedPolicy(CannedSignerRequest.builder().applyMutation(request).build());
+    }
+
+    /**
+     * Generate signed cookies that allows access to a specific distribution and
+     * resource path by applying access restrictions from a "canned" (simplified)
+     * policy document.
+     * For more information, see <a href=
+     * "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-setting-signed-cookie-canned-policy.html"
+     * >Setting signed cookies using a canned policy</a>.
+     *
      * @param request
-     *            A CloudFrontSignerRequest configured with the following values:
+     *            A {@link CannedSignerRequest} configured with the following values:
      *            resourceUrl, privateKey, keyPairId, expirationDate
      * @return The signed cookies with canned policy.
      */
@@ -150,9 +221,9 @@ public final class CloudFrontUtilities {
             String expiry = String.valueOf(request.expirationDate().getEpochSecond());
             return DefaultCookiesForCannedPolicy.builder()
                                                 .resourceUrl(request.resourceUrl())
-                                                .keyPairId(request.keyPairId())
-                                                .signature(urlSafeSignature)
-                                                .expires(expiry).build();
+                                                .keyPairIdHeaderValue(KEY_PAIR_ID_KEY + "=" + request.keyPairId())
+                                                .signatureHeaderValue(SIGNATURE_KEY + "=" + urlSafeSignature)
+                                                .expiresHeaderValue(EXPIRES_KEY + "=" + expiry).build();
         } catch (InvalidKeyException e) {
             throw SdkClientException.create("Could not sign canned policy cookie", e);
         }
@@ -164,9 +235,27 @@ public final class CloudFrontUtilities {
      * "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-setting-signed-cookie-custom-policy.html"
      * >Setting signed cookies using a custom policy</a>.
      *
+     * <p>
+     *     This is a convenience which creates an instance of the {@link CustomSignerRequest.Builder} avoiding the need to
+     *     create one manually via {@link CustomSignerRequest#builder()}
+     * </p>
+     *
+     * @param request A {@link Consumer} that will call methods on {@link CustomSignerRequest.Builder} to create a request.
+     * @return The signed cookies with custom policy.
+     */
+    public CookiesForCustomPolicy getCookiesForCustomPolicy(Consumer<CustomSignerRequest.Builder> request) {
+        return getCookiesForCustomPolicy(CustomSignerRequest.builder().applyMutation(request).build());
+    }
+
+    /**
+     * Returns signed cookies that provides tailored access to private content based on an access time window and an ip range.
+     * For more information, see <a href=
+     * "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-setting-signed-cookie-custom-policy.html"
+     * >Setting signed cookies using a custom policy</a>.
+     *
      * @param request
-     *            A CloudFrontSignerRequest configured with the following values:
-     *            resourceUrl, privateKey, keyPairId, expirationDate, activeDate, ipRange
+     *            A {@link CustomSignerRequest} configured with the following values:
+     *            resourceUrl, privateKey, keyPairId, expirationDate, activeDate (optional), ipRange (optional)
      * @return The signed cookies with custom policy.
      */
     public CookiesForCustomPolicy getCookiesForCustomPolicy(CustomSignerRequest request) {
@@ -177,10 +266,10 @@ public final class CloudFrontUtilities {
             String urlSafePolicy = SigningUtils.makeStringUrlSafe(policy);
             String urlSafeSignature = SigningUtils.makeBytesUrlSafe(signatureBytes);
             return DefaultCookiesForCustomPolicy.builder()
-                               .resourceUrl(request.resourceUrl())
-                               .keyPairId(request.keyPairId())
-                               .signature(urlSafeSignature)
-                               .policy(urlSafePolicy).build();
+                                                .resourceUrl(request.resourceUrl())
+                                                .keyPairIdHeaderValue(KEY_PAIR_ID_KEY + "=" + request.keyPairId())
+                                                .signatureHeaderValue(SIGNATURE_KEY + "=" + urlSafeSignature)
+                                                .policyHeaderValue(POLICY_KEY + "=" + urlSafePolicy).build();
         } catch (InvalidKeyException e) {
             throw SdkClientException.create("Could not sign custom policy cookie", e);
         }
