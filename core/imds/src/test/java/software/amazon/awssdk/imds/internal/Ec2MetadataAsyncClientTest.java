@@ -91,10 +91,10 @@ public class Ec2MetadataAsyncClientTest extends BaseEc2MetadataClientTest<Ec2Met
     public void get_multipleAsyncRequest_shouldCompleteSuccessfully() {
         int totalRequests = 128;
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH))
-                    .willReturn(aResponse().withFixedDelay(200).withBody("some-token")));
+                    .willReturn(aResponse().withFixedDelay(100).withBody("some-token")));
         for (int i = 0; i < totalRequests; i++) {
             ResponseDefinitionBuilder responseStub = aResponse()
-                .withFixedDelay(300).withStatus(200).withBody("response::" + i);
+                .withFixedDelay(200).withStatus(200).withBody("response::" + i);
             stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE + "/" + i)).willReturn(responseStub));
         }
         List<CompletableFuture<MetadataResponse>> requests = Stream.iterate(0, x -> x + 1)

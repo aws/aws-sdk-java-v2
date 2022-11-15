@@ -35,7 +35,7 @@ public interface Ec2MetadataClientBuilder<B, T> extends SdkBuilder<Ec2MetadataCl
      * <p>
      * If not specified, defaults to 3 retry attempts and a {@link BackoffStrategy#defaultStrategy()}  backoff strategy} that
      * uses {@link RetryMode#STANDARD}
-     * </p>
+     *
      * @param retryPolicy The retry policy which includes the number of retry attempts for any failed request.
      * @return a reference to this builder
      */
@@ -48,7 +48,7 @@ public interface Ec2MetadataClientBuilder<B, T> extends SdkBuilder<Ec2MetadataCl
      * <p>
      * If not specified, the IMDS client will attempt to automatically resolve the endpoint value
      * based on the logic of {@link Ec2MetadataEndpointProvider}.
-     * </p>
+     *
      * @param endpoint The endpoint of IMDS.
      * @return a reference to this builder
      */
@@ -74,7 +74,6 @@ public interface Ec2MetadataClientBuilder<B, T> extends SdkBuilder<Ec2MetadataCl
      * <p>
      * If not specified, the IMDS client will attempt to automatically resolve the endpoint mode value
      * based on the logic of {@link Ec2MetadataEndpointProvider}.
-     * </p>
      *
      * @param endpointMode The endpoint mode of IMDS. Supported values include IPv4 and IPv6.
      * @return a reference to this builder
@@ -88,7 +87,7 @@ public interface Ec2MetadataClientBuilder<B, T> extends SdkBuilder<Ec2MetadataCl
      * <p>
      * If not specified, defaults to {@link TokenCacheStrategy#NONE}, and a request to fetch a new token will be executed for each
      * metadata request.
-     * </p>
+     *
      * @param tokenCacheStrategy the strategy to use for token caching
      * @return a reference to this builder
      */

@@ -112,7 +112,7 @@ public class CachedTokenAsyncClientTest {
     public void get_multipleCallsSuccess_shouldReuseToken() throws Exception {
         stubFor(put(urlPathEqualTo("/latest/api/token")).willReturn(aResponse().withBody("some-token")));
         stubFor(get(urlPathEqualTo("/latest/meta-data/ami-id"))
-                    .willReturn(aResponse().withBody("{}").withFixedDelay(1000)));
+                    .willReturn(aResponse().withBody("{}").withFixedDelay(800)));
 
         int tokenTTlSeconds = 4;
         Ec2MetadataAsyncClient client = clientBuilder.tokenTtl(Duration.ofSeconds(tokenTTlSeconds)).build();
@@ -122,7 +122,7 @@ public class CachedTokenAsyncClientTest {
             MetadataResponse response = client.get("/latest/meta-data/ami-id").join();
             assertThat(response.asString()).isEqualTo("{}");
         }
-        verify(exactly(3), putRequestedFor(urlPathEqualTo("/latest/api/token"))
+        verify(exactly(2), putRequestedFor(urlPathEqualTo("/latest/api/token"))
             .withHeader("x-aws-ec2-metadata-token-ttl-seconds", equalTo(String.valueOf(tokenTTlSeconds))));
         verify(exactly(totalRequests), getRequestedFor(urlPathEqualTo("/latest/meta-data/ami-id"))
             .withHeader("x-aws-ec2-metadata-token", equalTo("some-token")));

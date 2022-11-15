@@ -40,7 +40,6 @@ import software.amazon.awssdk.imds.Ec2MetadataRetryPolicy;
 import software.amazon.awssdk.imds.EndpointMode;
 import software.amazon.awssdk.imds.MetadataResponse;
 import software.amazon.awssdk.imds.TokenCacheStrategy;
-import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.cache.CachedSupplier;
@@ -63,7 +62,7 @@ public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implem
     private DefaultEc2MetadataClient(Ec2MetadataBuilder builder) {
         super(builder);
         this.httpClient = Validate.getOrDefault(builder.httpClient,
-                                                () -> new DefaultSdkHttpClientBuilder().buildWithDefaults(AttributeMap.empty()));
+                                                () -> new DefaultSdkHttpClientBuilder().buildWithDefaults(IMDS_HTTP_DEFAULTS));
         this.tokenCache = createCachedTokenSupplier(Validate.getOrDefault(builder.tokenCacheStrategy,
                                                                           () -> TokenCacheStrategy.NONE));
         this.httpClientIsInternal = builder.httpClient == null;

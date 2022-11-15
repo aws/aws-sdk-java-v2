@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.imds.internal;
 
+import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
+
 import java.net.URI;
 import java.time.Duration;
 import java.time.Instant;
@@ -50,7 +52,6 @@ import software.amazon.awssdk.imds.Ec2MetadataRetryPolicy;
 import software.amazon.awssdk.imds.EndpointMode;
 import software.amazon.awssdk.imds.MetadataResponse;
 import software.amazon.awssdk.imds.TokenCacheStrategy;
-import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
@@ -78,7 +79,7 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
         super(builder);
         this.httpClient = Validate.getOrDefault(
             builder.httpClient,
-            () -> new DefaultSdkAsyncHttpClientBuilder().buildWithDefaults(AttributeMap.empty()));
+            () -> new DefaultSdkAsyncHttpClientBuilder().buildWithDefaults(IMDS_HTTP_DEFAULTS));
         this.asyncRetryScheduler = Validate.getOrDefault(
             builder.scheduledExecutorService,
             () -> {
@@ -180,13 +181,14 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
     @Override
     public void close() {
         if (httpClientIsInternal) {
-            httpClient.close();
+            runAndLogError(log.logger(), "Error while closing IMDS Http Client", httpClient::close);
         }
         if (retryExecutorIsInternal) {
-            asyncRetryScheduler.shutdown();
+            runAndLogError(log.logger(), "Error while closing IMDS retry executor", asyncRetryScheduler::shutdown);
         }
         if (tokenCache instanceof SdkAutoCloseable) {
-            ((SdkAutoCloseable) tokenCache).close();
+            runAndLogError(log.logger(), "Error while closing IMDS Http Client",
+                           () -> ((SdkAutoCloseable) tokenCache).close());
         }
     }
 

@@ -29,5 +29,5 @@ public enum TokenCacheStrategy {
      * Cache the token until it expires. When a request for metadata is performed while the token is expired, the Client will
      * block every request and perform a token call before resuming execution of the metadata requests.
      */
-    BLOCKING,
+    BLOCKING
 }

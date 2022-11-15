@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.imds.internal;
 
-import static software.amazon.awssdk.imds.internal.Ec2MetadataEndpointProvider.DEFAULT_ENDPOINT_PROVIDER;
-
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URI;
@@ -26,9 +24,11 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
 import software.amazon.awssdk.http.AbortableInputStream;
+import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.imds.Ec2MetadataClientBuilder;
 import software.amazon.awssdk.imds.Ec2MetadataRetryPolicy;
 import software.amazon.awssdk.imds.EndpointMode;
+import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
@@ -37,6 +37,12 @@ import software.amazon.awssdk.utils.Validate;
 public abstract class BaseEc2MetadataClient {
 
     protected static final Duration DEFAULT_TOKEN_TTL = Duration.of(21_600, ChronoUnit.SECONDS);
+    protected static final AttributeMap IMDS_HTTP_DEFAULTS =
+        AttributeMap.builder()
+                    .put(SdkHttpConfigurationOption.CONNECTION_TIMEOUT, Duration.ofSeconds(1))
+                    .put(SdkHttpConfigurationOption.READ_TIMEOUT, Duration.ofSeconds(1))
+                    .build();
+
     private static final Logger log = Logger.loggerFor(BaseEc2MetadataClient.class);
 
     protected final Ec2MetadataRetryPolicy retryPolicy;
@@ -60,10 +66,10 @@ public abstract class BaseEc2MetadataClient {
             return builderEndpoint;
         }
         if (builderEndpointMode != null) {
-            return URI.create(DEFAULT_ENDPOINT_PROVIDER.resolveEndpoint(builderEndpointMode));
+            return URI.create(Ec2MetadataEndpointProvider.instance().resolveEndpoint(builderEndpointMode));
         }
-        EndpointMode resolvedEndpointMode = DEFAULT_ENDPOINT_PROVIDER.resolveEndpointMode();
-        return URI.create(DEFAULT_ENDPOINT_PROVIDER.resolveEndpoint(resolvedEndpointMode));
+        EndpointMode resolvedEndpointMode = Ec2MetadataEndpointProvider.instance().resolveEndpointMode();
+        return URI.create(Ec2MetadataEndpointProvider.instance().resolveEndpoint(resolvedEndpointMode));
     }
 
     protected static String uncheckedInputStreamToUtf8(AbortableInputStream inputStream) {
