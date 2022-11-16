@@ -17,6 +17,9 @@ package software.amazon.awssdk.core.traits;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
+/**
+ * Trait that indicates a value must be provided for a member.
+ */
 @SdkProtectedApi
 public final class RequiredTrait implements Trait {
 

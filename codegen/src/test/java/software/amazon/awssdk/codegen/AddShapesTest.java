@@ -13,58 +13,27 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.codegen.poet.model;
+package software.amazon.awssdk.codegen;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static software.amazon.awssdk.codegen.poet.PoetMatchers.generatesTo;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.jr.ob.JSON;
 import com.fasterxml.jackson.jr.stree.JacksonJrsTreeCodec;
-import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.regex.Pattern;
-import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.codegen.C2jModels;
-import software.amazon.awssdk.codegen.IntermediateModelBuilder;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
+import software.amazon.awssdk.codegen.model.service.Location;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
-import software.amazon.awssdk.codegen.poet.PoetUtils;
-import software.amazon.awssdk.codegen.utils.ModelLoaderUtils;
 
-public class AwsServiceBaseRequestSpecTest {
-    private static final Pattern CONSECUTIVE_LINE_BREAKS = Pattern.compile("\n\n");
-    private static IntermediateModel intermediateModel;
-
-    @BeforeAll
-    public static void setUp() throws IOException {
-        File serviceModelFile = new File(AwsModelSpecTest.class.getResource("service-2.json").getFile());
-        File customizationConfigFile = new File(AwsModelSpecTest.class
-                .getResource("customization.config")
-                .getFile());
-
-        intermediateModel = new IntermediateModelBuilder(
-                C2jModels.builder()
-                        .serviceModel(ModelLoaderUtils.loadModel(ServiceModel.class, serviceModelFile))
-                        .customizationConfig(ModelLoaderUtils.loadModel(CustomizationConfig.class, customizationConfigFile))
-                        .build())
-                .build();
-    }
+class AddShapesTest {
 
     @Test
-    void testGeneration() {
-        AwsServiceBaseRequestSpec spec = new AwsServiceBaseRequestSpec(intermediateModel);
-        assertThat(spec, generatesTo(spec.className().simpleName().toLowerCase() + ".java"));
-    }
-
-    @Test
-    void buildJavaFile_memberRequiredByShape_addsTraitToGeneratedCode() {
+    void generateShapeModel_memberRequiredByShape_setsMemberModelAsRequired() {
         String requestShapeName = "AbortMultipartUploadRequest";
+        String queryParamName = "UploadId";
 
         ServiceModel serviceModel = serviceModel(true);
         C2jModels c2jModels = C2jModels.builder()
@@ -74,17 +43,17 @@ public class AwsServiceBaseRequestSpecTest {
         IntermediateModel testModel = new IntermediateModelBuilder(c2jModels).build();
 
         ShapeModel requestShapeModel = testModel.getShapes().get(requestShapeName);
+        MemberModel uploadIdMemberModel = requestShapeModel.findMemberModelByC2jName(queryParamName);
 
-        AwsServiceModel spec = new AwsServiceModel(testModel, requestShapeModel);
-        String codeString = PoetUtils.buildJavaFile(spec).toString();
-
-        String uploadIdDeclarationString = findUploadIdDeclarationString(codeString).get();
-        Assertions.assertThat(uploadIdDeclarationString).contains("RequiredTrait.create()");
+        assertThat(requestShapeModel.getRequired()).contains(queryParamName);
+        assertThat(uploadIdMemberModel.getHttp().getLocation()).isEqualTo(Location.QUERY_STRING);
+        assertThat(uploadIdMemberModel.isRequired()).isTrue();
     }
 
     @Test
-    void buildJavaFile_memberNotRequiredByShape_doesNotAddTraitToGeneratedCode() {
+    void generateShapeModel_memberNotRequiredByShape_doesNotSetMemberModelAsRequired() {
         String requestShapeName = "AbortMultipartUploadRequest";
+        String queryParamName = "UploadId";
 
         ServiceModel serviceModel = serviceModel(false);
         C2jModels c2jModels = C2jModels.builder()
@@ -94,19 +63,11 @@ public class AwsServiceBaseRequestSpecTest {
         IntermediateModel testModel = new IntermediateModelBuilder(c2jModels).build();
 
         ShapeModel requestShapeModel = testModel.getShapes().get(requestShapeName);
+        MemberModel uploadIdMemberModel = requestShapeModel.findMemberModelByC2jName(queryParamName);
 
-        AwsServiceModel spec = new AwsServiceModel(testModel, requestShapeModel);
-        String codeString = PoetUtils.buildJavaFile(spec).toString();
-
-        String uploadIdDeclarationString = findUploadIdDeclarationString(codeString).get();
-        Assertions.assertThat(uploadIdDeclarationString).doesNotContain("RequiredTrait.create()");
-    }
-
-    private static Optional<String> findUploadIdDeclarationString(String javaFileString) {
-        return Arrays.stream(CONSECUTIVE_LINE_BREAKS.split(javaFileString))
-                     .filter(block -> block.contains("UploadId"))
-                     .filter(block -> block.contains("traits"))
-                     .findFirst();
+        assertThat(requestShapeModel.getRequired()).doesNotContain(queryParamName);
+        assertThat(uploadIdMemberModel.getHttp().getLocation()).isEqualTo(Location.QUERY_STRING);
+        assertThat(uploadIdMemberModel.isRequired()).isFalse();
     }
 
     private static ServiceModel serviceModel(boolean requireUploadId) {
