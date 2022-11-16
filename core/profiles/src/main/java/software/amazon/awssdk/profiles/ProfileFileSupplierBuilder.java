@@ -24,7 +24,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.profiles.internal.ProfileFileRefresher;
 
 @SdkInternalApi
-final class ProfileFileSupplierBuilder implements ProfileFileSupplier.Builder {
+final class ProfileFileSupplierBuilder {
 
     private boolean reloadingSupplier = false;
     private Supplier<ProfileFile> profileFile;
@@ -32,8 +32,7 @@ final class ProfileFileSupplierBuilder implements ProfileFileSupplier.Builder {
     private Clock clock;
     private Consumer<ProfileFile> onProfileFileLoad;
 
-    @Override
-    public ProfileFileSupplier.Builder reloadWhenModified(Path path) {
+    public ProfileFileSupplierBuilder reloadWhenModified(Path path) {
         ProfileFile.Builder builder = ProfileFile.builder()
                                                  .content(path)
                                                  .type(ProfileFile.Type.CREDENTIALS);
@@ -43,34 +42,30 @@ final class ProfileFileSupplierBuilder implements ProfileFileSupplier.Builder {
         return this;
     }
 
-    @Override
-    public ProfileFileSupplier.Builder fixedProfileFile(Path path) {
+    public ProfileFileSupplierBuilder fixedProfileFile(Path path) {
         return fixedProfileFile(ProfileFile.builder()
                                            .content(path)
                                            .type(ProfileFile.Type.CREDENTIALS)
                                            .build());
     }
 
-    @Override
-    public ProfileFileSupplier.Builder fixedProfileFile(ProfileFile profileFile) {
+    public ProfileFileSupplierBuilder fixedProfileFile(ProfileFile profileFile) {
         this.profileFile = () -> profileFile;
         this.profileFilePath = null;
         this.reloadingSupplier = false;
         return this;
     }
 
-    @Override
-    public ProfileFileSupplier.Builder onProfileFileLoad(Consumer<ProfileFile> action) {
+    public ProfileFileSupplierBuilder onProfileFileLoad(Consumer<ProfileFile> action) {
         this.onProfileFileLoad = action;
         return this;
     }
 
-    public ProfileFileSupplier.Builder clock(Clock clock) {
+    public ProfileFileSupplierBuilder clock(Clock clock) {
         this.clock = clock;
         return this;
     }
 
-    @Override
     public ProfileFileSupplier build() {
         return fromBuilder(this);
     }
@@ -109,6 +104,6 @@ final class ProfileFileSupplierBuilder implements ProfileFileSupplier.Builder {
             };
         }
 
-        return () -> builder.profileFile.get();
+        return builder.profileFile::get;
     }
 }

@@ -348,11 +348,11 @@ class ProfileFileSupplierTest {
         }
     }
 
-    private ProfileFileSupplier.Builder builder() {
+    private ProfileFileSupplierBuilder builder() {
         return new ProfileFileSupplierBuilder();
     }
 
-    private ProfileFileSupplier.Builder builderWithClock(Clock clock) {
+    private ProfileFileSupplierBuilder builderWithClock(Clock clock) {
         return new ProfileFileSupplierBuilder().clock(clock);
     }
 

@@ -17,7 +17,6 @@ package software.amazon.awssdk.profiles;
 
 import java.nio.file.Path;
 import java.util.Objects;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.profiles.internal.ProfileFileRefresher;
@@ -104,56 +103,6 @@ public interface ProfileFileSupplier extends Supplier<ProfileFile>, SdkAutoClose
      */
     static ProfileFileSupplier wrapIntoNullableSupplier(ProfileFile profileFile) {
         return Objects.nonNull(profileFile) ? () -> profileFile : null;
-    }
-
-    /**
-     * A builder for {@link ProfileFileSupplier}.
-     */
-    interface Builder {
-
-        /**
-         * Sets a supplier for reloading the contents of a file.
-         *
-         * <p>Calling {@link #fixedProfileFile(Path)} or {@link #fixedProfileFile(ProfileFile)} will remove the reloading
-         * functionality</p>
-         *
-         * @param path Path to the file to read from.
-         * @return This builder for method chaining.
-         */
-        Builder reloadWhenModified(Path path);
-
-        /**
-         * Sets a supplier for loading the contents of a file once.
-         *
-         * <p>Calling {@link #reloadWhenModified(Path)} will remove the fixed functionality</p>
-         *
-         * @param path Path to the file to read from.
-         * @return This builder for method chaining.
-         * @see #fixedProfileFile(ProfileFile)
-         */
-        Builder fixedProfileFile(Path path);
-
-        /**
-         * Sets a supplier for returning a specific profile instance.
-         *
-         * <p>Calling {@link #reloadWhenModified(Path)} will remove the fixed functionality</p>
-         *
-         * @param profileFile Profile object to supply.
-         * @return This builder for method chaining.
-         * @see #fixedProfileFile(Path)
-         */
-        Builder fixedProfileFile(ProfileFile profileFile);
-
-        /**
-         * Sets an action to execute whenever a new profile object is supplied. This action may be called zero, one, or many
-         * times depending on the {@link ProfileFileSupplier} implementation.
-         *
-         * @param action The block to execute.
-         * @return This builder for method chaining.
-         */
-        Builder onProfileFileLoad(Consumer<ProfileFile> action);
-
-        ProfileFileSupplier build();
     }
 
 }
