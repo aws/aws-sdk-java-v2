@@ -24,13 +24,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.attribute.FileTime;
-import java.time.Clock;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.time.temporal.TemporalAmount;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -215,9 +208,7 @@ public class ProfileCredentialsProviderTest {
         ProfileCredentialsProvider provider = ProfileCredentialsProvider.create();
         String toString = provider.toString();
 
-        assertThat(toString).satisfies(s -> {
-            assertThat(s).contains("profileName=default");
-        });
+        assertThat(toString).satisfies(s -> assertThat(s).contains("profileName=default"));
     }
 
     @Test
@@ -225,9 +216,7 @@ public class ProfileCredentialsProviderTest {
         ProfileCredentialsProvider provider = ProfileCredentialsProvider.create("override");
         String toString = provider.toString();
 
-        assertThat(toString).satisfies(s -> {
-            assertThat(s).contains("profileName=override");
-        });
+        assertThat(toString).satisfies(s -> assertThat(s).contains("profileName=override"));
     }
 
     @Test
@@ -303,42 +292,4 @@ public class ProfileCredentialsProviderTest {
         return generateTestFile(contents, "credentials.txt");
     }
 
-    private void updateModificationTime(Path path, Instant instant) {
-        try {
-            Files.setLastModifiedTime(path, FileTime.from(instant));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static class AdjustableClock extends Clock {
-        private Instant time;
-
-        AdjustableClock() {
-            this.time = Instant.now();
-        }
-
-        @Override
-        public ZoneId getZone() {
-            return ZoneOffset.UTC;
-        }
-
-        @Override
-        public Clock withZone(ZoneId zone) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public Instant instant() {
-            return time;
-        }
-
-        public void tickForward(TemporalAmount amount) {
-            time = time.plus(amount);
-        }
-
-        public void tickBackward(TemporalAmount amount) {
-            time = time.minus(amount);
-        }
-    }
 }
