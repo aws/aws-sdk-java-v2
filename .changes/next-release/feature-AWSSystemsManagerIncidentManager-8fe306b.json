@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Systems Manager Incident Manager",
+    "contributor": "",
+    "description": "Add support for PagerDuty integrations on ResponsePlan, IncidentRecord, and RelatedItem APIs"
+}
