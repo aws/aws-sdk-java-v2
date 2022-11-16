@@ -25,7 +25,6 @@ import java.util.function.Supplier;
 import java.util.stream.IntStream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
@@ -136,7 +135,7 @@ public final class CopyObjectHelper {
                                                                                     uploadId,
                                                                                     completedParts,
                                                                                     optimalPartSize);
-        CompletableFutureUtils.allOfCancelForwarded(futures.toArray(new CompletableFuture[0]))
+        CompletableFutureUtils.allOfExceptionForwarded(futures.toArray(new CompletableFuture[0]))
                               .thenCompose(ignore -> {
                                   log.debug(() -> String.format("Sending completeMultipartUploadRequest, uploadId: %s",
                                                                 uploadId));
@@ -155,16 +154,16 @@ public final class CopyObjectHelper {
                                                                     .build();
 
                                   return s3AsyncClient.completeMultipartUpload(completeMultipartUploadRequest);
-                              }).whenComplete((completeMultipartUploadResponse, throwable) -> {
+                              }).handle((completeMultipartUploadResponse, throwable) -> {
                                   if (throwable != null) {
                                       cleanUpParts(copyObjectRequest, uploadId);
-
                                       handleException(returnFuture, () -> "Failed to send multipart copy requests.",
                                                       throwable);
-                                  } else {
-                                      returnFuture.complete(CopyRequestConversionUtils.toCopyObjectResponse(
-                                          completeMultipartUploadResponse));
+                                      return null;
                                   }
+
+                                  return returnFuture.complete(CopyRequestConversionUtils.toCopyObjectResponse(
+                                      completeMultipartUploadResponse));
                               }).exceptionally(throwable -> {
                                   handleException(returnFuture, () -> "Unexpected exception occurred", throwable);
                                   return null;
@@ -192,11 +191,10 @@ public final class CopyObjectHelper {
                                         Throwable throwable) {
         Throwable cause = throwable instanceof CompletionException ? throwable.getCause() : throwable;
 
-        if (cause instanceof SdkException || cause instanceof Error) {
+        if (cause instanceof Error) {
             returnFuture.completeExceptionally(cause);
         } else {
-            SdkClientException exception = SdkClientException.create(message.get(),
-                                                                     cause);
+            SdkClientException exception = SdkClientException.create(message.get(), cause);
             returnFuture.completeExceptionally(exception);
         }
     }
