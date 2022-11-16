@@ -52,18 +52,15 @@ public final class CopyRequestConversionUtils {
     }
 
     public static CompletedPart toCompletedPart(CopyPartResult copyPartResult, int partNumber) {
-        CompletedPart.Builder builder = CompletedPart.builder()
-                                                     .partNumber(partNumber);
-        if (copyPartResult != null) {
-            builder.eTag(copyPartResult.eTag())
-                   .checksumCRC32C(copyPartResult.checksumCRC32C())
-                   .checksumCRC32(copyPartResult.checksumCRC32())
-                   .checksumSHA1(copyPartResult.checksumSHA1())
-                   .checksumSHA256(copyPartResult.checksumSHA256())
-                   .eTag(copyPartResult.eTag());
-        }
-
-        return builder.build();
+        return CompletedPart.builder()
+                            .partNumber(partNumber)
+                            .eTag(copyPartResult.eTag())
+                            .checksumCRC32C(copyPartResult.checksumCRC32C())
+                            .checksumCRC32(copyPartResult.checksumCRC32())
+                            .checksumSHA1(copyPartResult.checksumSHA1())
+                            .checksumSHA256(copyPartResult.checksumSHA256())
+                            .eTag(copyPartResult.eTag())
+                            .build();
     }
 
     public static CreateMultipartUploadRequest toCreateMultipartUploadRequest(CopyObjectRequest copyObjectRequest) {

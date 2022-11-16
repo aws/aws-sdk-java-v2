@@ -86,7 +86,7 @@ public abstract class BaseTransferManagerBenchmark implements TransferManagerBen
     @Override
     public void run() {
         try {
-            //warmUp();
+            warmUp();
             doRunBenchmark();
         } catch (Exception e) {
             logger.error(() -> "Exception occurred", e);
@@ -129,7 +129,7 @@ public abstract class BaseTransferManagerBenchmark implements TransferManagerBen
         for (int i = 0; i < WARMUP_ITERATIONS; i++) {
             warmUpUploadBatch();
             warmUpDownloadBatch();
-            //warmUpCopyBatch();
+            warmUpCopyBatch();
 
             Thread.sleep(500);
         }

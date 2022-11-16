@@ -55,7 +55,7 @@ public class TransferManagerCopyBenchmark extends BaseTransferManagerBenchmark {
             copyOnce(metrics);
         }
         if (printoutResult) {
-            printOutResult(metrics, "V1 copy", contentLength);
+            printOutResult(metrics, "V2 copy", contentLength);
         }
     }
 
