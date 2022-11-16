@@ -27,13 +27,15 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3control.S3ControlClient;
 import software.amazon.awssdk.services.s3control.S3ControlClientBuilder;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 public class S3OutpostAccessPointArnTest extends S3ControlWireMockTestBase {
     private S3ControlClient s3;
-    private static final String EXPECTED_URL = "/v20180820/accesspoint/myaccesspoint";
+    private static final String URL_PREFIX = "/v20180820/accesspoint/";
 
     @Rule
     public ExpectedException exception = ExpectedException.none();
@@ -44,38 +46,13 @@ public class S3OutpostAccessPointArnTest extends S3ControlWireMockTestBase {
     }
 
     @Test
-    public void fipsEnabledOnClientSide_shouldThrowException() {
-        S3ControlClient s3ControlForTest =
-            buildClientCustom().region(Region.of("us-gov-east-1")).serviceConfiguration(b -> b.fipsModeEnabled(true)).build();
-
-        String outpostArn = "arn:aws-us-gov:s3-outposts:us-gov-east-1:123456789012:outpost:op-01234567890123456:accesspoint"
-                            + ":myaccesspoint";
-
-        exception.expect(IllegalArgumentException.class);
-        exception.expectMessage("FIPS");
-        s3ControlForTest.getAccessPoint(b -> b.name(outpostArn));
-    }
-
-    @Test
-    public void regionWithFipsProvided_shouldThrowException() {
-        S3ControlClient s3ControlForTest = buildClientCustom().region(Region.of("fips-us-gov-east-1")).build();
-
-        String outpostArn = "arn:aws-us-gov:s3-outposts:us-gov-east-1:123456789012:outpost:op-01234567890123456:accesspoint"
-                            + ":myaccesspoint";
-
-        exception.expect(IllegalArgumentException.class);
-        exception.expectMessage("FIPS");
-        s3ControlForTest.getAccessPoint(b -> b.name(outpostArn));
-    }
-
-    @Test
     public void dualstackEnabled_shouldThrowException() {
         S3ControlClient s3ControlForTest = buildClientCustom().serviceConfiguration(b -> b.dualstackEnabled(true)).build();
 
         String outpostArn = "arn:aws:s3-outposts:us-west-2:123456789012:outpost:op-01234567890123456:accesspoint:myaccesspoint";
 
-        exception.expect(IllegalArgumentException.class);
-        exception.expectMessage("Dual stack");
+        exception.expect(SdkClientException.class);
+        exception.expectMessage("Outpost Access Points do not support dual-stack");
         s3ControlForTest.getAccessPoint(b -> b.name(outpostArn));
     }
 
@@ -85,8 +62,8 @@ public class S3OutpostAccessPointArnTest extends S3ControlWireMockTestBase {
 
         String outpostArn = "arn:aws:s3-outposts:us-west-2:123456789012:outpost:op-01234567890123456:accesspoint:myaccesspoint";
 
-        exception.expect(IllegalArgumentException.class);
-        exception.expectMessage("Dual stack");
+        exception.expect(SdkClientException.class);
+        exception.expectMessage("Outpost Access Points do not support dual-stack");
         s3ControlForTest.getAccessPoint(b -> b.name(outpostArn));
     }
 
@@ -96,8 +73,8 @@ public class S3OutpostAccessPointArnTest extends S3ControlWireMockTestBase {
 
         String outpostArn = "arn:aws:s3-outposts:us-west-2:123456789012:outpost";
 
-        exception.expect(IllegalArgumentException.class);
-        exception.expectMessage("Unknown ARN type");
+        exception.expect(SdkClientException.class);
+        exception.expectMessage("Invalid ARN: The Outpost Id was not set");
         s3ControlForTest.getAccessPoint(b -> b.name(outpostArn));
     }
 
@@ -107,8 +84,8 @@ public class S3OutpostAccessPointArnTest extends S3ControlWireMockTestBase {
 
         String outpostArn = "arn:aws:s3-outposts:us-west-2:123456789012:outpost:op-01234567890123456";
 
-        exception.expect(IllegalArgumentException.class);
-        exception.expectMessage("Invalid format");
+        exception.expect(SdkClientException.class);
+        exception.expectMessage("Invalid ARN: Expected a 4-component resource");
         s3ControlForTest.getAccessPoint(b -> b.name(outpostArn));
     }
 
@@ -118,8 +95,8 @@ public class S3OutpostAccessPointArnTest extends S3ControlWireMockTestBase {
 
         String outpostArn = "arn:aws:s3-outposts:us-west-2:123456789012:outpost:myaccesspoint";
 
-        exception.expect(IllegalArgumentException.class);
-        exception.expectMessage("Invalid format");
+        exception.expect(SdkClientException.class);
+        exception.expectMessage("Expected a 4-component resource");
         s3ControlForTest.getAccessPoint(b -> b.name(outpostArn));
     }
 
@@ -128,8 +105,8 @@ public class S3OutpostAccessPointArnTest extends S3ControlWireMockTestBase {
         S3ControlClient s3ControlForTest = initializedBuilder().region(Region.of("us-west-2")).build();
         String outpostArn = "arn:aws:s3-outposts:us-east-1:123456789012:outpost:op-01234567890123456:accesspoint:myaccesspoint";
 
-        exception.expect(IllegalArgumentException.class);
-        exception.expectMessage("does not match the region the client was configured with");
+        exception.expect(SdkClientException.class);
+        exception.expectMessage("Invalid configuration: region from ARN `us-east-1` does not match client region `us-west-2` and UseArnRegion is `false`");
         s3ControlForTest.getAccessPoint(b -> b.name(outpostArn));
     }
 
@@ -138,8 +115,8 @@ public class S3OutpostAccessPointArnTest extends S3ControlWireMockTestBase {
         S3ControlClient s3Control = initializedBuilderForAccessPoint().region(Region.of("us-future-1")).build();
 
         String outpostArn = "arn:aws:s3-outposts:us-future-1:123456789012:outpost:op-01234567890123456:accesspoint:myaccesspoint";
-        exception.expect(IllegalArgumentException.class);
-        exception.expectMessage("accountId");
+        exception.expect(SdkClientException.class);
+        exception.expectMessage("Invalid ARN: the accountId specified in the ARN (`123456789012`) does not match the parameter (`1234`)");
 
         s3Control.getAccessPoint(b -> b.name(outpostArn).accountId("1234"));
     }
@@ -148,11 +125,14 @@ public class S3OutpostAccessPointArnTest extends S3ControlWireMockTestBase {
     public void nonArn_shouldNotRedirect() {
         S3ControlClient s3Control = initializedBuilderForAccessPoint().region(Region.of("us-west-2")).build();
         String name = "myaccesspoint";
-        stubResponse();
+
+        String expectedUrl = getUrl(name);
+
+        stubResponse(expectedUrl);
         s3Control.getAccessPoint(b -> b.name(name).accountId("123456789012"));
         String expectedHost = "123456789012.s3-control.us-west-2.amazonaws.com";
 
-        verify(getRequestedFor(urlEqualTo(expectedUrl()))
+        verify(getRequestedFor(urlEqualTo(expectedUrl))
                    .withHeader("authorization", containing("us-west-2/s3/aws4_request"))
                    .withHeader("x-amz-account-id", equalTo("123456789012")));
         assertThat(getRecordedEndpoints().size(), is(1));
@@ -166,10 +146,13 @@ public class S3OutpostAccessPointArnTest extends S3ControlWireMockTestBase {
         String outpostArn = "arn:aws:s3-outposts:us-west-2:123456789012:outpost:op-01234567890123456:accesspoint:myaccesspoint";
         String expectedHost = "s3-outposts.us-west-2.amazonaws.com";
 
-        stubResponse();
+        String expectedUrl = getUrl(outpostArn);
+
+        stubResponse(expectedUrl);
+
         s3Control.getAccessPoint(b -> b.name(outpostArn).accountId("123456789012"));
 
-        verifyOutpostRequest("us-west-2", expectedHost);
+        verifyOutpostRequest("us-west-2", expectedUrl, expectedHost);
     }
 
     @Test
@@ -180,11 +163,13 @@ public class S3OutpostAccessPointArnTest extends S3ControlWireMockTestBase {
                             + ":myaccesspoint";
         String expectedHost = "s3-outposts.us-gov-east-1.amazonaws.com";
 
-        stubResponse();
+        String expectedUrl = getUrl(outpostArn);
+
+        stubResponse(expectedUrl);
 
         s3Control.getAccessPoint(b -> b.name(outpostArn));
 
-        verifyOutpostRequest("us-gov-east-1", expectedHost);
+        verifyOutpostRequest("us-gov-east-1", expectedUrl, expectedHost);
     }
 
     @Test
@@ -195,11 +180,13 @@ public class S3OutpostAccessPointArnTest extends S3ControlWireMockTestBase {
         String outpostArn = "arn:aws:s3-outposts:us-future-1:123456789012:outpost:op-01234567890123456:accesspoint:myaccesspoint";
         String expectedHost = "s3-outposts.us-future-1.amazonaws.com";
 
-        stubResponse();
+        String expectedUrl = getUrl(outpostArn);
+
+        stubResponse(expectedUrl);
 
         s3Control.getAccessPoint(b -> b.name(outpostArn));
 
-        verifyOutpostRequest("us-future-1", expectedHost);
+        verifyOutpostRequest("us-future-1", expectedUrl, expectedHost);
     }
 
     @Test
@@ -210,41 +197,32 @@ public class S3OutpostAccessPointArnTest extends S3ControlWireMockTestBase {
 
         String expectedHost = "s3-outposts.cn-future-1.amazonaws.com.cn";
 
-        stubResponse();
+        String expectedUrl = getUrl(outpostArn);
+
+        stubResponse(expectedUrl);
 
         s3Control.getAccessPoint(b -> b.name(outpostArn));
-        verifyOutpostRequest("cn-future-1", expectedHost);
+        verifyOutpostRequest("cn-future-1", expectedUrl, expectedHost);
     }
 
     @Test
     public void outpostArnDifferentRegion_useArnRegionSet_shouldUseRegionFromArn() {
         String outpostArn = "arn:aws:s3-outposts:us-east-1:123456789012:outpost:op-01234567890123456:accesspoint:myaccesspoint";
         String expectedHost = "s3-outposts.us-east-1.amazonaws.com";
-        stubResponse();
+
+        String expectedUrl = getUrl(outpostArn);
+        stubResponse(expectedUrl);
         S3ControlClient s3WithUseArnRegion =
             initializedBuilderForAccessPoint().region(Region.of("us-west-2")).serviceConfiguration(b -> b.useArnRegionEnabled(true)).build();
         s3WithUseArnRegion.getAccessPoint(b -> b.name(outpostArn));
-        verifyOutpostRequest("us-east-1", expectedHost);
-    }
-
-    @Test
-    public void clientFipsRegion_outpostArnDifferentRegion_useArnRegionTrue_throwsIllegalArgumentException() {
-
-        String outpostArn = "arn:aws-us-gov:s3-outposts:us-gov-east-1:123456789012:outpost:op-01234567890123456:accesspoint"
-                            + ":myaccesspoint";
-        S3ControlClient s3WithUseArnRegion = initializedBuilderForAccessPoint().region(Region.of("fips-us-gov-east-1"))
-                                                                               .serviceConfiguration(b -> b.useArnRegionEnabled(true)).build();
-        exception.expect(IllegalArgumentException.class);
-        exception.expectMessage("FIPS");
-        s3WithUseArnRegion.getAccessPoint(b -> b.name(outpostArn));
+        verifyOutpostRequest("us-east-1", expectedUrl, expectedHost);
     }
 
     private S3ControlClientBuilder initializedBuilderForAccessPoint() {
         return initializedBuilder();
     }
 
-    @Override
-    String expectedUrl() {
-        return EXPECTED_URL;
+    private String getUrl(String arn) {
+        return URL_PREFIX + SdkHttpUtils.urlEncode(arn);
     }
 }

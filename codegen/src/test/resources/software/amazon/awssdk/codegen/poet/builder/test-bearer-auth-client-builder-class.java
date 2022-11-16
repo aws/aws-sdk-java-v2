@@ -1,5 +1,6 @@
 package software.amazon.awssdk.services.json;
 
+import java.util.ArrayList;
 import java.util.List;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -41,9 +42,13 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
 
     @Override
     protected final SdkClientConfiguration finalizeServiceConfiguration(SdkClientConfiguration config) {
+        List<ExecutionInterceptor> endpointInterceptors = new ArrayList<>();
         ClasspathInterceptorChainFactory interceptorFactory = new ClasspathInterceptorChainFactory();
         List<ExecutionInterceptor> interceptors = interceptorFactory
             .getInterceptors("software/amazon/awssdk/services/json/execution.interceptors");
+        List<ExecutionInterceptor> additionalInterceptors = new ArrayList<>();
+        interceptors = CollectionUtils.mergeLists(endpointInterceptors, interceptors);
+        interceptors = CollectionUtils.mergeLists(interceptors, additionalInterceptors);
         interceptors = CollectionUtils.mergeLists(interceptors, config.option(SdkClientOption.EXECUTION_INTERCEPTORS));
         return config.toBuilder().option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors).build();
     }

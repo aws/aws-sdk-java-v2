@@ -1,11 +1,2 @@
 [
-  {
-    "name": "software.amazon.awssdk.services.eventbridge.internal.MultiRegionEndpointInterceptor",
-    "methods": [
-      {
-        "name": "<init>",
-        "parameterTypes": []
-      }
-    ]
-  }
 ]

@@ -43,14 +43,14 @@ public final class WaitersRuntimeGeneratorTask extends BaseGeneratorTasks {
 
     @Override
     protected List<GeneratorTask> createTasks() throws Exception {
-        String codeContents = "" +
+        String codeContents =
                 "package " + waitersInternalPackageName + ";\n" +
                 "\n"
                 + runtimeClassCode;
 
         String fileName = RUNTIME_CLASS_NAME + ".java";
         return Collections.singletonList(new SimpleGeneratorTask(waitersInternalClassDir, fileName, fileHeader,
-                codeContents));
+                                                                 () -> codeContents));
     }
 
     private static String loadWaitersRuntimeCode() {

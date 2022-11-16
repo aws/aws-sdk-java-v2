@@ -294,7 +294,7 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
             defaultsMode = autoDefaultsModeDiscovery.discover(config.option(AwsClientOption.AWS_REGION));
             DefaultsMode finalDefaultsMode = defaultsMode;
             log.debug(() -> String.format("Resolved %s client's AUTO configuration mode to %s", serviceName(),
-                      finalDefaultsMode));
+                                          finalDefaultsMode));
         }
 
         return defaultsMode;
@@ -389,7 +389,9 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
         }
 
         clientConfiguration.option(AwsClientOption.AWS_REGION, regionToSet);
-        clientConfiguration.option(AwsClientOption.FIPS_ENDPOINT_ENABLED, fipsEnabled);
+        if (fipsEnabled != null) {
+            clientConfiguration.option(AwsClientOption.FIPS_ENDPOINT_ENABLED, fipsEnabled);
+        }
         return thisBuilder();
     }
 

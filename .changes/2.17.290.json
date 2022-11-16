@@ -1,0 +1,42 @@
+{
+    "version": "2.17.290",
+    "date": "2022-10-07",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS IoT Greengrass V2",
+            "contributor": "",
+            "description": "This release adds error status details for deployments and components that failed on a device and adds features to improve visibility into component installation."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "nikp",
+            "description": "Add the ability to configure connection timeout, and enabling keep-alive with interval/timeout settings on the AwsCrtAsyncHttpClient to support long-running connections"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CodeGuru Reviewer",
+            "contributor": "",
+            "description": "Documentation update to replace broken link."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "contributor": "",
+            "description": "Amazon QuickSight now supports SecretsManager Secret ARN in place of CredentialPair for DataSource creation and update. This release also has some minor documentation updates and removes CountryCode as a required parameter in GeoSpatialColumnGroup"
+        },
+        {
+            "type": "feature",
+            "category": "Elastic Load Balancing",
+            "contributor": "",
+            "description": "Gateway Load Balancer adds a new feature (target_failover) for customers to rebalance existing flows to a healthy target after marked unhealthy or deregistered. This allows graceful patching/upgrades of target appliances during maintenance windows, and helps reduce unhealthy target failover time."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}

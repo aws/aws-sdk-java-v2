@@ -1,0 +1,126 @@
+{
+    "version": "2.17.291",
+    "date": "2022-10-13",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Amplify UI Builder",
+            "contributor": "",
+            "description": "We are releasing the ability for fields to be configured as arrays."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Directory Service",
+            "contributor": "",
+            "description": "This release adds support for describing and updating AWS Managed Microsoft AD set up."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaLive",
+            "contributor": "",
+            "description": "AWS Elemental MediaLive now supports forwarding SCTE-35 messages through the Event Signaling and Management (ESAM) API, and can read those SCTE-35 messages from an inactive source."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaPackage VOD",
+            "contributor": "",
+            "description": "This release adds SPEKE v2 support for MediaPackage VOD. Speke v2 is an upgrade to the existing SPEKE API to support multiple encryption keys, based on an encryption contract selected by the customer."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Identity and Access Management",
+            "contributor": "",
+            "description": "Documentation updates for the AWS Identity and Access Management API Reference."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT FleetWise",
+            "contributor": "",
+            "description": "Documentation update for AWS IoT FleetWise"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Panorama",
+            "contributor": "",
+            "description": "Pause and resume camera stream processing with SignalApplicationInstanceNodeInstances. Reboot an appliance with CreateJobForDevices. More application state information in DescribeApplicationInstance response."
+        },
+        {
+            "type": "feature",
+            "category": "AWS RDS DataService",
+            "contributor": "",
+            "description": "Doc update to reflect no support for schema parameter on BatchExecuteStatement API"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Systems Manager Incident Manager",
+            "contributor": "",
+            "description": "Update RelatedItem enum to support Tasks"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Transfer Family",
+            "contributor": "",
+            "description": "This release adds an option for customers to configure workflows that are triggered when files are only partially received from a client due to premature session disconnect."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Appflow",
+            "contributor": "",
+            "description": "With this update, you can choose which Salesforce API is used by Amazon AppFlow to transfer data to or from your Salesforce account. You can choose the Salesforce REST API or Bulk API 2.0. You can also choose for Amazon AppFlow to pick the API automatically."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "This release adds support for a secondary email and a mobile number for Amazon Connect instance users."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Wisdom Service",
+            "contributor": "",
+            "description": "This release updates the GetRecommendations API to include a trigger event list for classifying and grouping recommendations."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB",
+            "contributor": "thomasturrell",
+            "description": "Add locale converter to enhanced DynamoDB client"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB Enhanced",
+            "contributor": "",
+            "description": "Treat @java.beans.Transient as @DynamoDbIgnore in BeanTableSchema and ImmutableTableSchema."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "contributor": "",
+            "description": "Documentation update to address tickets."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon GuardDuty",
+            "contributor": "",
+            "description": "Add UnprocessedDataSources to CreateDetectorResponse which specifies the data sources that couldn't be enabled during the CreateDetector request. In addition, update documentations."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "contributor": "",
+            "description": "Support of AmazonLinux2022 by Patch Manager"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Translate",
+            "contributor": "",
+            "description": "This release enables customers to specify multiple target languages in asynchronous batch translation requests."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}

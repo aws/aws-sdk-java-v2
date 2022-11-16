@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.net.URI;
+import java.net.URL;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -44,6 +45,8 @@ import software.amazon.awssdk.auth.signer.internal.SignerConstant;
 import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
 import software.amazon.awssdk.auth.signer.params.AwsS3V4SignerParams;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
+import software.amazon.awssdk.core.SdkSystemSetting;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -144,9 +147,9 @@ public class S3PresignerTest {
                                              .getObjectRequest(go -> go.bucket("foo34343434")
                                                                        .key("bar")));
 
-        assertThat(presigned.url().toString()).startsWith("http://foo.com/foo34343434/bar?");
+        assertThat(presigned.url().toString()).startsWith("http://foo34343434.foo.com/bar?");
         assertThat(presigned.isBrowserExecutable()).isTrue();
-        assertThat(presigned.signedHeaders().get("host")).containsExactly("foo.com");
+        assertThat(presigned.signedHeaders().get("host")).containsExactly("foo34343434.foo.com");
         assertThat(presigned.signedPayload()).isEmpty();
     }
 
@@ -255,9 +258,9 @@ public class S3PresignerTest {
                                              .putObjectRequest(go -> go.bucket("foo34343434")
                                                                        .key("bar")));
 
-        assertThat(presigned.url().toString()).startsWith("http://foo.com/foo34343434/bar?");
+        assertThat(presigned.url().toString()).startsWith("http://foo34343434.foo.com/bar?");
         assertThat(presigned.isBrowserExecutable()).isFalse();
-        assertThat(presigned.signedHeaders().get("host")).containsExactly("foo.com");
+        assertThat(presigned.signedHeaders().get("host")).containsExactly("foo34343434.foo.com");
         assertThat(presigned.signedPayload()).isEmpty();
     }
 
@@ -480,8 +483,8 @@ public class S3PresignerTest {
 
         assertThatThrownBy(() -> presigner.presignGetObject(r -> r.signatureDuration(Duration.ofMinutes(5))
                         .getObjectRequest(go -> go.bucket(accessPointArn).key("bar"))))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("region");
+                .isInstanceOf(SdkClientException.class)
+                .hasMessageContaining("Invalid configuration: region from ARN `us-east-1` does not match client region `us-west-2` and UseArnRegion is `false`");
     }
 
     @Test
@@ -532,8 +535,8 @@ public class S3PresignerTest {
         assertThatThrownBy(() -> presigner.presignGetObject(r -> r.signatureDuration(Duration.ofMinutes(5))
                                                                   .getObjectRequest(go -> go.bucket(accessPointArn)
                                                                                             .key("bar"))))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("region");
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("Invalid configuration: region from ARN `us-east-1` does not match client region `us-west-2` and UseArnRegion is `false`");
     }
 
     @Test
@@ -644,6 +647,47 @@ public class S3PresignerTest {
                           .dualstackEnabled(true)
                           .build();
     }
+
+    @Test
+    public void getObject_useEast1_regionalEndpointDisabled_usesGlobalEndpoint() {
+        String settingSaveValue = System.getProperty(SdkSystemSetting.AWS_S3_US_EAST_1_REGIONAL_ENDPOINT.property());
+        System.setProperty(SdkSystemSetting.AWS_S3_US_EAST_1_REGIONAL_ENDPOINT.property(), "global");
+        try {
+            S3Presigner usEast1Presigner = presignerBuilder().region(Region.US_EAST_1).build();
+            URL presigned =
+                usEast1Presigner.presignGetObject(r -> r.getObjectRequest(getRequest -> getRequest.bucket("foo").key("bar"))
+                                                        .signatureDuration(Duration.ofHours(1)))
+                                .url();
+            assertThat(presigned.getHost()).isEqualTo("foo.s3.amazonaws.com");
+        } finally {
+            if (settingSaveValue != null) {
+                System.setProperty(SdkSystemSetting.AWS_S3_US_EAST_1_REGIONAL_ENDPOINT.property(), settingSaveValue);
+            } else {
+                System.clearProperty(SdkSystemSetting.AWS_S3_US_EAST_1_REGIONAL_ENDPOINT.property());
+            }
+        }
+    }
+
+    @Test
+    public void getObject_useEast1_regionalEndpointEnabled_usesRegionalEndpoint() {
+        String settingSaveValue = System.getProperty(SdkSystemSetting.AWS_S3_US_EAST_1_REGIONAL_ENDPOINT.property());
+        System.setProperty(SdkSystemSetting.AWS_S3_US_EAST_1_REGIONAL_ENDPOINT.property(), "regional");
+        try {
+            S3Presigner usEast1Presigner = presignerBuilder().region(Region.US_EAST_1).build();
+            URL presigned =
+                usEast1Presigner.presignGetObject(r -> r.getObjectRequest(getRequest -> getRequest.bucket("foo").key("bar"))
+                                                        .signatureDuration(Duration.ofHours(1)))
+                                .url();
+            assertThat(presigned.getHost()).isEqualTo("foo.s3.us-east-1.amazonaws.com");
+        } finally {
+            if (settingSaveValue != null) {
+                System.setProperty(SdkSystemSetting.AWS_S3_US_EAST_1_REGIONAL_ENDPOINT.property(), settingSaveValue);
+            } else {
+                System.clearProperty(SdkSystemSetting.AWS_S3_US_EAST_1_REGIONAL_ENDPOINT.property());
+            }
+        }
+    }
+
 
     // Variant of AwsS3V4Signer that allows for changing the signing clock and expiration time
     public static class TestS3V4Signer extends AbstractAwsS3V4Signer {

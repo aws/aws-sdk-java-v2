@@ -219,7 +219,7 @@
         {"shape":"ResourceLimitExceededException"},
         {"shape":"InvalidParameterValuesException"}
       ],
-      "documentation":"<p>Creates one or more WorkSpaces.</p> <p>This operation is asynchronous and returns before the WorkSpaces are created.</p>"
+      "documentation":"<p>Creates one or more WorkSpaces.</p> <p>This operation is asynchronous and returns before the WorkSpaces are created.</p> <note> <p>The <code>MANUAL</code> running mode value is only supported by Amazon WorkSpaces Core. Contact your account team to be allow-listed to use this value. For more information, see <a href=\"http://aws.amazon.com/workspaces/core/\">Amazon WorkSpaces Core</a>.</p> </note>"
     },
     "DeleteClientBranding":{
       "name":"DeleteClientBranding",
@@ -637,7 +637,7 @@
         {"shape":"AccessDeniedException"},
         {"shape":"InvalidParameterValuesException"}
       ],
-      "documentation":"<p>Imports the specified Windows 10 Bring Your Own License (BYOL) image into Amazon WorkSpaces. The image must be an already licensed Amazon EC2 image that is in your Amazon Web Services account, and you must own the image. For more information about creating BYOL images, see <a href=\"https://docs.aws.amazon.com/workspaces/latest/adminguide/byol-windows-images.html\"> Bring Your Own Windows Desktop Licenses</a>.</p>"
+      "documentation":"<p>Imports the specified Windows 10 Bring Your Own License (BYOL) or Windows Server 2016 BYOL image into Amazon WorkSpaces. The image must be an already licensed Amazon EC2 image that is in your Amazon Web Services account, and you must own the image. For more information about creating BYOL images, see <a href=\"https://docs.aws.amazon.com/workspaces/latest/adminguide/byol-windows-images.html\"> Bring Your Own Windows Desktop Licenses</a>.</p>"
     },
     "ListAvailableManagementCidrRanges":{
       "name":"ListAvailableManagementCidrRanges",
@@ -687,6 +687,22 @@
         {"shape":"ResourceNotFoundException"}
       ],
       "documentation":"<p>Modifies the configuration of Bring Your Own License (BYOL) for the specified account.</p>"
+    },
+    "ModifyCertificateBasedAuthProperties":{
+      "name":"ModifyCertificateBasedAuthProperties",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ModifyCertificateBasedAuthPropertiesRequest"},
+      "output":{"shape":"ModifyCertificateBasedAuthPropertiesResult"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"InvalidParameterValuesException"},
+        {"shape":"OperationNotSupportedException"},
+        {"shape":"ResourceNotFoundException"}
+      ],
+      "documentation":"<p>Modifies the properties of the certificate-based authentication you want to use with your WorkSpaces.</p>"
     },
     "ModifyClientProperties":{
       "name":"ModifyClientProperties",
@@ -781,7 +797,7 @@
         {"shape":"AccessDeniedException"},
         {"shape":"ResourceUnavailableException"}
       ],
-      "documentation":"<p>Modifies the specified WorkSpace properties. For important information about how to modify the size of the root and user volumes, see <a href=\"https://docs.aws.amazon.com/workspaces/latest/adminguide/modify-workspaces.html\"> Modify a WorkSpace</a>. </p>"
+      "documentation":"<p>Modifies the specified WorkSpace properties. For important information about how to modify the size of the root and user volumes, see <a href=\"https://docs.aws.amazon.com/workspaces/latest/adminguide/modify-workspaces.html\"> Modify a WorkSpace</a>. </p> <note> <p>The <code>MANUAL</code> running mode value is only supported by Amazon WorkSpaces Core. Contact your account team to be allow-listed to use this value. For more information, see <a href=\"http://aws.amazon.com/workspaces/core/\">Amazon WorkSpaces Core</a>.</p> </note>"
     },
     "ModifyWorkspaceState":{
       "name":"ModifyWorkspaceState",
@@ -1170,6 +1186,33 @@
       "member":{"shape":"WorkspaceBundle"}
     },
     "BundleOwner":{"type":"string"},
+    "CertificateAuthorityArn":{
+      "type":"string",
+      "max":200,
+      "min":5,
+      "pattern":"arn:[\\w+=/,.@-]+:[\\w+=/,.@-]+:[\\w+=/,.@-]*:[0-9]*:[\\w+=,.@-]+(/[\\w+=,.@-]+)*"
+    },
+    "CertificateBasedAuthProperties":{
+      "type":"structure",
+      "members":{
+        "Status":{
+          "shape":"CertificateBasedAuthStatusEnum",
+          "documentation":"<p>The status of the certificate-based authentication properties.</p>"
+        },
+        "CertificateAuthorityArn":{
+          "shape":"CertificateAuthorityArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Amazon Web Services Certificate Manager Private CA resource.</p>"
+        }
+      },
+      "documentation":"<p>Describes the properties of the certificate-based authentication you want to use with your WorkSpaces.</p>"
+    },
+    "CertificateBasedAuthStatusEnum":{
+      "type":"string",
+      "enum":[
+        "DISABLED",
+        "ENABLED"
+      ]
+    },
     "ClientDeviceType":{
       "type":"string",
       "enum":[
@@ -1687,7 +1730,7 @@
         },
         "RequiredTenancy":{
           "shape":"WorkspaceImageRequiredTenancy",
-          "documentation":"<p>Specifies whether the image is running on dedicated hardware. When Bring Your Own License (BYOL) is enabled, this value is set to DEDICATED. For more information, see <a href=\"https://docs.aws.amazon.com/workspaces/latest/adminguide/byol-windows-images.htm\"> Bring Your Own Windows Desktop Images.</a> </p>"
+          "documentation":"<p>Specifies whether the image is running on dedicated hardware. When Bring Your Own License (BYOL) is enabled, this value is set to DEDICATED. For more information, see <a href=\"https://docs.aws.amazon.com/workspaces/latest/adminguide/byol-windows-images.htm\"> Bring Your Own Windows Desktop Images.</a>.</p>"
         },
         "Created":{
           "shape":"Timestamp",
@@ -1836,6 +1879,14 @@
         }
       },
       "documentation":"<p>Describes the default values that are used to create WorkSpaces. For more information, see <a href=\"https://docs.aws.amazon.com/workspaces/latest/adminguide/update-directory-details.html\">Update Directory Details for Your WorkSpaces</a>.</p>"
+    },
+    "DeletableCertificateBasedAuthPropertiesList":{
+      "type":"list",
+      "member":{"shape":"DeletableCertificateBasedAuthProperty"}
+    },
+    "DeletableCertificateBasedAuthProperty":{
+      "type":"string",
+      "enum":["CERTIFICATE_BASED_AUTH_PROPERTIES_CERTIFICATE_AUTHORITY_ARN"]
     },
     "DeletableSamlPropertiesList":{
       "type":"list",
@@ -2680,7 +2731,7 @@
         },
         "IngestionProcess":{
           "shape":"WorkspaceImageIngestionProcess",
-          "documentation":"<p>The ingestion process to be used when importing the image, depending on which protocol you want to use for your BYOL Workspace image, either PCoIP or WorkSpaces Streaming Protocol (WSP). To use WSP, specify a value that ends in <code>_WSP</code>. To use PCoIP, specify a value that does not end in <code>_WSP</code>. </p> <p>For non-GPU-enabled bundles (bundles other than Graphics or GraphicsPro), specify <code>BYOL_REGULAR</code> or <code>BYOL_REGULAR_WSP</code>, depending on the protocol.</p>"
+          "documentation":"<p>The ingestion process to be used when importing the image, depending on which protocol you want to use for your BYOL Workspace image, either PCoIP, WorkSpaces Streaming Protocol (WSP), or bring your own protocol (BYOP). To use WSP, specify a value that ends in <code>_WSP</code>. To use PCoIP, specify a value that does not end in <code>_WSP</code>. To use BYOP, specify a value that ends in <code>_BYOP</code>.</p> <p>For non-GPU-enabled bundles (bundles other than Graphics or GraphicsPro), specify <code>BYOL_REGULAR</code>, <code>BYOL_REGULAR_WSP</code>, or <code>BYOL_REGULAR_BYOP</code>, depending on the protocol.</p> <note> <p>The <code>BYOL_REGULAR_BYOP</code> and <code>BYOL_GRAPHICS_G4DN_BYOP</code> values are only supported by Amazon WorkSpaces Core. Contact your account team to be allow-listed to use these values. For more information, see <a href=\"http://aws.amazon.com/workspaces/core/\">Amazon WorkSpaces Core</a>.</p> </note>"
         },
         "ImageName":{
           "shape":"WorkspaceImageName",
@@ -2984,6 +3035,29 @@
       "members":{
       }
     },
+    "ModifyCertificateBasedAuthPropertiesRequest":{
+      "type":"structure",
+      "required":["ResourceId"],
+      "members":{
+        "ResourceId":{
+          "shape":"DirectoryId",
+          "documentation":"<p>The resource identifiers, in the form of directory IDs.</p>"
+        },
+        "CertificateBasedAuthProperties":{
+          "shape":"CertificateBasedAuthProperties",
+          "documentation":"<p>The properties of the certificate-based authentication.</p>"
+        },
+        "PropertiesToDelete":{
+          "shape":"DeletableCertificateBasedAuthPropertiesList",
+          "documentation":"<p>The properties of the certificate-based authentication you want to delete.</p>"
+        }
+      }
+    },
+    "ModifyCertificateBasedAuthPropertiesResult":{
+      "type":"structure",
+      "members":{
+      }
+    },
     "ModifyClientPropertiesRequest":{
       "type":"structure",
       "required":[
@@ -3187,6 +3261,17 @@
       "type":"string",
       "max":2048,
       "min":1
+    },
+    "Protocol":{
+      "type":"string",
+      "enum":[
+        "PCOIP",
+        "WSP"
+      ]
+    },
+    "ProtocolList":{
+      "type":"list",
+      "member":{"shape":"Protocol"}
     },
     "RebootRequest":{
       "type":"structure",
@@ -3439,7 +3524,8 @@
       "type":"string",
       "enum":[
         "AUTO_STOP",
-        "ALWAYS_ON"
+        "ALWAYS_ON",
+        "MANUAL"
       ]
     },
     "RunningModeAutoStopTimeoutInMinutes":{"type":"integer"},
@@ -4145,6 +4231,10 @@
         "SamlProperties":{
           "shape":"SamlProperties",
           "documentation":"<p>Describes the enablement status, user access URL, and relay state parameter name that are used for configuring federation with an SAML 2.0 identity provider.</p>"
+        },
+        "CertificateBasedAuthProperties":{
+          "shape":"CertificateBasedAuthProperties",
+          "documentation":"<p>The certificate-based authentication properties used to authenticate SAML 2.0 Identity Provider (IdP) user identities to Active Directory for WorkSpaces login.</p>"
         }
       },
       "documentation":"<p>Describes a directory that is used with Amazon WorkSpaces.</p>"
@@ -4251,7 +4341,9 @@
         "BYOL_GRAPHICS",
         "BYOL_GRAPHICSPRO",
         "BYOL_GRAPHICS_G4DN",
-        "BYOL_REGULAR_WSP"
+        "BYOL_REGULAR_WSP",
+        "BYOL_REGULAR_BYOP",
+        "BYOL_GRAPHICS_G4DN_BYOP"
       ]
     },
     "WorkspaceImageList":{
@@ -4288,7 +4380,7 @@
       "members":{
         "RunningMode":{
           "shape":"RunningMode",
-          "documentation":"<p>The running mode. For more information, see <a href=\"https://docs.aws.amazon.com/workspaces/latest/adminguide/running-mode.html\">Manage the WorkSpace Running Mode</a>.</p>"
+          "documentation":"<p>The running mode. For more information, see <a href=\"https://docs.aws.amazon.com/workspaces/latest/adminguide/running-mode.html\">Manage the WorkSpace Running Mode</a>.</p> <note> <p>The <code>MANUAL</code> value is only supported by Amazon WorkSpaces Core. Contact your account team to be allow-listed to use this value. For more information, see <a href=\"http://aws.amazon.com/workspaces/core/\">Amazon WorkSpaces Core</a>.</p> </note>"
         },
         "RunningModeAutoStopTimeoutInMinutes":{
           "shape":"RunningModeAutoStopTimeoutInMinutes",
@@ -4305,6 +4397,10 @@
         "ComputeTypeName":{
           "shape":"Compute",
           "documentation":"<p>The compute type. For more information, see <a href=\"http://aws.amazon.com/workspaces/details/#Amazon_WorkSpaces_Bundles\">Amazon WorkSpaces Bundles</a>.</p>"
+        },
+        "Protocols":{
+          "shape":"ProtocolList",
+          "documentation":"<p>The protocol. For more information, see <a href=\"https://docs.aws.amazon.com/workspaces/latest/adminguide/amazon-workspaces-protocols.html\"> Protocols for Amazon WorkSpaces</a>.</p> <note> <ul> <li> <p>Only available for WorkSpaces created with PCoIP bundles.</p> </li> <li> <p>The <code>Protocols</code> property is case sensitive. Ensure you use <code>PCOIP</code> or <code>WSP</code>.</p> </li> <li> <p>Unavailable for Windows 7 WorkSpaces and WorkSpaces using GPU-based bundles (Graphics, GraphicsPro, Graphics.g4dn, and GraphicsPro.g4dn).</p> </li> </ul> </note>"
         }
       },
       "documentation":"<p>Describes a WorkSpace.</p>"

@@ -36,7 +36,7 @@
     ]
   },
   {
-    "name": "software.amazon.awssdk.services.s3.internal.handlers.DisableDoubleUrlEncodingInterceptor",
+    "name": "software.amazon.awssdk.services.s3.internal.handlers.ConfigureSignerInterceptor",
     "methods": [
       {
         "name": "<init>",
@@ -55,15 +55,6 @@
   },
   {
     "name": "software.amazon.awssdk.services.s3.internal.handlers.EnableTrailingChecksumInterceptor",
-    "methods": [
-      {
-        "name": "<init>",
-        "parameterTypes": []
-      }
-    ]
-  },
-  {
-    "name": "software.amazon.awssdk.services.s3.internal.handlers.EndpointAddressInterceptor",
     "methods": [
       {
         "name": "<init>",
@@ -118,15 +109,6 @@
   },
   {
     "name": "software.amazon.awssdk.services.s3.internal.handlers.CopySourceInterceptor",
-    "methods": [
-      {
-        "name": "<init>",
-        "parameterTypes": []
-      }
-    ]
-  },
-  {
-    "name": "software.amazon.awssdk.services.s3.internal.handlers.SignerOverrideInterceptor",
     "methods": [
       {
         "name": "<init>",

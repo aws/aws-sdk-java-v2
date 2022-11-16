@@ -371,7 +371,7 @@
         {"shape":"ValidationException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Adds a resource policy to the specified response plan. The resource policy is used to share the response plan using Resource Access Manager (RAM). For more information about cross-account sharing, see <a href=\"https://docs.aws.amazon.com/incident-manager/latest/userguide/xa.html\">Setting up cross-account functionality</a>.</p>"
+      "documentation":"<p>Adds a resource policy to the specified response plan. The resource policy is used to share the response plan using Resource Access Manager (RAM). For more information about cross-account sharing, see <a href=\"https://docs.aws.amazon.com/incident-manager/latest/userguide/incident-manager-cross-account-cross-region.html\">Cross-Region and cross-account incident management</a>.</p>"
     },
     "StartIncident":{
       "name":"StartIncident",
@@ -715,12 +715,16 @@
       "members":{
         "clientToken":{
           "shape":"ClientToken",
-          "documentation":"<p>A token ensuring that the operation is called only once with the specified details.</p>",
+          "documentation":"<p>A token that ensures that the operation is called only once with the specified details.</p>",
           "idempotencyToken":true
         },
         "regions":{
           "shape":"RegionMapInput",
           "documentation":"<p>The Regions that Incident Manager replicates your data to. You can have up to three Regions in your replication set.</p>"
+        },
+        "tags":{
+          "shape":"TagMap",
+          "documentation":"<p>A list of tags to add to the replication set.</p>"
         }
       }
     },
@@ -760,7 +764,7 @@
         },
         "engagements":{
           "shape":"EngagementSet",
-          "documentation":"<p>The contacts and escalation plans that the response plan engages during an incident.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) for the contacts and escalation plans that the response plan engages during an incident.</p>"
         },
         "incidentTemplate":{
           "shape":"IncidentTemplate",
@@ -803,6 +807,10 @@
         "eventData":{
           "shape":"EventData",
           "documentation":"<p>A short description of the event.</p>"
+        },
+        "eventReferences":{
+          "shape":"EventReferenceList",
+          "documentation":"<p>Adds one or more references to the <code>TimelineEvent</code>. A reference can be an Amazon Web Services resource involved in the incident or in some way associated with it. When you specify a reference, you enter the Amazon Resource Name (ARN) of the resource. You can also specify a related item. As an example, you could specify the ARN of an Amazon DynamoDB (DynamoDB) table. The table for this example is the resource. You could also specify a Amazon CloudWatch metric for that table. The metric is the related item.</p>"
         },
         "eventTime":{
           "shape":"Timestamp",
@@ -979,7 +987,28 @@
     },
     "EventData":{
       "type":"string",
-      "max":6000,
+      "max":12000,
+      "min":0
+    },
+    "EventReference":{
+      "type":"structure",
+      "members":{
+        "relatedItemId":{
+          "shape":"GeneratedId",
+          "documentation":"<p>The ID of a <code>RelatedItem</code> referenced in a <code>TimelineEvent</code>.</p>"
+        },
+        "resource":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of an Amazon Web Services resource referenced in a <code>TimelineEvent</code>.</p>"
+        }
+      },
+      "documentation":"<p>An item referenced in a <code>TimelineEvent</code> that is involved in or somehow associated with an incident. You can specify an Amazon Resource Name (ARN) for an Amazon Web Services resource or a <code>RelatedItem</code> ID.</p>",
+      "union":true
+    },
+    "EventReferenceList":{
+      "type":"list",
+      "member":{"shape":"EventReference"},
+      "max":10,
       "min":0
     },
     "EventSummary":{
@@ -995,6 +1024,10 @@
         "eventId":{
           "shape":"UUID",
           "documentation":"<p>The timeline event ID.</p>"
+        },
+        "eventReferences":{
+          "shape":"EventReferenceList",
+          "documentation":"<p>A list of references in a <code>TimelineEvent</code>.</p>"
         },
         "eventTime":{
           "shape":"Timestamp",
@@ -1051,6 +1084,12 @@
       "max":5,
       "min":0
     },
+    "GeneratedId":{
+      "type":"string",
+      "max":200,
+      "min":0,
+      "pattern":"^related-item/(ANALYSIS|INCIDENT|METRIC|PARENT|ATTACHMENT|OTHER|AUTOMATION|INVOLVED_RESOURCE|TASK)/([0-9]|[A-F]){32}$"
+    },
     "GetIncidentRecordInput":{
       "type":"structure",
       "required":["arn"],
@@ -1101,7 +1140,7 @@
       "members":{
         "maxResults":{
           "shape":"MaxResults",
-          "documentation":"<p>The maximum number of resource policies to display per page of results.</p>"
+          "documentation":"<p>The maximum number of resource policies to display for each page of results.</p>"
         },
         "nextToken":{
           "shape":"NextToken",
@@ -1167,7 +1206,7 @@
         },
         "engagements":{
           "shape":"EngagementSet",
-          "documentation":"<p>The contacts and escalation plans that the response plan engages during an incident.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) for the contacts and escalation plans that the response plan engages during an incident.</p>"
         },
         "incidentTemplate":{
           "shape":"IncidentTemplate",
@@ -1397,7 +1436,7 @@
         },
         "incidentTags":{
           "shape":"TagMap",
-          "documentation":"<p>Tags to apply to an incident when calling the <code>StartIncident</code> API action.</p>"
+          "documentation":"<p>Tags to assign to the template. When the <code>StartIncident</code> API action is called, Incident Manager assigns the tags specified in the template to the incident.</p>"
         },
         "notificationTargets":{
           "shape":"NotificationTargetSet",
@@ -1468,7 +1507,8 @@
         "ATTACHMENT",
         "OTHER",
         "AUTOMATION",
-        "INVOLVED_RESOURCE"
+        "INVOLVED_RESOURCE",
+        "TASK"
       ]
     },
     "ItemValue":{
@@ -1729,7 +1769,7 @@
         },
         "resourceArn":{
           "shape":"Arn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the response plan you're adding the resource policy to.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the response plan to add the resource policy to.</p>"
         }
       }
     },
@@ -1814,6 +1854,10 @@
       "type":"structure",
       "required":["identifier"],
       "members":{
+        "generatedId":{
+          "shape":"GeneratedId",
+          "documentation":"<p>A unique ID for a <code>RelatedItem</code>.</p> <important> <p>Don't specify this parameter when you add a <code>RelatedItem</code> by using the <a>UpdateRelatedItems</a> API action.</p> </important>"
+        },
         "identifier":{
           "shape":"ItemIdentifier",
           "documentation":"<p>Details about the related item.</p>"
@@ -2249,7 +2293,7 @@
         },
         "tags":{
           "shape":"TagMap",
-          "documentation":"<p>A list of tags that you are adding to the response plan.</p>"
+          "documentation":"<p>A list of tags to add to the response plan.</p>"
         }
       }
     },
@@ -2307,6 +2351,10 @@
         "eventId":{
           "shape":"UUID",
           "documentation":"<p>The ID of the timeline event.</p>"
+        },
+        "eventReferences":{
+          "shape":"EventReferenceList",
+          "documentation":"<p>A list of references in a <code>TimelineEvent</code>.</p>"
         },
         "eventTime":{
           "shape":"Timestamp",
@@ -2383,7 +2431,7 @@
         },
         "tagKeys":{
           "shape":"TagKeyList",
-          "documentation":"<p>The name of the tag you're removing from the response plan.</p>",
+          "documentation":"<p>The name of the tag to remove from the response plan.</p>",
           "location":"querystring",
           "locationName":"tagKeys"
         }
@@ -2403,16 +2451,16 @@
       "members":{
         "arn":{
           "shape":"Arn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the replication set you're updating.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the replication set to update.</p>"
         },
         "clientToken":{
           "shape":"ClientToken",
-          "documentation":"<p>A token ensuring that the operation is called only once with the specified details.</p>",
+          "documentation":"<p>A token that ensures that the operation is called only once with the specified details.</p>",
           "idempotencyToken":true
         },
         "deletionProtected":{
           "shape":"Boolean",
-          "documentation":"<p>Details if deletion protection is enabled or disabled in your account.</p>"
+          "documentation":"<p>Specifies if deletion protection is turned on or off in your account. </p>"
         }
       }
     },
@@ -2524,7 +2572,7 @@
         },
         "clientToken":{
           "shape":"ClientToken",
-          "documentation":"<p>A token ensuring that the operation is called only once with the specified details.</p>",
+          "documentation":"<p>A token that ensures that the operation is called only once with the specified details.</p>",
           "idempotencyToken":true
         }
       }
@@ -2567,7 +2615,7 @@
         },
         "engagements":{
           "shape":"EngagementSet",
-          "documentation":"<p>The contacts and escalation plans that Incident Manager engages at the start of the incident.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) for the contacts and escalation plans that the response plan engages during an incident.</p>"
         },
         "incidentTemplateDedupeString":{
           "shape":"DedupeString",
@@ -2587,7 +2635,7 @@
         },
         "incidentTemplateTags":{
           "shape":"TagMapUpdate",
-          "documentation":"<p>Tags to apply to an incident when calling the <code>StartIncident</code> API action. To call this action, you must also have permission to call the <code>TagResource</code> API action for the incident record resource.</p>"
+          "documentation":"<p>Tags to assign to the template. When the <code>StartIncident</code> API action is called, Incident Manager assigns the tags specified in the template to the incident. To call this action, you must also have permission to call the <code>TagResource</code> API action for the incident record resource.</p>"
         },
         "incidentTemplateTitle":{
           "shape":"IncidentTitle",
@@ -2619,6 +2667,10 @@
         "eventId":{
           "shape":"UUID",
           "documentation":"<p>The ID of the event you are updating. You can find this by using <code>ListTimelineEvents</code>.</p>"
+        },
+        "eventReferences":{
+          "shape":"EventReferenceList",
+          "documentation":"<p>Updates all existing references in a <code>TimelineEvent</code>. A reference can be an Amazon Web Services resource involved in the incident or in some way associated with it. When you specify a reference, you enter the Amazon Resource Name (ARN) of the resource. You can also specify a related item. As an example, you could specify the ARN of an Amazon DynamoDB (DynamoDB) table. The table for this example is the resource. You could also specify a Amazon CloudWatch metric for that table. The metric is the related item.</p> <important> <p>This update action overrides all existing references. If you want to keep existing references, you must specify them in the call. If you don't, this action removes them and enters only new references.</p> </important>"
         },
         "eventTime":{
           "shape":"Timestamp",

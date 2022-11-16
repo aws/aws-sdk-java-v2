@@ -154,7 +154,7 @@ public class CopySourceInterceptorTest {
             .modifyRequest(() -> originalRequest, new ExecutionAttributes());
 
         assertThat(modifiedRequest.copySource()).isEqualTo(
-            "/arn%3Aaws%3As3%3Aus-west-2%3A123456789012%3Aaccesspoint/my-access-point/object/my-key");
+            "arn%3Aaws%3As3%3Aus-west-2%3A123456789012%3Aaccesspoint/my-access-point/object/my-key");
     }
 
     @Test
@@ -168,6 +168,6 @@ public class CopySourceInterceptorTest {
             .modifyRequest(() -> originalRequest, new ExecutionAttributes());
 
         assertThat(modifiedRequest.copySource()).isEqualTo(
-            "/arn%3Aaws%3As3-outposts%3Aus-west-2%3A123456789012%3Aoutpost/my-outpost/bucket/my-bucket/object/my-key");
+            "arn%3Aaws%3As3-outposts%3Aus-west-2%3A123456789012%3Aoutpost/my-outpost/bucket/my-bucket/object/my-key");
     }
 }

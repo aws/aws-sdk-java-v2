@@ -69,6 +69,8 @@ public class Metadata {
 
     private String waitersPackageName;
 
+    private String endpointRulesPackageName;
+
     private String serviceAbbreviation;
 
     private String serviceFullName;
@@ -339,6 +341,10 @@ public class Metadata {
 
     public String getFullClientPackageName() {
         return joinPackageNames(rootPackageName, getClientPackageName());
+    }
+
+    public String getFullClientInternalPackageName() {
+        return joinPackageNames(getFullClientPackageName(), "internal");
     }
 
     public String getClientPackageName() {
@@ -677,6 +683,27 @@ public class Metadata {
 
     public String getFullWaitersInternalPackageName() {
         return joinPackageNames(getFullWaitersPackageName(), "internal");
+    }
+
+    public void setEndpointRulesPackageName(String endpointRulesPackageName) {
+        this.endpointRulesPackageName = endpointRulesPackageName;
+    }
+
+    public Metadata withEndpointRulesPackageName(String endpointRulesPackageName) {
+        setEndpointRulesPackageName(endpointRulesPackageName);
+        return this;
+    }
+
+    public String getEndpointRulesPackageName() {
+        return endpointRulesPackageName;
+    }
+
+    public String getFullEndpointRulesPackageName() {
+        return joinPackageNames(rootPackageName, getEndpointRulesPackageName());
+    }
+
+    public String getFullInternalEndpointRulesPackageName() {
+        return joinPackageNames(getFullEndpointRulesPackageName(), "internal");
     }
 
     public String getFullInternalPackageName() {
