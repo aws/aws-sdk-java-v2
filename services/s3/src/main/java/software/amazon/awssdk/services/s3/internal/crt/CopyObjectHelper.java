@@ -224,6 +224,8 @@ public final class CopyObjectHelper {
                 uploadPartCopyFuture.thenApply(uploadPartCopyResponse -> {
 
                     CopyPartResult copyPartResult = uploadPartCopyResponse.copyPartResult();
+                    log.info(() -> "uploadPartCopyResponse " + uploadPartCopyResponse.sdkHttpResponse().headers());
+
                     if (copyPartResult == null) {
                         log.info(() -> "copyPartResult is null " + uploadPartCopyResponse.sdkHttpResponse().statusCode() +
                                        " " + uploadPartCopyResponse.sdkHttpResponse().headers());

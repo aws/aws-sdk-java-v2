@@ -24,7 +24,6 @@ import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBu
 import java.nio.ByteBuffer;
 import java.security.SecureRandom;
 import java.util.Base64;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
 import javax.crypto.KeyGenerator;
@@ -58,6 +57,7 @@ public class S3CrtClientCopyIntegrationTest extends S3IntegrationTestBase {
         s3CrtAsyncClient = S3CrtAsyncClient.builder()
                                            .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                                            .region(DEFAULT_REGION)
+
                                            .build();
     }
 
