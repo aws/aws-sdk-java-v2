@@ -49,7 +49,6 @@ public final class HandlerRemovingChannelPoolListener implements ChannelPoolList
         if (channel.isOpen() || channel.isRegistered()) {
             removeIfExists(channel.pipeline(),
                            HttpStreamsClientHandler.class,
-                           LastHttpContentHandler.class,
                            FlushOnReadHandler.class,
                            ResponseHandler.class,
                            ReadTimeoutHandler.class,

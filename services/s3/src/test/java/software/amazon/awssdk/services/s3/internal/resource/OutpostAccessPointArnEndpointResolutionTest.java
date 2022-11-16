@@ -86,15 +86,14 @@ public class OutpostAccessPointArnEndpointResolutionTest {
     }
 
     @Test
-    @Disabled // TODO: Renable once the FIPs pseudo region fix is merged into the branch
     public void outpostArn_fipsRegion_throwsIllegalArgumentException() throws Exception {
         mockHttpClient.stubNextResponse(mockListObjectsResponse());
         S3Client s3Client = clientBuilder().region(Region.of("fips-us-east-1")).serviceConfiguration(S3Configuration.builder().dualstackEnabled(false).build()).build();
         String outpostArn = "arn:aws:s3-outposts:us-east-1:123456789012:outpost:op-01234567890123456:accesspoint:myaccesspoint";
 
         assertThatThrownBy(() -> s3Client.listObjects(ListObjectsRequest.builder().bucket(outpostArn).build()))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("FIPS");
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("S3 Outposts does not support FIPS");
     }
 
     @Test

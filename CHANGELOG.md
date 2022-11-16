@@ -1,3 +1,32 @@
+# __2.18.18__ __2022-11-15__
+## __AWS IoT Greengrass V2__
+  - ### Features
+    - Adds new parent target ARN paramater to CreateDeployment, GetDeployment, and ListDeployments APIs for the new subdeployments feature.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Systems Manager for SAP__
+  - ### Features
+    - AWS Systems Manager for SAP provides simplified operations and management of SAP applications such as SAP HANA. With this release, SAP customers and partners can automate and simplify their SAP system administration tasks such as backup/restore of SAP HANA.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release updates the APIs: UpdateInstanceAttribute, DescribeInstanceAttribute, and ListInstanceAttributes. You can use it to programmatically enable/disable enhanced contact monitoring using attribute type ENHANCED_CONTACT_MONITORING on the specified Amazon Connect instance.
+
+## __Amazon Route 53__
+  - ### Features
+    - Amazon Route 53 now supports the Europe (Spain) Region (eu-south-2) for latency records, geoproximity records, and private DNS for Amazon VPCs in that region.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - This release introduces ModifyCertificateBasedAuthProperties, a new API that allows control of certificate-based auth properties associated with a WorkSpaces directory. The DescribeWorkspaceDirectories API will now additionally return certificate-based auth properties in its responses.
+
+## __Netty NIO Http Client__
+  - ### Bugfixes
+    - Fix for Netty based client request getting stuck if connection is reset after recieveing Http Continue response.
+
 # __2.18.17__ __2022-11-14__
 ## __AWS Lake Formation__
   - ### Features

@@ -91,7 +91,6 @@ public class EndpointTraitTest {
     }
 
     @Test
-    @Ignore // TODO: fix with S3 endpoints 2.0 impl
     public void hostExpression_withInputMemberLabel() throws URISyntaxException {
         try {
             client.endpointTraitTwo(EndpointTraitTwoRequest.builder()

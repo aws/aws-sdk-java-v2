@@ -38,6 +38,8 @@ import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.DefaultHttpResponse;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
 import io.netty.handler.codec.http.HttpContent;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -50,9 +52,13 @@ import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
 import io.reactivex.Flowable;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -69,9 +75,11 @@ import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.http.SimpleHttpContentPublisher;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
+import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.http.nio.netty.SdkEventLoopGroup;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -93,6 +101,17 @@ public class ServerConnectivityErrorMessageTest {
                              new TestCase(CloseTime.DURING_RESPONSE_PAYLOAD, "Response had content-length"));
     }
 
+    public static Collection<TestCase> testCasesForHttpContinueResponse() {
+        return Arrays.asList(new TestCase(CloseTime.DURING_INIT, "The connection was closed during the request."),
+                             new TestCase(CloseTime.BEFORE_SSL_HANDSHAKE, "The connection was closed during the request."),
+                             new TestCase(CloseTime.DURING_SSL_HANDSHAKE, "The connection was closed during the request."),
+                             new TestCase(CloseTime.BEFORE_REQUEST_PAYLOAD, "The connection was closed during the request."),
+                             new TestCase(CloseTime.DURING_REQUEST_PAYLOAD, "The connection was closed during the request."),
+                             new TestCase(CloseTime.BEFORE_RESPONSE_HEADERS, "The connection was closed during the request."),
+                             new TestCase(CloseTime.BEFORE_RESPONSE_PAYLOAD, "The connection was closed during the request."),
+                             new TestCase(CloseTime.DURING_RESPONSE_PAYLOAD, "The connection was closed during the request."));
+    }
+
     @AfterEach
     public void teardown() throws InterruptedException {
         if (server != null) {
@@ -108,14 +127,32 @@ public class ServerConnectivityErrorMessageTest {
 
     @ParameterizedTest
     @MethodSource("testCases")
-    public void closeTimeHasCorrectMessage(TestCase testCase) throws Exception {
+    void closeTimeHasCorrectMessage(TestCase testCase) throws Exception {
+        server = new Server(ServerConfig.builder().httpResponseStatus(HttpResponseStatus.OK).build());
         setupTestCase(testCase);
         server.closeTime = testCase.closeTime;
-        assertThat(captureException()).hasMessageContaining(testCase.errorMessageSubstring);
+        assertThat(captureException(RequestParams.builder()
+                                                 .httpMethod(SdkHttpMethod.GET)
+                                                 .contentPublisher(new EmptyPublisher())
+                                                 .build()))
+            .hasMessageContaining(testCase.errorMessageSubstring);
+    }
+
+    @ParameterizedTest
+    @MethodSource("testCasesForHttpContinueResponse")
+    void closeTimeHasCorrectMessageWith100ContinueResponse(TestCase testCase) throws Exception {
+        server = new Server(ServerConfig.builder().httpResponseStatus(HttpResponseStatus.CONTINUE).build());
+        setupTestCase(testCase);
+        server.closeTime = testCase.closeTime;
+        assertThat(captureException(RequestParams.builder()
+                                                 .httpMethod(SdkHttpMethod.PUT)
+                                                 .addHeaderKeyValue(HttpHeaderNames.EXPECT.toString(),
+                                                                    Arrays.asList(HttpHeaderValues.CONTINUE.toString()))
+                                                 .contentPublisher(new SimpleHttpContentPublisher("reqBody".getBytes(StandardCharsets.UTF_8)))
+                                                 .build()));
     }
 
     public void setupTestCase(TestCase testCase) throws Exception {
-        server = new Server();
         server.init(testCase.closeTime);
 
         netty = NettyNioAsyncHttpClient.builder()
@@ -125,9 +162,9 @@ public class ServerConnectivityErrorMessageTest {
                                        .buildWithDefaults(AttributeMap.builder().put(TRUST_ALL_CERTIFICATES, true).build());
     }
 
-    private Throwable captureException() {
+    private Throwable captureException(RequestParams requestParams) {
         try {
-            sendGetRequest().get(10, TimeUnit.SECONDS);
+            sendCustomRequest(requestParams).get(10, TimeUnit.SECONDS);
         } catch (InterruptedException | TimeoutException e) {
             throw new Error(e);
         } catch (ExecutionException e) {
@@ -137,7 +174,7 @@ public class ServerConnectivityErrorMessageTest {
         throw new AssertionError("Call did not fail as expected.");
     }
 
-    private CompletableFuture<Void> sendGetRequest() {
+    private CompletableFuture<Void> sendCustomRequest(RequestParams requestParams) {
         AsyncExecuteRequest req = AsyncExecuteRequest.builder()
                                                      .responseHandler(new SdkAsyncHttpResponseHandler() {
                                                          private SdkHttpResponse headers;
@@ -158,12 +195,13 @@ public class ServerConnectivityErrorMessageTest {
                                                          }
                                                      })
                                                      .request(SdkHttpFullRequest.builder()
-                                                                                .method(SdkHttpMethod.GET)
+                                                                                .method(requestParams.httpMethod())
                                                                                 .protocol("https")
                                                                                 .host("localhost")
+                                                                                .headers(requestParams.headersMap())
                                                                                 .port(server.port())
                                                                                 .build())
-                                                     .requestContentPublisher(new EmptyPublisher())
+                                                     .requestContentPublisher(requestParams.contentPublisher())
                                                      .build();
 
         return netty.execute(req);
@@ -198,12 +236,91 @@ public class ServerConnectivityErrorMessageTest {
         DURING_RESPONSE_PAYLOAD
     }
 
+    private static class ServerConfig {
+        private final HttpResponseStatus httpResponseStatus;
+        public static Builder builder(){
+            return new Builder();
+        }
+        private ServerConfig(Builder builder) {
+            this.httpResponseStatus = builder.httpResponseStatus;
+        }
+        public static class Builder {
+            private HttpResponseStatus httpResponseStatus;
+            public Builder httpResponseStatus(HttpResponseStatus httpResponseStatus){
+                this.httpResponseStatus = httpResponseStatus;
+                return this;
+            }
+            public ServerConfig build() {
+                return new ServerConfig(this);
+            }
+        }
+    }
+
+    private static class RequestParams{
+        private final SdkHttpMethod httpMethod;
+        private final SdkHttpContentPublisher contentPublisher;
+        private final Map<String, List<String>> headersMap;
+
+        public RequestParams(SdkHttpMethod httpMethod, SdkHttpContentPublisher contentPublisher,
+                             Map<String, List<String>> headersMap) {
+            this.httpMethod = httpMethod;
+            this.contentPublisher = contentPublisher;
+            this.headersMap = headersMap;
+        }
+
+        public SdkHttpMethod httpMethod() {
+            return httpMethod;
+        }
+
+        public Map<String, List<String>> headersMap() {
+            return headersMap;
+        }
+
+        public SdkHttpContentPublisher contentPublisher() {
+            return contentPublisher;
+        }
+
+        public static Builder builder(){
+            return new Builder();
+        }
+        private static class Builder{
+            private  SdkHttpMethod httpMethod;
+            private  SdkHttpContentPublisher contentPublisher;
+            private Map<String, List<String>> headersMap = new HashMap<>();
+
+            public Builder httpMethod(SdkHttpMethod httpMethod) {
+                this.httpMethod = httpMethod;
+                return this;
+            }
+
+            public Builder contentPublisher(SdkHttpContentPublisher contentPublisher) {
+                this.contentPublisher = contentPublisher;
+                return this;
+            }
+
+            public Builder addHeaderKeyValue(String headerName, List<String> headerValues) {
+                headersMap.put(headerName, headerValues);
+                return this;
+            }
+
+            public RequestParams build(){
+                return new RequestParams(httpMethod, contentPublisher, headersMap);
+
+            }
+        }
+    }
+
     private static class Server extends ChannelInitializer<Channel> {
         private final NioEventLoopGroup group = new NioEventLoopGroup();
         private CloseTime closeTime;
         private ServerBootstrap bootstrap;
         private ServerSocketChannel serverSock;
         private SslContext sslCtx;
+        private ServerConfig serverConfig;
+
+        public Server(ServerConfig serverConfig) {
+            this.serverConfig = serverConfig;
+        }
 
         private void init(CloseTime closeTime) throws Exception {
             SelfSignedCertificate ssc = new SelfSignedCertificate();
@@ -240,7 +357,9 @@ public class ServerConnectivityErrorMessageTest {
             ChannelPipeline pipeline = ch.pipeline();
             pipeline.addLast(new SslHandler(new FaultInjectionSslEngine(sslCtx.newEngine(ch.alloc()), ch), false));
             pipeline.addLast(new HttpServerCodec());
-            pipeline.addLast(new FaultInjectionHttpHandler());
+            FaultInjectionHttpHandler faultInjectionHttpHandler = new FaultInjectionHttpHandler();
+            faultInjectionHttpHandler.setHttpResponseStatus(serverConfig.httpResponseStatus);
+            pipeline.addLast(faultInjectionHttpHandler);
 
             LOGGER.info(() -> "Channel initialized " + ch);
         }
@@ -287,6 +406,13 @@ public class ServerConnectivityErrorMessageTest {
         }
 
         private class FaultInjectionHttpHandler extends SimpleChannelInboundHandler<Object> {
+
+            private HttpResponseStatus httpResponseStatus = HttpResponseStatus.OK;
+
+            public void setHttpResponseStatus(HttpResponseStatus httpResponseStatus) {
+                this.httpResponseStatus = httpResponseStatus;
+            }
+
             @Override
             protected void channelRead0(ChannelHandlerContext ctx, Object msg) {
                 LOGGER.info(() -> "Reading " + msg);
@@ -321,7 +447,7 @@ public class ServerConnectivityErrorMessageTest {
             private void writeResponse(ChannelHandlerContext ctx) {
                 int responseLength = 10 * 1024 * 1024; // 10 MB
                 HttpHeaders headers = new DefaultHttpHeaders().add("Content-Length", responseLength);
-                ctx.writeAndFlush(new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, headers)).addListener(x -> {
+                ctx.writeAndFlush(new DefaultHttpResponse(HttpVersion.HTTP_1_1, this.httpResponseStatus, headers)).addListener(x -> {
                     if (closeTime == CloseTime.BEFORE_RESPONSE_PAYLOAD) {
                         LOGGER.info(() -> "Closing channel before response payload " + ctx.channel());
                         ctx.close();
