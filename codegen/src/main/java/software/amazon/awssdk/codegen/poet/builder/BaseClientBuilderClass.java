@@ -28,6 +28,7 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -271,10 +272,6 @@ public class BaseClientBuilderClass implements ClassSpec {
                                                        ExecutionInterceptor.class),
                              ArrayList.class);
 
-        if (model.getMetadata().isQueryProtocol()) {
-            builder.addStatement("additionalInterceptors.add(new $T())", QueryParametersToBodyInterceptor.class);
-        }
-
         builder.addStatement("interceptors = $T.mergeLists(endpointInterceptors, interceptors)",
                              CollectionUtils.class);
         builder.addStatement("interceptors = $T.mergeLists(interceptors, additionalInterceptors)",
@@ -282,6 +279,16 @@ public class BaseClientBuilderClass implements ClassSpec {
 
         builder.addCode("interceptors = $T.mergeLists(interceptors, config.option($T.EXECUTION_INTERCEPTORS));\n",
                                 CollectionUtils.class, SdkClientOption.class);
+
+        if (model.getMetadata().isQueryProtocol()) {
+            TypeName listType = ParameterizedTypeName.get(List.class, ExecutionInterceptor.class);
+            builder.addStatement("$T protocolInterceptors = $T.singletonList(new $T())",
+                                 listType,
+                                 Collections.class,
+                                 QueryParametersToBodyInterceptor.class);
+            builder.addStatement("interceptors = $T.mergeLists(interceptors, protocolInterceptors)",
+                                 CollectionUtils.class);
+        }
 
         if (model.getEndpointOperation().isPresent()) {
             builder.beginControlFlow("if (!endpointDiscoveryEnabled)")
