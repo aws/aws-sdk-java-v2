@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Proton",
-    "contributor": "",
-    "description": "Add support for sorting and filtering in ListServiceInstances"
-}

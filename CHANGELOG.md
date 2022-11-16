@@ -1,3 +1,68 @@
+# __2.18.19__ __2022-11-16__
+## __AWS Batch__
+  - ### Features
+    - Documentation updates related to Batch on EKS
+
+## __AWS CloudFormation__
+  - ### Features
+    - Added UnsupportedTarget HandlerErrorCode for use with CFN Resource Hooks
+
+## __AWS Comprehend Medical__
+  - ### Features
+    - This release supports new set of entities and traits. It also adds new category (BEHAVIORAL_ENVIRONMENTAL_SOCIAL).
+
+## __AWS IoT TwinMaker__
+  - ### Features
+    - This release adds the following: 1) ExecuteQuery API allows users to query their AWS IoT TwinMaker Knowledge Graph 2) Pricing plan APIs allow users to configure and manage their pricing mode 3) Support for property groups and tabular property values in existing AWS IoT TwinMaker APIs.
+
+## __AWS Proton__
+  - ### Features
+    - Add support for sorting and filtering in ListServiceInstances
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Systems Manager Incident Manager__
+  - ### Features
+    - Add support for PagerDuty integrations on ResponsePlan, IncidentRecord, and RelatedItem APIs
+
+## __AWS Transfer Family__
+  - ### Features
+    - Allow additional operations to throw ThrottlingException
+
+## __AWS X-Ray__
+  - ### Features
+    - This release adds new APIs - PutResourcePolicy, DeleteResourcePolicy, ListResourcePolicies for supporting resource based policies for AWS X-Ray.
+
+## __AWSBillingConductor__
+  - ### Features
+    - This release adds a new feature BillingEntity pricing rule.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds a new MonitorContact API for initiating monitoring of ongoing Voice and Chat contacts.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - for Redis now supports AWS Identity and Access Management authentication access to Redis clusters starting with redis-engine version 7.0
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Adds support for customer-provided placement groups for Kubernetes control plane instances when creating local EKS clusters on Outposts
+
+## __Amazon Personalize Events__
+  - ### Features
+    - This release provides support for creation and use of metric attributions in AWS Personalize
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds support for container databases (CDBs) to Amazon RDS Custom for Oracle. A CDB contains one PDB at creation. You can add more PDBs using Oracle SQL. You can also customize your database installation by setting the Oracle base, Oracle home, and the OS user name and group.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - This release adds support for cross account access in CreateOpsItem, UpdateOpsItem and GetOpsItem. It introduces new APIs to setup resource policies for SSM resources: PutResourcePolicy, GetResourcePolicies and DeleteResourcePolicy.
+
 # __2.18.18__ __2022-11-15__
 ## __AWS IoT Greengrass V2__
   - ### Features
