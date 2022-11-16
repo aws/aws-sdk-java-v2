@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.services.s3.internal.crt;
 
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -136,7 +135,7 @@ public final class CopyObjectHelper {
                                                                                     uploadId,
                                                                                     completedParts,
                                                                                     optimalPartSize);
-        CompletableFutureUtils.allOfCancelForwarded(futures.toArray(new CompletableFuture[0]))
+        CompletableFutureUtils.allOfExceptionForwarded(futures.toArray(new CompletableFuture[0]))
                               .thenCompose(ignore -> {
                                   log.debug(() -> String.format("Sending completeMultipartUploadRequest, uploadId: %s",
                                                                 uploadId));
@@ -192,7 +191,7 @@ public final class CopyObjectHelper {
                                         Throwable throwable) {
         Throwable cause = throwable instanceof CompletionException ? throwable.getCause() : throwable;
 
-        if (cause instanceof SdkException || cause instanceof Error) {
+        if (cause instanceof Error) {
             returnFuture.completeExceptionally(cause);
         } else {
             SdkClientException exception = SdkClientException.create(message.get(),

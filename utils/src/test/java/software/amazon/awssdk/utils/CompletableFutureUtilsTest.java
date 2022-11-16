@@ -138,7 +138,7 @@ public class CompletableFutureUtilsTest {
         completableFutures[0] = new CompletableFuture();
         completableFutures[1] = new CompletableFuture();
 
-        CompletableFuture<Void> resultFuture = CompletableFutureUtils.allOfCancelForwarded(completableFutures);
+        CompletableFuture<Void> resultFuture = CompletableFutureUtils.allOfExceptionForwarded(completableFutures);
         completableFutures[0].completeExceptionally(exception);
 
         assertThatThrownBy(resultFuture::join).hasCause(exception);
@@ -153,7 +153,7 @@ public class CompletableFutureUtilsTest {
         completableFutures[0] = new CompletableFuture();
         completableFutures[1] = new CompletableFuture();
 
-        CompletableFuture<Void> resultFuture = CompletableFutureUtils.allOfCancelForwarded(completableFutures);
+        CompletableFuture<Void> resultFuture = CompletableFutureUtils.allOfExceptionForwarded(completableFutures);
         completableFutures[0].complete("test");
         completableFutures[1].complete("test");
 

@@ -169,19 +169,19 @@ public final class CompletableFutureUtils {
     /**
      * Similar to {@link CompletableFuture#allOf(CompletableFuture[])}, but
      * when any future is completed exceptionally, forwards the
-     * cancel to other futures.
+     * exception to other futures.
      *
      * @param futures The futures.
      * @return The new future that is completed when all the futures in {@code
      * futures} are.
      */
-    public static CompletableFuture<Void> allOfCancelForwarded(CompletableFuture<?>[] futures) {
+    public static CompletableFuture<Void> allOfExceptionForwarded(CompletableFuture<?>[] futures) {
 
         CompletableFuture<Void> anyFail = anyFail(futures);
 
         anyFail.whenComplete((r, t) -> {
             for (CompletableFuture<?> cf : futures) {
-                cf.cancel(true);
+                cf.completeExceptionally(t);
             }
         });
 
@@ -202,7 +202,7 @@ public final class CompletableFutureUtils {
         for (CompletableFuture<?> future : futures) {
             future.whenComplete((r, t) -> {
                 if (t != null) {
-                    completableFuture.complete(null);
+                    completableFuture.completeExceptionally(t);
                 }
             });
         }
