@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Transfer Family",
+    "contributor": "",
+    "description": "Allow additional operations to throw ThrottlingException"
+}
