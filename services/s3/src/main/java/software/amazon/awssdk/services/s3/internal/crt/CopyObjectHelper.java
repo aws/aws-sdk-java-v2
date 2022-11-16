@@ -222,7 +222,12 @@ public final class CopyObjectHelper {
 
             CompletableFuture<CompletedPart> convertFuture =
                 uploadPartCopyFuture.thenApply(uploadPartCopyResponse -> {
+
                     CopyPartResult copyPartResult = uploadPartCopyResponse.copyPartResult();
+                    if (copyPartResult == null) {
+                        log.info(() -> "copyPartResult is null " + uploadPartCopyResponse.sdkHttpResponse().statusCode() +
+                                       " " + uploadPartCopyResponse.sdkHttpResponse().headers());
+                    }
                     CompletedPart completedPart =
                         CopyRequestConversionUtils.toCompletedPart(copyPartResult,
                                                                    partNumber);

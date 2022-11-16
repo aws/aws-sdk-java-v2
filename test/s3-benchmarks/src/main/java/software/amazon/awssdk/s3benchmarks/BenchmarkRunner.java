@@ -60,10 +60,11 @@ public class BenchmarkRunner {
 
         CommandLine cmd = parser.parse(options, args);
         TransferManagerBenchmarkConfig config = parseConfig(cmd);
-        TransferManagerOperation operation = TransferManagerOperation.valueOf(cmd.getOptionValue(OPERATION)
-                                                                                 .toUpperCase(Locale.ENGLISH));
+
         SdkVersion version = SdkVersion.valueOf(cmd.getOptionValue(VERSION, "V2")
                                                    .toUpperCase(Locale.ENGLISH));
+
+        TransferManagerOperation operation = config.operation();
 
         if (operation == TransferManagerOperation.UPLOAD) {
             switch (version) {
@@ -94,10 +95,26 @@ public class BenchmarkRunner {
             }
         }
 
+        if (operation == TransferManagerOperation.COPY) {
+            switch (version) {
+                case V1:
+                    TransferManagerBenchmark.v1Copy(config).run();
+                    return;
+                case V2:
+                    TransferManagerBenchmark.copy(config).run();
+                    return;
+                default:
+                    throw new UnsupportedOperationException();
+            }
+        }
+
         throw new UnsupportedOperationException("Unsupported operation");
     }
 
     private static TransferManagerBenchmarkConfig parseConfig(CommandLine cmd) {
+        TransferManagerOperation operation = TransferManagerOperation.valueOf(cmd.getOptionValue(OPERATION)
+                                                                                 .toUpperCase(Locale.ENGLISH));
+
         String filePath = cmd.getOptionValue(FILE);
         String bucket = cmd.getOptionValue(BUCKET);
         String key = cmd.getOptionValue(KEY);
@@ -128,12 +145,14 @@ public class BenchmarkRunner {
                                              .readBufferSizeInMb(readBufferInMB)
                                              .filePath(filePath)
                                              .iteration(iteration)
+                                             .operation(operation)
                                              .build();
     }
 
-    private enum TransferManagerOperation {
+    public enum TransferManagerOperation {
         DOWNLOAD,
-        UPLOAD
+        UPLOAD,
+        COPY
     }
 
     private enum SdkVersion {

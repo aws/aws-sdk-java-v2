@@ -25,6 +25,7 @@ public final class BenchmarkUtils {
     static final int PRE_WARMUP_RUNS = 20;
     static final int BENCHMARK_ITERATIONS = 10;
     static final String WARMUP_KEY = "warmupobject";
+    static final String COPY_SUFFIX = "_copy";
 
     private static final Logger logger = Logger.loggerFor("TransferManagerBenchmark");
 

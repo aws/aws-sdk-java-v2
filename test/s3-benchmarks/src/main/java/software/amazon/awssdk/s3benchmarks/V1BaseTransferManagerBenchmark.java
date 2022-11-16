@@ -16,6 +16,7 @@
 package software.amazon.awssdk.s3benchmarks;
 
 import static software.amazon.awssdk.s3benchmarks.BenchmarkUtils.BENCHMARK_ITERATIONS;
+import static software.amazon.awssdk.s3benchmarks.BenchmarkUtils.COPY_SUFFIX;
 import static software.amazon.awssdk.s3benchmarks.BenchmarkUtils.PRE_WARMUP_ITERATIONS;
 import static software.amazon.awssdk.s3benchmarks.BenchmarkUtils.PRE_WARMUP_RUNS;
 import static software.amazon.awssdk.s3benchmarks.BenchmarkUtils.WARMUP_KEY;
@@ -25,6 +26,7 @@ import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.transfer.Copy;
 import com.amazonaws.services.s3.transfer.Download;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
@@ -55,7 +57,9 @@ abstract class V1BaseTransferManagerBenchmark implements TransferManagerBenchmar
 
     V1BaseTransferManagerBenchmark(TransferManagerBenchmarkConfig config) {
         logger.info(() -> "Benchmark config: " + config);
-        Validate.notNull(config.filePath(), "File path must not be null");
+        if (config.operation() != BenchmarkRunner.TransferManagerOperation.COPY) {
+            Validate.notNull(config.filePath(), "File path must not be null");
+        }
         Long partSizeInMb = config.partSizeInMb() == null ? null : config.partSizeInMb() * MB;
         s3Client = AmazonS3Client.builder()
                                  .withClientConfiguration(new ClientConfiguration().withMaxConnections(MAX_CONCURRENCY))
@@ -82,12 +86,17 @@ abstract class V1BaseTransferManagerBenchmark implements TransferManagerBenchmar
     public void run() {
         try {
             warmUp();
+            additionalWarmup();
             doRunBenchmark();
         } catch (Exception e) {
             logger.error(() -> "Exception occurred", e);
         } finally {
             cleanup();
         }
+    }
+
+    protected void additionalWarmup() {
+        // default to no-op
     }
 
     protected abstract void doRunBenchmark();
@@ -104,6 +113,7 @@ abstract class V1BaseTransferManagerBenchmark implements TransferManagerBenchmar
         for (int i = 0; i < PRE_WARMUP_ITERATIONS; i++) {
             warmUpUploadBatch();
             warmUpDownloadBatch();
+            warmUpCopyBatch();
 
             try {
                 Thread.sleep(500);
@@ -113,6 +123,22 @@ abstract class V1BaseTransferManagerBenchmark implements TransferManagerBenchmar
             }
         }
         logger.info(() -> "Ending warm up");
+    }
+
+    private void warmUpCopyBatch() {
+        List<Copy> uploads = new ArrayList<>();
+        for (int i = 0; i < 3; i++) {
+            uploads.add(transferManager.copy(bucket, WARMUP_KEY, bucket, WARMUP_KEY + COPY_SUFFIX));
+        }
+
+        uploads.forEach(u -> {
+            try {
+                u.waitForCopyResult();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                logger.error(() -> "Thread interrupted ", e);
+            }
+        });
     }
 
     private void warmUpDownloadBatch() {

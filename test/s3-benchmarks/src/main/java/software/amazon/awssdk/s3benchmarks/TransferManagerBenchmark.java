@@ -34,12 +34,20 @@ public interface TransferManagerBenchmark {
         return new TransferManagerUploadBenchmark(config);
     }
 
+    static TransferManagerBenchmark copy(TransferManagerBenchmarkConfig config) {
+        return new TransferManagerCopyBenchmark(config);
+    }
+
     static TransferManagerBenchmark v1Download(TransferManagerBenchmarkConfig config) {
         return new V1TransferManagerDownloadBenchmark(config);
     }
 
     static TransferManagerBenchmark v1Upload(TransferManagerBenchmarkConfig config) {
         return new V1TransferManagerUploadBenchmark(config);
+    }
+
+    static TransferManagerBenchmark v1Copy(TransferManagerBenchmarkConfig config) {
+        return new V1TransferManagerCopyBenchmark(config);
     }
 
 }
