@@ -23,37 +23,37 @@ import java.util.List;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
-public class V1TransferManagerUploadBenchmark extends V1BaseTransferManagerBenchmark {
-    private static final Logger logger = Logger.loggerFor("V1TransferManagerUploadBenchmark");
+public class V1TransferManagerUploadDirectoryBenchmark extends V1BaseTransferManagerBenchmark {
+    private static final Logger logger = Logger.loggerFor("V1TransferManagerUploadDirectoryBenchmark");
+    private final TransferManagerBenchmarkConfig config;
     private final File sourceFile;
 
-    V1TransferManagerUploadBenchmark(TransferManagerBenchmarkConfig config) {
+    V1TransferManagerUploadDirectoryBenchmark(TransferManagerBenchmarkConfig config) {
         super(config);
-        Validate.notNull(config.key(), "Key must not be null");
         Validate.notNull(config.filePath(), "File path must not be null");
         sourceFile = new File(path);
+        this.config = config;
     }
 
     @Override
     protected void doRunBenchmark() {
-        uploadFile();
+        upload();
     }
 
-    private void uploadFile() {
+    private void upload() {
         List<Double> metrics = new ArrayList<>();
-        logger.info(() -> "Starting to upload");
+        logger.info(() -> "Starting to upload directory");
         for (int i = 0; i < iteration; i++) {
             uploadOnce(metrics);
         }
-        long contentLength = sourceFile.length();
-        printOutResult(metrics, "TM v1 Upload File", contentLength);
+        printOutResult(metrics, "TM v1 Upload Directory");
     }
 
     private void uploadOnce(List<Double> latencies) {
         long start = System.currentTimeMillis();
 
         try {
-            transferManager.upload(bucket, key, sourceFile).waitForCompletion();
+            transferManager.uploadDirectory(bucket, config.prefix(), sourceFile, true).waitForCompletion();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             logger.warn(() -> "Thread interrupted when waiting for completion", e);

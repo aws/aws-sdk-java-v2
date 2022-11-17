@@ -27,6 +27,8 @@ public final class TransferManagerBenchmarkConfig {
     private final Integer iteration;
 
     private final Long readBufferSizeInMb;
+    private final BenchmarkRunner.TransferManagerOperation operation;
+    private String prefix;
 
     private TransferManagerBenchmarkConfig(Builder builder) {
         this.filePath = builder.filePath;
@@ -37,6 +39,8 @@ public final class TransferManagerBenchmarkConfig {
         this.checksumAlgorithm = builder.checksumAlgorithm;
         this.iteration = builder.iteration;
         this.readBufferSizeInMb = builder.readBufferSizeInMb;
+        this.operation = builder.operation;
+        this.prefix = builder.prefix;
     }
 
     public String filePath() {
@@ -71,6 +75,14 @@ public final class TransferManagerBenchmarkConfig {
         return readBufferSizeInMb;
     }
 
+    public BenchmarkRunner.TransferManagerOperation operation() {
+        return operation;
+    }
+
+    public String prefix() {
+        return prefix;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -86,6 +98,7 @@ public final class TransferManagerBenchmarkConfig {
                ", checksumAlgorithm: " + checksumAlgorithm +
                ", iteration: " + iteration +
                ", readBufferSizeInMb: " + readBufferSizeInMb +
+               ", operation: " + operation +
                '}';
     }
 
@@ -99,6 +112,8 @@ public final class TransferManagerBenchmarkConfig {
         private Long partSizeInMb;
 
         private Integer iteration;
+        private BenchmarkRunner.TransferManagerOperation operation;
+        private String prefix;
 
         public Builder filePath(String filePath) {
             this.filePath = filePath;
@@ -135,13 +150,24 @@ public final class TransferManagerBenchmarkConfig {
             return this;
         }
 
+        public Builder operation(BenchmarkRunner.TransferManagerOperation operation) {
+            this.operation = operation;
+            return this;
+        }
+
         public Builder readBufferSizeInMb(Long readBufferSizeInMb) {
             this.readBufferSizeInMb = readBufferSizeInMb;
+            return this;
+        }
+
+        public Builder prefix(String prefix) {
+            this.prefix = prefix;
             return this;
         }
 
         public TransferManagerBenchmarkConfig build() {
             return new TransferManagerBenchmarkConfig(this);
         }
+
     }
 }

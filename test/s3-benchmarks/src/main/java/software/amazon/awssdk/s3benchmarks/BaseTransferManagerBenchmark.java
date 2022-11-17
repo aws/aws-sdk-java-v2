@@ -16,6 +16,7 @@
 package software.amazon.awssdk.s3benchmarks;
 
 import static software.amazon.awssdk.s3benchmarks.BenchmarkUtils.BENCHMARK_ITERATIONS;
+import static software.amazon.awssdk.s3benchmarks.BenchmarkUtils.COPY_SUFFIX;
 import static software.amazon.awssdk.s3benchmarks.BenchmarkUtils.WARMUP_KEY;
 import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
 import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
@@ -74,7 +75,7 @@ public abstract class BaseTransferManagerBenchmark implements TransferManagerBen
         path = config.filePath();
         iteration = config.iteration() == null ? BENCHMARK_ITERATIONS : config.iteration();
         try {
-            file = new RandomTempFile(1024 * 1000L);
+            file = new RandomTempFile(10 * MB);
             file.deleteOnExit();
         } catch (IOException e) {
             logger.error(() -> "Failed to create the file");
@@ -110,6 +111,13 @@ public abstract class BaseTransferManagerBenchmark implements TransferManagerBen
             logger.error(() -> "Failed to delete object: " + WARMUP_KEY);
         }
 
+        String copyObject = WARMUP_KEY + COPY_SUFFIX;
+        try {
+            s3Sync.deleteObject(b -> b.bucket(bucket).key(copyObject));
+        } catch (Exception exception) {
+            logger.error(() -> "Failed to delete object: " + copyObject);
+        }
+
         s3.close();
         s3Sync.close();
         transferManager.close();
@@ -121,11 +129,26 @@ public abstract class BaseTransferManagerBenchmark implements TransferManagerBen
         for (int i = 0; i < WARMUP_ITERATIONS; i++) {
             warmUpUploadBatch();
             warmUpDownloadBatch();
+            warmUpCopyBatch();
 
             Thread.sleep(500);
         }
         additionalWarmup();
         logger.info(() -> "Ending warm up");
+    }
+
+    private void warmUpCopyBatch() {
+        List<CompletableFuture<?>> futures = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            futures.add(transferManager.copy(
+                                           c -> c.copyObjectRequest(r -> r.sourceKey(WARMUP_KEY)
+                                                                          .sourceBucket(bucket)
+                                                                          .destinationKey(WARMUP_KEY + "_copy")
+                                                                          .destinationBucket(bucket)))
+                                       .completionFuture());
+        }
+
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[0])).join();
     }
 
     private void warmUpDownloadBatch() {

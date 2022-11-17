@@ -32,6 +32,7 @@ public class TransferManagerUploadBenchmark extends BaseTransferManagerBenchmark
 
     public TransferManagerUploadBenchmark(TransferManagerBenchmarkConfig config) {
         super(config);
+        Validate.notNull(config.key(), "Key must not be null");
         Validate.notNull(config.filePath(), "File path must not be null");
         this.config = config;
     }

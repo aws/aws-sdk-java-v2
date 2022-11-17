@@ -25,6 +25,7 @@ public final class BenchmarkUtils {
     static final int PRE_WARMUP_RUNS = 20;
     static final int BENCHMARK_ITERATIONS = 10;
     static final String WARMUP_KEY = "warmupobject";
+    static final String COPY_SUFFIX = "_copy";
 
     private static final Logger logger = Logger.loggerFor("TransferManagerBenchmark");
 
@@ -48,6 +49,24 @@ public final class BenchmarkUtils {
         logger.info(() -> "Object size (Gigabit): " + contentLengthInGigabit);
         logger.info(() -> "Average throughput (Gbps): " + contentLengthInGigabit / averageLatency);
         logger.info(() -> "Highest average throughput (Gbps): " + contentLengthInGigabit / lowestLatency);
+        logger.info(() -> "==========================================================");
+    }
+
+    public static void printOutResult(List<Double> metrics, String name) {
+        logger.info(() -> String.format("===============  %s Result ================", name));
+        logger.info(() -> String.valueOf(metrics));
+        double averageLatency = metrics.stream()
+                                       .mapToDouble(a -> a)
+                                       .average()
+                                       .orElse(0.0);
+
+        double lowestLatency = metrics.stream()
+                                      .mapToDouble(a -> a)
+                                      .min()
+                                      .orElse(0.0);
+
+        logger.info(() -> "Average latency (s): " + averageLatency);
+        logger.info(() -> "Lowest latency (s): " + lowestLatency);
         logger.info(() -> "==========================================================");
     }
 }

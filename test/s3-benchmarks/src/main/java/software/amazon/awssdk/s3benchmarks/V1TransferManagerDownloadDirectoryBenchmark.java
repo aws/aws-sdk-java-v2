@@ -16,49 +16,54 @@
 package software.amazon.awssdk.s3benchmarks;
 
 import static software.amazon.awssdk.s3benchmarks.BenchmarkUtils.printOutResult;
+import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import software.amazon.awssdk.testutils.FileUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
-public class V1TransferManagerUploadBenchmark extends V1BaseTransferManagerBenchmark {
-    private static final Logger logger = Logger.loggerFor("V1TransferManagerUploadBenchmark");
-    private final File sourceFile;
+public class V1TransferManagerDownloadDirectoryBenchmark extends V1BaseTransferManagerBenchmark {
+    private static final Logger logger = Logger.loggerFor("V1TransferManagerDownloadDirectoryBenchmark");
+    private final TransferManagerBenchmarkConfig config;
 
-    V1TransferManagerUploadBenchmark(TransferManagerBenchmarkConfig config) {
+    V1TransferManagerDownloadDirectoryBenchmark(TransferManagerBenchmarkConfig config) {
         super(config);
-        Validate.notNull(config.key(), "Key must not be null");
         Validate.notNull(config.filePath(), "File path must not be null");
-        sourceFile = new File(path);
+        this.config = config;
     }
 
     @Override
     protected void doRunBenchmark() {
-        uploadFile();
+        downloadDirectory();
     }
 
-    private void uploadFile() {
+    private void downloadDirectory() {
         List<Double> metrics = new ArrayList<>();
-        logger.info(() -> "Starting to upload");
+        logger.info(() -> "Starting to download to file");
         for (int i = 0; i < iteration; i++) {
-            uploadOnce(metrics);
+            downloadOnce(metrics);
         }
-        long contentLength = sourceFile.length();
-        printOutResult(metrics, "TM v1 Upload File", contentLength);
+        printOutResult(metrics, "TM v1 Download Directory");
     }
 
-    private void uploadOnce(List<Double> latencies) {
+    private void downloadOnce(List<Double> latencies) {
+        Path downloadPath = new File(this.path).toPath();
         long start = System.currentTimeMillis();
 
         try {
-            transferManager.upload(bucket, key, sourceFile).waitForCompletion();
+            transferManager.downloadDirectory(bucket, config.prefix(), new File(this.path)).waitForCompletion();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             logger.warn(() -> "Thread interrupted when waiting for completion", e);
         }
         long end = System.currentTimeMillis();
         latencies.add((end - start) / 1000.0);
+        runAndLogError(logger.logger(),
+                       "Deleting directory failed " + downloadPath,
+                       () -> FileUtils.cleanUpTestDirectory(downloadPath));
     }
 }

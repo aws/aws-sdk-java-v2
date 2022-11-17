@@ -24,12 +24,15 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Validate;
 
 public class V1TransferManagerDownloadBenchmark extends V1BaseTransferManagerBenchmark {
     private static final Logger logger = Logger.loggerFor("V1TransferManagerDownloadBenchmark");
 
     V1TransferManagerDownloadBenchmark(TransferManagerBenchmarkConfig config) {
         super(config);
+        Validate.notNull(config.key(), "Key must not be null");
+        Validate.notNull(config.filePath(), "File path must not be null");
     }
 
     @Override
@@ -48,11 +51,11 @@ public class V1TransferManagerDownloadBenchmark extends V1BaseTransferManagerBen
     }
 
     private void downloadOnceToFile(List<Double> latencies) {
-        Path downloadPath = new File(this.sourcePath).toPath();
+        Path downloadPath = new File(this.path).toPath();
         long start = System.currentTimeMillis();
 
         try {
-            transferManager.download(bucket, key, new File(this.sourcePath)).waitForCompletion();
+            transferManager.download(bucket, key, new File(this.path)).waitForCompletion();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             logger.warn(() -> "Thread interrupted when waiting for completion", e);
