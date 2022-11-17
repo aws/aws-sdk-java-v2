@@ -773,25 +773,26 @@
             <id>publishing</id>
             <build>
                 <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-enforcer-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>enforce-dual-compile</id>
-                                <goals>
-                                    <goal>enforce</goal>
-                                </goals>
-                                <configuration>
-                                    <rules>
-                                        <requireActiveProfile>
-                                            <profiles>dual-compile</profiles>
-                                        </requireActiveProfile>
-                                    </rules>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
+                    <!-- Enable this if/when desired to ensure Maven releases are JPMS enabled and JRE8 compatible -->
+                    <!-- <plugin> -->
+                    <!--     <groupId>org.apache.maven.plugins</groupId> -->
+                    <!--     <artifactId>maven-enforcer-plugin</artifactId> -->
+                    <!--     <executions> -->
+                    <!--         <execution> -->
+                    <!--             <id>enforce-dual-compile</id> -->
+                    <!--             <goals> -->
+                    <!--                 <goal>enforce</goal> -->
+                    <!--             </goals> -->
+                    <!--             <configuration> -->
+                    <!--                 <rules> -->
+                    <!--                     <requireActiveProfile> -->
+                    <!--                         <profiles>dual-compile</profiles> -->
+                    <!--                     </requireActiveProfile> -->
+                    <!--                 </rules> -->
+                    <!--             </configuration> -->
+                    <!--         </execution> -->
+                    <!--     </executions> -->
+                    <!-- </plugin> -->
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
