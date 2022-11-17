@@ -1,3 +1,404 @@
+# __2.18.20__ __2022-11-17__
+## __AWS Amplify__
+  - ### Features
+    - Adds a new value (WEB_COMPUTE) to the Platform enum that allows customers to create Amplify Apps with Server-Side Rendering support.
+
+## __AWS AppSync__
+  - ### Features
+    - This release introduces the APPSYNC_JS runtime, and adds support for JavaScript in AppSync functions and AppSync pipeline resolvers.
+
+## __AWS Database Migration Service__
+  - ### Features
+    - Adds support for Internet Protocol Version 6 (IPv6) on DMS Replication Instances
+
+## __AWS Lambda__
+  - ### Features
+    - Add Node 18 (nodejs18.x) support to AWS Lambda.
+
+## __AWS S3 Control__
+  - ### Features
+    - Added 34 new S3 Storage Lens metrics to support additional customer use cases.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Provide the contents of stderr as part of the exception in the case of non zero RCs returned from the external process in `ProcessCredentialProvider`. See [#3377](https://github.com/aws/aws-sdk-java-v2/issues/3377)
+    - Stop using execution.interceptors reflective loading for internal interceptors. This will reduce the chance of shading errors.
+    - Updated endpoint and partition metadata.
+
+## __AWS Secrets Manager__
+  - ### Features
+    - Documentation updates for Secrets Manager.
+
+## __AWS Security Token Service__
+  - ### Features
+    - Documentation updates for AWS Security Token Service.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Added SourceLayerArn and SourceLayerHash field for security findings. Updated AwsLambdaFunction Resource detail
+
+## __AWS Service Catalog App Registry__
+  - ### Features
+    - This release adds support for tagged resource associations, which allows you to associate a group of resources with a defined resource tag key and value to the application.
+
+## __Amazon Appflow__
+  - ### Features
+    - AppFlow simplifies the preparation and cataloging of SaaS data into the AWS Glue Data Catalog where your data can be discovered and accessed by AWS analytics and ML services. AppFlow now also supports data field partitioning and file size optimization to improve query performance and reduce cost.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds a new optional parameter "privateIpAddress" for the CreateNatGateway API. PrivateIPAddress will allow customers to select a custom Private IPv4 address instead of having it be auto-assigned.
+
+## __Amazon Interactive Video Service Chat__
+  - ### Features
+    - Adds LoggingConfiguration APIs for IVS Chat - a feature that allows customers to store and record sent messages in a chat room to S3 buckets, CloudWatch logs, or Kinesis firehose.
+
+## __Amazon Personalize__
+  - ### Features
+    - This release provides support for creation and use of metric attributions in AWS Personalize
+
+## __Amazon Polly__
+  - ### Features
+    - Add two new neural voices - Ola (pl-PL) and Hala (ar-AE).
+
+## __Amazon Textract__
+  - ### Features
+    - This release adds support for specifying and extracting information from documents using the Signatures feature within Analyze Document API
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - The release introduces CreateStandbyWorkspaces, an API that allows you to create standby WorkSpaces associated with a primary WorkSpace in another Region. DescribeWorkspaces now includes related WorkSpaces properties. DescribeWorkspaceBundles and CreateWorkspaceBundle now return more bundle details.
+
+## __CloudWatch RUM__
+  - ### Features
+    - CloudWatch RUM now supports custom events. To use custom events, create an app monitor or update an app monitor with CustomEvent Status as ENABLED.
+
+## __EMR Serverless__
+  - ### Features
+    - Adds support for AWS Graviton2 based applications. You can now select CPU architecture when creating new applications or updating existing ones.
+
+## __Elastic Load Balancing__
+  - ### Features
+    - Provides new target group attributes to turn on/off cross zone load balancing and configure target group health for Network Load Balancers and Application Load Balancers. Provides improvements to health check configuration for Network Load Balancers.
+
+# __2.18.19__ __2022-11-16__
+## __AWS Batch__
+  - ### Features
+    - Documentation updates related to Batch on EKS
+
+## __AWS CloudFormation__
+  - ### Features
+    - Added UnsupportedTarget HandlerErrorCode for use with CFN Resource Hooks
+
+## __AWS Comprehend Medical__
+  - ### Features
+    - This release supports new set of entities and traits. It also adds new category (BEHAVIORAL_ENVIRONMENTAL_SOCIAL).
+
+## __AWS IoT TwinMaker__
+  - ### Features
+    - This release adds the following: 1) ExecuteQuery API allows users to query their AWS IoT TwinMaker Knowledge Graph 2) Pricing plan APIs allow users to configure and manage their pricing mode 3) Support for property groups and tabular property values in existing AWS IoT TwinMaker APIs.
+
+## __AWS Proton__
+  - ### Features
+    - Add support for sorting and filtering in ListServiceInstances
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Systems Manager Incident Manager__
+  - ### Features
+    - Add support for PagerDuty integrations on ResponsePlan, IncidentRecord, and RelatedItem APIs
+
+## __AWS Transfer Family__
+  - ### Features
+    - Allow additional operations to throw ThrottlingException
+
+## __AWS X-Ray__
+  - ### Features
+    - This release adds new APIs - PutResourcePolicy, DeleteResourcePolicy, ListResourcePolicies for supporting resource based policies for AWS X-Ray.
+
+## __AWSBillingConductor__
+  - ### Features
+    - This release adds a new feature BillingEntity pricing rule.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds a new MonitorContact API for initiating monitoring of ongoing Voice and Chat contacts.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - for Redis now supports AWS Identity and Access Management authentication access to Redis clusters starting with redis-engine version 7.0
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Adds support for customer-provided placement groups for Kubernetes control plane instances when creating local EKS clusters on Outposts
+
+## __Amazon Personalize Events__
+  - ### Features
+    - This release provides support for creation and use of metric attributions in AWS Personalize
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds support for container databases (CDBs) to Amazon RDS Custom for Oracle. A CDB contains one PDB at creation. You can add more PDBs using Oracle SQL. You can also customize your database installation by setting the Oracle base, Oracle home, and the OS user name and group.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - This release adds support for cross account access in CreateOpsItem, UpdateOpsItem and GetOpsItem. It introduces new APIs to setup resource policies for SSM resources: PutResourcePolicy, GetResourcePolicies and DeleteResourcePolicy.
+
+# __2.18.18__ __2022-11-15__
+## __AWS IoT Greengrass V2__
+  - ### Features
+    - Adds new parent target ARN paramater to CreateDeployment, GetDeployment, and ListDeployments APIs for the new subdeployments feature.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Systems Manager for SAP__
+  - ### Features
+    - AWS Systems Manager for SAP provides simplified operations and management of SAP applications such as SAP HANA. With this release, SAP customers and partners can automate and simplify their SAP system administration tasks such as backup/restore of SAP HANA.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release updates the APIs: UpdateInstanceAttribute, DescribeInstanceAttribute, and ListInstanceAttributes. You can use it to programmatically enable/disable enhanced contact monitoring using attribute type ENHANCED_CONTACT_MONITORING on the specified Amazon Connect instance.
+
+## __Amazon Route 53__
+  - ### Features
+    - Amazon Route 53 now supports the Europe (Spain) Region (eu-south-2) for latency records, geoproximity records, and private DNS for Amazon VPCs in that region.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - This release introduces ModifyCertificateBasedAuthProperties, a new API that allows control of certificate-based auth properties associated with a WorkSpaces directory. The DescribeWorkspaceDirectories API will now additionally return certificate-based auth properties in its responses.
+
+## __Netty NIO Http Client__
+  - ### Bugfixes
+    - Fix for Netty based client request getting stuck if connection is reset after recieveing Http Continue response.
+
+# __2.18.17__ __2022-11-14__
+## __AWS Lake Formation__
+  - ### Features
+    - This release adds a new parameter "Parameters" in the DataLakeSettings.
+
+## __AWS Proton__
+  - ### Features
+    - Add support for CodeBuild Provisioning
+
+## __AWS X-Ray__
+  - ### Features
+    - This release enhances GetServiceGraph API to support new type of edge to represent links between SQS and Lambda in event-driven applications.
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - This release enhances the SearchProfiles API by providing functionality to search for profiles using multiple keys and logical operators.
+
+## __Amazon Managed Blockchain__
+  - ### Features
+    - Updating the API docs data type: NetworkEthereumAttributes, and the operations DeleteNode, and CreateNode to also include the supported Goerli network.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds support for restoring an RDS Multi-AZ DB cluster snapshot to a Single-AZ deployment or a Multi-AZ DB instance deployment.
+
+## __Amazon WorkDocs__
+  - ### Features
+    - Added 2 new document related operations, DeleteDocumentVersion and RestoreDocumentVersions.
+
+# __2.18.16__ __2022-11-11__
+## __AWS Glue__
+  - ### Features
+    - Added links related to enabling job bookmarks.
+
+## __AWS IoT__
+  - ### Features
+    - This release add new api listRelatedResourcesForAuditFinding and new member type IssuerCertificates for Iot device device defender Audit.
+
+## __AWS License Manager__
+  - ### Features
+    - AWS License Manager now supports onboarded Management Accounts or Delegated Admins to view granted licenses aggregated from all accounts in the organization.
+
+## __AWS Marketplace Catalog Service__
+  - ### Features
+    - Added three new APIs to support tagging and tag-based authorization: TagResource, UntagResource, and ListTagsForResource. Added optional parameters to the StartChangeSet API to support tagging a resource while making a request to create it.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Documentation updates for Security Hub
+
+## __AWS Systems Manager Incident Manager__
+  - ### Features
+    - RelatedItems now have an ID field which can be used for referencing them else where. Introducing event references in TimelineEvent API and increasing maximum length of "eventData" to 12K characters.
+
+## __Amazon Rekognition__
+  - ### Features
+    - Adding support for ImageProperties feature to detect dominant colors and image brightness, sharpness, and contrast, inclusion and exclusion filters for labels and label categories, new fields to the API response, "aliases" and "categories"
+
+# __2.18.15__ __2022-11-10__
+## __AWS Resource Explorer__
+  - ### Features
+    - Text only updates to some Resource Explorer descriptions.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release adds support for task scale-in protection with updateTaskProtection and getTaskProtection APIs. UpdateTaskProtection API can be used to protect a service managed task from being terminated by scale-in events and getTaskProtection API to get the scale-in protection status of a task.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds a new price capacity optimized allocation strategy for Spot Instances to help customers optimize provisioning of Spot Instances via EC2 Auto Scaling, EC2 Fleet, and Spot Fleet. It allocates Spot Instances based on both spare capacity availability and Spot Instance price.
+
+## __Amazon Elasticsearch Service__
+  - ### Features
+    - Amazon OpenSearch Service now offers managed VPC endpoints to connect to your Amazon OpenSearch Service VPC-enabled domain in a Virtual Private Cloud (VPC). This feature allows you to privately access OpenSearch Service domain without using public IPs or requiring traffic to traverse the Internet.
+
+## __Amazon EventBridge Scheduler__
+  - ### Features
+    - AWS introduces the new Amazon EventBridge Scheduler. EventBridge Scheduler is a serverless scheduler that allows you to create, run, and manage tasks from one central, managed service.
+
+## __Auto Scaling__
+  - ### Features
+    - This release adds a new price capacity optimized allocation strategy for Spot Instances to help customers optimize provisioning of Spot Instances via EC2 Auto Scaling, EC2 Fleet, and Spot Fleet. It allocates Spot Instances based on both spare capacity availability and Spot Instance price.
+
+# __2.18.14__ __2022-11-09__
+## __AWS Elemental MediaPackage VOD__
+  - ### Features
+    - This release adds "IncludeIframeOnlyStream" for Dash endpoints.
+
+## __AWS Ground Station__
+  - ### Features
+    - This release adds the preview of customer-provided ephemeris support for AWS Ground Station, allowing space vehicle owners to provide their own position and trajectory information for a satellite.
+
+## __Amazon Connect Cases__
+  - ### Features
+    - This release adds the ability to disable templates through the UpdateTemplate API. Disabling templates prevents customers from creating cases using the template. For more information see https://docs.aws.amazon.com/cases/latest/APIReference/Welcome.html
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds new fields SignInUrl, UserArn, and UserId to GetFederationToken response payload.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon EC2 Trn1 instances, powered by AWS Trainium chips, are purpose built for high-performance deep learning training. u-24tb1.112xlarge and u-18tb1.112xlarge High Memory instances are purpose-built to run large in-memory databases.
+
+## __Amazon Transcribe Streaming Service__
+  - ### Features
+    - This will release hi-IN and th-TH
+
+# __2.18.13__ __2022-11-08__
+## __AWS Certificate Manager__
+  - ### Features
+    - Support added for requesting elliptic curve certificate key algorithm types P-256 (EC_prime256v1) and P-384 (EC_secp384r1).
+
+## __AWS Resource Explorer__
+  - ### Features
+    - This is the initial SDK release for AWS Resource Explorer. AWS Resource Explorer lets your users search for and discover your AWS resources across the AWS Regions in your account.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWSBillingConductor__
+  - ### Features
+    - This release adds the Recurring Custom Line Item feature along with a new API ListCustomLineItemVersions.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release enables sharing of EC2 Placement Groups across accounts and within AWS Organizations using Resource Access Manager
+
+## __Amazon Lightsail__
+  - ### Features
+    - This release adds support for Amazon Lightsail to automate the delegation of domains registered through Amazon Route 53 to Lightsail DNS management and to automate record creation for DNS validation of Lightsail SSL/TLS certificates.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - Amazon OpenSearch Service now offers managed VPC endpoints to connect to your Amazon OpenSearch Service VPC-enabled domain in a Virtual Private Cloud (VPC). This feature allows you to privately access OpenSearch Service domain without using public IPs or requiring traffic to traverse the Internet.
+
+## __Amazon Polly__
+  - ### Features
+    - Amazon Polly adds new voices: Elin (sv-SE), Ida (nb-NO), Laura (nl-NL) and Suvi (fi-FI). They are available as neural voices only.
+
+## __Amazon Route 53__
+  - ### Features
+    - Amazon Route 53 now supports the Europe (Zurich) Region (eu-central-2) for latency records, geoproximity records, and private DNS for Amazon VPCs in that region.
+
+## __Firewall Management Service__
+  - ### Features
+    - AWS Firewall Manager now supports importing existing AWS Network Firewall firewalls into Firewall Manager policies.
+
+# __2.18.12__ __2022-11-07__
+## __AWS CloudTrail__
+  - ### Features
+    - This release includes support for configuring a delegated administrator to manage an AWS Organizations organization CloudTrail trails and event data stores, and AWS Key Management Service encryption of CloudTrail Lake event data stores.
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - The AWS Elemental MediaConvert SDK has added support for setting the SDR reference white point for HDR conversions and conversion of HDR10 to DolbyVision without mastering metadata.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - The SSOCredentialProvider should resolve to SSO Token Provider if the profile has sso_session property defined in it.
+    - Updated endpoint and partition metadata.
+
+## __AWS WAFV2__
+  - ### Features
+    - The geo match statement now adds labels for country and region. You can match requests at the region level by combining a geo match statement with label match statements.
+
+## __AWS Well-Architected Tool__
+  - ### Features
+    - This release adds support for integrations with AWS Trusted Advisor and AWS Service Catalog AppRegistry to improve workload discovery and speed up your workload reviews.
+
+## __Amazon Athena__
+  - ### Features
+    - Adds support for using Query Result Reuse
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Added support for IPv6 and dual stack for Memcached and Redis clusters. Customers can now launch new Redis and Memcached clusters with IPv6 and dual stack networking support.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for two new attributes for attribute-based instance type selection - NetworkBandwidthGbps and AllowedInstanceTypes.
+
+## __Amazon Lex Model Building V2__
+  - ### Features
+    - Amazon Lex now supports new APIs for viewing and editing Custom Vocabulary in bots.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - This release includes support for applying a CloudWatch alarm to multi account multi region Systems Manager Automation
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - This release adds protocols attribute to workspaces properties data type. This enables customers to migrate workspaces from PC over IP (PCoIP) to WorkSpaces Streaming Protocol (WSP) using create and modify workspaces public APIs.
+
+## __Auto Scaling__
+  - ### Features
+    - This release adds support for two new attributes for attribute-based instance type selection - NetworkBandwidthGbps and AllowedInstanceTypes.
+
+# __2.18.11__ __2022-11-04__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Doc-only update for bug fixes and support of export to buckets encrypted with SSE-KMS
+
+## __Amazon EMR Containers__
+  - ### Features
+    - Adding support for Job templates. Job templates allow you to create and store templates to configure Spark applications parameters. This helps you ensure consistent settings across applications by reusing and enforcing configuration overrides in data pipelines.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds API support for the recipient of an AMI account share to remove shared AMI launch permissions.
+
 # __2.18.10__ __2022-11-03__
 ## __AWS SDK for Java v2__
   - ### Bugfixes

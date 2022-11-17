@@ -419,7 +419,8 @@
         "en-ZA",
         "ca-ES",
         "de-AT",
-        "yue-CN"
+        "yue-CN",
+        "ar-AE"
       ]
     },
     "LanguageCodeList":{
@@ -1084,7 +1085,13 @@
         "Liam",
         "Pedro",
         "Kajal",
-        "Hiujin"
+        "Hiujin",
+        "Laura",
+        "Elin",
+        "Ida",
+        "Suvi",
+        "Ola",
+        "Hala"
       ]
     },
     "VoiceList":{

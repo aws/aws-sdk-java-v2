@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.http.nio.netty.internal.nrs;
 
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.STREAMING_COMPLETE_KEY;
+
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -30,6 +32,7 @@ import java.util.Queue;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.http.nio.netty.internal.utils.NettyClientLogger;
 
 /**
  * This class contains source imported from https://github.com/playframework/netty-reactive-streams,
@@ -42,6 +45,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 @SdkInternalApi
 abstract class HttpStreamsHandler<InT extends HttpMessage, OutT extends HttpMessage> extends ChannelDuplexHandler {
 
+    private static final NettyClientLogger logger = NettyClientLogger.getLogger(HttpStreamsHandler.class);
     private final Queue<Outgoing> outgoing = new LinkedList<>();
     private final Class<InT> inClass;
     private final Class<OutT> outClass;
@@ -209,11 +213,16 @@ abstract class HttpStreamsHandler<InT extends HttpMessage, OutT extends HttpMess
     }
 
     private void handleReadHttpContent(ChannelHandlerContext ctx, HttpContent content) {
+        boolean lastHttpContent = content instanceof LastHttpContent;
+        if (lastHttpContent) {
+            logger.debug(ctx.channel(),
+                         () -> "Received LastHttpContent " + ctx.channel() + " with ignoreBodyRead as " + ignoreBodyRead);
+            ctx.channel().attr(STREAMING_COMPLETE_KEY).set(true);
+        }
         if (!ignoreBodyRead) {
-            if (content instanceof LastHttpContent) {
-
+            if (lastHttpContent) {
                 if (content.content().readableBytes() > 0 ||
-                        !((LastHttpContent) content).trailingHeaders().isEmpty()) {
+                    !((LastHttpContent) content).trailingHeaders().isEmpty()) {
                     // It has data or trailing headers, send them
                     ctx.fireChannelRead(content);
                 } else {
@@ -230,7 +239,7 @@ abstract class HttpStreamsHandler<InT extends HttpMessage, OutT extends HttpMess
 
         } else {
             ReferenceCountUtil.release(content);
-            if (content instanceof LastHttpContent) {
+            if (lastHttpContent) {
                 ignoreBodyRead = false;
                 if (currentlyStreamedMessage != null) {
                     removeHandlerIfActive(ctx, ctx.name() + "-body-publisher");

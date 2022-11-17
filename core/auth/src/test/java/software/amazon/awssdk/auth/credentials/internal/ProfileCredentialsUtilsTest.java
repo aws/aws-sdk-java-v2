@@ -19,15 +19,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.credentials.ProcessCredentialsProviderTest;
+import software.amazon.awssdk.core.checksums.Algorithm;
+import software.amazon.awssdk.core.checksums.SdkChecksum;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.utils.StringInputStream;
@@ -37,7 +44,7 @@ public class ProfileCredentialsUtilsTest {
 
     @BeforeAll
     public static void setup()  {
-        scriptLocation = ProcessCredentialsProviderTest.copyProcessCredentialsScript();
+        scriptLocation = ProcessCredentialsProviderTest.copyHappyCaseProcessCredentialsScript();
     }
 
     @AfterAll
@@ -205,6 +212,60 @@ public class ProfileCredentialsUtilsTest {
                   .hasMessageContaining("Invalid profile file: Circular relationship detected with profiles");
     }
 
+    private static Stream<Arguments> roleProfileWithIncompleteSsoRoleNameSSOCredentialsProperties() {
+        return Stream.of(
+            // No sso_region
+            Arguments.of(configFile("[profile test]\n" +
+                                    "sso_account_id=accountId\n" +
+                                    "sso_role_name=roleName\n" +
+                                    "sso_start_url=https//d-abc123.awsapps.com/start"),
+                         "Profile property 'sso_region' was not configured for 'test'"),
+            // No sso_account_id
+            Arguments.of(configFile("[profile test]\n" +
+                                    "sso_region=region\n" +
+                                    "sso_role_name=roleName\n" +
+                                    "sso_start_url=https//d-abc123.awsapps.com/start"),
+                         "Profile property 'sso_account_id' was not configured for 'test'"),
+            // No sso_start_url
+            Arguments.of(configFile("[profile test]\n" +
+                                    "sso_account_id=accountId\n" +
+                                    "sso_region=region\n" +
+                                    "sso_role_name=roleName\n" +
+                                    "sso_region=region"),
+                         "Profile property 'sso_start_url' was not configured for 'test'"),
+            // No sso_role_name
+            Arguments.of(configFile("[profile test]\n" +
+                                    "sso_account_id=accountId\n" +
+                                    "sso_region=region\n" +
+                                    "sso_start_url=https//d-abc123.awsapps.com/start"),
+                         "Profile property 'sso_role_name' was not configured for 'test'"),
+            // sso_session with No sso_account_id
+            Arguments.of(configFile("[profile test]\n" +
+                                    "sso_session=session\n" +
+                                    "sso_role_name=roleName"),
+                         "Profile property 'sso_account_id' was not configured for 'test'"),
+            // sso_session with No sso_role_name
+            Arguments.of(configFile("[profile test]\n" +
+                                    "sso_session=session\n" +
+                                    "sso_account_id=accountId\n" +
+                                    "sso_start_url=https//d-abc123.awsapps.com/start"),
+                         "Profile property 'sso_role_name' was not configured for 'test'"),
+            Arguments.of(configFile("[profile test]\n" +
+                                    "sso_session=session"),
+                         "Profile property 'sso_account_id' was not configured for 'test'")
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("roleProfileWithIncompleteSsoRoleNameSSOCredentialsProperties")
+    void validateCheckSumValues(ProfileFile profiles, String expectedValue) {
+        assertThat(profiles.profile("test")).hasValueSatisfying(profile -> {
+            ProfileCredentialsUtils profileCredentialsUtils = new ProfileCredentialsUtils(profiles, profile, profiles::profile);
+            assertThatThrownBy(profileCredentialsUtils::credentialsProvider)
+                .hasMessageContaining(expectedValue);
+        });
+    }
+
     @Test
     public void profileWithBothCredentialSourceAndSourceProfileThrowsException() {
         ProfileFile configFile = configFile("[profile test]\n" +
@@ -279,7 +340,7 @@ public class ProfileCredentialsUtilsTest {
                           "role_arn=arn:aws:iam::123456789012:role/testRole\n");
     }
 
-    private ProfileFile configFile(String configFile) {
+    private static ProfileFile configFile(String configFile) {
         return ProfileFile.builder()
                           .content(new StringInputStream(configFile))
                           .type(ProfileFile.Type.CONFIGURATION)
