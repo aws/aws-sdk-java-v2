@@ -97,7 +97,7 @@ public final class BenchmarkRunner {
                 benchmark = OPERATION_TO_BENCHMARK_V1.get(operation).apply(config);
                 break;
             case V2:
-                benchmark =OPERATION_TO_BENCHMARK_V2.get(operation).apply(config);
+                benchmark = OPERATION_TO_BENCHMARK_V2.get(operation).apply(config);
                 break;
             case CRT:
                 if (operation == TransferManagerOperation.DOWNLOAD) {

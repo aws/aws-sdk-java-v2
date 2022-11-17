@@ -40,7 +40,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.utils.Logger;
-import software.amazon.awssdk.utils.Validate;
 
 abstract class V1BaseTransferManagerBenchmark implements TransferManagerBenchmark {
     private static final int MAX_CONCURRENCY = 100;
