@@ -1,3 +1,86 @@
+# __2.18.20__ __2022-11-17__
+## __AWS Amplify__
+  - ### Features
+    - Adds a new value (WEB_COMPUTE) to the Platform enum that allows customers to create Amplify Apps with Server-Side Rendering support.
+
+## __AWS AppSync__
+  - ### Features
+    - This release introduces the APPSYNC_JS runtime, and adds support for JavaScript in AppSync functions and AppSync pipeline resolvers.
+
+## __AWS Database Migration Service__
+  - ### Features
+    - Adds support for Internet Protocol Version 6 (IPv6) on DMS Replication Instances
+
+## __AWS Lambda__
+  - ### Features
+    - Add Node 18 (nodejs18.x) support to AWS Lambda.
+
+## __AWS S3 Control__
+  - ### Features
+    - Added 34 new S3 Storage Lens metrics to support additional customer use cases.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Provide the contents of stderr as part of the exception in the case of non zero RCs returned from the external process in `ProcessCredentialProvider`. See [#3377](https://github.com/aws/aws-sdk-java-v2/issues/3377)
+    - Stop using execution.interceptors reflective loading for internal interceptors. This will reduce the chance of shading errors.
+    - Updated endpoint and partition metadata.
+
+## __AWS Secrets Manager__
+  - ### Features
+    - Documentation updates for Secrets Manager.
+
+## __AWS Security Token Service__
+  - ### Features
+    - Documentation updates for AWS Security Token Service.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Added SourceLayerArn and SourceLayerHash field for security findings. Updated AwsLambdaFunction Resource detail
+
+## __AWS Service Catalog App Registry__
+  - ### Features
+    - This release adds support for tagged resource associations, which allows you to associate a group of resources with a defined resource tag key and value to the application.
+
+## __Amazon Appflow__
+  - ### Features
+    - AppFlow simplifies the preparation and cataloging of SaaS data into the AWS Glue Data Catalog where your data can be discovered and accessed by AWS analytics and ML services. AppFlow now also supports data field partitioning and file size optimization to improve query performance and reduce cost.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds a new optional parameter "privateIpAddress" for the CreateNatGateway API. PrivateIPAddress will allow customers to select a custom Private IPv4 address instead of having it be auto-assigned.
+
+## __Amazon Interactive Video Service Chat__
+  - ### Features
+    - Adds LoggingConfiguration APIs for IVS Chat - a feature that allows customers to store and record sent messages in a chat room to S3 buckets, CloudWatch logs, or Kinesis firehose.
+
+## __Amazon Personalize__
+  - ### Features
+    - This release provides support for creation and use of metric attributions in AWS Personalize
+
+## __Amazon Polly__
+  - ### Features
+    - Add two new neural voices - Ola (pl-PL) and Hala (ar-AE).
+
+## __Amazon Textract__
+  - ### Features
+    - This release adds support for specifying and extracting information from documents using the Signatures feature within Analyze Document API
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - The release introduces CreateStandbyWorkspaces, an API that allows you to create standby WorkSpaces associated with a primary WorkSpace in another Region. DescribeWorkspaces now includes related WorkSpaces properties. DescribeWorkspaceBundles and CreateWorkspaceBundle now return more bundle details.
+
+## __CloudWatch RUM__
+  - ### Features
+    - CloudWatch RUM now supports custom events. To use custom events, create an app monitor or update an app monitor with CustomEvent Status as ENABLED.
+
+## __EMR Serverless__
+  - ### Features
+    - Adds support for AWS Graviton2 based applications. You can now select CPU architecture when creating new applications or updating existing ones.
+
+## __Elastic Load Balancing__
+  - ### Features
+    - Provides new target group attributes to turn on/off cross zone load balancing and configure target group health for Network Load Balancers and Application Load Balancers. Provides improvements to health check configuration for Network Load Balancers.
+
 # __2.18.19__ __2022-11-16__
 ## __AWS Batch__
   - ### Features

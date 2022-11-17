@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "Provide the contents of stderr as part of the exception in the case of non zero RCs returned from the external process in `ProcessCredentialProvider`. See [#3377](https://github.com/aws/aws-sdk-java-v2/issues/3377)"
-}

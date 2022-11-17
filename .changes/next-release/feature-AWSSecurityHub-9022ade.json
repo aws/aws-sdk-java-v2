@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SecurityHub",
-    "contributor": "",
-    "description": "Added SourceLayerArn and SourceLayerHash field for security findings. Updated AwsLambdaFunction Resource detail"
-}

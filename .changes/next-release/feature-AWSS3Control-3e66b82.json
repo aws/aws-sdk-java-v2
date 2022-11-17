@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS S3 Control",
-    "contributor": "",
-    "description": "Added 34 new S3 Storage Lens metrics to support additional customer use cases."
-}

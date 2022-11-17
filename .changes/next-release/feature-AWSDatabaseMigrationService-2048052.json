@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Database Migration Service",
-    "contributor": "",
-    "description": "Adds support for Internet Protocol Version 6 (IPv6) on DMS Replication Instances"
-}
