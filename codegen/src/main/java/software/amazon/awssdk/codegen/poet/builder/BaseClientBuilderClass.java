@@ -256,11 +256,22 @@ public class BaseClientBuilderClass implements ClassSpec {
                              ParameterizedTypeName.get(List.class, ExecutionInterceptor.class),
                              ArrayList.class);
 
+        List<ClassName> builtInInterceptors = new ArrayList<>();
+
         if (endpointRulesSpecUtils.isEndpointRulesEnabled()) {
-            builder.addStatement("endpointInterceptors.add(new $T())", endpointRulesSpecUtils.resolverInterceptorName());
-            builder.addStatement("endpointInterceptors.add(new $T())", endpointRulesSpecUtils.authSchemesInterceptorName());
-            builder.addStatement("endpointInterceptors.add(new $T())", endpointRulesSpecUtils.requestModifierInterceptorName());
+            builtInInterceptors.add(endpointRulesSpecUtils.resolverInterceptorName());
+            builtInInterceptors.add(endpointRulesSpecUtils.authSchemesInterceptorName());
+            builtInInterceptors.add(endpointRulesSpecUtils.requestModifierInterceptorName());
         }
+
+        for (String interceptor : model.getCustomizationConfig().getInterceptors()) {
+            builtInInterceptors.add(ClassName.bestGuess(interceptor));
+        }
+
+        for (ClassName interceptor : builtInInterceptors) {
+            builder.addStatement("endpointInterceptors.add(new $T())", interceptor);
+        }
+
 
         builder.addCode("$1T interceptorFactory = new $1T();\n", ClasspathInterceptorChainFactory.class)
                .addCode("$T<$T> interceptors = interceptorFactory.getInterceptors($S);\n",
