@@ -34,6 +34,7 @@ import org.mockito.stubbing.Answer;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.model.AbortMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
@@ -80,7 +81,9 @@ class CopyObjectHelperTest {
         CompletableFuture<CopyObjectResponse> future =
             copyHelper.copyObject(copyObjectRequest());
 
-        assertThatThrownBy(future::join).hasCause(exception);
+        assertThatThrownBy(future::join).hasCauseInstanceOf(SdkClientException.class)
+                                        .hasMessageContaining("Failed to retrieve metadata")
+                                        .hasRootCause(exception);
     }
 
     @Test
@@ -140,7 +143,7 @@ class CopyObjectHelperTest {
      * Four parts, after the first part failed, the remaining four futures should be cancelled
      */
     @Test
-    void multiPartCopy_onePartFailed_shouldCancelFailAndAbort() {
+    void multiPartCopy_onePartFailed_shouldFailOtherPartsAndAbort() {
         CopyObjectRequest copyObjectRequest = copyObjectRequest();
 
         stubSuccessfulHeadObjectCall(4000L);
@@ -158,10 +161,12 @@ class CopyObjectHelperTest {
         when(s3AsyncClient.uploadPartCopy(any(UploadPartCopyRequest.class)))
             .thenReturn(uploadPartCopyFuture1, uploadPartCopyFuture2, uploadPartCopyFuture3, uploadPartCopyFuture4);
 
-        CompletableFuture<CopyObjectResponse> future =
-            copyHelper.copyObject(copyObjectRequest);
+        when(s3AsyncClient.abortMultipartUpload(any(AbortMultipartUploadRequest.class)))
+            .thenReturn(CompletableFuture.completedFuture(AbortMultipartUploadResponse.builder().build()));
 
-        assertThatThrownBy(future::join).hasCause(exception);
+        CompletableFuture<CopyObjectResponse> future = copyHelper.copyObject(copyObjectRequest);
+
+        assertThatThrownBy(future::join).hasMessageContaining("Failed to send multipart copy requests").hasRootCause(exception);
 
         verify(s3AsyncClient, never()).completeMultipartUpload(any(CompleteMultipartUploadRequest.class));
 
@@ -170,9 +175,9 @@ class CopyObjectHelperTest {
         AbortMultipartUploadRequest actualRequest = argumentCaptor.getValue();
         assertThat(actualRequest.uploadId()).isEqualTo(MULTIPART_ID);
 
-        assertThat(uploadPartCopyFuture2).isCancelled();
-        assertThat(uploadPartCopyFuture3).isCancelled();
-        assertThat(uploadPartCopyFuture4).isCancelled();
+        assertThat(uploadPartCopyFuture2).isCompletedExceptionally();
+        assertThat(uploadPartCopyFuture3).isCompletedExceptionally();
+        assertThat(uploadPartCopyFuture4).isCompletedExceptionally();
     }
 
     @Test
@@ -185,7 +190,7 @@ class CopyObjectHelperTest {
 
         stubSuccessfulUploadPartCopyCalls();
 
-        SdkClientException exception = SdkClientException.create("failed");
+        SdkClientException exception = SdkClientException.create("CompleteMultipartUpload failed");
 
         CompletableFuture<CompleteMultipartUploadResponse> completeMultipartUploadFuture =
             CompletableFutureUtils.failedFuture(exception);
@@ -193,10 +198,13 @@ class CopyObjectHelperTest {
         when(s3AsyncClient.completeMultipartUpload(any(CompleteMultipartUploadRequest.class)))
             .thenReturn(completeMultipartUploadFuture);
 
+        when(s3AsyncClient.abortMultipartUpload(any(AbortMultipartUploadRequest.class)))
+            .thenReturn(CompletableFuture.completedFuture(AbortMultipartUploadResponse.builder().build()));
+
         CompletableFuture<CopyObjectResponse> future =
             copyHelper.copyObject(copyObjectRequest);
 
-        assertThatThrownBy(future::join).hasCause(exception);
+        assertThatThrownBy(future::join).hasMessageContaining("Failed to send multipart copy requests").hasRootCause(exception);
 
         ArgumentCaptor<AbortMultipartUploadRequest> argumentCaptor = ArgumentCaptor.forClass(AbortMultipartUploadRequest.class);
         verify(s3AsyncClient).abortMultipartUpload(argumentCaptor.capture());

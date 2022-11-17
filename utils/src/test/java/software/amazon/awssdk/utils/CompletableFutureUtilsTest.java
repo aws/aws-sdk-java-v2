@@ -116,7 +116,7 @@ public class CompletableFutureUtilsTest {
         CompletableFuture<Void> anyFail = CompletableFutureUtils.anyFail(completableFutures);
         completableFutures[0] = CompletableFuture.completedFuture("test");
         completableFutures[1].completeExceptionally(exception);
-        assertThat(anyFail.isDone()).isTrue();
+        assertThatThrownBy(anyFail::join).hasCause(exception);
     }
 
     @Test(timeout = 1000)
@@ -132,28 +132,27 @@ public class CompletableFutureUtilsTest {
     }
 
     @Test(timeout = 1000)
-    public void allOfCancelForwarded_anyFutureFails_shouldCancelOthers() {
+    public void allOfExceptionForwarded_anyFutureFails_shouldForwardExceptionToOthers() {
         RuntimeException exception = new RuntimeException("blah");
         CompletableFuture[] completableFutures = new CompletableFuture[2];
         completableFutures[0] = new CompletableFuture();
         completableFutures[1] = new CompletableFuture();
 
-        CompletableFuture<Void> resultFuture = CompletableFutureUtils.allOfCancelForwarded(completableFutures);
+        CompletableFuture<Void> resultFuture = CompletableFutureUtils.allOfExceptionForwarded(completableFutures);
         completableFutures[0].completeExceptionally(exception);
 
         assertThatThrownBy(resultFuture::join).hasCause(exception);
-
-        assertThat(completableFutures[1].isCancelled()).isTrue();
+        assertThatThrownBy(completableFutures[1]::join).hasCause(exception);
     }
 
     @Test(timeout = 1000)
-    public void allOfCancelForwarded_allFutureSucceed_shouldComplete() {
+    public void allOfExceptionForwarded_allFutureSucceed_shouldComplete() {
         RuntimeException exception = new RuntimeException("blah");
         CompletableFuture[] completableFutures = new CompletableFuture[2];
         completableFutures[0] = new CompletableFuture();
         completableFutures[1] = new CompletableFuture();
 
-        CompletableFuture<Void> resultFuture = CompletableFutureUtils.allOfCancelForwarded(completableFutures);
+        CompletableFuture<Void> resultFuture = CompletableFutureUtils.allOfExceptionForwarded(completableFutures);
         completableFutures[0].complete("test");
         completableFutures[1].complete("test");
 
