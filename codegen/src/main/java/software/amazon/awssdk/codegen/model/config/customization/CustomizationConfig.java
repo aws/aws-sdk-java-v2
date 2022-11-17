@@ -218,6 +218,8 @@ public class CustomizationConfig {
      */
     private boolean useRuleBasedEndpoints = false;
 
+    private List<String> interceptors = new ArrayList<>();
+
     private CustomizationConfig() {
     }
 
@@ -561,5 +563,13 @@ public class CustomizationConfig {
 
     public void setUseRuleBasedEndpoints(boolean useRuleBasedEndpoints) {
         this.useRuleBasedEndpoints = useRuleBasedEndpoints;
+    }
+
+    public List<String> getInterceptors() {
+        return interceptors;
+    }
+
+    public void setInterceptors(List<String> interceptors) {
+        this.interceptors = interceptors;
     }
 }
