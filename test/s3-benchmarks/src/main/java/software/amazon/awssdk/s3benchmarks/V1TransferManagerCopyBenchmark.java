@@ -15,45 +15,49 @@
 
 package software.amazon.awssdk.s3benchmarks;
 
+import static software.amazon.awssdk.s3benchmarks.BenchmarkUtils.COPY_SUFFIX;
 import static software.amazon.awssdk.s3benchmarks.BenchmarkUtils.printOutResult;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
-public class V1TransferManagerUploadBenchmark extends V1BaseTransferManagerBenchmark {
-    private static final Logger logger = Logger.loggerFor("V1TransferManagerUploadBenchmark");
-    private final File sourceFile;
+public class V1TransferManagerCopyBenchmark extends V1BaseTransferManagerBenchmark {
+    private static final Logger logger = Logger.loggerFor("V1TransferManagerCopyBenchmark");
 
-    V1TransferManagerUploadBenchmark(TransferManagerBenchmarkConfig config) {
+    V1TransferManagerCopyBenchmark(TransferManagerBenchmarkConfig config) {
         super(config);
         Validate.notNull(config.key(), "Key must not be null");
-        Validate.notNull(config.filePath(), "File path must not be null");
-        sourceFile = new File(path);
     }
 
     @Override
     protected void doRunBenchmark() {
-        uploadFile();
+        copy();
     }
 
-    private void uploadFile() {
-        List<Double> metrics = new ArrayList<>();
-        logger.info(() -> "Starting to upload");
-        for (int i = 0; i < iteration; i++) {
-            uploadOnce(metrics);
+    @Override
+    protected void additionalWarmup() {
+        for (int i = 0; i < 3; i++) {
+            copyOnce(new ArrayList<>());
         }
-        long contentLength = sourceFile.length();
-        printOutResult(metrics, "TM v1 Upload File", contentLength);
     }
 
-    private void uploadOnce(List<Double> latencies) {
+    private void copy() {
+        List<Double> metrics = new ArrayList<>();
+        logger.info(() -> "Starting to copy");
+        for (int i = 0; i < iteration; i++) {
+            copyOnce(metrics);
+        }
+        long contentLength = s3Client.getObjectMetadata(bucket, key).getContentLength();
+        printOutResult(metrics, "V1 copy", contentLength);
+    }
+
+    private void copyOnce(List<Double> latencies) {
         long start = System.currentTimeMillis();
 
         try {
-            transferManager.upload(bucket, key, sourceFile).waitForCompletion();
+            transferManager.copy(bucket, key, bucket, key + COPY_SUFFIX).waitForCompletion();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             logger.warn(() -> "Thread interrupted when waiting for completion", e);
