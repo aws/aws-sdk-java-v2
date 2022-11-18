@@ -82,7 +82,9 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
         Supplier<CompletableFuture<Token>> valueSupplier =
             () -> {
                 CompletableFuture<String> tokenValue = this.sendRequest(requestMarshaller.createTokenRequest(tokenTtl));
-                return tokenValue.thenApply(value -> new Token(value, this.tokenTtl));
+                CompletableFuture<Token> tokenFuture = tokenValue.thenApply(value -> new Token(value, this.tokenTtl));
+                CompletableFutureUtils.forwardExceptionTo(tokenFuture, tokenValue);
+                return tokenFuture;
             };
         this.tokenCache = tokenCacheStrategy.getCachedSupplier(valueSupplier, this.tokenTtl);
         this.httpClientIsInternal = builder.httpClient == null;
@@ -109,6 +111,7 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
         });
         CompletableFuture<MetadataResponse> returnFuture = resultFuture.thenApply(MetadataResponse::create);
         CompletableFutureUtils.forwardExceptionTo(returnFuture, resultFuture);
+        CompletableFutureUtils.forwardExceptionTo(returnFuture, tokenFuture);
         return returnFuture;
     }
 
@@ -147,6 +150,9 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
         CompletableFuture<Void> executeFuture = httpClient.execute(metadataRequest);
         CompletableFutureUtils.forwardExceptionTo(initialFuture, responseHandlerFuture);
         CompletableFutureUtils.forwardExceptionTo(initialFuture, executeFuture);
+        executeFuture.whenComplete((response, error) -> {
+            log.debug(() -> String.format("%s :: %s", String.valueOf(response), String.valueOf(error)));
+        });
         responseHandlerFuture.whenComplete((response, error) -> {
             if (response != null) {
                 log.debug(() -> String.format("Completed request to %s in %d retry attempt", request.encodedPath(),
