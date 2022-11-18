@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Glue",
+    "contributor": "",
+    "description": "AWSGlue Crawler - Adding support for Table and Column level Comments with database level datatypes for JDBC based crawler."
+}
