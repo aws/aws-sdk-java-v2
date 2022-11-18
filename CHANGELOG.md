@@ -1,3 +1,72 @@
+# __2.18.21__ __2022-11-18__
+## __AWS Audit Manager__
+  - ### Features
+    - This release introduces a new feature for Audit Manager: Evidence finder. You can now use evidence finder to quickly query your evidence, and add the matching evidence results to an assessment report.
+
+## __AWS Glue__
+  - ### Features
+    - AWSGlue Crawler - Adding support for Table and Column level Comments with database level datatypes for JDBC based crawler.
+
+## __AWS IoT RoboRunner__
+  - ### Features
+    - AWS IoT RoboRunner is a new service that makes it easy to build applications that help multi-vendor robots work together seamlessly. See the IoT RoboRunner developer guide for more details on getting started. https://docs.aws.amazon.com/iotroborunner/latest/dev/iotroborunner-welcome.html
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Service Catalog__
+  - ### Features
+    - This release 1. adds support for Principal Name Sharing with Service Catalog portfolio sharing. 2. Introduces repo sourced products which are created and managed with existing SC APIs. These products are synced to external repos and auto create new product versions based on changes in the repo.
+
+## __AWS Step Functions__
+  - ### Features
+    - This release adds support for using Step Functions service integrations to invoke any cross-account AWS resource, even if that service doesn't support resource-based policies or cross-account calls. See https://docs.aws.amazon.com/step-functions/latest/dg/concepts-access-cross-acct-resources.html
+
+## __AWS Systems Manager for SAP__
+  - ### Features
+    - AWS Systems Manager for SAP provides simplified operations and management of SAP applications such as SAP HANA. With this release, SAP customers and partners can automate and simplify their SAP system administration tasks such as backup/restore of SAP HANA.
+
+## __AWS Transfer Family__
+  - ### Features
+    - Adds a NONE encryption algorithm type to AS2 connectors, providing support for skipping encryption of the AS2 message body when a HTTPS URL is also specified.
+
+## __Amazon Appflow__
+  - ### Features
+    - AppFlow provides a new API called UpdateConnectorRegistration to update a custom connector that customers have previously registered. With this API, customers no longer need to unregister and then register a connector to make an update.
+
+## __Amazon Chime SDK Voice__
+  - ### Features
+    - Amazon Chime Voice Connector, Voice Connector Group and PSTN Audio Service APIs are now available in the Amazon Chime SDK Voice namespace. See https://docs.aws.amazon.com/chime-sdk/latest/dg/sdk-available-regions.html for more details.
+
+## __Amazon CloudFront__
+  - ### Features
+    - CloudFront API support for staging distributions and associated traffic management policies.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Added AllowedAccessControlTags and TagRestrictedResource for Tag Based Access Control on Amazon Connect Webpage
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Updated minor fixes for DynamoDB documentation.
+
+## __Amazon DynamoDB Streams__
+  - ### Features
+    - Updated minor fixes for DynamoDB documentation.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for copying an Amazon Machine Image's tags when copying an AMI.
+
+## __Amazon QuickSight__
+  - ### Features
+    - This release adds the following: 1) Asset management for centralized assets governance 2) QuickSight Q now supports public embedding 3) New Termination protection flag to mitigate accidental deletes 4) Athena data sources now accept a custom IAM role 5) QuickSight supports connectivity to Databricks
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Added DisableProfiler flag as a new field in ProfilerConfig
+
 # __2.18.20__ __2022-11-17__
 ## __AWS Amplify__
   - ### Features
