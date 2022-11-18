@@ -150,9 +150,6 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
         CompletableFuture<Void> executeFuture = httpClient.execute(metadataRequest);
         CompletableFutureUtils.forwardExceptionTo(initialFuture, responseHandlerFuture);
         CompletableFutureUtils.forwardExceptionTo(initialFuture, executeFuture);
-        executeFuture.whenComplete((response, error) -> {
-            log.debug(() -> String.format("%s :: %s", String.valueOf(response), String.valueOf(error)));
-        });
         responseHandlerFuture.whenComplete((response, error) -> {
             if (response != null) {
                 log.debug(() -> String.format("Completed request to %s in %d retry attempt", request.encodedPath(),
@@ -196,7 +193,6 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
             asyncRetryScheduler.schedule(retryAttempt, retryDelay.toMillis(), TimeUnit.MILLISECONDS);
         CompletableFuture.runAsync(runnable, retryExecutor);
     }
-
 
     @Override
     public void close() {

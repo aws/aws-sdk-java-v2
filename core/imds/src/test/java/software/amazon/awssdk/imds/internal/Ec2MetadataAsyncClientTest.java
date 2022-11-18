@@ -151,7 +151,10 @@ class Ec2MetadataAsyncClientTest extends BaseEc2MetadataClientTest<Ec2MetadataAs
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody(ec2MetadataContent)));
 
         try (Ec2MetadataAsyncClient client =
-                 Ec2MetadataAsyncClient.builder().endpoint(URI.create("http://localhost:" + port)).build()) {
+                 Ec2MetadataAsyncClient.builder()
+                                       .endpoint(URI.create("http://localhost:" + port))
+                                       .httpClient(NettyNioAsyncHttpClient.builder().readTimeout(Duration.ofSeconds(30)).build())
+                                       .build()) {
             CompletableFuture<MetadataResponse> res = client.get(AMI_ID_RESOURCE);
             MetadataResponse response = res.get();
             assertThat(response.asString()).hasSize(size);
