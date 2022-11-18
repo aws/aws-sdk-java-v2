@@ -11,7 +11,8 @@
     "signingName": "json-service",
     "signatureVersion": "v4",
     "uid": "json-service-2010-05-08",
-    "xmlNamespace": "https://json-service.amazonaws.com/doc/2010-05-08/"
+    "xmlNamespace": "https://json-service.amazonaws.com/doc/2010-05-08/",
+    "awsQueryCompatible": {}
   },
   "operations": {
     "OperationWithChecksumRequired": {

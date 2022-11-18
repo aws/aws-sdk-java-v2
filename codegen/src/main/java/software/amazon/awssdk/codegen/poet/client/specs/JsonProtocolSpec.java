@@ -94,9 +94,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
                       .addCode(".defaultServiceExceptionSupplier($T::builder)\n", baseException)
                       .addCode(".protocol($T.$L)\n", AwsJsonProtocol.class, protocolEnumName(metadata.getProtocol()))
                       .addCode(".protocolVersion($S)\n", metadata.getJsonVersion())
-                      .addCode("$L", customErrorCodeFieldName())
-                      .addCode("$L", hasAwsQueryCompatible());
-
+                      .addCode("$L", customErrorCodeFieldName());
 
         String contentType = Optional.ofNullable(model.getCustomizationConfig().getCustomServiceMetadata())
                 .map(MetadataConfig::getContentType)
@@ -104,6 +102,10 @@ public class JsonProtocolSpec implements ProtocolSpec {
 
         if (contentType != null) {
             methodSpec.addCode(".contentType($S)", contentType);
+        }
+
+        if (metadata.getAwsQueryCompatible() != null) {
+            methodSpec.addCode("$L", hasAwsQueryCompatible());
         }
 
         registerModeledExceptions(model, poetExtensions).forEach(methodSpec::addCode);

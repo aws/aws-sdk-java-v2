@@ -32,6 +32,8 @@ import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 import software.amazon.awssdk.protocols.json.ErrorCodeParser;
 import software.amazon.awssdk.protocols.json.JsonContent;
 import software.amazon.awssdk.thirdparty.jackson.core.JsonFactory;
+import software.amazon.awssdk.utils.CollectionUtils;
+import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * Unmarshaller for AWS specific error responses. All errors are unmarshalled into a subtype of
@@ -92,17 +94,32 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
     }
 
     private String getEffectiveErrorCode(SdkHttpFullResponse response, String errorCode) {
-        List<String> queryErrorValues = response.headers().get(X_AMZN_QUERY_ERROR);
-        if (this.hasAwsQueryCompatible && queryErrorValues != null && !queryErrorValues.isEmpty()) {
-            String queryErrorValue = queryErrorValues.get(0).trim();
-            if (!queryErrorValue.isEmpty()) {
-                int delimiter = queryErrorValue.indexOf(QUERY_ERROR_DELIMITER);
-                if (delimiter != -1 && delimiter != 0) {
-                    return queryErrorValue.substring(0, delimiter);
-                }
+        if (this.hasAwsQueryCompatible) {
+            String compatibleErrorCode = queryCompatibleErrorCodeFromResponse(response);
+            if (!StringUtils.isEmpty(compatibleErrorCode)) {
+                return compatibleErrorCode;
             }
         }
         return errorCode;
+    }
+
+    private String queryCompatibleErrorCodeFromResponse(SdkHttpFullResponse response) {
+        List<String> headerValues = response.headers().get(X_AMZN_QUERY_ERROR);
+        if (!CollectionUtils.isNullOrEmpty(headerValues)) {
+            String queryHeaderValue = headerValues.get(0);
+            if (!StringUtils.isEmpty(queryHeaderValue)) {
+                return parseQueryErrorCodeFromDelimiter(queryHeaderValue);
+            }
+        }
+        return null;
+    }
+
+    private String parseQueryErrorCodeFromDelimiter(String queryHeaderValue) {
+        int delimiter = queryHeaderValue.indexOf(QUERY_ERROR_DELIMITER);
+        if (delimiter > 0) {
+            return queryHeaderValue.substring(0, delimiter);
+        }
+        return null;
     }
 
     private Duration getClockSkew(ExecutionAttributes executionAttributes) {
@@ -240,7 +257,8 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
 
         /**
          * Provides a check on whether AwsQueryCompatible trait is found in Metadata.
-         * If true, custom error codes can be provided
+         * If true, error code will be derived from custom header. Otherwise, error code will be retrieved from its
+         * original source
          *
          * @param hasAwsQueryCompatible boolean of whether the AwsQueryCompatible trait is found
          * @return This builder for method chaining.

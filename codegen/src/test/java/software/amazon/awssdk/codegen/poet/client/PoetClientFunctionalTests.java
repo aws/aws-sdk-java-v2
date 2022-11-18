@@ -76,6 +76,12 @@ public class PoetClientFunctionalTests {
     }
 
     @Test
+    public void asyncClientClassAwsQueryCompatibleJson() throws Exception {
+        AsyncClientClass asyncClientClass = createAsyncClientClass(ClientTestModels.awsQueryCompatibleJsonServiceModels());
+        assertThat(asyncClientClass, generatesTo("test-aws-query-compatible-json-async-client-class.java"));
+    }
+
+    @Test
     public void syncClientClassXml() throws Exception {
         SyncClientClass syncClientClass = createSyncClientClass(ClientTestModels.xmlServiceModels());
         assertThat(syncClientClass, generatesTo("test-xml-client-class.java"));
