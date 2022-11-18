@@ -17,28 +17,26 @@ package software.amazon.awssdk.imds;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit Tests to test the EndpointMode enum functionality.
  */
-public class EndpointModeTest {
+class EndpointModeTest {
 
     @Test
-    public void verifyFromValue_when_nullParameterIsPassed(){
-
+    void verifyFromValue_when_nullParameterIsPassed(){
         assertThat(EndpointMode.fromValue(null)).isEqualTo(null);
     }
 
     @Test
-    public void verifyFromValue_when_normalParameterIsPassed(){
-
+    void verifyFromValue_when_normalParameterIsPassed(){
         assertThat(EndpointMode.fromValue("ipv4")).isEqualTo(EndpointMode.IPV4);
     }
 
     @Test
-    public void verifyFromValue_when_wrongParameterIsPassed(){
-
+    void verifyFromValue_when_wrongParameterIsPassed(){
         assertThatThrownBy(() -> {
             EndpointMode.fromValue("ipv8");
         }).hasMessageContaining("Unrecognized value for endpoint mode")

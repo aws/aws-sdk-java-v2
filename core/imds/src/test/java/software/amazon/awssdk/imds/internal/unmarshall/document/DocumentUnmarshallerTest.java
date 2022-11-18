@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.math.BigDecimal;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -33,7 +32,7 @@ import software.amazon.awssdk.protocols.jsoncore.internal.EmbeddedObjectJsonNode
 
 class DocumentUnmarshallerTest {
     @Test
-    void testDocumentFromNumberNode() throws ParseException {
+    void testDocumentFromNumberNode() {
         JsonNode node = JsonNode.parser().parse("100");
         assertThat(Document.fromNumber(SdkNumber.fromInteger(100)).asNumber().intValue())
                 .isEqualTo(node.visit(new DocumentUnmarshaller()).asNumber().intValue());

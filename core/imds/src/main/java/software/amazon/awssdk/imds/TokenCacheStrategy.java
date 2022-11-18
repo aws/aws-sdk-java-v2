@@ -15,19 +15,34 @@
 
 package software.amazon.awssdk.imds;
 
+import java.time.Duration;
+import java.util.function.Supplier;
+import software.amazon.awssdk.annotations.SdkPublicApi;
+
 /**
  * Defines the different caching strategies for the token required when executing Ec2 Metadata requests.
  */
-public enum TokenCacheStrategy {
+@SdkPublicApi
+public interface TokenCacheStrategy {
+
     /**
-     * No caching, a token request will be performed for every metadata requests.
+     * No caching, a token request will be performed for every new metadata requests.
      * This is the default behavior.
      */
-    NONE,
+    TokenCacheStrategy NONE = new NoCache();
 
     /**
      * Cache the token until it expires. When a request for metadata is performed while the token is expired, the Client will
      * block every request and perform a token call before resuming execution of the metadata requests.
      */
-    BLOCKING
+    TokenCacheStrategy BLOCKING = new BlockingTokenCache();
+
+    /**
+     * Create the cache supplier that potentially refreshes the result when the stale time is reached.
+     * @param valueSupplier supplies the cached value. Called when value is being refreshed.
+     * @param staleTime duration after which the cached value is considered expired.
+     * @return the cached value
+     * @param <T> the cached value type
+     */
+    <T> Supplier<T> getCachedSupplier(Supplier<T> valueSupplier, Duration staleTime);
 }

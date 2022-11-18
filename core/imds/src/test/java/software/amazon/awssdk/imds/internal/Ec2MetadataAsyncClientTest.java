@@ -33,6 +33,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -41,8 +43,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
@@ -50,16 +52,25 @@ import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.imds.Ec2MetadataAsyncClient;
 import software.amazon.awssdk.imds.MetadataResponse;
 
-public class Ec2MetadataAsyncClientTest extends BaseEc2MetadataClientTest<Ec2MetadataAsyncClient,
+@WireMockTest
+class Ec2MetadataAsyncClientTest extends BaseEc2MetadataClientTest<Ec2MetadataAsyncClient,
     Ec2MetadataAsyncClient.Builder> {
 
     private Ec2MetadataAsyncClient client;
 
-    @Before
-    public void init() {
+    private int port;
+
+    @BeforeEach
+    public void init(WireMockRuntimeInfo wiremock) {
+        this.port = wiremock.getHttpPort();
         this.client = Ec2MetadataAsyncClient.builder()
-                                            .endpoint(URI.create("http://localhost:" + mockMetadataEndpoint.port()))
+                                            .endpoint(URI.create("http://localhost:" + wiremock.getHttpPort()))
                                             .build();
+    }
+
+    @Override
+    protected int getPort() {
+        return port;
     }
 
     @Override
@@ -91,7 +102,7 @@ public class Ec2MetadataAsyncClientTest extends BaseEc2MetadataClientTest<Ec2Met
     }
 
     @Test
-    public void get_multipleAsyncRequest_shouldCompleteSuccessfully() {
+    void get_multipleAsyncRequest_shouldCompleteSuccessfully() {
         int totalRequests = 128;
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH))
                     .willReturn(aResponse().withFixedDelay(200).withBody("some-token")));
@@ -105,7 +116,7 @@ public class Ec2MetadataAsyncClientTest extends BaseEc2MetadataClientTest<Ec2Met
                                                         .connectionTimeout(Duration.ofSeconds(10))
                                                         .readTimeout(Duration.ofSeconds(10))
                                                         .build())
-                             .endpoint(URI.create("http://localhost:" + mockMetadataEndpoint.port())));
+                             .endpoint(URI.create("http://localhost:" + port)));
         List<CompletableFuture<MetadataResponse>> requests = Stream.iterate(0, x -> x + 1)
                                                                    .map(i -> client.get(AMI_ID_RESOURCE + "/" + i))
                                                                    .limit(totalRequests)
@@ -129,7 +140,7 @@ public class Ec2MetadataAsyncClientTest extends BaseEc2MetadataClientTest<Ec2Met
     }
 
     @Test
-    public void get_largeResponse_shouldSucceed() throws Exception {
+    void get_largeResponse_shouldSucceed() throws Exception {
         int size = 10 * 1024 * 1024; // 10MB
         byte[] bytes = new byte[size];
         for (int i = 0; i < size; i++) {
@@ -140,7 +151,7 @@ public class Ec2MetadataAsyncClientTest extends BaseEc2MetadataClientTest<Ec2Met
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody(ec2MetadataContent)));
 
         try (Ec2MetadataAsyncClient client =
-                 Ec2MetadataAsyncClient.builder().endpoint(URI.create("http://localhost:" + mockMetadataEndpoint.port())).build()) {
+                 Ec2MetadataAsyncClient.builder().endpoint(URI.create("http://localhost:" + port)).build()) {
             CompletableFuture<MetadataResponse> res = client.get(AMI_ID_RESOURCE);
             MetadataResponse response = res.get();
             assertThat(response.asString()).hasSize(size);
@@ -153,7 +164,7 @@ public class Ec2MetadataAsyncClientTest extends BaseEc2MetadataClientTest<Ec2Met
     }
 
     @Test
-    public void get_cancelResponseFuture_shouldPropagate() {
+    void get_cancelResponseFuture_shouldPropagate() {
         SdkAsyncHttpClient mockClient = Mockito.mock(SdkAsyncHttpClient.class);
         CompletableFuture<Void> responseFuture = new CompletableFuture<>();
         when(mockClient.execute(any(AsyncExecuteRequest.class))).thenReturn(responseFuture);

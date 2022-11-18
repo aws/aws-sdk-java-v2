@@ -84,7 +84,7 @@ public final class Ec2MetadataRetryPolicy implements ToCopyableBuilder<Ec2Metada
      * Method to return the number of retries allowed.
      * @return The number of retries allowed.
      */
-    public int getNumRetries() {
+    public int numRetries() {
         return numRetries;
     }
 
@@ -92,7 +92,7 @@ public final class Ec2MetadataRetryPolicy implements ToCopyableBuilder<Ec2Metada
      * Method to return the BackoffStrategy used.
      * @return The backoff Strategy used.
      */
-    public BackoffStrategy getBackoffStrategy() {
+    public BackoffStrategy backoffStrategy() {
         return backoffStrategy;
     }
 

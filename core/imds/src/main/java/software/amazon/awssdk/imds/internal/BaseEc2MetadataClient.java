@@ -83,7 +83,7 @@ public abstract class BaseEc2MetadataClient {
     }
 
     protected boolean shouldRetry(RetryPolicyContext retryPolicyContext, Throwable error) {
-        boolean maxAttemptReached = retryPolicyContext.retriesAttempted() >= retryPolicy.getNumRetries();
+        boolean maxAttemptReached = retryPolicyContext.retriesAttempted() >= retryPolicy.numRetries();
         if (maxAttemptReached) {
             return false;
         }

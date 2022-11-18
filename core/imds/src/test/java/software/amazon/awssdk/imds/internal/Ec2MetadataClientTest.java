@@ -18,21 +18,32 @@ package software.amazon.awssdk.imds.internal;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
 
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import java.net.URI;
 import java.util.function.Consumer;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import software.amazon.awssdk.imds.Ec2MetadataClient;
 import software.amazon.awssdk.imds.MetadataResponse;
 
-public class Ec2MetadataClientTest extends BaseEc2MetadataClientTest<Ec2MetadataClient, Ec2MetadataClient.Builder> {
+@WireMockTest
+class Ec2MetadataClientTest extends BaseEc2MetadataClientTest<Ec2MetadataClient, Ec2MetadataClient.Builder> {
 
     private Ec2MetadataClient client;
 
-    @Before
-    public void init() {
+    private int port;
+
+    @BeforeEach
+    public void init(WireMockRuntimeInfo wiremock) {
+        this.port = wiremock.getHttpPort();
         this.client = Ec2MetadataClient.builder()
-                                       .endpoint(URI.create("http://localhost:" + mockMetadataEndpoint.port()))
-                                       .build();
+                                            .endpoint(URI.create("http://localhost:" + wiremock.getHttpPort()))
+                                            .build();
+    }
+
+    @Override
+    protected int getPort() {
+        return port;
     }
 
     @Override

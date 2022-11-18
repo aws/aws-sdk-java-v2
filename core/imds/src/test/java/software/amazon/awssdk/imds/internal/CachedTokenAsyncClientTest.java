@@ -29,37 +29,31 @@ import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import java.net.URI;
 import java.time.Duration;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.imds.Ec2MetadataAsyncClient;
 import software.amazon.awssdk.imds.MetadataResponse;
 import software.amazon.awssdk.imds.TokenCacheStrategy;
 
-public class CachedTokenAsyncClientTest {
-    @Rule
-    public WireMockRule mockMetadataEndpoint = new WireMockRule();
+@WireMockTest
+class CachedTokenAsyncClientTest {
 
     private Ec2MetadataAsyncClient.Builder clientBuilder;
 
-    @After
-    public void reset() {
-        mockMetadataEndpoint.resetAll();
-    }
-
-    @Before
-    public void init() {
+    @BeforeEach
+    void init(WireMockRuntimeInfo wmRuntimeInfo) {
         this.clientBuilder = Ec2MetadataAsyncClient.builder()
-                                                   .endpoint(URI.create("http://localhost:" + mockMetadataEndpoint.port()))
+                                                   .endpoint(URI.create("http://localhost:" + wmRuntimeInfo.getHttpPort()))
                                                    .tokenCacheStrategy(TokenCacheStrategy.BLOCKING);
     }
+
     @Test
-    public void get_tokenFailsError4xx_shouldNotRetry() {
+    void get_tokenFailsError4xx_shouldNotRetry() {
         stubFor(put(urlPathEqualTo("/latest/api/token")).willReturn(aResponse().withStatus(400).withBody("ERROR 400")));
         stubFor(get(urlPathEqualTo("/latest/meta-data/ami-id")).willReturn(aResponse().withBody("{}")));
 
@@ -70,7 +64,7 @@ public class CachedTokenAsyncClientTest {
     }
 
     @Test
-    public void getToken_failsError5xx_shouldRetryUntilMaxRetriesIsReached() {
+    void getToken_failsError5xx_shouldRetryUntilMaxRetriesIsReached() {
         stubFor(put(urlPathEqualTo("/latest/api/token")).willReturn(aResponse().withStatus(500).withBody("ERROR 500")));
         stubFor(get(urlPathEqualTo("/latest/meta-data/ami-id")).willReturn(aResponse().withBody("{}")));
 
@@ -81,7 +75,7 @@ public class CachedTokenAsyncClientTest {
     }
 
     @Test
-    public void getToken_failsThenSucceeds_doesCacheTokenThatSucceeds() {
+    void getToken_failsThenSucceeds_doesCacheTokenThatSucceeds() {
         stubFor(put(urlPathEqualTo("/latest/api/token")).inScenario("Retry Scenario")
                                                         .whenScenarioStateIs(STARTED)
                                                         .willReturn(aResponse().withStatus(500).withBody("Error 500"))
@@ -109,7 +103,7 @@ public class CachedTokenAsyncClientTest {
     }
 
     @Test
-    public void get_multipleCallsSuccess_shouldReuseToken() throws Exception {
+    void get_multipleCallsSuccess_shouldReuseToken() {
         stubFor(put(urlPathEqualTo("/latest/api/token")).willReturn(aResponse().withBody("some-token")));
         stubFor(get(urlPathEqualTo("/latest/meta-data/ami-id"))
                     .willReturn(aResponse().withBody("{}").withFixedDelay(800)));
