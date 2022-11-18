@@ -57,6 +57,11 @@
             <version>${awsjavasdk.version}-PREVIEW</version>
         </dependency>
         <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>netty-nio-client</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-s3</artifactId>
             <version>${sdk-v1.version}</version>
@@ -108,7 +113,7 @@
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <manifestEntries>
-                                        <Main-Class>software.amazon.awssdk.s3benchmarks.BenchmarkRunner</Main-Class>
+                                        <Main-Class>software.amazon.awssdk.s3benchmarks.S3NettyClientBenchmark</Main-Class>
                                     </manifestEntries>
                                 </transformer>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">

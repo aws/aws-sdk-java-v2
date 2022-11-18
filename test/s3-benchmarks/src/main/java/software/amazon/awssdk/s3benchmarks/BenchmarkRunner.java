@@ -28,11 +28,11 @@ import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
 public final class BenchmarkRunner {
 
     private static final String PART_SIZE_IN_MB = "partSizeInMB";
-    private static final String FILE = "file";
-    private static final String BUCKET = "bucket";
+    static final String FILE = "file";
+    static final String BUCKET = "bucket";
     private static final String MAX_THROUGHPUT = "maxThroughput";
-    private static final String KEY = "key";
-    private static final String OPERATION = "operation";
+    static final String KEY = "key";
+    static final String OPERATION = "operation";
     private static final String CHECKSUM_ALGORITHM = "checksumAlgo";
     private static final String ITERATION = "iteration";
 
@@ -111,7 +111,7 @@ public final class BenchmarkRunner {
         benchmark.run();
     }
 
-    private static TransferManagerBenchmarkConfig parseConfig(CommandLine cmd) {
+    static TransferManagerBenchmarkConfig parseConfig(CommandLine cmd) {
         TransferManagerOperation operation = TransferManagerOperation.valueOf(cmd.getOptionValue(OPERATION)
                                                                                  .toUpperCase(Locale.ENGLISH));
 
