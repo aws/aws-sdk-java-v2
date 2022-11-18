@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon CloudFront",
+    "contributor": "",
+    "description": "CloudFront API support for staging distributions and associated traffic management policies."
+}
