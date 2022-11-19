@@ -1,0 +1,54 @@
+{
+    "version": "2.18.5",
+    "date": "2022-10-27",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWs SDK for Java v2",
+            "contributor": "",
+            "description": "We are only enabling rules based endpoints for S3, S3Control, and EventBridge for now in order to roll back incorrect hostprefix handling in the Java SDK. EventBridge are unaffected by this issue because it does not have a `hostPrefix` in its service model. S3 and S3Control have `hostPrefix` in the model, it is handled by the rule set."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "contributor": "",
+            "description": "Added support for custom datatypes when using custom csv classifier."
+        },
+        {
+            "type": "feature",
+            "category": "AWS WAFV2",
+            "contributor": "",
+            "description": "This release adds the following: Challenge rule action, to silently verify client browsers; rule group rule action override to any valid rule action, not just Count; token sharing between protected applications for challenge/CAPTCHA token; targeted rules option for Bot Control managed rule group."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Feature supports the replacement of instance root volume using an updated AMI without requiring customers to stop their instance."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Redshift",
+            "contributor": "",
+            "description": "This release clarifies use for the ElasticIp parameter of the CreateCluster and RestoreFromClusterSnapshot APIs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "This change allows customers to provide a custom entrypoint script for the docker container to be run while executing training jobs, and provide custom arguments to the entrypoint script."
+        },
+        {
+            "type": "feature",
+            "category": "Firewall Management Service",
+            "contributor": "",
+            "description": "Add support NetworkFirewall Managed Rule Group Override flag in GetViolationDetails API"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

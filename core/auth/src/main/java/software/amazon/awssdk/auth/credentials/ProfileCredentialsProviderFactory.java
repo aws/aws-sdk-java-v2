@@ -16,14 +16,13 @@
 package software.amazon.awssdk.auth.credentials;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.profiles.Profile;
 
 /**
- * A factory for {@link AwsCredentialsProvider}s, which can be used to create different credentials providers with
- * different Profile properties.
+ * A factory for {@link AwsCredentialsProvider}s, which can be used to create different credentials providers with different
+ * Provider specifications like profile properties.
  */
 @FunctionalInterface
 @SdkProtectedApi
 public interface ProfileCredentialsProviderFactory {
-    AwsCredentialsProvider create(Profile profile);
+    AwsCredentialsProvider create(ProfileProviderCredentialsContext profileProviderCredentialsContext);
 }

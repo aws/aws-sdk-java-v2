@@ -40,6 +40,7 @@ import software.amazon.awssdk.services.apigateway.model.GetResourcesResponse;
 import software.amazon.awssdk.services.apigateway.model.GetRestApiRequest;
 import software.amazon.awssdk.services.apigateway.model.GetRestApiResponse;
 import software.amazon.awssdk.services.apigateway.model.IntegrationType;
+import software.amazon.awssdk.services.apigateway.model.NotFoundException;
 import software.amazon.awssdk.services.apigateway.model.Op;
 import software.amazon.awssdk.services.apigateway.model.PatchOperation;
 import software.amazon.awssdk.services.apigateway.model.PutIntegrationRequest;
@@ -261,5 +262,20 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
         Assert.assertNotNull(putIntegrationResult.type());
         Assert.assertEquals(putIntegrationResult.type(),
                             IntegrationType.MOCK);
+    }
+
+    @Test(expected = NotFoundException.class)
+    public void resourceWithDotSignedCorrectly() {
+        apiGateway.createResource(r -> r.restApiId(restApiId).pathPart("fooPath").parentId("."));
+    }
+
+    @Test(expected = NotFoundException.class)
+    public void resourceWithDoubleDotSignedCorrectly() {
+        apiGateway.createResource(r -> r.restApiId(restApiId).pathPart("fooPath").parentId(".."));
+    }
+
+    @Test(expected = NotFoundException.class)
+    public void resourceWithEncodedCharactersSignedCorrectly() {
+        apiGateway.createResource(r -> r.restApiId(restApiId).pathPart("fooPath").parentId("foo/../bar"));
     }
 }

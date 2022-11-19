@@ -51,7 +51,7 @@ public final class InstantToString implements ValueToString<Instant> {
             case ISO_8601:
                 return DateUtils.formatIso8601Date(val);
             case RFC_822:
-                return DateUtils.formatRfc1123Date(val);
+                return DateUtils.formatRfc822Date(val);
             case UNIX_TIMESTAMP:
                 return DateUtils.formatUnixTimestampInstant(val);
             default:

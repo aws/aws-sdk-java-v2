@@ -35,6 +35,18 @@ public class ServiceConfig {
      */
     private boolean hasFipsProperty = false;
 
+    /**
+     * Whether the service config has a property used to manage useArnRegion (should be deprecated in favor of
+     * AwsClientBuilder#fipsEnabled).
+     */
+    private boolean hasUseArnRegionProperty = false;
+
+    private boolean hasMultiRegionEnabledProperty = false;
+
+    private boolean hasPathStyleAccessEnabledProperty = false;
+
+    private boolean hasAccelerateModeEnabledProperty = false;
+
     public String getClassName() {
         return className;
     }
@@ -57,5 +69,37 @@ public class ServiceConfig {
 
     public void setHasFipsProperty(boolean hasFipsProperty) {
         this.hasFipsProperty = hasFipsProperty;
+    }
+
+    public boolean hasUseArnRegionProperty() {
+        return hasUseArnRegionProperty;
+    }
+
+    public void setHasUseArnRegionProperty(boolean hasUseArnRegionProperty) {
+        this.hasUseArnRegionProperty = hasUseArnRegionProperty;
+    }
+
+    public boolean hasMultiRegionEnabledProperty() {
+        return hasMultiRegionEnabledProperty;
+    }
+
+    public void setHasMultiRegionEnabledProperty(boolean hasMultiRegionEnabledProperty) {
+        this.hasMultiRegionEnabledProperty = hasMultiRegionEnabledProperty;
+    }
+
+    public boolean hasForcePathTypeEnabledProperty() {
+        return hasPathStyleAccessEnabledProperty;
+    }
+
+    public void setHasPathStyleAccessEnabledProperty(boolean hasPathStyleAccessEnabledProperty) {
+        this.hasPathStyleAccessEnabledProperty = hasPathStyleAccessEnabledProperty;
+    }
+
+    public boolean hasAccelerateModeEnabledProperty() {
+        return hasAccelerateModeEnabledProperty;
+    }
+
+    public void setHasAccelerateModeEnabledProperty(boolean hasAccelerateModeEnabledProperty) {
+        this.hasAccelerateModeEnabledProperty = hasAccelerateModeEnabledProperty;
     }
 }

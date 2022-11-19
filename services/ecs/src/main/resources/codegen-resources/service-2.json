@@ -366,6 +366,25 @@
       ],
       "documentation":"<p>Runs a command remotely on a container within a task.</p> <p>If you use a condition key in your IAM policy to refine the conditions for the policy statement, for example limit the actions to a specific cluster, you recevie an <code>AccessDeniedException</code> when there is a mismatch between the condition key value and the corresponding parameter value.</p>"
     },
+    "GetTaskProtection":{
+      "name":"GetTaskProtection",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GetTaskProtectionRequest"},
+      "output":{"shape":"GetTaskProtectionResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"ClientException"},
+        {"shape":"ClusterNotFoundException"},
+        {"shape":"InvalidParameterException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ServerException"},
+        {"shape":"UnsupportedFeatureException"}
+      ],
+      "documentation":"<p>Retrieves the protection status of tasks in an Amazon ECS service.</p>"
+    },
     "ListAccountSettings":{
       "name":"ListAccountSettings",
       "http":{
@@ -856,6 +875,25 @@
         {"shape":"AccessDeniedException"}
       ],
       "documentation":"<p>Modifies which task set in a service is the primary task set. Any parameters that are updated on the primary task set in a service will transition to the service. This is used when a service uses the <code>EXTERNAL</code> deployment controller type. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/deployment-types.html\">Amazon ECS Deployment Types</a> in the <i>Amazon Elastic Container Service Developer Guide</i>.</p>"
+    },
+    "UpdateTaskProtection":{
+      "name":"UpdateTaskProtection",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"UpdateTaskProtectionRequest"},
+      "output":{"shape":"UpdateTaskProtectionResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"ClientException"},
+        {"shape":"ClusterNotFoundException"},
+        {"shape":"InvalidParameterException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ServerException"},
+        {"shape":"UnsupportedFeatureException"}
+      ],
+      "documentation":"<p>Updates the protection status of a task. You can set <code>protectionEnabled</code> to <code>true</code> to protect your task from termination during scale-in events from <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-auto-scaling.html\">Service Autoscaling</a> or <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/deployment-types.html\">deployments</a>.</p> <p>Task-protection, by default, expires after 2 hours at which point Amazon ECS unsets the <code>protectionEnabled</code> property making the task eligible for termination by a subsequent scale-in event.</p> <p>You can specify a custom expiration period for task protection from 1 minute to up to 2,880 minutes (48 hours). To specify the custom expiration period, set the <code>expiresInMinutes</code> property. The <code>expiresInMinutes</code> property is always reset when you invoke this operation for a task that already has <code>protectionEnabled</code> set to <code>true</code>. You can keep extending the protection expiration period of a task by invoking this operation repeatedly.</p> <p>To learn more about Amazon ECS task protection, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-scale-in-protection.html\">Task scale-in protection</a> in the <i>Amazon Elastic Container Service Developer Guide</i>.</p> <note> <p>This operation is only supported for tasks belonging to an Amazon ECS service. Invoking this operation for a standalone task will result in an <code>TASK_NOT_VALID</code> failure. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/api_failures_messages.html.html\">API failure reasons</a>.</p> </note> <important> <p>If you prefer to set task protection from within the container, we recommend using the <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-agent-endpoint.html\">Amazon ECS container agent endpoint</a>.</p> </important>"
     },
     "UpdateTaskSet":{
       "name":"UpdateTaskSet",
@@ -2997,6 +3035,33 @@
         "fluentbit"
       ]
     },
+    "GetTaskProtectionRequest":{
+      "type":"structure",
+      "required":["cluster"],
+      "members":{
+        "cluster":{
+          "shape":"String",
+          "documentation":"<p>The short name or full Amazon Resource Name (ARN) of the cluster that hosts the service that the task sets exist in.</p>"
+        },
+        "tasks":{
+          "shape":"StringList",
+          "documentation":"<p>A list of up to 100 task IDs or full ARN entries.</p>"
+        }
+      }
+    },
+    "GetTaskProtectionResponse":{
+      "type":"structure",
+      "members":{
+        "protectedTasks":{
+          "shape":"ProtectedTasks",
+          "documentation":"<p>A list of tasks with the following information.</p> <ul> <li> <p> <code>taskArn</code>: The task ARN.</p> </li> <li> <p> <code>protectionEnabled</code>: The protection status of the task. If scale-in protection is enabled for a task, the value is <code>true</code>. Otherwise, it is <code>false</code>.</p> </li> <li> <p> <code>expirationDate</code>: The epoch time when protection for the task will expire.</p> </li> </ul>"
+        },
+        "failures":{
+          "shape":"Failures",
+          "documentation":"<p>Any failures associated with the call.</p>"
+        }
+      }
+    },
     "GpuIds":{
       "type":"list",
       "member":{"shape":"String"}
@@ -3710,11 +3775,11 @@
         },
         "minimumScalingStepSize":{
           "shape":"ManagedScalingStepSize",
-          "documentation":"<p>The minimum number of container instances that Amazon ECS scales in or scales out at one time. If this parameter is omitted, the default value of <code>1</code> is used.</p>"
+          "documentation":"<p>The minimum number of Amazon EC2 instances that Amazon ECS will scale out at one time. The scale in process is not affected by this parameter If this parameter is omitted, the default value of <code>1</code> is used.</p> <p>When additional capacity is required, Amazon ECS will scale up the minimum scaling step size even if the actual demand is less than the minimum scaling step size.</p> <p>If you use a capacity provider with an Auto Scaling group configured with more than one Amazon EC2 instance type or Availability Zone, Amazon ECS will scale up by the exact minimum scaling step size value and will ignore both the maximum scaling step size as well as the capacity demand.</p>"
         },
         "maximumScalingStepSize":{
           "shape":"ManagedScalingStepSize",
-          "documentation":"<p>The maximum number of container instances that Amazon ECS scales in or scales out at one time. If this parameter is omitted, the default value of <code>10000</code> is used.</p>"
+          "documentation":"<p>The maximum number of Amazon EC2 instances that Amazon ECS will scale out at one time. The scale in process is not affected by this parameter. If this parameter is omitted, the default value of <code>10000</code> is used.</p>"
         },
         "instanceWarmupPeriod":{
           "shape":"ManagedScalingInstanceWarmupPeriod",
@@ -3975,7 +4040,7 @@
         },
         "hostPort":{
           "shape":"BoxedInteger",
-          "documentation":"<p>The port number on the container instance to reserve for your container.</p> <p>If you use containers in a task with the <code>awsvpc</code> or <code>host</code> network mode, the <code>hostPort</code> can either be left blank or set to the same value as the <code>containerPort</code>.</p> <p>If you use containers in a task with the <code>bridge</code> network mode, you can specify a non-reserved host port for your container port mapping, or you can omit the <code>hostPort</code> (or set it to <code>0</code>) while specifying a <code>containerPort</code> and your container automatically receives a port in the ephemeral port range for your container instance operating system and Docker version.</p> <p>The default ephemeral port range for Docker version 1.6.0 and later is listed on the instance under <code>/proc/sys/net/ipv4/ip_local_port_range</code>. If this kernel parameter is unavailable, the default ephemeral port range from 49153 through 65535 is used. Do not attempt to specify a host port in the ephemeral port range as these are reserved for automatic assignment. In general, ports below 32768 are outside of the ephemeral port range.</p> <note> <p>The default ephemeral port range from 49153 through 65535 is always used for Docker versions before 1.6.0.</p> </note> <p>The default reserved ports are 22 for SSH, the Docker ports 2375 and 2376, and the Amazon ECS container agent ports 51678-51680. Any host port that was previously specified in a running task is also reserved while the task is running. That is, after a task stops, the host port is released. The current reserved ports are displayed in the <code>remainingResources</code> of <a>DescribeContainerInstances</a> output. A container instance can have up to 100 reserved ports at a time. This number includes the default reserved ports. Automatically assigned ports aren't included in the 100 reserved ports quota.</p>"
+          "documentation":"<p>The port number on the container instance to reserve for your container.</p> <p>If you use containers in a task with the <code>awsvpc</code> or <code>host</code> network mode, the <code>hostPort</code> can either be left blank or set to the same value as the <code>containerPort</code>.</p> <p>If you use containers in a task with the <code>bridge</code> network mode, you can specify a non-reserved host port for your container port mapping, or you can omit the <code>hostPort</code> (or set it to <code>0</code>) while specifying a <code>containerPort</code> and your container automatically receives a port in the ephemeral port range for your container instance operating system and Docker version.</p> <p>The default ephemeral port range for Docker version 1.6.0 and later is listed on the instance under <code>/proc/sys/net/ipv4/ip_local_port_range</code>. If this kernel parameter is unavailable, the default ephemeral port range from 49153 through 65535 is used. Do not attempt to specify a host port in the ephemeral port range as these are reserved for automatic assignment. In general, ports below 32768 are outside of the ephemeral port range.</p> <p>The default reserved ports are 22 for SSH, the Docker ports 2375 and 2376, and the Amazon ECS container agent ports 51678-51680. Any host port that was previously specified in a running task is also reserved while the task is running. That is, after a task stops, the host port is released. The current reserved ports are displayed in the <code>remainingResources</code> of <a>DescribeContainerInstances</a> output. A container instance can have up to 100 reserved ports at a time. This number includes the default reserved ports. Automatically assigned ports aren't included in the 100 reserved ports quota.</p>"
         },
         "protocol":{
           "shape":"TransportProtocol",
@@ -3995,6 +4060,28 @@
         "SERVICE",
         "NONE"
       ]
+    },
+    "ProtectedTask":{
+      "type":"structure",
+      "members":{
+        "taskArn":{
+          "shape":"String",
+          "documentation":"<p>The task ARN.</p>"
+        },
+        "protectionEnabled":{
+          "shape":"Boolean",
+          "documentation":"<p>The protection status of the task. If scale-in protection is enabled for a task, the value is <code>true</code>. Otherwise, it is <code>false</code>.</p>"
+        },
+        "expirationDate":{
+          "shape":"Timestamp",
+          "documentation":"<p>The epoch time when protection for the task will expire.</p>"
+        }
+      },
+      "documentation":"<p>An object representing the protection status details for a task. You can set the protection status with the <a>UpdateTaskProtection</a> API and get the status of tasks with the <a>GetTaskProtection</a> API.</p>"
+    },
+    "ProtectedTasks":{
+      "type":"list",
+      "member":{"shape":"ProtectedTask"}
     },
     "ProxyConfiguration":{
       "type":"structure",
@@ -4032,7 +4119,7 @@
       "members":{
         "name":{
           "shape":"SettingName",
-          "documentation":"<p>The resource name for which to modify the account setting. If <code>serviceLongArnFormat</code> is specified, the ARN for your Amazon ECS services is affected. If <code>taskLongArnFormat</code> is specified, the ARN and resource ID for your Amazon ECS tasks is affected. If <code>containerInstanceLongArnFormat</code> is specified, the ARN and resource ID for your Amazon ECS container instances is affected. If <code>awsvpcTrunking</code> is specified, the ENI limit for your Amazon ECS container instances is affected. If <code>containerInsights</code> is specified, the default setting for CloudWatch Container Insights for your clusters is affected.</p>"
+          "documentation":"<p>The resource name for which to modify the account setting. If <code>serviceLongArnFormat</code> is specified, the ARN for your Amazon ECS services is affected. If <code>taskLongArnFormat</code> is specified, the ARN and resource ID for your Amazon ECS tasks is affected. If <code>containerInstanceLongArnFormat</code> is specified, the ARN and resource ID for your Amazon ECS container instances is affected. If <code>awsvpcTrunking</code> is specified, the ENI limit for your Amazon ECS container instances is affected. If <code>containerInsights</code> is specified, the default setting for CloudWatch Container Insights for your clusters is affected.</p> <p>Fargate is transitioning from task count-based quotas to vCPU-based quotas. You can set the name to <code>fargateVCPULimit</code> to opt in or opt out of the vCPU-based quotas. For information about the opt in timeline, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-account-settings.html#fargate-quota-timeline\">Fargate vCPU-based quotas timeline</a> in the <i>Amazon ECS Developer Guide</i>.</p>"
         },
         "value":{
           "shape":"String",
@@ -4252,7 +4339,7 @@
         },
         "ephemeralStorage":{
           "shape":"EphemeralStorage",
-          "documentation":"<p>The amount of ephemeral storage to allocate for the task. This parameter is used to expand the total amount of ephemeral storage available, beyond the default amount, for tasks hosted on Fargate. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/userguide/using_data_volumes.html\">Fargate task storage</a> in the <i>Amazon ECS User Guide for Fargate</i>.</p> <note> <p>This parameter is only supported for tasks hosted on Fargate using the following platform versions:</p> <ul> <li> <p>Linux platform version <code>1.4.0</code> or later.</p> </li> <li> <p>Windows platform version <code>1.0.0</code> or later.</p> </li> </ul> </note>"
+          "documentation":"<p>The amount of ephemeral storage to allocate for the task. This parameter is used to expand the total amount of ephemeral storage available, beyond the default amount, for tasks hosted on Fargate. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/userguide/using_data_volumes.html\">Fargate task storage</a> in the <i>Amazon ECS User Guide for Fargate</i>.</p> <note> <p>This parameter is only supported for tasks hosted on Fargate using the following platform versions:</p> <ul> <li> <p>Linux platform version <code>1.4.0</code> or later.</p> </li> </ul> </note>"
         },
         "runtimePlatform":{
           "shape":"RuntimePlatform",
@@ -4638,7 +4725,7 @@
         },
         "deploymentController":{
           "shape":"DeploymentController",
-          "documentation":"<p>The deployment controller type the service is using. When using the DescribeServices API, this field is omitted if the service uses the <code>ECS</code> deployment controller type.</p>"
+          "documentation":"<p>The deployment controller type the service is using. </p>"
         },
         "tags":{
           "shape":"Tags",
@@ -5312,7 +5399,7 @@
         },
         "volumes":{
           "shape":"VolumeList",
-          "documentation":"<p>The list of data volume definitions for the task. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/using_data_volumes.html\">Using data volumes in tasks</a> in the <i>Amazon Elastic Container Service Developer Guide</i>.</p> <note> <p>The <code>host</code> and <code>sourcePath</code> parameters aren't supported for tasks run on Fargate.</p> </note>"
+          "documentation":"<p>The list of data volume definitions for the task. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/using_data_volumes.html\">Using data volumes in tasks</a> in the <i>Amazon Elastic Container Service Developer Guide</i>.</p> <note> <p>The <code>host</code> and <code>sourcePath</code> parameters aren't supported for tasks run on Fargate. </p> </note>"
         },
         "status":{
           "shape":"TaskDefinitionStatus",
@@ -5965,6 +6052,45 @@
         "service":{
           "shape":"Service",
           "documentation":"<p>The full description of your service following the update call.</p>"
+        }
+      }
+    },
+    "UpdateTaskProtectionRequest":{
+      "type":"structure",
+      "required":[
+        "cluster",
+        "tasks",
+        "protectionEnabled"
+      ],
+      "members":{
+        "cluster":{
+          "shape":"String",
+          "documentation":"<p>The short name or full Amazon Resource Name (ARN) of the cluster that hosts the service that the task sets exist in.</p>"
+        },
+        "tasks":{
+          "shape":"StringList",
+          "documentation":"<p>A list of up to 10 task IDs or full ARN entries.</p>"
+        },
+        "protectionEnabled":{
+          "shape":"Boolean",
+          "documentation":"<p>Specify <code>true</code> to mark a task for protection and <code>false</code> to unset protection, making it eligible for termination.</p>"
+        },
+        "expiresInMinutes":{
+          "shape":"BoxedInteger",
+          "documentation":"<p>If you set <code>protectionEnabled</code> to <code>true</code>, you can specify the duration for task protection in minutes. You can specify a value from 1 minute to up to 2,880 minutes (48 hours). During this time, your task will not be terminated by scale-in events from Service Auto Scaling or deployments. After this time period lapses, <code>protectionEnabled</code> will be reset to <code>false</code>.</p> <p>If you don’t specify the time, then the task is automatically protected for 120 minutes (2 hours).</p>"
+        }
+      }
+    },
+    "UpdateTaskProtectionResponse":{
+      "type":"structure",
+      "members":{
+        "protectedTasks":{
+          "shape":"ProtectedTasks",
+          "documentation":"<p>A list of tasks with the following information.</p> <ul> <li> <p> <code>taskArn</code>: The task ARN.</p> </li> <li> <p> <code>protectionEnabled</code>: The protection status of the task. If scale-in protection is enabled for a task, the value is <code>true</code>. Otherwise, it is <code>false</code>.</p> </li> <li> <p> <code>expirationDate</code>: The epoch time when protection for the task will expire.</p> </li> </ul>"
+        },
+        "failures":{
+          "shape":"Failures",
+          "documentation":"<p>Any failures associated with the call.</p>"
         }
       }
     },

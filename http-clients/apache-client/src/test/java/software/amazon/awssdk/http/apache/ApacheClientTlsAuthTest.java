@@ -30,8 +30,16 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import java.io.IOException;
 import java.net.SocketException;
 import java.net.URI;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
+import javax.net.ssl.TrustManager;
 import org.apache.http.NoHttpResponseException;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -39,6 +47,7 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.mockito.Mockito;
 import software.amazon.awssdk.http.FileStoreTlsKeyManagersProvider;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.HttpExecuteResponse;
@@ -47,6 +56,7 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.TlsKeyManagersProvider;
+import software.amazon.awssdk.http.apache.internal.conn.SdkTlsSocketFactory;
 import software.amazon.awssdk.internal.http.NoneTlsKeyManagersProvider;
 
 /**
@@ -168,6 +178,62 @@ public class ApacheClientTlsAuthTest extends ClientTlsAuthTestBase {
             System.clearProperty(SSL_KEY_STORE_TYPE.property());
             System.clearProperty(SSL_KEY_STORE_PASSWORD.property());
         }
+    }
+
+    @Test
+    public void build_notSettingSocketFactory_configuresClientWithDefaultSocketFactory() throws IOException,
+                                                                                                NoSuchAlgorithmException,
+                                                                                                KeyManagementException {
+        System.setProperty(SSL_KEY_STORE.property(), clientKeyStore.toAbsolutePath().toString());
+        System.setProperty(SSL_KEY_STORE_TYPE.property(), CLIENT_STORE_TYPE);
+        System.setProperty(SSL_KEY_STORE_PASSWORD.property(), STORE_PASSWORD);
+
+        TlsKeyManagersProvider provider = FileStoreTlsKeyManagersProvider.create(clientKeyStore,
+                                                                                 CLIENT_STORE_TYPE,
+                                                                                 STORE_PASSWORD);
+        KeyManager[] keyManagers = provider.keyManagers();
+
+        SSLContext sslcontext = SSLContext.getInstance("TLS");
+        sslcontext.init(keyManagers, null, null);
+
+        ConnectionSocketFactory socketFactory = new SdkTlsSocketFactory(sslcontext, NoopHostnameVerifier.INSTANCE);
+        ConnectionSocketFactory socketFactoryMock = Mockito.spy(socketFactory);
+
+        client = ApacheHttpClient.builder().build();
+
+        try {
+            HttpExecuteResponse httpExecuteResponse = makeRequestWithHttpClient(client);
+            assertThat(httpExecuteResponse.httpResponse().statusCode()).isEqualTo(200);
+        } finally {
+            System.clearProperty(SSL_KEY_STORE.property());
+            System.clearProperty(SSL_KEY_STORE_TYPE.property());
+            System.clearProperty(SSL_KEY_STORE_PASSWORD.property());
+        }
+
+        Mockito.verifyNoInteractions(socketFactoryMock);
+    }
+
+    @Test
+    public void build_settingCustomSocketFactory_configuresClientWithGivenSocketFactory() throws IOException,
+                                                                                                 NoSuchAlgorithmException,
+                                                                                                 KeyManagementException {
+        TlsKeyManagersProvider provider = FileStoreTlsKeyManagersProvider.create(clientKeyStore,
+                                                                                 CLIENT_STORE_TYPE,
+                                                                                 STORE_PASSWORD);
+        KeyManager[] keyManagers = provider.keyManagers();
+
+        SSLContext sslcontext = SSLContext.getInstance("TLS");
+        sslcontext.init(keyManagers, null, null);
+
+        ConnectionSocketFactory socketFactory = new SdkTlsSocketFactory(sslcontext, NoopHostnameVerifier.INSTANCE);
+        ConnectionSocketFactory socketFactoryMock = Mockito.spy(socketFactory);
+
+        client = ApacheHttpClient.builder()
+                                 .socketFactory(socketFactoryMock)
+                                 .build();
+        makeRequestWithHttpClient(client);
+
+        Mockito.verify(socketFactoryMock).createSocket(Mockito.any());
     }
 
     private HttpExecuteResponse makeRequestWithHttpClient(SdkHttpClient httpClient) throws IOException {

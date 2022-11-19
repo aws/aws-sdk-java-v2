@@ -20,14 +20,18 @@ import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.binaryEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static java.util.Collections.emptyMap;
 import static org.apache.commons.codec.digest.DigestUtils.sha256Hex;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static software.amazon.awssdk.http.HttpTestUtils.createProvider;
+import static software.amazon.awssdk.http.crt.CrtHttpClientTestUtils.createRequest;
 
 import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.time.Duration;
@@ -35,16 +39,18 @@ import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.crt.CrtResource;
+import software.amazon.awssdk.crt.http.HttpException;
 import software.amazon.awssdk.crt.io.EventLoopGroup;
 import software.amazon.awssdk.crt.io.HostResolver;
+import software.amazon.awssdk.http.RecordingResponseHandler;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SdkHttpResponse;
@@ -62,10 +68,10 @@ public class AwsCrtHttpClientSpiVerificationTest {
             .dynamicPort()
             .dynamicHttpsPort());
 
-    private SdkAsyncHttpClient client;
+    private static SdkAsyncHttpClient client;
 
-    @Before
-    public void setup() throws Exception {
+    @BeforeClass
+    public static void setup() throws Exception {
         CrtResource.waitForNoResources();
 
         client = AwsCrtAsyncHttpClient.builder()
@@ -74,8 +80,8 @@ public class AwsCrtHttpClientSpiVerificationTest {
                                       .build();
     }
 
-    @After
-    public void tearDown() {
+    @AfterClass
+    public static void tearDown() {
         client.close();
         EventLoopGroup.closeStaticDefault();
         HostResolver.closeStaticDefault();
@@ -110,8 +116,20 @@ public class AwsCrtHttpClientSpiVerificationTest {
                 .build());
 
         assertThat(errorSignaled.get(1, TimeUnit.SECONDS)).isTrue();
-        assertThatThrownBy(executeFuture::join).hasCauseInstanceOf(Exception.class);
+        assertThatThrownBy(executeFuture::join).hasCauseInstanceOf(IOException.class).hasRootCauseInstanceOf(HttpException.class);
+    }
 
+    @Test
+    public void requestFailed_connectionTimeout_shouldWrapException() {
+        try (SdkAsyncHttpClient client = AwsCrtAsyncHttpClient.builder().connectionTimeout(Duration.ofNanos(1)).build()) {
+            URI uri = URI.create("http://localhost:" + mockServer.port());
+            stubFor(any(urlPathEqualTo("/")).willReturn(aResponse().withFault(Fault.RANDOM_DATA_THEN_CLOSE)));
+            SdkHttpRequest request = createRequest(uri);
+            RecordingResponseHandler recorder = new RecordingResponseHandler();
+            client.execute(AsyncExecuteRequest.builder().request(request).requestContentPublisher(createProvider("")).responseHandler(recorder).build());
+            assertThatThrownBy(() -> recorder.completeFuture().get(5, TimeUnit.SECONDS)).hasCauseInstanceOf(IOException.class)
+                                                                                        .hasRootCauseInstanceOf(HttpException.class);
+        }
     }
 
     @Test
@@ -135,7 +153,7 @@ public class AwsCrtHttpClientSpiVerificationTest {
 
         SdkHttpRequest request = CrtHttpClientTestUtils.createRequest(URI.create("http://localhost:" + mockServer.port()));
 
-        CompletableFuture future = client.execute(AsyncExecuteRequest.builder()
+        CompletableFuture<Void> future = client.execute(AsyncExecuteRequest.builder()
                 .request(request)
                 .responseHandler(handler)
                 .requestContentPublisher(new EmptyPublisher())

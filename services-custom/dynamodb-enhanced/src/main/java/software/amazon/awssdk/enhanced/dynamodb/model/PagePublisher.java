@@ -31,7 +31,11 @@ import software.amazon.awssdk.core.async.SdkPublisher;
  * {@code
  *
  * PagePublisher<MyItem> publisher = mappedTable.scan();
- * publisher.subscribe(page -> page.items().forEach(item -> System.out.println(item)));
+ * publisher.subscribe(page -> page.items().forEach(item -> System.out.println(item)))
+ *          .exceptionally(failure -> {
+ *              failure.printStackTrace();
+ *              return null;
+ *          });
  * }
  * </pre>
  *
@@ -41,7 +45,12 @@ import software.amazon.awssdk.core.async.SdkPublisher;
  * {@code
  *
  * PagePublisher<MyItem> publisher = mappedTable.scan();
- * publisher.items().subscribe(item -> System.out.println(item));
+ * publisher.items()
+ *          .subscribe(item -> System.out.println(item))
+ *          .exceptionally(failure -> {
+ *              failure.printStackTrace();
+ *              return null;
+ *          });
  * }
  * </pre>
  *

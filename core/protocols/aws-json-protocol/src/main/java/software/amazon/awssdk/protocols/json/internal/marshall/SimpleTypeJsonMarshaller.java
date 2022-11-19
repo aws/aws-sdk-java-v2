@@ -113,7 +113,7 @@ public final class SimpleTypeJsonMarshaller {
                     jsonGenerator.writeNumber(DateUtils.formatUnixTimestampInstant(val));
                     break;
                 case RFC_822:
-                    jsonGenerator.writeValue(DateUtils.formatRfc1123Date(val));
+                    jsonGenerator.writeValue(DateUtils.formatRfc822Date(val));
                     break;
                 case ISO_8601:
                     jsonGenerator.writeValue(DateUtils.formatIso8601Date(val));

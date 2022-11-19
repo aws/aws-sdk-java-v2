@@ -333,9 +333,10 @@ public final class ApacheHttpClient implements SdkHttpClient {
      * client builder for more information on configuring the HTTP layer.
      *
      * <pre class="brush: java">
-     * SdkHttpClient httpClient = SdkHttpClient.builder()
-     * .socketTimeout(Duration.ofSeconds(10))
-     * .build();
+     * SdkHttpClient httpClient =
+     *     ApacheHttpClient.builder()
+     *                     .socketTimeout(Duration.ofSeconds(10))
+     *                     .build();
      * </pre>
      */
     public interface Builder extends SdkHttpClient.Builder<ApacheHttpClient.Builder> {
@@ -404,6 +405,14 @@ public final class ApacheHttpClient implements SdkHttpClient {
         Builder dnsResolver(DnsResolver dnsResolver);
 
         /**
+         * Configuration that defines a custom Socket factory. If set to a null value, a default factory is used.
+         * <p>
+         * When set to a non-null value, the use of a custom factory implies the configuration options TRUST_ALL_CERTIFICATES,
+         * TLS_TRUST_MANAGERS_PROVIDER, and TLS_KEY_MANAGERS_PROVIDER are ignored.
+         */
+        Builder socketFactory(ConnectionSocketFactory socketFactory);
+
+        /**
          * Configuration that defines an HTTP route planner that computes the route an HTTP request should take.
          * May not be used in conjunction with {@link #proxyConfiguration(ProxyConfiguration)}.
          */
@@ -452,6 +461,7 @@ public final class ApacheHttpClient implements SdkHttpClient {
         private HttpRoutePlanner httpRoutePlanner;
         private CredentialsProvider credentialsProvider;
         private DnsResolver dnsResolver;
+        private ConnectionSocketFactory socketFactory;
 
         private DefaultBuilder() {
         }
@@ -573,6 +583,16 @@ public final class ApacheHttpClient implements SdkHttpClient {
         }
 
         @Override
+        public Builder socketFactory(ConnectionSocketFactory socketFactory) {
+            this.socketFactory = socketFactory;
+            return this;
+        }
+
+        public void setSocketFactory(ConnectionSocketFactory socketFactory) {
+            socketFactory(socketFactory);
+        }
+
+        @Override
         public Builder httpRoutePlanner(HttpRoutePlanner httpRoutePlanner) {
             this.httpRoutePlanner = httpRoutePlanner;
             return this;
@@ -654,9 +674,9 @@ public final class ApacheHttpClient implements SdkHttpClient {
 
         private ConnectionSocketFactory getPreferredSocketFactory(ApacheHttpClient.DefaultBuilder configuration,
                                                                   AttributeMap standardOptions) {
-            // TODO v2 custom socket factory
-            return new SdkTlsSocketFactory(getSslContext(standardOptions),
-                                           getHostNameVerifier(standardOptions));
+            return Optional.ofNullable(configuration.socketFactory)
+                           .orElseGet(() -> new SdkTlsSocketFactory(getSslContext(standardOptions),
+                                                                    getHostNameVerifier(standardOptions)));
         }
 
         private HostnameVerifier getHostNameVerifier(AttributeMap standardOptions) {

@@ -79,6 +79,22 @@
       ],
       "documentation":"<p>Displays detailed information about a specified application.</p>"
     },
+    "GetDashboardForJobRun":{
+      "name":"GetDashboardForJobRun",
+      "http":{
+        "method":"GET",
+        "requestUri":"/applications/{applicationId}/jobruns/{jobRunId}/dashboard",
+        "responseCode":200
+      },
+      "input":{"shape":"GetDashboardForJobRunRequest"},
+      "output":{"shape":"GetDashboardForJobRunResponse"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InternalServerException"}
+      ],
+      "documentation":"<p>Returns a URL to access the job run dashboard.</p>"
+    },
     "GetJobRun":{
       "name":"GetJobRun",
       "http":{
@@ -316,6 +332,10 @@
         "networkConfiguration":{
           "shape":"NetworkConfiguration",
           "documentation":"<p>The network configuration for customer VPC connectivity for the application.</p>"
+        },
+        "architecture":{
+          "shape":"Architecture",
+          "documentation":"<p>The CPU architecture of an application.</p>"
         }
       },
       "documentation":"<p>Information about an application. EMR Serverless uses applications to run jobs.</p>"
@@ -407,9 +427,20 @@
         "updatedAt":{
           "shape":"Date",
           "documentation":"<p>The date and time when the application was last updated.</p>"
+        },
+        "architecture":{
+          "shape":"Architecture",
+          "documentation":"<p>The CPU architecture of an application.</p>"
         }
       },
       "documentation":"<p>The summary of attributes associated with an application.</p>"
+    },
+    "Architecture":{
+      "type":"string",
+      "enum":[
+        "ARM64",
+        "X86_64"
+      ]
     },
     "AutoStartConfig":{
       "type":"structure",
@@ -430,8 +461,7 @@
         },
         "idleTimeoutMinutes":{
           "shape":"AutoStopConfigIdleTimeoutMinutesInteger",
-          "documentation":"<p>The amount of idle time in minutes after which your application will automatically stop. Defaults to 15 minutes.</p>",
-          "box":true
+          "documentation":"<p>The amount of idle time in minutes after which your application will automatically stop. Defaults to 15 minutes.</p>"
         }
       },
       "documentation":"<p>The configuration for an application to automatically stop after a certain amount of time being idle.</p>"
@@ -596,6 +626,10 @@
         "networkConfiguration":{
           "shape":"NetworkConfiguration",
           "documentation":"<p>The network configuration for customer VPC connectivity.</p>"
+        },
+        "architecture":{
+          "shape":"Architecture",
+          "documentation":"<p>The CPU architecture of an application.</p>"
         }
       }
     },
@@ -701,6 +735,36 @@
         "application":{
           "shape":"Application",
           "documentation":"<p>The output displays information about the specified application.</p>"
+        }
+      }
+    },
+    "GetDashboardForJobRunRequest":{
+      "type":"structure",
+      "required":[
+        "applicationId",
+        "jobRunId"
+      ],
+      "members":{
+        "applicationId":{
+          "shape":"ApplicationId",
+          "documentation":"<p>The ID of the application.</p>",
+          "location":"uri",
+          "locationName":"applicationId"
+        },
+        "jobRunId":{
+          "shape":"JobRunId",
+          "documentation":"<p>The ID of the job run.</p>",
+          "location":"uri",
+          "locationName":"jobRunId"
+        }
+      }
+    },
+    "GetDashboardForJobRunResponse":{
+      "type":"structure",
+      "members":{
+        "url":{
+          "shape":"Url",
+          "documentation":"<p>The URL to view job run's dashboard.</p>"
         }
       }
     },
@@ -1024,7 +1088,6 @@
         "maxResults":{
           "shape":"ListApplicationsRequestMaxResultsInteger",
           "documentation":"<p>The maximum number of applications that can be listed.</p>",
-          "box":true,
           "location":"querystring",
           "locationName":"maxResults"
         },
@@ -1075,7 +1138,6 @@
         "maxResults":{
           "shape":"ListJobRunsRequestMaxResultsInteger",
           "documentation":"<p>The maximum number of job runs that can be listed.</p>",
-          "box":true,
           "location":"querystring",
           "locationName":"maxResults"
         },
@@ -1580,7 +1642,11 @@
           "shape":"AutoStopConfig",
           "documentation":"<p>The configuration for an application to automatically stop after a certain amount of time being idle.</p>"
         },
-        "networkConfiguration":{"shape":"NetworkConfiguration"}
+        "networkConfiguration":{"shape":"NetworkConfiguration"},
+        "architecture":{
+          "shape":"Architecture",
+          "documentation":"<p>The CPU architecture of an application.</p>"
+        }
       }
     },
     "UpdateApplicationResponse":{
@@ -1598,6 +1664,11 @@
       "max":10280,
       "min":1,
       "pattern":".*[\\u0020-\\uD7FF\\uE000-\\uFFFD\\uD800\\uDBFF-\\uDC00\\uDFFF\\r\\n\\t]*.*"
+    },
+    "Url":{
+      "type":"string",
+      "max":2048,
+      "min":1
     },
     "ValidationException":{
       "type":"structure",

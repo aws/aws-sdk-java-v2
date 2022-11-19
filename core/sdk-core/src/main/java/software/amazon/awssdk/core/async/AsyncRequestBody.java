@@ -123,7 +123,8 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      * @see ByteArrayAsyncRequestBody
      */
     static AsyncRequestBody fromString(String string, Charset cs) {
-        return new ByteArrayAsyncRequestBody(string.getBytes(cs), Mimetype.MIMETYPE_TEXT_PLAIN);
+        return new ByteArrayAsyncRequestBody(string.getBytes(cs),
+                                             Mimetype.MIMETYPE_TEXT_PLAIN + "; charset=" + cs.name());
     }
 
     /**

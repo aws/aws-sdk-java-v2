@@ -1,0 +1,48 @@
+{
+    "version": "2.17.285",
+    "date": "2022-09-30",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS CodeDeploy",
+            "contributor": "",
+            "description": "This release allows you to override the alarm configurations when creating a deployment."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SSO OIDC",
+            "contributor": "",
+            "description": "Documentation updates for the IAM Identity Center OIDC CLI Reference."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Data Lifecycle Manager",
+            "contributor": "",
+            "description": "This release adds support for archival of single-volume snapshots created by Amazon Data Lifecycle Manager policies"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DevOps Guru",
+            "contributor": "",
+            "description": "This release adds filter feature on AddNotificationChannel API, enable customer to configure the SNS notification messages by Severity or MessageTypes"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Runtime",
+            "contributor": "",
+            "description": "A new parameter called EnableExplanations is added to InvokeEndpoint API to enable on-demand SageMaker Clarify online explainability requests."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "A new parameter called ExplainerConfig is added to CreateEndpointConfig API to enable SageMaker Clarify online explainability feature."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}

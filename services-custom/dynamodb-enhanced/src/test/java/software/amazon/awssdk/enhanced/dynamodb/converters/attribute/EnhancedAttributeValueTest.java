@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,7 +67,19 @@ public class EnhancedAttributeValueTest {
             assertThat(v.type()).isEqualTo(AttributeValueType.SS);
         });
 
+        assertThat(EnhancedAttributeValue.fromSetOfStrings((Collection<String>) Arrays.asList("a", "b"))).satisfies(v -> {
+            assertThat(v.isSetOfStrings()).isTrue();
+            assertThat(v.asSetOfStrings()).containsExactly("a", "b");
+            assertThat(v.type()).isEqualTo(AttributeValueType.SS);
+        });
+
         assertThat(EnhancedAttributeValue.fromSetOfNumbers(Arrays.asList("1", "2"))).satisfies(v -> {
+            assertThat(v.isSetOfNumbers()).isTrue();
+            assertThat(v.asSetOfNumbers()).containsExactly("1", "2");
+            assertThat(v.type()).isEqualTo(AttributeValueType.NS);
+        });
+
+        assertThat(EnhancedAttributeValue.fromSetOfNumbers((Collection<String>) Arrays.asList("1", "2"))).satisfies(v -> {
             assertThat(v.isSetOfNumbers()).isTrue();
             assertThat(v.asSetOfNumbers()).containsExactly("1", "2");
             assertThat(v.type()).isEqualTo(AttributeValueType.NS);
@@ -74,6 +87,15 @@ public class EnhancedAttributeValueTest {
 
         assertThat(EnhancedAttributeValue.fromSetOfBytes(Arrays.asList(SdkBytes.fromUtf8String("foo"),
                                                                    SdkBytes.fromUtf8String("foo2")))).satisfies(v -> {
+            assertThat(v.isSetOfBytes()).isTrue();
+            assertThat(v.asSetOfBytes().get(0).asUtf8String()).isEqualTo("foo");
+            assertThat(v.asSetOfBytes().get(1).asUtf8String()).isEqualTo("foo2");
+            assertThat(v.type()).isEqualTo(AttributeValueType.BS);
+        });
+
+        assertThat(EnhancedAttributeValue
+                       .fromSetOfBytes((Collection<SdkBytes>) Arrays.asList(SdkBytes.fromUtf8String("foo"),
+                                                                            SdkBytes.fromUtf8String("foo2")))).satisfies(v -> {
             assertThat(v.isSetOfBytes()).isTrue();
             assertThat(v.asSetOfBytes().get(0).asUtf8String()).isEqualTo("foo");
             assertThat(v.asSetOfBytes().get(1).asUtf8String()).isEqualTo("foo2");

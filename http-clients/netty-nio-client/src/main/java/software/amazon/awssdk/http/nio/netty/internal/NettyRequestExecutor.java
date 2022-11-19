@@ -21,11 +21,11 @@ import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.EXECUTION_ID_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.IN_USE;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.KEEP_ALIVE;
-import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.LAST_HTTP_CONTENT_RECEIVED_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.REQUEST_CONTEXT_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.RESPONSE_COMPLETE_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.RESPONSE_CONTENT_LENGTH;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.RESPONSE_DATA_READ;
+import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.STREAMING_COMPLETE_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.NettyRequestMetrics.measureTimeTaken;
 
 import io.netty.buffer.ByteBuf;
@@ -195,7 +195,7 @@ public final class NettyRequestExecutor {
         channel.attr(EXECUTE_FUTURE_KEY).set(executeFuture);
         channel.attr(REQUEST_CONTEXT_KEY).set(context);
         channel.attr(RESPONSE_COMPLETE_KEY).set(false);
-        channel.attr(LAST_HTTP_CONTENT_RECEIVED_KEY).set(false);
+        channel.attr(STREAMING_COMPLETE_KEY).set(false);
         channel.attr(RESPONSE_CONTENT_LENGTH).set(null);
         channel.attr(RESPONSE_DATA_READ).set(null);
         channel.attr(CHANNEL_DIAGNOSTICS).get().incrementRequestCount();
@@ -220,7 +220,6 @@ public final class NettyRequestExecutor {
                 throw new IOException("Unknown protocol: " + protocol);
         }
 
-        pipeline.addLast(LastHttpContentHandler.create());
         if (protocol == Protocol.HTTP2) {
             pipeline.addLast(FlushOnReadHandler.getInstance());
         }

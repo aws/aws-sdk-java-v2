@@ -45,6 +45,7 @@ import software.amazon.awssdk.utils.Validate;
  *     <li>{@link LocalDateStringConverter}</li>
  *     <li>{@link LocalDateTimeStringConverter}</li>
  *     <li>{@link LocalTimeStringConverter}</li>
+ *     <li>{@link LocaleStringConverter}</li>     
  *     <li>{@link LongStringConverter}</li>
  *     <li>{@link MonthDayStringConverter}</li>
  *     <li>{@link OptionalDoubleStringConverter}</li>
@@ -132,6 +133,7 @@ public class DefaultStringConverterProvider implements StringConverterProvider {
                                              .addConverter(LocalDateStringConverter.create())
                                              .addConverter(LocalTimeStringConverter.create())
                                              .addConverter(LocalDateTimeStringConverter.create())
+                                             .addConverter(LocaleStringConverter.create())
                                              .addConverter(OffsetTimeStringConverter.create())
                                              .addConverter(OffsetDateTimeStringConverter.create())
                                              .addConverter(ZonedDateTimeStringConverter.create())
