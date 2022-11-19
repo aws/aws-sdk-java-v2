@@ -93,7 +93,7 @@ public class IntermediateModelBuilderTest {
     @Test
     public void assertAwsQueryCompatibleTrait_notNull() {
         final File modelFile = new File(IntermediateModelBuilderTest.class
-                                            .getResource("poet/client/c2j/json/service-2.json").getFile());
+                                            .getResource("poet/client/c2j/json-query-error/service-2.json").getFile());
         IntermediateModel testModel = new IntermediateModelBuilder(
             C2jModels.builder()
                      .serviceModel(ModelLoaderUtils.loadModel(ServiceModel.class, modelFile))

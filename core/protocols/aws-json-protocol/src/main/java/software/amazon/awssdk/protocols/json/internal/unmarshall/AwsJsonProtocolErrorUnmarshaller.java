@@ -42,6 +42,7 @@ import software.amazon.awssdk.utils.StringUtils;
 @SdkInternalApi
 public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandler<AwsServiceException> {
 
+    private static final String QUERY_ERROR_DELIMITER = ";";
     private final JsonProtocolUnmarshaller jsonProtocolUnmarshaller;
     private final List<ExceptionMetadata> exceptions;
     private final ErrorMessageParser errorMessageParser;
@@ -49,8 +50,6 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
     private final Supplier<SdkPojo> defaultExceptionSupplier;
     private final ErrorCodeParser errorCodeParser;
     private final boolean hasAwsQueryCompatible;
-
-    private static final String QUERY_ERROR_DELIMITER = ";";
 
     private AwsJsonProtocolErrorUnmarshaller(Builder builder) {
         this.jsonProtocolUnmarshaller = builder.jsonProtocolUnmarshaller;
