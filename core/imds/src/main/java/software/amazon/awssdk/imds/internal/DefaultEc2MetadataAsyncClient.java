@@ -81,9 +81,9 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
         TokenCacheStrategy tokenCacheStrategy = Validate.getOrDefault(builder.tokenCacheStrategy, () -> TokenCacheStrategy.NONE);
         Supplier<CompletableFuture<Token>> valueSupplier =
             () -> {
-                CompletableFuture<String> tokenValue = this.sendRequest(requestMarshaller.createTokenRequest(tokenTtl));
-                CompletableFuture<Token> tokenFuture = tokenValue.thenApply(value -> new Token(value, this.tokenTtl));
-                CompletableFutureUtils.forwardExceptionTo(tokenFuture, tokenValue);
+                CompletableFuture<String> tokenValueFuture = this.sendRequest(requestMarshaller.createTokenRequest(tokenTtl));
+                CompletableFuture<Token> tokenFuture = tokenValueFuture.thenApply(value -> new Token(value, this.tokenTtl));
+                CompletableFutureUtils.forwardExceptionTo(tokenFuture, tokenValueFuture);
                 return tokenFuture;
             };
         this.tokenCache = tokenCacheStrategy.getCachedSupplier(valueSupplier, this.tokenTtl);
@@ -99,7 +99,6 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
     public CompletableFuture<MetadataResponse> get(String path) {
         CompletableFuture<String> resultFuture = new CompletableFuture<>();
         CompletableFuture<Token> tokenFuture = tokenCache.get();
-        CompletableFutureUtils.forwardExceptionTo(resultFuture, tokenFuture);
         tokenFuture.whenComplete((token, throwable) -> {
             if (throwable != null) {
                 resultFuture.completeExceptionally(throwable);
@@ -115,7 +114,6 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
         return returnFuture;
     }
 
-    //////
     private CompletableFuture<String> sendRequest(SdkHttpFullRequest request) {
         RetryPolicyContext initialRetryContext = RetryPolicyContext.builder()
                                                                    .retriesAttempted(0)
