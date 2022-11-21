@@ -30,7 +30,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 public interface AwsCredentialsProvider {
     /**
      * Returns {@link AwsCredentials} that can be used to authorize an AWS request. Each implementation of AWSCredentialsProvider
-     * can chose its own strategy for loading credentials. For example, an implementation might load credentials from an existing
+     * can choose its own strategy for loading credentials. For example, an implementation might load credentials from an existing
      * key management system, or load new credentials when credentials are rotated.
      *
      * <p>If an error occurs during the loading of credentials or credentials could not be found, a runtime exception will be
