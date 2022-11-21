@@ -119,6 +119,14 @@
         },
         "input":{"shape":"StructureWithDocumentMember"}
       }
+    },
+    "QueryParameterOperation":{
+      "name":"QueryParameterOperation",
+      "http":{
+        "method":"DELETE",
+        "requestUri":"/2016-03-11/queryParameterOperation/{PathParam}"
+      },
+      "input":{"shape":"QueryParameterOperationRequest"}
     }
   },
   "shapes":{
@@ -583,6 +591,35 @@
         "DocumentMember":{"shape":"MyDocument"}
       },
       "payload":"DocumentMember"
+    },
+    "QueryParameterOperationRequest":{
+      "type":"structure",
+      "required":[
+        "PathParam",
+        "QueryParamOne"
+      ],
+      "members":{
+        "PathParam":{
+          "shape":"String",
+          "location":"uri",
+          "locationName":"PathParam"
+        },
+        "QueryParamOne":{
+          "shape":"String",
+          "location":"querystring",
+          "locationName":"QueryParamOne"
+        },
+        "QueryParamTwo":{
+          "shape":"String",
+          "location":"querystring",
+          "locationName":"QueryParamTwo"
+        },
+        "StringHeaderMember":{
+          "shape":"String",
+          "location":"header",
+          "locationName":"x-amz-header-string"
+        }
+      }
     }
   }
 }
