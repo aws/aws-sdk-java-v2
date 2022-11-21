@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.util.ArrayList;
@@ -26,6 +27,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.core.ResponseBytes;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadResponse;
@@ -36,6 +38,8 @@ import software.amazon.awssdk.services.s3.model.CompletedPart;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.ListMultipartUploadsResponse;
+import software.amazon.awssdk.services.s3.model.ListPartsRequest;
+import software.amazon.awssdk.services.s3.model.ListPartsResponse;
 import software.amazon.awssdk.services.s3.model.MultipartUpload;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartResponse;
@@ -116,6 +120,109 @@ public abstract class UploadMultiplePartTestBase extends S3IntegrationTestBase {
         assertThat(uploads).isEmpty();
     }
 
+    @Test
+    public void completeMultipartUpload_requestMissingUploadId_throwsException() throws Exception {
+        String key = "completeMultipartUpload_requestMissingUploadId_throwsException";
+
+        // 1. Initiate multipartUpload request
+        String uploadId = initiateMultipartUpload(key);
+
+        int partCount = 1;
+        List<String> contentsToUpload = new ArrayList<>();
+
+        // 2. Upload each part
+        List<UploadPartResponse> uploadPartResponses = uploadParts(key, uploadId, partCount, contentsToUpload);
+
+        List<CompletedPart> completedParts = new ArrayList<>();
+
+        for (int i = 0; i < uploadPartResponses.size(); i++) {
+            int partNumber = i + 1;
+            UploadPartResponse response = uploadPartResponses.get(i);
+            completedParts.add(CompletedPart.builder().eTag(response.eTag()).partNumber(partNumber).build());
+        }
+
+        // 3. Complete multipart upload
+        Callable<CompleteMultipartUploadResponse> completeMultipartUploadRequestCallable =
+            completeMultipartUpload(CompleteMultipartUploadRequest.builder()
+                                                                  .bucket(BUCKET)
+                                                                  .key(key)
+                                                                  .uploadId(null)
+                                                                  .multipartUpload(CompletedMultipartUpload.builder()
+                                                                                                           .parts(completedParts)
+                                                                                                           .build()).build());
+
+        assertThatThrownBy(completeMultipartUploadRequestCallable::call).isInstanceOf(SdkClientException.class);
+    }
+
+    @Test
+    public void abortMultipartUpload_requestMissingUploadId_throwsException() throws Exception {
+        String key = "abortMultipartUpload_requestMissingUploadId_throwsException";
+
+        // 1. Initiate multipartUpload request
+        String uploadId = initiateMultipartUpload(key);
+        int partCount = 3;
+
+        // 2. Upload each part
+        List<String> contentsToUpload = new ArrayList<>();
+        uploadParts(key, uploadId, partCount, contentsToUpload);
+
+        // 3. abort the multipart upload
+        Callable<AbortMultipartUploadResponse> abortMultipartUploadRequestCallable =
+            abortMultipartUploadResponseCallable(AbortMultipartUploadRequest.builder()
+                                                                            .bucket(BUCKET)
+                                                                            .key(key)
+                                                                            .uploadId(null)
+                                                                            .build());
+
+        assertThatThrownBy(abortMultipartUploadRequestCallable::call).isInstanceOf(SdkClientException.class);
+    }
+
+    @Test
+    public void uploadPart_requestMissingUploadId_throwsException() throws Exception {
+        String key = "uploadPart_requestMissingUploadId_throwsException";
+
+        // 1. Initiate multipartUpload request
+        initiateMultipartUpload(key);
+
+        int partCount = 1;
+        List<String> contentsToUpload = new ArrayList<>();
+
+        // 2. Upload each part
+        assertThatThrownBy(() -> uploadParts(key, null, partCount, contentsToUpload))
+            .isInstanceOf(SdkClientException.class);
+    }
+
+    @Test
+    public void listParts_requestMissingUploadId_throwsException() throws Exception {
+        String key = "listParts_requestMissingUploadId_throwsException";
+
+        // 1. Initiate multipartUpload request
+        String uploadId = initiateMultipartUpload(key);
+
+        int partCount = 1;
+        List<String> contentsToUpload = new ArrayList<>();
+
+        // 2. Upload each part
+        List<UploadPartResponse> uploadPartResponses = uploadParts(key, uploadId, partCount, contentsToUpload);
+
+        List<CompletedPart> completedParts = new ArrayList<>();
+
+        for (int i = 0; i < uploadPartResponses.size(); i++) {
+            int partNumber = i + 1;
+            UploadPartResponse response = uploadPartResponses.get(i);
+            completedParts.add(CompletedPart.builder().eTag(response.eTag()).partNumber(partNumber).build());
+        }
+
+        // 3. List uploaded parts
+        Callable<ListPartsResponse> listPartsRequestCallable = listParts(ListPartsRequest.builder()
+                                                                                         .bucket(BUCKET)
+                                                                                         .key(key)
+                                                                                         .uploadId(null)
+                                                                                         .build());
+
+        assertThatThrownBy(listPartsRequestCallable::call).isInstanceOf(SdkClientException.class);
+    }
+
     private void verifyMultipartUploadResult(String key, List<String> contentsToUpload) throws Exception {
         ResponseBytes<GetObjectResponse> objectAsBytes = s3.getObject(b -> b.bucket(BUCKET).key(key),
                                                                       ResponseTransformer.toBytes());
@@ -149,6 +256,8 @@ public abstract class UploadMultiplePartTestBase extends S3IntegrationTestBase {
     public abstract Callable<UploadPartResponse> uploadPart(UploadPartRequest request, String requestBody);
 
     public abstract Callable<ListMultipartUploadsResponse> listMultipartUploads(String bucket);
+
+    public abstract Callable<ListPartsResponse> listParts(ListPartsRequest request);
 
     public abstract Callable<CompleteMultipartUploadResponse> completeMultipartUpload(CompleteMultipartUploadRequest request);
 

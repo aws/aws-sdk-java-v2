@@ -23,6 +23,8 @@ import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.ListMultipartUploadsResponse;
+import software.amazon.awssdk.services.s3.model.ListPartsRequest;
+import software.amazon.awssdk.services.s3.model.ListPartsResponse;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartResponse;
 
@@ -41,6 +43,11 @@ public class UploadMultiplePartIntegrationTest extends UploadMultiplePartTestBas
     @Override
     public Callable<ListMultipartUploadsResponse> listMultipartUploads(String bucket) {
         return () -> s3.listMultipartUploads(b -> b.bucket(bucket));
+    }
+
+    @Override
+    public Callable<ListPartsResponse> listParts(ListPartsRequest request) {
+        return () -> s3.listParts(request);
     }
 
     @Override
