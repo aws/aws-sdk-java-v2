@@ -30,12 +30,21 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.temporal.TemporalAmount;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.profiles.ProfileFileSupplierBuilder;
+import software.amazon.awssdk.utils.Pair;
+import software.amazon.awssdk.utils.StringInputStream;
 
 class ProfileFileSupplierTest {
 
@@ -62,7 +71,7 @@ class ProfileFileSupplierTest {
         Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
 
         ProfileFileSupplier supplier = builder()
-            .fixedProfileFile(credentialsFilePath)
+            .fixedProfileFile(credentialsFilePath, ProfileFile.Type.CREDENTIALS)
             .build();
 
         ProfileFile file1 = supplier.get();
@@ -72,6 +81,8 @@ class ProfileFileSupplierTest {
         ProfileFile file2 = supplier.get();
 
         assertThat(file2).isSameAs(file1);
+
+        supplier.close();
     }
 
     @Test
@@ -81,7 +92,7 @@ class ProfileFileSupplierTest {
         AdjustableClock clock = new AdjustableClock();
         Duration durationWithinJitter = Duration.ofMillis(10);
         ProfileFileSupplier supplier = builderWithClock(clock)
-            .reloadWhenModified(credentialsFilePath)
+            .reloadWhenModified(credentialsFilePath, ProfileFile.Type.CREDENTIALS)
             .build();
 
         ProfileFile file1 = supplier.get();
@@ -93,6 +104,8 @@ class ProfileFileSupplierTest {
         ProfileFile file2 = supplier.get();
 
         assertThat(file2).isSameAs(file1);
+
+        supplier.close();
     }
 
     @Test
@@ -102,7 +115,7 @@ class ProfileFileSupplierTest {
         AdjustableClock clock = new AdjustableClock();
 
         ProfileFileSupplier supplier = builderWithClock(clock)
-            .reloadWhenModified(credentialsFilePath)
+            .reloadWhenModified(credentialsFilePath, ProfileFile.Type.CREDENTIALS)
             .build();
 
         Duration durationOutsideJitter = Duration.ofSeconds(1);
@@ -128,6 +141,8 @@ class ProfileFileSupplierTest {
             String awsSecretAccessKey = awsSecretAccessKeyOptional.get();
             assertThat(awsSecretAccessKey).isEqualTo("modifiedSecretAccessKey");
         });
+
+        supplier.close();
     }
 
     @Test
@@ -136,7 +151,7 @@ class ProfileFileSupplierTest {
 
         AdjustableClock clock = new AdjustableClock();
         ProfileFileSupplier supplier = builderWithClock(clock)
-            .reloadWhenModified(credentialsFilePath)
+            .reloadWhenModified(credentialsFilePath, ProfileFile.Type.CREDENTIALS)
             .build();
 
         Duration duration = Duration.ofSeconds(10);
@@ -149,6 +164,8 @@ class ProfileFileSupplierTest {
         ProfileFile file2 = supplier.get();
 
         assertThat(file2).isNotSameAs(file1);
+
+        supplier.close();
     }
 
     @Test
@@ -157,7 +174,7 @@ class ProfileFileSupplierTest {
 
         AdjustableClock clock = new AdjustableClock();
         ProfileFileSupplier supplier = builderWithClock(clock)
-            .reloadWhenModified(credentialsFilePath)
+            .reloadWhenModified(credentialsFilePath, ProfileFile.Type.CREDENTIALS)
             .build();
         ProfileFile file1 = supplier.get();
 
@@ -172,6 +189,8 @@ class ProfileFileSupplierTest {
 
         assertThat(file2).isSameAs(file1);
         assertThat(file3).isNotSameAs(file2);
+
+        supplier.close();
     }
 
     @Test
@@ -180,7 +199,7 @@ class ProfileFileSupplierTest {
 
         AdjustableClock clock = new AdjustableClock();
         ProfileFileSupplier supplier = builderWithClock(clock)
-            .reloadWhenModified(credentialsFilePath)
+            .reloadWhenModified(credentialsFilePath, ProfileFile.Type.CREDENTIALS)
             .build();
         Duration duration = Duration.ofSeconds(5);
 
@@ -208,13 +227,15 @@ class ProfileFileSupplierTest {
         assertThat(file3).isNotSameAs(file2);
         assertThat(file4).isNotSameAs(file3);
         assertThat(file5).isSameAs(file4);
+
+        supplier.close();
     }
 
     @Test
     void get_supplierBuiltByReloadWhenModified_loadsProfileFile() {
         Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
 
-        ProfileFileSupplier supplier = ProfileFileSupplier.reloadWhenModified(credentialsFilePath);
+        ProfileFileSupplier supplier = ProfileFileSupplier.reloadWhenModified(credentialsFilePath, ProfileFile.Type.CREDENTIALS);
         ProfileFile file = supplier.get();
 
         Optional<Profile> profileOptional = file.profile("default");
@@ -231,13 +252,15 @@ class ProfileFileSupplierTest {
             String awsSecretAccessKey = awsSecretAccessKeyOptional.get();
             assertThat(awsSecretAccessKey).isEqualTo("defaultSecretAccessKey");
         });
+
+        supplier.close();
     }
 
     @Test
     void get_supplierBuiltByFixedProfileFilePath_loadsProfileFile() {
         Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
 
-        ProfileFileSupplier supplier = ProfileFileSupplier.fixedProfileFile(credentialsFilePath);
+        ProfileFileSupplier supplier = ProfileFileSupplier.fixedProfileFile(credentialsFilePath, ProfileFile.Type.CREDENTIALS);
         ProfileFile file = supplier.get();
 
         Optional<Profile> profileOptional = file.profile("default");
@@ -254,6 +277,8 @@ class ProfileFileSupplierTest {
             String awsSecretAccessKey = awsSecretAccessKeyOptional.get();
             assertThat(awsSecretAccessKey).isEqualTo("defaultSecretAccessKey");
         });
+
+        supplier.close();
     }
 
     @Test
@@ -262,6 +287,144 @@ class ProfileFileSupplierTest {
         ProfileFileSupplier supplier = ProfileFileSupplier.fixedProfileFile(file);
 
         assertThat(supplier.get()).isSameAs(file);
+
+        supplier.close();
+    }
+
+    @Test
+    void get_supplierBuiltByReloadWhenModifiedBothFiles_reloadsCredentials() {
+        Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
+        Path configFilePath = generateTestConfigFile(Pair.of("region", "us-west-2"));
+
+        ProfileFileSupplier supplier = ProfileFileSupplier.reloadWhenModified(credentialsFilePath, configFilePath);
+
+        Optional<Profile> fileOptional = supplier.get().profile("default");
+        assertThat(fileOptional).isPresent();
+
+        assertThat(fileOptional.get()).satisfies(profile -> {
+            Optional<String> awsAccessKeyIdOptional = profile.property("aws_access_key_id");
+            assertThat(awsAccessKeyIdOptional).isPresent();
+            String awsAccessKeyId = awsAccessKeyIdOptional.get();
+            assertThat(awsAccessKeyId).isEqualTo("defaultAccessKey");
+
+            Optional<String> awsSecretAccessKeyOptional = profile.property("aws_secret_access_key");
+            assertThat(awsSecretAccessKeyOptional).isPresent();
+            String awsSecretAccessKey = awsSecretAccessKeyOptional.get();
+            assertThat(awsSecretAccessKey).isEqualTo("defaultSecretAccessKey");
+
+            Optional<String> regionOptional = profile.property("region");
+            assertThat(regionOptional).isPresent();
+            String region = regionOptional.get();
+            assertThat(region).isEqualTo("us-west-2");
+        });
+
+        supplier.close();
+    }
+
+    @Test
+    void get_supplierBuiltByFixedProfileFileBothFiles_returnsAggregateProfileFileInstance() {
+        Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
+        Path configFilePath = generateTestConfigFile(Pair.of("region", "us-west-2"));
+
+        ProfileFileSupplier supplier = ProfileFileSupplier.fixedProfileFile(credentialsFilePath, configFilePath);
+        ProfileFile file = supplier.get();
+
+        Optional<Profile> profileOptional = file.profile("default");
+        assertThat(profileOptional).isPresent();
+
+        assertThat(profileOptional.get()).satisfies(profile -> {
+            Optional<String> awsAccessKeyIdOptional = profile.property("aws_access_key_id");
+            assertThat(awsAccessKeyIdOptional).isPresent();
+            String awsAccessKeyId = awsAccessKeyIdOptional.get();
+            assertThat(awsAccessKeyId).isEqualTo("defaultAccessKey");
+
+            Optional<String> awsSecretAccessKeyOptional = profile.property("aws_secret_access_key");
+            assertThat(awsSecretAccessKeyOptional).isPresent();
+            String awsSecretAccessKey = awsSecretAccessKeyOptional.get();
+            assertThat(awsSecretAccessKey).isEqualTo("defaultSecretAccessKey");
+
+            Optional<String> regionOptional = profile.property("region");
+            assertThat(regionOptional).isPresent();
+            String region = regionOptional.get();
+            assertThat(region).isEqualTo("us-west-2");
+        });
+
+        supplier.close();
+    }
+
+    @Test
+    void aggregate_supplierReturnsSameInstanceMultipleTimesAggregatingProfileFile_aggregatesOnlyDistinctInstances() {
+        ProfileFile credentialFile1 = credentialFile("test1", "key1", "secret1");
+        ProfileFile credentialFile2 = credentialFile("test2", "key2", "secret2");
+        ProfileFile credentialFile3 = credentialFile("test3", "key3", "secret3");
+        ProfileFile credentialFile4 = credentialFile("test4", "key4", "secret4");
+        ProfileFile configFile = configFile("profile test", Pair.of("region", "us-west-2"));
+
+        List<ProfileFile> orderedCredentialsFiles
+            = Arrays.asList(credentialFile1, credentialFile1, credentialFile2, credentialFile3, credentialFile3, credentialFile4,
+                            credentialFile4, credentialFile4);
+
+        ProfileFile aggregateFile1 = ProfileFile.aggregator().addFile(credentialFile1).addFile(configFile).build();
+        ProfileFile aggregateFile2 = ProfileFile.aggregator().addFile(credentialFile2).addFile(configFile).build();
+        ProfileFile aggregateFile3 = ProfileFile.aggregator().addFile(credentialFile3).addFile(configFile).build();
+        ProfileFile aggregateFile4 = ProfileFile.aggregator().addFile(credentialFile4).addFile(configFile).build();
+
+        List<ProfileFile> distinctAggregateFiles = Arrays.asList(aggregateFile1, aggregateFile2, aggregateFile3, aggregateFile4);
+
+        ProfileFileSupplier supplier = ProfileFileSupplier.aggregate(supply(orderedCredentialsFiles), () -> configFile);
+
+        List<ProfileFile> suppliedProfileFiles = Stream.generate(supplier)
+                                                       .limit(orderedCredentialsFiles.size())
+                                                       .filter(uniqueInstances())
+                                                       .collect(Collectors.toList());
+
+        assertThat(suppliedProfileFiles).isEqualTo(distinctAggregateFiles);
+
+        supplier.close();
+    }
+
+    @Test
+    void aggregate_supplierReturnsSameInstanceMultipleTimesAggregatingProfileFileSupplier_aggregatesOnlyDistinctInstances() {
+        ProfileFile credentialFile1 = credentialFile("test1", "key1", "secret1");
+        ProfileFile credentialFile2 = credentialFile("test2", "key2", "secret2");
+        ProfileFile credentialFile3 = credentialFile("test3", "key3", "secret3");
+        ProfileFile credentialFile4 = credentialFile("test4", "key4", "secret4");
+        ProfileFile configFile1 = configFile("profile test", Pair.of("region", "us-west-1"));
+        ProfileFile configFile2 = configFile("profile test", Pair.of("region", "us-west-2"));
+        ProfileFile configFile3 = configFile("profile test", Pair.of("region", "us-west-3"));
+
+        List<ProfileFile> orderedCredentialsFiles
+            = Arrays.asList(credentialFile1, credentialFile1, credentialFile2, credentialFile2, credentialFile3,
+                            credentialFile4, credentialFile4, credentialFile4);
+
+        List<ProfileFile> orderedConfigFiles
+            = Arrays.asList(configFile1, configFile1, configFile1, configFile2, configFile3, configFile3, configFile3,
+                            configFile3);
+
+        ProfileFile aggregateFile11 = ProfileFile.aggregator().addFile(credentialFile1).addFile(configFile1).build();
+        ProfileFile aggregateFile21 = ProfileFile.aggregator().addFile(credentialFile2).addFile(configFile1).build();
+        ProfileFile aggregateFile22 = ProfileFile.aggregator().addFile(credentialFile2).addFile(configFile2).build();
+        ProfileFile aggregateFile33 = ProfileFile.aggregator().addFile(credentialFile3).addFile(configFile3).build();
+        ProfileFile aggregateFile43 = ProfileFile.aggregator().addFile(credentialFile4).addFile(configFile3).build();
+
+        List<ProfileFile> aggregateProfileFiles
+            = Arrays.asList(aggregateFile11, aggregateFile11, aggregateFile21, aggregateFile22, aggregateFile33,
+                            aggregateFile43, aggregateFile43, aggregateFile43);
+
+        List<ProfileFile> distinctAggregateProfileFiles
+            = Arrays.asList(aggregateFile11, aggregateFile21, aggregateFile22, aggregateFile33, aggregateFile43);
+
+        ProfileFileSupplier supplier = ProfileFileSupplier.aggregate(supply(orderedCredentialsFiles), supply(orderedConfigFiles));
+
+        List<ProfileFile> suppliedProfileFiles = Stream.generate(supplier)
+                                                       .filter(Objects::nonNull)
+                                                       .limit(aggregateProfileFiles.size())
+                                                       .filter(uniqueInstances())
+                                                       .collect(Collectors.toList());
+
+        assertThat(suppliedProfileFiles).isEqualTo(distinctAggregateProfileFiles);
+
+        supplier.close();
     }
 
     @Test
@@ -270,6 +433,8 @@ class ProfileFileSupplierTest {
         ProfileFileSupplier supplier = ProfileFileSupplier.wrapIntoNullableSupplier(file);
 
         assertThat(supplier).isNotNull();
+
+        supplier.close();
     }
 
     @Test
@@ -286,6 +451,8 @@ class ProfileFileSupplierTest {
         ProfileFileSupplier supplier = ProfileFileSupplier.fixedProfileFile(file);
 
         assertThat(supplier).isNotNull();
+
+        supplier.close();
     }
 
     @Test
@@ -297,7 +464,7 @@ class ProfileFileSupplierTest {
 
         AdjustableClock clock = new AdjustableClock();
         ProfileFileSupplier supplier = builderWithClock(clock)
-            .reloadWhenModified(credentialsFilePath)
+            .reloadWhenModified(credentialsFilePath, ProfileFile.Type.CREDENTIALS)
             .onProfileFileLoad(f -> blockCount.incrementAndGet())
             .build();
         Duration duration = Duration.ofSeconds(5);
@@ -323,6 +490,8 @@ class ProfileFileSupplierTest {
         supplier.get();
 
         assertThat(blockCount.get()).isEqualTo(actualProfilesCount);
+
+        supplier.close();
     }
 
     private Path generateTestFile(String contents, String filename) {
@@ -340,12 +509,66 @@ class ProfileFileSupplierTest {
         return generateTestFile(contents, "credentials.txt");
     }
 
+    private Path generateTestConfigFile(Pair<Object, Object>... pairs) {
+        String values = Arrays.stream(pairs)
+                              .map(pair -> String.format("%s=%s", pair.left(), pair.right()))
+                              .collect(Collectors.joining(System.lineSeparator()));
+        String contents = String.format("[default]\n%s", values);
+
+        return generateTestFile(contents, "config.txt");
+    }
+
     private void updateModificationTime(Path path, Instant instant) {
         try {
             Files.setLastModifiedTime(path, FileTime.from(instant));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private ProfileFile credentialFile(String credentialFile) {
+        return ProfileFile.builder()
+                          .content(new StringInputStream(credentialFile))
+                          .type(ProfileFile.Type.CREDENTIALS)
+                          .build();
+    }
+
+    private ProfileFile credentialFile(String name, String accessKeyId, String secretAccessKey) {
+        String contents = String.format("[%s]\naws_access_key_id = %s\naws_secret_access_key = %s\n",
+                                        name, accessKeyId, secretAccessKey);
+        return credentialFile(contents);
+    }
+
+    private ProfileFile configFile(String credentialFile) {
+        return ProfileFile.builder()
+                          .content(new StringInputStream(credentialFile))
+                          .type(ProfileFile.Type.CONFIGURATION)
+                          .build();
+    }
+
+    private ProfileFile configFile(String name, Pair<?, ?>... pairs) {
+        String values = Arrays.stream(pairs)
+                              .map(pair -> String.format("%s=%s", pair.left(), pair.right()))
+                              .collect(Collectors.joining(System.lineSeparator()));
+        String contents = String.format("[%s]\n%s", name, values);
+
+        return configFile(contents);
+    }
+
+    private static <T> Predicate<T> uniqueInstances() {
+        Set<Object> seen = ConcurrentHashMap.newKeySet();
+        return e -> {
+            boolean unique = seen.stream().noneMatch(o -> o == e);
+            if (unique) {
+                seen.add(e);
+            }
+
+            return unique;
+        };
+    }
+
+    private static ProfileFileSupplier supply(Iterable<ProfileFile> iterable) {
+        return iterable.iterator()::next;
     }
 
     private ProfileFileSupplierBuilder builder() {

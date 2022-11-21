@@ -32,20 +32,20 @@ final class ProfileFileSupplierBuilder {
     private Clock clock;
     private Consumer<ProfileFile> onProfileFileLoad;
 
-    public ProfileFileSupplierBuilder reloadWhenModified(Path path) {
+    public ProfileFileSupplierBuilder reloadWhenModified(Path path, ProfileFile.Type type) {
         ProfileFile.Builder builder = ProfileFile.builder()
                                                  .content(path)
-                                                 .type(ProfileFile.Type.CREDENTIALS);
+                                                 .type(type);
         this.profileFile = builder::build;
         this.profileFilePath = path;
         this.reloadingSupplier = true;
         return this;
     }
 
-    public ProfileFileSupplierBuilder fixedProfileFile(Path path) {
+    public ProfileFileSupplierBuilder fixedProfileFile(Path path, ProfileFile.Type type) {
         return fixedProfileFile(ProfileFile.builder()
                                            .content(path)
-                                           .type(ProfileFile.Type.CREDENTIALS)
+                                           .type(type)
                                            .build());
     }
 

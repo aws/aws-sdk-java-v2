@@ -193,7 +193,7 @@ public class ProfileCredentialsProviderTest {
 
         ProfileCredentialsProvider provider =
             ProfileCredentialsProvider.builder()
-                                      .profileFile(ProfileFileSupplier.reloadWhenModified(path))
+                                      .profileFile(ProfileFileSupplier.reloadWhenModified(path, ProfileFile.Type.CREDENTIALS))
                                       .profileName("default")
                                       .build();
 
