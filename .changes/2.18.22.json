@@ -1,0 +1,12 @@
+{
+    "version": "2.18.22",
+    "date": "2022-11-21",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Route 53",
+            "contributor": "",
+            "description": "Amazon Route 53 now supports the Asia Pacific (Hyderabad) Region (ap-south-2) for latency records, geoproximity records, and private DNS for Amazon VPCs in that region."
+        }
+    ]
+}
