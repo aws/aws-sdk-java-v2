@@ -19,7 +19,6 @@ import java.nio.file.Path;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.profiles.internal.ProfileFileRefresher;
@@ -194,19 +193,12 @@ public interface ProfileFileSupplier extends Supplier<ProfileFile>, SdkAutoClose
 
             @Override
             public ProfileFile get() {
-                boolean refreshAggregate = false;
                 ProfileFile.Aggregator aggregator = ProfileFile.aggregator();
                 for (ProfileFileSupplier supplier : suppliers) {
-                    if (updateCurrentValue(supplier, aggregator::addFile)) {
-                        refreshAggregate = true;
-                    }
+                    aggregator.addFile(supplier.get());
                 }
 
-                if (refreshAggregate) {
-                    refreshAggregate(aggregator);
-                }
-
-                return currentValuesBySupplier.get(this);
+                return refreshAndGetCurrentAggregate(aggregator);
             }
 
             @Override
@@ -215,23 +207,15 @@ public interface ProfileFileSupplier extends Supplier<ProfileFile>, SdkAutoClose
                 currentValuesBySupplier.keySet().forEach(ProfileFileSupplier::close);
             }
 
-            private boolean updateCurrentValue(ProfileFileSupplier supplier, Consumer<ProfileFile> action) {
-                ProfileFile next = supplier.get();
-                ProfileFile current = currentValuesBySupplier.put(supplier, next);
-                action.accept(next);
-
-                return !Objects.equals(next, current);
-            }
-
-            private boolean refreshAggregate(ProfileFile.Aggregator aggregator) {
+            private ProfileFile refreshAndGetCurrentAggregate(ProfileFile.Aggregator aggregator) {
                 ProfileFile next = aggregator.build();
                 ProfileFile current = currentValuesBySupplier.get(this);
                 if (!Objects.equals(next, current)) {
                     currentValuesBySupplier.put(this, next);
-                    return true;
+                    current = next;
                 }
 
-                return false;
+                return current;
             }
 
         };
