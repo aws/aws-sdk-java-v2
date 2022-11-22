@@ -16,6 +16,9 @@ public class SourceException extends SdkException {
         Builder cause(Throwable cause);
 
         @Override
+        Builder writableStackTrace(Boolean writableStackTrace);
+
+        @Override
         Builder message(String message);
 
         @Override
@@ -32,6 +35,12 @@ public class SourceException extends SdkException {
         @Override
         public Builder message(String message) {
             super.message(message);
+            return this;
+        }
+
+        @Override
+        public Builder writableStackTrace(Boolean writableStackTrace) {
+            super.writableStackTrace(writableStackTrace);
             return this;
         }
 
