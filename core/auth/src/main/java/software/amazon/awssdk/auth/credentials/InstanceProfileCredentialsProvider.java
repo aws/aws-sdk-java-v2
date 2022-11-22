@@ -26,6 +26,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.auth.credentials.internal.Ec2MetadataConfigProvider;
@@ -36,6 +37,7 @@ import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.profiles.ProfileFileSupplier;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.regions.util.HttpResourcesUtils;
 import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
@@ -77,7 +79,7 @@ public final class InstanceProfileCredentialsProvider
 
     private final String asyncThreadName;
 
-    private final ProfileFile profileFile;
+    private final ProfileFileSupplier profileFileSupplier;
 
     private final String profileName;
 
@@ -89,14 +91,14 @@ public final class InstanceProfileCredentialsProvider
         this.endpoint = builder.endpoint;
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
         this.asyncThreadName = builder.asyncThreadName;
-        this.profileFile = builder.profileFile;
+        this.profileFileSupplier = builder.profileFileSupplier;
         this.profileName = builder.profileName;
 
         this.httpCredentialsLoader = HttpCredentialsLoader.create();
         this.configProvider =
             Ec2MetadataConfigProvider.builder()
-                                     .profileFile(builder.profileFile == null ? null : () -> builder.profileFile)
-                                     .profileName(builder.profileName == null ? null : builder.profileName)
+                                     .profileFile(builder.profileFileSupplier)
+                                     .profileName(builder.profileName)
                                      .build();
 
         if (Boolean.TRUE.equals(builder.asyncCredentialUpdateEnabled)) {
@@ -279,8 +281,18 @@ public final class InstanceProfileCredentialsProvider
          * Configure the profile file used for loading IMDS-related configuration, like the endpoint mode (IPv4 vs IPv6).
          *
          * <p>By default, {@link ProfileFile#defaultProfileFile()} is used.
+         * 
+         * @see #profileFile(ProfileFileSupplier) 
          */
         Builder profileFile(ProfileFile profileFile);
+
+        /**
+         * Define the mechanism for loading profile files.
+         *
+         * @param profileFileSupplier Supplier interface for generating a ProfileFile instance.
+         * @see #profileFile(ProfileFile)
+         */
+        Builder profileFile(ProfileFileSupplier profileFileSupplier);
 
         /**
          * Configure the profile name used for loading IMDS-related configuration, like the endpoint mode (IPv4 vs IPv6).
@@ -302,7 +314,7 @@ public final class InstanceProfileCredentialsProvider
         private String endpoint;
         private Boolean asyncCredentialUpdateEnabled;
         private String asyncThreadName;
-        private ProfileFile profileFile;
+        private ProfileFileSupplier profileFileSupplier;
         private String profileName;
 
         private BuilderImpl() {
@@ -314,7 +326,7 @@ public final class InstanceProfileCredentialsProvider
             this.endpoint = provider.endpoint;
             this.asyncCredentialUpdateEnabled = provider.asyncCredentialUpdateEnabled;
             this.asyncThreadName = provider.asyncThreadName;
-            this.profileFile = provider.profileFile;
+            this.profileFileSupplier = provider.profileFileSupplier;
             this.profileName = provider.profileName;
         }
 
@@ -355,12 +367,23 @@ public final class InstanceProfileCredentialsProvider
 
         @Override
         public Builder profileFile(ProfileFile profileFile) {
-            this.profileFile = profileFile;
-            return this;
+            return profileFile(Optional.ofNullable(profileFile)
+                                       .map(ProfileFileSupplier::fixedProfileFile)
+                                       .orElse(null));
         }
 
         public void setProfileFile(ProfileFile profileFile) {
             profileFile(profileFile);
+        }
+
+        @Override
+        public Builder profileFile(ProfileFileSupplier profileFileSupplier) {
+            this.profileFileSupplier = profileFileSupplier;
+            return this;
+        }
+
+        public void setProfileFile(ProfileFileSupplier profileFileSupplier) {
+            profileFile(profileFileSupplier);
         }
 
         @Override
