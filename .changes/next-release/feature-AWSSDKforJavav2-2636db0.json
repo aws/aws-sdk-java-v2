@@ -1,6 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "contributor": "", 
-    "type": "feature", 
-    "description": "When a request fails after SDK retries, include the retried failure messages as \"suppressed\" exceptions. Stack traces for these suppressed exceptions are not preserved."
-}

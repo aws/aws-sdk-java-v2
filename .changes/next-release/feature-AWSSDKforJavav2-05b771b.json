@@ -1,6 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "contributor": "", 
-    "type": "feature", 
-    "description": "When raising an exception as a result of a service response, if service does not return a error message, include the error code or HTTP status code in exception messages instead of the string \"null\"."
-}
