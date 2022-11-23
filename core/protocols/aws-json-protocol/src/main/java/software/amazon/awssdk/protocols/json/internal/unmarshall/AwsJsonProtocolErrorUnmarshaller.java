@@ -32,6 +32,7 @@ import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 import software.amazon.awssdk.protocols.json.ErrorCodeParser;
 import software.amazon.awssdk.protocols.json.JsonContent;
 import software.amazon.awssdk.thirdparty.jackson.core.JsonFactory;
+import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * Unmarshaller for AWS specific error responses. All errors are unmarshalled into a subtype of
@@ -80,11 +81,23 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
                                                          errorCode, errorMessage));
         exception.clockSkew(getClockSkew(executionAttributes));
         // Status code and request id are sdk level fields
-        exception.message(errorMessage);
+        exception.message(errorMessageForException(errorMessage, errorCode, response.statusCode()));
         exception.statusCode(statusCode(response, modeledExceptionMetadata));
         exception.requestId(response.firstMatchingHeader(X_AMZN_REQUEST_ID_HEADERS).orElse(null));
         exception.extendedRequestId(response.firstMatchingHeader(X_AMZ_ID_2_HEADER).orElse(null));
         return exception.build();
+    }
+
+    private String errorMessageForException(String errorMessage, String errorCode, int statusCode) {
+        if (StringUtils.isNotBlank(errorMessage)) {
+            return errorMessage;
+        }
+
+        if (StringUtils.isNotBlank(errorCode)) {
+            return "Service returned error code " + errorCode;
+        }
+
+        return "Service returned HTTP status code " + statusCode;
     }
 
     private Duration getClockSkew(ExecutionAttributes executionAttributes) {

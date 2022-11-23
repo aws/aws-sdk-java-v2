@@ -1,3 +1,17 @@
+# __2.18.24__ __2022-11-23__
+## __AWS SDK for Java v2__
+  - ### Features
+    - When a request fails after SDK retries, include the retried failure messages as "suppressed" exceptions. Stack traces for these suppressed exceptions are not preserved.
+    - When raising an exception as a result of a service response, if service does not return a error message, include the error code or HTTP status code in exception messages instead of the string "null".
+
+## __Amazon Managed Grafana__
+  - ### Features
+    - This release includes support for configuring a Grafana workspace to connect to a datasource within a VPC as well as new APIs for configuring Grafana settings.
+
+## __Amazon Recycle Bin__
+  - ### Features
+    - This release adds support for Rule Lock for Recycle Bin, which allows you to lock retention rules so that they can no longer be modified or deleted.
+
 # __2.18.23__ __2022-11-22__
 ## __AWS SDK for Java v2__
   - ### Features
