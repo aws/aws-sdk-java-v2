@@ -33,7 +33,8 @@ public class ExceptionProperties {
                 builderMethod(className, "message", String.class),
                 builderMethod(className, "requestId", String.class),
                 builderMethod(className, "statusCode", int.class),
-                builderMethod(className, "cause", Throwable.class));
+                builderMethod(className, "cause", Throwable.class),
+                builderMethod(className, "writableStackTrace", Boolean.class));
     }
 
     public static List<MethodSpec> builderImplMethods(ClassName className) {
@@ -42,7 +43,8 @@ public class ExceptionProperties {
                 builderImplMethods(className, "message", String.class),
                 builderImplMethods(className, "requestId", String.class),
                 builderImplMethods(className, "statusCode", int.class),
-                builderImplMethods(className, "cause", Throwable.class));
+                builderImplMethods(className, "cause", Throwable.class),
+                builderImplMethods(className, "writableStackTrace", Boolean.class));
     }
 
     private static MethodSpec builderMethod(ClassName className, String name, Class clazz) {
