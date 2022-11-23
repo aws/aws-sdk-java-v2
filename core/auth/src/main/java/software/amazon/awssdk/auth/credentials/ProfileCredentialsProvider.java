@@ -225,7 +225,9 @@ public final class ProfileCredentialsProvider
 
         @Override
         public Builder profileFile(ProfileFile profileFile) {
-            return profileFile(ProfileFileSupplier.wrapIntoNullableSupplier(profileFile));
+            return profileFile(Optional.ofNullable(profileFile)
+                                       .map(ProfileFileSupplier::fixedProfileFile)
+                                       .orElse(null));
         }
 
         public void setProfileFile(ProfileFile profileFile) {

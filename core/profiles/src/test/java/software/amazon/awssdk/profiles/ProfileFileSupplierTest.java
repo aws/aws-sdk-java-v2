@@ -257,10 +257,13 @@ class ProfileFileSupplierTest {
     }
 
     @Test
-    void get_supplierBuiltByFixedProfileFilePath_loadsProfileFile() {
+    void get_supplierBuiltByFixedProfileFile_returnsProfileFile() {
         Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
 
-        ProfileFileSupplier supplier = ProfileFileSupplier.fixedProfileFile(credentialsFilePath, ProfileFile.Type.CREDENTIALS);
+        ProfileFileSupplier supplier = ProfileFileSupplier.fixedProfileFile(ProfileFile.builder()
+                                                                                       .content(credentialsFilePath)
+                                                                                       .type(ProfileFile.Type.CREDENTIALS)
+                                                                                       .build());
         ProfileFile file = supplier.get();
 
         Optional<Profile> profileOptional = file.profile("default");
@@ -282,21 +285,15 @@ class ProfileFileSupplierTest {
     }
 
     @Test
-    void get_supplierBuiltByFixedProfileFileObject_returnsProfileFileInstance() {
-        ProfileFile file = ProfileFile.defaultProfileFile();
-        ProfileFileSupplier supplier = ProfileFileSupplier.fixedProfileFile(file);
-
-        assertThat(supplier.get()).isSameAs(file);
-
-        supplier.close();
-    }
-
-    @Test
-    void get_supplierBuiltByReloadWhenModifiedBothFiles_reloadsCredentials() {
+    void get_supplierBuiltByReloadWhenModifiedAggregate_reloadsCredentials() {
         Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
         Path configFilePath = generateTestConfigFile(Pair.of("region", "us-west-2"));
 
-        ProfileFileSupplier supplier = ProfileFileSupplier.reloadWhenModified(credentialsFilePath, configFilePath);
+        ProfileFileSupplier credentialsProfileFileSupplier = ProfileFileSupplier.reloadWhenModified(credentialsFilePath,
+                                                                                                    ProfileFile.Type.CREDENTIALS);
+        ProfileFileSupplier configProfileFileSupplier = ProfileFileSupplier.reloadWhenModified(configFilePath,
+                                                                                               ProfileFile.Type.CONFIGURATION);
+        ProfileFileSupplier supplier = ProfileFileSupplier.aggregate(credentialsProfileFileSupplier, configProfileFileSupplier);
 
         Optional<Profile> fileOptional = supplier.get().profile("default");
         assertThat(fileOptional).isPresent();
@@ -322,11 +319,21 @@ class ProfileFileSupplierTest {
     }
 
     @Test
-    void get_supplierBuiltByFixedProfileFileBothFiles_returnsAggregateProfileFileInstance() {
+    void get_supplierBuiltByFixedProfileFileAggregate_returnsAggregateProfileFileInstance() {
         Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
         Path configFilePath = generateTestConfigFile(Pair.of("region", "us-west-2"));
 
-        ProfileFileSupplier supplier = ProfileFileSupplier.fixedProfileFile(credentialsFilePath, configFilePath);
+        ProfileFileSupplier credentialsProfileFileSupplier
+            = ProfileFileSupplier.fixedProfileFile(ProfileFile.builder()
+                                                              .content(credentialsFilePath)
+                                                              .type(ProfileFile.Type.CREDENTIALS)
+                                                              .build());
+        ProfileFileSupplier configProfileFileSupplier
+            = ProfileFileSupplier.fixedProfileFile(ProfileFile.builder()
+                                                              .content(configFilePath)
+                                                              .type(ProfileFile.Type.CONFIGURATION)
+                                                              .build());
+        ProfileFileSupplier supplier = ProfileFileSupplier.aggregate(credentialsProfileFileSupplier, configProfileFileSupplier);
         ProfileFile file = supplier.get();
 
         Optional<Profile> profileOptional = file.profile("default");
@@ -425,24 +432,6 @@ class ProfileFileSupplierTest {
         assertThat(suppliedProfileFiles).isEqualTo(distinctAggregateProfileFiles);
 
         supplier.close();
-    }
-
-    @Test
-    void wrapIntoNullableSupplier_nonNullProfileFile_returnsNonNullSupplier() {
-        ProfileFile file = ProfileFile.defaultProfileFile();
-        ProfileFileSupplier supplier = ProfileFileSupplier.wrapIntoNullableSupplier(file);
-
-        assertThat(supplier).isNotNull();
-
-        supplier.close();
-    }
-
-    @Test
-    void wrapIntoNullableSupplier_nullProfileFile_returnsNullSupplier() {
-        ProfileFile file = null;
-        ProfileFileSupplier supplier = ProfileFileSupplier.wrapIntoNullableSupplier(file);
-
-        assertThat(supplier).isNull();
     }
 
     @Test
