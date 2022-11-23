@@ -32,7 +32,6 @@ import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 import software.amazon.awssdk.protocols.json.ErrorCodeParser;
 import software.amazon.awssdk.protocols.json.JsonContent;
 import software.amazon.awssdk.thirdparty.jackson.core.JsonFactory;
-import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.StringUtils;
 
 /**
@@ -103,14 +102,8 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
     }
 
     private String queryCompatibleErrorCodeFromResponse(SdkHttpFullResponse response) {
-        List<String> headerValues = response.headers().get(X_AMZN_QUERY_ERROR);
-        if (!CollectionUtils.isNullOrEmpty(headerValues)) {
-            String queryHeaderValue = headerValues.get(0);
-            if (!StringUtils.isEmpty(queryHeaderValue)) {
-                return parseQueryErrorCodeFromDelimiter(queryHeaderValue);
-            }
-        }
-        return null;
+        Optional<String> headerValue = response.firstMatchingHeader(X_AMZN_QUERY_ERROR);
+        return headerValue.map(this::parseQueryErrorCodeFromDelimiter).orElse(null);
     }
 
     private String parseQueryErrorCodeFromDelimiter(String queryHeaderValue) {

@@ -49,9 +49,9 @@ public class ClientTestModels {
     }
 
     public static IntermediateModel awsQueryCompatibleJsonServiceModels() {
-        File serviceModel = new File(ClientTestModels.class.getResource("client/c2j/json-query-error/service-2.json").getFile());
-        File customizationModel = new File(ClientTestModels.class.getResource("client/c2j/json/customization.config").getFile());
-        File paginatorsModel = new File(ClientTestModels.class.getResource("client/c2j/json/paginators.json").getFile());
+        File serviceModel = new File(ClientTestModels.class.getResource("client/c2j/query-to-json-errorcode/service-2.json").getFile());
+        File customizationModel = new File(ClientTestModels.class.getResource("client/c2j/query-to-json-errorcode/customization.config").getFile());
+        File paginatorsModel = new File(ClientTestModels.class.getResource("client/c2j/query-to-json-errorcode/paginators.json").getFile());
         C2jModels models = C2jModels.builder()
                                     .serviceModel(getServiceModel(serviceModel))
                                     .customizationConfig(getCustomizationConfig(customizationModel))

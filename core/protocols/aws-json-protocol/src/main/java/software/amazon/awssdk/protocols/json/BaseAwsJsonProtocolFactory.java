@@ -126,6 +126,7 @@ public abstract class BaseAwsJsonProtocolFactory {
             .jsonProtocolUnmarshaller(protocolUnmarshaller)
             .exceptions(modeledExceptions)
             .errorCodeParser(getSdkFactory().getErrorCodeParser(customErrorCodeFieldName))
+            .hasAwsQueryCompatible(hasAwsQueryCompatible)
             .errorMessageParser(AwsJsonErrorMessageParser.DEFAULT_ERROR_MESSAGE_PARSER)
             .jsonFactory(getSdkFactory().getJsonFactory())
             .defaultExceptionSupplier(defaultServiceExceptionSupplier)
