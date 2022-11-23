@@ -92,7 +92,7 @@ public class InputStreamSubscriber extends InputStream implements Subscriber<Byt
             return -1;
         }
 
-        return singleByte.get(0);
+        return singleByte.get(0) & 0xFF;
     }
 
     @Override
