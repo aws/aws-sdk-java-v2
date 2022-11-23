@@ -79,6 +79,7 @@ public class SimplePublisherTest {
     @Test
     public void writeAfterCompleteFails() {
         SimplePublisher<Integer> publisher = new SimplePublisher<>();
+        publisher.subscribe(new StoringSubscriber<>(1));
         publisher.complete();
         assertThat(publisher.send(5)).isCompletedExceptionally();
     }
@@ -86,6 +87,7 @@ public class SimplePublisherTest {
     @Test
     public void writeAfterErrorFails() {
         SimplePublisher<Integer> publisher = new SimplePublisher<>();
+        publisher.subscribe(new StoringSubscriber<>(1));
         publisher.error(new Throwable());
         assertThat(publisher.send(5)).isCompletedExceptionally();
     }
@@ -93,6 +95,7 @@ public class SimplePublisherTest {
     @Test
     public void completeAfterCompleteFails() {
         SimplePublisher<Integer> publisher = new SimplePublisher<>();
+        publisher.subscribe(new StoringSubscriber<>(1));
         publisher.complete();
         assertThat(publisher.complete()).isCompletedExceptionally();
     }
@@ -100,6 +103,7 @@ public class SimplePublisherTest {
     @Test
     public void completeAfterErrorFails() {
         SimplePublisher<Integer> publisher = new SimplePublisher<>();
+        publisher.subscribe(new StoringSubscriber<>(1));
         publisher.error(new Throwable());
         assertThat(publisher.complete()).isCompletedExceptionally();
     }
@@ -107,6 +111,7 @@ public class SimplePublisherTest {
     @Test
     public void errorAfterCompleteFails() {
         SimplePublisher<Integer> publisher = new SimplePublisher<>();
+        publisher.subscribe(new StoringSubscriber<>(1));
         publisher.complete();
         assertThat(publisher.error(new Throwable())).isCompletedExceptionally();
     }
@@ -114,6 +119,7 @@ public class SimplePublisherTest {
     @Test
     public void errorAfterErrorFails() {
         SimplePublisher<Integer> publisher = new SimplePublisher<>();
+        publisher.subscribe(new StoringSubscriber<>(1));
         publisher.error(new Throwable());
         assertThat(publisher.error(new Throwable())).isCompletedExceptionally();
     }
