@@ -17,69 +17,82 @@ package software.amazon.awssdk.services.s3.internal.crt;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.crt.s3.ChecksumAlgorithm;
+import software.amazon.awssdk.crt.s3.ChecksumConfig;
 import software.amazon.awssdk.crt.s3.S3MetaRequestOptions;
 
 class CrtChecksumUtilsTest {
 
-    private static Stream<Arguments> crtChecksumAlgorithmInput() {
+    private static Stream<Arguments> crtChecksumInput() {
+        List<ChecksumAlgorithm> checksumAlgorithms = new ArrayList<>();
+        checksumAlgorithms.add(ChecksumAlgorithm.SHA256);
+        checksumAlgorithms.add(ChecksumAlgorithm.SHA1);
         return Stream.of(
-            Arguments.of(HttpChecksum.builder().build(), S3MetaRequestOptions.MetaRequestType.DEFAULT, true, null),
+            // DEFAULT request, should pass empty config
+            Arguments.of(HttpChecksum.builder().build(), S3MetaRequestOptions.MetaRequestType.DEFAULT, true,
+                         new ChecksumConfig()),
+
+            // PUT request with request algorithm, should set algorithm
             Arguments.of(HttpChecksum.builder()
                                      .requestAlgorithm("sha256")
                                      .build(),
                          S3MetaRequestOptions.MetaRequestType.PUT_OBJECT,
                          true,
-                         ChecksumAlgorithm.SHA256),
+                         new ChecksumConfig().withChecksumAlgorithm(ChecksumAlgorithm.SHA256).withChecksumLocation(ChecksumConfig.ChecksumLocation.TRAILER)),
+
+            // PUT request w/o request algorithm, should set default algorithm
             Arguments.of(HttpChecksum.builder().build(), S3MetaRequestOptions.MetaRequestType.PUT_OBJECT, true,
-                         ChecksumAlgorithm.CRC32),
-            Arguments.of(null, S3MetaRequestOptions.MetaRequestType.PUT_OBJECT, true, null),
-            Arguments.of(HttpChecksum.builder().build(), S3MetaRequestOptions.MetaRequestType.PUT_OBJECT, false, null)
+                         new ChecksumConfig().withChecksumAlgorithm(ChecksumAlgorithm.CRC32).withChecksumLocation(ChecksumConfig.ChecksumLocation.TRAILER)),
+
+            // PUT request w/o request algorithm and checksum disabled, should pass empty config
+            Arguments.of(HttpChecksum.builder().build(), S3MetaRequestOptions.MetaRequestType.PUT_OBJECT, false,
+                         new ChecksumConfig()),
+
+            // No HttpChecksum, should pass empty config
+            Arguments.of(null, S3MetaRequestOptions.MetaRequestType.PUT_OBJECT, true,
+                         new ChecksumConfig()),
+
+            // GET request w/o validate response algorithm, should set validate to true by default
+            Arguments.of(HttpChecksum.builder().build(),
+                         S3MetaRequestOptions.MetaRequestType.GET_OBJECT, true,
+                         new ChecksumConfig().withValidateChecksum(true)),
+
+            // GET request w/o validate response algorithm, should set validate to true by defaultt
+            Arguments.of(HttpChecksum.builder().responseAlgorithms("sha256", "sha1").build(),
+                         S3MetaRequestOptions.MetaRequestType.GET_OBJECT, true,
+                         new ChecksumConfig().withValidateChecksum(true).withValidateChecksumAlgorithmList(checksumAlgorithms)),
+
+            // GET request with validate response algorithm, should set ChecksumConfig
+            Arguments.of(HttpChecksum.builder().requestValidationMode("true").build(),
+                         S3MetaRequestOptions.MetaRequestType.GET_OBJECT, true,
+                         new ChecksumConfig().withValidateChecksum(true)),
+
+            // GET request w/o requestValidationMode and checksum disabled, should pass empty config
+            Arguments.of(HttpChecksum.builder().build(),
+                         S3MetaRequestOptions.MetaRequestType.GET_OBJECT, false,
+                         new ChecksumConfig().withValidateChecksum(false)),
+
+            // GET request, No HttpChecksum, should pass empty config
+            Arguments.of(null,
+                         S3MetaRequestOptions.MetaRequestType.GET_OBJECT, true,
+                         new ChecksumConfig())
+
         );
     }
 
     @ParameterizedTest
-    @MethodSource("crtChecksumAlgorithmInput")
+    @MethodSource("crtChecksumInput")
     void crtChecksumAlgorithm_differentInput(HttpChecksum checksum,
                                              S3MetaRequestOptions.MetaRequestType type,
                                              boolean checksumValidationEnabled,
-                                             ChecksumAlgorithm expected) {
-        assertThat(CrtChecksumUtils.crtChecksumAlgorithm(checksum,
-                                                         type,
-                                                         checksumValidationEnabled)).isEqualTo(expected);
-
+                                             ChecksumConfig expected) {
+        assertThat(CrtChecksumUtils.checksumConfig(checksum, type, checksumValidationEnabled)).usingRecursiveComparison().isEqualTo(expected);
     }
-
-    private static Stream<Arguments> validateResponseChecksumInput() {
-        return Stream.of(
-            Arguments.of(HttpChecksum.builder().build(), S3MetaRequestOptions.MetaRequestType.DEFAULT, true, false),
-            Arguments.of(HttpChecksum.builder()
-                             .requestValidationMode("true").build(),
-                         S3MetaRequestOptions.MetaRequestType.GET_OBJECT,
-                         false,
-                         true),
-            Arguments.of(HttpChecksum.builder().build(), S3MetaRequestOptions.MetaRequestType.GET_OBJECT, true,
-                         true),
-            Arguments.of(HttpChecksum.builder().build(), S3MetaRequestOptions.MetaRequestType.GET_OBJECT, true, true),
-            Arguments.of(HttpChecksum.builder().build(), S3MetaRequestOptions.MetaRequestType.GET_OBJECT, false, false)
-        );
-    }
-
-    @ParameterizedTest
-    @MethodSource("validateResponseChecksumInput")
-    void validateResponseChecksum_differentInput(HttpChecksum checksum,
-                                                 S3MetaRequestOptions.MetaRequestType type,
-                                                 boolean checksumValidationEnabled,
-                                                 boolean expected) {
-        assertThat(CrtChecksumUtils.validateResponseChecksum(checksum,
-                                                             type,
-                                                             checksumValidationEnabled)).isEqualTo(expected);
-
-    }
-
 }

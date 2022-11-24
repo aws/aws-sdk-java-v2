@@ -15,8 +15,7 @@
 
 package software.amazon.awssdk.services.s3.internal.crt;
 
-import static software.amazon.awssdk.services.s3.internal.crt.CrtChecksumUtils.crtChecksumAlgorithm;
-import static software.amazon.awssdk.services.s3.internal.crt.CrtChecksumUtils.validateResponseChecksum;
+import static software.amazon.awssdk.services.s3.internal.crt.CrtChecksumUtils.checksumConfig;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.CRT_PAUSE_RESUME_TOKEN;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.HTTP_CHECKSUM;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.METAREQUEST_PAUSE_OBSERVABLE;
@@ -33,7 +32,7 @@ import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpRequest;
-import software.amazon.awssdk.crt.s3.ChecksumAlgorithm;
+import software.amazon.awssdk.crt.s3.ChecksumConfig;
 import software.amazon.awssdk.crt.s3.S3Client;
 import software.amazon.awssdk.crt.s3.S3ClientOptions;
 import software.amazon.awssdk.crt.s3.S3MetaRequest;
@@ -93,18 +92,15 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         S3MetaRequestOptions.MetaRequestType requestType = requestType(asyncRequest);
 
         HttpChecksum httpChecksum = asyncRequest.httpExecutionAttributes().getAttribute(HTTP_CHECKSUM);
-        ChecksumAlgorithm checksumAlgorithm =
-            crtChecksumAlgorithm(httpChecksum, requestType, s3NativeClientConfiguration.checksumValidationEnabled());
-
-        boolean validateChecksum =
-            validateResponseChecksum(httpChecksum, requestType,  s3NativeClientConfiguration.checksumValidationEnabled());
         String resumeToken = asyncRequest.httpExecutionAttributes().getAttribute(CRT_PAUSE_RESUME_TOKEN);
+
+        ChecksumConfig checksumConfig =
+            checksumConfig(httpChecksum, requestType, s3NativeClientConfiguration.checksumValidationEnabled());
 
         S3MetaRequestOptions requestOptions = new S3MetaRequestOptions()
             .withHttpRequest(httpRequest)
             .withMetaRequestType(requestType)
-            .withChecksumAlgorithm(checksumAlgorithm)
-            .withValidateChecksum(validateChecksum)
+            .withChecksumConfig(checksumConfig)
             .withEndpoint(getEndpoint(uri))
             .withResponseHandler(responseHandler)
             .withResumeToken(resumeToken);
