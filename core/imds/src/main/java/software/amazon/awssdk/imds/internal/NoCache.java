@@ -13,16 +13,17 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.imds;
+package software.amazon.awssdk.imds.internal;
 
 import java.time.Duration;
 import java.util.function.Supplier;
-import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.imds.TokenCacheStrategy;
 
 /**
  * No caching, a token request will be performed for every new metadata requests. This is the default behavior.
  */
-@SdkPublicApi
+@SdkInternalApi
 public final class NoCache implements TokenCacheStrategy {
     @Override
     public <T> Supplier<T> getCachedSupplier(Supplier<T> valueSupplier, Duration staleTime) {

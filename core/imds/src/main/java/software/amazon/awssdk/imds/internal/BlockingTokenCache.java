@@ -13,12 +13,13 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.imds;
+package software.amazon.awssdk.imds.internal;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.util.function.Supplier;
-import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.imds.TokenCacheStrategy;
 import software.amazon.awssdk.utils.cache.CachedSupplier;
 import software.amazon.awssdk.utils.cache.RefreshResult;
 
@@ -26,7 +27,7 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
  * Cache the token until it expires. When a request for metadata is performed while the token is expired, the Client will
  * block every request and perform a token call before resuming execution of the metadata requests.
  */
-@SdkPublicApi
+@SdkInternalApi
 public final class BlockingTokenCache implements TokenCacheStrategy {
     @Override
     public <T> Supplier<T> getCachedSupplier(Supplier<T> valueSupplier, Duration staleTime) {

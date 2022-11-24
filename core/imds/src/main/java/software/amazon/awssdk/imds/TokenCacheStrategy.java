@@ -18,6 +18,8 @@ package software.amazon.awssdk.imds;
 import java.time.Duration;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.imds.internal.BlockingTokenCache;
+import software.amazon.awssdk.imds.internal.NoCache;
 
 /**
  * Defines the different caching strategies for the token required when executing Ec2 Metadata requests.
