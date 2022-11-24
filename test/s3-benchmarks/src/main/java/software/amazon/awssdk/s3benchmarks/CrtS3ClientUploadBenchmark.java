@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.s3benchmarks;
 
+import static software.amazon.awssdk.s3benchmarks.BenchmarkUtils.printOutResult;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -34,11 +36,11 @@ import software.amazon.awssdk.crt.s3.S3MetaRequestResponseHandler;
 
 public class CrtS3ClientUploadBenchmark extends BaseCrtClientBenchmark {
 
-    private final String filepath;
+    private final File file;
 
     public CrtS3ClientUploadBenchmark(TransferManagerBenchmarkConfig config ) {
         super(config);
-        this.filepath = config.filePath();
+        this.file = new File(config.filePath());
     }
 
     @Override
@@ -49,11 +51,10 @@ public class CrtS3ClientUploadBenchmark extends BaseCrtClientBenchmark {
         String endpoint = bucket + ".s3." + region + ".amazonaws.com";
 
         // ByteBuffer payload = ByteBuffer.wrap(Files.readAllBytes(Paths.get(filepath)));
-        File uploadFile = new File(filepath);
         HttpRequestBodyStream payloadStream = new HttpRequestBodyStream() {
             @Override
             public boolean sendRequestBody(ByteBuffer outBuffer) {
-                try (FileInputStream fis = new FileInputStream(uploadFile)) {
+                try (FileInputStream fis = new FileInputStream(file)) {
                     int b;
                     while ((b = fis.read()) > -1) {
                         outBuffer.put((byte) b);
@@ -71,12 +72,12 @@ public class CrtS3ClientUploadBenchmark extends BaseCrtClientBenchmark {
 
             @Override
             public long getLength() {
-                return uploadFile.length();
+                return file.length();
             }
         };
 
         HttpHeader[] headers = { new HttpHeader("Host", endpoint),
-                                 new HttpHeader("Content-Length", String.valueOf(uploadFile.length())) };
+                                 new HttpHeader("Content-Length", String.valueOf(file.length())) };
         HttpRequest httpRequest = new HttpRequest("PUT", "/put_object_test_1MB.txt", headers, payloadStream);
 
         S3MetaRequestOptions metaRequestOptions = new S3MetaRequestOptions()
@@ -94,4 +95,8 @@ public class CrtS3ClientUploadBenchmark extends BaseCrtClientBenchmark {
         latencies.add((end - start) / 1000.0);
     }
 
+    @Override
+    protected void onResult(List<Double> metrics) throws IOException {
+        printOutResult(metrics, "Uploaded to File", file.length());
+    }
 }

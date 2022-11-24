@@ -16,7 +16,6 @@
 package software.amazon.awssdk.s3benchmarks;
 
 import static software.amazon.awssdk.s3benchmarks.BenchmarkUtils.BENCHMARK_ITERATIONS;
-import static software.amazon.awssdk.s3benchmarks.BenchmarkUtils.printOutResult;
 import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
 
 import java.io.IOException;
@@ -43,10 +42,9 @@ public abstract class BaseCrtClientBenchmark implements  TransferManagerBenchmar
     protected final int iteration;
     protected final S3NativeClientConfiguration s3NativeClientConfiguration;
     protected final S3Client crtS3Client;
-    protected final software.amazon.awssdk.services.s3.S3Client s3Sync;
     protected final Region region;
 
-    protected final long contentLength;
+    // protected final long contentLength;
 
     protected BaseCrtClientBenchmark(TransferManagerBenchmarkConfig config) {
         logger.info(() -> "Benchmark config: " + config);
@@ -81,8 +79,6 @@ public abstract class BaseCrtClientBenchmark implements  TransferManagerBenchmar
         }
 
         this.crtS3Client = new S3Client(s3ClientOptions);
-        this.s3Sync = software.amazon.awssdk.services.s3.S3Client.builder().build();
-        this.contentLength = s3Sync.headObject(b -> b.bucket(bucket).key(key)).contentLength();
 
         AwsRegionProvider instanceProfileRegionProvider = new DefaultAwsRegionProviderChain();
         region = instanceProfileRegionProvider.getRegion();
@@ -90,6 +86,7 @@ public abstract class BaseCrtClientBenchmark implements  TransferManagerBenchmar
     }
 
     protected abstract void sendOneRequest(List<Double> latencies) throws IOException;
+    protected abstract void onResult(List<Double> metrics) throws IOException;
 
     @Override
     public void run() {
@@ -103,8 +100,7 @@ public abstract class BaseCrtClientBenchmark implements  TransferManagerBenchmar
         }
     }
 
-    private void cleanup() {
-        s3Sync.close();
+    protected void cleanup() {
         s3NativeClientConfiguration.close();
         crtS3Client.close();
     }
@@ -123,7 +119,8 @@ public abstract class BaseCrtClientBenchmark implements  TransferManagerBenchmar
         for (int i = 0; i < iteration; i++) {
             sendOneRequest(metrics);
         }
-        printOutResult(metrics, "Download to File", contentLength);
+        // printOutResult(metrics, "Download to File", contentLength);
+        onResult(metrics);
     }
 
     protected static final class TestS3MetaRequestResponseHandler implements S3MetaRequestResponseHandler {

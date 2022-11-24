@@ -15,6 +15,9 @@
 
 package software.amazon.awssdk.s3benchmarks;
 
+import static software.amazon.awssdk.s3benchmarks.BenchmarkUtils.printOutResult;
+
+import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -30,9 +33,15 @@ import software.amazon.awssdk.utils.Validate;
 
 public class CrtS3ClientDownloadBenchmark extends BaseCrtClientBenchmark {
 
+    private long contentLength;
+    private final software.amazon.awssdk.services.s3.S3Client s3Sync;
+
     public CrtS3ClientDownloadBenchmark(TransferManagerBenchmarkConfig config) {
         super(config);
         Validate.isNull(config.filePath(), "File path is not supported in CrtS3ClientDownloadBenchmark");
+        this.s3Sync = software.amazon.awssdk.services.s3.S3Client.builder().build();
+        this.contentLength = s3Sync.headObject(b -> b.bucket(bucket).key(key)).contentLength();
+
         // logger.info(() -> "Benchmark config: " + config);
         // Validate.isNull(config.filePath(), "File path is not supported in CrtS3ClientBenchmark");
         //
@@ -140,4 +149,14 @@ public class CrtS3ClientDownloadBenchmark extends BaseCrtClientBenchmark {
         latencies.add((end - start) / 1000.0);
     }
 
+    @Override
+    protected void onResult(List<Double> metrics) throws IOException {
+        printOutResult(metrics, "Download to File", contentLength);
+    }
+
+    @Override
+    protected void cleanup() {
+        s3Sync.close();
+        super.cleanup();
+    }
 }
