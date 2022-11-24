@@ -86,6 +86,7 @@ public class CrtS3ClientUploadBenchmark extends BaseCrtClientBenchmark {
             .withResponseHandler(responseHandler);
 
         long start = System.currentTimeMillis();
+        log.info(metaRequestOptions.getHttpRequest()::toString);
         try (S3MetaRequest metaRequest = crtS3Client.makeMetaRequest(metaRequestOptions)) {
             resultFuture.get(10, TimeUnit.MINUTES);
         } catch (ExecutionException | TimeoutException | InterruptedException e) {
