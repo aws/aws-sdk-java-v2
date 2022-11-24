@@ -19,7 +19,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -76,15 +75,11 @@ public class CrtS3ClientUploadBenchmark extends BaseCrtClientBenchmark {
             }
         };
 
-        HttpHeader[] headers = {new HttpHeader("Host", endpoint)};
-        HttpRequest httpRequest = new HttpRequest(
-            "PUT",
-            "/" + key,
-            headers,
-            payloadStream);
+        HttpHeader[] headers = { new HttpHeader("Host", endpoint),
+                                 new HttpHeader("Content-Length", String.valueOf(uploadFile.length())) };
+        HttpRequest httpRequest = new HttpRequest("PUT", "/put_object_test_1MB.txt", headers, payloadStream);
 
         S3MetaRequestOptions metaRequestOptions = new S3MetaRequestOptions()
-            .withEndpoint(URI.create("https://" + endpoint))
             .withMetaRequestType(S3MetaRequestOptions.MetaRequestType.PUT_OBJECT)
             .withHttpRequest(httpRequest)
             .withResponseHandler(responseHandler);
