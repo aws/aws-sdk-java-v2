@@ -26,11 +26,13 @@ import software.amazon.awssdk.crt.http.HttpRequest;
 import software.amazon.awssdk.crt.s3.S3MetaRequest;
 import software.amazon.awssdk.crt.s3.S3MetaRequestOptions;
 import software.amazon.awssdk.crt.s3.S3MetaRequestResponseHandler;
+import software.amazon.awssdk.utils.Validate;
 
 public class CrtS3ClientDownloadBenchmark extends BaseCrtClientBenchmark {
 
     public CrtS3ClientDownloadBenchmark(TransferManagerBenchmarkConfig config) {
         super(config);
+        Validate.isNull(config.filePath(), "File path is not supported in CrtS3ClientDownloadBenchmark");
         // logger.info(() -> "Benchmark config: " + config);
         // Validate.isNull(config.filePath(), "File path is not supported in CrtS3ClientBenchmark");
         //

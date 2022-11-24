@@ -34,7 +34,6 @@ import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.services.s3.internal.crt.S3NativeClientConfiguration;
 import software.amazon.awssdk.utils.Logger;
-import software.amazon.awssdk.utils.Validate;
 
 public abstract class BaseCrtClientBenchmark implements  TransferManagerBenchmark {
     private static final Logger logger = Logger.loggerFor(BaseCrtClientBenchmark.class);
@@ -51,7 +50,6 @@ public abstract class BaseCrtClientBenchmark implements  TransferManagerBenchmar
 
     protected BaseCrtClientBenchmark(TransferManagerBenchmarkConfig config) {
         logger.info(() -> "Benchmark config: " + config);
-        Validate.isNull(config.filePath(), "File path is not supported in CrtS3ClientBenchmark");
 
 
         Long partSizeInBytes = config.partSizeInMb() == null ? null : config.partSizeInMb() * MB;
@@ -84,7 +82,7 @@ public abstract class BaseCrtClientBenchmark implements  TransferManagerBenchmar
         }
 
         this.crtS3Client = new S3Client(s3ClientOptions);
-        s3Sync = software.amazon.awssdk.services.s3.S3Client.builder().build();
+        this.s3Sync = software.amazon.awssdk.services.s3.S3Client.builder().build();
         this.contentLength = s3Sync.headObject(b -> b.bucket(bucket).key(key)).contentLength();
 
         AwsRegionProvider instanceProfileRegionProvider = new DefaultAwsRegionProviderChain();
