@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.imds.internal;
 
-import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
-
 import java.net.URI;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
@@ -25,9 +23,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
@@ -47,9 +43,9 @@ import software.amazon.awssdk.imds.Ec2MetadataRetryPolicy;
 import software.amazon.awssdk.imds.EndpointMode;
 import software.amazon.awssdk.imds.MetadataResponse;
 import software.amazon.awssdk.imds.TokenCacheStrategy;
+import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
-import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 import software.amazon.awssdk.utils.Validate;
 
@@ -63,7 +59,6 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
 
     private final SdkAsyncHttpClient httpClient;
     private final ScheduledExecutorService asyncRetryScheduler;
-    private final Supplier<CompletableFuture<Token>> tokenCache;
     private final boolean httpClientIsInternal;
     private final boolean retryExecutorIsInternal;
 
@@ -71,22 +66,14 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
         super(builder);
         this.httpClient = Validate.getOrDefault(
             builder.httpClient,
-            () -> new DefaultSdkAsyncHttpClientBuilder().buildWithDefaults(IMDS_HTTP_DEFAULTS));
+            () -> new DefaultSdkAsyncHttpClientBuilder().buildWithDefaults(AttributeMap.empty()));
         this.asyncRetryScheduler = Validate.getOrDefault(
             builder.scheduledExecutorService,
             () -> {
-                ThreadFactory threadFactory = new ThreadFactoryBuilder().threadNamePrefix("IMDS-ScheduledExecutor").build();
+                ThreadFactory threadFactory =
+                    new ThreadFactoryBuilder().threadNamePrefix("IMDS-ScheduledExecutor").build();
                 return Executors.newScheduledThreadPool(DEFAULT_RETRY_THREAD_POOL_SIZE, threadFactory);
             });
-        TokenCacheStrategy tokenCacheStrategy = Validate.getOrDefault(builder.tokenCacheStrategy, () -> TokenCacheStrategy.NONE);
-        Supplier<CompletableFuture<Token>> valueSupplier =
-            () -> {
-                CompletableFuture<String> tokenValueFuture = this.sendRequest(requestMarshaller.createTokenRequest(tokenTtl));
-                CompletableFuture<Token> tokenFuture = tokenValueFuture.thenApply(value -> new Token(value, this.tokenTtl));
-                CompletableFutureUtils.forwardExceptionTo(tokenFuture, tokenValueFuture);
-                return tokenFuture;
-            };
-        this.tokenCache = tokenCacheStrategy.getCachedSupplier(valueSupplier, this.tokenTtl);
         this.httpClientIsInternal = builder.httpClient == null;
         this.retryExecutorIsInternal = builder.scheduledExecutorService == null;
     }
@@ -97,92 +84,60 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
 
     @Override
     public CompletableFuture<MetadataResponse> get(String path) {
-        CompletableFuture<String> resultFuture = new CompletableFuture<>();
-        CompletableFuture<Token> tokenFuture = tokenCache.get();
-        tokenFuture.whenComplete((token, throwable) -> {
-            if (throwable != null) {
-                resultFuture.completeExceptionally(throwable);
-                return;
-            }
-            SdkHttpFullRequest metadataHttpRequest = requestMarshaller.createDataRequest(path, token.value(), tokenTtl);
-            RetryPolicyContext initialRetryContext = RetryPolicyContext.builder().request(metadataHttpRequest).build();
-            sendRequestWithToken(metadataHttpRequest, token, initialRetryContext, resultFuture);
-        });
-        CompletableFuture<MetadataResponse> returnFuture = resultFuture.thenApply(MetadataResponse::create);
-        CompletableFutureUtils.forwardExceptionTo(returnFuture, resultFuture);
-        CompletableFutureUtils.forwardExceptionTo(returnFuture, tokenFuture);
+        CompletableFuture<MetadataResponse> returnFuture = new CompletableFuture<>();
+        get(path, RetryPolicyContext.builder().retriesAttempted(0).build(), returnFuture);
         return returnFuture;
     }
 
-    private CompletableFuture<String> sendRequest(SdkHttpFullRequest request) {
-        RetryPolicyContext initialRetryContext = RetryPolicyContext.builder()
-                                                                   .retriesAttempted(0)
-                                                                   .request(request)
-                                                                   .build();
-        CompletableFuture<String> initialFuture = new CompletableFuture<>();
-        sendRequest(request, initialRetryContext, initialFuture);
-        return initialFuture;
+    private void get(String path, RetryPolicyContext retryPolicyContext, CompletableFuture<MetadataResponse> returnFuture) {
+        SdkHttpFullRequest baseTokenRequest = requestMarshaller.createTokenRequest(tokenTtl);
+        CompletableFuture<String> tokenFuture = sendAsyncRequest(baseTokenRequest);
+        CompletableFutureUtils.forwardExceptionTo(returnFuture, tokenFuture);
+
+        CompletableFuture<MetadataResponse> result = tokenFuture.thenCompose(token -> {
+            SdkHttpFullRequest baseMetadataRequest = requestMarshaller.createDataRequest(path, token, tokenTtl);
+            return sendAsyncRequest(baseMetadataRequest);
+        }).thenApply(MetadataResponse::create);
+
+        CompletableFutureUtils.forwardExceptionTo(tokenFuture, result);
+
+        result.whenComplete((response, error) -> {
+            if (response != null) {
+                returnFuture.complete(response);
+                return;
+            }
+            if (!shouldRetry(retryPolicyContext, error)) {
+                returnFuture.completeExceptionally(error);
+                return;
+            }
+            int newAttempt = retryPolicyContext.retriesAttempted() + 1;
+            log.debug(() -> "Retrying request: Attempt " + newAttempt);
+            RetryPolicyContext newContext =
+                RetryPolicyContext.builder()
+                                  .request(baseTokenRequest)
+                                  .retriesAttempted(newAttempt)
+                                  .exception(SdkClientException.create(error.getMessage(), error))
+                                  .build();
+            scheduledRetryAttempt(() -> get(path, newContext, returnFuture), newContext);
+        });
     }
 
-    public void sendRequest(SdkHttpFullRequest request, RetryPolicyContext retryPolicyContext,
-                                                 CompletableFuture<String> initialFuture) {
-        sendRequestWithRetry(request, retryPolicyContext, initialFuture,
-                             newContext -> sendRequest(request, newContext, initialFuture));
-    }
-
-    private void sendRequestWithRetry(SdkHttpFullRequest request, RetryPolicyContext retryPolicyContext,
-                                      CompletableFuture<String> initialFuture,
-                                      Consumer<RetryPolicyContext> retryConsumer) {
-
-        SdkHttpContentPublisher requestContentPublisher = new SimpleHttpContentPublisher(request);
+    private CompletableFuture<String> sendAsyncRequest(SdkHttpFullRequest baseRequest) {
+        SdkHttpContentPublisher requestContentPublisher = new SimpleHttpContentPublisher(baseRequest);
         StringResponseHandler stringResponseHandler = new StringResponseHandler();
-        TransformingAsyncResponseHandler<String> responseHandler =
-            new AsyncResponseHandler<>(stringResponseHandler, Function.identity(), new ExecutionAttributes());
+        TransformingAsyncResponseHandler<String> responseHandler = new AsyncResponseHandler<>(stringResponseHandler,
+                                                                                              Function.identity(),
+                                                                                              new ExecutionAttributes());
         CompletableFuture<String> responseHandlerFuture = responseHandler.prepare();
         stringResponseHandler.setFuture(responseHandlerFuture);
         AsyncExecuteRequest metadataRequest = AsyncExecuteRequest.builder()
-                                                                 .request(request)
+                                                                 .request(baseRequest)
                                                                  .requestContentPublisher(requestContentPublisher)
                                                                  .responseHandler(responseHandler)
                                                                  .build();
         CompletableFuture<Void> executeFuture = httpClient.execute(metadataRequest);
-        CompletableFutureUtils.forwardExceptionTo(initialFuture, responseHandlerFuture);
-        CompletableFutureUtils.forwardExceptionTo(initialFuture, executeFuture);
-        responseHandlerFuture.whenComplete((response, error) -> {
-            if (response != null) {
-                log.debug(() -> String.format("Completed request to %s in %d retry attempt", request.encodedPath(),
-                                             retryPolicyContext.retriesAttempted()));
-                initialFuture.complete(response);
-                return;
-            }
-            if (!shouldRetry(retryPolicyContext, error)) {
-                initialFuture.completeExceptionally(error);
-                return;
-            }
-            int newAttempt = retryPolicyContext.retriesAttempted() + 1;
-            log.debug(() -> String.format("Retrying request to %s: Retry attempt %d", request.encodedPath(), newAttempt));
-            RetryPolicyContext newContext =
-                RetryPolicyContext.builder()
-                                  .retriesAttempted(newAttempt)
-                                  .request(request)
-                                  .exception(SdkClientException.create(error.getMessage(), error))
-                                  .build();
-            scheduledRetryAttempt(() -> retryConsumer.accept(newContext), newContext);
-        });
-    }
-
-    private void sendRequestWithToken(SdkHttpFullRequest request, Token token, RetryPolicyContext retryPolicyContext,
-                                     CompletableFuture<String> initialFuture) {
-        log.debug(() -> String.format("Making metadata request with token %s", token));
-        if (token.isExpired()) {
-            log.debug(() -> "Token is expired, refreshing");
-            CompletableFuture<Token> tokenFuture = tokenCache.get();
-            CompletableFutureUtils.forwardExceptionTo(initialFuture, tokenFuture);
-            tokenFuture.thenAccept(newToken -> sendRequestWithToken(request, newToken, retryPolicyContext, initialFuture));
-        }
-
-        sendRequestWithRetry(request, retryPolicyContext, initialFuture,
-                             newContext -> sendRequestWithToken(request, token, newContext, initialFuture));
+        CompletableFutureUtils.forwardExceptionTo(responseHandlerFuture, executeFuture);
+        return responseHandlerFuture;
     }
 
     private void scheduledRetryAttempt(Runnable runnable, RetryPolicyContext retryPolicyContext) {
@@ -195,13 +150,10 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
     @Override
     public void close() {
         if (httpClientIsInternal) {
-            runAndLogError(log.logger(), "Error while closing IMDS Http Client", httpClient::close);
+            httpClient.close();
         }
         if (retryExecutorIsInternal) {
-            runAndLogError(log.logger(), "Error while closing IMDS retry executor", asyncRetryScheduler::shutdown);
-        }
-        if (tokenCache instanceof SdkAutoCloseable) {
-            runAndLogError(log.logger(), "Error while closing IMDS token cache", ((SdkAutoCloseable) tokenCache)::close);
+            asyncRetryScheduler.shutdown();
         }
     }
 
@@ -218,8 +170,6 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
         private SdkAsyncHttpClient httpClient;
 
         private ScheduledExecutorService scheduledExecutorService;
-
-        private TokenCacheStrategy tokenCacheStrategy;
 
         private Ec2MetadataAsyncBuilder() {
         }
@@ -282,13 +232,14 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
 
         @Override
         public Ec2MetadataAsyncBuilder tokenCacheStrategy(TokenCacheStrategy tokenCacheStrategy) {
-            this.tokenCacheStrategy = tokenCacheStrategy;
+            // TODO
             return this;
         }
 
         @Override
         public TokenCacheStrategy getTokenCacheStrategy() {
-            return this.tokenCacheStrategy;
+            // TODO
+            return null;
         }
 
 

@@ -18,7 +18,6 @@ package software.amazon.awssdk.imds.internal;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -48,15 +47,11 @@ public class StringResponseHandler implements HttpResponseHandler<String> {
         String responseContent = uncheckedInputStreamToUtf8(inputStream);
         if (statusCode.isOneOf(HttpStatusFamily.CLIENT_ERROR)) {
             // non-retryable error
-            Supplier<String> msg = () -> String.format("Error while executing EC2Metadata request: received http status %d",
-                                                       response.statusCode());
-            log.info(msg);
-            future.completeExceptionally(SdkClientException.create(responseContent));
+            future.completeExceptionally(SdkClientException.builder()
+                                                           .message(responseContent)
+                                                           .build());
         } else if (statusCode.isOneOf(HttpStatusFamily.SERVER_ERROR)) {
             // retryable error
-            Supplier<String> msg = () -> String.format("Error while executing EC2Metadata request: received http status %d",
-                                                       response.statusCode());
-            log.info(msg);
             future.completeExceptionally(RetryableException.create(responseContent));
         }
         return responseContent;

@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.imds.internal;
 
-import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Objects;
@@ -50,10 +49,6 @@ public final class Token {
 
     public boolean isExpired() {
         return Instant.now().isAfter(createdTime.plus(ttl));
-    }
-
-    public boolean isExpired(Clock clock) {
-        return Instant.now(clock).isAfter(createdTime.plus(ttl));
     }
 
     @Override
