@@ -15,11 +15,12 @@
 
 package software.amazon.awssdk.s3benchmarks;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -31,7 +32,6 @@ import software.amazon.awssdk.crt.http.HttpRequestBodyStream;
 import software.amazon.awssdk.crt.s3.S3MetaRequest;
 import software.amazon.awssdk.crt.s3.S3MetaRequestOptions;
 import software.amazon.awssdk.crt.s3.S3MetaRequestResponseHandler;
-import software.amazon.awssdk.crt.utils.ByteBufferUtils;
 
 public class CrtS3ClientUploadBenchmark extends BaseCrtClientBenchmark {
 
@@ -49,12 +49,20 @@ public class CrtS3ClientUploadBenchmark extends BaseCrtClientBenchmark {
 
         String endpoint = bucket + ".s3." + region + ".amazonaws.com";
 
-        ByteBuffer payload = ByteBuffer.wrap(Files.readAllBytes(Paths.get(filepath)));
+        // ByteBuffer payload = ByteBuffer.wrap(Files.readAllBytes(Paths.get(filepath)));
+        File uploadFile = new File(filepath);
         HttpRequestBodyStream payloadStream = new HttpRequestBodyStream() {
             @Override
             public boolean sendRequestBody(ByteBuffer outBuffer) {
-                ByteBufferUtils.transferData(payload, outBuffer);
-                return payload.remaining() == 0;
+                try (FileInputStream fis = new FileInputStream(uploadFile)) {
+                    int b;
+                    while ((b = fis.read()) > -1) {
+                        outBuffer.put((byte) b);
+                    }
+                } catch (IOException ioe) {
+                    throw new UncheckedIOException(ioe);
+                }
+                return true;
             }
 
             @Override
@@ -64,7 +72,7 @@ public class CrtS3ClientUploadBenchmark extends BaseCrtClientBenchmark {
 
             @Override
             public long getLength() {
-                return payload.capacity();
+                return uploadFile.length();
             }
         };
 

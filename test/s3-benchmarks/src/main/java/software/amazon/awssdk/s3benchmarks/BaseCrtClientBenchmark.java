@@ -51,7 +51,6 @@ public abstract class BaseCrtClientBenchmark implements  TransferManagerBenchmar
     protected BaseCrtClientBenchmark(TransferManagerBenchmarkConfig config) {
         logger.info(() -> "Benchmark config: " + config);
 
-
         Long partSizeInBytes = config.partSizeInMb() == null ? null : config.partSizeInMb() * MB;
         this.s3NativeClientConfiguration = S3NativeClientConfiguration.builder()
                                                                       .partSizeInBytes(partSizeInBytes)
