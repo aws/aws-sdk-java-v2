@@ -5,16 +5,16 @@
     "endpointPrefix":"json-service-endpoint",
     "globalEndpoint": "json-service.amazonaws.com",
     "protocol":"json",
-    "serviceAbbreviation":"Json Service",
-    "serviceFullName":"Some Service That Uses AWS Json Protocol",
-    "serviceId":"Json Service",
-    "signingName": "json-service",
+    "serviceAbbreviation":"Aws Query Compatible Json Service",
+    "serviceFullName":"Some Service That Uses AWS Query Compatible Json Protocol",
+    "serviceId":"Aws Query Compatible Json Service",
+    "signingName": "aws-query-compatible-json-service",
     "signatureVersion":"v4",
-    "uid":"json-service-2010-05-08",
+    "uid":"aws-query-compatible-json-service-2010-05-08",
     "awsQueryCompatible":{}
   },
   "operations":{
-    "OperationWithChecksumRequired": {
+    "AllType": {
       "name": "APostOperation",
       "http": {
         "method": "POST",

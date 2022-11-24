@@ -116,9 +116,13 @@ public class ServiceMetadata {
         this.jsonVersion = jsonVersion;
     }
 
-    public Map<String, String> getAwsQueryCompatible() { return awsQueryCompatible; }
+    public Map<String, String> getAwsQueryCompatible() {
+        return awsQueryCompatible;
+    }
 
-    public void setAwsQueryCompatible(Map<String, String> awsQueryCompatible) { this.awsQueryCompatible = awsQueryCompatible; }
+    public void setAwsQueryCompatible(Map<String, String> awsQueryCompatible) {
+        this.awsQueryCompatible = awsQueryCompatible;
+    }
 
     public boolean isResultWrapped() {
         return resultWrapped;

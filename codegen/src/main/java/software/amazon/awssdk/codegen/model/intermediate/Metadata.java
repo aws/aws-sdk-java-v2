@@ -15,11 +15,10 @@
 
 package software.amazon.awssdk.codegen.model.intermediate;
 
+import java.util.Map;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.utils.StringUtils;
-
-import java.util.Map;
 
 public class Metadata {
 
@@ -510,7 +509,9 @@ public class Metadata {
         return this;
     }
 
-    public Map<String, String> getAwsQueryCompatible() { return awsQueryCompatible; }
+    public Map<String, String> getAwsQueryCompatible() {
+        return awsQueryCompatible;
+    }
 
     public void setAwsQueryCompatible(Map<String, String> awsQueryCompatible) {
         this.awsQueryCompatible = awsQueryCompatible;
