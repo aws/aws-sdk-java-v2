@@ -36,15 +36,13 @@ import software.amazon.awssdk.utils.Validate;
 
 public class CrtS3ClientUploadBenchmark extends BaseCrtClientBenchmark {
 
-    static Logger log = Logger.loggerFor(CrtS3ClientUploadBenchmark.class);
+    private static final Logger log = Logger.loggerFor(CrtS3ClientUploadBenchmark.class);
 
-    private String filepath;
-    private ByteBuffer partBuffer;
-    private long totalContentLength;
+    private final ByteBuffer partBuffer;
+    private final long totalContentLength;
 
     public CrtS3ClientUploadBenchmark(TransferManagerBenchmarkConfig config) {
         super(config);
-        this.filepath = config.filePath();
         this.partBuffer = ByteBuffer.allocate(this.partSizeInBytes.intValue());
         this.totalContentLength = Validate.notNull(config.contentLength(),
                                                    "contentLength is required for Crt Upload Benchmark");
@@ -80,7 +78,7 @@ public class CrtS3ClientUploadBenchmark extends BaseCrtClientBenchmark {
 
         HttpHeader[] headers = { new HttpHeader("Host", endpoint),
                                  new HttpHeader("Content-Length", String.valueOf(totalContentLength)) };
-        HttpRequest httpRequest = new HttpRequest("PUT", filepath, headers, payloadStream);
+        HttpRequest httpRequest = new HttpRequest("PUT", key, headers, payloadStream);
 
         S3MetaRequestOptions metaRequestOptions = new S3MetaRequestOptions()
             .withMetaRequestType(S3MetaRequestOptions.MetaRequestType.PUT_OBJECT)
