@@ -36,11 +36,13 @@ import software.amazon.awssdk.crt.s3.S3MetaRequestResponseHandler;
 
 public class CrtS3ClientUploadBenchmark extends BaseCrtClientBenchmark {
 
+    private String filepath;
     private final File file;
 
     public CrtS3ClientUploadBenchmark(TransferManagerBenchmarkConfig config ) {
         super(config);
-        this.file = new File(config.filePath());
+        this.filepath = config.filePath();
+        this.file = new File(filepath);
     }
 
     @Override
@@ -78,7 +80,7 @@ public class CrtS3ClientUploadBenchmark extends BaseCrtClientBenchmark {
 
         HttpHeader[] headers = { new HttpHeader("Host", endpoint),
                                  new HttpHeader("Content-Length", String.valueOf(file.length())) };
-        HttpRequest httpRequest = new HttpRequest("PUT", "/put_object_test_1MB.txt", headers, payloadStream);
+        HttpRequest httpRequest = new HttpRequest("PUT", filepath, headers, payloadStream);
 
         S3MetaRequestOptions metaRequestOptions = new S3MetaRequestOptions()
             .withMetaRequestType(S3MetaRequestOptions.MetaRequestType.PUT_OBJECT)
