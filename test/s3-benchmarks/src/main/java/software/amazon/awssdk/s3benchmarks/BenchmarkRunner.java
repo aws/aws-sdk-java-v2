@@ -48,8 +48,8 @@ public final class BenchmarkRunner {
 
     static {
         OPERATION_TO_BENCHMARK_V2.put(TransferManagerOperation.COPY, TransferManagerBenchmark::copy);
-        OPERATION_TO_BENCHMARK_V2.put(TransferManagerOperation.DOWNLOAD, TransferManagerBenchmark::download);
-        OPERATION_TO_BENCHMARK_V2.put(TransferManagerOperation.UPLOAD, TransferManagerBenchmark::upload);
+        OPERATION_TO_BENCHMARK_V2.put(TransferManagerOperation.DOWNLOAD, TransferManagerBenchmark::v2Download);
+        OPERATION_TO_BENCHMARK_V2.put(TransferManagerOperation.UPLOAD, TransferManagerBenchmark::v2Upload);
         OPERATION_TO_BENCHMARK_V2.put(TransferManagerOperation.DOWNLOAD_DIRECTORY, TransferManagerBenchmark::downloadDirectory);
         OPERATION_TO_BENCHMARK_V2.put(TransferManagerOperation.UPLOAD_DIRECTORY, TransferManagerBenchmark::uploadDirectory);
 
@@ -101,7 +101,10 @@ public final class BenchmarkRunner {
                 break;
             case CRT:
                 if (operation == TransferManagerOperation.DOWNLOAD) {
-                    benchmark = new CrtS3ClientBenchmark(config);
+                    benchmark = new CrtS3ClientDownloadBenchmark(config);
+                    break;
+                } else if (operation == TransferManagerOperation.UPLOAD) {
+                    benchmark = new CrtS3ClientUploadBenchmark(config);
                     break;
                 }
                 throw new UnsupportedOperationException();
