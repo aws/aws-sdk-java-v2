@@ -25,6 +25,7 @@ public final class TransferManagerBenchmarkConfig {
     private final Long partSizeInMb;
     private final ChecksumAlgorithm checksumAlgorithm;
     private final Integer iteration;
+    private final Long contentLength;
 
     private final Long readBufferSizeInMb;
     private final BenchmarkRunner.TransferManagerOperation operation;
@@ -41,6 +42,7 @@ public final class TransferManagerBenchmarkConfig {
         this.readBufferSizeInMb = builder.readBufferSizeInMb;
         this.operation = builder.operation;
         this.prefix = builder.prefix;
+        this.contentLength = builder.contentLength;
     }
 
     public String filePath() {
@@ -83,6 +85,10 @@ public final class TransferManagerBenchmarkConfig {
         return prefix;
     }
 
+    public Long contentLength() {
+        return contentLength;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -99,6 +105,7 @@ public final class TransferManagerBenchmarkConfig {
                ", iteration: " + iteration +
                ", readBufferSizeInMb: " + readBufferSizeInMb +
                ", operation: " + operation +
+               ", contentLength: " + contentLength +
                '}';
     }
 
@@ -110,6 +117,7 @@ public final class TransferManagerBenchmarkConfig {
         private String key;
         private Double targetThroughput;
         private Long partSizeInMb;
+        private Long contentLength;
 
         private Integer iteration;
         private BenchmarkRunner.TransferManagerOperation operation;
@@ -162,6 +170,11 @@ public final class TransferManagerBenchmarkConfig {
 
         public Builder prefix(String prefix) {
             this.prefix = prefix;
+            return this;
+        }
+
+        public Builder contentLength(Long contentLength) {
+            this.contentLength = contentLength;
             return this;
         }
 

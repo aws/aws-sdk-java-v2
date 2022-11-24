@@ -43,13 +43,14 @@ public abstract class BaseCrtClientBenchmark implements  TransferManagerBenchmar
     protected final S3NativeClientConfiguration s3NativeClientConfiguration;
     protected final S3Client crtS3Client;
     protected final Region region;
+    protected Long partSizeInBytes;
 
     // protected final long contentLength;
 
     protected BaseCrtClientBenchmark(TransferManagerBenchmarkConfig config) {
         logger.info(() -> "Benchmark config: " + config);
 
-        Long partSizeInBytes = config.partSizeInMb() == null ? null : config.partSizeInMb() * MB;
+        this.partSizeInBytes = config.partSizeInMb() == null ? null : config.partSizeInMb() * MB;
         this.s3NativeClientConfiguration = S3NativeClientConfiguration.builder()
                                                                       .partSizeInBytes(partSizeInBytes)
                                                                       .targetThroughputInGbps(config.targetThroughput() == null ?

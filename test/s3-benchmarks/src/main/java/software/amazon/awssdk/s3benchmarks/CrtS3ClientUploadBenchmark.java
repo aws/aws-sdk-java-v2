@@ -17,10 +17,7 @@ package software.amazon.awssdk.s3benchmarks;
 
 import static software.amazon.awssdk.s3benchmarks.BenchmarkUtils.printOutResult;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -33,16 +30,24 @@ import software.amazon.awssdk.crt.http.HttpRequestBodyStream;
 import software.amazon.awssdk.crt.s3.S3MetaRequest;
 import software.amazon.awssdk.crt.s3.S3MetaRequestOptions;
 import software.amazon.awssdk.crt.s3.S3MetaRequestResponseHandler;
+import software.amazon.awssdk.crt.utils.ByteBufferUtils;
+import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Validate;
 
 public class CrtS3ClientUploadBenchmark extends BaseCrtClientBenchmark {
 
-    private String filepath;
-    private final File file;
+    static Logger log = Logger.loggerFor(CrtS3ClientUploadBenchmark.class);
 
-    public CrtS3ClientUploadBenchmark(TransferManagerBenchmarkConfig config ) {
+    private String filepath;
+    private ByteBuffer partBuffer;
+    private long totalContentLength;
+
+    public CrtS3ClientUploadBenchmark(TransferManagerBenchmarkConfig config) {
         super(config);
         this.filepath = config.filePath();
-        this.file = new File(filepath);
+        this.partBuffer = ByteBuffer.allocate(this.partSizeInBytes.intValue());
+        this.totalContentLength = Validate.notNull(config.contentLength(),
+                                                   "contentLength is required for Crt Upload Benchmark");
     }
 
     @Override
@@ -52,34 +57,29 @@ public class CrtS3ClientUploadBenchmark extends BaseCrtClientBenchmark {
 
         String endpoint = bucket + ".s3." + region + ".amazonaws.com";
 
-        // ByteBuffer payload = ByteBuffer.wrap(Files.readAllBytes(Paths.get(filepath)));
         HttpRequestBodyStream payloadStream = new HttpRequestBodyStream() {
+            int totalSizeUploaded = 0;
             @Override
             public boolean sendRequestBody(ByteBuffer outBuffer) {
-                try (FileInputStream fis = new FileInputStream(file)) {
-                    int b;
-                    while ((b = fis.read()) > -1) {
-                        outBuffer.put((byte) b);
-                    }
-                } catch (IOException ioe) {
-                    throw new UncheckedIOException(ioe);
-                }
-                return true;
+                log.info(() -> "Uploading bytes:" + partSizeInBytes);
+                ByteBufferUtils.transferData(partBuffer, outBuffer);
+                totalSizeUploaded += partSizeInBytes;
+                return totalSizeUploaded >= totalContentLength;
             }
 
             @Override
             public boolean resetPosition() {
-                return true;
+                return false;
             }
 
             @Override
             public long getLength() {
-                return file.length();
+                return totalContentLength;
             }
         };
 
         HttpHeader[] headers = { new HttpHeader("Host", endpoint),
-                                 new HttpHeader("Content-Length", String.valueOf(file.length())) };
+                                 new HttpHeader("Content-Length", String.valueOf(totalContentLength)) };
         HttpRequest httpRequest = new HttpRequest("PUT", filepath, headers, payloadStream);
 
         S3MetaRequestOptions metaRequestOptions = new S3MetaRequestOptions()
@@ -99,6 +99,6 @@ public class CrtS3ClientUploadBenchmark extends BaseCrtClientBenchmark {
 
     @Override
     protected void onResult(List<Double> metrics) throws IOException {
-        printOutResult(metrics, "Uploaded to File", file.length());
+        printOutResult(metrics, "Uploaded to File", totalContentLength);
     }
 }

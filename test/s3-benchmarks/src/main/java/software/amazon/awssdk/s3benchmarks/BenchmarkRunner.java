@@ -35,6 +35,7 @@ public final class BenchmarkRunner {
     private static final String OPERATION = "operation";
     private static final String CHECKSUM_ALGORITHM = "checksumAlgo";
     private static final String ITERATION = "iteration";
+    private static final String CONTENT_LENGTH = "contentLength";
 
     private static final String READ_BUFFER_IN_MB = "readBufferInMB";
 
@@ -82,6 +83,10 @@ public final class BenchmarkRunner {
         options.addOption(null, VERSION, true, "The major version of the transfer manager to run test: v1 | v2 | crt, default: "
                                                + "v2");
         options.addOption(null, PREFIX, true, "S3 Prefix used in downloadDirectory and uploadDirectory");
+
+        options.addOption(null, CONTENT_LENGTH, true, "Content length to upload from memory. Used only in the "
+                                                      + "CRT Upload Benchmark, but "
+                                                      + "is required for this test case.");
 
         CommandLine cmd = parser.parse(options, args);
         TransferManagerBenchmarkConfig config = parseConfig(cmd);
