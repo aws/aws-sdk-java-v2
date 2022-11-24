@@ -265,7 +265,7 @@ public interface TransferListener {
             /**
              * The exception associated with the failed transfer.
              * <p>
-             * Note that this would be the <i>cause</i>> of a {@link CompletionException}, and not a {@link CompletionException}
+             * Note that this would be the <i>cause</i> of a {@link CompletionException}, and not a {@link CompletionException}
              * itself.
              */
             Throwable exception();
