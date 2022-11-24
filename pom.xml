@@ -730,7 +730,7 @@
             </activation>
             <properties>
                 <!-- snippet-path only works with JDK 18+ -->
-                <additionalJavadocOption>--snippet-path=${basedir}/src/test/java</additionalJavadocOption>
+                <additionalJavadocOption>--snippet-path=${basedir}/src/test/java;${basedir}/service-custom/s3-transfer-manager/src/test/java</additionalJavadocOption>
             </properties>
         </profile>
 
