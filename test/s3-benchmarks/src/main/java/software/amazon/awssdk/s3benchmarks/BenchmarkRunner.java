@@ -146,6 +146,9 @@ public final class BenchmarkRunner {
 
         String prefix = cmd.getOptionValue(PREFIX);
 
+        Long contentLength = cmd.getOptionValue(CONTENT_LENGTH) == null ? null :
+                             Long.parseLong(cmd.getOptionValue(CONTENT_LENGTH));
+
         return TransferManagerBenchmarkConfig.builder()
                                              .key(key)
                                              .bucket(bucket)
@@ -157,6 +160,7 @@ public final class BenchmarkRunner {
                                              .iteration(iteration)
                                              .operation(operation)
                                              .prefix(prefix)
+                                             .contentLength(contentLength)
                                              .build();
     }
 
