@@ -74,12 +74,13 @@ public class CrtS3ClientUploadBenchmark extends BaseCrtClientBenchmark {
             }
         };
 
+        log.info(() -> String.format("totalContentLength: %d", totalContentLength));
         log.info(() -> String.format("partSizeInBytes: %d", partSizeInBytes));
         ByteBuffer payload = ByteBuffer.wrap(createTestPayload(partSizeInBytes.intValue()));
         HttpRequestBodyStream payloadStream = new HttpRequestBodyStream() {
             @Override
             public boolean sendRequestBody(ByteBuffer outBuffer) {
-                ByteBufferUtils.transferData(payload, outBuffer);
+                ByteBufferUtils.transferData(payload.duplicate(), outBuffer);
                 return payload.remaining() == 0;
             }
 
@@ -97,7 +98,7 @@ public class CrtS3ClientUploadBenchmark extends BaseCrtClientBenchmark {
         String endpoint = bucket + ".s3." + region + ".amazonaws.com";
         log.info(() -> "endpoint: " + endpoint);
         HttpHeader[] headers = { new HttpHeader("Host", endpoint),
-                                 new HttpHeader("Content-Length", Integer.toString(payload.capacity())), };
+                                 new HttpHeader("Content-Length", Long.toString(totalContentLength)) };
         HttpRequest httpRequest = new HttpRequest("PUT", key, headers, payloadStream);
 
         S3MetaRequestOptions metaRequestOptions = new S3MetaRequestOptions()
