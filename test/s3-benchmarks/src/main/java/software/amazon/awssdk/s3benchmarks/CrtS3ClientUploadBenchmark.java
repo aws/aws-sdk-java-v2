@@ -97,6 +97,7 @@ public class CrtS3ClientUploadBenchmark extends BaseCrtClientBenchmark {
 
         String endpoint = bucket + ".s3." + region + ".amazonaws.com";
         log.info(() -> "endpoint: " + endpoint);
+        log.info(() -> "key:" + key);
         HttpHeader[] headers = { new HttpHeader("Host", endpoint),
                                  new HttpHeader("Content-Length", Long.toString(totalContentLength)) };
         HttpRequest httpRequest = new HttpRequest("PUT", key, headers, payloadStream);
