@@ -139,6 +139,7 @@ public abstract class BaseCrtClientBenchmark implements  TransferManagerBenchmar
         @Override
         public void onFinished(S3FinishedResponseContext context) {
             if (context.getErrorCode() != 0) {
+                logger.error(() -> "Received error. Error payload:" + new String(context.getErrorPayload()));
                 resultFuture.completeExceptionally(
                     new CrtS3RuntimeException(context.getErrorCode(), context.getResponseStatus(),
                                               context.getErrorPayload()));
