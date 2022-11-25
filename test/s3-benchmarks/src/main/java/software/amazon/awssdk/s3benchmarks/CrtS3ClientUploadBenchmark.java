@@ -56,13 +56,13 @@ public class CrtS3ClientUploadBenchmark extends BaseCrtClientBenchmark {
         String endpoint = bucket + ".s3." + region + ".amazonaws.com";
 
         HttpRequestBodyStream payloadStream = new HttpRequestBodyStream() {
-            int totalSizeUploaded = 0;
+            long bytesRemaining = totalContentLength;
             @Override
             public boolean sendRequestBody(ByteBuffer outBuffer) {
                 log.info(() -> "Uploading bytes:" + partSizeInBytes);
-                ByteBufferUtils.transferData(partBuffer, outBuffer);
-                totalSizeUploaded += partSizeInBytes;
-                return totalSizeUploaded >= totalContentLength;
+                ByteBufferUtils.transferData(partBuffer.duplicate(), outBuffer);
+                bytesRemaining -= partSizeInBytes;
+                return bytesRemaining <= 0;
             }
 
             @Override
@@ -86,7 +86,6 @@ public class CrtS3ClientUploadBenchmark extends BaseCrtClientBenchmark {
             .withResponseHandler(responseHandler);
 
         long start = System.currentTimeMillis();
-        log.info(metaRequestOptions.getHttpRequest()::toString);
         try (S3MetaRequest metaRequest = crtS3Client.makeMetaRequest(metaRequestOptions)) {
             resultFuture.get(10, TimeUnit.MINUTES);
         } catch (ExecutionException | TimeoutException | InterruptedException e) {
