@@ -56,13 +56,11 @@ public class CrtS3ClientUploadBenchmark extends BaseCrtClientBenchmark {
         String endpoint = bucket + ".s3." + region + ".amazonaws.com";
 
         HttpRequestBodyStream payloadStream = new HttpRequestBodyStream() {
-            long bytesRemaining = totalContentLength;
             @Override
             public boolean sendRequestBody(ByteBuffer outBuffer) {
                 log.info(() -> "Uploading bytes:" + partSizeInBytes);
                 ByteBufferUtils.transferData(partBuffer.duplicate(), outBuffer);
-                bytesRemaining -= partSizeInBytes;
-                return bytesRemaining <= 0;
+                return true;
             }
 
             @Override

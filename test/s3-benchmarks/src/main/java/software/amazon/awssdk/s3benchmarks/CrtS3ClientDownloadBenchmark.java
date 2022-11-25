@@ -33,7 +33,7 @@ import software.amazon.awssdk.utils.Validate;
 
 public class CrtS3ClientDownloadBenchmark extends BaseCrtClientBenchmark {
 
-    private long contentLength;
+    private final long contentLength;
     private final software.amazon.awssdk.services.s3.S3Client s3Sync;
 
     public CrtS3ClientDownloadBenchmark(TransferManagerBenchmarkConfig config) {
