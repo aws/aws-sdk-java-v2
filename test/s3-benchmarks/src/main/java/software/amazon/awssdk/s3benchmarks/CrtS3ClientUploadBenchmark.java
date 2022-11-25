@@ -60,18 +60,18 @@ public class CrtS3ClientUploadBenchmark extends BaseCrtClientBenchmark {
             @Override
             public boolean sendRequestBody(ByteBuffer outBuffer) {
                 log.info(() -> "Uploading bytes:" + partSizeInBytes);
-                ByteBufferUtils.transferData(partBuffer.duplicate(), outBuffer);
-                return true;
+                ByteBufferUtils.transferData(partBuffer, outBuffer);
+                return partBuffer.remaining() == 0;
             }
 
             @Override
             public boolean resetPosition() {
-                return false;
+                return true;
             }
 
             @Override
             public long getLength() {
-                return totalContentLength;
+                return partBuffer.capacity();
             }
         };
 
