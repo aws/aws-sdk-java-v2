@@ -25,7 +25,7 @@ public final class TransferManagerBenchmarkConfig {
     private final Long partSizeInMb;
     private final ChecksumAlgorithm checksumAlgorithm;
     private final Integer iteration;
-    private final Long contentLength;
+    private final Long contentLengthInMb;
 
     private final Long readBufferSizeInMb;
     private final BenchmarkRunner.TransferManagerOperation operation;
@@ -42,7 +42,7 @@ public final class TransferManagerBenchmarkConfig {
         this.readBufferSizeInMb = builder.readBufferSizeInMb;
         this.operation = builder.operation;
         this.prefix = builder.prefix;
-        this.contentLength = builder.contentLength;
+        this.contentLengthInMb = builder.contentLengthInMb;
     }
 
     public String filePath() {
@@ -85,8 +85,8 @@ public final class TransferManagerBenchmarkConfig {
         return prefix;
     }
 
-    public Long contentLength() {
-        return contentLength;
+    public Long contentLengthInMb() {
+        return contentLengthInMb;
     }
 
     public static Builder builder() {
@@ -105,7 +105,7 @@ public final class TransferManagerBenchmarkConfig {
                ", iteration: " + iteration +
                ", readBufferSizeInMb: " + readBufferSizeInMb +
                ", operation: " + operation +
-               ", contentLength: " + contentLength +
+               ", contentLength: " + contentLengthInMb +
                '}';
     }
 
@@ -117,7 +117,7 @@ public final class TransferManagerBenchmarkConfig {
         private String key;
         private Double targetThroughput;
         private Long partSizeInMb;
-        private Long contentLength;
+        private Long contentLengthInMb;
 
         private Integer iteration;
         private BenchmarkRunner.TransferManagerOperation operation;
@@ -173,8 +173,8 @@ public final class TransferManagerBenchmarkConfig {
             return this;
         }
 
-        public Builder contentLength(Long contentLength) {
-            this.contentLength = contentLength;
+        public Builder contentLengthInMb(Long contentLengthInMb) {
+            this.contentLengthInMb = contentLengthInMb;
             return this;
         }
 

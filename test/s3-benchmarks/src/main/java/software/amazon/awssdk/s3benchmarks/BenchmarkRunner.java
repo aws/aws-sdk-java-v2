@@ -35,7 +35,7 @@ public final class BenchmarkRunner {
     private static final String OPERATION = "operation";
     private static final String CHECKSUM_ALGORITHM = "checksumAlgo";
     private static final String ITERATION = "iteration";
-    private static final String CONTENT_LENGTH = "contentLength";
+    private static final String CONTENT_LENGTH = "contentLengthInMB";
 
     private static final String READ_BUFFER_IN_MB = "readBufferInMB";
 
@@ -146,8 +146,8 @@ public final class BenchmarkRunner {
 
         String prefix = cmd.getOptionValue(PREFIX);
 
-        Long contentLength = cmd.getOptionValue(CONTENT_LENGTH) == null ? null :
-                             Long.parseLong(cmd.getOptionValue(CONTENT_LENGTH));
+        Long contentLengthInMb = cmd.getOptionValue(CONTENT_LENGTH) == null ? null :
+                                 Long.parseLong(cmd.getOptionValue(CONTENT_LENGTH));
 
         return TransferManagerBenchmarkConfig.builder()
                                              .key(key)
@@ -160,7 +160,7 @@ public final class BenchmarkRunner {
                                              .iteration(iteration)
                                              .operation(operation)
                                              .prefix(prefix)
-                                             .contentLength(contentLength)
+                                             .contentLengthInMb(contentLengthInMb)
                                              .build();
     }
 

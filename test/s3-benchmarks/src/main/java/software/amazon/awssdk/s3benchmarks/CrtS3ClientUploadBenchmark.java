@@ -16,6 +16,7 @@
 package software.amazon.awssdk.s3benchmarks;
 
 import static software.amazon.awssdk.s3benchmarks.BenchmarkUtils.printOutResult;
+import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
 
 import java.io.IOException;
 import java.nio.BufferOverflowException;
@@ -45,7 +46,7 @@ public class CrtS3ClientUploadBenchmark extends BaseCrtClientBenchmark {
     public CrtS3ClientUploadBenchmark(TransferManagerBenchmarkConfig config) {
         super(config);
         this.partBuffer = ByteBuffer.wrap(createTestPayload(partSizeInBytes.intValue()));
-        this.totalContentLength = Validate.notNull(config.contentLength(),
+        this.totalContentLength = Validate.notNull(config.contentLengthInMb() * MB,
                                                    "contentLength is required for Crt Upload Benchmark");
     }
 
