@@ -25,22 +25,29 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.model.CompletedCopy;
 import software.amazon.awssdk.transfer.s3.model.CompletedDirectoryDownload;
 import software.amazon.awssdk.transfer.s3.model.CompletedDirectoryUpload;
 import software.amazon.awssdk.transfer.s3.model.Copy;
+import software.amazon.awssdk.transfer.s3.model.CopyRequest;
 import software.amazon.awssdk.transfer.s3.model.DirectoryDownload;
 import software.amazon.awssdk.transfer.s3.model.DirectoryUpload;
 import software.amazon.awssdk.transfer.s3.model.Download;
 import software.amazon.awssdk.transfer.s3.model.DownloadDirectoryRequest;
+import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
+import software.amazon.awssdk.transfer.s3.model.DownloadRequest;
 import software.amazon.awssdk.transfer.s3.model.FileDownload;
 import software.amazon.awssdk.transfer.s3.model.FileUpload;
 import software.amazon.awssdk.transfer.s3.model.ResumableFileDownload;
 import software.amazon.awssdk.transfer.s3.model.ResumableFileUpload;
 import software.amazon.awssdk.transfer.s3.model.Upload;
 import software.amazon.awssdk.transfer.s3.model.UploadDirectoryRequest;
+import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
+import software.amazon.awssdk.transfer.s3.model.UploadRequest;
+import software.amazon.awssdk.transfer.s3.progress.LoggingTransferListener;
 
 /**
  * Contains code snippets that will be used in the Javadocs of {@link S3TransferManager}
@@ -73,9 +80,13 @@ public class S3TransferManagerSamples {
         // @start region=downloadFile
         S3TransferManager transferManager = S3TransferManager.create();
 
-        FileDownload download =
-            transferManager.downloadFile(d -> d.getObjectRequest(g -> g.bucket("bucket").key("key")).destination(Paths.get(
-                "myFile.txt")));
+        DownloadFileRequest downloadFileRequest = DownloadFileRequest.builder()
+                                                                     .getObjectRequest(req -> req.bucket("bucket").key("key"))
+                                                                     .destination(Paths.get("myFile.txt"))
+                                                                     .addTransferListener(LoggingTransferListener.create())
+                                                                     .build();
+
+        FileDownload download = transferManager.downloadFile(downloadFileRequest);
 
         // Wait for the transfer to complete
         download.completionFuture().join();
@@ -86,11 +97,15 @@ public class S3TransferManagerSamples {
         // @start region=download
         S3TransferManager transferManager = S3TransferManager.create();
 
+        DownloadRequest<ResponseBytes<GetObjectResponse>> downloadRequest =
+            DownloadRequest.builder()
+                           .getObjectRequest(req -> req.bucket("bucket").key("key"))
+                           .responseTransformer(AsyncResponseTransformer.toBytes())
+                           .build();
+
         // Initiate the transfer
         Download<ResponseBytes<GetObjectResponse>> download =
-            transferManager.download(d -> d.getObjectRequest(g -> g.bucket("bucket")
-                                                                   .key("key"))
-                                           .responseTransformer(AsyncResponseTransformer.toBytes()));
+            transferManager.download(downloadRequest);
         // Wait for the transfer to complete
         download.completionFuture().join();
         // @end region=download
@@ -100,10 +115,14 @@ public class S3TransferManagerSamples {
         // @start region=resumeDownloadFile
         S3TransferManager transferManager = S3TransferManager.create();
 
+        DownloadFileRequest downloadFileRequest = DownloadFileRequest.builder()
+                                                                     .getObjectRequest(req -> req.bucket("bucket").key("key"))
+                                                                     .destination(Paths.get("myFile.txt"))
+                                                                     .build();
+
         // Initiate the transfer
         FileDownload download =
-            transferManager.downloadFile(d -> d.getObjectRequest(g -> g.bucket("bucket").key("key")).destination(Paths.get(
-                "myFile.txt")));
+            transferManager.downloadFile(downloadFileRequest);
 
         // Pause the download
         ResumableFileDownload resumableFileDownload = download.pause(); // @link substring="pause" target="software.amazon.awssdk.transfer.s3.model.FileDownload#pause()"
@@ -127,10 +146,14 @@ public class S3TransferManagerSamples {
         // @start region=resumeUploadFile
         S3TransferManager transferManager = S3TransferManager.create();
 
+        UploadFileRequest uploadFileRequest = UploadFileRequest.builder()
+                                                               .putObjectRequest(req -> req.bucket("bucket").key("key"))
+                                                               .source(Paths.get("myFile.txt"))
+                                                               .build();
+
         // Initiate the transfer
         FileUpload upload =
-            transferManager.uploadFile(d -> d.putObjectRequest(g -> g.bucket("bucket").key("key")).source(Paths.get("myFile"
-                                                                                                                    + ".txt")));
+            transferManager.uploadFile(uploadFileRequest);
         // Pause the upload
         ResumableFileUpload resumableFileUpload = upload.pause();
 
@@ -153,9 +176,13 @@ public class S3TransferManagerSamples {
         // @start region=uploadFile
         S3TransferManager transferManager = S3TransferManager.create();
 
-        FileUpload upload = transferManager.uploadFile(u -> u.source(Paths.get("myFile.txt"))
-                                                             .putObjectRequest(p -> p.bucket("bucket").key(
-                                                                 "key")));
+        UploadFileRequest uploadFileRequest = UploadFileRequest.builder()
+                                                               .putObjectRequest(req -> req.bucket("bucket").key("key"))
+                                                               .addTransferListener(LoggingTransferListener.create())
+                                                               .source(Paths.get("myFile.txt"))
+                                                               .build();
+
+        FileUpload upload = transferManager.uploadFile(uploadFileRequest);
         upload.completionFuture().join();
         // @end region=uploadFile
     }
@@ -164,8 +191,12 @@ public class S3TransferManagerSamples {
         // @start region=upload
         S3TransferManager transferManager = S3TransferManager.create();
 
-        Upload upload = transferManager.upload(u -> u.requestBody(AsyncRequestBody.fromString("Hello world"))
-                                                     .putObjectRequest(p -> p.bucket("bucket").key("key")));
+        UploadRequest uploadRequest = UploadRequest.builder()
+                                                   .requestBody(AsyncRequestBody.fromString("Hello world"))
+                                                   .putObjectRequest(req -> req.bucket("bucket").key("key"))
+                                                   .build();
+
+        Upload upload = transferManager.upload(uploadRequest);
         // Wait for the transfer to complete
         upload.completionFuture().join();
         // @end region=upload
@@ -209,11 +240,17 @@ public class S3TransferManagerSamples {
     public void copy() {
         // @start region=copy
         S3TransferManager transferManager = S3TransferManager.create();
-        Copy copy =
-            transferManager.copy(c -> c.copyObjectRequest(r -> r.sourceBucket("source_bucket")
-                                                                .sourceKey("source_key")
-                                                                .destinationBucket("dest_bucket")
-                                                                .destinationKey("dest_key")));
+        CopyObjectRequest copyObjectRequest = CopyObjectRequest.builder()
+                                                               .sourceBucket("source_bucket")
+                                                               .sourceKey("source_key")
+                                                               .destinationBucket("dest_bucket")
+                                                               .destinationKey("dest_key")
+                                                               .build();
+        CopyRequest copyRequest = CopyRequest.builder()
+                                             .copyObjectRequest(copyObjectRequest)
+                                             .build();
+
+        Copy copy = transferManager.copy(copyRequest);
         // Wait for the transfer to complete
         CompletedCopy completedCopy = copy.completionFuture().join();
         // @end region=copy
