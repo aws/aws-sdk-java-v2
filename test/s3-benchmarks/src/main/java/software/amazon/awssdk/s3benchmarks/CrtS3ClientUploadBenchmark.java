@@ -18,6 +18,7 @@ package software.amazon.awssdk.s3benchmarks;
 import static software.amazon.awssdk.s3benchmarks.BenchmarkUtils.printOutResult;
 
 import java.io.IOException;
+import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -43,7 +44,7 @@ public class CrtS3ClientUploadBenchmark extends BaseCrtClientBenchmark {
 
     public CrtS3ClientUploadBenchmark(TransferManagerBenchmarkConfig config) {
         super(config);
-        this.partBuffer = ByteBuffer.allocate(this.partSizeInBytes.intValue());
+        this.partBuffer = ByteBuffer.wrap(createTestPayload(partSizeInBytes.intValue()));
         this.totalContentLength = Validate.notNull(config.contentLength(),
                                                    "contentLength is required for Crt Upload Benchmark");
     }
@@ -97,4 +98,25 @@ public class CrtS3ClientUploadBenchmark extends BaseCrtClientBenchmark {
     protected void onResult(List<Double> metrics) throws IOException {
         printOutResult(metrics, "Uploaded to File", totalContentLength);
     }
+
+    private static byte[] createTestPayload(int size) {
+        String msg = "This is an S3 Java CRT Client Test";
+        ByteBuffer payload = ByteBuffer.allocate(size);
+        while (true) {
+            try {
+                payload.put(msg.getBytes());
+            } catch (BufferOverflowException ex1) {
+                while (true) {
+                    try {
+                        payload.put("#".getBytes());
+                    } catch (BufferOverflowException ex2) {
+                        break;
+                    }
+                }
+                break;
+            }
+        }
+        return payload.array();
+    }
+
 }
