@@ -74,6 +74,7 @@ public class CrtS3ClientUploadBenchmark extends BaseCrtClientBenchmark {
             }
         };
 
+        log.info(() -> String.format("partSizeInBytes: %d", partSizeInBytes));
         ByteBuffer payload = ByteBuffer.wrap(createTestPayload(partSizeInBytes.intValue()));
         HttpRequestBodyStream payloadStream = new HttpRequestBodyStream() {
             @Override
