@@ -20,6 +20,7 @@ import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -87,6 +88,7 @@ public abstract class BaseCrtClientBenchmark implements  TransferManagerBenchmar
     }
 
     protected abstract void sendOneRequest(List<Double> latencies) throws IOException;
+
     protected abstract void onResult(List<Double> metrics) throws IOException;
 
     @Override
@@ -139,7 +141,8 @@ public abstract class BaseCrtClientBenchmark implements  TransferManagerBenchmar
         @Override
         public void onFinished(S3FinishedResponseContext context) {
             if (context.getErrorCode() != 0) {
-                logger.error(() -> "Received error. Error payload:" + new String(context.getErrorPayload()));
+                logger.error(() -> "Received error. Error payload:" +
+                                   new String(context.getErrorPayload(), StandardCharsets.UTF_8));
                 resultFuture.completeExceptionally(
                     new CrtS3RuntimeException(context.getErrorCode(), context.getResponseStatus(),
                                               context.getErrorPayload()));
