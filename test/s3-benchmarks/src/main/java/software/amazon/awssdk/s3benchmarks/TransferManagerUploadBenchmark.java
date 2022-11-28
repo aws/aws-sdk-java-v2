@@ -40,8 +40,9 @@ public class TransferManagerUploadBenchmark extends BaseTransferManagerBenchmark
     public TransferManagerUploadBenchmark(TransferManagerBenchmarkConfig config) {
         super(config);
         Validate.notNull(config.key(), "Key must not be null");
-        Validate.mutuallyExclusive(config.filePath(), config.contentLengthInMb(),
-                                   "Only one of --file or --contentLengthInMB option must be specified, but both were.");
+        Validate.mutuallyExclusive("Only one of --file or --contentLengthInMB option must be specified, but both were.",
+                                   config.filePath(), config.contentLengthInMb());
+
         if (config.filePath() == null && config.contentLengthInMb() == null) {
             throw new IllegalArgumentException("Either --file or --contentLengthInMB must be specified, but none were.");
         }
