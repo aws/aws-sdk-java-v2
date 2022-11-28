@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS IoT",
+    "contributor": "",
+    "description": "Job scheduling enables the scheduled rollout of a Job with start and end times and a customizable end behavior when end time is reached. This is available for continuous and snapshot jobs. Added support for MQTT5 properties to AWS IoT TopicRule Republish Action."
+}
