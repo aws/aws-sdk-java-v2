@@ -32,7 +32,7 @@ import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * Request object to upload a local directory to S3 using the Transfer Manager.
+ * Requests object to upload a local directory to S3 using the Transfer Manager.
  *
  * @see S3TransferManager#uploadDirectory(UploadDirectoryRequest)
  */

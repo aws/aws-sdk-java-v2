@@ -32,7 +32,7 @@ import software.amazon.awssdk.transfer.s3.model.DownloadDirectoryRequest;
 public interface DownloadFilter extends Predicate<S3Object> {
 
     /**
-     * Evaluate condition the remote {@link S3Object} should be downloaded.
+     * Evaluates condition the remote {@link S3Object} should be downloaded.
      *
      * @param s3Object Remote {@link S3Object}
      * @return true if the object should be downloaded, false if the object should not be downloaded

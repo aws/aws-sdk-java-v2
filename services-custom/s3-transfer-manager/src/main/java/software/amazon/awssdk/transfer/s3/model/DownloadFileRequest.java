@@ -34,7 +34,7 @@ import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * Download an object identified by the bucket and key from S3 to a local file. For non-file-based downloads, you may use {@link
+ * Downloads an object identified by the bucket and key from S3 to a local file. For non-file-based downloads, you may use {@link
  * DownloadRequest} instead.
  *
  * @see S3TransferManager#downloadFile(DownloadFileRequest)
@@ -55,7 +55,7 @@ public final class DownloadFileRequest
     }
 
     /**
-     * Create a builder that can be used to create a {@link DownloadFileRequest}.
+     * Creates a builder that can be used to create a {@link DownloadFileRequest}.
      *
      * @see S3TransferManager#downloadFile(DownloadFileRequest)
      */
@@ -203,7 +203,7 @@ public final class DownloadFileRequest
         Builder transferListeners(Collection<TransferListener> transferListeners);
 
         /**
-         * Add a {@link TransferListener} that will be notified as part of this request.
+         * Adds a {@link TransferListener} that will be notified as part of this request.
          *
          * @param transferListener the transferListener to add
          * @return Returns a reference to this object so that method calls can be chained together.

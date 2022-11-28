@@ -105,7 +105,7 @@ public final class TransferRequestOverrideConfiguration
         Builder transferListeners(Collection<TransferListener> transferListeners);
 
         /**
-         * Add a {@link TransferListener} that will be notified as part of this request.
+         * Adds a {@link TransferListener} that will be notified as part of this request.
          *
          * @param transferListener the transferListener to add
          * @return Returns a reference to this object so that method calls can be chained together.

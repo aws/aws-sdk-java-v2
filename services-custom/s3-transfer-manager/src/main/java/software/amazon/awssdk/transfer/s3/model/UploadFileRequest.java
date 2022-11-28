@@ -36,7 +36,7 @@ import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * Upload a local file to an object in S3. For non-file-based uploads, you may use {@link UploadRequest} instead.
+ * Uploads a local file to an object in S3. For non-file-based uploads, you may use {@link UploadRequest} instead.
  *
  * @see S3TransferManager#uploadFile(UploadFileRequest)
  */
@@ -81,7 +81,7 @@ public final class UploadFileRequest
     }
 
     /**
-     * Create a builder that can be used to create a {@link UploadFileRequest}.
+     * Creates a builder that can be used to create a {@link UploadFileRequest}.
      *
      * @see S3TransferManager#uploadFile(UploadFileRequest)
      */

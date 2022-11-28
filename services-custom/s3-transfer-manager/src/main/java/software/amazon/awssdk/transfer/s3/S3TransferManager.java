@@ -81,11 +81,13 @@ import software.amazon.awssdk.utils.Validate;
 public interface S3TransferManager extends SdkAutoCloseable {
 
     /**
-     * Download an object identified by the bucket and key from S3 to a local file. For non-file-based downloads, you may use
+     * Downloads an object identified by the bucket and key from S3 to a local file. For non-file-based downloads, you may use
      * {@link #download(DownloadRequest)} instead.
      * <p>
      *  The SDK will create a new file if the provided one doesn't exist, otherwise replace the existing file. In the
      *  event of an error, the SDK will NOT attempt to delete the file, leaving it as-is.
+     * <p>
+     * Default permissions for the file to be downloaded depends on the file system and platform. Java applies umask settings for newly created files. You can configure the permission on the file using the Java API.
      * <p>
      * <b>Usage Example:</b>
      * {@snippet class=software.amazon.awssdk.transfer.s3.samples.S3TransferManagerSamples region=downloadFile }
@@ -138,8 +140,10 @@ public interface S3TransferManager extends SdkAutoCloseable {
     }
 
     /**
-     * Download an object identified by the bucket and key from S3 through the given {@link AsyncResponseTransformer}. For 
+     * Downloads an object identified by the bucket and key from S3 through the given {@link AsyncResponseTransformer}. For
      * downloading to a file, you may use {@link #downloadFile(DownloadFileRequest)} instead.
+     * <p>
+     * Default permissions for the file to be downloaded depends on the file system and platform. Java applies umask settings for newly created files. You can configure the permission on the file using the Java API.
      * <p>
      * <b>Usage Example (this example buffers the entire object in memory and is not suitable for large objects):</b>
      * {@snippet class=software.amazon.awssdk.transfer.s3.samples.S3TransferManagerSamples region=download }
@@ -168,7 +172,9 @@ public interface S3TransferManager extends SdkAutoCloseable {
     }
 
     /**
-     * Upload a local file to an object in S3. For non-file-based uploads, you may use {@link #upload(UploadRequest)} instead.
+     * Uploads a local file to an object in S3. For non-file-based uploads, you may use {@link #upload(UploadRequest)} instead.
+     * <p>
+     * When uploading an object that already exists, the object metadata will be overridden.
      * <p>
      * <b>Usage Example:</b>
      * {@snippet class=software.amazon.awssdk.transfer.s3.samples.S3TransferManagerSamples region=uploadFile }
@@ -192,9 +198,10 @@ public interface S3TransferManager extends SdkAutoCloseable {
 
     /**
      * Resumes uploadFile operation. This upload operation uses the same configuration as the original upload. Any data
-     * already uploaded will be skipped, and only the remaining data is uploaded to Amazon S3. If it is determined that the file
+     * already uploaded will be skipped, and only the remaining data is uploaded to Amazon S3.The SDK always uses the partSize from the ResumableFileUpload If it is determined that the file
      * has be modified since the last pause, the SDK will upload the object from the beginning
      * as if it is a new {@link UploadFileRequest}.
+     * <p>
      *
      * <p>
      * <b>Usage Example:</b>
@@ -220,8 +227,10 @@ public interface S3TransferManager extends SdkAutoCloseable {
     }
 
     /**
-     * Upload the given {@link AsyncRequestBody} to an object in S3. For file-based uploads, you may use
+     * Uploads the given {@link AsyncRequestBody} to an object in S3. For file-based uploads, you may use
      * {@link #uploadFile(UploadFileRequest)} instead.
+     * <p>
+     * When uploading an object that already exists, the object metadata will be overridden.
      * <p>
      * <b>Usage Example:</b>
      * {@snippet class=software.amazon.awssdk.transfer.s3.samples.S3TransferManagerSamples region=upload }
@@ -248,7 +257,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
     }
 
     /**
-     * Upload all files under the given directory to the provided S3 bucket. The key name transformation depends on the optional
+     * Uploads all files under the given directory to the provided S3 bucket. The key name transformation depends on the optional
      * prefix and delimiter provided in the {@link UploadDirectoryRequest}. By default, all subdirectories will be uploaded
      * recursively, and symbolic links are not followed automatically.
      * This behavior can be configured in at request level via
@@ -287,7 +296,8 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * requests, i.e., there might be failed uploads in the successfully completed response. As a result,
      * you should check for errors in the response via {@link CompletedDirectoryUpload#failedTransfers()}
      * even when the future completes successfully.
-     *
+     * <p>
+     * When uploading an object that already exists, the object metadata will be overridden.
      * <p>
      * The current user must have read access to all directories and files.
      *
@@ -314,7 +324,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
     }
 
     /**
-     * Download all objects under a specific prefix and bucket to the provided directory. By default, all objects in the entire
+     * Downloads all objects under a specific prefix and bucket to the provided directory. By default, all objects in the entire
      * bucket will be downloaded.
      *
      * <p>
@@ -349,7 +359,8 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * requests, i.e., there might be failed downloads in a successfully completed response. As a result, you should check for
      * errors in the response via {@link CompletedDirectoryDownload#failedTransfers()} even when the future completes
      * successfully.
-     *
+     * <p>
+     * Default permissions for the file to be downloaded depends on the file system and platform. Java applies umask settings for newly created files. You can configure the permission on the file using the Java API.
      * <p>
      * The SDK will create the destination directory if it does not already exist. If a specific file
      * already exists, the existing content will be replaced with the corresponding S3 object content.
@@ -416,7 +427,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
     }
 
     /**
-     * Create an {@code S3TransferManager} using the default values.
+     * Creates an {@code S3TransferManager} using the default values.
      */
     static S3TransferManager create() {
         return builder().build();

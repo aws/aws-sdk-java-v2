@@ -28,7 +28,7 @@ import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * An implementation of {@link Subscriber} that execute the provided function for every event and limits the number of concurrent
+ * An implementation of {@link Subscriber} that executes the provided function for every event and limits the number of concurrent
  * function execution to the given {@code maxConcurrentRequests}
  *
  * @param <T> Type of data requested

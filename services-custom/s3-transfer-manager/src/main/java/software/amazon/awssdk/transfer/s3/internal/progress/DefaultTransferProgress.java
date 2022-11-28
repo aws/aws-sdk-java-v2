@@ -44,8 +44,8 @@ public final class DefaultTransferProgress implements TransferProgress {
     }
 
     /**
-     * Atomically convert the current snapshot reference to its {@link Builder}, perform updates using the provided {@link
-     * Consumer}, and save the result as the latest snapshot.
+     * Atomically converts the current snapshot reference to its {@link Builder}, performs updates using the provided {@link
+     * Consumer}, and saves the result as the latest snapshot.
      */
     public TransferProgressSnapshot updateAndGet(Consumer<DefaultTransferProgressSnapshot.Builder> updater) {
         return this.snapshot.updateAndGet(s -> ((DefaultTransferProgressSnapshot) s).copy(updater));

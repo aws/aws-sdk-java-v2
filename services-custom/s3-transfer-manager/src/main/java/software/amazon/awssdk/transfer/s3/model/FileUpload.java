@@ -27,7 +27,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 public interface FileUpload extends ObjectTransfer {
 
     /**
-     * Pause the current upload operation and return the information that can
+     * Pauses the current upload operation and returns the information that can
      * be used to resume the upload at a later time.
      * <p>
      * The information object is serializable for persistent storage until it should be resumed.

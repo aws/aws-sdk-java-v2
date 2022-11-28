@@ -32,7 +32,7 @@ import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * Request object to download the objects in the provided S3 bucket to a local directory using the Transfer Manager.
+ * Requests object to download the objects in the provided S3 bucket to a local directory using the Transfer Manager.
  *
  * @see S3TransferManager#downloadDirectory(DownloadDirectoryRequest)
  */

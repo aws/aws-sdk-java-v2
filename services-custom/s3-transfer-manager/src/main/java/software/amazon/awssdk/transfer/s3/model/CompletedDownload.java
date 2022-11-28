@@ -46,7 +46,7 @@ public final class CompletedDownload<ResultT>
 
 
     /**
-     * Create a builder that can be used to create a {@link CompletedDownload}.
+     * Creates a builder that can be used to create a {@link CompletedDownload}.
      *
      * @see UntypedBuilder
      */

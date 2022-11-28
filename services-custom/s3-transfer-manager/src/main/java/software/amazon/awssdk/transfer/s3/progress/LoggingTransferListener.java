@@ -41,7 +41,7 @@ public final class LoggingTransferListener implements TransferListener {
     }
 
     /**
-     * Create an instance of {@link LoggingTransferListener} with a custom {@code maxTicks} value.
+     * Creates an instance of {@link LoggingTransferListener} with a custom {@code maxTicks} value.
      *
      * @param maxTicks the number of ticks in the logged progress bar
      */
@@ -50,7 +50,7 @@ public final class LoggingTransferListener implements TransferListener {
     }
 
     /**
-     * Create an instance of {@link LoggingTransferListener} with the default configuration.
+     * Creates an instance of {@link LoggingTransferListener} with the default configuration.
      */
     public static LoggingTransferListener create() {
         return new LoggingTransferListener(DEFAULT_MAX_TICKS);

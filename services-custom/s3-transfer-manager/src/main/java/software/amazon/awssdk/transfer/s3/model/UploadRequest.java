@@ -35,7 +35,7 @@ import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * Upload the given {@link AsyncRequestBody} to an object in S3. For file-based uploads, you may use {@link UploadFileRequest}
+ * Uploads the given {@link AsyncRequestBody} to an object in S3. For file-based uploads, you may use {@link UploadFileRequest}
  * instead.
  *
  * @see S3TransferManager#upload(UploadRequest)
@@ -81,7 +81,7 @@ public final class UploadRequest
     }
 
     /**
-     * Create a builder that can be used to create a {@link UploadRequest}.
+     * Creates a builder that can be used to create a {@link UploadRequest}.
      *
      * @see S3TransferManager#upload(UploadRequest)
      */
@@ -153,7 +153,7 @@ public final class UploadRequest
         Builder requestBody(AsyncRequestBody requestBody);
 
         /**
-         * Configure the {@link PutObjectRequest} that should be used for the upload
+         * Configures the {@link PutObjectRequest} that should be used for the upload
          *
          * @param putObjectRequest the putObjectRequest
          * @return Returns a reference to this object so that method calls can be chained together.
@@ -162,7 +162,7 @@ public final class UploadRequest
         Builder putObjectRequest(PutObjectRequest putObjectRequest);
 
         /**
-         * Configure the {@link PutObjectRequest} that should be used for the upload
+         * Configures the {@link PutObjectRequest} that should be used for the upload
          *
          * <p>
          * This is a convenience method that creates an instance of the {@link PutObjectRequest} builder avoiding the

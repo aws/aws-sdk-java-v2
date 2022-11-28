@@ -75,7 +75,7 @@ public final class CompletedFileDownload implements CompletedObjectTransfer {
 
     public interface Builder {
         /**
-         * Specify the {@link GetObjectResponse} from {@link S3AsyncClient#getObject}
+         * Specifies the {@link GetObjectResponse} from {@link S3AsyncClient#getObject}
          *
          * @param response the response
          * @return This builder for method chaining.

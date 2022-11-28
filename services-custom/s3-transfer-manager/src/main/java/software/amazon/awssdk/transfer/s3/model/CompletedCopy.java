@@ -81,7 +81,7 @@ public final class CompletedCopy implements CompletedObjectTransfer {
 
     public interface Builder {
         /**
-         * Specify the {@link CopyObjectResponse} from {@link S3AsyncClient#putObject}
+         * Specifies the {@link CopyObjectResponse} from {@link S3AsyncClient#putObject}
          *
          * @param response the response
          * @return This builder for method chaining.
