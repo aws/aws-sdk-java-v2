@@ -105,7 +105,7 @@ public final class TransferManagerBenchmarkConfig {
                ", iteration: " + iteration +
                ", readBufferSizeInMb: " + readBufferSizeInMb +
                ", operation: " + operation +
-               ", contentLength: " + contentLengthInMb +
+               ", contentLengthInMb: " + contentLengthInMb +
                '}';
     }
 
