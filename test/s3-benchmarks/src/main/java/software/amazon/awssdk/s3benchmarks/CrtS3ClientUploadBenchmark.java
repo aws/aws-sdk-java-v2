@@ -35,7 +35,6 @@ import software.amazon.awssdk.crt.s3.S3MetaRequestResponseHandler;
 import software.amazon.awssdk.crt.utils.ByteBufferUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
-import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 public class CrtS3ClientUploadBenchmark extends BaseCrtClientBenchmark {
 
@@ -97,7 +96,7 @@ public class CrtS3ClientUploadBenchmark extends BaseCrtClientBenchmark {
         HttpHeader[] headers = { new HttpHeader("Host", endpoint),
                                  new HttpHeader("Content-Length", Long.toString(totalContentLength)) };
 
-        String path = SdkHttpUtils.urlEncode(key.startsWith("/") ? key : "/" + key);
+        String path = key.startsWith("/") ? key : "/" + key;
         log.info(() -> "!!!!!!!!!! PATH: " + path + " !!!!!!!!!!!!!!!!!");
         HttpRequest httpRequest = new HttpRequest("PUT", path, headers, payloadStream);
 
