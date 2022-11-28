@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "CloudWatch Observability Access Manager",
+    "contributor": "",
+    "description": "Amazon CloudWatch Observability Access Manager is a new service that allows configuration of the CloudWatch cross-account observability feature."
+}
