@@ -98,6 +98,7 @@ public class CrtS3ClientUploadBenchmark extends BaseCrtClientBenchmark {
                                  new HttpHeader("Content-Length", Long.toString(totalContentLength)) };
 
         String path = SdkHttpUtils.urlEncode(key.startsWith("/") ? key : "/" + key);
+        log.info(() -> "!!!!!!!!!! PATH: " + path + " !!!!!!!!!!!!!!!!!");
         HttpRequest httpRequest = new HttpRequest("PUT", path, headers, payloadStream);
 
         S3MetaRequestOptions metaRequestOptions = new S3MetaRequestOptions()
