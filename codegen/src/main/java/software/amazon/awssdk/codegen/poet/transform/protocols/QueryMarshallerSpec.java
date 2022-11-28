@@ -21,6 +21,7 @@ import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -153,10 +154,12 @@ public class QueryMarshallerSpec implements MarshallerProtocolSpec {
     }
 
     private List<String> getPackageEnabledTraitValidations(String fullClientPackageName) {
-        return model.getCustomizationConfig().getEnabledTraitValidations().entrySet().stream()
-                    .filter(entry -> entry.getValue().contains(fullClientPackageName))
-                    .map(Map.Entry::getKey)
-                    .collect(Collectors.toList());
+        return Optional.ofNullable(model.getCustomizationConfig().getEnabledTraitValidations())
+                       .orElse(Collections.emptyMap())
+                       .entrySet().stream()
+                       .filter(entry -> entry.getValue().contains(fullClientPackageName))
+                       .map(Map.Entry::getKey)
+                       .collect(Collectors.toList());
     }
 
     private List<Consumer<CodeBlock.Builder>> validationCodeBlocks(List<String> enabledParamValidations) {
