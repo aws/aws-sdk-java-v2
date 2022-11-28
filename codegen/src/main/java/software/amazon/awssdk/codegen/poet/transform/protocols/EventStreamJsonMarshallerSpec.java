@@ -33,7 +33,7 @@ import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
 public final class EventStreamJsonMarshallerSpec extends JsonMarshallerSpec {
 
     public EventStreamJsonMarshallerSpec(IntermediateModel model, ShapeModel shapeModel) {
-        super(shapeModel);
+        super(model, shapeModel);
     }
 
     @Override

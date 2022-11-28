@@ -62,7 +62,8 @@ public final class QueryParamMarshaller {
     };
 
     public static final JsonMarshaller<Void> NULL = (val, context, paramName, sdkField) -> {
-        if (sdkField.containsTrait(RequiredTrait.class)) {
+        if (context.protocolHandler().isTraitValidationEnabled(RequiredTrait.class)
+            && sdkField.containsTrait(RequiredTrait.class)) {
             throw new IllegalArgumentException(String.format("Parameter '%s' must not be null", paramName));
         }
     };

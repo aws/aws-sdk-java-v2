@@ -22,8 +22,11 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -31,6 +34,7 @@ import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
+import software.amazon.awssdk.core.traits.RequiredTrait;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.protocols.core.OperationInfo;
@@ -43,8 +47,10 @@ public class QueryMarshallerSpec implements MarshallerProtocolSpec {
 
     protected final ShapeModel shapeModel;
     private final Metadata metadata;
+    private final IntermediateModel model;
 
     public QueryMarshallerSpec(IntermediateModel model, ShapeModel shapeModel) {
+        this.model = model;
         this.metadata = model.getMetadata();
         this.shapeModel = shapeModel;
     }
@@ -105,6 +111,9 @@ public class QueryMarshallerSpec implements MarshallerProtocolSpec {
             initializationCodeBlockBuilder.add(".hasStreamingInput(true)");
         }
         if (metadata.getProtocol() == Protocol.REST_XML) {
+            List<String> enabledTraitValidations = getPackageEnabledTraitValidations(metadata.getFullClientPackageName());
+            validationCodeBlocks(enabledTraitValidations).forEach(action -> action.accept(initializationCodeBlockBuilder));
+
             String rootMarshallLocationName = shapeModel.getMarshaller() != null ?
                                               shapeModel.getMarshaller().getLocationName() : null;
             initializationCodeBlockBuilder.add(".putAdditionalMetadata($T.ROOT_MARSHALL_LOCATION_ATTRIBUTE, $S)",
@@ -141,6 +150,31 @@ public class QueryMarshallerSpec implements MarshallerProtocolSpec {
         } else {
             throw new RuntimeException("Request has more than 1 xmlNameSpace uri.");
         }
+    }
+
+    private List<String> getPackageEnabledTraitValidations(String fullClientPackageName) {
+        return model.getCustomizationConfig().getEnabledTraitValidations().entrySet().stream()
+                    .filter(entry -> entry.getValue().contains(fullClientPackageName))
+                    .map(Map.Entry::getKey)
+                    .collect(Collectors.toList());
+    }
+
+    private List<Consumer<CodeBlock.Builder>> validationCodeBlocks(List<String> enabledParamValidations) {
+        return enabledParamValidations
+            .stream()
+            .sorted()
+            .map(trait -> {
+                Consumer<CodeBlock.Builder> action;
+
+                if (Objects.equals(trait, "RequiredTrait")) {
+                    action = builder -> builder.add(".enableTraitValidation($T.class)", RequiredTrait.class);
+                } else {
+                    throw new IllegalArgumentException("Invalid param validation.");
+                }
+
+                return action;
+            })
+            .collect(Collectors.toList());
     }
 
 }

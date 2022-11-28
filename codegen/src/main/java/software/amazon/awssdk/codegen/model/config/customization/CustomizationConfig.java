@@ -218,6 +218,8 @@ public class CustomizationConfig {
      */
     private boolean useRuleBasedEndpoints = false;
 
+    private Map<String, List<String>> enabledTraitValidations;
+
     private CustomizationConfig() {
     }
 
@@ -561,5 +563,13 @@ public class CustomizationConfig {
 
     public void setUseRuleBasedEndpoints(boolean useRuleBasedEndpoints) {
         this.useRuleBasedEndpoints = useRuleBasedEndpoints;
+    }
+
+    public Map<String, List<String>> getEnabledTraitValidations() {
+        return enabledTraitValidations;
+    }
+
+    public void setEnabledTraitValidations(Map<String, List<String>> enabledTraitValidations) {
+        this.enabledTraitValidations = enabledTraitValidations;
     }
 }

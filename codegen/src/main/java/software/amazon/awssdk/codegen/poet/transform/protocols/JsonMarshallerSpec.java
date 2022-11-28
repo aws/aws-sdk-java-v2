@@ -23,10 +23,18 @@ import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
+import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
+import software.amazon.awssdk.core.traits.RequiredTrait;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.protocols.core.OperationInfo;
@@ -40,8 +48,12 @@ import software.amazon.awssdk.utils.StringUtils;
 public class JsonMarshallerSpec implements MarshallerProtocolSpec {
 
     protected final ShapeModel shapeModel;
+    private final Metadata metadata;
+    private final IntermediateModel model;
 
-    public JsonMarshallerSpec(ShapeModel shapeModel) {
+    public JsonMarshallerSpec(IntermediateModel model, ShapeModel shapeModel) {
+        this.model = model;
+        this.metadata = model.getMetadata();
         this.shapeModel = shapeModel;
     }
 
@@ -110,11 +122,41 @@ public class JsonMarshallerSpec implements MarshallerProtocolSpec {
             initializationCodeBlockBuilder.add(".hasEventStreamingInput(true)");
         }
 
+        List<String> enabledTraitValidations = getPackageEnabledTraitValidations(metadata.getFullClientPackageName());
+        validationCodeBlocks(enabledTraitValidations).forEach(action -> action.accept(initializationCodeBlockBuilder));
+
         CodeBlock codeBlock = initializationCodeBlockBuilder.add(".build()").build();
 
         return FieldSpec.builder(ClassName.get(OperationInfo.class), "SDK_OPERATION_BINDING")
                         .addModifiers(Modifier.PRIVATE, Modifier.FINAL, Modifier.STATIC)
                         .initializer(codeBlock)
                         .build();
+    }
+
+    private List<String> getPackageEnabledTraitValidations(String fullClientPackageName) {
+        return Optional.ofNullable(model.getCustomizationConfig().getEnabledTraitValidations())
+                       .orElse(Collections.emptyMap())
+                       .entrySet().stream()
+                       .filter(entry -> entry.getValue().contains(fullClientPackageName))
+                       .map(Map.Entry::getKey)
+                       .collect(Collectors.toList());
+    }
+
+    private List<Consumer<CodeBlock.Builder>> validationCodeBlocks(List<String> enabledParamValidations) {
+        return enabledParamValidations
+            .stream()
+            .sorted()
+            .map(trait -> {
+                Consumer<CodeBlock.Builder> action;
+
+                if (Objects.equals(trait, "RequiredTrait")) {
+                    action = builder -> builder.add(".enableTraitValidation($T.class)", RequiredTrait.class);
+                } else {
+                    throw new IllegalArgumentException("Invalid param validation.");
+                }
+
+                return action;
+            })
+            .collect(Collectors.toList());
     }
 }

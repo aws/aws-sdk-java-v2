@@ -23,6 +23,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
@@ -68,14 +69,12 @@ class GetUsageRequestTest {
     }
 
     @Test
-    void marshall_syncMissingUploadId_ThrowsException() {
+    void marshall_syncMissingUploadIdButValidationDisabled_ThrowsException() {
         stubAndRespondWith(200, "");
 
         GetUsageRequest request = getUsageRequestWithDates(null, "20221115");
 
-        assertThatThrownBy(() -> client.getUsage(request))
-            .isInstanceOf(SdkClientException.class)
-            .hasMessageContaining("Parameter 'startDate' must not be null");
+        assertThatNoException().isThrownBy(() -> client.getUsage(request));
     }
 
     @Test
@@ -99,15 +98,12 @@ class GetUsageRequestTest {
     }
 
     @Test
-    void marshall_asyncMissingStartDate_ThrowsException() {
+    void marshall_asyncMissingStartDateButValidationDisabled_ThrowsException() {
         stubAndRespondWith(200, "");
 
         GetUsageRequest request = getUsageRequestWithDates(null, "20221115");
 
-        ThrowableAssert.ThrowingCallable throwingCallable = () -> asyncClient.getUsage(request).join();
-        assertThatThrownBy(throwingCallable)
-            .isInstanceOf(CompletionException.class)
-            .hasMessageContaining("Parameter 'startDate' must not be null");
+        assertThatNoException().isThrownBy(() -> asyncClient.getUsage(request).join());
     }
 
     @Test
