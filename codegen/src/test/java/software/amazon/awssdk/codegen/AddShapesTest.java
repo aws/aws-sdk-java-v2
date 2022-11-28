@@ -75,4 +75,17 @@ class AddShapesTest {
         assertThat(requiredMemberModel.isRequired()).isFalse();
     }
 
+    @Test
+    void generateShapeModel_memberRequiredByNestedShape_setsMemberModelAsRequired() {
+        String requestShapeName = "NestedQueryParameterOperation";
+        String queryParamName = "QueryParamOne";
+
+        ShapeModel requestShapeModel = intermediateModel.getShapes().get(requestShapeName);
+        MemberModel requiredMemberModel = requestShapeModel.findMemberModelByC2jName(queryParamName);
+
+        assertThat(requestShapeModel.getRequired()).contains(queryParamName);
+        assertThat(requiredMemberModel.getHttp().getLocation()).isEqualTo(Location.QUERY_STRING);
+        assertThat(requiredMemberModel.isRequired()).isTrue();
+    }
+
 }

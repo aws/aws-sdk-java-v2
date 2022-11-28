@@ -592,11 +592,30 @@
       },
       "payload":"DocumentMember"
     },
+    "NestedQueryParameterOperation":{
+      "type":"structure",
+      "required":[
+        "QueryParamOne"
+      ],
+      "members":{
+        "QueryParamOne":{
+          "shape":"String",
+          "location":"querystring",
+          "locationName":"QueryParamOne"
+        },
+        "QueryParamTwo":{
+          "shape":"String",
+          "location":"querystring",
+          "locationName":"QueryParamTwo"
+        }
+      }
+    },
     "QueryParameterOperationRequest":{
       "type":"structure",
       "required":[
         "PathParam",
-        "QueryParamOne"
+        "QueryParamOne",
+        "StringHeaderMember"
       ],
       "members":{
         "PathParam":{
@@ -618,8 +637,12 @@
           "shape":"String",
           "location":"header",
           "locationName":"x-amz-header-string"
+        },
+        "NestedQueryParameterOperation":{
+          "shape":"NestedQueryParameterOperation"
         }
-      }
+      },
+      "payload":"NestedQueryParameterOperation"
     }
   }
 }

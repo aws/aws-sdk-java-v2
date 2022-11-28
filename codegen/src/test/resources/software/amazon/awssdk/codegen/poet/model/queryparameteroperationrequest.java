@@ -15,6 +15,7 @@ import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.MarshallingType;
 import software.amazon.awssdk.core.traits.LocationTrait;
+import software.amazon.awssdk.core.traits.PayloadTrait;
 import software.amazon.awssdk.core.traits.RequiredTrait;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -41,19 +42,31 @@ public final class QueryParameterOperationRequest extends JsonProtocolTestsReque
         .traits(LocationTrait.builder().location(MarshallLocation.QUERY_PARAM).locationName("QueryParamOne").build(),
                 RequiredTrait.create()).build();
 
-    private static final SdkField<String> QUERY_PARAM_TWO_FIELD = SdkField.<String> builder(MarshallingType.STRING)
-                                                                          .memberName("QueryParamTwo").getter(getter(QueryParameterOperationRequest::queryParamTwo))
-                                                                          .setter(setter(Builder::queryParamTwo))
-                                                                          .traits(LocationTrait.builder().location(MarshallLocation.QUERY_PARAM).locationName("QueryParamTwo").build()).build();
+    private static final SdkField<String> QUERY_PARAM_TWO_FIELD = SdkField
+        .<String> builder(MarshallingType.STRING)
+        .memberName("QueryParamTwo").getter(getter(QueryParameterOperationRequest::queryParamTwo))
+        .setter(setter(Builder::queryParamTwo))
+        .traits(LocationTrait.builder().location(MarshallLocation.QUERY_PARAM).locationName("QueryParamTwo").build()).build();
 
-    private static final SdkField<String> STRING_HEADER_MEMBER_FIELD = SdkField.<String> builder(MarshallingType.STRING)
-                                                                               .memberName("StringHeaderMember").getter(getter(QueryParameterOperationRequest::stringHeaderMember))
-                                                                               .setter(setter(Builder::stringHeaderMember))
-                                                                               .traits(LocationTrait.builder().location(MarshallLocation.HEADER).locationName("x-amz-header-string").build())
-                                                                               .build();
+    private static final SdkField<String> STRING_HEADER_MEMBER_FIELD = SdkField
+        .<String> builder(MarshallingType.STRING)
+        .memberName("StringHeaderMember")
+        .getter(getter(QueryParameterOperationRequest::stringHeaderMember))
+        .setter(setter(Builder::stringHeaderMember))
+        .traits(LocationTrait.builder().location(MarshallLocation.HEADER).locationName("x-amz-header-string").build(),
+                RequiredTrait.create()).build();
+
+    private static final SdkField<NestedQueryParameterOperation> NESTED_QUERY_PARAMETER_OPERATION_FIELD = SdkField
+        .<NestedQueryParameterOperation> builder(MarshallingType.SDK_POJO)
+        .memberName("NestedQueryParameterOperation")
+        .getter(getter(QueryParameterOperationRequest::nestedQueryParameterOperation))
+        .setter(setter(Builder::nestedQueryParameterOperation))
+        .constructor(NestedQueryParameterOperation::builder)
+        .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("NestedQueryParameterOperation")
+                             .build(), PayloadTrait.create()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(PATH_PARAM_FIELD,
-                                                                                                   QUERY_PARAM_ONE_FIELD, QUERY_PARAM_TWO_FIELD, STRING_HEADER_MEMBER_FIELD));
+                                                                                                   QUERY_PARAM_ONE_FIELD, QUERY_PARAM_TWO_FIELD, STRING_HEADER_MEMBER_FIELD, NESTED_QUERY_PARAMETER_OPERATION_FIELD));
 
     private final String pathParam;
 
@@ -63,12 +76,15 @@ public final class QueryParameterOperationRequest extends JsonProtocolTestsReque
 
     private final String stringHeaderMember;
 
+    private final NestedQueryParameterOperation nestedQueryParameterOperation;
+
     private QueryParameterOperationRequest(BuilderImpl builder) {
         super(builder);
         this.pathParam = builder.pathParam;
         this.queryParamOne = builder.queryParamOne;
         this.queryParamTwo = builder.queryParamTwo;
         this.stringHeaderMember = builder.stringHeaderMember;
+        this.nestedQueryParameterOperation = builder.nestedQueryParameterOperation;
     }
 
     /**
@@ -107,6 +123,15 @@ public final class QueryParameterOperationRequest extends JsonProtocolTestsReque
         return stringHeaderMember;
     }
 
+    /**
+     * Returns the value of the NestedQueryParameterOperation property for this object.
+     *
+     * @return The value of the NestedQueryParameterOperation property for this object.
+     */
+    public final NestedQueryParameterOperation nestedQueryParameterOperation() {
+        return nestedQueryParameterOperation;
+    }
+
     @Override
     public Builder toBuilder() {
         return new BuilderImpl(this);
@@ -128,6 +153,7 @@ public final class QueryParameterOperationRequest extends JsonProtocolTestsReque
         hashCode = 31 * hashCode + Objects.hashCode(queryParamOne());
         hashCode = 31 * hashCode + Objects.hashCode(queryParamTwo());
         hashCode = 31 * hashCode + Objects.hashCode(stringHeaderMember());
+        hashCode = 31 * hashCode + Objects.hashCode(nestedQueryParameterOperation());
         return hashCode;
     }
 
@@ -150,7 +176,8 @@ public final class QueryParameterOperationRequest extends JsonProtocolTestsReque
         QueryParameterOperationRequest other = (QueryParameterOperationRequest) obj;
         return Objects.equals(pathParam(), other.pathParam()) && Objects.equals(queryParamOne(), other.queryParamOne())
                && Objects.equals(queryParamTwo(), other.queryParamTwo())
-               && Objects.equals(stringHeaderMember(), other.stringHeaderMember());
+               && Objects.equals(stringHeaderMember(), other.stringHeaderMember())
+               && Objects.equals(nestedQueryParameterOperation(), other.nestedQueryParameterOperation());
     }
 
     /**
@@ -161,7 +188,8 @@ public final class QueryParameterOperationRequest extends JsonProtocolTestsReque
     public final String toString() {
         return ToString.builder("QueryParameterOperationRequest").add("PathParam", pathParam())
                        .add("QueryParamOne", queryParamOne()).add("QueryParamTwo", queryParamTwo())
-                       .add("StringHeaderMember", stringHeaderMember()).build();
+                       .add("StringHeaderMember", stringHeaderMember())
+                       .add("NestedQueryParameterOperation", nestedQueryParameterOperation()).build();
     }
 
     public final <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
@@ -174,6 +202,8 @@ public final class QueryParameterOperationRequest extends JsonProtocolTestsReque
                 return Optional.ofNullable(clazz.cast(queryParamTwo()));
             case "StringHeaderMember":
                 return Optional.ofNullable(clazz.cast(stringHeaderMember()));
+            case "NestedQueryParameterOperation":
+                return Optional.ofNullable(clazz.cast(nestedQueryParameterOperation()));
             default:
                 return Optional.empty();
         }
@@ -230,6 +260,36 @@ public final class QueryParameterOperationRequest extends JsonProtocolTestsReque
          */
         Builder stringHeaderMember(String stringHeaderMember);
 
+        /**
+         * Sets the value of the NestedQueryParameterOperation property for this object.
+         *
+         * @param nestedQueryParameterOperation
+         *        The new value for the NestedQueryParameterOperation property for this object.
+         * @return Returns a reference to this object so that method calls can be chained together.
+         */
+        Builder nestedQueryParameterOperation(NestedQueryParameterOperation nestedQueryParameterOperation);
+
+        /**
+         * Sets the value of the NestedQueryParameterOperation property for this object.
+         *
+         * This is a convenience method that creates an instance of the {@link NestedQueryParameterOperation.Builder}
+         * avoiding the need to create one manually via {@link NestedQueryParameterOperation#builder()}.
+         *
+         * <p>
+         * When the {@link Consumer} completes, {@link NestedQueryParameterOperation.Builder#build()} is called
+         * immediately and its result is passed to {@link #nestedQueryParameterOperation(NestedQueryParameterOperation)}.
+         *
+         * @param nestedQueryParameterOperation
+         *        a consumer that will call methods on {@link NestedQueryParameterOperation.Builder}
+         * @return Returns a reference to this object so that method calls can be chained together.
+         * @see #nestedQueryParameterOperation(NestedQueryParameterOperation)
+         */
+        default Builder nestedQueryParameterOperation(
+            Consumer<NestedQueryParameterOperation.Builder> nestedQueryParameterOperation) {
+            return nestedQueryParameterOperation(NestedQueryParameterOperation.builder()
+                                                                              .applyMutation(nestedQueryParameterOperation).build());
+        }
+
         @Override
         Builder overrideConfiguration(AwsRequestOverrideConfiguration overrideConfiguration);
 
@@ -246,6 +306,8 @@ public final class QueryParameterOperationRequest extends JsonProtocolTestsReque
 
         private String stringHeaderMember;
 
+        private NestedQueryParameterOperation nestedQueryParameterOperation;
+
         private BuilderImpl() {
         }
 
@@ -255,6 +317,7 @@ public final class QueryParameterOperationRequest extends JsonProtocolTestsReque
             queryParamOne(model.queryParamOne);
             queryParamTwo(model.queryParamTwo);
             stringHeaderMember(model.stringHeaderMember);
+            nestedQueryParameterOperation(model.nestedQueryParameterOperation);
         }
 
         public final String getPathParam() {
@@ -310,6 +373,21 @@ public final class QueryParameterOperationRequest extends JsonProtocolTestsReque
         @Override
         public final Builder stringHeaderMember(String stringHeaderMember) {
             this.stringHeaderMember = stringHeaderMember;
+            return this;
+        }
+
+        public final NestedQueryParameterOperation.Builder getNestedQueryParameterOperation() {
+            return nestedQueryParameterOperation != null ? nestedQueryParameterOperation.toBuilder() : null;
+        }
+
+        public final void setNestedQueryParameterOperation(NestedQueryParameterOperation.BuilderImpl nestedQueryParameterOperation) {
+            this.nestedQueryParameterOperation = nestedQueryParameterOperation != null ? nestedQueryParameterOperation.build()
+                                                                                       : null;
+        }
+
+        @Override
+        public final Builder nestedQueryParameterOperation(NestedQueryParameterOperation nestedQueryParameterOperation) {
+            this.nestedQueryParameterOperation = nestedQueryParameterOperation;
             return this;
         }
 
