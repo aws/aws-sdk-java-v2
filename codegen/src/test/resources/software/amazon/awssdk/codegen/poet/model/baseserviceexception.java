@@ -37,6 +37,9 @@ public class JsonProtocolTestsException extends AwsServiceException {
 
         @Override
         Builder cause(Throwable cause);
+
+        @Override
+        Builder writableStackTrace(Boolean writableStackTrace);
     }
 
     protected static class BuilderImpl extends AwsServiceException.BuilderImpl implements Builder {
@@ -74,6 +77,12 @@ public class JsonProtocolTestsException extends AwsServiceException {
         @Override
         public BuilderImpl cause(Throwable cause) {
             this.cause = cause;
+            return this;
+        }
+
+        @Override
+        public BuilderImpl writableStackTrace(Boolean writableStackTrace) {
+            this.writableStackTrace = writableStackTrace;
             return this;
         }
 

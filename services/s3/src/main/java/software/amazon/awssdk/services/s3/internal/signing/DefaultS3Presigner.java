@@ -34,9 +34,11 @@ import software.amazon.awssdk.auth.signer.AwsS3V4Signer;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
+import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.awscore.endpoint.DefaultServiceEndpointBuilder;
 import software.amazon.awssdk.awscore.internal.AwsExecutionContextBuilder;
 import software.amazon.awssdk.awscore.internal.authcontext.AwsCredentialsAuthorizationStrategy;
+import software.amazon.awssdk.awscore.internal.defaultsmode.DefaultsModeConfiguration;
 import software.amazon.awssdk.awscore.presigner.PresignRequest;
 import software.amazon.awssdk.awscore.presigner.PresignedRequest;
 import software.amazon.awssdk.core.ClientType;
@@ -61,7 +63,14 @@ import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.protocols.xml.AwsS3ProtocolFactory;
+import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
 import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.services.s3.endpoints.S3ClientContextParams;
+import software.amazon.awssdk.services.s3.endpoints.S3EndpointProvider;
+import software.amazon.awssdk.services.s3.endpoints.internal.S3EndpointAuthSchemeInterceptor;
+import software.amazon.awssdk.services.s3.endpoints.internal.S3RequestSetEndpointInterceptor;
+import software.amazon.awssdk.services.s3.endpoints.internal.S3ResolveEndpointInterceptor;
+import software.amazon.awssdk.services.s3.internal.endpoints.UseGlobalEndpointResolver;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
@@ -87,6 +96,7 @@ import software.amazon.awssdk.services.s3.transform.CreateMultipartUploadRequest
 import software.amazon.awssdk.services.s3.transform.GetObjectRequestMarshaller;
 import software.amazon.awssdk.services.s3.transform.PutObjectRequestMarshaller;
 import software.amazon.awssdk.services.s3.transform.UploadPartRequestMarshaller;
+import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
@@ -111,6 +121,8 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
     private final CompleteMultipartUploadRequestMarshaller completeMultipartUploadRequestMarshaller;
     private final AbortMultipartUploadRequestMarshaller abortMultipartUploadRequestMarshaller;
     private final SdkClientConfiguration clientConfiguration;
+    private final AttributeMap clientContextParams;
+    private final UseGlobalEndpointResolver useGlobalEndpointResolver;
 
     private DefaultS3Presigner(Builder b) {
         super(b);
@@ -165,6 +177,10 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
 
         // Copied from DefaultS3Client#abortMultipartUpload
         this.abortMultipartUploadRequestMarshaller = new AbortMultipartUploadRequestMarshaller(protocolFactory);
+
+        this.clientContextParams = createClientContextParams();
+
+        this.useGlobalEndpointResolver = createUseGlobalEndpointResolver();
     }
 
     public static S3Presigner.Builder builder() {
@@ -178,6 +194,11 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
         ClasspathInterceptorChainFactory interceptorFactory = new ClasspathInterceptorChainFactory();
         List<ExecutionInterceptor> s3Interceptors =
             interceptorFactory.getInterceptors("software/amazon/awssdk/services/s3/execution.interceptors");
+        List<ExecutionInterceptor> additionalInterceptors = new ArrayList<>();
+        additionalInterceptors.add(new S3ResolveEndpointInterceptor());
+        additionalInterceptors.add(new S3EndpointAuthSchemeInterceptor());
+        additionalInterceptors.add(new S3RequestSetEndpointInterceptor());
+        s3Interceptors = mergeLists(s3Interceptors, additionalInterceptors);
         return mergeLists(interceptorFactory.getGlobalInterceptors(), s3Interceptors);
     }
 
@@ -315,11 +336,16 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
             .putAttribute(SdkExecutionAttribute.CLIENT_TYPE, ClientType.SYNC)
             .putAttribute(SdkExecutionAttribute.SERVICE_NAME, SERVICE_NAME)
             .putAttribute(SdkExecutionAttribute.OPERATION_NAME, operationName)
-            .putAttribute(AwsSignerExecutionAttribute.SERVICE_CONFIG, serviceConfiguration())
+            .putAttribute(SdkExecutionAttribute.SERVICE_CONFIG, serviceConfiguration())
             .putAttribute(PRESIGNER_EXPIRATION, Instant.now().plus(presignRequest.signatureDuration()))
             .putAttribute(SdkExecutionAttribute.CLIENT_ENDPOINT, clientConfiguration.option(SdkClientOption.ENDPOINT))
             .putAttribute(SdkExecutionAttribute.ENDPOINT_OVERRIDDEN,
-                          clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN));
+                          clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN))
+            .putAttribute(AwsExecutionAttribute.FIPS_ENDPOINT_ENABLED, fipsEnabled())
+            .putAttribute(AwsExecutionAttribute.DUALSTACK_ENDPOINT_ENABLED, serviceConfiguration.dualstackEnabled())
+            .putAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER, S3EndpointProvider.defaultProvider())
+            .putAttribute(AwsExecutionAttribute.USE_GLOBAL_ENDPOINT, useGlobalEndpointResolver.resolve(region()))
+            .putAttribute(SdkInternalExecutionAttribute.CLIENT_CONTEXT_PARAMS, clientContextParams);
 
         ExecutionInterceptorChain executionInterceptorChain = new ExecutionInterceptorChain(clientInterceptors);
 
@@ -486,6 +512,32 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
                         .httpRequest(signedHttpRequest)
                         .signedHeaders(signedHeaders)
                         .signedPayload(signedPayload);
+    }
+
+    private AttributeMap createClientContextParams() {
+        AttributeMap.Builder params = AttributeMap.builder();
+
+        params.put(S3ClientContextParams.USE_ARN_REGION, serviceConfiguration.useArnRegionEnabled());
+        params.put(S3ClientContextParams.DISABLE_MULTI_REGION_ACCESS_POINTS,
+                                !serviceConfiguration.multiRegionEnabled());
+        params.put(S3ClientContextParams.FORCE_PATH_STYLE, serviceConfiguration.pathStyleAccessEnabled());
+        params.put(S3ClientContextParams.ACCELERATE, serviceConfiguration.accelerateModeEnabled());
+
+        return params.build();
+    }
+
+    private UseGlobalEndpointResolver createUseGlobalEndpointResolver() {
+        String legacyOption =
+            DefaultsModeConfiguration.defaultConfig(DefaultsMode.LEGACY)
+                                     .get(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT);
+
+        SdkClientConfiguration config = clientConfiguration.toBuilder()
+            .option(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT, legacyOption)
+            .option(SdkClientOption.PROFILE_FILE, profileFile())
+            .option(SdkClientOption.PROFILE_NAME, profileName())
+            .build();
+
+        return new UseGlobalEndpointResolver(config);
     }
 
     @SdkInternalApi

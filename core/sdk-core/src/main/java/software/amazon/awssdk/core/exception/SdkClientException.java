@@ -73,6 +73,9 @@ public class SdkClientException extends SdkException {
         Builder cause(Throwable cause);
 
         @Override
+        Builder writableStackTrace(Boolean writableStackTrace);
+
+        @Override
         SdkClientException build();
     }
 
@@ -94,6 +97,12 @@ public class SdkClientException extends SdkException {
         @Override
         public Builder cause(Throwable cause) {
             this.cause = cause;
+            return this;
+        }
+
+        @Override
+        public Builder writableStackTrace(Boolean writableStackTrace) {
+            this.writableStackTrace = writableStackTrace;
             return this;
         }
 

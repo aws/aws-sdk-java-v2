@@ -16,17 +16,22 @@
 package software.amazon.awssdk.s3benchmarks;
 
 import static software.amazon.awssdk.s3benchmarks.BenchmarkUtils.printOutResult;
+import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.transfer.s3.model.UploadRequest;
+import software.amazon.awssdk.transfer.s3.progress.LoggingTransferListener;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.async.SimplePublisher;
 
 public class TransferManagerUploadBenchmark extends BaseTransferManagerBenchmark {
     private static final Logger logger = Logger.loggerFor("TransferManagerUploadBenchmark");
@@ -42,7 +47,7 @@ public class TransferManagerUploadBenchmark extends BaseTransferManagerBenchmark
     @Override
     protected void doRunBenchmark() {
         try {
-            uploadFromFile(iteration, true);
+            doUplaod(iteration, true);
         } catch (Exception exception) {
             logger.error(() -> "Request failed: ", exception);
         }
@@ -51,17 +56,21 @@ public class TransferManagerUploadBenchmark extends BaseTransferManagerBenchmark
     @Override
     protected void additionalWarmup() {
         try {
-            uploadFromFile(3, false);
+            doUplaod(3, false);
         } catch (Exception exception) {
             logger.error(() -> "Warmup failed: ", exception);
         }
     }
 
-    private void uploadFromFile(int count, boolean printOutResult) throws IOException {
+    private void doUplaod(int count, boolean printOutResult) throws IOException {
         List<Double> metrics = new ArrayList<>();
         logger.info(() -> "Starting to upload from file");
         for (int i = 0; i < count; i++) {
-            uploadOnceFromFile(metrics);
+            if (config.contentLengthInMb() == null) {
+                uploadOnceFromFile(metrics);
+            } else {
+                uploadOnceFromMemory(metrics);
+            }
         }
         if (printOutResult) {
             printOutResult(metrics, "Upload from File", Files.size(Paths.get(path)));
@@ -81,12 +90,25 @@ public class TransferManagerUploadBenchmark extends BaseTransferManagerBenchmark
     }
 
     private void uploadOnceFromMemory(List<Double> latencies) {
-        UploadRequest uploadRequest = UploadRequest.builder()
-                                                   .putObjectRequest(r -> r.bucket("bucket")
-                                                                           .key("key"))
-                                                   .requestBody(AsyncRequestBody.fromString("foo"))
-                                                   // .addTransferListener(listener)
-                                                   .build();
+        SimplePublisher<ByteBuffer> simplePublisher = new SimplePublisher<>();
+        Long partSizeInMb = config.partSizeInMb() * MB;
+        byte[] bytes = ByteBuffer.allocate(partSizeInMb.intValue()).array();
+        UploadRequest uploadRequest = UploadRequest
+            .builder()
+            .putObjectRequest(r -> r.bucket(bucket)
+                                    .key(key)
+                                    .checksumAlgorithm(config.checksumAlgorithm()))
+            .requestBody(AsyncRequestBody.fromPublisher(simplePublisher))
+            .addTransferListener(LoggingTransferListener.create())
+            .build();
+        Executors.defaultThreadFactory().newThread(() -> {
+            long remaining = config.contentLengthInMb() * MB;
+            while (remaining > 0) {
+                simplePublisher.send(ByteBuffer.wrap(bytes));
+                remaining -= partSizeInMb;
+            }
+            simplePublisher.complete();
+        }).start();
         long start = System.currentTimeMillis();
         transferManager.upload(uploadRequest).completionFuture().join();
         long end = System.currentTimeMillis();

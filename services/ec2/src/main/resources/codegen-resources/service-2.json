@@ -12,6 +12,16 @@
     "xmlNamespace":"http://ec2.amazonaws.com/doc/2016-11-15"
   },
   "operations":{
+    "AcceptAddressTransfer":{
+      "name":"AcceptAddressTransfer",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"AcceptAddressTransferRequest"},
+      "output":{"shape":"AcceptAddressTransferResult"},
+      "documentation":"<p>Accepts an Elastic IP address transfer. For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/vpc-eips.html#using-instance-addressing-eips-transfer-accept\">Accept a transferred Elastic IP address</a> in the <i>Amazon Virtual Private Cloud User Guide</i>.</p>"
+    },
     "AcceptReservedInstancesExchangeQuote":{
       "name":"AcceptReservedInstancesExchangeQuote",
       "http":{
@@ -408,6 +418,16 @@
       "input":{"shape":"CancelExportTaskRequest"},
       "documentation":"<p>Cancels an active export task. The request removes all artifacts of the export, including any partially-created Amazon S3 objects. If the export task is complete or is in the process of transferring the final disk image, the command fails and returns an error.</p>"
     },
+    "CancelImageLaunchPermission":{
+      "name":"CancelImageLaunchPermission",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"CancelImageLaunchPermissionRequest"},
+      "output":{"shape":"CancelImageLaunchPermissionResult"},
+      "documentation":"<p>Removes your Amazon Web Services account from the launch permissions for the specified AMI. For more information, see <a href=\"https://docs.aws.amazon.com/\">Cancel having an AMI shared with your Amazon Web Services account</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p>"
+    },
     "CancelImportTask":{
       "name":"CancelImportTask",
       "http":{
@@ -476,7 +496,7 @@
       },
       "input":{"shape":"CopyImageRequest"},
       "output":{"shape":"CopyImageResult"},
-      "documentation":"<p>Initiates the copy of an AMI. You can copy an AMI from one Region to another, or from a Region to an Outpost. You can't copy an AMI from an Outpost to a Region, from one Outpost to another, or within the same Outpost. To copy an AMI to another partition, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateStoreImageTask.html\">CreateStoreImageTask</a>.</p> <p>To copy an AMI from one Region to another, specify the source Region using the <b>SourceRegion</b> parameter, and specify the destination Region using its endpoint. Copies of encrypted backing snapshots for the AMI are encrypted. Copies of unencrypted backing snapshots remain unencrypted, unless you set <code>Encrypted</code> during the copy operation. You cannot create an unencrypted copy of an encrypted backing snapshot.</p> <p>To copy an AMI from a Region to an Outpost, specify the source Region using the <b>SourceRegion</b> parameter, and specify the ARN of the destination Outpost using <b>DestinationOutpostArn</b>. Backing snapshots copied to an Outpost are encrypted by default using the default encryption key for the Region, or a different key that you specify in the request using <b>KmsKeyId</b>. Outposts do not support unencrypted snapshots. For more information, <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/snapshots-outposts.html#ami\"> Amazon EBS local snapshots on Outposts</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p> <p>For more information about the prerequisites and limits when copying an AMI, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/CopyingAMIs.html\">Copying an AMI</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p>"
+      "documentation":"<p>Initiates the copy of an AMI. You can copy an AMI from one Region to another, or from a Region to an Outpost. You can't copy an AMI from an Outpost to a Region, from one Outpost to another, or within the same Outpost. To copy an AMI to another partition, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateStoreImageTask.html\">CreateStoreImageTask</a>.</p> <p>To copy an AMI from one Region to another, specify the source Region using the <b>SourceRegion</b> parameter, and specify the destination Region using its endpoint. Copies of encrypted backing snapshots for the AMI are encrypted. Copies of unencrypted backing snapshots remain unencrypted, unless you set <code>Encrypted</code> during the copy operation. You cannot create an unencrypted copy of an encrypted backing snapshot.</p> <p>To copy an AMI from a Region to an Outpost, specify the source Region using the <b>SourceRegion</b> parameter, and specify the ARN of the destination Outpost using <b>DestinationOutpostArn</b>. Backing snapshots copied to an Outpost are encrypted by default using the default encryption key for the Region, or a different key that you specify in the request using <b>KmsKeyId</b>. Outposts do not support unencrypted snapshots. For more information, <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/snapshots-outposts.html#ami\"> Amazon EBS local snapshots on Outposts</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p> <p>For more information about the prerequisites and limits when copying an AMI, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/CopyingAMIs.html\">Copy an AMI</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p>"
     },
     "CopySnapshot":{
       "name":"CopySnapshot",
@@ -646,7 +666,7 @@
       },
       "input":{"shape":"CreateImageRequest"},
       "output":{"shape":"CreateImageResult"},
-      "documentation":"<p>Creates an Amazon EBS-backed AMI from an Amazon EBS-backed instance that is either running or stopped.</p> <p>By default, when Amazon EC2 creates the new AMI, it reboots the instance so that it can take snapshots of the attached volumes while data is at rest, in order to ensure a consistent state. You can set the <code>NoReboot</code> parameter to <code>true</code> in the API request, or use the <code>--no-reboot</code> option in the CLI to prevent Amazon EC2 from shutting down and rebooting the instance.</p> <important> <p>If you choose to bypass the shutdown and reboot process by setting the <code>NoReboot</code> parameter to <code>true</code> in the API request, or by using the <code>--no-reboot</code> option in the CLI, we can't guarantee the file system integrity of the created image.</p> </important> <p>If you customized your instance with instance store volumes or Amazon EBS volumes in addition to the root device volume, the new AMI contains block device mapping information for those volumes. When you launch an instance from this new AMI, the instance automatically launches with those additional volumes.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/creating-an-ami-ebs.html\">Creating Amazon EBS-Backed Linux AMIs</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p>"
+      "documentation":"<p>Creates an Amazon EBS-backed AMI from an Amazon EBS-backed instance that is either running or stopped.</p> <p>By default, when Amazon EC2 creates the new AMI, it reboots the instance so that it can take snapshots of the attached volumes while data is at rest, in order to ensure a consistent state. You can set the <code>NoReboot</code> parameter to <code>true</code> in the API request, or use the <code>--no-reboot</code> option in the CLI to prevent Amazon EC2 from shutting down and rebooting the instance.</p> <important> <p>If you choose to bypass the shutdown and reboot process by setting the <code>NoReboot</code> parameter to <code>true</code> in the API request, or by using the <code>--no-reboot</code> option in the CLI, we can't guarantee the file system integrity of the created image.</p> </important> <p>If you customized your instance with instance store volumes or Amazon EBS volumes in addition to the root device volume, the new AMI contains block device mapping information for those volumes. When you launch an instance from this new AMI, the instance automatically launches with those additional volumes.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/creating-an-ami-ebs.html\">Create an Amazon EBS-backed Linux AMI</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p>"
     },
     "CreateInstanceEventWindow":{
       "name":"CreateInstanceEventWindow",
@@ -885,7 +905,7 @@
       },
       "input":{"shape":"CreateReplaceRootVolumeTaskRequest"},
       "output":{"shape":"CreateReplaceRootVolumeTaskResult"},
-      "documentation":"<p>Creates a root volume replacement task for an Amazon EC2 instance. The root volume can either be restored to its initial launch state, or it can be restored using a specific snapshot.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-restoring-volume.html#replace-root\">Replace a root volume</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p>"
+      "documentation":"<p>Replaces the EBS-backed root volume for a <code>running</code> instance with a new volume that is restored to the original root volume's launch state, that is restored to a specific snapshot taken from the original root volume, or that is restored from an AMI that has the same key characteristics as that of the instance.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-restoring-volume.html#replace-root\">Replace a root volume</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p>"
     },
     "CreateReservedInstancesListing":{
       "name":"CreateReservedInstancesListing",
@@ -1942,7 +1962,7 @@
         "requestUri":"/"
       },
       "input":{"shape":"DeregisterImageRequest"},
-      "documentation":"<p>Deregisters the specified AMI. After you deregister an AMI, it can't be used to launch new instances.</p> <p>If you deregister an AMI that matches a Recycle Bin retention rule, the AMI is retained in the Recycle Bin for the specified retention period. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/recycle-bin.html\">Recycle Bin</a> in the Amazon Elastic Compute Cloud User Guide.</p> <p>When you deregister an AMI, it doesn't affect any instances that you've already launched from the AMI. You'll continue to incur usage costs for those instances until you terminate them.</p> <p>When you deregister an Amazon EBS-backed AMI, it doesn't affect the snapshot that was created for the root volume of the instance during the AMI creation process. When you deregister an instance store-backed AMI, it doesn't affect the files that you uploaded to Amazon S3 when you created the AMI.</p>"
+      "documentation":"<p>Deregisters the specified AMI. After you deregister an AMI, it can't be used to launch new instances.</p> <p>If you deregister an AMI that matches a Recycle Bin retention rule, the AMI is retained in the Recycle Bin for the specified retention period. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/recycle-bin.html\">Recycle Bin</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p> <p>When you deregister an AMI, it doesn't affect any instances that you've already launched from the AMI. You'll continue to incur usage costs for those instances until you terminate them.</p> <p>When you deregister an Amazon EBS-backed AMI, it doesn't affect the snapshot that was created for the root volume of the instance during the AMI creation process. When you deregister an instance store-backed AMI, it doesn't affect the files that you uploaded to Amazon S3 when you created the AMI.</p>"
     },
     "DeregisterInstanceEventNotificationAttributes":{
       "name":"DeregisterInstanceEventNotificationAttributes",
@@ -1983,6 +2003,16 @@
       "input":{"shape":"DescribeAccountAttributesRequest"},
       "output":{"shape":"DescribeAccountAttributesResult"},
       "documentation":"<p>Describes attributes of your Amazon Web Services account. The following are the supported account attributes:</p> <ul> <li> <p> <code>supported-platforms</code>: Indicates whether your account can launch instances into EC2-Classic and EC2-VPC, or only into EC2-VPC.</p> </li> <li> <p> <code>default-vpc</code>: The ID of the default VPC for your account, or <code>none</code>.</p> </li> <li> <p> <code>max-instances</code>: This attribute is no longer supported. The returned value does not reflect your actual vCPU limit for running On-Demand Instances. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-on-demand-instances.html#ec2-on-demand-instances-limits\">On-Demand Instance Limits</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p> </li> <li> <p> <code>vpc-max-security-groups-per-interface</code>: The maximum number of security groups that you can assign to a network interface.</p> </li> <li> <p> <code>max-elastic-ips</code>: The maximum number of Elastic IP addresses that you can allocate for use with EC2-Classic. </p> </li> <li> <p> <code>vpc-max-elastic-ips</code>: The maximum number of Elastic IP addresses that you can allocate for use with EC2-VPC.</p> </li> </ul> <note> <p>We are retiring EC2-Classic on August 15, 2022. We recommend that you migrate from EC2-Classic to a VPC. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/vpc-migrate.html\">Migrate from EC2-Classic to a VPC</a> in the <i>Amazon EC2 User Guide</i>.</p> </note>"
+    },
+    "DescribeAddressTransfers":{
+      "name":"DescribeAddressTransfers",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DescribeAddressTransfersRequest"},
+      "output":{"shape":"DescribeAddressTransfersResult"},
+      "documentation":"<p>Describes an Elastic IP address transfer. For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/vpc-eips.html#transfer-EIPs-intro\">Transfer Elastic IP addresses</a> in the <i>Amazon Virtual Private Cloud User Guide</i>.</p>"
     },
     "DescribeAddresses":{
       "name":"DescribeAddresses",
@@ -2942,7 +2972,7 @@
       },
       "input":{"shape":"DescribeSpotFleetRequestHistoryRequest"},
       "output":{"shape":"DescribeSpotFleetRequestHistoryResponse"},
-      "documentation":"<p>Describes the events for the specified Spot Fleet request during the specified time.</p> <p>Spot Fleet events are delayed by up to 30 seconds before they can be described. This ensures that you can query by the last evaluated time and not miss a recorded event. Spot Fleet events are available for 48 hours.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/fleet-monitor.html\">Monitor fleet events using Amazon EventBridge</a> in the <i>Amazon EC2 User Guide for Linux Instances</i>.</p>"
+      "documentation":"<p>Describes the events for the specified Spot Fleet request during the specified time.</p> <p>Spot Fleet events are delayed by up to 30 seconds before they can be described. This ensures that you can query by the last evaluated time and not miss a recorded event. Spot Fleet events are available for 48 hours.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/fleet-monitor.html\">Monitor fleet events using Amazon EventBridge</a> in the <i>Amazon EC2 User Guide</i>.</p>"
     },
     "DescribeSpotFleetRequests":{
       "name":"DescribeSpotFleetRequests",
@@ -3371,6 +3401,16 @@
       "input":{"shape":"DetachVpnGatewayRequest"},
       "documentation":"<p>Detaches a virtual private gateway from a VPC. You do this if you're planning to turn off the VPC and not use it anymore. You can confirm a virtual private gateway has been completely detached from a VPC by describing the virtual private gateway (any attachments to the virtual private gateway are also described).</p> <p>You must wait for the attachment's state to switch to <code>detached</code> before you can delete the VPC or attach a different VPC to the virtual private gateway.</p>"
     },
+    "DisableAddressTransfer":{
+      "name":"DisableAddressTransfer",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DisableAddressTransferRequest"},
+      "output":{"shape":"DisableAddressTransferResult"},
+      "documentation":"<p>Disables Elastic IP address transfer. For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/vpc-eips.html#transfer-EIPs-intro\">Transfer Elastic IP addresses</a> in the <i>Amazon Virtual Private Cloud User Guide</i>.</p>"
+    },
     "DisableEbsEncryptionByDefault":{
       "name":"DisableEbsEncryptionByDefault",
       "http":{
@@ -3587,6 +3627,16 @@
       "input":{"shape":"DisassociateVpcCidrBlockRequest"},
       "output":{"shape":"DisassociateVpcCidrBlockResult"},
       "documentation":"<p>Disassociates a CIDR block from a VPC. To disassociate the CIDR block, you must specify its association ID. You can get the association ID by using <a>DescribeVpcs</a>. You must detach or delete all gateways and resources that are associated with the CIDR block before you can disassociate it. </p> <p>You cannot disassociate the CIDR block with which you originally created the VPC (the primary CIDR block).</p>"
+    },
+    "EnableAddressTransfer":{
+      "name":"EnableAddressTransfer",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"EnableAddressTransferRequest"},
+      "output":{"shape":"EnableAddressTransferResult"},
+      "documentation":"<p>Enables Elastic IP address transfer. For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/vpc-eips.html#transfer-EIPs-intro\">Transfer Elastic IP addresses</a> in the <i>Amazon Virtual Private Cloud User Guide</i>.</p>"
     },
     "EnableEbsEncryptionByDefault":{
       "name":"EnableEbsEncryptionByDefault",
@@ -4844,7 +4894,7 @@
       },
       "input":{"shape":"RegisterImageRequest"},
       "output":{"shape":"RegisterImageResult"},
-      "documentation":"<p>Registers an AMI. When you're creating an AMI, this is the final step you must complete before you can launch an instance from the AMI. For more information about creating AMIs, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/creating-an-ami.html\">Creating your own AMIs</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p> <note> <p>For Amazon EBS-backed instances, <a>CreateImage</a> creates and registers the AMI in a single request, so you don't have to register the AMI yourself. We recommend that you always use <a>CreateImage</a> unless you have a specific reason to use RegisterImage.</p> </note> <p>If needed, you can deregister an AMI at any time. Any modifications you make to an AMI backed by an instance store volume invalidates its registration. If you make changes to an image, deregister the previous image and register the new image.</p> <p> <b>Register a snapshot of a root device volume</b> </p> <p>You can use <code>RegisterImage</code> to create an Amazon EBS-backed Linux AMI from a snapshot of a root device volume. You specify the snapshot using a block device mapping. You can't set the encryption state of the volume using the block device mapping. If the snapshot is encrypted, or encryption by default is enabled, the root volume of an instance launched from the AMI is encrypted.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/creating-an-ami-ebs.html#creating-launching-ami-from-snapshot\">Create a Linux AMI from a snapshot</a> and <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AMIEncryption.html\">Use encryption with Amazon EBS-backed AMIs</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p> <p> <b>Amazon Web Services Marketplace product codes</b> </p> <p>If any snapshots have Amazon Web Services Marketplace product codes, they are copied to the new AMI.</p> <p>Windows and some Linux distributions, such as Red Hat Enterprise Linux (RHEL) and SUSE Linux Enterprise Server (SLES), use the Amazon EC2 billing product code associated with an AMI to verify the subscription status for package updates. To create a new AMI for operating systems that require a billing product code, instead of registering the AMI, do the following to preserve the billing product code association:</p> <ol> <li> <p>Launch an instance from an existing AMI with that billing product code.</p> </li> <li> <p>Customize the instance.</p> </li> <li> <p>Create an AMI from the instance using <a>CreateImage</a>.</p> </li> </ol> <p>If you purchase a Reserved Instance to apply to an On-Demand Instance that was launched from an AMI with a billing product code, make sure that the Reserved Instance has the matching billing product code. If you purchase a Reserved Instance without the matching billing product code, the Reserved Instance will not be applied to the On-Demand Instance. For information about how to obtain the platform details and billing information of an AMI, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ami-billing-info.html\">Understanding AMI billing</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p>"
+      "documentation":"<p>Registers an AMI. When you're creating an AMI, this is the final step you must complete before you can launch an instance from the AMI. For more information about creating AMIs, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/creating-an-ami.html\">Create your own AMI</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p> <note> <p>For Amazon EBS-backed instances, <a>CreateImage</a> creates and registers the AMI in a single request, so you don't have to register the AMI yourself. We recommend that you always use <a>CreateImage</a> unless you have a specific reason to use RegisterImage.</p> </note> <p>If needed, you can deregister an AMI at any time. Any modifications you make to an AMI backed by an instance store volume invalidates its registration. If you make changes to an image, deregister the previous image and register the new image.</p> <p> <b>Register a snapshot of a root device volume</b> </p> <p>You can use <code>RegisterImage</code> to create an Amazon EBS-backed Linux AMI from a snapshot of a root device volume. You specify the snapshot using a block device mapping. You can't set the encryption state of the volume using the block device mapping. If the snapshot is encrypted, or encryption by default is enabled, the root volume of an instance launched from the AMI is encrypted.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/creating-an-ami-ebs.html#creating-launching-ami-from-snapshot\">Create a Linux AMI from a snapshot</a> and <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AMIEncryption.html\">Use encryption with Amazon EBS-backed AMIs</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p> <p> <b>Amazon Web Services Marketplace product codes</b> </p> <p>If any snapshots have Amazon Web Services Marketplace product codes, they are copied to the new AMI.</p> <p>Windows and some Linux distributions, such as Red Hat Enterprise Linux (RHEL) and SUSE Linux Enterprise Server (SLES), use the Amazon EC2 billing product code associated with an AMI to verify the subscription status for package updates. To create a new AMI for operating systems that require a billing product code, instead of registering the AMI, do the following to preserve the billing product code association:</p> <ol> <li> <p>Launch an instance from an existing AMI with that billing product code.</p> </li> <li> <p>Customize the instance.</p> </li> <li> <p>Create an AMI from the instance using <a>CreateImage</a>.</p> </li> </ol> <p>If you purchase a Reserved Instance to apply to an On-Demand Instance that was launched from an AMI with a billing product code, make sure that the Reserved Instance has the matching billing product code. If you purchase a Reserved Instance without the matching billing product code, the Reserved Instance will not be applied to the On-Demand Instance. For information about how to obtain the platform details and billing information of an AMI, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ami-billing-info.html\">Understand AMI billing information</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p>"
     },
     "RegisterInstanceEventNotificationAttributes":{
       "name":"RegisterInstanceEventNotificationAttributes",
@@ -5030,7 +5080,7 @@
       },
       "input":{"shape":"RequestSpotFleetRequest"},
       "output":{"shape":"RequestSpotFleetResponse"},
-      "documentation":"<p>Creates a Spot Fleet request.</p> <p>The Spot Fleet request specifies the total target capacity and the On-Demand target capacity. Amazon EC2 calculates the difference between the total capacity and On-Demand capacity, and launches the difference as Spot capacity.</p> <p>You can submit a single request that includes multiple launch specifications that vary by instance type, AMI, Availability Zone, or subnet.</p> <p>By default, the Spot Fleet requests Spot Instances in the Spot Instance pool where the price per unit is the lowest. Each launch specification can include its own instance weighting that reflects the value of the instance type to your application workload.</p> <p>Alternatively, you can specify that the Spot Fleet distribute the target capacity across the Spot pools included in its launch specifications. By ensuring that the Spot Instances in your Spot Fleet are in different Spot pools, you can improve the availability of your fleet.</p> <p>You can specify tags for the Spot Fleet request and instances launched by the fleet. You cannot tag other resource types in a Spot Fleet request because only the <code>spot-fleet-request</code> and <code>instance</code> resource types are supported.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-fleet-requests.html\">Spot Fleet requests</a> in the <i>Amazon EC2 User Guide for Linux Instances</i>.</p> <important> <p>We strongly discourage using the RequestSpotFleet API because it is a legacy API with no planned investment. For options for requesting Spot Instances, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-best-practices.html#which-spot-request-method-to-use\">Which is the best Spot request method to use?</a> in the <i>Amazon EC2 User Guide for Linux Instances</i>.</p> </important>"
+      "documentation":"<p>Creates a Spot Fleet request.</p> <p>The Spot Fleet request specifies the total target capacity and the On-Demand target capacity. Amazon EC2 calculates the difference between the total capacity and On-Demand capacity, and launches the difference as Spot capacity.</p> <p>You can submit a single request that includes multiple launch specifications that vary by instance type, AMI, Availability Zone, or subnet.</p> <p>By default, the Spot Fleet requests Spot Instances in the Spot Instance pool where the price per unit is the lowest. Each launch specification can include its own instance weighting that reflects the value of the instance type to your application workload.</p> <p>Alternatively, you can specify that the Spot Fleet distribute the target capacity across the Spot pools included in its launch specifications. By ensuring that the Spot Instances in your Spot Fleet are in different Spot pools, you can improve the availability of your fleet.</p> <p>You can specify tags for the Spot Fleet request and instances launched by the fleet. You cannot tag other resource types in a Spot Fleet request because only the <code>spot-fleet-request</code> and <code>instance</code> resource types are supported.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-fleet-requests.html\">Spot Fleet requests</a> in the <i>Amazon EC2 User Guide</i>.</p> <important> <p>We strongly discourage using the RequestSpotFleet API because it is a legacy API with no planned investment. For options for requesting Spot Instances, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-best-practices.html#which-spot-request-method-to-use\">Which is the best Spot request method to use?</a> in the <i>Amazon EC2 User Guide</i>.</p> </important>"
     },
     "RequestSpotInstances":{
       "name":"RequestSpotInstances",
@@ -5488,6 +5538,35 @@
       "member":{
         "shape":"AcceleratorType",
         "locationName":"item"
+      }
+    },
+    "AcceptAddressTransferRequest":{
+      "type":"structure",
+      "required":["Address"],
+      "members":{
+        "Address":{
+          "shape":"String",
+          "documentation":"<p>The Elastic IP address you are accepting for transfer.</p>"
+        },
+        "TagSpecifications":{
+          "shape":"TagSpecificationList",
+          "documentation":"<p> <code>tag</code>:&lt;key&gt; - The key/value combination of a tag assigned to the resource. Use the tag key in the filter name and the tag value as the filter value. For example, to find all resources that have a tag with the key <code>Owner</code> and the value <code>TeamA</code>, specify <code>tag:Owner</code> for the filter name and <code>TeamA</code> for the filter value.</p>",
+          "locationName":"TagSpecification"
+        },
+        "DryRun":{
+          "shape":"Boolean",
+          "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>"
+        }
+      }
+    },
+    "AcceptAddressTransferResult":{
+      "type":"structure",
+      "members":{
+        "AddressTransfer":{
+          "shape":"AddressTransfer",
+          "documentation":"<p>An Elastic IP address transfer.</p>",
+          "locationName":"addressTransfer"
+        }
       }
     },
     "AcceptReservedInstancesExchangeQuoteRequest":{
@@ -6066,6 +6145,57 @@
         "locationName":"item"
       }
     },
+    "AddressTransfer":{
+      "type":"structure",
+      "members":{
+        "PublicIp":{
+          "shape":"String",
+          "documentation":"<p>The Elastic IP address being transferred.</p>",
+          "locationName":"publicIp"
+        },
+        "AllocationId":{
+          "shape":"String",
+          "documentation":"<p>The allocation ID of an Elastic IP address.</p>",
+          "locationName":"allocationId"
+        },
+        "TransferAccountId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the account that you want to transfer the Elastic IP address to.</p>",
+          "locationName":"transferAccountId"
+        },
+        "TransferOfferExpirationTimestamp":{
+          "shape":"MillisecondDateTime",
+          "documentation":"<p>The timestamp when the Elastic IP address transfer expired. When the source account starts the transfer, the transfer account has seven hours to allocate the Elastic IP address to complete the transfer, or the Elastic IP address will return to its original owner.</p>",
+          "locationName":"transferOfferExpirationTimestamp"
+        },
+        "TransferOfferAcceptedTimestamp":{
+          "shape":"MillisecondDateTime",
+          "documentation":"<p>The timestamp when the Elastic IP address transfer was accepted.</p>",
+          "locationName":"transferOfferAcceptedTimestamp"
+        },
+        "AddressTransferStatus":{
+          "shape":"AddressTransferStatus",
+          "documentation":"<p>The Elastic IP address transfer status.</p>",
+          "locationName":"addressTransferStatus"
+        }
+      },
+      "documentation":"<p>Details on the Elastic IP address transfer. For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/vpc-eips.html#transfer-EIPs-intro\">Transfer Elastic IP addresses</a> in the <i>Amazon Virtual Private Cloud User Guide</i>.</p>"
+    },
+    "AddressTransferList":{
+      "type":"list",
+      "member":{
+        "shape":"AddressTransfer",
+        "locationName":"item"
+      }
+    },
+    "AddressTransferStatus":{
+      "type":"string",
+      "enum":[
+        "pending",
+        "disabled",
+        "accepted"
+      ]
+    },
     "AdvertiseByoipCidrRequest":{
       "type":"structure",
       "required":["Cidr"],
@@ -6321,12 +6451,28 @@
         "lowestPrice",
         "diversified",
         "capacityOptimized",
-        "capacityOptimizedPrioritized"
+        "capacityOptimizedPrioritized",
+        "priceCapacityOptimized"
       ]
     },
     "AllocationType":{
       "type":"string",
       "enum":["used"]
+    },
+    "AllowedInstanceType":{
+      "type":"string",
+      "max":30,
+      "min":1,
+      "pattern":"[a-zA-Z0-9\\.\\*]+"
+    },
+    "AllowedInstanceTypeSet":{
+      "type":"list",
+      "member":{
+        "shape":"AllowedInstanceType",
+        "locationName":"item"
+      },
+      "max":400,
+      "min":0
     },
     "AllowedPrincipal":{
       "type":"structure",
@@ -6688,7 +6834,8 @@
         "i386",
         "x86_64",
         "arm64",
-        "x86_64_mac"
+        "x86_64_mac",
+        "arm64_mac"
       ]
     },
     "ArchitectureTypeList":{
@@ -6713,7 +6860,8 @@
         "i386",
         "x86_64",
         "arm64",
-        "x86_64_mac"
+        "x86_64_mac",
+        "arm64_mac"
       ]
     },
     "ArnList":{
@@ -8510,6 +8658,30 @@
           "shape":"ExportVmTaskId",
           "documentation":"<p>The ID of the export task. This is the ID returned by <code>CreateInstanceExportTask</code>.</p>",
           "locationName":"exportTaskId"
+        }
+      }
+    },
+    "CancelImageLaunchPermissionRequest":{
+      "type":"structure",
+      "required":["ImageId"],
+      "members":{
+        "ImageId":{
+          "shape":"ImageId",
+          "documentation":"<p>The ID of the AMI that was shared with your Amazon Web Services account.</p>"
+        },
+        "DryRun":{
+          "shape":"Boolean",
+          "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>"
+        }
+      }
+    },
+    "CancelImageLaunchPermissionResult":{
+      "type":"structure",
+      "members":{
+        "Return":{
+          "shape":"Boolean",
+          "documentation":"<p>Returns <code>true</code> if the request succeeds; otherwise, it returns an error.</p>",
+          "locationName":"return"
         }
       }
     },
@@ -10368,7 +10540,7 @@
         },
         "Encrypted":{
           "shape":"Boolean",
-          "documentation":"<p>Specifies whether the destination snapshots of the copied image should be encrypted. You can encrypt a copy of an unencrypted snapshot, but you cannot create an unencrypted copy of an encrypted snapshot. The default KMS key for Amazon EBS is used unless you specify a non-default Key Management Service (KMS) KMS key using <code>KmsKeyId</code>. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html\">Amazon EBS Encryption</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p>",
+          "documentation":"<p>Specifies whether the destination snapshots of the copied image should be encrypted. You can encrypt a copy of an unencrypted snapshot, but you cannot create an unencrypted copy of an encrypted snapshot. The default KMS key for Amazon EBS is used unless you specify a non-default Key Management Service (KMS) KMS key using <code>KmsKeyId</code>. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html\">Amazon EBS encryption</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p>",
           "locationName":"encrypted"
         },
         "KmsKeyId":{
@@ -10390,12 +10562,16 @@
         },
         "DestinationOutpostArn":{
           "shape":"String",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the Outpost to which to copy the AMI. Only specify this parameter when copying an AMI from an Amazon Web Services Region to an Outpost. The AMI must be in the Region of the destination Outpost. You cannot copy an AMI from an Outpost to a Region, from one Outpost to another, or within the same Outpost.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/snapshots-outposts.html#copy-amis\"> Copying AMIs from an Amazon Web Services Region to an Outpost</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Outpost to which to copy the AMI. Only specify this parameter when copying an AMI from an Amazon Web Services Region to an Outpost. The AMI must be in the Region of the destination Outpost. You cannot copy an AMI from an Outpost to a Region, from one Outpost to another, or within the same Outpost.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/snapshots-outposts.html#copy-amis\"> Copy AMIs from an Amazon Web Services Region to an Outpost</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p>"
         },
         "DryRun":{
           "shape":"Boolean",
           "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>",
           "locationName":"dryRun"
+        },
+        "CopyImageTags":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates whether to include your user-defined AMI tags when copying the AMI.</p> <p>The following tags will not be copied:</p> <ul> <li> <p>System tags (prefixed with <code>aws:</code>)</p> </li> <li> <p>For public and shared AMIs, user-defined tags that are attached by other Amazon Web Services accounts</p> </li> </ul> <p>Default: Your user-defined AMI tags are not copied.</p>"
         }
       },
       "documentation":"<p>Contains the parameters for CopyImage.</p>"
@@ -11333,7 +11509,7 @@
         },
         "ResourceIds":{
           "shape":"FlowLogResourceIds",
-          "documentation":"<p>The IDs of the resources to monitor. For example, if the resource type is <code>VPC</code>, specify the IDs of the VPCs.</p> <p>Constraints: Maximum of 1000 resources</p>",
+          "documentation":"<p>The IDs of the resources to monitor. For example, if the resource type is <code>VPC</code>, specify the IDs of the VPCs.</p> <p>Constraints: Maximum of 25 for transit gateway resource types. Maximum of 1000 for the other resource types.</p>",
           "locationName":"ResourceId"
         },
         "ResourceType":{
@@ -11342,7 +11518,7 @@
         },
         "TrafficType":{
           "shape":"TrafficType",
-          "documentation":"<p>The type of traffic to monitor (accepted traffic, rejected traffic, or all traffic).</p>"
+          "documentation":"<p>The type of traffic to monitor (accepted traffic, rejected traffic, or all traffic). This parameter is not supported for transit gateway resource types. It is required for the other resource types.</p>"
         },
         "LogDestinationType":{
           "shape":"LogDestinationType",
@@ -11354,7 +11530,7 @@
         },
         "LogFormat":{
           "shape":"String",
-          "documentation":"<p>The fields to include in the flow log record. List the fields in the order in which they should appear. For more information about the available fields, see <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/flow-logs.html#flow-log-records\">Flow log records</a>. If you omit this parameter, the flow log is created using the default format. If you specify this parameter, you must include at least one field.</p> <p>Specify the fields using the <code>${field-id}</code> format, separated by spaces. For the CLI, surround this parameter value with single quotes on Linux or double quotes on Windows.</p>"
+          "documentation":"<p>The fields to include in the flow log record. List the fields in the order in which they should appear. If you omit this parameter, the flow log is created using the default format. If you specify this parameter, you must include at least one field. For more information about the available fields, see <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/flow-logs.html#flow-log-records\">Flow log records</a> in the <i>Amazon VPC User Guide</i> or <a href=\"https://docs.aws.amazon.com/vpc/latest/tgw/tgw-flow-logs.html#flow-log-records\">Transit Gateway Flow Log records</a> in the <i>Amazon Web Services Transit Gateway Guide</i>.</p> <p>Specify the fields using the <code>${field-id}</code> format, separated by spaces. For the CLI, surround this parameter value with single quotes on Linux or double quotes on Windows.</p>"
         },
         "TagSpecifications":{
           "shape":"TagSpecificationList",
@@ -11363,7 +11539,7 @@
         },
         "MaxAggregationInterval":{
           "shape":"Integer",
-          "documentation":"<p>The maximum interval of time during which a flow of packets is captured and aggregated into a flow log record. You can specify 60 seconds (1 minute) or 600 seconds (10 minutes).</p> <p>When a network interface is attached to a <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-types.html#ec2-nitro-instances\">Nitro-based instance</a>, the aggregation interval is always 60 seconds or less, regardless of the value that you specify.</p> <p>Default: 600</p>"
+          "documentation":"<p>The maximum interval of time during which a flow of packets is captured and aggregated into a flow log record. The possible values are 60 seconds (1 minute) or 600 seconds (10 minutes). This parameter must be 60 seconds for transit gateway resource types.</p> <p>When a network interface is attached to a <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-types.html#ec2-nitro-instances\">Nitro-based instance</a>, the aggregation interval is always 60 seconds or less, regardless of the value that you specify.</p> <p>Default: 600</p>"
         },
         "DestinationOptions":{
           "shape":"DestinationOptionsRequest",
@@ -12108,6 +12284,10 @@
         "ConnectivityType":{
           "shape":"ConnectivityType",
           "documentation":"<p>Indicates whether the NAT gateway supports public or private connectivity. The default is public connectivity.</p>"
+        },
+        "PrivateIpAddress":{
+          "shape":"String",
+          "documentation":"<p>The private IPv4 address to assign to the NAT gateway. If you don't provide an address, a private IPv4 address will be automatically assigned.</p>"
         }
       }
     },
@@ -12500,6 +12680,7 @@
       "members":{
         "PlacementGroup":{
           "shape":"PlacementGroup",
+          "documentation":"<p>Information about the placement group.</p>",
           "locationName":"placementGroup"
         }
       }
@@ -12538,7 +12719,7 @@
         },
         "SnapshotId":{
           "shape":"SnapshotId",
-          "documentation":"<p>The ID of the snapshot from which to restore the replacement root volume. If you want to restore the volume to the initial launch state, omit this parameter.</p>"
+          "documentation":"<p>The ID of the snapshot from which to restore the replacement root volume. The specified snapshot must be a snapshot that you previously created from the original root volume.</p> <p>If you want to restore the replacement root volume to the initial launch state, or if you want to restore the replacement root volume from an AMI, omit this parameter.</p>"
         },
         "ClientToken":{
           "shape":"String",
@@ -12553,6 +12734,14 @@
           "shape":"TagSpecificationList",
           "documentation":"<p>The tags to apply to the root volume replacement task.</p>",
           "locationName":"TagSpecification"
+        },
+        "ImageId":{
+          "shape":"ImageId",
+          "documentation":"<p>The ID of the AMI to use to restore the root volume. The specified AMI must have the same product code, billing information, architecture type, and virtualization type as that of the instance.</p> <p>If you want to restore the replacement volume from a specific snapshot, or if you want to restore it to its launch state, omit this parameter.</p>"
+        },
+        "DeleteReplacedRootVolume":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates whether to automatically delete the original root volume after the root volume replacement task completes. To delete the original root volume, specify <code>true</code>. If you choose to keep the original root volume after the replacement task completes, you must manually delete it when you no longer need it.</p>"
         }
       }
     },
@@ -16428,6 +16617,48 @@
         }
       }
     },
+    "DescribeAddressTransfersMaxResults":{
+      "type":"integer",
+      "max":1000,
+      "min":5
+    },
+    "DescribeAddressTransfersRequest":{
+      "type":"structure",
+      "members":{
+        "AllocationIds":{
+          "shape":"AllocationIdList",
+          "documentation":"<p>The allocation IDs of Elastic IP addresses.</p>",
+          "locationName":"AllocationId"
+        },
+        "NextToken":{
+          "shape":"String",
+          "documentation":"<p>Specify the pagination token from a previous request to retrieve the next page of results.</p>"
+        },
+        "MaxResults":{
+          "shape":"DescribeAddressTransfersMaxResults",
+          "documentation":"<p>The maximum number of address transfers to return in one page of results.</p>"
+        },
+        "DryRun":{
+          "shape":"Boolean",
+          "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>"
+        }
+      }
+    },
+    "DescribeAddressTransfersResult":{
+      "type":"structure",
+      "members":{
+        "AddressTransfers":{
+          "shape":"AddressTransferList",
+          "documentation":"<p>The Elastic IP address transfer.</p>",
+          "locationName":"addressTransferSet"
+        },
+        "NextToken":{
+          "shape":"String",
+          "documentation":"<p>Specify the pagination token from a previous request to retrieve the next page of results.</p>",
+          "locationName":"nextToken"
+        }
+      }
+    },
     "DescribeAddressesAttributeRequest":{
       "type":"structure",
       "members":{
@@ -18193,7 +18424,7 @@
         },
         "Filters":{
           "shape":"FilterList",
-          "documentation":"<p>The filters.</p> <ul> <li> <p> <code>architecture</code> - The image architecture (<code>i386</code> | <code>x86_64</code> | <code>arm64</code>).</p> </li> <li> <p> <code>block-device-mapping.delete-on-termination</code> - A Boolean value that indicates whether the Amazon EBS volume is deleted on instance termination.</p> </li> <li> <p> <code>block-device-mapping.device-name</code> - The device name specified in the block device mapping (for example, <code>/dev/sdh</code> or <code>xvdh</code>).</p> </li> <li> <p> <code>block-device-mapping.snapshot-id</code> - The ID of the snapshot used for the Amazon EBS volume.</p> </li> <li> <p> <code>block-device-mapping.volume-size</code> - The volume size of the Amazon EBS volume, in GiB.</p> </li> <li> <p> <code>block-device-mapping.volume-type</code> - The volume type of the Amazon EBS volume (<code>io1</code> | <code>io2</code> | <code>gp2</code> | <code>gp3</code> | <code>sc1 </code>| <code>st1</code> | <code>standard</code>).</p> </li> <li> <p> <code>block-device-mapping.encrypted</code> - A Boolean that indicates whether the Amazon EBS volume is encrypted.</p> </li> <li> <p> <code>creation-date</code> - The time when the image was created, in the ISO 8601 format in the UTC time zone (YYYY-MM-DDThh:mm:ss.sssZ), for example, <code>2021-09-29T11:04:43.305Z</code>. You can use a wildcard (<code>*</code>), for example, <code>2021-09-29T*</code>, which matches an entire day.</p> </li> <li> <p> <code>description</code> - The description of the image (provided during image creation).</p> </li> <li> <p> <code>ena-support</code> - A Boolean that indicates whether enhanced networking with ENA is enabled.</p> </li> <li> <p> <code>hypervisor</code> - The hypervisor type (<code>ovm</code> | <code>xen</code>).</p> </li> <li> <p> <code>image-id</code> - The ID of the image.</p> </li> <li> <p> <code>image-type</code> - The image type (<code>machine</code> | <code>kernel</code> | <code>ramdisk</code>).</p> </li> <li> <p> <code>is-public</code> - A Boolean that indicates whether the image is public.</p> </li> <li> <p> <code>kernel-id</code> - The kernel ID.</p> </li> <li> <p> <code>manifest-location</code> - The location of the image manifest.</p> </li> <li> <p> <code>name</code> - The name of the AMI (provided during image creation).</p> </li> <li> <p> <code>owner-alias</code> - The owner alias (<code>amazon</code> | <code>aws-marketplace</code>). The valid aliases are defined in an Amazon-maintained list. This is not the Amazon Web Services account alias that can be set using the IAM console. We recommend that you use the <b>Owner</b> request parameter instead of this filter.</p> </li> <li> <p> <code>owner-id</code> - The Amazon Web Services account ID of the owner. We recommend that you use the <b>Owner</b> request parameter instead of this filter.</p> </li> <li> <p> <code>platform</code> - The platform. To only list Windows-based AMIs, use <code>windows</code>.</p> </li> <li> <p> <code>product-code</code> - The product code.</p> </li> <li> <p> <code>product-code.type</code> - The type of the product code (<code>marketplace</code>).</p> </li> <li> <p> <code>ramdisk-id</code> - The RAM disk ID.</p> </li> <li> <p> <code>root-device-name</code> - The device name of the root device volume (for example, <code>/dev/sda1</code>).</p> </li> <li> <p> <code>root-device-type</code> - The type of the root device volume (<code>ebs</code> | <code>instance-store</code>).</p> </li> <li> <p> <code>state</code> - The state of the image (<code>available</code> | <code>pending</code> | <code>failed</code>).</p> </li> <li> <p> <code>state-reason-code</code> - The reason code for the state change.</p> </li> <li> <p> <code>state-reason-message</code> - The message for the state change.</p> </li> <li> <p> <code>sriov-net-support</code> - A value of <code>simple</code> indicates that enhanced networking with the Intel 82599 VF interface is enabled.</p> </li> <li> <p> <code>tag</code>:&lt;key&gt; - The key/value combination of a tag assigned to the resource. Use the tag key in the filter name and the tag value as the filter value. For example, to find all resources that have a tag with the key <code>Owner</code> and the value <code>TeamA</code>, specify <code>tag:Owner</code> for the filter name and <code>TeamA</code> for the filter value.</p> </li> <li> <p> <code>tag-key</code> - The key of a tag assigned to the resource. Use this filter to find all resources assigned a tag with a specific key, regardless of the tag value.</p> </li> <li> <p> <code>virtualization-type</code> - The virtualization type (<code>paravirtual</code> | <code>hvm</code>).</p> </li> </ul>",
+          "documentation":"<p>The filters.</p> <ul> <li> <p> <code>architecture</code> - The image architecture (<code>i386</code> | <code>x86_64</code> | <code>arm64</code>).</p> </li> <li> <p> <code>block-device-mapping.delete-on-termination</code> - A Boolean value that indicates whether the Amazon EBS volume is deleted on instance termination.</p> </li> <li> <p> <code>block-device-mapping.device-name</code> - The device name specified in the block device mapping (for example, <code>/dev/sdh</code> or <code>xvdh</code>).</p> </li> <li> <p> <code>block-device-mapping.snapshot-id</code> - The ID of the snapshot used for the Amazon EBS volume.</p> </li> <li> <p> <code>block-device-mapping.volume-size</code> - The volume size of the Amazon EBS volume, in GiB.</p> </li> <li> <p> <code>block-device-mapping.volume-type</code> - The volume type of the Amazon EBS volume (<code>io1</code> | <code>io2</code> | <code>gp2</code> | <code>gp3</code> | <code>sc1 </code>| <code>st1</code> | <code>standard</code>).</p> </li> <li> <p> <code>block-device-mapping.encrypted</code> - A Boolean that indicates whether the Amazon EBS volume is encrypted.</p> </li> <li> <p> <code>creation-date</code> - The time when the image was created, in the ISO 8601 format in the UTC time zone (YYYY-MM-DDThh:mm:ss.sssZ), for example, <code>2021-09-29T11:04:43.305Z</code>. You can use a wildcard (<code>*</code>), for example, <code>2021-09-29T*</code>, which matches an entire day.</p> </li> <li> <p> <code>description</code> - The description of the image (provided during image creation).</p> </li> <li> <p> <code>ena-support</code> - A Boolean that indicates whether enhanced networking with ENA is enabled.</p> </li> <li> <p> <code>hypervisor</code> - The hypervisor type (<code>ovm</code> | <code>xen</code>).</p> </li> <li> <p> <code>image-id</code> - The ID of the image.</p> </li> <li> <p> <code>image-type</code> - The image type (<code>machine</code> | <code>kernel</code> | <code>ramdisk</code>).</p> </li> <li> <p> <code>is-public</code> - A Boolean that indicates whether the image is public.</p> </li> <li> <p> <code>kernel-id</code> - The kernel ID.</p> </li> <li> <p> <code>manifest-location</code> - The location of the image manifest.</p> </li> <li> <p> <code>name</code> - The name of the AMI (provided during image creation).</p> </li> <li> <p> <code>owner-alias</code> - The owner alias (<code>amazon</code> | <code>aws-marketplace</code>). The valid aliases are defined in an Amazon-maintained list. This is not the Amazon Web Services account alias that can be set using the IAM console. We recommend that you use the <b>Owner</b> request parameter instead of this filter.</p> </li> <li> <p> <code>owner-id</code> - The Amazon Web Services account ID of the owner. We recommend that you use the <b>Owner</b> request parameter instead of this filter.</p> </li> <li> <p> <code>platform</code> - The platform. The only supported value is <code>windows</code>.</p> </li> <li> <p> <code>product-code</code> - The product code.</p> </li> <li> <p> <code>product-code.type</code> - The type of the product code (<code>marketplace</code>).</p> </li> <li> <p> <code>ramdisk-id</code> - The RAM disk ID.</p> </li> <li> <p> <code>root-device-name</code> - The device name of the root device volume (for example, <code>/dev/sda1</code>).</p> </li> <li> <p> <code>root-device-type</code> - The type of the root device volume (<code>ebs</code> | <code>instance-store</code>).</p> </li> <li> <p> <code>state</code> - The state of the image (<code>available</code> | <code>pending</code> | <code>failed</code>).</p> </li> <li> <p> <code>state-reason-code</code> - The reason code for the state change.</p> </li> <li> <p> <code>state-reason-message</code> - The message for the state change.</p> </li> <li> <p> <code>sriov-net-support</code> - A value of <code>simple</code> indicates that enhanced networking with the Intel 82599 VF interface is enabled.</p> </li> <li> <p> <code>tag</code>:&lt;key&gt; - The key/value combination of a tag assigned to the resource. Use the tag key in the filter name and the tag value as the filter value. For example, to find all resources that have a tag with the key <code>Owner</code> and the value <code>TeamA</code>, specify <code>tag:Owner</code> for the filter name and <code>TeamA</code> for the filter value.</p> </li> <li> <p> <code>tag-key</code> - The key of a tag assigned to the resource. Use this filter to find all resources assigned a tag with a specific key, regardless of the tag value.</p> </li> <li> <p> <code>virtualization-type</code> - The virtualization type (<code>paravirtual</code> | <code>hvm</code>).</p> </li> </ul>",
           "locationName":"Filter"
         },
         "ImageIds":{
@@ -22669,6 +22900,30 @@
       },
       "documentation":"<p>Describes the Active Directory to be used for client authentication.</p>"
     },
+    "DisableAddressTransferRequest":{
+      "type":"structure",
+      "required":["AllocationId"],
+      "members":{
+        "AllocationId":{
+          "shape":"AllocationId",
+          "documentation":"<p>The allocation ID of an Elastic IP address.</p>"
+        },
+        "DryRun":{
+          "shape":"Boolean",
+          "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>"
+        }
+      }
+    },
+    "DisableAddressTransferResult":{
+      "type":"structure",
+      "members":{
+        "AddressTransfer":{
+          "shape":"AddressTransfer",
+          "documentation":"<p>An Elastic IP address transfer.</p>",
+          "locationName":"addressTransfer"
+        }
+      }
+    },
     "DisableEbsEncryptionByDefaultRequest":{
       "type":"structure",
       "members":{
@@ -24107,6 +24362,37 @@
         "required"
       ]
     },
+    "EnableAddressTransferRequest":{
+      "type":"structure",
+      "required":[
+        "AllocationId",
+        "TransferAccountId"
+      ],
+      "members":{
+        "AllocationId":{
+          "shape":"AllocationId",
+          "documentation":"<p>The allocation ID of an Elastic IP address.</p>"
+        },
+        "TransferAccountId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the account that you want to transfer the Elastic IP address to.</p>"
+        },
+        "DryRun":{
+          "shape":"Boolean",
+          "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>"
+        }
+      }
+    },
+    "EnableAddressTransferResult":{
+      "type":"structure",
+      "members":{
+        "AddressTransfer":{
+          "shape":"AddressTransfer",
+          "documentation":"<p>An Elastic IP address transfer.</p>",
+          "locationName":"addressTransfer"
+        }
+      }
+    },
     "EnableEbsEncryptionByDefaultRequest":{
       "type":"structure",
       "members":{
@@ -24387,7 +24673,7 @@
         },
         "DeprecateAt":{
           "shape":"MillisecondDateTime",
-          "documentation":"<p>The date and time to deprecate the AMI, in UTC, in the following format: <i>YYYY</i>-<i>MM</i>-<i>DD</i>T<i>HH</i>:<i>MM</i>:<i>SS</i>Z. If you specify a value for seconds, Amazon EC2 rounds the seconds to the nearest minute.</p> <p>You can’t specify a date in the past. The upper limit for <code>DeprecateAt</code> is 10 years from now.</p>"
+          "documentation":"<p>The date and time to deprecate the AMI, in UTC, in the following format: <i>YYYY</i>-<i>MM</i>-<i>DD</i>T<i>HH</i>:<i>MM</i>:<i>SS</i>Z. If you specify a value for seconds, Amazon EC2 rounds the seconds to the nearest minute.</p> <p>You can’t specify a date in the past. The upper limit for <code>DeprecateAt</code> is 10 years from now, except for public AMIs, where the upper limit is 2 years from the creation date.</p>"
         },
         "DryRun":{
           "shape":"Boolean",
@@ -25948,7 +26234,7 @@
           "locationName":"version"
         }
       },
-      "documentation":"<p>The Amazon EC2 launch template that can be used by a Spot Fleet to configure Amazon EC2 instances. You must specify either the ID or name of the launch template in the request, but not both.</p> <p>For information about launch templates, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-launch-templates.html\">Launch an instance from a launch template</a> in the <i>Amazon EC2 User Guide for Linux Instances</i>.</p>"
+      "documentation":"<p>The Amazon EC2 launch template that can be used by a Spot Fleet to configure Amazon EC2 instances. You must specify either the ID or name of the launch template in the request, but not both.</p> <p>For information about launch templates, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-launch-templates.html\">Launch an instance from a launch template</a> in the <i>Amazon EC2 User Guide</i>.</p>"
     },
     "FleetLaunchTemplateSpecificationRequest":{
       "type":"structure",
@@ -27118,7 +27404,10 @@
           "shape":"IpamResourceType",
           "documentation":"<p>The resource type.</p>"
         },
-        "ResourceTag":{"shape":"RequestIpamResourceTag"},
+        "ResourceTag":{
+          "shape":"RequestIpamResourceTag",
+          "documentation":"<p>The resource tag.</p>"
+        },
         "ResourceOwner":{
           "shape":"String",
           "documentation":"<p>The ID of the Amazon Web Services account that owns the resource.</p>"
@@ -28660,7 +28949,7 @@
         },
         "PlatformDetails":{
           "shape":"String",
-          "documentation":"<p>The platform details associated with the billing code of the AMI. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ami-billing-info.html\">Understanding AMI billing</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p>",
+          "documentation":"<p>The platform details associated with the billing code of the AMI. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ami-billing-info.html\">Understand AMI billing information</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p>",
           "locationName":"platformDetails"
         },
         "UsageOperation":{
@@ -31189,7 +31478,7 @@
         },
         "ExcludedInstanceTypes":{
           "shape":"ExcludedInstanceTypeSet",
-          "documentation":"<p>The instance types to exclude.</p> <p>You can use strings with one or more wild cards, represented by an asterisk (<code>*</code>), to exclude an instance type, size, or generation. The following are examples: <code>m5.8xlarge</code>, <code>c5*.*</code>, <code>m5a.*</code>, <code>r*</code>, <code>*3*</code>.</p> <p>For example, if you specify <code>c5*</code>,Amazon EC2 will exclude the entire C5 instance family, which includes all C5a and C5n instance types. If you specify <code>m5a.*</code>, Amazon EC2 will exclude all the M5a instance types, but not the M5n instance types.</p> <p>Default: No excluded instance types</p>",
+          "documentation":"<p>The instance types to exclude.</p> <p>You can use strings with one or more wild cards, represented by an asterisk (<code>*</code>), to exclude an instance type, size, or generation. The following are examples: <code>m5.8xlarge</code>, <code>c5*.*</code>, <code>m5a.*</code>, <code>r*</code>, <code>*3*</code>.</p> <p>For example, if you specify <code>c5*</code>,Amazon EC2 will exclude the entire C5 instance family, which includes all C5a and C5n instance types. If you specify <code>m5a.*</code>, Amazon EC2 will exclude all the M5a instance types, but not the M5n instance types.</p> <note> <p>If you specify <code>ExcludedInstanceTypes</code>, you can't specify <code>AllowedInstanceTypes</code>.</p> </note> <p>Default: No excluded instance types</p>",
           "locationName":"excludedInstanceTypeSet"
         },
         "InstanceGenerations":{
@@ -31271,9 +31560,19 @@
           "shape":"AcceleratorTotalMemoryMiB",
           "documentation":"<p>The minimum and maximum amount of total accelerator memory, in MiB.</p> <p>Default: No minimum or maximum limits</p>",
           "locationName":"acceleratorTotalMemoryMiB"
+        },
+        "NetworkBandwidthGbps":{
+          "shape":"NetworkBandwidthGbps",
+          "documentation":"<p>The minimum and maximum amount of network bandwidth, in gigabits per second (Gbps).</p> <p>Default: No minimum or maximum limits</p>",
+          "locationName":"networkBandwidthGbps"
+        },
+        "AllowedInstanceTypes":{
+          "shape":"AllowedInstanceTypeSet",
+          "documentation":"<p>The instance types to apply your specified attributes against. All other instance types are ignored, even if they match your specified attributes.</p> <p>You can use strings with one or more wild cards, represented by an asterisk (<code>*</code>), to allow an instance type, size, or generation. The following are examples: <code>m5.8xlarge</code>, <code>c5*.*</code>, <code>m5a.*</code>, <code>r*</code>, <code>*3*</code>.</p> <p>For example, if you specify <code>c5*</code>,Amazon EC2 will allow the entire C5 instance family, which includes all C5a and C5n instance types. If you specify <code>m5a.*</code>, Amazon EC2 will allow all the M5a instance types, but not the M5n instance types.</p> <note> <p>If you specify <code>AllowedInstanceTypes</code>, you can't specify <code>ExcludedInstanceTypes</code>.</p> </note> <p>Default: All instance types</p>",
+          "locationName":"allowedInstanceTypeSet"
         }
       },
-      "documentation":"<p>The attributes for the instance types. When you specify instance attributes, Amazon EC2 will identify instance types with these attributes.</p> <p>When you specify multiple attributes, you get instance types that satisfy all of the specified attributes. If you specify multiple values for an attribute, you get instance types that satisfy any of the specified values.</p> <note> <p>You must specify <code>VCpuCount</code> and <code>MemoryMiB</code>. All other attributes are optional. Any unspecified optional attribute is set to its default.</p> </note> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-fleet-attribute-based-instance-type-selection.html\">Attribute-based instance type selection for EC2 Fleet</a>, <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-fleet-attribute-based-instance-type-selection.html\">Attribute-based instance type selection for Spot Fleet</a>, and <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-placement-score.html\">Spot placement score</a> in the <i>Amazon EC2 User Guide</i>.</p>"
+      "documentation":"<p>The attributes for the instance types. When you specify instance attributes, Amazon EC2 will identify instance types with these attributes.</p> <p>When you specify multiple attributes, you get instance types that satisfy all of the specified attributes. If you specify multiple values for an attribute, you get instance types that satisfy any of the specified values.</p> <p>To limit the list of instance types from which Amazon EC2 can identify matching instance types, you can use one of the following parameters, but not both in the same request:</p> <ul> <li> <p> <code>AllowedInstanceTypes</code> - The instance types to include in the list. All other instance types are ignored, even if they match your specified attributes.</p> </li> <li> <p> <code>ExcludedInstanceTypes</code> - The instance types to exclude from the list, even if they match your specified attributes.</p> </li> </ul> <note> <p>You must specify <code>VCpuCount</code> and <code>MemoryMiB</code>. All other attributes are optional. Any unspecified optional attribute is set to its default.</p> </note> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-fleet-attribute-based-instance-type-selection.html\">Attribute-based instance type selection for EC2 Fleet</a>, <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-fleet-attribute-based-instance-type-selection.html\">Attribute-based instance type selection for Spot Fleet</a>, and <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-placement-score.html\">Spot placement score</a> in the <i>Amazon EC2 User Guide</i>.</p>"
     },
     "InstanceRequirementsRequest":{
       "type":"structure",
@@ -31301,7 +31600,7 @@
         },
         "ExcludedInstanceTypes":{
           "shape":"ExcludedInstanceTypeSet",
-          "documentation":"<p>The instance types to exclude.</p> <p>You can use strings with one or more wild cards, represented by an asterisk (<code>*</code>), to exclude an instance family, type, size, or generation. The following are examples: <code>m5.8xlarge</code>, <code>c5*.*</code>, <code>m5a.*</code>, <code>r*</code>, <code>*3*</code>.</p> <p>For example, if you specify <code>c5*</code>,Amazon EC2 will exclude the entire C5 instance family, which includes all C5a and C5n instance types. If you specify <code>m5a.*</code>, Amazon EC2 will exclude all the M5a instance types, but not the M5n instance types.</p> <p>Default: No excluded instance types</p>",
+          "documentation":"<p>The instance types to exclude.</p> <p>You can use strings with one or more wild cards, represented by an asterisk (<code>*</code>), to exclude an instance family, type, size, or generation. The following are examples: <code>m5.8xlarge</code>, <code>c5*.*</code>, <code>m5a.*</code>, <code>r*</code>, <code>*3*</code>.</p> <p>For example, if you specify <code>c5*</code>,Amazon EC2 will exclude the entire C5 instance family, which includes all C5a and C5n instance types. If you specify <code>m5a.*</code>, Amazon EC2 will exclude all the M5a instance types, but not the M5n instance types.</p> <note> <p>If you specify <code>ExcludedInstanceTypes</code>, you can't specify <code>AllowedInstanceTypes</code>.</p> </note> <p>Default: No excluded instance types</p>",
           "locationName":"ExcludedInstanceType"
         },
         "InstanceGenerations":{
@@ -31372,9 +31671,18 @@
         "AcceleratorTotalMemoryMiB":{
           "shape":"AcceleratorTotalMemoryMiBRequest",
           "documentation":"<p>The minimum and maximum amount of total accelerator memory, in MiB.</p> <p>Default: No minimum or maximum limits</p>"
+        },
+        "NetworkBandwidthGbps":{
+          "shape":"NetworkBandwidthGbpsRequest",
+          "documentation":"<p>The minimum and maximum amount of network bandwidth, in gigabits per second (Gbps).</p> <p>Default: No minimum or maximum limits</p>"
+        },
+        "AllowedInstanceTypes":{
+          "shape":"AllowedInstanceTypeSet",
+          "documentation":"<p>The instance types to apply your specified attributes against. All other instance types are ignored, even if they match your specified attributes.</p> <p>You can use strings with one or more wild cards, represented by an asterisk (<code>*</code>), to allow an instance type, size, or generation. The following are examples: <code>m5.8xlarge</code>, <code>c5*.*</code>, <code>m5a.*</code>, <code>r*</code>, <code>*3*</code>.</p> <p>For example, if you specify <code>c5*</code>,Amazon EC2 will allow the entire C5 instance family, which includes all C5a and C5n instance types. If you specify <code>m5a.*</code>, Amazon EC2 will allow all the M5a instance types, but not the M5n instance types.</p> <note> <p>If you specify <code>AllowedInstanceTypes</code>, you can't specify <code>ExcludedInstanceTypes</code>.</p> </note> <p>Default: All instance types</p>",
+          "locationName":"AllowedInstanceType"
         }
       },
-      "documentation":"<p>The attributes for the instance types. When you specify instance attributes, Amazon EC2 will identify instance types with these attributes.</p> <p>When you specify multiple attributes, you get instance types that satisfy all of the specified attributes. If you specify multiple values for an attribute, you get instance types that satisfy any of the specified values.</p> <note> <p>You must specify <code>VCpuCount</code> and <code>MemoryMiB</code>. All other attributes are optional. Any unspecified optional attribute is set to its default.</p> </note> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-fleet-attribute-based-instance-type-selection.html\">Attribute-based instance type selection for EC2 Fleet</a>, <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-fleet-attribute-based-instance-type-selection.html\">Attribute-based instance type selection for Spot Fleet</a>, and <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-placement-score.html\">Spot placement score</a> in the <i>Amazon EC2 User Guide</i>.</p>"
+      "documentation":"<p>The attributes for the instance types. When you specify instance attributes, Amazon EC2 will identify instance types with these attributes.</p> <p>When you specify multiple attributes, you get instance types that satisfy all of the specified attributes. If you specify multiple values for an attribute, you get instance types that satisfy any of the specified values.</p> <p>To limit the list of instance types from which Amazon EC2 can identify matching instance types, you can use one of the following parameters, but not both in the same request:</p> <ul> <li> <p> <code>AllowedInstanceTypes</code> - The instance types to include in the list. All other instance types are ignored, even if they match your specified attributes.</p> </li> <li> <p> <code>ExcludedInstanceTypes</code> - The instance types to exclude from the list, even if they match your specified attributes.</p> </li> </ul> <note> <p>You must specify <code>VCpuCount</code> and <code>MemoryMiB</code>. All other attributes are optional. Any unspecified optional attribute is set to its default.</p> </note> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-fleet-attribute-based-instance-type-selection.html\">Attribute-based instance type selection for EC2 Fleet</a>, <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-fleet-attribute-based-instance-type-selection.html\">Attribute-based instance type selection for Spot Fleet</a>, and <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-placement-score.html\">Spot placement score</a> in the <i>Amazon EC2 User Guide</i>.</p>"
     },
     "InstanceRequirementsWithMetadataRequest":{
       "type":"structure",
@@ -32233,7 +32541,11 @@
         "r6a.48xlarge",
         "r6a.metal",
         "p4de.24xlarge",
-        "u-3tb1.56xlarge"
+        "u-3tb1.56xlarge",
+        "u-18tb1.112xlarge",
+        "u-24tb1.112xlarge",
+        "trn1.2xlarge",
+        "trn1.32xlarge"
       ]
     },
     "InstanceTypeHypervisor":{
@@ -34790,6 +35102,11 @@
           "shape":"Integer",
           "documentation":"<p>The number of the partition the instance should launch in. Valid only if the placement group strategy is set to <code>partition</code>.</p>",
           "locationName":"partitionNumber"
+        },
+        "GroupId":{
+          "shape":"PlacementGroupId",
+          "documentation":"<p>The Group ID of the placement group. You must specify the Placement Group <b>Group ID</b> to launch an instance in a shared placement group.</p>",
+          "locationName":"groupId"
         }
       },
       "documentation":"<p>Describes the placement of an instance.</p>"
@@ -34828,6 +35145,10 @@
         "PartitionNumber":{
           "shape":"Integer",
           "documentation":"<p>The number of the partition the instance should launch in. Valid only if the placement group strategy is set to <code>partition</code>.</p>"
+        },
+        "GroupId":{
+          "shape":"PlacementGroupId",
+          "documentation":"<p>The Group Id of a placement group. You must specify the Placement Group <b>Group Id</b> to launch an instance in a shared placement group.</p>"
         }
       },
       "documentation":"<p>Describes the placement of an instance.</p>"
@@ -36622,6 +36943,7 @@
       "members":{
         "Event":{
           "shape":"InstanceStatusEvent",
+          "documentation":"<p>Information about the event.</p>",
           "locationName":"event"
         }
       }
@@ -36780,6 +37102,10 @@
         "HostResourceGroupArn":{
           "shape":"String",
           "documentation":"<p>The ARN of the host resource group in which to place the instance.</p>"
+        },
+        "GroupId":{
+          "shape":"PlacementGroupId",
+          "documentation":"<p>The Group Id of a placement group. You must specify the Placement Group <b>Group Id</b> to launch an instance in a shared placement group.</p>"
         }
       }
     },
@@ -36924,6 +37250,7 @@
       "members":{
         "IpamResourceCidr":{
           "shape":"IpamResourceCidr",
+          "documentation":"<p>The CIDR of the resource.</p>",
           "locationName":"ipamResourceCidr"
         }
       }
@@ -38446,6 +38773,7 @@
       "members":{
         "ByoipCidr":{
           "shape":"ByoipCidr",
+          "documentation":"<p>The BYOIP CIDR.</p>",
           "locationName":"byoipCidr"
         }
       }
@@ -38749,6 +39077,36 @@
         "shape":"NetworkAcl",
         "locationName":"item"
       }
+    },
+    "NetworkBandwidthGbps":{
+      "type":"structure",
+      "members":{
+        "Min":{
+          "shape":"Double",
+          "documentation":"<p>The minimum amount of network bandwidth, in Gbps. If this parameter is not specified, there is no minimum limit.</p>",
+          "locationName":"min"
+        },
+        "Max":{
+          "shape":"Double",
+          "documentation":"<p>The maximum amount of network bandwidth, in Gbps. If this parameter is not specified, there is no maximum limit.</p>",
+          "locationName":"max"
+        }
+      },
+      "documentation":"<p>The minimum and maximum amount of network bandwidth, in gigabits per second (Gbps).</p> <note> <p>Setting the minimum bandwidth does not guarantee that your instance will achieve the minimum bandwidth. Amazon EC2 will identify instance types that support the specified minimum bandwidth, but the actual bandwidth of your instance might go below the specified minimum at times. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-network-bandwidth.html#available-instance-bandwidth\">Available instance bandwidth</a> in the <i>Amazon EC2 User Guide</i>.</p> </note>"
+    },
+    "NetworkBandwidthGbpsRequest":{
+      "type":"structure",
+      "members":{
+        "Min":{
+          "shape":"Double",
+          "documentation":"<p>The minimum amount of network bandwidth, in Gbps. To specify no minimum limit, omit this parameter.</p>"
+        },
+        "Max":{
+          "shape":"Double",
+          "documentation":"<p>The maximum amount of network bandwidth, in Gbps. To specify no maximum limit, omit this parameter.</p>"
+        }
+      },
+      "documentation":"<p>The minimum and maximum amount of network bandwidth, in gigabits per second (Gbps).</p> <note> <p>Setting the minimum bandwidth does not guarantee that your instance will achieve the minimum bandwidth. Amazon EC2 will identify instance types that support the specified minimum bandwidth, but the actual bandwidth of your instance might go below the specified minimum at times. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-network-bandwidth.html#available-instance-bandwidth\">Available instance bandwidth</a> in the <i>Amazon EC2 User Guide</i>.</p> </note>"
     },
     "NetworkCardIndex":{"type":"integer"},
     "NetworkCardInfo":{
@@ -40364,6 +40722,11 @@
           "shape":"String",
           "documentation":"<p>The ARN of the host resource group in which to launch the instances. If you specify a host resource group ARN, omit the <b>Tenancy</b> parameter or set it to <code>host</code>.</p> <p>This parameter is not supported by <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateFleet\">CreateFleet</a>.</p>",
           "locationName":"hostResourceGroupArn"
+        },
+        "GroupId":{
+          "shape":"PlacementGroupId",
+          "documentation":"<p>The Group Id of the placement group.</p>",
+          "locationName":"groupId"
         }
       },
       "documentation":"<p>Describes the placement of an instance.</p>"
@@ -41147,6 +41510,7 @@
         },
         "PoolAddressRange":{
           "shape":"PublicIpv4PoolRange",
+          "documentation":"<p>Information about the address range of the public IPv4 pool.</p>",
           "locationName":"poolAddressRange"
         }
       }
@@ -42262,6 +42626,21 @@
           "shape":"TagList",
           "documentation":"<p>The tags assigned to the task.</p>",
           "locationName":"tagSet"
+        },
+        "ImageId":{
+          "shape":"ImageId",
+          "documentation":"<p>The ID of the AMI used to create the replacement root volume.</p>",
+          "locationName":"imageId"
+        },
+        "SnapshotId":{
+          "shape":"SnapshotId",
+          "documentation":"<p>The ID of the snapshot used to create the replacement root volume.</p>",
+          "locationName":"snapshotId"
+        },
+        "DeleteReplacedRootVolume":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates whether the original root volume is to be deleted after the root volume replacement task completes.</p>",
+          "locationName":"deleteReplacedRootVolume"
         }
       },
       "documentation":"<p>Information about a root volume replacement task.</p>"
@@ -44909,7 +45288,7 @@
       "members":{
         "AWSAccessKeyId":{
           "shape":"String",
-          "documentation":"<p>The access key ID of the owner of the bucket. Before you specify a value for your access key ID, review and follow the guidance in <a href=\"https://docs.aws.amazon.com/general/latest/gr/aws-access-keys-best-practices.html\">Best Practices for Managing Amazon Web Services Access Keys</a>.</p>"
+          "documentation":"<p>The access key ID of the owner of the bucket. Before you specify a value for your access key ID, review and follow the guidance in <a href=\"https://docs.aws.amazon.com/general/latest/gr/aws-access-keys-best-practices.html\">Best practices for managing Amazon Web Services access keys</a>.</p>"
         },
         "Bucket":{
           "shape":"String",
@@ -46564,7 +46943,8 @@
         "lowest-price",
         "diversified",
         "capacity-optimized",
-        "capacity-optimized-prioritized"
+        "capacity-optimized-prioritized",
+        "price-capacity-optimized"
       ]
     },
     "SpotCapacityRebalance":{
@@ -46771,7 +47151,7 @@
       "members":{
         "AllocationStrategy":{
           "shape":"AllocationStrategy",
-          "documentation":"<p>The strategy that determines how to allocate the target Spot Instance capacity across the Spot Instance pools specified by the Spot Fleet launch configuration. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-fleet-allocation-strategy.html\">Allocation strategies for Spot Instances</a> in the <i>Amazon EC2 User Guide for Linux Instances</i>.</p> <p> <code>lowestPrice</code> - Spot Fleet launches instances from the lowest-price Spot Instance pool that has available capacity. If the cheapest pool doesn't have available capacity, the Spot Instances come from the next cheapest pool that has available capacity. If a pool runs out of capacity before fulfilling your desired capacity, Spot Fleet will continue to fulfill your request by drawing from the next cheapest pool. To ensure that your desired capacity is met, you might receive Spot Instances from several pools.</p> <p> <code>diversified</code> - Spot Fleet launches instances from all of the Spot Instance pools that you specify.</p> <p> <code>capacityOptimized</code> (recommended) - Spot Fleet launches instances from Spot Instance pools with optimal capacity for the number of instances that are launching. To give certain instance types a higher chance of launching first, use <code>capacityOptimizedPrioritized</code>. Set a priority for each instance type by using the <code>Priority</code> parameter for <code>LaunchTemplateOverrides</code>. You can assign the same priority to different <code>LaunchTemplateOverrides</code>. EC2 implements the priorities on a best-effort basis, but optimizes for capacity first. <code>capacityOptimizedPrioritized</code> is supported only if your Spot Fleet uses a launch template. Note that if the <code>OnDemandAllocationStrategy</code> is set to <code>prioritized</code>, the same priority is applied when fulfilling On-Demand capacity.</p> <p>Default: <code>lowestPrice</code> </p>",
+          "documentation":"<p>The strategy that determines how to allocate the target Spot Instance capacity across the Spot Instance pools specified by the Spot Fleet launch configuration. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-fleet-allocation-strategy.html\">Allocation strategies for Spot Instances</a> in the <i>Amazon EC2 User Guide</i>.</p> <p> <code>lowestPrice</code> - Spot Fleet launches instances from the lowest-price Spot Instance pool that has available capacity. If the cheapest pool doesn't have available capacity, the Spot Instances come from the next cheapest pool that has available capacity. If a pool runs out of capacity before fulfilling your desired capacity, Spot Fleet will continue to fulfill your request by drawing from the next cheapest pool. To ensure that your desired capacity is met, you might receive Spot Instances from several pools.</p> <p> <code>diversified</code> - Spot Fleet launches instances from all of the Spot Instance pools that you specify.</p> <p> <code>capacityOptimized</code> (recommended) - Spot Fleet launches instances from Spot Instance pools with optimal capacity for the number of instances that are launching. To give certain instance types a higher chance of launching first, use <code>capacityOptimizedPrioritized</code>. Set a priority for each instance type by using the <code>Priority</code> parameter for <code>LaunchTemplateOverrides</code>. You can assign the same priority to different <code>LaunchTemplateOverrides</code>. EC2 implements the priorities on a best-effort basis, but optimizes for capacity first. <code>capacityOptimizedPrioritized</code> is supported only if your Spot Fleet uses a launch template. Note that if the <code>OnDemandAllocationStrategy</code> is set to <code>prioritized</code>, the same priority is applied when fulfilling On-Demand capacity.</p> <p>Default: <code>lowestPrice</code> </p>",
           "locationName":"allocationStrategy"
         },
         "OnDemandAllocationStrategy":{
@@ -46806,7 +47186,7 @@
         },
         "IamFleetRole":{
           "shape":"String",
-          "documentation":"<p>The Amazon Resource Name (ARN) of an Identity and Access Management (IAM) role that grants the Spot Fleet the permission to request, launch, terminate, and tag instances on your behalf. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-fleet-requests.html#spot-fleet-prerequisites\">Spot Fleet prerequisites</a> in the <i>Amazon EC2 User Guide for Linux Instances</i>. Spot Fleet can terminate Spot Instances on your behalf when you cancel its Spot Fleet request using <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CancelSpotFleetRequests\">CancelSpotFleetRequests</a> or when the Spot Fleet request expires, if you set <code>TerminateInstancesWithExpiration</code>.</p>",
+          "documentation":"<p>The Amazon Resource Name (ARN) of an Identity and Access Management (IAM) role that grants the Spot Fleet the permission to request, launch, terminate, and tag instances on your behalf. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-fleet-requests.html#spot-fleet-prerequisites\">Spot Fleet prerequisites</a> in the <i>Amazon EC2 User Guide</i>. Spot Fleet can terminate Spot Instances on your behalf when you cancel its Spot Fleet request using <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CancelSpotFleetRequests\">CancelSpotFleetRequests</a> or when the Spot Fleet request expires, if you set <code>TerminateInstancesWithExpiration</code>.</p>",
           "locationName":"iamFleetRole"
         },
         "LaunchSpecifications":{

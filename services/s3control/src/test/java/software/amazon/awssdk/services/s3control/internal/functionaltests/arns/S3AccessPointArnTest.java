@@ -19,6 +19,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3control.S3ControlClient;
 
@@ -38,8 +39,8 @@ public class S3AccessPointArnTest extends S3ControlWireMockTestBase {
     public void malformedArn_MissingOutpostSegment_shouldThrowException() {
         String accessPointArn = "arn:aws:s3-outposts:us-west-2:123456789012:outpost";
 
-        exception.expect(IllegalArgumentException.class);
-        exception.expectMessage("Unknown ARN type");
+        exception.expect(SdkClientException.class);
+        exception.expectMessage("Invalid ARN: The Outpost Id was not set");
         s3Control.getAccessPoint(b -> b.name(accessPointArn));
     }
 
@@ -47,8 +48,8 @@ public class S3AccessPointArnTest extends S3ControlWireMockTestBase {
     public void malformedArn_MissingAccessPointSegment_shouldThrowException() {
         String accessPointArn = "arn:aws:s3-outposts:us-west-2:123456789012:outpost:op-01234567890123456";
 
-        exception.expect(IllegalArgumentException.class);
-        exception.expectMessage("Invalid format");
+        exception.expect(SdkClientException.class);
+        exception.expectMessage("Invalid ARN: Expected a 4-component resource");
         s3Control.getAccessPoint(b -> b.name(accessPointArn));
     }
 
@@ -56,23 +57,19 @@ public class S3AccessPointArnTest extends S3ControlWireMockTestBase {
     public void malformedArn_MissingAccessPointName_shouldThrowException() {
         String accessPointArn = "arn:aws:s3-outposts:us-west-2:123456789012:outpost:myaccesspoint";
 
-        exception.expect(IllegalArgumentException.class);
-        exception.expectMessage("Invalid format");
+        exception.expect(SdkClientException.class);
+        exception.expectMessage("Invalid ARN: Expected a 4-component resource");
         s3Control.getAccessPoint(b -> b.name(accessPointArn));
     }
-    
+
+    @Test
     public void bucketArnDifferentRegionNoConfigFlag_throwsIllegalArgumentException() {
         S3ControlClient s3ControlCustom = initializedBuilder().region(Region.of("us-east-1")).build();
         String accessPointArn = "arn:aws:s3-outposts:us-west-2:123456789012:outpost:op-01234567890123456:accesspoint"
                                 + ":myaccesspoint";
 
-        exception.expect(IllegalArgumentException.class);
-        exception.expectMessage("does not match the region the client was configured with");
+        exception.expect(SdkClientException.class);
+        exception.expectMessage("Invalid configuration: region from ARN `us-west-2` does not match client region `us-east-1` and UseArnRegion is `false`");
         s3ControlCustom.getAccessPoint(b -> b.name(accessPointArn));
-    }
-
-    @Override
-    String expectedUrl() {
-        return EXPECTED_URL;
     }
 }

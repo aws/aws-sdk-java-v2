@@ -1,0 +1,84 @@
+{
+    "version": "2.18.12",
+    "date": "2022-11-07",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS CloudTrail",
+            "contributor": "",
+            "description": "This release includes support for configuring a delegated administrator to manage an AWS Organizations organization CloudTrail trails and event data stores, and AWS Key Management Service encryption of CloudTrail Lake event data stores."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaConvert",
+            "contributor": "",
+            "description": "The AWS Elemental MediaConvert SDK has added support for setting the SDR reference white point for HDR conversions and conversion of HDR10 to DolbyVision without mastering metadata."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "The SSOCredentialProvider should resolve to SSO Token Provider if the profile has sso_session property defined in it."
+        },
+        {
+            "type": "feature",
+            "category": "AWS WAFV2",
+            "contributor": "",
+            "description": "The geo match statement now adds labels for country and region. You can match requests at the region level by combining a geo match statement with label match statements."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Well-Architected Tool",
+            "contributor": "",
+            "description": "This release adds support for integrations with AWS Trusted Advisor and AWS Service Catalog AppRegistry to improve workload discovery and speed up your workload reviews."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Athena",
+            "contributor": "",
+            "description": "Adds support for using Query Result Reuse"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon ElastiCache",
+            "contributor": "",
+            "description": "Added support for IPv6 and dual stack for Memcached and Redis clusters. Customers can now launch new Redis and Memcached clusters with IPv6 and dual stack networking support."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "This release adds support for two new attributes for attribute-based instance type selection - NetworkBandwidthGbps and AllowedInstanceTypes."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lex Model Building V2",
+            "contributor": "",
+            "description": "Amazon Lex now supports new APIs for viewing and editing Custom Vocabulary in bots."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "contributor": "",
+            "description": "This release includes support for applying a CloudWatch alarm to multi account multi region Systems Manager Automation"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkSpaces",
+            "contributor": "",
+            "description": "This release adds protocols attribute to workspaces properties data type. This enables customers to migrate workspaces from PC over IP (PCoIP) to WorkSpaces Streaming Protocol (WSP) using create and modify workspaces public APIs."
+        },
+        {
+            "type": "feature",
+            "category": "Auto Scaling",
+            "contributor": "",
+            "description": "This release adds support for two new attributes for attribute-based instance type selection - NetworkBandwidthGbps and AllowedInstanceTypes."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

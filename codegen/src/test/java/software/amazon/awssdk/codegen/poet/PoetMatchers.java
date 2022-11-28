@@ -34,12 +34,13 @@ public final class PoetMatchers {
 
     private static final CodeTransformer processor = CodeTransformer.chain(new CopyrightRemover(),
                                                                            new JavaCodeFormatter());
+    private static final CodeTransformer formattingDisabledProcessor = CodeTransformer.chain(new CopyrightRemover());
 
-    public static Matcher<ClassSpec> generatesTo(String expectedTestFile) {
+    public static Matcher<ClassSpec> generatesTo(String expectedTestFile, boolean disableFormatting) {
         return new TypeSafeMatcher<ClassSpec>() {
             @Override
             protected boolean matchesSafely(ClassSpec spec) {
-                String expectedClass = getExpectedClass(spec, expectedTestFile);
+                String expectedClass = getExpectedClass(spec, expectedTestFile, disableFormatting);
                 String actualClass = generateClass(spec);
                 try {
                     assertThat(actualClass, equalToIgnoringWhiteSpace(expectedClass));
@@ -58,10 +59,36 @@ public final class PoetMatchers {
         };
     }
 
-    private static String getExpectedClass(ClassSpec spec, String testFile) {
+    public static Matcher<ClassSpec> generatesTo(String expectedTestFile) {
+        return new TypeSafeMatcher<ClassSpec>() {
+            @Override
+            protected boolean matchesSafely(ClassSpec spec) {
+                String expectedClass = getExpectedClass(spec, expectedTestFile, false);
+                String actualClass = generateClass(spec);
+                try {
+                    assertThat(actualClass, equalToIgnoringWhiteSpace(expectedClass));
+                } catch (AssertionError e) {
+                    //Unfortunately for string comparisons Hamcrest doesn't really give us a nice diff. On the other hand
+                    //IDEs know how to nicely display JUnit's ComparisonFailure - makes debugging tests much easier
+                    throw new ComparisonFailure(String.format("Output class does not match expected [test-file: %s]", expectedTestFile), expectedClass, actualClass);
+                }
+                return true;
+            }
+
+            @Override
+            public void describeTo(Description description) {
+                //Since we bubble an exception this will never actually get called
+            }
+        };
+    }
+
+    private static String getExpectedClass(ClassSpec spec, String testFile, boolean disableFormatting) {
         try {
             InputStream resource = spec.getClass().getResourceAsStream(testFile);
             Validate.notNull(resource, "Failed to load test file " + testFile + " with " + spec.getClass());
+            if (disableFormatting) {
+                return formattingDisabledProcessor.apply(IoUtils.toUtf8String(resource));
+            }
             return processor.apply(IoUtils.toUtf8String(resource));
         } catch (IOException e) {
             throw new RuntimeException(e);

@@ -82,8 +82,8 @@ public abstract class S3ControlWireMockTestBase {
         return this.s3ControlWireMockRequestHandler.getRecordedEndpoints();
     }
 
-    protected void verifyOutpostRequest(String region, String expectedHost) {
-        verify(getRequestedFor(urlEqualTo(expectedUrl()))
+    protected void verifyOutpostRequest(String region, String expectedUrl, String expectedHost) {
+        verify(getRequestedFor(urlEqualTo(expectedUrl))
                    .withHeader("Authorization", containing(String.format("%s/s3-outposts/aws4_request", region)))
                    .withHeader("x-amz-outpost-id", equalTo("op-01234567890123456"))
                    .withHeader("x-amz-account-id", equalTo("123456789012")));
@@ -91,16 +91,15 @@ public abstract class S3ControlWireMockTestBase {
         assertThat(getRecordedEndpoints().get(0).getHost(), is(expectedHost));
     }
 
-    protected void stubResponse() {
-        stubFor(get(urlMatching(expectedUrl())).willReturn(aResponse().withBody("<xml></xml>").withStatus(200)));
+    protected void stubResponse(String url) {
+        stubFor(get(urlMatching(url)).willReturn(aResponse().withBody("<xml></xml>").withStatus(200)));
     }
 
-    protected void verifyS3ControlRequest(String region, String expectedHost) {
-        verify(getRequestedFor(urlEqualTo(expectedUrl())).withHeader("Authorization", containing(String.format("%s/s3/aws4_request", region)))
+    protected void verifyS3ControlRequest(String region, String expectedUrl, String expectedHost) {
+        verify(getRequestedFor(urlEqualTo(expectedUrl)).withHeader("Authorization", containing(String.format("%s/s3/aws4_request",
+                                                                                                    region)))
                                                          .withHeader("x-amz-account-id", equalTo("123456789012")));
         assertThat(getRecordedEndpoints().size(), is(1));
         assertThat(getRecordedEndpoints().get(0).getHost(), is(expectedHost));
     }
-
-    abstract String expectedUrl();
 }

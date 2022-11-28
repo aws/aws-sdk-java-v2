@@ -48,7 +48,9 @@ public class UpdateServiceMain extends Cli {
               requiredOption("maven-project-root", "The root directory for the maven project."),
               requiredOption("service-json", "The service-2.json file for the service."),
               optionalOption("paginators-json", "The paginators-1.json file for the service."),
-              optionalOption("waiters-json", "The waiters-2.json file for the service."));
+              optionalOption("waiters-json", "The waiters-2.json file for the service."),
+              optionalOption("endpoint-rule-set-json", "The endpoint-rule-set.json file for the service."),
+              optionalOption("endpoint-tests-json", "The endpoint-tests.json file for the service."));
     }
 
     public static void main(String[] args) {
@@ -67,6 +69,8 @@ public class UpdateServiceMain extends Cli {
         private final Path serviceJson;
         private final Path paginatorsJson;
         private final Path waitersJson;
+        private final Path endpointRuleSetJson;
+        private final Path endpointTestsJson;
 
         private ServiceUpdater(CommandLine commandLine) {
             this.mavenProjectRoot = Paths.get(commandLine.getOptionValue("maven-project-root").trim());
@@ -75,6 +79,8 @@ public class UpdateServiceMain extends Cli {
             this.serviceJson = Paths.get(commandLine.getOptionValue("service-json").trim());
             this.paginatorsJson = optionalPath(commandLine.getOptionValue("paginators-json"));
             this.waitersJson = optionalPath(commandLine.getOptionValue("waiters-json"));
+            this.endpointRuleSetJson = optionalPath(commandLine.getOptionValue("endpoint-rule-set-json"));
+            this.endpointTestsJson = optionalPath(commandLine.getOptionValue("endpoint-tests-json"));
         }
 
         private Path optionalPath(String path) {
@@ -93,6 +99,8 @@ public class UpdateServiceMain extends Cli {
             copyFile(serviceJson, codegenFileLocation.resolve("service-2.json"));
             copyFile(paginatorsJson, codegenFileLocation.resolve("paginators-1.json"));
             copyFile(waitersJson, codegenFileLocation.resolve("waiters-2.json"));
+            copyFile(endpointRuleSetJson, codegenFileLocation.resolve("endpoint-rule-set.json"));
+            copyFile(endpointTestsJson, codegenFileLocation.resolve("endpoint-tests.json"));
         }
 
         private Path codegenFileLocation(String serviceModuleName, String serviceId) {

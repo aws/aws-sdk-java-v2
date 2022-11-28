@@ -1358,7 +1358,7 @@
         {"shape":"OperationTimeoutException"},
         {"shape":"InvalidInputException"}
       ],
-      "documentation":"<p>Retrieves all the development endpoints in this AWS account.</p> <note> <p>When you create a development endpoint in a virtual private cloud (VPC), Glue returns only a private IP address and the public IP address field is not populated. When you create a non-VPC development endpoint, Glue returns only a public IP address.</p> </note>"
+      "documentation":"<p>Retrieves all the development endpoints in this Amazon Web Services account.</p> <note> <p>When you create a development endpoint in a virtual private cloud (VPC), Glue returns only a private IP address and the public IP address field is not populated. When you create a non-VPC development endpoint, Glue returns only a public IP address.</p> </note>"
     },
     "GetJob":{
       "name":"GetJob",
@@ -1391,7 +1391,7 @@
         {"shape":"OperationTimeoutException"},
         {"shape":"ValidationException"}
       ],
-      "documentation":"<p>Returns information on a job bookmark entry.</p>"
+      "documentation":"<p>Returns information on a job bookmark entry.</p> <p>For more information about enabling and using job bookmarks, see:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/glue/latest/dg/monitor-continuations.html\">Tracking processed data using job bookmarks</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-glue-arguments.html\">Job parameters used by Glue</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/glue/latest/dg/aws-glue-api-jobs-job.html#aws-glue-api-jobs-job-Job\">Job structure</a> </p> </li> </ul>"
     },
     "GetJobRun":{
       "name":"GetJobRun",
@@ -2396,7 +2396,7 @@
         {"shape":"InternalServiceException"},
         {"shape":"OperationTimeoutException"}
       ],
-      "documentation":"<p>Resets a bookmark entry.</p>"
+      "documentation":"<p>Resets a bookmark entry.</p> <p>For more information about enabling and using job bookmarks, see:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/glue/latest/dg/monitor-continuations.html\">Tracking processed data using job bookmarks</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-glue-arguments.html\">Job parameters used by Glue</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/glue/latest/dg/aws-glue-api-jobs-job.html#aws-glue-api-jobs-job-Job\">Job structure</a> </p> </li> </ul>"
     },
     "ResumeWorkflowRun":{
       "name":"ResumeWorkflowRun",
@@ -5461,7 +5461,7 @@
         },
         "Configuration":{
           "shape":"CrawlerConfiguration",
-          "documentation":"<p>Crawler configuration information. This versioned JSON string allows users to specify aspects of a crawler's behavior. For more information, see <a href=\"https://docs.aws.amazon.com/glue/latest/dg/define-crawler.html#crawler-data-stores-exclude\">Include and Exclude Patterns</a>.</p>"
+          "documentation":"<p>Crawler configuration information. This versioned JSON string allows users to specify aspects of a crawler's behavior. For more information, see <a href=\"https://docs.aws.amazon.com/glue/latest/dg/crawler-configuration.html\">Setting crawler configuration options</a>.</p>"
         },
         "CrawlerSecurityConfiguration":{
           "shape":"CrawlerSecurityConfiguration",
@@ -5842,7 +5842,7 @@
         },
         "Configuration":{
           "shape":"CrawlerConfiguration",
-          "documentation":"<p>Crawler configuration information. This versioned JSON string allows users to specify aspects of a crawler's behavior. For more information, see <a href=\"https://docs.aws.amazon.com/glue/latest/dg/crawler-configuration.html\">Configuring a Crawler</a>.</p>"
+          "documentation":"<p>Crawler configuration information. This versioned JSON string allows users to specify aspects of a crawler's behavior. For more information, see <a href=\"https://docs.aws.amazon.com/glue/latest/dg/crawler-configuration.html\">Setting crawler configuration options</a>.</p>"
         },
         "CrawlerSecurityConfiguration":{
           "shape":"CrawlerSecurityConfiguration",
@@ -5890,6 +5890,14 @@
         "AllowSingleColumn":{
           "shape":"NullableBoolean",
           "documentation":"<p>Enables the processing of files that contain only one column.</p>"
+        },
+        "CustomDatatypeConfigured":{
+          "shape":"NullableBoolean",
+          "documentation":"<p>Enables the configuration of custom datatypes.</p>"
+        },
+        "CustomDatatypes":{
+          "shape":"CustomDatatypes",
+          "documentation":"<p>Creates a list of supported custom datatypes.</p>"
         }
       },
       "documentation":"<p>Specifies a custom CSV classifier for <code>CreateClassifier</code> to create.</p>"
@@ -6065,7 +6073,7 @@
         },
         "AvailabilityZone":{
           "shape":"GenericString",
-          "documentation":"<p>The AWS Availability Zone where this <code>DevEndpoint</code> is located.</p>"
+          "documentation":"<p>The Amazon Web Services Availability Zone where this <code>DevEndpoint</code> is located.</p>"
         },
         "VpcId":{
           "shape":"GenericString",
@@ -6883,6 +6891,14 @@
         "AllowSingleColumn":{
           "shape":"NullableBoolean",
           "documentation":"<p>Enables the processing of files that contain only one column.</p>"
+        },
+        "CustomDatatypeConfigured":{
+          "shape":"NullableBoolean",
+          "documentation":"<p>Enables the custom datatype to be configured.</p>"
+        },
+        "CustomDatatypes":{
+          "shape":"CustomDatatypes",
+          "documentation":"<p>A list of custom datatypes including \"BINARY\", \"BOOLEAN\", \"DATE\", \"DECIMAL\", \"DOUBLE\", \"FLOAT\", \"INT\", \"LONG\", \"SHORT\", \"STRING\", \"TIMESTAMP\".</p>"
         }
       },
       "documentation":"<p>A classifier for custom <code>CSV</code> content.</p>"
@@ -6942,6 +6958,10 @@
         }
       },
       "documentation":"<p>Specifies a transform that uses custom code you provide to perform the data transformation. The output is a collection of DynamicFrames.</p>"
+    },
+    "CustomDatatypes":{
+      "type":"list",
+      "member":{"shape":"NameString"}
     },
     "CustomEntityType":{
       "type":"structure",
@@ -7857,7 +7877,7 @@
         },
         "AvailabilityZone":{
           "shape":"GenericString",
-          "documentation":"<p>The AWS Availability Zone where this <code>DevEndpoint</code> is located.</p>"
+          "documentation":"<p>The Amazon Web Services Availability Zone where this <code>DevEndpoint</code> is located.</p>"
         },
         "VpcId":{
           "shape":"GenericString",
@@ -8175,6 +8195,10 @@
     "EdgeList":{
       "type":"list",
       "member":{"shape":"Edge"}
+    },
+    "EnableAdditionalMetadata":{
+      "type":"list",
+      "member":{"shape":"JdbcMetadataEntry"}
     },
     "EnableHybridValues":{
       "type":"string",
@@ -11165,6 +11189,13 @@
       "key":{"shape":"JDBCDataType"},
       "value":{"shape":"GlueRecordType"}
     },
+    "JdbcMetadataEntry":{
+      "type":"string",
+      "enum":[
+        "COMMENTS",
+        "RAWTYPES"
+      ]
+    },
     "JdbcTarget":{
       "type":"structure",
       "members":{
@@ -11179,6 +11210,10 @@
         "Exclusions":{
           "shape":"PathList",
           "documentation":"<p>A list of glob patterns used to exclude from the crawl. For more information, see <a href=\"https://docs.aws.amazon.com/glue/latest/dg/add-crawler.html\">Catalog Tables with a Crawler</a>.</p>"
+        },
+        "EnableAdditionalMetadata":{
+          "shape":"EnableAdditionalMetadata",
+          "documentation":"<p>Specify a value of <code>RAWTYPES</code> or <code>COMMENTS</code> to enable additional metadata in table responses. <code>RAWTYPES</code> provides the native-level datatype. <code>COMMENTS</code> provides comments associated with a column or table in the database.</p> <p>If you do not need additional metadata, keep the field empty.</p>"
         }
       },
       "documentation":"<p>Specifies a JDBC data store to crawl.</p>"
@@ -17230,7 +17265,7 @@
         },
         "Configuration":{
           "shape":"CrawlerConfiguration",
-          "documentation":"<p>Crawler configuration information. This versioned JSON string allows users to specify aspects of a crawler's behavior. For more information, see <a href=\"https://docs.aws.amazon.com/glue/latest/dg/crawler-configuration.html\">Configuring a Crawler</a>.</p>"
+          "documentation":"<p>Crawler configuration information. This versioned JSON string allows users to specify aspects of a crawler's behavior. For more information, see <a href=\"https://docs.aws.amazon.com/glue/latest/dg/crawler-configuration.html\">Setting crawler configuration options</a>.</p>"
         },
         "CrawlerSecurityConfiguration":{
           "shape":"CrawlerSecurityConfiguration",
@@ -17293,6 +17328,14 @@
         "AllowSingleColumn":{
           "shape":"NullableBoolean",
           "documentation":"<p>Enables the processing of files that contain only one column.</p>"
+        },
+        "CustomDatatypeConfigured":{
+          "shape":"NullableBoolean",
+          "documentation":"<p>Specifies the configuration of custom datatypes.</p>"
+        },
+        "CustomDatatypes":{
+          "shape":"CustomDatatypes",
+          "documentation":"<p>Specifies a list of supported custom datatypes.</p>"
         }
       },
       "documentation":"<p>Specifies a custom CSV classifier to be updated.</p>"

@@ -59,6 +59,9 @@ public final class ApiCallTimeoutException extends SdkClientException {
         Builder cause(Throwable cause);
 
         @Override
+        Builder writableStackTrace(Boolean writableStackTrace);
+
+        @Override
         ApiCallTimeoutException build();
     }
 
@@ -80,6 +83,12 @@ public final class ApiCallTimeoutException extends SdkClientException {
         @Override
         public Builder cause(Throwable cause) {
             this.cause = cause;
+            return this;
+        }
+
+        @Override
+        public Builder writableStackTrace(Boolean writableStackTrace) {
+            this.writableStackTrace = writableStackTrace;
             return this;
         }
 
