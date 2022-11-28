@@ -51,51 +51,11 @@ public class CrtS3ClientUploadBenchmark extends BaseCrtClientBenchmark {
 
     @Override
     public void sendOneRequest(List<Double> latencies) throws IOException  {
-        // CompletableFuture<Integer> onFinishedFuture = new CompletableFuture<>();
         CompletableFuture<Void> resultFuture = new CompletableFuture<>();
         S3MetaRequestResponseHandler handler = new TestS3MetaRequestResponseHandler(resultFuture);
-        // S3MetaRequestResponseHandler responseHandler = new S3MetaRequestResponseHandler() {
-        //
-        //     @Override
-        //     public int onResponseBody(ByteBuffer bodyBytesIn, long objectRangeStart, long objectRangeEnd) {
-        //         log.info(() -> "Body Response: " + bodyBytesIn.toString());
-        //         return 0;
-        //     }
-        //
-        //     @Override
-        //     public void onFinished(S3FinishedResponseContext context) {
-        //         log.info(() ->
-        //                 "Meta request finished with error code " + context.getErrorCode());
-        //         if (context.getErrorCode() != 0) {
-        //             onFinishedFuture.completeExceptionally(
-        //                 new CrtS3RuntimeException(context.getErrorCode(),
-        //                                           context.getResponseStatus(), context.getErrorPayload()));
-        //             return;
-        //         }
-        //         onFinishedFuture.complete(Integer.valueOf(context.getErrorCode()));
-        //     }
-        // };
 
         ByteBuffer payload = ByteBuffer.wrap(createTestPayload(partSizeInBytes.intValue()));
         HttpRequestBodyStream payloadStream = new PayloadStream(payload);
-        // HttpRequestBodyStream payloadStream = new HttpRequestBodyStream() {
-        //     @Override
-        //     public boolean sendRequestBody(ByteBuffer outBuffer) {
-        //         ByteBufferUtils.transferData(payload, outBuffer);
-        //         payload.position(0);
-        //         return payload.remaining() == 0;
-        //     }
-        //
-        //     @Override
-        //     public boolean resetPosition() {
-        //         return true;
-        //     }
-        //
-        //     @Override
-        //     public long getLength() {
-        //         return payload.capacity();
-        //     }
-        // };
 
         String endpoint = bucket + ".s3." + region + ".amazonaws.com";
         HttpHeader[] headers = { new HttpHeader("Host", endpoint),
