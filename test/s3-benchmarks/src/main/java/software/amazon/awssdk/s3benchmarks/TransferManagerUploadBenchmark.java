@@ -23,6 +23,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.transfer.s3.model.UploadRequest;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
@@ -74,6 +76,19 @@ public class TransferManagerUploadBenchmark extends BaseTransferManagerBenchmark
                                                                  .checksumAlgorithm(config.checksumAlgorithm()))
                                          .source(sourceFile.toPath()))
                        .completionFuture().join();
+        long end = System.currentTimeMillis();
+        latencies.add((end - start) / 1000.0);
+    }
+
+    private void uploadOnceFromMemory(List<Double> latencies) {
+        UploadRequest uploadRequest = UploadRequest.builder()
+                                                   .putObjectRequest(r -> r.bucket("bucket")
+                                                                           .key("key"))
+                                                   .requestBody(AsyncRequestBody.fromString("foo"))
+                                                   // .addTransferListener(listener)
+                                                   .build();
+        long start = System.currentTimeMillis();
+        transferManager.upload(uploadRequest).completionFuture().join();
         long end = System.currentTimeMillis();
         latencies.add((end - start) / 1000.0);
     }

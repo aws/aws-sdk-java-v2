@@ -44,9 +44,7 @@ public abstract class BaseCrtClientBenchmark implements  TransferManagerBenchmar
     protected final S3NativeClientConfiguration s3NativeClientConfiguration;
     protected final S3Client crtS3Client;
     protected final Region region;
-    protected Long partSizeInBytes;
-
-    // protected final long contentLength;
+    protected final Long partSizeInBytes;
 
     protected BaseCrtClientBenchmark(TransferManagerBenchmarkConfig config) {
         logger.info(() -> "Benchmark config: " + config);

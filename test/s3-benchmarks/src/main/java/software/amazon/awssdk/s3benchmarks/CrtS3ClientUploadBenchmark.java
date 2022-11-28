@@ -106,7 +106,6 @@ public class CrtS3ClientUploadBenchmark extends BaseCrtClientBenchmark {
         public long getLength() {
             return payload.capacity();
         }
-
     }
 
     private static byte[] createTestPayload(int size) {
