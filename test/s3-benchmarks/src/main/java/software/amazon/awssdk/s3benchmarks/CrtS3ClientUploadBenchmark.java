@@ -154,7 +154,7 @@ public class CrtS3ClientUploadBenchmark extends BaseCrtClientBenchmark {
         ByteBuffer payload = ByteBuffer.allocate(size);
         while (true) {
             try {
-                payload.put(msg.getBytes());
+                payload.put(msg.getBytes(StandardCharsets.UTF_8));
             } catch (BufferOverflowException ex1) {
                 while (true) {
                     try {
