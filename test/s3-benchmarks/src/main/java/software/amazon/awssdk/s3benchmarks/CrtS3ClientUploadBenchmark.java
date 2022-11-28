@@ -35,17 +35,16 @@ import software.amazon.awssdk.crt.s3.S3MetaRequestResponseHandler;
 import software.amazon.awssdk.crt.utils.ByteBufferUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 public class CrtS3ClientUploadBenchmark extends BaseCrtClientBenchmark {
 
     private static final Logger log = Logger.loggerFor(CrtS3ClientUploadBenchmark.class);
 
-    private final ByteBuffer partBuffer;
     private final long totalContentLength;
 
     public CrtS3ClientUploadBenchmark(TransferManagerBenchmarkConfig config) {
         super(config);
-        this.partBuffer = ByteBuffer.wrap(createTestPayload(partSizeInBytes.intValue()));
         this.totalContentLength = Validate.notNull(config.contentLengthInMb() * MB,
                                                    "contentLength is required for Crt Upload Benchmark");
     }
@@ -74,13 +73,12 @@ public class CrtS3ClientUploadBenchmark extends BaseCrtClientBenchmark {
             }
         };
 
-        log.info(() -> String.format("totalContentLength: %d", totalContentLength));
-        log.info(() -> String.format("partSizeInBytes: %d", partSizeInBytes));
         ByteBuffer payload = ByteBuffer.wrap(createTestPayload(partSizeInBytes.intValue()));
         HttpRequestBodyStream payloadStream = new HttpRequestBodyStream() {
             @Override
             public boolean sendRequestBody(ByteBuffer outBuffer) {
-                ByteBufferUtils.transferData(payload.duplicate(), outBuffer);
+                ByteBufferUtils.transferData(payload, outBuffer);
+                payload.position(0);
                 return payload.remaining() == 0;
             }
 
@@ -96,11 +94,11 @@ public class CrtS3ClientUploadBenchmark extends BaseCrtClientBenchmark {
         };
 
         String endpoint = bucket + ".s3." + region + ".amazonaws.com";
-        log.info(() -> "endpoint: " + endpoint);
-        log.info(() -> "key:" + key);
         HttpHeader[] headers = { new HttpHeader("Host", endpoint),
                                  new HttpHeader("Content-Length", Long.toString(totalContentLength)) };
-        HttpRequest httpRequest = new HttpRequest("PUT", key, headers, payloadStream);
+
+        String path = SdkHttpUtils.urlEncode(key.startsWith("/") ? key : "/" + key);
+        HttpRequest httpRequest = new HttpRequest("PUT", path, headers, payloadStream);
 
         S3MetaRequestOptions metaRequestOptions = new S3MetaRequestOptions()
             .withMetaRequestType(S3MetaRequestOptions.MetaRequestType.PUT_OBJECT)
@@ -114,49 +112,6 @@ public class CrtS3ClientUploadBenchmark extends BaseCrtClientBenchmark {
         }
         long end = System.currentTimeMillis();
         latencies.add((end - start) / 1000.0);
-
-        // CompletableFuture<Void> resultFuture = new CompletableFuture<>();
-        // S3MetaRequestResponseHandler responseHandler = new TestS3MetaRequestResponseHandler(resultFuture);
-        //
-        // String endpoint = bucket + ".s3." + region + ".amazonaws.com";
-        // log.info(() -> "endpoint: " + endpoint);
-        //
-        // HttpRequestBodyStream payloadStream = new HttpRequestBodyStream() {
-        //     @Override
-        //     public boolean sendRequestBody(ByteBuffer outBuffer) {
-        //         log.info(() -> "Uploading bytes:" + partSizeInBytes);
-        //         ByteBufferUtils.transferData(partBuffer, outBuffer);
-        //         return partBuffer.remaining() == 0;
-        //     }
-        //
-        //     @Override
-        //     public boolean resetPosition() {
-        //         return true;
-        //     }
-        //
-        //     @Override
-        //     public long getLength() {
-        //         return partBuffer.capacity();
-        //     }
-        // };
-        //
-        // HttpHeader[] headers = { new HttpHeader("Host", endpoint),
-        //                          new HttpHeader("Content-Length", String.valueOf(totalContentLength)) };
-        // HttpRequest httpRequest = new HttpRequest("PUT", key, headers, payloadStream);
-        //
-        // S3MetaRequestOptions metaRequestOptions = new S3MetaRequestOptions()
-        //     .withMetaRequestType(S3MetaRequestOptions.MetaRequestType.PUT_OBJECT)
-        //     .withHttpRequest(httpRequest)
-        //     .withResponseHandler(responseHandler);
-        //
-        // long start = System.currentTimeMillis();
-        // try (S3MetaRequest metaRequest = crtS3Client.makeMetaRequest(metaRequestOptions)) {
-        //     resultFuture.get(10, TimeUnit.MINUTES);
-        // } catch (ExecutionException | TimeoutException | InterruptedException e) {
-        //     throw new RuntimeException(e);
-        // }
-        // long end = System.currentTimeMillis();
-        // latencies.add((end - start) / 1000.0);
     }
 
     @Override
