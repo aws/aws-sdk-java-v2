@@ -1,3 +1,109 @@
+# __2.18.25__ __2022-11-27__
+## __AWS Backup__
+  - ### Features
+    - AWS Backup introduces support for legal hold and application stack backups. AWS Backup Audit Manager introduces support for cross-Region, cross-account reports.
+
+## __AWS IoT__
+  - ### Features
+    - Job scheduling enables the scheduled rollout of a Job with start and end times and a customizable end behavior when end time is reached. This is available for continuous and snapshot jobs. Added support for MQTT5 properties to AWS IoT TopicRule Republish Action.
+
+## __AWS IoT Data Plane__
+  - ### Features
+    - This release adds support for MQTT5 properties to AWS IoT HTTP Publish API.
+
+## __AWS IoT Wireless__
+  - ### Features
+    - This release includes a new feature for customers to calculate the position of their devices by adding three new APIs: UpdateResourcePosition, GetResourcePosition, and GetPositionEstimate.
+
+## __AWS Organizations__
+  - ### Features
+    - This release introduces delegated administrator for AWS Organizations, a new feature to help you delegate the management of your Organizations policies, enabling you to govern your AWS organization in a decentralized way. You can now allow member accounts to manage Organizations policies.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Added AsyncResponseTransformer.toBlockingInputStream, allowing streaming operation responses to be read as if they're an InputStream.
+    - Updated endpoint and partition metadata.
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Amazon Kendra now supports preview of table information from HTML tables in the search results. The most relevant cells with their corresponding rows, columns are displayed as a preview in the search result. The most relevant table cell or cells are also highlighted in table preview.
+
+## __Amazon CloudWatch__
+  - ### Features
+    - Adds cross-account support to the GetMetricData API. Adds cross-account support to the ListMetrics API through the usage of the IncludeLinkedAccounts flag and the new OwningAccounts field.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Updates to support CloudWatch Logs data protection and CloudWatch cross-account observability
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release adds support for ECS Service Connect, a new capability that simplifies writing and operating resilient distributed applications. This release updates the TaskDefinition, Cluster, Service mutation APIs with Service connect constructs and also adds a new ListServicesByNamespace API.
+
+## __Amazon Elastic File System__
+  - ### Features
+    - This release adds elastic as a new ThroughputMode value for EFS file systems and adds AFTER_1_DAY as a value for TransitionToIARules.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release enables new Aurora and RDS feature called Blue/Green Deployments that makes updates to databases safer, simpler and faster.
+
+## __Amazon Textract__
+  - ### Features
+    - This release adds support for classifying and splitting lending documents by type, and extracting information by using the Analyze Lending APIs. This release also includes support for summarized information of the processed lending document package, in addition to per document results.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - This release adds support for 'inputType' for post-call and real-time (streaming) Call Analytics within Amazon Transcribe.
+
+## __Amazon Transcribe Streaming Service__
+  - ### Features
+    - This release adds support for real-time (streaming) and post-call Call Analytics within Amazon Transcribe.
+
+## __Application Migration Service__
+  - ### Features
+    - This release adds support for Application and Wave management. We also now support custom post-launch actions.
+
+## __CloudWatch Observability Access Manager__
+  - ### Features
+    - Amazon CloudWatch Observability Access Manager is a new service that allows configuration of the CloudWatch cross-account observability feature.
+
+## __Elastic Disaster Recovery Service__
+  - ### Features
+    - Non breaking changes to existing APIs, and additional APIs added to support in-AWS failing back using AWS Elastic Disaster Recovery.
+
+# __2.18.24__ __2022-11-23__
+## __AWS SDK for Java v2__
+  - ### Features
+    - When a request fails after SDK retries, include the retried failure messages as "suppressed" exceptions. Stack traces for these suppressed exceptions are not preserved.
+    - When raising an exception as a result of a service response, if service does not return a error message, include the error code or HTTP status code in exception messages instead of the string "null".
+
+## __Amazon Managed Grafana__
+  - ### Features
+    - This release includes support for configuring a Grafana workspace to connect to a datasource within a VPC as well as new APIs for configuring Grafana settings.
+
+## __Amazon Recycle Bin__
+  - ### Features
+    - This release adds support for Rule Lock for Recycle Bin, which allows you to lock retention rules so that they can no longer be modified or deleted.
+
+# __2.18.23__ __2022-11-22__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Appflow__
+  - ### Features
+    - Adding support for Amazon AppFlow to transfer the data to Amazon Redshift databases through Amazon Redshift Data API service. This feature will support the Redshift destination connector on both public and private accessible Amazon Redshift Clusters and Amazon Redshift Serverless.
+
+## __Amazon Kinesis Analytics__
+  - ### Features
+    - Support for Apache Flink 1.15 in Kinesis Data Analytics.
+
+# __2.18.22__ __2022-11-21__
+## __Amazon Route 53__
+  - ### Features
+    - Amazon Route 53 now supports the Asia Pacific (Hyderabad) Region (ap-south-2) for latency records, geoproximity records, and private DNS for Amazon VPCs in that region.
+
 # __2.18.21__ __2022-11-18__
 ## __AWS Audit Manager__
   - ### Features

@@ -18,12 +18,22 @@ package software.amazon.awssdk.utils.async;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -34,6 +44,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.reactivestreams.Subscription;
+import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 import software.amazon.awssdk.utils.async.ByteBufferStoringSubscriber.TransferResult;
 
 public class ByteBufferStoringSubscriberTest {
@@ -83,6 +94,152 @@ public class ByteBufferStoringSubscriberTest {
         subscriber.transferTo(emptyByteBufferOfSize(1)); // After: Storing 2
         verify(subscription, times(3)).request(1); // It should request more
     }
+
+    @Test
+    @Timeout(10)
+    public void blockingTransfer_waitsForFullOutputBuffer() throws InterruptedException, ExecutionException {
+        int outputBufferSize = 256;
+
+        ExecutorService executor = Executors.newCachedThreadPool(new ThreadFactoryBuilder().daemonThreads(true).build());
+
+        try {
+            ByteBufferStoringSubscriber subscriber = new ByteBufferStoringSubscriber(1);
+            Subscription subscription = mock(Subscription.class);
+
+            AtomicInteger bufferNumber = new AtomicInteger(0);
+            doAnswer(i -> {
+                int bufferN = bufferNumber.getAndIncrement();
+
+                for (long j = 0; j < i.<Long>getArgument(0); j++) {
+                    if (bufferN <= outputBufferSize + 1) {
+                        subscriber.onNext(byteBufferWithContent(bufferN));
+                    }
+                }
+
+                return null;
+            }).when(subscription).request(anyLong());
+
+            subscriber.onSubscribe(subscription);
+
+            Future<ByteBuffer> blockingRead = executor.submit(() -> {
+                ByteBuffer out = ByteBuffer.allocate(outputBufferSize);
+                TransferResult transferResult = subscriber.blockingTransferTo(out);
+                assertThat(transferResult).isEqualTo(TransferResult.SUCCESS);
+                return out;
+            });
+
+            ByteBuffer output = blockingRead.get();
+            output.flip();
+            for (int i = 0; i < outputBufferSize; i++) {
+                assertThat(output.get()).isEqualTo((byte) i);
+            }
+        } finally {
+            executor.shutdownNow();
+        }
+    }
+
+    @Test
+    @Timeout(10)
+    public void blockingTransfer_stopsOnComplete() throws ExecutionException, InterruptedException {
+        ExecutorService executor = Executors.newCachedThreadPool(new ThreadFactoryBuilder().daemonThreads(true).build());
+
+        try {
+            ByteBufferStoringSubscriber subscriber = new ByteBufferStoringSubscriber(Long.MAX_VALUE);
+
+            subscriber.onSubscribe(mock(Subscription.class));
+            Future<ByteBuffer> blockingRead = executor.submit(() -> {
+                ByteBuffer out = ByteBuffer.allocate(1024);
+                TransferResult transferResult = subscriber.blockingTransferTo(out);
+                assertThat(transferResult).isEqualTo(TransferResult.END_OF_STREAM);
+                return out;
+            });
+
+            ByteBuffer input = fullByteBufferOfSize(1);
+
+            subscriber.onNext(input);
+            subscriber.onComplete();
+
+            ByteBuffer output = blockingRead.get();
+            output.flip();
+            assertThat(output.get()).isEqualTo(input.get());
+        } finally {
+            executor.shutdownNow();
+        }
+    }
+
+    @Test
+    @Timeout(10)
+    public void blockingTransfer_stopsOnError() throws ExecutionException, InterruptedException {
+        ExecutorService executor = Executors.newCachedThreadPool(new ThreadFactoryBuilder().daemonThreads(true).build());
+
+        try {
+            ByteBufferStoringSubscriber subscriber = new ByteBufferStoringSubscriber(Long.MAX_VALUE);
+
+            subscriber.onSubscribe(mock(Subscription.class));
+            Future<?> blockingRead = executor.submit(() -> {
+                subscriber.blockingTransferTo(ByteBuffer.allocate(1024)); // Expected to throw
+                return null;
+            });
+
+            ByteBuffer input = fullByteBufferOfSize(1);
+
+            IllegalStateException exception = new IllegalStateException();
+
+            subscriber.onNext(input);
+            subscriber.onError(exception);
+
+            assertThatThrownBy(blockingRead::get).hasRootCause(exception);
+        } finally {
+            executor.shutdownNow();
+        }
+    }
+
+    @Test
+    @Timeout(10)
+    public void blockingTransfer_stopsOnInterrupt() throws InterruptedException {
+        ByteBufferStoringSubscriber subscriber = new ByteBufferStoringSubscriber(Long.MAX_VALUE);
+
+        AtomicBoolean threadIsInterruptedInCatch = new AtomicBoolean(false);
+        AtomicReference<Throwable> failureReason = new AtomicReference<>();
+
+        subscriber.onSubscribe(mock(Subscription.class));
+
+        CountDownLatch threadIsRunning = new CountDownLatch(1);
+        Thread thread = new Thread(() -> {
+            try {
+                threadIsRunning.countDown();
+                subscriber.blockingTransferTo(ByteBuffer.allocate(1024));
+            } catch (Throwable t) {
+                threadIsInterruptedInCatch.set(Thread.currentThread().isInterrupted());
+                failureReason.set(t);
+            }
+        });
+        thread.setDaemon(true);
+        thread.start();
+
+        threadIsRunning.await();
+        thread.interrupt();
+        thread.join();
+
+        assertThat(threadIsInterruptedInCatch).isTrue();
+        assertThat(failureReason.get()).hasRootCauseInstanceOf(InterruptedException.class);
+    }
+
+    @Test
+    @Timeout(10)
+    public void blockingTransfer_returnsEndOfStreamWithRepeatedCalls() {
+        ByteBufferStoringSubscriber subscriber = new ByteBufferStoringSubscriber(Long.MAX_VALUE);
+
+        subscriber.onSubscribe(mock(Subscription.class));
+        subscriber.onComplete();
+
+        ByteBuffer buffer = ByteBuffer.allocate(0);
+
+        assertThat(subscriber.blockingTransferTo(buffer)).isEqualTo(TransferResult.END_OF_STREAM);
+        assertThat(subscriber.blockingTransferTo(buffer)).isEqualTo(TransferResult.END_OF_STREAM);
+        assertThat(subscriber.blockingTransferTo(buffer)).isEqualTo(TransferResult.END_OF_STREAM);
+    }
+
 
     @Test
     public void noDataTransferredIfNoDataBuffered() {
@@ -296,10 +453,84 @@ public class ByteBufferStoringSubscriberTest {
         }
     }
 
+    @Test
+    @Timeout(30)
+    public void stochastic_blockingTransferSeemsThreadSafe() throws Throwable {
+        ExecutorService producer = Executors.newFixedThreadPool(1);
+        ExecutorService consumer = Executors.newFixedThreadPool(1);
+        try {
+            ByteBufferStoringSubscriber subscriber = new ByteBufferStoringSubscriber(50);
+
+            AtomicBoolean testRunning = new AtomicBoolean(true);
+            AtomicInteger messageNumber = new AtomicInteger(0);
+
+            AtomicReference<Throwable> producerFailure = new AtomicReference<>();
+            Subscription subscription = new Subscription() {
+                @Override
+                public void request(long n) {
+                    producer.submit(() -> {
+                        if (!testRunning.get()) {
+                            return;
+                        }
+
+                        try {
+                            for (int i = 0; i < n; i++) {
+                                ByteBuffer buffer = ByteBuffer.allocate(4);
+                                buffer.putInt(messageNumber.getAndIncrement());
+                                buffer.flip();
+                                subscriber.onNext(buffer);
+                            }
+                        } catch (Throwable t) {
+                            producerFailure.set(t);
+                        }
+                    });
+                }
+
+                @Override
+                public void cancel() {
+                    producerFailure.set(new AssertionError("Cancel not expected."));
+                }
+            };
+
+            subscriber.onSubscribe(subscription);
+
+            Future<Object> consumerFuture = consumer.submit(() -> {
+                int expectedMessageNumber = 0;
+                while (testRunning.get()) {
+                    ByteBuffer out = ByteBuffer.allocate(12); // 4 integers at a time seems good
+                    subscriber.blockingTransferTo(out);
+                    out.flip();
+
+                    while (out.hasRemaining()) {
+                        assertThat(out.getInt()).isEqualTo(expectedMessageNumber);
+                        ++expectedMessageNumber;
+                    }
+                }
+                return null;
+            });
+
+            Thread.sleep(5_000);
+            testRunning.set(false);
+            producer.submit(subscriber::onComplete);
+            consumerFuture.get();
+            if (producerFailure.get() != null) {
+                throw producerFailure.get();
+            }
+            assertThat(messageNumber.get()).isGreaterThan(10); // ensure we actually tested something
+        } finally {
+            producer.shutdownNow();
+            consumer.shutdownNow();
+        }
+    }
+
     private ByteBuffer fullByteBufferOfSize(int size) {
         byte[] data = new byte[size];
         ThreadLocalRandom.current().nextBytes(data);
         return ByteBuffer.wrap(data);
+    }
+
+    private ByteBuffer byteBufferWithContent(int b) {
+        return ByteBuffer.wrap(new byte[] { (byte) b });
     }
 
     private ByteBuffer emptyByteBufferOfSize(int size) {

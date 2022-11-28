@@ -54,6 +54,9 @@ public final class ExpiredTokenException extends SdkClientException {
         Builder cause(Throwable cause);
 
         @Override
+        Builder writableStackTrace(Boolean writableStackTrace);
+
+        @Override
         ExpiredTokenException build();
     }
 
@@ -74,6 +77,12 @@ public final class ExpiredTokenException extends SdkClientException {
         @Override
         public BuilderImpl cause(Throwable cause) {
             this.cause = cause;
+            return this;
+        }
+
+        @Override
+        public BuilderImpl writableStackTrace(Boolean writableStackTrace) {
+            this.writableStackTrace = writableStackTrace;
             return this;
         }
 
