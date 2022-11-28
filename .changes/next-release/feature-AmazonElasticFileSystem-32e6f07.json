@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic File System",
+    "contributor": "",
+    "description": "This release adds elastic as a new ThroughputMode value for EFS file systems and adds AFTER_1_DAY as a value for TransitionToIARules."
+}
