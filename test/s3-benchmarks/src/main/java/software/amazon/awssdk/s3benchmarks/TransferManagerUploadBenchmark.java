@@ -69,11 +69,12 @@ public class TransferManagerUploadBenchmark extends BaseTransferManagerBenchmark
 
     private void doUplaod(int count, boolean printOutResult) throws IOException {
         List<Double> metrics = new ArrayList<>();
-        logger.info(() -> "Starting to upload from file");
         for (int i = 0; i < count; i++) {
             if (config.contentLengthInMb() == null) {
+                logger.info(() -> "Starting to upload from file");
                 uploadOnceFromFile(metrics);
             } else {
+                logger.info(() -> "Starting to upload from memory");
                 uploadOnceFromMemory(metrics);
             }
         }
@@ -111,6 +112,8 @@ public class TransferManagerUploadBenchmark extends BaseTransferManagerBenchmark
             while (remaining > 0) {
                 simplePublisher.send(ByteBuffer.wrap(bytes));
                 remaining -= partSizeInMb;
+                long r = remaining;
+                logger.info(() -> "sending '" + partSizeInMb + "' bytes out of '" + r + "' remaining.");
             }
             simplePublisher.complete();
         }).start();
