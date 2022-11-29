@@ -115,8 +115,13 @@ public class TransferManagerUploadBenchmark extends BaseTransferManagerBenchmark
             .addTransferListener(LoggingTransferListener.create())
             .build();
         Thread uploadThread = Executors.defaultThreadFactory().newThread(() -> {
-            logger.info(() -> "sending '" + partSizeInBytes + "' bytes");
-            publisher.send(ByteBuffer.wrap(bytes));
+            long remaining = config.contentLengthInMb() * MB;
+            while (remaining > 0) {
+                logger.info(() -> "sending '" + partSizeInBytes + "' bytes");
+                publisher.send(ByteBuffer.wrap(bytes));
+                remaining -= partSizeInBytes;
+            }
+            publisher.complete();
         });
         Upload upload = transferManager.upload(uploadRequest);
         uploadThread.start();
