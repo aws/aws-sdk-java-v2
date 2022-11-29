@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.async;
 
 import java.io.File;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
@@ -23,9 +24,11 @@ import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.FileTransformerConfiguration;
 import software.amazon.awssdk.core.ResponseBytes;
+import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.internal.async.ByteArrayAsyncResponseTransformer;
 import software.amazon.awssdk.core.internal.async.FileAsyncResponseTransformer;
+import software.amazon.awssdk.core.internal.async.InputStreamResponseTransformer;
 import software.amazon.awssdk.core.internal.async.PublisherAsyncResponseTransformer;
 import software.amazon.awssdk.utils.Validate;
 
@@ -231,5 +234,33 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
      */
     static <ResponseT extends SdkResponse> AsyncResponseTransformer<ResponseT, ResponsePublisher<ResponseT>> toPublisher() {
         return new PublisherAsyncResponseTransformer<>();
+    }
+
+    /**
+     * Creates an {@link AsyncResponseTransformer} that allows reading the response body content as an
+     * {@link InputStream}.
+     * <p>
+     * When this transformer is used with an async client, the {@link CompletableFuture} that the client returns will
+     * be completed once the {@link SdkResponse} is available and the response body <i>begins</i> streaming. This
+     * behavior differs from some other transformers, like {@link #toFile(Path)} and {@link #toBytes()}, which only
+     * have their {@link CompletableFuture} completed after the entire response body has finished streaming.
+     * <p>
+     * You are responsible for performing blocking reads from this input stream and closing the stream when you are
+     * finished.
+     * <p>
+     * Example usage:
+     * <pre>
+     * {@code
+     *     CompletableFuture<ResponseInputStream<GetObjectResponse>> responseFuture =
+     *         s3AsyncClient.getObject(getObjectRequest, AsyncResponseTransformer.toBlockingInputStream());
+     *     try (ResponseInputStream<GetObjectResponse> responseStream = responseFuture.join()) {
+     *         responseStream.transferTo(System.out); // BLOCKS the calling thread
+     *     }
+     * }
+     * </pre>
+     */
+    static <ResponseT extends SdkResponse>
+            AsyncResponseTransformer<ResponseT, ResponseInputStream<ResponseT>> toBlockingInputStream() {
+        return new InputStreamResponseTransformer<>();
     }
 }

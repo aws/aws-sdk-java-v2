@@ -19,6 +19,8 @@ import static software.amazon.awssdk.utils.async.StoringSubscriber.EventType.ON_
 
 import java.nio.ByteBuffer;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Phaser;
 import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -50,6 +52,10 @@ public class ByteBufferStoringSubscriber implements Subscriber<ByteBuffer> {
      */
     private final StoringSubscriber<ByteBuffer> storingSubscriber;
 
+    private final CountDownLatch subscriptionLatch = new CountDownLatch(1);
+
+    private final Phaser phaser = new Phaser(1);
+
     /**
      * The active subscription. Set when {@link #onSubscribe(Subscription)} is invoked.
      */
@@ -75,8 +81,9 @@ public class ByteBufferStoringSubscriber implements Subscriber<ByteBuffer> {
      * <p>If {@link #onComplete()} was called on this subscriber, as much data as is available will be transferred into
      * {@code out}, and this will return {@link TransferResult#END_OF_STREAM}.
      *
-     * <p>Note: This method MUST NOT be called concurrently. Other methods on this class may be called concurrently with this
-     * one.
+     * <p>Note: This method MUST NOT be called concurrently with itself or {@link #blockingTransferTo(ByteBuffer)}. Other methods
+     * on this class may be called concurrently with this one. This MUST NOT be called before
+     * {@link #onSubscribe(Subscription)} has returned.
      */
     public TransferResult transferTo(ByteBuffer out) {
         int transferred = 0;
@@ -110,6 +117,41 @@ public class ByteBufferStoringSubscriber implements Subscriber<ByteBuffer> {
         }
     }
 
+    /**
+     * Like {@link #transferTo(ByteBuffer)}, but blocks until some data has been written.
+     *
+     * <p>Note: This method MUST NOT be called concurrently with itself or {@link #transferTo(ByteBuffer)}. Other methods
+     * on this class may be called concurrently with this one.
+     */
+    public TransferResult blockingTransferTo(ByteBuffer out) {
+        try {
+            subscriptionLatch.await();
+
+            while (true) {
+                int currentPhase = phaser.getPhase();
+
+                int positionBeforeTransfer = out.position();
+                TransferResult result = transferTo(out);
+
+                if (result == TransferResult.END_OF_STREAM) {
+                    return TransferResult.END_OF_STREAM;
+                }
+
+                if (!out.hasRemaining()) {
+                    return TransferResult.SUCCESS;
+                }
+
+                if (positionBeforeTransfer == out.position()) {
+                    // We didn't read any data, and we still have space for more data. Wait for the state to be updated.
+                    phaser.awaitAdvanceInterruptibly(currentPhase);
+                }
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        }
+    }
+
     private int transfer(ByteBuffer in, ByteBuffer out) {
         int amountToTransfer = Math.min(in.remaining(), out.remaining());
 
@@ -131,22 +173,26 @@ public class ByteBufferStoringSubscriber implements Subscriber<ByteBuffer> {
         storingSubscriber.onSubscribe(new DemandIgnoringSubscription(s));
         subscription = s;
         subscription.request(1);
+        subscriptionLatch.countDown();
     }
 
     @Override
     public void onNext(ByteBuffer byteBuffer) {
         storingSubscriber.onNext(byteBuffer.duplicate());
         addBufferedDataAmount(byteBuffer.remaining());
+        phaser.arrive();
     }
 
     @Override
     public void onError(Throwable t) {
         storingSubscriber.onError(t);
+        phaser.arrive();
     }
 
     @Override
     public void onComplete() {
         storingSubscriber.onComplete();
+        phaser.arrive();
     }
 
     private void addBufferedDataAmount(long amountToAdd) {

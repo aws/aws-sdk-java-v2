@@ -44,7 +44,7 @@ public class ProfileCredentialsUtilsTest {
 
     @BeforeAll
     public static void setup()  {
-        scriptLocation = ProcessCredentialsProviderTest.copyProcessCredentialsScript();
+        scriptLocation = ProcessCredentialsProviderTest.copyHappyCaseProcessCredentialsScript();
     }
 
     @AfterAll

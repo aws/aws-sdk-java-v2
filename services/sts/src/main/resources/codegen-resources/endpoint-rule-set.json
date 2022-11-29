@@ -113,8 +113,8 @@
                                     "authSchemes": [
                                         {
                                             "name": "sigv4",
-                                            "signingRegion": "us-east-1",
-                                            "signingName": "sts"
+                                            "signingName": "sts",
+                                            "signingRegion": "us-east-1"
                                         }
                                     ]
                                 },
@@ -140,8 +140,8 @@
                                     "authSchemes": [
                                         {
                                             "name": "sigv4",
-                                            "signingRegion": "us-east-1",
-                                            "signingName": "sts"
+                                            "signingName": "sts",
+                                            "signingRegion": "us-east-1"
                                         }
                                     ]
                                 },
@@ -167,8 +167,8 @@
                                     "authSchemes": [
                                         {
                                             "name": "sigv4",
-                                            "signingRegion": "us-east-1",
-                                            "signingName": "sts"
+                                            "signingName": "sts",
+                                            "signingRegion": "us-east-1"
                                         }
                                     ]
                                 },
@@ -194,8 +194,8 @@
                                     "authSchemes": [
                                         {
                                             "name": "sigv4",
-                                            "signingRegion": "us-east-1",
-                                            "signingName": "sts"
+                                            "signingName": "sts",
+                                            "signingRegion": "us-east-1"
                                         }
                                     ]
                                 },
@@ -221,8 +221,8 @@
                                     "authSchemes": [
                                         {
                                             "name": "sigv4",
-                                            "signingRegion": "us-east-1",
-                                            "signingName": "sts"
+                                            "signingName": "sts",
+                                            "signingRegion": "us-east-1"
                                         }
                                     ]
                                 },
@@ -248,8 +248,8 @@
                                     "authSchemes": [
                                         {
                                             "name": "sigv4",
-                                            "signingRegion": "us-east-1",
-                                            "signingName": "sts"
+                                            "signingName": "sts",
+                                            "signingRegion": "us-east-1"
                                         }
                                     ]
                                 },
@@ -275,8 +275,8 @@
                                     "authSchemes": [
                                         {
                                             "name": "sigv4",
-                                            "signingRegion": "us-east-1",
-                                            "signingName": "sts"
+                                            "signingName": "sts",
+                                            "signingRegion": "us-east-1"
                                         }
                                     ]
                                 },
@@ -302,8 +302,8 @@
                                     "authSchemes": [
                                         {
                                             "name": "sigv4",
-                                            "signingRegion": "us-east-1",
-                                            "signingName": "sts"
+                                            "signingName": "sts",
+                                            "signingRegion": "us-east-1"
                                         }
                                     ]
                                 },
@@ -329,8 +329,8 @@
                                     "authSchemes": [
                                         {
                                             "name": "sigv4",
-                                            "signingRegion": "us-east-1",
-                                            "signingName": "sts"
+                                            "signingName": "sts",
+                                            "signingRegion": "us-east-1"
                                         }
                                     ]
                                 },
@@ -356,8 +356,8 @@
                                     "authSchemes": [
                                         {
                                             "name": "sigv4",
-                                            "signingRegion": "us-east-1",
-                                            "signingName": "sts"
+                                            "signingName": "sts",
+                                            "signingRegion": "us-east-1"
                                         }
                                     ]
                                 },
@@ -383,8 +383,8 @@
                                     "authSchemes": [
                                         {
                                             "name": "sigv4",
-                                            "signingRegion": "us-east-1",
-                                            "signingName": "sts"
+                                            "signingName": "sts",
+                                            "signingRegion": "us-east-1"
                                         }
                                     ]
                                 },
@@ -410,8 +410,8 @@
                                     "authSchemes": [
                                         {
                                             "name": "sigv4",
-                                            "signingRegion": "us-east-1",
-                                            "signingName": "sts"
+                                            "signingName": "sts",
+                                            "signingRegion": "us-east-1"
                                         }
                                     ]
                                 },
@@ -437,8 +437,8 @@
                                     "authSchemes": [
                                         {
                                             "name": "sigv4",
-                                            "signingRegion": "us-east-1",
-                                            "signingName": "sts"
+                                            "signingName": "sts",
+                                            "signingRegion": "us-east-1"
                                         }
                                     ]
                                 },
@@ -464,8 +464,8 @@
                                     "authSchemes": [
                                         {
                                             "name": "sigv4",
-                                            "signingRegion": "us-east-1",
-                                            "signingName": "sts"
+                                            "signingName": "sts",
+                                            "signingRegion": "us-east-1"
                                         }
                                     ]
                                 },
@@ -491,8 +491,8 @@
                                     "authSchemes": [
                                         {
                                             "name": "sigv4",
-                                            "signingRegion": "us-east-1",
-                                            "signingName": "sts"
+                                            "signingName": "sts",
+                                            "signingRegion": "us-east-1"
                                         }
                                     ]
                                 },
@@ -518,8 +518,8 @@
                                     "authSchemes": [
                                         {
                                             "name": "sigv4",
-                                            "signingRegion": "us-east-1",
-                                            "signingName": "sts"
+                                            "signingName": "sts",
+                                            "signingRegion": "us-east-1"
                                         }
                                     ]
                                 },
@@ -535,8 +535,8 @@
                                     "authSchemes": [
                                         {
                                             "name": "sigv4",
-                                            "signingRegion": "{Region}",
-                                            "signingName": "sts"
+                                            "signingName": "sts",
+                                            "signingRegion": "{Region}"
                                         }
                                     ]
                                 },
