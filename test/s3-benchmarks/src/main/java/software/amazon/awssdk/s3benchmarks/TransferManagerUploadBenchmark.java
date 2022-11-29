@@ -29,7 +29,6 @@ import java.util.concurrent.Executors;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.transfer.s3.model.Upload;
 import software.amazon.awssdk.transfer.s3.model.UploadRequest;
-import software.amazon.awssdk.transfer.s3.progress.LoggingTransferListener;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.async.SimplePublisher;
@@ -83,7 +82,7 @@ public class TransferManagerUploadBenchmark extends BaseTransferManagerBenchmark
             if (config.contentLengthInMb() == null) {
                 printOutResult(metrics, "Upload from File", Files.size(Paths.get(path)));
             } else {
-                printOutResult(metrics, "Upload from Memory", config.contentLengthInMb());
+                printOutResult(metrics, "Upload from Memory", config.contentLengthInMb() * MB);
             }
         }
     }
@@ -102,7 +101,6 @@ public class TransferManagerUploadBenchmark extends BaseTransferManagerBenchmark
 
     private void uploadOnceFromMemory(List<Double> latencies) {
         SimplePublisher<ByteBuffer> publisher = new SimplePublisher<>();
-        // S3CrtDataPublisher publisher = new S3CrtDataPublisher();
         long partSizeInBytes = config.partSizeInMb() * MB;
         byte[] bytes = new byte[(int) partSizeInBytes];
         UploadRequest uploadRequest = UploadRequest
@@ -112,12 +110,10 @@ public class TransferManagerUploadBenchmark extends BaseTransferManagerBenchmark
                                     .contentLength(config.contentLengthInMb() * MB)
                                     .checksumAlgorithm(config.checksumAlgorithm()))
             .requestBody(AsyncRequestBody.fromPublisher(publisher))
-            .addTransferListener(LoggingTransferListener.create())
             .build();
         Thread uploadThread = Executors.defaultThreadFactory().newThread(() -> {
             long remaining = config.contentLengthInMb() * MB;
             while (remaining > 0) {
-                logger.info(() -> "sending '" + partSizeInBytes + "' bytes");
                 publisher.send(ByteBuffer.wrap(bytes));
                 remaining -= partSizeInBytes;
             }
