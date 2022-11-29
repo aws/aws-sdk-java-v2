@@ -25,13 +25,11 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executors;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.transfer.s3.model.UploadRequest;
 import software.amazon.awssdk.transfer.s3.progress.LoggingTransferListener;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
-import software.amazon.awssdk.utils.async.SimplePublisher;
 
 public class TransferManagerUploadBenchmark extends BaseTransferManagerBenchmark {
     private static final Logger logger = Logger.loggerFor("TransferManagerUploadBenchmark");
@@ -96,7 +94,7 @@ public class TransferManagerUploadBenchmark extends BaseTransferManagerBenchmark
     }
 
     private void uploadOnceFromMemory(List<Double> latencies) {
-        SimplePublisher<ByteBuffer> simplePublisher = new SimplePublisher<>();
+        // SimplePublisher<ByteBuffer> simplePublisher = new SimplePublisher<>();
         Long partSizeInMb = config.partSizeInMb() * MB;
         byte[] bytes = ByteBuffer.allocate(partSizeInMb.intValue()).array();
         UploadRequest uploadRequest = UploadRequest
@@ -104,19 +102,19 @@ public class TransferManagerUploadBenchmark extends BaseTransferManagerBenchmark
             .putObjectRequest(r -> r.bucket(bucket)
                                     .key(key)
                                     .checksumAlgorithm(config.checksumAlgorithm()))
-            .requestBody(AsyncRequestBody.fromPublisher(simplePublisher))
+            .requestBody(AsyncRequestBody.fromBytes(bytes))
             .addTransferListener(LoggingTransferListener.create())
             .build();
-        Executors.defaultThreadFactory().newThread(() -> {
-            long remaining = config.contentLengthInMb() * MB;
-            while (remaining > 0) {
-                simplePublisher.send(ByteBuffer.wrap(bytes));
-                remaining -= partSizeInMb;
-                long r = remaining;
-                logger.info(() -> "sending '" + partSizeInMb + "' bytes out of '" + r + "' remaining.");
-            }
-            simplePublisher.complete();
-        }).start();
+        // Executors.defaultThreadFactory().newThread(() -> {
+        //     long remaining = config.contentLengthInMb() * MB;
+        //     while (remaining > 0) {
+        //         simplePublisher.send(ByteBuffer.wrap(bytes));
+        //         remaining -= partSizeInMb;
+        //         long r = remaining;
+        //         logger.info(() -> "sending '" + partSizeInMb + "' bytes out of '" + r + "' remaining.");
+        //     }
+        //     simplePublisher.complete();
+        // }).start();
         long start = System.currentTimeMillis();
         transferManager.upload(uploadRequest).completionFuture().join();
         long end = System.currentTimeMillis();
