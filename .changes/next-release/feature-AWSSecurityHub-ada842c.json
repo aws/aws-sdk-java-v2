@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SecurityHub",
-    "contributor": "",
-    "description": "Adding StandardsManagedBy field to DescribeStandards API response"
-}

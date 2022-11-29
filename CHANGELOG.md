@@ -1,3 +1,64 @@
+# __2.18.26__ __2022-11-28__
+## __AWS ARC - Zonal Shift__
+  - ### Features
+    - Amazon Route 53 Application Recovery Controller Zonal Shift is a new service that makes it easy to shift traffic away from an Availability Zone in a Region. See the developer guide for more information: https://docs.aws.amazon.com/r53recovery/latest/dg/what-is-route53-recovery.html
+
+## __AWS Compute Optimizer__
+  - ### Features
+    - Adds support for a new recommendation preference that makes it possible for customers to optimize their EC2 recommendations by utilizing an external metrics ingestion service to provide metrics.
+
+## __AWS Config__
+  - ### Features
+    - With this release, you can use AWS Config to evaluate your resources for compliance with Config rules before they are created or updated. Using Config rules in proactive mode enables you to test and build compliant resource templates or check resource configurations at the time they are provisioned.
+
+## __AWS Glue__
+  - ### Features
+    - This release allows the creation of Custom Visual Transforms (Dynamic Transforms) to be created via AWS Glue CLI/SDK.
+
+## __AWS Lambda__
+  - ### Features
+    - Adds support for Lambda SnapStart, which helps improve the startup performance of functions. Customers can now manage SnapStart based functions via CreateFunction and UpdateFunctionConfiguration APIs
+
+## __AWS License Manager User Subscriptions__
+  - ### Features
+    - AWS now offers fully-compliant, Amazon-provided licenses for Microsoft Office Professional Plus 2021 Amazon Machine Images (AMIs) on Amazon EC2. These AMIs are now available on the Amazon EC2 console and on AWS Marketplace to launch instances on-demand without any long-term licensing commitments.
+
+## __AWS S3 Control__
+  - ### Features
+    - Added two new APIs to support Amazon S3 Multi-Region Access Point failover controls: GetMultiRegionAccessPointRoutes and SubmitMultiRegionAccessPointRoutes. The failover control APIs are supported in the following Regions: us-east-1, us-west-2, eu-west-1, ap-southeast-2, and ap-northeast-1.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Adding StandardsManagedBy field to DescribeStandards API response
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Introduces ENA Express, which uses AWS SRD and dynamic routing to increase throughput and minimize latency, adds support for trust relationships between Reachability Analyzer and AWS Organizations to enable cross-account analysis, and adds support for Infrastructure Performance metric subscriptions.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Adds support for additional EKS add-ons metadata and filtering fields
+
+## __Amazon FSx__
+  - ### Features
+    - This release adds support for 4GB/s / 160K PIOPS FSx for ONTAP file systems and 10GB/s / 350K PIOPS FSx for OpenZFS file systems (Single_AZ_2). For FSx for ONTAP, this also adds support for DP volumes, snapshot policy, copy tags to backups, and Multi-AZ route table updates.
+
+## __Amazon Macie 2__
+  - ### Features
+    - Added support for configuring Macie to continually sample objects from S3 buckets and inspect them for sensitive data. Results appear in statistics, findings, and other data that Macie provides.
+
+## __Amazon QuickSight__
+  - ### Features
+    - This release adds new Describe APIs and updates Create and Update APIs to support the data model for Dashboards, Analyses, and Templates.
+
+## __Inspector2__
+  - ### Features
+    - This release adds support for Inspector to scan AWS Lambda.
+
 # __2.18.25__ __2022-11-27__
 ## __AWS Backup__
   - ### Features
