@@ -10,33 +10,34 @@ import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.protocols.core.OperationInfo;
 import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
 import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
-import software.amazon.awssdk.services.jsonprotocoltests.model.StreamingOutputOperationRequest;
+import software.amazon.awssdk.services.jsonprotocoltests.model.QueryParameterOperationRequest;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * {@link StreamingOutputOperationRequest} Marshaller
+ * {@link QueryParameterOperationRequest} Marshaller
  */
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
-public class StreamingOutputOperationRequestMarshaller implements Marshaller<StreamingOutputOperationRequest> {
-    private static final OperationInfo SDK_OPERATION_BINDING = OperationInfo.builder()
-            .requestUri("/2016-03-11/streamingOutputOperation").httpMethod(SdkHttpMethod.POST).hasExplicitPayloadMember(false)
-            .hasImplicitPayloadMembers(false).hasPayloadMembers(false)
-            .enableTraitValidation(RequiredTrait.class).build();
+public class QueryParameterOperationRequestMarshaller implements Marshaller<QueryParameterOperationRequest> {
+    private static final OperationInfo SDK_OPERATION_BINDING = OperationInfo
+        .builder()
+        .requestUri("/2016-03-11/queryParameterOperation/{PathParam}").httpMethod(SdkHttpMethod.DELETE)
+        .hasExplicitPayloadMember(true).hasImplicitPayloadMembers(false).hasPayloadMembers(true)
+        .enableTraitValidation(RequiredTrait.class).build();
 
     private final BaseAwsJsonProtocolFactory protocolFactory;
 
-    public StreamingOutputOperationRequestMarshaller(BaseAwsJsonProtocolFactory protocolFactory) {
+    public QueryParameterOperationRequestMarshaller(BaseAwsJsonProtocolFactory protocolFactory) {
         this.protocolFactory = protocolFactory;
     }
 
     @Override
-    public SdkHttpFullRequest marshall(StreamingOutputOperationRequest streamingOutputOperationRequest) {
-        Validate.paramNotNull(streamingOutputOperationRequest, "streamingOutputOperationRequest");
+    public SdkHttpFullRequest marshall(QueryParameterOperationRequest queryParameterOperationRequest) {
+        Validate.paramNotNull(queryParameterOperationRequest, "queryParameterOperationRequest");
         try {
             ProtocolMarshaller<SdkHttpFullRequest> protocolMarshaller = protocolFactory
-                    .createProtocolMarshaller(SDK_OPERATION_BINDING);
-            return protocolMarshaller.marshall(streamingOutputOperationRequest);
+                .createProtocolMarshaller(SDK_OPERATION_BINDING);
+            return protocolMarshaller.marshall(queryParameterOperationRequest);
         } catch (Exception e) {
             throw SdkClientException.builder().message("Unable to marshall request to JSON: " + e.getMessage()).cause(e).build();
         }

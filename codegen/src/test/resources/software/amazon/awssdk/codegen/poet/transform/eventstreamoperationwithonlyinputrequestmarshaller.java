@@ -4,6 +4,7 @@ import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
+import software.amazon.awssdk.core.traits.RequiredTrait;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.protocols.core.OperationInfo;
@@ -21,7 +22,7 @@ public class EventStreamOperationWithOnlyInputRequestMarshaller implements Marsh
     private static final OperationInfo SDK_OPERATION_BINDING = OperationInfo.builder()
             .requestUri("/2016-03-11/EventStreamOperationWithOnlyInput").httpMethod(SdkHttpMethod.POST)
             .hasExplicitPayloadMember(false).hasImplicitPayloadMembers(true).hasPayloadMembers(true).hasEventStreamingInput(true)
-            .build();
+            .enableTraitValidation(RequiredTrait.class).build();
 
     private final BaseAwsJsonProtocolFactory protocolFactory;
 

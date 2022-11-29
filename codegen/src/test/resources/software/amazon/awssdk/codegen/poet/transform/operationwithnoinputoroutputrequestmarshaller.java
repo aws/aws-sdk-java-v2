@@ -4,6 +4,7 @@ import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
+import software.amazon.awssdk.core.traits.RequiredTrait;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.protocols.core.OperationInfo;
@@ -20,7 +21,7 @@ import software.amazon.awssdk.utils.Validate;
 public class OperationWithNoInputOrOutputRequestMarshaller implements Marshaller<OperationWithNoInputOrOutputRequest> {
     private static final OperationInfo SDK_OPERATION_BINDING = OperationInfo.builder().requestUri("/")
             .httpMethod(SdkHttpMethod.POST).hasExplicitPayloadMember(false).hasImplicitPayloadMembers(false)
-            .hasPayloadMembers(false).build();
+            .hasPayloadMembers(false).enableTraitValidation(RequiredTrait.class).build();
 
     private final BaseAwsJsonProtocolFactory protocolFactory;
 
