@@ -103,8 +103,8 @@ public class TransferManagerUploadBenchmark extends BaseTransferManagerBenchmark
     private void uploadOnceFromMemory(List<Double> latencies) {
         SimplePublisher<ByteBuffer> publisher = new SimplePublisher<>();
         // S3CrtDataPublisher publisher = new S3CrtDataPublisher();
-        Long partSizeInBytes = config.partSizeInMb() * MB;
-        byte[] bytes = new byte[partSizeInBytes.intValue()];
+        long partSizeInBytes = config.partSizeInMb() * MB;
+        byte[] bytes = new byte[(int) partSizeInBytes];
         UploadRequest uploadRequest = UploadRequest
             .builder()
             .putObjectRequest(r -> r.bucket(bucket)
@@ -115,14 +115,8 @@ public class TransferManagerUploadBenchmark extends BaseTransferManagerBenchmark
             .addTransferListener(LoggingTransferListener.create())
             .build();
         Thread uploadThread = Executors.defaultThreadFactory().newThread(() -> {
-            long remainingBytes = config.contentLengthInMb() * MB;
-            while (remainingBytes > 0) {
-                publisher.send(ByteBuffer.wrap(bytes));
-                remainingBytes -= partSizeInBytes;
-                long r = remainingBytes;
-                logger.info(() -> "sending '" + partSizeInBytes + "' bytes out of '" + r + "' remaining.");
-            }
-            publisher.complete();
+            logger.info(() -> "sending '" + partSizeInBytes + "' bytes");
+            publisher.send(ByteBuffer.wrap(bytes));
         });
         Upload upload = transferManager.upload(uploadRequest);
         uploadThread.start();
