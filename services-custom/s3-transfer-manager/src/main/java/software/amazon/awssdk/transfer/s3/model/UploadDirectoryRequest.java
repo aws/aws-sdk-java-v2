@@ -64,7 +64,7 @@ public final class UploadDirectoryRequest
      * The source directory to upload
      *
      * @return the source directory
-     * @see Builder#sourceDirectory(Path)
+     * @see Builder#source(Path)
      */
     public Path sourceDirectory() {
         return sourceDirectory;
@@ -204,7 +204,7 @@ public final class UploadDirectoryRequest
          * @param sourceDirectory the source directory
          * @return This builder for method chaining.
          */
-        Builder sourceDirectory(Path sourceDirectory);
+        Builder source(Path sourceDirectory);
 
         /**
          * The name of the bucket to upload objects to.
@@ -364,13 +364,13 @@ public final class UploadDirectoryRequest
         }
 
         @Override
-        public Builder sourceDirectory(Path sourceDirectory) {
+        public Builder source(Path sourceDirectory) {
             this.sourceDirectory = sourceDirectory;
             return this;
         }
 
         public void setSourceDirectory(Path sourceDirectory) {
-            sourceDirectory(sourceDirectory);
+            source(sourceDirectory);
         }
 
         public Path getSourceDirectory() {

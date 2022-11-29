@@ -482,9 +482,8 @@ public class AsyncClientInterface implements ClassSpec {
         MethodSpec.Builder builder = MethodSpec.methodBuilder(methodName)
                                                .returns(returnType)
                                                .addModifiers(Modifier.STATIC, Modifier.PUBLIC)
-                                               .addJavadoc("Create a builder that can be used to configure "
-                                                           + "and create a {@link $T}", instanceType)
-                                               .addStatement("return $T.builder()", instanceType);
+                                               .addJavadoc(additionalMethod.getJavaDoc())
+                                               .addStatement("return $T.$L", instanceType, additionalMethod.getStatement());
 
         return builder.build();
     }

@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.nio.file.Paths;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.transfer.s3.model.UploadDirectoryRequest;
 
 public class UploadDirectoryRequestTest {
 
@@ -34,7 +33,7 @@ public class UploadDirectoryRequestTest {
     @Test
     public void noBucket_throws() {
         assertThatThrownBy(() ->
-                               UploadDirectoryRequest.builder().sourceDirectory(Paths.get(".")).build()
+                               UploadDirectoryRequest.builder().source(Paths.get(".")).build()
         ).isInstanceOf(NullPointerException.class).hasMessageContaining("bucket");
     }
 

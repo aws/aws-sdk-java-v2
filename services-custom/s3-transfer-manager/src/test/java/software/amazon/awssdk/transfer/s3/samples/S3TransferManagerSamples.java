@@ -207,7 +207,7 @@ public class S3TransferManagerSamples {
         S3TransferManager transferManager = S3TransferManager.create();
         DirectoryUpload directoryUpload =
             transferManager.uploadDirectory(UploadDirectoryRequest.builder()
-                                                                  .sourceDirectory(Paths.get("source/directory"))
+                                                                  .source(Paths.get("source/directory"))
                                                                   .bucket("bucket")
                                                                   .s3Prefix("prefix")
                                                                   .build());

@@ -58,9 +58,9 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
         createBucket(TEST_BUCKET_CUSTOM_DELIMITER);
         sourceDirectory = createLocalTestDirectory();
 
-        tm.uploadDirectory(u -> u.sourceDirectory(sourceDirectory).bucket(TEST_BUCKET)).completionFuture().join();
+        tm.uploadDirectory(u -> u.source(sourceDirectory).bucket(TEST_BUCKET)).completionFuture().join();
 
-        tm.uploadDirectory(u -> u.sourceDirectory(sourceDirectory)
+        tm.uploadDirectory(u -> u.source(sourceDirectory)
                                  .s3Delimiter(CUSTOM_DELIMITER)
                                  .bucket(TEST_BUCKET_CUSTOM_DELIMITER))
           .completionFuture().join();
