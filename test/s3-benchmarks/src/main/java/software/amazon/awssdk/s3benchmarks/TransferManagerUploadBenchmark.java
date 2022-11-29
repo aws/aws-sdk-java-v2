@@ -50,7 +50,7 @@ public class TransferManagerUploadBenchmark extends BaseTransferManagerBenchmark
     @Override
     protected void doRunBenchmark() {
         try {
-            doUplaod(iteration, true);
+            doUpload(iteration, true);
         } catch (Exception exception) {
             logger.error(() -> "Request failed: ", exception);
         }
@@ -59,27 +59,28 @@ public class TransferManagerUploadBenchmark extends BaseTransferManagerBenchmark
     @Override
     protected void additionalWarmup() {
         try {
-            doUplaod(3, false);
+            doUpload(3, false);
         } catch (Exception exception) {
             logger.error(() -> "Warmup failed: ", exception);
         }
     }
 
-    private void doUplaod(int count, boolean printOutResult) throws IOException {
+    private void doUpload(int count, boolean printOutResult) throws IOException {
         List<Double> metrics = new ArrayList<>();
         for (int i = 0; i < count; i++) {
             if (config.contentLengthInMb() == null) {
                 logger.info(() -> "Starting to upload from file");
                 uploadOnceFromFile(metrics);
-                if (printOutResult) {
-                    printOutResult(metrics, "Upload from File", Files.size(Paths.get(path)));
-                }
             } else {
                 logger.info(() -> "Starting to upload from memory");
                 uploadOnceFromMemory(metrics);
-                if (printOutResult) {
-                    printOutResult(metrics, "Upload from Memory", config.contentLengthInMb());
-                }
+            }
+        }
+        if (printOutResult) {
+            if (config.contentLengthInMb() == null) {
+                printOutResult(metrics, "Upload from File", Files.size(Paths.get(path)));
+            } else {
+                printOutResult(metrics, "Upload from Memory", config.contentLengthInMb());
             }
         }
     }
