@@ -28,6 +28,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.CrtRuntimeException;
 import software.amazon.awssdk.crt.http.HttpClientConnection;
 import software.amazon.awssdk.crt.http.HttpClientConnectionManager;
+import software.amazon.awssdk.crt.http.HttpException;
 import software.amazon.awssdk.crt.http.HttpManagerMetrics;
 import software.amazon.awssdk.crt.http.HttpRequest;
 import software.amazon.awssdk.crt.http.HttpStreamResponseHandler;
@@ -91,7 +92,19 @@ public final class CrtRequestExecutor {
             // Submit the request on the connection
             try {
                 crtConn.makeRequest(crtRequest, crtResponseHandler).activate();
-            } catch (IllegalStateException | CrtRuntimeException e) {
+            }
+            catch (HttpException e) {
+                Throwable toThrow = e;
+                if (HttpClientConnection.isErrorRetryable(e)) {
+                    // IOExceptions get retried, and if the CRT says this error is retryable,
+                    // it's semantically an IOException anyway.
+                    toThrow = new IOException(e);
+                }
+                reportFailure(toThrow,
+                              requestFuture,
+                              asyncRequest.responseHandler());
+            }
+            catch (IllegalStateException | CrtRuntimeException e) {
                 reportFailure(new IOException("An exception occurred when making the request", e),
                               requestFuture,
                               asyncRequest.responseHandler());
@@ -137,7 +150,7 @@ public final class CrtRequestExecutor {
     /**
      * Notify the provided response handler and future of the failure.
      */
-    private void reportFailure(IOException cause,
+    private void reportFailure(Throwable cause,
                                CompletableFuture<Void> executeFuture,
                                SdkAsyncHttpResponseHandler responseHandler) {
         try {
