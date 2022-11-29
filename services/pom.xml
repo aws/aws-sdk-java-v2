@@ -17,7 +17,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.18.19-SNAPSHOT</version>
+        <version>2.18.27-SNAPSHOT</version>
     </parent>
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
@@ -341,6 +341,10 @@
         <module>resourceexplorer2</module>
         <module>scheduler</module>
         <module>ssmsap</module>
+        <module>chimesdkvoice</module>
+        <module>iotroborunner</module>
+        <module>oam</module>
+        <module>arczonalshift</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>

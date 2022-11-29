@@ -218,6 +218,8 @@ public class CustomizationConfig {
      */
     private boolean useRuleBasedEndpoints = false;
 
+    private List<String> interceptors = new ArrayList<>();
+
     private Map<String, List<String>> enabledTraitValidations;
 
     private CustomizationConfig() {
@@ -565,6 +567,14 @@ public class CustomizationConfig {
         this.useRuleBasedEndpoints = useRuleBasedEndpoints;
     }
 
+    public List<String> getInterceptors() {
+        return interceptors;
+    }
+
+    public void setInterceptors(List<String> interceptors) {
+        this.interceptors = interceptors;
+    }
+    
     public Map<String, List<String>> getEnabledTraitValidations() {
         return enabledTraitValidations;
     }

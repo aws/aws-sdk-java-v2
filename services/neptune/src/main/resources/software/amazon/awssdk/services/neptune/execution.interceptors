@@ -1,2 +1,0 @@
-software.amazon.awssdk.services.neptune.internal.CopyDbClusterSnapshotPresignInterceptor
-software.amazon.awssdk.services.neptune.internal.CreateDbClusterPresignInterceptor
