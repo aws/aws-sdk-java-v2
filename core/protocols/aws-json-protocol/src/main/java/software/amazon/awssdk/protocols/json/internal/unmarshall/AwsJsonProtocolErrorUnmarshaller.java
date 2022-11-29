@@ -41,7 +41,7 @@ import software.amazon.awssdk.utils.StringUtils;
 @SdkInternalApi
 public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandler<AwsServiceException> {
 
-    private static final String QUERY_ERROR_DELIMITER = ";";
+    private static final String QUERY_COMPATIBLE_ERRORCODE_DELIMITER = ";";
     private final JsonProtocolUnmarshaller jsonProtocolUnmarshaller;
     private final List<ExceptionMetadata> exceptions;
     private final ErrorMessageParser errorMessageParser;
@@ -107,7 +107,7 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
     }
 
     private String parseQueryErrorCodeFromDelimiter(String queryHeaderValue) {
-        int delimiter = queryHeaderValue.indexOf(QUERY_ERROR_DELIMITER);
+        int delimiter = queryHeaderValue.indexOf(QUERY_COMPATIBLE_ERRORCODE_DELIMITER);
         if (delimiter > 0) {
             return queryHeaderValue.substring(0, delimiter);
         }
