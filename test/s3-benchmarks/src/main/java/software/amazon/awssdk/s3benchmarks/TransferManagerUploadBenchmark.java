@@ -27,11 +27,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
-import software.amazon.awssdk.services.s3.internal.crt.S3CrtDataPublisher;
+import software.amazon.awssdk.transfer.s3.model.Upload;
 import software.amazon.awssdk.transfer.s3.model.UploadRequest;
 import software.amazon.awssdk.transfer.s3.progress.LoggingTransferListener;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.async.SimplePublisher;
 
 public class TransferManagerUploadBenchmark extends BaseTransferManagerBenchmark {
     private static final Logger logger = Logger.loggerFor("TransferManagerUploadBenchmark");
@@ -100,30 +101,34 @@ public class TransferManagerUploadBenchmark extends BaseTransferManagerBenchmark
     }
 
     private void uploadOnceFromMemory(List<Double> latencies) {
-        // SimplePublisher<ByteBuffer> publisher = new SimplePublisher<>();
-        S3CrtDataPublisher publisher = new S3CrtDataPublisher();
-        Long partSizeInMb = config.partSizeInMb() * MB;
-        byte[] bytes = ByteBuffer.allocate(partSizeInMb.intValue()).array();
+        SimplePublisher<ByteBuffer> publisher = new SimplePublisher<>();
+        // S3CrtDataPublisher publisher = new S3CrtDataPublisher();
+        Long partSizeInBytes = config.partSizeInMb() * MB;
+        byte[] bytes = new byte[partSizeInBytes.intValue()];
         UploadRequest uploadRequest = UploadRequest
             .builder()
             .putObjectRequest(r -> r.bucket(bucket)
                                     .key(key)
+                                    .contentLength(config.contentLengthInMb() * MB)
                                     .checksumAlgorithm(config.checksumAlgorithm()))
             .requestBody(AsyncRequestBody.fromPublisher(publisher))
             .addTransferListener(LoggingTransferListener.create())
             .build();
-        Executors.defaultThreadFactory().newThread(() -> {
-            long remaining = config.contentLengthInMb() * MB;
-            while (remaining > 0) {
-                publisher.deliverData(ByteBuffer.wrap(bytes));
-                remaining -= partSizeInMb;
-                long r = remaining;
-                logger.info(() -> "sending '" + partSizeInMb + "' bytes out of '" + r + "' remaining.");
+        Thread uploadThread = Executors.defaultThreadFactory().newThread(() -> {
+            long remainingBytes = config.contentLengthInMb() * MB;
+            while (remainingBytes > 0) {
+                publisher.send(ByteBuffer.wrap(bytes));
+                remainingBytes -= partSizeInBytes;
+                long r = remainingBytes;
+                logger.info(() -> "sending '" + partSizeInBytes + "' bytes out of '" + r + "' remaining.");
             }
-            publisher.notifyStreamingFinished();
-        }).start();
+            publisher.complete();
+        });
+        Upload upload = transferManager.upload(uploadRequest);
+        uploadThread.start();
+
         long start = System.currentTimeMillis();
-        transferManager.upload(uploadRequest).completionFuture().join();
+        upload.completionFuture().join();
         long end = System.currentTimeMillis();
         latencies.add((end - start) / 1000.0);
     }
