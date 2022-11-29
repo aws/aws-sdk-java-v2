@@ -25,7 +25,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.services.s3.internal.crt.S3CrtDataPublisher;
 import software.amazon.awssdk.transfer.s3.model.UploadRequest;
 import software.amazon.awssdk.transfer.s3.progress.LoggingTransferListener;
 import software.amazon.awssdk.utils.Logger;
@@ -98,7 +100,8 @@ public class TransferManagerUploadBenchmark extends BaseTransferManagerBenchmark
     }
 
     private void uploadOnceFromMemory(List<Double> latencies) {
-        // SimplePublisher<ByteBuffer> simplePublisher = new SimplePublisher<>();
+        // SimplePublisher<ByteBuffer> publisher = new SimplePublisher<>();
+        S3CrtDataPublisher publisher = new S3CrtDataPublisher();
         Long partSizeInMb = config.partSizeInMb() * MB;
         byte[] bytes = ByteBuffer.allocate(partSizeInMb.intValue()).array();
         UploadRequest uploadRequest = UploadRequest
@@ -106,19 +109,19 @@ public class TransferManagerUploadBenchmark extends BaseTransferManagerBenchmark
             .putObjectRequest(r -> r.bucket(bucket)
                                     .key(key)
                                     .checksumAlgorithm(config.checksumAlgorithm()))
-            .requestBody(AsyncRequestBody.fromBytes(bytes))
+            .requestBody(AsyncRequestBody.fromPublisher(publisher))
             .addTransferListener(LoggingTransferListener.create())
             .build();
-        // Executors.defaultThreadFactory().newThread(() -> {
-        //     long remaining = config.contentLengthInMb() * MB;
-        //     while (remaining > 0) {
-        //         simplePublisher.send(ByteBuffer.wrap(bytes));
-        //         remaining -= partSizeInMb;
-        //         long r = remaining;
-        //         logger.info(() -> "sending '" + partSizeInMb + "' bytes out of '" + r + "' remaining.");
-        //     }
-        //     simplePublisher.complete();
-        // }).start();
+        Executors.defaultThreadFactory().newThread(() -> {
+            long remaining = config.contentLengthInMb() * MB;
+            while (remaining > 0) {
+                publisher.deliverData(ByteBuffer.wrap(bytes));
+                remaining -= partSizeInMb;
+                long r = remaining;
+                logger.info(() -> "sending '" + partSizeInMb + "' bytes out of '" + r + "' remaining.");
+            }
+            publisher.notifyStreamingFinished();
+        }).start();
         long start = System.currentTimeMillis();
         transferManager.upload(uploadRequest).completionFuture().join();
         long end = System.currentTimeMillis();
