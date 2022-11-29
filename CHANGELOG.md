@@ -1,3 +1,36 @@
+# __2.18.27__ __2022-11-29__
+## __AWS Key Management Service__
+  - ### Features
+    - AWS KMS introduces the External Key Store (XKS), a new feature for customers who want to protect their data with encryption keys stored in an external key management system under their control.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SimSpace Weaver__
+  - ### Features
+    - AWS SimSpace Weaver is a new service that helps customers build spatial simulations at new levels of scale - resulting in virtual worlds with millions of dynamic entities. See the AWS SimSpace Weaver developer guide for more details on how to get started. https://docs.aws.amazon.com/simspaceweaver
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for AWS Verified Access and the Hpc6id Amazon EC2 compute optimized instance type, which features 3rd generation Intel Xeon Scalable processors.
+
+## __Amazon Kinesis Firehose__
+  - ### Features
+    - Allow support for the Serverless offering for Amazon OpenSearch Service as a Kinesis Data Firehose delivery destination.
+
+## __Amazon Omics__
+  - ### Features
+    - Amazon Omics is a new, purpose-built service that can be used by healthcare and life science organizations to store, query, and analyze omics data. The insights from that data can be used to accelerate scientific discoveries and improve healthcare.
+
+## __Amazon Security Lake__
+  - ### Features
+    - Amazon Security Lake automatically centralizes security data from cloud, on-premises, and custom sources into a purpose-built data lake stored in your account. Security Lake makes it easier to analyze security data, so you can improve the protection of your workloads, applications, and data
+
+## __OpenSearch Service Serverless__
+  - ### Features
+    - Publish SDK for Amazon OpenSearch Serverless
+
 # __2.18.26__ __2022-11-28__
 ## __AWS ARC - Zonal Shift__
   - ### Features
