@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.services.s3.internal.crt;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
