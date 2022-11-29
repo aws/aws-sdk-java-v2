@@ -71,13 +71,16 @@ public class TransferManagerUploadBenchmark extends BaseTransferManagerBenchmark
             if (config.contentLengthInMb() == null) {
                 logger.info(() -> "Starting to upload from file");
                 uploadOnceFromFile(metrics);
+                if (printOutResult) {
+                    printOutResult(metrics, "Upload from File", Files.size(Paths.get(path)));
+                }
             } else {
                 logger.info(() -> "Starting to upload from memory");
                 uploadOnceFromMemory(metrics);
+                if (printOutResult) {
+                    printOutResult(metrics, "Upload from Memory", config.contentLengthInMb());
+                }
             }
-        }
-        if (printOutResult) {
-            printOutResult(metrics, "Upload from File", Files.size(Paths.get(path)));
         }
     }
 
