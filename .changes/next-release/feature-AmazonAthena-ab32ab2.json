@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Athena",
+    "contributor": "",
+    "description": "This release includes support for using Apache Spark in Amazon Athena."
+}
