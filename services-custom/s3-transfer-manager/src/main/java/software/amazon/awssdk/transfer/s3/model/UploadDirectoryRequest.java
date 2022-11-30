@@ -41,7 +41,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 public final class UploadDirectoryRequest
     implements TransferDirectoryRequest, ToCopyableBuilder<UploadDirectoryRequest.Builder, UploadDirectoryRequest> {
 
-    private final Path sourceDirectory;
+    private final Path source;
     private final String bucket;
     private final String s3Prefix;
     private final String s3Delimiter;
@@ -51,7 +51,7 @@ public final class UploadDirectoryRequest
 
 
     public UploadDirectoryRequest(DefaultBuilder builder) {
-        this.sourceDirectory = Validate.paramNotNull(builder.sourceDirectory, "sourceDirectory");
+        this.source = Validate.paramNotNull(builder.source, "source");
         this.bucket = Validate.paramNotNull(builder.bucket, "bucket");
         this.s3Prefix = builder.s3Prefix;
         this.s3Delimiter = builder.s3Delimiter;
@@ -66,8 +66,8 @@ public final class UploadDirectoryRequest
      * @return the source directory
      * @see Builder#source(Path)
      */
-    public Path sourceDirectory() {
-        return sourceDirectory;
+    public Path source() {
+        return source;
     }
 
     /**
@@ -146,7 +146,7 @@ public final class UploadDirectoryRequest
 
         UploadDirectoryRequest that = (UploadDirectoryRequest) o;
 
-        if (!Objects.equals(sourceDirectory, that.sourceDirectory)) {
+        if (!Objects.equals(source, that.source)) {
             return false;
         }
         if (!Objects.equals(bucket, that.bucket)) {
@@ -169,7 +169,7 @@ public final class UploadDirectoryRequest
 
     @Override
     public int hashCode() {
-        int result = sourceDirectory != null ? sourceDirectory.hashCode() : 0;
+        int result = source != null ? source.hashCode() : 0;
         result = 31 * result + (bucket != null ? bucket.hashCode() : 0);
         result = 31 * result + (s3Prefix != null ? s3Prefix.hashCode() : 0);
         result = 31 * result + (s3Delimiter != null ? s3Delimiter.hashCode() : 0);
@@ -182,7 +182,7 @@ public final class UploadDirectoryRequest
     @Override
     public String toString() {
         return ToString.builder("UploadDirectoryRequest")
-                       .add("sourceDirectory", sourceDirectory)
+                       .add("source", source)
                        .add("bucket", bucket)
                        .add("s3Prefix", s3Prefix)
                        .add("s3Delimiter", s3Delimiter)
@@ -201,10 +201,10 @@ public final class UploadDirectoryRequest
          * Note that the current user must have read access to all directories and files,
          * otherwise {@link SecurityException} will be thrown.
          *
-         * @param sourceDirectory the source directory
+         * @param source the source directory
          * @return This builder for method chaining.
          */
-        Builder source(Path sourceDirectory);
+        Builder source(Path source);
 
         /**
          * The name of the bucket to upload objects to.
@@ -312,7 +312,7 @@ public final class UploadDirectoryRequest
          *
          * UploadDirectoryRequest request =
          *     UploadDirectoryRequest.builder()
-         *         .sourceDirectory(Paths.get("."))
+         *         .source(Paths.get("."))
          *         .bucket("bucket")
          *         .prefix("prefix")
          *         .overrideConfiguration(directoryUploadConfiguration)
@@ -342,7 +342,7 @@ public final class UploadDirectoryRequest
 
     private static final class DefaultBuilder implements Builder {
 
-        private Path sourceDirectory;
+        private Path source;
         private String bucket;
         private String s3Prefix;
         private String s3Delimiter;
@@ -354,7 +354,7 @@ public final class UploadDirectoryRequest
         }
 
         private DefaultBuilder(UploadDirectoryRequest request) {
-            this.sourceDirectory = request.sourceDirectory;
+            this.source = request.source;
             this.bucket = request.bucket;
             this.s3Prefix = request.s3Prefix;
             this.s3Delimiter = request.s3Delimiter;
@@ -364,17 +364,17 @@ public final class UploadDirectoryRequest
         }
 
         @Override
-        public Builder source(Path sourceDirectory) {
-            this.sourceDirectory = sourceDirectory;
+        public Builder source(Path source) {
+            this.source = source;
             return this;
         }
 
-        public void setSourceDirectory(Path sourceDirectory) {
-            source(sourceDirectory);
+        public void setSource(Path source) {
+            source(source);
         }
 
-        public Path getSourceDirectory() {
-            return sourceDirectory;
+        public Path getSource() {
+            return source;
         }
 
         @Override

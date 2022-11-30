@@ -85,7 +85,7 @@ public class UploadDirectoryHelper {
     private void doUploadDirectory(CompletableFuture<CompletedDirectoryUpload> returnFuture,
                                    UploadDirectoryRequest uploadDirectoryRequest) {
 
-        Path directory = uploadDirectoryRequest.sourceDirectory();
+        Path directory = uploadDirectoryRequest.source();
 
         validateDirectory(uploadDirectoryRequest);
 
@@ -110,7 +110,7 @@ public class UploadDirectoryHelper {
     }
 
     private void validateDirectory(UploadDirectoryRequest uploadDirectoryRequest) {
-        Path directory = uploadDirectoryRequest.sourceDirectory();
+        Path directory = uploadDirectoryRequest.source();
         Validate.isTrue(Files.exists(directory), "The source directory provided (%s) does not exist", directory);
         boolean followSymbolicLinks = transferConfiguration.resolveUploadDirectoryFollowSymbolicLinks(uploadDirectoryRequest);
         if (followSymbolicLinks) {
@@ -126,7 +126,7 @@ public class UploadDirectoryHelper {
     private CompletableFuture<CompletedFileUpload> uploadSingleFile(UploadDirectoryRequest uploadDirectoryRequest,
                                                                     Collection<FailedFileUpload> failedFileUploads,
                                                                     Path path) {
-        int nameCount = uploadDirectoryRequest.sourceDirectory().getNameCount();
+        int nameCount = uploadDirectoryRequest.source().getNameCount();
         UploadFileRequest uploadFileRequest = constructUploadRequest(uploadDirectoryRequest, nameCount, path);
         log.debug(() -> String.format("Sending upload request (%s) for path (%s)", uploadFileRequest, path));
         CompletableFuture<CompletedFileUpload> executionFuture = uploadFunction.apply(uploadFileRequest).completionFuture();
@@ -206,7 +206,7 @@ public class UploadDirectoryHelper {
                                               .map(s -> normalizePrefix(s, delimiter))
                                               .orElse(DEFAULT_PREFIX);
 
-        String relativePathName = getRelativePathName(uploadDirectoryRequest.sourceDirectory(),
+        String relativePathName = getRelativePathName(uploadDirectoryRequest.source(),
                                                       directoryNameCount,
                                                       path,
                                                       delimiter);

@@ -40,7 +40,7 @@ public class UploadDirectoryRequestTest {
     @Test
     public void equals_hashcode() {
         EqualsVerifier.forClass(UploadDirectoryRequest.class)
-                      .withNonnullFields("sourceDirectory", "bucket")
+                      .withNonnullFields("source", "bucket")
                       .verify();
     }
 }
