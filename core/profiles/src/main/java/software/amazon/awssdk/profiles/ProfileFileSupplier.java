@@ -19,6 +19,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.profiles.internal.ProfileFileRefresher;
@@ -126,7 +127,7 @@ public interface ProfileFileSupplier extends Supplier<ProfileFile>, SdkAutoClose
 
         return new ProfileFileSupplier() {
 
-            volatile ProfileFile currentAggregateProfileFile;
+            final AtomicReference<ProfileFile> currentAggregateProfileFile = new AtomicReference<>();
 
             @Override
             public ProfileFile get() {
@@ -144,16 +145,13 @@ public interface ProfileFileSupplier extends Supplier<ProfileFile>, SdkAutoClose
             }
 
             private ProfileFile refreshAndGetCurrentAggregate(ProfileFile.Aggregator aggregator) {
+                ProfileFile current = currentAggregateProfileFile.get();
                 ProfileFile next = aggregator.build();
-                if (isNewAggregateProfileFile(next)) {
-                    currentAggregateProfileFile = next;
+                if (!Objects.equals(current, next)) {
+                    currentAggregateProfileFile.compareAndSet(current, next);
                 }
 
-                return currentAggregateProfileFile;
-            }
-
-            private boolean isNewAggregateProfileFile(ProfileFile profileFile) {
-                return !Objects.equals(currentAggregateProfileFile, profileFile);
+                return currentAggregateProfileFile.get();
             }
 
         };
