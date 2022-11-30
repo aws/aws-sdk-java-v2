@@ -18,6 +18,7 @@ package software.amazon.awssdk.http.crt;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.binaryEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.head;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
@@ -35,6 +36,12 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -51,6 +58,7 @@ import software.amazon.awssdk.crt.http.HttpException;
 import software.amazon.awssdk.crt.io.EventLoopGroup;
 import software.amazon.awssdk.crt.io.HostResolver;
 import software.amazon.awssdk.http.RecordingResponseHandler;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SdkHttpResponse;
@@ -129,6 +137,83 @@ public class AwsCrtHttpClientSpiVerificationTest {
             client.execute(AsyncExecuteRequest.builder().request(request).requestContentPublisher(createProvider("")).responseHandler(recorder).build());
             assertThatThrownBy(() -> recorder.completeFuture().get(5, TimeUnit.SECONDS)).hasCauseInstanceOf(IOException.class)
                                                                                         .hasRootCauseInstanceOf(HttpException.class);
+        }
+    }
+
+    static class MockableSDKHttpRequest implements SdkHttpRequest {
+        private Map<String, List<String>> headers = null;
+        private final String host;
+        private final String path;
+        private final SdkHttpMethod method;
+
+        @SuppressWarnings("AssignmentOrReturnOfFieldWithMutableType")
+        MockableSDKHttpRequest(Map<String, List<String>> requestHeaders, String host, SdkHttpMethod method, String path) {
+            this.headers = requestHeaders;
+            this.host = host;
+            this.method = method;
+            this.path = path;
+        }
+        @Override
+        public Map<String, List<String>> headers() {
+            return Collections.unmodifiableMap(this.headers);
+        }
+
+        @Override
+        public String protocol() {
+            return "https";
+        }
+
+        @Override
+        public String host() {
+            return this.host;
+        }
+
+        @Override
+        public int port() {
+            return -1;
+        }
+
+        @Override
+        public String encodedPath() {
+            return this.path;
+        }
+
+        @Override
+        public Map<String, List<String>> rawQueryParameters() {
+            return new HashMap<>();
+        }
+
+        @Override
+        public SdkHttpMethod method() {
+            return this.method;
+        }
+
+        @Override
+        public Builder toBuilder() {
+            return null;
+        }
+    }
+
+    @Test
+    public void requestFailed_notRetryable_shouldNotWrapException() {
+        try (SdkAsyncHttpClient client = AwsCrtAsyncHttpClient.builder().build()) {
+            URI uri = URI.create("http://localhost:" + mockServer.port());
+            stubFor(any(urlPathEqualTo("/")).willReturn(aResponse().withFault(Fault.RANDOM_DATA_THEN_CLOSE)));
+            // make it invalid by doing a non-zero content length with no request body...
+            Map<String, List<String>> headers = new HashMap<>();
+            List<String> hostValues = new LinkedList<>();
+            hostValues.add(uri.getHost());
+            headers.put("host", hostValues);
+
+            List<String> contentLengthValues = new LinkedList<>();
+            contentLengthValues.add("1");
+            headers.put("content-length", contentLengthValues);
+
+            SdkHttpRequest request = new MockableSDKHttpRequest(headers, uri.getHost(), SdkHttpMethod.PUT, "/");
+            RecordingResponseHandler recorder = new RecordingResponseHandler();
+            client.execute(AsyncExecuteRequest.builder().request(request).responseHandler(recorder).build());
+            // invalid request should have returned an HttpException and not an IOException.
+            assertThatThrownBy(() -> recorder.completeFuture().get(5, TimeUnit.SECONDS)).hasCauseInstanceOf(HttpException.class);
         }
     }
 
