@@ -115,12 +115,14 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
         b.beginControlFlow("try");
         b.addStatement("$T result = $N.resolveEndpoint(ruleParams(context, executionAttributes)).join()", Endpoint.class,
                        providerVar);
+        b.beginControlFlow("if (!$T.disableHostPrefixInjection(executionAttributes))",
+                           endpointRulesSpecUtils.rulesRuntimeClassName("AwsEndpointProviderUtils"));
         b.addStatement("$T hostPrefix = hostPrefix(executionAttributes.getAttribute($T.OPERATION_NAME), context.request())",
                        ParameterizedTypeName.get(Optional.class, String.class), SdkExecutionAttribute.class);
-        b.beginControlFlow("if (hostPrefix.isPresent() && !$T.disableHostPrefixInjection(executionAttributes))",
-                           endpointRulesSpecUtils.rulesRuntimeClassName("AwsEndpointProviderUtils"));
+        b.beginControlFlow("if (hostPrefix.isPresent())");
         b.addStatement("result = $T.addHostPrefix(result, hostPrefix.get())",
                        endpointRulesSpecUtils.rulesRuntimeClassName("AwsEndpointProviderUtils"));
+        b.endControlFlow();
         b.endControlFlow();
         b.addStatement("executionAttributes.putAttribute(SdkInternalExecutionAttribute.RESOLVED_ENDPOINT, result)");
         b.addStatement("return context.request()");
