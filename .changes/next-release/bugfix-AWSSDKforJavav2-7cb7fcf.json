@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "This fixes an issue with the client option validation where the client builder is incorrectly validating that a value for the SIGNER option is present, even when it's not required (because the service does not use AWS auth).\n \n This change only does the appropriate validations based on the authtypes present in the service model."
+}

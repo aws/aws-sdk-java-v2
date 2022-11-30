@@ -16,10 +16,13 @@
 package software.amazon.awssdk.services.bearerauth;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 
 import java.lang.reflect.Method;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner;
 import software.amazon.awssdk.auth.token.credentials.aws.DefaultAwsTokenProvider;
@@ -28,6 +31,7 @@ import software.amazon.awssdk.core.client.builder.SdkDefaultClientBuilder;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.regions.Region;
 
 public class ClientBuilderTest {
     @Test
@@ -101,6 +105,20 @@ public class ClientBuilderTest {
 
         assertThat(config.option(SdkAdvancedClientOption.TOKEN_SIGNER))
             .isSameAs(mockSigner);
+    }
+
+    @Test
+    public void syncClient_buildWithDefaults_validationsSucceed() {
+        DefaultBearerauthClientBuilder builder = new DefaultBearerauthClientBuilder();
+        builder.region(Region.US_WEST_2).credentialsProvider(AnonymousCredentialsProvider.create());
+        assertThatNoException().isThrownBy(builder::build);
+    }
+
+    @Test
+    public void asyncClient_buildWithDefaults_validationsSucceed() {
+        DefaultBearerauthAsyncClientBuilder builder = new DefaultBearerauthAsyncClientBuilder();
+        builder.region(Region.US_WEST_2).credentialsProvider(AnonymousCredentialsProvider.create());
+        assertThatNoException().isThrownBy(builder::build);
     }
 
     // syncClientConfiguration() is a protected method, and the concrete builder classes are final
