@@ -92,8 +92,7 @@ public final class CrtRequestExecutor {
             // Submit the request on the connection
             try {
                 crtConn.makeRequest(crtRequest, crtResponseHandler).activate();
-            }
-            catch (HttpException e) {
+            } catch (HttpException e) {
                 Throwable toThrow = e;
                 if (HttpClientConnection.isErrorRetryable(e)) {
                     // IOExceptions get retried, and if the CRT says this error is retryable,
@@ -103,8 +102,8 @@ public final class CrtRequestExecutor {
                 reportFailure(toThrow,
                               requestFuture,
                               asyncRequest.responseHandler());
-            }
-            catch (IllegalStateException | CrtRuntimeException e) {
+            } catch (IllegalStateException | CrtRuntimeException e) {
+                // CRT throws IllegalStateException if the connection is closed
                 reportFailure(new IOException("An exception occurred when making the request", e),
                               requestFuture,
                               asyncRequest.responseHandler());

@@ -44,7 +44,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -140,80 +142,25 @@ public class AwsCrtHttpClientSpiVerificationTest {
         }
     }
 
-    static class MockableSDKHttpRequest implements SdkHttpRequest {
-        private Map<String, List<String>> headers = null;
-        private final String host;
-        private final String path;
-        private final SdkHttpMethod method;
-
-        @SuppressWarnings("AssignmentOrReturnOfFieldWithMutableType")
-        MockableSDKHttpRequest(Map<String, List<String>> requestHeaders, String host, SdkHttpMethod method, String path) {
-            this.headers = requestHeaders;
-            this.host = host;
-            this.method = method;
-            this.path = path;
-        }
-        @Override
-        public Map<String, List<String>> headers() {
-            return Collections.unmodifiableMap(this.headers);
-        }
-
-        @Override
-        public String protocol() {
-            return "https";
-        }
-
-        @Override
-        public String host() {
-            return this.host;
-        }
-
-        @Override
-        public int port() {
-            return -1;
-        }
-
-        @Override
-        public String encodedPath() {
-            return this.path;
-        }
-
-        @Override
-        public Map<String, List<String>> rawQueryParameters() {
-            return new HashMap<>();
-        }
-
-        @Override
-        public SdkHttpMethod method() {
-            return this.method;
-        }
-
-        @Override
-        public Builder toBuilder() {
-            return null;
-        }
-    }
-
     @Test
     public void requestFailed_notRetryable_shouldNotWrapException() {
         try (SdkAsyncHttpClient client = AwsCrtAsyncHttpClient.builder().build()) {
             URI uri = URI.create("http://localhost:" + mockServer.port());
-            stubFor(any(urlPathEqualTo("/")).willReturn(aResponse().withFault(Fault.RANDOM_DATA_THEN_CLOSE)));
             // make it invalid by doing a non-zero content length with no request body...
             Map<String, List<String>> headers = new HashMap<>();
-            List<String> hostValues = new LinkedList<>();
-            hostValues.add(uri.getHost());
-            headers.put("host", hostValues);
+            headers.put("host", Collections.singletonList(uri.getHost()));
 
             List<String> contentLengthValues = new LinkedList<>();
             contentLengthValues.add("1");
             headers.put("content-length", contentLengthValues);
 
-            SdkHttpRequest request = new MockableSDKHttpRequest(headers, uri.getHost(), SdkHttpMethod.PUT, "/");
+            SdkHttpRequest request = createRequest(uri).toBuilder().headers(headers).build();
+
             RecordingResponseHandler recorder = new RecordingResponseHandler();
-            client.execute(AsyncExecuteRequest.builder().request(request).responseHandler(recorder).build());
+            client.execute(AsyncExecuteRequest.builder().request(request).requestContentPublisher(new EmptyPublisher()).responseHandler(recorder).build());
             // invalid request should have returned an HttpException and not an IOException.
-            assertThatThrownBy(() -> recorder.completeFuture().get(5, TimeUnit.SECONDS)).hasCauseInstanceOf(HttpException.class);
+            assertThatThrownBy(() -> recorder.completeFuture().get(5, TimeUnit.SECONDS))
+                .hasCauseInstanceOf(HttpException.class).hasMessageContaining("does not match the previously declared length");
         }
     }
 
