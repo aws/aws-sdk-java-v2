@@ -27,7 +27,7 @@ public class UploadDirectoryRequestTest {
     public void noSourceDirectory_throws() {
         assertThatThrownBy(() ->
                                UploadDirectoryRequest.builder().bucket("bucket").build()
-        ).isInstanceOf(NullPointerException.class).hasMessageContaining("sourceDirectory");
+        ).isInstanceOf(NullPointerException.class).hasMessageContaining("source");
     }
 
     @Test
