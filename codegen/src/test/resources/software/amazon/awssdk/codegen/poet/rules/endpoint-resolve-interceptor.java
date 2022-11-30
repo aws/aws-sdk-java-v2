@@ -31,10 +31,12 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
             .getAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER);
         try {
             Endpoint result = provider.resolveEndpoint(ruleParams(context, executionAttributes)).join();
-            Optional<String> hostPrefix = hostPrefix(executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME),
-                                                     context.request());
-            if (hostPrefix.isPresent() && !AwsEndpointProviderUtils.disableHostPrefixInjection(executionAttributes)) {
-                result = AwsEndpointProviderUtils.addHostPrefix(result, hostPrefix.get());
+            if (!AwsEndpointProviderUtils.disableHostPrefixInjection(executionAttributes)) {
+                Optional<String> hostPrefix = hostPrefix(executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME),
+                                                         context.request());
+                if (hostPrefix.isPresent()) {
+                    result = AwsEndpointProviderUtils.addHostPrefix(result, hostPrefix.get());
+                }
             }
             executionAttributes.putAttribute(SdkInternalExecutionAttribute.RESOLVED_ENDPOINT, result);
             return context.request();
