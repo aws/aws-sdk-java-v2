@@ -80,7 +80,7 @@ public class TransferProgressUpdater {
 
                 @Override
                 public void subscriberOnNext(ByteBuffer byteBuffer) {
-                    incrementBytesTransferred(byteBuffer.limit());
+                    //incrementBytesTransferred(byteBuffer.limit());
                 }
 
                 @Override
