@@ -85,29 +85,7 @@ public final class CrtRequestExecutor {
                 metricCollector.reportMetric(CONCURRENCY_ACQUIRE_DURATION, acquireTimeTaken);
             }
 
-            HttpRequest crtRequest = CrtRequestAdapter.toCrtRequest(executionContext);
-            HttpStreamResponseHandler crtResponseHandler =
-                CrtResponseAdapter.toCrtResponseHandler(crtConn, requestFuture, asyncRequest.responseHandler());
-
-            // Submit the request on the connection
-            try {
-                crtConn.makeRequest(crtRequest, crtResponseHandler).activate();
-            } catch (HttpException e) {
-                Throwable toThrow = e;
-                if (HttpClientConnection.isErrorRetryable(e)) {
-                    // IOExceptions get retried, and if the CRT says this error is retryable,
-                    // it's semantically an IOException anyway.
-                    toThrow = new IOException(e);
-                }
-                reportFailure(toThrow,
-                              requestFuture,
-                              asyncRequest.responseHandler());
-            } catch (IllegalStateException | CrtRuntimeException e) {
-                // CRT throws IllegalStateException if the connection is closed
-                reportFailure(new IOException("An exception occurred when making the request", e),
-                              requestFuture,
-                              asyncRequest.responseHandler());
-            }
+            executeRequest(executionContext, requestFuture, crtConn, asyncRequest);
         });
 
         requestFuture.whenComplete((obj, err) -> {
@@ -123,6 +101,35 @@ public final class CrtRequestExecutor {
             }
         });
         return requestFuture;
+    }
+
+    private void executeRequest(CrtRequestContext executionContext,
+                                CompletableFuture<Void> requestFuture,
+                                HttpClientConnection crtConn,
+                                AsyncExecuteRequest asyncRequest) {
+        HttpRequest crtRequest = CrtRequestAdapter.toCrtRequest(executionContext);
+        HttpStreamResponseHandler crtResponseHandler =
+            CrtResponseAdapter.toCrtResponseHandler(crtConn, requestFuture, asyncRequest.responseHandler());
+
+        // Submit the request on the connection
+        try {
+            crtConn.makeRequest(crtRequest, crtResponseHandler).activate();
+        } catch (HttpException e) {
+            Throwable toThrow = e;
+            if (HttpClientConnection.isErrorRetryable(e)) {
+                // IOExceptions get retried, and if the CRT says this error is retryable,
+                // it's semantically an IOException anyway.
+                toThrow = new IOException(e);
+            }
+            reportFailure(toThrow,
+                          requestFuture,
+                          asyncRequest.responseHandler());
+        } catch (IllegalStateException | CrtRuntimeException e) {
+            // CRT throws IllegalStateException if the connection is closed
+            reportFailure(new IOException("An exception occurred when making the request", e),
+                          requestFuture,
+                          asyncRequest.responseHandler());
+        }
     }
 
     /**
