@@ -64,17 +64,29 @@ public final class SimplePublisher<T> implements Publisher<T> {
     private final AtomicLong outstandingDemand = new AtomicLong();
 
     /**
-     * The queue of events to be processed, in the order they should be processed.
+     * The queue of events to be processed, in the order they should be processed. These events are lower priority than those
+     * in {@link #highPriorityQueue} and will be processed after that queue is empty.
      *
      * <p>All logic within this publisher is represented using events in this queue. This ensures proper ordering of events
      * processing and simplified reasoning about thread safety.
      */
     private final Queue<QueueEntry<T>> standardPriorityQueue = new ConcurrentLinkedQueue<>();
+
+    /**
+     * The queue of events to be processed, in the order they should be processed. These events are higher priority than those
+     * in {@link #standardPriorityQueue} and will be processed first.
+     *
+     * <p>Events are written to this queue to "skip the line" in processing, so it's typically reserved for terminal events,
+     * like subscription cancellation.
+     *
+     * <p>All logic within this publisher is represented using events in this queue. This ensures proper ordering of events
+     * processing and simplified reasoning about thread safety.
+     */
     private final Queue<QueueEntry<T>> highPriorityQueue = new ConcurrentLinkedQueue<>();
 
     /**
-     * Whether the {@link #standardPriorityQueue} is currently being processed. Only one thread may read events from the
-     * queue at a time.
+     * Whether the {@link #standardPriorityQueue} and {@link #highPriorityQueue}s are currently being processed. Only one thread
+     * may read events from the queues at a time.
      */
     private final AtomicBoolean processingQueue = new AtomicBoolean(false);
 

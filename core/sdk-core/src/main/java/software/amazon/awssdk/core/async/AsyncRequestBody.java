@@ -169,9 +169,9 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      * complete.
      *
      * <p><b>Example Usage</b>
-     *
-     * <pre>
-     *     S3Client s3 = ...;
+     * <p>
+     * {@snippet :
+     *     S3AsyncClient s3 = S3AsyncClient.create(); // Use one client for your whole application!
      *
      *     byte[] dataToSend = "Hello".getBytes(StandardCharsets.UTF_8);
      *     long lengthOfDataToSend = dataToSend.length();
@@ -189,7 +189,7 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      *
      *     // Wait for the service to respond.
      *     PutObjectResponse response = responseFuture.join();
-     * </pre>
+     * }
      */
     static BlockingOutputStreamAsyncRequestBody forBlockingOutputStream(Long contentLength) {
         return new BlockingOutputStreamAsyncRequestBody(contentLength);
