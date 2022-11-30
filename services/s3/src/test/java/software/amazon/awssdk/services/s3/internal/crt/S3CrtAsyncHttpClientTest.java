@@ -138,7 +138,7 @@ public class S3CrtAsyncHttpClientTest {
                                                                             .build();
 
         S3MetaRequestOptions actual = makeRequest(asyncExecuteRequest);
-        assertThat(actual.getChecksumAlgorithm()).isNull();
+        assertThat(actual.getChecksumConfig().getChecksumAlgorithm()).isEqualTo(ChecksumAlgorithm.NONE);
     }
 
     @Test
@@ -155,7 +155,7 @@ public class S3CrtAsyncHttpClientTest {
                                                                             .build();
 
         S3MetaRequestOptions actual = makeRequest(asyncExecuteRequest);
-        assertThat(actual.getChecksumAlgorithm()).isNull();
+        assertThat(actual.getChecksumConfig().getChecksumAlgorithm()).isEqualTo(ChecksumAlgorithm.NONE);
     }
 
     @Test
