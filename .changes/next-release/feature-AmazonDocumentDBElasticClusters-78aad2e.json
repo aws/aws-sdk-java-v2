@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon DocumentDB Elastic Clusters",
-    "contributor": "",
-    "description": "Launched Amazon DocumentDB Elastic Clusters. You can now use the SDK to create, list, update and delete Amazon DocumentDB Elastic Cluster resources"
-}
