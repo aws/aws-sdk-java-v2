@@ -17,13 +17,16 @@ package software.amazon.awssdk.core.async;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.utils.async.ByteBufferStoringSubscriber.TransferResult.END_OF_STREAM;
 
 import java.io.ByteArrayInputStream;
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import software.amazon.awssdk.utils.StringInputStream;
 import software.amazon.awssdk.utils.async.ByteBufferStoringSubscriber;
 import software.amazon.awssdk.utils.async.StoringSubscriber;
@@ -40,6 +43,15 @@ class BlockingInputStreamAsyncRequestBodyTest {
         } finally {
             executor.shutdownNow();
         }
+    }
+
+    @Test
+    @Timeout(10)
+    public void doBlockingWrite_failsIfSubscriptionNeverComes()  {
+        BlockingInputStreamAsyncRequestBody requestBody =
+            new BlockingInputStreamAsyncRequestBody(0L, Duration.ofSeconds(1));
+        assertThatThrownBy(() -> requestBody.writeInputStream(new StringInputStream("")))
+            .hasMessageContaining("The service request was not made");
     }
 
     @Test

@@ -17,6 +17,7 @@ package software.amazon.awssdk.core.async;
 
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -37,12 +38,18 @@ import software.amazon.awssdk.utils.async.InputStreamConsumingPublisher;
 @SdkPublicApi
 public class BlockingInputStreamAsyncRequestBody implements AsyncRequestBody {
     private final InputStreamConsumingPublisher delegate = new InputStreamConsumingPublisher();
-    private final CountDownLatch subscribedLatch = new CountDownLatch(0);
+    private final CountDownLatch subscribedLatch = new CountDownLatch(1);
     private final AtomicBoolean subscribeCalled = new AtomicBoolean(false);
     private final Long contentLength;
+    private final Duration subscribeTimeout;
 
     BlockingInputStreamAsyncRequestBody(Long contentLength) {
+        this(contentLength, Duration.ofSeconds(10));
+    }
+
+    BlockingInputStreamAsyncRequestBody(Long contentLength, Duration subscribeTimeout) {
         this.contentLength = contentLength;
+        this.subscribeTimeout = subscribeTimeout;
     }
 
     @Override
@@ -98,10 +105,11 @@ public class BlockingInputStreamAsyncRequestBody implements AsyncRequestBody {
     }
 
     private void waitForSubscriptionIfNeeded() throws InterruptedException {
-        if (!subscribedLatch.await(10, TimeUnit.SECONDS)) {
-            throw new IllegalStateException("The service request was not made within 10 seconds of doBlockingWrite being "
-                                            + "invoked. Make sure to invoke the service request BEFORE invoking doBlockingWrite "
-                                            + "if your caller is single-threaded.");
+        long timeoutSeconds = subscribeTimeout.getSeconds();
+        if (!subscribedLatch.await(timeoutSeconds, TimeUnit.SECONDS)) {
+            throw new IllegalStateException("The service request was not made within " + timeoutSeconds + " seconds of "
+                                            + "doBlockingWrite being invoked. Make sure to invoke the service request "
+                                            + "BEFORE invoking doBlockingWrite if your caller is single-threaded.");
         }
     }
 }
