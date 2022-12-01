@@ -16,7 +16,10 @@
 package software.amazon.awssdk.profiles;
 
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.profiles.internal.ProfileFileRefresher;
@@ -37,20 +40,52 @@ public interface ProfileFileSupplier extends Supplier<ProfileFile>, SdkAutoClose
     }
 
     /**
+     * Creates a {@link ProfileFileSupplier} capable of producing multiple profile objects by aggregating the default
+     * credentials and configuration files as determined by {@link ProfileFileLocation#credentialsFileLocation()} abd
+     * {@link ProfileFileLocation#configurationFileLocation()}. This supplier will return a new ProfileFile instance only once
+     * either disk file has been modified. Multiple calls to the supplier while both disk files are unchanged will return the
+     * same object.
+     *
+     * @return Implementation of {@link ProfileFileSupplier} that is capable of supplying a new aggregate profile when either file
+     *         has been modified.
+     */
+    static ProfileFileSupplier defaultSupplier() {
+        Optional<ProfileFileSupplier> credentialsSupplierOptional
+            = ProfileFileLocation.credentialsFileLocation()
+                                 .map(path -> reloadWhenModified(path, ProfileFile.Type.CREDENTIALS));
+
+        Optional<ProfileFileSupplier> configurationSupplierOptional
+            = ProfileFileLocation.configurationFileLocation()
+                                 .map(path -> reloadWhenModified(path, ProfileFile.Type.CONFIGURATION));
+
+        ProfileFileSupplier supplier = () -> null;
+        if (credentialsSupplierOptional.isPresent() && configurationSupplierOptional.isPresent()) {
+            supplier = aggregate(credentialsSupplierOptional.get(), configurationSupplierOptional.get());
+        } else if (credentialsSupplierOptional.isPresent()) {
+            supplier = credentialsSupplierOptional.get();
+        } else if (configurationSupplierOptional.isPresent()) {
+            supplier = configurationSupplierOptional.get();
+        }
+
+        return supplier;
+    }
+
+    /**
      * Creates a {@link ProfileFileSupplier} capable of producing multiple profile objects from a file. This supplier will
      * return a new ProfileFile instance only once the disk file has been modified. Multiple calls to the supplier while the
      * disk file is unchanged will return the same object.
      *
      * @param path Path to the file to read from.
+     * @param type The type of file. See {@link ProfileFile.Type} for possible values.
      * @return Implementation of {@link ProfileFileSupplier} that is capable of supplying a new profile when the file
      *         has been modified.
      */
-    static ProfileFileSupplier reloadWhenModified(Path path) {
+    static ProfileFileSupplier reloadWhenModified(Path path, ProfileFile.Type type) {
         return new ProfileFileSupplier() {
 
             final ProfileFile.Builder builder = ProfileFile.builder()
                                                            .content(path)
-                                                           .type(ProfileFile.Type.CREDENTIALS);
+                                                           .type(type);
 
             final ProfileFileRefresher refresher = ProfileFileRefresher.builder()
                                                                        .profileFile(builder::build)
@@ -70,21 +105,6 @@ public interface ProfileFileSupplier extends Supplier<ProfileFile>, SdkAutoClose
     }
 
     /**
-     * Creates a {@link ProfileFileSupplier} capable of producing a single profile object from a file.
-     *
-     * @param path Path to the file to read from.
-     * @return Implementation of {@link ProfileFileSupplier} that is capable of supplying a single profile.
-     */
-    static ProfileFileSupplier fixedProfileFile(Path path) {
-        ProfileFile profileFile = ProfileFile.builder()
-                                             .content(path)
-                                             .type(ProfileFile.Type.CREDENTIALS)
-                                             .build();
-
-        return () -> profileFile;
-    }
-
-    /**
      * Creates a {@link ProfileFileSupplier} that produces an existing profile.
      *
      * @param profileFile Profile object to supply.
@@ -95,14 +115,46 @@ public interface ProfileFileSupplier extends Supplier<ProfileFile>, SdkAutoClose
     }
 
     /**
-     * creates a {@link ProfileFileSupplier} that produces an existing non-null profile. If the given profile
-     * is null, then the created supplier will also be null.
+     * Creates a {@link ProfileFileSupplier} by combining the {@link ProfileFile} objects from two {@code ProfileFileSupplier}s.
+     * Objects are passed into {@link ProfileFile.Aggregator}.
      *
-     * @param profileFile Profile object to supply.
-     * @return Implementation of {@link ProfileFileSupplier} that is capable of supplying a single profile.
+     * @param suppliers Array of {@code ProfileFileSupplier} objects. {@code ProfileFile} objects are passed to
+     *                  {@link ProfileFile.Aggregator#addFile(ProfileFile)} in the same argument order as the supplier that
+     *                  generated it.
+     * @return Implementation of {@link ProfileFileSupplier} aggregating results from the supplier objects.
      */
-    static ProfileFileSupplier wrapIntoNullableSupplier(ProfileFile profileFile) {
-        return Objects.nonNull(profileFile) ? () -> profileFile : null;
+    static ProfileFileSupplier aggregate(ProfileFileSupplier... suppliers) {
+
+        return new ProfileFileSupplier() {
+
+            final AtomicReference<ProfileFile> currentAggregateProfileFile = new AtomicReference<>();
+
+            @Override
+            public ProfileFile get() {
+                ProfileFile.Aggregator aggregator = ProfileFile.aggregator();
+                for (ProfileFileSupplier supplier : suppliers) {
+                    aggregator.addFile(supplier.get());
+                }
+
+                return refreshAndGetCurrentAggregate(aggregator);
+            }
+
+            @Override
+            public void close() {
+                Arrays.stream(suppliers).forEach(ProfileFileSupplier::close);
+            }
+
+            private ProfileFile refreshAndGetCurrentAggregate(ProfileFile.Aggregator aggregator) {
+                ProfileFile current = currentAggregateProfileFile.get();
+                ProfileFile next = aggregator.build();
+                if (!Objects.equals(current, next)) {
+                    currentAggregateProfileFile.compareAndSet(current, next);
+                }
+
+                return currentAggregateProfileFile.get();
+            }
+
+        };
     }
 
 }
