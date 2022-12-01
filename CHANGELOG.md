@@ -1,3 +1,34 @@
+# __2.18.29__ __2022-12-01__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Added AsyncRequestBody.forBlockingOutputStream, allowing streaming operation requests to be written to like an output stream.
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - This fixes an issue with the client option validation where the client builder is incorrectly validating that a value for the SIGNER option is present, even when it's not required (because the service does not use AWS auth).
+
+       This change only does the appropriate validations based on the authtypes present in the service model.
+
+## __AWS Step Functions__
+  - ### Features
+    - This release adds support for the AWS Step Functions Map state in Distributed mode. The changes include a new MapRun resource and several new and modified APIs.
+
+## __Amazon CodeCatalyst__
+  - ### Features
+    - This release adds operations that support customers using the AWS Toolkits and Amazon CodeCatalyst, a unified software development service that helps developers develop, deploy, and maintain applications in the cloud. For more information, see the documentation.
+
+## __Amazon Comprehend__
+  - ### Features
+    - Comprehend now supports semi-structured documents (such as PDF files or image files) as inputs for custom analysis using the synchronous APIs (ClassifyDocument and DetectEntities).
+
+## __Amazon EventBridge Pipes__
+  - ### Features
+    - AWS introduces new Amazon EventBridge Pipes which allow you to connect sources (SQS, Kinesis, DDB, Kafka, MQ) to Targets (14+ EventBridge Targets) without any code, with filtering, batching, input transformation, and an optional Enrichment stage (Lambda, StepFunctions, ApiGateway, ApiDestinations)
+
+## __Amazon GameLift__
+  - ### Features
+    - GameLift introduces a new feature, GameLift Anywhere. GameLift Anywhere allows you to integrate your own compute resources with GameLift. You can also use GameLift Anywhere to iteratively test your game servers without uploading the build to GameLift for every iteration.
+
 # __2.18.28__ __2022-11-30__
 ## __AWS Data Exchange__
   - ### Features

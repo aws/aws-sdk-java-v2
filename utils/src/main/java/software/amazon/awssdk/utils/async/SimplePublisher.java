@@ -15,20 +15,17 @@
 
 package software.amazon.awssdk.utils.async;
 
-import static java.util.Arrays.asList;
 import static software.amazon.awssdk.utils.async.SimplePublisher.QueueEntry.Type.CANCEL;
 import static software.amazon.awssdk.utils.async.SimplePublisher.QueueEntry.Type.ON_COMPLETE;
 import static software.amazon.awssdk.utils.async.SimplePublisher.QueueEntry.Type.ON_ERROR;
 import static software.amazon.awssdk.utils.async.SimplePublisher.QueueEntry.Type.ON_NEXT;
 
 import java.util.Queue;
-import java.util.Set;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
@@ -67,32 +64,36 @@ public final class SimplePublisher<T> implements Publisher<T> {
     private final AtomicLong outstandingDemand = new AtomicLong();
 
     /**
-     * The queue of events to be processed, in the order they should be processed.
+     * The queue of events to be processed, in the order they should be processed. These events are lower priority than those
+     * in {@link #highPriorityQueue} and will be processed after that queue is empty.
      *
      * <p>All logic within this publisher is represented using events in this queue. This ensures proper ordering of events
      * processing and simplified reasoning about thread safety.
      */
-    private final Queue<QueueEntry<T>> eventQueue = new ConcurrentLinkedQueue<>();
+    private final Queue<QueueEntry<T>> standardPriorityQueue = new ConcurrentLinkedQueue<>();
 
     /**
-     * When processing the {@link #eventQueue}, these are the entries that should be skipped (and failed). This is used to
-     * safely drain the queue when there are urgent events needing processing, like a {@link Subscription#cancel()}.
+     * The queue of events to be processed, in the order they should be processed. These events are higher priority than those
+     * in {@link #standardPriorityQueue} and will be processed first.
+     *
+     * <p>Events are written to this queue to "skip the line" in processing, so it's typically reserved for terminal events,
+     * like subscription cancellation.
+     *
+     * <p>All logic within this publisher is represented using events in this queue. This ensures proper ordering of events
+     * processing and simplified reasoning about thread safety.
      */
-    private final Set<QueueEntry.Type> entryTypesToFail = new CopyOnWriteArraySet<>();
+    private final Queue<QueueEntry<T>> highPriorityQueue = new ConcurrentLinkedQueue<>();
 
     /**
-     * Whether the {@link #eventQueue} is currently being processed. Only one thread may read events from the queue at a time.
+     * Whether the {@link #standardPriorityQueue} and {@link #highPriorityQueue}s are currently being processed. Only one thread
+     * may read events from the queues at a time.
      */
     private final AtomicBoolean processingQueue = new AtomicBoolean(false);
 
     /**
-     * An exception that should be raised to any failed {@link #send(Object)}, {@link #complete()} or {@link #error(Throwable)}
-     * operations. This is used to stop accepting messages after the downstream subscription is cancelled or after the
-     * caller sends a {@code complete()} or {@code #error()}.
-     *
-     * <p>This is a supplier to avoid the cost of creating an exception in the successful code path.
+     * The failure message that should be sent to future events.
      */
-    private final AtomicReference<Supplier<RuntimeException>> rejectException = new AtomicReference<>();
+    private final FailureMessage failureMessage = new FailureMessage();
 
     /**
      * The subscriber provided via {@link #subscribe(Subscriber)}. This publisher only supports a single subscriber.
@@ -123,8 +124,7 @@ public final class SimplePublisher<T> implements Publisher<T> {
         OnNextQueueEntry<T> entry = new OnNextQueueEntry<>(value);
         try {
             Validate.notNull(value, "Null cannot be written.");
-            validateRejectState();
-            eventQueue.add(entry);
+            standardPriorityQueue.add(entry);
             processEventQueue();
         } catch (RuntimeException t) {
             entry.resultFuture.completeExceptionally(t);
@@ -153,9 +153,7 @@ public final class SimplePublisher<T> implements Publisher<T> {
         OnCompleteQueueEntry<T> entry = new OnCompleteQueueEntry<>();
 
         try {
-            validateRejectState();
-            setRejectExceptionOrThrow(() -> new IllegalStateException("complete() has been invoked"));
-            eventQueue.add(entry);
+            standardPriorityQueue.add(entry);
             processEventQueue();
         } catch (RuntimeException t) {
             entry.resultFuture.completeExceptionally(t);
@@ -185,9 +183,7 @@ public final class SimplePublisher<T> implements Publisher<T> {
         OnErrorQueueEntry<T> entry = new OnErrorQueueEntry<>(error);
 
         try {
-            validateRejectState();
-            setRejectExceptionOrThrow(() -> new IllegalStateException("error() has been invoked"));
-            eventQueue.add(entry);
+            standardPriorityQueue.add(entry);
             processEventQueue();
         } catch (RuntimeException t) {
             entry.resultFuture.completeExceptionally(t);
@@ -235,7 +231,8 @@ public final class SimplePublisher<T> implements Publisher<T> {
 
             // Once releasing the processing-queue flag, we need to double-check that the queue still doesn't need to be
             // processed, because new messages might have come in since we decided to release the flag.
-        } while (shouldProcessQueueEntry(eventQueue.peek()));
+        } while (shouldProcessQueueEntry(standardPriorityQueue.peek()) ||
+                 shouldProcessQueueEntry(highPriorityQueue.peek()));
     }
 
     /**
@@ -246,16 +243,21 @@ public final class SimplePublisher<T> implements Publisher<T> {
      */
     private void doProcessQueue() {
         while (true) {
-            QueueEntry<T> entry = eventQueue.peek();
+            QueueEntry<T> entry = highPriorityQueue.peek();
+            Queue<?> sourceQueue = highPriorityQueue;
+
+            if (entry == null) {
+                entry = standardPriorityQueue.peek();
+                sourceQueue = standardPriorityQueue;
+            }
 
             if (!shouldProcessQueueEntry(entry)) {
                 // We're done processing entries.
                 return;
             }
 
-            if (entryTypesToFail.contains(entry.type())) {
-                // We're supposed to skip this entry type. Fail it and move on.
-                entry.resultFuture.completeExceptionally(rejectException.get().get());
+            if (failureMessage.isSet()) {
+                entry.resultFuture.completeExceptionally(failureMessage.get());
             } else {
                 switch (entry.type()) {
                     case ON_NEXT:
@@ -267,18 +269,22 @@ public final class SimplePublisher<T> implements Publisher<T> {
                         log.trace(() -> "Decreased demand to " + newDemand);
                         break;
                     case ON_COMPLETE:
-                        entryTypesToFail.addAll(asList(ON_NEXT, ON_COMPLETE, ON_ERROR));
+                        failureMessage.trySet(() -> new IllegalStateException("onComplete() was already invoked."));
+
                         log.trace(() -> "Calling onComplete()");
                         subscriber.onComplete();
                         break;
                     case ON_ERROR:
-                        OnErrorQueueEntry<T> onErrorEntry = (OnErrorQueueEntry<T>) entry;
 
-                        entryTypesToFail.addAll(asList(ON_NEXT, ON_COMPLETE, ON_ERROR));
+                        OnErrorQueueEntry<T> onErrorEntry = (OnErrorQueueEntry<T>) entry;
+                        failureMessage.trySet(() -> new IllegalStateException("onError() was already invoked.",
+                                                                             onErrorEntry.failure));
                         log.trace(() -> "Calling onError() with " + onErrorEntry.failure, onErrorEntry.failure);
                         subscriber.onError(onErrorEntry.failure);
                         break;
                     case CANCEL:
+                        failureMessage.trySet(() -> new CancellationException("subscription has been cancelled."));
+
                         subscriber = null; // Allow subscriber to be garbage collected after cancellation.
                         break;
                     default:
@@ -289,7 +295,7 @@ public final class SimplePublisher<T> implements Publisher<T> {
                 entry.resultFuture.complete(null);
             }
 
-            eventQueue.remove();
+            sourceQueue.remove();
         }
     }
 
@@ -297,23 +303,22 @@ public final class SimplePublisher<T> implements Publisher<T> {
      * Return true if we should process the provided queue entry.
      */
     private boolean shouldProcessQueueEntry(QueueEntry<T> entry) {
-        if (subscriber == null) {
-            // We don't have a subscriber yet.
-            return false;
-        }
-
         if (entry == null) {
             // The queue is empty.
             return false;
         }
 
-        if (entry.type() != ON_NEXT) {
-            // This event isn't an on-next event, so we don't need subscriber demand in order to process it.
+        if (failureMessage.isSet()) {
             return true;
         }
 
-        if (entryTypesToFail.contains(ON_NEXT)) {
-            // This is an on-next call (decided above), but we're failing on-next calls. Go ahead and fail it.
+        if (subscriber == null) {
+            // We don't have a subscriber yet.
+            return false;
+        }
+
+        if (entry.type() != ON_NEXT) {
+            // This event isn't an on-next event, so we don't need subscriber demand in order to process it.
             return true;
         }
 
@@ -332,12 +337,11 @@ public final class SimplePublisher<T> implements Publisher<T> {
         try {
             // Create exception here instead of in supplier to preserve a more-useful stack trace.
             RuntimeException failure = new IllegalStateException("Encountered fatal error in publisher", cause);
-            rejectException.compareAndSet(null, () -> failure);
-            entryTypesToFail.addAll(asList(QueueEntry.Type.values()));
+            failureMessage.trySet(() -> failure);
             subscriber.onError(cause instanceof Error ? cause : failure);
 
             while (true) {
-                QueueEntry<T> entry = eventQueue.poll();
+                QueueEntry<T> entry = standardPriorityQueue.poll();
                 if (entry == null) {
                     break;
                 }
@@ -346,24 +350,6 @@ public final class SimplePublisher<T> implements Publisher<T> {
         } catch (Throwable t) {
             t.addSuppressed(cause);
             log.error(() -> "Failed while processing a failure. This could result in stuck futures.", t);
-        }
-    }
-
-    /**
-     * Ensure that {@link #rejectException} is null. If it is not, throw the exception.
-     */
-    private void validateRejectState() {
-        if (rejectException.get() != null) {
-            throw rejectException.get().get();
-        }
-    }
-
-    /**
-     * Set the {@link #rejectException}, if it is null. If it is not, throw the exception.
-     */
-    private void setRejectExceptionOrThrow(Supplier<RuntimeException> rejectedException) {
-        if (!rejectException.compareAndSet(null, rejectedException)) {
-            throw rejectException.get().get();
         }
     }
 
@@ -379,9 +365,7 @@ public final class SimplePublisher<T> implements Publisher<T> {
                 // Create exception here instead of in supplier to preserve a more-useful stack trace.
                 IllegalArgumentException failure = new IllegalArgumentException("A downstream publisher requested an invalid "
                                                                                 + "amount of data: " + n);
-                rejectException.compareAndSet(null, () -> failure);
-                eventQueue.add(new OnErrorQueueEntry<>(failure));
-                entryTypesToFail.addAll(asList(ON_NEXT, ON_COMPLETE));
+                highPriorityQueue.add(new OnErrorQueueEntry<>(failure));
                 processEventQueue();
             } else {
                 long newDemand = outstandingDemand.updateAndGet(current -> {
@@ -401,16 +385,39 @@ public final class SimplePublisher<T> implements Publisher<T> {
             log.trace(() -> "Received cancel()");
 
             // Create exception here instead of in supplier to preserve a more-useful stack trace.
-            IllegalStateException failure = new IllegalStateException("A downstream publisher has cancelled the subscription.");
-            rejectException.compareAndSet(null, () -> failure);
-            eventQueue.add(new CancelQueueEntry<>());
-            entryTypesToFail.addAll(asList(ON_NEXT, ON_COMPLETE, ON_ERROR));
+            highPriorityQueue.add(new CancelQueueEntry<>());
             processEventQueue();
         }
     }
 
     /**
-     * An entry in the {@link #eventQueue}.
+     * A lazily-initialized failure message for future events sent to this publisher after a terminal event has
+     * occurred.
+     */
+    private static final class FailureMessage {
+        private Supplier<Throwable> failureMessageSupplier;
+        private Throwable failureMessage;
+
+        private void trySet(Supplier<Throwable> supplier) {
+            if (failureMessageSupplier == null) {
+                failureMessageSupplier = supplier;
+            }
+        }
+
+        private boolean isSet() {
+            return failureMessageSupplier != null;
+        }
+
+        private Throwable get() {
+            if (failureMessage == null) {
+                failureMessage = failureMessageSupplier.get();
+            }
+            return failureMessage;
+        }
+    }
+
+    /**
+     * An entry in the {@link #standardPriorityQueue}.
      */
     abstract static class QueueEntry<T> {
         /**

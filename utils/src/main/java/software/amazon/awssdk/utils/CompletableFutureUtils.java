@@ -17,6 +17,7 @@ package software.amazon.awssdk.utils;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
@@ -26,6 +27,8 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
  */
 @SdkProtectedApi
 public final class CompletableFutureUtils {
+    private static final Logger log = Logger.loggerFor(CompletableFutureUtils.class);
+
     private CompletableFutureUtils() {
     }
 
@@ -143,5 +146,30 @@ public final class CompletableFutureUtils {
         });
 
         return src;
+    }
+
+    public static <T> T joinInterruptibly(CompletableFuture<T> future) {
+        try {
+            return future.get();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new CompletionException("Interrupted while waiting on a future.", e);
+        } catch (ExecutionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof Error) {
+                throw (Error) cause;
+            }
+            throw new CompletionException(cause);
+        }
+    }
+
+    public static void joinInterruptiblyIgnoringFailures(CompletableFuture<?> future) {
+        try {
+            future.get();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (ExecutionException e) {
+            // Ignore
+        }
     }
 }

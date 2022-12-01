@@ -1,0 +1,38 @@
+{
+  "version":"2.0",
+  "metadata":{
+    "apiVersion":"2016-03-11",
+    "endpointPrefix":"internalconfig",
+    "jsonVersion":"1.1",
+    "protocol":"rest-json",
+    "serviceAbbreviation":"AwsMixedAuthService",
+    "serviceFullName":"AWS Mixed Auth Service",
+    "serviceId":"mixedauth",
+    "signatureVersion":"v4",
+    "targetPrefix":"MixedAuth",
+    "timestampFormat":"unixTimestamp",
+    "uid":"restjson-2016-03-11"
+  },
+  "operations":{
+    "OneOperation":{
+      "name":"OneOperation",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2016-03-11/oneoperation"
+      },
+      "input":{"shape":"OneShape"},
+      "authtype": "bearer"
+    }
+  },
+  "shapes": {
+    "OneShape": {
+      "type": "structure",
+      "members": {
+        "StringMember": {
+          "shape": "String"
+        }
+      }
+    },
+    "String":{"type":"string"}
+  }
+}

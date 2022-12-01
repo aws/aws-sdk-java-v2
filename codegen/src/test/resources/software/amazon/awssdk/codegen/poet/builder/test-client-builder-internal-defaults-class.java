@@ -14,6 +14,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.utils.CollectionUtils;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Internal base class for {@link DefaultJsonClientBuilder} and {@link DefaultJsonAsyncClientBuilder}.
@@ -65,5 +66,10 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
     @Override
     protected final String signingName() {
         return "json-service";
+    }
+
+    protected static void validateClientOptions(SdkClientConfiguration c) {
+        Validate.notNull(c.option(SdkAdvancedClientOption.SIGNER),
+                         "The 'overrideConfiguration.advancedOption[SIGNER]' must be configured in the client builder.");
     }
 }

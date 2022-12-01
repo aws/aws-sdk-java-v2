@@ -19,8 +19,8 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.service.AuthType;
 
-public final class BearerAuthUtils {
-    private BearerAuthUtils() {
+public final class AuthUtils {
+    private AuthUtils() {
     }
 
     /**
@@ -36,6 +36,16 @@ public final class BearerAuthUtils {
                     .anyMatch(authType -> authType == AuthType.BEARER);
     }
 
+    public static boolean usesAwsAuth(IntermediateModel model) {
+        if (isServiceAwsAuthType(model)) {
+            return true;
+        }
+
+        return model.getOperations().values().stream()
+                    .map(OperationModel::getAuthType)
+                    .anyMatch(AuthUtils::isAuthTypeAws);
+    }
+
     /**
      * Returns {@code true} if the operation should use bearer auth.
      */
@@ -48,6 +58,26 @@ public final class BearerAuthUtils {
 
     private static boolean isServiceBearerAuth(IntermediateModel model) {
         return model.getMetadata().getAuthType() == AuthType.BEARER;
+    }
+
+    private static boolean isServiceAwsAuthType(IntermediateModel model) {
+        AuthType authType = model.getMetadata().getAuthType();
+        return isAuthTypeAws(authType);
+    }
+
+    private static boolean isAuthTypeAws(AuthType authType) {
+        if (authType == null) {
+            return false;
+        }
+
+        switch (authType) {
+            case V4:
+            case S3:
+            case S3V4:
+                return true;
+            default:
+                return false;
+        }
     }
 
     private static boolean hasNoAuthType(OperationModel opModel) {

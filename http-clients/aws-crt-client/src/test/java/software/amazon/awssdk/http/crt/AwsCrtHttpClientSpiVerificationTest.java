@@ -35,6 +35,11 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.time.Duration;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -48,8 +53,6 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.crt.http.HttpException;
-import software.amazon.awssdk.crt.io.EventLoopGroup;
-import software.amazon.awssdk.crt.io.HostResolver;
 import software.amazon.awssdk.http.RecordingResponseHandler;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -72,8 +75,6 @@ public class AwsCrtHttpClientSpiVerificationTest {
 
     @BeforeClass
     public static void setup() throws Exception {
-        CrtResource.waitForNoResources();
-
         client = AwsCrtAsyncHttpClient.builder()
                                       .connectionHealthChecksConfiguration(b -> b.minThroughputInBytesPerSecond(4068L)
                                                                                  .allowableThroughputFailureInterval(Duration.ofSeconds(3)))
@@ -83,8 +84,6 @@ public class AwsCrtHttpClientSpiVerificationTest {
     @AfterClass
     public static void tearDown() {
         client.close();
-        EventLoopGroup.closeStaticDefault();
-        HostResolver.closeStaticDefault();
         CrtResource.waitForNoResources();
     }
 
@@ -129,6 +128,28 @@ public class AwsCrtHttpClientSpiVerificationTest {
             client.execute(AsyncExecuteRequest.builder().request(request).requestContentPublisher(createProvider("")).responseHandler(recorder).build());
             assertThatThrownBy(() -> recorder.completeFuture().get(5, TimeUnit.SECONDS)).hasCauseInstanceOf(IOException.class)
                                                                                         .hasRootCauseInstanceOf(HttpException.class);
+        }
+    }
+
+    @Test
+    public void requestFailed_notRetryable_shouldNotWrapException() {
+        try (SdkAsyncHttpClient client = AwsCrtAsyncHttpClient.builder().build()) {
+            URI uri = URI.create("http://localhost:" + mockServer.port());
+            // make it invalid by doing a non-zero content length with no request body...
+            Map<String, List<String>> headers = new HashMap<>();
+            headers.put("host", Collections.singletonList(uri.getHost()));
+
+            List<String> contentLengthValues = new LinkedList<>();
+            contentLengthValues.add("1");
+            headers.put("content-length", contentLengthValues);
+
+            SdkHttpRequest request = createRequest(uri).toBuilder().headers(headers).build();
+
+            RecordingResponseHandler recorder = new RecordingResponseHandler();
+            client.execute(AsyncExecuteRequest.builder().request(request).requestContentPublisher(new EmptyPublisher()).responseHandler(recorder).build());
+            // invalid request should have returned an HttpException and not an IOException.
+            assertThatThrownBy(() -> recorder.completeFuture().get(5, TimeUnit.SECONDS))
+                .hasCauseInstanceOf(HttpException.class).hasMessageContaining("does not match the previously declared length");
         }
     }
 
