@@ -68,7 +68,7 @@ public class FaultStatusCodeMappingTest {
             Arrays.asList(ExceptionMetadata.builder()
                                            .errorCode("ServiceException")
                                            .exceptionBuilderSupplier(AwsServiceException::builder)
-                                           .build()), true);
+                                           .build()), tc.hasAwsQueryCompatible);
 
         SdkHttpFullResponse.Builder responseBuilder =
             SdkHttpFullResponse
@@ -92,10 +92,13 @@ public class FaultStatusCodeMappingTest {
 
     public static List<QueryErrorTestCase> x_amzn_query_error_testCases() {
         return Arrays.asList(
-            new QueryErrorTestCase("actualErrorCode;Sender", "actualErrorCode"),
-            new QueryErrorTestCase("actualError CodeSender", "ServiceException"),
-            new QueryErrorTestCase("actualError", "ServiceException"),
-            new QueryErrorTestCase(";Sender", "ServiceException")
+            new QueryErrorTestCase(true, "customErrorCode;Sender", "customErrorCode"),
+            new QueryErrorTestCase(true, "customError CodeSender", "ServiceException"),
+            new QueryErrorTestCase(true, "customError", "ServiceException"),
+            new QueryErrorTestCase(true, ";Sender", "ServiceException"),
+            new QueryErrorTestCase(true, null, "ServiceException"),
+            new QueryErrorTestCase(true, "", "ServiceException"),
+            new QueryErrorTestCase(false, "customErrorCode;Sender", "ServiceException")
         );
     }
 
@@ -137,10 +140,12 @@ public class FaultStatusCodeMappingTest {
     }
 
     private static class QueryErrorTestCase {
+        private final boolean hasAwsQueryCompatible;
         private final String queryErrorHeader;
         private final String expectedErrorCode;
 
-        public QueryErrorTestCase(String queryErrorHeader, String expectedErrorCode) {
+        public QueryErrorTestCase(boolean hasAwsQueryCompatible, String queryErrorHeader, String expectedErrorCode) {
+            this.hasAwsQueryCompatible = hasAwsQueryCompatible;
             this.queryErrorHeader = queryErrorHeader;
             this.expectedErrorCode = expectedErrorCode;
         }

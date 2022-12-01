@@ -42,6 +42,7 @@ import software.amazon.awssdk.utils.StringUtils;
 public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandler<AwsServiceException> {
 
     private static final String QUERY_COMPATIBLE_ERRORCODE_DELIMITER = ";";
+    private static final String X_AMZN_QUERY_ERROR = "x-amzn-query-error";
     private final JsonProtocolUnmarshaller jsonProtocolUnmarshaller;
     private final List<ExceptionMetadata> exceptions;
     private final ErrorMessageParser errorMessageParser;

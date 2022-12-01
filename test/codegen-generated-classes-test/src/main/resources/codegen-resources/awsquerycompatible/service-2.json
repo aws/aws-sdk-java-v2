@@ -4,6 +4,7 @@
     "apiVersion":"2010-05-08",
     "endpointPrefix":"json-service-endpoint",
     "globalEndpoint": "json-service.amazonaws.com",
+    "jsonVersion":"1.0",
     "protocol":"json",
     "serviceAbbreviation":"Aws Query Compatible Json Service",
     "serviceFullName":"Some Service That Uses AWS Query Compatible Json Protocol",

@@ -28,11 +28,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.querycompatiblejson.QueryCompatibleJsonAsyncClient;
 import software.amazon.awssdk.services.querycompatiblejson.QueryCompatibleJsonClient;
-import software.amazon.awssdk.services.querycompatiblejson.model.AllTypeResponse;
-import software.amazon.awssdk.services.querycompatiblejson.model.QueryCompatibleJsonResponse;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 public class AwsQueryCompatibleErrorTest {
@@ -41,10 +41,11 @@ public class AwsQueryCompatibleErrorTest {
     public WireMockRule wireMock = new WireMockRule(0);
 
     private QueryCompatibleJsonClient client;
-
     private QueryCompatibleJsonAsyncClient asyncClient;
-
-    private static final String queryHeaderValue = "CustomException;Sender";
+    private static final String SERVICE_NAME = "QueryCompatibleJson";
+    private static final String QUERY_HEADER_VALUE = "CustomException;Sender";
+    private static final String INVALID_QUERY_HEADER_VALUE = "CustomException Sender";
+    private static final String X_AMZN_QUERY_ERROR = "x-amzn-query-error";
 
     @Before
     public void setupClient() {
@@ -62,59 +63,58 @@ public class AwsQueryCompatibleErrorTest {
     }
 
     @Test
-    public void stubWithHeader_shouldContainResponseMetadata() {
-        stubResponseWithHeaders(queryHeaderValue);
-        AllTypeResponse allTypeResponse = client.allType(SdkBuilder::build);
-        AllTypeResponse allTypeAsyncResponse = asyncClient.allType(SdkBuilder::build).join();
-        verifyResponseMetadata(allTypeResponse, queryHeaderValue);
-        verifyResponseMetadata(allTypeAsyncResponse, queryHeaderValue);
+    public void verifySyncClientException_shouldRetrievedFromHeader() {
+        stubResponseWithQueryHeaderAndBody(QUERY_HEADER_VALUE);
+        try {
+            client.allType(SdkBuilder::build);
+        } catch (AwsServiceException e) {
+            verifyErrorResponse(e, "CustomException");
+        }
     }
 
     @Test
-    public void stubWithNoHeader_responseMetadataShouldBeUnknown() {
-        stubResponseWithoutHeaders();
-        AllTypeResponse allTypesResponse = client.allType(SdkBuilder::build);
-        verifyUnknownResponseMetadata(allTypesResponse);
+    public void verifySyncClientException_shouldRetrievedFromContent() {
+        stubResponseWithQueryHeaderAndBody(INVALID_QUERY_HEADER_VALUE);
+        try {
+            client.allType(SdkBuilder::build);
+        } catch (AwsServiceException e) {
+            verifyErrorResponse(e, "ServiceModeledException");
+        }
     }
 
     @Test
-    public void asyncSubWithHeader_shouldContainResponseMetadata() {
-        stubResponseWithHeaders(queryHeaderValue);
-        AllTypeResponse allTypeAsyncResponse = asyncClient.allType(SdkBuilder::build).join();
-        verifyResponseMetadata(allTypeAsyncResponse, queryHeaderValue);
+    public void verifyAsyncClientException_shouldRetrievedFromHeader() {
+        stubResponseWithQueryHeaderAndBody(QUERY_HEADER_VALUE);
+        try {
+            asyncClient.allType(SdkBuilder::build);
+        } catch (AwsServiceException e) {
+            verifyErrorResponse(e, "CustomException");
+        }
     }
 
     @Test
-    public void asyncStubWithNoHeader_responseMetadataShouldBeUnknown() {
-        stubResponseWithoutHeaders();
-        AllTypeResponse allTypeAsyncResponse = asyncClient.allType(SdkBuilder::build).join();
-        verifyUnknownResponseMetadata(allTypeAsyncResponse);
+    public void verifyAsyncClientException_shouldRetrievedFromContent() {
+        stubResponseWithQueryHeaderAndBody(INVALID_QUERY_HEADER_VALUE);
+        try {
+            asyncClient.allType(SdkBuilder::build);
+        } catch (AwsServiceException e) {
+            verifyErrorResponse(e, "ServiceModeledException");
+        }
     }
 
-    private void verifyResponseMetadata(QueryCompatibleJsonResponse allTypesResponse, String queryHeaderValue) {
-        assertThat(allTypesResponse.responseMetadata()).isNotNull();
-        assertThat(allTypesResponse.responseMetadata().xAmznQueryError()).isEqualTo(queryHeaderValue);
-    }
-
-    private void verifyUnknownResponseMetadata(QueryCompatibleJsonResponse allTypesResponse) {
-        assertThat(allTypesResponse.responseMetadata()).isNotNull();
-        assertThat(allTypesResponse.responseMetadata().xAmznQueryError()).isEqualTo("UNKNOWN");
-    }
-
-    private void stubResponseWithHeaders(String headerValue) {
+    private void stubResponseWithQueryHeaderAndBody(String queryHeaderValue) {
         stubFor(post(anyUrl())
-                    .willReturn(aResponse().withHeader("x-amzn-query-error", headerValue)
-                                           .withBody("{\\\"__type\\\": \\\"ServiceModeledException\\\", \\\"Message\\\": "
-                                                     + "\\\"This is the \"\n"
-                                                     + "                                                    + \"service "
-                                                     + "message\\\"}")));
+                    .willReturn(aResponse()
+                                    .withStatus(403)
+                                    .withHeader(X_AMZN_QUERY_ERROR, queryHeaderValue)
+                                    .withBody("{\"__type\": \"ServiceModeledException\"}")));
     }
 
-    private void stubResponseWithoutHeaders() {
-        stubFor(post(anyUrl())
-                    .willReturn(aResponse().withBody("{\\\"__type\\\": \\\"ServiceModeledException\\\", \\\"Message\\\": "
-                                                     + "\\\"This is the \"\n"
-                                                     + "                                                    + \"service "
-                                                     + "message\\\"}")));
+    private void verifyErrorResponse(AwsServiceException e, String expectedErrorCode) {
+        AwsErrorDetails awsErrorDetails = e.awsErrorDetails();
+        assertThat(e.statusCode()).isEqualTo(403);
+        assertThat(awsErrorDetails.errorCode()).isEqualTo(expectedErrorCode);
+        assertThat(awsErrorDetails.serviceName()).isEqualTo(SERVICE_NAME);
+        assertThat(awsErrorDetails.sdkHttpResponse()).isNotNull();
     }
 }
