@@ -36,7 +36,7 @@ import software.amazon.awssdk.utils.async.InputStreamConsumingPublisher;
  * <p>See {@link AsyncRequestBody#forBlockingInputStream(Long)}.
  */
 @SdkPublicApi
-public class BlockingInputStreamAsyncRequestBody implements AsyncRequestBody {
+public final class BlockingInputStreamAsyncRequestBody implements AsyncRequestBody {
     private final InputStreamConsumingPublisher delegate = new InputStreamConsumingPublisher();
     private final CountDownLatch subscribedLatch = new CountDownLatch(1);
     private final AtomicBoolean subscribeCalled = new AtomicBoolean(false);
