@@ -4,6 +4,7 @@ import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.services.json.endpoints.JsonEndpointProvider;
 
@@ -28,6 +29,8 @@ final class DefaultJsonClientBuilder extends DefaultJsonBaseClientBuilder<JsonCl
 
     @Override
     protected final JsonClient buildClient() {
-        return new DefaultJsonClient(super.syncClientConfiguration());
+        SdkClientConfiguration clientConfiguration = super.syncClientConfiguration();
+        this.validateClientOptions(clientConfiguration);
+        return new DefaultJsonClient(clientConfiguration);
     }
 }

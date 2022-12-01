@@ -18,6 +18,7 @@ import software.amazon.awssdk.services.json.endpoints.internal.JsonEndpointAuthS
 import software.amazon.awssdk.services.json.endpoints.internal.JsonRequestSetEndpointInterceptor;
 import software.amazon.awssdk.services.json.endpoints.internal.JsonResolveEndpointInterceptor;
 import software.amazon.awssdk.utils.CollectionUtils;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Internal base class for {@link DefaultJsonClientBuilder} and {@link DefaultJsonAsyncClientBuilder}.
@@ -77,5 +78,10 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
 
     private JsonEndpointProvider defaultEndpointProvider() {
         return JsonEndpointProvider.defaultProvider();
+    }
+
+    protected static void validateClientOptions(SdkClientConfiguration c) {
+        Validate.notNull(c.option(SdkAdvancedClientOption.SIGNER),
+                         "The 'overrideConfiguration.advancedOption[SIGNER]' must be configured in the client builder.");
     }
 }

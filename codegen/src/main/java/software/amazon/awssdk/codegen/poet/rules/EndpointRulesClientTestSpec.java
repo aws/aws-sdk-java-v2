@@ -58,6 +58,7 @@ import software.amazon.awssdk.codegen.model.service.Location;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.codegen.utils.AuthUtils;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.rules.testing.AsyncTestCase;
@@ -252,6 +253,9 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
         b.beginControlFlow("() -> ");
         b.addStatement("$T builder = $T.builder()", syncClientBuilder(), syncClientClass());
         b.addStatement("builder.credentialsProvider($T.CREDENTIALS_PROVIDER)", BaseRuleSetClientTest.class);
+        if (AuthUtils.usesBearerAuth(model)) {
+            b.addStatement("builder.tokenProvider($T.TOKEN_PROVIDER)", BaseRuleSetClientTest.class);
+        }
         b.addStatement("builder.httpClient(getSyncHttpClient())");
 
         if (params != null) {
@@ -276,6 +280,9 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
         b.beginControlFlow("() -> ");
         b.addStatement("$T builder = $T.builder()", asyncClientBuilder(), asyncClientClass());
         b.addStatement("builder.credentialsProvider($T.CREDENTIALS_PROVIDER)", BaseRuleSetClientTest.class);
+        if (AuthUtils.usesBearerAuth(model)) {
+            b.addStatement("builder.tokenProvider($T.TOKEN_PROVIDER)", BaseRuleSetClientTest.class);
+        }
         b.addStatement("builder.httpClient(getAsyncHttpClient())");
 
         if (params != null) {
