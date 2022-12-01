@@ -133,7 +133,8 @@ public final class NettyUtils {
     }
 
     public static String closedChannelMessage(Channel channel) {
-        ChannelDiagnostics channelDiagnostics, parentChannelDiagnostics;
+        ChannelDiagnostics channelDiagnostics = null
+        ChannelDiagnostics parentChannelDiagnostics = null;
         if (channel != null) {
           channelDiagnostics = channel.attr(CHANNEL_DIAGNOSTICS).get();
           parentChannelDiagnostics = channel.parent() != null ? channel.parent().attr(CHANNEL_DIAGNOSTICS).get() : null;
