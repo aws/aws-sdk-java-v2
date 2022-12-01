@@ -5,11 +5,11 @@
     "endpointPrefix":"internalconfig",
     "jsonVersion":"1.1",
     "protocol":"rest-json",
-    "serviceAbbreviation":"AwsBearerAuthService",
-    "serviceFullName":"AWS Bearer Auth Service",
-    "serviceId":"bearerauth",
-    "signatureVersion":"bearer",
-    "targetPrefix":"BearerAuth",
+    "serviceAbbreviation":"AwsMixedAuthService",
+    "serviceFullName":"AWS Mixed Auth Service",
+    "serviceId":"mixedauth",
+    "signatureVersion":"v4",
+    "targetPrefix":"MixedAuth",
     "timestampFormat":"unixTimestamp",
     "uid":"restjson-2016-03-11"
   },
@@ -20,7 +20,8 @@
         "method":"POST",
         "requestUri":"/2016-03-11/oneoperation"
       },
-      "input":{"shape":"OneShape"}
+      "input":{"shape":"OneShape"},
+      "authtype": "bearer"
     }
   },
   "shapes": {

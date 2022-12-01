@@ -27,7 +27,8 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
-import software.amazon.awssdk.codegen.utils.BearerAuthUtils;
+import software.amazon.awssdk.codegen.utils.AuthUtils;
+import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 
 public class SyncClientBuilderClass implements ClassSpec {
@@ -72,7 +73,7 @@ public class SyncClientBuilderClass implements ClassSpec {
             builder.addMethod(endpointProviderMethod());
         }
 
-        if (BearerAuthUtils.usesBearerAuth(model)) {
+        if (AuthUtils.usesBearerAuth(model)) {
             builder.addMethod(tokenProviderMethodImpl());
         }
 
@@ -120,7 +121,10 @@ public class SyncClientBuilderClass implements ClassSpec {
                              .addAnnotation(Override.class)
                              .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
                              .returns(clientInterfaceName)
-                             .addCode("return new $T(super.syncClientConfiguration());", clientClassName)
+                             .addStatement("$T clientConfiguration = super.syncClientConfiguration()",
+                                           SdkClientConfiguration.class)
+                             .addStatement("this.validateClientOptions(clientConfiguration)")
+                             .addCode("return new $T(clientConfiguration);", clientClassName)
                              .build();
     }
 

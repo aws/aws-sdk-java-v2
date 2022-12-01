@@ -151,4 +151,13 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
         AttributeMap result = MyServiceHttpConfig.defaultHttpConfig();
         return result;
     }
+
+    protected static void validateClientOptions(SdkClientConfiguration c) {
+        Validate.notNull(c.option(SdkAdvancedClientOption.SIGNER),
+                         "The 'overrideConfiguration.advancedOption[SIGNER]' must be configured in the client builder.");
+        Validate.notNull(c.option(SdkAdvancedClientOption.TOKEN_SIGNER),
+                         "The 'overrideConfiguration.advancedOption[TOKEN_SIGNER]' must be configured in the client builder.");
+        Validate.notNull(c.option(AwsClientOption.TOKEN_PROVIDER),
+                         "The 'overrideConfiguration.advancedOption[TOKEN_PROVIDER]' must be configured in the client builder.");
+    }
 }

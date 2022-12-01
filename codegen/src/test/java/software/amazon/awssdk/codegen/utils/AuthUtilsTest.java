@@ -31,7 +31,7 @@ import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.service.AuthType;
 
-public class BearerAuthUtilsTest {
+public class AuthUtilsTest {
 
     @ParameterizedTest
     @MethodSource("serviceValues")
@@ -40,7 +40,7 @@ public class BearerAuthUtilsTest {
                                            Boolean expectedResult) {
         IntermediateModel model = modelWith(serviceAuthType);
         model.setOperations(createOperations(opAuthTypes));
-        assertThat(BearerAuthUtils.usesBearerAuth(model)).isEqualTo(expectedResult);
+        assertThat(AuthUtils.usesBearerAuth(model)).isEqualTo(expectedResult);
     }
 
     private static Stream<Arguments> serviceValues() {
@@ -54,11 +54,31 @@ public class BearerAuthUtilsTest {
     }
 
     @ParameterizedTest
+    @MethodSource("awsAuthServiceValues")
+    public void testIfServiceHasAwsAuthAuth(AuthType serviceAuthType,
+                                           List<AuthType> opAuthTypes,
+                                           Boolean expectedResult) {
+        IntermediateModel model = modelWith(serviceAuthType);
+        model.setOperations(createOperations(opAuthTypes));
+        assertThat(AuthUtils.usesAwsAuth(model)).isEqualTo(expectedResult);
+    }
+
+    private static Stream<Arguments> awsAuthServiceValues() {
+        List<AuthType> oneAwsAuthOp = Arrays.asList(AuthType.V4, AuthType.BEARER, AuthType.NONE);
+        List<AuthType> noAwsAuthOp = Arrays.asList(AuthType.BEARER, AuthType.NONE);
+
+        return Stream.of(Arguments.of(AuthType.BEARER, oneAwsAuthOp, true),
+                         Arguments.of(AuthType.BEARER, noAwsAuthOp, false),
+                         Arguments.of(AuthType.V4, oneAwsAuthOp, true),
+                         Arguments.of(AuthType.V4, noAwsAuthOp, true));
+    }
+
+    @ParameterizedTest
     @MethodSource("opValues")
     public void testIfOperationIsBearerAuth(AuthType serviceAuthType, AuthType opAuthType, Boolean expectedResult) {
         IntermediateModel model = modelWith(serviceAuthType);
         OperationModel opModel = opModelWith(opAuthType);
-        assertThat(BearerAuthUtils.isOpBearerAuth(model, opModel)).isEqualTo(expectedResult);
+        assertThat(AuthUtils.isOpBearerAuth(model, opModel)).isEqualTo(expectedResult);
     }
 
     private static Stream<Arguments> opValues() {
