@@ -610,6 +610,7 @@
                             <exclude>software.amazon.awssdk.regions.*</exclude>
                             <exclude>software.amazon.awssdk.core.signer.NoOpSigner</exclude>
                             <exclude>software.amazon.awssdk.auth.credentials.ProfileCredentialsProviderFactory</exclude>
+                            <exclude>software.amazon.awssdk.utils.async.InputStreamSubscriber</exclude>
                         </excludes>
 
                         <ignoreMissingOldVersion>true</ignoreMissingOldVersion>
