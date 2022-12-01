@@ -127,7 +127,7 @@ class ServiceRequestRequiredValidationMarshallingTest {
     }
 
     @Test
-    void marshal_missingRequiredMemberAtPathLocationOfNestedShape_throwsException() {
+    void marshal_missingRequiredMemberAtQueryParameterLocationOfNestedShape_throwsException() {
         QueryParameterOperationRequest request =
             QueryParameterOperationRequest
                 .builder()

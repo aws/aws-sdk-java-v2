@@ -27,7 +27,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -112,8 +111,7 @@ public class QueryMarshallerSpec implements MarshallerProtocolSpec {
             initializationCodeBlockBuilder.add(".hasStreamingInput(true)");
         }
         if (metadata.getProtocol() == Protocol.REST_XML) {
-            List<String> enabledTraitValidations = getPackageEnabledTraitValidations(metadata.getFullClientPackageName());
-            validationCodeBlocks(enabledTraitValidations).forEach(action -> action.accept(initializationCodeBlockBuilder));
+            addTraitValidationCodeBlocks(initializationCodeBlockBuilder, getEnabledTraitValidations(model));
 
             String rootMarshallLocationName = shapeModel.getMarshaller() != null ?
                                               shapeModel.getMarshaller().getLocationName() : null;
@@ -153,31 +151,26 @@ public class QueryMarshallerSpec implements MarshallerProtocolSpec {
         }
     }
 
-    private List<String> getPackageEnabledTraitValidations(String fullClientPackageName) {
+    private static List<String> getEnabledTraitValidations(IntermediateModel model) {
         return Optional.ofNullable(model.getCustomizationConfig().getEnabledTraitValidations())
                        .orElse(Collections.emptyMap())
                        .entrySet().stream()
-                       .filter(entry -> entry.getValue().contains(fullClientPackageName))
+                       .filter(Map.Entry::getValue)
                        .map(Map.Entry::getKey)
                        .collect(Collectors.toList());
     }
 
-    private List<Consumer<CodeBlock.Builder>> validationCodeBlocks(List<String> enabledParamValidations) {
-        return enabledParamValidations
+    private static void addTraitValidationCodeBlocks(CodeBlock.Builder builder, List<String> enabledTraitValidations) {
+        enabledTraitValidations
             .stream()
             .sorted()
-            .map(trait -> {
-                Consumer<CodeBlock.Builder> action;
-
+            .forEach(trait -> {
                 if (Objects.equals(trait, "RequiredTrait")) {
-                    action = builder -> builder.add(".enableTraitValidation($T.class)", RequiredTrait.class);
+                    builder.add(".enableTraitValidation($T.class)", RequiredTrait.class);
                 } else {
                     throw new IllegalArgumentException("Invalid param validation.");
                 }
-
-                return action;
-            })
-            .collect(Collectors.toList());
+            });
     }
 
 }

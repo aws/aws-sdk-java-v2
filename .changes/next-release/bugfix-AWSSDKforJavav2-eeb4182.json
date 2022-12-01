@@ -1,6 +1,6 @@
 {
-    "category": "AWS SDK for Java v2", 
+    "category": "Amazon S3", 
     "contributor": "", 
     "type": "bugfix", 
-    "description": "S3 query param validation; enforce required params"
+    "description": "S3 query param validation\n\nThe SDK will raise SdkClientException when a null value is set for the following operations:\nAbortMultipartUploadRequest.UploadId\nCompleteMultipartUploadRequest.UploadId\nDeleteBucketAnalyticsConfigurationRequest.Id\nDeleteBucketIntelligentTieringConfigurationRequest.Id\nDeleteBucketInventoryConfigurationRequest.Id\nDeleteBucketMetricsConfigurationRequest.Id\nGetBucketAnalyticsConfigurationRequest.Id\nGetBucketIntelligentTieringConfigurationRequest.Id\nGetBucketInventoryConfigurationRequest.Id\nGetBucketMetricsConfigurationRequest.Id\nListPartsRequest.UploadId\nPutBucketAnalyticsConfigurationRequest.Id\nPutBucketIntelligentTieringConfigurationRequest.Id\nPutBucketInventoryConfigurationRequest.Id\nPutBucketMetricsConfigurationRequest.Id\nUploadPartCopyRequest.PartNumber\nUploadPartCopyRequest.UploadId\nUploadPartRequest.PartNumber\nUploadPartRequest.UploadId"
 }

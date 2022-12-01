@@ -220,7 +220,7 @@ public class CustomizationConfig {
 
     private List<String> interceptors = new ArrayList<>();
 
-    private Map<String, List<String>> enabledTraitValidations;
+    private Map<String, Boolean> enabledTraitValidations;
 
     private CustomizationConfig() {
     }
@@ -575,11 +575,11 @@ public class CustomizationConfig {
         this.interceptors = interceptors;
     }
     
-    public Map<String, List<String>> getEnabledTraitValidations() {
+    public Map<String, Boolean> getEnabledTraitValidations() {
         return enabledTraitValidations;
     }
 
-    public void setEnabledTraitValidations(Map<String, List<String>> enabledTraitValidations) {
+    public void setEnabledTraitValidations(Map<String, Boolean> enabledTraitValidations) {
         this.enabledTraitValidations = enabledTraitValidations;
     }
 }
