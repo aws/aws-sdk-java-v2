@@ -1,6 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "contributor": "", 
-    "type": "feature", 
-    "description": "Added AsyncRequestBody.forBlockingOutputStream, allowing streaming operation requests to be written to like an output stream."
-}
