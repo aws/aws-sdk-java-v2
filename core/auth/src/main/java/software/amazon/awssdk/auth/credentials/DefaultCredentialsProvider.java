@@ -15,9 +15,11 @@
 
 package software.amazon.awssdk.auth.credentials;
 
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.internal.LazyAwsCredentialsProvider;
 import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.profiles.ProfileFileSupplier;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -26,8 +28,8 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 /**
  * AWS credentials provider chain that looks for credentials in this order:
  * <ol>
- *   <li>Java System Properties - <code>aws.accessKeyId</code> and <code>aws.secretAccessKey</code></li>
- *   <li>Environment Variables - <code>AWS_ACCESS_KEY_ID</code> and <code>AWS_SECRET_ACCESS_KEY</code></li>
+ *   <li>Java System Properties - {@code aws.accessKeyId} and {@code aws.secretAccessKey}</li>
+ *   <li>Environment Variables - {@code AWS_ACCESS_KEY_ID} and {@code AWS_SECRET_ACCESS_KEY}</li>
  *   <li>Web Identity Token credentials from system properties or environment variables</li>
  *   <li>Credential profiles file at the default location (~/.aws/credentials) shared by all AWS SDKs and the AWS CLI</li>
  *   <li>Credentials delivered through the Amazon EC2 container service if AWS_CONTAINER_CREDENTIALS_RELATIVE_URI" environment
@@ -51,7 +53,7 @@ public final class DefaultCredentialsProvider
 
     private final LazyAwsCredentialsProvider providerChain;
 
-    private final ProfileFile profileFile;
+    private final ProfileFileSupplier profileFileSupplier;
 
     private final String profileName;
 
@@ -63,7 +65,7 @@ public final class DefaultCredentialsProvider
      * @see #builder()
      */
     private DefaultCredentialsProvider(Builder builder) {
-        this.profileFile = builder.profileFile;
+        this.profileFileSupplier = builder.profileFileSupplier;
         this.profileName = builder.profileName;
         this.reuseLastProviderEnabled = builder.reuseLastProviderEnabled;
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
@@ -87,21 +89,21 @@ public final class DefaultCredentialsProvider
 
         return LazyAwsCredentialsProvider.create(() -> {
             AwsCredentialsProvider[] credentialsProviders = new AwsCredentialsProvider[] {
-                    SystemPropertyCredentialsProvider.create(),
-                    EnvironmentVariableCredentialsProvider.create(),
-                    WebIdentityTokenFileCredentialsProvider.create(),
-                    ProfileCredentialsProvider.builder()
-                                              .profileFile(builder.profileFile)
-                                              .profileName(builder.profileName)
-                                              .build(),
-                    ContainerCredentialsProvider.builder()
-                                                .asyncCredentialUpdateEnabled(asyncCredentialUpdateEnabled)
-                                                .build(),
-                    InstanceProfileCredentialsProvider.builder()
-                                                      .asyncCredentialUpdateEnabled(asyncCredentialUpdateEnabled)
-                                                      .profileFile(builder.profileFile)
-                                                      .profileName(builder.profileName)
-                                                      .build()
+                SystemPropertyCredentialsProvider.create(),
+                EnvironmentVariableCredentialsProvider.create(),
+                WebIdentityTokenFileCredentialsProvider.create(),
+                ProfileCredentialsProvider.builder()
+                                          .profileFile(builder.profileFileSupplier)
+                                          .profileName(builder.profileName)
+                                          .build(),
+                ContainerCredentialsProvider.builder()
+                                            .asyncCredentialUpdateEnabled(asyncCredentialUpdateEnabled)
+                                            .build(),
+                InstanceProfileCredentialsProvider.builder()
+                                                  .asyncCredentialUpdateEnabled(asyncCredentialUpdateEnabled)
+                                                  .profileFile(builder.profileFileSupplier)
+                                                  .profileName(builder.profileName)
+                                                  .build()
             };
 
             return AwsCredentialsProviderChain.builder()
@@ -144,7 +146,7 @@ public final class DefaultCredentialsProvider
      * Configuration that defines the {@link DefaultCredentialsProvider}'s behavior.
      */
     public static final class Builder implements CopyableBuilder<Builder, DefaultCredentialsProvider> {
-        private ProfileFile profileFile;
+        private ProfileFileSupplier profileFileSupplier;
         private String profileName;
         private Boolean reuseLastProviderEnabled = true;
         private Boolean asyncCredentialUpdateEnabled = false;
@@ -156,14 +158,20 @@ public final class DefaultCredentialsProvider
         }
 
         private Builder(DefaultCredentialsProvider credentialsProvider) {
-            this.profileFile = credentialsProvider.profileFile;
+            this.profileFileSupplier = credentialsProvider.profileFileSupplier;
             this.profileName = credentialsProvider.profileName;
             this.reuseLastProviderEnabled = credentialsProvider.reuseLastProviderEnabled;
             this.asyncCredentialUpdateEnabled = credentialsProvider.asyncCredentialUpdateEnabled;
         }
 
         public Builder profileFile(ProfileFile profileFile) {
-            this.profileFile = profileFile;
+            return profileFile(Optional.ofNullable(profileFile)
+                                       .map(ProfileFileSupplier::fixedProfileFile)
+                                       .orElse(null));
+        }
+
+        public Builder profileFile(ProfileFileSupplier profileFileSupplier) {
+            this.profileFileSupplier = profileFileSupplier;
             return this;
         }
 
@@ -198,6 +206,7 @@ public final class DefaultCredentialsProvider
         /**
          * Create a {@link DefaultCredentialsProvider} using the configuration defined in this builder.
          */
+        @Override
         public DefaultCredentialsProvider build() {
             return new DefaultCredentialsProvider(this);
         }
