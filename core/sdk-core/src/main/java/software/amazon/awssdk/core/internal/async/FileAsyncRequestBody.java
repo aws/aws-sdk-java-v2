@@ -28,7 +28,6 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.FileTime;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -268,8 +267,7 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
                             position.addAndGet(readBytes);
                             remainingBytes.addAndGet(-readBytes);
 
-                            // Just test
-                            CompletableFuture.runAsync(() -> signalOnNext(attachment));
+                            signalOnNext(attachment);
 
                             if (remainingBytes.get() == 0) {
                                 closeFile();
