@@ -19,6 +19,7 @@ import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
+import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -32,7 +33,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * @see BackoffStrategy for a list of SDK provided backoff strategies
  */
 @SdkPublicApi
-public class Ec2MetadataRetryPolicy implements ToCopyableBuilder<Ec2MetadataRetryPolicy.Builder, Ec2MetadataRetryPolicy> {
+public final class Ec2MetadataRetryPolicy implements ToCopyableBuilder<Ec2MetadataRetryPolicy.Builder, Ec2MetadataRetryPolicy> {
 
     private static final int DEFAULT_RETRY_ATTEMPTS = 3;
 
@@ -41,10 +42,10 @@ public class Ec2MetadataRetryPolicy implements ToCopyableBuilder<Ec2MetadataRetr
 
     private Ec2MetadataRetryPolicy(BuilderImpl builder) {
 
-        this.numRetries = builder.numRetries != null ? builder.numRetries : DEFAULT_RETRY_ATTEMPTS;
+        this.numRetries = Validate.getOrDefault(builder.numRetries, () -> DEFAULT_RETRY_ATTEMPTS);
 
-        this.backoffStrategy = builder.backoffStrategy != null ? builder.backoffStrategy :
-                               BackoffStrategy.defaultStrategy(RetryMode.STANDARD);
+        this.backoffStrategy = Validate.getOrDefault(builder.backoffStrategy,
+                                                     () -> BackoffStrategy.defaultStrategy(RetryMode.STANDARD));
     }
 
     @Override

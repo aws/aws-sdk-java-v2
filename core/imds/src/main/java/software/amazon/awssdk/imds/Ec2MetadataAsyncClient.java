@@ -65,7 +65,7 @@ public interface Ec2MetadataAsyncClient extends SdkAutoCloseable {
          * <p>
          * If not specified, defaults to {@link Executors#newScheduledThreadPool} with a default value of 3 thread in the
          * pool.
-         * </p>
+         *
          * @param scheduledExecutorService the ScheduledExecutorService to use for retry attempt.
          * @return a reference to this builder
          */
@@ -78,8 +78,8 @@ public interface Ec2MetadataAsyncClient extends SdkAutoCloseable {
          * <p>
          * If not specified, the IMDS client will look for a SdkAsyncHttpClient class included in the classpath of the
          * application and creates a new instance of that class, managed by the IMDS Client, that will be closed when the IMDS
-         * Client is closed. If no such class can be found, will throw a {@link  SdkClientException}.
-         * </p>
+         * Client is closed. If no such class can be found, will throw a {@link SdkClientException}.
+         *
          * @param httpClient the http client
          * @return a reference to this builder
          */

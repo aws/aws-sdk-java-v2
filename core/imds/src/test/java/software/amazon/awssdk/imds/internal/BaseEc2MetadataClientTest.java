@@ -32,14 +32,12 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static software.amazon.awssdk.imds.EndpointMode.IPV4;
 import static software.amazon.awssdk.imds.EndpointMode.IPV6;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import java.net.URI;
 import java.time.Duration;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
-import org.junit.After;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -50,7 +48,8 @@ import software.amazon.awssdk.imds.Ec2MetadataRetryPolicy;
 import software.amazon.awssdk.imds.EndpointMode;
 import software.amazon.awssdk.imds.MetadataResponse;
 
-public abstract class BaseEc2MetadataClientTest<T, B extends Ec2MetadataClientBuilder<B, T>> {
+@WireMockTest
+abstract class BaseEc2MetadataClientTest<T, B extends Ec2MetadataClientBuilder<B, T>> {
 
     protected static final String TOKEN_RESOURCE_PATH = "/latest/api/token";
     protected static final String TOKEN_HEADER = "x-aws-ec2-metadata-token";
@@ -59,9 +58,6 @@ public abstract class BaseEc2MetadataClientTest<T, B extends Ec2MetadataClientBu
     protected static final String AMI_ID_RESOURCE = EC2_METADATA_ROOT + "/ami-id";
     protected static final int DEFAULT_TOTAL_ATTEMPTS = 4;
 
-    @Rule
-    public WireMockRule mockMetadataEndpoint = new WireMockRule();
-
     protected abstract BaseEc2MetadataClient overrideClient(Consumer<B> builderConsumer);
 
     protected abstract void successAssertions(String path, Consumer<MetadataResponse> assertions);
@@ -69,13 +65,10 @@ public abstract class BaseEc2MetadataClientTest<T, B extends Ec2MetadataClientBu
     protected abstract <T extends Throwable> void failureAssertions(String path, Class<T> exceptionType,
                                                                     Consumer<T> assertions);
 
-    @After
-    public void reset() {
-        mockMetadataEndpoint.resetAll();
-    }
+    protected abstract int getPort();
 
     @Test
-    public void get_successOnFirstTry_shouldNotRetryAndSucceed() {
+    void get_successOnFirstTry_shouldNotRetryAndSucceed() {
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody("some-token")));
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody("{}")));
         successAssertions(AMI_ID_RESOURCE, response -> {
@@ -88,11 +81,11 @@ public abstract class BaseEc2MetadataClientTest<T, B extends Ec2MetadataClientBu
     }
 
     @Test
-    public void get_failsEverytime_shouldRetryAndFails() {
+    void get_failsEverytime_shouldRetryAndFails() {
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody("some-token")));
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withStatus(500).withBody("Error 500")));
         failureAssertions(AMI_ID_RESOURCE, SdkClientException.class, ex -> {
-            verify(exactly(DEFAULT_TOTAL_ATTEMPTS), putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+            verify(exactly(1), putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
                 .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
             verify(exactly(DEFAULT_TOTAL_ATTEMPTS), getRequestedFor(urlPathEqualTo(AMI_ID_RESOURCE))
                 .withHeader(TOKEN_HEADER, equalTo("some-token")));
@@ -100,7 +93,7 @@ public abstract class BaseEc2MetadataClientTest<T, B extends Ec2MetadataClientBu
     }
 
     @Test
-    public void get_returnsStatus4XX_shouldFailsAndNotRetry() {
+    void get_returnsStatus4XX_shouldFailsAndNotRetry() {
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody("some-token")));
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withStatus(400).withBody("error")));
         failureAssertions(AMI_ID_RESOURCE, SdkClientException.class, ex -> {
@@ -112,7 +105,7 @@ public abstract class BaseEc2MetadataClientTest<T, B extends Ec2MetadataClientBu
     }
 
     @Test
-    public void get_failsOnceThenSucceed_withCustomClient_shouldSucceed() {
+    void get_failsOnceThenSucceed_withCustomClient_shouldSucceed() {
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody("some-token")));
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE))
                     .inScenario("Retry Scenario")
@@ -129,12 +122,12 @@ public abstract class BaseEc2MetadataClientTest<T, B extends Ec2MetadataClientBu
                                                .numRetries(5)
                                                .backoffStrategy(FixedDelayBackoffStrategy.create(Duration.ofMillis(300)))
                                                .build())
-            .endpoint(URI.create("http://localhost:" + mockMetadataEndpoint.port()))
+            .endpoint(URI.create("http://localhost:" + getPort()))
             .tokenTtl(Duration.ofSeconds(1024)));
 
         successAssertions(AMI_ID_RESOURCE, response -> {
             assertThat(response.asString()).isEqualTo("{}");
-            verify(exactly(2), putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+            verify(exactly(1), putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
                 .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("1024")));
             verify(exactly(2), getRequestedFor(urlPathEqualTo(AMI_ID_RESOURCE))
                 .withHeader(TOKEN_HEADER, equalTo("some-token")));
@@ -142,7 +135,7 @@ public abstract class BaseEc2MetadataClientTest<T, B extends Ec2MetadataClientBu
     }
 
     @Test
-    public void getToken_failsEverytime_shouldRetryAndFailsAndNotCallService() {
+    void getToken_failsEverytime_shouldRetryAndFailsAndNotCallService() {
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withStatus(500).withBody("Error 500")));
         failureAssertions(AMI_ID_RESOURCE, SdkClientException.class, ex -> {
             verify(exactly(DEFAULT_TOTAL_ATTEMPTS), putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
@@ -153,7 +146,7 @@ public abstract class BaseEc2MetadataClientTest<T, B extends Ec2MetadataClientBu
     }
 
     @Test
-    public void getToken_returnsStatus4XX_shouldFailsAndNotRetry() {
+    void getToken_returnsStatus4XX_shouldFailsAndNotRetry() {
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withStatus(400).withBody("ERROR 400")));
         failureAssertions(AMI_ID_RESOURCE, SdkClientException.class, ex -> {
             verify(exactly(1), putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
@@ -164,7 +157,7 @@ public abstract class BaseEc2MetadataClientTest<T, B extends Ec2MetadataClientBu
     }
 
     @Test
-    public void getToken_failsOnceThenSucceed_withCustomClient_shouldSucceed() {
+    void getToken_failsOnceThenSucceed_withCustomClient_shouldSucceed() {
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).inScenario("Retry Scenario")
                                                         .whenScenarioStateIs(STARTED)
                                                         .willReturn(aResponse().withStatus(500).withBody("Error 500"))
@@ -181,7 +174,7 @@ public abstract class BaseEc2MetadataClientTest<T, B extends Ec2MetadataClientBu
                                                .numRetries(5)
                                                .backoffStrategy(FixedDelayBackoffStrategy.create(Duration.ofMillis(300)))
                                                .build())
-            .endpoint(URI.create("http://localhost:" + mockMetadataEndpoint.port()))
+            .endpoint(URI.create("http://localhost:" + getPort()))
             .build());
 
         successAssertions(AMI_ID_RESOURCE, response -> {
@@ -194,12 +187,12 @@ public abstract class BaseEc2MetadataClientTest<T, B extends Ec2MetadataClientBu
     }
 
     @Test
-    public void get_noRetries_shouldNotRetry() {
+    void get_noRetries_shouldNotRetry() {
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody("some-token")));
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withStatus(500).withBody("Error 500")));
 
         overrideClient(builder -> builder
-            .endpoint(URI.create("http://localhost:" + mockMetadataEndpoint.port()))
+            .endpoint(URI.create("http://localhost:" + getPort()))
             .retryPolicy(Ec2MetadataRetryPolicy.none()).build());
 
         failureAssertions(AMI_ID_RESOURCE, SdkClientException.class, ex -> {
@@ -211,28 +204,29 @@ public abstract class BaseEc2MetadataClientTest<T, B extends Ec2MetadataClientBu
     }
 
     @Test
-    public void builder_endpointAndEndpointModeSpecified_shouldThrowIllegalArgException() {
+    void builder_endpointAndEndpointModeSpecified_shouldThrowIllegalArgException() {
         assertThatThrownBy(() -> overrideClient(builder -> builder
-            .endpoint(URI.create("http://localhost:" + mockMetadataEndpoint.port()))
+            .endpoint(URI.create("http://localhost:" + getPort()))
             .endpointMode(IPV6)))
-        .isInstanceOf(IllegalArgumentException.class);
+            .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
-    public void builder_defaultValue_clientShouldUseIPV4Endpoint() {
-        BaseEc2MetadataClient client = overrideClient(builder -> {});
+    void builder_defaultValue_clientShouldUseIPV4Endpoint() {
+        BaseEc2MetadataClient client = overrideClient(builder -> {
+        });
         assertThat(client.endpoint).hasToString("http://169.254.169.254");
     }
 
     @Test
-    public void builder_setEndpoint_shouldUseEndpoint() {
+    void builder_setEndpoint_shouldUseEndpoint() {
         BaseEc2MetadataClient client = overrideClient(builder -> builder.endpoint(URI.create("http://localhost:" + 12312)));
         assertThat(client.endpoint).hasToString("http://localhost:" + 12312);
     }
 
     @ParameterizedTest
     @MethodSource("endpointArgumentSource")
-    public void builder_setEndPointMode_shouldUseEndpointModeValue(EndpointMode endpointMode, String value) {
+    void builder_setEndPointMode_shouldUseEndpointModeValue(EndpointMode endpointMode, String value) {
         BaseEc2MetadataClient client = overrideClient(builder -> builder.endpointMode(endpointMode));
         assertThat(client.endpoint).hasToString(value);
     }
@@ -242,4 +236,48 @@ public abstract class BaseEc2MetadataClientTest<T, B extends Ec2MetadataClientBu
             arguments(IPV4, "http://169.254.169.254"),
             arguments(IPV6, "http://[fd00:ec2::254]"));
     }
+
+    @Test
+    void get_tokenExpiresWhileRetrying_shouldSucceedWithNewToken() {
+        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withStatus(200).withBody("some-token")));
+
+        stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).inScenario("Retry Scenario")
+                                                    .whenScenarioStateIs(STARTED)
+                                                    .willReturn(aResponse().withStatus(500)
+                                                                           .withBody("Error 500")
+                                                                           .withFixedDelay(600))
+                                                    .willSetStateTo("Retry-1"));
+        stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).inScenario("Retry Scenario")
+                                                    .whenScenarioStateIs("Retry-1")
+                                                    .willReturn(aResponse().withStatus(500)
+                                                                           .withBody("Error 500")
+                                                                           .withFixedDelay(600))
+                                                    .willSetStateTo("Retry-2"));
+        stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).inScenario("Retry Scenario")
+                                                    .whenScenarioStateIs("Retry-2")
+                                                    .willReturn(aResponse().withStatus(500)
+                                                                           .withBody("Error 500")
+                                                                           .withFixedDelay(600))
+                                                    .willSetStateTo("Retry-3"));
+        stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).inScenario("Retry Scenario")
+                                                    .whenScenarioStateIs("Retry-3")
+                                                    .willReturn(aResponse().withStatus(200)
+                                                                           .withBody("Success")
+                                                                           .withFixedDelay(600)));
+
+        overrideClient(builder -> builder
+            .tokenTtl(Duration.ofSeconds(1))
+            .endpoint(URI.create("http://localhost:" + getPort()))
+            .build());
+
+        successAssertions(AMI_ID_RESOURCE, response -> {
+            assertThat(response.asString()).isEqualTo("Success");
+            verify(exactly(2), putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+                .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("1")));
+            verify(exactly(4), getRequestedFor(urlPathEqualTo(AMI_ID_RESOURCE))
+                .withHeader(TOKEN_HEADER, equalTo("some-token")));
+        });
+
+    }
+
 }

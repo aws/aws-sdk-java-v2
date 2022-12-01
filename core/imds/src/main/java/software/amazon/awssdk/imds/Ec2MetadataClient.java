@@ -63,7 +63,7 @@ public interface Ec2MetadataClient extends SdkAutoCloseable {
          * If not specified, the IMDS client will look for a SdkHttpClient class included in the classpath of the
          * application and creates a new instance of that class, managed by the IMDS Client, that will be closed when the IMDS
          * Client is closed. If no such class can be found, will throw a {@link  SdkClientException}.
-         * </p>
+         *
          * @param httpClient the http client
          * @return a reference to this builder
          */
