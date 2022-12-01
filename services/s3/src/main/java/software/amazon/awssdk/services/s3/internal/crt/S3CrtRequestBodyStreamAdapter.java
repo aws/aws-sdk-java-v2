@@ -16,21 +16,10 @@
 package software.amazon.awssdk.services.s3.internal.crt;
 
 import java.nio.ByteBuffer;
-import java.util.Deque;
-import java.util.concurrent.BlockingDeque;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
+import java.util.Optional;
 import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.http.HttpRequestBodyStream;
-import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
-import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.async.ByteBufferStoringSubscriber;
 
 /**
@@ -40,16 +29,23 @@ import software.amazon.awssdk.utils.async.ByteBufferStoringSubscriber;
 public final class S3CrtRequestBodyStreamAdapter implements HttpRequestBodyStream {
     private final Publisher<ByteBuffer> bodyPublisher;
     private final ByteBufferStoringSubscriber requestBodySubscriber;
+    private final Long length;
 
 
-    public S3CrtRequestBodyStreamAdapter(Publisher<ByteBuffer> bodyPublisher) {
+    public S3CrtRequestBodyStreamAdapter(Publisher<ByteBuffer> bodyPublisher, Long length) {
         this.bodyPublisher = bodyPublisher;
+        this.length = length;
         this.requestBodySubscriber = new ByteBufferStoringSubscriber(16 * 1024 * 1024);
         bodyPublisher.subscribe(requestBodySubscriber);
     }
 
     @Override
     public boolean sendRequestBody(ByteBuffer outBuffer) {
-        return requestBodySubscriber.transferTo(outBuffer) == ByteBufferStoringSubscriber.TransferResult.END_OF_STREAM;
+        return requestBodySubscriber.blockingTransferTo(outBuffer) == ByteBufferStoringSubscriber.TransferResult.END_OF_STREAM;
+    }
+
+    @Override
+    public long getLength() {
+        return Optional.ofNullable(length).orElse(0L);
     }
 }

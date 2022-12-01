@@ -175,7 +175,8 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         HttpHeader[] crtHeaderArray = createHttpHeaderList(uri, asyncRequest).toArray(new HttpHeader[0]);
 
         S3CrtRequestBodyStreamAdapter sdkToCrtRequestPublisher =
-            new S3CrtRequestBodyStreamAdapter(asyncRequest.requestContentPublisher());
+            new S3CrtRequestBodyStreamAdapter(asyncRequest.requestContentPublisher(),
+                                              asyncRequest.requestContentPublisher().contentLength().orElse(null));
 
         return new HttpRequest(method, encodedPath + encodedQueryString, crtHeaderArray, sdkToCrtRequestPublisher);
     }

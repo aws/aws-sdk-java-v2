@@ -51,7 +51,6 @@ public class S3TransferManagerUploadIntegrationTest extends S3IntegrationTestBas
     @BeforeAll
     public static void setUp() throws Exception {
         createBucket(TEST_BUCKET);
-
         testFile = new RandomTempFile(TEST_KEY, OBJ_SIZE);
     }
 
