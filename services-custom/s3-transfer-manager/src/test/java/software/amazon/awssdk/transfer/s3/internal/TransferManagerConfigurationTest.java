@@ -38,7 +38,7 @@ public class TransferManagerConfigurationTest {
                                                                    .build();
         UploadDirectoryRequest uploadDirectoryRequest = UploadDirectoryRequest.builder()
                                                                               .bucket("bucket")
-                                                                              .sourceDirectory(Paths.get("."))
+                                                                              .source(Paths.get("."))
                                                                               .maxDepth(2)
                                                                               .build();
         assertThat(transferManagerConfiguration.resolveUploadDirectoryMaxDepth(uploadDirectoryRequest)).isEqualTo(2);
@@ -51,7 +51,7 @@ public class TransferManagerConfigurationTest {
                                                                    .build();
         UploadDirectoryRequest uploadDirectoryRequest = UploadDirectoryRequest.builder()
                                                                               .bucket("bucket")
-                                                                              .sourceDirectory(Paths.get("."))
+                                                                              .source(Paths.get("."))
                                                                               .followSymbolicLinks(true)
                                                                               .build();
         assertThat(transferManagerConfiguration.resolveUploadDirectoryFollowSymbolicLinks(uploadDirectoryRequest)).isTrue();

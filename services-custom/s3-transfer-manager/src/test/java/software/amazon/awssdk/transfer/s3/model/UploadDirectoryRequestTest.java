@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.nio.file.Paths;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.transfer.s3.model.UploadDirectoryRequest;
 
 public class UploadDirectoryRequestTest {
 
@@ -28,20 +27,20 @@ public class UploadDirectoryRequestTest {
     public void noSourceDirectory_throws() {
         assertThatThrownBy(() ->
                                UploadDirectoryRequest.builder().bucket("bucket").build()
-        ).isInstanceOf(NullPointerException.class).hasMessageContaining("sourceDirectory");
+        ).isInstanceOf(NullPointerException.class).hasMessageContaining("source");
     }
 
     @Test
     public void noBucket_throws() {
         assertThatThrownBy(() ->
-                               UploadDirectoryRequest.builder().sourceDirectory(Paths.get(".")).build()
+                               UploadDirectoryRequest.builder().source(Paths.get(".")).build()
         ).isInstanceOf(NullPointerException.class).hasMessageContaining("bucket");
     }
 
     @Test
     public void equals_hashcode() {
         EqualsVerifier.forClass(UploadDirectoryRequest.class)
-                      .withNonnullFields("sourceDirectory", "bucket")
+                      .withNonnullFields("source", "bucket")
                       .verify();
     }
 }

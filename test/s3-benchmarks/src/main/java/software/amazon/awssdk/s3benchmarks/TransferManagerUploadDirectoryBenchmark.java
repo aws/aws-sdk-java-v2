@@ -64,7 +64,7 @@ public class TransferManagerUploadDirectoryBenchmark extends BaseTransferManager
         DirectoryUpload upload =
             transferManager.uploadDirectory(b -> b.bucket(bucket)
                                                   .s3Prefix(config.prefix())
-                                                  .sourceDirectory(uploadPath));
+                                                  .source(uploadPath));
         CompletedDirectoryUpload completedDirectoryUpload = upload.completionFuture().get(10, TimeUnit.MINUTES);
         if (completedDirectoryUpload.failedTransfers().isEmpty()) {
             long end = System.currentTimeMillis();

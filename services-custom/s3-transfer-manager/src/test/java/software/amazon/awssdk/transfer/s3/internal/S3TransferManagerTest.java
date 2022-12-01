@@ -245,7 +245,7 @@ class S3TransferManagerTest {
             .hasMessageContaining("support S3 Object Lambda resources").hasCauseInstanceOf(IllegalArgumentException.class);
 
         assertThatThrownBy(() -> tm.uploadDirectory(b -> b.bucket(objectLambdaArn)
-                                                          .sourceDirectory(Paths.get(".")))
+                                                          .source(Paths.get(".")))
                                    .completionFuture().join())
             .hasMessageContaining("support S3 Object Lambda resources").hasCauseInstanceOf(IllegalArgumentException.class);
         
@@ -289,7 +289,7 @@ class S3TransferManagerTest {
             .hasMessageContaining("multi-region access point ARN").hasCauseInstanceOf(IllegalArgumentException.class);
 
         assertThatThrownBy(() -> tm.uploadDirectory(b -> b.bucket(mrapArn)
-                                                          .sourceDirectory(Paths.get(".")))
+                                                          .source(Paths.get(".")))
                                    .completionFuture().join())
             .hasMessageContaining("multi-region access point ARN").hasCauseInstanceOf(IllegalArgumentException.class);
 
@@ -318,7 +318,7 @@ class S3TransferManagerTest {
         RuntimeException exception = new RuntimeException("test");
         when(uploadDirectoryHelper.uploadDirectory(any(UploadDirectoryRequest.class))).thenThrow(exception);
 
-        assertThatThrownBy(() -> tm.uploadDirectory(u -> u.sourceDirectory(Paths.get("/"))
+        assertThatThrownBy(() -> tm.uploadDirectory(u -> u.source(Paths.get("/"))
                                                           .bucket("bucketName")).completionFuture().join())
             .hasCause(exception);
     }

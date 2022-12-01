@@ -1759,16 +1759,16 @@ public interface JsonAsyncClient extends SdkClient {
     }
 
     /**
-     * Create a builder that can be used to configure and create a {@link DefaultBuilder}
+     * Create a default builder
      */
     static CustomBuilder builderOne() {
-        return DefaultBuilder.builder();
+        return DefaultBuilder.builder().build();
     }
 
     /**
-     * Create a builder that can be used to configure and create a {@link DefaultBuilderTwo}
+     * Create a default builder two
      */
     static Builder builderTwo() {
-        return DefaultBuilderTwo.builder();
+        return DefaultBuilderTwo.builder2().build();
     }
 }

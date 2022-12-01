@@ -44,6 +44,11 @@ public class AdditionalBuilderMethod {
     private String javaDoc;
 
     /**
+     * Method body
+     */
+    private String statement;
+
+    /**
      * The clientType for which the builder needs to be added.
      */
     private ClientType clientType;
@@ -94,5 +99,13 @@ public class AdditionalBuilderMethod {
 
     public void setClientTypeEnum(ClientType clientType) {
         this.clientType = clientType;
+    }
+
+    public String getStatement() {
+        return statement;
+    }
+
+    public void setStatement(String statement) {
+        this.statement = statement;
     }
 }
