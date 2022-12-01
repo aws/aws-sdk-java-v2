@@ -1,3 +1,165 @@
+# __2.18.29__ __2022-12-01__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Added AsyncRequestBody.forBlockingOutputStream, allowing streaming operation requests to be written to like an output stream.
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - This fixes an issue with the client option validation where the client builder is incorrectly validating that a value for the SIGNER option is present, even when it's not required (because the service does not use AWS auth).
+
+       This change only does the appropriate validations based on the authtypes present in the service model.
+
+## __AWS Step Functions__
+  - ### Features
+    - This release adds support for the AWS Step Functions Map state in Distributed mode. The changes include a new MapRun resource and several new and modified APIs.
+
+## __Amazon CodeCatalyst__
+  - ### Features
+    - This release adds operations that support customers using the AWS Toolkits and Amazon CodeCatalyst, a unified software development service that helps developers develop, deploy, and maintain applications in the cloud. For more information, see the documentation.
+
+## __Amazon Comprehend__
+  - ### Features
+    - Comprehend now supports semi-structured documents (such as PDF files or image files) as inputs for custom analysis using the synchronous APIs (ClassifyDocument and DetectEntities).
+
+## __Amazon EventBridge Pipes__
+  - ### Features
+    - AWS introduces new Amazon EventBridge Pipes which allow you to connect sources (SQS, Kinesis, DDB, Kafka, MQ) to Targets (14+ EventBridge Targets) without any code, with filtering, batching, input transformation, and an optional Enrichment stage (Lambda, StepFunctions, ApiGateway, ApiDestinations)
+
+## __Amazon GameLift__
+  - ### Features
+    - GameLift introduces a new feature, GameLift Anywhere. GameLift Anywhere allows you to integrate your own compute resources with GameLift. You can also use GameLift Anywhere to iteratively test your game servers without uploading the build to GameLift for every iteration.
+
+# __2.18.28__ __2022-11-30__
+## __AWS Data Exchange__
+  - ### Features
+    - This release enables data providers to license direct access to data in their Amazon S3 buckets or AWS Lake Formation data lakes through AWS Data Exchange. Subscribers get read-only access to the data and can use it in downstream AWS services, like Amazon Athena, without creating or managing copies.
+
+## __AWS Glue__
+  - ### Features
+    - This release adds support for AWS Glue Data Quality, which helps you evaluate and monitor the quality of your data and includes the API for creating, deleting, or updating data quality rulesets, runs and evaluations.
+
+## __AWS S3 Control__
+  - ### Features
+    - Amazon S3 now supports cross-account access points. S3 bucket owners can now allow trusted AWS accounts to create access points associated with their bucket.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Access Analyzer__
+  - ### Features
+    - This release adds support for S3 cross account access points. IAM Access Analyzer will now produce public or cross account findings when it detects bucket delegation to external account access points.
+
+## __Amazon Athena__
+  - ### Features
+    - This release includes support for using Apache Spark in Amazon Athena.
+
+## __Amazon DocumentDB Elastic Clusters__
+  - ### Features
+    - Launched Amazon DocumentDB Elastic Clusters. You can now use the SDK to create, list, update and delete Amazon DocumentDB Elastic Cluster resources
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Added Models as part of the Search API. Added Model shadow deployments in realtime inference, and shadow testing in managed inference. Added support for shared spaces, geospatial APIs, Model Cards, AutoMLJobStep in pipelines, Git repositories on user profiles and domains, Model sharing in Jumpstart.
+
+## __Amazon SageMaker geospatial capabilities__
+  - ### Features
+    - This release provides Amazon SageMaker geospatial APIs to build, train, deploy and visualize geospatial models.
+
+# __2.18.27__ __2022-11-29__
+## __AWS Key Management Service__
+  - ### Features
+    - AWS KMS introduces the External Key Store (XKS), a new feature for customers who want to protect their data with encryption keys stored in an external key management system under their control.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SimSpace Weaver__
+  - ### Features
+    - AWS SimSpace Weaver is a new service that helps customers build spatial simulations at new levels of scale - resulting in virtual worlds with millions of dynamic entities. See the AWS SimSpace Weaver developer guide for more details on how to get started. https://docs.aws.amazon.com/simspaceweaver
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for AWS Verified Access and the Hpc6id Amazon EC2 compute optimized instance type, which features 3rd generation Intel Xeon Scalable processors.
+
+## __Amazon Kinesis Firehose__
+  - ### Features
+    - Allow support for the Serverless offering for Amazon OpenSearch Service as a Kinesis Data Firehose delivery destination.
+
+## __Amazon Omics__
+  - ### Features
+    - Amazon Omics is a new, purpose-built service that can be used by healthcare and life science organizations to store, query, and analyze omics data. The insights from that data can be used to accelerate scientific discoveries and improve healthcare.
+
+## __Amazon Security Lake__
+  - ### Features
+    - Amazon Security Lake automatically centralizes security data from cloud, on-premises, and custom sources into a purpose-built data lake stored in your account. Security Lake makes it easier to analyze security data, so you can improve the protection of your workloads, applications, and data
+
+## __OpenSearch Service Serverless__
+  - ### Features
+    - Publish SDK for Amazon OpenSearch Serverless
+
+# __2.18.26__ __2022-11-28__
+## __AWS ARC - Zonal Shift__
+  - ### Features
+    - Amazon Route 53 Application Recovery Controller Zonal Shift is a new service that makes it easy to shift traffic away from an Availability Zone in a Region. See the developer guide for more information: https://docs.aws.amazon.com/r53recovery/latest/dg/what-is-route53-recovery.html
+
+## __AWS Compute Optimizer__
+  - ### Features
+    - Adds support for a new recommendation preference that makes it possible for customers to optimize their EC2 recommendations by utilizing an external metrics ingestion service to provide metrics.
+
+## __AWS Config__
+  - ### Features
+    - With this release, you can use AWS Config to evaluate your resources for compliance with Config rules before they are created or updated. Using Config rules in proactive mode enables you to test and build compliant resource templates or check resource configurations at the time they are provisioned.
+
+## __AWS Glue__
+  - ### Features
+    - This release allows the creation of Custom Visual Transforms (Dynamic Transforms) to be created via AWS Glue CLI/SDK.
+
+## __AWS Lambda__
+  - ### Features
+    - Adds support for Lambda SnapStart, which helps improve the startup performance of functions. Customers can now manage SnapStart based functions via CreateFunction and UpdateFunctionConfiguration APIs
+
+## __AWS License Manager User Subscriptions__
+  - ### Features
+    - AWS now offers fully-compliant, Amazon-provided licenses for Microsoft Office Professional Plus 2021 Amazon Machine Images (AMIs) on Amazon EC2. These AMIs are now available on the Amazon EC2 console and on AWS Marketplace to launch instances on-demand without any long-term licensing commitments.
+
+## __AWS S3 Control__
+  - ### Features
+    - Added two new APIs to support Amazon S3 Multi-Region Access Point failover controls: GetMultiRegionAccessPointRoutes and SubmitMultiRegionAccessPointRoutes. The failover control APIs are supported in the following Regions: us-east-1, us-west-2, eu-west-1, ap-southeast-2, and ap-northeast-1.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Adding StandardsManagedBy field to DescribeStandards API response
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Introduces ENA Express, which uses AWS SRD and dynamic routing to increase throughput and minimize latency, adds support for trust relationships between Reachability Analyzer and AWS Organizations to enable cross-account analysis, and adds support for Infrastructure Performance metric subscriptions.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Adds support for additional EKS add-ons metadata and filtering fields
+
+## __Amazon FSx__
+  - ### Features
+    - This release adds support for 4GB/s / 160K PIOPS FSx for ONTAP file systems and 10GB/s / 350K PIOPS FSx for OpenZFS file systems (Single_AZ_2). For FSx for ONTAP, this also adds support for DP volumes, snapshot policy, copy tags to backups, and Multi-AZ route table updates.
+
+## __Amazon Macie 2__
+  - ### Features
+    - Added support for configuring Macie to continually sample objects from S3 buckets and inspect them for sensitive data. Results appear in statistics, findings, and other data that Macie provides.
+
+## __Amazon QuickSight__
+  - ### Features
+    - This release adds new Describe APIs and updates Create and Update APIs to support the data model for Dashboards, Analyses, and Templates.
+
+## __Inspector2__
+  - ### Features
+    - This release adds support for Inspector to scan AWS Lambda.
+
 # __2.18.25__ __2022-11-27__
 ## __AWS Backup__
   - ### Features
