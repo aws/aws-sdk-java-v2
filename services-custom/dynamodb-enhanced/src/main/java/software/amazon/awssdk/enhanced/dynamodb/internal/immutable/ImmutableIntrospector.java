@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.immutable;
 
+import java.beans.Transient;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
@@ -108,6 +109,7 @@ public class ImmutableIntrospector {
     private boolean isMappableMethod(Method method) {
         return method.getDeclaringClass() != Object.class
             && method.getAnnotation(DynamoDbIgnore.class) == null
+            && method.getAnnotation(Transient.class) == null
             && !method.isSynthetic()
             && !method.isBridge()
             && !Modifier.isStatic(method.getModifiers())

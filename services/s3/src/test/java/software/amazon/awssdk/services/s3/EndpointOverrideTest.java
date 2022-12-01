@@ -45,13 +45,16 @@ public class EndpointOverrideTest {
     public void setup() {
         s3Client = S3Client.builder()
                            .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
-                           .region(Region.US_WEST_2).endpointOverride(URI.create(getEndpoint()))
+                           .region(Region.US_WEST_2)
+                           .endpointOverride(URI.create(getEndpoint()))
+                           .serviceConfiguration(c -> c.pathStyleAccessEnabled(true))
                            .build();
 
         s3AsyncClient = S3AsyncClient.builder()
                                      .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
                                      .region(Region.US_WEST_2)
                                      .endpointOverride(URI.create(getEndpoint()))
+                                     .serviceConfiguration(c -> c.pathStyleAccessEnabled(true))
                                      .build();
     }
 

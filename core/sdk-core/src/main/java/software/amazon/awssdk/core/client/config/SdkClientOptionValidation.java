@@ -48,7 +48,6 @@ public class SdkClientOptionValidation {
         require("overrideConfiguration.executionInterceptors", c.option(SdkClientOption.EXECUTION_INTERCEPTORS));
         require("overrideConfiguration.retryPolicy", c.option(SdkClientOption.RETRY_POLICY));
 
-        require("overrideConfiguration.advancedOption[SIGNER]", c.option(SdkAdvancedClientOption.SIGNER));
         require("overrideConfiguration.advancedOption[USER_AGENT_PREFIX]",
                 c.option(SdkAdvancedClientOption.USER_AGENT_PREFIX));
         require("overrideConfiguration.advancedOption[USER_AGENT_SUFFIX]",

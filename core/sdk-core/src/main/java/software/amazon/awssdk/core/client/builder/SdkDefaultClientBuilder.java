@@ -117,6 +117,8 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
 
     protected final SdkClientConfiguration.Builder clientConfiguration = SdkClientConfiguration.builder();
 
+    protected final AttributeMap.Builder clientContextParams = AttributeMap.builder();
+
     private final SdkHttpClient.Builder defaultHttpClientBuilder;
     private final SdkAsyncHttpClient.Builder defaultAsyncHttpClientBuilder;
 
@@ -165,6 +167,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
      * </ol>
      */
     protected final SdkClientConfiguration syncClientConfiguration() {
+        clientConfiguration.option(SdkClientOption.CLIENT_CONTEXT_PARAMS, clientContextParams.build());
         SdkClientConfiguration configuration = clientConfiguration.build();
 
         // Apply overrides
@@ -192,6 +195,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
      * </ol>
      */
     protected final SdkClientConfiguration asyncClientConfiguration() {
+        clientConfiguration.option(SdkClientOption.CLIENT_CONTEXT_PARAMS, clientContextParams.build());
         SdkClientConfiguration configuration = clientConfiguration.build();
 
         // Apply overrides

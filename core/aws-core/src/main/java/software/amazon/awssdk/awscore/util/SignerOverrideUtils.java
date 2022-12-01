@@ -51,7 +51,7 @@ public final class SignerOverrideUtils {
         return overrideSigner(request, signer.get());
     }
 
-    private static boolean isSignerOverridden(SdkRequest request, ExecutionAttributes executionAttributes) {
+    public static boolean isSignerOverridden(SdkRequest request, ExecutionAttributes executionAttributes) {
         Optional<Boolean> isClientSignerOverridden = Optional.ofNullable(
             executionAttributes.getAttribute(SdkExecutionAttribute.SIGNER_OVERRIDDEN));
         Optional<Signer> requestSigner = request.overrideConfiguration()
