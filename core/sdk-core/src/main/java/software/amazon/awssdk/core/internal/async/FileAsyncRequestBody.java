@@ -52,7 +52,7 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
     /**
      * Default size (in bytes) of ByteBuffer chunks read from the file and delivered to the subscriber.
      */
-    private static final int DEFAULT_CHUNK_SIZE = 16 * 1024;
+    private static final int DEFAULT_CHUNK_SIZE = 16 * 1024 * 1024;
 
     /**
      * File to read.
