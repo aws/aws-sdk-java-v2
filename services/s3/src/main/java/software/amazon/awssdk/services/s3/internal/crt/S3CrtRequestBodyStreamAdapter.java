@@ -26,13 +26,14 @@ import software.amazon.awssdk.utils.async.ByteBufferStoringSubscriber;
  */
 @SdkInternalApi
 public final class S3CrtRequestBodyStreamAdapter implements HttpRequestBodyStream {
+    private static final long MINIMUM_BYTES_BUFFERED = 16 * 1024 * 1024L;
     private final SdkHttpContentPublisher bodyPublisher;
     private final ByteBufferStoringSubscriber requestBodySubscriber;
 
 
     public S3CrtRequestBodyStreamAdapter(SdkHttpContentPublisher bodyPublisher) {
         this.bodyPublisher = bodyPublisher;
-        this.requestBodySubscriber = new ByteBufferStoringSubscriber(16 * 1024 * 1024);
+        this.requestBodySubscriber = new ByteBufferStoringSubscriber(MINIMUM_BYTES_BUFFERED);
         bodyPublisher.subscribe(requestBodySubscriber);
     }
 
