@@ -36,7 +36,7 @@ import software.amazon.awssdk.utils.Logger;
  */
 @SdkInternalApi
 public final class S3CrtRequestBodyStreamAdapter implements HttpRequestBodyStream {
-    static final long DEFAULT_REQUEST_SIZE = 20;
+    static final long DEFAULT_REQUEST_SIZE = 3;
     private static final Logger LOG = Logger.loggerFor(S3CrtRequestBodyStreamAdapter.class);
 
     private final AtomicReference<SubscriptionStatus> subscriptionStatus =
