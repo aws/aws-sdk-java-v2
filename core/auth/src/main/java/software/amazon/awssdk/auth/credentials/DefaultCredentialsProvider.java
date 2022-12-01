@@ -95,15 +95,15 @@ public final class DefaultCredentialsProvider
                 ProfileCredentialsProvider.builder()
                                           .profileFile(builder.profileFileSupplier)
                                           .profileName(builder.profileName)
-                    .build(),
+                                          .build(),
                 ContainerCredentialsProvider.builder()
                                             .asyncCredentialUpdateEnabled(asyncCredentialUpdateEnabled)
-                    .build(),
+                                            .build(),
                 InstanceProfileCredentialsProvider.builder()
                                                   .asyncCredentialUpdateEnabled(asyncCredentialUpdateEnabled)
                                                   .profileFile(builder.profileFileSupplier)
                                                   .profileName(builder.profileName)
-                    .build()
+                                                  .build()
             };
 
             return AwsCredentialsProviderChain.builder()
