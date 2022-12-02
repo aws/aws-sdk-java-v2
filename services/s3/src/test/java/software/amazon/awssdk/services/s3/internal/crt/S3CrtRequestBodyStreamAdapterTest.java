@@ -23,12 +23,14 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 
 class S3CrtRequestBodyStreamAdapterTest {
 
@@ -46,7 +48,7 @@ class S3CrtRequestBodyStreamAdapterTest {
                                       })
                                       .collect(Collectors.toList());
 
-        AsyncRequestBody requestBody = AsyncRequestBody.fromPublisher(Flowable.fromIterable(data));
+        SdkHttpContentPublisher requestBody = requestBody(Flowable.fromIterable(data), 42L);
 
         S3CrtRequestBodyStreamAdapter adapter = new S3CrtRequestBodyStreamAdapter(requestBody);
 
@@ -54,6 +56,20 @@ class S3CrtRequestBodyStreamAdapterTest {
         adapter.sendRequestBody(inputBuffer);
 
         assertThat(inputBuffer.remaining()).isEqualTo(0);
+    }
+
+    private static SdkHttpContentPublisher requestBody(Publisher<ByteBuffer> delegate, long size) {
+        return new SdkHttpContentPublisher() {
+            @Override
+            public Optional<Long> contentLength() {
+                return Optional.of(size);
+            }
+
+            @Override
+            public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
+                delegate.subscribe(subscriber);
+            }
+        };
     }
 
     @Test
@@ -64,7 +80,7 @@ class S3CrtRequestBodyStreamAdapterTest {
         data.put(new byte[bodySize]);
         data.flip();
 
-        AsyncRequestBody requestBody = AsyncRequestBody.fromPublisher(Flowable.just(data));
+        SdkHttpContentPublisher requestBody = requestBody(Flowable.just(data), 16L);
 
         S3CrtRequestBodyStreamAdapter adapter = new S3CrtRequestBodyStreamAdapter(requestBody);
 
@@ -81,7 +97,7 @@ class S3CrtRequestBodyStreamAdapterTest {
     public void getRequestData_publisherThrows_surfacesException() {
         Publisher<ByteBuffer> errorPublisher = Flowable.error(new RuntimeException("Something wrong happened"));
 
-        AsyncRequestBody requestBody = AsyncRequestBody.fromPublisher(errorPublisher);
+        SdkHttpContentPublisher requestBody = requestBody(errorPublisher, 0L);
         S3CrtRequestBodyStreamAdapter adapter = new S3CrtRequestBodyStreamAdapter(requestBody);
 
         assertThatThrownBy(() -> adapter.sendRequestBody(ByteBuffer.allocate(16)))
@@ -93,68 +109,11 @@ class S3CrtRequestBodyStreamAdapterTest {
     public void getRequestData_publisherThrows_wrapsExceptionIfNotRuntimeException() {
         Publisher<ByteBuffer> errorPublisher = Flowable.error(new IOException("Some I/O error happened"));
 
-        AsyncRequestBody requestBody = AsyncRequestBody.fromPublisher(errorPublisher);
+        SdkHttpContentPublisher requestBody = requestBody(errorPublisher, 0L);
         S3CrtRequestBodyStreamAdapter adapter = new S3CrtRequestBodyStreamAdapter(requestBody);
 
         assertThatThrownBy(() -> adapter.sendRequestBody(ByteBuffer.allocate(16)))
             .isInstanceOf(RuntimeException.class)
             .hasCauseInstanceOf(IOException.class);
     }
-
-    @Test
-    public void resetMidStream_discardsBufferedData() {
-        long requestSize = S3CrtRequestBodyStreamAdapter.DEFAULT_REQUEST_SIZE;
-        int inputBufferSize = 16;
-
-        Publisher<ByteBuffer> requestBody = new Publisher<ByteBuffer>() {
-            private byte value = 0;
-
-            @Override
-            public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
-                byte byteVal = value++;
-
-                List<ByteBuffer> dataList = Stream.generate(() -> {
-                                                      byte[] data = new byte[inputBufferSize];
-                                                      Arrays.fill(data, byteVal);
-                                                      return ByteBuffer.wrap(data);
-                                                  })
-                                                  .limit(requestSize)
-                                                  .collect(Collectors.toList());
-
-                Flowable<ByteBuffer> realPublisher = Flowable.fromIterable(dataList);
-
-                realPublisher.subscribe(subscriber);
-            }
-        };
-
-        S3CrtRequestBodyStreamAdapter adapter = new S3CrtRequestBodyStreamAdapter(requestBody);
-
-        long resetAfter = requestSize / 2;
-
-        ByteBuffer inputBuffer = ByteBuffer.allocate(inputBufferSize);
-
-        for (long l = 0; l < resetAfter; ++l) {
-            adapter.sendRequestBody(inputBuffer);
-            inputBuffer.flip();
-        }
-
-        adapter.resetPosition();
-
-        byte[] expectedBufferContent = new byte[inputBufferSize];
-        Arrays.fill(expectedBufferContent, (byte) 1);
-
-        byte[] readBuffer = new byte[inputBufferSize];
-        for (int l = 0; l < requestSize; ++l) {
-            adapter.sendRequestBody(inputBuffer);
-            // flip for reading
-            inputBuffer.flip();
-            inputBuffer.get(readBuffer);
-
-            // flip for writing
-            inputBuffer.flip();
-
-            assertThat(readBuffer).isEqualTo(expectedBufferContent);
-        }
-    }
-
 }
