@@ -29,17 +29,17 @@ public final class SizeConstant {
     /**
      * 1 Kibibyte
      * */
-    public static final long KB = 1024;
+    public static final int KB = 1024;
 
     /**
      * 1 Mebibyte.
      */
-    public static final long MB = 1024 * KB;
+    public static final int MB = 1024 * KB;
 
     /**
      * 1 Gibibyte.
      */
-    public static final long GB = 1024 * MB;
+    public static final int GB = 1024 * MB;
 
     private SizeConstant() {
 

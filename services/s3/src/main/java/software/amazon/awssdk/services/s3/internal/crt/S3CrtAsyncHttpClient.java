@@ -103,8 +103,8 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         S3MetaRequestOptions requestOptions = new S3MetaRequestOptions()
             .withHttpRequest(httpRequest)
             .withMetaRequestType(requestType)
-            //.withChecksumAlgorithm(checksumAlgorithm)
-            //.withValidateChecksum(validateChecksum)
+            .withChecksumAlgorithm(checksumAlgorithm)
+            .withValidateChecksum(validateChecksum)
             .withEndpoint(getEndpoint(uri))
             .withResponseHandler(responseHandler)
             .withResumeToken(resumeToken);

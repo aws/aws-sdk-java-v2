@@ -18,6 +18,7 @@ package software.amazon.awssdk.transfer.s3.internal;
 import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.SDK_HTTP_EXECUTION_ATTRIBUTES;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.CRT_PAUSE_RESUME_TOKEN;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.METAREQUEST_PAUSE_OBSERVABLE;
+import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
 import static software.amazon.awssdk.transfer.s3.internal.utils.FileUtils.fileNotModified;
 import static software.amazon.awssdk.transfer.s3.internal.utils.ResumableRequestConverter.toDownloadFileRequestAndTransformer;
 
@@ -34,6 +35,7 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
+import software.amazon.awssdk.core.internal.async.FileAsyncRequestBody;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
@@ -89,6 +91,7 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 public final class DefaultS3TransferManager implements S3TransferManager {
     private static final Logger log = Logger.loggerFor(S3TransferManager.class);
+    private static final int DEFAULT_FILE_UPLOAD_CHUNK_SIZE = 16 * MB;
     private final S3AsyncClient s3AsyncClient;
     private final TransferManagerConfiguration transferConfiguration;
     private final UploadDirectoryHelper uploadDirectoryHelper;
@@ -174,7 +177,11 @@ public final class DefaultS3TransferManager implements S3TransferManager {
         Validate.paramNotNull(uploadFileRequest, "uploadFileRequest");
         S3MetaRequestPauseObservable observable = new S3MetaRequestPauseObservable();
 
-        AsyncRequestBody requestBody = AsyncRequestBody.fromFile(uploadFileRequest.source());
+        AsyncRequestBody requestBody =
+            FileAsyncRequestBody.builder()
+                                .path(uploadFileRequest.source())
+                                .chunkSizeInBytes(DEFAULT_FILE_UPLOAD_CHUNK_SIZE)
+                                .build();
 
         Consumer<SdkHttpExecutionAttributes.Builder> attachObservable =
             b -> b.put(METAREQUEST_PAUSE_OBSERVABLE, observable);
