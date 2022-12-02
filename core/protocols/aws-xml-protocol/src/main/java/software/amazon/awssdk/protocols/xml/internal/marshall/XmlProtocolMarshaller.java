@@ -62,7 +62,7 @@ public final class XmlProtocolMarshaller implements ProtocolMarshaller<SdkHttpFu
     private XmlProtocolMarshaller(Builder builder) {
         this.endpoint = builder.endpoint;
         this.request = ProtocolUtils.createSdkHttpRequest(builder.operationInfo, this.endpoint);
-        this.rootElement = builder.operationInfo.additionalMetadata(AwsXmlProtocolFactory.ROOT_MARSHALL_LOCATION_ATTRIBUTE);
+        this.rootElement = builder.operationInfo.addtionalMetadata(AwsXmlProtocolFactory.ROOT_MARSHALL_LOCATION_ATTRIBUTE);
         this.marshallerContext = XmlMarshallerContext.builder()
                                                      .xmlGenerator(builder.xmlGenerator)
                                                      .marshallerRegistry(MARSHALLER_REGISTRY)

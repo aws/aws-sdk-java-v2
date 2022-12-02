@@ -133,7 +133,7 @@ public final class OperationInfo {
      * @param <T> Type of metadata being requested.
      * @return The value of the additional metadata being requested or null if it's not present.
      */
-    public <T> T additionalMetadata(OperationMetadataAttribute<T> key) {
+    public <T> T addtionalMetadata(OperationMetadataAttribute<T> key) {
         return additionalMetadata.get(key);
     }
 
