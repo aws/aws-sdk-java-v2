@@ -46,9 +46,41 @@ public final class Endpoint {
         return headers;
     }
 
+    public Builder toBuilder() {
+        return new BuilderImpl(this);
+    }
+
     @SuppressWarnings("unchecked")
     public <T> T attribute(EndpointAttributeKey<T> key) {
         return (T) attributes.get(key);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        Endpoint endpoint = (Endpoint) o;
+
+        if (url != null ? !url.equals(endpoint.url) : endpoint.url != null) {
+            return false;
+        }
+        if (headers != null ? !headers.equals(endpoint.headers) : endpoint.headers != null) {
+            return false;
+        }
+        return attributes != null ? attributes.equals(endpoint.attributes) : endpoint.attributes == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = url != null ? url.hashCode() : 0;
+        result = 31 * result + (headers != null ? headers.hashCode() : 0);
+        result = 31 * result + (attributes != null ? attributes.hashCode() : 0);
+        return result;
     }
 
     public static Builder builder() {
@@ -69,6 +101,19 @@ public final class Endpoint {
         private URI url;
         private final Map<String, List<String>> headers = new HashMap<>();
         private final Map<EndpointAttributeKey<?>, Object> attributes = new HashMap<>();
+
+        private BuilderImpl() {
+        }
+
+        private BuilderImpl(Endpoint e) {
+            this.url = e.url;
+            if (e.headers != null) {
+                e.headers.forEach((n, v) -> {
+                    this.headers.put(n, new ArrayList<>(v));
+                });
+            }
+            this.attributes.putAll(e.attributes);
+        }
 
         @Override
         public Builder url(URI url) {

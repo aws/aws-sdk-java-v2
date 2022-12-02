@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "This changes fixes the previously incorrect handling of `hostPrefix` in services, causing requests for some services to have the wrong URL. This change also undoes the suppression of rules-based endpoint generation for all services apart from EventBridge, S3, and S3 Control, which was implemented in [#3520](https://github.com/aws/aws-sdk-java-v2/issues/3520) because of the previously mentioned `hostPrefix` issue."
+}

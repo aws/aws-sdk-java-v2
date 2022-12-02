@@ -111,11 +111,9 @@ public class BaseClientBuilderClass implements ClassSpec {
         builder.addMethod(finalizeServiceConfigurationMethod());
         defaultAwsAuthSignerMethod().ifPresent(builder::addMethod);
         builder.addMethod(signingNameMethod());
-        if (endpointRulesSpecUtils.isEndpointRulesEnabled()) {
-            builder.addMethod(defaultEndpointProviderMethod());
-        }
+        builder.addMethod(defaultEndpointProviderMethod());
 
-        if (hasClientContextParams() && endpointRulesSpecUtils.isEndpointRulesEnabled()) {
+        if (hasClientContextParams()) {
             model.getClientContextParams().forEach((n, m) -> {
                 builder.addMethod(clientContextParamSetter(n, m));
             });
@@ -191,9 +189,8 @@ public class BaseClientBuilderClass implements ClassSpec {
                                                .addParameter(SdkClientConfiguration.class, "config")
                                                .addCode("return config.merge(c -> c");
 
-        if (endpointRulesSpecUtils.isEndpointRulesEnabled()) {
-            builder.addCode(".option($T.ENDPOINT_PROVIDER, defaultEndpointProvider())", SdkClientOption.class);
-        }
+        builder.addCode(".option($T.ENDPOINT_PROVIDER, defaultEndpointProvider())", SdkClientOption.class);
+
 
         if (defaultAwsAuthSignerMethod().isPresent()) {
             builder.addCode(".option($T.SIGNER, defaultSigner())\n", SdkAdvancedClientOption.class);
@@ -261,11 +258,9 @@ public class BaseClientBuilderClass implements ClassSpec {
 
         List<ClassName> builtInInterceptors = new ArrayList<>();
 
-        if (endpointRulesSpecUtils.isEndpointRulesEnabled()) {
-            builtInInterceptors.add(endpointRulesSpecUtils.resolverInterceptorName());
-            builtInInterceptors.add(endpointRulesSpecUtils.authSchemesInterceptorName());
-            builtInInterceptors.add(endpointRulesSpecUtils.requestModifierInterceptorName());
-        }
+        builtInInterceptors.add(endpointRulesSpecUtils.resolverInterceptorName());
+        builtInInterceptors.add(endpointRulesSpecUtils.authSchemesInterceptorName());
+        builtInInterceptors.add(endpointRulesSpecUtils.requestModifierInterceptorName());
 
         for (String interceptor : model.getCustomizationConfig().getInterceptors()) {
             builtInInterceptors.add(ClassName.bestGuess(interceptor));
