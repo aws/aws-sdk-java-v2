@@ -71,16 +71,6 @@
             <artifactId>profiles</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>json-utils</artifactId>
-            <version>${awsjavasdk.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>endpoints-spi</artifactId>
-            <version>${awsjavasdk.version}</version>
-        </dependency>
         <!-- Test Dependencies -->
         <dependency>
             <artifactId>commons-io</artifactId>

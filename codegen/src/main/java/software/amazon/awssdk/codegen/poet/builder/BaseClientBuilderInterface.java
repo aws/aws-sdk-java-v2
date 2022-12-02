@@ -38,7 +38,6 @@ import software.amazon.awssdk.codegen.utils.AuthUtils;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.utils.internal.CodegenNamingUtils;
 
-
 public class BaseClientBuilderInterface implements ClassSpec {
     private final IntermediateModel model;
     private final String basePackage;
@@ -73,14 +72,12 @@ public class BaseClientBuilderInterface implements ClassSpec {
             builder.addMethod(serviceConfigurationConsumerBuilderMethod());
         }
 
-        if (endpointRulesSpecUtils.isEndpointRulesEnabled()) {
-            builder.addMethod(endpointProviderMethod());
+        builder.addMethod(endpointProviderMethod());
 
-            if (hasClientContextParams()) {
-                model.getClientContextParams().forEach((n, m) -> {
-                    builder.addMethod(clientContextParamSetter(n, m));
-                });
-            }
+        if (hasClientContextParams()) {
+            model.getClientContextParams().forEach((n, m) -> {
+                builder.addMethod(clientContextParamSetter(n, m));
+            });
         }
 
         if (generateTokenProviderMethod()) {

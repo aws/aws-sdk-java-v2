@@ -16,6 +16,7 @@ import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.utils.HostnameValidator;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
@@ -72,6 +73,34 @@ public final class AwsEndpointProviderUtils {
      */
     public static boolean endpointIsDiscovered(ExecutionAttributes attrs) {
         return attrs.getOptionalAttribute(SdkInternalExecutionAttribute.IS_DISCOVERED_ENDPOINT).orElse(false);
+    }
+
+    /**
+     * True if the the {@link SdkInternalExecutionAttribute#DISABLE_HOST_PREFIX_INJECTION} attribute is present and its
+     * value is {@code true}, {@code false} otherwise.
+     */
+    public static boolean disableHostPrefixInjection(ExecutionAttributes attrs) {
+        return attrs.getOptionalAttribute(SdkInternalExecutionAttribute.DISABLE_HOST_PREFIX_INJECTION).orElse(false);
+    }
+
+    /**
+     * Apply the given endpoint prefix to the endpoint.
+     */
+    public static Endpoint addHostPrefix(Endpoint endpoint, String prefix) {
+        if (StringUtils.isBlank(prefix)) {
+            return endpoint;
+        }
+
+        validatePrefixIsHostNameCompliant(prefix);
+
+        URI originalUrl = endpoint.url();
+        String newHost = prefix + endpoint.url().getHost();
+        URI newUrl = invokeSafely(() -> new URI(originalUrl.getScheme(), null, newHost, originalUrl.getPort(),
+                             originalUrl.getPath(), originalUrl.getQuery(), originalUrl.getFragment()));
+
+        return endpoint.toBuilder()
+            .url(newUrl)
+            .build();
     }
 
     public static Endpoint valueAsEndpointOrThrow(Value value) {
@@ -169,5 +198,16 @@ public final class AwsEndpointProviderUtils {
                 break;
             }
         });
+    }
+
+    private static void validatePrefixIsHostNameCompliant(String prefix) {
+        String[] components = splitHostLabelOnDots(prefix);
+        for (String component : components) {
+            HostnameValidator.validateHostnameCompliant(component, component, "request");
+        }
+    }
+
+    private static String[] splitHostLabelOnDots(String label) {
+        return label.split("\\.");
     }
 }
