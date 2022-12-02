@@ -19,6 +19,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkField;
@@ -26,6 +27,7 @@ import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.document.Document;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
+import software.amazon.awssdk.core.traits.RequiredTrait;
 import software.amazon.awssdk.core.traits.TimestampFormatTrait;
 import software.amazon.awssdk.core.util.SdkAutoConstructList;
 import software.amazon.awssdk.core.util.SdkAutoConstructMap;
@@ -36,6 +38,12 @@ import software.amazon.awssdk.utils.DateUtils;
 public final class SimpleTypeJsonMarshaller {
 
     public static final JsonMarshaller<Void> NULL = (val, context, paramName, sdkField) -> {
+        if (sdkField.containsTrait(RequiredTrait.class)) {
+            throw new IllegalArgumentException(String.format("Parameter '%s' must not be null",
+                                                             Optional.ofNullable(paramName)
+                                                                     .orElseGet(() -> "paramName null")));
+        }
+
         // If paramName is non null then we are emitting a field of an object, in that
         // we just don't write the field. If param name is null then we are either in a container
         // or the thing being marshalled is the payload itself in which case we want to preserve

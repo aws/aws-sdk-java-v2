@@ -24,6 +24,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.traits.ListTrait;
+import software.amazon.awssdk.core.traits.RequiredTrait;
 import software.amazon.awssdk.protocols.core.ValueToStringConverter;
 import software.amazon.awssdk.utils.StringUtils;
 
@@ -96,6 +97,12 @@ public final class HeaderMarshaller {
             // Null or empty lists cannot be meaningfully (or safely) represented in an HTTP header message since header-fields
             // must typically have a non-empty field-value. https://datatracker.ietf.org/doc/html/rfc7230#section-3.2
             return !isNullOrEmpty(list);
+        }
+    };
+
+    public static final XmlMarshaller<Void> NULL = (val, context, paramName, sdkField) -> {
+        if (sdkField.containsTrait(RequiredTrait.class)) {
+            throw new IllegalArgumentException(String.format("Parameter '%s' must not be null", paramName));
         }
     };
 

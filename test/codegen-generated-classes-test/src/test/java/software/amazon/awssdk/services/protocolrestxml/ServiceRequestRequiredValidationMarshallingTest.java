@@ -109,7 +109,7 @@ class ServiceRequestRequiredValidationMarshallingTest {
     }
 
     @Test
-    void marshal_missingRequiredMemberAtHeaderLocation_doesNotThrowException() {
+    void marshal_missingRequiredMemberAtHeaderLocation_throwsException() {
         QueryParameterOperationRequest request =
             QueryParameterOperationRequest
                 .builder()
@@ -124,7 +124,9 @@ class ServiceRequestRequiredValidationMarshallingTest {
                                                    .build())
                 .build();
 
-        assertThatNoException().isThrownBy(() -> marshaller.marshall(request));
+        assertThatThrownBy(() -> marshaller.marshall(request))
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("Parameter 'x-amz-header-string' must not be null");
     }
 
     @Test

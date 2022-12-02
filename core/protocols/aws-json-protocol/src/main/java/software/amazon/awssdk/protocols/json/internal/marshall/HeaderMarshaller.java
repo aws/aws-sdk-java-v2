@@ -25,6 +25,7 @@ import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.traits.JsonValueTrait;
 import software.amazon.awssdk.core.traits.ListTrait;
+import software.amazon.awssdk.core.traits.RequiredTrait;
 import software.amazon.awssdk.protocols.core.ValueToStringConverter;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.StringUtils;
@@ -64,6 +65,12 @@ public final class HeaderMarshaller {
             }
             JsonMarshaller marshaller = context.marshallerRegistry().getMarshaller(MarshallLocation.HEADER, listValue);
             marshaller.marshall(listValue, context, paramName, memberFieldInfo);
+        }
+    };
+
+    public static final JsonMarshaller<Void> NULL = (val, context, paramName, sdkField) -> {
+        if (sdkField.containsTrait(RequiredTrait.class)) {
+            throw new IllegalArgumentException(String.format("Parameter '%s' must not be null", paramName));
         }
     };
 
