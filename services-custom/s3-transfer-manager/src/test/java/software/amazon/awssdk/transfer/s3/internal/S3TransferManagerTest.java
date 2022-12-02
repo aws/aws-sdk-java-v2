@@ -344,7 +344,7 @@ class S3TransferManagerTest {
     @Test
     void close_shouldNotCloseCloseS3AsyncClientPassedInBuilder_when_transferManagerClosed() {
         S3TransferManager transferManager =
-            DefaultS3TransferManager.builder().s3AsyncClient(mockS3Crt).build();
+            DefaultS3TransferManager.builder().s3Client(mockS3Crt).build();
         transferManager.close();
         verify(mockS3Crt, times(0)).close();
     }

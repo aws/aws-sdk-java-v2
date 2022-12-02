@@ -34,7 +34,7 @@ public class TransferManagerConfigurationTest {
     @Test
     public void resolveMaxDepth_requestOverride_requestOverrideShouldTakePrecedence() {
         transferManagerConfiguration = TransferManagerConfiguration.builder()
-                                                                   .maxDepth(1)
+                                                                   .uploadDirectoryMaxDepth(1)
                                                                    .build();
         UploadDirectoryRequest uploadDirectoryRequest = UploadDirectoryRequest.builder()
                                                                               .bucket("bucket")
@@ -47,7 +47,7 @@ public class TransferManagerConfigurationTest {
     @Test
     public void resolveFollowSymlinks_requestOverride_requestOverrideShouldTakePrecedence() {
         transferManagerConfiguration = TransferManagerConfiguration.builder()
-                                                                   .followSymbolicLinks(false)
+                                                                   .uploadDirectoryFollowSymbolicLinks(false)
                                                                    .build();
         UploadDirectoryRequest uploadDirectoryRequest = UploadDirectoryRequest.builder()
                                                                               .bucket("bucket")
