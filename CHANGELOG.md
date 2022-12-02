@@ -1,3 +1,47 @@
+# __2.18.30__ __2022-12-02__
+## __AWS AppSync__
+  - ### Features
+    - Fixes the URI for the evaluatecode endpoint to include the /v1 prefix (ie. "/v1/dataplane-evaluatecode").
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - The AWS Elemental MediaConvert SDK has added support for configurable ID3 eMSG box attributes and the ability to signal them with InbandEventStream tags in DASH and CMAF outputs.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - Updates to Event Signaling and Management (ESAM) API and documentation.
+
+## __AWS Proton__
+  - ### Features
+    - CreateEnvironmentAccountConnection RoleArn input is now optional
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Added AsyncResponseBody.fromInputStream and AsyncRequestBody.forBlockingInputStream, allowing streaming operation requests to be written to like an input stream.
+
+  - ### Bugfixes
+    - This changes fixes the previously incorrect handling of `hostPrefix` in services, causing requests for some services to have the wrong URL. This change also undoes the suppression of rules-based endpoint generation for all services apart from EventBridge, S3, and S3 Control, which was implemented in [#3520](https://github.com/aws/aws-sdk-java-v2/issues/3520) because of the previously mentioned `hostPrefix` issue.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Documentation updates for Amazon ECS
+
+## __Amazon Polly__
+  - ### Features
+    - Add language code for Finnish (fi-FI)
+
+## __Amazon Simple Notification Service__
+  - ### Features
+    - This release adds the message payload-filtering feature to the SNS Subscribe, SetSubscriptionAttributes, and GetSubscriptionAttributes API actions
+
+## __Firewall Management Service__
+  - ### Features
+    - AWS Firewall Manager now supports Fortigate Cloud Native Firewall as a Service as a third-party policy type.
+
+## __Redshift Serverless__
+  - ### Features
+    - Add Table Level Restore operations for Amazon Redshift Serverless. Add multi-port support for Amazon Redshift Serverless endpoints. Add Tagging support to Snapshots and Recovery Points in Amazon Redshift Serverless.
+
 # __2.18.29__ __2022-12-01__
 ## __AWS SDK for Java v2__
   - ### Features

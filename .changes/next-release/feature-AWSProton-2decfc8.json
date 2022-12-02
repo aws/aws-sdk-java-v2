@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Proton",
-    "contributor": "",
-    "description": "CreateEnvironmentAccountConnection RoleArn input is now optional"
-}
