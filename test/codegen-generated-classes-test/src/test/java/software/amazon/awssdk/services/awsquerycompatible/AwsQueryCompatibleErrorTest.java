@@ -20,6 +20,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
@@ -33,6 +34,7 @@ import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.querycompatiblejson.QueryCompatibleJsonAsyncClient;
 import software.amazon.awssdk.services.querycompatiblejson.QueryCompatibleJsonClient;
+import software.amazon.awssdk.services.querycompatiblejson.model.QueryCompatibleJsonException;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 public class AwsQueryCompatibleErrorTest {
@@ -42,64 +44,67 @@ public class AwsQueryCompatibleErrorTest {
 
     private QueryCompatibleJsonClient client;
     private QueryCompatibleJsonAsyncClient asyncClient;
+
     private static final String SERVICE_NAME = "QueryCompatibleJson";
     private static final String QUERY_HEADER_VALUE = "CustomException;Sender";
     private static final String INVALID_QUERY_HEADER_VALUE = "CustomException Sender";
+    private static final String EMPTY_QUERY_HEADER_VALUE = ";Sender";
+    private static final String SERVICE_EXCEPTION = "ServiceModeledException";
+    private static final String CUSTOM_EXCEPTION = "CustomException";
     private static final String X_AMZN_QUERY_ERROR = "x-amzn-query-error";
 
     @Before
     public void setupClient() {
         client = QueryCompatibleJsonClient.builder()
-                                       .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
-                                       .region(Region.US_EAST_1)
-                                       .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
-                                       .build();
+                                          .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
+                                          .region(Region.US_EAST_1)
+                                          .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
+                                          .build();
 
         asyncClient = QueryCompatibleJsonAsyncClient.builder()
-                                                 .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
-                                                 .region(Region.US_EAST_1)
-                                                 .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
-                                                 .build();
+                                                    .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
+                                                    .region(Region.US_EAST_1)
+                                                    .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
+                                                    .build();
+
     }
 
     @Test
-    public void verifySyncClientException_shouldRetrievedFromHeader() {
+    public void verifyClientException_shouldRetrievedFromHeader() {
         stubResponseWithQueryHeaderAndBody(QUERY_HEADER_VALUE);
-        try {
-            client.allType(SdkBuilder::build);
-        } catch (AwsServiceException e) {
-            verifyErrorResponse(e, "CustomException");
-        }
+        assertThatThrownBy(() -> client.allType(SdkBuilder::build))
+            .satisfies(e -> verifyErrorResponse((AwsServiceException) e, CUSTOM_EXCEPTION))
+            .isInstanceOf(QueryCompatibleJsonException.class);
     }
 
     @Test
-    public void verifySyncClientException_shouldRetrievedFromContent() {
+    public void verifyClientException_invalidHeader_shouldRetrievedFromContent() {
         stubResponseWithQueryHeaderAndBody(INVALID_QUERY_HEADER_VALUE);
-        try {
-            client.allType(SdkBuilder::build);
-        } catch (AwsServiceException e) {
-            verifyErrorResponse(e, "ServiceModeledException");
-        }
+        assertThatThrownBy(() -> client.allType(SdkBuilder::build))
+            .satisfies(e -> verifyErrorResponse((AwsServiceException) e, SERVICE_EXCEPTION));
     }
 
     @Test
-    public void verifyAsyncClientException_shouldRetrievedFromHeader() {
-        stubResponseWithQueryHeaderAndBody(QUERY_HEADER_VALUE);
-        try {
-            asyncClient.allType(SdkBuilder::build);
-        } catch (AwsServiceException e) {
-            verifyErrorResponse(e, "CustomException");
-        }
+    public void verifyClientException_emptyHeader_shouldRetrievedFromContent() {
+        stubResponseWithQueryHeaderAndBody(EMPTY_QUERY_HEADER_VALUE);
+        assertThatThrownBy(() -> client.allType(SdkBuilder::build))
+            .satisfies(e -> verifyErrorResponse((AwsServiceException) e, SERVICE_EXCEPTION));
     }
 
     @Test
-    public void verifyAsyncClientException_shouldRetrievedFromContent() {
+    public void verifyAsyncClientException_invalidHeader_shouldRetrievedFromContent() {
         stubResponseWithQueryHeaderAndBody(INVALID_QUERY_HEADER_VALUE);
-        try {
-            asyncClient.allType(SdkBuilder::build);
-        } catch (AwsServiceException e) {
-            verifyErrorResponse(e, "ServiceModeledException");
-        }
+        assertThatThrownBy(() -> asyncClient.allType(r -> {
+        }).join()).hasRootCauseInstanceOf(AwsServiceException.class)
+                  .hasMessageContaining(SERVICE_EXCEPTION);
+    }
+
+    @Test
+    public void verifyAsyncClientException_emptyHeader_shouldRetrievedFromContent() {
+        stubResponseWithQueryHeaderAndBody(EMPTY_QUERY_HEADER_VALUE);
+        assertThatThrownBy(() -> asyncClient.allType(r -> {
+        }).join()).hasRootCauseInstanceOf(AwsServiceException.class)
+                  .hasMessageContaining(SERVICE_EXCEPTION);
     }
 
     private void stubResponseWithQueryHeaderAndBody(String queryHeaderValue) {
@@ -107,7 +112,7 @@ public class AwsQueryCompatibleErrorTest {
                     .willReturn(aResponse()
                                     .withStatus(403)
                                     .withHeader(X_AMZN_QUERY_ERROR, queryHeaderValue)
-                                    .withBody("{\"__type\": \"ServiceModeledException\"}")));
+                                    .withBody(String.format("{\"__type\": \"%s\"}", SERVICE_EXCEPTION))));
     }
 
     private void verifyErrorResponse(AwsServiceException e, String expectedErrorCode) {
