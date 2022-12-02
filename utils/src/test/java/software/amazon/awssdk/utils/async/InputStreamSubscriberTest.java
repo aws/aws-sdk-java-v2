@@ -174,7 +174,7 @@ public class InputStreamSubscriberTest {
             List<Future<?>> futures = new ArrayList<>();
             for (int i = 0; i < numIterations; i++) {
                 CountDownLatch waitingAtStartLine = new CountDownLatch(2);
-                CountDownLatch startLine = new CountDownLatch(0);
+                CountDownLatch startLine = new CountDownLatch(1);
 
                 InputStreamSubscriber subscriber = new InputStreamSubscriber();
                 subscriber.onSubscribe(mockSubscription(subscriber));

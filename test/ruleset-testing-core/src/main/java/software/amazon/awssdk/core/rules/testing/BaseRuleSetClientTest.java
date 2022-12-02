@@ -24,6 +24,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.net.URI;
+import java.time.Instant;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import org.junit.jupiter.api.Assumptions;
@@ -33,6 +35,9 @@ import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.auth.token.credentials.SdkToken;
+import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
+import software.amazon.awssdk.auth.token.credentials.StaticTokenProvider;
 import software.amazon.awssdk.core.rules.testing.model.Expect;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.HttpExecuteRequest;
@@ -45,6 +50,7 @@ import software.amazon.awssdk.utils.CompletableFutureUtils;
 public abstract class BaseRuleSetClientTest {
     protected static final AwsCredentialsProvider CREDENTIALS_PROVIDER =
         StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid"));
+    protected static final SdkTokenProvider TOKEN_PROVIDER = StaticTokenProvider.create(new TestSdkToken());
 
     private static SdkHttpClient syncHttpClient;
     private static SdkAsyncHttpClient asyncHttpClient;
@@ -121,5 +127,18 @@ public abstract class BaseRuleSetClientTest {
 
     protected static SdkAsyncHttpClient getAsyncHttpClient() {
         return asyncHttpClient;
+    }
+
+    private static class TestSdkToken implements SdkToken {
+
+        @Override
+        public String token() {
+            return "TOKEN";
+        }
+
+        @Override
+        public Optional<Instant> expirationTime() {
+            return Optional.empty();
+        }
     }
 }

@@ -35,7 +35,7 @@ import software.amazon.awssdk.utils.async.ByteBufferStoringSubscriber.TransferRe
  * subscriber when the input stream is not being read is bounded.
  */
 @SdkProtectedApi
-public class InputStreamSubscriber extends InputStream implements Subscriber<ByteBuffer>, SdkAutoCloseable {
+public final class InputStreamSubscriber extends InputStream implements Subscriber<ByteBuffer>, SdkAutoCloseable {
     private static final int BUFFER_SIZE = 4 * 1024 * 1024; // 4 MB
 
     private final ByteBufferStoringSubscriber delegate;

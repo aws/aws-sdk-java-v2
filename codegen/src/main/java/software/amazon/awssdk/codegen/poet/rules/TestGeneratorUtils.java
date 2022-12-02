@@ -22,22 +22,28 @@ import com.fasterxml.jackson.jr.stree.JrsString;
 import com.fasterxml.jackson.jr.stree.JrsValue;
 import com.squareup.javapoet.CodeBlock;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4AuthScheme;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4aAuthScheme;
+import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.rules.endpoints.ExpectModel;
+import software.amazon.awssdk.codegen.model.service.EndpointTrait;
+import software.amazon.awssdk.codegen.model.service.HostPrefixProcessor;
 import software.amazon.awssdk.core.rules.testing.model.Expect;
 import software.amazon.awssdk.endpoints.Endpoint;
+import software.amazon.awssdk.utils.StringUtils;
 
 public final class TestGeneratorUtils {
     private TestGeneratorUtils() {
     }
 
-    public static CodeBlock createExpect(ExpectModel expect) {
+    public static CodeBlock createExpect(ExpectModel expect, OperationModel opModel, Map<String, TreeNode> opParams) {
         CodeBlock.Builder b = CodeBlock.builder();
 
         b.add("$T.builder()", Expect.class);
@@ -48,9 +54,10 @@ public final class TestGeneratorUtils {
             CodeBlock.Builder endpointBuilder = CodeBlock.builder();
 
             ExpectModel.Endpoint endpoint = expect.getEndpoint();
+            String expectedUrl = createExpectedUrl(endpoint, opModel, opParams);
 
             endpointBuilder.add("$T.builder()", Endpoint.class);
-            endpointBuilder.add(".url($T.create($S))", URI.class, endpoint.getUrl());
+            endpointBuilder.add(".url($T.create($S))", URI.class, expectedUrl);
 
 
             if (endpoint.getHeaders() != null) {
@@ -74,6 +81,16 @@ public final class TestGeneratorUtils {
         b.add(".build()");
 
         return b.build();
+    }
+
+    public static Optional<String> getHostPrefixTemplate(OperationModel opModel) {
+        EndpointTrait endpointTrait = opModel.getEndpointTrait();
+
+        if (endpointTrait == null) {
+            return Optional.empty();
+        }
+
+        return Optional.ofNullable(endpointTrait.getHostPrefix());
     }
 
     private static void addEndpointAttributeBlock(CodeBlock.Builder builder, String attrName, TreeNode attrValue) {
@@ -155,5 +172,57 @@ public final class TestGeneratorUtils {
         schemeExpr.add(".build()");
 
         return schemeExpr.build();
+    }
+
+
+    private static String createExpectedUrl(ExpectModel.Endpoint endpoint,
+                                            OperationModel opModel,
+                                            Map<String, TreeNode> opParams) {
+        Optional<String> prefix = getHostPrefix(opModel, opParams);
+        if (!prefix.isPresent()) {
+            return endpoint.getUrl();
+        }
+
+        URI originalUrl = URI.create(endpoint.getUrl());
+
+        try {
+            URI newUrl = new URI(originalUrl.getScheme(),
+                                 null,
+                                 prefix.get() + originalUrl.getHost(),
+                                 originalUrl.getPort(),
+                                 originalUrl.getPath(),
+                                 originalUrl.getQuery(),
+                                 originalUrl.getFragment());
+            return newUrl.toString();
+        } catch (URISyntaxException e) {
+            throw new RuntimeException("Expected url creation failed", e);
+        }
+    }
+
+    private static Optional<String> getHostPrefix(OperationModel opModel, Map<String, TreeNode> opParams) {
+        if (opModel == null) {
+            return Optional.empty();
+        }
+
+        Optional<String> hostPrefixTemplate = getHostPrefixTemplate(opModel);
+
+        if (!hostPrefixTemplate.isPresent() || StringUtils.isBlank(hostPrefixTemplate.get())) {
+            return Optional.empty();
+        }
+
+        HostPrefixProcessor processor = new HostPrefixProcessor(hostPrefixTemplate.get());
+
+        String pattern = processor.hostWithStringSpecifier();
+
+        for (String c2jName : processor.c2jNames()) {
+            if (opParams != null && opParams.containsKey(c2jName)) {
+                String value = ((JrsString) opParams.get(c2jName)).getValue();
+                pattern = StringUtils.replaceOnce(pattern, "%s", value);
+            } else {
+                pattern = StringUtils.replaceOnce(pattern, "%s", "aws");
+            }
+        }
+
+        return Optional.of(pattern);
     }
 }

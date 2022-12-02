@@ -20,7 +20,9 @@ import com.fasterxml.jackson.jr.stree.JrsBoolean;
 import com.fasterxml.jackson.jr.stree.JrsString;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletionException;
@@ -32,6 +34,8 @@ import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.model.service.ClientContextParam;
 import software.amazon.awssdk.codegen.model.service.ContextParam;
+import software.amazon.awssdk.codegen.model.service.EndpointTrait;
+import software.amazon.awssdk.codegen.model.service.HostPrefixProcessor;
 import software.amazon.awssdk.codegen.model.service.StaticContextParam;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
@@ -41,9 +45,12 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.utils.AttributeMap;
+import software.amazon.awssdk.utils.HostnameValidator;
+import software.amazon.awssdk.utils.StringUtils;
 
 public class EndpointResolverInterceptorSpec implements ClassSpec {
     private final IntermediateModel model;
@@ -76,6 +83,8 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
             b.addMethod(setClientContextParamsMethod());
         }
 
+        b.addMethod(hostPrefixMethod());
+
         return b.build();
     }
 
@@ -106,6 +115,15 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
         b.beginControlFlow("try");
         b.addStatement("$T result = $N.resolveEndpoint(ruleParams(context, executionAttributes)).join()", Endpoint.class,
                        providerVar);
+        b.beginControlFlow("if (!$T.disableHostPrefixInjection(executionAttributes))",
+                           endpointRulesSpecUtils.rulesRuntimeClassName("AwsEndpointProviderUtils"));
+        b.addStatement("$T hostPrefix = hostPrefix(executionAttributes.getAttribute($T.OPERATION_NAME), context.request())",
+                       ParameterizedTypeName.get(Optional.class, String.class), SdkExecutionAttribute.class);
+        b.beginControlFlow("if (hostPrefix.isPresent())");
+        b.addStatement("result = $T.addHostPrefix(result, hostPrefix.get())",
+                       endpointRulesSpecUtils.rulesRuntimeClassName("AwsEndpointProviderUtils"));
+        b.endControlFlow();
+        b.endControlFlow();
         b.addStatement("executionAttributes.putAttribute(SdkInternalExecutionAttribute.RESOLVED_ENDPOINT, result)");
         b.addStatement("return context.request()");
         b.endControlFlow();
@@ -171,7 +189,7 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
                 case AWS_S3_FORCE_PATH_STYLE:
                 case AWS_S3_USE_ARN_REGION:
                 case AWS_S3_CONTROL_USE_ARN_REGION:
-                // end of S3 specific builtins
+                    // end of S3 specific builtins
                 case AWS_STS_USE_GLOBAL_ENDPOINT:
                     // V2 doesn't support this, only regional endpoints
                     return;
@@ -360,5 +378,67 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
         });
 
         return b.build();
+    }
+
+
+    private MethodSpec hostPrefixMethod() {
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("hostPrefix")
+                                               .returns(ParameterizedTypeName.get(Optional.class, String.class))
+                                               .addParameter(String.class, "operationName")
+                                               .addParameter(SdkRequest.class, "request")
+                                               .addModifiers(Modifier.PRIVATE, Modifier.STATIC);
+
+        builder.beginControlFlow("switch (operationName)");
+
+        model.getOperations().forEach((name, opModel) -> {
+            String hostPrefix = getHostPrefix(opModel);
+            if (StringUtils.isBlank(hostPrefix)) {
+                return;
+            }
+
+            builder.beginControlFlow("case $S:", name);
+            HostPrefixProcessor processor = new HostPrefixProcessor(hostPrefix);
+
+            if (processor.c2jNames().isEmpty()) {
+                builder.addStatement("return $T.of($S)", Optional.class, processor.hostWithStringSpecifier());
+            } else {
+                String requestVar = opModel.getInput().getVariableName();
+                processor.c2jNames().forEach(c2jName -> {
+                    builder.addStatement("$1T.validateHostnameCompliant(request.getValueForField($2S, $3T.class).orElse(null), "
+                                         + "$2S, $4S)",
+                                         HostnameValidator.class,
+                                         c2jName,
+                                         String.class,
+                                         requestVar);
+                });
+
+                builder.addCode("return $T.of($T.format($S, ", Optional.class, String.class,
+                                processor.hostWithStringSpecifier());
+                Iterator<String> c2jNamesIter = processor.c2jNames().listIterator();
+                while (c2jNamesIter.hasNext()) {
+                    builder.addCode("request.getValueForField($S, $T.class).get()", c2jNamesIter.next(), String.class);
+                    if (c2jNamesIter.hasNext()) {
+                        builder.addCode(",");
+                    }
+                }
+                builder.addStatement("))");
+            }
+            builder.endControlFlow();
+        });
+
+        builder.addCode("default:");
+        builder.addStatement("return $T.empty()", Optional.class);
+        builder.endControlFlow();
+
+        return builder.build();
+    }
+
+    private String getHostPrefix(OperationModel opModel) {
+        EndpointTrait endpointTrait = opModel.getEndpointTrait();
+        if (endpointTrait == null) {
+            return null;
+        }
+
+        return endpointTrait.getHostPrefix();
     }
 }
