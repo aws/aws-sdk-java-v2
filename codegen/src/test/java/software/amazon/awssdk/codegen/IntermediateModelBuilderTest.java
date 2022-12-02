@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.File;
 import org.junit.jupiter.api.Test;
@@ -87,6 +88,20 @@ public class IntermediateModelBuilderTest {
             .build();
 
         assertFalse(testModel.getEndpointOperation().get().isEndpointCacheRequired());
+    }
+
+    @Test
+    public void assertAwsQueryCompatibleTrait_notNull() {
+        final File modelFile = new File(IntermediateModelBuilderTest.class
+                                            .getResource("poet/client/c2j/query-to-json-errorcode/service-2.json").getFile());
+        IntermediateModel testModel = new IntermediateModelBuilder(
+            C2jModels.builder()
+                     .serviceModel(ModelLoaderUtils.loadModel(ServiceModel.class, modelFile))
+                     .customizationConfig(CustomizationConfig.create())
+                     .build())
+            .build();
+
+        assertNotNull(testModel.getMetadata().getAwsQueryCompatible());
     }
 
 }
