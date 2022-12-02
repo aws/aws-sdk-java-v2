@@ -45,6 +45,14 @@ public final class NonRetryableException extends SdkClientException {
         return new BuilderImpl();
     }
 
+    public static NonRetryableException create(String message) {
+        return builder().message(message).build();
+    }
+
+    public static NonRetryableException create(String message, Throwable cause) {
+        return builder().message(message).cause(cause).build();
+    }
+
     public interface Builder extends SdkClientException.Builder {
         @Override
         Builder message(String message);
