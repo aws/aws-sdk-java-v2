@@ -23,16 +23,10 @@ import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
-import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
-import software.amazon.awssdk.core.traits.RequiredTrait;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.protocols.core.OperationInfo;
@@ -46,10 +40,8 @@ import software.amazon.awssdk.utils.StringUtils;
 public class JsonMarshallerSpec implements MarshallerProtocolSpec {
 
     protected final ShapeModel shapeModel;
-    private final IntermediateModel model;
 
-    public JsonMarshallerSpec(IntermediateModel model, ShapeModel shapeModel) {
-        this.model = model;
+    public JsonMarshallerSpec(ShapeModel shapeModel) {
         this.shapeModel = shapeModel;
     }
 
@@ -118,8 +110,6 @@ public class JsonMarshallerSpec implements MarshallerProtocolSpec {
             initializationCodeBlockBuilder.add(".hasEventStreamingInput(true)");
         }
 
-        addTraitValidationCodeBlocks(initializationCodeBlockBuilder, getEnabledTraitValidations(model));
-
         CodeBlock codeBlock = initializationCodeBlockBuilder.add(".build()").build();
 
         return FieldSpec.builder(ClassName.get(OperationInfo.class), "SDK_OPERATION_BINDING")
@@ -127,27 +117,4 @@ public class JsonMarshallerSpec implements MarshallerProtocolSpec {
                         .initializer(codeBlock)
                         .build();
     }
-
-    private static List<String> getEnabledTraitValidations(IntermediateModel model) {
-        return Optional.ofNullable(model.getCustomizationConfig().getEnabledTraitValidations())
-                       .orElse(Collections.emptyMap())
-                       .entrySet().stream()
-                       .filter(Map.Entry::getValue)
-                       .map(Map.Entry::getKey)
-                       .collect(Collectors.toList());
-    }
-
-    private static void addTraitValidationCodeBlocks(CodeBlock.Builder builder, List<String> enabledTraitValidations) {
-        enabledTraitValidations
-            .stream()
-            .sorted()
-            .forEach(trait -> {
-                if (Objects.equals(trait, "RequiredTrait")) {
-                    builder.add(".enableTraitValidation($T.class)", RequiredTrait.class);
-                } else {
-                    throw new IllegalArgumentException("Invalid param validation.");
-                }
-            });
-    }
-
 }

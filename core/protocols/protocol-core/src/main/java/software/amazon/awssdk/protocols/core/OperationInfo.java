@@ -15,10 +15,7 @@
 
 package software.amazon.awssdk.protocols.core;
 
-import java.util.HashSet;
-import java.util.Set;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.core.traits.Trait;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.utils.AttributeMap;
 
@@ -38,7 +35,6 @@ public final class OperationInfo {
     private final boolean hasStreamingInput;
     private final boolean hasEventStreamingInput;
     private final boolean hasEvent;
-    private final Set<Class<? extends Trait>> enabledTraitValidations;
     private final AttributeMap additionalMetadata;
 
     private OperationInfo(Builder builder) {
@@ -53,7 +49,6 @@ public final class OperationInfo {
         this.additionalMetadata = builder.additionalMetadata.build();
         this.hasEventStreamingInput = builder.hasEventStreamingInput;
         this.hasEvent = builder.hasEvent;
-        this.enabledTraitValidations = builder.enabledTraitValidations;
     }
 
     /**
@@ -131,10 +126,6 @@ public final class OperationInfo {
         return hasEvent;
     }
 
-    public Set<Class<? extends Trait>> enabledTraitValidations() {
-        return enabledTraitValidations;
-    }
-
     /**
      * Gets an unmodeled piece of metadata. Useful for protocol specific options.
      *
@@ -168,7 +159,6 @@ public final class OperationInfo {
         private boolean hasStreamingInput;
         private boolean hasEventStreamingInput;
         private boolean hasEvent;
-        private Set<Class<? extends Trait>> enabledTraitValidations = new HashSet<>();
         private AttributeMap.Builder additionalMetadata = AttributeMap.builder();
 
         private Builder() {
@@ -221,11 +211,6 @@ public final class OperationInfo {
 
         public Builder hasEvent(boolean hasEvent) {
             this.hasEvent = hasEvent;
-            return this;
-        }
-
-        public Builder enableTraitValidation(Class<? extends Trait> traitClass) {
-            enabledTraitValidations.add(traitClass);
             return this;
         }
 

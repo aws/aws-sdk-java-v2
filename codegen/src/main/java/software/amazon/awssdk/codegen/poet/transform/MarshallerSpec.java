@@ -136,6 +136,6 @@ public class MarshallerSpec implements ClassSpec {
         if (shapeModel.isEvent()) {
             return new EventStreamJsonMarshallerSpec(intermediateModel, shapeModel);
         }
-        return new JsonMarshallerSpec(intermediateModel, shapeModel);
+        return new JsonMarshallerSpec(shapeModel);
     }
 }

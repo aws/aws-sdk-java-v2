@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
@@ -63,6 +64,7 @@ class ShapeModelSpec {
     private final NamingStrategy namingStrategy;
     private final CustomizationConfig customizationConfig;
     private final IntermediateModel model;
+    private final List<String> enabledTraitValidations;
 
     ShapeModelSpec(ShapeModel shapeModel,
                    TypeProvider typeProvider,
@@ -74,6 +76,7 @@ class ShapeModelSpec {
         this.namingStrategy = model.getNamingStrategy();
         this.customizationConfig = model.getCustomizationConfig();
         this.model = model;
+        this.enabledTraitValidations = getEnabledTraitValidations(model);
     }
 
     ClassName className() {
@@ -185,7 +188,7 @@ class ShapeModelSpec {
         if (m.isXmlAttribute()) {
             traits.add(createXmlAttributeTrait());
         }
-        if (m.isRequired()) {
+        if (enabledTraitValidations.contains("RequiredTrait") && m.isRequired()) {
             traits.add(createRequiredTrait());
         }
 
@@ -355,6 +358,15 @@ class ShapeModelSpec {
         } else {
             return CodeBlock.builder().build();
         }
+    }
+
+    private static List<String> getEnabledTraitValidations(IntermediateModel model) {
+        return Optional.ofNullable(model.getCustomizationConfig().getEnabledTraitValidations())
+                       .orElse(Collections.emptyMap())
+                       .entrySet().stream()
+                       .filter(Map.Entry::getValue)
+                       .map(Map.Entry::getKey)
+                       .collect(Collectors.toList());
     }
 
 }

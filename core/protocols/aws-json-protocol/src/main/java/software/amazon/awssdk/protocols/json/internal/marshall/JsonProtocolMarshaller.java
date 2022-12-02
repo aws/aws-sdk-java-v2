@@ -35,7 +35,6 @@ import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.MarshallingType;
 import software.amazon.awssdk.core.traits.PayloadTrait;
 import software.amazon.awssdk.core.traits.TimestampFormatTrait;
-import software.amazon.awssdk.core.traits.Trait;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.protocols.core.InstantToString;
 import software.amazon.awssdk.protocols.core.OperationInfo;
@@ -69,7 +68,6 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
     private final JsonMarshallerContext marshallerContext;
     private final boolean hasEventStreamingInput;
     private final boolean hasEvent;
-    private final OperationInfo operationInfo;
 
     JsonProtocolMarshaller(URI endpoint,
                            StructuredJsonGenerator jsonGenerator,
@@ -92,7 +90,6 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
                                                       .protocolHandler(this)
                                                       .request(request)
                                                       .build();
-        this.operationInfo = operationInfo;
     }
 
     private static JsonMarshallerRegistry createMarshallerRegistry() {
@@ -191,10 +188,6 @@ public class JsonProtocolMarshaller implements ProtocolMarshaller<SdkHttpFullReq
                 marshallField(field, val);
             }
         }
-    }
-
-    boolean isTraitValidationEnabled(Class<? extends Trait> traitClass) {
-        return operationInfo.enabledTraitValidations().contains(traitClass);
     }
 
     private boolean isExplicitBinaryPayload(SdkField<?> field) {

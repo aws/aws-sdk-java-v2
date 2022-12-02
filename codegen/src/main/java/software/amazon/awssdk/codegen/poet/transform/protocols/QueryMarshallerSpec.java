@@ -21,10 +21,7 @@ import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -34,7 +31,6 @@ import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
-import software.amazon.awssdk.core.traits.RequiredTrait;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.protocols.core.OperationInfo;
@@ -47,10 +43,8 @@ public class QueryMarshallerSpec implements MarshallerProtocolSpec {
 
     protected final ShapeModel shapeModel;
     private final Metadata metadata;
-    private final IntermediateModel model;
 
     public QueryMarshallerSpec(IntermediateModel model, ShapeModel shapeModel) {
-        this.model = model;
         this.metadata = model.getMetadata();
         this.shapeModel = shapeModel;
     }
@@ -111,8 +105,6 @@ public class QueryMarshallerSpec implements MarshallerProtocolSpec {
             initializationCodeBlockBuilder.add(".hasStreamingInput(true)");
         }
         if (metadata.getProtocol() == Protocol.REST_XML) {
-            addTraitValidationCodeBlocks(initializationCodeBlockBuilder, getEnabledTraitValidations(model));
-
             String rootMarshallLocationName = shapeModel.getMarshaller() != null ?
                                               shapeModel.getMarshaller().getLocationName() : null;
             initializationCodeBlockBuilder.add(".putAdditionalMetadata($T.ROOT_MARSHALL_LOCATION_ATTRIBUTE, $S)",
@@ -149,28 +141,6 @@ public class QueryMarshallerSpec implements MarshallerProtocolSpec {
         } else {
             throw new RuntimeException("Request has more than 1 xmlNameSpace uri.");
         }
-    }
-
-    private static List<String> getEnabledTraitValidations(IntermediateModel model) {
-        return Optional.ofNullable(model.getCustomizationConfig().getEnabledTraitValidations())
-                       .orElse(Collections.emptyMap())
-                       .entrySet().stream()
-                       .filter(Map.Entry::getValue)
-                       .map(Map.Entry::getKey)
-                       .collect(Collectors.toList());
-    }
-
-    private static void addTraitValidationCodeBlocks(CodeBlock.Builder builder, List<String> enabledTraitValidations) {
-        enabledTraitValidations
-            .stream()
-            .sorted()
-            .forEach(trait -> {
-                if (Objects.equals(trait, "RequiredTrait")) {
-                    builder.add(".enableTraitValidation($T.class)", RequiredTrait.class);
-                } else {
-                    throw new IllegalArgumentException("Invalid param validation.");
-                }
-            });
     }
 
 }
