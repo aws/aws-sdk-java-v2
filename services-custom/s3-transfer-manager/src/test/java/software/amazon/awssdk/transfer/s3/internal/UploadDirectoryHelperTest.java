@@ -446,7 +446,7 @@ public class UploadDirectoryHelperTest {
                                      new S3MetaRequestPauseObservable(),
                                      UploadFileRequest.builder()
                                                       .source(Paths.get(".")).putObjectRequest(b -> b.bucket("bucket").key("key"))
-                                                      .build());
+                                                      .build(), S3ClientType.CRT_BASED);
     }
 
     private FileUpload newUpload(CompletableFuture<CompletedFileUpload> future) {
@@ -458,7 +458,7 @@ public class UploadDirectoryHelperTest {
                                      UploadFileRequest.builder()
                                                       .putObjectRequest(p -> p.key("key").bucket("bucket")).source(Paths.get(
                                                           "test.txt"))
-                                                      .build());
+                                                      .build(), S3ClientType.CRT_BASED);
     }
 
     private Path createJimFsTestDirectory(FileSystem fileSystem) {

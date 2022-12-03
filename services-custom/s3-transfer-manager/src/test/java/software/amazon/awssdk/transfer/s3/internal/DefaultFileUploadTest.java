@@ -74,7 +74,8 @@ class DefaultFileUploadTest {
     @Test
     void equals_hashcode() {
         EqualsVerifier.forClass(DefaultFileUpload.class)
-                      .withNonnullFields("completionFuture", "progress", "request", "observable", "resumableFileUpload")
+                      .withNonnullFields("completionFuture", "progress", "request", "observable", "resumableFileUpload",
+                                         "clientType")
                       .withPrefabValues(S3MetaRequestPauseObservable.class, new S3MetaRequestPauseObservable(),
                                         new S3MetaRequestPauseObservable())
                       .verify();
@@ -98,7 +99,7 @@ class DefaultFileUploadTest {
         UploadFileRequest request = uploadFileRequest();
 
         DefaultFileUpload fileUpload =
-            new DefaultFileUpload(future, transferProgress, observable, request);
+            new DefaultFileUpload(future, transferProgress, observable, request, S3ClientType.CRT_BASED);
 
         observable.subscribe(metaRequest);
 
@@ -127,7 +128,7 @@ class DefaultFileUploadTest {
         observable.subscribe(metaRequest);
 
         DefaultFileUpload fileUpload =
-            new DefaultFileUpload(future, transferProgress, observable, request);
+            new DefaultFileUpload(future, transferProgress, observable, request, S3ClientType.CRT_BASED);
 
         ResumableFileUpload resumableFileUpload = fileUpload.pause();
         ResumableFileUpload resumableFileUpload2 = fileUpload.pause();
@@ -151,7 +152,7 @@ class DefaultFileUploadTest {
         observable.subscribe(metaRequest);
 
         DefaultFileUpload fileUpload =
-            new DefaultFileUpload(future, transferProgress, observable, request);
+            new DefaultFileUpload(future, transferProgress, observable, request, S3ClientType.CRT_BASED);
 
         assertThatThrownBy(() -> fileUpload.pause()).isSameAs(exception);
     }
@@ -169,7 +170,7 @@ class DefaultFileUploadTest {
         UploadFileRequest request = uploadFileRequest();
 
         DefaultFileUpload fileUpload =
-            new DefaultFileUpload(future, transferProgress, observable, request);
+            new DefaultFileUpload(future, transferProgress, observable, request, S3ClientType.CRT_BASED);
 
         observable.subscribe(metaRequest);
 
@@ -199,7 +200,7 @@ class DefaultFileUploadTest {
         UploadFileRequest request = uploadFileRequest();
 
         DefaultFileUpload fileUpload =
-            new DefaultFileUpload(future, transferProgress, observable, request);
+            new DefaultFileUpload(future, transferProgress, observable, request, S3ClientType.CRT_BASED);
 
         observable.subscribe(metaRequest);
 
@@ -211,6 +212,23 @@ class DefaultFileUploadTest {
         assertThat(resumableFileUpload.fileLength()).isEqualTo(file.length());
         assertThat(resumableFileUpload.uploadFileRequest()).isEqualTo(request);
         assertThat(resumableFileUpload.fileLastModified()).isEqualTo(Instant.ofEpochMilli(file.lastModified()));
+    }
+
+    @Test
+    void pause_nonCrtBasedS3Client_shouldThrowUnsupportedException() {
+        CompletableFuture<CompletedFileUpload> future =
+            new CompletableFuture<>();
+        TransferProgress transferProgress = Mockito.mock(TransferProgress.class);
+        when(transferProgress.snapshot()).thenReturn(DefaultTransferProgressSnapshot.builder()
+                                                                                    .transferredBytes(1000L)
+                                                                                    .build());
+        UploadFileRequest request = uploadFileRequest();
+        S3MetaRequestPauseObservable observable = new S3MetaRequestPauseObservable();
+
+        DefaultFileUpload fileUpload =
+            new DefaultFileUpload(future, transferProgress, observable, request, S3ClientType.JAVA_BASED);
+
+        assertThatThrownBy(fileUpload::pause).isInstanceOf(UnsupportedOperationException.class);
     }
 
     private UploadFileRequest uploadFileRequest() {
