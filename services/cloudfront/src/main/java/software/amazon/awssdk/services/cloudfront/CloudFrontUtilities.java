@@ -41,8 +41,6 @@ import software.amazon.awssdk.services.cloudfront.url.SignedUrl;
  *     To securely serve private content by using CloudFront, you can require that users access your private content by using
  *     special CloudFront signed URLs or signed cookies. You then develop your application either to create and distribute signed
  *     URLs to authenticated users or to send Set-Cookie headers that set signed cookies for authenticated users.
- * </p>
- * <p>
  *     Signed URLs take precedence over signed cookies. If you use both signed URLs and signed cookies to control access to the
  *     same files and a viewer uses a signed URL to request a file, CloudFront determines whether to return the file to the
  *     viewer based only on the signed URL.
