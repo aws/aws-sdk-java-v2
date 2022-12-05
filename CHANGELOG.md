@@ -1,3 +1,34 @@
+# __2.18.31__ __2022-12-05__
+## __AWS Cost Explorer Service__
+  - ### Features
+    - This release introduces two new APIs that offer a 1-click experience to refresh Savings Plans recommendations. The two APIs are StartSavingsPlansPurchaseRecommendationGeneration and ListSavingsPlansPurchaseRecommendationGeneration.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Support for clients with AWS Query protocol migrating towards AwsJson in order to support custom error codes.
+        - Contributed by: [@ziyanli-amazon](https://github.com/ziyanli-amazon)
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for EC2.
+
+## __Amazon Interactive Video Service Chat__
+  - ### Features
+    - Adds PendingVerification error type to messaging APIs to block the resource usage for accounts identified as being fraudulent.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds the InvalidDBInstanceStateFault to the RestoreDBClusterFromSnapshot operation.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - Amazon Transcribe now supports creating custom language models in the following languages: Japanese (ja-JP) and German (de-DE).
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@ziyanli-amazon](https://github.com/ziyanli-amazon)
 # __2.18.30__ __2022-12-02__
 ## __AWS AppSync__
   - ### Features
