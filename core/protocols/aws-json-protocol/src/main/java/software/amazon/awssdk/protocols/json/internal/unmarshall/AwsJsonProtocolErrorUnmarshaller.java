@@ -41,12 +41,15 @@ import software.amazon.awssdk.utils.StringUtils;
 @SdkInternalApi
 public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandler<AwsServiceException> {
 
+    private static final String QUERY_COMPATIBLE_ERRORCODE_DELIMITER = ";";
+    private static final String X_AMZN_QUERY_ERROR = "x-amzn-query-error";
     private final JsonProtocolUnmarshaller jsonProtocolUnmarshaller;
     private final List<ExceptionMetadata> exceptions;
     private final ErrorMessageParser errorMessageParser;
     private final JsonFactory jsonFactory;
     private final Supplier<SdkPojo> defaultExceptionSupplier;
     private final ErrorCodeParser errorCodeParser;
+    private final boolean hasAwsQueryCompatible;
 
     private AwsJsonProtocolErrorUnmarshaller(Builder builder) {
         this.jsonProtocolUnmarshaller = builder.jsonProtocolUnmarshaller;
@@ -55,6 +58,7 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
         this.jsonFactory = builder.jsonFactory;
         this.defaultExceptionSupplier = builder.defaultExceptionSupplier;
         this.exceptions = builder.exceptions;
+        this.hasAwsQueryCompatible = builder.hasAwsQueryCompatible;
     }
 
     @Override
@@ -78,7 +82,7 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
             .unmarshall(sdkPojo, response, jsonContent.getJsonNode())).toBuilder();
         String errorMessage = errorMessageParser.parseErrorMessage(response, jsonContent.getJsonNode());
         exception.awsErrorDetails(extractAwsErrorDetails(response, executionAttributes, jsonContent,
-                                                         errorCode, errorMessage));
+                                                         getEffectiveErrorCode(response, errorCode), errorMessage));
         exception.clockSkew(getClockSkew(executionAttributes));
         // Status code and request id are sdk level fields
         exception.message(errorMessageForException(errorMessage, errorCode, response.statusCode()));
@@ -88,6 +92,29 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
         return exception.build();
     }
 
+    private String getEffectiveErrorCode(SdkHttpFullResponse response, String errorCode) {
+        if (this.hasAwsQueryCompatible) {
+            String compatibleErrorCode = queryCompatibleErrorCodeFromResponse(response);
+            if (!StringUtils.isEmpty(compatibleErrorCode)) {
+                return compatibleErrorCode;
+            }
+        }
+        return errorCode;
+    }
+
+    private String queryCompatibleErrorCodeFromResponse(SdkHttpFullResponse response) {
+        Optional<String> headerValue = response.firstMatchingHeader(X_AMZN_QUERY_ERROR);
+        return headerValue.map(this::parseQueryErrorCodeFromDelimiter).orElse(null);
+    }
+
+    private String parseQueryErrorCodeFromDelimiter(String queryHeaderValue) {
+        int delimiter = queryHeaderValue.indexOf(QUERY_COMPATIBLE_ERRORCODE_DELIMITER);
+        if (delimiter > 0) {
+            return queryHeaderValue.substring(0, delimiter);
+        }
+        return null;
+    }
+  
     private String errorMessageForException(String errorMessage, String errorCode, int statusCode) {
         if (StringUtils.isNotBlank(errorMessage)) {
             return errorMessage;
@@ -159,6 +186,7 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
         private JsonFactory jsonFactory;
         private Supplier<SdkPojo> defaultExceptionSupplier;
         private ErrorCodeParser errorCodeParser;
+        private boolean hasAwsQueryCompatible;
 
         private Builder() {
         }
@@ -230,6 +258,19 @@ public final class AwsJsonProtocolErrorUnmarshaller implements HttpResponseHandl
 
         public AwsJsonProtocolErrorUnmarshaller build() {
             return new AwsJsonProtocolErrorUnmarshaller(this);
+        }
+
+        /**
+         * Provides a check on whether AwsQueryCompatible trait is found in Metadata.
+         * If true, error code will be derived from custom header. Otherwise, error code will be retrieved from its
+         * original source
+         *
+         * @param hasAwsQueryCompatible boolean of whether the AwsQueryCompatible trait is found
+         * @return This builder for method chaining.
+         */
+        public Builder hasAwsQueryCompatible(boolean hasAwsQueryCompatible) {
+            this.hasAwsQueryCompatible = hasAwsQueryCompatible;
+            return this;
         }
     }
 }
