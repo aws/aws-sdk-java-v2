@@ -818,7 +818,9 @@
       "required":[
         "PathParam",
         "QueryParamOne",
-        "StringHeaderMember"
+        "StringHeaderMember",
+        "RequiredListQueryParams",
+        "RequiredMapQueryParams"
       ],
       "members":{
         "PathParam":{
@@ -843,6 +845,18 @@
         },
         "NestedQueryParameterOperation":{
           "shape":"NestedQueryParameterOperation"
+        },
+        "RequiredListQueryParams":{
+          "shape":"ListOfIntegers",
+          "location":"querystring"
+        },
+        "OptionalListQueryParams":{
+          "shape":"ListOfStrings",
+          "location":"querystring"
+        },
+        "RequiredMapQueryParams":{
+          "shape":"MapOfStringToString",
+          "location":"querystring"
         }
       },
       "payload":"NestedQueryParameterOperation"

@@ -615,7 +615,8 @@
       "required":[
         "PathParam",
         "QueryParamOne",
-        "StringHeaderMember"
+        "StringHeaderMember",
+        "RequiredListQueryParams"
       ],
       "members":{
         "PathParam":{
@@ -640,6 +641,14 @@
         },
         "NestedQueryParameterOperation":{
           "shape":"NestedQueryParameterOperation"
+        },
+        "RequiredListQueryParams":{
+          "shape":"ListOfIntegers",
+          "location":"querystring"
+        },
+        "OptionalListQueryParams":{
+          "shape":"ListOfIntegers",
+          "location":"querystring"
         }
       },
       "payload":"NestedQueryParameterOperation"
