@@ -86,7 +86,7 @@ class ResumableFileUploadSerializerTest {
                                .fileLength(5000L)
                                .fileLastModified(parseIso8601Date("2022-03-08T10:15:30Z"))
                                .multipartUploadId("id")
-                               .totalNumOfParts(40L)
+                               .totalParts(40L)
                                .partSizeInBytes(1024L)
                                .build();
 
@@ -148,29 +148,30 @@ class ResumableFileUploadSerializerTest {
 
     public static Collection<ResumableFileUpload> uploadObjects() {
         return Stream.of(differentUploadSettings(),
-                         differentGetObjects())
+                         differentPutObjects())
                      .flatMap(Collection::stream).collect(Collectors.toList());
     }
 
-    private static List<ResumableFileUpload> differentGetObjects() {
+    private static List<ResumableFileUpload> differentPutObjects() {
         return PUT_OBJECT_REQUESTS.values()
                                   .stream()
-                                  .map(request -> resumableFileUpload(1000L, null, null))
+                                  .map(request -> resumableFileUpload(1000L, null, null, null))
                                   .collect(Collectors.toList());
     }
 
     private static List<ResumableFileUpload> differentUploadSettings() {
 
         return Arrays.asList(
-            resumableFileUpload(null, null, null),
-            resumableFileUpload(1000L, null, null),
-            resumableFileUpload(1000L, 5L, null),
-            resumableFileUpload(1000L, 5L, "1234")
+            resumableFileUpload(null, null, null, null),
+            resumableFileUpload(1000L, null, null, null),
+            resumableFileUpload(1000L, 5L, 1L, null),
+            resumableFileUpload(1000L, 5L, 2L, "1234")
         );
     }
 
     private static ResumableFileUpload resumableFileUpload(Long partSizeInBytes,
                                                            Long totalNumberOfParts,
+                                                           Long transferredParts,
                                                            String multipartUploadId) {
         UploadFileRequest request = downloadRequest(PATH, PUT_OBJECT_REQUESTS.get("STANDARD"));
         return ResumableFileUpload.builder()
@@ -179,7 +180,8 @@ class ResumableFileUploadSerializerTest {
                                   .multipartUploadId(multipartUploadId)
                                   .fileLastModified(DATE)
                                   .partSizeInBytes(partSizeInBytes)
-                                  .totalNumOfParts(totalNumberOfParts)
+                                  .totalParts(totalNumberOfParts)
+                                  .transferredParts(transferredParts)
                                   .build();
     }
 
@@ -192,7 +194,7 @@ class ResumableFileUploadSerializerTest {
 
     private static final String SERIALIZED_UPLOAD_OBJECT = "{\"fileLength\":5000,\"fileLastModified\":1646734530.000,"
                                                            + "\"multipartUploadId\":\"id\",\"partSizeInBytes\":1024,"
-                                                           + "\"totalNumOfParts\":40,\"uploadFileRequest\":{\"source\":\"test"
+                                                           + "\"totalParts\":40,\"uploadFileRequest\":{\"source\":\"test"
                                                            + "/request\",\"putObjectRequest\":{\"x-amz-acl\":\"private\","
                                                            + "\"Bucket\":\"BUCKET\",\"x-amz-sdk-checksum-algorithm\":\"CRC32\","
                                                            + "\"Key\":\"KEY\",\"x-amz-meta-\":{\"foo\":\"bar\"},"

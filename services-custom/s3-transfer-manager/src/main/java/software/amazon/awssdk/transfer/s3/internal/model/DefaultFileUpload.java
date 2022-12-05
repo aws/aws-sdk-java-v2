@@ -20,9 +20,9 @@ import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.CrtRuntimeException;
+import software.amazon.awssdk.crt.s3.ResumeToken;
 import software.amazon.awssdk.services.s3.internal.crt.S3MetaRequestPauseObservable;
 import software.amazon.awssdk.transfer.s3.internal.S3ClientType;
-import software.amazon.awssdk.transfer.s3.internal.serialization.CrtUploadResumeToken;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileUpload;
 import software.amazon.awssdk.transfer.s3.model.FileUpload;
 import software.amazon.awssdk.transfer.s3.model.ResumableFileUpload;
@@ -76,10 +76,10 @@ public final class DefaultFileUpload implements FileUpload {
                                       .build();
         }
 
-        completionFuture.cancel(true);
+
         Instant fileLastModified = Instant.ofEpochMilli(sourceFile
                                                             .lastModified());
-        String token = null;
+        ResumeToken token = null;
         try {
             token = observable.pause();
         } catch (CrtRuntimeException exception) {
@@ -89,6 +89,7 @@ public final class DefaultFileUpload implements FileUpload {
             }
         }
 
+        completionFuture.cancel(true);
         // Upload hasn't started yet, or it's a single object upload
         if (token == null) {
             return ResumableFileUpload.builder()
@@ -98,12 +99,11 @@ public final class DefaultFileUpload implements FileUpload {
                                       .build();
         }
 
-        CrtUploadResumeToken pauseResumeToken = CrtUploadResumeToken.unmarshallResumeToken(token);
-
         return ResumableFileUpload.builder()
-                                  .multipartUploadId(pauseResumeToken.multipartUploadId())
-                                  .totalNumOfParts(pauseResumeToken.totalNumOfParts())
-                                  .partSizeInBytes(pauseResumeToken.partSizeInBytes())
+                                  .multipartUploadId(token.getUploadId())
+                                  .totalParts(token.getTotalNumParts())
+                                  .transferredParts(token.getNumPartsCompleted())
+                                  .partSizeInBytes(token.getPartSize())
                                   .fileLastModified(fileLastModified)
                                   .fileLength(sourceFile.length())
                                   .uploadFileRequest(request)

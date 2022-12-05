@@ -43,7 +43,8 @@ public final class ResumableFileUploadSerializer {
     private static final String FILE_LENGTH = "fileLength";
     private static final String FILE_LAST_MODIFIED = "fileLastModified";
     private static final String PART_SIZE_IN_BYTES = "partSizeInBytes";
-    private static final String TOTAL_NUM_OF_PARTS = "totalNumOfParts";
+    private static final String TOTAL_PARTS = "totalParts";
+    private static final String TRANSFERRED_PARTS = "transferredParts";
     private static final String UPLOAD_FILE_REQUEST = "uploadFileRequest";
     private static final String SOURCE = "source";
     private static final String PUT_OBJECT_REQUEST = "putObjectRequest";
@@ -62,20 +63,30 @@ public final class ResumableFileUploadSerializer {
 
         TransferManagerJsonMarshaller.LONG.marshall(upload.fileLength(), jsonGenerator, FILE_LENGTH);
         TransferManagerJsonMarshaller.INSTANT.marshall(upload.fileLastModified(), jsonGenerator, FILE_LAST_MODIFIED);
+
         if (upload.multipartUploadId().isPresent()) {
             TransferManagerJsonMarshaller.STRING.marshall(upload.multipartUploadId().get(), jsonGenerator,
                                                           MULTIPART_UPLOAD_ID);
         }
+
         if (upload.partSizeInBytes().isPresent()) {
             TransferManagerJsonMarshaller.LONG.marshall(upload.partSizeInBytes().getAsLong(),
                                                         jsonGenerator,
                                                         PART_SIZE_IN_BYTES);
         }
-        if (upload.totalNumOfParts().isPresent()) {
-            TransferManagerJsonMarshaller.LONG.marshall(upload.totalNumOfParts().getAsLong(),
+
+        if (upload.totalParts().isPresent()) {
+            TransferManagerJsonMarshaller.LONG.marshall(upload.totalParts().getAsLong(),
                                                         jsonGenerator,
-                                                        TOTAL_NUM_OF_PARTS);
+                                                        TOTAL_PARTS);
         }
+
+        if (upload.transferredParts().isPresent()) {
+            TransferManagerJsonMarshaller.LONG.marshall(upload.transferredParts().getAsLong(),
+                                                        jsonGenerator,
+                                                        TRANSFERRED_PARTS);
+        }
+
         marshallUploadFileRequest(upload.uploadFileRequest(), jsonGenerator);
         jsonGenerator.writeEndObject();
 
@@ -159,8 +170,12 @@ public final class ResumableFileUploadSerializer {
             builder.partSizeInBytes(longUnmarshaller.unmarshall(uploadNodes.get(PART_SIZE_IN_BYTES)));
         }
 
-        if (uploadNodes.get(PART_SIZE_IN_BYTES) != null) {
-            builder.totalNumOfParts(longUnmarshaller.unmarshall(uploadNodes.get(TOTAL_NUM_OF_PARTS)));
+        if (uploadNodes.get(TOTAL_PARTS) != null) {
+            builder.totalParts(longUnmarshaller.unmarshall(uploadNodes.get(TOTAL_PARTS)));
+        }
+
+        if (uploadNodes.get(TRANSFERRED_PARTS) != null) {
+            builder.transferredParts(longUnmarshaller.unmarshall(uploadNodes.get(TRANSFERRED_PARTS)));
         }
 
         JsonNode jsonNode = Validate.paramNotNull(uploadNodes.get(UPLOAD_FILE_REQUEST), UPLOAD_FILE_REQUEST);

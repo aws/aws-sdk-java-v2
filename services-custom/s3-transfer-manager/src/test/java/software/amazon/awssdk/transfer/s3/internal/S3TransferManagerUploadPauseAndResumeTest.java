@@ -46,7 +46,6 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
-import software.amazon.awssdk.transfer.s3.internal.serialization.CrtUploadResumeToken;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileUpload;
 import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
 
@@ -122,7 +121,7 @@ class S3TransferManagerUploadPauseAndResumeTest {
         String multipartId = "someId";
         CompletedFileUpload completedFileUpload = tm.resumeUploadFile(r -> r.fileLength(fileLength + 10L)
                                                                             .partSizeInBytes(8 * MB)
-                                                                            .totalNumOfParts(10L)
+                                                                            .totalParts(10L)
                                                                             .multipartUploadId(multipartId)
                                                                             .uploadFileRequest(uploadFileRequest)
                                                                             .fileLastModified(fileLastModified))
@@ -156,11 +155,11 @@ class S3TransferManagerUploadPauseAndResumeTest {
             .thenReturn(CompletableFuture.completedFuture(response));
 
         String multipartId = "someId";
-        long totalNumOfParts = 10L;
+        long totalParts = 10L;
         long partSizeInBytes = 8 * MB;
         CompletedFileUpload completedFileUpload = tm.resumeUploadFile(r -> r.fileLength(fileLength)
                                                                             .partSizeInBytes(partSizeInBytes)
-                                                                            .totalNumOfParts(totalNumOfParts)
+                                                                            .totalParts(totalParts)
                                                                             .multipartUploadId(multipartId)
                                                                             .uploadFileRequest(uploadFileRequest)
                                                                             .fileLastModified(fileLastModified))
@@ -176,10 +175,10 @@ class S3TransferManagerUploadPauseAndResumeTest {
         SdkHttpExecutionAttributes attribute =
             awsRequestOverrideConfiguration.executionAttributes().getAttribute(SDK_HTTP_EXECUTION_ATTRIBUTES);
 
-        assertThat(CrtUploadResumeToken.unmarshallResumeToken(attribute.getAttribute(CRT_PAUSE_RESUME_TOKEN))).satisfies(token -> {
-            assertThat(token.multipartUploadId()).isEqualTo(token.multipartUploadId());
-            assertThat(token.partSizeInBytes()).isEqualTo(partSizeInBytes);
-            assertThat(token.totalNumOfParts()).isEqualTo(totalNumOfParts);
+        assertThat(attribute.getAttribute(CRT_PAUSE_RESUME_TOKEN)).satisfies(token -> {
+            assertThat(token.getUploadId()).isEqualTo(multipartId);
+            assertThat(token.getPartSize()).isEqualTo(partSizeInBytes);
+            assertThat(token.getTotalNumParts()).isEqualTo(totalParts);
         });
     }
 

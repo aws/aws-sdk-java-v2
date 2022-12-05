@@ -37,6 +37,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import software.amazon.awssdk.crt.CrtRuntimeException;
+import software.amazon.awssdk.crt.s3.ResumeToken;
 import software.amazon.awssdk.crt.s3.S3MetaRequest;
 import software.amazon.awssdk.services.s3.internal.crt.S3MetaRequestPauseObservable;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
@@ -48,17 +49,25 @@ import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
 import software.amazon.awssdk.transfer.s3.progress.TransferProgress;
 
 class DefaultFileUploadTest {
+    private static final int TOTAL_PARTS = 10;
+    private static final int NUM_OF_PARTS_COMPLETED = 5;
+    private static final long PART_SIZE_IN_BYTES = 8 * MB;
+    private static final String MULTIPART_UPLOAD_ID = "someId";
     private S3MetaRequest metaRequest;
     private static FileSystem fileSystem;
     private static File file;
-    private static final String TOKEN = "{\"total_num_parts\":10,\"partition_size\":8388608,"
-                                        + "\"type\":\"AWS_S3_META_REQUEST_TYPE_PUT_OBJECT\",\"multipart_upload_id\":\"someId\"}";
+    private static ResumeToken token;
 
     @BeforeAll
     public static void setUp() throws IOException {
         fileSystem = Jimfs.newFileSystem();
         file = File.createTempFile("test", UUID.randomUUID().toString());
         Files.write(file.toPath(), RandomStringUtils.random(2000).getBytes(StandardCharsets.UTF_8));
+        token = new ResumeToken(new ResumeToken.PutResumeTokenBuilder()
+                                .withNumPartsCompleted(NUM_OF_PARTS_COMPLETED)
+                                .withTotalNumParts(TOTAL_PARTS)
+                                .withPartSize(PART_SIZE_IN_BYTES)
+                                .withUploadId(MULTIPART_UPLOAD_ID));
     }
 
     @AfterAll
@@ -105,7 +114,7 @@ class DefaultFileUploadTest {
 
         ResumableFileUpload resumableFileUpload = fileUpload.pause();
         Mockito.verify(metaRequest, Mockito.never()).pause();
-        assertThat(resumableFileUpload.totalNumOfParts()).isEmpty();
+        assertThat(resumableFileUpload.totalParts()).isEmpty();
         assertThat(resumableFileUpload.partSizeInBytes()).isEmpty();
         assertThat(resumableFileUpload.multipartUploadId()).isEmpty();
         assertThat(resumableFileUpload.fileLength()).isEqualTo(file.length());
@@ -124,7 +133,7 @@ class DefaultFileUploadTest {
         UploadFileRequest request = uploadFileRequest();
 
         S3MetaRequestPauseObservable observable = new S3MetaRequestPauseObservable();
-        when(metaRequest.pause()).thenReturn(TOKEN);
+        when(metaRequest.pause()).thenReturn(token);
         observable.subscribe(metaRequest);
 
         DefaultFileUpload fileUpload =
@@ -166,7 +175,7 @@ class DefaultFileUploadTest {
                                                                                     .transferredBytes(0L)
                                                                                     .build());
         S3MetaRequestPauseObservable observable = new S3MetaRequestPauseObservable();
-        when(metaRequest.pause()).thenReturn(TOKEN);
+        when(metaRequest.pause()).thenReturn(token);
         UploadFileRequest request = uploadFileRequest();
 
         DefaultFileUpload fileUpload =
@@ -176,9 +185,10 @@ class DefaultFileUploadTest {
 
         ResumableFileUpload resumableFileUpload = fileUpload.pause();
         Mockito.verify(metaRequest).pause();
-        assertThat(resumableFileUpload.totalNumOfParts()).hasValue(10);
-        assertThat(resumableFileUpload.partSizeInBytes()).hasValue(8 * MB);
-        assertThat(resumableFileUpload.multipartUploadId()).hasValue("someId");
+        assertThat(resumableFileUpload.totalParts()).hasValue(TOTAL_PARTS);
+        assertThat(resumableFileUpload.partSizeInBytes()).hasValue(PART_SIZE_IN_BYTES);
+        assertThat(resumableFileUpload.multipartUploadId()).hasValue(MULTIPART_UPLOAD_ID);
+        assertThat(resumableFileUpload.transferredParts()).hasValue(NUM_OF_PARTS_COMPLETED);
         assertThat(resumableFileUpload.fileLength()).isEqualTo(file.length());
         assertThat(resumableFileUpload.uploadFileRequest()).isEqualTo(request);
         assertThat(resumableFileUpload.fileLastModified()).isEqualTo(Instant.ofEpochMilli(file.lastModified()));
@@ -206,7 +216,7 @@ class DefaultFileUploadTest {
 
         ResumableFileUpload resumableFileUpload = fileUpload.pause();
         Mockito.verify(metaRequest).pause();
-        assertThat(resumableFileUpload.totalNumOfParts()).isEmpty();
+        assertThat(resumableFileUpload.totalParts()).isEmpty();
         assertThat(resumableFileUpload.partSizeInBytes()).isEmpty();
         assertThat(resumableFileUpload.multipartUploadId()).isEmpty();
         assertThat(resumableFileUpload.fileLength()).isEqualTo(file.length());
