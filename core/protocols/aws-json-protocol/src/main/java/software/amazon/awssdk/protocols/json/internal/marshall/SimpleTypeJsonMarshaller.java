@@ -19,6 +19,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkBytes;
@@ -38,7 +39,7 @@ import software.amazon.awssdk.utils.DateUtils;
 public final class SimpleTypeJsonMarshaller {
 
     public static final JsonMarshaller<Void> NULL = (val, context, paramName, sdkField) -> {
-        if (sdkField.containsTrait(RequiredTrait.class)) {
+        if (Objects.nonNull(sdkField) && sdkField.containsTrait(RequiredTrait.class)) {
             throw new IllegalArgumentException(String.format("Parameter '%s' must not be null",
                                                              Optional.ofNullable(paramName)
                                                                      .orElseGet(() -> "paramName null")));

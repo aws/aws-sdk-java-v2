@@ -20,6 +20,7 @@ import static software.amazon.awssdk.utils.CollectionUtils.isNullOrEmpty;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
@@ -69,7 +70,7 @@ public final class HeaderMarshaller {
     };
 
     public static final JsonMarshaller<Void> NULL = (val, context, paramName, sdkField) -> {
-        if (sdkField.containsTrait(RequiredTrait.class)) {
+        if (Objects.nonNull(sdkField) && sdkField.containsTrait(RequiredTrait.class)) {
             throw new IllegalArgumentException(String.format("Parameter '%s' must not be null", paramName));
         }
     };
