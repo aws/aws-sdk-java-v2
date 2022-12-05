@@ -71,7 +71,7 @@ public class S3TransferManagerSamples {
 
         S3TransferManager transferManager =
             S3TransferManager.builder()
-                             .s3AsyncClient(s3AsyncClient)
+                             .s3Client(s3AsyncClient)
                              .build();
         // @end region=customTM
     }

@@ -41,8 +41,8 @@ public class TransferManagerConfiguration implements SdkAutoCloseable {
 
     private TransferManagerConfiguration(Builder builder) {
         AttributeMap.Builder standardOptions = AttributeMap.builder();
-        standardOptions.put(UPLOAD_DIRECTORY_FOLLOW_SYMBOLIC_LINKS, builder.followSymbolicLinks);
-        standardOptions.put(UPLOAD_DIRECTORY_MAX_DEPTH, builder.maxDepth);
+        standardOptions.put(UPLOAD_DIRECTORY_FOLLOW_SYMBOLIC_LINKS, builder.uploadDirectoryFollowSymbolicLinks);
+        standardOptions.put(UPLOAD_DIRECTORY_MAX_DEPTH, builder.uploadDirectoryMaxDepth);
         finalizeExecutor(builder, standardOptions);
         options = standardOptions.build().merge(TRANSFER_MANAGER_DEFAULTS);
     }
@@ -97,35 +97,19 @@ public class TransferManagerConfiguration implements SdkAutoCloseable {
 
     public static final class Builder {
 
-        private Boolean followSymbolicLinks;
-        private Integer maxDepth;
+        private Boolean uploadDirectoryFollowSymbolicLinks;
+        private Integer uploadDirectoryMaxDepth;
         private Executor executor;
 
 
-        public Builder followSymbolicLinks(Boolean followSymbolicLinks) {
-            this.followSymbolicLinks = followSymbolicLinks;
+        public Builder uploadDirectoryFollowSymbolicLinks(Boolean uploadDirectoryFollowSymbolicLinks) {
+            this.uploadDirectoryFollowSymbolicLinks = uploadDirectoryFollowSymbolicLinks;
             return this;
         }
 
-        public void setFollowSymbolicLinks(Boolean followSymbolicLinks) {
-            followSymbolicLinks(followSymbolicLinks);
-        }
-
-        public Boolean getFollowSymbolicLinks() {
-            return followSymbolicLinks;
-        }
-
-        public Builder maxDepth(Integer maxDepth) {
-            this.maxDepth = maxDepth;
+        public Builder uploadDirectoryMaxDepth(Integer uploadDirectoryMaxDepth) {
+            this.uploadDirectoryMaxDepth = uploadDirectoryMaxDepth;
             return this;
-        }
-
-        public void setMaxDepth(Integer maxDepth) {
-            maxDepth(maxDepth);
-        }
-
-        public Integer getMaxDepth() {
-            return maxDepth;
         }
 
         public Builder executor(Executor executor) {
