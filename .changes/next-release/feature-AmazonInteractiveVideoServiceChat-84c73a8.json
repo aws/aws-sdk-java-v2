@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Interactive Video Service Chat",
+    "contributor": "",
+    "description": "Adds PendingVerification error type to messaging APIs to block the resource usage for accounts identified as being fraudulent."
+}
