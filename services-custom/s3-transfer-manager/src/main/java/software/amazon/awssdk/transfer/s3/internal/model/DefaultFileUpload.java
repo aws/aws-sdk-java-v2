@@ -21,6 +21,7 @@ import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.CrtRuntimeException;
 import software.amazon.awssdk.services.s3.internal.crt.S3MetaRequestPauseObservable;
+import software.amazon.awssdk.transfer.s3.internal.S3ClientType;
 import software.amazon.awssdk.transfer.s3.internal.serialization.CrtUploadResumeToken;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileUpload;
 import software.amazon.awssdk.transfer.s3.model.FileUpload;
@@ -38,15 +39,18 @@ public final class DefaultFileUpload implements FileUpload {
     private final TransferProgress progress;
     private final UploadFileRequest request;
     private final S3MetaRequestPauseObservable observable;
+    private final S3ClientType clientType;
 
     public DefaultFileUpload(CompletableFuture<CompletedFileUpload> completionFuture,
                              TransferProgress progress,
                              S3MetaRequestPauseObservable observable,
-                             UploadFileRequest request) {
+                             UploadFileRequest request,
+                             S3ClientType clientType) {
         this.completionFuture = Validate.paramNotNull(completionFuture, "completionFuture");
         this.progress = Validate.paramNotNull(progress, "progress");
         this.observable = Validate.paramNotNull(observable, "observable");
         this.request = Validate.paramNotNull(request, "request");
+        this.clientType = Validate.paramNotNull(clientType, "clientType");
         this.resumableFileUpload = new Lazy<>(this::doPause);
     }
 
@@ -56,6 +60,12 @@ public final class DefaultFileUpload implements FileUpload {
     }
 
     private ResumableFileUpload doPause() {
+        if (clientType != S3ClientType.CRT_BASED) {
+            throw new UnsupportedOperationException("Pausing an upload is not supported in a non CRT-based S3 Client. For "
+                                                    + "upload pause support, pass a CRT-based S3 client to S3TransferManager "
+                                                    + "instead: S3AsyncClient.crtBuilder().build();");
+        }
+
         File sourceFile = request.source().toFile();
         if (completionFuture.isDone()) {
             Instant fileLastModified = Instant.ofEpochMilli(sourceFile.lastModified());
@@ -133,7 +143,10 @@ public final class DefaultFileUpload implements FileUpload {
         if (!request.equals(that.request)) {
             return false;
         }
-        return observable.equals(that.observable);
+        if (clientType != that.clientType) {
+            return false;
+        }
+        return observable == that.observable;
     }
 
     @Override
@@ -143,6 +156,7 @@ public final class DefaultFileUpload implements FileUpload {
         result = 31 * result + progress.hashCode();
         result = 31 * result + request.hashCode();
         result = 31 * result + observable.hashCode();
+        result = 31 * result + clientType.hashCode();
         return result;
     }
 

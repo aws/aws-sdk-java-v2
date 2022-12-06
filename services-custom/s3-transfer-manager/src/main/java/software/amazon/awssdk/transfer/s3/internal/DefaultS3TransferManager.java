@@ -96,18 +96,24 @@ public final class DefaultS3TransferManager implements S3TransferManager {
     private final TransferManagerConfiguration transferConfiguration;
     private final UploadDirectoryHelper uploadDirectoryHelper;
     private final DownloadDirectoryHelper downloadDirectoryHelper;
-    private volatile boolean isDefaultS3AsyncClient;
+    private final boolean isDefaultS3AsyncClient;
+
+    private final S3ClientType s3ClientType;
 
     public DefaultS3TransferManager(DefaultBuilder tmBuilder) {
         transferConfiguration = resolveTransferManagerConfiguration(tmBuilder);
-        s3AsyncClient = initializeS3CrtClient(tmBuilder);
+        isDefaultS3AsyncClient = tmBuilder.s3AsyncClient == null;
+        s3AsyncClient = isDefaultS3AsyncClient ? S3AsyncClient.crtCreate() : tmBuilder.s3AsyncClient;
         uploadDirectoryHelper = new UploadDirectoryHelper(transferConfiguration, this::uploadFile);
         ListObjectsHelper listObjectsHelper = new ListObjectsHelper(s3AsyncClient::listObjectsV2);
         downloadDirectoryHelper = new DownloadDirectoryHelper(transferConfiguration,
                                                               listObjectsHelper,
                                                               this::downloadFile);
 
-        if (!(s3AsyncClient instanceof S3CrtAsyncClient)) {
+        if (s3AsyncClient instanceof S3CrtAsyncClient) {
+            s3ClientType = S3ClientType.CRT_BASED;
+        } else {
+            s3ClientType = S3ClientType.JAVA_BASED;
             log.warn(() -> "The provided S3AsyncClient is not an instance of S3CrtAsyncClient, and thus multipart"
                            + " upload/download feature is not enabled and resumable file upload is not supported. To benefit "
                            + "from maximum throughput,"
@@ -116,19 +122,16 @@ public final class DefaultS3TransferManager implements S3TransferManager {
     }
 
     @SdkTestInternalApi
-    DefaultS3TransferManager(S3CrtAsyncClient s3CrtAsyncClient,
+    DefaultS3TransferManager(S3AsyncClient s3CrtAsyncClient,
                              UploadDirectoryHelper uploadDirectoryHelper,
                              TransferManagerConfiguration configuration,
                              DownloadDirectoryHelper downloadDirectoryHelper) {
         this.s3AsyncClient = s3CrtAsyncClient;
+        this.isDefaultS3AsyncClient = false;
         this.transferConfiguration = configuration;
         this.uploadDirectoryHelper = uploadDirectoryHelper;
         this.downloadDirectoryHelper = downloadDirectoryHelper;
-    }
-
-    private S3AsyncClient initializeS3CrtClient(DefaultBuilder tmBuilder) {
-        isDefaultS3AsyncClient = tmBuilder.s3AsyncClient == null;
-        return isDefaultS3AsyncClient ? S3CrtAsyncClient.builder().build() : tmBuilder.s3AsyncClient;
+        s3ClientType = s3CrtAsyncClient instanceof S3CrtAsyncClient ? S3ClientType.CRT_BASED : S3ClientType.JAVA_BASED;
     }
 
     private static TransferManagerConfiguration resolveTransferManagerConfiguration(DefaultBuilder tmBuilder) {
@@ -212,7 +215,8 @@ public final class DefaultS3TransferManager implements S3TransferManager {
             returnFuture.completeExceptionally(throwable);
         }
 
-        return new DefaultFileUpload(returnFuture, progressUpdater.progress(), observable, uploadFileRequest);
+
+        return new DefaultFileUpload(returnFuture, progressUpdater.progress(), observable, uploadFileRequest, s3ClientType);
     }
 
     @Override
