@@ -202,8 +202,7 @@ public final class DownloadDirectoryRequest
          *
          * <p>
          * <b>Usage Example:</b>
-         * <pre>
-         * {@code
+         * {@snippet :
          * // Add a LoggingTransferListener to every transfer within the download directory request
          *
          * DownloadDirectoryRequest request =
@@ -212,7 +211,7 @@ public final class DownloadDirectoryRequest
          *         .bucket("bucket")
          *         .prefix("prefix")
          *         .downloadFileRequestTransformer(request -> request.addTransferListener(LoggingTransferListener.create()))
-         *         .build()
+         *         .build();
          *
          * DownloadDirectoryTransfer downloadDirectory = transferManager.downloadDirectory(request);
          *
@@ -222,7 +221,6 @@ public final class DownloadDirectoryRequest
          * // Print out the failed downloads
          * completedDownloadDirectory.failedDownloads().forEach(System.out::println);
          * }
-         * </pre>
          *
          * @param downloadFileRequestTransformer A transformer to use for modifying the file-level download requests
          *                                       before execution
@@ -240,15 +238,14 @@ public final class DownloadDirectoryRequest
          *
          * <p>
          * <b>Usage Example:</b>
-         * <pre>
-         * {@code
+         * {@snippet :
          *
          * DownloadDirectoryRequest request =
          *     DownloadDirectoryRequest.builder()
          *         .destination(Paths.get("."))
          *         .bucket("bucket")
          *         .listObjectsV2RequestTransformer(request -> request.encodingType(newEncodingType))
-         *         .build()
+         *         .build();
          *
          * DownloadDirectoryTransfer downloadDirectory = transferManager.downloadDirectory(request);
          *
@@ -258,7 +255,6 @@ public final class DownloadDirectoryRequest
          * // Print out the failed downloads
          * completedDownloadDirectory.failedDownloads().forEach(System.out::println);
          * }
-         * </pre>
          *
          * <p>
          * <b>Prefix:</b>

@@ -96,9 +96,9 @@ public final class CompletedDownload<ResultT>
      * Initial calls to {@link CompletedDownload#builder()} return an {@link UntypedBuilder}, where the builder is not yet
      * parameterized with the generic type associated with {@link CompletedDownload}. This prevents the otherwise awkward syntax
      * of having to explicitly cast the builder type, e.g.,
-     * <pre>
-     * {@code CompletedDownload.<ResponseBytes<GetObjectResponse>>builder()}
-     * </pre>
+     * {@snippet :
+     *  CompletedDownload.<ResponseBytes<GetObjectResponse>>builder()
+     * }
      * Instead, the type may be inferred as part of specifying the {@link #result(Object)} parameter, at which point the builder
      * chain will return a new {@link TypedBuilder}.
      */
