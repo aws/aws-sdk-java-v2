@@ -61,8 +61,8 @@ public final class DefaultFileUpload implements FileUpload {
 
     private ResumableFileUpload doPause() {
         if (clientType != S3ClientType.CRT_BASED) {
-            throw new UnsupportedOperationException("Pausing upload is not supported in non CRT-based S3 Client. Consider "
-                                                    + "passing a CRT-based S3 client to S3TransferManager instead: "
+            throw new UnsupportedOperationException("Pausing an upload is not supported in a non CRT-based S3 Client. For "
+                                                    + "upload pause support, pass a CRT-based S3 client to S3TransferManage instead: "
                                                     + "S3AsyncClient.crtBuilder().build()");
         }
 
