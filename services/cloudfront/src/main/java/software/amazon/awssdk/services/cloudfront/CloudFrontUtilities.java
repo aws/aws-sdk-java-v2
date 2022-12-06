@@ -38,13 +38,13 @@ import software.amazon.awssdk.services.cloudfront.url.SignedUrl;
  *
  * Utilities for working with CloudFront distributions
  * <p>
- *     To securely serve private content by using CloudFront, you can require that users access your private content by using
- *     special CloudFront signed URLs or signed cookies. You then develop your application either to create and distribute signed
- *     URLs to authenticated users or to send Set-Cookie headers that set signed cookies for authenticated users.
- *     Signed URLs take precedence over signed cookies. If you use both signed URLs and signed cookies to control access to the
- *     same files and a viewer uses a signed URL to request a file, CloudFront determines whether to return the file to the
- *     viewer based only on the signed URL.
- * </p>
+ * To securely serve private content by using CloudFront, you can require that users access your private content by using
+ * special CloudFront signed URLs or signed cookies. You then develop your application either to create and distribute signed
+ * URLs to authenticated users or to send Set-Cookie headers that set signed cookies for authenticated users.
+ * <p>
+ * Signed URLs take precedence over signed cookies. If you use both signed URLs and signed cookies to control access to the
+ * same files and a viewer uses a signed URL to request a file, CloudFront determines whether to return the file to the
+ * viewer based only on the signed URL.
  *
  */
 @Immutable
@@ -72,9 +72,8 @@ public final class CloudFrontUtilities {
      * >Creating a signed URL using a canned policy</a>.
      *
      * <p>
-     *     This is a convenience which creates an instance of the {@link CannedSignerRequest.Builder} avoiding the need to
-     *     create one manually via {@link CannedSignerRequest#builder()}
-     * </p>
+     * This is a convenience which creates an instance of the {@link CannedSignerRequest.Builder} avoiding the need to
+     * create one manually via {@link CannedSignerRequest#builder()}
      *
      * @param request A {@link Consumer} that will call methods on {@link CannedSignerRequest.Builder} to create a request.
      * @return A signed URL that will permit access to a specific distribution
@@ -128,9 +127,8 @@ public final class CloudFrontUtilities {
      * >Creating a signed URL using a custom policy</a>.
      *
      * <p>
-     *     This is a convenience which creates an instance of the {@link CustomSignerRequest.Builder} avoiding the need to
-     *     create one manually via {@link CustomSignerRequest#builder()}
-     * </p>
+     * This is a convenience which creates an instance of the {@link CustomSignerRequest.Builder} avoiding the need to
+     * create one manually via {@link CustomSignerRequest#builder()}
      *
      * @param request A {@link Consumer} that will call methods on {@link CustomSignerRequest.Builder} to create a request.
      * @return A signed URL that will permit access to distribution and S3
@@ -187,9 +185,8 @@ public final class CloudFrontUtilities {
      * >Setting signed cookies using a canned policy</a>.
      *
      * <p>
-     *     This is a convenience which creates an instance of the {@link CannedSignerRequest.Builder} avoiding the need to
-     *     create one manually via {@link CannedSignerRequest#builder()}
-     * </p>
+     * This is a convenience which creates an instance of the {@link CannedSignerRequest.Builder} avoiding the need to
+     * create one manually via {@link CannedSignerRequest#builder()}
      *
      * @param request A {@link Consumer} that will call methods on {@link CannedSignerRequest.Builder} to create a request.
      * @return The signed cookies with canned policy.
@@ -234,9 +231,8 @@ public final class CloudFrontUtilities {
      * >Setting signed cookies using a custom policy</a>.
      *
      * <p>
-     *     This is a convenience which creates an instance of the {@link CustomSignerRequest.Builder} avoiding the need to
-     *     create one manually via {@link CustomSignerRequest#builder()}
-     * </p>
+     * This is a convenience which creates an instance of the {@link CustomSignerRequest.Builder} avoiding the need to
+     * create one manually via {@link CustomSignerRequest#builder()}
      *
      * @param request A {@link Consumer} that will call methods on {@link CustomSignerRequest.Builder} to create a request.
      * @return The signed cookies with custom policy.

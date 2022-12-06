@@ -135,13 +135,12 @@ public final class CustomSignerRequest implements CloudFrontSignerRequest,
         /**
          * Configure the resource URL to be signed
          * <p>
-         *     The URL or path that uniquely identifies a resource within a
-         *     distribution. For standard distributions the resource URL will
-         *     be <tt>"http://" + distributionName + "/" + objectKey</tt>
-         *     (may also include URL parameters. For distributions with the
-         *     HTTPS required protocol, the resource URL must start with
-         *     <tt>"https://"</tt>
-         * </p>
+         * The URL or path that uniquely identifies a resource within a
+         * distribution. For standard distributions the resource URL will
+         * be <tt>"http://" + distributionName + "/" + objectKey</tt>
+         * (may also include URL parameters. For distributions with the
+         * HTTPS required protocol, the resource URL must start with
+         * <tt>"https://"</tt>
          */
         Builder resourceUrl(String resourceUrl);
 
@@ -175,10 +174,9 @@ public final class CustomSignerRequest implements CloudFrontSignerRequest,
         /**
          * Configure the IP range of the signed URL or signed cookie - for custom policies (optional field)
          * <p>
-         *     The allowed IP address range of the client making the GET
-         *     request, in IPv4 CIDR form (e.g. 192.168.0.1/24).
-         *     IPv6 format is not supported.
-         * </p>
+         * The allowed IP address range of the client making the GET
+         * request, in IPv4 CIDR form (e.g. 192.168.0.1/24).
+         * IPv6 format is not supported.
          */
         Builder ipRange(String ipRange);
     }

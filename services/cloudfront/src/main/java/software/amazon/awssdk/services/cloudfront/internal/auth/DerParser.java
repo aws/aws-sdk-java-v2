@@ -69,7 +69,7 @@ public class DerParser {
      * Create a new DER decoder from an input stream.
      *
      * @param in
-     *            The DER encoded stream
+     *          The DER encoded stream
      */
     public DerParser(InputStream in) {
         this.in = in;
@@ -78,7 +78,8 @@ public class DerParser {
     /**
      * Create a new DER decoder from a byte array.
      *
-     * @param the encoded bytes
+     * @param bytes
+     *          the encoded bytes
      */
     public DerParser(byte[] bytes) {
         this(new ByteArrayInputStream(bytes));

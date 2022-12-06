@@ -30,7 +30,7 @@ public class Asn1Object {
      * Construct a ASN.1 TLV. The TLV could be either a
      * constructed or primitive entity.
      *
-     * <p/>The first byte in DER encoding is made of following fields,
+     * <p>The first byte in DER encoding is made of following fields,
      * <pre>
      *-------------------------------------------------
      *|Bit 8|Bit 7|Bit 6|Bit 5|Bit 4|Bit 3|Bit 2|Bit 1|

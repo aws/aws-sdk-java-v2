@@ -112,13 +112,12 @@ public final class CannedSignerRequest implements CloudFrontSignerRequest,
         /**
          * Configure the resource URL to be signed
          * <p>
-         *     The URL or path that uniquely identifies a resource within a
-         *     distribution. For standard distributions the resource URL will
-         *     be <tt>"http://" + distributionName + "/" + objectKey</tt>
-         *     (may also include URL parameters. For distributions with the
-         *     HTTPS required protocol, the resource URL must start with
-         *     <tt>"https://"</tt>
-         * </p>
+         * The URL or path that uniquely identifies a resource within a
+         * distribution. For standard distributions the resource URL will
+         * be <tt>"http://" + distributionName + "/" + objectKey</tt>
+         * (may also include URL parameters. For distributions with the
+         * HTTPS required protocol, the resource URL must start with
+         * <tt>"https://"</tt>
          */
         Builder resourceUrl(String resourceUrl);
 

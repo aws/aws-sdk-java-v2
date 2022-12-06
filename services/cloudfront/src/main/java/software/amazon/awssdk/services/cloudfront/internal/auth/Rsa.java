@@ -101,7 +101,7 @@ public final class Rsa {
      ****************************************************************************
      * Convert PKCS#1 encoded private key into RSAPrivateCrtKeySpec.
      *
-     * <p/>The ASN.1 syntax for the private key with CRT is
+     * <p>The ASN.1 syntax for the private key with CRT is
      *
      * <pre>
      * --
@@ -121,7 +121,8 @@ public final class Rsa {
      * }
      * </pre>
      *
-     * @param keyInPkcs1 PKCS#1 encoded key
+     * @param keyInPkcs1
+     *          PKCS#1 encoded key
      * @throws IOException
      */
     private static RSAPrivateCrtKeySpec newRsaPrivateCrtKeySpec(byte[] keyInPkcs1) throws IOException {
