@@ -60,12 +60,12 @@ import software.amazon.awssdk.utils.Validate;
  * byte-range fetches to perform transfers in parallel. In addition, the S3 Transfer Manager also enables you to
  * monitor a transfer's progress in real-time, as well as pause the transfer for execution at a later time.
  *
- * <h2>Instantiate Transfer Manager</h2>
+ * <h2>Instantiate the S3 Transfer Manager</h2>
  * <b>Create a transfer manager instance with SDK default settings</b>
  * {@snippet :
  *      S3TransferManager transferManager = S3TransferManager.create();
  * }
- * <b>Create a transfer manager instance with custom settings</b>
+ * <b>Create an S3 Transfer Manager instance with custom settings</b>
  * {@snippet :
  *         S3AsyncClient s3AsyncClient = S3AsyncClient.crtBuilder()
  *                                                    .credentialsProvider(DefaultCredentialsProvider.create())
@@ -127,8 +127,8 @@ import software.amazon.awssdk.utils.Validate;
  * }
  * <b>Download S3 objects to a local directory</b>
  * {@snippet :
- *S3TransferManager transferManager = S3TransferManager.create();
- *         DirectoryDownload directoryDownload =
+ *       S3TransferManager transferManager = S3TransferManager.create();
+ *       DirectoryDownload directoryDownload =
  *             transferManager.downloadDirectory(
  *                  DownloadDirectoryRequest.builder()
  *                                          .destination(Paths.get("destination/directory"))
@@ -569,8 +569,8 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * <p>
      * <b>Usage Example:</b>
      * {@snippet :
-     *S3TransferManager transferManager = S3TransferManager.create();
-     *         DirectoryDownload directoryDownload =
+     *        S3TransferManager transferManager = S3TransferManager.create();
+     *          DirectoryDownload directoryDownload =
      *             transferManager.downloadDirectory(
      *                  DownloadDirectoryRequest.builder()
      *                                          .destination(Paths.get("destination/directory"))
