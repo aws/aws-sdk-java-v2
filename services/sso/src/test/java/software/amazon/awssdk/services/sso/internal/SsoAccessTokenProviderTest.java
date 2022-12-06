@@ -49,7 +49,7 @@ public class SsoAccessTokenProviderTest {
                            "}";
         SsoAccessTokenProvider provider = new SsoAccessTokenProvider(
             prepareTestCachedTokenFile(tokenFile, GENERATED_TOKEN_FILE_NAME));
-        assertThat(provider.resolveAccessToken()).isEqualTo("base64string");
+        assertThat(provider.resolveToken().token()).isEqualTo("base64string");
     }
 
     @Test
@@ -61,7 +61,7 @@ public class SsoAccessTokenProviderTest {
                            "}";
         SsoAccessTokenProvider provider = new SsoAccessTokenProvider(
             prepareTestCachedTokenFile(tokenFile, GENERATED_TOKEN_FILE_NAME));
-        assertThatThrownBy(provider::resolveAccessToken).isInstanceOf(NullPointerException.class);
+        assertThatThrownBy(() -> provider.resolveToken().token()).isInstanceOf(NullPointerException.class);
     }
 
     @Test
@@ -74,7 +74,7 @@ public class SsoAccessTokenProviderTest {
 
         SsoAccessTokenProvider provider = new SsoAccessTokenProvider(
             prepareTestCachedTokenFile(tokenFile, GENERATED_TOKEN_FILE_NAME));
-        assertThatThrownBy(provider::resolveAccessToken).isInstanceOf(NullPointerException.class);
+        assertThatThrownBy(() -> provider.resolveToken().token()).isInstanceOf(NullPointerException.class);
     }
 
     @Test
@@ -86,7 +86,7 @@ public class SsoAccessTokenProviderTest {
                            "}";
         SsoAccessTokenProvider provider = new SsoAccessTokenProvider(
             prepareTestCachedTokenFile(tokenFile, GENERATED_TOKEN_FILE_NAME));
-        assertThat(provider.resolveAccessToken()).isEqualTo("base64string");
+        assertThat(provider.resolveToken().token()).isEqualTo("base64string");
     }
 
     @Test
@@ -98,7 +98,7 @@ public class SsoAccessTokenProviderTest {
                            "}";
         SsoAccessTokenProvider provider = new SsoAccessTokenProvider(
             prepareTestCachedTokenFile(tokenFile, GENERATED_TOKEN_FILE_NAME));
-        assertThat(provider.resolveAccessToken()).isEqualTo("base64string");
+        assertThat(provider.resolveToken().token()).isEqualTo("base64string");
     }
 
     @Test
@@ -110,7 +110,7 @@ public class SsoAccessTokenProviderTest {
                            "}";
         SsoAccessTokenProvider provider = new SsoAccessTokenProvider(
             prepareTestCachedTokenFile(tokenFile, GENERATED_TOKEN_FILE_NAME));
-        assertThatThrownBy(provider::resolveAccessToken).hasMessageContaining("The SSO session associated with this profile "
+        assertThatThrownBy(() -> provider.resolveToken().token()).hasMessageContaining("The SSO session associated with this profile "
                                                                               + "has expired or is otherwise invalid.");
     }
 
@@ -124,7 +124,7 @@ public class SsoAccessTokenProviderTest {
         prepareTestCachedTokenFile(tokenFile, WRONG_TOKEN_FILE_NAME);
         SsoAccessTokenProvider provider = new SsoAccessTokenProvider(createTestCachedTokenFilePath(
             Jimfs.newFileSystem(Configuration.unix()).getPath("./foo"), GENERATED_TOKEN_FILE_NAME));
-        assertThatThrownBy(provider::resolveAccessToken).isInstanceOf(UncheckedIOException.class);
+        assertThatThrownBy(() -> provider.resolveToken().token()).isInstanceOf(UncheckedIOException.class);
     }
 
     private Path prepareTestCachedTokenFile(String tokenFileContent, String generatedTokenFileName) throws IOException {

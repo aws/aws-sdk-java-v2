@@ -213,10 +213,7 @@ public class CustomizationConfig {
 
     private boolean useGlobalEndpoint;
 
-    /**
-     * Whether Endpoints 2.0/rule based endpoints should be used for endpoint resolution.
-     */
-    private boolean useRuleBasedEndpoints = false;
+    private List<String> interceptors = new ArrayList<>();
 
     private CustomizationConfig() {
     }
@@ -555,11 +552,11 @@ public class CustomizationConfig {
         this.skipEndpointTests = skipEndpointTests;
     }
 
-    public boolean useRuleBasedEndpoints() {
-        return useRuleBasedEndpoints;
+    public List<String> getInterceptors() {
+        return interceptors;
     }
 
-    public void setUseRuleBasedEndpoints(boolean useRuleBasedEndpoints) {
-        this.useRuleBasedEndpoints = useRuleBasedEndpoints;
+    public void setInterceptors(List<String> interceptors) {
+        this.interceptors = interceptors;
     }
 }

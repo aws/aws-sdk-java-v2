@@ -28,6 +28,7 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -47,7 +48,7 @@ import software.amazon.awssdk.codegen.model.service.ClientContextParam;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
-import software.amazon.awssdk.codegen.utils.BearerAuthUtils;
+import software.amazon.awssdk.codegen.utils.AuthUtils;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -82,15 +83,15 @@ public class BaseClientBuilderClass implements ClassSpec {
     @Override
     public TypeSpec poetSpec() {
         TypeSpec.Builder builder =
-                PoetUtils.createClassBuilder(builderClassName)
-                         .addModifiers(Modifier.ABSTRACT)
-                         .addAnnotation(SdkInternalApi.class)
-                         .addTypeVariable(PoetUtils.createBoundedTypeVariableName("B", builderInterfaceName, "B", "C"))
-                         .addTypeVariable(TypeVariableName.get("C"))
-                         .superclass(PoetUtils.createParameterizedTypeName(AwsDefaultClientBuilder.class, "B", "C"))
-                         .addJavadoc("Internal base class for {@link $T} and {@link $T}.",
-                                     ClassName.get(basePackage, model.getMetadata().getSyncBuilder()),
-                                     ClassName.get(basePackage, model.getMetadata().getAsyncBuilder()));
+            PoetUtils.createClassBuilder(builderClassName)
+                     .addModifiers(Modifier.ABSTRACT)
+                     .addAnnotation(SdkInternalApi.class)
+                     .addTypeVariable(PoetUtils.createBoundedTypeVariableName("B", builderInterfaceName, "B", "C"))
+                     .addTypeVariable(TypeVariableName.get("C"))
+                     .superclass(PoetUtils.createParameterizedTypeName(AwsDefaultClientBuilder.class, "B", "C"))
+                     .addJavadoc("Internal base class for {@link $T} and {@link $T}.",
+                                 ClassName.get(basePackage, model.getMetadata().getSyncBuilder()),
+                                 ClassName.get(basePackage, model.getMetadata().getAsyncBuilder()));
 
         // Only services that require endpoint discovery for at least one of their operations get a default value of
         // 'true'
@@ -110,11 +111,9 @@ public class BaseClientBuilderClass implements ClassSpec {
         builder.addMethod(finalizeServiceConfigurationMethod());
         defaultAwsAuthSignerMethod().ifPresent(builder::addMethod);
         builder.addMethod(signingNameMethod());
-        if (endpointRulesSpecUtils.isEndpointRulesEnabled()) {
-            builder.addMethod(defaultEndpointProviderMethod());
-        }
+        builder.addMethod(defaultEndpointProviderMethod());
 
-        if (hasClientContextParams() && endpointRulesSpecUtils.isEndpointRulesEnabled()) {
+        if (hasClientContextParams()) {
             model.getClientContextParams().forEach((n, m) -> {
                 builder.addMethod(clientContextParamSetter(n, m));
             });
@@ -125,12 +124,14 @@ public class BaseClientBuilderClass implements ClassSpec {
                    .addMethod(beanStyleSetServiceConfigurationMethod());
         }
 
-        if (BearerAuthUtils.usesBearerAuth(model)) {
+        if (AuthUtils.usesBearerAuth(model)) {
             builder.addMethod(defaultBearerTokenProviderMethod());
             builder.addMethod(defaultTokenAuthSignerMethod());
         }
 
         addServiceHttpConfigIfNeeded(builder, model);
+
+        builder.addMethod(validateClientOptionsMethod());
 
 
         return builder.build();
@@ -188,9 +189,8 @@ public class BaseClientBuilderClass implements ClassSpec {
                                                .addParameter(SdkClientConfiguration.class, "config")
                                                .addCode("return config.merge(c -> c");
 
-        if (endpointRulesSpecUtils.isEndpointRulesEnabled()) {
-            builder.addCode(".option($T.ENDPOINT_PROVIDER, defaultEndpointProvider())", SdkClientOption.class);
-        }
+        builder.addCode(".option($T.ENDPOINT_PROVIDER, defaultEndpointProvider())", SdkClientOption.class);
+
 
         if (defaultAwsAuthSignerMethod().isPresent()) {
             builder.addCode(".option($T.SIGNER, defaultSigner())\n", SdkAdvancedClientOption.class);
@@ -204,7 +204,7 @@ public class BaseClientBuilderClass implements ClassSpec {
                             SdkClientOption.class, ClassName.bestGuess(clientConfigClassName));
         }
 
-        if (BearerAuthUtils.usesBearerAuth(model)) {
+        if (AuthUtils.usesBearerAuth(model)) {
             builder.addCode(".option($T.TOKEN_PROVIDER, defaultTokenProvider())\n", AwsClientOption.class);
             builder.addCode(".option($T.TOKEN_SIGNER, defaultTokenSigner())", SdkAdvancedClientOption.class);
         }
@@ -216,7 +216,7 @@ public class BaseClientBuilderClass implements ClassSpec {
     private Optional<MethodSpec> mergeInternalDefaultsMethod() {
         String userAgent = model.getCustomizationConfig().getUserAgent();
         RetryMode defaultRetryMode = model.getCustomizationConfig().getDefaultRetryMode();
-        
+
         // If none of the options are customized, then we do not need to bother overriding the method
         if (userAgent == null && defaultRetryMode == null) {
             return Optional.empty();
@@ -245,10 +245,10 @@ public class BaseClientBuilderClass implements ClassSpec {
         String requestHandlerPath = String.format("%s/execution.interceptors", requestHandlerDirectory);
 
         MethodSpec.Builder builder = MethodSpec.methodBuilder("finalizeServiceConfiguration")
-                         .addAnnotation(Override.class)
-                         .addModifiers(PROTECTED, FINAL)
-                         .returns(SdkClientConfiguration.class)
-                         .addParameter(SdkClientConfiguration.class, "config");
+                                               .addAnnotation(Override.class)
+                                               .addModifiers(PROTECTED, FINAL)
+                                               .returns(SdkClientConfiguration.class)
+                                               .addParameter(SdkClientConfiguration.class, "config");
 
         // Initialize configuration values
 
@@ -256,11 +256,20 @@ public class BaseClientBuilderClass implements ClassSpec {
                              ParameterizedTypeName.get(List.class, ExecutionInterceptor.class),
                              ArrayList.class);
 
-        if (endpointRulesSpecUtils.isEndpointRulesEnabled()) {
-            builder.addStatement("endpointInterceptors.add(new $T())", endpointRulesSpecUtils.resolverInterceptorName());
-            builder.addStatement("endpointInterceptors.add(new $T())", endpointRulesSpecUtils.authSchemesInterceptorName());
-            builder.addStatement("endpointInterceptors.add(new $T())", endpointRulesSpecUtils.requestModifierInterceptorName());
+        List<ClassName> builtInInterceptors = new ArrayList<>();
+
+        builtInInterceptors.add(endpointRulesSpecUtils.resolverInterceptorName());
+        builtInInterceptors.add(endpointRulesSpecUtils.authSchemesInterceptorName());
+        builtInInterceptors.add(endpointRulesSpecUtils.requestModifierInterceptorName());
+
+        for (String interceptor : model.getCustomizationConfig().getInterceptors()) {
+            builtInInterceptors.add(ClassName.bestGuess(interceptor));
         }
+
+        for (ClassName interceptor : builtInInterceptors) {
+            builder.addStatement("endpointInterceptors.add(new $T())", interceptor);
+        }
+
 
         builder.addCode("$1T interceptorFactory = new $1T();\n", ClasspathInterceptorChainFactory.class)
                .addCode("$T<$T> interceptors = interceptorFactory.getInterceptors($S);\n",
@@ -271,17 +280,23 @@ public class BaseClientBuilderClass implements ClassSpec {
                                                        ExecutionInterceptor.class),
                              ArrayList.class);
 
-        if (model.getMetadata().isQueryProtocol()) {
-            builder.addStatement("additionalInterceptors.add(new $T())", QueryParametersToBodyInterceptor.class);
-        }
-
         builder.addStatement("interceptors = $T.mergeLists(endpointInterceptors, interceptors)",
                              CollectionUtils.class);
         builder.addStatement("interceptors = $T.mergeLists(interceptors, additionalInterceptors)",
                              CollectionUtils.class);
 
         builder.addCode("interceptors = $T.mergeLists(interceptors, config.option($T.EXECUTION_INTERCEPTORS));\n",
-                                CollectionUtils.class, SdkClientOption.class);
+                        CollectionUtils.class, SdkClientOption.class);
+
+        if (model.getMetadata().isQueryProtocol()) {
+            TypeName listType = ParameterizedTypeName.get(List.class, ExecutionInterceptor.class);
+            builder.addStatement("$T protocolInterceptors = $T.singletonList(new $T())",
+                                 listType,
+                                 Collections.class,
+                                 QueryParametersToBodyInterceptor.class);
+            builder.addStatement("interceptors = $T.mergeLists(interceptors, protocolInterceptors)",
+                                 CollectionUtils.class);
+        }
 
         if (model.getEndpointOperation().isPresent()) {
             builder.beginControlFlow("if (!endpointDiscoveryEnabled)")
@@ -470,7 +485,7 @@ public class BaseClientBuilderClass implements ClassSpec {
 
     private MethodSpec setServiceConfigurationMethod() {
         ClassName serviceConfiguration = ClassName.get(basePackage,
-                                                        model.getCustomizationConfig().getServiceConfig().getClassName());
+                                                       model.getCustomizationConfig().getServiceConfig().getClassName());
         return MethodSpec.methodBuilder("serviceConfiguration")
                          .addModifiers(Modifier.PUBLIC)
                          .returns(TypeVariableName.get("B"))
@@ -483,7 +498,7 @@ public class BaseClientBuilderClass implements ClassSpec {
 
     private MethodSpec beanStyleSetServiceConfigurationMethod() {
         ClassName serviceConfiguration = ClassName.get(basePackage,
-                                                        model.getCustomizationConfig().getServiceConfig().getClassName());
+                                                       model.getCustomizationConfig().getServiceConfig().getClassName());
         return MethodSpec.methodBuilder("setServiceConfiguration")
                          .addModifiers(Modifier.PUBLIC)
                          .addParameter(serviceConfiguration, "serviceConfiguration")
@@ -604,5 +619,34 @@ public class BaseClientBuilderClass implements ClassSpec {
     private boolean hasClientContextParams() {
         Map<String, ClientContextParam> clientContextParams = model.getClientContextParams();
         return clientContextParams != null && !clientContextParams.isEmpty();
+    }
+
+    private MethodSpec validateClientOptionsMethod() {
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("validateClientOptions")
+                                               .addModifiers(PROTECTED, Modifier.STATIC)
+                                               .addParameter(SdkClientConfiguration.class, "c")
+                                               .returns(void.class);
+
+        if (AuthUtils.usesAwsAuth(model)) {
+            builder.addStatement("$T.notNull(c.option($T.SIGNER), $S)",
+                                 Validate.class,
+                                 SdkAdvancedClientOption.class,
+                                 "The 'overrideConfiguration.advancedOption[SIGNER]' must be configured in the client builder.");
+        }
+
+        if (AuthUtils.usesBearerAuth(model)) {
+            builder.addStatement("$T.notNull(c.option($T.TOKEN_SIGNER), $S)",
+                                 Validate.class,
+                                 SdkAdvancedClientOption.class,
+                                 "The 'overrideConfiguration.advancedOption[TOKEN_SIGNER]' "
+                                 + "must be configured in the client builder.");
+            builder.addStatement("$T.notNull(c.option($T.TOKEN_PROVIDER), $S)",
+                                 Validate.class,
+                                 AwsClientOption.class,
+                                 "The 'overrideConfiguration.advancedOption[TOKEN_PROVIDER]' "
+                                 + "must be configured in the client builder.");
+        }
+
+        return builder.build();
     }
 }

@@ -34,10 +34,9 @@ import software.amazon.awssdk.codegen.model.service.ClientContextParam;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
-import software.amazon.awssdk.codegen.utils.BearerAuthUtils;
+import software.amazon.awssdk.codegen.utils.AuthUtils;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.utils.internal.CodegenNamingUtils;
-
 
 public class BaseClientBuilderInterface implements ClassSpec {
     private final IntermediateModel model;
@@ -73,14 +72,12 @@ public class BaseClientBuilderInterface implements ClassSpec {
             builder.addMethod(serviceConfigurationConsumerBuilderMethod());
         }
 
-        if (endpointRulesSpecUtils.isEndpointRulesEnabled()) {
-            builder.addMethod(endpointProviderMethod());
+        builder.addMethod(endpointProviderMethod());
 
-            if (hasClientContextParams()) {
-                model.getClientContextParams().forEach((n, m) -> {
-                    builder.addMethod(clientContextParamSetter(n, m));
-                });
-            }
+        if (hasClientContextParams()) {
+            model.getClientContextParams().forEach((n, m) -> {
+                builder.addMethod(clientContextParamSetter(n, m));
+            });
         }
 
         if (generateTokenProviderMethod()) {
@@ -164,7 +161,7 @@ public class BaseClientBuilderInterface implements ClassSpec {
     }
 
     private boolean generateTokenProviderMethod() {
-        return BearerAuthUtils.usesBearerAuth(model);
+        return AuthUtils.usesBearerAuth(model);
     }
 
     private MethodSpec tokenProviderMethod() {

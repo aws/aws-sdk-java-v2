@@ -242,6 +242,32 @@
       ],
       "documentation":"<p>Copies the specified option group.</p>"
     },
+    "CreateBlueGreenDeployment":{
+      "name":"CreateBlueGreenDeployment",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"CreateBlueGreenDeploymentRequest"},
+      "output":{
+        "shape":"CreateBlueGreenDeploymentResponse",
+        "resultWrapper":"CreateBlueGreenDeploymentResult"
+      },
+      "errors":[
+        {"shape":"DBInstanceNotFoundFault"},
+        {"shape":"DBClusterNotFoundFault"},
+        {"shape":"SourceDatabaseNotSupportedFault"},
+        {"shape":"SourceClusterNotSupportedFault"},
+        {"shape":"BlueGreenDeploymentAlreadyExistsFault"},
+        {"shape":"DBParameterGroupNotFoundFault"},
+        {"shape":"DBClusterParameterGroupNotFoundFault"},
+        {"shape":"InstanceQuotaExceededFault"},
+        {"shape":"DBClusterQuotaExceededFault"},
+        {"shape":"InvalidDBInstanceStateFault"},
+        {"shape":"InvalidDBClusterStateFault"}
+      ],
+      "documentation":"<p>Creates a blue/green deployment.</p> <p>A blue/green deployment creates a staging environment that copies the production environment. In a blue/green deployment, the blue environment is the current production environment. The green environment is the staging environment. The staging environment stays in sync with the current production environment using logical replication.</p> <p>You can make changes to the databases in the green environment without affecting production workloads. For example, you can upgrade the major or minor DB engine version, change database parameters, or make schema changes in the staging environment. You can thoroughly test changes in the green environment. When ready, you can switch over the environments to promote the green environment to be the new production environment. The switchover typically takes under a minute.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/blue-green-deployments.html\">Using Amazon RDS Blue/Green Deployments for database updates</a> in the <i>Amazon RDS User Guide</i> and <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/blue-green-deployments.html\"> Using Amazon RDS Blue/Green Deployments for database updates</a> in the <i>Amazon Aurora User Guide</i>.</p>"
+    },
     "CreateCustomDBEngineVersion":{
       "name":"CreateCustomDBEngineVersion",
       "http":{
@@ -591,6 +617,23 @@
       ],
       "documentation":"<p>Creates a new option group. You can create up to 20 option groups.</p> <p>This command doesn't apply to RDS Custom.</p>"
     },
+    "DeleteBlueGreenDeployment":{
+      "name":"DeleteBlueGreenDeployment",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DeleteBlueGreenDeploymentRequest"},
+      "output":{
+        "shape":"DeleteBlueGreenDeploymentResponse",
+        "resultWrapper":"DeleteBlueGreenDeploymentResult"
+      },
+      "errors":[
+        {"shape":"BlueGreenDeploymentNotFoundFault"},
+        {"shape":"InvalidBlueGreenDeploymentStateFault"}
+      ],
+      "documentation":"<p>Deletes a blue/green deployment.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/blue-green-deployments.html\">Using Amazon RDS Blue/Green Deployments for database updates</a> in the <i>Amazon RDS User Guide</i> and <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/blue-green-deployments.html\"> Using Amazon RDS Blue/Green Deployments for database updates</a> in the <i>Amazon Aurora User Guide</i>.</p>"
+    },
     "DeleteCustomDBEngineVersion":{
       "name":"DeleteCustomDBEngineVersion",
       "http":{
@@ -883,6 +926,22 @@
         "resultWrapper":"DescribeAccountAttributesResult"
       },
       "documentation":"<p>Lists all of the attributes for a customer account. The attributes include Amazon RDS quotas for the account, such as the number of DB instances allowed. The description for a quota includes the quota name, current usage toward that quota, and the quota's maximum value.</p> <p>This command doesn't take any parameters.</p>"
+    },
+    "DescribeBlueGreenDeployments":{
+      "name":"DescribeBlueGreenDeployments",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DescribeBlueGreenDeploymentsRequest"},
+      "output":{
+        "shape":"DescribeBlueGreenDeploymentsResponse",
+        "resultWrapper":"DescribeBlueGreenDeploymentsResult"
+      },
+      "errors":[
+        {"shape":"BlueGreenDeploymentNotFoundFault"}
+      ],
+      "documentation":"<p>Returns information about blue/green deployments.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/blue-green-deployments.html\">Using Amazon RDS Blue/Green Deployments for database updates</a> in the <i>Amazon RDS User Guide</i> and <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/blue-green-deployments.html\"> Using Amazon RDS Blue/Green Deployments for database updates</a> in the <i>Amazon Aurora User Guide</i>.</p>"
     },
     "DescribeCertificates":{
       "name":"DescribeCertificates",
@@ -2186,7 +2245,8 @@
         {"shape":"OptionGroupNotFoundFault"},
         {"shape":"KMSKeyNotAccessibleFault"},
         {"shape":"DomainNotFoundFault"},
-        {"shape":"DBClusterParameterGroupNotFoundFault"}
+        {"shape":"DBClusterParameterGroupNotFoundFault"},
+        {"shape":"InvalidDBInstanceStateFault"}
       ],
       "documentation":"<p>Creates a new DB cluster from a DB snapshot or DB cluster snapshot.</p> <p>The target DB cluster is created from the source snapshot with a default configuration. If you don't specify a security group, the new DB cluster is associated with the default security group.</p> <note> <p>This action only restores the DB cluster, not the DB instances for that DB cluster. You must invoke the <code>CreateDBInstance</code> action to create DB instances for the restored DB cluster, specifying the identifier of the restored DB cluster in <code>DBClusterIdentifier</code>. You can create DB instances only after the <code>RestoreDBClusterFromSnapshot</code> action has completed and the DB cluster is available.</p> </note> <p>For more information on Amazon Aurora DB clusters, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/CHAP_AuroraOverview.html\"> What is Amazon Aurora?</a> in the <i>Amazon Aurora User Guide</i>.</p> <p>For more information on Multi-AZ DB clusters, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/multi-az-db-clusters-concepts.html\"> Multi-AZ deployments with two readable standby DB instances</a> in the <i>Amazon RDS User Guide.</i> </p>"
     },
@@ -2255,7 +2315,8 @@
         {"shape":"DomainNotFoundFault"},
         {"shape":"DBParameterGroupNotFoundFault"},
         {"shape":"BackupPolicyNotFoundFault"},
-        {"shape":"NetworkTypeNotSupported"}
+        {"shape":"NetworkTypeNotSupported"},
+        {"shape":"DBClusterSnapshotNotFoundFault"}
       ],
       "documentation":"<p>Creates a new DB instance from a DB snapshot. The target database is created from the source database restore point with most of the source's original configuration, including the default security group and DB parameter group. By default, the new DB instance is created as a Single-AZ deployment, except when the instance is a SQL Server instance that has an option group associated with mirroring. In this case, the instance becomes a Multi-AZ deployment, not a Single-AZ deployment.</p> <p>If you want to replace your original DB instance with the new, restored DB instance, then rename your original DB instance before you call the RestoreDBInstanceFromDBSnapshot action. RDS doesn't allow two DB instances with the same name. After you have renamed your original DB instance with a different identifier, then you can pass the original name of the DB instance as the DBInstanceIdentifier in the call to the RestoreDBInstanceFromDBSnapshot action. The result is that you replace the original DB instance with the DB instance created from the snapshot.</p> <p>If you are restoring from a shared manual DB snapshot, the <code>DBSnapshotIdentifier</code> must be the ARN of the shared DB snapshot.</p> <note> <p>This command doesn't apply to Aurora MySQL and Aurora PostgreSQL. For Aurora, use <code>RestoreDBClusterFromSnapshot</code>.</p> </note>"
     },
@@ -2532,6 +2593,23 @@
         {"shape":"InvalidDBInstanceStateFault"}
       ],
       "documentation":"<p>Stops automated backup replication for a DB instance.</p> <p>This command doesn't apply to RDS Custom, Aurora MySQL, and Aurora PostgreSQL.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ReplicateBackups.html\"> Replicating Automated Backups to Another Amazon Web Services Region</a> in the <i>Amazon RDS User Guide.</i> </p>"
+    },
+    "SwitchoverBlueGreenDeployment":{
+      "name":"SwitchoverBlueGreenDeployment",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"SwitchoverBlueGreenDeploymentRequest"},
+      "output":{
+        "shape":"SwitchoverBlueGreenDeploymentResponse",
+        "resultWrapper":"SwitchoverBlueGreenDeploymentResult"
+      },
+      "errors":[
+        {"shape":"BlueGreenDeploymentNotFoundFault"},
+        {"shape":"InvalidBlueGreenDeploymentStateFault"}
+      ],
+      "documentation":"<p>Switches over a blue/green deployment.</p> <p>Before you switch over, production traffic is routed to the databases in the blue environment. After you switch over, production traffic is routed to the databases in the green environment.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/blue-green-deployments.html\">Using Amazon RDS Blue/Green Deployments for database updates</a> in the <i>Amazon RDS User Guide</i> and <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/blue-green-deployments.html\"> Using Amazon RDS Blue/Green Deployments for database updates</a> in the <i>Amazon Aurora User Guide</i>.</p>"
     },
     "SwitchoverReadReplica":{
       "name":"SwitchoverReadReplica",
@@ -2927,6 +3005,115 @@
       },
       "exception":true
     },
+    "BlueGreenDeployment":{
+      "type":"structure",
+      "members":{
+        "BlueGreenDeploymentIdentifier":{
+          "shape":"BlueGreenDeploymentIdentifier",
+          "documentation":"<p>The system-generated identifier of the blue/green deployment.</p>"
+        },
+        "BlueGreenDeploymentName":{
+          "shape":"BlueGreenDeploymentName",
+          "documentation":"<p>The user-supplied name of the blue/green deployment.</p>"
+        },
+        "Source":{
+          "shape":"DatabaseArn",
+          "documentation":"<p>The source database for the blue/green deployment.</p> <p>Before switchover, the source database is the production database in the blue environment.</p>"
+        },
+        "Target":{
+          "shape":"DatabaseArn",
+          "documentation":"<p>The target database for the blue/green deployment.</p> <p>Before switchover, the target database is the clone database in the green environment.</p>"
+        },
+        "SwitchoverDetails":{
+          "shape":"SwitchoverDetailList",
+          "documentation":"<p>The details about each source and target resource in the blue/green deployment.</p>"
+        },
+        "Tasks":{
+          "shape":"BlueGreenDeploymentTaskList",
+          "documentation":"<p>Either tasks to be performed or tasks that have been completed on the target database before switchover.</p>"
+        },
+        "Status":{
+          "shape":"BlueGreenDeploymentStatus",
+          "documentation":"<p>The status of the blue/green deployment.</p> <p>Values:</p> <ul> <li> <p> <code>PROVISIONING</code> - Resources are being created in the green environment.</p> </li> <li> <p> <code>AVAILABLE</code> - Resources are available in the green environment.</p> </li> <li> <p> <code>SWITCHOVER_IN_PROGRESS</code> - The deployment is being switched from the blue environment to the green environment.</p> </li> <li> <p> <code>SWITCHOVER_COMPLETED</code> - Switchover from the blue environment to the green environment is complete.</p> </li> <li> <p> <code>INVALID_CONFIGURATION</code> - Resources in the green environment are invalid, so switchover isn't possible.</p> </li> <li> <p> <code>SWITCHOVER_FAILED</code> - Switchover was attempted but failed.</p> </li> <li> <p> <code>DELETING</code> - The blue/green deployment is being deleted.</p> </li> </ul>"
+        },
+        "StatusDetails":{
+          "shape":"BlueGreenDeploymentStatusDetails",
+          "documentation":"<p>Additional information about the status of the blue/green deployment.</p>"
+        },
+        "CreateTime":{
+          "shape":"TStamp",
+          "documentation":"<p>Specifies the time when the blue/green deployment was created, in Universal Coordinated Time (UTC).</p>"
+        },
+        "DeleteTime":{
+          "shape":"TStamp",
+          "documentation":"<p>Specifies the time when the blue/green deployment was deleted, in Universal Coordinated Time (UTC).</p>"
+        },
+        "TagList":{"shape":"TagList"}
+      },
+      "documentation":"<p>Contains the details about a blue/green deployment.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/blue-green-deployments.html\">Using Amazon RDS Blue/Green Deployments for database updates</a> in the <i>Amazon RDS User Guide</i> and <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/blue-green-deployments.html\"> Using Amazon RDS Blue/Green Deployments for database updates</a> in the <i>Amazon Aurora User Guide</i>.</p>"
+    },
+    "BlueGreenDeploymentAlreadyExistsFault":{
+      "type":"structure",
+      "members":{
+      },
+      "documentation":"<p>A blue/green deployment with the specified name already exists.</p>",
+      "error":{
+        "code":"BlueGreenDeploymentAlreadyExistsFault",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
+      "exception":true
+    },
+    "BlueGreenDeploymentIdentifier":{
+      "type":"string",
+      "max":255,
+      "min":1,
+      "pattern":"[A-Za-z][0-9A-Za-z-:._]*"
+    },
+    "BlueGreenDeploymentList":{
+      "type":"list",
+      "member":{"shape":"BlueGreenDeployment"}
+    },
+    "BlueGreenDeploymentName":{
+      "type":"string",
+      "max":60,
+      "min":1,
+      "pattern":"[a-zA-Z][a-zA-Z0-9]*(-[a-zA-Z0-9]+)*"
+    },
+    "BlueGreenDeploymentNotFoundFault":{
+      "type":"structure",
+      "members":{
+      },
+      "documentation":"<p> <code>BlueGreenDeploymentIdentifier</code> doesn't refer to an existing blue/green deployment.</p>",
+      "error":{
+        "code":"BlueGreenDeploymentNotFoundFault",
+        "httpStatusCode":404,
+        "senderFault":true
+      },
+      "exception":true
+    },
+    "BlueGreenDeploymentStatus":{"type":"string"},
+    "BlueGreenDeploymentStatusDetails":{"type":"string"},
+    "BlueGreenDeploymentTask":{
+      "type":"structure",
+      "members":{
+        "Name":{
+          "shape":"BlueGreenDeploymentTaskName",
+          "documentation":"<p>The name of the blue/green deployment task.</p>"
+        },
+        "Status":{
+          "shape":"BlueGreenDeploymentTaskStatus",
+          "documentation":"<p>The status of the blue/green deployment task.</p> <p>Values:</p> <ul> <li> <p> <code>PENDING</code> - The resources are being prepared for deployment.</p> </li> <li> <p> <code>IN_PROGRESS</code> - The resource is being deployed.</p> </li> <li> <p> <code>COMPLETED</code> - The resource has been deployed.</p> </li> <li> <p> <code>FAILED</code> - Deployment of the resource failed.</p> </li> </ul>"
+        }
+      },
+      "documentation":"<p>Contains the details about a task for a blue/green deployment.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/blue-green-deployments.html\">Using Amazon RDS Blue/Green Deployments for database updates</a> in the <i>Amazon RDS User Guide</i> and <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/blue-green-deployments.html\"> Using Amazon RDS Blue/Green Deployments for database updates</a> in the <i>Amazon Aurora User Guide</i>.</p>"
+    },
+    "BlueGreenDeploymentTaskList":{
+      "type":"list",
+      "member":{"shape":"BlueGreenDeploymentTask"}
+    },
+    "BlueGreenDeploymentTaskName":{"type":"string"},
+    "BlueGreenDeploymentTaskStatus":{"type":"string"},
     "Boolean":{"type":"boolean"},
     "BooleanOptional":{"type":"boolean"},
     "BucketName":{
@@ -3064,6 +3251,18 @@
         "EngineVersion":{
           "shape":"String",
           "documentation":"<p>The database engine version.</p>"
+        },
+        "BackupRetentionPeriod":{
+          "shape":"IntegerOptional",
+          "documentation":"<p>The number of days for which automatic DB snapshots are retained.</p>"
+        },
+        "AllocatedStorage":{
+          "shape":"IntegerOptional",
+          "documentation":"<p>The allocated storage size in gibibytes (GiB) for all database engines except Amazon Aurora. For Aurora, <code>AllocatedStorage</code> always returns 1, because Aurora DB cluster storage size isn't fixed, but instead automatically adjusts as needed.</p>"
+        },
+        "Iops":{
+          "shape":"IntegerOptional",
+          "documentation":"<p>The Provisioned IOPS (I/O operations per second) value. This setting is only for non-Aurora Multi-AZ DB clusters.</p>"
         }
       },
       "documentation":"<p>This data type is used as a response element in the <code>ModifyDBCluster</code> operation and contains changes that will be applied during the next maintenance window.</p>"
@@ -3291,6 +3490,45 @@
         "OptionGroup":{"shape":"OptionGroup"}
       }
     },
+    "CreateBlueGreenDeploymentRequest":{
+      "type":"structure",
+      "required":[
+        "BlueGreenDeploymentName",
+        "Source"
+      ],
+      "members":{
+        "BlueGreenDeploymentName":{
+          "shape":"BlueGreenDeploymentName",
+          "documentation":"<p>The name of the blue/green deployment.</p> <p>Constraints:</p> <ul> <li> <p>Can't be the same as an existing blue/green deployment name in the same account and Amazon Web Services Region.</p> </li> </ul>"
+        },
+        "Source":{
+          "shape":"DatabaseArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the source production database.</p> <p>Specify the database that you want to clone. The blue/green deployment creates this database in the green environment. You can make updates to the database in the green environment, such as an engine version upgrade. When you are ready, you can switch the database in the green environment to be the production database.</p>"
+        },
+        "TargetEngineVersion":{
+          "shape":"TargetEngineVersion",
+          "documentation":"<p>The engine version of the database in the green environment.</p> <p>Specify the engine version to upgrade to in the green environment.</p>"
+        },
+        "TargetDBParameterGroupName":{
+          "shape":"TargetDBParameterGroupName",
+          "documentation":"<p>The DB parameter group associated with the DB instance in the green environment.</p> <p>To test parameter changes, specify a DB parameter group that is different from the one associated with the source DB instance.</p>"
+        },
+        "TargetDBClusterParameterGroupName":{
+          "shape":"TargetDBClusterParameterGroupName",
+          "documentation":"<p>The DB cluster parameter group associated with the Aurora DB cluster in the green environment.</p> <p>To test parameter changes, specify a DB cluster parameter group that is different from the one associated with the source DB cluster.</p>"
+        },
+        "Tags":{
+          "shape":"TagList",
+          "documentation":"<p>Tags to assign to the blue/green deployment.</p>"
+        }
+      }
+    },
+    "CreateBlueGreenDeploymentResponse":{
+      "type":"structure",
+      "members":{
+        "BlueGreenDeployment":{"shape":"BlueGreenDeployment"}
+      }
+    },
     "CreateCustomDBEngineVersionMessage":{
       "type":"structure",
       "required":[
@@ -3307,7 +3545,7 @@
         },
         "EngineVersion":{
           "shape":"CustomEngineVersion",
-          "documentation":"<p>The name of your CEV. The name format is <code>19.<i>customized_string</i> </code>. For example, a valid name is <code>19.my_cev1</code>. This setting is required for RDS Custom for Oracle, but optional for Amazon RDS. The combination of <code>Engine</code> and <code>EngineVersion</code> is unique per customer per Region.</p>"
+          "documentation":"<p>The name of your CEV. The name format is 19.<i>customized_string</i>. For example, a valid CEV name is <code>19.my_cev1</code>. This setting is required for RDS Custom for Oracle, but optional for Amazon RDS. The combination of <code>Engine</code> and <code>EngineVersion</code> is unique per customer per Region.</p>"
         },
         "DatabaseInstallationFilesS3BucketName":{
           "shape":"BucketName",
@@ -3519,7 +3757,7 @@
         },
         "Iops":{
           "shape":"IntegerOptional",
-          "documentation":"<p>The amount of Provisioned IOPS (input/output operations per second) to be initially allocated for each DB instance in the Multi-AZ DB cluster.</p> <p>For information about valid <code>Iops</code> values, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_Storage.html#USER_PIOPS\">Amazon RDS Provisioned IOPS storage to improve performance</a> in the <i>Amazon RDS User Guide</i>.</p> <p>This setting is required to create a Multi-AZ DB cluster.</p> <p>Constraints: Must be a multiple between .5 and 50 of the storage amount for the DB cluster.</p> <p>Valid for: Multi-AZ DB clusters only</p>"
+          "documentation":"<p>The amount of Provisioned IOPS (input/output operations per second) to be initially allocated for each DB instance in the Multi-AZ DB cluster.</p> <p>For information about valid IOPS values, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_Storage.html#USER_PIOPS\">Amazon RDS Provisioned IOPS storage</a> in the <i>Amazon RDS User Guide</i>.</p> <p>This setting is required to create a Multi-AZ DB cluster.</p> <p>Constraints: Must be a multiple between .5 and 50 of the storage amount for the DB cluster.</p> <p>Valid for: Multi-AZ DB clusters only</p>"
         },
         "PubliclyAccessible":{
           "shape":"BooleanOptional",
@@ -3553,6 +3791,10 @@
         "NetworkType":{
           "shape":"String",
           "documentation":"<p>The network type of the DB cluster.</p> <p>Valid values:</p> <ul> <li> <p> <code>IPV4</code> </p> </li> <li> <p> <code>DUAL</code> </p> </li> </ul> <p>The network type is determined by the <code>DBSubnetGroup</code> specified for the DB cluster. A <code>DBSubnetGroup</code> can support only the IPv4 protocol or the IPv4 and the IPv6 protocols (<code>DUAL</code>).</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/USER_VPC.WorkingWithRDSInstanceinaVPC.html\"> Working with a DB instance in a VPC</a> in the <i>Amazon Aurora User Guide.</i> </p> <p>Valid for: Aurora DB clusters only</p>"
+        },
+        "DBSystemId":{
+          "shape":"String",
+          "documentation":"<p>Reserved for future use.</p>"
         }
       },
       "documentation":"<p/>"
@@ -3642,7 +3884,7 @@
         },
         "AllocatedStorage":{
           "shape":"IntegerOptional",
-          "documentation":"<p>The amount of storage in gibibytes (GiB) to allocate for the DB instance.</p> <p>Type: Integer</p> <p> <b>Amazon Aurora</b> </p> <p>Not applicable. Aurora cluster volumes automatically grow as the amount of data in your database increases, though you are only charged for the space that you use in an Aurora cluster volume.</p> <p> <b>Amazon RDS Custom</b> </p> <p>Constraints to the amount of storage for each storage type are the following:</p> <ul> <li> <p>General Purpose (SSD) storage (gp2): Must be an integer from 40 to 65536 for RDS Custom for Oracle, 16384 for RDS Custom for SQL Server.</p> </li> <li> <p>Provisioned IOPS storage (io1): Must be an integer from 40 to 65536 for RDS Custom for Oracle, 16384 for RDS Custom for SQL Server.</p> </li> </ul> <p> <b>MySQL</b> </p> <p>Constraints to the amount of storage for each storage type are the following:</p> <ul> <li> <p>General Purpose (SSD) storage (gp2): Must be an integer from 20 to 65536.</p> </li> <li> <p>Provisioned IOPS storage (io1): Must be an integer from 100 to 65536.</p> </li> <li> <p>Magnetic storage (standard): Must be an integer from 5 to 3072.</p> </li> </ul> <p> <b>MariaDB</b> </p> <p>Constraints to the amount of storage for each storage type are the following:</p> <ul> <li> <p>General Purpose (SSD) storage (gp2): Must be an integer from 20 to 65536.</p> </li> <li> <p>Provisioned IOPS storage (io1): Must be an integer from 100 to 65536.</p> </li> <li> <p>Magnetic storage (standard): Must be an integer from 5 to 3072.</p> </li> </ul> <p> <b>PostgreSQL</b> </p> <p>Constraints to the amount of storage for each storage type are the following:</p> <ul> <li> <p>General Purpose (SSD) storage (gp2): Must be an integer from 20 to 65536.</p> </li> <li> <p>Provisioned IOPS storage (io1): Must be an integer from 100 to 65536.</p> </li> <li> <p>Magnetic storage (standard): Must be an integer from 5 to 3072.</p> </li> </ul> <p> <b>Oracle</b> </p> <p>Constraints to the amount of storage for each storage type are the following:</p> <ul> <li> <p>General Purpose (SSD) storage (gp2): Must be an integer from 20 to 65536.</p> </li> <li> <p>Provisioned IOPS storage (io1): Must be an integer from 100 to 65536.</p> </li> <li> <p>Magnetic storage (standard): Must be an integer from 10 to 3072.</p> </li> </ul> <p> <b>SQL Server</b> </p> <p>Constraints to the amount of storage for each storage type are the following:</p> <ul> <li> <p>General Purpose (SSD) storage (gp2):</p> <ul> <li> <p>Enterprise and Standard editions: Must be an integer from 20 to 16384.</p> </li> <li> <p>Web and Express editions: Must be an integer from 20 to 16384.</p> </li> </ul> </li> <li> <p>Provisioned IOPS storage (io1):</p> <ul> <li> <p>Enterprise and Standard editions: Must be an integer from 100 to 16384.</p> </li> <li> <p>Web and Express editions: Must be an integer from 100 to 16384.</p> </li> </ul> </li> <li> <p>Magnetic storage (standard):</p> <ul> <li> <p>Enterprise and Standard editions: Must be an integer from 20 to 1024.</p> </li> <li> <p>Web and Express editions: Must be an integer from 20 to 1024.</p> </li> </ul> </li> </ul>"
+          "documentation":"<p>The amount of storage in gibibytes (GiB) to allocate for the DB instance.</p> <p>Type: Integer</p> <p> <b>Amazon Aurora</b> </p> <p>Not applicable. Aurora cluster volumes automatically grow as the amount of data in your database increases, though you are only charged for the space that you use in an Aurora cluster volume.</p> <p> <b>Amazon RDS Custom</b> </p> <p>Constraints to the amount of storage for each storage type are the following:</p> <ul> <li> <p>General Purpose (SSD) storage (gp2, gp3): Must be an integer from 40 to 65536 for RDS Custom for Oracle, 16384 for RDS Custom for SQL Server.</p> </li> <li> <p>Provisioned IOPS storage (io1): Must be an integer from 40 to 65536 for RDS Custom for Oracle, 16384 for RDS Custom for SQL Server.</p> </li> </ul> <p> <b>MySQL</b> </p> <p>Constraints to the amount of storage for each storage type are the following:</p> <ul> <li> <p>General Purpose (SSD) storage (gp2, gp3): Must be an integer from 20 to 65536.</p> </li> <li> <p>Provisioned IOPS storage (io1): Must be an integer from 100 to 65536.</p> </li> <li> <p>Magnetic storage (standard): Must be an integer from 5 to 3072.</p> </li> </ul> <p> <b>MariaDB</b> </p> <p>Constraints to the amount of storage for each storage type are the following:</p> <ul> <li> <p>General Purpose (SSD) storage (gp2, gp3): Must be an integer from 20 to 65536.</p> </li> <li> <p>Provisioned IOPS storage (io1): Must be an integer from 100 to 65536.</p> </li> <li> <p>Magnetic storage (standard): Must be an integer from 5 to 3072.</p> </li> </ul> <p> <b>PostgreSQL</b> </p> <p>Constraints to the amount of storage for each storage type are the following:</p> <ul> <li> <p>General Purpose (SSD) storage (gp2, gp3): Must be an integer from 20 to 65536.</p> </li> <li> <p>Provisioned IOPS storage (io1): Must be an integer from 100 to 65536.</p> </li> <li> <p>Magnetic storage (standard): Must be an integer from 5 to 3072.</p> </li> </ul> <p> <b>Oracle</b> </p> <p>Constraints to the amount of storage for each storage type are the following:</p> <ul> <li> <p>General Purpose (SSD) storage (gp2, gp3): Must be an integer from 20 to 65536.</p> </li> <li> <p>Provisioned IOPS storage (io1): Must be an integer from 100 to 65536.</p> </li> <li> <p>Magnetic storage (standard): Must be an integer from 10 to 3072.</p> </li> </ul> <p> <b>SQL Server</b> </p> <p>Constraints to the amount of storage for each storage type are the following:</p> <ul> <li> <p>General Purpose (SSD) storage (gp2, gp3):</p> <ul> <li> <p>Enterprise and Standard editions: Must be an integer from 20 to 16384.</p> </li> <li> <p>Web and Express editions: Must be an integer from 20 to 16384.</p> </li> </ul> </li> <li> <p>Provisioned IOPS storage (io1):</p> <ul> <li> <p>Enterprise and Standard editions: Must be an integer from 100 to 16384.</p> </li> <li> <p>Web and Express editions: Must be an integer from 100 to 16384.</p> </li> </ul> </li> <li> <p>Magnetic storage (standard):</p> <ul> <li> <p>Enterprise and Standard editions: Must be an integer from 20 to 1024.</p> </li> <li> <p>Web and Express editions: Must be an integer from 20 to 1024.</p> </li> </ul> </li> </ul>"
         },
         "DBInstanceClass":{
           "shape":"String",
@@ -3702,7 +3944,7 @@
         },
         "EngineVersion":{
           "shape":"String",
-          "documentation":"<p>The version number of the database engine to use.</p> <p>For a list of valid engine versions, use the <code>DescribeDBEngineVersions</code> operation.</p> <p>The following are the database engines and links to information about the major and minor versions that are available with Amazon RDS. Not every database engine is available for every Amazon Web Services Region.</p> <p> <b>Amazon Aurora</b> </p> <p>Not applicable. The version number of the database engine to be used by the DB instance is managed by the DB cluster.</p> <p> <b>Amazon RDS Custom for Oracle</b> </p> <p>A custom engine version (CEV) that you have previously created. This setting is required for RDS Custom for Oracle. The CEV name has the following format: <code>19.<i>customized_string</i> </code>. An example identifier is <code>19.my_cev1</code>. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/custom-creating.html#custom-creating.create\"> Creating an RDS Custom for Oracle DB instance</a> in the <i>Amazon RDS User Guide</i>.</p> <p> <b>Amazon RDS Custom for SQL Server</b> </p> <p>See <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/custom-reqs-limits-MS.html\">RDS Custom for SQL Server general requirements</a> in the <i>Amazon RDS User Guide</i>.</p> <p> <b>MariaDB</b> </p> <p>For information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_MariaDB.html#MariaDB.Concepts.VersionMgmt\">MariaDB on Amazon RDS Versions</a> in the <i>Amazon RDS User Guide</i>.</p> <p> <b>Microsoft SQL Server</b> </p> <p>For information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_SQLServer.html#SQLServer.Concepts.General.VersionSupport\">Microsoft SQL Server Versions on Amazon RDS</a> in the <i>Amazon RDS User Guide</i>.</p> <p> <b>MySQL</b> </p> <p>For information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_MySQL.html#MySQL.Concepts.VersionMgmt\">MySQL on Amazon RDS Versions</a> in the <i>Amazon RDS User Guide</i>.</p> <p> <b>Oracle</b> </p> <p>For information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Appendix.Oracle.PatchComposition.html\">Oracle Database Engine Release Notes</a> in the <i>Amazon RDS User Guide</i>.</p> <p> <b>PostgreSQL</b> </p> <p>For information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_PostgreSQL.html#PostgreSQL.Concepts\">Amazon RDS for PostgreSQL versions and extensions</a> in the <i>Amazon RDS User Guide</i>.</p>"
+          "documentation":"<p>The version number of the database engine to use.</p> <p>For a list of valid engine versions, use the <code>DescribeDBEngineVersions</code> operation.</p> <p>The following are the database engines and links to information about the major and minor versions that are available with Amazon RDS. Not every database engine is available for every Amazon Web Services Region.</p> <p> <b>Amazon Aurora</b> </p> <p>Not applicable. The version number of the database engine to be used by the DB instance is managed by the DB cluster.</p> <p> <b>Amazon RDS Custom for Oracle</b> </p> <p>A custom engine version (CEV) that you have previously created. This setting is required for RDS Custom for Oracle. The CEV name has the following format: 19.<i>customized_string</i>. A valid CEV name is <code>19.my_cev1</code>. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/custom-creating.html#custom-creating.create\"> Creating an RDS Custom for Oracle DB instance</a> in the <i>Amazon RDS User Guide</i>.</p> <p> <b>Amazon RDS Custom for SQL Server</b> </p> <p>See <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/custom-reqs-limits-MS.html\">RDS Custom for SQL Server general requirements</a> in the <i>Amazon RDS User Guide</i>.</p> <p> <b>MariaDB</b> </p> <p>For information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_MariaDB.html#MariaDB.Concepts.VersionMgmt\">MariaDB on Amazon RDS Versions</a> in the <i>Amazon RDS User Guide</i>.</p> <p> <b>Microsoft SQL Server</b> </p> <p>For information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_SQLServer.html#SQLServer.Concepts.General.VersionSupport\">Microsoft SQL Server Versions on Amazon RDS</a> in the <i>Amazon RDS User Guide</i>.</p> <p> <b>MySQL</b> </p> <p>For information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_MySQL.html#MySQL.Concepts.VersionMgmt\">MySQL on Amazon RDS Versions</a> in the <i>Amazon RDS User Guide</i>.</p> <p> <b>Oracle</b> </p> <p>For information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Appendix.Oracle.PatchComposition.html\">Oracle Database Engine Release Notes</a> in the <i>Amazon RDS User Guide</i>.</p> <p> <b>PostgreSQL</b> </p> <p>For information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_PostgreSQL.html#PostgreSQL.Concepts\">Amazon RDS for PostgreSQL versions and extensions</a> in the <i>Amazon RDS User Guide</i>.</p>"
         },
         "AutoMinorVersionUpgrade":{
           "shape":"BooleanOptional",
@@ -3714,7 +3956,7 @@
         },
         "Iops":{
           "shape":"IntegerOptional",
-          "documentation":"<p>The amount of Provisioned IOPS (input/output operations per second) to be initially allocated for the DB instance. For information about valid <code>Iops</code> values, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_Storage.html#USER_PIOPS\">Amazon RDS Provisioned IOPS storage to improve performance</a> in the <i>Amazon RDS User Guide</i>.</p> <p>Constraints: For MariaDB, MySQL, Oracle, and PostgreSQL DB instances, must be a multiple between .5 and 50 of the storage amount for the DB instance. For SQL Server DB instances, must be a multiple between 1 and 50 of the storage amount for the DB instance.</p> <p> <b>Amazon Aurora</b> </p> <p>Not applicable. Storage is managed by the DB cluster.</p>"
+          "documentation":"<p>The amount of Provisioned IOPS (input/output operations per second) to be initially allocated for the DB instance. For information about valid IOPS values, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_Storage.html\">Amazon RDS DB instance storage</a> in the <i>Amazon RDS User Guide</i>.</p> <p>Constraints: For MariaDB, MySQL, Oracle, and PostgreSQL DB instances, must be a multiple between .5 and 50 of the storage amount for the DB instance. For SQL Server DB instances, must be a multiple between 1 and 50 of the storage amount for the DB instance.</p> <p> <b>Amazon Aurora</b> </p> <p>Not applicable. Storage is managed by the DB cluster.</p>"
         },
         "OptionGroupName":{
           "shape":"String",
@@ -3742,7 +3984,7 @@
         },
         "StorageType":{
           "shape":"String",
-          "documentation":"<p>Specifies the storage type to be associated with the DB instance.</p> <p>Valid values: <code>standard | gp2 | io1</code> </p> <p>If you specify <code>io1</code>, you must also include a value for the <code>Iops</code> parameter.</p> <p>Default: <code>io1</code> if the <code>Iops</code> parameter is specified, otherwise <code>gp2</code> </p> <p> <b>Amazon Aurora</b> </p> <p>Not applicable. Storage is managed by the DB cluster.</p>"
+          "documentation":"<p>Specifies the storage type to be associated with the DB instance.</p> <p>Valid values: <code>gp2 | gp3 | io1 | standard</code> </p> <p>If you specify <code>io1</code> or <code>gp3</code>, you must also include a value for the <code>Iops</code> parameter.</p> <p>Default: <code>io1</code> if the <code>Iops</code> parameter is specified, otherwise <code>gp2</code> </p> <p> <b>Amazon Aurora</b> </p> <p>Not applicable. Storage is managed by the DB cluster.</p>"
         },
         "TdeCredentialArn":{
           "shape":"String",
@@ -3835,6 +4077,10 @@
         "NetworkType":{
           "shape":"String",
           "documentation":"<p>The network type of the DB instance.</p> <p>Valid values:</p> <ul> <li> <p> <code>IPV4</code> </p> </li> <li> <p> <code>DUAL</code> </p> </li> </ul> <p>The network type is determined by the <code>DBSubnetGroup</code> specified for the DB instance. A <code>DBSubnetGroup</code> can support only the IPv4 protocol or the IPv4 and the IPv6 protocols (<code>DUAL</code>).</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_VPC.WorkingWithRDSInstanceinaVPC.html\"> Working with a DB instance in a VPC</a> in the <i>Amazon RDS User Guide.</i> </p>"
+        },
+        "StorageThroughput":{
+          "shape":"IntegerOptional",
+          "documentation":"<p>Specifies the storage throughput value for the DB instance.</p> <p>This setting applies only to the <code>gp3</code> storage type.</p> <p>This setting doesn't apply to RDS Custom or Amazon Aurora.</p>"
         }
       },
       "documentation":"<p/>"
@@ -3901,7 +4147,7 @@
         },
         "StorageType":{
           "shape":"String",
-          "documentation":"<p>Specifies the storage type to be associated with the read replica.</p> <p>Valid values: <code>standard | gp2 | io1</code> </p> <p>If you specify <code>io1</code>, you must also include a value for the <code>Iops</code> parameter.</p> <p>Default: <code>io1</code> if the <code>Iops</code> parameter is specified, otherwise <code>gp2</code> </p>"
+          "documentation":"<p>Specifies the storage type to be associated with the read replica.</p> <p>Valid values: <code>gp2 | gp3 | io1 | standard</code> </p> <p>If you specify <code>io1</code> or <code>gp3</code>, you must also include a value for the <code>Iops</code> parameter.</p> <p>Default: <code>io1</code> if the <code>Iops</code> parameter is specified, otherwise <code>gp2</code> </p>"
         },
         "CopyTagsToSnapshot":{
           "shape":"BooleanOptional",
@@ -3978,6 +4224,10 @@
         "NetworkType":{
           "shape":"String",
           "documentation":"<p>The network type of the DB instance.</p> <p>Valid values:</p> <ul> <li> <p> <code>IPV4</code> </p> </li> <li> <p> <code>DUAL</code> </p> </li> </ul> <p>The network type is determined by the <code>DBSubnetGroup</code> specified for read replica. A <code>DBSubnetGroup</code> can support only the IPv4 protocol or the IPv4 and the IPv6 protocols (<code>DUAL</code>).</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_VPC.WorkingWithRDSInstanceinaVPC.html\"> Working with a DB instance in a VPC</a> in the <i>Amazon RDS User Guide.</i> </p>"
+        },
+        "StorageThroughput":{
+          "shape":"IntegerOptional",
+          "documentation":"<p>Specifies the storage throughput value for the read replica.</p> <p>This setting doesn't apply to RDS Custom or Amazon Aurora.</p>"
         }
       }
     },
@@ -4674,6 +4924,10 @@
         "NetworkType":{
           "shape":"String",
           "documentation":"<p>The network type of the DB instance.</p> <p>Valid values:</p> <ul> <li> <p> <code>IPV4</code> </p> </li> <li> <p> <code>DUAL</code> </p> </li> </ul> <p>The network type is determined by the <code>DBSubnetGroup</code> specified for the DB cluster. A <code>DBSubnetGroup</code> can support only the IPv4 protocol or the IPv4 and the IPv6 protocols (<code>DUAL</code>).</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/USER_VPC.WorkingWithRDSInstanceinaVPC.html\"> Working with a DB instance in a VPC</a> in the <i>Amazon Aurora User Guide.</i> </p> <p>This setting is only for Aurora DB clusters.</p>"
+        },
+        "DBSystemId":{
+          "shape":"String",
+          "documentation":"<p>Reserved for future use.</p>"
         }
       },
       "documentation":"<p>Contains the details of an Amazon Aurora DB cluster or Multi-AZ DB cluster.</p> <p>For an Amazon Aurora DB cluster, this data type is used as a response element in the operations <code>CreateDBCluster</code>, <code>DeleteDBCluster</code>, <code>DescribeDBClusters</code>, <code>FailoverDBCluster</code>, <code>ModifyDBCluster</code>, <code>PromoteReadReplicaDBCluster</code>, <code>RestoreDBClusterFromS3</code>, <code>RestoreDBClusterFromSnapshot</code>, <code>RestoreDBClusterToPointInTime</code>, <code>StartDBCluster</code>, and <code>StopDBCluster</code>.</p> <p>For a Multi-AZ DB cluster, this data type is used as a response element in the operations <code>CreateDBCluster</code>, <code>DeleteDBCluster</code>, <code>DescribeDBClusters</code>, <code>FailoverDBCluster</code>, <code>ModifyDBCluster</code>, <code>RebootDBCluster</code>, <code>RestoreDBClusterFromSnapshot</code>, and <code>RestoreDBClusterToPointInTime</code>.</p> <p>For more information on Amazon Aurora DB clusters, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/CHAP_AuroraOverview.html\"> What is Amazon Aurora?</a> in the <i>Amazon Aurora User Guide.</i> </p> <p>For more information on Multi-AZ DB clusters, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/multi-az-db-clusters-concepts.html\"> Multi-AZ deployments with two readable standby DB instances</a> in the <i>Amazon RDS User Guide.</i> </p>",
@@ -5211,7 +5465,11 @@
           "shape":"Boolean",
           "documentation":"<p>True if mapping of Amazon Web Services Identity and Access Management (IAM) accounts to database accounts is enabled, and otherwise false.</p>"
         },
-        "TagList":{"shape":"TagList"}
+        "TagList":{"shape":"TagList"},
+        "DBSystemId":{
+          "shape":"String",
+          "documentation":"<p>Reserved for future use.</p>"
+        }
       },
       "documentation":"<p>Contains the details for an Amazon RDS DB cluster snapshot</p> <p>This data type is used as a response element in the <code>DescribeDBClusterSnapshots</code> action.</p>",
       "wrapper":true
@@ -5400,6 +5658,10 @@
         "SupportsBabelfish":{
           "shape":"Boolean",
           "documentation":"<p>A value that indicates whether the engine version supports Babelfish for Aurora PostgreSQL.</p>"
+        },
+        "CustomDBEngineVersionManifest":{
+          "shape":"CustomDBEngineVersionManifest",
+          "documentation":"<p>JSON string that lists the installation files and parameters that RDS Custom uses to create a custom engine version (CEV). RDS Custom applies the patches in the order in which they're listed in the manifest. You can set the Oracle home, Oracle base, and UNIX/Linux user and group using the installation parameters. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/custom-cev.preparing.html#custom-cev.preparing.manifest.fields\">JSON fields in the CEV manifest</a> in the <i>Amazon RDS User Guide</i>. </p>"
         }
       },
       "documentation":"<p>This data type is used as a response element in the action <code>DescribeDBEngineVersions</code>.</p>"
@@ -5570,7 +5832,7 @@
         },
         "StorageType":{
           "shape":"String",
-          "documentation":"<p>Specifies the storage type associated with DB instance.</p>"
+          "documentation":"<p>Specifies the storage type associated with the DB instance.</p>"
         },
         "TdeCredentialArn":{
           "shape":"String",
@@ -5728,6 +5990,14 @@
         "ActivityStreamPolicyStatus":{
           "shape":"ActivityStreamPolicyStatus",
           "documentation":"<p>The status of the policy state of the activity stream.</p>"
+        },
+        "StorageThroughput":{
+          "shape":"IntegerOptional",
+          "documentation":"<p>Specifies the storage throughput for the DB instance.</p> <p>This setting applies only to the <code>gp3</code> storage type.</p>"
+        },
+        "DBSystemId":{
+          "shape":"String",
+          "documentation":"<p>The Oracle system ID (Oracle SID) for a container database (CDB). The Oracle SID is also the name of the CDB. This setting is valid for RDS Custom only.</p>"
         }
       },
       "documentation":"<p>Contains the details of an Amazon RDS DB instance.</p> <p>This data type is used as a response element in the operations <code>CreateDBInstance</code>, <code>CreateDBInstanceReadReplica</code>, <code>DeleteDBInstance</code>, <code>DescribeDBInstances</code>, <code>ModifyDBInstance</code>, <code>PromoteReadReplica</code>, <code>RebootDBInstance</code>, <code>RestoreDBInstanceFromDBSnapshot</code>, <code>RestoreDBInstanceFromS3</code>, <code>RestoreDBInstanceToPointInTime</code>, <code>StartDBInstance</code>, and <code>StopDBInstance</code>.</p>",
@@ -5786,7 +6056,7 @@
         },
         "VpcId":{
           "shape":"String",
-          "documentation":"<p>Provides the VPC ID associated with the DB instance</p>"
+          "documentation":"<p>Provides the VPC ID associated with the DB instance.</p>"
         },
         "InstanceCreateTime":{
           "shape":"TStamp",
@@ -5855,6 +6125,10 @@
         "BackupTarget":{
           "shape":"String",
           "documentation":"<p>Specifies where automated backups are stored: Amazon Web Services Outposts or the Amazon Web Services Region.</p>"
+        },
+        "StorageThroughput":{
+          "shape":"IntegerOptional",
+          "documentation":"<p>Specifies the storage throughput for the automated backup.</p>"
         }
       },
       "documentation":"<p>An automated backup of a DB instance. It consists of system backups, transaction logs, and the database instance properties that existed at the time you deleted the source instance.</p>",
@@ -6793,6 +7067,10 @@
         "SnapshotTarget":{
           "shape":"String",
           "documentation":"<p>Specifies where manual snapshots are stored: Amazon Web Services Outposts or the Amazon Web Services Region.</p>"
+        },
+        "StorageThroughput":{
+          "shape":"IntegerOptional",
+          "documentation":"<p>Specifies the storage throughput for the DB snapshot.</p>"
         }
       },
       "documentation":"<p>Contains the details of an Amazon RDS DB snapshot.</p> <p>This data type is used as a response element in the <code>DescribeDBSnapshots</code> action.</p>",
@@ -7019,6 +7297,32 @@
         "senderFault":true
       },
       "exception":true
+    },
+    "DatabaseArn":{
+      "type":"string",
+      "max":2048,
+      "min":1,
+      "pattern":"^arn:[A-Za-z][0-9A-Za-z-:._]*"
+    },
+    "DeleteBlueGreenDeploymentRequest":{
+      "type":"structure",
+      "required":["BlueGreenDeploymentIdentifier"],
+      "members":{
+        "BlueGreenDeploymentIdentifier":{
+          "shape":"BlueGreenDeploymentIdentifier",
+          "documentation":"<p>The blue/green deployment identifier of the deployment to be deleted. This parameter isn't case-sensitive.</p> <p>Constraints: </p> <ul> <li> <p>Must match an existing blue/green deployment identifier.</p> </li> </ul>"
+        },
+        "DeleteTarget":{
+          "shape":"BooleanOptional",
+          "documentation":"<p>A value that indicates whether to delete the resources in the green environment.</p>"
+        }
+      }
+    },
+    "DeleteBlueGreenDeploymentResponse":{
+      "type":"structure",
+      "members":{
+        "BlueGreenDeployment":{"shape":"BlueGreenDeployment"}
+      }
     },
     "DeleteCustomDBEngineVersionMessage":{
       "type":"structure",
@@ -7314,6 +7618,40 @@
       },
       "documentation":"<p/>"
     },
+    "DescribeBlueGreenDeploymentsRequest":{
+      "type":"structure",
+      "members":{
+        "BlueGreenDeploymentIdentifier":{
+          "shape":"BlueGreenDeploymentIdentifier",
+          "documentation":"<p>The blue/green deployment identifier. If this parameter is specified, information from only the specific blue/green deployment is returned. This parameter isn't case-sensitive.</p> <p>Constraints:</p> <ul> <li> <p>If supplied, must match an existing blue/green deployment identifier.</p> </li> </ul>"
+        },
+        "Filters":{
+          "shape":"FilterList",
+          "documentation":"<p>A filter that specifies one or more blue/green deployments to describe.</p> <p>Supported filters:</p> <ul> <li> <p> <code>blue-green-deployment-identifier</code> - Accepts system-generated identifiers for blue/green deployments. The results list only includes information about the blue/green deployments with the specified identifiers.</p> </li> <li> <p> <code>blue-green-deployment-name</code> - Accepts user-supplied names for blue/green deployments. The results list only includes information about the blue/green deployments with the specified names.</p> </li> <li> <p> <code>source</code> - Accepts source databases for a blue/green deployment. The results list only includes information about the blue/green deployments with the specified source databases.</p> </li> <li> <p> <code>target</code> - Accepts target databases for a blue/green deployment. The results list only includes information about the blue/green deployments with the specified target databases.</p> </li> </ul>"
+        },
+        "Marker":{
+          "shape":"String",
+          "documentation":"<p>An optional pagination token provided by a previous <code>DescribeBlueGreenDeployments</code> request. If this parameter is specified, the response includes only records beyond the marker, up to the value specified by <code>MaxRecords</code>.</p>"
+        },
+        "MaxRecords":{
+          "shape":"MaxRecords",
+          "documentation":"<p>The maximum number of records to include in the response. If more records exist than the specified <code>MaxRecords</code> value, a pagination token called a marker is included in the response so you can retrieve the remaining results.</p> <p>Default: 100</p> <p>Constraints: Minimum 20, maximum 100.</p>"
+        }
+      }
+    },
+    "DescribeBlueGreenDeploymentsResponse":{
+      "type":"structure",
+      "members":{
+        "BlueGreenDeployments":{
+          "shape":"BlueGreenDeploymentList",
+          "documentation":"<p>Contains a list of blue/green deployments for the user.</p>"
+        },
+        "Marker":{
+          "shape":"String",
+          "documentation":"<p>A pagination token that can be used in a later DescribeBlueGreenDeployments request.</p>"
+        }
+      }
+    },
     "DescribeCertificatesMessage":{
       "type":"structure",
       "members":{
@@ -7497,7 +7835,7 @@
       "members":{
         "DBClusterIdentifier":{
           "shape":"String",
-          "documentation":"<p>The user-supplied DB cluster identifier. If this parameter is specified, information from only the specific DB cluster is returned. This parameter isn't case-sensitive.</p> <p>Constraints:</p> <ul> <li> <p>If supplied, must match an existing DBClusterIdentifier.</p> </li> </ul>"
+          "documentation":"<p>The user-supplied DB cluster identifier or the Amazon Resource Name (ARN) of the DB cluster. If this parameter is specified, information from only the specific DB cluster is returned. This parameter isn't case-sensitive.</p> <p>Constraints:</p> <ul> <li> <p>If supplied, must match an existing DBClusterIdentifier.</p> </li> </ul>"
         },
         "Filters":{
           "shape":"FilterList",
@@ -7598,7 +7936,7 @@
       "members":{
         "DBInstanceIdentifier":{
           "shape":"String",
-          "documentation":"<p>The user-supplied instance identifier. If this parameter is specified, information from only the specific DB instance is returned. This parameter isn't case-sensitive.</p> <p>Constraints:</p> <ul> <li> <p>If supplied, must match the identifier of an existing DBInstance.</p> </li> </ul>"
+          "documentation":"<p>The user-supplied instance identifier or the Amazon Resource Name (ARN) of the DB instance. If this parameter is specified, information from only the specific DB instance is returned. This parameter isn't case-sensitive.</p> <p>Constraints:</p> <ul> <li> <p>If supplied, must match the identifier of an existing DBInstance.</p> </li> </ul>"
         },
         "Filters":{
           "shape":"FilterList",
@@ -9277,6 +9615,18 @@
     },
     "Integer":{"type":"integer"},
     "IntegerOptional":{"type":"integer"},
+    "InvalidBlueGreenDeploymentStateFault":{
+      "type":"structure",
+      "members":{
+      },
+      "documentation":"<p>The blue/green deployment can't be switched over or deleted because there is an invalid configuration in the green environment.</p>",
+      "error":{
+        "code":"InvalidBlueGreenDeploymentStateFault",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
+      "exception":true
+    },
     "InvalidCustomDBEngineVersionStateFault":{
       "type":"structure",
       "members":{
@@ -9890,7 +10240,7 @@
         },
         "Iops":{
           "shape":"IntegerOptional",
-          "documentation":"<p>The amount of Provisioned IOPS (input/output operations per second) to be initially allocated for each DB instance in the Multi-AZ DB cluster.</p> <p>For information about valid Iops values, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_Storage.html#USER_PIOPS\">Amazon RDS Provisioned IOPS Storage to Improve Performance</a> in the <i>Amazon RDS User Guide</i>.</p> <p>Constraints: Must be a multiple between .5 and 50 of the storage amount for the DB cluster.</p> <p>Valid for: Multi-AZ DB clusters only</p>"
+          "documentation":"<p>The amount of Provisioned IOPS (input/output operations per second) to be initially allocated for each DB instance in the Multi-AZ DB cluster.</p> <p>For information about valid IOPS values, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_Storage.html#USER_PIOPS\">Amazon RDS Provisioned IOPS storage</a> in the <i>Amazon RDS User Guide</i>.</p> <p>Constraints: Must be a multiple between .5 and 50 of the storage amount for the DB cluster.</p> <p>Valid for: Multi-AZ DB clusters only</p>"
         },
         "AutoMinorVersionUpgrade":{
           "shape":"BooleanOptional",
@@ -10066,7 +10416,7 @@
         },
         "StorageType":{
           "shape":"String",
-          "documentation":"<p>Specifies the storage type to be associated with the DB instance.</p> <p>If you specify Provisioned IOPS (<code>io1</code>), you must also include a value for the <code>Iops</code> parameter.</p> <p>If you choose to migrate your DB instance from using standard storage to using Provisioned IOPS, or from using Provisioned IOPS to using standard storage, the process can take time. The duration of the migration depends on several factors such as database load, storage size, storage type (standard or Provisioned IOPS), amount of IOPS provisioned (if any), and the number of prior scale storage operations. Typical migration times are under 24 hours, but the process can take up to several days in some cases. During the migration, the DB instance is available for use, but might experience performance degradation. While the migration takes place, nightly backups for the instance are suspended. No other Amazon RDS operations can take place for the instance, including modifying the instance, rebooting the instance, deleting the instance, creating a read replica for the instance, and creating a DB snapshot of the instance.</p> <p>Valid values: <code>standard | gp2 | io1</code> </p> <p>Default: <code>io1</code> if the <code>Iops</code> parameter is specified, otherwise <code>gp2</code> </p>"
+          "documentation":"<p>Specifies the storage type to be associated with the DB instance.</p> <p>If you specify Provisioned IOPS (<code>io1</code>), you must also include a value for the <code>Iops</code> parameter.</p> <p>If you choose to migrate your DB instance from using standard storage to using Provisioned IOPS, or from using Provisioned IOPS to using standard storage, the process can take time. The duration of the migration depends on several factors such as database load, storage size, storage type (standard or Provisioned IOPS), amount of IOPS provisioned (if any), and the number of prior scale storage operations. Typical migration times are under 24 hours, but the process can take up to several days in some cases. During the migration, the DB instance is available for use, but might experience performance degradation. While the migration takes place, nightly backups for the instance are suspended. No other Amazon RDS operations can take place for the instance, including modifying the instance, rebooting the instance, deleting the instance, creating a read replica for the instance, and creating a DB snapshot of the instance.</p> <p>Valid values: <code>gp2 | gp3 | io1 | standard</code> </p> <p>Default: <code>io1</code> if the <code>Iops</code> parameter is specified, otherwise <code>gp2</code> </p>"
         },
         "TdeCredentialArn":{
           "shape":"String",
@@ -10175,6 +10525,10 @@
         "NetworkType":{
           "shape":"String",
           "documentation":"<p>The network type of the DB instance.</p> <p>Valid values:</p> <ul> <li> <p> <code>IPV4</code> </p> </li> <li> <p> <code>DUAL</code> </p> </li> </ul> <p>The network type is determined by the <code>DBSubnetGroup</code> specified for the DB instance. A <code>DBSubnetGroup</code> can support only the IPv4 protocol or the IPv4 and the IPv6 protocols (<code>DUAL</code>).</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_VPC.WorkingWithRDSInstanceinaVPC.html\"> Working with a DB instance in a VPC</a> in the <i>Amazon RDS User Guide.</i> </p>"
+        },
+        "StorageThroughput":{
+          "shape":"IntegerOptional",
+          "documentation":"<p>Specifies the storage throughput value for the DB instance.</p> <p>This setting applies only to the <code>gp3</code> storage type.</p> <p>This setting doesn't apply to RDS Custom or Amazon Aurora.</p>"
         }
       },
       "documentation":"<p/>"
@@ -11055,6 +11409,26 @@
         "SupportedNetworkTypes":{
           "shape":"StringList",
           "documentation":"<p>The network types supported by the DB instance (<code>IPV4</code> or <code>DUAL</code>).</p> <p>A DB instance can support only the IPv4 protocol or the IPv4 and the IPv6 protocols (<code>DUAL</code>).</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_VPC.WorkingWithRDSInstanceinaVPC.html\"> Working with a DB instance in a VPC</a> in the <i>Amazon RDS User Guide.</i> </p>"
+        },
+        "SupportsStorageThroughput":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates whether a DB instance supports storage throughput.</p>"
+        },
+        "MinStorageThroughputPerDbInstance":{
+          "shape":"IntegerOptional",
+          "documentation":"<p>Minimum storage throughput for a DB instance.</p>"
+        },
+        "MaxStorageThroughputPerDbInstance":{
+          "shape":"IntegerOptional",
+          "documentation":"<p>Maximum storage throughput for a DB instance.</p>"
+        },
+        "MinStorageThroughputPerIops":{
+          "shape":"DoubleOptional",
+          "documentation":"<p>Minimum storage throughput to provisioned IOPS ratio for a DB instance.</p>"
+        },
+        "MaxStorageThroughputPerIops":{
+          "shape":"DoubleOptional",
+          "documentation":"<p>Maximum storage throughput to provisioned IOPS ratio for a DB instance.</p>"
         }
       },
       "documentation":"<p>Contains a list of available options for a DB instance.</p> <p>This data type is used as a response element in the <code>DescribeOrderableDBInstanceOptions</code> action.</p>",
@@ -11291,6 +11665,10 @@
         "ResumeFullAutomationModeTime":{
           "shape":"TStamp",
           "documentation":"<p>The number of minutes to pause the automation. When the time period ends, RDS Custom resumes full automation. The minimum value is 60 (default). The maximum value is 1,440.</p>"
+        },
+        "StorageThroughput":{
+          "shape":"IntegerOptional",
+          "documentation":"<p>The storage throughput of the DB instance.</p>"
         }
       },
       "documentation":"<p>This data type is used as a response element in the <code>ModifyDBInstance</code> operation and contains changes that will be applied during the next maintenance window.</p>"
@@ -12185,7 +12563,7 @@
         },
         "Iops":{
           "shape":"IntegerOptional",
-          "documentation":"<p>The amount of Provisioned IOPS (input/output operations per second) to be initially allocated for each DB instance in the Multi-AZ DB cluster.</p> <p>For information about valid Iops values, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_Storage.html#USER_PIOPS\">Amazon RDS Provisioned IOPS Storage to Improve Performance</a> in the <i>Amazon RDS User Guide</i>.</p> <p>Constraints: Must be a multiple between .5 and 50 of the storage amount for the DB instance.</p> <p>Valid for: Aurora DB clusters and Multi-AZ DB clusters</p>"
+          "documentation":"<p>The amount of Provisioned IOPS (input/output operations per second) to be initially allocated for each DB instance in the Multi-AZ DB cluster.</p> <p>For information about valid IOPS values, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_Storage.html#USER_PIOPS\">Amazon RDS Provisioned IOPS storage</a> in the <i>Amazon RDS User Guide</i>.</p> <p>Constraints: Must be a multiple between .5 and 50 of the storage amount for the DB instance.</p> <p>Valid for: Aurora DB clusters and Multi-AZ DB clusters</p>"
         },
         "PubliclyAccessible":{
           "shape":"BooleanOptional",
@@ -12307,7 +12685,7 @@
         },
         "Iops":{
           "shape":"IntegerOptional",
-          "documentation":"<p>The amount of Provisioned IOPS (input/output operations per second) to be initially allocated for each DB instance in the Multi-AZ DB cluster.</p> <p>For information about valid <code>Iops</code> values, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_Storage.html#USER_PIOPS\">Amazon RDS Provisioned IOPS storage to improve performance</a> in the <i>Amazon RDS User Guide</i>.</p> <p>Constraints: Must be a multiple between .5 and 50 of the storage amount for the DB instance.</p> <p>Valid for: Multi-AZ DB clusters only</p>"
+          "documentation":"<p>The amount of Provisioned IOPS (input/output operations per second) to be initially allocated for each DB instance in the Multi-AZ DB cluster.</p> <p>For information about valid IOPS values, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_Storage.html#USER_PIOPS\">Amazon RDS Provisioned IOPS storage</a> in the <i>Amazon RDS User Guide</i>.</p> <p>Constraints: Must be a multiple between .5 and 50 of the storage amount for the DB instance.</p> <p>Valid for: Multi-AZ DB clusters only</p>"
         },
         "ServerlessV2ScalingConfiguration":{"shape":"ServerlessV2ScalingConfiguration"},
         "NetworkType":{
@@ -12325,10 +12703,7 @@
     },
     "RestoreDBInstanceFromDBSnapshotMessage":{
       "type":"structure",
-      "required":[
-        "DBInstanceIdentifier",
-        "DBSnapshotIdentifier"
-      ],
+      "required":["DBInstanceIdentifier"],
       "members":{
         "DBInstanceIdentifier":{
           "shape":"String",
@@ -12336,7 +12711,7 @@
         },
         "DBSnapshotIdentifier":{
           "shape":"String",
-          "documentation":"<p>The identifier for the DB snapshot to restore from.</p> <p>Constraints:</p> <ul> <li> <p>Must match the identifier of an existing DBSnapshot.</p> </li> <li> <p>If you are restoring from a shared manual DB snapshot, the <code>DBSnapshotIdentifier</code> must be the ARN of the shared DB snapshot.</p> </li> </ul>"
+          "documentation":"<p>The identifier for the DB snapshot to restore from.</p> <p>Constraints:</p> <ul> <li> <p>Must match the identifier of an existing DBSnapshot.</p> </li> <li> <p>Can't be specified when <code>DBClusterSnapshotIdentifier</code> is specified.</p> </li> <li> <p>Must be specified when <code>DBClusterSnapshotIdentifier</code> isn't specified.</p> </li> <li> <p>If you are restoring from a shared manual DB snapshot, the <code>DBSnapshotIdentifier</code> must be the ARN of the shared DB snapshot.</p> </li> </ul>"
         },
         "DBInstanceClass":{
           "shape":"String",
@@ -12380,7 +12755,7 @@
         },
         "Iops":{
           "shape":"IntegerOptional",
-          "documentation":"<p>Specifies the amount of provisioned IOPS for the DB instance, expressed in I/O operations per second. If this parameter isn't specified, the IOPS value is taken from the backup. If this parameter is set to 0, the new instance is converted to a non-PIOPS instance. The conversion takes additional time, though your DB instance is available for connections before the conversion starts.</p> <p>The provisioned IOPS value must follow the requirements for your database engine. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_Storage.html#USER_PIOPS\">Amazon RDS Provisioned IOPS Storage to Improve Performance</a> in the <i>Amazon RDS User Guide.</i> </p> <p>Constraints: Must be an integer greater than 1000.</p>"
+          "documentation":"<p>Specifies the amount of provisioned IOPS for the DB instance, expressed in I/O operations per second. If this parameter isn't specified, the IOPS value is taken from the backup. If this parameter is set to 0, the new instance is converted to a non-PIOPS instance. The conversion takes additional time, though your DB instance is available for connections before the conversion starts.</p> <p>The provisioned IOPS value must follow the requirements for your database engine. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_Storage.html#USER_PIOPS\">Amazon RDS Provisioned IOPS storage</a> in the <i>Amazon RDS User Guide.</i> </p> <p>Constraints: Must be an integer greater than 1000.</p>"
         },
         "OptionGroupName":{
           "shape":"String",
@@ -12389,7 +12764,7 @@
         "Tags":{"shape":"TagList"},
         "StorageType":{
           "shape":"String",
-          "documentation":"<p>Specifies the storage type to be associated with the DB instance.</p> <p>Valid values: <code>standard | gp2 | io1</code> </p> <p>If you specify <code>io1</code>, you must also include a value for the <code>Iops</code> parameter.</p> <p>Default: <code>io1</code> if the <code>Iops</code> parameter is specified, otherwise <code>gp2</code> </p>"
+          "documentation":"<p>Specifies the storage type to be associated with the DB instance.</p> <p>Valid values: <code>gp2 | gp3 | io1 | standard</code> </p> <p>If you specify <code>io1</code> or <code>gp3</code>, you must also include a value for the <code>Iops</code> parameter.</p> <p>Default: <code>io1</code> if the <code>Iops</code> parameter is specified, otherwise <code>gp2</code> </p>"
         },
         "TdeCredentialArn":{
           "shape":"String",
@@ -12454,6 +12829,14 @@
         "NetworkType":{
           "shape":"String",
           "documentation":"<p>The network type of the DB instance.</p> <p>Valid values:</p> <ul> <li> <p> <code>IPV4</code> </p> </li> <li> <p> <code>DUAL</code> </p> </li> </ul> <p>The network type is determined by the <code>DBSubnetGroup</code> specified for the DB instance. A <code>DBSubnetGroup</code> can support only the IPv4 protocol or the IPv4 and the IPv6 protocols (<code>DUAL</code>).</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_VPC.WorkingWithRDSInstanceinaVPC.html\"> Working with a DB instance in a VPC</a> in the <i>Amazon RDS User Guide.</i> </p>"
+        },
+        "StorageThroughput":{
+          "shape":"IntegerOptional",
+          "documentation":"<p>Specifies the storage throughput value for the DB instance.</p> <p>This setting doesn't apply to RDS Custom or Amazon Aurora.</p>"
+        },
+        "DBClusterSnapshotIdentifier":{
+          "shape":"String",
+          "documentation":"<p>The identifier for the RDS for MySQL Multi-AZ DB cluster snapshot to restore from.</p> <p>For more information on Multi-AZ DB clusters, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/multi-az-db-clusters-concepts.html\"> Multi-AZ deployments with two readable standby DB instances</a> in the <i>Amazon RDS User Guide</i>.</p> <p>Constraints:</p> <ul> <li> <p>Must match the identifier of an existing Multi-AZ DB cluster snapshot.</p> </li> <li> <p>Can't be specified when <code>DBSnapshotIdentifier</code> is specified.</p> </li> <li> <p>Must be specified when <code>DBSnapshotIdentifier</code> isn't specified.</p> </li> <li> <p>If you are restoring from a shared manual Multi-AZ DB cluster snapshot, the <code>DBClusterSnapshotIdentifier</code> must be the ARN of the shared snapshot.</p> </li> <li> <p>Can't be the identifier of an Aurora DB cluster snapshot.</p> </li> <li> <p>Can't be the identifier of an RDS for PostgreSQL Multi-AZ DB cluster snapshot.</p> </li> </ul>"
         }
       },
       "documentation":"<p/>"
@@ -12558,7 +12941,7 @@
         },
         "Iops":{
           "shape":"IntegerOptional",
-          "documentation":"<p>The amount of Provisioned IOPS (input/output operations per second) to allocate initially for the DB instance. For information about valid Iops values, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_Storage.html#USER_PIOPS\">Amazon RDS Provisioned IOPS Storage to Improve Performance</a> in the <i>Amazon RDS User Guide.</i> </p>"
+          "documentation":"<p>The amount of Provisioned IOPS (input/output operations per second) to allocate initially for the DB instance. For information about valid IOPS values, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_Storage.html#USER_PIOPS\">Amazon RDS Provisioned IOPS storage</a> in the <i>Amazon RDS User Guide.</i> </p>"
         },
         "OptionGroupName":{
           "shape":"String",
@@ -12574,7 +12957,7 @@
         },
         "StorageType":{
           "shape":"String",
-          "documentation":"<p>Specifies the storage type to be associated with the DB instance.</p> <p>Valid values: <code>standard</code> | <code>gp2</code> | <code>io1</code> </p> <p>If you specify <code>io1</code>, you must also include a value for the <code>Iops</code> parameter.</p> <p>Default: <code>io1</code> if the <code>Iops</code> parameter is specified; otherwise <code>gp2</code> </p>"
+          "documentation":"<p>Specifies the storage type to be associated with the DB instance.</p> <p>Valid values: <code>gp2 | gp3 | io1 | standard</code> </p> <p>If you specify <code>io1</code> or <code>gp3</code>, you must also include a value for the <code>Iops</code> parameter.</p> <p>Default: <code>io1</code> if the <code>Iops</code> parameter is specified; otherwise <code>gp2</code> </p>"
         },
         "StorageEncrypted":{
           "shape":"BooleanOptional",
@@ -12655,6 +13038,10 @@
         "NetworkType":{
           "shape":"String",
           "documentation":"<p>The network type of the DB instance.</p> <p>Valid values:</p> <ul> <li> <p> <code>IPV4</code> </p> </li> <li> <p> <code>DUAL</code> </p> </li> </ul> <p>The network type is determined by the <code>DBSubnetGroup</code> specified for the DB instance. A <code>DBSubnetGroup</code> can support only the IPv4 protocol or the IPv4 and the IPv6 protocols (<code>DUAL</code>).</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_VPC.WorkingWithRDSInstanceinaVPC.html\"> Working with a DB instance in a VPC</a> in the <i>Amazon RDS User Guide.</i> </p>"
+        },
+        "StorageThroughput":{
+          "shape":"IntegerOptional",
+          "documentation":"<p>Specifies the storage throughput value for the DB instance.</p> <p>This setting doesn't apply to RDS Custom or Amazon Aurora.</p>"
         }
       }
     },
@@ -12739,7 +13126,7 @@
         "Tags":{"shape":"TagList"},
         "StorageType":{
           "shape":"String",
-          "documentation":"<p>Specifies the storage type to be associated with the DB instance.</p> <p>Valid values: <code>standard | gp2 | io1</code> </p> <p>If you specify <code>io1</code>, you must also include a value for the <code>Iops</code> parameter.</p> <p>Default: <code>io1</code> if the <code>Iops</code> parameter is specified, otherwise <code>gp2</code> </p>"
+          "documentation":"<p>Specifies the storage type to be associated with the DB instance.</p> <p>Valid values: <code>gp2 | gp3 | io1 | standard</code> </p> <p>If you specify <code>io1</code> or <code>gp3</code>, you must also include a value for the <code>Iops</code> parameter.</p> <p>Default: <code>io1</code> if the <code>Iops</code> parameter is specified, otherwise <code>gp2</code> </p>"
         },
         "TdeCredentialArn":{
           "shape":"String",
@@ -12812,6 +13199,10 @@
         "NetworkType":{
           "shape":"String",
           "documentation":"<p>The network type of the DB instance.</p> <p>Valid values:</p> <ul> <li> <p> <code>IPV4</code> </p> </li> <li> <p> <code>DUAL</code> </p> </li> </ul> <p>The network type is determined by the <code>DBSubnetGroup</code> specified for the DB instance. A <code>DBSubnetGroup</code> can support only the IPv4 protocol or the IPv4 and the IPv6 protocols (<code>DUAL</code>).</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_VPC.WorkingWithRDSInstanceinaVPC.html\"> Working with a DB instance in a VPC</a> in the <i>Amazon RDS User Guide.</i> </p>"
+        },
+        "StorageThroughput":{
+          "shape":"IntegerOptional",
+          "documentation":"<p>Specifies the storage throughput value for the DB instance.</p> <p>This setting doesn't apply to RDS Custom or Amazon Aurora.</p>"
         }
       },
       "documentation":"<p/>"
@@ -13012,6 +13403,30 @@
       "documentation":"<p>The request would result in the user exceeding the allowed number of DB snapshots.</p>",
       "error":{
         "code":"SnapshotQuotaExceeded",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
+      "exception":true
+    },
+    "SourceClusterNotSupportedFault":{
+      "type":"structure",
+      "members":{
+      },
+      "documentation":"<p>The source DB cluster isn't supported for a blue/green deployment.</p>",
+      "error":{
+        "code":"SourceClusterNotSupportedFault",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
+      "exception":true
+    },
+    "SourceDatabaseNotSupportedFault":{
+      "type":"structure",
+      "members":{
+      },
+      "documentation":"<p>The source DB instance isn't supported for a blue/green deployment.</p>",
+      "error":{
+        "code":"SourceDatabaseNotSupportedFault",
         "httpStatusCode":400,
         "senderFault":true
       },
@@ -13464,6 +13879,49 @@
         "locationName":"Timezone"
       }
     },
+    "SwitchoverBlueGreenDeploymentRequest":{
+      "type":"structure",
+      "required":["BlueGreenDeploymentIdentifier"],
+      "members":{
+        "BlueGreenDeploymentIdentifier":{
+          "shape":"BlueGreenDeploymentIdentifier",
+          "documentation":"<p>The blue/green deployment identifier.</p> <p>Constraints:</p> <ul> <li> <p>Must match an existing blue/green deployment identifier.</p> </li> </ul>"
+        },
+        "SwitchoverTimeout":{
+          "shape":"SwitchoverTimeout",
+          "documentation":"<p>The amount of time, in seconds, for the switchover to complete. The default is 300.</p> <p>If the switchover takes longer than the specified duration, then any changes are rolled back, and no changes are made to the environments.</p>"
+        }
+      }
+    },
+    "SwitchoverBlueGreenDeploymentResponse":{
+      "type":"structure",
+      "members":{
+        "BlueGreenDeployment":{"shape":"BlueGreenDeployment"}
+      }
+    },
+    "SwitchoverDetail":{
+      "type":"structure",
+      "members":{
+        "SourceMember":{
+          "shape":"DatabaseArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of a resource in the blue environment.</p>"
+        },
+        "TargetMember":{
+          "shape":"DatabaseArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of a resource in the green environment.</p>"
+        },
+        "Status":{
+          "shape":"SwitchoverDetailStatus",
+          "documentation":"<p>The switchover status of a resource in a blue/green deployment.</p> <p>Values:</p> <ul> <li> <p> <code>preparing-for-switchover</code> - The resource is being prepared to switch over.</p> </li> <li> <p> <code>ready-for-switchover</code> - The resource is ready to switch over.</p> </li> <li> <p> <code>switchover-in-progress</code> - The resource is being switched over.</p> </li> <li> <p> <code>switchover-completed</code> - The resource has been switched over.</p> </li> <li> <p> <code>switchover-failed</code> - The resource attempted to switch over but failed.</p> </li> </ul>"
+        }
+      },
+      "documentation":"<p>Contains the details about a blue/green deployment.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/blue-green-deployments.html\">Using Amazon RDS Blue/Green Deployments for database updates</a> in the <i>Amazon RDS User Guide</i> and <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/blue-green-deployments.html\"> Using Amazon RDS Blue/Green Deployments for database updates</a> in the <i>Amazon Aurora User Guide</i>.</p>"
+    },
+    "SwitchoverDetailList":{
+      "type":"list",
+      "member":{"shape":"SwitchoverDetail"}
+    },
+    "SwitchoverDetailStatus":{"type":"string"},
     "SwitchoverReadReplicaMessage":{
       "type":"structure",
       "required":["DBInstanceIdentifier"],
@@ -13480,6 +13938,10 @@
         "DBInstance":{"shape":"DBInstance"}
       }
     },
+    "SwitchoverTimeout":{
+      "type":"integer",
+      "min":30
+    },
     "TStamp":{"type":"timestamp"},
     "Tag":{
       "type":"structure",
@@ -13493,7 +13955,7 @@
           "documentation":"<p>A value is the optional value of the tag. The string value can be from 1 to 256 Unicode characters in length and can't be prefixed with <code>aws:</code> or <code>rds:</code>. The string can only contain only the set of Unicode letters, digits, white-space, '_', '.', ':', '/', '=', '+', '-', '@' (Java regex: \"^([\\\\p{L}\\\\p{Z}\\\\p{N}_.:/=+\\\\-@]*)$\").</p>"
         }
       },
-      "documentation":"<p>Metadata assigned to an Amazon RDS resource consisting of a key-value pair.</p>"
+      "documentation":"<p>Metadata assigned to an Amazon RDS resource consisting of a key-value pair.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_Tagging.html\">Tagging Amazon RDS Resources</a> in the <i>Amazon RDS User Guide.</i> </p>"
     },
     "TagList":{
       "type":"list",
@@ -13512,6 +13974,24 @@
         }
       },
       "documentation":"<p/>"
+    },
+    "TargetDBClusterParameterGroupName":{
+      "type":"string",
+      "max":255,
+      "min":1,
+      "pattern":"[A-Za-z](?!.*--)[0-9A-Za-z-]*[^-]|^default(?!.*--)(?!.*\\.\\.)[0-9A-Za-z-.]*[^-]"
+    },
+    "TargetDBParameterGroupName":{
+      "type":"string",
+      "max":255,
+      "min":1,
+      "pattern":"[A-Za-z](?!.*--)[0-9A-Za-z-]*[^-]|^default(?!.*--)(?!.*\\.\\.)[0-9A-Za-z-.]*[^-]"
+    },
+    "TargetEngineVersion":{
+      "type":"string",
+      "max":64,
+      "min":1,
+      "pattern":"[0-9A-Za-z-_.]+"
     },
     "TargetGroupList":{
       "type":"list",
@@ -13705,15 +14185,15 @@
       "members":{
         "StorageType":{
           "shape":"String",
-          "documentation":"<p>The valid storage types for your DB instance. For example, gp2, io1.</p>"
+          "documentation":"<p>The valid storage types for your DB instance. For example: gp2, gp3, io1.</p>"
         },
         "StorageSize":{
           "shape":"RangeList",
-          "documentation":"<p>The valid range of storage in gibibytes (GiB). For example, 100 to 16384.</p>"
+          "documentation":"<p>The valid range of storage in gibibytes (GiB). For example, 100 to 16,384.</p>"
         },
         "ProvisionedIops":{
           "shape":"RangeList",
-          "documentation":"<p>The valid range of provisioned IOPS. For example, 1000-20000.</p>"
+          "documentation":"<p>The valid range of provisioned IOPS. For example, 1000-256,000.</p>"
         },
         "IopsToStorageRatio":{
           "shape":"DoubleRangeList",
@@ -13722,6 +14202,14 @@
         "SupportsStorageAutoscaling":{
           "shape":"Boolean",
           "documentation":"<p>Whether or not Amazon RDS can automatically scale storage for DB instances that use the new instance class.</p>"
+        },
+        "ProvisionedStorageThroughput":{
+          "shape":"RangeList",
+          "documentation":"<p>The valid range of provisioned storage throughput. For example, 500-4,000 mebibytes per second (MiBps).</p>"
+        },
+        "StorageThroughputToIopsRatio":{
+          "shape":"DoubleRangeList",
+          "documentation":"<p>The valid range of storage throughput to provisioned IOPS ratios. For example, 0-0.25.</p>"
         }
       },
       "documentation":"<p>Information about valid modifications that you can make to your DB instance. Contains the result of a successful call to the <code>DescribeValidDBInstanceModifications</code> action.</p>"

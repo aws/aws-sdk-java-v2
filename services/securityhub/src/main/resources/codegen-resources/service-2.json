@@ -2028,7 +2028,7 @@
           "documentation":"<p>Defines when a protected resource is transitioned to cold storage and when it expires. Backup transitions and expires backups automatically according to the lifecycle that you define. If you do not specify a lifecycle, Backup applies the lifecycle policy of the source backup to the destination backup.</p> <p>Backups transitioned to cold storage must be stored in cold storage for a minimum of 90 days.</p>"
         }
       },
-      "documentation":"<p>An array of <code>CopyAction</code> objects, which contains the details of the copy operation. </p>"
+      "documentation":"<p>An array of <code>CopyAction</code> objects, each of which contains details of the copy operation. </p>"
     },
     "AwsBackupBackupPlanRuleCopyActionsList":{
       "type":"list",
@@ -2067,7 +2067,7 @@
         },
         "CopyActions":{
           "shape":"AwsBackupBackupPlanRuleCopyActionsList",
-          "documentation":"<p>An array of <code>CopyAction</code> objects, which contains the details of the copy operation. </p>"
+          "documentation":"<p>An array of <code>CopyAction</code> objects, each of which contains details of the copy operation. </p>"
         },
         "Lifecycle":{
           "shape":"AwsBackupBackupPlanLifecycleDetails",
@@ -7645,9 +7645,17 @@
         "Version":{
           "shape":"NonEmptyString",
           "documentation":"<p>The version of the Lambda function.</p>"
+        },
+        "Architectures":{
+          "shape":"NonEmptyStringList",
+          "documentation":"<p>The instruction set architecture that the function uses. Valid values are <code>x86_64</code> or <code>arm64</code>.</p>"
+        },
+        "PackageType":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The type of deployment package that's used to deploy the function code to Lambda. Set to <code>Image</code> for a container image and <code>Zip</code> for a .zip file archive. </p>"
         }
       },
-      "documentation":"<p>Details about a function's configuration.</p>"
+      "documentation":"<p>Details about an Lambda function's configuration.</p>"
     },
     "AwsLambdaFunctionEnvironment":{
       "type":"structure",
@@ -12007,7 +12015,7 @@
         },
         "Regions":{
           "shape":"StringList",
-          "documentation":"<p>If <code>RegionLinkingMode</code> is <code>ALL_REGIONS_EXCEPT_SPECIFIED</code>, then this is a comma-separated list of Regions that do not aggregate findings to the aggregation Region.</p> <p>If <code>RegionLinkingMode</code> is <code>SPECIFIED_REGIONS</code>, then this is a comma-separated list of Regions that do aggregate findings to the aggregation Region. </p>"
+          "documentation":"<p>If <code>RegionLinkingMode</code> is <code>ALL_REGIONS_EXCEPT_SPECIFIED</code>, then this is a space-separated list of Regions that do not aggregate findings to the aggregation Region.</p> <p>If <code>RegionLinkingMode</code> is <code>SPECIFIED_REGIONS</code>, then this is a space-separated list of Regions that do aggregate findings to the aggregation Region. </p>"
         }
       }
     },
@@ -15141,6 +15149,14 @@
         "Remediation":{
           "shape":"NonEmptyString",
           "documentation":"<p>Describes the actions a customer can take to resolve the vulnerability in the software package. </p>"
+        },
+        "SourceLayerHash":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The source layer hash of the vulnerable package. </p>"
+        },
+        "SourceLayerArn":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the source layer. </p>"
         }
       },
       "documentation":"<p>Information about a software package.</p>"
@@ -15192,9 +15208,13 @@
         "EnabledByDefault":{
           "shape":"Boolean",
           "documentation":"<p>Whether the standard is enabled by default. When Security Hub is enabled from the console, if a standard is enabled by default, the check box for that standard is selected by default.</p> <p>When Security Hub is enabled using the <code>EnableSecurityHub</code> API operation, the standard is enabled by default unless <code>EnableDefaultStandards</code> is set to <code>false</code>.</p>"
+        },
+        "StandardsManagedBy":{
+          "shape":"StandardsManagedBy",
+          "documentation":"<p>Provides details about the management of a standard. </p>"
         }
       },
-      "documentation":"<p>Provides information about a specific standard.</p>"
+      "documentation":"<p>Provides information about a specific security standard.</p>"
     },
     "Standards":{
       "type":"list",
@@ -15254,6 +15274,20 @@
       "type":"map",
       "key":{"shape":"NonEmptyString"},
       "value":{"shape":"NonEmptyString"}
+    },
+    "StandardsManagedBy":{
+      "type":"structure",
+      "members":{
+        "Company":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>An identifier for the company that manages a specific security standard. For existing standards, the value is equal to <code>Amazon Web Services</code>.</p>"
+        },
+        "Product":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>An identifier for the product that manages a specific security standard. For existing standards, the value is equal to the Amazon Web Services service that manages the standard.</p>"
+        }
+      },
+      "documentation":"<p>Provides details about the management of a security standard.</p>"
     },
     "StandardsStatus":{
       "type":"string",
@@ -15640,7 +15674,7 @@
         },
         "Regions":{
           "shape":"StringList",
-          "documentation":"<p>If <code>RegionLinkingMode</code> is <code>ALL_REGIONS_EXCEPT_SPECIFIED</code>, then this is a comma-separated list of Regions that do not aggregate findings to the aggregation Region.</p> <p>If <code>RegionLinkingMode</code> is <code>SPECIFIED_REGIONS</code>, then this is a comma-separated list of Regions that do aggregate findings to the aggregation Region.</p>"
+          "documentation":"<p>If <code>RegionLinkingMode</code> is <code>ALL_REGIONS_EXCEPT_SPECIFIED</code>, then this is a space-separated list of Regions that do not aggregate findings to the aggregation Region.</p> <p>If <code>RegionLinkingMode</code> is <code>SPECIFIED_REGIONS</code>, then this is a space-separated list of Regions that do aggregate findings to the aggregation Region.</p>"
         }
       }
     },

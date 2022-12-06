@@ -1,0 +1,38 @@
+{
+  "version":"2.0",
+  "metadata":{
+    "apiVersion":"2010-05-08",
+    "endpointPrefix":"json-service-endpoint",
+    "globalEndpoint": "json-service.amazonaws.com",
+    "jsonVersion":"1.0",
+    "protocol":"json",
+    "serviceAbbreviation":"Aws Query Compatible Json Service",
+    "serviceFullName":"Some Service That Uses AWS Query Compatible Json Protocol",
+    "serviceId":"Aws Query Compatible Json Service",
+    "signingName": "aws-query-compatible-json-service",
+    "signatureVersion":"v4",
+    "uid":"aws-query-compatible-json-service-2010-05-08",
+    "awsQueryCompatible":{}
+  },
+  "operations":{
+    "AllType": {
+      "name": "APostOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "httpChecksumRequired": true
+    }
+  },
+  "shapes": {
+    "OneShape": {
+      "type": "structure",
+      "members": {
+        "StringMember": {
+          "shape": "String"
+        }
+      }
+    },
+    "String":{"type":"string"}
+  }
+}

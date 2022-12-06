@@ -74,6 +74,13 @@ public final class ChannelAttributeKey {
         "aws.http.nio.netty.async.channelDiagnostics");
 
     /**
+     * {@link AttributeKey} to keep track of whether the streaming is completed and this is set to true when we receive the *
+     * {@link LastHttpContent}.
+     */
+    public static final AttributeKey<Boolean> STREAMING_COMPLETE_KEY = NettyUtils.getOrCreateAttributeKey(
+        "aws.http.nio.netty.async.streamingComplete");
+
+    /**
      * {@link AttributeKey} to keep track of whether we should close the connection after this request
      * has completed.
      */
@@ -99,12 +106,6 @@ public final class ChannelAttributeKey {
 
     static final AttributeKey<Long> RESPONSE_DATA_READ = NettyUtils.getOrCreateAttributeKey(
         "aws.http.nio.netty.async.responseDataRead");
-
-    /**
-     * {@link AttributeKey} to keep track of whether we have received the {@link LastHttpContent}.
-     */
-    static final AttributeKey<Boolean> LAST_HTTP_CONTENT_RECEIVED_KEY = NettyUtils.getOrCreateAttributeKey(
-        "aws.http.nio.netty.async.lastHttpContentReceived");
 
     static final AttributeKey<CompletableFuture<Void>> EXECUTE_FUTURE_KEY = NettyUtils.getOrCreateAttributeKey(
             "aws.http.nio.netty.async.executeFuture");

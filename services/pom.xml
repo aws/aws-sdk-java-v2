@@ -17,7 +17,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.18.8-SNAPSHOT</version>
+        <version>2.18.32-SNAPSHOT</version>
     </parent>
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
@@ -338,6 +338,21 @@
         <module>iotfleetwise</module>
         <module>migrationhuborchestrator</module>
         <module>connectcases</module>
+        <module>resourceexplorer2</module>
+        <module>scheduler</module>
+        <module>ssmsap</module>
+        <module>chimesdkvoice</module>
+        <module>iotroborunner</module>
+        <module>oam</module>
+        <module>arczonalshift</module>
+        <module>simspaceweaver</module>
+        <module>securitylake</module>
+        <module>opensearchserverless</module>
+        <module>omics</module>
+        <module>docdbelastic</module>
+        <module>sagemakergeospatial</module>
+        <module>pipes</module>
+        <module>codecatalyst</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
@@ -391,6 +406,16 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>metrics-spi</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>json-utils</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>endpoints-spi</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
