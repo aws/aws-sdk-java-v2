@@ -16,40 +16,54 @@
 package software.amazon.awssdk.services.s3;
 
 import java.util.concurrent.Callable;
-import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.ListMultipartUploadsResponse;
+import software.amazon.awssdk.services.s3.model.ListPartsRequest;
+import software.amazon.awssdk.services.s3.model.ListPartsResponse;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartResponse;
 
-public class AsyncUploadMultiplePartIntegrationTest extends UploadMultiplePartTestBase {
+public class MissingUploadIdRequestIntegrationTest extends MissingUploadIdRequestTestBase {
 
     @Override
     public Callable<CreateMultipartUploadResponse> createMultipartUpload(String bucket, String key) {
-        return () -> s3Async.createMultipartUpload(b -> b.bucket(bucket).key(key)).join();
+        return () -> s3.createMultipartUpload(b -> b.bucket(bucket).key(key));
     }
 
     @Override
     public Callable<UploadPartResponse> uploadPart(UploadPartRequest request, String requestBody) {
-        return () -> s3Async.uploadPart(request, AsyncRequestBody.fromString(requestBody)).join();
+        return () -> s3.uploadPart(request, RequestBody.fromString(requestBody));
     }
 
     @Override
     public Callable<ListMultipartUploadsResponse> listMultipartUploads(String bucket) {
-        return () -> s3Async.listMultipartUploads(b -> b.bucket(bucket)).join();
+        return () -> s3.listMultipartUploads(b -> b.bucket(bucket));
+    }
+
+    @Override
+    public Callable<ListPartsResponse> listParts(ListPartsRequest request) {
+        return () -> s3.listParts(request);
     }
 
     @Override
     public Callable<CompleteMultipartUploadResponse> completeMultipartUpload(CompleteMultipartUploadRequest request) {
-        return () -> s3Async.completeMultipartUpload(request).join();
+        return () -> s3.completeMultipartUpload(request);
     }
 
     @Override
     public Callable<AbortMultipartUploadResponse> abortMultipartUploadResponseCallable(AbortMultipartUploadRequest request) {
-        return () -> s3Async.abortMultipartUpload(request).join();
+        return () -> s3.abortMultipartUpload(request);
     }
+
+    @Override
+    public Class<? extends Exception> expectedException() {
+        return SdkClientException.class;
+    }
+
 }

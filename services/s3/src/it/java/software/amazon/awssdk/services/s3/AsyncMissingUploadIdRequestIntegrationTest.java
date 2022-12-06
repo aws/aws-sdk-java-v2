@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.s3;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletionException;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadResponse;
@@ -23,10 +24,12 @@ import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.ListMultipartUploadsResponse;
+import software.amazon.awssdk.services.s3.model.ListPartsRequest;
+import software.amazon.awssdk.services.s3.model.ListPartsResponse;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartResponse;
 
-public class AsyncUploadMultiplePartIntegrationTest extends UploadMultiplePartTestBase {
+public class AsyncMissingUploadIdRequestIntegrationTest extends MissingUploadIdRequestTestBase {
 
     @Override
     public Callable<CreateMultipartUploadResponse> createMultipartUpload(String bucket, String key) {
@@ -44,6 +47,11 @@ public class AsyncUploadMultiplePartIntegrationTest extends UploadMultiplePartTe
     }
 
     @Override
+    public Callable<ListPartsResponse> listParts(ListPartsRequest request) {
+        return () -> s3Async.listParts(request).join();
+    }
+
+    @Override
     public Callable<CompleteMultipartUploadResponse> completeMultipartUpload(CompleteMultipartUploadRequest request) {
         return () -> s3Async.completeMultipartUpload(request).join();
     }
@@ -52,4 +60,10 @@ public class AsyncUploadMultiplePartIntegrationTest extends UploadMultiplePartTe
     public Callable<AbortMultipartUploadResponse> abortMultipartUploadResponseCallable(AbortMultipartUploadRequest request) {
         return () -> s3Async.abortMultipartUpload(request).join();
     }
+
+    @Override
+    public Class<? extends Exception> expectedException() {
+        return CompletionException.class;
+    }
+
 }
