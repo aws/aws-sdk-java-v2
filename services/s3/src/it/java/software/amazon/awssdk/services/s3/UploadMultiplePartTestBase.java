@@ -27,7 +27,6 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.core.ResponseBytes;
-import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadResponse;
@@ -151,7 +150,7 @@ public abstract class UploadMultiplePartTestBase extends S3IntegrationTestBase {
                                                                                                            .parts(completedParts)
                                                                                                            .build()).build());
 
-        assertThatThrownBy(completeMultipartUploadRequestCallable::call).isInstanceOf(SdkClientException.class);
+        assertThatThrownBy(completeMultipartUploadRequestCallable::call).isInstanceOf(expectedException());
     }
 
     @Test
@@ -174,7 +173,7 @@ public abstract class UploadMultiplePartTestBase extends S3IntegrationTestBase {
                                                                             .uploadId(null)
                                                                             .build());
 
-        assertThatThrownBy(abortMultipartUploadRequestCallable::call).isInstanceOf(SdkClientException.class);
+        assertThatThrownBy(abortMultipartUploadRequestCallable::call).isInstanceOf(expectedException());
     }
 
     @Test
@@ -189,7 +188,7 @@ public abstract class UploadMultiplePartTestBase extends S3IntegrationTestBase {
 
         // 2. Upload each part
         assertThatThrownBy(() -> uploadParts(key, null, partCount, contentsToUpload))
-            .isInstanceOf(SdkClientException.class);
+            .isInstanceOf(expectedException());
     }
 
     @Test
@@ -220,7 +219,7 @@ public abstract class UploadMultiplePartTestBase extends S3IntegrationTestBase {
                                                                                          .uploadId(null)
                                                                                          .build());
 
-        assertThatThrownBy(listPartsRequestCallable::call).isInstanceOf(SdkClientException.class);
+        assertThatThrownBy(listPartsRequestCallable::call).isInstanceOf(expectedException());
     }
 
     private void verifyMultipartUploadResult(String key, List<String> contentsToUpload) throws Exception {
@@ -262,4 +261,6 @@ public abstract class UploadMultiplePartTestBase extends S3IntegrationTestBase {
     public abstract Callable<CompleteMultipartUploadResponse> completeMultipartUpload(CompleteMultipartUploadRequest request);
 
     public abstract Callable<AbortMultipartUploadResponse> abortMultipartUploadResponseCallable(AbortMultipartUploadRequest request);
+
+    public abstract Class<? extends Exception> expectedException();
 }

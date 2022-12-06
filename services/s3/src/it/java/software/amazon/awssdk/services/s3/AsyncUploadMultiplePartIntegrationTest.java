@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.s3;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletionException;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadResponse;
@@ -59,4 +60,10 @@ public class AsyncUploadMultiplePartIntegrationTest extends UploadMultiplePartTe
     public Callable<AbortMultipartUploadResponse> abortMultipartUploadResponseCallable(AbortMultipartUploadRequest request) {
         return () -> s3Async.abortMultipartUpload(request).join();
     }
+
+    @Override
+    public Class<? extends Exception> expectedException() {
+        return CompletionException.class;
+    }
+
 }
