@@ -48,8 +48,8 @@ public class IntegrationTestBase extends AwsIntegrationTestBase {
         cloudFrontUtilities = cloudFrontClient.utilities();
         s3Client = S3Client.builder()
                      .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                     //.region(Region.US_EAST_1)
-                           .region( new DefaultAwsRegionProviderChain().getRegion())
+                     .region(Region.US_EAST_1)
+                           //.region( new DefaultAwsRegionProviderChain().getRegion())
                      .build();
     }
 
