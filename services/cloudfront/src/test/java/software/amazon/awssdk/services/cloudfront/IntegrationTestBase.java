@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.cloudfront;
 
 import org.junit.BeforeClass;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.services.cloudfront.model.GetDistributionRequest;
 import software.amazon.awssdk.services.cloudfront.model.GetDistributionResponse;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -45,10 +46,10 @@ public class IntegrationTestBase extends AwsIntegrationTestBase {
                                            .build();
 
         cloudFrontUtilities = cloudFrontClient.utilities();
-
         s3Client = S3Client.builder()
                      .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                     .region(Region.US_EAST_1)
+                     //.region(Region.US_EAST_1)
+                           .region( new DefaultAwsRegionProviderChain().getRegion())
                      .build();
     }
 

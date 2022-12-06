@@ -89,7 +89,7 @@ import software.amazon.awssdk.utils.StringUtils;
 
 public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
     private static final Base64.Encoder encoder = Base64.getEncoder();
-    private static final String callerReference = Instant.now().toString().substring(0,10);
+    private static final String callerReference = String.valueOf(Instant.now().getEpochSecond());
     private static final String bucketName = StringUtils.lowerCase(CloudFrontUtilitiesIntegrationTest.class.getSimpleName())
                                              + "." + callerReference;
     private static final String s3ObjectKey = "s3ObjectKey";
@@ -304,14 +304,14 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
             CreateCloudFrontOriginAccessIdentityRequest.builder()
                                                        .cloudFrontOriginAccessIdentityConfig(CloudFrontOriginAccessIdentityConfig.builder()
                                                                                                                                  .callerReference(callerReference)
-                                                                                                                                 .comment("SignerTestAccessIdentity")
+                                                                                                                                 .comment("SignerTestAccessIdentity" + callerReference)
                                                                                                                                  .build())
                                                        .build());
         originAccessId = response.cloudFrontOriginAccessIdentity().id();
 
         KeyGroup keyGroup =
             cloudFrontClient.createKeyGroup(CreateKeyGroupRequest.builder().keyGroupConfig(KeyGroupConfig.builder()
-                                                                                                     .name("TestKeyGroup")
+                                                                                                     .name("TestKeyGroup" + callerReference)
                                                                                                      .items(keyPairId)
                                                                                                      .build()).build()).keyGroup();
         keyGroupId = keyGroup.id();
@@ -354,7 +354,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
                                                                          .cacheBehaviors(CacheBehaviors.builder()
                                                                                                        .quantity(1)
                                                                                                        .items(cacheBehavior).build())
-                                                                         .comment("PresignerTestDistribution")
+                                                                         .comment("PresignerTestDistribution" + callerReference)
                                                                          .defaultRootObject("")
                                                                          .enabled(true)
                                                                          .origins(Origins.builder()
@@ -408,7 +408,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
         CreatePublicKeyResponse publicKeyResponse =
             cloudFrontClient.createPublicKey(CreatePublicKeyRequest.builder().publicKeyConfig(PublicKeyConfig.builder()
                                                                                                              .callerReference(callerReference)
-                                                                                                             .name("testKey")
+                                                                                                             .name("testKey" + callerReference)
                                                                                                              .encodedKey(encodedKey).build()).build());
         keyPairId = publicKeyResponse.publicKey().id();
     }
