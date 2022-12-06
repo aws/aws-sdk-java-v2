@@ -1,3 +1,33 @@
+# __2.18.32__ __2022-12-06__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Adding utilities for signing CloudFront URLs and cookies
+    - Updated endpoint and partition metadata.
+
+## __AWSBillingConductor__
+  - ### Features
+    - This release adds the Tiering Pricing Rule feature.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release provides APIs that enable you to programmatically manage rules for Contact Lens conversational analytics and third party applications. For more information, see https://docs.aws.amazon.com/connect/latest/APIReference/rules-api.html
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Endpoint Ruleset update: Use http instead of https for the "local" region.
+
+## __Amazon DynamoDB Streams__
+  - ### Features
+    - Endpoint Ruleset update: Use http instead of https for the "local" region.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds the BlueGreenDeploymentNotFoundFault to the AddTagsToResource, ListTagsForResource, and RemoveTagsFromResource operations.
+
+## __Amazon SageMaker Feature Store Runtime__
+  - ### Features
+    - For online + offline Feature Groups, added ability to target PutRecord and DeleteRecord actions to only online store, or only offline store. If target store parameter is not specified, actions will apply to both stores.
+
 # __2.18.31__ __2022-12-05__
 ## __AWS Cost Explorer Service__
   - ### Features

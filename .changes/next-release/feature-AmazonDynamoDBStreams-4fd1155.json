@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon DynamoDB Streams",
-    "contributor": "",
-    "description": "Endpoint Ruleset update: Use http instead of https for the \"local\" region."
-}
