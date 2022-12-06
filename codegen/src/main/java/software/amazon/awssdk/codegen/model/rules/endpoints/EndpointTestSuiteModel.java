@@ -15,11 +15,12 @@
 
 package software.amazon.awssdk.codegen.model.rules.endpoints;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class EndpointTestSuiteModel {
 
-    private List<EndpointTestModel> testCases;
+    private List<EndpointTestModel> testCases = new ArrayList<>();
 
     public List<EndpointTestModel> getTestCases() {
         return testCases;

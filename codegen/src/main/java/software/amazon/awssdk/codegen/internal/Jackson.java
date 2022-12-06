@@ -58,6 +58,10 @@ public final class Jackson {
         return MAPPER.beanFrom(clazz, file);
     }
 
+    public static <T> T load(Class<T> clazz, String content) throws IOException {
+        return MAPPER.beanFrom(clazz, content);
+    }
+
     public static <T> T load(Class<T> clazz, File file, boolean failOnUnknownProperties) throws IOException {
         if (failOnUnknownProperties) {
             return FAIL_ON_UNKNOWN_PROPERTIES_MAPPER.beanFrom(clazz, file);

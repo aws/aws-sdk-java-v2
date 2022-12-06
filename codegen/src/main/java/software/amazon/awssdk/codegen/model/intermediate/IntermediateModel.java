@@ -172,10 +172,16 @@ public final class IntermediateModel {
     }
 
     public EndpointRuleSetModel getEndpointRuleSetModel() {
+        if (endpointRuleSetModel == null) {
+            endpointRuleSetModel = EndpointRuleSetModel.defaultRules(metadata.getEndpointPrefix());
+        }
         return endpointRuleSetModel;
     }
 
     public EndpointTestSuiteModel getEndpointTestSuiteModel() {
+        if (endpointTestSuiteModel == null) {
+            endpointTestSuiteModel = new EndpointTestSuiteModel();
+        }
         return endpointTestSuiteModel;
     }
 
