@@ -22,6 +22,7 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.services.cloudfront.url.SignedUrl;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -53,7 +54,9 @@ public final class DefaultSignedUrl implements SignedUrl, ToCopyableBuilder<Defa
 
     @Override
     public String toString() {
-        return "CloudFront Signed URL: " + url();
+        return ToString.builder("DefaultSignedUrl")
+                       .add("url", url)
+                       .build();
     }
 
     @Override

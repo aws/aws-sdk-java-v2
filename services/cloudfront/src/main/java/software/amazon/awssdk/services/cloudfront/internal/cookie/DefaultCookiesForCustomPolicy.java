@@ -23,6 +23,7 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.services.cloudfront.cookie.CookiesForCustomPolicy;
+import software.amazon.awssdk.utils.ToString;
 
 @Immutable
 @ThreadSafe
@@ -52,11 +53,12 @@ public final class DefaultCookiesForCustomPolicy implements CookiesForCustomPoli
 
     @Override
     public String toString() {
-        return "CloudFront Cookies for Custom Policy:\n"
-               + "Key-Pair-Id Header Value = " + keyPairIdHeaderValue + "\n"
-               + "Signature Header Value = " + signatureHeaderValue + "\n"
-               + "Policy Header Value = " + policyHeaderValue + "\n"
-               + "Resource URL = " + resourceUrl;
+        return ToString.builder("DefaultCookiesForCustomPolicy")
+                       .add("resourceUrl", resourceUrl)
+                       .add("signatureHeaderValue", signatureHeaderValue)
+                       .add("keyPairIdHeaderValue", keyPairIdHeaderValue)
+                       .add("policyHeaderValue", policyHeaderValue)
+                       .build();
     }
 
     @Override

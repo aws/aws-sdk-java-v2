@@ -23,6 +23,7 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.services.cloudfront.cookie.CookiesForCannedPolicy;
+import software.amazon.awssdk.utils.ToString;
 
 @Immutable
 @ThreadSafe
@@ -52,11 +53,12 @@ public final class DefaultCookiesForCannedPolicy implements CookiesForCannedPoli
 
     @Override
     public String toString() {
-        return "CloudFront Cookies for Canned Policy:\n"
-               + "Resource URL = " + resourceUrl + "\n"
-               + "Signature Header Value = " + signatureHeaderValue + "\n"
-               + "Key-Pair-Id Header Value = " + keyPairIdHeaderValue + "\n"
-               + "Expires Header Value = " + expiresHeaderValue;
+        return ToString.builder("DefaultCookiesForCannedPolicy")
+                       .add("resourceUrl", resourceUrl)
+                       .add("signatureHeaderValue", signatureHeaderValue)
+                       .add("keyPairIdHeaderValue", keyPairIdHeaderValue)
+                       .add("expiresHeaderValue", expiresHeaderValue)
+                       .build();
     }
 
     @Override
