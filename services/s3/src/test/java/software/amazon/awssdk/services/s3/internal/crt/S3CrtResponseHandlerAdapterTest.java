@@ -17,12 +17,16 @@ package software.amazon.awssdk.services.s3.internal.crt;
 
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,6 +34,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.reactivestreams.Publisher;
+import software.amazon.awssdk.core.async.DrainingSubscriber;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.s3.S3FinishedResponseContext;
@@ -41,11 +47,7 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 public class S3CrtResponseHandlerAdapterTest {
     private S3CrtResponseHandlerAdapter responseHandlerAdapter;
 
-    @Mock
-    private SdkAsyncHttpResponseHandler sdkResponseHandler;
-
-    @Mock
-    private S3CrtDataPublisher crtDataPublisher;
+    private TestResponseHandler sdkResponseHandler;
 
     @Mock
     private S3FinishedResponseContext context;
@@ -57,15 +59,15 @@ public class S3CrtResponseHandlerAdapterTest {
     @Before
     public void setup() {
         future = new CompletableFuture<>();
+        sdkResponseHandler = new TestResponseHandler();
         responseHandlerAdapter = new S3CrtResponseHandlerAdapter(future,
-                                                                 sdkResponseHandler,
-                                                                 crtDataPublisher);
+                                                                 sdkResponseHandler);
 
         responseHandlerAdapter.metaRequest(s3MetaRequest);
     }
 
     @Test
-    public void successfulResponse_shouldCompleteFutureSuccessfully() {
+    public void successfulResponse_shouldCompleteFutureSuccessfully() throws Exception {
         HttpHeader[] httpHeaders = new HttpHeader[2];
         httpHeaders[0] = new HttpHeader("foo", "1");
         httpHeaders[1] = new HttpHeader("bar", "2");
@@ -73,18 +75,16 @@ public class S3CrtResponseHandlerAdapterTest {
         int statusCode = 200;
         responseHandlerAdapter.onResponseHeaders(statusCode, httpHeaders);
 
-        ArgumentCaptor<SdkHttpResponse> argumentCaptor = ArgumentCaptor.forClass(SdkHttpResponse.class);
-        verify(sdkResponseHandler).onHeaders(argumentCaptor.capture());
-
-        SdkHttpResponse actualSdkHttpResponse = argumentCaptor.getValue();
+        SdkHttpResponse actualSdkHttpResponse = sdkResponseHandler.sdkHttpResponse;
         assertThat(actualSdkHttpResponse.statusCode()).isEqualTo(statusCode);
         assertThat(actualSdkHttpResponse.firstMatchingHeader("foo")).contains("1");
         assertThat(actualSdkHttpResponse.firstMatchingHeader("bar")).contains("2");
-
-        verify(sdkResponseHandler).onStream(crtDataPublisher);
+        stubOnResponseBody();
 
         responseHandlerAdapter.onFinished(stubResponseContext(0, 0, null));
+        future.get(5, TimeUnit.SECONDS);
         assertThat(future).isCompleted();
+        verify(s3MetaRequest, times(2)).incrementReadWindow(11L);
         verify(s3MetaRequest).close();
     }
 
@@ -98,14 +98,7 @@ public class S3CrtResponseHandlerAdapterTest {
         responseHandlerAdapter.onResponseHeaders(statusCode, httpHeaders);
         responseHandlerAdapter.onResponseBody(null, 0, 0);
 
-        ArgumentCaptor<SdkHttpResponse> argumentCaptor = ArgumentCaptor.forClass(SdkHttpResponse.class);
-        verify(sdkResponseHandler).onHeaders(argumentCaptor.capture());
-
-        ArgumentCaptor<Exception> exceptionArgumentCaptor = ArgumentCaptor.forClass(Exception.class);
-        verify(crtDataPublisher).notifyError(exceptionArgumentCaptor.capture());
-        verify(sdkResponseHandler).onError(exceptionArgumentCaptor.capture());
-
-        Exception actualException = exceptionArgumentCaptor.getValue();
+        Throwable actualException = sdkResponseHandler.error;
         assertThat(actualException).isInstanceOf(IllegalStateException.class).hasMessageContaining("ByteBuffer delivered is "
                                                                                                    + "null");
         assertThat(future).isCompletedExceptionally();
@@ -117,25 +110,14 @@ public class S3CrtResponseHandlerAdapterTest {
         int statusCode = 400;
         responseHandlerAdapter.onResponseHeaders(statusCode, new HttpHeader[0]);
 
-        ArgumentCaptor<SdkHttpResponse> argumentCaptor = ArgumentCaptor.forClass(SdkHttpResponse.class);
-        verify(sdkResponseHandler).onHeaders(argumentCaptor.capture());
-
-        SdkHttpResponse actualSdkHttpResponse = argumentCaptor.getValue();
+        SdkHttpResponse actualSdkHttpResponse = sdkResponseHandler.sdkHttpResponse;
         assertThat(actualSdkHttpResponse.statusCode()).isEqualTo(400);
         assertThat(actualSdkHttpResponse.headers()).isEmpty();
 
-        verify(sdkResponseHandler).onStream(crtDataPublisher);
-
         byte[] errorPayload = "errorResponse".getBytes(StandardCharsets.UTF_8);
+        stubOnResponseBody();
 
         responseHandlerAdapter.onFinished(stubResponseContext(1, statusCode, errorPayload));
-
-        ArgumentCaptor<ByteBuffer> byteBufferArgumentCaptor = ArgumentCaptor.forClass(ByteBuffer.class);
-        verify(crtDataPublisher).deliverData(byteBufferArgumentCaptor.capture());
-
-        ByteBuffer actualByteBuffer = byteBufferArgumentCaptor.getValue();
-
-        assertThat(actualByteBuffer).isEqualTo(ByteBuffer.wrap(errorPayload));
 
         assertThat(future).isCompleted();
         verify(s3MetaRequest).close();
@@ -145,14 +127,11 @@ public class S3CrtResponseHandlerAdapterTest {
     public void requestFailed_shouldCompleteFutureExceptionally() {
 
         responseHandlerAdapter.onFinished(stubResponseContext(1, 0, null));
-
-        ArgumentCaptor<Exception> exceptionArgumentCaptor = ArgumentCaptor.forClass(Exception.class);
-        verify(crtDataPublisher).notifyError(exceptionArgumentCaptor.capture());
-        verify(sdkResponseHandler).onError(exceptionArgumentCaptor.capture());
-
-        Exception actualException = exceptionArgumentCaptor.getValue();
-        assertThat(actualException).isInstanceOf(SdkClientException.class);
+        Throwable actualException = sdkResponseHandler.error;
+        String message = "Failed to send the request";
+        assertThat(actualException).isInstanceOf(SdkClientException.class).hasMessageContaining(message);
         assertThat(future).isCompletedExceptionally();
+        assertThatThrownBy(() -> future.join()).hasRootCauseInstanceOf(SdkClientException.class).hasMessageContaining(message);
         verify(s3MetaRequest).close();
     }
 
@@ -162,5 +141,29 @@ public class S3CrtResponseHandlerAdapterTest {
         when(context.getResponseStatus()).thenReturn(responseStatus);
         when(context.getErrorPayload()).thenReturn(errorPayload);
         return context;
+    }
+
+    private void stubOnResponseBody() {
+        responseHandlerAdapter.onResponseBody(ByteBuffer.wrap("helloworld1".getBytes()), 1, 2);
+        responseHandlerAdapter.onResponseBody(ByteBuffer.wrap("helloworld2".getBytes()), 1, 2);
+    }
+
+    private static final class TestResponseHandler implements SdkAsyncHttpResponseHandler {
+        private SdkHttpResponse sdkHttpResponse;
+        private Throwable error;
+        @Override
+        public void onHeaders(SdkHttpResponse headers) {
+            this.sdkHttpResponse = headers;
+        }
+
+        @Override
+        public void onStream(Publisher<ByteBuffer> stream) {
+            stream.subscribe(new DrainingSubscriber<>());
+        }
+
+        @Override
+        public void onError(Throwable error) {
+            this.error = error;
+        }
     }
 }
