@@ -82,6 +82,7 @@ public class S3TransferManagerUploadIntegrationTest extends S3IntegrationTestBas
                 .isEqualTo(ChecksumUtils.computeCheckSum(obj));
         assertThat(obj.response().responseMetadata().requestId()).isNotNull();
         assertThat(obj.response().metadata()).containsEntry("foobar", "FOO BAR");
+        assertThat(fileUpload.progress().snapshot().sdkResponse()).isPresent();
     }
 
     @Test
@@ -105,5 +106,6 @@ public class S3TransferManagerUploadIntegrationTest extends S3IntegrationTestBas
         assertThat(ChecksumUtils.computeCheckSum(content.getBytes(StandardCharsets.UTF_8)))
             .isEqualTo(ChecksumUtils.computeCheckSum(obj));
         assertThat(obj.response().responseMetadata().requestId()).isNotNull();
+        assertThat(upload.progress().snapshot().sdkResponse()).isPresent();
     }
 }

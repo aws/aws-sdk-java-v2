@@ -17,6 +17,7 @@ package software.amazon.awssdk.transfer.s3.model;
 
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.SdkResponse;
 
 /**
  * A completed single object transfer.
@@ -29,4 +30,11 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 @SdkPublicApi
 @SdkPreviewApi
 public interface CompletedObjectTransfer extends CompletedTransfer {
+
+    /**
+     * Return the {@link SdkResponse} associated with this transfer
+     */
+    default SdkResponse response() {
+        throw new UnsupportedOperationException();
+    }
 }
