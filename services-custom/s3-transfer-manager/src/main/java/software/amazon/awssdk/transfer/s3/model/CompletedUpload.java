@@ -39,6 +39,7 @@ public final class CompletedUpload implements CompletedObjectTransfer {
         this.response = Validate.paramNotNull(builder.response, "response");
     }
 
+    @Override
     public PutObjectResponse response() {
         return response;
     }

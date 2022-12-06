@@ -72,7 +72,7 @@ public class S3IntegrationTestBase extends AwsTestBase {
                                      .region(DEFAULT_REGION)
                                      .build();
         tm = S3TransferManager.builder()
-                              .s3AsyncClient(s3CrtAsync)
+                              .s3Client(s3CrtAsync)
                               .build();
     }
 

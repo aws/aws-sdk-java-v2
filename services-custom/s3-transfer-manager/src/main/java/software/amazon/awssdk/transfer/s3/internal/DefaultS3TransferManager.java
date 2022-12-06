@@ -136,8 +136,8 @@ public final class DefaultS3TransferManager implements S3TransferManager {
 
     private static TransferManagerConfiguration resolveTransferManagerConfiguration(DefaultBuilder tmBuilder) {
         TransferManagerConfiguration.Builder transferConfigBuilder = TransferManagerConfiguration.builder();
-        transferConfigBuilder.followSymbolicLinks(tmBuilder.followSymbolicLinks);
-        transferConfigBuilder.maxDepth(tmBuilder.maxDepth);
+        transferConfigBuilder.uploadDirectoryFollowSymbolicLinks(tmBuilder.uploadDirectoryFollowSymbolicLinks);
+        transferConfigBuilder.uploadDirectoryMaxDepth(tmBuilder.uploadDirectoryMaxDepth);
         transferConfigBuilder.executor(tmBuilder.executor);
         return transferConfigBuilder.build();
     }
@@ -581,14 +581,14 @@ public final class DefaultS3TransferManager implements S3TransferManager {
     private static final class DefaultBuilder implements S3TransferManager.Builder {
         private S3AsyncClient s3AsyncClient;
         private Executor executor;
-        private Boolean followSymbolicLinks;
-        private Integer maxDepth;
+        private Boolean uploadDirectoryFollowSymbolicLinks;
+        private Integer uploadDirectoryMaxDepth;
 
         private DefaultBuilder() {
         }
 
         @Override
-        public Builder s3AsyncClient(S3AsyncClient s3AsyncClient) {
+        public Builder s3Client(S3AsyncClient s3AsyncClient) {
             this.s3AsyncClient = s3AsyncClient;
             return this;
         }
@@ -600,31 +600,31 @@ public final class DefaultS3TransferManager implements S3TransferManager {
         }
 
         @Override
-        public Builder followSymbolicLinks(Boolean followSymbolicLinks) {
-            this.followSymbolicLinks = followSymbolicLinks;
+        public Builder uploadDirectoryFollowSymbolicLinks(Boolean uploadDirectoryFollowSymbolicLinks) {
+            this.uploadDirectoryFollowSymbolicLinks = uploadDirectoryFollowSymbolicLinks;
             return this;
         }
 
-        public void setFollowSymbolicLinks(Boolean followSymbolicLinks) {
-            followSymbolicLinks(followSymbolicLinks);
+        public void setUploadDirectoryFollowSymbolicLinks(Boolean followSymbolicLinks) {
+            uploadDirectoryFollowSymbolicLinks(followSymbolicLinks);
         }
 
-        public Boolean getFollowSymbolicLinks() {
-            return followSymbolicLinks;
+        public Boolean getUploadDirectoryFollowSymbolicLinks() {
+            return uploadDirectoryFollowSymbolicLinks;
         }
 
         @Override
-        public Builder maxDepth(Integer maxDepth) {
-            this.maxDepth = maxDepth;
+        public Builder uploadDirectoryMaxDepth(Integer uploadDirectoryMaxDepth) {
+            this.uploadDirectoryMaxDepth = uploadDirectoryMaxDepth;
             return this;
         }
 
-        public void setMaxDepth(Integer maxDepth) {
-            maxDepth(maxDepth);
+        public void setUploadDirectoryMaxDepth(Integer uploadDirectoryMaxDepth) {
+            uploadDirectoryMaxDepth(uploadDirectoryMaxDepth);
         }
 
-        public Integer getMaxDepth() {
-            return maxDepth;
+        public Integer getUploadDirectoryMaxDepth() {
+            return uploadDirectoryMaxDepth;
         }
 
         @Override
