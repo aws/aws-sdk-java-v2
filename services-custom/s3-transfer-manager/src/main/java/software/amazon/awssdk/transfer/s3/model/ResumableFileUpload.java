@@ -197,7 +197,7 @@ public final class ResumableFileUpload implements ResumableTransfer,
     }
 
     /**
-     * Deserialize data at the given path into a {@link ResumableFileUpload}.
+     * Deserializes data at the given path into a {@link ResumableFileUpload}.
      *
      * @param path The {@link Path} to the file with serialized data
      * @return the deserialized {@link ResumableFileUpload}
@@ -211,7 +211,7 @@ public final class ResumableFileUpload implements ResumableTransfer,
     }
 
     /**
-     * Deserialize bytes with JSON data into a {@link ResumableFileUpload}.
+     * Deserializes bytes with JSON data into a {@link ResumableFileUpload}.
      *
      * @param bytes the serialized data
      * @return the deserialized {@link ResumableFileUpload}
@@ -221,7 +221,7 @@ public final class ResumableFileUpload implements ResumableTransfer,
     }
 
     /**
-     * Deserialize a string with JSON data into a {@link ResumableFileUpload}.
+     * Deserializes a string with JSON data into a {@link ResumableFileUpload}.
      *
      * @param contents the serialized data
      * @return the deserialized {@link ResumableFileUpload}

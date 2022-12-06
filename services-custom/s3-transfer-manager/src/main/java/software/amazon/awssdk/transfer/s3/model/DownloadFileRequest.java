@@ -55,7 +55,7 @@ public final class DownloadFileRequest
     }
 
     /**
-     * Create a builder that can be used to create a {@link DownloadFileRequest}.
+     * Creates a builder that can be used to create a {@link DownloadFileRequest}.
      *
      * @see S3TransferManager#downloadFile(DownloadFileRequest)
      */

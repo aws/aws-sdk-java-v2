@@ -106,7 +106,7 @@ public final class CompletedDirectoryUpload implements CompletedDirectoryTransfe
         Builder failedTransfers(Collection<FailedFileUpload> failedTransfers);
 
         /**
-         * Add a {@link FailedFileUpload}
+         * Adds a {@link FailedFileUpload}
          *
          * @param failedTransfer failed upload
          * @return This builder for method chaining.

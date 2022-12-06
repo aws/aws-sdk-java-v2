@@ -22,6 +22,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -54,10 +55,10 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * The S3 Transfer Manager is a library that allows users to easily perform accelerated uploads and downloads of objects to and
- * from Amazon S3 and benefit from enhanced throughput and reliability, which is achieved through concurrent transfers of a set of
- * small parts from a single object. The Transfer Manager is built on top of the Java bindings of the AWS Common Runtime S3 client
- * and leverages Amazon S3 multipart upload and byte-range fetches for parallel transfers.
+ * The S3 Transfer Manager offers a simple API to allow you to transfer a single object or a set of objects to and
+ * from Amazon S3 with enhanced throughput and reliability. It leverages Amazon S3 multipart upload and
+ * byte-range fetches to perform transfers in parallel. In addition, the S3 Transfer Manager also enables you to
+ * monitor a transfer's progress in real-time, as well as pause the transfer for execution at a later time.
  *
  * <h1>Instantiate Transfer Manager</h1>
  * <b>Create a transfer manager instance with SDK default settings</b>
@@ -77,15 +78,18 @@ import software.amazon.awssdk.utils.Validate;
  * {@snippet class = software.amazon.awssdk.transfer.s3.samples.S3TransferManagerSamples region = copy}
  */
 @SdkPublicApi
+@ThreadSafe
 @SdkPreviewApi
 public interface S3TransferManager extends SdkAutoCloseable {
 
     /**
-     * Download an object identified by the bucket and key from S3 to a local file. For non-file-based downloads, you may use
+     * Downloads an object identified by the bucket and key from S3 to a local file. For non-file-based downloads, you may use
      * {@link #download(DownloadRequest)} instead.
      * <p>
-     *  The SDK will create a new file if the provided one doesn't exist, otherwise replace the existing file. In the
-     *  event of an error, the SDK will NOT attempt to delete the file, leaving it as-is.
+     * The SDK will create a new file if the provided one doesn't exist. The default permission for the new file depends on
+     * the file system and platform. Users can configure the permission on the file using Java API by themselves.
+     * If the file already exists, the SDK will replace it. In the event of an error, the SDK will <b>NOT</b> attempt to delete
+     * the file, leaving it as-is.
      * <p>
      * <b>Usage Example:</b>
      * {@snippet class=software.amazon.awssdk.transfer.s3.samples.S3TransferManagerSamples region=downloadFile }
@@ -108,10 +112,13 @@ public interface S3TransferManager extends SdkAutoCloseable {
     }
 
     /**
-     * Resumes a downloadFile operation. This download operation uses the same configuration as the original download. Any data
-     * already fetched will be skipped, and only the remaining data is retrieved from Amazon S3. If it is determined that the S3
-     * object to download or the file has be modified since the last pause, the SDK will download the object from the beginning
-     * as if it is a new {@link DownloadFileRequest} and replace the existing file.
+     * Resumes a downloadFile operation. This download operation uses the same configuration as the original download. Any content
+     * that has already been fetched since the last pause will be skipped and only the remaining data will be downloaded from
+     * Amazon S3.
+     *
+     * <p>
+     * If it is determined that the source S3 object or the destination file has be modified since the last pause, the SDK
+     * will download the object from the beginning as if it is a new {@link DownloadFileRequest}.
      *
      * <p>
      * <b>Usage Example:</b>
@@ -138,7 +145,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
     }
 
     /**
-     * Download an object identified by the bucket and key from S3 through the given {@link AsyncResponseTransformer}. For 
+     * Downloads an object identified by the bucket and key from S3 through the given {@link AsyncResponseTransformer}. For
      * downloading to a file, you may use {@link #downloadFile(DownloadFileRequest)} instead.
      * <p>
      * <b>Usage Example (this example buffers the entire object in memory and is not suitable for large objects):</b>
@@ -168,7 +175,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
     }
 
     /**
-     * Upload a local file to an object in S3. For non-file-based uploads, you may use {@link #upload(UploadRequest)} instead.
+     * Uploads a local file to an object in S3. For non-file-based uploads, you may use {@link #upload(UploadRequest)} instead.
      * <p>
      * <b>Usage Example:</b>
      * {@snippet class=software.amazon.awssdk.transfer.s3.samples.S3TransferManagerSamples region=uploadFile }
@@ -191,10 +198,12 @@ public interface S3TransferManager extends SdkAutoCloseable {
     }
 
     /**
-     * Resumes uploadFile operation. This upload operation uses the same configuration as the original upload. Any data
-     * already uploaded will be skipped, and only the remaining data is uploaded to Amazon S3. If it is determined that the file
-     * has be modified since the last pause, the SDK will upload the object from the beginning
-     * as if it is a new {@link UploadFileRequest}.
+     * Resumes uploadFile operation. This upload operation will use the same configuration provided in
+     * {@link ResumableFileUpload}. The SDK will skip the data that has already been upload since the last pause
+     * and only upload the remaining data from the source file.
+     * <p>
+     * If it is determined that the source file has be modified since the last pause, the SDK will upload the object from the
+     * beginning as if it is a new {@link UploadFileRequest}.
      *
      * <p>
      * <b>Usage Example:</b>
@@ -220,7 +229,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
     }
 
     /**
-     * Upload the given {@link AsyncRequestBody} to an object in S3. For file-based uploads, you may use
+     * Uploads the given {@link AsyncRequestBody} to an object in S3. For file-based uploads, you may use
      * {@link #uploadFile(UploadFileRequest)} instead.
      * <p>
      * <b>Usage Example:</b>
@@ -248,7 +257,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
     }
 
     /**
-     * Upload all files under the given directory to the provided S3 bucket. The key name transformation depends on the optional
+     * Uploads all files under the given directory to the provided S3 bucket. The key name transformation depends on the optional
      * prefix and delimiter provided in the {@link UploadDirectoryRequest}. By default, all subdirectories will be uploaded
      * recursively, and symbolic links are not followed automatically.
      * This behavior can be configured in at request level via
@@ -314,7 +323,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
     }
 
     /**
-     * Download all objects under a specific prefix and bucket to the provided directory. By default, all objects in the entire
+     * Downloads all objects under a specific prefix and bucket to the provided directory. By default, all objects in the entire
      * bucket will be downloaded.
      *
      * <p>
@@ -435,7 +444,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
     interface Builder {
 
         /**
-         * Specify the low level {@link S3AsyncClient} that will be used to send requests to S3. The SDK will create a default
+         * Specifies the low level {@link S3AsyncClient} that will be used to send requests to S3. The SDK will create a default
          * {@link S3AsyncClient} if not provided.
          *
          * <p>
@@ -453,8 +462,8 @@ public interface S3TransferManager extends SdkAutoCloseable {
         Builder s3Client(S3AsyncClient s3AsyncClient);
 
         /**
-         * Specify the executor that {@link S3TransferManager} will use to execute background tasks before handing them off to the
-         * underlying S3 async client, such as visiting file tree in a
+         * Specifies the executor that {@link S3TransferManager} will use to execute background tasks before handing them off to
+         * the underlying S3 async client, such as visiting file tree in a
          * {@link S3TransferManager#uploadDirectory(UploadDirectoryRequest)}
          * operation
          *
@@ -471,7 +480,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
         Builder executor(Executor executor);
 
         /**
-         * Specify whether to follow symbolic links when traversing the file tree in
+         * Specifies whether to follow symbolic links when traversing the file tree in
          * {@link S3TransferManager#uploadDirectory} operation
          * <p>
          * Default to false
@@ -482,7 +491,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
         Builder uploadDirectoryFollowSymbolicLinks(Boolean uploadDirectoryFollowSymbolicLinks);
 
         /**
-         * Specify the maximum number of levels of directories to visit in {@link S3TransferManager#uploadDirectory} operation.
+         * Specifies the maximum number of levels of directories to visit in {@link S3TransferManager#uploadDirectory} operation.
          * Must be positive. 1 means only the files directly within
          * the provided source directory are visited.
          *
@@ -495,7 +504,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
         Builder uploadDirectoryMaxDepth(Integer uploadDirectoryMaxDepth);
 
         /**
-         * Build an instance of {@link S3TransferManager} based on the settings supplied to this builder
+         * Builds an instance of {@link S3TransferManager} based on the settings supplied to this builder
          *
          * @return an instance of {@link S3TransferManager}
          */
