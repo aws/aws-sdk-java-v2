@@ -24,7 +24,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.transfer.s3.model.FileDownload;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
@@ -36,7 +35,6 @@ public class TransferManagerDownloadBenchmark extends BaseTransferManagerBenchma
     public TransferManagerDownloadBenchmark(TransferManagerBenchmarkConfig config) {
         super(config);
         Validate.notNull(config.key(), "Key must not be null");
-        Validate.notNull(config.filePath(), "File path must not be null");
         this.contentLength = s3Sync.headObject(b -> b.bucket(bucket).key(key)).contentLength();
     }
 
@@ -97,8 +95,12 @@ public class TransferManagerDownloadBenchmark extends BaseTransferManagerBenchma
 
     private void downloadOnceToMemory(List<Double> latencies) throws Exception {
         long start = System.currentTimeMillis();
-        s3.getObject(GetObjectRequest.builder().bucket(bucket).key(key).build(),
-                     new NoOpResponseTransformer()).get(10, TimeUnit.MINUTES);
+        transferManager.download(r -> r.responseTransformer(new NoOpResponseTransformer())
+                                       .getObjectRequest(b -> b.bucket(bucket).key(key)))
+                       .completionFuture()
+                       .get(10, TimeUnit.MINUTES);
+        // s3.getObject(GetObjectRequest.builder().bucket(bucket).key(key).build(),
+        //              new NoOpResponseTransformer()).get(10, TimeUnit.MINUTES);
         long end = System.currentTimeMillis();
         latencies.add((end - start) / 1000.0);
     }
