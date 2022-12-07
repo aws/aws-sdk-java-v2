@@ -24,7 +24,9 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.transfer.s3.model.FileDownload;
+import software.amazon.awssdk.transfer.s3.progress.LoggingTransferListener;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
@@ -95,7 +97,9 @@ public class TransferManagerDownloadBenchmark extends BaseTransferManagerBenchma
 
     private void downloadOnceToMemory(List<Double> latencies) throws Exception {
         long start = System.currentTimeMillis();
-        transferManager.download(r -> r.responseTransformer(new NoOpResponseTransformer())
+        NoOpResponseTransformer<GetObjectResponse> responseTransformer = new NoOpResponseTransformer<>();
+        transferManager.download(r -> r.responseTransformer(responseTransformer)
+                           .addTransferListener(LoggingTransferListener.create())
                                        .getObjectRequest(b -> b.bucket(bucket).key(key)))
                        .completionFuture()
                        .get(10, TimeUnit.MINUTES);

@@ -21,12 +21,11 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
-import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
 /**
  * A no-op {@link AsyncResponseTransformer}
  */
-public class NoOpResponseTransformer implements AsyncResponseTransformer<GetObjectResponse, Void> {
+public class NoOpResponseTransformer<T> implements AsyncResponseTransformer<T, Void> {
     private CompletableFuture<Void> future;
 
     @Override
@@ -36,7 +35,7 @@ public class NoOpResponseTransformer implements AsyncResponseTransformer<GetObje
     }
 
     @Override
-    public void onResponse(GetObjectResponse response) {
+    public void onResponse(T response) {
         // do nothing
     }
 
