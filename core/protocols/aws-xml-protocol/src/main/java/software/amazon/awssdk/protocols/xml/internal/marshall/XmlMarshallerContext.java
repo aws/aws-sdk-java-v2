@@ -76,6 +76,7 @@ public final class XmlMarshallerContext {
      * @param marshallLocation Current {@link MarshallLocation}
      * @param val              Value to marshall.
      * @param paramName        Name of parameter to marshall.
+     * @param sdkField         {@link SdkField} containing metadata about the member being marshalled.
      */
     public <T> void marshall(MarshallLocation marshallLocation, T val, String paramName, SdkField<T> sdkField) {
         marshallerRegistry.getMarshaller(marshallLocation, val).marshall(val, this, paramName, sdkField);

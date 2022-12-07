@@ -1,0 +1,54 @@
+{
+    "version": "2.18.32",
+    "date": "2022-12-06",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWSBillingConductor",
+            "contributor": "",
+            "description": "This release adds the Tiering Pricing Rule feature."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Adding utilities for signing CloudFront URLs and cookies"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "This release provides APIs that enable you to programmatically manage rules for Contact Lens conversational analytics and third party applications. For more information, see https://docs.aws.amazon.com/connect/latest/APIReference/rules-api.html"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB",
+            "contributor": "",
+            "description": "Endpoint Ruleset update: Use http instead of https for the \"local\" region."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB Streams",
+            "contributor": "",
+            "description": "Endpoint Ruleset update: Use http instead of https for the \"local\" region."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "This release adds the BlueGreenDeploymentNotFoundFault to the AddTagsToResource, ListTagsForResource, and RemoveTagsFromResource operations."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Feature Store Runtime",
+            "contributor": "",
+            "description": "For online + offline Feature Groups, added ability to target PutRecord and DeleteRecord actions to only online store, or only offline store. If target store parameter is not specified, actions will apply to both stores."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

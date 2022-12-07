@@ -145,11 +145,11 @@ public class GenerationMojo extends AbstractMojo {
     }
 
     private EndpointRuleSetModel loadEndpointRuleSetModel(Path root) {
-        return loadRequiredModel(EndpointRuleSetModel.class, root.resolve(ENDPOINT_RULE_SET_FILE));
+        return loadOptionalModel(EndpointRuleSetModel.class, root.resolve(ENDPOINT_RULE_SET_FILE)).orElse(null);
     }
 
     private EndpointTestSuiteModel loadEndpointTestSuiteModel(Path root) {
-        return loadRequiredModel(EndpointTestSuiteModel.class, root.resolve(ENDPOINT_TESTS_FILE));
+        return loadOptionalModel(EndpointTestSuiteModel.class, root.resolve(ENDPOINT_TESTS_FILE)).orElse(null);
     }
 
     /**
