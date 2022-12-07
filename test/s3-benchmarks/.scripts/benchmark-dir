@@ -23,7 +23,7 @@ usage() {
   echo "example:"
   echo "    ./benchmark-dir download fs"
   echo "    ./benchmark-dir upload tmpfs"
-  echo "    ./benchmark download fs 90GB"
+  echo "    ./benchmark download fs 5G"
 }
 
 # validate operation
@@ -59,8 +59,8 @@ fi
 
 sizes_str="1B 4K 16M 5G"
 versions_str="v1 v2 CRT"
-sizes=( $sizes_str )
-versions=( $versions_str )
+sizes=( "$sizes_str" )
+versions=( "$versions_str" )
 
 run_benchmark() {
   echo "Benchmark: $version - $size"
@@ -76,6 +76,10 @@ run_benchmark() {
             --readBufferInMB=3072 \
             --prefix=$prefix \
             --file=/tm_dir_files/$size"
+
+  echo "$cmd" | sed 's/ \{1,\}/ /g' > "result/$result_file"
+  $cmd | tee -a "result/$result_file"
+  echo "Benchmark done"
 }
 
 for (( i = 0; i < "${#versions[@]}"; i++ ))

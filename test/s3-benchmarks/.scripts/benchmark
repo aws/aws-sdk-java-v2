@@ -82,7 +82,7 @@ run_benchmark() {
             --iteration=8 \
             --version=$version \
             --readBufferInMB=3072"
-  if [[ ! -z $location ]]
+  if [[ -n $location ]]
   then
     cmd="$cmd --file=$location$size"
   fi
