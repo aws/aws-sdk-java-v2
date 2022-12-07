@@ -19,77 +19,63 @@
 
 usage() {
   echo "usage:"
-  echo "    benchmark download|upload|copy fs|tmpfs|no-op [<size>]"
+  echo "    benchmark-dir download|upload fs|tmpfs|no-op [1B|4K|16M|5G]"
   echo "example:"
-  echo "    ./benchmark download fs"
-  echo "    ./benchmark upload tmpfs"
+  echo "    ./benchmark-dir download fs"
+  echo "    ./benchmark-dir upload tmpfs"
   echo "    ./benchmark download fs 90GB"
 }
 
 # validate operation
-if [[ -z "$1" ]]; then
+if [ -z "$1" ] || ([ "$1" != download ] && [ "$1" != upload ]); then
   usage
   exit 1
 fi
+operation="$1"_directory
 
-operation="$1"
-
-if ([ "$operation" != download ] && [ "$operation" != upload ] && [ "$operation" != copy ]); then
-  usage
-  exit 1
-fi
-
-#validate location
+# validate location
 if [[ -z "$2" ]]; then
   usage
   exit 1
 fi
 
 location_name="$2"
-if ([ "$location_name" != fs ] && [ "$location_name" != tmpfs ] && [ "$location_name" != "no-op" ]); then
+if ([ "$location_name" != fs ] && [ "$location_name" != tmpfs ] && [ "$location_name" != no-op ]); then
   usage
   exit 1
 fi
 
-if [ "$location_name" == fs ]; then
-  location="/"
+if [[ "$location_name" == fs ]]; then
+  location="/tm_dir_files"
 fi
 
-if [ "$location_name" == tmpfs ]; then
-  location="/dev/shm/"
+if [[ "$location_name" == tmpfs ]]; then
+  location="/dev/shm/tm_dir_files"
 fi
 
-if [ ! -d result ]; then
-  mkdir result
+if [[ -z "$location" ]]; then
+  mkdir "$location"
 fi
 
-sizes_str="1B 8MB+1 8MB-1 128MB 4GB 30GB"
+sizes_str="1B 4K 16M 5G"
 versions_str="v1 v2 CRT"
 sizes=( $sizes_str )
 versions=( $versions_str )
 
-echo "===== TM PERF TEST SUITE - $operation - $location_name ====="
-
 run_benchmark() {
   echo "Benchmark: $version - $size"
   result_file="$operation"_"$location_name"_"$version"_"$size".txt
+  prefix="$size"_dir
   cmd="java -jar ../target/s3-benchmarks.jar \
-            --key=$size \
             --operation=$operation \
             --bucket=do-not-delete-crt-s3-eu-west-1 \
             --partSizeInMB=8 \
             --maxThroughput=100.0 \
             --iteration=8 \
             --version=$version \
-            --readBufferInMB=3072"
-  if [[ ! -z $location ]]
-  then
-    cmd="$cmd --file=$location$size"
-  fi
-            
-  echo "$cmd" | sed 's/ \{1,\}/ /g' > "result/$result_file"
-  $cmd | tee -a "result/$result_file"
-  echo "Benchmark done"
+            --readBufferInMB=3072 \
+            --prefix=$prefix \
+            --file=/tm_dir_files/$size"
 }
 
 for (( i = 0; i < "${#versions[@]}"; i++ ))
@@ -107,3 +93,5 @@ do
     done
   fi
 done
+
+

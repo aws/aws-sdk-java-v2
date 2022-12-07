@@ -3,7 +3,6 @@ dd if=/dev/urandom of=/dev/shm/8MB-1 bs=8404991     count=1
 dd if=/dev/urandom of=/dev/shm/8MB+1 bs=8404993     count=1
 dd if=/dev/urandom of=/dev/shm/128MB bs=134217728   count=1
 dd if=/dev/urandom of=/dev/shm/4GB   bs=4294967296  count=1
-dd if=/dev/urandom of=/dev/shm/30GB  bs=32212254720 count=1
 
 dd if=/dev/urandom of=/1B    bs=1           count=1
 dd if=/dev/urandom of=/8MB-1 bs=8404991     count=1
