@@ -1,60 +1,64 @@
 #!/bin/bash
-# 1000 * 1 byte, 1000 * 4KB, 1000 * 16MB, 100 * 5 GB
 
-if [[ ! -d /tm_dir_files ]]; 
+# creates local file for uploading directories to s3 bucket under $HOME/tm_dir_file
+
+if [[ ! -d ~/tm_dir_files ]];
 then
-  echo "mkdir /tm_dir_files"
-  mkdir /tm_dir_files
+  echo "mkdir $HOME/tm_dir_files"
+  mkdir ~/tm_dir_files
 fi
 
-if [[ ! -d /tm_dir_files/1B ]];
+if [[ ! -d ~/tm_dir_files/1B ]];
 then
-  mkdir /tm_dir_files/1B
+  echo "mkdir $HOME/tm_dir_files/1B"
+  mkdir ~/tm_dir_files/1B
 fi
 
-if [[ ! -d /tm_dir_files/4K ]];
+if [[ ! -d ~/tm_dir_files/4K ]];
 then
-  mkdir /tm_dir_files/4k
+  echo "mkdir $HOME/tm_dir_files/4K"
+  mkdir ~/tm_dir_files/4k
 fi
-if [[ ! -d /tm_dir_files/16M ]];
+if [[ ! -d ~/tm_dir_files/16M ]];
 then
-  mkdir /tm_dir_files/16M
+  echo "mkdir $HOME/tm_dir_files/16M"
+  mkdir ~/tm_dir_files/16M
 fi
 
-if [[ ! -d /tm_dir_files/5G ]];
+if [[ ! -d ~/tm_dir_files/5G ]];
 then
-  mkdir /tm_dir_files/5G
+  echo "mkdir $HOME/tm_dir_files/5G"
+  mkdir ~/tm_dir_files/5G
 fi
 
 if [[ "$1" == 1B ]]; then
   for i in {1..1000}; do
-    dd if=/dev/urandom of=/tm_dir_files/1B/"$i" bs=1 count=1 status=none
+    dd if=/dev/urandom of=~/tm_dir_files/1B/"$i" bs=1 count=1 status=none
   done
   exit
 fi
 
 if [[ "$1" == 4K ]]; then
   for i in {1..1000}; do
-    dd if=/dev/urandom of=/tm_dir_files/4KB/"$i" bs=4096 count=1 status=none
+    dd if=/dev/urandom of=~/tm_dir_files/4KB/"$i" bs=4096 count=1 status=none
   done
   exit
 fi
 
 if [[ "$1" == 16M ]]; then
   for i in {1..1000}; do
-    dd if=/dev/urandom of=/tm_dir_files/16MB/"$i" bs=16777216 count=1 status=none
+    dd if=/dev/urandom of=~/tm_dir_files/16MB/"$i" bs=16777216 count=1 status=none
   done
   exit
 fi
 
 if [[ "$1" == 5G ]]; then
   for i in {1..100}; do
-    dd if=/dev/urandom of=/tm_dir_files/5GB/"$i" bs=5G count=1 status=none
+    dd if=/dev/urandom of=~/tm_dir_files/5GB/"$i" bs=5G count=1 status=none
   done
   exit
 fi
 
-
 echo "usage:"
-echo "  create_benchmark_directory_files 1B|4KB|16MB|5GB"
+echo "  create_benchmark_directory_files 1B|4K|16M|5G"
 

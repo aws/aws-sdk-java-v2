@@ -46,7 +46,7 @@ if ([ "$location_name" != fs ] && [ "$location_name" != tmpfs ] && [ "$location_
 fi
 
 if [[ "$location_name" == fs ]]; then
-  location="/tm_dir_files"
+  location="$HOME/tm_dir_files"
 fi
 
 if [[ "$location_name" == tmpfs ]]; then
@@ -58,7 +58,7 @@ if [[ -z "$location" ]]; then
 fi
 
 sizes_str="1B 4K 16M 5G"
-versions_str="v1 v2 CRT"
+versions_str="v1 v2"
 sizes=( $sizes_str )
 versions=( $versions_str )
 
@@ -75,7 +75,7 @@ run_benchmark() {
             --version=$version \
             --readBufferInMB=3072 \
             --prefix=$prefix \
-            --file=/tm_dir_files/$size"
+            --file=$location/$size"
 
   echo "$cmd" | sed 's/ \{1,\}/ /g' > "result/$result_file"
   $cmd | tee -a "result/$result_file"
@@ -85,7 +85,7 @@ run_benchmark() {
 for (( i = 0; i < "${#versions[@]}"; i++ ))
 do
   version="${versions[$i]}"
-  if [ ! -z "$3" ]
+  if [[ -n "$3" ]]
   then
     size="$3"
     run_benchmark
