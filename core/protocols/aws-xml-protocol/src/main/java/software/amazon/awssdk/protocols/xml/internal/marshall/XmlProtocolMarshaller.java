@@ -165,7 +165,7 @@ public final class XmlProtocolMarshaller implements ProtocolMarshaller<SdkHttpFu
             .payloadMarshaller(MarshallingType.SDK_POJO, XmlPayloadMarshaller.SDK_POJO)
             .payloadMarshaller(MarshallingType.LIST, XmlPayloadMarshaller.LIST)
             .payloadMarshaller(MarshallingType.MAP, XmlPayloadMarshaller.MAP)
-            .payloadMarshaller(MarshallingType.NULL, XmlMarshaller.NULL)
+            .payloadMarshaller(MarshallingType.NULL, XmlPayloadMarshaller.NULL)
 
             .headerMarshaller(MarshallingType.STRING, HeaderMarshaller.STRING)
             .headerMarshaller(MarshallingType.INTEGER, HeaderMarshaller.INTEGER)
@@ -177,7 +177,7 @@ public final class XmlProtocolMarshaller implements ProtocolMarshaller<SdkHttpFu
             .headerMarshaller(MarshallingType.INSTANT, HeaderMarshaller.INSTANT)
             .headerMarshaller(MarshallingType.MAP, HeaderMarshaller.MAP)
             .headerMarshaller(MarshallingType.LIST, HeaderMarshaller.LIST)
-            .headerMarshaller(MarshallingType.NULL, XmlMarshaller.NULL)
+            .headerMarshaller(MarshallingType.NULL, HeaderMarshaller.NULL)
 
             .queryParamMarshaller(MarshallingType.STRING, QueryParamMarshaller.STRING)
             .queryParamMarshaller(MarshallingType.INTEGER, QueryParamMarshaller.INTEGER)
@@ -189,7 +189,7 @@ public final class XmlProtocolMarshaller implements ProtocolMarshaller<SdkHttpFu
             .queryParamMarshaller(MarshallingType.INSTANT, QueryParamMarshaller.INSTANT)
             .queryParamMarshaller(MarshallingType.LIST, QueryParamMarshaller.LIST)
             .queryParamMarshaller(MarshallingType.MAP, QueryParamMarshaller.MAP)
-            .queryParamMarshaller(MarshallingType.NULL, XmlMarshaller.NULL)
+            .queryParamMarshaller(MarshallingType.NULL, QueryParamMarshaller.NULL)
 
             .pathParamMarshaller(MarshallingType.STRING, SimpleTypePathMarshaller.STRING)
             .pathParamMarshaller(MarshallingType.INTEGER, SimpleTypePathMarshaller.INTEGER)
