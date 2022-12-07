@@ -59,6 +59,8 @@ public class MemberModel extends DocumentationModel {
     
     private String deprecatedMessage;
 
+    private boolean required;
+
     private ListModel listModel;
 
     private MapModel mapModel;
@@ -314,6 +316,14 @@ public class MemberModel extends DocumentationModel {
 
     public void setDeprecatedMessage(String deprecatedMessage) {
         this.deprecatedMessage = deprecatedMessage;
+    }
+
+    public boolean isRequired() {
+        return required;
+    }
+
+    public void setRequired(boolean required) {
+        this.required = required;
     }
 
     public boolean isEventPayload() {

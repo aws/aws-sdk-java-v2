@@ -13,29 +13,24 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.codegen.poet.model;
+package software.amazon.awssdk.codegen;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static software.amazon.awssdk.codegen.poet.PoetMatchers.generatesTo;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.regex.Pattern;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.codegen.C2jModels;
-import software.amazon.awssdk.codegen.IntermediateModelBuilder;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
+import software.amazon.awssdk.codegen.model.service.Location;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
-import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.codegen.poet.model.AwsModelSpecTest;
 import software.amazon.awssdk.codegen.utils.ModelLoaderUtils;
 
-public class AwsServiceBaseRequestSpecTest {
+class AddShapesTest {
 
     private static IntermediateModel intermediateModel;
 
@@ -55,43 +50,42 @@ public class AwsServiceBaseRequestSpecTest {
     }
 
     @Test
-    void testGeneration() {
-        AwsServiceBaseRequestSpec spec = new AwsServiceBaseRequestSpec(intermediateModel);
-        assertThat(spec, generatesTo(spec.className().simpleName().toLowerCase() + ".java"));
-    }
-
-    @Test
-    void buildJavaFile_memberRequiredByShape_addsTraitToGeneratedCode() {
+    void generateShapeModel_memberRequiredByShape_setsMemberModelAsRequired() {
         String requestShapeName = "QueryParameterOperationRequest";
         String queryParamName = "QueryParamOne";
 
         ShapeModel requestShapeModel = intermediateModel.getShapes().get(requestShapeName);
-        AwsServiceModel spec = new AwsServiceModel(intermediateModel, requestShapeModel);
-        String codeString = PoetUtils.buildJavaFile(spec).toString();
+        MemberModel requiredMemberModel = requestShapeModel.findMemberModelByC2jName(queryParamName);
 
-        String uploadIdDeclarationString = findTraitDeclarationString(codeString, queryParamName).get();
-        Assertions.assertThat(uploadIdDeclarationString).contains("RequiredTrait.create()");
+        assertThat(requestShapeModel.getRequired()).contains(queryParamName);
+        assertThat(requiredMemberModel.getHttp().getLocation()).isEqualTo(Location.QUERY_STRING);
+        assertThat(requiredMemberModel.isRequired()).isTrue();
     }
 
     @Test
-    void buildJavaFile_memberNotRequiredByShape_doesNotAddTraitToGeneratedCode() {
+    void generateShapeModel_memberNotRequiredByShape_doesNotSetMemberModelAsRequired() {
         String requestShapeName = "QueryParameterOperationRequest";
         String queryParamName = "QueryParamTwo";
 
         ShapeModel requestShapeModel = intermediateModel.getShapes().get(requestShapeName);
-        AwsServiceModel spec = new AwsServiceModel(intermediateModel, requestShapeModel);
-        String codeString = PoetUtils.buildJavaFile(spec).toString();
+        MemberModel requiredMemberModel = requestShapeModel.findMemberModelByC2jName(queryParamName);
 
-        String uploadIdDeclarationString = findTraitDeclarationString(codeString, queryParamName).get();
-        Assertions.assertThat(uploadIdDeclarationString).doesNotContain("RequiredTrait.create()");
+        assertThat(requestShapeModel.getRequired()).doesNotContain(queryParamName);
+        assertThat(requiredMemberModel.getHttp().getLocation()).isEqualTo(Location.QUERY_STRING);
+        assertThat(requiredMemberModel.isRequired()).isFalse();
     }
 
+    @Test
+    void generateShapeModel_memberRequiredByNestedShape_setsMemberModelAsRequired() {
+        String requestShapeName = "NestedQueryParameterOperation";
+        String queryParamName = "QueryParamOne";
 
-    private static Optional<String> findTraitDeclarationString(String javaFileString, String fieldName) {
-        return Arrays.stream(Pattern.compile("\n\n").split(javaFileString))
-                     .filter(block -> block.contains(fieldName))
-                     .filter(block -> block.contains("traits"))
-                     .findFirst();
+        ShapeModel requestShapeModel = intermediateModel.getShapes().get(requestShapeName);
+        MemberModel requiredMemberModel = requestShapeModel.findMemberModelByC2jName(queryParamName);
+
+        assertThat(requestShapeModel.getRequired()).contains(queryParamName);
+        assertThat(requiredMemberModel.getHttp().getLocation()).isEqualTo(Location.QUERY_STRING);
+        assertThat(requiredMemberModel.isRequired()).isTrue();
     }
 
 }

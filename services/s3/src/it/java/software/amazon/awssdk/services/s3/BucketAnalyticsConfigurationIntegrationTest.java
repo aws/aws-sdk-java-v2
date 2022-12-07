@@ -26,6 +26,7 @@ import java.util.List;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.model.AnalyticsConfiguration;
 import software.amazon.awssdk.services.s3.model.AnalyticsExportDestination;
@@ -273,7 +274,7 @@ public class BucketAnalyticsConfigurationIntegrationTest extends S3IntegrationTe
         assertNull(s3BucketDestination.prefix());
     }
 
-    @Test(expected = S3Exception.class)
+    @Test(expected = SdkClientException.class)
     public void setBucketAnalyticsConfiguration_fails_when_requiredfield_is_missing() throws Exception {
         String configId = "id";
         StorageClassAnalysisDataExport dataExport = StorageClassAnalysisDataExport.builder()

@@ -18,9 +18,11 @@ package software.amazon.awssdk.protocols.json.internal.marshall;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
+import software.amazon.awssdk.core.traits.RequiredTrait;
 import software.amazon.awssdk.protocols.core.ValueToStringConverter;
 
 @SdkInternalApi
@@ -30,20 +32,20 @@ public final class QueryParamMarshaller {
         ValueToStringConverter.FROM_STRING);
 
     public static final JsonMarshaller<Integer> INTEGER = new SimpleQueryParamMarshaller<>(
-            ValueToStringConverter.FROM_INTEGER);
+        ValueToStringConverter.FROM_INTEGER);
 
     public static final JsonMarshaller<Long> LONG = new SimpleQueryParamMarshaller<>(ValueToStringConverter.FROM_LONG);
 
     public static final JsonMarshaller<Short> SHORT = new SimpleQueryParamMarshaller<>(ValueToStringConverter.FROM_SHORT);
 
     public static final JsonMarshaller<Double> DOUBLE = new SimpleQueryParamMarshaller<>(
-            ValueToStringConverter.FROM_DOUBLE);
+        ValueToStringConverter.FROM_DOUBLE);
 
     public static final JsonMarshaller<Float> FLOAT = new SimpleQueryParamMarshaller<>(
-            ValueToStringConverter.FROM_FLOAT);
+        ValueToStringConverter.FROM_FLOAT);
 
     public static final JsonMarshaller<Boolean> BOOLEAN = new SimpleQueryParamMarshaller<>(
-            ValueToStringConverter.FROM_BOOLEAN);
+        ValueToStringConverter.FROM_BOOLEAN);
 
     public static final JsonMarshaller<Instant> INSTANT
         = new SimpleQueryParamMarshaller<>(JsonProtocolMarshaller.INSTANT_VALUE_TO_STRING);
@@ -57,6 +59,12 @@ public final class QueryParamMarshaller {
     public static final JsonMarshaller<Map<String, ?>> MAP = (val, context, paramName, sdkField) -> {
         for (Map.Entry<String, ?> mapEntry : val.entrySet()) {
             context.marshall(MarshallLocation.QUERY_PARAM, mapEntry.getValue(), mapEntry.getKey());
+        }
+    };
+
+    public static final JsonMarshaller<Void> NULL = (val, context, paramName, sdkField) -> {
+        if (Objects.nonNull(sdkField) && sdkField.containsTrait(RequiredTrait.class)) {
+            throw new IllegalArgumentException(String.format("Parameter '%s' must not be null", paramName));
         }
     };
 
