@@ -85,13 +85,12 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutBucketPolicyRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.testutils.RandomTempFile;
-import software.amazon.awssdk.utils.StringUtils;
+import software.amazon.awssdk.testutils.service.S3BucketUtils;
 
 public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
     private static final Base64.Encoder encoder = Base64.getEncoder();
-    private static final String callerReference = String.valueOf(Instant.now().getEpochSecond());
-    private static final String bucketName = StringUtils.lowerCase(CloudFrontUtilitiesIntegrationTest.class.getSimpleName())
-                                             + "." + callerReference;
+    private static final String callerReference =
+        S3BucketUtils.temporaryBucketName(String.valueOf(Instant.now().getEpochSecond()));
     private static final String s3ObjectKey = "s3ObjectKey";
     private static String domainName;
     private static String resourceUrl;
@@ -115,7 +114,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
     public static void tearDown() throws Exception {
         disableDistribution();
         cloudFrontClient.deleteDistribution(DeleteDistributionRequest.builder().ifMatch(distributionETag).id(distributionId).build());
-        deleteBucketAndAllContents(bucketName);
+        deleteBucketAndAllContents(callerReference);
         String keyGroupETag = cloudFrontClient.getKeyGroup(GetKeyGroupRequest.builder().id(keyGroupId).build()).eTag();
         cloudFrontClient.deleteKeyGroup(DeleteKeyGroupRequest.builder().ifMatch(keyGroupETag).id(keyGroupId).build());
         String publicKeyETag = cloudFrontClient.getPublicKey(GetPublicKeyRequest.builder().id(keyPairId).build()).eTag();
@@ -145,7 +144,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
 
     @Test
     void getSignedUrlWithCannedPolicy_shouldWork() throws Exception {
-        InputStream originalBucketContent = s3Client.getObject(GetObjectRequest.builder().bucket(bucketName).key(s3ObjectKey).build());
+        InputStream originalBucketContent = s3Client.getObject(GetObjectRequest.builder().bucket(callerReference).key(s3ObjectKey).build());
         Instant expirationDate = LocalDate.of(2050, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         CannedSignerRequest request = CannedSignerRequest.builder()
                                                          .resourceUrl(resourceUrl)
@@ -181,7 +180,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
 
     @Test
     void getSignedUrlWithCustomPolicy_shouldWork() throws Exception {
-        InputStream originalBucketContent = s3Client.getObject(GetObjectRequest.builder().bucket(bucketName).key(s3ObjectKey).build());
+        InputStream originalBucketContent = s3Client.getObject(GetObjectRequest.builder().bucket(callerReference).key(s3ObjectKey).build());
         Instant activeDate = LocalDate.of(2022, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         Instant expirationDate = LocalDate.of(2050, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         CustomSignerRequest request = CustomSignerRequest.builder()
@@ -221,7 +220,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
 
     @Test
     void getCookiesForCannedPolicy_shouldWork() throws Exception {
-        InputStream originalBucketContent = s3Client.getObject(GetObjectRequest.builder().bucket(bucketName).key(s3ObjectKey).build());
+        InputStream originalBucketContent = s3Client.getObject(GetObjectRequest.builder().bucket(callerReference).key(s3ObjectKey).build());
         Instant expirationDate = LocalDate.of(2050, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         CookiesForCannedPolicy cookies = cloudFrontUtilities.getCookiesForCannedPolicy(r -> r.resourceUrl(resourceUrl)
                                                                                              .privateKey(keyPair.getPrivate())
@@ -259,7 +258,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
 
     @Test
     void getCookiesForCustomPolicy_shouldWork() throws Exception {
-        InputStream originalBucketContent = s3Client.getObject(GetObjectRequest.builder().bucket(bucketName).key(s3ObjectKey).build());
+        InputStream originalBucketContent = s3Client.getObject(GetObjectRequest.builder().bucket(callerReference).key(s3ObjectKey).build());
         Instant activeDate = LocalDate.of(2022, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         Instant expirationDate = LocalDate.of(2050, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         CookiesForCustomPolicy cookies = cloudFrontUtilities.getCookiesForCustomPolicy(r -> r.resourceUrl(resourceUrl)
@@ -316,9 +315,9 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
                                                                                                      .build()).build()).keyGroup();
         keyGroupId = keyGroup.id();
 
-        s3Client.createBucket(CreateBucketRequest.builder().bucket(bucketName).build());
+        s3Client.createBucket(CreateBucketRequest.builder().bucket(callerReference).build());
         File content = new RandomTempFile("testFile", 1000L);
-        s3Client.putObject(PutObjectRequest.builder().bucket(bucketName).key(s3ObjectKey).build(), RequestBody.fromFile(content));
+        s3Client.putObject(PutObjectRequest.builder().bucket(callerReference).key(s3ObjectKey).build(), RequestBody.fromFile(content));
 
         DefaultCacheBehavior defaultCacheBehavior = DefaultCacheBehavior.builder()
                                                                         .forwardedValues(ForwardedValues.builder()
@@ -337,7 +336,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
                                                    .trustedKeyGroups(TrustedKeyGroups.builder().enabled(true).quantity(1).items(keyGroup.id()).build()).pathPattern("*").build();
 
         Origin origin = Origin.builder()
-                              .domainName(bucketName + ".s3.amazonaws.com")
+                              .domainName(callerReference + ".s3.amazonaws.com")
                               .id("1")
                               .s3OriginConfig(S3OriginConfig.builder().originAccessIdentity("origin-access-identity/cloudfront/" + originAccessId).build()).build();
 
@@ -348,13 +347,13 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
                                                                          .logging(LoggingConfig.builder()
                                                                                                .includeCookies(false)
                                                                                                .enabled(false)
-                                                                                               .bucket(bucketName)
+                                                                                               .bucket(callerReference)
                                                                                                .prefix("").build())
                                                                          .callerReference(callerReference)
                                                                          .cacheBehaviors(CacheBehaviors.builder()
                                                                                                        .quantity(1)
                                                                                                        .items(cacheBehavior).build())
-                                                                         .comment("PresignerTestDistribution" + callerReference)
+                                                                         .comment("PresignerTestDistribution")
                                                                          .defaultRootObject("")
                                                                          .enabled(true)
                                                                          .origins(Origins.builder()
@@ -381,12 +380,12 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
                               + "\"AWS\":\"arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity " + originAccessId + "\"\n"
                               + "},\n"
                               + "\"Action\":\"s3:GetObject\",\n"
-                              + "\"Resource\":\"arn:aws:s3:::" + bucketName + "/*\"\n"
+                              + "\"Resource\":\"arn:aws:s3:::" + callerReference + "/*\"\n"
                               + "}\n"
                               + "]\n"
                               + "}";
 
-        s3Client.putBucketPolicy(PutBucketPolicyRequest.builder().bucket(bucketName).policy(bucketPolicy).build());
+        s3Client.putBucketPolicy(PutBucketPolicyRequest.builder().bucket(callerReference).policy(bucketPolicy).build());
     }
 
     static void initKeys() throws NoSuchAlgorithmException, IOException {
