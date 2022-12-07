@@ -70,9 +70,8 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
                                                      .source(smallFile)
                                                      .build();
         FileUpload fileUpload = tm.uploadFile(request);
-        waitUntilMultipartUploadExists();
         ResumableFileUpload resumableFileUpload = fileUpload.pause();
-        log.info(() -> "Paused: " + resumableFileUpload);
+        log.debug(() -> "Paused: " + resumableFileUpload);
 
         validateEmptyResumeToken(resumableFileUpload);
 
@@ -90,7 +89,7 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
         FileUpload fileUpload = tm.uploadFile(request);
         waitUntilMultipartUploadExists();
         ResumableFileUpload resumableFileUpload = fileUpload.pause();
-        log.info(() -> "Paused: " + resumableFileUpload);
+        log.debug(() -> "Paused: " + resumableFileUpload);
 
         assertThat(resumableFileUpload.multipartUploadId()).isNotEmpty();
         assertThat(resumableFileUpload.partSizeInBytes()).isNotEmpty();
@@ -110,19 +109,12 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
                                                    .build();
         FileUpload fileUpload = tm.uploadFile(request);
         ResumableFileUpload resumableFileUpload = fileUpload.pause();
-        log.info(() -> "Paused: " + resumableFileUpload);
+        log.debug(() -> "Paused: " + resumableFileUpload);
 
         validateEmptyResumeToken(resumableFileUpload);
 
         FileUpload resumedUpload = tm.resumeUploadFile(resumableFileUpload);
         resumedUpload.completionFuture().join();
-    }
-
-    private static void validateEmptyResumeToken(ResumableFileUpload resumableFileUpload) {
-        assertThat(resumableFileUpload.multipartUploadId()).isEmpty();
-        assertThat(resumableFileUpload.partSizeInBytes()).isEmpty();
-        assertThat(resumableFileUpload.totalParts()).isEmpty();
-        assertThat(resumableFileUpload.transferredParts()).isEmpty();
     }
 
     @Test
@@ -134,7 +126,7 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
         FileUpload fileUpload = tm.uploadFile(request);
         waitUntilMultipartUploadExists();
         ResumableFileUpload resumableFileUpload = fileUpload.pause();
-        log.info(() -> "Paused: " + resumableFileUpload);
+        log.debug(() -> "Paused: " + resumableFileUpload);
 
         assertThat(resumableFileUpload.multipartUploadId()).isNotEmpty();
         assertThat(resumableFileUpload.partSizeInBytes()).isNotEmpty();
@@ -172,5 +164,12 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
                                                                                      .backoffStrategy(FixedDelayBackoffStrategy.create(Duration.ofMillis(100))))
                                                         .build();
         waiter.run(() -> s3.listMultipartUploads(l -> l.bucket(BUCKET)));
+    }
+
+    private static void validateEmptyResumeToken(ResumableFileUpload resumableFileUpload) {
+        assertThat(resumableFileUpload.multipartUploadId()).isEmpty();
+        assertThat(resumableFileUpload.partSizeInBytes()).isEmpty();
+        assertThat(resumableFileUpload.totalParts()).isEmpty();
+        assertThat(resumableFileUpload.transferredParts()).isEmpty();
     }
 }
