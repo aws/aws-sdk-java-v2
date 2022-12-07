@@ -231,6 +231,11 @@
             <groupId>software.amazon.awssdk</groupId>
             <version>${awsjavasdk.version}</version>
         </dependency>
+        <dependency>
+            <artifactId>cloudfront</artifactId>
+            <groupId>software.amazon.awssdk</groupId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
