@@ -59,8 +59,8 @@ fi
 
 sizes_str="1B 4K 16M 5G"
 versions_str="v1 v2 CRT"
-sizes=( "$sizes_str" )
-versions=( "$versions_str" )
+sizes=( $sizes_str )
+versions=( $versions_str )
 
 run_benchmark() {
   echo "Benchmark: $version - $size"
