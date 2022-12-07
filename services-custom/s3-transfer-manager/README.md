@@ -51,7 +51,7 @@ S3TransferManager transferManager =
 
 ### Transfer a single object
 
-#### Upload a file to S3 and log the upload’s process with a TransferListener
+#### Upload a file to S3 and log the upload’s progress with a TransferListener
 To upload a file to Amazon S3, you need to provide the source file path and a PutObjectRequest specifying the target bucket and key.
 
 ```java
@@ -60,6 +60,7 @@ S3TransferManager transferManager = S3TransferManager.create();
 UploadFileRequest uploadFileRequest =
     UploadFileRequest.builder()
                      .putObjectRequest(req -> req.bucket("bucket").key("key"))
+                      // attaching a LoggingTransferListener that will log the progress
                      .addTransferListener(LoggingTransferListener.create())
                      .source(Paths.get("myFile.txt"))
                      .build();
@@ -79,10 +80,11 @@ S3TransferManager transferManager = S3TransferManager.create();
 
 DownloadFileRequest downloadFileRequest =
 DownloadFileRequest.builder()
-.getObjectRequest(req -> req.bucket("bucket").key("key"))
-.destination(Paths.get("myFile.txt"))
-.addTransferListener(LoggingTransferListener.create())
-.build();
+                   .getObjectRequest(req -> req.bucket("bucket").key("key"))
+                   .destination(Paths.get("myFile.txt"))
+                    // attaching a LoggingTransferListener that will log the progress
+                   .addTransferListener(LoggingTransferListener.create())
+                   .build();
 
 FileDownload download = transferManager.downloadFile(downloadFileRequest);
 
@@ -127,7 +129,7 @@ DirectoryUpload directoryUpload = transferManager.uploadDirectory(UploadDirector
 // Wait for the transfer to complete
 CompletedDirectoryUpload completedDirectoryUpload = directoryUpload.completionFuture().join();
 
-// Print out the failed uploads
+// Print out any failed uploads
 completedDirectoryUpload.failedTransfers().forEach(System.out::println);
 ```
 
@@ -142,11 +144,12 @@ S3TransferManager transferManager = S3TransferManager.create();
                   DownloadDirectoryRequest.builder()
                                           .destination(Paths.get("destination/directory"))
                                           .bucket("bucket")
-                                          .listObjectsV2RequestTransformer(l -> l.prefix("prefix"))
+                                          // only download objects with prefix "photos"
+                                          .listObjectsV2RequestTransformer(l -> l.prefix("photos"))
                                           .build());
 // Wait for the transfer to complete
 CompletedDirectoryDownload completedDirectoryDownload = directoryDownload.completionFuture().join();
 
-// Print out the failed downloads
+// Print out any failed downloads
 completedDirectoryDownload.failedTransfers().forEach(System.out::println);
 ```

@@ -55,7 +55,7 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * The S3 Transfer Manager offers a simple API to allow you to transfer a single object or a set of objects to and
+ * The S3 Transfer Manager offers a simple API that allows you to transfer a single object or a set of objects to and
  * from Amazon S3 with enhanced throughput and reliability. It leverages Amazon S3 multipart upload and
  * byte-range fetches to perform transfers in parallel. In addition, the S3 Transfer Manager also enables you to
  * monitor a transfer's progress in real-time, as well as pause the transfer for execution at a later time.
@@ -122,7 +122,7 @@ import software.amazon.awssdk.utils.Validate;
  *         // Wait for the transfer to complete
  *         CompletedDirectoryUpload completedDirectoryUpload = directoryUpload.completionFuture().join();
  *
- *         // Print out the failed uploads
+ *         // Print out any failed uploads
  *         completedDirectoryUpload.failedTransfers().forEach(System.out::println);
  * }
  * <b>Download S3 objects to a local directory</b>
@@ -138,7 +138,7 @@ import software.amazon.awssdk.utils.Validate;
  *         // Wait for the transfer to complete
  *         CompletedDirectoryDownload completedDirectoryDownload = directoryDownload.completionFuture().join();
  *
- *         // Print out the failed downloads
+ *         // Print out any failed downloads
  *         completedDirectoryDownload.failedTransfers().forEach(System.out::println);
  * }
  * <b>Copy an S3 object to a different location in S3</b>
@@ -500,7 +500,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
      *         // Wait for the transfer to complete
      *         CompletedDirectoryUpload completedDirectoryUpload = directoryUpload.completionFuture().join();
      *
-     *         // Print out the failed uploads
+     *         // Print out any failed uploads
      *         completedDirectoryUpload.failedTransfers().forEach(System.out::println);
      * }
      *
@@ -523,8 +523,11 @@ public interface S3TransferManager extends SdkAutoCloseable {
     }
 
     /**
-     * Downloads all objects under a specific prefix and bucket to the provided directory. By default, all objects in the entire
-     * bucket will be downloaded.
+     * Downloads all objects under a bucket to the provided directory. By default, all objects in the entire
+     * bucket will be downloaded. You can modify this behavior by providing a
+     * {@link DownloadDirectoryRequest#listObjectsRequestTransformer()} and/or
+     * a {@link DownloadDirectoryRequest#filter()} in {@link DownloadDirectoryRequest} to
+     * limit the S3 objects to download.
      *
      * <p>
      * The downloaded directory structure will match with the provided S3 virtual bucket.
@@ -575,12 +578,13 @@ public interface S3TransferManager extends SdkAutoCloseable {
      *                  DownloadDirectoryRequest.builder()
      *                                          .destination(Paths.get("destination/directory"))
      *                                          .bucket("bucket")
-     *                                          .listObjectsV2RequestTransformer(l -> l.prefix("prefix"))
+     *                                           // only download objects with prefix "photos"
+     *                                           .listObjectsV2RequestTransformer(l -> l.prefix("photos"))
      *                                          .build());
      *         // Wait for the transfer to complete
      *         CompletedDirectoryDownload completedDirectoryDownload = directoryDownload.completionFuture().join();
      *
-     *         // Print out the failed downloads
+     *         // Print out any failed downloads
      *         completedDirectoryDownload.failedTransfers().forEach(System.out::println);
      * }
      *

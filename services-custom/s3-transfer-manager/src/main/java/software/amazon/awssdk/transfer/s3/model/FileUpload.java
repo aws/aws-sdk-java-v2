@@ -36,10 +36,10 @@ public interface FileUpload extends ObjectTransfer {
      * See {@link ResumableFileUpload} for supported formats.
      * 
      * <p>
-     * Currently, it's only supported if the underlying {@link S3AsyncClient} is CRT-based created via
-     * {@link S3AsyncClient#crtBuilder()} or {@link S3AsyncClient#crtCreate()}.
+     * Currently, it's only supported if the underlying {@link S3AsyncClient} is CRT-based (created via
+     * {@link S3AsyncClient#crtBuilder()} or {@link S3AsyncClient#crtCreate()}).
      * It will throw {@link UnsupportedOperationException} if the {@link S3TransferManager} is created
-     * with a non CRT-based S3 client, i.e., created by {@link S3AsyncClient#builder()}.
+     * with a non CRT-based S3 client (created via {@link S3AsyncClient#builder()}).
      *
      * @return A {@link ResumableFileUpload} that can be used to resume the upload.
      */
