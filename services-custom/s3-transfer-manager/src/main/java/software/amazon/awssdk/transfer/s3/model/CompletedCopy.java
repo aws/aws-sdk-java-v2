@@ -38,10 +38,10 @@ public final class CompletedCopy implements CompletedObjectTransfer {
         this.response = Validate.paramNotNull(builder.response, "response");
     }
 
-    @Override
     /**
      * Returns the {@link CopyObjectResponse}.
      */
+    @Override
     public CopyObjectResponse response() {
         return response;
     }
