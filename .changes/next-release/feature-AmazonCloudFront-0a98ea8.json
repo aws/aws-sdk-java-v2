@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon CloudFront",
-    "contributor": "",
-    "description": "Introducing UpdateDistributionWithStagingConfig that can be used to promote the staging configuration to the production."
-}
