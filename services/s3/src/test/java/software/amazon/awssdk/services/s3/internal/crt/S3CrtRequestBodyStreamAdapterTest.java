@@ -21,7 +21,6 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import io.reactivex.Flowable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -29,7 +28,6 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
-import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 
 class S3CrtRequestBodyStreamAdapterTest {
