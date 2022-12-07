@@ -39,6 +39,7 @@ public final class CompletedFileDownload implements CompletedObjectTransfer {
         this.response = Validate.paramNotNull(builder.response, "response");
     }
     
+    @Override
     public GetObjectResponse response() {
         return response;
     }

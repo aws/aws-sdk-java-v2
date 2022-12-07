@@ -18,15 +18,11 @@ package software.amazon.awssdk.transfer.s3;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
-import static software.amazon.awssdk.utils.IoUtils.closeQuietly;
 
-import com.google.common.jimfs.Configuration;
-import com.google.common.jimfs.Jimfs;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -39,15 +35,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.assertj.core.util.Sets;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
-import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 import software.amazon.awssdk.services.s3.model.S3Object;
 import software.amazon.awssdk.testutils.FileUtils;
@@ -87,7 +80,7 @@ public class S3TransferManagerUploadDirectoryIntegrationTest extends S3Integrati
     @Test
     void uploadDirectory_filesSentCorrectly() {
         String prefix = "yolo";
-        DirectoryUpload uploadDirectory = tm.uploadDirectory(u -> u.sourceDirectory(directory)
+        DirectoryUpload uploadDirectory = tm.uploadDirectory(u -> u.source(directory)
                                                                    .bucket(TEST_BUCKET)
                                                                    .s3Prefix(prefix));
         CompletedDirectoryUpload completedDirectoryUpload = uploadDirectory.completionFuture().join();
@@ -105,7 +98,7 @@ public class S3TransferManagerUploadDirectoryIntegrationTest extends S3Integrati
     @Test
     void uploadDirectory_nonExistsBucket_shouldAddFailedRequest() {
         String prefix = "yolo";
-        DirectoryUpload uploadDirectory = tm.uploadDirectory(u -> u.sourceDirectory(directory)
+        DirectoryUpload uploadDirectory = tm.uploadDirectory(u -> u.source(directory)
                                                                    .bucket("nonExistingTestBucket" + UUID.randomUUID())
                                                                    .s3Prefix(prefix));
         CompletedDirectoryUpload completedDirectoryUpload = uploadDirectory.completionFuture().join();
@@ -117,7 +110,7 @@ public class S3TransferManagerUploadDirectoryIntegrationTest extends S3Integrati
     void uploadDirectory_withDelimiter_filesSentCorrectly() {
         String prefix = "hello";
         String delimiter = "0";
-        DirectoryUpload uploadDirectory = tm.uploadDirectory(u -> u.sourceDirectory(directory)
+        DirectoryUpload uploadDirectory = tm.uploadDirectory(u -> u.source(directory)
                                                                           .bucket(TEST_BUCKET)
                                                                           .s3Delimiter(delimiter)
                                                                           .s3Prefix(prefix));
@@ -141,7 +134,7 @@ public class S3TransferManagerUploadDirectoryIntegrationTest extends S3Integrati
         Path newSourceForEachUpload = Paths.get(directory.toString(), "bar.txt");
 
         CompletedDirectoryUpload result =
-            tm.uploadDirectory(r -> r.sourceDirectory(directory)
+            tm.uploadDirectory(r -> r.source(directory)
                                      .bucket(TEST_BUCKET)
                                      .s3Prefix(prefix)
                                      .uploadFileRequestTransformer(f -> f.source(newSourceForEachUpload)))
@@ -186,7 +179,7 @@ public class S3TransferManagerUploadDirectoryIntegrationTest extends S3Integrati
             testDirectory = createLocalTestDirectory(directoryPrefix);
 
             Path finalTestDirectory = testDirectory;
-            DirectoryUpload uploadDirectory = tm.uploadDirectory(u -> u.sourceDirectory(finalTestDirectory)
+            DirectoryUpload uploadDirectory = tm.uploadDirectory(u -> u.source(finalTestDirectory)
                                                                        .bucket(TEST_BUCKET));
             CompletedDirectoryUpload completedDirectoryUpload = uploadDirectory.completionFuture().join();
             assertThat(completedDirectoryUpload.failedTransfers()).isEmpty();

@@ -15,9 +15,6 @@
 
 package software.amazon.awssdk.s3benchmarks;
 
-import static software.amazon.awssdk.s3benchmarks.BenchmarkUtils.printOutResult;
-
-import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -29,19 +26,90 @@ import software.amazon.awssdk.crt.http.HttpRequest;
 import software.amazon.awssdk.crt.s3.S3MetaRequest;
 import software.amazon.awssdk.crt.s3.S3MetaRequestOptions;
 import software.amazon.awssdk.crt.s3.S3MetaRequestResponseHandler;
-import software.amazon.awssdk.utils.Validate;
 
 public class CrtS3ClientDownloadBenchmark extends BaseCrtClientBenchmark {
 
-    private final long contentLength;
-    private final software.amazon.awssdk.services.s3.S3Client s3Sync;
-
     public CrtS3ClientDownloadBenchmark(TransferManagerBenchmarkConfig config) {
         super(config);
-        Validate.isNull(config.filePath(), "File path is not supported in CrtS3ClientDownloadBenchmark");
-        this.s3Sync = software.amazon.awssdk.services.s3.S3Client.builder().build();
-        this.contentLength = s3Sync.headObject(b -> b.bucket(bucket).key(key)).contentLength();
+        // logger.info(() -> "Benchmark config: " + config);
+        // Validate.isNull(config.filePath(), "File path is not supported in CrtS3ClientBenchmark");
+        //
+        // Long readBufferSizeInMb = config.readBufferSizeInMb() == null ? null : config.readBufferSizeInMb() * MB;
+        //
+        // Long partSizeInBytes = config.partSizeInMb() == null ? null : config.partSizeInMb() * MB;
+        // s3NativeClientConfiguration = S3NativeClientConfiguration.builder()
+        //                                                          .partSizeInBytes(partSizeInBytes)
+        //                                                          .targetThroughputInGbps(config.targetThroughput() == null ?
+        //                                                                                  Double.valueOf(100.0) :
+        //                                                                                  config.targetThroughput())
+        //                                                          .checksumValidationEnabled(true)
+        //                                                          .build();
+        //
+        //
+        // S3ClientOptions s3ClientOptions =
+        //     new S3ClientOptions().withRegion(s3NativeClientConfiguration.signingRegion())
+        //                          .withEndpoint(s3NativeClientConfiguration.endpointOverride() == null ? null :
+        //                                        s3NativeClientConfiguration.endpointOverride().toString())
+        //                          .withCredentialsProvider(s3NativeClientConfiguration.credentialsProvider())
+        //                          .withClientBootstrap(s3NativeClientConfiguration.clientBootstrap())
+        //                          .withPartSize(s3NativeClientConfiguration.partSizeBytes())
+        //                          .withComputeContentMd5(false)
+        //                          .withThroughputTargetGbps(s3NativeClientConfiguration.targetThroughputInGbps());
+        //
+        // bucket = config.bucket();
+        // key = config.key();
+        // iteration = config.iteration() == null ? BENCHMARK_ITERATIONS : config.iteration();
+        //
+        // if (readBufferSizeInMb != null) {
+        //     s3ClientOptions.withInitialReadWindowSize(readBufferSizeInMb);
+        //     s3ClientOptions.withReadBackpressureEnabled(true);
+        // }
+        //
+        // crtS3Client = new S3Client(s3ClientOptions);
+        // s3Sync = software.amazon.awssdk.services.s3.S3Client.builder()
+        //                                                     .build();
+        // this.contentLength = s3Sync.headObject(b -> b.bucket(bucket).key(key)).contentLength();
+        //
+        // DefaultAwsRegionProviderChain instanceProfileRegionProvider = new DefaultAwsRegionProviderChain();
+        // region = instanceProfileRegionProvider.getRegion();
     }
+
+    // @Override
+    // public void run() {
+    //     try {
+    //         warmUp();
+    //         doRunBenchmark();
+    //     } catch (Exception e) {
+    //         logger.error(() -> "Exception occurred", e);
+    //     } finally {
+    //         cleanup();
+    //     }
+    // }
+    //
+    // private void cleanup() {
+    //     s3Sync.close();
+    //     s3NativeClientConfiguration.close();
+    //     crtS3Client.close();
+    // }
+    //
+    // private void warmUp() throws Exception {
+    //     logger.info(() -> "Starting to warm up");
+    //
+    //     for (int i = 0; i < 3; i++) {
+    //         sendOneRequest(new ArrayList<>());
+    //         Thread.sleep(500);
+    //     }
+    //     logger.info(() -> "Ending warm up");
+    // }
+    //
+    // private void doRunBenchmark() {
+    //     List<Double> metrics = new ArrayList<>();
+    //     for (int i = 0; i < iteration; i++) {
+    //         sendOneRequest(metrics);
+    //     }
+    //
+    //     printOutResult(metrics, "Download to File", contentLength);
+    // }
 
     @Override
     protected void sendOneRequest(List<Double> latencies) {
@@ -70,14 +138,4 @@ public class CrtS3ClientDownloadBenchmark extends BaseCrtClientBenchmark {
         latencies.add((end - start) / 1000.0);
     }
 
-    @Override
-    protected void onResult(List<Double> metrics) throws IOException {
-        printOutResult(metrics, "Download to File", contentLength);
-    }
-
-    @Override
-    protected void cleanup() {
-        s3Sync.close();
-        super.cleanup();
-    }
 }

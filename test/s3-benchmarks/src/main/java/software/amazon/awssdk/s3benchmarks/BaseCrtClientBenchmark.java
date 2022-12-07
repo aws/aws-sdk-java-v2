@@ -16,11 +16,11 @@
 package software.amazon.awssdk.s3benchmarks;
 
 import static software.amazon.awssdk.s3benchmarks.BenchmarkUtils.BENCHMARK_ITERATIONS;
+import static software.amazon.awssdk.s3benchmarks.BenchmarkUtils.printOutResult;
 import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -34,6 +34,7 @@ import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.services.s3.internal.crt.S3NativeClientConfiguration;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Validate;
 
 public abstract class BaseCrtClientBenchmark implements  TransferManagerBenchmark {
     private static final Logger logger = Logger.loggerFor(BaseCrtClientBenchmark.class);
@@ -43,13 +44,17 @@ public abstract class BaseCrtClientBenchmark implements  TransferManagerBenchmar
     protected final int iteration;
     protected final S3NativeClientConfiguration s3NativeClientConfiguration;
     protected final S3Client crtS3Client;
+    protected final software.amazon.awssdk.services.s3.S3Client s3Sync;
     protected final Region region;
-    protected final Long partSizeInBytes;
+
+    protected final long contentLength;
 
     protected BaseCrtClientBenchmark(TransferManagerBenchmarkConfig config) {
         logger.info(() -> "Benchmark config: " + config);
+        Validate.isNull(config.filePath(), "File path is not supported in CrtS3ClientBenchmark");
 
-        this.partSizeInBytes = config.partSizeInMb() == null ? null : config.partSizeInMb() * MB;
+
+        Long partSizeInBytes = config.partSizeInMb() == null ? null : config.partSizeInMb() * MB;
         this.s3NativeClientConfiguration = S3NativeClientConfiguration.builder()
                                                                       .partSizeInBytes(partSizeInBytes)
                                                                       .targetThroughputInGbps(config.targetThroughput() == null ?
@@ -79,6 +84,8 @@ public abstract class BaseCrtClientBenchmark implements  TransferManagerBenchmar
         }
 
         this.crtS3Client = new S3Client(s3ClientOptions);
+        s3Sync = software.amazon.awssdk.services.s3.S3Client.builder().build();
+        this.contentLength = s3Sync.headObject(b -> b.bucket(bucket).key(key)).contentLength();
 
         AwsRegionProvider instanceProfileRegionProvider = new DefaultAwsRegionProviderChain();
         region = instanceProfileRegionProvider.getRegion();
@@ -86,8 +93,6 @@ public abstract class BaseCrtClientBenchmark implements  TransferManagerBenchmar
     }
 
     protected abstract void sendOneRequest(List<Double> latencies) throws IOException;
-
-    protected abstract void onResult(List<Double> metrics) throws IOException;
 
     @Override
     public void run() {
@@ -101,7 +106,8 @@ public abstract class BaseCrtClientBenchmark implements  TransferManagerBenchmar
         }
     }
 
-    protected void cleanup() {
+    private void cleanup() {
+        s3Sync.close();
         s3NativeClientConfiguration.close();
         crtS3Client.close();
     }
@@ -120,8 +126,7 @@ public abstract class BaseCrtClientBenchmark implements  TransferManagerBenchmar
         for (int i = 0; i < iteration; i++) {
             sendOneRequest(metrics);
         }
-        // printOutResult(metrics, "Download to File", contentLength);
-        onResult(metrics);
+        printOutResult(metrics, "Download to File", contentLength);
     }
 
     protected static final class TestS3MetaRequestResponseHandler implements S3MetaRequestResponseHandler {
@@ -139,8 +144,6 @@ public abstract class BaseCrtClientBenchmark implements  TransferManagerBenchmar
         @Override
         public void onFinished(S3FinishedResponseContext context) {
             if (context.getErrorCode() != 0) {
-                logger.error(() -> "Received error. Error payload:" +
-                                   new String(context.getErrorPayload(), StandardCharsets.UTF_8));
                 resultFuture.completeExceptionally(
                     new CrtS3RuntimeException(context.getErrorCode(), context.getResponseStatus(),
                                               context.getErrorPayload()));

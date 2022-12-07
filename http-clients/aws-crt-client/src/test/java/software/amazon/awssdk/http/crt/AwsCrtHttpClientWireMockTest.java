@@ -48,7 +48,7 @@ public class AwsCrtHttpClientWireMockTest {
 
     @BeforeClass
     public static void setup() {
-        System.setProperty("aws.crt.debugnative", "true");
+        System.setProperty("aws.crt.debugnative", "false");
     }
 
     @AfterClass

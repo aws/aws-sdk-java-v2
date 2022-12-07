@@ -245,7 +245,7 @@ class S3TransferManagerTest {
             .hasMessageContaining("support S3 Object Lambda resources").hasCauseInstanceOf(IllegalArgumentException.class);
 
         assertThatThrownBy(() -> tm.uploadDirectory(b -> b.bucket(objectLambdaArn)
-                                                          .sourceDirectory(Paths.get(".")))
+                                                          .source(Paths.get(".")))
                                    .completionFuture().join())
             .hasMessageContaining("support S3 Object Lambda resources").hasCauseInstanceOf(IllegalArgumentException.class);
         
@@ -289,7 +289,7 @@ class S3TransferManagerTest {
             .hasMessageContaining("multi-region access point ARN").hasCauseInstanceOf(IllegalArgumentException.class);
 
         assertThatThrownBy(() -> tm.uploadDirectory(b -> b.bucket(mrapArn)
-                                                          .sourceDirectory(Paths.get(".")))
+                                                          .source(Paths.get(".")))
                                    .completionFuture().join())
             .hasMessageContaining("multi-region access point ARN").hasCauseInstanceOf(IllegalArgumentException.class);
 
@@ -318,7 +318,7 @@ class S3TransferManagerTest {
         RuntimeException exception = new RuntimeException("test");
         when(uploadDirectoryHelper.uploadDirectory(any(UploadDirectoryRequest.class))).thenThrow(exception);
 
-        assertThatThrownBy(() -> tm.uploadDirectory(u -> u.sourceDirectory(Paths.get("/"))
+        assertThatThrownBy(() -> tm.uploadDirectory(u -> u.source(Paths.get("/"))
                                                           .bucket("bucketName")).completionFuture().join())
             .hasCause(exception);
     }
@@ -344,7 +344,7 @@ class S3TransferManagerTest {
     @Test
     void close_shouldNotCloseCloseS3AsyncClientPassedInBuilder_when_transferManagerClosed() {
         S3TransferManager transferManager =
-            DefaultS3TransferManager.builder().s3AsyncClient(mockS3Crt).build();
+            DefaultS3TransferManager.builder().s3Client(mockS3Crt).build();
         transferManager.close();
         verify(mockS3Crt, times(0)).close();
     }

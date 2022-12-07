@@ -253,7 +253,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * recursively, and symbolic links are not followed automatically.
      * This behavior can be configured in at request level via
      * {@link UploadDirectoryRequest.Builder#followSymbolicLinks(Boolean)} } or
-     * client level via {@link S3TransferManager.Builder#followSymbolicLinks(Boolean)}}
+     * client level via {@link S3TransferManager.Builder#uploadDirectoryFollowSymbolicLinks(Boolean)}}
      * Note that request-level configuration takes precedence over client-level configuration.
      * <p>
      * By default, the prefix is an empty string and the delimiter is {@code "/"}. Assume you have a local
@@ -450,7 +450,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
          * @return Returns a reference to this object so that method calls can be chained together.
          * @see S3AsyncClient#crtBuilder()
          */
-        Builder s3AsyncClient(S3AsyncClient s3AsyncClient);
+        Builder s3Client(S3AsyncClient s3AsyncClient);
 
         /**
          * Specify the executor that {@link S3TransferManager} will use to execute background tasks before handing them off to the
@@ -472,27 +472,27 @@ public interface S3TransferManager extends SdkAutoCloseable {
 
         /**
          * Specify whether to follow symbolic links when traversing the file tree in
-         * {@link S3TransferManager#downloadDirectory} operation
+         * {@link S3TransferManager#uploadDirectory} operation
          * <p>
          * Default to false
          *
-         * @param followSymbolicLinks whether to follow symbolic links
+         * @param uploadDirectoryFollowSymbolicLinks whether to follow symbolic links
          * @return This builder for method chaining.
          */
-        Builder followSymbolicLinks(Boolean followSymbolicLinks);
+        Builder uploadDirectoryFollowSymbolicLinks(Boolean uploadDirectoryFollowSymbolicLinks);
 
         /**
-         * Specify the maximum number of levels of directories to visit in {@link S3TransferManager#downloadDirectory} operation.
+         * Specify the maximum number of levels of directories to visit in {@link S3TransferManager#uploadDirectory} operation.
          * Must be positive. 1 means only the files directly within
          * the provided source directory are visited.
          *
          * <p>
          * Default to {@code Integer.MAX_VALUE}
          *
-         * @param maxDepth the maximum number of directory levels to visit
+         * @param uploadDirectoryMaxDepth the maximum number of directory levels to visit
          * @return This builder for method chaining.
          */
-        Builder maxDepth(Integer maxDepth);
+        Builder uploadDirectoryMaxDepth(Integer uploadDirectoryMaxDepth);
 
         /**
          * Build an instance of {@link S3TransferManager} based on the settings supplied to this builder

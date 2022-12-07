@@ -164,6 +164,10 @@ public class TransferProgressUpdater {
     private void transferComplete(CompletedObjectTransfer r) {
         listenerInvoker.transferComplete(context.copy(b -> {
             TransferProgressSnapshot snapshot = progress.snapshot();
+            if (!snapshot.sdkResponse().isPresent()) {
+                snapshot = progress.updateAndGet(p -> p.sdkResponse(r.response()));
+            }
+
             b.progressSnapshot(snapshot);
             b.completedTransfer(r);
         }));

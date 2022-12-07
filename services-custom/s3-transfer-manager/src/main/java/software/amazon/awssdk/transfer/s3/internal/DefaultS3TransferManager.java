@@ -18,6 +18,7 @@ package software.amazon.awssdk.transfer.s3.internal;
 import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.SDK_HTTP_EXECUTION_ATTRIBUTES;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.CRT_PAUSE_RESUME_TOKEN;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.METAREQUEST_PAUSE_OBSERVABLE;
+import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
 import static software.amazon.awssdk.transfer.s3.internal.utils.FileUtils.fileNotModified;
 import static software.amazon.awssdk.transfer.s3.internal.utils.ResumableRequestConverter.toDownloadFileRequestAndTransformer;
 
@@ -34,6 +35,7 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
+import software.amazon.awssdk.core.internal.async.FileAsyncRequestBody;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
@@ -89,22 +91,29 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 public final class DefaultS3TransferManager implements S3TransferManager {
     private static final Logger log = Logger.loggerFor(S3TransferManager.class);
+    private static final int DEFAULT_FILE_UPLOAD_CHUNK_SIZE = (int) (16 * MB);
     private final S3AsyncClient s3AsyncClient;
     private final TransferManagerConfiguration transferConfiguration;
     private final UploadDirectoryHelper uploadDirectoryHelper;
     private final DownloadDirectoryHelper downloadDirectoryHelper;
-    private volatile boolean isDefaultS3AsyncClient;
+    private final boolean isDefaultS3AsyncClient;
+
+    private final S3ClientType s3ClientType;
 
     public DefaultS3TransferManager(DefaultBuilder tmBuilder) {
         transferConfiguration = resolveTransferManagerConfiguration(tmBuilder);
-        s3AsyncClient = initializeS3CrtClient(tmBuilder);
+        isDefaultS3AsyncClient = tmBuilder.s3AsyncClient == null;
+        s3AsyncClient = isDefaultS3AsyncClient ? S3AsyncClient.crtCreate() : tmBuilder.s3AsyncClient;
         uploadDirectoryHelper = new UploadDirectoryHelper(transferConfiguration, this::uploadFile);
         ListObjectsHelper listObjectsHelper = new ListObjectsHelper(s3AsyncClient::listObjectsV2);
         downloadDirectoryHelper = new DownloadDirectoryHelper(transferConfiguration,
                                                               listObjectsHelper,
                                                               this::downloadFile);
 
-        if (!(s3AsyncClient instanceof S3CrtAsyncClient)) {
+        if (s3AsyncClient instanceof S3CrtAsyncClient) {
+            s3ClientType = S3ClientType.CRT_BASED;
+        } else {
+            s3ClientType = S3ClientType.JAVA_BASED;
             log.warn(() -> "The provided S3AsyncClient is not an instance of S3CrtAsyncClient, and thus multipart"
                            + " upload/download feature is not enabled and resumable file upload is not supported. To benefit "
                            + "from maximum throughput,"
@@ -113,25 +122,22 @@ public final class DefaultS3TransferManager implements S3TransferManager {
     }
 
     @SdkTestInternalApi
-    DefaultS3TransferManager(S3CrtAsyncClient s3CrtAsyncClient,
+    DefaultS3TransferManager(S3AsyncClient s3CrtAsyncClient,
                              UploadDirectoryHelper uploadDirectoryHelper,
                              TransferManagerConfiguration configuration,
                              DownloadDirectoryHelper downloadDirectoryHelper) {
         this.s3AsyncClient = s3CrtAsyncClient;
+        this.isDefaultS3AsyncClient = false;
         this.transferConfiguration = configuration;
         this.uploadDirectoryHelper = uploadDirectoryHelper;
         this.downloadDirectoryHelper = downloadDirectoryHelper;
-    }
-
-    private S3AsyncClient initializeS3CrtClient(DefaultBuilder tmBuilder) {
-        isDefaultS3AsyncClient = tmBuilder.s3AsyncClient == null;
-        return isDefaultS3AsyncClient ? S3CrtAsyncClient.builder().build() : tmBuilder.s3AsyncClient;
+        s3ClientType = s3CrtAsyncClient instanceof S3CrtAsyncClient ? S3ClientType.CRT_BASED : S3ClientType.JAVA_BASED;
     }
 
     private static TransferManagerConfiguration resolveTransferManagerConfiguration(DefaultBuilder tmBuilder) {
         TransferManagerConfiguration.Builder transferConfigBuilder = TransferManagerConfiguration.builder();
-        transferConfigBuilder.followSymbolicLinks(tmBuilder.followSymbolicLinks);
-        transferConfigBuilder.maxDepth(tmBuilder.maxDepth);
+        transferConfigBuilder.uploadDirectoryFollowSymbolicLinks(tmBuilder.uploadDirectoryFollowSymbolicLinks);
+        transferConfigBuilder.uploadDirectoryMaxDepth(tmBuilder.uploadDirectoryMaxDepth);
         transferConfigBuilder.executor(tmBuilder.executor);
         return transferConfigBuilder.build();
     }
@@ -174,7 +180,11 @@ public final class DefaultS3TransferManager implements S3TransferManager {
         Validate.paramNotNull(uploadFileRequest, "uploadFileRequest");
         S3MetaRequestPauseObservable observable = new S3MetaRequestPauseObservable();
 
-        AsyncRequestBody requestBody = AsyncRequestBody.fromFile(uploadFileRequest.source());
+        AsyncRequestBody requestBody =
+            FileAsyncRequestBody.builder()
+                                .path(uploadFileRequest.source())
+                                .chunkSizeInBytes(DEFAULT_FILE_UPLOAD_CHUNK_SIZE)
+                                .build();
 
         Consumer<SdkHttpExecutionAttributes.Builder> attachObservable =
             b -> b.put(METAREQUEST_PAUSE_OBSERVABLE, observable);
@@ -205,7 +215,8 @@ public final class DefaultS3TransferManager implements S3TransferManager {
             returnFuture.completeExceptionally(throwable);
         }
 
-        return new DefaultFileUpload(returnFuture, progressUpdater.progress(), observable, uploadFileRequest);
+
+        return new DefaultFileUpload(returnFuture, progressUpdater.progress(), observable, uploadFileRequest, s3ClientType);
     }
 
     @Override
@@ -570,14 +581,14 @@ public final class DefaultS3TransferManager implements S3TransferManager {
     private static final class DefaultBuilder implements S3TransferManager.Builder {
         private S3AsyncClient s3AsyncClient;
         private Executor executor;
-        private Boolean followSymbolicLinks;
-        private Integer maxDepth;
+        private Boolean uploadDirectoryFollowSymbolicLinks;
+        private Integer uploadDirectoryMaxDepth;
 
         private DefaultBuilder() {
         }
 
         @Override
-        public Builder s3AsyncClient(S3AsyncClient s3AsyncClient) {
+        public Builder s3Client(S3AsyncClient s3AsyncClient) {
             this.s3AsyncClient = s3AsyncClient;
             return this;
         }
@@ -589,31 +600,31 @@ public final class DefaultS3TransferManager implements S3TransferManager {
         }
 
         @Override
-        public Builder followSymbolicLinks(Boolean followSymbolicLinks) {
-            this.followSymbolicLinks = followSymbolicLinks;
+        public Builder uploadDirectoryFollowSymbolicLinks(Boolean uploadDirectoryFollowSymbolicLinks) {
+            this.uploadDirectoryFollowSymbolicLinks = uploadDirectoryFollowSymbolicLinks;
             return this;
         }
 
-        public void setFollowSymbolicLinks(Boolean followSymbolicLinks) {
-            followSymbolicLinks(followSymbolicLinks);
+        public void setUploadDirectoryFollowSymbolicLinks(Boolean followSymbolicLinks) {
+            uploadDirectoryFollowSymbolicLinks(followSymbolicLinks);
         }
 
-        public Boolean getFollowSymbolicLinks() {
-            return followSymbolicLinks;
+        public Boolean getUploadDirectoryFollowSymbolicLinks() {
+            return uploadDirectoryFollowSymbolicLinks;
         }
 
         @Override
-        public Builder maxDepth(Integer maxDepth) {
-            this.maxDepth = maxDepth;
+        public Builder uploadDirectoryMaxDepth(Integer uploadDirectoryMaxDepth) {
+            this.uploadDirectoryMaxDepth = uploadDirectoryMaxDepth;
             return this;
         }
 
-        public void setMaxDepth(Integer maxDepth) {
-            maxDepth(maxDepth);
+        public void setUploadDirectoryMaxDepth(Integer uploadDirectoryMaxDepth) {
+            uploadDirectoryMaxDepth(uploadDirectoryMaxDepth);
         }
 
-        public Integer getMaxDepth() {
-            return maxDepth;
+        public Integer getUploadDirectoryMaxDepth() {
+            return uploadDirectoryMaxDepth;
         }
 
         @Override

@@ -39,7 +39,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import org.assertj.core.util.Sets;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -123,7 +122,7 @@ public class UploadDirectoryHelperTest {
 
         DirectoryUpload uploadDirectory =
             uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
-                                                                        .sourceDirectory(directory)
+                                                                        .source(directory)
                                                                         .bucket("bucket")
                                                                         .build());
 
@@ -155,7 +154,7 @@ public class UploadDirectoryHelperTest {
 
         DirectoryUpload uploadDirectory =
             uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
-                                                                        .sourceDirectory(directory)
+                                                                        .source(directory)
                                                                         .bucket("bucket")
                                                                         .build());
 
@@ -181,7 +180,7 @@ public class UploadDirectoryHelperTest {
 
         DirectoryUpload uploadDirectory =
             uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
-                                                                        .sourceDirectory(directory)
+                                                                        .source(directory)
                                                                         .bucket("bucket")
                                                                         .build());
 
@@ -223,7 +222,7 @@ public class UploadDirectoryHelperTest {
                                                                                  .transferListeners(listeners);
 
         uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
-                                                                    .sourceDirectory(directory)
+                                                                    .source(directory)
                                                                     .bucket("bucket")
                                                                     .uploadFileRequestTransformer(uploadFileRequestTransformer)
                                                                     .build())
@@ -254,7 +253,7 @@ public class UploadDirectoryHelperTest {
             .thenReturn(completedUpload());
         DirectoryUpload uploadDirectory =
             uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
-                                                                        .sourceDirectory(directory)
+                                                                        .source(directory)
                                                                         .bucket("bucket")
                                                                         .followSymbolicLinks(false)
                                                                         .build());
@@ -279,7 +278,7 @@ public class UploadDirectoryHelperTest {
         when(singleUploadFunction.apply(requestArgumentCaptor.capture())).thenReturn(completedUpload());
         DirectoryUpload uploadDirectory =
             uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
-                                                                        .sourceDirectory(localDirectory)
+                                                                        .source(localDirectory)
                                                                         .bucket("bucket")
                                                                         .maxDepth(1)
                                                                         .followSymbolicLinks(true)
@@ -302,7 +301,7 @@ public class UploadDirectoryHelperTest {
         when(singleUploadFunction.apply(requestArgumentCaptor.capture())).thenReturn(completedUpload());
         DirectoryUpload uploadDirectory =
             uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
-                                                                        .sourceDirectory(localDirectory)
+                                                                        .source(localDirectory)
                                                                         .bucket("bucket")
                                                                         .followSymbolicLinks(true)
                                                                         .build());
@@ -328,7 +327,7 @@ public class UploadDirectoryHelperTest {
         when(singleUploadFunction.apply(requestArgumentCaptor.capture())).thenReturn(completedUpload());
         DirectoryUpload uploadDirectory =
             uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
-                                                                        .sourceDirectory(directory)
+                                                                        .source(directory)
                                                                         .bucket("bucket")
                                                                         .s3Prefix("yolo")
                                                                         .build());
@@ -351,7 +350,7 @@ public class UploadDirectoryHelperTest {
         when(singleUploadFunction.apply(requestArgumentCaptor.capture())).thenReturn(completedUpload());
         DirectoryUpload uploadDirectory =
             uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
-                                                                        .sourceDirectory(directory)
+                                                                        .source(directory)
                                                                         .bucket("bucket")
                                                                         .s3Delimiter(",")
                                                                         .s3Prefix("yolo")
@@ -376,7 +375,7 @@ public class UploadDirectoryHelperTest {
             .thenReturn(completedUpload());
         DirectoryUpload uploadDirectory =
             uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
-                                                                        .sourceDirectory(directory)
+                                                                        .source(directory)
                                                                         .bucket("bucket")
                                                                         .maxDepth(1)
                                                                         .build());
@@ -399,7 +398,7 @@ public class UploadDirectoryHelperTest {
     @MethodSource("fileSystems")
     void uploadDirectory_directoryNotExist_shouldCompleteFutureExceptionally(FileSystem fileSystem) {
         directory = createJimFsTestDirectory(fileSystem);
-        assertThatThrownBy(() -> uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder().sourceDirectory(Paths.get(
+        assertThatThrownBy(() -> uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder().source(Paths.get(
                                                                                                  "randomstringneverexistas234ersaf1231"))
                                                                                              .bucket("bucketName").build()).completionFuture().join())
             .hasMessageContaining("does not exist").hasCauseInstanceOf(IllegalArgumentException.class);
@@ -408,7 +407,7 @@ public class UploadDirectoryHelperTest {
     @Test
     void uploadDirectory_notDirectory_shouldCompleteFutureExceptionally() {
         assertThatThrownBy(() -> uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
-                                                                                             .sourceDirectory(Paths.get(localDirectory.toString(), "symlink"))
+                                                                                             .source(Paths.get(localDirectory.toString(), "symlink"))
                                                                                              .bucket("bucketName").build()).completionFuture().join())
             .hasMessageContaining("is not a directory").hasCauseInstanceOf(IllegalArgumentException.class);
     }
@@ -420,7 +419,7 @@ public class UploadDirectoryHelperTest {
         when(singleUploadFunction.apply(requestArgumentCaptor.capture())).thenReturn(completedUpload());
         DirectoryUpload uploadDirectory = uploadDirectoryHelper.uploadDirectory(UploadDirectoryRequest.builder()
                                                                                                       .followSymbolicLinks(true)
-                                                                                                      .sourceDirectory(Paths.get(localDirectory.toString(), "symlink"))
+                                                                                                      .source(Paths.get(localDirectory.toString(), "symlink"))
                                                                                                       .bucket("bucket").build());
 
         uploadDirectory.completionFuture().join();
@@ -447,7 +446,7 @@ public class UploadDirectoryHelperTest {
                                      new S3MetaRequestPauseObservable(),
                                      UploadFileRequest.builder()
                                                       .source(Paths.get(".")).putObjectRequest(b -> b.bucket("bucket").key("key"))
-                                                      .build());
+                                                      .build(), S3ClientType.CRT_BASED);
     }
 
     private FileUpload newUpload(CompletableFuture<CompletedFileUpload> future) {
@@ -459,7 +458,7 @@ public class UploadDirectoryHelperTest {
                                      UploadFileRequest.builder()
                                                       .putObjectRequest(p -> p.key("key").bucket("bucket")).source(Paths.get(
                                                           "test.txt"))
-                                                      .build());
+                                                      .build(), S3ClientType.CRT_BASED);
     }
 
     private Path createJimFsTestDirectory(FileSystem fileSystem) {
