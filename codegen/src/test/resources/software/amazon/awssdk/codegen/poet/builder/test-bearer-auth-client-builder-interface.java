@@ -15,7 +15,9 @@ public interface JsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C>, C>
      * Set the {@link JsonEndpointProvider} implementation that will be used by the client to determine the endpoint for
      * each request. This is optional; if none is provided a default implementation will be used the SDK.
      */
-    B endpointProvider(JsonEndpointProvider endpointProvider);
+    default B endpointProvider(JsonEndpointProvider endpointProvider) {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * Set the token provider to use for bearer token authorization. This is optional, if none is provided, the SDK will
