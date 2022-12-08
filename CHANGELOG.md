@@ -1,3 +1,31 @@
+# __2.18.33__ __2022-12-07__
+## __AWS Cost Explorer Service__
+  - ### Features
+    - This release adds the LinkedAccountName field to the GetAnomalies API response under RootCause
+
+## __AWS Key Management Service__
+  - ### Features
+    - Updated examples and exceptions for External Key Store (XKS).
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Adding utilities for signing CloudFront URLs and cookies
+    - Updated endpoint and partition metadata.
+
+## __Amazon CloudFront__
+  - ### Features
+    - Introducing UpdateDistributionWithStagingConfig that can be used to promote the staging configuration to the production.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Adds support for EKS add-ons configurationValues fields and DescribeAddonConfiguration function
+
+## __Amazon S3__
+  - ### Bugfixes
+    - S3 query param validation
+
+      The SDK will raise SdkClientException when a null value is set for a member marked with the required trait.
+
 # __2.18.32__ __2022-12-06__
 ## __AWS SDK for Java v2__
   - ### Features

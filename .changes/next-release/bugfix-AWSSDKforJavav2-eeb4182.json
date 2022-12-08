@@ -1,6 +1,0 @@
-{
-    "category": "Amazon S3", 
-    "contributor": "", 
-    "type": "bugfix", 
-    "description": "S3 query param validation\n\nThe SDK will raise SdkClientException when a null value is set for a member marked with the required trait."
-}
