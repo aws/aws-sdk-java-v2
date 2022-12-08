@@ -19,6 +19,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Supplier;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSupplier;
@@ -27,7 +28,7 @@ import software.amazon.awssdk.utils.StringInputStream;
 class DefaultCredentialsProviderTest {
 
     @Test
-    void resolveCredentials_requestFallsIntoProfileCredentialsProviderWithProfileFile_returnsCredentials() {
+    void resolveCredentials_ProfileCredentialsProviderWithProfileFile_returnsCredentials() {
         DefaultCredentialsProvider provider = DefaultCredentialsProvider
             .builder()
             .profileFile(credentialFile("test", "access", "secret"))
@@ -41,7 +42,7 @@ class DefaultCredentialsProviderTest {
     }
 
     @Test
-    void resolveCredentials_requestFallsIntoProfileCredentialsProviderWithProfileFileSupplier_returnsCredentials() {
+    void resolveCredentials_ProfileCredentialsProviderWithProfileFileSupplier_resolvesCredentialsPerCall() {
         List<ProfileFile> profileFileList = Arrays.asList(credentialFile("test", "access", "secret"),
                                                           credentialFile("test", "modified", "update"));
         ProfileFileSupplier profileFileSupplier = supply(profileFileList);
@@ -60,6 +61,39 @@ class DefaultCredentialsProviderTest {
         assertThat(provider.resolveCredentials()).satisfies(awsCredentials -> {
             assertThat(awsCredentials.accessKeyId()).isEqualTo("modified");
             assertThat(awsCredentials.secretAccessKey()).isEqualTo("update");
+        });
+    }
+
+    @Test
+    void resolveCredentials_ProfileCredentialsProviderWithProfileFileSupplier_returnsCredentials() {
+        ProfileFile profileFile = credentialFile("test", "access", "secret");
+        ProfileFileSupplier profileFileSupplier = ProfileFileSupplier.fixedProfileFile(profileFile);
+
+        DefaultCredentialsProvider provider = DefaultCredentialsProvider
+            .builder()
+            .profileFile(profileFileSupplier)
+            .profileName("test")
+            .build();
+
+        assertThat(provider.resolveCredentials()).satisfies(awsCredentials -> {
+            assertThat(awsCredentials.accessKeyId()).isEqualTo("access");
+            assertThat(awsCredentials.secretAccessKey()).isEqualTo("secret");
+        });
+    }
+
+    @Test
+    void resolveCredentials_ProfileCredentialsProviderWithSupplierProfileFile_returnsCredentials() {
+        Supplier<ProfileFile> supplier = () -> credentialFile("test", "access", "secret");
+
+        DefaultCredentialsProvider provider = DefaultCredentialsProvider
+            .builder()
+            .profileFile(supplier)
+            .profileName("test")
+            .build();
+
+        assertThat(provider.resolveCredentials()).satisfies(awsCredentials -> {
+            assertThat(awsCredentials.accessKeyId()).isEqualTo("access");
+            assertThat(awsCredentials.secretAccessKey()).isEqualTo("secret");
         });
     }
 

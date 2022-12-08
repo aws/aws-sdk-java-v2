@@ -27,6 +27,7 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.auth.credentials.internal.Ec2MetadataConfigProvider;
@@ -79,7 +80,7 @@ public final class InstanceProfileCredentialsProvider
 
     private final String asyncThreadName;
 
-    private final ProfileFileSupplier profileFileSupplier;
+    private final Supplier<ProfileFile> profileFile;
 
     private final String profileName;
 
@@ -91,13 +92,13 @@ public final class InstanceProfileCredentialsProvider
         this.endpoint = builder.endpoint;
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
         this.asyncThreadName = builder.asyncThreadName;
-        this.profileFileSupplier = builder.profileFileSupplier;
+        this.profileFile = builder.profileFile;
         this.profileName = builder.profileName;
 
         this.httpCredentialsLoader = HttpCredentialsLoader.create();
         this.configProvider =
             Ec2MetadataConfigProvider.builder()
-                                     .profileFile(builder.profileFileSupplier)
+                                     .profileFile(builder.profileFile)
                                      .profileName(builder.profileName)
                                      .build();
 
@@ -282,7 +283,7 @@ public final class InstanceProfileCredentialsProvider
          *
          * <p>By default, {@link ProfileFile#defaultProfileFile()} is used.
          * 
-         * @see #profileFile(ProfileFileSupplier) 
+         * @see #profileFile(Supplier)
          */
         Builder profileFile(ProfileFile profileFile);
 
@@ -292,7 +293,7 @@ public final class InstanceProfileCredentialsProvider
          * @param profileFileSupplier Supplier interface for generating a ProfileFile instance.
          * @see #profileFile(ProfileFile)
          */
-        Builder profileFile(ProfileFileSupplier profileFileSupplier);
+        Builder profileFile(Supplier<ProfileFile> profileFileSupplier);
 
         /**
          * Configure the profile name used for loading IMDS-related configuration, like the endpoint mode (IPv4 vs IPv6).
@@ -314,7 +315,7 @@ public final class InstanceProfileCredentialsProvider
         private String endpoint;
         private Boolean asyncCredentialUpdateEnabled;
         private String asyncThreadName;
-        private ProfileFileSupplier profileFileSupplier;
+        private Supplier<ProfileFile> profileFile;
         private String profileName;
 
         private BuilderImpl() {
@@ -326,7 +327,7 @@ public final class InstanceProfileCredentialsProvider
             this.endpoint = provider.endpoint;
             this.asyncCredentialUpdateEnabled = provider.asyncCredentialUpdateEnabled;
             this.asyncThreadName = provider.asyncThreadName;
-            this.profileFileSupplier = provider.profileFileSupplier;
+            this.profileFile = provider.profileFile;
             this.profileName = provider.profileName;
         }
 
@@ -377,12 +378,12 @@ public final class InstanceProfileCredentialsProvider
         }
 
         @Override
-        public Builder profileFile(ProfileFileSupplier profileFileSupplier) {
-            this.profileFileSupplier = profileFileSupplier;
+        public Builder profileFile(Supplier<ProfileFile> profileFileSupplier) {
+            this.profileFile = profileFileSupplier;
             return this;
         }
 
-        public void setProfileFile(ProfileFileSupplier profileFileSupplier) {
+        public void setProfileFile(Supplier<ProfileFile> profileFileSupplier) {
             profileFile(profileFileSupplier);
         }
 
