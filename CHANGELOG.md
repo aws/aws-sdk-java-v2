@@ -1,3 +1,20 @@
+# __2.18.34__ __2022-12-08__
+## __AWS IoT TwinMaker__
+  - ### Features
+    - This release adds the following new features: 1) New APIs for managing a continuous sync of assets and asset models from AWS IoT SiteWise. 2) Support user friendly names for component types (ComponentTypeName) and properties (DisplayName).
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Auto Scaling__
+  - ### Features
+    - Adds support for metric math for target tracking scaling policies, saving you the cost and effort of publishing a custom metric to CloudWatch. Also adds support for VPC Lattice by adding the Attach/Detach/DescribeTrafficSources APIs and a new health check type to the CreateAutoScalingGroup API.
+
+## __Migration Hub Strategy Recommendations__
+  - ### Features
+    - This release adds known application filtering, server selection for assessments, support for potential recommendations, and indications for configuration and assessment status. For more information, see the AWS Migration Hub documentation at https://docs.aws.amazon.com/migrationhub/index.html
+
 # __2.18.33__ __2022-12-07__
 ## __AWS Cost Explorer Service__
   - ### Features
