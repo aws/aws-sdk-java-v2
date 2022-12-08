@@ -36,6 +36,7 @@ import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.internal.async.FileAsyncRequestBody;
+import software.amazon.awssdk.crt.s3.ResumeToken;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
@@ -60,7 +61,6 @@ import software.amazon.awssdk.transfer.s3.internal.model.DefaultFileUpload;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultUpload;
 import software.amazon.awssdk.transfer.s3.internal.progress.ResumeTransferProgress;
 import software.amazon.awssdk.transfer.s3.internal.progress.TransferProgressUpdater;
-import software.amazon.awssdk.transfer.s3.internal.serialization.CrtUploadResumeToken;
 import software.amazon.awssdk.transfer.s3.model.CompletedCopy;
 import software.amazon.awssdk.transfer.s3.model.CompletedDownload;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileDownload;
@@ -239,20 +239,24 @@ public final class DefaultS3TransferManager implements S3TransferManager {
     private FileUpload doResumeUpload(ResumableFileUpload resumableFileUpload) {
         UploadFileRequest uploadFileRequest = resumableFileUpload.uploadFileRequest();
         PutObjectRequest putObjectRequest = uploadFileRequest.putObjectRequest();
-
-        CrtUploadResumeToken token = new CrtUploadResumeToken(resumableFileUpload.totalNumOfParts().getAsLong(),
-                                                              resumableFileUpload.partSizeInBytes().getAsLong(),
-                                                              resumableFileUpload.multipartUploadId().orElse(null));
-        String marshalledToken = token.marshallResumeToken();
+        ResumeToken resumeToken = crtResumeToken(resumableFileUpload);
 
         Consumer<SdkHttpExecutionAttributes.Builder> attachResumeToken =
-            b -> b.put(CRT_PAUSE_RESUME_TOKEN, marshalledToken);
+            b -> b.put(CRT_PAUSE_RESUME_TOKEN, resumeToken);
 
         PutObjectRequest modifiedPutObjectRequest = attachSdkAttribute(putObjectRequest, attachResumeToken);
 
         return uploadFile(uploadFileRequest.toBuilder()
                                            .putObjectRequest(modifiedPutObjectRequest)
                                            .build());
+    }
+
+    private static ResumeToken crtResumeToken(ResumableFileUpload resumableFileUpload) {
+        return new ResumeToken(new ResumeToken.PutResumeTokenBuilder()
+                                   .withNumPartsCompleted(resumableFileUpload.transferredParts().orElse(0L))
+                                   .withTotalNumParts(resumableFileUpload.totalParts().orElse(0L))
+                                   .withPartSize(resumableFileUpload.partSizeInBytes().getAsLong())
+                                   .withUploadId(resumableFileUpload.multipartUploadId().orElse(null)));
     }
 
     private FileUpload uploadFromBeginning(ResumableFileUpload resumableFileUpload, boolean fileModified,
@@ -305,7 +309,7 @@ public final class DefaultS3TransferManager implements S3TransferManager {
     }
 
     private boolean hasResumeToken(ResumableFileUpload resumableFileUpload) {
-        return resumableFileUpload.totalNumOfParts().isPresent() && resumableFileUpload.partSizeInBytes().isPresent();
+        return resumableFileUpload.totalParts().isPresent() && resumableFileUpload.partSizeInBytes().isPresent();
     }
 
     private PutObjectRequest attachSdkAttribute(PutObjectRequest putObjectRequest,

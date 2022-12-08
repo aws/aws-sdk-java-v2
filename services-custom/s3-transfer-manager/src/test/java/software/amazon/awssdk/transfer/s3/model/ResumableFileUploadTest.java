@@ -140,7 +140,7 @@ class ResumableFileUploadTest {
                                   .fileLength(5000L)
                                   .fileLastModified(DATE)
                                   .partSizeInBytes(1024L)
-                                  .totalNumOfParts(5L)
+                                  .totalParts(5L)
                                   .build();
     }
 
