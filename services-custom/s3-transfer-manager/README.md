@@ -53,6 +53,8 @@ S3TransferManager transferManager =
 
 #### Upload a file to S3 and log the upload’s progress with a TransferListener
 To upload a file to Amazon S3, you need to provide the source file path and a PutObjectRequest specifying the target bucket and key.
+Optionally, you can monitor the progress of the transfer by attaching a TransferListener. The provided LoggingTransferListener
+logs a basic progress bar; users can also implement their own listeners.
 
 ```java
 S3TransferManager transferManager = S3TransferManager.create();
@@ -74,6 +76,7 @@ FileUpload upload = transferManager.uploadFile(uploadFileRequest);
 #### Download an S3 object to a local file and log the download’s progress with a TransferListener
 
 To download an object, you need to provide the destination file path and a GetObjectRequest specifying the source bucket and key.
+Same as upload, you can monitor the progress of the transfer by attaching a TransferListener.
 
 ```java
 S3TransferManager transferManager = S3TransferManager.create();

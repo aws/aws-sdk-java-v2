@@ -50,6 +50,7 @@ import software.amazon.awssdk.transfer.s3.model.Upload;
 import software.amazon.awssdk.transfer.s3.model.UploadDirectoryRequest;
 import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
 import software.amazon.awssdk.transfer.s3.model.UploadRequest;
+import software.amazon.awssdk.transfer.s3.progress.LoggingTransferListener;
 import software.amazon.awssdk.transfer.s3.progress.TransferListener;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.Validate;
@@ -173,6 +174,10 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * If the file already exists, the SDK will replace it. In the event of an error, the SDK will <b>NOT</b> attempt to delete
      * the file, leaving it as-is.
      * <p>
+     * Users can monitor the progress of the transfer by attaching a {@link TransferListener}. The provided
+     * {@link LoggingTransferListener} logs a basic progress bar; users can also implement their own listeners.
+     * <p>
+     *
      * <b>Usage Example:</b>
      * {@snippet :
      *         S3TransferManager transferManager = S3TransferManager.create();
@@ -271,6 +276,10 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * Downloads an object identified by the bucket and key from S3 through the given {@link AsyncResponseTransformer}. For
      * downloading to a file, you may use {@link #downloadFile(DownloadFileRequest)} instead.
      * <p>
+     * Users can monitor the progress of the transfer by attaching a {@link TransferListener}. The provided
+     * {@link LoggingTransferListener} logs a basic progress bar; users can also implement their own listeners.
+     *
+     * <p>
      * <b>Usage Example (this example buffers the entire object in memory and is not suitable for large objects):</b>
      *
      * {@snippet :
@@ -289,6 +298,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
      *         download.completionFuture().join();
      * }
      *
+     * <p>
      * See the static factory methods available in {@link AsyncResponseTransformer} for other use cases.
      *
      * @param downloadRequest the download request, containing a {@link GetObjectRequest} and {@link AsyncResponseTransformer}
@@ -314,6 +324,10 @@ public interface S3TransferManager extends SdkAutoCloseable {
 
     /**
      * Uploads a local file to an object in S3. For non-file-based uploads, you may use {@link #upload(UploadRequest)} instead.
+     * <p>
+     * Users can monitor the progress of the transfer by attaching a {@link TransferListener}. The provided
+     * {@link LoggingTransferListener} logs a basic progress bar; users can also implement their own listeners.
+     *
      * <p>
      * <b>Usage Example:</b>
      * {@snippet :
@@ -406,6 +420,11 @@ public interface S3TransferManager extends SdkAutoCloseable {
     /**
      * Uploads the given {@link AsyncRequestBody} to an object in S3. For file-based uploads, you may use
      * {@link #uploadFile(UploadFileRequest)} instead.
+     *
+     * <p>
+     * Users can monitor the progress of the transfer by attaching a {@link TransferListener}. The provided
+     * {@link LoggingTransferListener} logs a basic progress bar; users can also implement their own listeners.
+     *
      * <p>
      * <b>Usage Example:</b>
      * {@snippet :
