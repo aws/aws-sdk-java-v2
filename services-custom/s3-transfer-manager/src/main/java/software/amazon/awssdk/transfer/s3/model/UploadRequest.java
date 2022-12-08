@@ -81,7 +81,7 @@ public final class UploadRequest
     }
 
     /**
-     * Create a builder that can be used to create a {@link UploadRequest}.
+     * Creates a builder that can be used to create a {@link UploadRequest}.
      *
      * @see S3TransferManager#upload(UploadRequest)
      */

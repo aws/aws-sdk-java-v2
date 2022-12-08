@@ -37,8 +37,9 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * Download an object identified by the bucket and key from S3 through the given {@link AsyncResponseTransformer}. For downloading
- * to a file, you may use {@link DownloadFileRequest} instead.
+ * Represents the request to download an object identified by the bucket and key from S3 through the given
+ * {@link AsyncResponseTransformer}. For
+ * downloading to a file, you may use {@link DownloadFileRequest} instead.
  *
  * @see S3TransferManager#download(DownloadRequest)
  */
@@ -59,7 +60,7 @@ public final class DownloadRequest<ReturnT>
     }
 
     /**
-     * Create a builder that can be used to create a {@link DownloadRequest}.
+     * Creates a builder that can be used to create a {@link DownloadRequest}.
      *
      * @see UntypedBuilder
      */
@@ -187,7 +188,7 @@ public final class DownloadRequest<ReturnT>
         UntypedBuilder transferListeners(Collection<TransferListener> transferListeners);
 
         /**
-         * Add a {@link TransferListener} that will be notified as part of this request.
+         * Adds a {@link TransferListener} that will be notified as part of this request.
          *
          * @param transferListener the transferListener to add
          * @return Returns a reference to this object so that method calls can be chained together.
