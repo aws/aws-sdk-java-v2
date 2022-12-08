@@ -233,9 +233,6 @@
                                 <doclint>none</doclint>
                                 <!-- Exclude service packages to accelerate build -->
                                 <excludePackageNames>software.amazon.awssdk.services.*:*.codegen</excludePackageNames>
-                                <additionalJOption>
-                                    ${additionalJavadocOption}
-                                </additionalJOption>
                             </configuration>
                         </execution>
                     </executions>
@@ -735,17 +732,6 @@
         </profile>
 
         <profile>
-            <id>jdk-18-plus</id>
-            <activation>
-                <jdk>[18,)</jdk>
-            </activation>
-            <properties>
-                <!-- snippet-path only works with JDK 18+ -->
-                <additionalJavadocOption>--snippet-path=${basedir}/src/test/java:${basedir}/service-custom/s3-transfer-manager/src/test/java</additionalJavadocOption>
-            </properties>
-        </profile>
-
-        <profile>
             <id>quick</id>
             <properties>
                 <checkstyle.skip>true</checkstyle.skip>
@@ -1003,9 +989,6 @@
                             <nodeprecatedlist>true</nodeprecatedlist>
                             <additionalJOptions>
                                 <additionalJOption>--allow-script-in-comments</additionalJOption>
-                                <additionalJOption>
-                                    ${additionalJavadocOption}
-                                </additionalJOption>
                             </additionalJOptions>
                             <windowtitle>AWS SDK for Java - ${awsjavasdk.version}</windowtitle>
                             <encoding>UTF-8</encoding>

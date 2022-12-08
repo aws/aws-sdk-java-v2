@@ -68,7 +68,7 @@ public final class CopyRequest
     }
 
     /**
-     * Create a builder that can be used to create a {@link CopyRequest}.
+     * Creates a builder that can be used to create a {@link CopyRequest}.
      *
      * @see S3TransferManager#copy(CopyRequest)
      */
@@ -125,7 +125,7 @@ public final class CopyRequest
     public interface Builder extends CopyableBuilder<Builder, CopyRequest> {
 
         /**
-         * Configure the {@link CopyRequest} that should be used for the copy
+         * Configures the {@link CopyRequest} that should be used for the copy
          *
          * @param copyRequest the copyRequest
          * @return Returns a reference to this object so that method calls can be chained together.
@@ -134,7 +134,7 @@ public final class CopyRequest
         Builder copyObjectRequest(CopyObjectRequest copyRequest);
 
         /**
-         * Configure the {@link CopyRequest} that should be used for the copy
+         * Configures the {@link CopyRequest} that should be used for the copy
          *
          * <p>
          * This is a convenience method that creates an instance of the {@link CopyRequest} builder avoiding the need to create
@@ -162,7 +162,7 @@ public final class CopyRequest
         Builder transferListeners(Collection<TransferListener> transferListeners);
 
         /**
-         * Add a {@link TransferListener} that will be notified as part of this request.
+         * Adds a {@link TransferListener} that will be notified as part of this request.
          *
          * @param transferListener the transferListener to add
          * @return Returns a reference to this object so that method calls can be chained together.

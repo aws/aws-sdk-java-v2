@@ -83,7 +83,7 @@ public final class CompletedFileUpload implements CompletedObjectTransfer {
 
     public interface Builder {
         /**
-         * Specify the {@link PutObjectResponse} from {@link S3AsyncClient#putObject}
+         * Specifies the {@link PutObjectResponse} from {@link S3AsyncClient#putObject}
          *
          * @param response the response
          * @return This builder for method chaining.

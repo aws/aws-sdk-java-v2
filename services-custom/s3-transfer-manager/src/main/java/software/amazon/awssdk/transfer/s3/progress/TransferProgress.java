@@ -55,7 +55,7 @@ import software.amazon.awssdk.transfer.s3.model.Upload;
 public interface TransferProgress {
 
     /**
-     * Take a snapshot of the current progress, represented by an immutable {@link TransferProgressSnapshot}.
+     * Takes a snapshot of the current progress, represented by an immutable {@link TransferProgressSnapshot}.
      */
     TransferProgressSnapshot snapshot();
 }
