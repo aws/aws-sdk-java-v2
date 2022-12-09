@@ -54,8 +54,14 @@
                 else
                 {
                     redirectServiceSuffixLink =  serviceFolderPath + serviceName + "/" + clientObjectName + ".html" ;
-                    if(typeName != null)
-                        redirectServiceSuffixLink  = redirectServiceSuffixLink + "#" + camelize(typeName) + "--";
+                    if(typeName != null) {
+                        methodName = camelize(typeName)
+                        requestObjectName = methodName.charAt(0).toUpperCase() + methodName.slice(1) + "Request"
+                        redirectServiceSuffixLink =
+                            redirectServiceSuffixLink +
+                            "#" + methodName +
+                            "(software.amazon.awssdk.services." + serviceName + ".model." + requestObjectName + ")";
+                    }
                     if(checkResourceExists( baseUri.replace(/crosslink_redirect.*/gi, redirectServiceSuffixLink) ))
                         redirectSuffixLink =  redirectServiceSuffixLink;
                 }
