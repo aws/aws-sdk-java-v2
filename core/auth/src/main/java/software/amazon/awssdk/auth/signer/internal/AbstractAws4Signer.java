@@ -414,7 +414,8 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
         paramsBuilder.awsCredentials(executionAttributes.getAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS))
                      .signingName(executionAttributes.getAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME))
                      .signingRegion(executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNING_REGION))
-                     .timeOffset(executionAttributes.getAttribute(AwsSignerExecutionAttribute.TIME_OFFSET));
+                     .timeOffset(executionAttributes.getAttribute(AwsSignerExecutionAttribute.TIME_OFFSET))
+                     .signingClockOverride(executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNING_CLOCK));
 
         Boolean doubleUrlEncode = executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE);
         if (doubleUrlEncode != null) {

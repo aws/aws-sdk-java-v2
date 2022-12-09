@@ -75,6 +75,11 @@ public final class CombinedResponseAsyncHttpResponseHandler<OutputT>
         Validate.isTrue(headersFuture != null, "onStream() invoked without prepare().");
         Validate.isTrue(headersFuture.isDone(), "headersFuture is still not completed when onStream() is "
                                                 + "invoked.");
+
+        if (headersFuture.isCompletedExceptionally()) {
+            return;
+        }
+
         SdkHttpResponse sdkHttpResponse = headersFuture.join();
         if (sdkHttpResponse.isSuccessful()) {
             successResponseHandler.onStream(publisher);
