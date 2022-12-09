@@ -73,7 +73,7 @@ class CloudFrontUtilitiesTest {
     }
 
     @Test
-    void getSignedURLWithCannedPolicy_shouldWork() {
+    void getSignedURLWithCannedPolicy_producesValidUrl() {
         Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         SignedUrl signedUrl =
             cloudFrontUtilities.getSignedUrlWithCannedPolicy(r -> r
@@ -90,7 +90,7 @@ class CloudFrontUtilitiesTest {
     }
 
     @Test
-    void getSignedURLWithCustomPolicy_shouldWork() throws Exception {
+    void getSignedURLWithCustomPolicy_producesValidUrl() throws Exception {
         Instant activeDate = LocalDate.of(2022, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         String ipRange = "1.2.3.4";
@@ -117,7 +117,7 @@ class CloudFrontUtilitiesTest {
     }
 
     @Test
-    void getSignedURLWithCustomPolicy_withIpRangeOmitted_shouldWork() throws Exception {
+    void getSignedURLWithCustomPolicy_withIpRangeOmitted_producesValidUrl() throws Exception {
         Instant activeDate = LocalDate.of(2022, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         CustomSignerRequest request = CustomSignerRequest.builder()
@@ -139,7 +139,7 @@ class CloudFrontUtilitiesTest {
     }
 
     @Test
-    void getSignedURLWithCustomPolicy_withActiveDateOmitted_shouldWork() throws Exception {
+    void getSignedURLWithCustomPolicy_withActiveDateOmitted_producesValidUrl() throws Exception {
         Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         String ipRange = "1.2.3.4";
         CustomSignerRequest request = CustomSignerRequest.builder()
@@ -172,7 +172,7 @@ class CloudFrontUtilitiesTest {
     }
 
     @Test
-    void getCookiesForCannedPolicy_shouldWork() throws Exception {
+    void getCookiesForCannedPolicy_producesValidCookies() throws Exception {
         Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         CannedSignerRequest request = CannedSignerRequest.builder()
                                                          .resourceUrl(resourceUrl)
@@ -186,7 +186,7 @@ class CloudFrontUtilitiesTest {
     }
 
     @Test
-    void getCookiesForCustomPolicy_shouldWork() throws Exception {
+    void getCookiesForCustomPolicy_producesValidCookies() throws Exception {
         Instant activeDate = LocalDate.of(2022, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         String ipRange = "1.2.3.4";
@@ -204,7 +204,7 @@ class CloudFrontUtilitiesTest {
     }
 
     @Test
-    void getCookiesForCustomPolicy_withActiveDateAndIpRangeOmitted_shouldWork() throws Exception {
+    void getCookiesForCustomPolicy_withActiveDateAndIpRangeOmitted_producesValidCookies() {
         Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         CustomSignerRequest request = CustomSignerRequest.builder()
                                                          .resourceUrl(resourceUrl)

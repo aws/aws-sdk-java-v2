@@ -83,12 +83,13 @@ public final class CloudFrontUtilities {
      * <p><b>Example Usage</b>
      * <p>
      * {@snippet :
+     *     //Generates signed URL String with canned policy, valid for 7 days
      *     CloudFrontUtilities utilities = CloudFrontUtilities.create();
      *
-     *     Instant expirationDate = Instant.now().plus(7, ChronoUnit.DAYS);
+     *     Instant expirationDate = Instant.now().plus(Duration.ofDays(7));
      *     String resourceUrl = "https://d111111abcdef8.cloudfront.net/s3ObjectKey";
      *     String keyPairId = "myKeyPairId";
-     *     PrivateKey privateKey = myPrivateKey; // Either PrivateKey or Path can be passed in
+     *     PrivateKey privateKey = myPrivateKey;
      *
      *     SignedUrl signedUrl = utilities.getSignedUrlWithCannedPolicy(r -> r.resourceUrl(resourceUrl)
      *                                                                        .privateKey(privateKey)
@@ -117,12 +118,13 @@ public final class CloudFrontUtilities {
      * <p><b>Example Usage</b>
      * <p>
      * {@snippet :
+     *     //Generates signed URL String with canned policy, valid for 7 days
      *     CloudFrontUtilities utilities = CloudFrontUtilities.create();
      *
-     *     Instant expirationDate = Instant.now().plus(7, ChronoUnit.DAYS);
+     *     Instant expirationDate = Instant.now().plus(Duration.ofDays(7));
      *     String resourceUrl = "https://d111111abcdef8.cloudfront.net/s3ObjectKey";
      *     String keyPairId = "myKeyPairId";
-     *     Path keyFile = myKeyFile; // Either PrivateKey or Path can be passed in
+     *     Path keyFile = myKeyFile;
      *
      *     CannedSignerRequest cannedRequest = CannedSignerRequest.builder()
      *                                                            .resourceUrl(resourceUrl)
@@ -176,21 +178,23 @@ public final class CloudFrontUtilities {
      * <p><b>Example Usage</b>
      * <p>
      * {@snippet :
+     *     //Generates signed URL String with custom policy, with an access window that begins in 2 days and ends in 7 days,
+     *     //for a specified IP range
      *     CloudFrontUtilities utilities = CloudFrontUtilities.create();
      *
-     *     Instant expirationDate = Instant.now().plus(7, ChronoUnit.DAYS);
+     *     Instant expirationDate = Instant.now().plus(Duration.ofDays(7));
      *     String resourceUrl = "https://d111111abcdef8.cloudfront.net/s3ObjectKey";
      *     String keyPairId = "myKeyPairId";
-     *     PrivateKey privateKey = myPrivateKey; // Either PrivateKey or Path can be passed in
-     *     Instant activeDate = Instant.now().plus(2, ChronoUnit.DAYS);
+     *     PrivateKey privateKey = myPrivateKey;
+     *     Instant activeDate = Instant.now().plus(Duration.ofDays(2));
      *     String ipRange = "192.168.0.1/24";
      *
      *     SignedUrl signedUrl = utilities.getSignedUrlWithCustomPolicy(r -> r.resourceUrl(resourceUrl)
      *                                                                        .privateKey(privateKey)
      *                                                                        .keyPairId(keyPairId)
      *                                                                        .expirationDate(expirationDate)
-     *                                                                        .activeDate(activeDate) //optional
-     *                                                                        .ipRange(ipRange)); //optional
+     *                                                                        .activeDate(activeDate)
+     *                                                                        .ipRange(ipRange));
      *     String url = signedUrl.url();
      * }
      */
@@ -216,13 +220,15 @@ public final class CloudFrontUtilities {
      * <p><b>Example Usage</b>
      * <p>
      * {@snippet :
+     *     //Generates signed URL String with custom policy, with an access window that begins in 2 days and ends in 7 days,
+     *     //for a specified IP range
      *     CloudFrontUtilities utilities = CloudFrontUtilities.create();
      *
-     *     Instant expirationDate = Instant.now().plus(7, ChronoUnit.DAYS);
+     *     Instant expirationDate = Instant.now().plus(Duration.ofDays(7));
      *     String resourceUrl = "https://d111111abcdef8.cloudfront.net/s3ObjectKey";
      *     String keyPairId = "myKeyPairId";
-     *     Path keyFile = myKeyFile; // Either PrivateKey or Path can be passed in
-     *     Instant activeDate = Instant.now().plus(2, ChronoUnit.DAYS);
+     *     Path keyFile = myKeyFile;
+     *     Instant activeDate = Instant.now().plus(Duration.ofDays(2));
      *     String ipRange = "192.168.0.1/24";
      *
      *     CustomSignerRequest customRequest = CustomSignerRequest.builder()
@@ -230,8 +236,8 @@ public final class CloudFrontUtilities {
      *                                                            .privateKey(keyFile)
      *                                                            .keyPairId(keyPairId)
      *                                                            .expirationDate(expirationDate)
-     *                                                            .activeDate(activeDate) //optional
-     *                                                            .ipRange(ipRange) //optional
+     *                                                            .activeDate(activeDate)
+     *                                                            .ipRange(ipRange)
      *                                                            .build();
      *     SignedUrl signedUrl = utilities.getSignedUrlWithCustomPolicy(customRequest);
      *     String url = signedUrl.url();
@@ -279,12 +285,13 @@ public final class CloudFrontUtilities {
      * <p><b>Example Usage</b>
      * <p>
      * {@snippet :
+     *     //Generates signed Cookie for canned policy, valid for 7 days
      *     CloudFrontUtilities utilities = CloudFrontUtilities.create();
      *
-     *     Instant expirationDate = Instant.now().plus(7, ChronoUnit.DAYS);
+     *     Instant expirationDate = Instant.now().plus(Duration.ofDays(7));
      *     String resourceUrl = "https://d111111abcdef8.cloudfront.net/s3ObjectKey";
      *     String keyPairId = "myKeyPairId";
-     *     PrivateKey privateKey = myPrivateKey; // Either PrivateKey or Path can be passed in
+     *     PrivateKey privateKey = myPrivateKey;
      *
      *     CookiesForCannedPolicy cookies = utilities.getSignedCookiesForCannedPolicy(r -> r.resourceUrl(resourceUrl)
      *                                                                                      .privateKey(privateKey)
@@ -316,12 +323,13 @@ public final class CloudFrontUtilities {
      * <p><b>Example Usage</b>
      * <p>
      * {@snippet :
+     *     //Generates signed Cookie for canned policy, valid for 7 days
      *     CloudFrontUtilities utilities = CloudFrontUtilities.create();
      *
-     *     Instant expirationDate = Instant.now().plus(7, ChronoUnit.DAYS);
+     *     Instant expirationDate = Instant.now().plus(Duration.ofDays(7));
      *     String resourceUrl = "https://d111111abcdef8.cloudfront.net/s3ObjectKey";
      *     String keyPairId = "myKeyPairId";
-     *     Path keyFile = myKeyFile; // Either PrivateKey or Path can be passed in
+     *     Path keyFile = myKeyFile;
      *
      *     CannedSignerRequest cannedRequest = CannedSignerRequest.builder()
      *                                                            .resourceUrl(resourceUrl)
@@ -369,21 +377,23 @@ public final class CloudFrontUtilities {
      * <p><b>Example Usage</b>
      * <p>
      * {@snippet :
+     *     //Generates signed Cookie for custom policy, with an access window that begins in 2 days and ends in 7 days,
+     *     //for a specified IP range
      *     CloudFrontUtilities utilities = CloudFrontUtilities.create();
      *
-     *     Instant expirationDate = Instant.now().plus(7, ChronoUnit.DAYS);
+     *     Instant expirationDate = Instant.now().plus(Duration.ofDays(7));
      *     String resourceUrl = "https://d111111abcdef8.cloudfront.net/s3ObjectKey";
      *     String keyPairId = "myKeyPairId";
-     *     PrivateKey privateKey = myPrivateKey; // Either PrivateKey or Path can be passed in
-     *     Instant activeDate = Instant.now().plus(2, ChronoUnit.DAYS);
+     *     PrivateKey privateKey = myPrivateKey;
+     *     Instant activeDate = Instant.now().plus(Duration.ofDays(2));
      *     String ipRange = "192.168.0.1/24";
      *
      *     CookiesForCustomPolicy cookies = utilities.getCookiesForCustomPolicy(r -> r.resourceUrl(resourceUrl)
      *                                                                                .privateKey(privateKey)
      *                                                                                .keyPairId(keyPairId)
      *                                                                                .expirationDate(expirationDate)
-     *                                                                                .activeDate(activeDate) //optional
-     *                                                                                .ipRange(ipRange)); //optional
+     *                                                                                .activeDate(activeDate)
+     *                                                                                .ipRange(ipRange));
      *     // Generates Set-Cookie header values to send to the viewer to allow access
      *     String signatureHeaderValue = cookies.signatureHeaderValue();
      *     String keyPairIdHeaderValue = cookies.keyPairIdHeaderValue();
@@ -408,13 +418,15 @@ public final class CloudFrontUtilities {
      * <p><b>Example Usage</b>
      * <p>
      * {@snippet :
+     *     //Generates signed Cookie for custom policy, with an access window that begins in 2 days and ends in 7 days,
+     *     //for a specified IP range
      *     CloudFrontUtilities utilities = CloudFrontUtilities.create();
      *
-     *     Instant expirationDate = Instant.now().plus(7, ChronoUnit.DAYS);
+     *     Instant expirationDate = Instant.now().plus(Duration.ofDays(7));
      *     String resourceUrl = "https://d111111abcdef8.cloudfront.net/s3ObjectKey";
      *     String keyPairId = "myKeyPairId";
-     *     Path keyFile = myKeyFile; // Either PrivateKey or Path can be passed in
-     *     Instant activeDate = Instant.now().plus(2, ChronoUnit.DAYS);
+     *     Path keyFile = myKeyFile;
+     *     Instant activeDate = Instant.now().plus(Duration.ofDays(2));
      *     String ipRange = "192.168.0.1/24";
      *
      *     CustomSignerRequest customRequest = CustomSignerRequest.builder()
@@ -422,8 +434,8 @@ public final class CloudFrontUtilities {
      *                                                            .privateKey(keyFile)
      *                                                            .keyPairId(keyFile)
      *                                                            .expirationDate(expirationDate)
-     *                                                            .activeDate(activeDate) //optional
-     *                                                            .ipRange(ipRange) //optional
+     *                                                            .activeDate(activeDate)
+     *                                                            .ipRange(ipRange)
      *                                                            .build();
      *     CookiesForCustomPolicy cookies = utilities.getCookiesForCustomPolicy(customRequest);
      *     // Generates Set-Cookie header values to send to the viewer to allow access

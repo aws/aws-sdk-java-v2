@@ -43,7 +43,7 @@ class SignedCookieTest {
     private static final String EXPECTED_POLICY_HEADER = POLICY_KEY + "=" + POLICY_VALUE;
 
     @Test
-    void cookiesForCannedPolicy_shouldWork() {
+    void cookiesForCannedPolicy_producesValidCookies() {
         CookiesForCannedPolicy cookiesForCannedPolicy = DefaultCookiesForCannedPolicy.builder()
                                                                                      .resourceUrl(RESOURCE_URL)
                                                                                      .keyPairIdHeaderValue(KEY_PAIR_ID_KEY +
@@ -61,7 +61,7 @@ class SignedCookieTest {
     }
 
     @Test
-    void cookiesForCustomPolicy_shouldWork() {
+    void cookiesForCustomPolicy_producesValidCookies() {
         CookiesForCustomPolicy cookiesForCustomPolicy = DefaultCookiesForCustomPolicy.builder()
                                                                                      .resourceUrl(RESOURCE_URL)
                                                                                      .keyPairIdHeaderValue(KEY_PAIR_ID_KEY +
@@ -79,7 +79,7 @@ class SignedCookieTest {
     }
 
     @Test
-    void generateHttpGetRequest_shouldWork() {
+    void generateHttpGetRequest_producesValidCookies() {
         CookiesForCannedPolicy cookiesForCannedPolicy = DefaultCookiesForCannedPolicy.builder()
                                                                                      .resourceUrl(RESOURCE_URL)
                                                                                      .keyPairIdHeaderValue(KEY_PAIR_ID_KEY +

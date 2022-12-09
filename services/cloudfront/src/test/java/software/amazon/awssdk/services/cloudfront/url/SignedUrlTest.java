@@ -30,7 +30,7 @@ class SignedUrlTest {
     private static final String URL = PROTOCOL + "://" + DOMAIN + ENCODED_PATH;
 
     @Test
-    void signedUrl_shouldWork() {
+    void signedUrl_producesValidUrl() {
         SignedUrl signedUrl = DefaultSignedUrl.builder()
                                               .protocol(PROTOCOL).
                                               domain(DOMAIN).
@@ -44,7 +44,7 @@ class SignedUrlTest {
     }
 
     @Test
-    void generateHttpGetRequest_shouldWork() {
+    void generateHttpGetRequest_producesValidRequest() {
         SignedUrl signedUrl = DefaultSignedUrl.builder()
                                               .protocol(PROTOCOL)
                                               .domain(DOMAIN)
