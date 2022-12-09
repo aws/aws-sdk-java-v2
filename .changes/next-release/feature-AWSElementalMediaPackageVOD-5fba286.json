@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Elemental MediaPackage VOD",
-    "contributor": "",
-    "description": "This release provides the approximate number of assets in a packaging group."
-}

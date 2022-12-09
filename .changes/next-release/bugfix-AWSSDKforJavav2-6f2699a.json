@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "Fixed an issue that could cause exception to be thrown from `CombinedResponseAsyncHttpResponseHandler#onStream` when `onError` got invoked first"
-}

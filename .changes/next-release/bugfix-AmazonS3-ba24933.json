@@ -1,6 +1,0 @@
-{
-    "category": "Amazon S3", 
-    "contributor": "", 
-    "type": "bugfix", 
-    "description": "Fixed an issue that could result in exceptions or signature validation failures when signing or presigning S3 requests using the signer directly when paths contain encoded or path traversal characters."
-}

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS IoT FleetWise",
-    "contributor": "",
-    "description": "Deprecated assignedValue property for actuators and attributes. Added a message to invalid nodes and invalid decoder manifest exceptions."
-}
