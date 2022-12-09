@@ -274,20 +274,23 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
                                          .addParameter(String.class, "operationName")
                                          .returns(void.class);
 
-        b.beginControlFlow("switch (operationName)");
+        boolean generateSwitch = operations.values().stream().anyMatch(this::hasStaticContextParams);
+        if (generateSwitch) {
+            b.beginControlFlow("switch (operationName)");
 
-        operations.forEach((n, m) -> {
-            if (!hasStaticContextParams(m)) {
-                return;
-            }
+            operations.forEach((n, m) -> {
+                if (!hasStaticContextParams(m)) {
+                    return;
+                }
 
-            b.addCode("case $S:", n);
-            b.addStatement("$N(params)", staticContextParamsMethodName(m));
+                b.addCode("case $S:", n);
+                b.addStatement("$N(params)", staticContextParamsMethodName(m));
+                b.addStatement("break");
+            });
+            b.addCode("default:");
             b.addStatement("break");
-        });
-        b.addCode("default:");
-        b.addStatement("break");
-        b.endControlFlow();
+            b.endControlFlow();
+        }
 
         return b.build();
     }
@@ -302,23 +305,26 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
                                          .addParameter(SdkRequest.class, "request")
                                          .returns(void.class);
 
-        b.beginControlFlow("switch (operationName)");
+        boolean generateSwitch = operations.values().stream().anyMatch(this::hasContextParams);
+        if (generateSwitch) {
+            b.beginControlFlow("switch (operationName)");
 
-        operations.forEach((n, m) -> {
-            if (!hasContextParams(m)) {
-                return;
-            }
+            operations.forEach((n, m) -> {
+                if (!hasContextParams(m)) {
+                    return;
+                }
 
-            String requestClassName = model.getNamingStrategy().getRequestClassName(m.getOperationName());
-            ClassName requestClass = poetExtension.getModelClass(requestClassName);
+                String requestClassName = model.getNamingStrategy().getRequestClassName(m.getOperationName());
+                ClassName requestClass = poetExtension.getModelClass(requestClassName);
 
-            b.addCode("case $S:", n);
-            b.addStatement("setContextParams(params, ($T) request)", requestClass);
+                b.addCode("case $S:", n);
+                b.addStatement("setContextParams(params, ($T) request)", requestClass);
+                b.addStatement("break");
+            });
+            b.addCode("default:");
             b.addStatement("break");
-        });
-        b.addCode("default:");
-        b.addStatement("break");
-        b.endControlFlow();
+            b.endControlFlow();
+        }
 
         return b.build();
     }
@@ -388,47 +394,54 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
                                                .addParameter(SdkRequest.class, "request")
                                                .addModifiers(Modifier.PRIVATE, Modifier.STATIC);
 
-        builder.beginControlFlow("switch (operationName)");
+        boolean generateSwitch =
+            model.getOperations().values().stream().anyMatch(opModel -> StringUtils.isNotBlank(getHostPrefix(opModel)));
 
-        model.getOperations().forEach((name, opModel) -> {
-            String hostPrefix = getHostPrefix(opModel);
-            if (StringUtils.isBlank(hostPrefix)) {
-                return;
-            }
+        if (!generateSwitch) {
+            builder.addStatement("return $T.empty()", Optional.class);
+        } else {
+            builder.beginControlFlow("switch (operationName)");
 
-            builder.beginControlFlow("case $S:", name);
-            HostPrefixProcessor processor = new HostPrefixProcessor(hostPrefix);
-
-            if (processor.c2jNames().isEmpty()) {
-                builder.addStatement("return $T.of($S)", Optional.class, processor.hostWithStringSpecifier());
-            } else {
-                String requestVar = opModel.getInput().getVariableName();
-                processor.c2jNames().forEach(c2jName -> {
-                    builder.addStatement("$1T.validateHostnameCompliant(request.getValueForField($2S, $3T.class).orElse(null), "
-                                         + "$2S, $4S)",
-                                         HostnameValidator.class,
-                                         c2jName,
-                                         String.class,
-                                         requestVar);
-                });
-
-                builder.addCode("return $T.of($T.format($S, ", Optional.class, String.class,
-                                processor.hostWithStringSpecifier());
-                Iterator<String> c2jNamesIter = processor.c2jNames().listIterator();
-                while (c2jNamesIter.hasNext()) {
-                    builder.addCode("request.getValueForField($S, $T.class).get()", c2jNamesIter.next(), String.class);
-                    if (c2jNamesIter.hasNext()) {
-                        builder.addCode(",");
-                    }
+            model.getOperations().forEach((name, opModel) -> {
+                String hostPrefix = getHostPrefix(opModel);
+                if (StringUtils.isBlank(hostPrefix)) {
+                    return;
                 }
-                builder.addStatement("))");
-            }
-            builder.endControlFlow();
-        });
 
-        builder.addCode("default:");
-        builder.addStatement("return $T.empty()", Optional.class);
-        builder.endControlFlow();
+                builder.beginControlFlow("case $S:", name);
+                HostPrefixProcessor processor = new HostPrefixProcessor(hostPrefix);
+
+                if (processor.c2jNames().isEmpty()) {
+                    builder.addStatement("return $T.of($S)", Optional.class, processor.hostWithStringSpecifier());
+                } else {
+                    String requestVar = opModel.getInput().getVariableName();
+                    processor.c2jNames().forEach(c2jName -> {
+                        builder.addStatement("$1T.validateHostnameCompliant(request.getValueForField($2S, $3T.class)"
+                                             + ".orElse(null), $2S, $4S)",
+                                             HostnameValidator.class,
+                                             c2jName,
+                                             String.class,
+                                             requestVar);
+                    });
+
+                    builder.addCode("return $T.of($T.format($S, ", Optional.class, String.class,
+                                    processor.hostWithStringSpecifier());
+                    Iterator<String> c2jNamesIter = processor.c2jNames().listIterator();
+                    while (c2jNamesIter.hasNext()) {
+                        builder.addCode("request.getValueForField($S, $T.class).get()", c2jNamesIter.next(), String.class);
+                        if (c2jNamesIter.hasNext()) {
+                            builder.addCode(",");
+                        }
+                    }
+                    builder.addStatement("))");
+                }
+                builder.endControlFlow();
+            });
+
+            builder.addCode("default:");
+            builder.addStatement("return $T.empty()", Optional.class);
+            builder.endControlFlow();
+        }
 
         return builder.build();
     }
