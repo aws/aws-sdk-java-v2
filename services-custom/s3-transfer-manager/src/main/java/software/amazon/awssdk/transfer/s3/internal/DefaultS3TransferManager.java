@@ -26,6 +26,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.arns.Arn;
@@ -36,6 +37,7 @@ import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.internal.async.FileAsyncRequestBody;
+import software.amazon.awssdk.core.internal.util.ClassLoaderHelper;
 import software.amazon.awssdk.crt.s3.ResumeToken;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -102,8 +104,14 @@ public final class DefaultS3TransferManager implements S3TransferManager {
 
     public DefaultS3TransferManager(DefaultBuilder tmBuilder) {
         transferConfiguration = resolveTransferManagerConfiguration(tmBuilder);
-        isDefaultS3AsyncClient = tmBuilder.s3AsyncClient == null;
-        s3AsyncClient = isDefaultS3AsyncClient ? S3AsyncClient.crtCreate() : tmBuilder.s3AsyncClient;
+        if (tmBuilder.s3AsyncClient == null) {
+            isDefaultS3AsyncClient = true;
+            s3AsyncClient = defaultS3AsyncClient().get();
+        } else {
+            isDefaultS3AsyncClient = false;
+            s3AsyncClient = tmBuilder.s3AsyncClient;
+        }
+
         uploadDirectoryHelper = new UploadDirectoryHelper(transferConfiguration, this::uploadFile);
         ListObjectsHelper listObjectsHelper = new ListObjectsHelper(s3AsyncClient::listObjectsV2);
         downloadDirectoryHelper = new DownloadDirectoryHelper(transferConfiguration,
@@ -132,6 +140,22 @@ public final class DefaultS3TransferManager implements S3TransferManager {
         this.uploadDirectoryHelper = uploadDirectoryHelper;
         this.downloadDirectoryHelper = downloadDirectoryHelper;
         s3ClientType = s3CrtAsyncClient instanceof S3CrtAsyncClient ? S3ClientType.CRT_BASED : S3ClientType.JAVA_BASED;
+    }
+
+    private static Supplier<S3AsyncClient> defaultS3AsyncClient() {
+        if (crtInClasspath()) {
+            return S3AsyncClient::crtCreate;
+        }
+        return S3AsyncClient::create;
+    }
+
+    private static boolean crtInClasspath() {
+        try {
+            ClassLoaderHelper.loadClass("software.amazon.awssdk.crt.s3.S3Client", false);
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+        return true;
     }
 
     private static TransferManagerConfiguration resolveTransferManagerConfiguration(DefaultBuilder tmBuilder) {
