@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon SageMaker Metrics Service",
+    "contributor": "",
+    "description": "This release introduces support SageMaker Metrics APIs."
+}
