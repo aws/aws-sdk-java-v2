@@ -52,7 +52,8 @@ public class CodeGenerator {
         this.models = builder.models;
         this.sourcesDirectory = builder.sourcesDirectory;
         this.testsDirectory = builder.testsDirectory;
-        this.resourcesDirectory = builder.resourcesDirectory;
+        this.resourcesDirectory = builder.resourcesDirectory != null ? builder.resourcesDirectory
+                                                                     : builder.sourcesDirectory;
         this.fileNamePrefix = builder.fileNamePrefix;
     }
 

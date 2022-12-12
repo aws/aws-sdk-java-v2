@@ -143,7 +143,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
-    void getSignedUrlWithCannedPolicy_shouldWork() throws Exception {
+    void getSignedUrlWithCannedPolicy_producesValidUrl() throws Exception {
         InputStream originalBucketContent = s3Client.getObject(GetObjectRequest.builder().bucket(callerReference).key(s3ObjectKey).build());
         Instant expirationDate = LocalDate.of(2050, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         CannedSignerRequest request = CannedSignerRequest.builder()
@@ -179,7 +179,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
-    void getSignedUrlWithCustomPolicy_shouldWork() throws Exception {
+    void getSignedUrlWithCustomPolicy_producesValidUrl() throws Exception {
         InputStream originalBucketContent = s3Client.getObject(GetObjectRequest.builder().bucket(callerReference).key(s3ObjectKey).build());
         Instant activeDate = LocalDate.of(2022, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         Instant expirationDate = LocalDate.of(2050, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
@@ -219,7 +219,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
-    void getCookiesForCannedPolicy_shouldWork() throws Exception {
+    void getCookiesForCannedPolicy_producesValidCookies() throws Exception {
         InputStream originalBucketContent = s3Client.getObject(GetObjectRequest.builder().bucket(callerReference).key(s3ObjectKey).build());
         Instant expirationDate = LocalDate.of(2050, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         CookiesForCannedPolicy cookies = cloudFrontUtilities.getCookiesForCannedPolicy(r -> r.resourceUrl(resourceUrl)
@@ -257,7 +257,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
-    void getCookiesForCustomPolicy_shouldWork() throws Exception {
+    void getCookiesForCustomPolicy_producesValidCookies() throws Exception {
         InputStream originalBucketContent = s3Client.getObject(GetObjectRequest.builder().bucket(callerReference).key(s3ObjectKey).build());
         Instant activeDate = LocalDate.of(2022, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         Instant expirationDate = LocalDate.of(2050, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));

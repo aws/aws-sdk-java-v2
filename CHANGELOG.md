@@ -1,3 +1,44 @@
+# __2.18.36__ __2022-12-12__
+## __AWS Migration Hub Refactor Spaces__
+  - ### Features
+    - This release adds support for Lambda alias service endpoints. Lambda alias ARNs can now be passed into CreateService.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS WAFV2__
+  - ### Features
+    - Documents the naming requirement for logging destinations that you use with web ACLs.
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - This release allows custom strings in PartyType and Gender through 2 new attributes in the CreateProfile and UpdateProfile APIs: PartyTypeString and GenderString.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release updates DescribeFpgaImages to show supported instance types of AFIs in its response.
+
+## __Amazon Kinesis Video Streams__
+  - ### Features
+    - This release adds support for public preview of Kinesis Video Stream at Edge enabling customers to provide configuration for the Kinesis Video Stream EdgeAgent running on an on-premise IoT device. Customers can now locally record from cameras and stream videos to the cloud on configured schedule.
+
+## __Amazon Lookout for Vision__
+  - ### Features
+    - This documentation update adds kms:GenerateDataKey as a required permission to StartModelPackagingJob.
+
+## __Amazon Rekognition__
+  - ### Features
+    - Adds support for "aliases" and "categories", inclusion and exclusion filters for labels and label categories, and aggregating labels by video segment timestamps for Stored Video Label Detection APIs.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Update the RDS API model to support copying option groups during the CopyDBSnapshot operation
+
+## __Amazon SageMaker Metrics Service__
+  - ### Features
+    - This release introduces support SageMaker Metrics APIs.
+
 # __2.18.35__ __2022-12-09__
 ## __AWS Elemental MediaLive__
   - ### Features

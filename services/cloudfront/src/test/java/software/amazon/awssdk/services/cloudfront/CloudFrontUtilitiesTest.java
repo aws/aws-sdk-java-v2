@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.cloudfront;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -29,6 +30,10 @@ import java.util.Base64;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.services.cloudfront.cookie.CookiesForCannedPolicy;
+import software.amazon.awssdk.services.cloudfront.cookie.CookiesForCustomPolicy;
+import software.amazon.awssdk.services.cloudfront.model.CannedSignerRequest;
 import software.amazon.awssdk.services.cloudfront.model.CustomSignerRequest;
 import software.amazon.awssdk.services.cloudfront.url.SignedUrl;
 
@@ -68,8 +73,7 @@ class CloudFrontUtilitiesTest {
     }
 
     @Test
-    void getSignedURLWithCannedPolicy_shouldWork() {
-
+    void getSignedURLWithCannedPolicy_producesValidUrl() {
         Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         SignedUrl signedUrl =
             cloudFrontUtilities.getSignedUrlWithCannedPolicy(r -> r
@@ -86,17 +90,43 @@ class CloudFrontUtilitiesTest {
     }
 
     @Test
-    void getSignedURLWithCustomPolicy_shouldWork() throws Exception {
+    void getSignedURLWithCustomPolicy_producesValidUrl() throws Exception {
         Instant activeDate = LocalDate.of(2022, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         String ipRange = "1.2.3.4";
+        SignedUrl signedUrl = cloudFrontUtilities.getSignedUrlWithCustomPolicy(r -> {
+            try {
+                r.resourceUrl(resourceUrl)
+                 .privateKey(keyFilePath)
+                 .keyPairId("keyPairId")
+                 .expirationDate(expirationDate)
+                 .activeDate(activeDate)
+                 .ipRange(ipRange);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
+        String url = signedUrl.url();
+        String policy = url.substring(url.indexOf("Policy=") + 7, url.indexOf("&Signature"));
+        String signature = url.substring(url.indexOf("&Signature"), url.indexOf("&Key-Pair-Id"));
+        String expected = "https://d1npcfkc2mojrf.cloudfront.net/s3ObjectKey?Policy="
+                          + policy
+                          + signature
+                          + "&Key-Pair-Id=keyPairId";
+        assertThat(expected).isEqualTo(url);
+    }
+
+    @Test
+    void getSignedURLWithCustomPolicy_withIpRangeOmitted_producesValidUrl() throws Exception {
+        Instant activeDate = LocalDate.of(2022, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
+        Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         CustomSignerRequest request = CustomSignerRequest.builder()
                                                          .resourceUrl(resourceUrl)
                                                          .privateKey(keyFilePath)
                                                          .keyPairId("keyPairId")
                                                          .expirationDate(expirationDate)
                                                          .activeDate(activeDate)
-                                                         .ipRange(ipRange).build();
+                                                         .build();
         SignedUrl signedUrl = cloudFrontUtilities.getSignedUrlWithCustomPolicy(request);
         String url = signedUrl.url();
         String policy = url.substring(url.indexOf("Policy=") + 7, url.indexOf("&Signature"));
@@ -106,6 +136,85 @@ class CloudFrontUtilitiesTest {
                           + signature
                           + "&Key-Pair-Id=keyPairId";
         assertThat(expected).isEqualTo(url);
+    }
+
+    @Test
+    void getSignedURLWithCustomPolicy_withActiveDateOmitted_producesValidUrl() throws Exception {
+        Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
+        String ipRange = "1.2.3.4";
+        CustomSignerRequest request = CustomSignerRequest.builder()
+                                                         .resourceUrl(resourceUrl)
+                                                         .privateKey(keyFilePath)
+                                                         .keyPairId("keyPairId")
+                                                         .expirationDate(expirationDate)
+                                                         .ipRange(ipRange)
+                                                         .build();
+        SignedUrl signedUrl = cloudFrontUtilities.getSignedUrlWithCustomPolicy(request);
+        String url = signedUrl.url();
+        String policy = url.substring(url.indexOf("Policy=") + 7, url.indexOf("&Signature"));
+        String signature = url.substring(url.indexOf("&Signature"), url.indexOf("&Key-Pair-Id"));
+        String expected = "https://d1npcfkc2mojrf.cloudfront.net/s3ObjectKey?Policy="
+                          + policy
+                          + signature
+                          + "&Key-Pair-Id=keyPairId";
+        assertThat(expected).isEqualTo(url);
+    }
+
+    @Test
+    void getSignedURLWithCustomPolicy_withMissingExpirationDate_shouldThrowException() {
+        SdkClientException exception = assertThrows(SdkClientException.class, () ->
+            cloudFrontUtilities.getSignedUrlWithCustomPolicy(r -> r
+                .resourceUrl(resourceUrl)
+                .privateKey(keyPair.getPrivate())
+                .keyPairId("keyPairId"))
+        );
+        assertThat(exception.getMessage().contains("Expiration date must be provided to sign CloudFront URLs"));
+    }
+
+    @Test
+    void getCookiesForCannedPolicy_producesValidCookies() throws Exception {
+        Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
+        CannedSignerRequest request = CannedSignerRequest.builder()
+                                                         .resourceUrl(resourceUrl)
+                                                         .privateKey(keyFilePath)
+                                                         .keyPairId("keyPairId")
+                                                         .expirationDate(expirationDate)
+                                                         .build();
+        CookiesForCannedPolicy cookiesForCannedPolicy = cloudFrontUtilities.getCookiesForCannedPolicy(request);
+        assertThat(cookiesForCannedPolicy.resourceUrl()).isEqualTo(resourceUrl);
+        assertThat(cookiesForCannedPolicy.keyPairIdHeaderValue()).isEqualTo("CloudFront-Key-Pair-Id=keyPairId");
+    }
+
+    @Test
+    void getCookiesForCustomPolicy_producesValidCookies() throws Exception {
+        Instant activeDate = LocalDate.of(2022, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
+        Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
+        String ipRange = "1.2.3.4";
+        CustomSignerRequest request = CustomSignerRequest.builder()
+                                                         .resourceUrl(resourceUrl)
+                                                         .privateKey(keyFilePath)
+                                                         .keyPairId("keyPairId")
+                                                         .expirationDate(expirationDate)
+                                                         .activeDate(activeDate)
+                                                         .ipRange(ipRange)
+                                                         .build();
+        CookiesForCustomPolicy cookiesForCustomPolicy = cloudFrontUtilities.getCookiesForCustomPolicy(request);
+        assertThat(cookiesForCustomPolicy.resourceUrl()).isEqualTo(resourceUrl);
+        assertThat(cookiesForCustomPolicy.keyPairIdHeaderValue()).isEqualTo("CloudFront-Key-Pair-Id=keyPairId");
+    }
+
+    @Test
+    void getCookiesForCustomPolicy_withActiveDateAndIpRangeOmitted_producesValidCookies() {
+        Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
+        CustomSignerRequest request = CustomSignerRequest.builder()
+                                                         .resourceUrl(resourceUrl)
+                                                         .privateKey(keyPair.getPrivate())
+                                                         .keyPairId("keyPairId")
+                                                         .expirationDate(expirationDate)
+                                                         .build();
+        CookiesForCustomPolicy cookiesForCustomPolicy = cloudFrontUtilities.getCookiesForCustomPolicy(request);
+        assertThat(cookiesForCustomPolicy.resourceUrl()).isEqualTo(resourceUrl);
+        assertThat(cookiesForCustomPolicy.keyPairIdHeaderValue()).isEqualTo("CloudFront-Key-Pair-Id=keyPairId");
     }
 
 }
