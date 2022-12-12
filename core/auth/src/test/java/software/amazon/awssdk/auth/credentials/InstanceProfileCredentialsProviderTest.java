@@ -43,6 +43,7 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -285,6 +286,47 @@ public class InstanceProfileCredentialsProviderTest {
             InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider
                 .builder()
                 .profileFile(ProfileFileSupplier.aggregate(supply(profileFileList), () -> config))
+                .profileName("test")
+                .build();
+
+            AwsCredentials awsCredentials1 = provider.resolveCredentials();
+
+            assertThat(awsCredentials1).isNotNull();
+
+            String userAgentHeader = "User-Agent";
+            String userAgent = SdkUserAgent.create().userAgent();
+            mockMetadataEndpoint_2.verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH)).withHeader(userAgentHeader, equalTo(userAgent)));
+            mockMetadataEndpoint_2.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH)).withHeader(userAgentHeader, equalTo(userAgent)));
+            mockMetadataEndpoint_2.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + "some-profile")).withHeader(userAgentHeader, equalTo(userAgent)));
+
+            // all requests should have gone to the second server, and none to the other one
+            mockMetadataEndpoint.verify(0, RequestPatternBuilder.allRequests());
+        } finally {
+            mockMetadataEndpoint_2.stop();
+        }
+    }
+
+    @Test
+    public void resolveCredentials_customSupplierProfileFileAndNameSettingEndpointOverride_usesCorrectEndpointFromSupplier() {
+        System.clearProperty(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.property());
+        WireMockServer mockMetadataEndpoint_2 = new WireMockServer(WireMockConfiguration.options().dynamicPort());
+        mockMetadataEndpoint_2.start();
+        try {
+            String stubToken = "some-token";
+            mockMetadataEndpoint_2.stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody(stubToken)));
+            mockMetadataEndpoint_2.stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH)).willReturn(aResponse().withBody("some-profile")));
+            mockMetadataEndpoint_2.stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + "some-profile")).willReturn(aResponse().withBody(STUB_CREDENTIALS)));
+
+            String mockServer2Endpoint = "http://localhost:" + mockMetadataEndpoint_2.port();
+
+            ProfileFile config = configFile("profile test",
+                                            Pair.of(ProfileProperty.EC2_METADATA_SERVICE_ENDPOINT, mockServer2Endpoint));
+
+            Supplier<ProfileFile> supplier = () -> config;
+
+            InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider
+                .builder()
+                .profileFile(supplier)
                 .profileName("test")
                 .build();
 

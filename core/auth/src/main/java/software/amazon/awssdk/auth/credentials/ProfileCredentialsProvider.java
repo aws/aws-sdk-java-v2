@@ -51,7 +51,7 @@ public final class ProfileCredentialsProvider
 
     private AwsCredentialsProvider credentialsProvider;
     private final RuntimeException loadException;
-    private final ProfileFileSupplier profileFileSupplier;
+    private final Supplier<ProfileFile> profileFile;
     private volatile ProfileFile currentProfileFile;
     private final String profileName;
     private final Supplier<ProfileFile> defaultProfileFileLoader;
@@ -64,15 +64,14 @@ public final class ProfileCredentialsProvider
 
         RuntimeException thrownException = null;
         String selectedProfileName = null;
-        ProfileFileSupplier selectedProfileSupplier = null;
+        Supplier<ProfileFile> selectedProfileSupplier = null;
 
         try {
             selectedProfileName = Optional.ofNullable(builder.profileName)
                                           .orElseGet(ProfileFileSystemSetting.AWS_PROFILE::getStringValueOrThrow);
 
-            selectedProfileSupplier = Optional.ofNullable(builder.profileFileSupplier)
-                                              .orElseGet(() -> ProfileFileSupplier
-                                                  .fixedProfileFile(builder.defaultProfileFileLoader.get()));
+            selectedProfileSupplier = Optional.ofNullable(builder.profileFile)
+                                              .orElseGet(() -> builder.defaultProfileFileLoader);
 
         } catch (RuntimeException e) {
             // If we couldn't load the credentials provider for some reason, save an exception describing why. This exception
@@ -83,7 +82,7 @@ public final class ProfileCredentialsProvider
 
         this.loadException = thrownException;
         this.profileName = selectedProfileName;
-        this.profileFileSupplier = selectedProfileSupplier;
+        this.profileFile = selectedProfileSupplier;
     }
 
     /**
@@ -131,7 +130,7 @@ public final class ProfileCredentialsProvider
     }
 
     private ProfileFile refreshProfileFile() {
-        return profileFileSupplier.get();
+        return profileFile.get();
     }
 
     private boolean isNewProfileFile(ProfileFile profileFile) {
@@ -148,7 +147,9 @@ public final class ProfileCredentialsProvider
 
     @Override
     public void close() {
-        profileFileSupplier.close();
+        if (profileFile instanceof SdkAutoCloseable) {
+            ((SdkAutoCloseable) profileFile).close();
+        }
         // The delegate credentials provider may be closeable (eg. if it's an STS credentials provider). In this case, we should
         // clean it up when this credentials provider is closed.
         IoUtils.closeIfCloseable(credentialsProvider, null);
@@ -178,7 +179,7 @@ public final class ProfileCredentialsProvider
         /**
          * Define the profile file that should be used by this credentials provider. By default, the
          * {@link ProfileFile#defaultProfileFile()} is used.
-         * @see #profileFile(ProfileFileSupplier) 
+         * @see #profileFile(Supplier)
          */
         Builder profileFile(ProfileFile profileFile);
 
@@ -194,7 +195,7 @@ public final class ProfileCredentialsProvider
          * @param profileFileSupplier Supplier interface for generating a ProfileFile instance.
          * @see #profileFile(ProfileFile) 
          */
-        Builder profileFile(ProfileFileSupplier profileFileSupplier);
+        Builder profileFile(Supplier<ProfileFile> profileFileSupplier);
 
         /**
          * Define the name of the profile that should be used by this credentials provider. By default, the value in
@@ -210,7 +211,7 @@ public final class ProfileCredentialsProvider
     }
 
     static final class BuilderImpl implements Builder {
-        private ProfileFileSupplier profileFileSupplier;
+        private Supplier<ProfileFile> profileFile;
         private String profileName;
         private Supplier<ProfileFile> defaultProfileFileLoader = ProfileFile::defaultProfileFile;
 
@@ -220,7 +221,7 @@ public final class ProfileCredentialsProvider
         BuilderImpl(ProfileCredentialsProvider provider) {
             this.profileName = provider.profileName;
             this.defaultProfileFileLoader = provider.defaultProfileFileLoader;
-            this.profileFileSupplier = provider.profileFileSupplier;
+            this.profileFile = provider.profileFile;
         }
 
         @Override
@@ -240,12 +241,12 @@ public final class ProfileCredentialsProvider
         }
 
         @Override
-        public Builder profileFile(ProfileFileSupplier profileFileSupplier) {
-            this.profileFileSupplier = profileFileSupplier;
+        public Builder profileFile(Supplier<ProfileFile> profileFileSupplier) {
+            this.profileFile = profileFileSupplier;
             return this;
         }
 
-        public void setProfileFile(ProfileFileSupplier supplier) {
+        public void setProfileFile(Supplier<ProfileFile> supplier) {
             profileFile(supplier);
         }
 

@@ -24,6 +24,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.function.Supplier;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -204,6 +205,23 @@ public class ProfileCredentialsProviderTest {
     }
 
     @Test
+    void resolveCredentials_presentSupplierProfileFile_returnsCredentials() {
+        Supplier<ProfileFile> supplier = () -> profileFile("[default]\naws_access_key_id = defaultAccessKey\n"
+                                                           + "aws_secret_access_key = defaultSecretAccessKey\n");
+
+        ProfileCredentialsProvider provider =
+            ProfileCredentialsProvider.builder()
+                                      .profileFile(supplier)
+                                      .profileName("default")
+                                      .build();
+
+        assertThat(provider.resolveCredentials()).satisfies(credentials -> {
+            assertThat(credentials.accessKeyId()).isEqualTo("defaultAccessKey");
+            assertThat(credentials.secretAccessKey()).isEqualTo("defaultSecretAccessKey");
+        });
+    }
+
+    @Test
     void create_noProfileName_returnsProfileCredentialsProviderToResolveWithDefaults() {
         ProfileCredentialsProvider provider = ProfileCredentialsProvider.create();
         String toString = provider.toString();
@@ -222,7 +240,8 @@ public class ProfileCredentialsProviderTest {
     @Test
     void toString_anyProfileCredentialsProviderAfterResolvingCredentialsFileDoesExists_returnsProfileFile() {
         ProfileCredentialsProvider provider = new ProfileCredentialsProvider.BuilderImpl()
-            .defaultProfileFileLoader(() -> profileFile("[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n"))
+            .defaultProfileFileLoader(() -> profileFile("[default]\naws_access_key_id = not-set\n"
+                                                        + "aws_secret_access_key = not-set\n"))
             .build();
         provider.resolveCredentials();
         String toString = provider.toString();
