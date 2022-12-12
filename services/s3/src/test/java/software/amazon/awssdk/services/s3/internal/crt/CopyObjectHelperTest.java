@@ -87,6 +87,19 @@ class CopyObjectHelperTest {
     }
 
     @Test
+    void copyObject_HeadObjectRequestThrowsException_shouldFail() {
+        RuntimeException exception = new RuntimeException("oops");
+
+        when(s3AsyncClient.headObject(any(HeadObjectRequest.class)))
+            .thenThrow(exception);
+
+        CompletableFuture<CopyObjectResponse> future =
+            copyHelper.copyObject(copyObjectRequest());
+
+        assertThatThrownBy(future::join).hasCause(exception);
+    }
+
+    @Test
     void singlePartCopy_happyCase_shouldSucceed() {
 
         CopyObjectRequest copyObjectRequest = copyObjectRequest();

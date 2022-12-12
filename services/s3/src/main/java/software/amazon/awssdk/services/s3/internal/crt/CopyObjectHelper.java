@@ -67,19 +67,23 @@ public final class CopyObjectHelper {
 
         CompletableFuture<CopyObjectResponse> returnFuture = new CompletableFuture<>();
 
-        CompletableFuture<HeadObjectResponse> headFuture =
-            s3AsyncClient.headObject(CopyRequestConversionUtils.toHeadObjectRequest(copyObjectRequest));
+        try {
+            CompletableFuture<HeadObjectResponse> headFuture =
+                s3AsyncClient.headObject(CopyRequestConversionUtils.toHeadObjectRequest(copyObjectRequest));
 
-        // Ensure cancellations are forwarded to the head future
-        CompletableFutureUtils.forwardExceptionTo(returnFuture, headFuture);
+            // Ensure cancellations are forwarded to the head future
+            CompletableFutureUtils.forwardExceptionTo(returnFuture, headFuture);
 
-        headFuture.whenComplete((headObjectResponse, throwable) -> {
-            if (throwable != null) {
-                handleException(returnFuture, () -> "Failed to retrieve metadata from the source object", throwable);
-            } else {
-                doCopyObject(copyObjectRequest, returnFuture, headObjectResponse);
-            }
-        });
+            headFuture.whenComplete((headObjectResponse, throwable) -> {
+                if (throwable != null) {
+                    handleException(returnFuture, () -> "Failed to retrieve metadata from the source object", throwable);
+                } else {
+                    doCopyObject(copyObjectRequest, returnFuture, headObjectResponse);
+                }
+            });
+        } catch (Throwable throwable) {
+            returnFuture.completeExceptionally(throwable);
+        }
 
         return returnFuture;
     }
