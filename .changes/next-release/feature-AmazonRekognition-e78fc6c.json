@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Rekognition",
+    "contributor": "",
+    "description": "Adds support for \"aliases\" and \"categories\", inclusion and exclusion filters for labels and label categories, and aggregating labels by video segment timestamps for Stored Video Label Detection APIs."
+}
