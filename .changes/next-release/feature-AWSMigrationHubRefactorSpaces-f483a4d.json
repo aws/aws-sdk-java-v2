@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Migration Hub Refactor Spaces",
+    "contributor": "",
+    "description": "This release adds support for Lambda alias service endpoints. Lambda alias ARNs can now be passed into CreateService."
+}
