@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Lookout for Vision",
-    "contributor": "",
-    "description": "This documentation update adds kms:GenerateDataKey as a required permission to StartModelPackagingJob."
-}

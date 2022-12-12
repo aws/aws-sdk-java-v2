@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Compute Cloud",
-    "contributor": "",
-    "description": "This release updates DescribeFpgaImages to show supported instance types of AFIs in its response."
-}
