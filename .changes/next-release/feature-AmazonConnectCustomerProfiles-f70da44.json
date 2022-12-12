@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Connect Customer Profiles",
+    "contributor": "",
+    "description": "This release allows custom strings in PartyType and Gender through 2 new attributes in the CreateProfile and UpdateProfile APIs: PartyTypeString and GenderString."
+}
