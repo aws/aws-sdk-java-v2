@@ -20,14 +20,10 @@
 usage() {
   echo "usage:"
   echo "    benchmark-copy"
+  echo "    benchmark-copy 4GB"
 }
 
-if [[ ! $# -eq 0 ]]; then
-  usage
-  exit 1
-fi
-
-sizes_str="1B 8MB+1 8MB-1 128MB 4GB 30GB 90GB"
+sizes_str="1B 8MB-1 8MB+1 128MB 4GB 30GB 90GB"
 versions_str="v1 v2"
 sizes=( $sizes_str )
 versions=( $versions_str )
@@ -55,9 +51,9 @@ run_benchmark() {
 for (( i = 0; i < "${#versions[@]}"; i++ ))
 do
   version="${versions[$i]}"
-  if [ ! -z "$3" ]
+  if [ ! -z "$1" ]
   then
-    size="$3"
+    size="$1"
     run_benchmark
   else
     for (( j = 0; j < "${#sizes[@]}"; j++ ))
