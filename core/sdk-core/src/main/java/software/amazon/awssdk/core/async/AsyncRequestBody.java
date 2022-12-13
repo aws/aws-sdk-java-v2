@@ -179,24 +179,26 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      *
      * <p><b>Example Usage</b>
      *
-     * <pre>
-     *     S3Client s3 = ...;
+     * <p>
+     * {@snippet :
+     *     S3AsyncClient s3 = S3AsyncClient.create(); // Use one client for your whole application!
      *
-     *     InputStream streamToWrite = ...;
-     *     long streamToWriteLength = ...;
+     *     byte[] dataToSend = "Hello".getBytes(StandardCharsets.UTF_8);
+     *     InputStream streamToSend = new ByteArrayInputStream();
+     *     long streamToSendLength = dataToSend.length();
      *
      *     // Start the operation
      *     BlockingInputStreamAsyncRequestBody body =
-     *         AsyncRequestBody.forBlockingInputStream(streamToWriteLength);
+     *         AsyncRequestBody.forBlockingInputStream(streamToSendLength);
      *     CompletableFuture<PutObjectResponse> responseFuture =
      *         s3.putObject(r -> r.bucket("bucketName").key("key"), body);
      *
      *     // Write the input stream to the running operation
-     *     body.writeInputStream(streamToWrite);
+     *     body.writeInputStream(streamToSend);
      *
      *     // Wait for the service to respond.
      *     PutObjectResponse response = responseFuture.join();
-     * </pre>
+     * }
      */
     static BlockingInputStreamAsyncRequestBody forBlockingInputStream(Long contentLength) {
         return new BlockingInputStreamAsyncRequestBody(contentLength);
