@@ -67,7 +67,7 @@ public class TransferManagerDownloadDirectoryBenchmark extends BaseTransferManag
             transferManager.downloadDirectory(b -> b.bucket(bucket)
                                                     .destination(downloadPath)
                                                     .listObjectsV2RequestTransformer(l -> l.prefix(config.prefix())));
-        CompletedDirectoryDownload completedDirectoryDownload = download.completionFuture().get(30, TimeUnit.MINUTES);
+        CompletedDirectoryDownload completedDirectoryDownload = download.completionFuture().get(60, TimeUnit.MINUTES);
         if (completedDirectoryDownload.failedTransfers().isEmpty()) {
             long end = System.currentTimeMillis();
             latencies.add((end - start) / 1000.0);
