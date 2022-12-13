@@ -58,9 +58,6 @@ class S3TransferManagerTest {
     private DownloadDirectoryHelper downloadDirectoryHelper;
     private TransferManagerConfiguration configuration;
 
-
-    private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
-
     @BeforeEach
     public void methodSetup() {
         mockS3Crt = mock(S3CrtAsyncClient.class);

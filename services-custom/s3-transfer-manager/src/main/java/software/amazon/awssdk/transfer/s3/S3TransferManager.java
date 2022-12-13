@@ -678,6 +678,11 @@ public interface S3TransferManager extends SdkAutoCloseable {
 
     /**
      * Create an {@code S3TransferManager} using the default values.
+     * <p>
+     * The type of {@link S3AsyncClient} used depends on if AWS Common Runtime (CRT) library
+     * {@code software.amazon.awssdk.crt:crt} is on the classpath. If CRT is available, a CRT-based S3 client will be created
+     * ({@link S3AsyncClient#crtCreate()}). Otherwise, a standard S3 client({@link S3AsyncClient#create()}) will be created. Note
+     * that only CRT-based S3 client supports parallel transfer for now, so it's recommended to add CRT as a dependency.
      */
     static S3TransferManager create() {
         return builder().build();

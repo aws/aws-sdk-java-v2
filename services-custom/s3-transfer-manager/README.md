@@ -9,7 +9,7 @@ as well as pause the transfer for execution at a later time.
 
 ### Add a dependency for the S3 Transfer Manager 
 
-First, you need to include the dependency in your project.
+First, you need to include `s3-transfer-manager` and `aws-crt` in your project.
 
 ```xml
 <dependency>
@@ -17,10 +17,15 @@ First, you need to include the dependency in your project.
   <artifactId>s3-transfer-manager</artifactId>
   <version>${awsjavasdk.version}-PREVIEW</version>
 </dependency>
+<dependency>
+  <groupId>software.amazon.awssdk.crt</groupId>
+  <artifactId>aws-crt</artifactId>
+  <version>${awscrt.version}</version>
+</dependency>
 ```
 
-Note that you need to replace `${awsjavasdk.version}` with the latest
-SDK version.
+Note that you need to replace `${awsjavasdk.version}` and `${awscrt.version}` with the latest
+version.
 
 ### Instantiate the S3 Transfer Manager
 
