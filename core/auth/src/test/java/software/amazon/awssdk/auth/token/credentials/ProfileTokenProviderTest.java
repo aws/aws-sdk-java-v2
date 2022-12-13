@@ -89,17 +89,9 @@ class ProfileTokenProviderTest {
         ProfileTokenProvider provider =
             ProfileTokenProvider.builder().profileFile(supplier).profileName("sso").build();
 
-        try {
-            Mockito.when(supplier.get()).thenReturn(file1);
-            provider.resolveToken();
-        } catch (IllegalArgumentException e) {
-        }
-
-        try {
-            Mockito.when(supplier.get()).thenReturn(file2);
-            provider.resolveToken();
-        } catch (IllegalArgumentException e) {
-        }
+        Mockito.when(supplier.get()).thenReturn(file1, file2);
+        assertThatThrownBy(provider::resolveToken).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(provider::resolveToken).isInstanceOf(IllegalArgumentException.class);
 
         Mockito.verify(supplier, Mockito.times(2)).get();
     }
