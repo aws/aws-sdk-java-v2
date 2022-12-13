@@ -65,7 +65,7 @@ public class TransferManagerUploadDirectoryBenchmark extends BaseTransferManager
             transferManager.uploadDirectory(b -> b.bucket(bucket)
                                                   .s3Prefix(config.prefix())
                                                   .source(uploadPath));
-        CompletedDirectoryUpload completedDirectoryUpload = upload.completionFuture().get(10, TimeUnit.MINUTES);
+        CompletedDirectoryUpload completedDirectoryUpload = upload.completionFuture().get(30, TimeUnit.MINUTES);
         if (completedDirectoryUpload.failedTransfers().isEmpty()) {
             long end = System.currentTimeMillis();
             latencies.add((end - start) / 1000.0);
