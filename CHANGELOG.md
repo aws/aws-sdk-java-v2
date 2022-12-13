@@ -1,3 +1,16 @@
+# __2.18.38__ __2022-12-13__
+## __AWS CloudTrail__
+  - ### Features
+    - Merging mainline branch for service model into mainline release branch. There are no new APIs.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This deployment adds ClientPasswordAuthType field to the Auth structure of the DBProxy.
+
 # __2.18.36__ __2022-12-12__
 ## __AWS Migration Hub Refactor Spaces__
   - ### Features
