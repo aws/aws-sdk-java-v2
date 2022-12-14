@@ -19,9 +19,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.ByteArrayOutputStream;
 import java.nio.file.Paths;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.AfterEach;
@@ -37,17 +39,17 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
-import software.amazon.awssdk.transfer.s3.CompletedCopy;
-import software.amazon.awssdk.transfer.s3.CompletedDownload;
-import software.amazon.awssdk.transfer.s3.CompletedFileDownload;
-import software.amazon.awssdk.transfer.s3.CompletedFileUpload;
-import software.amazon.awssdk.transfer.s3.CompletedUpload;
-import software.amazon.awssdk.transfer.s3.CopyRequest;
-import software.amazon.awssdk.transfer.s3.DownloadDirectoryRequest;
-import software.amazon.awssdk.transfer.s3.DownloadFileRequest;
+import software.amazon.awssdk.transfer.s3.model.CompletedCopy;
+import software.amazon.awssdk.transfer.s3.model.CompletedDownload;
+import software.amazon.awssdk.transfer.s3.model.CompletedFileDownload;
+import software.amazon.awssdk.transfer.s3.model.CompletedFileUpload;
+import software.amazon.awssdk.transfer.s3.model.CompletedUpload;
+import software.amazon.awssdk.transfer.s3.model.CopyRequest;
+import software.amazon.awssdk.transfer.s3.model.DownloadDirectoryRequest;
+import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
-import software.amazon.awssdk.transfer.s3.UploadDirectoryRequest;
-import software.amazon.awssdk.transfer.s3.UploadFileRequest;
+import software.amazon.awssdk.transfer.s3.model.UploadDirectoryRequest;
+import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
 
 class S3TransferManagerTest {
     private S3CrtAsyncClient mockS3Crt;
@@ -240,7 +242,7 @@ class S3TransferManagerTest {
             .hasMessageContaining("support S3 Object Lambda resources").hasCauseInstanceOf(IllegalArgumentException.class);
 
         assertThatThrownBy(() -> tm.uploadDirectory(b -> b.bucket(objectLambdaArn)
-                                                          .sourceDirectory(Paths.get(".")))
+                                                          .source(Paths.get(".")))
                                    .completionFuture().join())
             .hasMessageContaining("support S3 Object Lambda resources").hasCauseInstanceOf(IllegalArgumentException.class);
         
@@ -284,12 +286,12 @@ class S3TransferManagerTest {
             .hasMessageContaining("multi-region access point ARN").hasCauseInstanceOf(IllegalArgumentException.class);
 
         assertThatThrownBy(() -> tm.uploadDirectory(b -> b.bucket(mrapArn)
-                                                          .sourceDirectory(Paths.get(".")))
+                                                          .source(Paths.get(".")))
                                    .completionFuture().join())
             .hasMessageContaining("multi-region access point ARN").hasCauseInstanceOf(IllegalArgumentException.class);
 
         assertThatThrownBy(() -> tm.downloadDirectory(b -> b.bucket(mrapArn)
-                                                            .destinationDirectory(Paths.get(".")))
+                                                            .destination(Paths.get(".")))
                                    .completionFuture().join())
             .hasMessageContaining("multi-region access point ARN").hasCauseInstanceOf(IllegalArgumentException.class);
 
@@ -313,7 +315,7 @@ class S3TransferManagerTest {
         RuntimeException exception = new RuntimeException("test");
         when(uploadDirectoryHelper.uploadDirectory(any(UploadDirectoryRequest.class))).thenThrow(exception);
 
-        assertThatThrownBy(() -> tm.uploadDirectory(u -> u.sourceDirectory(Paths.get("/"))
+        assertThatThrownBy(() -> tm.uploadDirectory(u -> u.source(Paths.get("/"))
                                                           .bucket("bucketName")).completionFuture().join())
             .hasCause(exception);
     }
@@ -323,7 +325,7 @@ class S3TransferManagerTest {
         RuntimeException exception = new RuntimeException("test");
         when(downloadDirectoryHelper.downloadDirectory(any(DownloadDirectoryRequest.class))).thenThrow(exception);
 
-        assertThatThrownBy(() -> tm.downloadDirectory(u -> u.destinationDirectory(Paths.get("/"))
+        assertThatThrownBy(() -> tm.downloadDirectory(u -> u.destination(Paths.get("/"))
                                                           .bucket("bucketName")).completionFuture().join())
             .hasCause(exception);
     }
@@ -332,8 +334,16 @@ class S3TransferManagerTest {
     void close_shouldCloseUnderlyingResources() {
         S3TransferManager transferManager = new DefaultS3TransferManager(mockS3Crt, uploadDirectoryHelper, configuration, downloadDirectoryHelper);
         transferManager.close();
-        verify(mockS3Crt).close();
+        verify(mockS3Crt, times(0)).close();
         verify(configuration).close();
+    }
+
+    @Test
+    void close_shouldNotCloseCloseS3AsyncClientPassedInBuilder_when_transferManagerClosed() {
+        S3TransferManager transferManager =
+            DefaultS3TransferManager.builder().s3Client(mockS3Crt).build();
+        transferManager.close();
+        verify(mockS3Crt, times(0)).close();
     }
 
     @Test
@@ -372,5 +382,4 @@ class S3TransferManagerTest {
             .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("must not be null");
     }
-
 }

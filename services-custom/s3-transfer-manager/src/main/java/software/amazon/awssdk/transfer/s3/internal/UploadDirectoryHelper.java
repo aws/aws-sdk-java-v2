@@ -19,8 +19,6 @@ import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationO
 import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.DEFAULT_PREFIX;
 
 import java.io.IOException;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
@@ -34,18 +32,17 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.transfer.s3.CompletedDirectoryUpload;
-import software.amazon.awssdk.transfer.s3.CompletedFileUpload;
-import software.amazon.awssdk.transfer.s3.DirectoryUpload;
-import software.amazon.awssdk.transfer.s3.FailedFileUpload;
-import software.amazon.awssdk.transfer.s3.FileUpload;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
-import software.amazon.awssdk.transfer.s3.UploadDirectoryOverrideConfiguration;
-import software.amazon.awssdk.transfer.s3.UploadDirectoryRequest;
-import software.amazon.awssdk.transfer.s3.UploadFileRequest;
+import software.amazon.awssdk.transfer.s3.internal.model.DefaultDirectoryUpload;
+import software.amazon.awssdk.transfer.s3.model.CompletedDirectoryUpload;
+import software.amazon.awssdk.transfer.s3.model.CompletedFileUpload;
+import software.amazon.awssdk.transfer.s3.model.DirectoryUpload;
+import software.amazon.awssdk.transfer.s3.model.FailedFileUpload;
+import software.amazon.awssdk.transfer.s3.model.FileUpload;
+import software.amazon.awssdk.transfer.s3.model.UploadDirectoryRequest;
+import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.StringUtils;
@@ -61,24 +58,12 @@ public class UploadDirectoryHelper {
 
     private final TransferManagerConfiguration transferConfiguration;
     private final Function<UploadFileRequest, FileUpload> uploadFunction;
-    private final FileSystem fileSystem;
 
     public UploadDirectoryHelper(TransferManagerConfiguration transferConfiguration,
                                  Function<UploadFileRequest, FileUpload> uploadFunction) {
 
         this.transferConfiguration = transferConfiguration;
         this.uploadFunction = uploadFunction;
-        this.fileSystem = FileSystems.getDefault();
-    }
-
-    @SdkTestInternalApi
-    UploadDirectoryHelper(TransferManagerConfiguration transferConfiguration,
-                          Function<UploadFileRequest, FileUpload> uploadFunction,
-                          FileSystem fileSystem) {
-
-        this.transferConfiguration = transferConfiguration;
-        this.uploadFunction = uploadFunction;
-        this.fileSystem = fileSystem;
     }
 
     public DirectoryUpload uploadDirectory(UploadDirectoryRequest uploadDirectoryRequest) {
@@ -100,7 +85,7 @@ public class UploadDirectoryHelper {
     private void doUploadDirectory(CompletableFuture<CompletedDirectoryUpload> returnFuture,
                                    UploadDirectoryRequest uploadDirectoryRequest) {
 
-        Path directory = uploadDirectoryRequest.sourceDirectory();
+        Path directory = uploadDirectoryRequest.source();
 
         validateDirectory(uploadDirectoryRequest);
 
@@ -125,7 +110,7 @@ public class UploadDirectoryHelper {
     }
 
     private void validateDirectory(UploadDirectoryRequest uploadDirectoryRequest) {
-        Path directory = uploadDirectoryRequest.sourceDirectory();
+        Path directory = uploadDirectoryRequest.source();
         Validate.isTrue(Files.exists(directory), "The source directory provided (%s) does not exist", directory);
         boolean followSymbolicLinks = transferConfiguration.resolveUploadDirectoryFollowSymbolicLinks(uploadDirectoryRequest);
         if (followSymbolicLinks) {
@@ -141,7 +126,7 @@ public class UploadDirectoryHelper {
     private CompletableFuture<CompletedFileUpload> uploadSingleFile(UploadDirectoryRequest uploadDirectoryRequest,
                                                                     Collection<FailedFileUpload> failedFileUploads,
                                                                     Path path) {
-        int nameCount = uploadDirectoryRequest.sourceDirectory().getNameCount();
+        int nameCount = uploadDirectoryRequest.source().getNameCount();
         UploadFileRequest uploadFileRequest = constructUploadRequest(uploadDirectoryRequest, nameCount, path);
         log.debug(() -> String.format("Sending upload request (%s) for path (%s)", uploadFileRequest, path));
         CompletableFuture<CompletedFileUpload> executionFuture = uploadFunction.apply(uploadFileRequest).completionFuture();
@@ -160,14 +145,7 @@ public class UploadDirectoryHelper {
     private Stream<Path> listFiles(Path directory, UploadDirectoryRequest request) {
 
         try {
-            boolean recursive = transferConfiguration.resolveUploadDirectoryRecursive(request);
             boolean followSymbolicLinks = transferConfiguration.resolveUploadDirectoryFollowSymbolicLinks(request);
-
-            if (!recursive) {
-                return Files.list(directory)
-                            .filter(p -> isRegularFile(p, followSymbolicLinks));
-            }
-
             int maxDepth = transferConfiguration.resolveUploadDirectoryMaxDepth(request);
 
             if (followSymbolicLinks) {
@@ -201,11 +179,11 @@ public class UploadDirectoryHelper {
         return prefix.endsWith(delimiter) ? prefix : prefix + delimiter;
     }
 
-    private String getRelativePathName(int directoryNameCount, Path path, String delimiter) {
+    private String getRelativePathName(Path source, int directoryNameCount, Path path, String delimiter) {
         String relativePathName = path.subpath(directoryNameCount,
                                                path.getNameCount()).toString();
 
-        String separator = fileSystem.getSeparator();
+        String separator =  source.getFileSystem().getSeparator();
 
         // Optimization for the case where separator equals to the delimiter: there is no need to call String#replace which
         // invokes Pattern#compile in Java 8
@@ -216,18 +194,22 @@ public class UploadDirectoryHelper {
         return StringUtils.replace(relativePathName, separator, delimiter);
     }
 
-    private UploadFileRequest constructUploadRequest(UploadDirectoryRequest uploadDirectoryRequest, int directoryNameCount,
+    private UploadFileRequest constructUploadRequest(UploadDirectoryRequest uploadDirectoryRequest,
+                                                     int directoryNameCount,
                                                      Path path) {
         String delimiter =
-            uploadDirectoryRequest.delimiter()
+            uploadDirectoryRequest.s3Delimiter()
                                   .filter(s -> !s.isEmpty())
                                   .orElse(DEFAULT_DELIMITER);
 
-        String prefix = uploadDirectoryRequest.prefix()
+        String prefix = uploadDirectoryRequest.s3Prefix()
                                               .map(s -> normalizePrefix(s, delimiter))
                                               .orElse(DEFAULT_PREFIX);
 
-        String relativePathName = getRelativePathName(directoryNameCount, path, delimiter);
+        String relativePathName = getRelativePathName(uploadDirectoryRequest.source(),
+                                                      directoryNameCount,
+                                                      path,
+                                                      delimiter);
         String key = prefix + relativePathName;
 
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
@@ -239,10 +221,7 @@ public class UploadDirectoryHelper {
                                                                     .source(path)
                                                                     .putObjectRequest(putObjectRequest);
 
-        uploadDirectoryRequest.overrideConfiguration()
-                              .map(UploadDirectoryOverrideConfiguration::uploadFileRequestTransformer)
-                              .ifPresent(c -> c.accept(requestBuilder));
-
+        uploadDirectoryRequest.uploadFileRequestTransformer().accept(requestBuilder);
         return requestBuilder.build();
     }
 

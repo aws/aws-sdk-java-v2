@@ -30,6 +30,7 @@
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
+        <sdk-v1.version>1.12.1</sdk-v1.version>
     </properties>
     <name>AWS Java SDK :: Test :: S3 Benchmarks</name>
     <description>Contains benchmark code for S3 and TransferManager</description>
@@ -54,6 +55,16 @@
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>s3-transfer-manager</artifactId>
             <version>${awsjavasdk.version}-PREVIEW</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk.crt</groupId>
+            <artifactId>aws-crt</artifactId>
+            <version>${awscrt.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-s3</artifactId>
+            <version>${sdk-v1.version}</version>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
@@ -82,32 +93,36 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <version>3.1.0</version>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.4.1</version>
                 <executions>
                     <execution>
-                        <id>build</id>
                         <phase>package</phase>
                         <goals>
-                            <goal>single</goal>
+                            <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <descriptorRefs>
-                                <descriptorRef>
-                                    jar-with-dependencies
-                                </descriptorRef>
-                            </descriptorRefs>
-                            <appendAssemblyId>
-                                false
-                            </appendAssemblyId>
                             <finalName>${project.artifactId}</finalName>
-                            <archive>
-                                <manifest>
-                                    <addClasspath>true</addClasspath>
-                                    <classpathPrefix>lib/</classpathPrefix>
-                                    <mainClass>software.amazon.awssdk.s3benchmarks.BenchmarkRunner</mainClass>
-                                </manifest>
-                            </archive>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <artifactSet>
+                                <includes>
+                                    <include>*:*</include>
+                                </includes>
+                            </artifactSet>
+                            <transformers>
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <manifestEntries>
+                                        <Main-Class>software.amazon.awssdk.s3benchmarks.BenchmarkRunner</Main-Class>
+                                    </manifestEntries>
+                                </transformer>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                                    <resource>software/amazon/awssdk/services/s3/execution.interceptors</resource>
+                                </transformer>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                                    <resource>software/amazon/awssdk/global/handlers/execution.interceptors</resource>
+                                </transformer>
+                            </transformers>
                         </configuration>
                     </execution>
                 </executions>

@@ -25,6 +25,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -35,14 +36,19 @@ import software.amazon.awssdk.core.async.ResponsePublisher;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.testutils.RandomTempFile;
+import software.amazon.awssdk.transfer.s3.model.CompletedDownload;
+import software.amazon.awssdk.transfer.s3.model.CompletedFileDownload;
+import software.amazon.awssdk.transfer.s3.model.Download;
+import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
+import software.amazon.awssdk.transfer.s3.model.DownloadRequest;
+import software.amazon.awssdk.transfer.s3.model.FileDownload;
 import software.amazon.awssdk.transfer.s3.progress.LoggingTransferListener;
 import software.amazon.awssdk.utils.Md5Utils;
 
 public class S3TransferManagerDownloadIntegrationTest extends S3IntegrationTestBase {
     private static final String BUCKET = temporaryBucketName(S3TransferManagerDownloadIntegrationTest.class);
     private static final String KEY = "key";
-    private static final int OBJ_SIZE = 16 * 1024 * 1024;
-    private static S3TransferManager tm;
+    private static final int OBJ_SIZE = 18 * 1024 * 1024;
     private static File file;
 
     @BeforeAll
@@ -53,29 +59,23 @@ public class S3TransferManagerDownloadIntegrationTest extends S3IntegrationTestB
                                      .bucket(BUCKET)
                                      .key(KEY)
                                      .build(), file.toPath());
-        tm = S3TransferManager.builder()
-                              .s3ClientConfiguration(b -> b.region(DEFAULT_REGION)
-                                                           .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN))
-                              .build();
     }
 
     @AfterAll
     public static void cleanup() {
         deleteBucketAndAllContents(BUCKET);
-        tm.close();
-        S3IntegrationTestBase.cleanUp();
     }
 
     @Test
-    void download_toFile() throws IOException {
+    void download_toFile() throws Exception {
         Path path = RandomTempFile.randomUncreatedFile().toPath();
         FileDownload download =
             tm.downloadFile(DownloadFileRequest.builder()
                                                .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))
                                                .destination(path)
-                                               .overrideConfiguration(b -> b.addListener(LoggingTransferListener.create()))
+                                               .addTransferListener(LoggingTransferListener.create())
                                                .build());
-        CompletedFileDownload completedFileDownload = download.completionFuture().join();
+        CompletedFileDownload completedFileDownload = download.completionFuture().get(1, TimeUnit.MINUTES);
         assertThat(Md5Utils.md5AsBase64(path.toFile())).isEqualTo(Md5Utils.md5AsBase64(file));
         assertThat(completedFileDownload.response().responseMetadata().requestId()).isNotNull();
     }
@@ -89,7 +89,7 @@ public class S3TransferManagerDownloadIntegrationTest extends S3IntegrationTestB
             tm.downloadFile(DownloadFileRequest.builder()
                                                .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))
                                                .destination(path)
-                                               .overrideConfiguration(b -> b.addListener(LoggingTransferListener.create()))
+                                               .addTransferListener(LoggingTransferListener.create())
                                                .build());
         CompletedFileDownload completedFileDownload = download.completionFuture().join();
         assertThat(Md5Utils.md5AsBase64(path.toFile())).isEqualTo(Md5Utils.md5AsBase64(file));
@@ -102,7 +102,7 @@ public class S3TransferManagerDownloadIntegrationTest extends S3IntegrationTestB
             tm.download(DownloadRequest.builder()
                                        .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))
                                        .responseTransformer(AsyncResponseTransformer.toBytes())
-                                       .overrideConfiguration(b -> b.addListener(LoggingTransferListener.create()))
+                                       .addTransferListener(LoggingTransferListener.create())
                                        .build());
         CompletedDownload<ResponseBytes<GetObjectResponse>> completedDownload = download.completionFuture().join();
         ResponseBytes<GetObjectResponse> result = completedDownload.result();
@@ -116,7 +116,7 @@ public class S3TransferManagerDownloadIntegrationTest extends S3IntegrationTestB
             tm.download(DownloadRequest.builder()
                                        .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))
                                        .responseTransformer(AsyncResponseTransformer.toPublisher())
-                                       .overrideConfiguration(b -> b.addListener(LoggingTransferListener.create()))
+                                       .addTransferListener(LoggingTransferListener.create())
                                        .build());
         CompletedDownload<ResponsePublisher<GetObjectResponse>> completedDownload = download.completionFuture().join();
         ResponsePublisher<GetObjectResponse> responsePublisher = completedDownload.result();
