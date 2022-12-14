@@ -25,7 +25,7 @@ data_single_file = {
     'download': {
         'disk': {
             'v1': [
-                1.025, 0.025, 0.024, 0.042, 0.026, 0.023, 0.024, 0.025,
+                0.025, 0.025, 0.024, 0.042, 0.026, 0.023, 0.024, 0.025,
                 0.187, 0.117, 0.136, 0.113, 0.117, 0.116, 0.113, 0.114,
                 0.306, 0.144, 0.248, 0.122, 0.116, 0.115, 0.113, 0.148,
                 0.499, 0.344, 0.273, 0.286, 0.332, 0.447, 0.348, 0.29,
@@ -105,67 +105,60 @@ data_directory = {
     'download': {
         "disk": {
             "v1": [
-                [23.68, 20.315, 19.796, 17.808, 16.791, 18.575, 19.795, 19.865],
-                [20.448, 19.639, 17.199, 19.143, 20.359, 19.607, 20.298, 19.523],
-                [15.236, 15.127, 15.62, 16.003, 16.594, 17.597, 17.261, 17.779],
-                []
+                24.68, 20.315, 19.796, 17.808, 16.791, 18.575, 19.795, 19.865,
+                20.448, 19.639, 17.199, 19.143, 20.359, 19.607, 20.298, 19.523,
+                15.236, 15.127, 15.62, 16.003, 16.594, 17.597, 17.261, 17.779
             ],
             "v2": [
-                [0.624, 0.427, 0.435, 0.449, 0.416, 0.414, 0.517, 0.429],
-                [0.617, 0.48, 0.519, 0.432, 0.403, 0.411, 0.463, 0.402],
-                [3.291, 2.619, 2.698, 2.488, 2.618, 2.473, 2.428, 2.487]
+                0.624, 0.427, 0.435, 0.449, 0.416, 0.414, 0.517, 0.429,
+                0.617, 0.48, 0.519, 0.432, 0.403, 0.411, 0.463, 0.402,
+                3.291, 2.619, 2.698, 2.488, 2.618, 2.473, 2.428, 2.487
             ]
         },
         "tmpfs": {
             "v1": [
-                [19.468, 19.334, 19.428, 18.189, 17.86, 17.717, 17.384, 18.513],
-                [22.286, 18.909, 19.058, 19.645, 19.646, 20.196, 19.321, 19.678],
-                [17.807, 16.571, 16.324, 15.872, 16.626, 16.139, 16.437, 16.003]
+                19.468, 19.334, 19.428, 18.189, 17.86, 17.717, 17.384, 18.513,
+                22.286, 18.909, 19.058, 19.645, 19.646, 20.196, 19.321, 19.678,
+                17.807, 16.571, 16.324, 15.872, 16.626, 16.139, 16.437, 16.003
             ],
             "v2": [
-                [0.607, 0.474, 0.432, 0.392, 0.427, 0.359, 0.357, 0.323],
-                [0.633, 0.447, 0.476, 0.429, 0.398, 0.413, 0.476, 0.381],
-                [3.028, 2.692, 2.667, 2.543, 2.632, 2.578, 2.585, 2.492],
-                []
+                0.607, 0.474, 0.432, 0.392, 0.427, 0.359, 0.357, 0.323,
+                0.633, 0.447, 0.476, 0.429, 0.398, 0.413, 0.476, 0.381,
+                3.028, 2.692, 2.667, 2.543, 2.632, 2.578, 2.585, 2.492
             ]
         }
     },
     'upload': {
         "disk": {
             "v1": [
-                [0.341, 0.448, 0.487, 0.947, 0.304, 0.261, 0.297, 0.301],
-                [3.949, 0.392, 3.71, 1.005, 0.371, 0.354, 0.389, 0.371],
-                [8.009, 6.948, 7.37, 5.141, 3.546, 4.866, 4.325, 5.609],
-                []
+                0.341, 0.448, 0.487, 0.947, 0.304, 0.261, 0.297, 0.301,
+                3.949, 0.392, 3.71, 1.005, 0.371, 0.354, 0.389, 0.371,
+                8.009, 6.948, 7.37, 5.141, 3.546, 4.866, 4.325, 5.609
             ],
             "v2": [
-                [4.057, 3.504, 3.361, 3.363, 3.337, 3.319, 3.334, 3.305],
-                [4.124, 3.671, 3.582, 3.655, 3.481, 3.659, 3.434, 3.463],
-                [5.349, 9.489, 7.626, 7.471, 9.632, 7.452, 7.21, 7.082],
-                []
+                4.057, 3.504, 3.361, 3.363, 3.337, 3.319, 3.334, 3.305,
+                4.124, 3.671, 3.582, 3.655, 3.481, 3.659, 3.434, 3.463,
+                5.349, 9.489, 7.626, 7.471, 9.632, 7.452, 7.21, 7.082
             ]
         },
         "tmpfs": {
             "v1": [
-                [0.274, 0.212, 0.224, 0.24, 0.244, 0.222, 0.216, 0.239],
-                [0.384, 0.364, 0.363, 0.329, 0.349, 0.411, 0.392, 0.347],
-                [6.916, 6.307, 6.492, 8.0, 7.968, 7.322, 4.969, 6.121],
-                []
+                0.274, 0.212, 0.224, 0.24, 0.244, 0.222, 0.216, 0.239,
+                0.384, 0.364, 0.363, 0.329, 0.349, 0.411, 0.392, 0.347,
+                6.916, 6.307, 6.492, 8.0, 7.968, 7.322, 4.969, 6.121
             ],
             "v2": [
-                [3.547, 3.212, 3.191, 3.068, 3.036, 3.015, 3.116, 3.069],
-                [4.091, 3.563, 3.495, 3.435, 3.468, 3.434, 3.479, 3.408],
-                [5.531, 6.018, 5.639, 8.545, 5.927, 8.506, 6.945, 8.973],
-                []
+                3.547, 3.212, 3.191, 3.068, 3.036, 3.015, 3.116, 3.069,
+                4.091, 3.563, 3.495, 3.435, 3.468, 3.434, 3.479, 3.408,
+                5.531, 6.018, 5.639, 8.545, 5.927, 8.506, 6.945, 8.973
             ]
         }
     }
 }
 
-directory_sizes = ["1B", "1B", "1B", "1B", "1B", "1B", "1B", "1B",
-                   "4K", "4K", "4K", "4K", "4K", "4K", "4K", "4K",
-                   "16M", "16M", "16M", "16M", "16M", "16M", "16M", "16M",
-                   "5G", "5G", "5G", "5G", "5G", "5G", "5G", "5G"
+directory_sizes = ["1Bx1000", "1Bx1000", "1Bx1000", "1Bx1000", "1Bx1000", "1Bx1000", "1Bx1000", "1Bx1000",
+                   "4Kx1000", "4Kx1000", "4Kx1000", "4Kx1000", "4Kx1000", "4Kx1000", "4Kx1000", "4Kx1000",
+                   "16Mx1000", "16Mx1000", "16Mx1000", "16Mx1000", "16Mx1000", "16Mx1000", "16Mx1000", "16Mx1000",
                    ]
 
 single_file_sizes = ["1B", "1B", "1B", "1B", "1B", "1B", "1B", "1B",
@@ -176,27 +169,32 @@ single_file_sizes = ["1B", "1B", "1B", "1B", "1B", "1B", "1B", "1B",
                      "30GB", "30GB", "30GB", "30GB", "30GB", "30GB", "30GB", "30GB",
                      ]
 
-v1_color = 'rgb(177, 177, 177)'
-v2_color = 'rgb(88, 88, 88)'
+v1_color = 'rgb(116, 116, 116)'
+v2_color = 'rgb(21, 21, 21)'
 
 
-def bar_graph(name, data):
+def bar_graph(name, sizes, data, use_log=True):
     figure = go.Figure()
     figure.add_trace(go.Box(
         y=data['v1'],
-        x=single_file_sizes,
+        x=sizes,
         name='v1',
         marker_color=v1_color,
-        boxmean=True
+        boxpoints=False,
+        boxmean=True,
+        line_width=0.8
     ))
     figure.add_trace(go.Box(
         y=data['v2'],
-        x=single_file_sizes,
+        x=sizes,
         name='v2',
         marker_color=v2_color,
-        boxmean=True
+        boxmean=True,
+        boxpoints=False,
+        line_width=0.8
     ))
-    figure.update_yaxes(type="log")
+    if use_log:
+        figure.update_yaxes(type="log")
     figure.update_layout(
         title=name,
         yaxis_title='seconds',
@@ -207,8 +205,13 @@ def bar_graph(name, data):
 if not os.path.exists("../images"):
     os.mkdir("../images")
 
-bar_graph("upload-tmpfs", data_single_file['upload']['tmpfs']).write_image("../images/upload-tmpfs.png")
-bar_graph("upload-disk", data_single_file['upload']['disk']).write_image("../images/upload-disk.png")
-bar_graph("download-tmpfs", data_single_file['download']['tmpfs']).write_image("../images/download-tmpfs.png")
-bar_graph("download-disk", data_single_file['download']['disk']).write_image("../images/download-disk.png")
-bar_graph("copy", data_single_file['copy']).write_image("../images/copy.png")
+bar_graph("upload-tmpfs", single_file_sizes, data_single_file['upload']['tmpfs']).write_image("../images/upload-tmpfs.png")
+bar_graph("upload-disk", single_file_sizes, data_single_file['upload']['disk']).write_image("../images/upload-disk.png")
+bar_graph("download-tmpfs", single_file_sizes, data_single_file['download']['tmpfs']).write_image("../images/download-tmpfs.png")
+bar_graph("download-disk", single_file_sizes, data_single_file['download']['disk']).write_image("../images/download-disk.png")
+bar_graph("copy", single_file_sizes, data_single_file['copy']).write_image("../images/copy.png")
+
+bar_graph("download-directory-tmpfs", directory_sizes, data_directory['download']['tmpfs']).write_image("../images/download-directory-tmpfs.png")
+bar_graph("download-directory-disk", directory_sizes, data_directory['download']['disk']).write_image("../images/download-directory-disk.png")
+bar_graph("upload-directory-tmpfs", directory_sizes, data_directory['upload']['tmpfs']).write_image("../images/upload-directory-tmpfs.png")
+bar_graph("upload-directory-disk", directory_sizes, data_directory['upload']['disk']).write_image("../images/upload-directory-disk.png")

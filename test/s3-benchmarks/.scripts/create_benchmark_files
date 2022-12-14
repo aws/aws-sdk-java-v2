@@ -1,13 +1,14 @@
-dd if=/dev/urandom of=/dev/shm/1B    bs=1           count=1
-dd if=/dev/urandom of=/dev/shm/8MB-1 bs=8404991     count=1
-dd if=/dev/urandom of=/dev/shm/8MB+1 bs=8404993     count=1
-dd if=/dev/urandom of=/dev/shm/128MB bs=134217728   count=1
-dd if=/dev/urandom of=/dev/shm/4GB   bs=4294967296  count=1
+head -c 1B </dev/urandom >/dev/shm/1B
+head -c 8388607B </dev/urandom >/dev/shm/8MB-1
+head -c 8388609B </dev/urandom >/dev/shm/8MB+1
+head -c 128M </dev/urandom >/dev/shm/128MB
+head -c 4B </dev/urandom >/dev/shm/4GB
+head -c 30GB </dev/urandom >/dev/shm/30GB
 
-dd if=/dev/urandom of=/1B    bs=1           count=1
-dd if=/dev/urandom of=/8MB-1 bs=8404991     count=1
-dd if=/dev/urandom of=/8MB+1 bs=8404993     count=1
-dd if=/dev/urandom of=/128MB bs=134217728   count=1
-dd if=/dev/urandom of=/4GB   bs=4294967296  count=1
-dd if=/dev/urandom of=/30GB  bs=32212254720 count=1
+head -c 1B </dev/urandom >/1B
+head -c 8388607B </dev/urandom >/8MB-1
+head -c 8388609B </dev/urandom >/8MB+1
+head -c 128M </dev/urandom >/128MB
+head -c 4B </dev/urandom >/4GB
+head -c 30GB </dev/urandom >/30GB
 

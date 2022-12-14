@@ -19,6 +19,8 @@
 
 usage() {
   echo "usage:"
+  echo "    benchmark-copy [<size>]"
+  echo "example: "
   echo "    benchmark-copy"
   echo "    benchmark-copy 4GB"
 }

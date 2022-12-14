@@ -53,9 +53,6 @@ if [[ "$location_name" == tmpfs ]]; then
   location="/dev/shm/tm_dir_files"
 fi
 
-if [[ -z "$location" ]]; then
-  mkdir "$location"
-fi
 
 sizes_str="1B 4K 16M 5G"
 versions_str="v1 v2"
@@ -64,8 +61,12 @@ versions=( $versions_str )
 
 run_benchmark() {
   echo "Benchmark: $version - $size"
+  directory="$location/$size"
+  if [[ -z "$directory" ]]; then
+    mkdir -p "$directory"
+  fi
   result_file="$operation"_"$location_name"_"$version"_"$size".txt
-  prefix="$size"_dir
+  prefix="$size"
   cmd="java -jar ../target/s3-benchmarks.jar \
             --operation=$operation \
             --bucket=do-not-delete-crt-s3-eu-west-1 \
@@ -75,7 +76,7 @@ run_benchmark() {
             --version=$version \
             --readBufferInMB=3072 \
             --prefix=$prefix \
-            --file=$location/$size"
+            --file=$directory"
 
   echo "$cmd" | sed 's/ \{1,\}/ /g' > "result/$result_file"
   $cmd | tee -a "result/$result_file"
