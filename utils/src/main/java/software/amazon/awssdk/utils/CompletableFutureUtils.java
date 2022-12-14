@@ -109,6 +109,27 @@ public final class CompletableFutureUtils {
      *
      * @param src The source {@link CompletableFuture}
      * @param dst The destination where the {@code Throwable} or response will be forwarded to.
+     * @return the {@code src} future.
+     */
+    public static <T> CompletableFuture<T> forwardResultTo(CompletableFuture<T> src,
+                                                           CompletableFuture<T> dst) {
+        src.whenComplete((r, e) -> {
+            if (e != null) {
+                dst.completeExceptionally(e);
+            } else {
+                dst.complete(r);
+            }
+        });
+
+        return src;
+    }
+
+    /**
+     * Completes the {@code dst} future based on the result of the {@code src} future asynchronously on
+     * the provided {@link Executor} and return the {@code src} future.
+     *
+     * @param src The source {@link CompletableFuture}
+     * @param dst The destination where the {@code Throwable} or response will be forwarded to.
      * @param executor the executor to complete the des future
      * @return the {@code src} future.
      */
@@ -146,6 +167,52 @@ public final class CompletableFutureUtils {
         });
 
         return src;
+    }
+
+    /**
+     * Similar to {@link CompletableFuture#allOf(CompletableFuture[])}, but
+     * when any future is completed exceptionally, forwards the
+     * exception to other futures.
+     *
+     * @param futures The futures.
+     * @return The new future that is completed when all the futures in {@code
+     * futures} are.
+     */
+    public static CompletableFuture<Void> allOfExceptionForwarded(CompletableFuture<?>[] futures) {
+
+        CompletableFuture<Void> anyFail = anyFail(futures);
+
+        anyFail.whenComplete((r, t) -> {
+            if (t != null) {
+                for (CompletableFuture<?> cf : futures) {
+                    cf.completeExceptionally(t);
+                }
+            }
+        });
+
+        return CompletableFuture.allOf(futures);
+    }
+
+    /**
+     * Returns a new CompletableFuture that is completed when any of
+     * the given CompletableFutures completes exceptionally.
+     *
+     * @param futures the CompletableFutures
+     * @return a new CompletableFuture that is completed if any provided
+     * future completed exceptionally.
+     */
+    static CompletableFuture<Void> anyFail(CompletableFuture<?>[] futures) {
+        CompletableFuture<Void> completableFuture = new CompletableFuture<>();
+
+        for (CompletableFuture<?> future : futures) {
+            future.whenComplete((r, t) -> {
+                if (t != null) {
+                    completableFuture.completeExceptionally(t);
+                }
+            });
+        }
+
+        return completableFuture;
     }
 
     public static <T> T joinInterruptibly(CompletableFuture<T> future) {

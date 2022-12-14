@@ -10,6 +10,10 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.services.builder.Builder;
+import software.amazon.awssdk.services.builder.CustomBuilder;
+import software.amazon.awssdk.services.builder.DefaultBuilder;
+import software.amazon.awssdk.services.builder.DefaultBuilderTwo;
 import software.amazon.awssdk.services.json.model.APostOperationRequest;
 import software.amazon.awssdk.services.json.model.APostOperationResponse;
 import software.amazon.awssdk.services.json.model.APostOperationWithOutputRequest;
@@ -1752,5 +1756,19 @@ public interface JsonAsyncClient extends SdkClient {
      */
     default JsonUtilities utilities() {
         throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Create a default builder
+     */
+    static CustomBuilder builderOne() {
+        return DefaultBuilder.builder().build();
+    }
+
+    /**
+     * Create a default builder two
+     */
+    static Builder builderTwo() {
+        return DefaultBuilderTwo.builder2().build();
     }
 }

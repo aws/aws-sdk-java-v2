@@ -30,8 +30,14 @@ import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
+import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.testutils.RandomTempFile;
+import software.amazon.awssdk.transfer.s3.model.CompletedFileUpload;
+import software.amazon.awssdk.transfer.s3.model.CompletedUpload;
+import software.amazon.awssdk.transfer.s3.model.FileUpload;
+import software.amazon.awssdk.transfer.s3.model.Upload;
+import software.amazon.awssdk.transfer.s3.model.UploadRequest;
 import software.amazon.awssdk.transfer.s3.progress.LoggingTransferListener;
 import software.amazon.awssdk.transfer.s3.util.ChecksumUtils;
 
@@ -41,39 +47,28 @@ public class S3TransferManagerUploadIntegrationTest extends S3IntegrationTestBas
     private static final int OBJ_SIZE = 16 * 1024 * 1024;
 
     private static RandomTempFile testFile;
-    private static S3TransferManager tm;
 
     @BeforeAll
     public static void setUp() throws Exception {
-        S3IntegrationTestBase.setUp();
         createBucket(TEST_BUCKET);
 
         testFile = new RandomTempFile(TEST_KEY, OBJ_SIZE);
-
-        tm = S3TransferManager.builder()
-                              .s3ClientConfiguration(b -> b.credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                                                           .region(DEFAULT_REGION)
-                                                           .maxConcurrency(100))
-                              .build();
-
     }
 
     @AfterAll
     public static void teardown() throws IOException {
-        tm.close();
         Files.delete(testFile.toPath());
         deleteBucketAndAllContents(TEST_BUCKET);
-        S3IntegrationTestBase.cleanUp();
     }
 
-    @Test
+   @Test
     void upload_file_SentCorrectly() throws IOException {
         Map<String, String> metadata = new HashMap<>();
         metadata.put("x-amz-meta-foobar", "FOO BAR");
         FileUpload fileUpload =
-            tm.uploadFile(u -> u.putObjectRequest(p -> p.bucket(TEST_BUCKET).key(TEST_KEY).metadata(metadata))
+            tm.uploadFile(u -> u.putObjectRequest(p -> p.bucket(TEST_BUCKET).key(TEST_KEY).metadata(metadata).checksumAlgorithm(ChecksumAlgorithm.CRC32))
                                 .source(testFile.toPath())
-                                .overrideConfiguration(o -> o.addListener(LoggingTransferListener.create()))
+                                .addTransferListener(LoggingTransferListener.create())
                                 .build());
 
         CompletedFileUpload completedFileUpload = fileUpload.completionFuture().join();
@@ -87,6 +82,7 @@ public class S3TransferManagerUploadIntegrationTest extends S3IntegrationTestBas
                 .isEqualTo(ChecksumUtils.computeCheckSum(obj));
         assertThat(obj.response().responseMetadata().requestId()).isNotNull();
         assertThat(obj.response().metadata()).containsEntry("foobar", "FOO BAR");
+        assertThat(fileUpload.progress().snapshot().sdkResponse()).isPresent();
     }
 
     @Test
@@ -97,7 +93,7 @@ public class S3TransferManagerUploadIntegrationTest extends S3IntegrationTestBas
             tm.upload(UploadRequest.builder()
                                    .putObjectRequest(b -> b.bucket(TEST_BUCKET).key(TEST_KEY))
                                    .requestBody(AsyncRequestBody.fromString(content))
-                                   .overrideConfiguration(b -> b.addListener(LoggingTransferListener.create()))
+                                   .addTransferListener(LoggingTransferListener.create())
                                    .build());
 
         CompletedUpload completedUpload = upload.completionFuture().join();
@@ -110,5 +106,6 @@ public class S3TransferManagerUploadIntegrationTest extends S3IntegrationTestBas
         assertThat(ChecksumUtils.computeCheckSum(content.getBytes(StandardCharsets.UTF_8)))
             .isEqualTo(ChecksumUtils.computeCheckSum(obj));
         assertThat(obj.response().responseMetadata().requestId()).isNotNull();
+        assertThat(upload.progress().snapshot().sdkResponse()).isPresent();
     }
 }
