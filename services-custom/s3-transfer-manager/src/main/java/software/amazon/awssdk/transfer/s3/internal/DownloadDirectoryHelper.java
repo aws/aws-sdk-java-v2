@@ -147,12 +147,10 @@ public class DownloadDirectoryHelper {
                                           ListObjectsV2Request listRequest,
                                           S3Object s3Object) {
         FileSystem fileSystem = downloadDirectoryRequest.destination().getFileSystem();
-        // listOBjectv2requests.delimiter
         String delimiter = listRequest.delimiter() == null ? DEFAULT_DELIMITER : listRequest.delimiter();
-        String key = normalizeKey(downloadDirectoryRequest, listRequest, s3Object, delimiter);
+        String key = normalizeKey(listRequest, s3Object.key(), delimiter);
         String relativePath = getRelativePath(fileSystem, delimiter, key);
         Path destinationPath = downloadDirectoryRequest.destination().resolve(relativePath);
-
         validatePath(downloadDirectoryRequest.destination(), destinationPath, s3Object.key());
         return destinationPath;
     }
@@ -200,31 +198,35 @@ public class DownloadDirectoryHelper {
     }
 
     /**
-     * Normalizing the key by stripping the prefix from the s3 object key if the prefix is not empty.
+     * If the prefix is not empty AND the key contains the delimiter, normalize the key by stripping the prefix from the key.
      *
      * If a delimiter is null (not provided by user), use "/" by default.
      *
      * For example: given a request with prefix = "notes/2021"  or "notes/2021/", delimiter = "/" and key = "notes/2021/1.txt",
      * the normalized key should be "1.txt".
      */
-    private static String normalizeKey(DownloadDirectoryRequest downloadDirectoryRequest,
-                                       ListObjectsV2Request listObjectsRequest,
-                                       S3Object s3Object,
+    private static String normalizeKey(ListObjectsV2Request listObjectsRequest,
+                                       String key,
                                        String delimiter) {
-        int delimiterLength = delimiter.length();
-
-        if (!StringUtils.isEmpty(listObjectsRequest.prefix())) {
-            String prefix = listObjectsRequest.prefix();
-            String normalizedKey;
-            if (prefix.endsWith(delimiter)) {
-                normalizedKey = s3Object.key().substring(prefix.length());
-            } else {
-                normalizedKey = s3Object.key().substring(prefix.length() + delimiterLength);
-            }
-            return normalizedKey;
+        if (StringUtils.isEmpty(listObjectsRequest.prefix())) {
+            return key;
         }
 
-        return s3Object.key();
+        String prefix = listObjectsRequest.prefix();
+
+        if (!key.contains(delimiter)) {
+            return key;
+        }
+
+        String normalizedKey;
+
+        if (prefix.endsWith(delimiter)) {
+            normalizedKey = key.substring(prefix.length());
+        } else {
+            normalizedKey = key.substring(prefix.length() + delimiter.length());
+        }
+        return normalizedKey;
+
     }
 
     private static String getRelativePath(FileSystem fileSystem, String delimiter, String key) {

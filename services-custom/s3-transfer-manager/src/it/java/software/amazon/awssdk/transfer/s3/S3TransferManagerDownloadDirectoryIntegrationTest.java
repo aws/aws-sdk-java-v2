@@ -74,6 +74,7 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
     @AfterEach
     public void cleanup() {
         FileUtils.cleanUpTestDirectory(directory);
+        FileUtils.cleanUpTestDirectory(sourceDirectory);
     }
 
     @AfterAll
@@ -125,11 +126,24 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
         assertTwoDirectoriesHaveSameStructure(sourceDirectory, directory);
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"notes/2021", "notes/2021/"})
+    void downloadDirectory_withPrefix(String prefix) throws Exception {
+        DirectoryDownload downloadDirectory = tm.downloadDirectory(u -> u.destination(directory)
+                                                                         .listObjectsV2RequestTransformer(r -> r.prefix(prefix))
+                                                                         .bucket(TEST_BUCKET));
+        CompletedDirectoryDownload completedDirectoryDownload = downloadDirectory.completionFuture().get(5, TimeUnit.SECONDS);
+        assertThat(completedDirectoryDownload.failedTransfers()).isEmpty();
+
+        assertTwoDirectoriesHaveSameStructure(sourceDirectory.resolve(prefix), directory);
+    }
+
     /**
      * With prefix = "notes", the destination directory structure should be the following:
      * <pre>
      *   {@code
      *      - destination
+     *          - notesMemo.txt
      *          - 2021
      *              - 1.txt
      *              - 2.txt
@@ -139,16 +153,24 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
      *   }
      * </pre>
      */
-    @ParameterizedTest
-    @ValueSource(strings = {"notes/2021", "notes/2021/", "notes"})
-    public void downloadDirectory_withPrefix(String prefix) throws Exception {
+    @Test
+    void downloadDirectory_containsObjectWithPrefixInTheKey_shouldResolveCorrectly() throws Exception {
+        String prefix = "notes";
         DirectoryDownload downloadDirectory = tm.downloadDirectory(u -> u.destination(directory)
                                                                          .listObjectsV2RequestTransformer(r -> r.prefix(prefix))
                                                                          .bucket(TEST_BUCKET));
         CompletedDirectoryDownload completedDirectoryDownload = downloadDirectory.completionFuture().get(5, TimeUnit.SECONDS);
         assertThat(completedDirectoryDownload.failedTransfers()).isEmpty();
 
-        assertTwoDirectoriesHaveSameStructure(sourceDirectory.resolve(prefix), directory);
+        Path expectedDirectory = Files.createTempDirectory("expectedDirectory");
+
+        try {
+            FileUtils.copyDirectory(sourceDirectory.resolve(prefix), expectedDirectory);
+            Files.copy(sourceDirectory.resolve("notesMemo.txt"), expectedDirectory.resolve("notesMemo.txt"));
+            assertTwoDirectoriesHaveSameStructure(expectedDirectory, directory);
+        } finally {
+            FileUtils.cleanUpTestDirectory(expectedDirectory);
+        }
     }
 
     /**
@@ -242,6 +264,7 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
      *      - source
      *          - README.md
      *          - CHANGELOG.md
+     *          - notesMemo.txt
      *          - notes
      *              - 2021
      *                  - 1.txt
@@ -262,6 +285,7 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
         Files.createDirectory(Paths.get(directoryName, "notes", "2022"));
         Files.write(Paths.get(directoryName, "README.md"), RandomStringUtils.random(100).getBytes(StandardCharsets.UTF_8));
         Files.write(Paths.get(directoryName, "CHANGELOG.md"), RandomStringUtils.random(100).getBytes(StandardCharsets.UTF_8));
+        Files.write(Paths.get(directoryName, "notesMemo.txt"), RandomStringUtils.random(100).getBytes(StandardCharsets.UTF_8));
         Files.write(Paths.get(directoryName, "notes", "2021", "1.txt"),
                     RandomStringUtils.random(100).getBytes(StandardCharsets.UTF_8));
         Files.write(Paths.get(directoryName, "notes", "2021", "2.txt"),
