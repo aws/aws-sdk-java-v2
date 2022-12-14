@@ -74,7 +74,6 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
     @AfterEach
     public void cleanup() {
         FileUtils.cleanUpTestDirectory(directory);
-        FileUtils.cleanUpTestDirectory(sourceDirectory);
     }
 
     @AfterAll
@@ -225,6 +224,7 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
             Files.delete(expectedDirectory.resolve("notes/2022"));
             Files.delete(expectedDirectory.resolve("notes/important.txt"));
             Files.delete(expectedDirectory.resolve("notes/2021/1.txt"));
+            Files.delete(expectedDirectory.resolve("notesMemo.txt"));
             
             assertTwoDirectoriesHaveSameStructure(expectedDirectory, directory);
         } finally {
