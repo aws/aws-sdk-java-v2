@@ -7308,7 +7308,7 @@
           "documentation": "Password if credentials are required to access the POIS endpoint.  This is a reference to an AWS parameter store name from which the password can be retrieved.  AWS Parameter store format: \"ssm://<parameter name>\""
         },
         "PoisEndpoint": {
-          "shape": "__string",
+          "shape": "__stringMax2048",
           "locationName": "poisEndpoint",
           "documentation": "The URL of the signal conditioner endpoint on the Placement Opportunity Information System (POIS). MediaLive sends SignalProcessingEvents here when SCTE-35 messages are read."
         },
@@ -9526,6 +9526,11 @@
           "shape": "__integer",
           "locationName": "maxBitrate",
           "documentation": "The maximum bitrate in bits per second. Set a value here to throttle the bitrate of the source video."
+        },
+        "LatencyMs": {
+          "shape": "__integer",
+          "locationName": "latencyMs",
+          "documentation": "The Link device's buffer size (latency) in milliseconds (ms)."
         }
       },
       "documentation": "Configurable settings for the input device."
@@ -9605,6 +9610,11 @@
           "shape": "__integer",
           "locationName": "width",
           "documentation": "The width of the video source, in pixels."
+        },
+        "LatencyMs": {
+          "shape": "__integer",
+          "locationName": "latencyMs",
+          "documentation": "The Link device's buffer size (latency) in milliseconds (ms). You can specify this value."
         }
       },
       "documentation": "Settings that describe the active source from the input device, and the video characteristics of that source."
@@ -9764,7 +9774,8 @@
       "type": "string",
       "documentation": "The type of the input device. For an AWS Elemental Link device that outputs resolutions up to 1080, choose \"HD\".",
       "enum": [
-        "HD"
+        "HD",
+        "UHD"
       ]
     },
     "InputDeviceUhdSettings": {
@@ -9809,6 +9820,11 @@
           "shape": "__integer",
           "locationName": "width",
           "documentation": "The width of the video source, in pixels."
+        },
+        "LatencyMs": {
+          "shape": "__integer",
+          "locationName": "latencyMs",
+          "documentation": "The Link device's buffer size (latency) in milliseconds (ms). You can specify this value."
         }
       },
       "documentation": "Settings that describe the active source from the input device, and the video characteristics of that source."

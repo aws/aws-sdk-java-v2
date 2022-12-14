@@ -38,7 +38,6 @@ import software.amazon.awssdk.codegen.utils.AuthUtils;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.utils.internal.CodegenNamingUtils;
 
-
 public class BaseClientBuilderInterface implements ClassSpec {
     private final IntermediateModel model;
     private final String basePackage;
@@ -73,14 +72,12 @@ public class BaseClientBuilderInterface implements ClassSpec {
             builder.addMethod(serviceConfigurationConsumerBuilderMethod());
         }
 
-        if (endpointRulesSpecUtils.isEndpointRulesEnabled()) {
-            builder.addMethod(endpointProviderMethod());
+        builder.addMethod(endpointProviderMethod());
 
-            if (hasClientContextParams()) {
-                model.getClientContextParams().forEach((n, m) -> {
-                    builder.addMethod(clientContextParamSetter(n, m));
-                });
-            }
+        if (hasClientContextParams()) {
+            model.getClientContextParams().forEach((n, m) -> {
+                builder.addMethod(clientContextParamSetter(n, m));
+            });
         }
 
         if (generateTokenProviderMethod()) {
@@ -140,12 +137,14 @@ public class BaseClientBuilderInterface implements ClassSpec {
 
     private MethodSpec endpointProviderMethod() {
         return MethodSpec.methodBuilder("endpointProvider")
-                         .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                         .addModifiers(Modifier.PUBLIC, Modifier.DEFAULT)
                          .addParameter(endpointRulesSpecUtils.providerInterfaceName(), "endpointProvider")
-            .addJavadoc("Set the {@link $T} implementation that will be used by the client to determine the endpoint for each "
-                        + "request. This is optional; if none is provided a default implementation will be used the SDK.",
-                        endpointRulesSpecUtils.providerInterfaceName())
+                         .addJavadoc("Set the {@link $T} implementation that will be used by the client to determine "
+                                     + "the endpoint for each request. This is optional; if none is provided a "
+                                     + "default implementation will be used the SDK.",
+                                     endpointRulesSpecUtils.providerInterfaceName())
                          .returns(TypeVariableName.get("B"))
+                         .addStatement("throw new $T()", UnsupportedOperationException.class)
                          .build();
     }
 

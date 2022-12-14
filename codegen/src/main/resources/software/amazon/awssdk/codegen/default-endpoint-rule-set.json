@@ -1,0 +1,58 @@
+{
+  "version": "1.0",
+  "parameters": {
+    "Region": {
+      "builtIn": "AWS::Region",
+      "required": true,
+      "documentation": "The AWS region used to dispatch the request, if the endpoint is not specified.",
+      "type": "String"
+    },
+    "Endpoint": {
+      "builtIn": "SDK::Endpoint",
+      "required": false,
+      "documentation": "Override the endpoint used to send this request",
+      "type": "String"
+    }
+  },
+  "rules": [
+    {
+      "conditions": [
+        {
+          "fn": "isSet",
+          "argv": [
+            {
+              "ref": "Endpoint"
+            }
+          ]
+        }
+      ],
+      "type": "endpoint",
+      "endpoint": {
+        "url": {
+          "ref": "Endpoint"
+        },
+        "properties": {},
+        "headers": {}
+      }
+    },
+    {
+      "conditions": [
+        {
+          "fn": "aws.partition",
+          "argv": [
+            {
+              "ref": "Region"
+            }
+          ],
+          "assign": "PartitionResult"
+        }
+      ],
+      "type": "endpoint",
+      "endpoint": {
+        "url": "https://%s.{Region}.{PartitionResult#dnsSuffix}",
+        "properties": {},
+        "headers": {}
+      }
+    }
+  ]
+}

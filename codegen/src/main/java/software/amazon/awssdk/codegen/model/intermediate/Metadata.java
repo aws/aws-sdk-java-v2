@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.codegen.model.intermediate;
 
+import java.util.Map;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.utils.StringUtils;
@@ -83,6 +84,8 @@ public class Metadata {
 
     private String jsonVersion;
 
+    private Map<String, String> awsQueryCompatible;
+
     private String endpointPrefix;
 
     private String signingName;
@@ -102,6 +105,7 @@ public class Metadata {
     private boolean supportsH2;
 
     private String serviceId;
+
 
     public String getApiVersion() {
         return apiVersion;
@@ -502,6 +506,19 @@ public class Metadata {
 
     public Metadata withJsonVersion(String jsonVersion) {
         setJsonVersion(jsonVersion);
+        return this;
+    }
+
+    public Map<String, String> getAwsQueryCompatible() {
+        return awsQueryCompatible;
+    }
+
+    public void setAwsQueryCompatible(Map<String, String> awsQueryCompatible) {
+        this.awsQueryCompatible = awsQueryCompatible;
+    }
+
+    public Metadata withAwsQueryCompatible(Map<String, String> awsQueryCompatible) {
+        setAwsQueryCompatible(awsQueryCompatible);
         return this;
     }
 

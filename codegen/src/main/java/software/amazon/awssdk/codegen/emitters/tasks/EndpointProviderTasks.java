@@ -18,7 +18,6 @@ package software.amazon.awssdk.codegen.emitters.tasks;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.codegen.emitters.GeneratorTask;
@@ -46,16 +45,12 @@ public final class EndpointProviderTasks extends BaseGeneratorTasks {
 
     @Override
     protected List<GeneratorTask> createTasks() throws Exception {
-        if (!generatorTaskParams.getModel().getCustomizationConfig().useRuleBasedEndpoints()) {
-            return Collections.emptyList();
-        }
-
         List<GeneratorTask> tasks = new ArrayList<>();
         tasks.add(generateInterface());
         tasks.add(generateParams());
         tasks.add(generateDefaultProvider());
         tasks.addAll(generateInterceptors());
-        if (shouldGenerateTests()) {
+        if (shouldGenerateEndpointTests()) {
             tasks.add(generateClientTests());
             tasks.add(generateProviderTests());
         }
@@ -110,10 +105,10 @@ public final class EndpointProviderTasks extends BaseGeneratorTasks {
         return generatorTaskParams.getPathProvider().getEndpointRulesTestDirectory();
     }
 
-    private boolean shouldGenerateTests() {
+    private boolean shouldGenerateEndpointTests() {
         CustomizationConfig customizationConfig = generatorTaskParams.getModel().getCustomizationConfig();
-
-        return !Boolean.TRUE.equals(customizationConfig.isSkipEndpointTestGeneration());
+        return !Boolean.TRUE.equals(customizationConfig.isSkipEndpointTestGeneration()) &&
+               !generatorTaskParams.getModel().getEndpointTestSuiteModel().getTestCases().isEmpty();
     }
 
     private boolean hasClientContextParams() {

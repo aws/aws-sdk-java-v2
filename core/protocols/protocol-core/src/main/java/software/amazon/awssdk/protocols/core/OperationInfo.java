@@ -66,7 +66,7 @@ public final class OperationInfo {
     }
 
     /**
-     * @return Identifer for the operation/API being invoked. This is used for RPC based protocols that
+     * @return Identifier for the operation/API being invoked. This is used for RPC based protocols that
      *     need to identify which action is being taken. For Query/EC2 protocol this is sent as the 'Action' query
      *     parameter, for JSON RPC this is sent as the 'X-Amz-Target' header.
      */

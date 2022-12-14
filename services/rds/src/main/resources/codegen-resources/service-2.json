@@ -71,7 +71,8 @@
         {"shape":"DBClusterNotFoundFault"},
         {"shape":"DBSnapshotNotFoundFault"},
         {"shape":"DBProxyNotFoundFault"},
-        {"shape":"DBProxyTargetGroupNotFoundFault"}
+        {"shape":"DBProxyTargetGroupNotFoundFault"},
+        {"shape":"BlueGreenDeploymentNotFoundFault"}
       ],
       "documentation":"<p>Adds metadata tags to an Amazon RDS resource. These tags can also be used with cost allocation reporting to track cost associated with Amazon RDS resources, or used in a Condition statement in an IAM policy for Amazon RDS.</p> <p>For an overview on tagging Amazon RDS resources, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Overview.Tagging.html\">Tagging Amazon RDS Resources</a>.</p>"
     },
@@ -1589,7 +1590,8 @@
         {"shape":"DBSnapshotNotFoundFault"},
         {"shape":"DBClusterNotFoundFault"},
         {"shape":"DBProxyNotFoundFault"},
-        {"shape":"DBProxyTargetGroupNotFoundFault"}
+        {"shape":"DBProxyTargetGroupNotFoundFault"},
+        {"shape":"BlueGreenDeploymentNotFoundFault"}
       ],
       "documentation":"<p>Lists all tags on an Amazon RDS resource.</p> <p>For an overview on tagging an Amazon RDS resource, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Overview.Tagging.html\">Tagging Amazon RDS Resources</a> in the <i>Amazon RDS User Guide</i>.</p>"
     },
@@ -2148,7 +2150,8 @@
         {"shape":"DBSnapshotNotFoundFault"},
         {"shape":"DBClusterNotFoundFault"},
         {"shape":"DBProxyNotFoundFault"},
-        {"shape":"DBProxyTargetGroupNotFoundFault"}
+        {"shape":"DBProxyTargetGroupNotFoundFault"},
+        {"shape":"BlueGreenDeploymentNotFoundFault"}
       ],
       "documentation":"<p>Removes metadata tags from an Amazon RDS resource.</p> <p>For an overview on tagging an Amazon RDS resource, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Overview.Tagging.html\">Tagging Amazon RDS Resources</a> in the <i>Amazon RDS User Guide.</i> </p>"
     },
@@ -2245,7 +2248,8 @@
         {"shape":"OptionGroupNotFoundFault"},
         {"shape":"KMSKeyNotAccessibleFault"},
         {"shape":"DomainNotFoundFault"},
-        {"shape":"DBClusterParameterGroupNotFoundFault"}
+        {"shape":"DBClusterParameterGroupNotFoundFault"},
+        {"shape":"InvalidDBInstanceStateFault"}
       ],
       "documentation":"<p>Creates a new DB cluster from a DB snapshot or DB cluster snapshot.</p> <p>The target DB cluster is created from the source snapshot with a default configuration. If you don't specify a security group, the new DB cluster is associated with the default security group.</p> <note> <p>This action only restores the DB cluster, not the DB instances for that DB cluster. You must invoke the <code>CreateDBInstance</code> action to create DB instances for the restored DB cluster, specifying the identifier of the restored DB cluster in <code>DBClusterIdentifier</code>. You can create DB instances only after the <code>RestoreDBClusterFromSnapshot</code> action has completed and the DB cluster is available.</p> </note> <p>For more information on Amazon Aurora DB clusters, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/CHAP_AuroraOverview.html\"> What is Amazon Aurora?</a> in the <i>Amazon Aurora User Guide</i>.</p> <p>For more information on Multi-AZ DB clusters, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/multi-az-db-clusters-concepts.html\"> Multi-AZ deployments with two readable standby DB instances</a> in the <i>Amazon RDS User Guide.</i> </p>"
     },
@@ -3217,6 +3221,15 @@
       },
       "documentation":"<p>This data type is used as a response element in the action <code>DescribeDBEngineVersions</code>.</p>"
     },
+    "ClientPasswordAuthType":{
+      "type":"string",
+      "enum":[
+        "MYSQL_NATIVE_PASSWORD",
+        "POSTGRES_SCRAM_SHA_256",
+        "POSTGRES_MD5",
+        "SQL_SERVER_AUTHENTICATION"
+      ]
+    },
     "CloudwatchLogsExportConfiguration":{
       "type":"structure",
       "members":{
@@ -3436,7 +3449,7 @@
         "Tags":{"shape":"TagList"},
         "CopyTags":{
           "shape":"BooleanOptional",
-          "documentation":"<p>A value that indicates whether to copy all tags from the source DB snapshot to the target DB snapshot. By default, tags are not copied.</p>"
+          "documentation":"<p>A value that indicates whether to copy all tags from the source DB snapshot to the target DB snapshot. By default, tags aren't copied.</p>"
         },
         "PreSignedUrl":{
           "shape":"String",
@@ -3449,6 +3462,10 @@
         "TargetCustomAvailabilityZone":{
           "shape":"String",
           "documentation":"<p>The external custom Availability Zone (CAZ) identifier for the target CAZ.</p> <p>Example: <code>rds-caz-aiqhTgQv</code>.</p>"
+        },
+        "CopyOptionGroup":{
+          "shape":"BooleanOptional",
+          "documentation":"<p>A value that indicates whether to copy the DB option group associated with the source DB snapshot to the target Amazon Web Services account and associate with the target DB snapshot. The associated option group can be copied only with cross-account snapshot copy calls.</p>"
         }
       },
       "documentation":"<p/>"
@@ -10966,7 +10983,19 @@
         },
         "OptionGroupArn":{
           "shape":"String",
-          "documentation":"<p>The Amazon Resource Name (ARN) for the option group.</p>"
+          "documentation":"<p>Specifies the Amazon Resource Name (ARN) for the option group.</p>"
+        },
+        "SourceOptionGroup":{
+          "shape":"String",
+          "documentation":"<p>Specifies the name of the option group from which this option group is copied.</p>"
+        },
+        "SourceAccountId":{
+          "shape":"String",
+          "documentation":"<p>Specifies the Amazon Web Services account ID for the option group from which this option group is copied.</p>"
+        },
+        "CopyTimestamp":{
+          "shape":"TStamp",
+          "documentation":"<p>Indicates when the option group was copied.</p>"
         }
       },
       "documentation":"<p/>",
@@ -11083,6 +11112,10 @@
         "OptionGroupOptionVersions":{
           "shape":"OptionGroupOptionVersionsList",
           "documentation":"<p>The versions that are available for the option.</p>"
+        },
+        "CopyableCrossAccount":{
+          "shape":"BooleanOptional",
+          "documentation":"<p>Specifies whether the option can be copied across Amazon Web Services accounts.</p>"
         }
       },
       "documentation":"<p>Available option.</p>"
@@ -13503,7 +13536,8 @@
         "db-cluster",
         "db-cluster-snapshot",
         "custom-engine-version",
-        "db-proxy"
+        "db-proxy",
+        "blue-green-deployment"
       ]
     },
     "StartActivityStreamRequest":{
@@ -14126,6 +14160,10 @@
         "IAMAuth":{
           "shape":"IAMAuthMode",
           "documentation":"<p>Whether to require or disallow Amazon Web Services Identity and Access Management (IAM) authentication for connections to the proxy. The <code>ENABLED</code> value is valid only for proxies with RDS for Microsoft SQL Server.</p>"
+        },
+        "ClientPasswordAuthType":{
+          "shape":"ClientPasswordAuthType",
+          "documentation":"<p>The type of authentication the proxy uses for connections from clients.</p>"
         }
       },
       "documentation":"<p>Specifies the details of authentication used by a proxy to log in as a specific database user.</p>"
@@ -14152,6 +14190,10 @@
         "IAMAuth":{
           "shape":"IAMAuthMode",
           "documentation":"<p>Whether to require or disallow Amazon Web Services Identity and Access Management (IAM) authentication for connections to the proxy. The <code>ENABLED</code> value is valid only for proxies with RDS for Microsoft SQL Server.</p>"
+        },
+        "ClientPasswordAuthType":{
+          "shape":"ClientPasswordAuthType",
+          "documentation":"<p>The type of authentication the proxy uses for connections from clients.</p>"
         }
       },
       "documentation":"<p>Returns the details of authentication used by a proxy to log in as a specific database user.</p>"

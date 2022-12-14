@@ -69,9 +69,7 @@ public class SyncClientBuilderClass implements ClassSpec {
             }
         }
 
-        if (endpointRulesSpecUtils.isEndpointRulesEnabled()) {
-            builder.addMethod(endpointProviderMethod());
-        }
+        builder.addMethod(endpointProviderMethod());
 
         if (AuthUtils.usesBearerAuth(model)) {
             builder.addMethod(tokenProviderMethodImpl());

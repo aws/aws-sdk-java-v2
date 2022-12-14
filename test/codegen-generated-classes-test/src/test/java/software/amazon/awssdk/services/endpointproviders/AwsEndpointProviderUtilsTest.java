@@ -86,6 +86,26 @@ public class AwsEndpointProviderUtilsTest {
     }
 
     @Test
+    public void disableHostPrefixInjection_attrIsFalse_returnsFalse() {
+        ExecutionAttributes attrs = new ExecutionAttributes();
+        attrs.putAttribute(SdkInternalExecutionAttribute.DISABLE_HOST_PREFIX_INJECTION, false);
+        assertThat(AwsEndpointProviderUtils.disableHostPrefixInjection(attrs)).isFalse();
+    }
+
+    @Test
+    public void disableHostPrefixInjection_attrIsAbsent_returnsFalse() {
+        ExecutionAttributes attrs = new ExecutionAttributes();
+        assertThat(AwsEndpointProviderUtils.disableHostPrefixInjection(attrs)).isFalse();
+    }
+
+    @Test
+    public void disableHostPrefixInjection_attrIsTrue_returnsTrue() {
+        ExecutionAttributes attrs = new ExecutionAttributes();
+        attrs.putAttribute(SdkInternalExecutionAttribute.DISABLE_HOST_PREFIX_INJECTION, true);
+        assertThat(AwsEndpointProviderUtils.disableHostPrefixInjection(attrs)).isTrue();
+    }
+
+    @Test
     public void valueAsEndpoint_isNone_throws() {
         assertThatThrownBy(() -> AwsEndpointProviderUtils.valueAsEndpointOrThrow(Value.none()))
             .isInstanceOf(SdkClientException.class);
@@ -269,5 +289,59 @@ public class AwsEndpointProviderUtilsTest {
         Map<String, List<String>> expectedHeaders = MapUtils.of("foo", Arrays.asList("a"));
 
         assertThat(newRequest.overrideConfiguration().get().headers()).isEqualTo(expectedHeaders);
+    }
+
+    @Test
+    public void addHostPrefix_prefixIsNull_returnsUnModified() {
+        URI url = URI.create("https://foo.aws");
+        Endpoint e = Endpoint.builder()
+            .url(url)
+            .build();
+
+        assertThat(AwsEndpointProviderUtils.addHostPrefix(e, null).url()).isEqualTo(url);
+    }
+
+    @Test
+    public void addHostPrefix_prefixIsEmpty_returnsUnModified() {
+        URI url = URI.create("https://foo.aws");
+        Endpoint e = Endpoint.builder()
+                             .url(url)
+                             .build();
+
+        assertThat(AwsEndpointProviderUtils.addHostPrefix(e, "").url()).isEqualTo(url);
+    }
+
+    @Test
+    public void addHostPrefix_prefixPresent_returnsPrefixPrepended() {
+        URI url = URI.create("https://foo.aws");
+        Endpoint e = Endpoint.builder()
+                             .url(url)
+                             .build();
+
+        URI expected = URI.create("https://api.foo.aws");
+        assertThat(AwsEndpointProviderUtils.addHostPrefix(e, "api.").url()).isEqualTo(expected);
+    }
+
+    @Test
+    public void addHostPrefix_prefixPresent_preservesPortPathAndQuery() {
+        URI url = URI.create("https://foo.aws:1234/a/b/c?queryParam1=val1");
+        Endpoint e = Endpoint.builder()
+                             .url(url)
+                             .build();
+
+        URI expected = URI.create("https://api.foo.aws:1234/a/b/c?queryParam1=val1");
+        assertThat(AwsEndpointProviderUtils.addHostPrefix(e, "api.").url()).isEqualTo(expected);
+    }
+
+    @Test
+    public void addHostPrefix_prefixInvalid_throws() {
+        URI url = URI.create("https://foo.aws");
+        Endpoint e = Endpoint.builder()
+                             .url(url)
+                             .build();
+
+        assertThatThrownBy(() -> AwsEndpointProviderUtils.addHostPrefix(e, "foo#bar.*baz"))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("component must match the pattern");
     }
 }

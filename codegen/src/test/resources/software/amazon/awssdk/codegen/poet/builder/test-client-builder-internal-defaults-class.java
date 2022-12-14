@@ -13,6 +13,10 @@ import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.services.json.endpoints.JsonEndpointProvider;
+import software.amazon.awssdk.services.json.endpoints.internal.JsonEndpointAuthSchemeInterceptor;
+import software.amazon.awssdk.services.json.endpoints.internal.JsonRequestSetEndpointInterceptor;
+import software.amazon.awssdk.services.json.endpoints.internal.JsonResolveEndpointInterceptor;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Validate;
 
@@ -34,8 +38,9 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
 
     @Override
     protected final SdkClientConfiguration mergeServiceDefaults(SdkClientConfiguration config) {
-        return config.merge(c -> c.option(SdkAdvancedClientOption.SIGNER, defaultSigner()).option(
-            SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false));
+        return config.merge(c -> c.option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
+                                  .option(SdkAdvancedClientOption.SIGNER, defaultSigner())
+                                  .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false));
     }
 
     @Override
@@ -49,6 +54,9 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
     @Override
     protected final SdkClientConfiguration finalizeServiceConfiguration(SdkClientConfiguration config) {
         List<ExecutionInterceptor> endpointInterceptors = new ArrayList<>();
+        endpointInterceptors.add(new JsonResolveEndpointInterceptor());
+        endpointInterceptors.add(new JsonEndpointAuthSchemeInterceptor());
+        endpointInterceptors.add(new JsonRequestSetEndpointInterceptor());
         ClasspathInterceptorChainFactory interceptorFactory = new ClasspathInterceptorChainFactory();
         List<ExecutionInterceptor> interceptors = interceptorFactory
             .getInterceptors("software/amazon/awssdk/services/json/execution.interceptors");
@@ -66,6 +74,10 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
     @Override
     protected final String signingName() {
         return "json-service";
+    }
+
+    private JsonEndpointProvider defaultEndpointProvider() {
+        return JsonEndpointProvider.defaultProvider();
     }
 
     protected static void validateClientOptions(SdkClientConfiguration c) {

@@ -218,12 +218,12 @@ public class CustomizationConfig {
 
     private boolean useGlobalEndpoint;
 
-    /**
-     * Whether Endpoints 2.0/rule based endpoints should be used for endpoint resolution.
-     */
-    private boolean useRuleBasedEndpoints = false;
-
     private List<String> interceptors = new ArrayList<>();
+
+    /**
+     * Whether marshallers perform validations against members marked with RequiredTrait.
+     */
+    private boolean requiredTraitValidationEnabled = false;
 
     private CustomizationConfig() {
     }
@@ -571,19 +571,19 @@ public class CustomizationConfig {
         this.skipEndpointTests = skipEndpointTests;
     }
 
-    public boolean useRuleBasedEndpoints() {
-        return useRuleBasedEndpoints;
-    }
-
-    public void setUseRuleBasedEndpoints(boolean useRuleBasedEndpoints) {
-        this.useRuleBasedEndpoints = useRuleBasedEndpoints;
-    }
-
     public List<String> getInterceptors() {
         return interceptors;
     }
 
     public void setInterceptors(List<String> interceptors) {
         this.interceptors = interceptors;
+    }
+    
+    public boolean isRequiredTraitValidationEnabled() {
+        return requiredTraitValidationEnabled;
+    }
+
+    public void setRequiredTraitValidationEnabled(boolean requiredTraitValidationEnabled) {
+        this.requiredTraitValidationEnabled = requiredTraitValidationEnabled;
     }
 }

@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkField;
@@ -28,6 +29,7 @@ import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.traits.ListTrait;
 import software.amazon.awssdk.core.traits.MapTrait;
+import software.amazon.awssdk.core.traits.RequiredTrait;
 import software.amazon.awssdk.core.traits.XmlAttributeTrait;
 import software.amazon.awssdk.core.traits.XmlAttributesTrait;
 import software.amazon.awssdk.core.util.SdkAutoConstructList;
@@ -138,6 +140,12 @@ public class XmlPayloadMarshaller {
         protected boolean shouldEmit(Map map, String paramName) {
             return super.shouldEmit(map, paramName) &&
                    (!map.isEmpty() || !(map instanceof SdkAutoConstructMap));
+        }
+    };
+
+    public static final XmlMarshaller<Void> NULL = (val, context, paramName, sdkField) -> {
+        if (Objects.nonNull(sdkField) && sdkField.containsTrait(RequiredTrait.class)) {
+            throw new IllegalArgumentException(String.format("Parameter '%s' must not be null", paramName));
         }
     };
 

@@ -1,0 +1,24 @@
+{
+    "version": "2.18.38",
+    "date": "2022-12-13",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS CloudTrail",
+            "contributor": "",
+            "description": "Merging mainline branch for service model into mainline release branch. There are no new APIs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "This deployment adds ClientPasswordAuthType field to the Auth structure of the DBProxy."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

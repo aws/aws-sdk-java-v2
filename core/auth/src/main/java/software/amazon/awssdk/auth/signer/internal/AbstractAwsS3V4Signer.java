@@ -115,6 +115,8 @@ public abstract class AbstractAwsS3V4Signer extends AbstractAws4Signer<AwsS3V4Si
             return request;
         }
 
+        signingParams = signingParams.copy(b -> b.normalizePath(false));
+
         Aws4SignerRequestParams requestParams = new Aws4SignerRequestParams(signingParams);
 
         return doPresign(request, requestParams, signingParams).build();
