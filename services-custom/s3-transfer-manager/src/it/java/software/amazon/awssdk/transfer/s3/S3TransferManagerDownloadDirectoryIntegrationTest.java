@@ -34,10 +34,12 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.ComparisonFailure;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.opentest4j.AssertionFailedError;
 import software.amazon.awssdk.testutils.FileUtils;
+import software.amazon.awssdk.transfer.s3.model.CompletedDirectoryDownload;
+import software.amazon.awssdk.transfer.s3.model.DirectoryDownload;
 import software.amazon.awssdk.utils.Logger;
 
 public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3IntegrationTestBase {
@@ -47,39 +49,31 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
                                                                                    + "-delimiter");
     private static final String CUSTOM_DELIMITER = "-";
 
-    private static S3TransferManager tm;
     private static Path sourceDirectory;
-    private Path destinationDirectory;
+    private Path directory;
 
     @BeforeAll
     public static void setUp() throws Exception {
-        S3IntegrationTestBase.setUp();
         createBucket(TEST_BUCKET);
         createBucket(TEST_BUCKET_CUSTOM_DELIMITER);
         sourceDirectory = createLocalTestDirectory();
 
-        tm = S3TransferManager.builder()
-                              .s3ClientConfiguration(b -> b.credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                                                           .region(DEFAULT_REGION)
-                                                           .maxConcurrency(100))
-                              .build();
+        tm.uploadDirectory(u -> u.source(sourceDirectory).bucket(TEST_BUCKET)).completionFuture().join();
 
-        tm.uploadDirectory(u -> u.sourceDirectory(sourceDirectory).bucket(TEST_BUCKET)).completionFuture().join();
-
-        tm.uploadDirectory(u -> u.sourceDirectory(sourceDirectory)
-                                 .delimiter(CUSTOM_DELIMITER)
+        tm.uploadDirectory(u -> u.source(sourceDirectory)
+                                 .s3Delimiter(CUSTOM_DELIMITER)
                                  .bucket(TEST_BUCKET_CUSTOM_DELIMITER))
           .completionFuture().join();
     }
 
     @BeforeEach
     public void setUpPerTest() throws IOException {
-        destinationDirectory = Files.createTempDirectory("destination");
+        directory = Files.createTempDirectory("destination");
     }
 
     @AfterEach
     public void cleanup() {
-        FileUtils.cleanUpTestDirectory(destinationDirectory);
+        FileUtils.cleanUpTestDirectory(directory);
     }
 
     @AfterAll
@@ -103,7 +97,6 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
         }
 
         closeQuietly(tm, log.logger());
-        S3IntegrationTestBase.cleanUp();
     }
 
     /**
@@ -125,11 +118,11 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
      */
     @Test
     public void downloadDirectory() throws Exception {
-        DirectoryDownload downloadDirectory = tm.downloadDirectory(u -> u.destinationDirectory(destinationDirectory)
+        DirectoryDownload downloadDirectory = tm.downloadDirectory(u -> u.destination(directory)
                                                                          .bucket(TEST_BUCKET));
         CompletedDirectoryDownload completedDirectoryDownload = downloadDirectory.completionFuture().get(5, TimeUnit.SECONDS);
         assertThat(completedDirectoryDownload.failedTransfers()).isEmpty();
-        assertTwoDirectoriesHaveSameStructure(sourceDirectory, destinationDirectory);
+        assertTwoDirectoriesHaveSameStructure(sourceDirectory, directory);
     }
 
     /**
@@ -149,13 +142,13 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
     @ParameterizedTest
     @ValueSource(strings = {"notes/2021", "notes/2021/", "notes"})
     public void downloadDirectory_withPrefix(String prefix) throws Exception {
-        DirectoryDownload downloadDirectory = tm.downloadDirectory(u -> u.destinationDirectory(destinationDirectory)
-                                                                         .prefix(prefix)
+        DirectoryDownload downloadDirectory = tm.downloadDirectory(u -> u.destination(directory)
+                                                                         .listObjectsV2RequestTransformer(r -> r.prefix(prefix))
                                                                          .bucket(TEST_BUCKET));
         CompletedDirectoryDownload completedDirectoryDownload = downloadDirectory.completionFuture().get(5, TimeUnit.SECONDS);
         assertThat(completedDirectoryDownload.failedTransfers()).isEmpty();
 
-        assertTwoDirectoriesHaveSameStructure(sourceDirectory.resolve(prefix), destinationDirectory);
+        assertTwoDirectoriesHaveSameStructure(sourceDirectory.resolve(prefix), directory);
     }
 
     /**
@@ -171,13 +164,14 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
     @Test
     public void downloadDirectory_withPrefixAndDelimiter() throws Exception {
         String prefix = "notes-2021";
-        DirectoryDownload downloadDirectory = tm.downloadDirectory(u -> u.destinationDirectory(destinationDirectory)
-                                                                         .delimiter(CUSTOM_DELIMITER)
-                                                                         .prefix(prefix)
-                                                                         .bucket(TEST_BUCKET_CUSTOM_DELIMITER));
+        DirectoryDownload downloadDirectory =
+            tm.downloadDirectory(u -> u.destination(directory)
+                                       .listObjectsV2RequestTransformer(r -> r.delimiter(CUSTOM_DELIMITER)
+                                                                              .prefix(prefix))
+                                       .bucket(TEST_BUCKET_CUSTOM_DELIMITER));
         CompletedDirectoryDownload completedDirectoryDownload = downloadDirectory.completionFuture().get(5, TimeUnit.SECONDS);
         assertThat(completedDirectoryDownload.failedTransfers()).isEmpty();
-        assertTwoDirectoriesHaveSameStructure(sourceDirectory.resolve("notes").resolve("2021"), destinationDirectory);
+        assertTwoDirectoriesHaveSameStructure(sourceDirectory.resolve("notes").resolve("2021"), directory);
     }
 
     /**
@@ -194,9 +188,9 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
     @Test
     public void downloadDirectory_withFilter() throws Exception {
         DirectoryDownload downloadDirectory = tm.downloadDirectory(u -> u
-            .destinationDirectory(destinationDirectory)
+            .destination(directory)
             .bucket(TEST_BUCKET)
-            .filter(ctx -> ctx.destination().getFileName().toString().startsWith("2")));
+            .filter(s3Object -> s3Object.key().startsWith("notes/2021/2")));
         CompletedDirectoryDownload completedDirectoryDownload = downloadDirectory.completionFuture().get(5, TimeUnit.SECONDS);
         assertThat(completedDirectoryDownload.failedTransfers()).isEmpty();
 
@@ -210,7 +204,7 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
             Files.delete(expectedDirectory.resolve("notes/important.txt"));
             Files.delete(expectedDirectory.resolve("notes/2021/1.txt"));
             
-            assertTwoDirectoriesHaveSameStructure(expectedDirectory, destinationDirectory);
+            assertTwoDirectoriesHaveSameStructure(expectedDirectory, directory);
         } finally {
             FileUtils.cleanUpTestDirectory(expectedDirectory);
         }
@@ -230,7 +224,7 @@ public class S3TransferManagerDownloadDirectoryIntegrationTest extends S3Integra
                 try {
                     assertThat(rightPath).exists();
                 } catch (AssertionError e) {
-                    throw new ComparisonFailure(e.getMessage(), toFileTreeString(left), toFileTreeString(right));
+                    throw new AssertionFailedError(e.getMessage(), toFileTreeString(left), toFileTreeString(right));
                 }
                 if (Files.isRegularFile(leftPath)) {
                     assertThat(leftPath).hasSameBinaryContentAs(rightPath);
