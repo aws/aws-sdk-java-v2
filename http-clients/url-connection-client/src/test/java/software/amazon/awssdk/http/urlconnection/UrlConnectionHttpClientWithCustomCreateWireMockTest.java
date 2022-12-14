@@ -45,25 +45,24 @@ public final class UrlConnectionHttpClientWithCustomCreateWireMockTest extends S
         }));
     }
 
-    @Ignore // Not supported when using custom factory
+    // Empty test; behavior not supported when using custom factory
     @Override
     public void testCustomTlsTrustManager() {
     }
 
-    @Ignore // Not supported when using custom factory
+    // Empty test; behavior not supported when using custom factory
     @Override
     public void testTrustAllWorks() {
     }
 
-    @Ignore // Not supported when using custom factory
+    // Empty test; behavior not supported when using custom factory
     @Override
     public void testCustomTlsTrustManagerAndTrustAllFails() {
     }
 
-    @Ignore
+    // Empty test; behavior not supported because the URL connection client does not allow disabling connection reuse
     @Override
     public void connectionsAreNotReusedOn5xxErrors() throws Exception {
-        // We cannot support this because the URL connection client doesn't allow us to disable connection reuse
     }
 
     @Test
