@@ -1,6 +1,6 @@
 {
     "type": "removal",
-    "category": "S3 Transfer Manager",
+    "category": "Amazon S3 Transfer Manager",
     "contributor": "",
     "description": "Make `aws-crt` an optional dependency in `s3-transfer-manager` module. Customers need to explicitly add `aws-crt` dependency if they want to use CRT-based Transfer Manager"
 }
