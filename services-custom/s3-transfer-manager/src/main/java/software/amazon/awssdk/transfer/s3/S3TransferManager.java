@@ -19,7 +19,6 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
@@ -304,22 +303,10 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * @param downloadRequest the download request, containing a {@link GetObjectRequest} and {@link AsyncResponseTransformer}
      * @param <ResultT>       The type of data the {@link AsyncResponseTransformer} produces
      * @return A {@link Download} that can be used to track the ongoing transfer
-     * @see #download(Function)
      * @see #downloadFile(DownloadFileRequest)
      */
     default <ResultT> Download<ResultT> download(DownloadRequest<ResultT> downloadRequest) {
         throw new UnsupportedOperationException();
-    }
-
-    /**
-     * This is a convenience method that creates an instance of the {@link DownloadRequest} builder, avoiding the need to create
-     * one manually via {@link DownloadRequest#builder()}.
-     *
-     * @see #download(DownloadRequest)
-     */
-    default <ResultT> Download<ResultT> download(Function<DownloadRequest.UntypedBuilder,
-        DownloadRequest.TypedBuilder<ResultT>> request) {
-        return download(DownloadRequest.builder().applyMutation(request).build());
     }
 
     /**
@@ -328,6 +315,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * Users can monitor the progress of the transfer by attaching a {@link TransferListener}. The provided
      * {@link LoggingTransferListener} logs a basic progress bar; users can also implement their own listeners.
      *
+     * Upload a local file to an object in S3. For non-file-based uploads, you may use {@link #upload(UploadRequest)} instead.
      * <p>
      * <b>Usage Example:</b>
      * {@snippet :

@@ -368,6 +368,42 @@ public class DownloadDirectoryHelperTest {
 
     @ParameterizedTest
     @MethodSource("fileSystems")
+    void downloadDirectory_containsObjectWithPrefixInIt_shouldInclude(FileSystem jimfs) {
+        String prefix = "abc";
+        directory = jimfs.getPath("test");
+        String[] keys = {"abc/def/image.jpg", "abc/def/title.jpg", "abcd"};
+        stubSuccessfulListObjects(listObjectsHelper, keys);
+        ArgumentCaptor<DownloadFileRequest> requestArgumentCaptor = ArgumentCaptor.forClass(DownloadFileRequest.class);
+
+        when(singleDownloadFunction.apply(requestArgumentCaptor.capture()))
+            .thenReturn(completedDownload());
+        DirectoryDownload downloadDirectory =
+            downloadDirectoryHelper.downloadDirectory(DownloadDirectoryRequest.builder()
+                                                                              .destination(directory)
+                                                                              .bucket("bucket")
+                                                                              .listObjectsV2RequestTransformer(l -> l.prefix(prefix))
+                                                                              .build());
+        CompletedDirectoryDownload completedDirectoryDownload = downloadDirectory.completionFuture().join();
+        assertThat(completedDirectoryDownload.failedTransfers()).isEmpty();
+
+        List<DownloadFileRequest> actualRequests = requestArgumentCaptor.getAllValues();
+
+        assertThat(actualRequests.size()).isEqualTo(keys.length);
+
+        List<String> destinations =
+            actualRequests.stream().map(u -> u.destination().toString())
+                          .collect(Collectors.toList());
+
+        String jimfsSeparator = jimfs.getSeparator();
+
+        List<String> expectedPaths =
+            Arrays.asList("def/image.jpg", "def/title.jpg", "abcd").stream()
+                  .map(k -> DIRECTORY_NAME + jimfsSeparator + k.replace("/",jimfsSeparator)).collect(Collectors.toList());
+        assertThat(destinations).isEqualTo(expectedPaths);
+    }
+
+    @ParameterizedTest
+    @MethodSource("fileSystems")
     void downloadDirectory_withDelimiter_shouldHonor(FileSystem jimfs) {
         directory = jimfs.getPath("test");
         String delimiter = "|";
