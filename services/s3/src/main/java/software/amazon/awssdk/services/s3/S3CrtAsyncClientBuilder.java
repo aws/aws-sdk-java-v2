@@ -90,7 +90,7 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
      * on various factors such as the network bandwidth of the environment and the configured {@link #maxConcurrency}.
      *
      * <p>
-     * By default, it is 5Gbps
+     * By default, it is 10 Gbps
      *
      * @param targetThroughputInGbps the target throughput in Gbps
      * @return this builder for method chaining.
