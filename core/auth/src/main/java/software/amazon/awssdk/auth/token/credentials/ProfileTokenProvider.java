@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.auth.token.credentials;
 
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -38,35 +37,45 @@ import software.amazon.awssdk.utils.ToString;
  */
 @SdkPublicApi
 public final class ProfileTokenProvider implements SdkTokenProvider, SdkAutoCloseable {
-    private SdkTokenProvider tokenProvider;
+    private final SdkTokenProvider tokenProvider;
     private final RuntimeException loadException;
-    private final Supplier<ProfileFile> profileFile;
-    private volatile ProfileFile currentProfileFile;
+
     private final String profileName;
 
     /**
      * @see #builder()
      */
     private ProfileTokenProvider(BuilderImpl builder) {
+        SdkTokenProvider sdkTokenProvider = null;
         RuntimeException thrownException = null;
-        Supplier<ProfileFile> selectedProfileFileSupplier = null;
+        Supplier<ProfileFile> selectedProfileFile = null;
         String selectedProfileName = null;
 
         try {
             selectedProfileName = Optional.ofNullable(builder.profileName)
                                           .orElseGet(ProfileFileSystemSetting.AWS_PROFILE::getStringValueOrThrow);
 
-            selectedProfileFileSupplier = Optional.ofNullable(builder.profileFile)
-                                                  .orElse(builder.defaultProfileFileLoader);
+            // Load the profiles file
+            selectedProfileFile = Optional.ofNullable(builder.profileFile)
+                                          .orElse(builder.defaultProfileFileLoader);
+
+            // Load the profile and token provider
+            sdkTokenProvider = createTokenProvider(selectedProfileFile, selectedProfileName);
 
         } catch (RuntimeException e) {
             // If we couldn't load the provider for some reason, save an exception describing why.
             thrownException = e;
         }
 
-        this.loadException = thrownException;
-        this.profileFile = selectedProfileFileSupplier;
-        this.profileName = selectedProfileName;
+        if (thrownException != null) {
+            this.loadException = thrownException;
+            this.tokenProvider = null;
+            this.profileName = null;
+        } else {
+            this.loadException = null;
+            this.tokenProvider = sdkTokenProvider;
+            this.profileName = selectedProfileName;
+        }
     }
 
     /**
@@ -99,13 +108,6 @@ public final class ProfileTokenProvider implements SdkTokenProvider, SdkAutoClos
         if (loadException != null) {
             throw loadException;
         }
-
-        ProfileFile cachedOrRefreshedProfileFile = refreshProfileFile();
-        if (isNewProfileFile(cachedOrRefreshedProfileFile)) {
-            currentProfileFile = cachedOrRefreshedProfileFile;
-            handleProfileFileReload(cachedOrRefreshedProfileFile);
-        }
-
         return tokenProvider.resolveToken();
     }
 
@@ -113,7 +115,6 @@ public final class ProfileTokenProvider implements SdkTokenProvider, SdkAutoClos
     public String toString() {
         return ToString.builder("ProfileTokenProvider")
                        .add("profileName", profileName)
-                       .add("profileFile", currentProfileFile)
                        .build();
     }
 
@@ -123,27 +124,14 @@ public final class ProfileTokenProvider implements SdkTokenProvider, SdkAutoClos
         IoUtils.closeIfCloseable(tokenProvider, null);
     }
 
-    private SdkTokenProvider createTokenProvider(ProfileFile profileFile, String profileName) {
-        // Load the profile and token provider
-        return profileFile.profile(profileName)
-                          .flatMap(p -> new ProfileTokenProviderLoader(profileFile, p).tokenProvider())
-                          .orElseThrow(() -> {
-                              String errorMessage = String.format("Profile file contained no information for " +
-                                                                  "profile '%s': %s", profileName, profileFile);
-                              return SdkClientException.builder().message(errorMessage).build();
-                          });
-    }
-
-    private void handleProfileFileReload(ProfileFile profileFile) {
-        tokenProvider = createTokenProvider(profileFile, profileName);
-    }
-
-    private ProfileFile refreshProfileFile() {
-        return profileFile.get();
-    }
-
-    private boolean isNewProfileFile(ProfileFile profileFile) {
-        return !Objects.equals(currentProfileFile, profileFile);
+    private SdkTokenProvider createTokenProvider(Supplier<ProfileFile> profileFile, String profileName) {
+        return new ProfileTokenProviderLoader(profileFile, profileName)
+            .tokenProvider()
+            .orElseThrow(() -> {
+                String errorMessage = String.format("Profile file contained no information for " +
+                                                    "profile '%s'", profileName);
+                return SdkClientException.builder().message(errorMessage).build();
+            });
     }
 
     /**

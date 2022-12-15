@@ -102,8 +102,7 @@ public abstract class SsoOidcTokenRefreshTestBase {
                                           .content(new StringInputStream(profileContent))
                                           .type(ProfileFile.Type.CONFIGURATION)
                                           .build();
-        Optional<Profile> profile = profiles.profile("sso-refresh");
-        profileTokenProviderLoader = new ProfileTokenProviderLoader(profiles, profile.get());
+        profileTokenProviderLoader = new ProfileTokenProviderLoader(profiles, "sso-refresh");
     }
 
     @Test

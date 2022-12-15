@@ -17,10 +17,11 @@ package software.amazon.awssdk.auth.ssooidc;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import java.util.HashMap;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -29,7 +30,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.auth.token.internal.ProfileTokenProviderLoader;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.profiles.Profile;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.utils.StringInputStream;
 
@@ -38,13 +38,25 @@ public class ProfileTokenProviderLoaderTest {
     @Test
     public void noProfile_throwsException() {
         assertThatThrownBy(() -> new ProfileTokenProviderLoader(ProfileFile.defaultProfileFile(), null))
-            .hasMessageContaining("profile must not be null");
+            .hasMessageContaining("profileName must not be null");
     }
 
     @Test
     public void noProfileFile_throwsException() {
-        assertThatThrownBy(() -> new ProfileTokenProviderLoader(null, Profile.builder().name("sso").properties(new HashMap<>()).build()))
+        assertThatThrownBy(() -> new ProfileTokenProviderLoader((ProfileFile) null, "sso"))
             .hasMessageContaining("profileFile must not be null");
+    }
+
+    @Test
+    public void profileTokenProviderLoader_noProfileFileSupplier_throwsException() {
+        assertThatThrownBy(() -> new ProfileTokenProviderLoader((ProfileFile) null, "sso'"))
+            .hasMessageContaining("profileFile must not be null");
+    }
+
+    @Test
+    public void profileTokenProviderLoader_noProfileName_throwsException() {
+        assertThatThrownBy(() -> new ProfileTokenProviderLoader(ProfileFile::defaultProfileFile, null))
+            .hasMessageContaining("profileName must not be null");
     }
 
     @ParameterizedTest
@@ -52,9 +64,26 @@ public class ProfileTokenProviderLoaderTest {
     public void incorrectSsoProperties_throwsException(String profileContent, String msg) {
         ProfileFile profileFile = configFile(profileContent);
 
-        assertThat(profileFile.profile("sso")).hasValueSatisfying(profile -> {
-            ProfileTokenProviderLoader providerLoader = new ProfileTokenProviderLoader(profileFile, profile);
-            assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(providerLoader::tokenProvider).withMessageContaining(msg);
+        ProfileTokenProviderLoader providerLoader = new ProfileTokenProviderLoader(profileFile, "sso");
+        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(providerLoader::tokenProvider)
+                                                                 .withMessageContaining(msg);
+    }
+
+    @ParameterizedTest
+    @MethodSource("ssoErrorValues")
+    public void incorrectSsoProperties_supplier_delaysThrowingExceptionUntilResolvingToken(String profileContent, String msg) {
+        ProfileFile profileFile = configFile(profileContent);
+        Supplier<ProfileFile> supplier = () -> profileFile;
+
+        ProfileTokenProviderLoader providerLoader = new ProfileTokenProviderLoader(supplier, "sso");
+
+        assertThatNoException().isThrownBy(providerLoader::tokenProvider);
+
+        assertThat(providerLoader.tokenProvider()).satisfies(tokenProviderOptional -> {
+           assertThat(tokenProviderOptional).isPresent().get().satisfies(tokenProvider-> {
+               assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(tokenProvider::resolveToken)
+                                                                        .withMessageContaining(msg);
+           });
         });
     }
 
@@ -66,8 +95,7 @@ public class ProfileTokenProviderLoaderTest {
                                 "sso_region=us-east-1\n" +
                                 "sso_start_url=https://d-abc123.awsapps.com/start\n";
 
-        Optional<Profile> ssoProfile = configFile(profileContent).profile("sso");
-        ProfileTokenProviderLoader providerLoader = new ProfileTokenProviderLoader(configFile(profileContent), ssoProfile.get());
+        ProfileTokenProviderLoader providerLoader = new ProfileTokenProviderLoader(configFile(profileContent), "sso");
         Optional<SdkTokenProvider> tokenProvider = providerLoader.tokenProvider();
         assertThat(tokenProvider).isPresent();
         assertThatThrownBy(() -> tokenProvider.get().resolveToken())

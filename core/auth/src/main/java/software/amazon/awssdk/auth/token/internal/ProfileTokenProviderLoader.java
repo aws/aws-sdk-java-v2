@@ -17,15 +17,19 @@ package software.amazon.awssdk.auth.token.internal;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.token.credentials.ChildProfileTokenProviderFactory;
 import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.internal.util.ClassLoaderHelper;
 import software.amazon.awssdk.profiles.Profile;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.profiles.internal.ProfileSection;
+import software.amazon.awssdk.utils.Lazy;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -36,12 +40,33 @@ public final class ProfileTokenProviderLoader {
     private static final String SSO_OIDC_TOKEN_PROVIDER_FACTORY =
         "software.amazon.awssdk.services.ssooidc.SsoOidcProfileTokenProviderFactory";
 
+    private final boolean createProviderFromSupplier;
+
     private final Profile profile;
     private final ProfileFile profileFile;
+    private final Supplier<ProfileFile> profileFileSupplier;
+    private final String profileName;
+    private volatile ProfileFile currentProfileFile;
+    private volatile SdkTokenProvider currentTokenProvider;
 
-    public ProfileTokenProviderLoader(ProfileFile profileFile, Profile profile) {
-        this.profile = Validate.paramNotNull(profile, "profile");
+    private final Lazy<ChildProfileTokenProviderFactory> factory;
+
+    public ProfileTokenProviderLoader(ProfileFile profileFile, String profileName) {
+        this.createProviderFromSupplier = false;
         this.profileFile = Validate.paramNotNull(profileFile, "profileFile");
+        this.profileFileSupplier = null;
+        this.profileName = Validate.paramNotNull(profileName, "profileName");
+        this.profile = resolveProfile(profileFile, profileName);
+        this.factory = new Lazy<>(this::ssoTokenProviderFactory);
+    }
+
+    public ProfileTokenProviderLoader(Supplier<ProfileFile> profileFile, String profileName) {
+        createProviderFromSupplier = true;
+        this.profileFile = null;
+        this.profileFileSupplier = Validate.paramNotNull(profileFile, "profileFile");
+        this.profileName = Validate.paramNotNull(profileName, "profileName");
+        this.profile = null;
+        this.factory = new Lazy<>(this::ssoTokenProviderFactory);
     }
 
     /**
@@ -55,19 +80,53 @@ public final class ProfileTokenProviderLoader {
      * Create the SSO credentials provider based on the related profile properties.
      */
     private SdkTokenProvider ssoProfileCredentialsProvider() {
+        if (createProviderFromSupplier) {
+            return () -> ssoProfileCredentialsProvider(profileFileSupplier, profileName).resolveToken();
+        }
 
-        String profileSsoSectionName = profile.property(ProfileSection.SSO_SESSION.getPropertyKeyName())
-                                              .orElseThrow(() -> new IllegalArgumentException(
-                                                  "Profile " + profile.name() + " does not have sso_session property"));
+        return ssoProfileCredentialsProvider(profileFile, profile);
+    }
 
-        Profile ssoProfile = profileFile.getSection(ProfileSection.SSO_SESSION.getSectionTitle(), profileSsoSectionName)
-                                        .orElseThrow(() -> new IllegalArgumentException(
-                                            "Sso-session section not found with sso-session title " + profileSsoSectionName));
+    private SdkTokenProvider ssoProfileCredentialsProvider(ProfileFile profileFile, Profile profile) {
+        String profileSsoSectionName = profileSsoSectionName(profile);
+        Profile ssoProfile = ssoProfile(profileFile, profileSsoSectionName);
 
-        validateRequiredProperties(ssoProfile,
-                                   ProfileProperty.SSO_REGION,
-                                   ProfileProperty.SSO_START_URL);
-        return ssoTokenProviderFactory().create(profileFile, profile);
+        validateRequiredProperties(ssoProfile, ProfileProperty.SSO_REGION, ProfileProperty.SSO_START_URL);
+
+        return factory.getValue().create(profileFile, profile);
+    }
+
+    private synchronized SdkTokenProvider ssoProfileCredentialsProvider(Supplier<ProfileFile> profileFile, String profileName) {
+        ProfileFile profileFileInstance = profileFile.get();
+        Profile profileInstance = resolveProfile(profileFileInstance, profileName);
+        if (!Objects.equals(profileFileInstance, currentProfileFile)) {
+            currentProfileFile = profileFileInstance;
+            currentTokenProvider = ssoProfileCredentialsProvider(profileFileInstance, profileInstance);
+        }
+
+        return currentTokenProvider;
+    }
+
+    private Profile resolveProfile(ProfileFile profileFile, String profileName) {
+        return profileFile.profile(profileName)
+                          .orElseThrow(() -> {
+                              String errorMessage = String.format("Profile file contained no information for profile '%s': %s",
+                                                                  profileName, profileFile);
+                              return SdkClientException.builder().message(errorMessage).build();
+                          });
+    }
+
+    private String profileSsoSectionName(Profile profile) {
+        return Optional.ofNullable(profile)
+                       .flatMap(p -> p.property(ProfileSection.SSO_SESSION.getPropertyKeyName()))
+                       .orElseThrow(() -> new IllegalArgumentException(
+                           "Profile " + profileName + " does not have sso_session property"));
+    }
+
+    private Profile ssoProfile(ProfileFile profileFile, String profileSsoSectionName) {
+        return profileFile.getSection(ProfileSection.SSO_SESSION.getSectionTitle(), profileSsoSectionName)
+                          .orElseThrow(() -> new IllegalArgumentException(
+                              "Sso-session section not found with sso-session title " + profileSsoSectionName));
     }
 
     /**
@@ -76,7 +135,8 @@ public final class ProfileTokenProviderLoader {
     private void validateRequiredProperties(Profile ssoProfile, String... requiredProperties) {
         Arrays.stream(requiredProperties)
               .forEach(p -> Validate.isTrue(ssoProfile.properties().containsKey(p),
-                                            "Property '%s' was not configured for profile '%s'.", p, this.profile.name()));
+                                            "Property '%s' was not configured for profile '%s'.",
+                                            p, profileName));
     }
 
     /**
@@ -88,10 +148,10 @@ public final class ProfileTokenProviderLoader {
                                                                                getClass());
             return (ChildProfileTokenProviderFactory) ssoOidcTokenProviderFactory.getConstructor().newInstance();
         } catch (ClassNotFoundException e) {
-            throw new IllegalStateException("To use SSO OIDC related properties in the '" + profile.name() + "' profile, "
+            throw new IllegalStateException("To use SSO OIDC related properties in the '" + profileName + "' profile, "
                                             + "the 'ssooidc' service module must be on the class path.", e);
         } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
-            throw new IllegalStateException("Failed to create the '" + profile.name() + "' token provider factory.", e);
+            throw new IllegalStateException("Failed to create the '%s" + profileName + "' token provider factory.", e);
         }
     }
 }
