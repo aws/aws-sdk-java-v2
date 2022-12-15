@@ -35,6 +35,10 @@ public final class FileUtils {
     }
 
     public static void cleanUpTestDirectory(Path directory) {
+        if (directory == null) {
+            return;
+        }
+
         try {
             try (Stream<Path> paths = Files.walk(directory, Integer.MAX_VALUE, FileVisitOption.FOLLOW_LINKS)) {
                 paths.sorted(Comparator.reverseOrder())
