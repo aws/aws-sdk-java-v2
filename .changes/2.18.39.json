@@ -1,0 +1,42 @@
+{
+    "version": "2.18.39",
+    "date": "2022-12-14",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Cost Explorer Service",
+            "contributor": "",
+            "description": "This release supports percentage-based thresholds on Cost Anomaly Detection alert subscriptions."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Network Manager",
+            "contributor": "",
+            "description": "Appliance Mode support for AWS Cloud WAN."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch",
+            "contributor": "",
+            "description": "Adding support for Metrics Insights Alarms"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Metrics Service",
+            "contributor": "",
+            "description": "Update SageMaker Metrics documentation."
+        },
+        {
+            "type": "feature",
+            "category": "Redshift Data API Service",
+            "contributor": "",
+            "description": "This release adds a new --client-token field to ExecuteStatement and BatchExecuteStatement operations. Customers can now run queries with the additional client token parameter to ensures idempotency."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}
