@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWSMainframeModernization",
+    "contributor": "",
+    "description": "Adds an optional create-only `KmsKeyId` property to Environment and Application resources."
+}
