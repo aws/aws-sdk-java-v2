@@ -34,15 +34,15 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.S3Object;
-import software.amazon.awssdk.transfer.s3.CompletedDirectoryDownload;
-import software.amazon.awssdk.transfer.s3.CompletedFileDownload;
-import software.amazon.awssdk.transfer.s3.DirectoryDownload;
-import software.amazon.awssdk.transfer.s3.DownloadDirectoryRequest;
-import software.amazon.awssdk.transfer.s3.DownloadFileContext;
-import software.amazon.awssdk.transfer.s3.DownloadFileRequest;
-import software.amazon.awssdk.transfer.s3.FailedFileDownload;
-import software.amazon.awssdk.transfer.s3.FileDownload;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
+import software.amazon.awssdk.transfer.s3.internal.model.DefaultDirectoryDownload;
+import software.amazon.awssdk.transfer.s3.model.CompletedDirectoryDownload;
+import software.amazon.awssdk.transfer.s3.model.CompletedFileDownload;
+import software.amazon.awssdk.transfer.s3.model.DirectoryDownload;
+import software.amazon.awssdk.transfer.s3.model.DownloadDirectoryRequest;
+import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
+import software.amazon.awssdk.transfer.s3.model.FailedFileDownload;
+import software.amazon.awssdk.transfer.s3.model.FileDownload;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.StringUtils;
@@ -92,17 +92,14 @@ public class DownloadDirectoryHelper {
 
     private void doDownloadDirectory(CompletableFuture<CompletedDirectoryDownload> returnFuture,
                                      DownloadDirectoryRequest downloadDirectoryRequest) {
-        validateDirectoryIfExists(downloadDirectoryRequest.destinationDirectory());
+        validateDirectoryIfExists(downloadDirectoryRequest.destination());
         String bucket = downloadDirectoryRequest.bucket();
-        // Delimiter is null by default. See https://github.com/aws/aws-sdk-java/issues/1215
-        String delimiter = downloadDirectoryRequest.delimiter().orElse(null);
-        String prefix = downloadDirectoryRequest.prefix().orElse(DEFAULT_PREFIX);
 
+        // Delimiter is null by default. See https://github.com/aws/aws-sdk-java/issues/1215
         ListObjectsV2Request request =
             ListObjectsV2Request.builder()
                                 .bucket(bucket)
-                                .prefix(prefix)
-                                .delimiter(delimiter)
+                                .prefix(DEFAULT_PREFIX)
                                 .applyMutation(downloadDirectoryRequest.listObjectsRequestTransformer())
                                 .build();
 
@@ -110,13 +107,12 @@ public class DownloadDirectoryHelper {
 
         CompletableFuture<Void> allOfFutures = new CompletableFuture<>();
 
-        AsyncBufferingSubscriber<DownloadFileContext> asyncBufferingSubscriber =
-            new AsyncBufferingSubscriber<>(downloadSingleFile(returnFuture, downloadDirectoryRequest,
+        AsyncBufferingSubscriber<S3Object> asyncBufferingSubscriber =
+            new AsyncBufferingSubscriber<>(downloadSingleFile(returnFuture, downloadDirectoryRequest, request,
                                                               failedFileDownloads),
                                            allOfFutures,
                                            DEFAULT_DOWNLOAD_DIRECTORY_MAX_CONCURRENCY);
         listObjectsHelper.listS3ObjectsRecursively(request)
-                         .map(s3Object -> determineDestinationPath(downloadDirectoryRequest, s3Object))
                          .filter(downloadDirectoryRequest.filter())
                          .subscribe(asyncBufferingSubscriber);
 
@@ -131,29 +127,32 @@ public class DownloadDirectoryHelper {
         });
     }
 
-    private Function<DownloadFileContext, CompletableFuture<?>> downloadSingleFile(
+    private Function<S3Object, CompletableFuture<?>> downloadSingleFile(
         CompletableFuture<CompletedDirectoryDownload> returnFuture,
         DownloadDirectoryRequest downloadDirectoryRequest,
+        ListObjectsV2Request listRequest,
         Queue<FailedFileDownload> failedFileDownloads) {
 
-        return downloadContext -> {
+        return s3Object -> {
             CompletableFuture<CompletedFileDownload> future = doDownloadSingleFile(downloadDirectoryRequest,
                                                                                    failedFileDownloads,
-                                                                                   downloadContext);
+                                                                                   listRequest,
+                                                                                   s3Object);
             CompletableFutureUtils.forwardExceptionTo(returnFuture, future);
             return future;
         };
     }
 
-    private DownloadFileContext determineDestinationPath(DownloadDirectoryRequest downloadDirectoryRequest, S3Object s3Object) {
-        FileSystem fileSystem = downloadDirectoryRequest.destinationDirectory().getFileSystem();
-        String delimiter = downloadDirectoryRequest.delimiter().orElse(DEFAULT_DELIMITER);
-        String key = normalizeKey(downloadDirectoryRequest, s3Object, delimiter);
+    private Path determineDestinationPath(DownloadDirectoryRequest downloadDirectoryRequest,
+                                          ListObjectsV2Request listRequest,
+                                          S3Object s3Object) {
+        FileSystem fileSystem = downloadDirectoryRequest.destination().getFileSystem();
+        String delimiter = listRequest.delimiter() == null ? DEFAULT_DELIMITER : listRequest.delimiter();
+        String key = normalizeKey(listRequest, s3Object.key(), delimiter);
         String relativePath = getRelativePath(fileSystem, delimiter, key);
-        Path destinationPath = downloadDirectoryRequest.destinationDirectory().resolve(relativePath);
-
-        validatePath(downloadDirectoryRequest.destinationDirectory(), destinationPath, s3Object.key());
-        return new DefaultDownloadFileContext(s3Object, destinationPath);
+        Path destinationPath = downloadDirectoryRequest.destination().resolve(relativePath);
+        validatePath(downloadDirectoryRequest.destination(), destinationPath, s3Object.key());
+        return destinationPath;
     }
 
     private void validatePath(Path destinationDirectory, Path targetPath, String key) {
@@ -165,12 +164,16 @@ public class DownloadDirectoryHelper {
 
     private CompletableFuture<CompletedFileDownload> doDownloadSingleFile(DownloadDirectoryRequest downloadDirectoryRequest,
                                                                           Collection<FailedFileDownload> failedFileDownloads,
-                                                                          DownloadFileContext downloadContext) {
-        DownloadFileRequest downloadFileRequest = downloadFileRequest(downloadDirectoryRequest, downloadContext);
+                                                                          ListObjectsV2Request listRequest,
+                                                                          S3Object s3Object) {
+
+        Path destinationPath = determineDestinationPath(downloadDirectoryRequest, listRequest, s3Object);
+
+        DownloadFileRequest downloadFileRequest = downloadFileRequest(downloadDirectoryRequest, s3Object, destinationPath);
 
         try {
             log.debug(() -> "Sending download request " + downloadFileRequest);
-            createParentDirectoriesIfNeeded(downloadContext.destination());
+            createParentDirectoriesIfNeeded(destinationPath);
 
             CompletableFuture<CompletedFileDownload> executionFuture =
                 downloadFileFunction.apply(downloadFileRequest).completionFuture();
@@ -195,29 +198,35 @@ public class DownloadDirectoryHelper {
     }
 
     /**
-     * Normalizing the key by stripping the prefix from the s3 object key if the prefix is not empty.
+     * If the prefix is not empty AND the key contains the delimiter, normalize the key by stripping the prefix from the key.
      *
      * If a delimiter is null (not provided by user), use "/" by default.
      *
      * For example: given a request with prefix = "notes/2021"  or "notes/2021/", delimiter = "/" and key = "notes/2021/1.txt",
      * the normalized key should be "1.txt".
      */
-    private static String normalizeKey(DownloadDirectoryRequest downloadDirectoryRequest,
-                                       S3Object s3Object,
+    private static String normalizeKey(ListObjectsV2Request listObjectsRequest,
+                                       String key,
                                        String delimiter) {
-        int delimiterLength = delimiter.length();
-        return downloadDirectoryRequest.prefix()
-                                       .filter(prefix -> !prefix.isEmpty())
-                                       .map(prefix -> {
-                                           String normalizedKey;
-                                           if (prefix.endsWith(delimiter)) {
-                                               normalizedKey = s3Object.key().substring(prefix.length());
-                                           } else {
-                                               normalizedKey = s3Object.key().substring(prefix.length() + delimiterLength);
-                                           }
-                                           return normalizedKey;
-                                       })
-                                       .orElseGet(s3Object::key);
+        if (StringUtils.isEmpty(listObjectsRequest.prefix())) {
+            return key;
+        }
+
+        String prefix = listObjectsRequest.prefix();
+
+        if (!key.contains(delimiter)) {
+            return key;
+        }
+
+        String normalizedKey;
+
+        if (prefix.endsWith(delimiter)) {
+            normalizedKey = key.substring(prefix.length());
+        } else {
+            normalizedKey = key.substring(prefix.length() + delimiter.length());
+        }
+        return normalizedKey;
+
     }
 
     private static String getRelativePath(FileSystem fileSystem, String delimiter, String key) {
@@ -232,14 +241,14 @@ public class DownloadDirectoryHelper {
     }
 
     private static DownloadFileRequest downloadFileRequest(DownloadDirectoryRequest downloadDirectoryRequest,
-                                                           DownloadFileContext downloadContext) {
+                                                           S3Object s3Object, Path destinationPath) {
 
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                                                             .bucket(downloadDirectoryRequest.bucket())
-                                                            .key(downloadContext.source().key())
+                                                            .key(s3Object.key())
                                                             .build();
         return DownloadFileRequest.builder()
-                                  .destination(downloadContext.destination())
+                                  .destination(destinationPath)
                                   .getObjectRequest(getObjectRequest)
                                   .applyMutation(downloadDirectoryRequest.downloadFileRequestTransformer())
                                   .build();

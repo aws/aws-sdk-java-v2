@@ -24,8 +24,8 @@ import org.apache.logging.log4j.core.LogEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.testutils.LogCaptor;
-import software.amazon.awssdk.transfer.s3.CompletedObjectTransfer;
-import software.amazon.awssdk.transfer.s3.TransferObjectRequest;
+import software.amazon.awssdk.transfer.s3.model.CompletedObjectTransfer;
+import software.amazon.awssdk.transfer.s3.model.TransferObjectRequest;
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgress;
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgressSnapshot;
 import software.amazon.awssdk.transfer.s3.internal.progress.TransferListenerContext;
@@ -41,7 +41,8 @@ public class LoggingTransferListenerTest {
     @BeforeEach
     public void setUp() throws Exception {
         TransferProgressSnapshot snapshot = DefaultTransferProgressSnapshot.builder()
-                                                                           .transferSizeInBytes(TRANSFER_SIZE_IN_BYTES)
+                                                                           .transferredBytes(0L)
+                                                                           .totalBytes(TRANSFER_SIZE_IN_BYTES)
                                                                            .build();
         progress = new DefaultTransferProgress(snapshot);
         context = TransferListenerContext.builder()
@@ -107,7 +108,7 @@ public class LoggingTransferListenerTest {
         for (int i = 0; i <= TRANSFER_SIZE_IN_BYTES; i++) {
             int bytes = i;
             listener.bytesTransferred(context.copy(c -> c.progressSnapshot(
-                progress.updateAndGet(p -> p.bytesTransferred(bytes)))));
+                progress.updateAndGet(p -> p.transferredBytes((long) bytes)))));
         }
 
         listener.transferComplete(context.copy(b -> b.progressSnapshot(progress.snapshot())

@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon S3 Transfer Manager",
+    "contributor": "",
+    "description": "Rename `UploadDirectoryRequest.prefix` and `delimiter` to `s3Prefix` and `s3Delimiter` to make it clear these are S3 parameters, not file-system parameters."
+}

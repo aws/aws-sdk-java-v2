@@ -15,6 +15,10 @@
 
 package software.amazon.awssdk.services.s3.internal.crt;
 
+import static software.amazon.awssdk.services.s3.internal.crt.CrtChecksumUtils.checksumConfig;
+import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.CRT_PAUSE_RESUME_TOKEN;
+import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.HTTP_CHECKSUM;
+import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.METAREQUEST_PAUSE_OBSERVABLE;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.OPERATION_NAME;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
@@ -25,9 +29,11 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpRequest;
+import software.amazon.awssdk.crt.s3.ChecksumConfig;
+import software.amazon.awssdk.crt.s3.ResumeToken;
 import software.amazon.awssdk.crt.s3.S3Client;
 import software.amazon.awssdk.crt.s3.S3ClientOptions;
 import software.amazon.awssdk.crt.s3.S3MetaRequest;
@@ -36,7 +42,6 @@ import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Logger;
 
@@ -47,19 +52,14 @@ import software.amazon.awssdk.utils.Logger;
 @SdkInternalApi
 public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
     private static final Logger log = Logger.loggerFor(S3CrtAsyncHttpClient.class);
+
     private final S3Client crtS3Client;
+
     private final S3NativeClientConfiguration s3NativeClientConfiguration;
 
     private S3CrtAsyncHttpClient(Builder builder) {
-        s3NativeClientConfiguration =
-            S3NativeClientConfiguration.builder()
-                                       .targetThroughputInGbps(builder.targetThroughputInGbps)
-                                       .partSizeInBytes(builder.minimalPartSizeInBytes)
-                                       .maxConcurrency(builder.maxConcurrency)
-                                       .signingRegion(builder.region == null ? null : builder.region.id())
-                                       .endpointOverride(builder.endpointOverride)
-                                       .credentialsProvider(builder.credentialsProvider)
-                                       .build();
+        s3NativeClientConfiguration = builder.clientConfiguration;
+        Long initialWindowSize = s3NativeClientConfiguration.readBufferSizeInBytes();
 
         S3ClientOptions s3ClientOptions =
             new S3ClientOptions().withRegion(s3NativeClientConfiguration.signingRegion())
@@ -68,13 +68,16 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
                                  .withCredentialsProvider(s3NativeClientConfiguration.credentialsProvider())
                                  .withClientBootstrap(s3NativeClientConfiguration.clientBootstrap())
                                  .withPartSize(s3NativeClientConfiguration.partSizeBytes())
-                                 .withComputeContentMd5(true)
-                                 .withThroughputTargetGbps(s3NativeClientConfiguration.targetThroughputInGbps());
+                                 .withComputeContentMd5(false)
+                                 .withThroughputTargetGbps(s3NativeClientConfiguration.targetThroughputInGbps())
+                                 .withInitialReadWindowSize(initialWindowSize)
+                                 .withReadBackpressureEnabled(true);
         this.crtS3Client = new S3Client(s3ClientOptions);
     }
 
     @SdkTestInternalApi
-    S3CrtAsyncHttpClient(S3Client crtS3Client, S3NativeClientConfiguration nativeClientConfiguration) {
+    S3CrtAsyncHttpClient(S3Client crtS3Client,
+                         S3NativeClientConfiguration nativeClientConfiguration) {
         this.crtS3Client = crtS3Client;
         this.s3NativeClientConfiguration = nativeClientConfiguration;
     }
@@ -89,15 +92,30 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
 
         S3MetaRequestOptions.MetaRequestType requestType = requestType(asyncRequest);
 
+        HttpChecksum httpChecksum = asyncRequest.httpExecutionAttributes().getAttribute(HTTP_CHECKSUM);
+        ResumeToken resumeToken = asyncRequest.httpExecutionAttributes().getAttribute(CRT_PAUSE_RESUME_TOKEN);
+
+        ChecksumConfig checksumConfig =
+            checksumConfig(httpChecksum, requestType, s3NativeClientConfiguration.checksumValidationEnabled());
+
         S3MetaRequestOptions requestOptions = new S3MetaRequestOptions()
             .withHttpRequest(httpRequest)
             .withMetaRequestType(requestType)
+            .withChecksumConfig(checksumConfig)
+            .withEndpoint(getEndpoint(uri))
             .withResponseHandler(responseHandler)
-            .withEndpoint(getEndpoint(uri));
+            .withResumeToken(resumeToken);
 
-        try (S3MetaRequest s3MetaRequest = crtS3Client.makeMetaRequest(requestOptions)) {
-            closeResourcesWhenComplete(executeFuture, s3MetaRequest, responseHandler);
+        S3MetaRequest s3MetaRequest = crtS3Client.makeMetaRequest(requestOptions);
+        S3MetaRequestPauseObservable observable =
+            asyncRequest.httpExecutionAttributes().getAttribute(METAREQUEST_PAUSE_OBSERVABLE);
+
+        responseHandler.metaRequest(s3MetaRequest);
+
+        if (observable != null) {
+            observable.subscribe(s3MetaRequest);
         }
+        addCancelCallback(executeFuture, s3MetaRequest, responseHandler);
 
         return executeFuture;
     }
@@ -119,8 +137,6 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
                     return S3MetaRequestOptions.MetaRequestType.GET_OBJECT;
                 case "PutObject":
                     return S3MetaRequestOptions.MetaRequestType.PUT_OBJECT;
-                case "CopyObject":
-                    return S3MetaRequestOptions.MetaRequestType.COPY_OBJECT;
                 default:
                     return S3MetaRequestOptions.MetaRequestType.DEFAULT;
             }
@@ -128,17 +144,15 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         return S3MetaRequestOptions.MetaRequestType.DEFAULT;
     }
 
-    private static void closeResourcesWhenComplete(CompletableFuture<Void> executeFuture,
-                                                   S3MetaRequest s3MetaRequest,
-                                                   S3CrtResponseHandlerAdapter responseHandler) {
+    private static void addCancelCallback(CompletableFuture<Void> executeFuture,
+                                          S3MetaRequest s3MetaRequest,
+                                          S3CrtResponseHandlerAdapter responseHandler) {
         executeFuture.whenComplete((r, t) -> {
             if (executeFuture.isCancelled()) {
                 log.debug(() -> "The request is cancelled, cancelling meta request");
                 responseHandler.cancelRequest();
                 s3MetaRequest.cancel();
             }
-
-            s3MetaRequest.close();
         });
     }
 
@@ -174,72 +188,10 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
     }
 
     public static final class Builder implements SdkAsyncHttpClient.Builder<S3CrtAsyncHttpClient.Builder> {
-        private AwsCredentialsProvider credentialsProvider;
-        private Region region;
-        private Long minimalPartSizeInBytes;
-        private Double targetThroughputInGbps;
-        private Integer maxConcurrency;
-        private URI endpointOverride;
+        private S3NativeClientConfiguration clientConfiguration;
 
-        /**
-         * Configure the credentials that should be used to authenticate with S3.
-         */
-        public Builder credentialsProvider(AwsCredentialsProvider credentialsProvider) {
-            this.credentialsProvider = credentialsProvider;
-            return this;
-        }
-
-        /**
-         * Configure the region with which the SDK should communicate.
-         */
-        public Builder region(Region region) {
-            this.region = region;
-            return this;
-        }
-
-        /**
-         * Sets the minimum part size for transfer parts. Decreasing the minimum part size causes
-         * multipart transfer to be split into a larger number of smaller parts. Setting this value too low
-         * has a negative effect on transfer speeds, causing extra latency and network communication for each part.
-         */
-        public Builder minimumPartSizeInBytes(Long partSizeBytes) {
-            this.minimalPartSizeInBytes = partSizeBytes;
-            return this;
-        }
-
-        /**
-         * The target throughput for transfer requests. Higher value means more S3 connections
-         * will be opened. Whether the transfer manager can achieve the configured target throughput depends
-         * on various factors such as the network bandwidth of the environment and the configured {@link #maxConcurrency}.
-         */
-        public Builder targetThroughputInGbps(Double targetThroughputInGbps) {
-            this.targetThroughputInGbps = targetThroughputInGbps;
-            return this;
-        }
-
-        /**
-         * Specifies the maximum number of S3 connections that should be established during
-         * a transfer.
-         *
-         * <p>
-         * If not provided, the TransferManager will calculate the optional number of connections
-         * based on {@link #targetThroughputInGbps}. If the value is too low, the S3TransferManager
-         * might not achieve the specified target throughput.
-         *
-         * @param maxConcurrency the max number of concurrent requests
-         * @return this builder for method chaining.
-         * @see #targetThroughputInGbps(Double)
-         */
-        public Builder maxConcurrency(Integer maxConcurrency) {
-            this.maxConcurrency = maxConcurrency;
-            return this;
-        }
-
-        /**
-         * Configure the endpoint override with which the SDK should communicate.
-         */
-        public Builder endpointOverride(URI endpointOverride) {
-            this.endpointOverride = endpointOverride;
+        public Builder s3ClientConfiguration(S3NativeClientConfiguration clientConfiguration) {
+            this.clientConfiguration = clientConfiguration;
             return this;
         }
 

@@ -8,9 +8,9 @@
                 }
             },
             "params": {
-                "UseDualStack": false,
-                "Region": "us-east-1",
                 "UseFIPS": false,
+                "Region": "us-east-1",
+                "UseDualStack": false,
                 "Endpoint": "https://example.com"
             }
         },
@@ -20,9 +20,9 @@
                 "error": "Invalid Configuration: FIPS and custom endpoint are not supported"
             },
             "params": {
-                "UseDualStack": false,
-                "Region": "us-east-1",
                 "UseFIPS": true,
+                "Region": "us-east-1",
+                "UseDualStack": false,
                 "Endpoint": "https://example.com"
             }
         },
@@ -32,9 +32,9 @@
                 "error": "Invalid Configuration: Dualstack and custom endpoint are not supported"
             },
             "params": {
-                "UseDualStack": true,
-                "Region": "us-east-1",
                 "UseFIPS": false,
+                "Region": "us-east-1",
+                "UseDualStack": true,
                 "Endpoint": "https://example.com"
             }
         }

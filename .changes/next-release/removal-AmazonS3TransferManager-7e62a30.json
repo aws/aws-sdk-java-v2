@@ -1,0 +1,6 @@
+{
+    "type": "removal",
+    "category": "Amazon S3 Transfer Manager",
+    "contributor": "",
+    "description": "Removed charset options from `ResumableFileDownload`'s string options, because there's no reason to choose something other than UTF-8."
+}
