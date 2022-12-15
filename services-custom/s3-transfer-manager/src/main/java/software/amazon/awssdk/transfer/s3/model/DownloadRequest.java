@@ -21,7 +21,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
@@ -33,7 +32,6 @@ import software.amazon.awssdk.transfer.s3.progress.TransferListener;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
-import software.amazon.awssdk.utils.builder.SdkBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
@@ -209,18 +207,9 @@ public final class DownloadRequest<ReturnT>
          * @see AsyncResponseTransformer
          */
         <T> TypedBuilder<T> responseTransformer(AsyncResponseTransformer<GetObjectResponse, T> responseTransformer);
-
-        /**
-         * Like {@link SdkBuilder#applyMutation(Consumer)}, but accepts a {@link Function} that upgrades this {@link
-         * UntypedBuilder} to a {@link TypedBuilder}. Therefore, the function must also call {@link
-         * #responseTransformer(AsyncResponseTransformer)} to specify the generic type.
-         */
-        default <T> TypedBuilder<T> applyMutation(Function<UntypedBuilder, TypedBuilder<T>> mutator) {
-            return mutator.apply(this);
-        }
     }
 
-    private static class DefaultUntypedBuilder implements UntypedBuilder {
+    private static final class DefaultUntypedBuilder implements UntypedBuilder {
         private GetObjectRequest getObjectRequest;
         private List<TransferListener> transferListeners;
 
