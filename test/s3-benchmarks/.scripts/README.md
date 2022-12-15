@@ -36,7 +36,7 @@ benchmark-dir download|upload fs|tmpfs [1B|4K|16M|5G]
 - `tmpfs` is located at `/dev/shm/tm_dir_file`
 
 # Graph scripts
-The `ploy.py` creates _Box and Whiskers_ type bar grpah of the test data. The data is hard coped in the script file.
+The `ploy.py` creates _Box and Whiskers_ type bar grpah of the test data. **The data is hard coped in the script file.**
 
 dependencies: [plotly](https://plotly.com/python/getting-started/)
 ```bash
@@ -46,7 +46,7 @@ pip install plotly
 creating static images also requires Kaleido ([more info](https://plotly.com/python/static-image-export/))
 
 ```bash
-pip install -U kaleido
+pip install kaleido
 ```
 
 then simply run the `plot.py` script to generate images in `../images` (will be created if it does not exist)

@@ -184,7 +184,7 @@ v1_color = 'rgb(116, 116, 116)'
 v2_color = 'rgb(21, 21, 21)'
 
 
-def bar_graph(name, sizes, data, use_log=True):
+def bar_graph(name, sizes, data, log_y_axis=True):
     figure = go.Figure()
     figure.add_trace(go.Box(
         y=data['v1'],
@@ -204,7 +204,7 @@ def bar_graph(name, sizes, data, use_log=True):
         boxpoints=False,
         line_width=0.8
     ))
-    if use_log:
+    if log_y_axis:
         figure.update_yaxes(type="log")
     figure.update_layout(
         title=name,
