@@ -87,9 +87,10 @@ public class CopyObjectIntegrationTest extends S3IntegrationTestBase {
     @Test
     public void copyObject_CopiesObjectToNewKey() throws Exception {
         s3.copyObject(CopyObjectRequest.builder()
-                                       .copySource(BUCKET_NAME + "/" + SOURCE_KEY)
-                                       .bucket(BUCKET_NAME)
-                                       .key(DESTINATION_KEY)
+                                       .sourceBucket(BUCKET_NAME)
+                                       .sourceKey(SOURCE_KEY)
+                                       .destinationBucket(BUCKET_NAME)
+                                       .destinationKey(DESTINATION_KEY)
                                        .build());
 
         s3.headObject(HeadObjectRequest.builder()
