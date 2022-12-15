@@ -19,7 +19,7 @@
 
 usage() {
   echo "usage:"
-  echo "    benchmark download|upload| fs|tmpfs|no-op [<size>]"
+  echo "    benchmark download|upload fs|tmpfs|no-op [<size>]"
   echo "example:"
   echo "    ./benchmark download fs"
   echo "    ./benchmark upload tmpfs"

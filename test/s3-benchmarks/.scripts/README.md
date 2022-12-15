@@ -1,15 +1,17 @@
 # Benchmark scripts
+From the `.script` folder, use one of the `benchamrk` scripts to run a test suite.
+
 ## single file benchmark
 ### usage
 ```
-benchmark download|upload|no-op fs|tmpfs|no-op [<size>]
+benchmark download|upload fs|tmpfs|no-op [<size>]
 ```
-From the `.script` folder, use the `benchamrk` script to run a suite. The scripts require the operation
-(download, upload or copy) and the location of the type of file system.
+ The scripts require the operation
+(download or upload) and the location of the type of file system.
 - operation: `download|upload`
 - file system: `fs|tmpfs`
-  - `fs`: regular file system, under the root (/) directory
-  - `tmpfs`: in-memory file system (under the /dev/shm directory)
+  - `fs`: regular file system, under the root (`/`) directory
+  - `tmpfs`: in-memory file system (under the `/dev/shm` directory)
 - size (opt): if specified, will only run the test with the specified size (file must exist)
 
 The Benchmark suite will run the specified operation with different file sizes (1b 8MB+1 8MB-1 128MB 4GB 30GB, if no 
@@ -33,8 +35,8 @@ benchmark-dir download|upload fs|tmpfs [1B|4K|16M|5G]
 - `fs` is located ia `~/tm_dire_file`
 - `tmpfs` is located at `/dev/shm/tm_dir_file`
 
-# Plot scripts
-Creates _Box and Whiskers_ type bar grpah of the test data. The data is hard coped in the script file.
+# Graph scripts
+The `ploy.py` creates _Box and Whiskers_ type bar grpah of the test data. The data is hard coped in the script file.
 
 dependencies: [plotly](https://plotly.com/python/getting-started/)
 ```bash
