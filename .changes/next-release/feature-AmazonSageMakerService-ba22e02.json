@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon SageMaker Service",
-    "contributor": "",
-    "description": "SageMaker Inference Recommender now allows customers to load tests their models on various instance types using private VPC."
-}

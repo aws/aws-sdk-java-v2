@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon S3 Transfer Manager",
-    "contributor": "",
-    "description": "Moved POJO classes to `software.amazon.awssdk.transfer.s3.model` and moved configuration classes to `software.amazon.awssdk.transfer.s3.config`"
-}
