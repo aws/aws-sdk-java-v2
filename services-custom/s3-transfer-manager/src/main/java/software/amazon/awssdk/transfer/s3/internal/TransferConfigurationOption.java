@@ -41,13 +41,10 @@ public final class TransferConfigurationOption<T> extends AttributeMap.Key<T> {
 
     private static final int DEFAULT_UPLOAD_DIRECTORY_MAX_DEPTH = Integer.MAX_VALUE;
 
-    private static final Boolean DEFAULT_UPLOAD_DIRECTORY_FOLLOW_SYMBOLIC_LINKS = Boolean.FALSE;
-
-    // TODO: revisit default settings before GA
     public static final AttributeMap TRANSFER_MANAGER_DEFAULTS = AttributeMap
         .builder()
         .put(UPLOAD_DIRECTORY_MAX_DEPTH, DEFAULT_UPLOAD_DIRECTORY_MAX_DEPTH)
-        .put(UPLOAD_DIRECTORY_FOLLOW_SYMBOLIC_LINKS, DEFAULT_UPLOAD_DIRECTORY_FOLLOW_SYMBOLIC_LINKS)
+        .put(UPLOAD_DIRECTORY_FOLLOW_SYMBOLIC_LINKS, false)
         .build();
 
     private final String name;

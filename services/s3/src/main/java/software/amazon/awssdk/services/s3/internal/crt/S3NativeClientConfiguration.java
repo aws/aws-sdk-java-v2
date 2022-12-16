@@ -19,7 +19,6 @@ import java.net.URI;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
-import software.amazon.awssdk.core.client.config.ClientAsyncConfiguration;
 import software.amazon.awssdk.crt.auth.credentials.CredentialsProvider;
 import software.amazon.awssdk.crt.io.ClientBootstrap;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
@@ -31,7 +30,7 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
 @SdkInternalApi
 public class S3NativeClientConfiguration implements SdkAutoCloseable {
     private static final long DEFAULT_PART_SIZE_IN_BYTES = 8L * 1024 * 1024;
-    private static final long DEFAULT_TARGET_THROUGHPUT_IN_GBPS = 5;
+    private static final long DEFAULT_TARGET_THROUGHPUT_IN_GBPS = 10;
 
     private final String signingRegion;
     private final ClientBootstrap clientBootstrap;
@@ -118,14 +117,13 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
     }
 
     public static final class Builder {
-        public Long readBufferSizeInBytes;
+        private Long readBufferSizeInBytes;
         private String signingRegion;
         private AwsCredentialsProvider credentialsProvider;
         private Long partSizeInBytes;
         private Double targetThroughputInGbps;
         private Integer maxConcurrency;
         private URI endpointOverride;
-        private ClientAsyncConfiguration asynConfiguration;
         private Boolean checksumValidationEnabled;
 
         private Builder() {
