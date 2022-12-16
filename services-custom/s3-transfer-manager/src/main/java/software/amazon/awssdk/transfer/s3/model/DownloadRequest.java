@@ -21,7 +21,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
-import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -42,7 +41,6 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * @see S3TransferManager#download(DownloadRequest)
  */
 @SdkPublicApi
-@SdkPreviewApi
 public final class DownloadRequest<ReturnT>
     implements TransferObjectRequest,
                ToCopyableBuilder<TypedBuilder<ReturnT>, DownloadRequest<ReturnT>> {

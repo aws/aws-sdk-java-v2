@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.NotThreadSafe;
-import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -41,7 +40,6 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * @see S3TransferManager#upload(UploadRequest)
  */
 @SdkPublicApi
-@SdkPreviewApi
 public final class UploadRequest
     implements TransferObjectRequest,
                ToCopyableBuilder<UploadRequest.Builder, UploadRequest> {

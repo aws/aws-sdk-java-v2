@@ -29,7 +29,6 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
  * Builder API to build instance of Common Run Time based S3AsyncClient.
  */
 @SdkPublicApi
-@SdkPreviewApi
 public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuilder, S3AsyncClient> {
 
 
