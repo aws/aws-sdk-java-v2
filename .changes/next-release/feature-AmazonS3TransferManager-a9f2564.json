@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon S3 Transfer Manager",
+    "contributor": "",
+    "description": "The Amazon S3 Transfer Manager is now generally available. Visit [Dev Guide](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/transfer-manager.html) for more information,"
+}
