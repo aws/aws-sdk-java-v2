@@ -2,6 +2,14 @@
 
 import os
 import plotly.graph_objects as go
+from functools import reduce
+
+def spread(amount, arr):
+    """
+    duplicate elements of the array by the amount.
+    Ex.: spread(3, ["a", "b"]) -> ["a", "a", "a", "b", "b", "b"]
+    """
+    return reduce(lambda x, y: x+y, map(lambda e: ([e] * amount), arr))
 
 # 8x6 matrices where each row is all the attempt for the same benchmark
 data_single_file = {
@@ -167,22 +175,11 @@ data_directory = {
     }
 }
 
-directory_sizes = ["1Bx1000", "1Bx1000", "1Bx1000", "1Bx1000", "1Bx1000", "1Bx1000", "1Bx1000", "1Bx1000",
-                   "4Kx1000", "4Kx1000", "4Kx1000", "4Kx1000", "4Kx1000", "4Kx1000", "4Kx1000", "4Kx1000",
-                   "16Mx1000", "16Mx1000", "16Mx1000", "16Mx1000", "16Mx1000", "16Mx1000", "16Mx1000", "16Mx1000",
-                   ]
-
-single_file_sizes = ["1B", "1B", "1B", "1B", "1B", "1B", "1B", "1B",
-                     "8MB-1", "8MB-1", "8MB-1", "8MB-1", "8MB-1", "8MB-1", "8MB-1", "8MB-1",
-                     "8MB+1", "8MB+1", "8MB+1", "8MB+1", "8MB+1", "8MB+1", "8MB+1", "8MB+1",
-                     "128MB", "128MB", "128MB", "128MB", "128MB", "128MB", "128MB", "128MB",
-                     "4GB", "4GB", "4GB", "4GB", "4GB", "4GB", "4GB", "4GB",
-                     "30GB", "30GB", "30GB", "30GB", "30GB", "30GB", "30GB", "30GB",
-                     ]
+directory_sizes   = spread(8, [ "1Bx1000", "4Kx1000", "16Mx1000" ])
+single_file_sizes = spread(8, [ "1B", "8MB-1", "8MB+1", "128MB", "4GB", "30GB" ])
 
 v1_color = 'rgb(116, 116, 116)'
 v2_color = 'rgb(21, 21, 21)'
-
 
 def bar_graph(name, sizes, data, log_y_axis=True):
     figure = go.Figure()
