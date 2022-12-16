@@ -1,3 +1,44 @@
+# __2.18.41__ __2022-12-16__
+## __AWS DataSync__
+  - ### Features
+    - AWS DataSync now supports the use of tags with task executions. With this new feature, you can apply tags each time you execute a task, giving you greater control and management over your task executions.
+
+## __AWS IoT FleetWise__
+  - ### Features
+    - Updated error handling for empty resource names in "UpdateSignalCatalog" and "GetModelManifest" operations.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Appflow__
+  - ### Features
+    - This release updates the ListConnectorEntities API action so that it returns paginated responses that customers can retrieve with next tokens.
+
+## __Amazon CloudFront__
+  - ### Features
+    - Updated documentation for CloudFront
+
+## __Amazon Elastic File System__
+  - ### Features
+    - General documentation updates for EFS.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - This release provides the valid characters for the Description and Name field.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Do not prefix copy-source with / when using the sourceBucket and sourceKey APIs.
+
+## __Amazon S3 Transfer Manager__
+  - ### Features
+    - Change default `targetThroughputInGbps` from 5 to 10
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - AWS sagemaker - Features: This release adds support for random seed, it's an integer value used to initialize a pseudo-random number generator. Setting a random seed will allow the hyperparameter tuning search strategies to produce more consistent configurations for the same tuning job.
+
 # __2.18.40__ __2022-12-15__
 ## __AWS Backup Gateway__
   - ### Features

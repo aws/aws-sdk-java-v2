@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon S3 Transfer Manager",
-    "contributor": "",
-    "description": "Change default `targetThroughputInGbps` from 5 to 10"
-}

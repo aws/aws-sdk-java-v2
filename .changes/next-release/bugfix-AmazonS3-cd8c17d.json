@@ -1,6 +1,0 @@
-{
-    "category": "Amazon S3", 
-    "contributor": "", 
-    "type": "bugfix", 
-    "description": "Do not prefix copy-source with / when using the sourceBucket and sourceKey APIs."
-}
