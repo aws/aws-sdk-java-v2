@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS IoT FleetWise",
-    "contributor": "",
-    "description": "Updated error handling for empty resource names in \"UpdateSignalCatalog\" and \"GetModelManifest\" operations."
-}
