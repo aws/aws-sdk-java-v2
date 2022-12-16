@@ -693,8 +693,8 @@ public interface S3TransferManager extends SdkAutoCloseable {
          * {@link S3AsyncClient} if not provided.
          *
          * <p>
-         * It's highly recommended using {@link S3AsyncClient#crtBuilder()} to create an {@link S3AsyncClient} instance to benefit
-         * from multipart upload/download feature and maximum throughput.
+         * It's highly recommended to use {@link S3AsyncClient#crtBuilder()} to create an {@link S3AsyncClient} instance to
+         * benefit from multipart upload/download feature and maximum throughput.
          *
          * <p>
          * Note: the provided {@link S3AsyncClient} will not be closed when the transfer manager is closed; it must be closed by
@@ -709,11 +709,10 @@ public interface S3TransferManager extends SdkAutoCloseable {
         /**
          * Specifies the executor that {@link S3TransferManager} will use to execute background tasks before handing them off to
          * the underlying S3 async client, such as visiting file tree in a
-         * {@link S3TransferManager#uploadDirectory(UploadDirectoryRequest)}
-         * operation
+         * {@link S3TransferManager#uploadDirectory(UploadDirectoryRequest)} operation.
          *
          * <p>
-         * The SDK will create an executor if not provided
+         * The SDK will create an executor if not provided.
          *
          * <p>
          * <b>This executor must be shut down by the user when it is ready to be disposed. The SDK will not close the executor
