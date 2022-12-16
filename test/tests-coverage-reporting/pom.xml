@@ -224,7 +224,7 @@
         <dependency>
             <artifactId>s3-transfer-manager</artifactId>
             <groupId>software.amazon.awssdk</groupId>
-            <version>${awsjavasdk.version}-PREVIEW</version>
+            <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
             <artifactId>sso</artifactId>

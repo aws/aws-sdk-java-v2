@@ -15,7 +15,7 @@ First, you need to include `s3-transfer-manager` and `aws-crt` in your project.
 <dependency>
   <groupId>software.amazon.awssdk</groupId>
   <artifactId>s3-transfer-manager</artifactId>
-  <version>${awsjavasdk.version}-PREVIEW</version>
+  <version>${awsjavasdk.version}</version>
 </dependency>
 <dependency>
   <groupId>software.amazon.awssdk.crt</groupId>
