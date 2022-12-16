@@ -170,6 +170,7 @@
         <reactive-streams.version>1.0.3</reactive-streams.version>
 
         <skip.unit.tests>${skipTests}</skip.unit.tests>
+        <integTestSourceDirectory>${project.basedir}/src/it/java</integTestSourceDirectory>
     </properties>
 
     <dependencyManagement>
@@ -422,6 +423,8 @@
                         <consoleOutput>true</consoleOutput>
                         <failsOnError>true</failsOnError>
                         <logViolationsToConsole>true</logViolationsToConsole>
+                        <testSourceDirectories>${project.build.testSourceDirectory},${integTestSourceDirectory}</testSourceDirectories>
+                        <includeTestSourceDirectory>true</includeTestSourceDirectory>
                         <failOnViolation>true</failOnViolation>
                         <excludes>**/module-info.java</excludes>
                     </configuration>
