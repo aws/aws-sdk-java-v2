@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Include the raw `partitions.json` data as a string within `DefaultPartitionDataProvider` so it doesn't need to be loaded at runtime as a classpath resource."
+}
