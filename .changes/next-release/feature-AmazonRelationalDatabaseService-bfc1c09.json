@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Relational Database Service",
-    "contributor": "",
-    "description": "Add support for --enable-customer-owned-ip to RDS create-db-instance-read-replica API for RDS on Outposts."
-}
