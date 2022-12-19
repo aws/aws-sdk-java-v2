@@ -21,7 +21,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.function.Consumer;
-import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
@@ -37,7 +36,6 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * @see S3TransferManager#uploadDirectory(UploadDirectoryRequest)
  */
 @SdkPublicApi
-@SdkPreviewApi
 public final class UploadDirectoryRequest
     implements TransferDirectoryRequest, ToCopyableBuilder<UploadDirectoryRequest.Builder, UploadDirectoryRequest> {
 

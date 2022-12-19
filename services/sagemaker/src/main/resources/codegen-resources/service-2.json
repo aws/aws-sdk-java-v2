@@ -2145,6 +2145,19 @@
       "output":{"shape":"ListAlgorithmsOutput"},
       "documentation":"<p>Lists the machine learning algorithms that have been created.</p>"
     },
+    "ListAliases":{
+      "name":"ListAliases",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ListAliasesRequest"},
+      "output":{"shape":"ListAliasesResponse"},
+      "errors":[
+        {"shape":"ResourceNotFound"}
+      ],
+      "documentation":"<p>Lists the aliases of a specified image or image version.</p>"
+    },
     "ListAppImageConfigs":{
       "name":"ListAppImageConfigs",
       "http":{
@@ -3395,6 +3408,20 @@
         {"shape":"ResourceNotFound"}
       ],
       "documentation":"<p>Updates the properties of a SageMaker image. To change the image's tags, use the <a>AddTags</a> and <a>DeleteTags</a> APIs.</p>"
+    },
+    "UpdateImageVersion":{
+      "name":"UpdateImageVersion",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"UpdateImageVersionRequest"},
+      "output":{"shape":"UpdateImageVersionResponse"},
+      "errors":[
+        {"shape":"ResourceInUse"},
+        {"shape":"ResourceNotFound"}
+      ],
+      "documentation":"<p>Updates the properties of a SageMaker image version.</p>"
     },
     "UpdateInferenceExperiment":{
       "name":"UpdateInferenceExperiment",
@@ -7652,7 +7679,7 @@
         },
         "RoleArn":{
           "shape":"RoleArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of an IAM role that enables Amazon SageMaker to perform tasks on your behalf.</p>"
+          "documentation":"<p>The ARN of an IAM role that enables Amazon SageMaker to perform tasks on your behalf.</p>"
         },
         "Tags":{
           "shape":"TagList",
@@ -7665,7 +7692,7 @@
       "members":{
         "ImageArn":{
           "shape":"ImageArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the image.</p>"
+          "documentation":"<p>The ARN of the image.</p>"
         }
       }
     },
@@ -7689,6 +7716,38 @@
         "ImageName":{
           "shape":"ImageName",
           "documentation":"<p>The <code>ImageName</code> of the <code>Image</code> to create a version of.</p>"
+        },
+        "Aliases":{
+          "shape":"SageMakerImageVersionAliases",
+          "documentation":"<p>A list of aliases created with the image version.</p>"
+        },
+        "VendorGuidance":{
+          "shape":"VendorGuidance",
+          "documentation":"<p>The stability of the image version, specified by the maintainer.</p> <ul> <li> <p> <code>NOT_PROVIDED</code>: The maintainers did not provide a status for image version stability.</p> </li> <li> <p> <code>STABLE</code>: The image version is stable.</p> </li> <li> <p> <code>TO_BE_ARCHIVED</code>: The image version is set to be archived. Custom image versions that are set to be archived are automatically archived after three months.</p> </li> <li> <p> <code>ARCHIVED</code>: The image version is archived. Archived image versions are not searchable and are no longer actively supported. </p> </li> </ul>"
+        },
+        "JobType":{
+          "shape":"JobType",
+          "documentation":"<p>Indicates SageMaker job type compatibility.</p> <ul> <li> <p> <code>TRAINING</code>: The image version is compatible with SageMaker training jobs.</p> </li> <li> <p> <code>INFERENCE</code>: The image version is compatible with SageMaker inference jobs.</p> </li> <li> <p> <code>NOTEBOOK_KERNEL</code>: The image version is compatible with SageMaker notebook kernels.</p> </li> </ul>"
+        },
+        "MLFramework":{
+          "shape":"MLFramework",
+          "documentation":"<p>The machine learning framework vended in the image version.</p>"
+        },
+        "ProgrammingLang":{
+          "shape":"ProgrammingLang",
+          "documentation":"<p>The supported programming language and its version.</p>"
+        },
+        "Processor":{
+          "shape":"Processor",
+          "documentation":"<p>Indicates CPU or GPU compatibility.</p> <ul> <li> <p> <code>CPU</code>: The image version is compatible with CPU.</p> </li> <li> <p> <code>GPU</code>: The image version is compatible with GPU.</p> </li> </ul>"
+        },
+        "Horovod":{
+          "shape":"Horovod",
+          "documentation":"<p>Indicates Horovod compatibility.</p>"
+        },
+        "ReleaseNotes":{
+          "shape":"ReleaseNotes",
+          "documentation":"<p>The maintainer description of the image version.</p>"
         }
       }
     },
@@ -7697,7 +7756,7 @@
       "members":{
         "ImageVersionArn":{
           "shape":"ImageVersionArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the image version.</p>"
+          "documentation":"<p>The ARN of the image version.</p>"
         }
       }
     },
@@ -9853,18 +9912,19 @@
     },
     "DeleteImageVersionRequest":{
       "type":"structure",
-      "required":[
-        "ImageName",
-        "Version"
-      ],
+      "required":["ImageName"],
       "members":{
         "ImageName":{
           "shape":"ImageName",
-          "documentation":"<p>The name of the image.</p>"
+          "documentation":"<p>The name of the image to delete.</p>"
         },
         "Version":{
           "shape":"ImageVersionNumber",
           "documentation":"<p>The version to delete.</p>"
+        },
+        "Alias":{
+          "shape":"SageMakerImageVersionAlias",
+          "documentation":"<p>The alias of the image to delete.</p>"
         }
       }
     },
@@ -12067,7 +12127,7 @@
         },
         "ImageArn":{
           "shape":"ImageArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the image.</p>"
+          "documentation":"<p>The ARN of the image.</p>"
         },
         "ImageName":{
           "shape":"ImageName",
@@ -12083,7 +12143,7 @@
         },
         "RoleArn":{
           "shape":"RoleArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the IAM role that enables Amazon SageMaker to perform tasks on your behalf.</p>"
+          "documentation":"<p>The ARN of the IAM role that enables Amazon SageMaker to perform tasks on your behalf.</p>"
         }
       }
     },
@@ -12098,6 +12158,10 @@
         "Version":{
           "shape":"ImageVersionNumber",
           "documentation":"<p>The version of the image. If not specified, the latest version is described.</p>"
+        },
+        "Alias":{
+          "shape":"SageMakerImageVersionAlias",
+          "documentation":"<p>The alias of the image version.</p>"
         }
       }
     },
@@ -12122,7 +12186,7 @@
         },
         "ImageArn":{
           "shape":"ImageArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the image the version is based on.</p>"
+          "documentation":"<p>The ARN of the image the version is based on.</p>"
         },
         "ImageVersionArn":{
           "shape":"ImageVersionArn",
@@ -12139,6 +12203,34 @@
         "Version":{
           "shape":"ImageVersionNumber",
           "documentation":"<p>The version number.</p>"
+        },
+        "VendorGuidance":{
+          "shape":"VendorGuidance",
+          "documentation":"<p>The stability of the image version specified by the maintainer.</p> <ul> <li> <p> <code>NOT_PROVIDED</code>: The maintainers did not provide a status for image version stability.</p> </li> <li> <p> <code>STABLE</code>: The image version is stable.</p> </li> <li> <p> <code>TO_BE_ARCHIVED</code>: The image version is set to be archived. Custom image versions that are set to be archived are automatically archived after three months.</p> </li> <li> <p> <code>ARCHIVED</code>: The image version is archived. Archived image versions are not searchable and are no longer actively supported. </p> </li> </ul>"
+        },
+        "JobType":{
+          "shape":"JobType",
+          "documentation":"<p>Indicates SageMaker job type compatibility.</p> <ul> <li> <p> <code>TRAINING</code>: The image version is compatible with SageMaker training jobs.</p> </li> <li> <p> <code>INFERENCE</code>: The image version is compatible with SageMaker inference jobs.</p> </li> <li> <p> <code>NOTEBOOK_KERNEL</code>: The image version is compatible with SageMaker notebook kernels.</p> </li> </ul>"
+        },
+        "MLFramework":{
+          "shape":"MLFramework",
+          "documentation":"<p>The machine learning framework vended in the image version.</p>"
+        },
+        "ProgrammingLang":{
+          "shape":"ProgrammingLang",
+          "documentation":"<p>The supported programming language and its version.</p>"
+        },
+        "Processor":{
+          "shape":"Processor",
+          "documentation":"<p>Indicates CPU or GPU compatibility.</p> <ul> <li> <p> <code>CPU</code>: The image version is compatible with CPU.</p> </li> <li> <p> <code>GPU</code>: The image version is compatible with GPU.</p> </li> </ul>"
+        },
+        "Horovod":{
+          "shape":"Horovod",
+          "documentation":"<p>Indicates Horovod compatibility.</p>"
+        },
+        "ReleaseNotes":{
+          "shape":"ReleaseNotes",
+          "documentation":"<p>The maintainer description of the image version.</p>"
         }
       }
     },
@@ -16479,6 +16571,7 @@
       "max":20,
       "min":0
     },
+    "Horovod":{"type":"boolean"},
     "HubArn":{
       "type":"string",
       "max":255,
@@ -17535,7 +17628,7 @@
         },
         "ImageArn":{
           "shape":"ImageArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the image.</p>"
+          "documentation":"<p>The ARN of the image.</p>"
         },
         "ImageName":{
           "shape":"ImageName",
@@ -17675,7 +17768,7 @@
         },
         "ImageArn":{
           "shape":"ImageArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the image the version is based on.</p>"
+          "documentation":"<p>The ARN of the image the version is based on.</p>"
         },
         "ImageVersionArn":{
           "shape":"ImageVersionArn",
@@ -18399,6 +18492,14 @@
       "min":1,
       "pattern":".+"
     },
+    "JobType":{
+      "type":"string",
+      "enum":[
+        "TRAINING",
+        "INFERENCE",
+        "NOTEBOOK_KERNEL"
+      ]
+    },
     "JoinSource":{
       "type":"string",
       "enum":[
@@ -19043,6 +19144,45 @@
         "NextToken":{
           "shape":"NextToken",
           "documentation":"<p>If the response is truncated, SageMaker returns this token. To retrieve the next set of algorithms, use it in the subsequent request.</p>"
+        }
+      }
+    },
+    "ListAliasesRequest":{
+      "type":"structure",
+      "required":["ImageName"],
+      "members":{
+        "ImageName":{
+          "shape":"ImageName",
+          "documentation":"<p>The name of the image.</p>"
+        },
+        "Alias":{
+          "shape":"SageMakerImageVersionAlias",
+          "documentation":"<p>The alias of the image version.</p>"
+        },
+        "Version":{
+          "shape":"ImageVersionNumber",
+          "documentation":"<p>The version of the image. If image version is not specified, the aliases of all versions of the image are listed.</p>"
+        },
+        "MaxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The maximum number of aliases to return.</p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>If the previous call to <code>ListAliases</code> didn't return the full set of aliases, the call returns a token for retrieving the next set of aliases.</p>"
+        }
+      }
+    },
+    "ListAliasesResponse":{
+      "type":"structure",
+      "members":{
+        "SageMakerImageVersionAliases":{
+          "shape":"SageMakerImageVersionAliases",
+          "documentation":"<p>A list of SageMaker image version aliases.</p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>A token for getting the next set of aliases, if more aliases exist.</p>"
         }
       }
     },
@@ -22585,6 +22725,12 @@
       ]
     },
     "Long":{"type":"long"},
+    "MLFramework":{
+      "type":"string",
+      "max":128,
+      "min":1,
+      "pattern":"^[a-zA-Z]+ ?\\d+\\.\\d+(\\.\\d+)?$"
+    },
     "MaxAutoMLJobRuntimeInSeconds":{
       "type":"integer",
       "min":1
@@ -26824,6 +26970,13 @@
       "max":16384,
       "min":1
     },
+    "Processor":{
+      "type":"string",
+      "enum":[
+        "CPU",
+        "GPU"
+      ]
+    },
     "ProductId":{
       "type":"string",
       "max":256,
@@ -27304,6 +27457,12 @@
         "Enabled",
         "Disabled"
       ]
+    },
+    "ProgrammingLang":{
+      "type":"string",
+      "max":128,
+      "min":1,
+      "pattern":"^[a-zA-Z]+ ?\\d+\\.\\d+(\\.\\d+)?$"
     },
     "Project":{
       "type":"structure",
@@ -28185,6 +28344,12 @@
       },
       "documentation":"<p>Metadata for a register model job step.</p>"
     },
+    "ReleaseNotes":{
+      "type":"string",
+      "max":255,
+      "min":1,
+      "pattern":".*"
+    },
     "RenderUiTemplateRequest":{
       "type":"structure",
       "required":[
@@ -28626,6 +28791,16 @@
       "type":"string",
       "max":1024,
       "pattern":"^(https|s3)://([^/]+)/?(.*)$"
+    },
+    "SageMakerImageVersionAlias":{
+      "type":"string",
+      "max":128,
+      "min":1,
+      "pattern":"(?!^[.-])^([a-zA-Z0-9-_.]+)$"
+    },
+    "SageMakerImageVersionAliases":{
+      "type":"list",
+      "member":{"shape":"SageMakerImageVersionAlias"}
     },
     "SagemakerServicecatalogStatus":{
       "type":"string",
@@ -31859,7 +32034,7 @@
         },
         "RoleArn":{
           "shape":"RoleArn",
-          "documentation":"<p>The new Amazon Resource Name (ARN) for the IAM role that enables Amazon SageMaker to perform tasks on your behalf.</p>"
+          "documentation":"<p>The new ARN for the IAM role that enables Amazon SageMaker to perform tasks on your behalf.</p>"
         }
       }
     },
@@ -31868,7 +32043,70 @@
       "members":{
         "ImageArn":{
           "shape":"ImageArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the image.</p>"
+          "documentation":"<p>The ARN of the image.</p>"
+        }
+      }
+    },
+    "UpdateImageVersionRequest":{
+      "type":"structure",
+      "required":["ImageName"],
+      "members":{
+        "ImageName":{
+          "shape":"ImageName",
+          "documentation":"<p>The name of the image.</p>"
+        },
+        "Alias":{
+          "shape":"SageMakerImageVersionAlias",
+          "documentation":"<p>The alias of the image version.</p>"
+        },
+        "Version":{
+          "shape":"ImageVersionNumber",
+          "documentation":"<p>The version of the image.</p>"
+        },
+        "AliasesToAdd":{
+          "shape":"SageMakerImageVersionAliases",
+          "documentation":"<p>A list of aliases to add.</p>"
+        },
+        "AliasesToDelete":{
+          "shape":"SageMakerImageVersionAliases",
+          "documentation":"<p>A list of aliases to delete.</p>"
+        },
+        "VendorGuidance":{
+          "shape":"VendorGuidance",
+          "documentation":"<p>The availability of the image version specified by the maintainer.</p> <ul> <li> <p> <code>NOT_PROVIDED</code>: The maintainers did not provide a status for image version stability.</p> </li> <li> <p> <code>STABLE</code>: The image version is stable.</p> </li> <li> <p> <code>TO_BE_ARCHIVED</code>: The image version is set to be archived. Custom image versions that are set to be archived are automatically archived after three months.</p> </li> <li> <p> <code>ARCHIVED</code>: The image version is archived. Archived image versions are not searchable and are no longer actively supported. </p> </li> </ul>"
+        },
+        "JobType":{
+          "shape":"JobType",
+          "documentation":"<p>Indicates SageMaker job type compatibility.</p> <ul> <li> <p> <code>TRAINING</code>: The image version is compatible with SageMaker training jobs.</p> </li> <li> <p> <code>INFERENCE</code>: The image version is compatible with SageMaker inference jobs.</p> </li> <li> <p> <code>NOTEBOOK_KERNEL</code>: The image version is compatible with SageMaker notebook kernels.</p> </li> </ul>"
+        },
+        "MLFramework":{
+          "shape":"MLFramework",
+          "documentation":"<p>The machine learning framework vended in the image version.</p>"
+        },
+        "ProgrammingLang":{
+          "shape":"ProgrammingLang",
+          "documentation":"<p>The supported programming language and its version.</p>"
+        },
+        "Processor":{
+          "shape":"Processor",
+          "documentation":"<p>Indicates CPU or GPU compatibility.</p> <ul> <li> <p> <code>CPU</code>: The image version is compatible with CPU.</p> </li> <li> <p> <code>GPU</code>: The image version is compatible with GPU.</p> </li> </ul>"
+        },
+        "Horovod":{
+          "shape":"Horovod",
+          "documentation":"<p>Indicates Horovod compatibility.</p>"
+        },
+        "ReleaseNotes":{
+          "shape":"ReleaseNotes",
+          "documentation":"<p>The maintainer description of the image version.</p>"
+        }
+      }
+    },
+    "UpdateImageVersionResponse":{
+      "type":"structure",
+      "members":{
+        "ImageVersionArn":{
+          "shape":"ImageVersionArn",
+          "documentation":"<p>The ARN of the image version.</p>"
         }
       }
     },
@@ -32658,6 +32896,15 @@
     "VariantWeight":{
       "type":"float",
       "min":0
+    },
+    "VendorGuidance":{
+      "type":"string",
+      "enum":[
+        "NOT_PROVIDED",
+        "STABLE",
+        "TO_BE_ARCHIVED",
+        "ARCHIVED"
+      ]
     },
     "VersionId":{
       "type":"string",

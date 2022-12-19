@@ -28,7 +28,7 @@ import software.amazon.awssdk.utils.Validate;
 /**
  * An implementation of {@link Subscriber} that stores the events it receives for retrieval.
  *
- * <p>Events can be observed via {@link #peek()} and {@link #drop()}. The number of events stored is limited by the
+ * <p>Events can be observed via {@link #peek()} and {@link #poll()}. The number of events stored is limited by the
  * {@code maxElements} configured at construction.
  */
 @SdkProtectedApi

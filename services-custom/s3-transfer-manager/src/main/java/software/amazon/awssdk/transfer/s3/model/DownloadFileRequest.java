@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.NotThreadSafe;
-import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
@@ -40,7 +39,6 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * @see S3TransferManager#downloadFile(DownloadFileRequest)
  */
 @SdkPublicApi
-@SdkPreviewApi
 public final class DownloadFileRequest
     implements TransferObjectRequest, ToCopyableBuilder<DownloadFileRequest.Builder, DownloadFileRequest> {
 

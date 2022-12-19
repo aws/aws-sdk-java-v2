@@ -17,7 +17,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.18.41</version>
+        <version>2.19.0</version>
     </parent>
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
@@ -354,6 +354,7 @@
         <module>pipes</module>
         <module>codecatalyst</module>
         <module>sagemakermetrics</module>
+        <module>kinesisvideowebrtcstorage</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>

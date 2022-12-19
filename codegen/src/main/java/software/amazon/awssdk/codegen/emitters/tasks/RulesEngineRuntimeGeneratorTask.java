@@ -18,16 +18,14 @@ package software.amazon.awssdk.codegen.emitters.tasks;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.jar.JarFile;
 import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
 import software.amazon.awssdk.codegen.emitters.GeneratorTask;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.emitters.SimpleGeneratorTask;
+import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
@@ -39,6 +37,7 @@ public final class RulesEngineRuntimeGeneratorTask extends BaseGeneratorTasks {
     private final String engineInternalResourcesDir;
     private final String engineInternalPackageName;
     private final String fileHeader;
+    private final EndpointRulesSpecUtils endpointRulesSpecUtils;
 
     public RulesEngineRuntimeGeneratorTask(GeneratorTaskParams generatorTaskParams) {
         super(generatorTaskParams);
@@ -46,13 +45,14 @@ public final class RulesEngineRuntimeGeneratorTask extends BaseGeneratorTasks {
         this.engineInternalResourcesDir = generatorTaskParams.getPathProvider().getEndpointRulesInternalResourcesDirectory();
         this.engineInternalPackageName = generatorTaskParams.getModel().getMetadata().getFullInternalEndpointRulesPackageName();
         this.fileHeader = generatorTaskParams.getModel().getFileHeader();
+        this.endpointRulesSpecUtils = new EndpointRulesSpecUtils(generatorTaskParams.getModel());
     }
 
     @Override
     protected List<GeneratorTask> createTasks() throws Exception {
         List<GeneratorTask> copyTasks = new ArrayList<>();
 
-        List<String> rulesEngineFiles = rulesEngineResourceFiles();
+        List<String> rulesEngineFiles = endpointRulesSpecUtils.rulesEngineResourceFiles();
 
         for (String path : rulesEngineJavaFilePaths(rulesEngineFiles)) {
             String newFileName = computeNewName(path);
@@ -60,15 +60,6 @@ public final class RulesEngineRuntimeGeneratorTask extends BaseGeneratorTasks {
                                                   newFileName,
                                                   fileHeader,
                                                   () -> rulesEngineFileContent("/" + path)));
-        }
-
-        for (String path : rulesEngineJsonFilePaths(rulesEngineFiles)) {
-            String newFileName = computeNewName(path);
-            copyTasks.add(new SimpleGeneratorTask(engineInternalResourcesDir,
-                                                  newFileName,
-                                                  ".json",
-                                                  "",
-                                                  () -> loadResourceAsString("/" + path)));
         }
 
         return copyTasks;
@@ -80,23 +71,6 @@ public final class RulesEngineRuntimeGeneratorTask extends BaseGeneratorTasks {
                                  .collect(Collectors.toList());
     }
 
-    private List<String> rulesEngineJsonFilePaths(Collection<String> runtimeEngineFiles) {
-        return runtimeEngineFiles.stream()
-                                 .filter(e -> e.endsWith(".json.resource"))
-                                 .collect(Collectors.toList());
-    }
-
-    private List<String> rulesEngineResourceFiles() {
-        URL currentJarUrl = RulesEngineRuntimeGeneratorTask.class.getProtectionDomain().getCodeSource().getLocation();
-        try (JarFile jarFile = new JarFile(currentJarUrl.getFile())) {
-            return jarFile.stream()
-                          .map(ZipEntry::getName)
-                          .filter(e -> e.startsWith("software/amazon/awssdk/codegen/rules"))
-                          .collect(Collectors.toList());
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
 
     private String rulesEngineFileContent(String path) {
         return "package " + engineInternalPackageName + ";\n" +

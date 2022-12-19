@@ -16,7 +16,6 @@
 package software.amazon.awssdk.transfer.s3.model;
 
 import java.util.concurrent.CompletableFuture;
-import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
@@ -25,7 +24,6 @@ import software.amazon.awssdk.transfer.s3.S3TransferManager;
  * An upload transfer of a single object to S3.
  */
 @SdkPublicApi
-@SdkPreviewApi
 public interface FileUpload extends ObjectTransfer {
 
     /**
