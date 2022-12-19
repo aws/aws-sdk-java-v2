@@ -16,7 +16,6 @@
 package software.amazon.awssdk.transfer.s3.progress;
 
 import software.amazon.awssdk.annotations.Mutable;
-import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
@@ -51,7 +50,6 @@ import software.amazon.awssdk.transfer.s3.model.Upload;
 @Mutable
 @ThreadSafe
 @SdkPublicApi
-@SdkPreviewApi
 public interface TransferProgress {
 
     /**

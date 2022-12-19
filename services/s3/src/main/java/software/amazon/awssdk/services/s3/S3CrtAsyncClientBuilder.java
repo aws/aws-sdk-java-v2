@@ -17,7 +17,6 @@ package software.amazon.awssdk.services.s3;
 
 import java.net.URI;
 import java.nio.file.Path;
-import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
@@ -29,7 +28,6 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
  * Builder API to build instance of Common Run Time based S3AsyncClient.
  */
 @SdkPublicApi
-@SdkPreviewApi
 public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuilder, S3AsyncClient> {
 
 

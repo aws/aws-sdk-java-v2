@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.transfer.s3.model;
 
-import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
@@ -25,6 +24,5 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  * @see TransferDirectoryRequest
  */
 @SdkPublicApi
-@SdkPreviewApi
 public interface TransferRequest {
 }

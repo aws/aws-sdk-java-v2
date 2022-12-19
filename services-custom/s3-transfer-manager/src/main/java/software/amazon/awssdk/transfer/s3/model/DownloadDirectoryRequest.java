@@ -19,7 +19,6 @@ package software.amazon.awssdk.transfer.s3.model;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.function.Consumer;
-import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
@@ -37,7 +36,6 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * @see S3TransferManager#downloadDirectory(DownloadDirectoryRequest)
  */
 @SdkPublicApi
-@SdkPreviewApi
 public final class DownloadDirectoryRequest
     implements TransferDirectoryRequest, ToCopyableBuilder<DownloadDirectoryRequest.Builder, DownloadDirectoryRequest> {
 

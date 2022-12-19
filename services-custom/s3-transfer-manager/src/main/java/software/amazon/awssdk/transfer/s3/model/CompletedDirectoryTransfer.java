@@ -16,7 +16,6 @@
 package software.amazon.awssdk.transfer.s3.model;
 
 import java.util.List;
-import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
@@ -25,7 +24,6 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  * @see CompletedDirectoryUpload
  */
 @SdkPublicApi
-@SdkPreviewApi
 public interface CompletedDirectoryTransfer extends CompletedTransfer {
 
     /**

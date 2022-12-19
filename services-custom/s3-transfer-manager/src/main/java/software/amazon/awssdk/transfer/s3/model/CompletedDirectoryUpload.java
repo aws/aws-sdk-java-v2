@@ -20,7 +20,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.utils.ToString;
@@ -35,7 +34,6 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * @see S3TransferManager#uploadDirectory(UploadDirectoryRequest)
  */
 @SdkPublicApi
-@SdkPreviewApi
 public final class CompletedDirectoryUpload implements CompletedDirectoryTransfer,
                                                        ToCopyableBuilder<CompletedDirectoryUpload.Builder,
                                                            CompletedDirectoryUpload> {
