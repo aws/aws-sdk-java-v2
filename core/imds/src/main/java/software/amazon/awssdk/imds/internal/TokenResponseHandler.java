@@ -15,8 +15,11 @@
 
 package software.amazon.awssdk.imds.internal;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
+import static software.amazon.awssdk.imds.internal.RequestMarshaller.EC2_METADATA_TOKEN_TTL_HEADER;
+import static software.amazon.awssdk.imds.internal.StringResponseHandler.uncheckedInputStreamToUtf8;
+
+import java.time.Duration;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.RetryableException;
@@ -26,21 +29,25 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.HttpStatusFamily;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
-import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
 
 @SdkInternalApi
-public class StringResponseHandler implements HttpResponseHandler<String> {
-    private static final Logger log = Logger.loggerFor(StringResponseHandler.class);
+public final class TokenResponseHandler implements HttpResponseHandler<Token> {
+    private static final Logger log = Logger.loggerFor(TokenResponseHandler.class);
 
-    protected CompletableFuture<String> future;
+    private CompletableFuture<Token> future;
+    private long ttlSeconds;
 
-    public void setFuture(CompletableFuture<String> future) {
+    public TokenResponseHandler(long ttlSeconds) {
+        this.ttlSeconds = ttlSeconds;
+    }
+
+    public void setFuture(CompletableFuture<Token> future) {
         this.future = future;
     }
 
     @Override
-    public String handle(SdkHttpFullResponse response, ExecutionAttributes executionAttributes) throws Exception {
+    public Token handle(SdkHttpFullResponse response, ExecutionAttributes executionAttributes) throws Exception {
         HttpStatusFamily statusCode = HttpStatusFamily.of(response.statusCode());
         AbortableInputStream inputStream = response
             .content().orElseThrow(() -> SdkClientException.create("Unexpected error: empty response content"));
@@ -54,17 +61,12 @@ public class StringResponseHandler implements HttpResponseHandler<String> {
             // retryable error
             future.completeExceptionally(RetryableException.create(responseContent));
         }
-        return responseContent;
-    }
-
-    protected static String uncheckedInputStreamToUtf8(AbortableInputStream inputStream) {
-        try {
-            return IoUtils.toUtf8String(inputStream);
-        } catch (IOException ioe) {
-            throw new UncheckedIOException(ioe);
-        } finally {
-            IoUtils.closeQuietly(inputStream, log.logger());
-        }
+        Optional<String> tokenHeader = Optional
+            .ofNullable(response.headers().get(EC2_METADATA_TOKEN_TTL_HEADER))
+            .flatMap(l -> l.stream().findAny());
+        Duration ttl = tokenHeader.map(Long::parseLong).map(Duration::ofSeconds)
+                                  .orElseGet(() -> Duration.ofSeconds(ttlSeconds));
+        return new Token(responseContent, ttl);
     }
 
 }

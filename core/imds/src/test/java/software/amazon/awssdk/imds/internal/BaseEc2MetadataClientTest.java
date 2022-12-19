@@ -266,14 +266,14 @@ abstract class BaseEc2MetadataClientTest<T, B extends Ec2MetadataClientBuilder<B
                                                                            .withFixedDelay(600)));
 
         overrideClient(builder -> builder
-            .tokenTtl(Duration.ofSeconds(1))
+            .tokenTtl(Duration.ofSeconds(2))
             .endpoint(URI.create("http://localhost:" + getPort()))
             .build());
 
         successAssertions(AMI_ID_RESOURCE, response -> {
             assertThat(response.asString()).isEqualTo("Success");
             verify(exactly(2), putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
-                .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("1")));
+                .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("2")));
             verify(exactly(4), getRequestedFor(urlPathEqualTo(AMI_ID_RESOURCE))
                 .withHeader(TOKEN_HEADER, equalTo("some-token")));
         });

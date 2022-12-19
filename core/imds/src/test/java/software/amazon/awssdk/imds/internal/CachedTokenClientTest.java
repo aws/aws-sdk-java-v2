@@ -38,7 +38,6 @@ import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.imds.Ec2MetadataClient;
 import software.amazon.awssdk.imds.MetadataResponse;
-import software.amazon.awssdk.imds.TokenCacheStrategy;
 
 @WireMockTest
 class CachedTokenClientTest {
@@ -48,8 +47,7 @@ class CachedTokenClientTest {
     @BeforeEach
     void init(WireMockRuntimeInfo wmRuntimeInfo) {
         this.clientBuilder = Ec2MetadataClient.builder()
-                                                   .endpoint(URI.create("http://localhost:" + wmRuntimeInfo.getHttpPort()))
-                                                   .tokenCacheStrategy(TokenCacheStrategy.BLOCKING);
+                                              .endpoint(URI.create("http://localhost:" + wmRuntimeInfo.getHttpPort()));
     }
 
     @Test
