@@ -20,7 +20,6 @@ import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
@@ -76,7 +75,7 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
             return AsyncHttpRequestHelper.sendAsyncTokenRequest(tokenTtl, httpClient, baseTokenRequest);
         };
 
-        this.tokenCache = new AsyncTokenCache(tokenSupplier, ForkJoinPool.commonPool());
+        this.tokenCache = new AsyncTokenCache(tokenSupplier);
     }
 
     public static Ec2MetadataAsyncClient.Builder builder() {

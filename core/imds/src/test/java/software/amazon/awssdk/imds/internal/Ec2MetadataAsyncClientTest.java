@@ -134,7 +134,7 @@ class Ec2MetadataAsyncClientTest extends BaseEc2MetadataClientTest<Ec2MetadataAs
             MetadataResponse response = resolvedResponses.get(i);
             assertThat(response.asString()).isEqualTo("response::" + i);
         }
-        verify(exactly(totalRequests),
+        verify(exactly(1),
                putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
                    .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
         verify(exactly(totalRequests), getRequestedFor(urlPathMatching(AMI_ID_RESOURCE + "/" + "\\d+"))
