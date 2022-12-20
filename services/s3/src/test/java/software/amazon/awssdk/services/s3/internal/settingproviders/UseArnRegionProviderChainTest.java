@@ -58,6 +58,20 @@ public class UseArnRegionProviderChainTest {
     }
 
     @Test
+    void resolveUseArnRegion_systemPropertiesNotSpecified_shouldResolveOncePerCall() {
+        String trueConfigFile = getClass().getResource("ProfileFile_true").getFile();
+        System.setProperty(AWS_CONFIG_FILE.property(), trueConfigFile);
+
+        assertThat(UseArnRegionProviderChain.create().resolveUseArnRegion()).isEqualTo(Optional.of(Boolean.TRUE));
+
+        System.clearProperty(AWS_CONFIG_FILE.property());
+        String falseConfigFile = getClass().getResource("ProfileFile_false").getFile();
+        System.setProperty(AWS_CONFIG_FILE.property(), falseConfigFile);
+
+        assertThat(UseArnRegionProviderChain.create().resolveUseArnRegion()).isEqualTo(Optional.of(Boolean.FALSE));
+    }
+
+    @Test
     public void bothProvidersThrowException_shouldReturnEmpty() {
         System.setProperty(AWS_S3_USE_ARN_REGION.property(), "foobar");
         String configFile = getClass().getResource("ProfileFile_unsupportedValue").getFile();

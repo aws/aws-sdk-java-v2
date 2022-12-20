@@ -49,6 +49,10 @@ public final class ProfileDisableMultiRegionProvider implements DisableMultiRegi
         return new ProfileDisableMultiRegionProvider(() -> profileFile, profileName);
     }
 
+    public static ProfileDisableMultiRegionProvider create(Supplier<ProfileFile> profileFile, String profileName) {
+        return new ProfileDisableMultiRegionProvider(profileFile, profileName);
+    }
+
     @Override
     public Optional<Boolean> resolve() {
         return profileFile.get()
