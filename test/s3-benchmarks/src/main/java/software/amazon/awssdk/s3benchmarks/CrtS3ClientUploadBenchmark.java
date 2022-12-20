@@ -37,7 +37,7 @@ public class CrtS3ClientUploadBenchmark extends BaseCrtClientBenchmark {
 
     private final String filepath;
 
-    public CrtS3ClientUploadBenchmark(TransferManagerBenchmarkConfig config ) {
+    public CrtS3ClientUploadBenchmark(TransferManagerBenchmarkConfig config) {
         super(config);
         this.filepath = config.filePath();
     }
@@ -50,23 +50,7 @@ public class CrtS3ClientUploadBenchmark extends BaseCrtClientBenchmark {
         String endpoint = bucket + ".s3." + region + ".amazonaws.com";
 
         ByteBuffer payload = ByteBuffer.wrap(Files.readAllBytes(Paths.get(filepath)));
-        HttpRequestBodyStream payloadStream = new HttpRequestBodyStream() {
-            @Override
-            public boolean sendRequestBody(ByteBuffer outBuffer) {
-                ByteBufferUtils.transferData(payload, outBuffer);
-                return payload.remaining() == 0;
-            }
-
-            @Override
-            public boolean resetPosition() {
-                return true;
-            }
-
-            @Override
-            public long getLength() {
-                return payload.capacity();
-            }
-        };
+        HttpRequestBodyStream payloadStream = new PayloadStream(payload);
 
         HttpHeader[] headers = {new HttpHeader("Host", endpoint)};
         HttpRequest httpRequest = new HttpRequest(
@@ -91,4 +75,28 @@ public class CrtS3ClientUploadBenchmark extends BaseCrtClientBenchmark {
         latencies.add((end - start) / 1000.0);
     }
 
+    private static class PayloadStream implements HttpRequestBodyStream {
+        private ByteBuffer payload;
+
+        private PayloadStream(ByteBuffer payload) {
+            this.payload = payload;
+        }
+
+        @Override
+        public boolean sendRequestBody(ByteBuffer outBuffer) {
+            ByteBufferUtils.transferData(payload, outBuffer);
+            return payload.remaining() == 0;
+        }
+
+        @Override
+        public boolean resetPosition() {
+            return true;
+        }
+
+        @Override
+        public long getLength() {
+            return payload.capacity();
+        }
+
+    }
 }
