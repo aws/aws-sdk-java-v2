@@ -42,6 +42,8 @@ public final class BenchmarkRunner {
     private static final String VERSION = "version";
     private static final String PREFIX = "prefix";
 
+    private static final String TIMEOUT = "timeout";
+
     private static final Map<TransferManagerOperation, Function<TransferManagerBenchmarkConfig, TransferManagerBenchmark>>
         OPERATION_TO_BENCHMARK_V1 = new EnumMap<>(TransferManagerOperation.class);
     private static final Map<TransferManagerOperation, Function<TransferManagerBenchmarkConfig, TransferManagerBenchmark>>
@@ -87,6 +89,9 @@ public final class BenchmarkRunner {
         options.addOption(null, CONTENT_LENGTH, true, "Content length to upload from memory. Used only in the "
                                                       + "CRT Upload Benchmark, but "
                                                       + "is required for this test case.");
+
+        options.addOption(null, TIMEOUT, true, "Amount of minute to wait before a single operation "
+                                               + "times out and is cancelled. Optional, defaults to 10 minutes if no specified");
 
         CommandLine cmd = parser.parse(options, args);
         TransferManagerBenchmarkConfig config = parseConfig(cmd);
@@ -149,6 +154,9 @@ public final class BenchmarkRunner {
         Long contentLengthInMb = cmd.getOptionValue(CONTENT_LENGTH) == null ? null :
                                  Long.parseLong(cmd.getOptionValue(CONTENT_LENGTH));
 
+        Long timeout = cmd.getOptionValue(TIMEOUT) == null ? null :
+                       Long.parseLong(cmd.getOptionValue(TIMEOUT));
+
         return TransferManagerBenchmarkConfig.builder()
                                              .key(key)
                                              .bucket(bucket)
@@ -161,6 +169,7 @@ public final class BenchmarkRunner {
                                              .operation(operation)
                                              .prefix(prefix)
                                              .contentLengthInMb(contentLengthInMb)
+                                             .timeout(timeout)
                                              .build();
     }
 

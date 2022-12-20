@@ -24,7 +24,11 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import software.amazon.awssdk.core.ResponseBytes;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.transfer.s3.model.DownloadRequest;
 import software.amazon.awssdk.transfer.s3.model.FileDownload;
 import software.amazon.awssdk.transfer.s3.progress.LoggingTransferListener;
 import software.amazon.awssdk.utils.Logger;
@@ -97,14 +101,13 @@ public class TransferManagerDownloadBenchmark extends BaseTransferManagerBenchma
 
     private void downloadOnceToMemory(List<Double> latencies) throws Exception {
         long start = System.currentTimeMillis();
-        NoOpResponseTransformer<GetObjectResponse> responseTransformer = new NoOpResponseTransformer<>();
-        transferManager.download(r -> r.responseTransformer(responseTransformer)
-                           .addTransferListener(LoggingTransferListener.create())
-                                       .getObjectRequest(b -> b.bucket(bucket).key(key)))
+        AsyncResponseTransformer<GetObjectResponse, Void> responseTransformer = new NoOpResponseTransformer<>();
+        transferManager.download(DownloadRequest.builder()
+                                                .getObjectRequest(req -> req.bucket(bucket).key(key))
+                                                .responseTransformer(responseTransformer)
+                                                .build())
                        .completionFuture()
-                       .get(10, TimeUnit.MINUTES);
-        // s3.getObject(GetObjectRequest.builder().bucket(bucket).key(key).build(),
-        //              new NoOpResponseTransformer()).get(10, TimeUnit.MINUTES);
+                       .get(timeout, TimeUnit.MINUTES);
         long end = System.currentTimeMillis();
         latencies.add((end - start) / 1000.0);
     }

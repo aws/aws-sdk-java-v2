@@ -26,6 +26,7 @@ public final class TransferManagerBenchmarkConfig {
     private final ChecksumAlgorithm checksumAlgorithm;
     private final Integer iteration;
     private final Long contentLengthInMb;
+    private final Long timeout;
 
     private final Long readBufferSizeInMb;
     private final BenchmarkRunner.TransferManagerOperation operation;
@@ -43,6 +44,7 @@ public final class TransferManagerBenchmarkConfig {
         this.operation = builder.operation;
         this.prefix = builder.prefix;
         this.contentLengthInMb = builder.contentLengthInMb;
+        this.timeout = builder.timeout;
     }
 
     public String filePath() {
@@ -89,6 +91,10 @@ public final class TransferManagerBenchmarkConfig {
         return contentLengthInMb;
     }
 
+    public Long timeout() {
+        return this.timeout;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -106,6 +112,7 @@ public final class TransferManagerBenchmarkConfig {
                ", readBufferSizeInMb: " + readBufferSizeInMb +
                ", operation: " + operation +
                ", contentLengthInMb: " + contentLengthInMb +
+               ", timeout:" + timeout +
                '}';
     }
 
@@ -122,6 +129,8 @@ public final class TransferManagerBenchmarkConfig {
         private Integer iteration;
         private BenchmarkRunner.TransferManagerOperation operation;
         private String prefix;
+
+        private Long timeout;
 
         public Builder filePath(String filePath) {
             this.filePath = filePath;
@@ -175,6 +184,11 @@ public final class TransferManagerBenchmarkConfig {
 
         public Builder contentLengthInMb(Long contentLengthInMb) {
             this.contentLengthInMb = contentLengthInMb;
+            return this;
+        }
+
+        public Builder timeout(Long timeout) {
+            this.timeout = timeout;
             return this;
         }
 

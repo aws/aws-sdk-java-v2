@@ -19,13 +19,13 @@ import static software.amazon.awssdk.s3benchmarks.BenchmarkUtils.printOutResult;
 import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.transfer.s3.model.Upload;
 import software.amazon.awssdk.transfer.s3.model.UploadRequest;
@@ -67,7 +67,7 @@ public class TransferManagerUploadBenchmark extends BaseTransferManagerBenchmark
         }
     }
 
-    private void doUpload(int count, boolean printOutResult) throws IOException {
+    private void doUpload(int count, boolean printOutResult) throws Exception {
         List<Double> metrics = new ArrayList<>();
         for (int i = 0; i < count; i++) {
             if (config.contentLengthInMb() == null) {
@@ -99,7 +99,7 @@ public class TransferManagerUploadBenchmark extends BaseTransferManagerBenchmark
         latencies.add((end - start) / 1000.0);
     }
 
-    private void uploadOnceFromMemory(List<Double> latencies) {
+    private void uploadOnceFromMemory(List<Double> latencies) throws Exception {
         SimplePublisher<ByteBuffer> publisher = new SimplePublisher<>();
         long partSizeInBytes = config.partSizeInMb() * MB;
         byte[] bytes = new byte[(int) partSizeInBytes];
@@ -123,7 +123,7 @@ public class TransferManagerUploadBenchmark extends BaseTransferManagerBenchmark
         uploadThread.start();
 
         long start = System.currentTimeMillis();
-        upload.completionFuture().join();
+        upload.completionFuture().get(timeout, TimeUnit.MINUTES);
         long end = System.currentTimeMillis();
         latencies.add((end - start) / 1000.0);
     }
