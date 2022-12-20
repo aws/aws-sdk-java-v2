@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static software.amazon.awssdk.services.ssooidc.internal.SsoOidcTokenProviderTest.START_URL;
 import static software.amazon.awssdk.services.ssooidc.internal.SsoOidcTokenProviderTest.deriveCacheKey;
 import static software.amazon.awssdk.utils.UserHomeDirectoryUtils.userHomeDirectory;
 
@@ -41,7 +40,6 @@ import software.amazon.awssdk.auth.token.credentials.SdkToken;
 import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.auth.token.internal.ProfileTokenProviderLoader;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.profiles.Profile;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.services.ssooidc.SsoOidcClient;
@@ -59,7 +57,7 @@ public abstract class SsoOidcTokenRefreshTestBase {
     protected boolean shouldMockServiceClient;
     protected SsoOidcClient ssoOidcClient;
     protected String testStartUrl;
-    protected String testSessionName = "sso-prod";;
+    protected String testSessionName = "sso-prod";
     protected String baseTokenResourceFile;
     protected ProfileTokenProviderLoader profileTokenProviderLoader;
 
@@ -98,12 +96,11 @@ public abstract class SsoOidcTokenRefreshTestBase {
                                 "sso_region=us-east-1\n" +
                                 "sso_start_url=" + testStartUrl + "\n";
 
-        ProfileFile profiles = ProfileFile.builder()
+        ProfileFile profile = ProfileFile.builder()
                                           .content(new StringInputStream(profileContent))
                                           .type(ProfileFile.Type.CONFIGURATION)
                                           .build();
-        Optional<Profile> profile = profiles.profile("sso-refresh");
-        profileTokenProviderLoader = new ProfileTokenProviderLoader(profiles, profile.get());
+        profileTokenProviderLoader = new ProfileTokenProviderLoader(() -> profile, "sso-refresh");
     }
 
     @Test
