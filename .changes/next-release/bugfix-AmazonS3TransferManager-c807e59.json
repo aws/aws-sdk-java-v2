@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon S3 Transfer Manager",
+    "contributor": "",
+    "description": "Add `s3-transfer-manager` to bom so that users can use bom to manage its version."
+}
