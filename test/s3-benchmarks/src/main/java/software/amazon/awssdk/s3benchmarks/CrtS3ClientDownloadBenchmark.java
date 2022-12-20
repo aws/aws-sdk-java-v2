@@ -18,9 +18,7 @@ package software.amazon.awssdk.s3benchmarks;
 import java.net.URI;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpRequest;
 import software.amazon.awssdk.crt.s3.S3MetaRequest;
@@ -34,7 +32,7 @@ public class CrtS3ClientDownloadBenchmark extends BaseCrtClientBenchmark {
     }
 
     @Override
-    protected void sendOneRequest(List<Double> latencies) {
+    protected void sendOneRequest(List<Double> latencies) throws Exception {
 
         CompletableFuture<Void> resultFuture = new CompletableFuture<>();
 
@@ -53,8 +51,6 @@ public class CrtS3ClientDownloadBenchmark extends BaseCrtClientBenchmark {
         long start = System.currentTimeMillis();
         try (S3MetaRequest metaRequest = crtS3Client.makeMetaRequest(metaRequestOptions)) {
             resultFuture.get(10, TimeUnit.MINUTES);
-        } catch (ExecutionException | TimeoutException | InterruptedException e) {
-            throw new RuntimeException(e);
         }
         long end = System.currentTimeMillis();
         latencies.add((end - start) / 1000.0);

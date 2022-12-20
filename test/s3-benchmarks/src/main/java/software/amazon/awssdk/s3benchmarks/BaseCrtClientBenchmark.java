@@ -19,7 +19,6 @@ import static software.amazon.awssdk.s3benchmarks.BenchmarkUtils.BENCHMARK_ITERA
 import static software.amazon.awssdk.s3benchmarks.BenchmarkUtils.printOutResult;
 import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -92,7 +91,7 @@ public abstract class BaseCrtClientBenchmark implements  TransferManagerBenchmar
 
     }
 
-    protected abstract void sendOneRequest(List<Double> latencies) throws IOException;
+    protected abstract void sendOneRequest(List<Double> latencies) throws Exception;
 
     @Override
     public void run() {
