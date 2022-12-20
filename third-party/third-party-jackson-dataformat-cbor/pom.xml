@@ -86,6 +86,8 @@
                             <excludes>
                                 <!-- Exclude components that require Jackson-databind, because we don't use it. -->
                                 <exclude>com/fasterxml/jackson/dataformat/cbor/databind/**</exclude>
+                                <exclude>META-INF/**/pom.xml</exclude>
+                                <exclude>META-INF/**/pom.properties</exclude>
                             </excludes>
                         </filter>
                     </filters>
@@ -137,6 +139,10 @@
                         <manifestEntries>
                             <Automatic-Module-Name>software.amazon.awssdk.thirdparty.jackson.dataformat.cbor</Automatic-Module-Name>
                         </manifestEntries>
+                        <manifest>
+                            <addDefaultEntries>false</addDefaultEntries>
+                        </manifest>
+                        <addMavenDescriptor>false</addMavenDescriptor>
                     </archive>
                 </configuration>
             </plugin>
