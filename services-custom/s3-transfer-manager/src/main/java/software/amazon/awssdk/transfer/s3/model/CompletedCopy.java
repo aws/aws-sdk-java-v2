@@ -16,7 +16,6 @@
 package software.amazon.awssdk.transfer.s3.model;
 
 import java.util.Objects;
-import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
@@ -30,7 +29,6 @@ import software.amazon.awssdk.utils.Validate;
  * @see S3TransferManager#copy(CopyRequest)
  */
 @SdkPublicApi
-@SdkPreviewApi
 public final class CompletedCopy implements CompletedObjectTransfer {
     private final CopyObjectResponse response;
 

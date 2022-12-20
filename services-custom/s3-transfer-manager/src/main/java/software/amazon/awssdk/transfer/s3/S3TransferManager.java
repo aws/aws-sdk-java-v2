@@ -19,7 +19,6 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
-import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
@@ -161,7 +160,6 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkPublicApi
 @ThreadSafe
-@SdkPreviewApi
 public interface S3TransferManager extends SdkAutoCloseable {
 
     /**

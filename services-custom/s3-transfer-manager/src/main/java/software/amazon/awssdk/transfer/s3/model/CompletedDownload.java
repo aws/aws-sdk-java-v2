@@ -16,7 +16,6 @@
 package software.amazon.awssdk.transfer.s3.model;
 
 import java.util.Objects;
-import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
@@ -33,7 +32,6 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * @see S3TransferManager#download(DownloadRequest)
  */
 @SdkPublicApi
-@SdkPreviewApi
 public final class CompletedDownload<ResultT>
     implements CompletedObjectTransfer,
                ToCopyableBuilder<TypedBuilder<ResultT>, CompletedDownload<ResultT>> {

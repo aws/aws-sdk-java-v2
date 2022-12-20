@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.transfer.s3.model;
 
-import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkResponse;
 
@@ -28,7 +27,6 @@ import software.amazon.awssdk.core.SdkResponse;
  * @see CompletedDownload
  */
 @SdkPublicApi
-@SdkPreviewApi
 public interface CompletedObjectTransfer extends CompletedTransfer {
 
     /**

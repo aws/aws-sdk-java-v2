@@ -16,7 +16,6 @@
 package software.amazon.awssdk.transfer.s3.model;
 
 import java.util.Objects;
-import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.utils.ToString;
@@ -29,7 +28,6 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * has a detailed description of the result.
  */
 @SdkPublicApi
-@SdkPreviewApi
 public final class FailedFileUpload
     implements FailedObjectTransfer,
                ToCopyableBuilder<FailedFileUpload.Builder, FailedFileUpload> {

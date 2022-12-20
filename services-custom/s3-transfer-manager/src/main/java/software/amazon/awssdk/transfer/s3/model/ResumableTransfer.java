@@ -18,7 +18,6 @@ package software.amazon.awssdk.transfer.s3.model;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Path;
-import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkBytes;
 
@@ -29,7 +28,6 @@ import software.amazon.awssdk.core.SdkBytes;
  * @see FileDownload#pause()
  */
 @SdkPublicApi
-@SdkPreviewApi
 public interface ResumableTransfer {
 
     /**

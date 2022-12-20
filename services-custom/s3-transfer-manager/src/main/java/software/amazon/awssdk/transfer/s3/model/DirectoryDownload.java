@@ -16,14 +16,12 @@
 package software.amazon.awssdk.transfer.s3.model;
 
 import java.util.concurrent.CompletableFuture;
-import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
  * A download transfer of a directory of objects from S3
  */
 @SdkPublicApi
-@SdkPreviewApi
 public interface DirectoryDownload extends DirectoryTransfer {
     @Override
     CompletableFuture<CompletedDirectoryDownload> completionFuture();
