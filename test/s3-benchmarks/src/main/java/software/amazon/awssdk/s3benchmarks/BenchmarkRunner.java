@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.s3benchmarks;
 
+import java.time.Duration;
 import java.util.EnumMap;
 import java.util.Locale;
 import java.util.Map;
@@ -42,7 +43,7 @@ public final class BenchmarkRunner {
     private static final String VERSION = "version";
     private static final String PREFIX = "prefix";
 
-    private static final String TIMEOUT = "timeout";
+    private static final String TIMEOUT = "timeoutInMin";
 
     private static final Map<TransferManagerOperation, Function<TransferManagerBenchmarkConfig, TransferManagerBenchmark>>
         OPERATION_TO_BENCHMARK_V1 = new EnumMap<>(TransferManagerOperation.class);
@@ -154,8 +155,8 @@ public final class BenchmarkRunner {
         Long contentLengthInMb = cmd.getOptionValue(CONTENT_LENGTH) == null ? null :
                                  Long.parseLong(cmd.getOptionValue(CONTENT_LENGTH));
 
-        Long timeout = cmd.getOptionValue(TIMEOUT) == null ? null :
-                       Long.parseLong(cmd.getOptionValue(TIMEOUT));
+        Duration timeout = cmd.getOptionValue(TIMEOUT) == null ? null :
+                           Duration.ofMinutes(Long.parseLong(cmd.getOptionValue(TIMEOUT)));
 
         return TransferManagerBenchmarkConfig.builder()
                                              .key(key)

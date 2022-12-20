@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.s3benchmarks;
 
+import java.time.Duration;
 import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
 
 public final class TransferManagerBenchmarkConfig {
@@ -26,7 +27,7 @@ public final class TransferManagerBenchmarkConfig {
     private final ChecksumAlgorithm checksumAlgorithm;
     private final Integer iteration;
     private final Long contentLengthInMb;
-    private final Long timeout;
+    private final Duration timeout;
 
     private final Long readBufferSizeInMb;
     private final BenchmarkRunner.TransferManagerOperation operation;
@@ -91,7 +92,7 @@ public final class TransferManagerBenchmarkConfig {
         return contentLengthInMb;
     }
 
-    public Long timeout() {
+    public Duration timeout() {
         return this.timeout;
     }
 
@@ -130,7 +131,7 @@ public final class TransferManagerBenchmarkConfig {
         private BenchmarkRunner.TransferManagerOperation operation;
         private String prefix;
 
-        private Long timeout;
+        private Duration timeout;
 
         public Builder filePath(String filePath) {
             this.filePath = filePath;
@@ -187,7 +188,7 @@ public final class TransferManagerBenchmarkConfig {
             return this;
         }
 
-        public Builder timeout(Long timeout) {
+        public Builder timeout(Duration timeout) {
             this.timeout = timeout;
             return this;
         }

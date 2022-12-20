@@ -107,7 +107,7 @@ public class TransferManagerDownloadBenchmark extends BaseTransferManagerBenchma
                                                 .responseTransformer(responseTransformer)
                                                 .build())
                        .completionFuture()
-                       .get(timeout, TimeUnit.MINUTES);
+                       .get(timeout.getSeconds(), TimeUnit.SECONDS);
         long end = System.currentTimeMillis();
         latencies.add((end - start) / 1000.0);
     }

@@ -66,7 +66,7 @@ public class TransferManagerCopyBenchmark extends BaseTransferManagerBenchmark {
         Copy copy =
             transferManager.copy(b -> b.copyObjectRequest(c -> c.sourceBucket(bucket).sourceKey(key)
                                                                 .destinationBucket(bucket).destinationKey(key + COPY_SUFFIX)));
-        copy.completionFuture().get(timeout, TimeUnit.MINUTES);
+        copy.completionFuture().get(timeout.getSeconds(), TimeUnit.SECONDS);
         long end = System.currentTimeMillis();
         latencies.add((end - start) / 1000.0);
     }

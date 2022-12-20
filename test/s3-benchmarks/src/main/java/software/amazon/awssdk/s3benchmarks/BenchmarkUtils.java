@@ -17,6 +17,7 @@ package software.amazon.awssdk.s3benchmarks;
 
 import static software.amazon.awssdk.transfer.s3.SizeConstant.GB;
 
+import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 import software.amazon.awssdk.utils.Logger;
@@ -25,7 +26,7 @@ public final class BenchmarkUtils {
     static final int PRE_WARMUP_ITERATIONS = 10;
     static final int PRE_WARMUP_RUNS = 20;
     static final int BENCHMARK_ITERATIONS = 10;
-    static final int DEFAULT_TIMEOUT_MINUTES = 10;
+    static final Duration DEFAULT_TIMEOUT = Duration.ofMinutes(10);
     static final String WARMUP_KEY = "warmupobject";
     static final String COPY_SUFFIX = "_copy";
 

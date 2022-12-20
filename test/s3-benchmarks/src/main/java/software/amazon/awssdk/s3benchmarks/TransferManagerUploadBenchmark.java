@@ -123,7 +123,7 @@ public class TransferManagerUploadBenchmark extends BaseTransferManagerBenchmark
         uploadThread.start();
 
         long start = System.currentTimeMillis();
-        upload.completionFuture().get(timeout, TimeUnit.MINUTES);
+        upload.completionFuture().get(timeout.getSeconds(), TimeUnit.SECONDS);
         long end = System.currentTimeMillis();
         latencies.add((end - start) / 1000.0);
     }
