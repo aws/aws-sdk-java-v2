@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Batch",
-    "contributor": "",
-    "description": "Adds isCancelled and isTerminated to DescribeJobs response."
-}
