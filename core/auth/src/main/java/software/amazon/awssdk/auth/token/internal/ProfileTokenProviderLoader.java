@@ -40,10 +40,6 @@ public final class ProfileTokenProviderLoader {
     private static final String SSO_OIDC_TOKEN_PROVIDER_FACTORY =
         "software.amazon.awssdk.services.ssooidc.SsoOidcProfileTokenProviderFactory";
 
-    private final boolean createProviderFromSupplier;
-
-    private final Profile profile;
-    private final ProfileFile profileFile;
     private final Supplier<ProfileFile> profileFileSupplier;
     private final String profileName;
     private volatile ProfileFile currentProfileFile;
@@ -51,21 +47,9 @@ public final class ProfileTokenProviderLoader {
 
     private final Lazy<ChildProfileTokenProviderFactory> factory;
 
-    public ProfileTokenProviderLoader(ProfileFile profileFile, String profileName) {
-        this.createProviderFromSupplier = false;
-        this.profileFile = Validate.paramNotNull(profileFile, "profileFile");
-        this.profileFileSupplier = null;
-        this.profileName = Validate.paramNotNull(profileName, "profileName");
-        this.profile = resolveProfile(profileFile, profileName);
-        this.factory = new Lazy<>(this::ssoTokenProviderFactory);
-    }
-
     public ProfileTokenProviderLoader(Supplier<ProfileFile> profileFile, String profileName) {
-        createProviderFromSupplier = true;
-        this.profileFile = null;
         this.profileFileSupplier = Validate.paramNotNull(profileFile, "profileFile");
         this.profileName = Validate.paramNotNull(profileName, "profileName");
-        this.profile = null;
         this.factory = new Lazy<>(this::ssoTokenProviderFactory);
     }
 
@@ -80,11 +64,7 @@ public final class ProfileTokenProviderLoader {
      * Create the SSO credentials provider based on the related profile properties.
      */
     private SdkTokenProvider ssoProfileCredentialsProvider() {
-        if (createProviderFromSupplier) {
-            return () -> ssoProfileCredentialsProvider(profileFileSupplier, profileName).resolveToken();
-        }
-
-        return ssoProfileCredentialsProvider(profileFile, profile);
+        return () -> ssoProfileCredentialsProvider(profileFileSupplier, profileName).resolveToken();
     }
 
     private SdkTokenProvider ssoProfileCredentialsProvider(ProfileFile profileFile, Profile profile) {
@@ -96,12 +76,16 @@ public final class ProfileTokenProviderLoader {
         return factory.getValue().create(profileFile, profile);
     }
 
-    private synchronized SdkTokenProvider ssoProfileCredentialsProvider(Supplier<ProfileFile> profileFile, String profileName) {
+    private SdkTokenProvider ssoProfileCredentialsProvider(Supplier<ProfileFile> profileFile, String profileName) {
         ProfileFile profileFileInstance = profileFile.get();
-        Profile profileInstance = resolveProfile(profileFileInstance, profileName);
         if (!Objects.equals(profileFileInstance, currentProfileFile)) {
-            currentProfileFile = profileFileInstance;
-            currentTokenProvider = ssoProfileCredentialsProvider(profileFileInstance, profileInstance);
+            synchronized (this) {
+                if (!Objects.equals(profileFileInstance, currentProfileFile)) {
+                    Profile profileInstance = resolveProfile(profileFileInstance, profileName);
+                    currentProfileFile = profileFileInstance;
+                    currentTokenProvider = ssoProfileCredentialsProvider(profileFileInstance, profileInstance);
+                }
+            }
         }
 
         return currentTokenProvider;

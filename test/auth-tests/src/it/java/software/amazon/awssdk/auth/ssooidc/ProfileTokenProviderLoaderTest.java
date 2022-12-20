@@ -33,45 +33,23 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.utils.StringInputStream;
 
-public class ProfileTokenProviderLoaderTest {
+class ProfileTokenProviderLoaderTest {
 
     @Test
-    public void noProfile_throwsException() {
-        assertThatThrownBy(() -> new ProfileTokenProviderLoader(ProfileFile.defaultProfileFile(), null))
-            .hasMessageContaining("profileName must not be null");
-    }
-
-    @Test
-    public void noProfileFile_throwsException() {
-        assertThatThrownBy(() -> new ProfileTokenProviderLoader((ProfileFile) null, "sso"))
+    void profileTokenProviderLoader_noProfileFileSupplier_throwsException() {
+        assertThatThrownBy(() -> new ProfileTokenProviderLoader(null, "sso'"))
             .hasMessageContaining("profileFile must not be null");
     }
 
     @Test
-    public void profileTokenProviderLoader_noProfileFileSupplier_throwsException() {
-        assertThatThrownBy(() -> new ProfileTokenProviderLoader((ProfileFile) null, "sso'"))
-            .hasMessageContaining("profileFile must not be null");
-    }
-
-    @Test
-    public void profileTokenProviderLoader_noProfileName_throwsException() {
+    void profileTokenProviderLoader_noProfileName_throwsException() {
         assertThatThrownBy(() -> new ProfileTokenProviderLoader(ProfileFile::defaultProfileFile, null))
             .hasMessageContaining("profileName must not be null");
     }
 
     @ParameterizedTest
     @MethodSource("ssoErrorValues")
-    public void incorrectSsoProperties_throwsException(String profileContent, String msg) {
-        ProfileFile profileFile = configFile(profileContent);
-
-        ProfileTokenProviderLoader providerLoader = new ProfileTokenProviderLoader(profileFile, "sso");
-        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(providerLoader::tokenProvider)
-                                                                 .withMessageContaining(msg);
-    }
-
-    @ParameterizedTest
-    @MethodSource("ssoErrorValues")
-    public void incorrectSsoProperties_supplier_delaysThrowingExceptionUntilResolvingToken(String profileContent, String msg) {
+    void incorrectSsoProperties_supplier_delaysThrowingExceptionUntilResolvingToken(String profileContent, String msg) {
         ProfileFile profileFile = configFile(profileContent);
         Supplier<ProfileFile> supplier = () -> profileFile;
 
@@ -88,14 +66,14 @@ public class ProfileTokenProviderLoaderTest {
     }
 
     @Test
-    public void correctSsoProperties_createsTokenProvider() {
+    void correctSsoProperties_createsTokenProvider() {
         String profileContent = "[profile sso]\n" +
                                 "sso_session=admin\n" +
                                 "[sso-session admin]\n" +
                                 "sso_region=us-east-1\n" +
                                 "sso_start_url=https://d-abc123.awsapps.com/start\n";
 
-        ProfileTokenProviderLoader providerLoader = new ProfileTokenProviderLoader(configFile(profileContent), "sso");
+        ProfileTokenProviderLoader providerLoader = new ProfileTokenProviderLoader(() -> configFile(profileContent), "sso");
         Optional<SdkTokenProvider> tokenProvider = providerLoader.tokenProvider();
         assertThat(tokenProvider).isPresent();
         assertThatThrownBy(() -> tokenProvider.get().resolveToken())
