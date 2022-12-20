@@ -51,6 +51,7 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.Lis
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.LocalDateAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.LocalDateTimeAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.LocalTimeAttributeConverter;
+import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.LocaleAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.LongAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.MapAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.MonthDayAttributeConverter;
@@ -226,6 +227,7 @@ public final class DefaultAttributeConverterProvider implements AttributeConvert
                                                 .addConverter(IntegerAttributeConverter.create())
                                                 .addConverter(LocalDateAttributeConverter.create())
                                                 .addConverter(LocalDateTimeAttributeConverter.create())
+                                                .addConverter(LocaleAttributeConverter.create())
                                                 .addConverter(LocalTimeAttributeConverter.create())
                                                 .addConverter(LongAttributeConverter.create())
                                                 .addConverter(MonthDayAttributeConverter.create())

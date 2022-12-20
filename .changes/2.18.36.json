@@ -1,0 +1,66 @@
+{
+    "version": "2.18.36",
+    "date": "2022-12-12",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Migration Hub Refactor Spaces",
+            "contributor": "",
+            "description": "This release adds support for Lambda alias service endpoints. Lambda alias ARNs can now be passed into CreateService."
+        },
+        {
+            "type": "feature",
+            "category": "AWS WAFV2",
+            "contributor": "",
+            "description": "Documents the naming requirement for logging destinations that you use with web ACLs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Customer Profiles",
+            "contributor": "",
+            "description": "This release allows custom strings in PartyType and Gender through 2 new attributes in the CreateProfile and UpdateProfile APIs: PartyTypeString and GenderString."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "This release updates DescribeFpgaImages to show supported instance types of AFIs in its response."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Kinesis Video Streams",
+            "contributor": "",
+            "description": "This release adds support for public preview of Kinesis Video Stream at Edge enabling customers to provide configuration for the Kinesis Video Stream EdgeAgent running on an on-premise IoT device. Customers can now locally record from cameras and stream videos to the cloud on configured schedule."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lookout for Vision",
+            "contributor": "",
+            "description": "This documentation update adds kms:GenerateDataKey as a required permission to StartModelPackagingJob."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Rekognition",
+            "contributor": "",
+            "description": "Adds support for \"aliases\" and \"categories\", inclusion and exclusion filters for labels and label categories, and aggregating labels by video segment timestamps for Stored Video Label Detection APIs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "Update the RDS API model to support copying option groups during the CopyDBSnapshot operation"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Metrics Service",
+            "contributor": "",
+            "description": "This release introduces support SageMaker Metrics APIs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

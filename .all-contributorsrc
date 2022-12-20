@@ -742,6 +742,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "thomasturrell",
+      "name": "Thomas Turrell-Croft",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1552612?v=4",
+      "profile": "https://www.berrycloud.co.uk",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
@@ -749,5 +758,6 @@
   "projectOwner": "aws",
   "repoType": "github",
   "repoHost": "https://github.com",
-  "skipCi": true
+  "skipCi": true,
+  "commitConvention": "angular"
 }

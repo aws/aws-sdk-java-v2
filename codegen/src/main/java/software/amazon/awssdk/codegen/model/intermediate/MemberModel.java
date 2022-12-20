@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import software.amazon.awssdk.codegen.internal.TypeUtils;
+import software.amazon.awssdk.codegen.model.service.ContextParam;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.protocol.MarshallingType;
@@ -57,6 +58,8 @@ public class MemberModel extends DocumentationModel {
     private boolean deprecated;
     
     private String deprecatedMessage;
+
+    private boolean required;
 
     private ListModel listModel;
 
@@ -107,6 +110,8 @@ public class MemberModel extends DocumentationModel {
     private String fluentDeprecatedSetterMethodName;
 
     private String deprecatedBeanStyleSetterMethodName;
+
+    private ContextParam contextParam;
 
     public String getName() {
         return name;
@@ -311,6 +316,14 @@ public class MemberModel extends DocumentationModel {
 
     public void setDeprecatedMessage(String deprecatedMessage) {
         this.deprecatedMessage = deprecatedMessage;
+    }
+
+    public boolean isRequired() {
+        return required;
+    }
+
+    public void setRequired(boolean required) {
+        this.required = required;
     }
 
     public boolean isEventPayload() {
@@ -743,5 +756,13 @@ public class MemberModel extends DocumentationModel {
 
     public void setUnionEnumTypeName(String unionEnumTypeName) {
         this.unionEnumTypeName = unionEnumTypeName;
+    }
+
+    public ContextParam getContextParam() {
+        return contextParam;
+    }
+
+    public void setContextParam(ContextParam contextParam) {
+        this.contextParam = contextParam;
     }
 }

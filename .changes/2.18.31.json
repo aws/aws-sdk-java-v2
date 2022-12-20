@@ -1,0 +1,48 @@
+{
+    "version": "2.18.31",
+    "date": "2022-12-05",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Cost Explorer Service",
+            "contributor": "",
+            "description": "This release introduces two new APIs that offer a 1-click experience to refresh Savings Plans recommendations. The two APIs are StartSavingsPlansPurchaseRecommendationGeneration and ListSavingsPlansPurchaseRecommendationGeneration."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Documentation updates for EC2."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Interactive Video Service Chat",
+            "contributor": "",
+            "description": "Adds PendingVerification error type to messaging APIs to block the resource usage for accounts identified as being fraudulent."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "This release adds the InvalidDBInstanceStateFault to the RestoreDBClusterFromSnapshot operation."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Transcribe Service",
+            "contributor": "",
+            "description": "Amazon Transcribe now supports creating custom language models in the following languages: Japanese (ja-JP) and German (de-DE)."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "ziyanli-amazon",
+            "description": "Support for clients with AWS Query protocol migrating towards AwsJson in order to support custom error codes."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

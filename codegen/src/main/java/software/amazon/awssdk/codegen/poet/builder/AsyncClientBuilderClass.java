@@ -26,7 +26,10 @@ import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
-import software.amazon.awssdk.codegen.utils.BearerAuthUtils;
+import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
+import software.amazon.awssdk.codegen.utils.AuthUtils;
+import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.client.config.SdkClientOption;
 
 public class AsyncClientBuilderClass implements ClassSpec {
     private final IntermediateModel model;
@@ -35,6 +38,7 @@ public class AsyncClientBuilderClass implements ClassSpec {
     private final ClassName builderInterfaceName;
     private final ClassName builderClassName;
     private final ClassName builderBaseClassName;
+    private final EndpointRulesSpecUtils endpointRulesSpecUtils;
 
     public AsyncClientBuilderClass(IntermediateModel model) {
         String basePackage = model.getMetadata().getFullClientPackageName();
@@ -44,6 +48,7 @@ public class AsyncClientBuilderClass implements ClassSpec {
         this.builderInterfaceName = ClassName.get(basePackage, model.getMetadata().getAsyncBuilderInterface());
         this.builderClassName = ClassName.get(basePackage, model.getMetadata().getAsyncBuilder());
         this.builderBaseClassName = ClassName.get(basePackage, model.getMetadata().getBaseBuilder());
+        this.endpointRulesSpecUtils = new EndpointRulesSpecUtils(model);
     }
 
     @Override
@@ -64,7 +69,9 @@ public class AsyncClientBuilderClass implements ClassSpec {
             }
         }
 
-        if (BearerAuthUtils.usesBearerAuth(model)) {
+        builder.addMethod(endpointProviderMethod());
+
+        if (AuthUtils.usesBearerAuth(model)) {
             builder.addMethod(bearerTokenProviderMethod());
         }
 
@@ -94,12 +101,27 @@ public class AsyncClientBuilderClass implements ClassSpec {
                          .build();
     }
 
+    private MethodSpec endpointProviderMethod() {
+        MethodSpec.Builder b = MethodSpec.methodBuilder("endpointProvider")
+                                         .addModifiers(Modifier.PUBLIC)
+                                         .addAnnotation(Override.class)
+                                         .addParameter(endpointRulesSpecUtils.providerInterfaceName(), "endpointProvider")
+                                         .returns(builderClassName);
+
+        b.addStatement("clientConfiguration.option($T.ENDPOINT_PROVIDER, endpointProvider)", SdkClientOption.class);
+        b.addStatement("return this");
+
+        return b.build();
+    }
+
     private MethodSpec buildClientMethod() {
         return MethodSpec.methodBuilder("buildClient")
                          .addAnnotation(Override.class)
                          .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
                          .returns(clientInterfaceName)
-                         .addCode("return new $T(super.asyncClientConfiguration());", clientClassName)
+                         .addStatement("$T clientConfiguration = super.asyncClientConfiguration()", SdkClientConfiguration.class)
+                         .addStatement("this.validateClientOptions(clientConfiguration)")
+                         .addCode("return new $T(clientConfiguration);", clientClassName)
                          .build();
     }
 

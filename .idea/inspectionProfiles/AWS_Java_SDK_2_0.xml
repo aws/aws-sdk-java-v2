@@ -65,7 +65,7 @@
     <inspection_tool class="ClassNameDiffersFromFileName" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="ClassNameSameAsAncestorName" enabled="true" level="WEAK WARNING" enabled_by_default="true" />
     <inspection_tool class="ClassNewInstance" enabled="true" level="WARNING" enabled_by_default="true" />
-    <inspection_tool class="ClassReferencesSubclass" enabled="true" level="WEAK WARNING" enabled_by_default="true" />
+    <inspection_tool class="ClassReferencesSubclass" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
     <inspection_tool class="ClassWithMultipleLoggers" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="loggerNamesString" value="java.util.logging.Logger,org.slf4j.Logger,org.apache.commons.logging.Log,org.apache.log4j.Logger,org.apache.logging.log4j.Logger,software.amazon.awssdk.utils.Logger,software.amazon.awssdk.http.nio.netty.internal.utils.NettyClientLogger" />
     </inspection_tool>
@@ -189,10 +189,6 @@
       <option name="checkForEmptyMethods" value="true" />
     </inspection_tool>
     <inspection_tool class="LiteralAsArgToStringEquals" enabled="true" level="WARNING" enabled_by_default="true" />
-    <inspection_tool class="LocalVariableHidingMemberVariable" enabled="true" level="WARNING" enabled_by_default="true">
-      <option name="m_ignoreInvisibleFields" value="true" />
-      <option name="m_ignoreStaticMethods" value="true" />
-    </inspection_tool>
     <inspection_tool class="LoggerInitializedWithForeignClass" enabled="true" level="WEAK WARNING" enabled_by_default="true">
       <option name="loggerFactoryMethodName" value="getLogger,getLogger,getLog,getLogger" />
     </inspection_tool>
@@ -238,7 +234,6 @@
     <inspection_tool class="NestedSwitchStatement" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="NestedSynchronizedStatement" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="NonExceptionNameEndsWithException" enabled="true" level="WARNING" enabled_by_default="true" />
-    <inspection_tool class="NonFinalFieldInEnum" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="NonFinalFieldOfException" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="NonFinalStaticVariableUsedInClassInitialization" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="NonFinalUtilityClass" enabled="true" level="WARNING" enabled_by_default="true" />
@@ -284,7 +279,7 @@
     <inspection_tool class="OverridableMethodCallDuringObjectConstruction" enabled="true" level="WEAK WARNING" enabled_by_default="true" />
     <inspection_tool class="OverriddenMethodCallDuringObjectConstruction" enabled="true" level="WEAK WARNING" enabled_by_default="true" />
     <inspection_tool class="PackageDotHtmlMayBePackageInfo" enabled="true" level="WARNING" enabled_by_default="true" />
-    <inspection_tool class="ParameterNameDiffersFromOverriddenParameter" enabled="true" level="WEAK WARNING" enabled_by_default="true">
+    <inspection_tool class="ParameterNameDiffersFromOverriddenParameter" enabled="false" level="WEAK WARNING" enabled_by_default="false">
       <option name="m_ignoreSingleCharacterNames" value="true" />
       <option name="m_ignoreOverridesOfLibraryMethods" value="false" />
     </inspection_tool>
@@ -323,10 +318,7 @@
     <inspection_tool class="SameReturnValue" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="SerialPersistentFieldsWithWrongSignature" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="SerialVersionUIDNotStaticFinal" enabled="true" level="WARNING" enabled_by_default="true" />
-    <inspection_tool class="SerializableHasSerialVersionUIDField" enabled="true" level="WARNING" enabled_by_default="true">
-      <option name="ignoreAnonymousInnerClasses" value="false" />
-      <option name="superClassString" value="java.awt.Component" />
-    </inspection_tool>
+    <inspection_tool class="SerializableHasSerialVersionUIDField" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="SerializableHasSerializationMethods" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="ignoreAnonymousInnerClasses" value="false" />
       <option name="superClassString" value="java.awt.Component" />
@@ -372,7 +364,6 @@
     </inspection_tool>
     <inspection_tool class="SubtractionInCompareTo" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="SuspiciousArrayCast" enabled="true" level="WARNING" enabled_by_default="true" />
-    <inspection_tool class="SuspiciousIndentAfterControlStatement" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="SuspiciousLiteralUnderscore" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="SwitchStatementWithConfusingDeclaration" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="SwitchStatementsWithoutDefault" enabled="true" level="WARNING" enabled_by_default="true">
@@ -392,7 +383,6 @@
     <inspection_tool class="TestCaseWithNoTestMethods" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="ignoreSupers" value="true" />
     </inspection_tool>
-    <inspection_tool class="TestMethodWithoutAssertion" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="ThisEscapedInConstructor" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="ThreadDeathRethrown" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="ThreadDumpStack" enabled="true" level="WARNING" enabled_by_default="true" />
@@ -458,7 +448,7 @@
     <inspection_tool class="WaitNotifyNotInSynchronizedContext" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="WaitOrAwaitWithoutTimeout" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="WaitWithoutCorrespondingNotify" enabled="true" level="WARNING" enabled_by_default="true" />
-    <inspection_tool class="unused" enabled="true" level="WARNING" enabled_by_default="true" field="packageLocal" method="packageLocal" ignoreAccessors="true" isSelected="false">
+    <inspection_tool class="unused" enabled="true" level="WARNING" enabled_by_default="true" field="packageLocal" method="packageLocal" ignoreAccessors="true" checkParameterExcludingHierarchy="false" isSelected="false">
       <option name="LOCAL_VARIABLE" value="true" />
       <option name="FIELD" value="true" />
       <option name="METHOD" value="true" />

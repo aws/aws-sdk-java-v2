@@ -1,0 +1,66 @@
+{
+    "version": "2.18.41",
+    "date": "2022-12-16",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "Amazon S3",
+            "contributor": "",
+            "description": "Do not prefix copy-source with / when using the sourceBucket and sourceKey APIs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS DataSync",
+            "contributor": "",
+            "description": "AWS DataSync now supports the use of tags with task executions. With this new feature, you can apply tags each time you execute a task, giving you greater control and management over your task executions."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT FleetWise",
+            "contributor": "",
+            "description": "Updated error handling for empty resource names in \"UpdateSignalCatalog\" and \"GetModelManifest\" operations."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Appflow",
+            "contributor": "",
+            "description": "This release updates the ListConnectorEntities API action so that it returns paginated responses that customers can retrieve with next tokens."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudFront",
+            "contributor": "",
+            "description": "Updated documentation for CloudFront"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic File System",
+            "contributor": "",
+            "description": "General documentation updates for EFS."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon GuardDuty",
+            "contributor": "",
+            "description": "This release provides the valid characters for the Description and Name field."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon S3 Transfer Manager",
+            "contributor": "",
+            "description": "Change default `targetThroughputInGbps` from 5 to 10"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "AWS sagemaker - Features: This release adds support for random seed, it's an integer value used to initialize a pseudo-random number generator. Setting a random seed will allow the hyperparameter tuning search strategies to produce more consistent configurations for the same tuning job."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

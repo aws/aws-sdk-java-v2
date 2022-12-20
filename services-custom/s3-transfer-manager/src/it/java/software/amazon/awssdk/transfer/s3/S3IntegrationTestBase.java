@@ -24,6 +24,7 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClientBuilder;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
+import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 import software.amazon.awssdk.services.s3.model.BucketLocationConstraint;
 import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
@@ -52,20 +53,35 @@ public class S3IntegrationTestBase extends AwsTestBase {
 
     protected static S3AsyncClient s3Async;
 
+    protected static S3AsyncClient s3CrtAsync;
+
+    protected static S3TransferManager tm;
+
     /**
      * Loads the AWS account info for the integration tests and creates an S3
      * client for tests to use.
      */
     @BeforeAll
-    public static void setUp() throws Exception {
+    public static void setUpForAllIntegTests() throws Exception {
         Log.initLoggingToStdout(Log.LogLevel.Warn);
         System.setProperty("aws.crt.debugnative", "true");
         s3 = s3ClientBuilder().build();
         s3Async = s3AsyncClientBuilder().build();
+        s3CrtAsync = S3CrtAsyncClient.builder()
+                                     .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                     .region(DEFAULT_REGION)
+                                     .build();
+        tm = S3TransferManager.builder()
+                              .s3Client(s3CrtAsync)
+                              .build();
     }
 
     @AfterAll
-    public static void cleanUp() {
+    public static void cleanUpForAllIntegTests() {
+        s3.close();
+        s3Async.close();
+        s3CrtAsync.close();
+        tm.close();
         CrtResource.waitForNoResources();
     }
 

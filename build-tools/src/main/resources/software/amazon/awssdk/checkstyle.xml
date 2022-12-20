@@ -384,7 +384,6 @@
             <property name="ignoreComments" value="true"/>
         </module>
 
-
         <!-- Checks that we don't use AttributeKey.newInstance directly -->
         <module name="Regexp">
             <property name="format" value="AttributeKey\.newInstance"/>
@@ -399,6 +398,10 @@
             <property name="illegalPattern" value="true"/>
             <property name="message" value="Use software.amazon.awssdk.core.internal.util.ClassLoaderHelper Class to load the class."/>
             <property name="ignoreComments" value="true"/>
+        </module>
+
+        <!-- Checks that we don't use the @Ignore annotation on tests -->
+        <module name="software.amazon.awssdk.buildtools.checkstyle.NoIgnoreAnnotationsCheck">
         </module>
 
         <!-- Checks that we don't use plural enum names -->
@@ -441,7 +444,7 @@
             release-scripts: Allowed to use classes from java.xml for XML writing.
             sdk-benchmarks: Allowed to use classes from javax.servlet.http for benchmark servlets.
             -->
-            <property name="legalPackages" value="software.amazon.awssdk.codegen:javax.lang.model, software.amazon.awssdk.codegen:javax.lang.model.element, software.amazon.awssdk.codegen:javax.lang.model.type, software.amazon.awssdk.protocols.query:javax.xml.stream, software.amazon.awssdk.protocols.query:javax.xml.stream.events, software.amazon.awssdk.protocol.asserts.marshalling:javax.xml, software.amazon.awssdk.protocol.asserts.marshalling:javax.xml.parsers, software.amazon.awssdk.protocol.asserts.marshalling:javax.xml.transform, software.amazon.awssdk.protocol.asserts.marshalling:javax.xml.transform.dom, software.amazon.awssdk.protocol.asserts.marshalling:javax.xml.transform.stream, software.amazon.awssdk.enhanced.dynamodb.mapper:java.beans, software.amazon.awssdk.release:javax.xml, software.amazon.awssdk.release:javax.xml.parsers, software.amazon.awssdk.release:javax.xml.transform, software.amazon.awssdk.release:javax.xml.xpath, software.amazon.awssdk.release:javax.xml.transform.dom, software.amazon.awssdk.release:javax.xml.transform.stream, software.amazon.awssdk.benchmark:javax.servlet.http"/>
+            <property name="legalPackages" value="software.amazon.awssdk.codegen:javax.lang.model, software.amazon.awssdk.codegen:javax.lang.model.element, software.amazon.awssdk.codegen:javax.lang.model.type, software.amazon.awssdk.protocols.query:javax.xml.stream, software.amazon.awssdk.protocols.query:javax.xml.stream.events, software.amazon.awssdk.protocol.asserts.marshalling:javax.xml, software.amazon.awssdk.protocol.asserts.marshalling:javax.xml.parsers, software.amazon.awssdk.protocol.asserts.marshalling:javax.xml.transform, software.amazon.awssdk.protocol.asserts.marshalling:javax.xml.transform.dom, software.amazon.awssdk.protocol.asserts.marshalling:javax.xml.transform.stream, software.amazon.awssdk.enhanced.dynamodb:java.beans, software.amazon.awssdk.release:javax.xml, software.amazon.awssdk.release:javax.xml.parsers, software.amazon.awssdk.release:javax.xml.transform, software.amazon.awssdk.release:javax.xml.xpath, software.amazon.awssdk.release:javax.xml.transform.dom, software.amazon.awssdk.release:javax.xml.transform.stream, software.amazon.awssdk.benchmark:javax.servlet.http"/>
         </module>
     </module>
 

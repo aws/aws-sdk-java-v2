@@ -41,7 +41,6 @@ import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.services.protocolrestjson.model.EmptyModeledException;
 
-@Ignore
 @RunWith(MockitoJUnitRunner.class)
 public abstract class BaseAsyncCoreMetricsTest {
     private static final String SERVICE_ID = "AmazonProtocolRestJson";
@@ -50,7 +49,6 @@ public abstract class BaseAsyncCoreMetricsTest {
     static final int MAX_RETRIES = 2;
     public static final Duration FIXED_DELAY = Duration.ofMillis(500);
 
-    @Ignore
     @Test
     public void apiCall_operationSuccessful_addsMetrics() {
         stubSuccessfulResponse();
@@ -73,7 +71,6 @@ public abstract class BaseAsyncCoreMetricsTest {
             .isGreaterThanOrEqualTo(FIXED_DELAY);
     }
 
-    @Ignore
     @Test
     public void apiCall_allRetryAttemptsFailedOf500() {
         stubErrorResponse();
@@ -90,7 +87,6 @@ public abstract class BaseAsyncCoreMetricsTest {
         capturedCollection.children().forEach(this::verifyFailedApiCallAttemptCollection);
     }
 
-    @Ignore
     @Test
     public void apiCall_allRetryAttemptsFailedOfNetworkError() {
         stubNetworkError();
@@ -116,7 +112,6 @@ public abstract class BaseAsyncCoreMetricsTest {
         });
     }
 
-    @Ignore
     @Test
     public void apiCall_firstAttemptFailedRetrySucceeded() {
         stubSuccessfulRetry();

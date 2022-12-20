@@ -76,6 +76,18 @@ public class PoetClientFunctionalTests {
     }
 
     @Test
+    public void asyncClientClassAwsQueryCompatibleJson() throws Exception {
+        AsyncClientClass asyncClientClass = createAsyncClientClass(ClientTestModels.awsQueryCompatibleJsonServiceModels());
+        assertThat(asyncClientClass, generatesTo("test-aws-query-compatible-json-async-client-class.java"));
+    }
+
+    @Test
+    public void syncClientClassAwsQueryCompatibleJson() throws Exception {
+        SyncClientClass syncClientClass = createSyncClientClass(ClientTestModels.awsQueryCompatibleJsonServiceModels());
+        assertThat(syncClientClass, generatesTo("test-aws-query-compatible-json-sync-client-class.java"));
+    }
+
+    @Test
     public void syncClientClassXml() throws Exception {
         SyncClientClass syncClientClass = createSyncClientClass(ClientTestModels.xmlServiceModels());
         assertThat(syncClientClass, generatesTo("test-xml-client-class.java"));
@@ -88,11 +100,11 @@ public class PoetClientFunctionalTests {
     }
 
     private SyncClientClass createSyncClientClass(IntermediateModel model) {
-        return new SyncClientClass(GeneratorTaskParams.create(model, "sources/", "tests/"));
+        return new SyncClientClass(GeneratorTaskParams.create(model, "sources/", "tests/", "resources/"));
     }
 
     private AsyncClientClass createAsyncClientClass(IntermediateModel model) {
-        return new AsyncClientClass(GeneratorTaskParams.create(model, "sources/", "tests/"));
+        return new AsyncClientClass(GeneratorTaskParams.create(model, "sources/", "tests/", "resources/"));
     }
 
     @Test
@@ -110,14 +122,14 @@ public class PoetClientFunctionalTests {
     @Test
     public void asyncClientEndpointDiscovery() throws Exception {
         ClassSpec asyncClientEndpointDiscovery = new AsyncClientClass(
-            GeneratorTaskParams.create(ClientTestModels.endpointDiscoveryModels(), "sources/", "tests/"));
+            GeneratorTaskParams.create(ClientTestModels.endpointDiscoveryModels(), "sources/", "tests/", "resources/"));
         assertThat(asyncClientEndpointDiscovery, generatesTo("test-endpoint-discovery-async.java"));
     }
 
     @Test
     public void asyncClientCustomServiceMetaData() throws Exception {
         ClassSpec asyncClientCustomServiceMetaData = new AsyncClientClass(
-            GeneratorTaskParams.create(ClientTestModels.customContentTypeModels(), "sources/", "tests/"));
+            GeneratorTaskParams.create(ClientTestModels.customContentTypeModels(), "sources/", "tests/", "resources/"));
         assertThat(asyncClientCustomServiceMetaData, generatesTo("test-customservicemetadata-async.java"));
     }
 

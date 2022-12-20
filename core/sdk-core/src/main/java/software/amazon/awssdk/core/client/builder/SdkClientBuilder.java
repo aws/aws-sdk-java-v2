@@ -19,6 +19,7 @@ import java.net.URI;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
@@ -55,6 +56,11 @@ public interface SdkClientBuilder<B extends SdkClientBuilder<B, C>, C> extends S
 
     /**
      * Configure the endpoint with which the SDK should communicate.
+     * <p>
+     * It is important to know that {@link EndpointProvider}s and the endpoint override on the client are not mutually
+     * exclusive. In all existing cases, the endpoint override is passed as a parameter to the provider and the provider *may*
+     * modify it. For example, the S3 provider may add the bucket name as a prefix to the endpoint override for virtual bucket
+     * addressing.
      */
     B endpointOverride(URI endpointOverride);
 }

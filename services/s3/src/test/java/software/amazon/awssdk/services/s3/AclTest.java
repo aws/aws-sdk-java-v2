@@ -62,6 +62,7 @@ public class AclTest {
                            .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
                            .region(Region.US_WEST_2)
                            .endpointOverride(endpoint)
+                           .serviceConfiguration(c -> c.pathStyleAccessEnabled(true))
                            .build();
     }
 

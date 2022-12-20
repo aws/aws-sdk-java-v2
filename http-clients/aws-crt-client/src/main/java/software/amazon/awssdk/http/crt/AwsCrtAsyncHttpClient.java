@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.http.crt;
 
+import static software.amazon.awssdk.http.HttpMetric.HTTP_CLIENT_NAME;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
@@ -43,6 +44,8 @@ import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.crt.internal.CrtRequestContext;
 import software.amazon.awssdk.http.crt.internal.CrtRequestExecutor;
+import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
@@ -253,6 +256,14 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         paramNotNull(asyncRequest.requestContentPublisher(), "RequestContentPublisher");
         paramNotNull(asyncRequest.responseHandler(), "ResponseHandler");
 
+        if (asyncRequest.metricCollector().isPresent()) {
+            MetricCollector metricCollector = asyncRequest.metricCollector().get();
+
+            if (metricCollector != null && !(metricCollector instanceof NoOpMetricCollector)) {
+                metricCollector.reportMetric(HTTP_CLIENT_NAME, clientName());
+            }
+        }
+
         /*
          * See the note on getOrCreateConnectionPool()
          *
@@ -322,6 +333,8 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
          *
          * @param readBufferSize The number of bytes that can be buffered
          * @return The builder of the method chaining.
+         *
+         * TODO: This is also used for the write buffer size. Should we rename it?
          */
         Builder readBufferSize(int readBufferSize);
 

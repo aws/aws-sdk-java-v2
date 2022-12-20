@@ -56,6 +56,9 @@ public final class EmptyModeledException extends JsonProtocolTestsException impl
 
         @Override
         Builder cause(Throwable cause);
+
+        @Override
+        Builder writableStackTrace(Boolean writableStackTrace);
     }
 
     static final class BuilderImpl extends JsonProtocolTestsException.BuilderImpl implements Builder {
@@ -93,6 +96,12 @@ public final class EmptyModeledException extends JsonProtocolTestsException impl
         @Override
         public BuilderImpl cause(Throwable cause) {
             this.cause = cause;
+            return this;
+        }
+
+        @Override
+        public BuilderImpl writableStackTrace(Boolean writableStackTrace) {
+            this.writableStackTrace = writableStackTrace;
             return this;
         }
 

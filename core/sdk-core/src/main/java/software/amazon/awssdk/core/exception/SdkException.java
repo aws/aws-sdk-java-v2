@@ -30,7 +30,7 @@ public class SdkException extends RuntimeException {
     private static final long serialVersionUID = 1L;
 
     protected SdkException(Builder builder) {
-        super(messageFromBuilder(builder), builder.cause());
+        super(messageFromBuilder(builder), builder.cause(), true, writableStackTraceFromBuilder(builder));
     }
 
     /**
@@ -46,6 +46,10 @@ public class SdkException extends RuntimeException {
         }
 
         return null;
+    }
+
+    private static boolean writableStackTraceFromBuilder(Builder builder) {
+        return builder.writableStackTrace() == null || builder.writableStackTrace();
     }
 
     public static SdkException create(String message, Throwable cause) {
@@ -107,6 +111,19 @@ public class SdkException extends RuntimeException {
         String message();
 
         /**
+         * Specifies whether the stack trace in this exception can be written.
+         *
+         * @param writableStackTrace Whether the stack trace can be written.
+         * @return This method for object chaining
+         */
+        Builder writableStackTrace(Boolean writableStackTrace);
+
+        /**
+         * Whether the stack trace in this exception can be written.
+         */
+        Boolean writableStackTrace();
+
+        /**
          * Creates a new {@link SdkException} with the specified properties.
          *
          * @return The new {@link SdkException}.
@@ -119,6 +136,7 @@ public class SdkException extends RuntimeException {
 
         protected Throwable cause;
         protected String message;
+        protected Boolean writableStackTrace;
 
         protected BuilderImpl() {
         }
@@ -165,6 +183,25 @@ public class SdkException extends RuntimeException {
         @Override
         public String message() {
             return message;
+        }
+
+        @Override
+        public Builder writableStackTrace(Boolean writableStackTrace) {
+            this.writableStackTrace = writableStackTrace;
+            return this;
+        }
+
+        public void setWritableStackTrace(Boolean writableStackTrace) {
+            this.writableStackTrace = writableStackTrace;
+        }
+
+        @Override
+        public Boolean writableStackTrace() {
+            return writableStackTrace;
+        }
+
+        public Boolean getWritableStackTrace() {
+            return writableStackTrace;
         }
 
         @Override

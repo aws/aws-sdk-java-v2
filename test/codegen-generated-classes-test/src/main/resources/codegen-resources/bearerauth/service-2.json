@@ -8,7 +8,7 @@
     "serviceAbbreviation":"AwsBearerAuthService",
     "serviceFullName":"AWS Bearer Auth Service",
     "serviceId":"bearerauth",
-    "signatureVersion":"v4",
+    "signatureVersion":"bearer",
     "targetPrefix":"BearerAuth",
     "timestampFormat":"unixTimestamp",
     "uid":"restjson-2016-03-11"
@@ -20,8 +20,7 @@
         "method":"POST",
         "requestUri":"/2016-03-11/oneoperation"
       },
-      "input":{"shape":"OneShape"},
-      "authtype": "bearer"
+      "input":{"shape":"OneShape"}
     }
   },
   "shapes": {

@@ -28,6 +28,9 @@ import java.util.stream.Collectors;
 import software.amazon.awssdk.awscore.AwsResponse;
 import software.amazon.awssdk.awscore.AwsResponseMetadata;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
+import software.amazon.awssdk.codegen.model.rules.endpoints.EndpointTestSuiteModel;
+import software.amazon.awssdk.codegen.model.service.ClientContextParam;
+import software.amazon.awssdk.codegen.model.service.EndpointRuleSetModel;
 import software.amazon.awssdk.codegen.model.service.PaginatorDefinition;
 import software.amazon.awssdk.codegen.model.service.WaiterDefinition;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
@@ -51,7 +54,15 @@ public final class IntermediateModel {
     private Map<String, WaiterDefinition> waiters;
 
     @JsonIgnore
+    private EndpointRuleSetModel endpointRuleSetModel;
+
+    @JsonIgnore
+    private EndpointTestSuiteModel endpointTestSuiteModel;
+
+    @JsonIgnore
     private NamingStrategy namingStrategy;
+
+    private Map<String, ClientContextParam> clientContextParams;
 
     static {
         FILE_HEADER = loadDefaultFileHeader();
@@ -71,7 +82,7 @@ public final class IntermediateModel {
                              Map<String, ShapeModel> shapes,
                              CustomizationConfig customizationConfig) {
         this(metadata, operations, shapes, customizationConfig, null,
-             Collections.emptyMap(), null, Collections.emptyMap());
+             Collections.emptyMap(), null, Collections.emptyMap(), null, null, null);
     }
 
     public IntermediateModel(
@@ -82,7 +93,10 @@ public final class IntermediateModel {
         OperationModel endpointOperation,
         Map<String, PaginatorDefinition> paginators,
         NamingStrategy namingStrategy,
-        Map<String, WaiterDefinition> waiters) {
+        Map<String, WaiterDefinition> waiters,
+        EndpointRuleSetModel endpointRuleSetModel,
+        EndpointTestSuiteModel endpointTestSuiteModel,
+        Map<String, ClientContextParam> clientContextParams) {
         this.metadata = metadata;
         this.operations = operations;
         this.shapes = shapes;
@@ -91,6 +105,9 @@ public final class IntermediateModel {
         this.paginators = paginators;
         this.namingStrategy = namingStrategy;
         this.waiters = waiters;
+        this.endpointRuleSetModel = endpointRuleSetModel;
+        this.endpointTestSuiteModel = endpointTestSuiteModel;
+        this.clientContextParams = clientContextParams;
     }
 
     public Metadata getMetadata() {
@@ -152,6 +169,24 @@ public final class IntermediateModel {
 
     public Map<String, WaiterDefinition> getWaiters() {
         return waiters;
+    }
+
+    public EndpointRuleSetModel getEndpointRuleSetModel() {
+        if (endpointRuleSetModel == null) {
+            endpointRuleSetModel = EndpointRuleSetModel.defaultRules(metadata.getEndpointPrefix());
+        }
+        return endpointRuleSetModel;
+    }
+
+    public EndpointTestSuiteModel getEndpointTestSuiteModel() {
+        if (endpointTestSuiteModel == null) {
+            endpointTestSuiteModel = new EndpointTestSuiteModel();
+        }
+        return endpointTestSuiteModel;
+    }
+
+    public Map<String, ClientContextParam> getClientContextParams() {
+        return clientContextParams;
     }
 
     public void setPaginators(Map<String, PaginatorDefinition> paginators) {

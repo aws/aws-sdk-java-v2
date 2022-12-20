@@ -23,6 +23,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3control.S3ControlClient;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
@@ -44,12 +45,15 @@ public class S3ControlWireMockTest {
 
     @Test
     public void invalidAccountId_shouldThrowException() {
-        assertThatThrownBy(() -> client.getPublicAccessBlock(b -> b.accountId("1234#"))).isInstanceOf(IllegalArgumentException.class)
-                                                                                        .hasMessageContaining("The provided getPublicAccessBlockRequest is not valid: the 'AccountId' component must match the pattern \"[A-Za-z0-9\\-]+\".");
+        assertThatThrownBy(() -> client.getPublicAccessBlock(b -> b.accountId("1234#")))
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("AccountId must only contain a-z, A-Z, 0-9 and `-`.");
     }
 
     @Test
     public void nullAccountId_shouldThrowException() {
-        assertThatThrownBy(() -> client.getPublicAccessBlock(SdkBuilder::build)).isInstanceOf(IllegalArgumentException.class).hasMessageContaining("component is missing");
+        assertThatThrownBy(() -> client.getPublicAccessBlock(SdkBuilder::build))
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("AccountId is required but not set");
     }
 }

@@ -19,9 +19,13 @@ import java.time.Instant;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.signer.internal.SignerConstant;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 @SdkPublicApi
-public final class Aws4PresignerParams extends Aws4SignerParams {
+public final class Aws4PresignerParams
+    extends Aws4SignerParams
+    implements ToCopyableBuilder<Aws4PresignerParams.Builder, Aws4PresignerParams> {
 
     private final Instant expirationTime;
 
@@ -38,7 +42,12 @@ public final class Aws4PresignerParams extends Aws4SignerParams {
         return new BuilderImpl();
     }
 
-    public interface Builder extends Aws4SignerParams.Builder<Builder> {
+    @Override
+    public Builder toBuilder() {
+        return new BuilderImpl(this);
+    }
+
+    public interface Builder extends Aws4SignerParams.Builder<Builder>, CopyableBuilder<Builder, Aws4PresignerParams> {
 
         /**
          * Sets an expiration time for the presigned url. If this value is not specified,
@@ -56,6 +65,11 @@ public final class Aws4PresignerParams extends Aws4SignerParams {
         private Instant expirationTime;
 
         private BuilderImpl() {
+        }
+
+        private BuilderImpl(Aws4PresignerParams params) {
+            super(params);
+            this.expirationTime = params.expirationTime;
         }
 
         @Override

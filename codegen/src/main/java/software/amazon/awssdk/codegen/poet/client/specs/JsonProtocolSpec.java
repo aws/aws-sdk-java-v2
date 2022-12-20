@@ -96,13 +96,16 @@ public class JsonProtocolSpec implements ProtocolSpec {
                       .addCode(".protocolVersion($S)\n", metadata.getJsonVersion())
                       .addCode("$L", customErrorCodeFieldName());
 
-
         String contentType = Optional.ofNullable(model.getCustomizationConfig().getCustomServiceMetadata())
                 .map(MetadataConfig::getContentType)
                 .orElse(metadata.getContentType());
 
         if (contentType != null) {
             methodSpec.addCode(".contentType($S)", contentType);
+        }
+
+        if (metadata.getAwsQueryCompatible() != null) {
+            methodSpec.addCode("$L", hasAwsQueryCompatible());
         }
 
         registerModeledExceptions(model, poetExtensions).forEach(methodSpec::addCode);
@@ -115,6 +118,10 @@ public class JsonProtocolSpec implements ProtocolSpec {
         return model.getCustomizationConfig().getCustomErrorCodeFieldName() == null ?
                CodeBlock.builder().build() :
                CodeBlock.of(".customErrorCodeFieldName($S)", model.getCustomizationConfig().getCustomErrorCodeFieldName());
+    }
+
+    private CodeBlock hasAwsQueryCompatible() {
+        return CodeBlock.of(".hasAwsQueryCompatible($L)", model.getMetadata().getAwsQueryCompatible() != null);
     }
 
     private Class<?> protocolFactoryClass() {

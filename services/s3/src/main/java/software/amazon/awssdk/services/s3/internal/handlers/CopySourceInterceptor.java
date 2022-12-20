@@ -97,7 +97,6 @@ public final class CopySourceInterceptor implements ExecutionInterceptor {
 
     private static String constructCopySource(String sourceBucket, String sourceKey, String sourceVersionId) {
         StringBuilder copySource = new StringBuilder();
-        copySource.append("/");
         copySource.append(urlEncodeIgnoreSlashes(sourceBucket));
         S3ArnUtils.getArnType(sourceBucket).ifPresent(arnType -> {
             if (arnType == S3ResourceType.ACCESS_POINT || arnType == S3ResourceType.OUTPOST) {

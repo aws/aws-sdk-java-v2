@@ -1,0 +1,42 @@
+{
+    "version": "2.18.0",
+    "date": "2022-10-20",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Global Accelerator",
+            "contributor": "",
+            "description": "Global Accelerator now supports AddEndpoints and RemoveEndpoints operations for standard endpoint groups."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Resilience Hub",
+            "contributor": "",
+            "description": "In this release, we are introducing support for regional optimization for AWS Resilience Hub applications. It also includes a few documentation updates to improve clarity."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "This release updates internal logic for constructing API endpoints. \n\nWe have added rule-based endpoint providers. Additionally there are new interfaces for endpoint providers and parameters at the service client level.\n\nThe SDK provides service-specific `EndpointProvider` interfaces (e.g. `S3EndpointProvider`), that have a single method `resolveEndpoint`. `resolveEndpoint` accepts a set of parameters (also service specific) and computes an endpoint based on those parameters. All clients have a default implementation, but users are free to implement these to customize their endpoint logic.\n\nIt is important to know that `EndpointProvider`s and the endpoint override on the client are not mutually exclusive. In all existing cases, the endpoint override is passed as a parameter to the the provider and the provider *may* modify it. For example, the S3 provider may add the bucket name as a prefix to the endpoint override for virtual bucket addressing.\n\nThere may be some behavior changes related to endpoint resolution as as the the endpoint resolution is now standardised across SDKs so this release also bumps the minor version of the SDK to `2.18`.\n\nNotably, there are some changes in S3: when including and endpoint override, the SDK will use virtual bucket addressing as long as the bucket is a valid DNS label. This is different from the previous behavior where this only happens if the endpoint override begins with 's3'.\n\nIn many situations, the exception thrown for validations like including an endpoint override and enabling DualStack has changed to `SdkClientExcpetion` and error messages have changed as well."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DevOps Guru",
+            "contributor": "",
+            "description": "This release adds information about the resources DevOps Guru is analyzing."
+        },
+        {
+            "type": "feature",
+            "category": "CloudWatch RUM",
+            "contributor": "",
+            "description": "CloudWatch RUM now supports Extended CloudWatch Metrics with Additional Dimensions"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

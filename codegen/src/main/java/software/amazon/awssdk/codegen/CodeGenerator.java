@@ -33,6 +33,7 @@ public class CodeGenerator {
 
     private final C2jModels models;
     private final String sourcesDirectory;
+    private final String resourcesDirectory;
     private final String testsDirectory;
 
     /**
@@ -51,6 +52,8 @@ public class CodeGenerator {
         this.models = builder.models;
         this.sourcesDirectory = builder.sourcesDirectory;
         this.testsDirectory = builder.testsDirectory;
+        this.resourcesDirectory = builder.resourcesDirectory != null ? builder.resourcesDirectory
+                                                                     : builder.sourcesDirectory;
         this.fileNamePrefix = builder.fileNamePrefix;
     }
 
@@ -124,7 +127,10 @@ public class CodeGenerator {
     }
 
     private GeneratorTask createGeneratorTasks(IntermediateModel intermediateModel) {
-        return new AwsGeneratorTasks(GeneratorTaskParams.create(intermediateModel, sourcesDirectory, testsDirectory));
+        return new AwsGeneratorTasks(GeneratorTaskParams.create(intermediateModel,
+                                                                sourcesDirectory,
+                                                                testsDirectory,
+                                                                resourcesDirectory));
 
     }
 
@@ -135,6 +141,7 @@ public class CodeGenerator {
 
         private C2jModels models;
         private String sourcesDirectory;
+        private String resourcesDirectory;
         private String testsDirectory;
         private String fileNamePrefix;
 
@@ -148,6 +155,11 @@ public class CodeGenerator {
 
         public Builder sourcesDirectory(String sourcesDirectory) {
             this.sourcesDirectory = sourcesDirectory;
+            return this;
+        }
+
+        public Builder resourcesDirectory(String resourcesDirectory) {
+            this.resourcesDirectory = resourcesDirectory;
             return this;
         }
 

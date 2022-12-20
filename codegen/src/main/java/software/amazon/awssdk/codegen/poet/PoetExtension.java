@@ -95,6 +95,11 @@ public class PoetExtension {
                                                                               "AsyncWaiter");
     }
 
+    public ClassName getEndpointProviderInterfaceName() {
+        return ClassName.get(model.getMetadata().getFullEndpointRulesPackageName(), model.getMetadata().getServiceName() +
+                                                                                    "EndpointProvider");
+    }
+
     /**
      * @param operationName Name of the operation
      * @return A Poet {@link ClassName} for the response type of a async paginated operation in the base service package.

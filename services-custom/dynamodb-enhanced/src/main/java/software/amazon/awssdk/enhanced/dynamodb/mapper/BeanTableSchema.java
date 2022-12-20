@@ -21,6 +21,7 @@ import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
+import java.beans.Transient;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -415,9 +416,10 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
             return false;
         }
 
-        if (getPropertyAnnotation(propertyDescriptor, DynamoDbIgnore.class) != null) {
+        if (getPropertyAnnotation(propertyDescriptor, DynamoDbIgnore.class) != null ||
+            getPropertyAnnotation(propertyDescriptor, Transient.class) != null) {
             debugLog(beanClass, () -> "Ignoring bean property " + propertyDescriptor.getDisplayName() + " because it has "
-                                      + "@DynamoDbIgnore.");
+                                      + "@DynamoDbIgnore or @Transient.");
             return false;
         }
 

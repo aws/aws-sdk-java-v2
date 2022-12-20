@@ -23,6 +23,7 @@ import static software.amazon.awssdk.codegen.internal.Utils.isScalar;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import software.amazon.awssdk.codegen.internal.TypeUtils;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.EnumModel;
@@ -191,6 +192,8 @@ abstract class AddShapes {
         memberModel.setEndpointDiscoveryId(c2jMemberDefinition.isEndpointdiscoveryid());
         memberModel.setXmlAttribute(c2jMemberDefinition.isXmlAttribute());
         memberModel.setUnionEnumTypeName(namingStrategy.getUnionEnumTypeName(memberModel));
+        memberModel.setContextParam(c2jMemberDefinition.getContextParam());
+        memberModel.setRequired(isRequiredMember(c2jMemberName, parentShape));
 
 
         // Pass the xmlNameSpace from the member reference
@@ -306,6 +309,12 @@ abstract class AddShapes {
     private boolean isFlattened(Member member, Shape memberShape) {
         return member.isFlattened()
                || memberShape.isFlattened();
+    }
+
+    private boolean isRequiredMember(String memberName, Shape memberShape) {
+        return Optional.ofNullable(memberShape.getRequired())
+                       .map(l -> l.contains(memberName))
+                       .orElse(false);
     }
 
     /**

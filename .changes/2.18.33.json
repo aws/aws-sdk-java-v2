@@ -1,0 +1,48 @@
+{
+    "version": "2.18.33",
+    "date": "2022-12-07",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "Amazon S3",
+            "contributor": "",
+            "description": "S3 query param validation\n\nThe SDK will raise SdkClientException when a null value is set for a member marked with the required trait."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Cost Explorer Service",
+            "contributor": "",
+            "description": "This release adds the LinkedAccountName field to the GetAnomalies API response under RootCause"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Key Management Service",
+            "contributor": "",
+            "description": "Updated examples and exceptions for External Key Store (XKS)."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Adding utilities for signing CloudFront URLs and cookies"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudFront",
+            "contributor": "",
+            "description": "Introducing UpdateDistributionWithStagingConfig that can be used to promote the staging configuration to the production."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Kubernetes Service",
+            "contributor": "",
+            "description": "Adds support for EKS add-ons configurationValues fields and DescribeAddonConfiguration function"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

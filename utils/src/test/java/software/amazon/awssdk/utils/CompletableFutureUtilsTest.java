@@ -105,4 +105,58 @@ public class CompletableFutureUtilsTest {
         src.completeExceptionally(exception);
         assertThatThrownBy(dst::join).hasCause(exception);
     }
+
+    @Test(timeout = 1000)
+    public void anyFail_shouldCompleteWhenAnyFutureFails() {
+        RuntimeException exception = new RuntimeException("blah");
+        CompletableFuture[] completableFutures = new CompletableFuture[2];
+        completableFutures[0] = new CompletableFuture();
+        completableFutures[1] = new CompletableFuture();
+
+        CompletableFuture<Void> anyFail = CompletableFutureUtils.anyFail(completableFutures);
+        completableFutures[0] = CompletableFuture.completedFuture("test");
+        completableFutures[1].completeExceptionally(exception);
+        assertThatThrownBy(anyFail::join).hasCause(exception);
+    }
+
+    @Test(timeout = 1000)
+    public void anyFail_shouldNotCompleteWhenAllFuturesSucceed() {
+        CompletableFuture[] completableFutures = new CompletableFuture[2];
+        completableFutures[0] = new CompletableFuture();
+        completableFutures[1] = new CompletableFuture();
+
+        CompletableFuture<Void> anyFail = CompletableFutureUtils.anyFail(completableFutures);
+        completableFutures[0] = CompletableFuture.completedFuture("test");
+        completableFutures[1] = CompletableFuture.completedFuture("test");
+        assertThat(anyFail.isDone()).isFalse();
+    }
+
+    @Test(timeout = 1000)
+    public void allOfExceptionForwarded_anyFutureFails_shouldForwardExceptionToOthers() {
+        RuntimeException exception = new RuntimeException("blah");
+        CompletableFuture[] completableFutures = new CompletableFuture[2];
+        completableFutures[0] = new CompletableFuture();
+        completableFutures[1] = new CompletableFuture();
+
+        CompletableFuture<Void> resultFuture = CompletableFutureUtils.allOfExceptionForwarded(completableFutures);
+        completableFutures[0].completeExceptionally(exception);
+
+        assertThatThrownBy(resultFuture::join).hasCause(exception);
+        assertThatThrownBy(completableFutures[1]::join).hasCause(exception);
+    }
+
+    @Test(timeout = 1000)
+    public void allOfExceptionForwarded_allFutureSucceed_shouldComplete() {
+        RuntimeException exception = new RuntimeException("blah");
+        CompletableFuture[] completableFutures = new CompletableFuture[2];
+        completableFutures[0] = new CompletableFuture();
+        completableFutures[1] = new CompletableFuture();
+
+        CompletableFuture<Void> resultFuture = CompletableFutureUtils.allOfExceptionForwarded(completableFutures);
+        completableFutures[0].complete("test");
+        completableFutures[1].complete("test");
+
+        assertThat(resultFuture.isDone()).isTrue();
+        assertThat(resultFuture.isCompletedExceptionally()).isFalse();
+    }
 }

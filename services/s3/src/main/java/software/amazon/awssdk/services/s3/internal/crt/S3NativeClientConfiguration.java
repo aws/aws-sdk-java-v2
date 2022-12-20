@@ -15,26 +15,14 @@
 
 package software.amazon.awssdk.services.s3.internal.crt;
 
-
-import static software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR;
-
 import java.net.URI;
-import java.util.Optional;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
-import software.amazon.awssdk.core.client.config.ClientAsyncConfiguration;
 import software.amazon.awssdk.crt.auth.credentials.CredentialsProvider;
 import software.amazon.awssdk.crt.io.ClientBootstrap;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
-import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 
 /**
  * Internal client configuration resolver
@@ -42,7 +30,8 @@ import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 @SdkInternalApi
 public class S3NativeClientConfiguration implements SdkAutoCloseable {
     private static final long DEFAULT_PART_SIZE_IN_BYTES = 8L * 1024 * 1024;
-    private static final long DEFAULT_TARGET_THROUGHPUT_IN_GBPS = 5;
+    private static final long DEFAULT_TARGET_THROUGHPUT_IN_GBPS = 10;
+
     private final String signingRegion;
     private final ClientBootstrap clientBootstrap;
     private final CrtCredentialsProviderAdapter credentialProviderAdapter;
@@ -51,7 +40,8 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
     private final double targetThroughputInGbps;
     private final int maxConcurrency;
     private final URI endpointOverride;
-    private final Executor futureCompletionExecutor;
+    private final boolean checksumValidationEnabled;
+    private final Long readBufferSizeInBytes;
 
     public S3NativeClientConfiguration(Builder builder) {
         this.signingRegion = builder.signingRegion == null ? DefaultAwsRegionProviderChain.builder().build().getRegion().id() :
@@ -75,7 +65,9 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
 
         this.endpointOverride = builder.endpointOverride;
 
-        this.futureCompletionExecutor = resolveAsyncFutureCompletionExecutor(builder.asynConfiguration);
+        this.checksumValidationEnabled = builder.checksumValidationEnabled == null || builder.checksumValidationEnabled;
+        this.readBufferSizeInBytes = builder.readBufferSizeInBytes == null ?
+                                     partSizeInBytes * 10 : builder.readBufferSizeInBytes;
     }
 
     public static Builder builder() {
@@ -110,60 +102,29 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         return endpointOverride;
     }
 
-    public Executor futureCompletionExecutor() {
-        return futureCompletionExecutor;
+    public boolean checksumValidationEnabled() {
+        return checksumValidationEnabled;
     }
 
-    /**
-     * Finalize which async executor service will be used for the created client. The default async executor
-     * service has at least 8 core threads and can scale up to at least 64 threads when needed depending
-     * on the number of processors available.
-     *
-     * This uses the same default executor from SdkDefaultClientBuilder#resolveAsyncFutureCompletionExecutor.
-     * Make sure you update that method if you update the defaults here.
-     */
-    private Executor resolveAsyncFutureCompletionExecutor(ClientAsyncConfiguration config) {
-        Supplier<Executor> defaultExecutor = () -> {
-            int processors = Runtime.getRuntime().availableProcessors();
-            int corePoolSize = Math.max(8, processors);
-            int maxPoolSize = Math.max(64, processors * 2);
-            ThreadPoolExecutor executor = new ThreadPoolExecutor(corePoolSize, maxPoolSize,
-                                                                 10, TimeUnit.SECONDS,
-                                                                 new LinkedBlockingQueue<>(1_000),
-                                                                 new ThreadFactoryBuilder()
-                                                                     .threadNamePrefix("sdk-async-response").build());
-            // Allow idle core threads to time out
-            executor.allowCoreThreadTimeOut(true);
-            return executor;
-        };
-
-        return Optional.ofNullable(config)
-                       .map(c -> c.advancedOption(FUTURE_COMPLETION_EXECUTOR))
-                       .orElseGet(defaultExecutor);
+    public Long readBufferSizeInBytes() {
+        return readBufferSizeInBytes;
     }
 
     @Override
     public void close() {
         clientBootstrap.close();
         credentialProviderAdapter.close();
-        shutdownIfExecutorService(futureCompletionExecutor);
-    }
-
-    private void shutdownIfExecutorService(Object object) {
-        if (object instanceof ExecutorService) {
-            ExecutorService executor = (ExecutorService) object;
-            executor.shutdown();
-        }
     }
 
     public static final class Builder {
+        private Long readBufferSizeInBytes;
         private String signingRegion;
         private AwsCredentialsProvider credentialsProvider;
         private Long partSizeInBytes;
         private Double targetThroughputInGbps;
         private Integer maxConcurrency;
         private URI endpointOverride;
-        private ClientAsyncConfiguration asynConfiguration;
+        private Boolean checksumValidationEnabled;
 
         private Builder() {
         }
@@ -198,13 +159,21 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
             return this;
         }
 
-        public Builder asyncConfiguration(ClientAsyncConfiguration asyncConfiguration) {
-            this.asynConfiguration = asyncConfiguration;
+        /**
+         * Option to disable checksum validation of an object stored in S3.
+         */
+        public Builder checksumValidationEnabled(Boolean checksumValidationEnabled) {
+            this.checksumValidationEnabled = checksumValidationEnabled;
             return this;
         }
 
         public S3NativeClientConfiguration build() {
             return new S3NativeClientConfiguration(this);
+        }
+
+        public Builder readBufferSizeInBytes(Long readBufferSizeInBytes) {
+            this.readBufferSizeInBytes = readBufferSizeInBytes;
+            return this;
         }
     }
 }
