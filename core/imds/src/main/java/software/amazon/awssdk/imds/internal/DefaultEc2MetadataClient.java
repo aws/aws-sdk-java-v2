@@ -22,8 +22,6 @@ import java.io.UncheckedIOException;
 import java.net.URI;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
@@ -212,13 +210,11 @@ public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implem
                                     .build();
         }
 
-        Map<String, List<String>> headers = response.httpResponse().headers();
-        Duration ttl = Optional
-            .ofNullable(headers.get(EC2_METADATA_TOKEN_TTL_HEADER))
-            .flatMap(list -> list.stream().findAny())
-            .map(Long::parseLong)
-            .map(Duration::ofSeconds)
-            .orElse(tokenTtl);
+        Duration ttl = response.httpResponse()
+                               .firstMatchingHeader(EC2_METADATA_TOKEN_TTL_HEADER)
+                               .map(Long::parseLong)
+                               .map(Duration::ofSeconds)
+                               .orElse(tokenTtl);
 
         AbortableInputStream abortableInputStream = response.responseBody().orElseThrow(
             SdkClientException.builder().message("Empty response body")::build);

@@ -245,25 +245,25 @@ abstract class BaseEc2MetadataClientTest<T, B extends Ec2MetadataClientBuilder<B
                                                     .whenScenarioStateIs(STARTED)
                                                     .willReturn(aResponse().withStatus(500)
                                                                            .withBody("Error 500")
-                                                                           .withFixedDelay(600))
+                                                                           .withFixedDelay(700))
                                                     .willSetStateTo("Retry-1"));
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).inScenario("Retry Scenario")
                                                     .whenScenarioStateIs("Retry-1")
                                                     .willReturn(aResponse().withStatus(500)
                                                                            .withBody("Error 500")
-                                                                           .withFixedDelay(600))
+                                                                           .withFixedDelay(700))
                                                     .willSetStateTo("Retry-2"));
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).inScenario("Retry Scenario")
                                                     .whenScenarioStateIs("Retry-2")
                                                     .willReturn(aResponse().withStatus(500)
                                                                            .withBody("Error 500")
-                                                                           .withFixedDelay(600))
+                                                                           .withFixedDelay(700))
                                                     .willSetStateTo("Retry-3"));
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).inScenario("Retry Scenario")
                                                     .whenScenarioStateIs("Retry-3")
                                                     .willReturn(aResponse().withStatus(200)
                                                                            .withBody("Success")
-                                                                           .withFixedDelay(600)));
+                                                                           .withFixedDelay(700)));
 
         overrideClient(builder -> builder
             .tokenTtl(Duration.ofSeconds(2))

@@ -169,7 +169,7 @@ class Ec2MetadataAsyncClientTest extends BaseEc2MetadataClientTest<Ec2MetadataAs
     }
 
     @Test
-    void get_cancelResponseFuture_shouldPropagate() {
+    void get_cancelResponseFuture_shouldPropagate() throws Exception {
         SdkAsyncHttpClient mockClient = Mockito.mock(SdkAsyncHttpClient.class);
         CompletableFuture<Void> responseFuture = new CompletableFuture<>();
         when(mockClient.execute(any(AsyncExecuteRequest.class))).thenReturn(responseFuture);

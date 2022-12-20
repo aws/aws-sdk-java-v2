@@ -19,7 +19,6 @@ import static software.amazon.awssdk.imds.internal.RequestMarshaller.EC2_METADAT
 import static software.amazon.awssdk.imds.internal.StringResponseHandler.uncheckedInputStreamToUtf8;
 
 import java.time.Duration;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.RetryableException;
@@ -61,11 +60,9 @@ public final class TokenResponseHandler implements HttpResponseHandler<Token> {
             // retryable error
             future.completeExceptionally(RetryableException.create(responseContent));
         }
-        Optional<String> tokenHeader = Optional
-            .ofNullable(response.headers().get(EC2_METADATA_TOKEN_TTL_HEADER))
-            .flatMap(l -> l.stream().findAny());
-        Duration ttl = tokenHeader.map(Long::parseLong).map(Duration::ofSeconds)
-                                  .orElseGet(() -> Duration.ofSeconds(ttlSeconds));
+        Duration ttl = response.firstMatchingHeader(EC2_METADATA_TOKEN_TTL_HEADER)
+                                               .map(Long::parseLong).map(Duration::ofSeconds)
+                                               .orElseGet(() -> Duration.ofSeconds(ttlSeconds));
         return new Token(responseContent, ttl);
     }
 
