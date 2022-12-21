@@ -19,58 +19,52 @@ import static software.amazon.awssdk.s3benchmarks.BenchmarkUtils.BENCHMARK_ITERA
 import static software.amazon.awssdk.s3benchmarks.BenchmarkUtils.printOutResult;
 import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
 
-import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import software.amazon.awssdk.crt.http.HttpHeader;
-import software.amazon.awssdk.crt.http.HttpRequest;
 import software.amazon.awssdk.crt.s3.CrtS3RuntimeException;
 import software.amazon.awssdk.crt.s3.S3Client;
 import software.amazon.awssdk.crt.s3.S3ClientOptions;
 import software.amazon.awssdk.crt.s3.S3FinishedResponseContext;
-import software.amazon.awssdk.crt.s3.S3MetaRequest;
-import software.amazon.awssdk.crt.s3.S3MetaRequestOptions;
 import software.amazon.awssdk.crt.s3.S3MetaRequestResponseHandler;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.services.s3.internal.crt.S3NativeClientConfiguration;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
-public class CrtS3ClientBenchmark implements TransferManagerBenchmark {
+public abstract class BaseCrtClientBenchmark implements  TransferManagerBenchmark {
+    private static final Logger logger = Logger.loggerFor(BaseCrtClientBenchmark.class);
 
-    private static final Logger logger = Logger.loggerFor("CrtS3ClientBenchmark");
+    protected final String bucket;
+    protected final String key;
+    protected final int iteration;
+    protected final S3NativeClientConfiguration s3NativeClientConfiguration;
+    protected final S3Client crtS3Client;
+    protected final software.amazon.awssdk.services.s3.S3Client s3Sync;
+    protected final Region region;
 
-    private final String bucket;
-    private final String key;
-    private final int iteration;
-    private final S3NativeClientConfiguration s3NativeClientConfiguration;
-    private final S3Client crtS3Client;
-    private final software.amazon.awssdk.services.s3.S3Client s3Sync;
-    private final Region region;
+    protected final long contentLength;
 
-    private final long contentLength;
-
-    public CrtS3ClientBenchmark(TransferManagerBenchmarkConfig config) {
+    protected BaseCrtClientBenchmark(TransferManagerBenchmarkConfig config) {
         logger.info(() -> "Benchmark config: " + config);
         Validate.isNull(config.filePath(), "File path is not supported in CrtS3ClientBenchmark");
 
-        Long readBufferSizeInMb = config.readBufferSizeInMb() == null ? null : config.readBufferSizeInMb() * MB;
 
         Long partSizeInBytes = config.partSizeInMb() == null ? null : config.partSizeInMb() * MB;
-        s3NativeClientConfiguration = S3NativeClientConfiguration.builder()
-                                                                 .partSizeInBytes(partSizeInBytes)
-                                                                 .targetThroughputInGbps(config.targetThroughput() == null ?
-                                                                                         Double.valueOf(100.0) :
-                                                                                         config.targetThroughput())
-                                                                 .checksumValidationEnabled(true)
-                                                                 .build();
+        this.s3NativeClientConfiguration = S3NativeClientConfiguration.builder()
+                                                                      .partSizeInBytes(partSizeInBytes)
+                                                                      .targetThroughputInGbps(config.targetThroughput() == null ?
+                                                                                              Double.valueOf(100.0) :
+                                                                                              config.targetThroughput())
+                                                                      .checksumValidationEnabled(true)
+                                                                      .build();
 
+        this.bucket = config.bucket();
+        this.key = config.key();
+        this.iteration = config.iteration() == null ? BENCHMARK_ITERATIONS : config.iteration();
 
         S3ClientOptions s3ClientOptions =
             new S3ClientOptions().withRegion(s3NativeClientConfiguration.signingRegion())
@@ -82,27 +76,25 @@ public class CrtS3ClientBenchmark implements TransferManagerBenchmark {
                                  .withComputeContentMd5(false)
                                  .withThroughputTargetGbps(s3NativeClientConfiguration.targetThroughputInGbps());
 
-        bucket = config.bucket();
-        key = config.key();
-        iteration = config.iteration() == null ? BENCHMARK_ITERATIONS : config.iteration();
-
+        Long readBufferSizeInMb = config.readBufferSizeInMb() == null ? null : config.readBufferSizeInMb() * MB;
         if (readBufferSizeInMb != null) {
             s3ClientOptions.withInitialReadWindowSize(readBufferSizeInMb);
             s3ClientOptions.withReadBackpressureEnabled(true);
         }
 
-        crtS3Client = new S3Client(s3ClientOptions);
-        s3Sync = software.amazon.awssdk.services.s3.S3Client.builder()
-                                                            .build();
+        this.crtS3Client = new S3Client(s3ClientOptions);
+        s3Sync = software.amazon.awssdk.services.s3.S3Client.builder().build();
         this.contentLength = s3Sync.headObject(b -> b.bucket(bucket).key(key)).contentLength();
 
-        DefaultAwsRegionProviderChain instanceProfileRegionProvider = new DefaultAwsRegionProviderChain();
+        AwsRegionProvider instanceProfileRegionProvider = new DefaultAwsRegionProviderChain();
         region = instanceProfileRegionProvider.getRegion();
+
     }
+
+    protected abstract void sendOneRequest(List<Double> latencies) throws Exception;
 
     @Override
     public void run() {
-
         try {
             warmUp();
             doRunBenchmark();
@@ -121,7 +113,6 @@ public class CrtS3ClientBenchmark implements TransferManagerBenchmark {
 
     private void warmUp() throws Exception {
         logger.info(() -> "Starting to warm up");
-
         for (int i = 0; i < 3; i++) {
             sendOneRequest(new ArrayList<>());
             Thread.sleep(500);
@@ -129,45 +120,18 @@ public class CrtS3ClientBenchmark implements TransferManagerBenchmark {
         logger.info(() -> "Ending warm up");
     }
 
-    private void doRunBenchmark() {
+    private void doRunBenchmark() throws Exception {
         List<Double> metrics = new ArrayList<>();
         for (int i = 0; i < iteration; i++) {
             sendOneRequest(metrics);
         }
-
         printOutResult(metrics, "Download to File", contentLength);
     }
 
-    private void sendOneRequest(List<Double> latencies) {
-
-        CompletableFuture<Void> resultFuture = new CompletableFuture<>();
-
-        S3MetaRequestResponseHandler responseHandler = new TestS3MetaRequestResponseHandler(resultFuture);
-
-        String endpoint = bucket + ".s3." + region + ".amazonaws.com";
-
-        HttpHeader[] headers = {new HttpHeader("Host", endpoint)};
-        HttpRequest httpRequest = new HttpRequest("GET", "/" + key, headers, null);
-
-        S3MetaRequestOptions metaRequestOptions = new S3MetaRequestOptions()
-            .withEndpoint(URI.create("https://" + endpoint))
-            .withMetaRequestType(S3MetaRequestOptions.MetaRequestType.GET_OBJECT).withHttpRequest(httpRequest)
-            .withResponseHandler(responseHandler);
-
-        long start = System.currentTimeMillis();
-        try (S3MetaRequest metaRequest = crtS3Client.makeMetaRequest(metaRequestOptions)) {
-            resultFuture.get(10, TimeUnit.MINUTES);
-        } catch (ExecutionException | TimeoutException | InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-        long end = System.currentTimeMillis();
-        latencies.add((end - start) / 1000.0);
-    }
-
-    private static final class TestS3MetaRequestResponseHandler implements S3MetaRequestResponseHandler {
+    protected static final class TestS3MetaRequestResponseHandler implements S3MetaRequestResponseHandler {
         private final CompletableFuture<Void> resultFuture;
 
-        private TestS3MetaRequestResponseHandler(CompletableFuture<Void> resultFuture) {
+        TestS3MetaRequestResponseHandler(CompletableFuture<Void> resultFuture) {
             this.resultFuture = resultFuture;
         }
 
@@ -187,4 +151,5 @@ public class CrtS3ClientBenchmark implements TransferManagerBenchmark {
             resultFuture.complete(null);
         }
     }
+
 }

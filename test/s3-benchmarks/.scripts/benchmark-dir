@@ -1,0 +1,102 @@
+#!/bin/bash
+
+#
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+#
+#  http://aws.amazon.com/apache2.0
+#
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+#
+
+# Script for running multiple Transfer manager benchmarks at the same time
+
+usage() {
+  echo "usage:"
+  echo "    benchmark-dir download|upload fs|tmpfs|no-op [1B|4K|16M|5G]"
+  echo "example:"
+  echo "    ./benchmark-dir download fs"
+  echo "    ./benchmark-dir upload tmpfs"
+  echo "    ./benchmark download fs 5G"
+}
+
+# validate operation
+if [ -z "$1" ] || ([ "$1" != download ] && [ "$1" != upload ]); then
+  usage
+  exit 1
+fi
+operation="$1"_directory
+
+# validate location
+if [[ -z "$2" ]]; then
+  usage
+  exit 1
+fi
+
+location_name="$2"
+if ([ "$location_name" != fs ] && [ "$location_name" != tmpfs ] && [ "$location_name" != no-op ]); then
+  usage
+  exit 1
+fi
+
+if [[ "$location_name" == fs ]]; then
+  location="$HOME/tm_dir_files"
+fi
+
+if [[ "$location_name" == tmpfs ]]; then
+  location="/dev/shm/tm_dir_files"
+fi
+
+
+sizes_str="1B 4K 16M 5G"
+versions_str="v1 v2"
+sizes=( $sizes_str )
+versions=( $versions_str )
+
+run_benchmark() {
+  echo "Benchmark: $version - $size"
+  directory="$location/$size"
+  if [[ -z "$directory" ]]; then
+    mkdir -p "$directory"
+  fi
+  result_file="$operation"_"$location_name"_"$version"_"$size".txt
+  prefix="$size"
+  cmd="java -jar ../target/s3-benchmarks.jar \
+            --operation=$operation \
+            --bucket=do-not-delete-crt-s3-eu-west-1 \
+            --partSizeInMB=8 \
+            --maxThroughput=100.0 \
+            --iteration=8 \
+            --version=$version \
+            --readBufferInMB=3072 \
+            --prefix=$prefix \
+            --file=$directory"
+
+  echo "$cmd" | sed 's/ \{1,\}/ /g' > "result/$result_file"
+  $cmd | tee -a "result/$result_file"
+  echo "Benchmark done"
+}
+
+for (( i = 0; i < "${#versions[@]}"; i++ ))
+do
+  version="${versions[$i]}"
+  if [[ -n "$3" ]]
+  then
+    size="$3"
+    run_benchmark
+  else
+    for (( j = 0; j < "${#sizes[@]}"; j++ ))
+    do
+      size="${sizes[$j]}"
+      run_benchmark
+    done
+  fi
+done
+
+

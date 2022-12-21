@@ -17,6 +17,7 @@ package software.amazon.awssdk.s3benchmarks;
 
 import static software.amazon.awssdk.s3benchmarks.BenchmarkUtils.BENCHMARK_ITERATIONS;
 import static software.amazon.awssdk.s3benchmarks.BenchmarkUtils.COPY_SUFFIX;
+import static software.amazon.awssdk.s3benchmarks.BenchmarkUtils.DEFAULT_TIMEOUT;
 import static software.amazon.awssdk.s3benchmarks.BenchmarkUtils.WARMUP_KEY;
 import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
 import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
@@ -25,6 +26,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -52,6 +54,7 @@ public abstract class BaseTransferManagerBenchmark implements TransferManagerBen
     protected final String key;
     protected final String path;
     protected final int iteration;
+    protected final Duration timeout;
     private final File file;
 
     BaseTransferManagerBenchmark(TransferManagerBenchmarkConfig config) {
@@ -74,6 +77,7 @@ public abstract class BaseTransferManagerBenchmark implements TransferManagerBen
         key = config.key();
         path = config.filePath();
         iteration = config.iteration() == null ? BENCHMARK_ITERATIONS : config.iteration();
+        timeout = config.timeout() == null ? DEFAULT_TIMEOUT : config.timeout();
         try {
             file = new RandomTempFile(10 * MB);
             file.deleteOnExit();
