@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Transfer Family",
-    "contributor": "",
-    "description": "This release adds support for Decrypt as a workflow step type."
-}
