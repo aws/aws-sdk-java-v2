@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Connect Participant Service",
+    "contributor": "",
+    "description": "Amazon Connect Chat now allows for JSON (application/json) message types to be sent in the SendMessage API."
+}
