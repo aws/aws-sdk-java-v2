@@ -26,7 +26,7 @@ public interface TransferManagerBenchmark {
      */
     void run();
 
-    static TransferManagerBenchmark download(TransferManagerBenchmarkConfig config) {
+    static TransferManagerBenchmark v2Download(TransferManagerBenchmarkConfig config) {
         return new TransferManagerDownloadBenchmark(config);
     }
 
@@ -34,7 +34,7 @@ public interface TransferManagerBenchmark {
         return new TransferManagerDownloadDirectoryBenchmark(config);
     }
 
-    static TransferManagerBenchmark upload(TransferManagerBenchmarkConfig config) {
+    static TransferManagerBenchmark v2Upload(TransferManagerBenchmarkConfig config) {
         return new TransferManagerUploadBenchmark(config);
     }
 

@@ -17,6 +17,8 @@ package software.amazon.awssdk.s3benchmarks;
 
 import static software.amazon.awssdk.transfer.s3.SizeConstant.GB;
 
+import java.time.Duration;
+import java.util.Collection;
 import java.util.List;
 import software.amazon.awssdk.utils.Logger;
 
@@ -24,6 +26,7 @@ public final class BenchmarkUtils {
     static final int PRE_WARMUP_ITERATIONS = 10;
     static final int PRE_WARMUP_RUNS = 20;
     static final int BENCHMARK_ITERATIONS = 10;
+    static final Duration DEFAULT_TIMEOUT = Duration.ofMinutes(10);
     static final String WARMUP_KEY = "warmupobject";
     static final String COPY_SUFFIX = "_copy";
 
@@ -46,6 +49,7 @@ public final class BenchmarkUtils {
 
         double contentLengthInGigabit = (contentLengthInByte / (double) GB) * 8.0;
         logger.info(() -> "Average latency (s): " + averageLatency);
+        logger.info(() -> "Latency variance (s): " + variance(metrics, averageLatency));
         logger.info(() -> "Object size (Gigabit): " + contentLengthInGigabit);
         logger.info(() -> "Average throughput (Gbps): " + contentLengthInGigabit / averageLatency);
         logger.info(() -> "Highest average throughput (Gbps): " + contentLengthInGigabit / lowestLatency);
@@ -67,6 +71,22 @@ public final class BenchmarkUtils {
 
         logger.info(() -> "Average latency (s): " + averageLatency);
         logger.info(() -> "Lowest latency (s): " + lowestLatency);
+        logger.info(() -> "Latency variance (s): " + variance(metrics, averageLatency));
         logger.info(() -> "==========================================================");
+    }
+
+    /**
+     * calculates the variance (std deviation squared) of the sample
+     * @param sample the values to calculate the variance for
+     * @param mean the known mean of the sample
+     * @return the variance value
+     */
+    private static double variance(Collection<Double> sample, double mean) {
+        double numerator = 0;
+        for (double value : sample) {
+            double diff = value - mean;
+            numerator += (diff * diff);
+        }
+        return numerator / sample.size();
     }
 }

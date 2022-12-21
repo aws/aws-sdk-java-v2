@@ -1,3 +1,44 @@
+# __2.19.2__ __2022-12-21__
+## __AWS License Manager Linux Subscriptions__
+  - ### Features
+    - AWS License Manager now offers cross-region, cross-account tracking of commercial Linux subscriptions on AWS. This includes subscriptions purchased as part of EC2 subscription-included AMIs, on the AWS Marketplace, or brought to AWS via Red Hat Cloud Access Program.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Support__
+  - ### Features
+    - Documentation updates for the AWS Support API
+
+## __AWS Transfer Family__
+  - ### Features
+    - This release adds support for Decrypt as a workflow step type.
+
+## __Amazon Connect Participant Service__
+  - ### Features
+    - Amazon Connect Chat now allows for JSON (application/json) message types to be sent in the SendMessage API.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect Chat now allows for JSON (application/json) message types to be sent as part of the initial message in the StartChatContact API.
+
+## __Amazon EventBridge Scheduler__
+  - ### Features
+    - Updated the ListSchedules and ListScheduleGroups APIs to allow the NamePrefix field to start with a number. Updated the validation for executionRole field to support any role name.
+
+## __Amazon Macie 2__
+  - ### Features
+    - This release adds support for analyzing Amazon S3 objects that use the S3 Glacier Instant Retrieval (Glacier_IR) storage class.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release enables adding RStudio Workbench support to an existing Amazon SageMaker Studio domain. It allows setting your RStudio on SageMaker environment configuration parameters and also updating the RStudioConnectUrl and RStudioPackageManagerUrl parameters for existing domains
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Doc-only updates for December 2022.
+
 # __2.19.1__ __2022-12-20__
 ## __AWS Batch__
   - ### Features
@@ -26,6 +67,10 @@
 ## __Amazon Route 53 Domains__
   - ### Features
     - Use Route 53 domain APIs to change owner, create/delete DS record, modify IPS tag, resend authorization. New: AssociateDelegationSignerToDomain, DisassociateDelegationSignerFromDomain, PushDomain, ResendOperationAuthorization. Updated: UpdateDomainContact, ListOperations, CheckDomainTransferability.
+
+## __Amazon S3 Transfer Manager__
+  - ### Bugfixes
+    - Add `s3-transfer-manager` to bom so that users can use bom to manage its version.
 
 ## __Amazon SageMaker Service__
   - ### Features

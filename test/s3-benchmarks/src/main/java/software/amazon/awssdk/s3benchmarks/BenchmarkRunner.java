@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.s3benchmarks;
 
+import java.time.Duration;
 import java.util.EnumMap;
 import java.util.Locale;
 import java.util.Map;
@@ -35,11 +36,14 @@ public final class BenchmarkRunner {
     private static final String OPERATION = "operation";
     private static final String CHECKSUM_ALGORITHM = "checksumAlgo";
     private static final String ITERATION = "iteration";
+    private static final String CONTENT_LENGTH = "contentLengthInMB";
 
     private static final String READ_BUFFER_IN_MB = "readBufferInMB";
 
     private static final String VERSION = "version";
     private static final String PREFIX = "prefix";
+
+    private static final String TIMEOUT = "timeoutInMin";
 
     private static final Map<TransferManagerOperation, Function<TransferManagerBenchmarkConfig, TransferManagerBenchmark>>
         OPERATION_TO_BENCHMARK_V1 = new EnumMap<>(TransferManagerOperation.class);
@@ -48,8 +52,8 @@ public final class BenchmarkRunner {
 
     static {
         OPERATION_TO_BENCHMARK_V2.put(TransferManagerOperation.COPY, TransferManagerBenchmark::copy);
-        OPERATION_TO_BENCHMARK_V2.put(TransferManagerOperation.DOWNLOAD, TransferManagerBenchmark::download);
-        OPERATION_TO_BENCHMARK_V2.put(TransferManagerOperation.UPLOAD, TransferManagerBenchmark::upload);
+        OPERATION_TO_BENCHMARK_V2.put(TransferManagerOperation.DOWNLOAD, TransferManagerBenchmark::v2Download);
+        OPERATION_TO_BENCHMARK_V2.put(TransferManagerOperation.UPLOAD, TransferManagerBenchmark::v2Upload);
         OPERATION_TO_BENCHMARK_V2.put(TransferManagerOperation.DOWNLOAD_DIRECTORY, TransferManagerBenchmark::downloadDirectory);
         OPERATION_TO_BENCHMARK_V2.put(TransferManagerOperation.UPLOAD_DIRECTORY, TransferManagerBenchmark::uploadDirectory);
 
@@ -83,6 +87,13 @@ public final class BenchmarkRunner {
                                                + "v2");
         options.addOption(null, PREFIX, true, "S3 Prefix used in downloadDirectory and uploadDirectory");
 
+        options.addOption(null, CONTENT_LENGTH, true, "Content length to upload from memory. Used only in the "
+                                                      + "CRT Upload Benchmark, but "
+                                                      + "is required for this test case.");
+
+        options.addOption(null, TIMEOUT, true, "Amount of minute to wait before a single operation "
+                                               + "times out and is cancelled. Optional, defaults to 10 minutes if no specified");
+
         CommandLine cmd = parser.parse(options, args);
         TransferManagerBenchmarkConfig config = parseConfig(cmd);
 
@@ -101,7 +112,10 @@ public final class BenchmarkRunner {
                 break;
             case CRT:
                 if (operation == TransferManagerOperation.DOWNLOAD) {
-                    benchmark = new CrtS3ClientBenchmark(config);
+                    benchmark = new CrtS3ClientDownloadBenchmark(config);
+                    break;
+                } else if (operation == TransferManagerOperation.UPLOAD) {
+                    benchmark = new CrtS3ClientUploadBenchmark(config);
                     break;
                 }
                 throw new UnsupportedOperationException();
@@ -138,6 +152,12 @@ public final class BenchmarkRunner {
 
         String prefix = cmd.getOptionValue(PREFIX);
 
+        Long contentLengthInMb = cmd.getOptionValue(CONTENT_LENGTH) == null ? null :
+                                 Long.parseLong(cmd.getOptionValue(CONTENT_LENGTH));
+
+        Duration timeout = cmd.getOptionValue(TIMEOUT) == null ? null :
+                           Duration.ofMinutes(Long.parseLong(cmd.getOptionValue(TIMEOUT)));
+
         return TransferManagerBenchmarkConfig.builder()
                                              .key(key)
                                              .bucket(bucket)
@@ -149,6 +169,8 @@ public final class BenchmarkRunner {
                                              .iteration(iteration)
                                              .operation(operation)
                                              .prefix(prefix)
+                                             .contentLengthInMb(contentLengthInMb)
+                                             .timeout(timeout)
                                              .build();
     }
 
