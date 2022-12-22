@@ -22,9 +22,21 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
+import software.amazon.awssdk.utils.Logger;
 
+/**
+ * A cache for the IMDS {@link Token}, which can be refreshed through an asynchronous operation.
+ * A call to the {@link AsyncTokenCache#get()} method returns an already completed future if the cached token is still fresh.
+ * If the cached token was expired, the returned future will be completed once the refresh process has been
+ * completed.
+ * In the case where multiple call to <pre>get</pre> are made while the token is expired, all CompletableFuture returned
+ * will be completed once the single refresh process completes.
+ *
+ */
 @SdkInternalApi
 final class AsyncTokenCache implements Supplier<CompletableFuture<Token>> {
+
+    private static final Logger log = Logger.loggerFor(AsyncTokenCache.class);
 
     /**
      * The currently cached value.
@@ -57,35 +69,32 @@ final class AsyncTokenCache implements Supplier<CompletableFuture<Token>> {
         this.refreshRunning = new AtomicBoolean(false);
     }
 
-    /**
-     * @return an already completed future if the cached value is still fresh. If the cached value was stale, the returned future
-     * that will be completed once the refresh has been completed.
-     * In the case where multiple call to <pre>get</pre> are made while the token is expired, all CompletableFuture returned
-     * will be
-     * completed once the
-     */
     @Override
     public CompletableFuture<Token> get() {
         Token currentValue = cachedToken;
         if (!needsRefresh(currentValue)) {
+            log.debug(() -> "IMDS Token is not expired");
             return CompletableFuture.completedFuture(currentValue);
         }
-        synchronized (refreshLock) { // Make sure the value wasn't refreshed while we were waiting for the lock.
+        synchronized (refreshLock) {
+            // Make sure the value wasn't refreshed while we were waiting for the lock.
             currentValue = cachedToken;
             if (!needsRefresh(currentValue)) {
                 return CompletableFuture.completedFuture(currentValue);
             }
             CompletableFuture<Token> result = new CompletableFuture<>();
-            waitingFutures.add(result);
-            if (!refreshRunning.get()) {
-                CompletableFuture<Token> tokenRequest = startRefresh();
+            if (refreshRunning.get()) {
+                waitingFutures.add(result);
+            } else {
+                CompletableFuture<Token> tokenRequest = startRefresh(result);
                 CompletableFutureUtils.forwardExceptionTo(result, tokenRequest);
             }
             return result;
         }
     }
 
-    private CompletableFuture<Token> startRefresh() {
+    private CompletableFuture<Token> startRefresh(CompletableFuture<Token> parent) {
+        log.debug(() -> "IMDS token expired or null, starting asynchronous refresh.");
         CompletableFuture<Token> tokenRequest = supplier.get();
         refreshRunning.set(true); // After supplier.get(), in case that throws an exception
         tokenRequest.whenComplete((token, throwable) -> {
@@ -99,7 +108,12 @@ final class AsyncTokenCache implements Supplier<CompletableFuture<Token>> {
                 waitingFutures = new ArrayList<>();
                 refreshRunning.set(false);
                 if (token != null) {
+                    log.debug(() -> "IMDS token refresh completed. Token value: " + token.value());
                     cachedToken = token;
+                    parent.complete(cachedToken);
+                } else {
+                    log.error(() -> "IMDS token refresh completed with error.", throwable);
+                    parent.completeExceptionally(throwable);
                 }
             }
 

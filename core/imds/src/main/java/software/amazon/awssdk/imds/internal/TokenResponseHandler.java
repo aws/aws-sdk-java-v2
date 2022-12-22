@@ -35,7 +35,7 @@ public final class TokenResponseHandler implements HttpResponseHandler<Token> {
     private static final Logger log = Logger.loggerFor(TokenResponseHandler.class);
 
     private CompletableFuture<Token> future;
-    private long ttlSeconds;
+    private final long ttlSeconds;
 
     public TokenResponseHandler(long ttlSeconds) {
         this.ttlSeconds = ttlSeconds;
