@@ -49,7 +49,7 @@ public final class ProfileCredentialsProvider
                SdkAutoCloseable,
                ToCopyableBuilder<ProfileCredentialsProvider.Builder, ProfileCredentialsProvider> {
 
-    private AwsCredentialsProvider credentialsProvider;
+    private volatile AwsCredentialsProvider credentialsProvider;
     private final RuntimeException loadException;
     private final Supplier<ProfileFile> profileFile;
     private volatile ProfileFile currentProfileFile;
@@ -118,8 +118,12 @@ public final class ProfileCredentialsProvider
 
         ProfileFile cachedOrRefreshedProfileFile = refreshProfileFile();
         if (isNewProfileFile(cachedOrRefreshedProfileFile)) {
-            currentProfileFile = cachedOrRefreshedProfileFile;
-            handleProfileFileReload(cachedOrRefreshedProfileFile);
+            synchronized (this) {
+                if (isNewProfileFile(cachedOrRefreshedProfileFile)) {
+                    currentProfileFile = cachedOrRefreshedProfileFile;
+                    handleProfileFileReload(cachedOrRefreshedProfileFile);
+                }
+            }
         }
 
         return credentialsProvider.resolveCredentials();
