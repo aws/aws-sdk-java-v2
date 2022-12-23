@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Detective",
+    "contributor": "",
+    "description": "This release adds a missed AccessDeniedException type to several endpoints."
+}
