@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Route53 Recovery Control Config",
-    "contributor": "",
-    "description": "Added support for Python paginators in the route53-recovery-control-config List* APIs."
-}
