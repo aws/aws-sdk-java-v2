@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon CloudFront",
+    "contributor": "",
+    "description": "Extend response headers policy to support removing headers from viewer responses"
+}
