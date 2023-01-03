@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.internal.retry;
 import static java.util.Collections.unmodifiableSet;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.util.HashSet;
 import java.util.Set;
@@ -78,6 +79,7 @@ public final class SdkDefaultRetrySetting {
         Set<Class<? extends Exception>> retryableExceptions = new HashSet<>();
         retryableExceptions.add(RetryableException.class);
         retryableExceptions.add(IOException.class);
+        retryableExceptions.add(UncheckedIOException.class);
         retryableExceptions.add(ApiCallAttemptTimeoutException.class);
         RETRYABLE_EXCEPTIONS = unmodifiableSet(retryableExceptions);
     }

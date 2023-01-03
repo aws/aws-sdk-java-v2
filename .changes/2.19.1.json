@@ -1,0 +1,72 @@
+{
+    "version": "2.19.1",
+    "date": "2022-12-20",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Batch",
+            "contributor": "",
+            "description": "Adds isCancelled and isTerminated to DescribeJobs response."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaLive",
+            "contributor": "",
+            "description": "This release adds support for two new features to AWS Elemental MediaLive. First, you can now burn-in timecodes to your MediaLive outputs. Second, we now now support the ability to decode Dolby E audio when it comes in on an input."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Resource Explorer",
+            "contributor": "",
+            "description": "Documentation updates for AWS Resource Explorer."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Adds support for pagination in the EC2 DescribeImages API."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lookout for Equipment",
+            "contributor": "",
+            "description": "This release adds support for listing inference schedulers by status."
+        },
+        {
+            "type": "feature",
+            "category": "AmazonNimbleStudio",
+            "contributor": "",
+            "description": "Amazon Nimble Studio now supports configuring session storage volumes and persistence, as well as backup and restore sessions through launch profiles."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Route 53 Domains",
+            "contributor": "",
+            "description": "Use Route 53 domain APIs to change owner, create/delete DS record, modify IPS tag, resend authorization. New: AssociateDelegationSignerToDomain, DisassociateDelegationSignerFromDomain, PushDomain, ResendOperationAuthorization. Updated: UpdateDomainContact, ListOperations, CheckDomainTransferability."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Amazon SageMaker Autopilot adds support for new objective metrics in CreateAutoMLJob API."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Transcribe Service",
+            "contributor": "",
+            "description": "Enable our batch transcription jobs for Swedish and Vietnamese."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        },
+        {
+            "type": "bugfix",
+            "category": "Amazon S3 Transfer Manager",
+            "contributor": "",
+            "description": "Add `s3-transfer-manager` to bom so that users can use bom to manage its version."
+        }
+    ]
+}
