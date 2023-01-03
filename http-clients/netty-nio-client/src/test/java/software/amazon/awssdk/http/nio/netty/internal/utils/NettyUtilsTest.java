@@ -222,4 +222,34 @@ public class NettyUtilsTest {
 
         verify(delegateLogger).error(msg, error);
     }
+    
+    @Test
+    public void closedChannelMessage_with_nullChannelAttribute() throws Exception {
+
+        Channel channel = Mockito.mock(Channel.class);
+        when(channel.parent()).thenReturn(null);
+
+        assertThat(NettyUtils.closedChannelMessage(channel))
+            .isEqualTo(NettyUtils.CLOSED_CHANNEL_ERROR_MESSAGE);
+    }
+
+    @Test
+    public void closedChannelMessage_with_nullChannel() throws Exception {
+        Channel channel = null;
+        assertThat(NettyUtils.closedChannelMessage(channel))
+            .isEqualTo(NettyUtils.CLOSED_CHANNEL_ERROR_MESSAGE);
+    }
+
+
+    @Test
+    public void closedChannelMessage_with_nullParentChannel() throws Exception {
+
+        Channel channel = Mockito.mock(Channel.class);
+        Attribute attribute = Mockito.mock(Attribute.class);
+        when(channel.parent()).thenReturn(null);
+        when(channel.attr(Mockito.any())).thenReturn(attribute);
+
+        assertThat(NettyUtils.closedChannelMessage(channel))
+            .isEqualTo(NettyUtils.CLOSED_CHANNEL_ERROR_MESSAGE);
+    }
 }
