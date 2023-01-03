@@ -252,4 +252,18 @@ public class NettyUtilsTest {
         assertThat(NettyUtils.closedChannelMessage(channel))
             .isEqualTo(NettyUtils.CLOSED_CHANNEL_ERROR_MESSAGE);
     }
+    
+    @Test
+    public void closedChannelMessage_with_nullParentChannelAttribute() throws Exception {
+
+        Channel channel = Mockito.mock(Channel.class);
+        Attribute attribute = Mockito.mock(Attribute.class);
+        Channel parentChannel = Mockito.mock(Channel.class);
+        when(channel.parent()).thenReturn(parentChannel);
+        when(channel.attr(Mockito.any())).thenReturn(attribute);
+        when(parentChannel.attr(Mockito.any())).thenReturn(null);
+
+        assertThat(NettyUtils.closedChannelMessage(channel))
+            .isEqualTo(NettyUtils.CLOSED_CHANNEL_ERROR_MESSAGE);
+    }
 }
