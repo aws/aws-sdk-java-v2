@@ -133,11 +133,10 @@ public final class NettyUtils {
     }
 
     public static String closedChannelMessage(Channel channel) {
-        ChannelDiagnostics channelDiagnostics = null, parentChannelDiagnostics = null;
-        if (channel != null) {
-          channelDiagnostics = channel.attr(CHANNEL_DIAGNOSTICS).get();
-          parentChannelDiagnostics = channel.parent() != null ? channel.parent().attr(CHANNEL_DIAGNOSTICS).get() : null;
-        }
+        ChannelDiagnostics channelDiagnostics = channel != null && channel.attr(CHANNEL_DIAGNOSTICS) != null ?
+                                                channel.attr(CHANNEL_DIAGNOSTICS).get() : null;
+        ChannelDiagnostics parentChannelDiagnostics = channel != null && channel.parent() != null ?
+                                                      channel.parent().attr(CHANNEL_DIAGNOSTICS).get() : null;
 
         StringBuilder error = new StringBuilder();
         error.append("The connection was closed during the request. The request will usually succeed on a retry, but if it does"
