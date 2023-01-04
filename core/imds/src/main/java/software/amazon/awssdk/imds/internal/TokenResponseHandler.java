@@ -61,8 +61,9 @@ public final class TokenResponseHandler implements HttpResponseHandler<Token> {
             future.completeExceptionally(RetryableException.create(responseContent));
         }
         Duration ttl = response.firstMatchingHeader(EC2_METADATA_TOKEN_TTL_HEADER)
-                                               .map(Long::parseLong).map(Duration::ofSeconds)
-                                               .orElseGet(() -> Duration.ofSeconds(ttlSeconds));
+                               .map(Long::parseLong)
+                               .map(Duration::ofSeconds)
+                               .orElseGet(() -> Duration.ofSeconds(ttlSeconds));
         return new Token(responseContent, ttl);
     }
 

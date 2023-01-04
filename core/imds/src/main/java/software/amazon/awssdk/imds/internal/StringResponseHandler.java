@@ -33,7 +33,7 @@ import software.amazon.awssdk.utils.Logger;
 public class StringResponseHandler implements HttpResponseHandler<String> {
     private static final Logger log = Logger.loggerFor(StringResponseHandler.class);
 
-    protected CompletableFuture<String> future;
+    private CompletableFuture<String> future;
 
     public void setFuture(CompletableFuture<String> future) {
         this.future = future;

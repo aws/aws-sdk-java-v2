@@ -46,6 +46,9 @@ final class AsyncTokenCache implements Supplier<CompletableFuture<Token>> {
 
     /**
      * The asynchronous operation that is used to refresh the token.
+     * The Supplier must not block the current thread and is responsible to start the process that will complete the future.
+     * A call the {@link AsyncTokenCache#get} method does not join or wait for the supplied future to finish, it only refreshes
+     * the token once it finishes.
      */
     private final Supplier<CompletableFuture<Token>> supplier;
 
