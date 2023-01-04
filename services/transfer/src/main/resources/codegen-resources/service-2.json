@@ -1570,6 +1570,20 @@
       "min":1
     },
     "DateImported":{"type":"timestamp"},
+    "DecryptStepDetails":{
+      "type":"structure",
+      "required":[
+        "Type",
+        "DestinationFileLocation"
+      ],
+      "members":{
+        "Name":{"shape":"WorkflowStepName"},
+        "Type":{"shape":"EncryptionType"},
+        "SourceFileLocation":{"shape":"SourceFileLocation"},
+        "OverwriteExisting":{"shape":"OverwriteExisting"},
+        "DestinationFileLocation":{"shape":"InputFileLocation"}
+      }
+    },
     "DeleteAccessRequest":{
       "type":"structure",
       "required":[
@@ -2518,8 +2532,13 @@
       "enum":[
         "AES128_CBC",
         "AES192_CBC",
-        "AES256_CBC"
+        "AES256_CBC",
+        "NONE"
       ]
+    },
+    "EncryptionType":{
+      "type":"string",
+      "enum":["PGP"]
     },
     "EndpointDetails":{
       "type":"structure",
@@ -4847,7 +4866,8 @@
         "TagStepDetails":{
           "shape":"TagStepDetails",
           "documentation":"<p>Details for a step that creates one or more tags.</p> <p>You specify one or more tags: each tag contains a key/value pair.</p>"
-        }
+        },
+        "DecryptStepDetails":{"shape":"DecryptStepDetails"}
       },
       "documentation":"<p>The basic building block of a workflow.</p>"
     },
@@ -4862,7 +4882,8 @@
         "COPY",
         "CUSTOM",
         "TAG",
-        "DELETE"
+        "DELETE",
+        "DECRYPT"
       ]
     },
     "WorkflowSteps":{

@@ -86,7 +86,7 @@ public class Aws4SignerParams {
         return checksumParams;
     }
 
-    public interface Builder<B extends Builder> {
+    public interface Builder<B extends Builder<B>> {
 
         /**
          * Set this value to double url-encode the resource path when constructing the
@@ -155,7 +155,7 @@ public class Aws4SignerParams {
         Aws4SignerParams build();
     }
 
-    protected static class BuilderImpl<B extends Builder> implements Builder<B> {
+    protected static class BuilderImpl<B extends Builder<B>> implements Builder<B> {
         private static final Boolean DEFAULT_DOUBLE_URL_ENCODE = Boolean.TRUE;
 
         private Boolean doubleUrlEncode = DEFAULT_DOUBLE_URL_ENCODE;
@@ -168,7 +168,17 @@ public class Aws4SignerParams {
         private SignerChecksumParams checksumParams;
 
         protected BuilderImpl() {
+        }
 
+        protected BuilderImpl(Aws4SignerParams params) {
+            doubleUrlEncode = params.doubleUrlEncode;
+            normalizePath = params.normalizePath;
+            awsCredentials = params.awsCredentials;
+            signingName = params.signingName;
+            signingRegion = params.signingRegion;
+            timeOffset = params.timeOffset;
+            signingClockOverride = params.signingClockOverride;
+            checksumParams = params.checksumParams;
         }
 
         @Override

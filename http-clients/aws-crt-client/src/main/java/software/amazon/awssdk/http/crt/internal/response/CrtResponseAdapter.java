@@ -129,9 +129,16 @@ public final class CrtResponseAdapter implements HttpStreamResponseHandler {
     private void onFailedResponseComplete(HttpStream stream, HttpException error) {
         log.debug(() -> "HTTP response encountered an error.", error);
 
-        IOException wrappedError = new IOException(error);
-        responsePublisher.error(wrappedError);
-        failResponseHandlerAndFuture(stream, wrappedError);
+        Throwable toThrow = error;
+
+        if (HttpClientConnection.isErrorRetryable(error)) {
+            // IOExceptions get retried, and if the CRT says this error is retryable,
+            // it's semantically an IOException anyway.
+            toThrow = new IOException(error);
+        }
+
+        responsePublisher.error(toThrow);
+        failResponseHandlerAndFuture(stream, toThrow);
     }
 
     private void failResponseHandlerAndFuture(HttpStream stream, Throwable error) {

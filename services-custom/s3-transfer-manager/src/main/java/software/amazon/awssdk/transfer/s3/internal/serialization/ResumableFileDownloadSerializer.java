@@ -19,6 +19,7 @@ import static software.amazon.awssdk.transfer.s3.internal.serialization.Transfer
 import static software.amazon.awssdk.transfer.s3.internal.serialization.TransferManagerMarshallingUtils.getObjectSdkField;
 import static software.amazon.awssdk.transfer.s3.internal.serialization.TransferManagerMarshallingUtils.getUnmarshaller;
 
+import java.io.InputStream;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.Map;
@@ -29,9 +30,9 @@ import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 import software.amazon.awssdk.protocols.jsoncore.JsonWriter;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.transfer.s3.DownloadFileRequest;
-import software.amazon.awssdk.transfer.s3.ResumableFileDownload;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
+import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
+import software.amazon.awssdk.transfer.s3.model.ResumableFileDownload;
 import software.amazon.awssdk.utils.Logger;
 
 @SdkInternalApi
@@ -53,7 +54,8 @@ public final class ResumableFileDownloadSerializer {
         TransferManagerJsonMarshaller.LONG.marshall(download.bytesTransferred(), jsonGenerator, "bytesTransferred");
         TransferManagerJsonMarshaller.INSTANT.marshall(download.fileLastModified(), jsonGenerator, "fileLastModified");
         if (download.totalSizeInBytes().isPresent()) {
-            TransferManagerJsonMarshaller.LONG.marshall(download.totalSizeInBytes().get(), jsonGenerator, "totalSizeInBytes");
+            TransferManagerJsonMarshaller.LONG.marshall(download.totalSizeInBytes().getAsLong(), jsonGenerator,
+                                                        "totalSizeInBytes");
         }
         if (download.s3ObjectLastModified().isPresent()) {
             TransferManagerJsonMarshaller.INSTANT.marshall(download.s3ObjectLastModified().get(),
@@ -100,22 +102,40 @@ public final class ResumableFileDownloadSerializer {
         marshaller.marshall(val, jsonGenerator, field.locationName());
     }
 
-    public static ResumableFileDownload fromJson(byte[] bytes) {
-        TransferManagerJsonUnmarshaller<Object> longUnmarshaller = getUnmarshaller(MarshallingType.LONG);
-        TransferManagerJsonUnmarshaller<Object> instantUnmarshaller = getUnmarshaller(MarshallingType.INSTANT);
-
+    public static ResumableFileDownload fromJson(String bytes) {
         JsonNodeParser jsonNodeParser = JsonNodeParser.builder().build();
         Map<String, JsonNode> downloadNodes = jsonNodeParser.parse(bytes).asObject();
+        return fromNodes(downloadNodes);
+    }
+
+    public static ResumableFileDownload fromJson(byte[] bytes) {
+        JsonNodeParser jsonNodeParser = JsonNodeParser.builder().build();
+        Map<String, JsonNode> downloadNodes = jsonNodeParser.parse(bytes).asObject();
+        return fromNodes(downloadNodes);
+    }
+
+    public static ResumableFileDownload fromJson(InputStream bytes) {
+        JsonNodeParser jsonNodeParser = JsonNodeParser.builder().build();
+        Map<String, JsonNode> downloadNodes = jsonNodeParser.parse(bytes).asObject();
+        return fromNodes(downloadNodes);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static ResumableFileDownload fromNodes(Map<String, JsonNode> downloadNodes) {
+        TransferManagerJsonUnmarshaller<Long> longUnmarshaller =
+            (TransferManagerJsonUnmarshaller<Long>) getUnmarshaller(MarshallingType.LONG);
+        TransferManagerJsonUnmarshaller<Instant> instantUnmarshaller =
+            (TransferManagerJsonUnmarshaller<Instant>) getUnmarshaller(MarshallingType.INSTANT);
 
         ResumableFileDownload.Builder builder = ResumableFileDownload.builder();
-        builder.bytesTransferred((Long) longUnmarshaller.unmarshall(downloadNodes.get("bytesTransferred")));
-        builder.fileLastModified((Instant) instantUnmarshaller.unmarshall(downloadNodes.get("fileLastModified")));
+        builder.bytesTransferred(longUnmarshaller.unmarshall(downloadNodes.get("bytesTransferred")));
+        builder.fileLastModified(instantUnmarshaller.unmarshall(downloadNodes.get("fileLastModified")));
         if (downloadNodes.get("totalSizeInBytes") != null) {
-            builder.totalSizeInBytes((Long) longUnmarshaller.unmarshall(downloadNodes.get("totalSizeInBytes")));
+            builder.totalSizeInBytes(longUnmarshaller.unmarshall(downloadNodes.get("totalSizeInBytes")));
         }
 
         if (downloadNodes.get("s3ObjectLastModified") != null) {
-            builder.s3ObjectLastModified((Instant) instantUnmarshaller.unmarshall(downloadNodes.get("s3ObjectLastModified")));
+            builder.s3ObjectLastModified(instantUnmarshaller.unmarshall(downloadNodes.get("s3ObjectLastModified")));
         }
         builder.downloadFileRequest(parseDownloadFileRequest(downloadNodes.get("downloadFileRequest")));
 
@@ -139,7 +159,7 @@ public final class ResumableFileDownloadSerializer {
     private static void setGetObjectParameters(GetObjectRequest.Builder getObjectBuilder, String key, JsonNode value) {
         SdkField<?> f = getObjectSdkField(key);
         MarshallingType<?> marshallingType = f.marshallingType();
-        TransferManagerJsonUnmarshaller<Object> unmarshaller = getUnmarshaller(marshallingType);
+        TransferManagerJsonUnmarshaller<?> unmarshaller = getUnmarshaller(marshallingType);
         f.set(getObjectBuilder, unmarshaller.unmarshall(value));
     }
 }

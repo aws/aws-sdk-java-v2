@@ -1,3 +1,965 @@
+# __2.19.10__ __2023-01-04__
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Update to remove sequenceToken as a required field in PutLogEvents calls.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Adding support for QuickSetup Document Type in Systems Manager
+
+## __Application Auto Scaling__
+  - ### Features
+    - Customers can now use the existing DescribeScalingActivities API to also see the detailed and machine-readable reasons for Application Auto Scaling not scaling their resources and, if needed, take the necessary corrective actions.
+
+# __2.19.9__ __2023-01-03__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Security Lake__
+  - ### Features
+    - Allow CreateSubscriber API to take string input that allows setting more descriptive SubscriberDescription field. Make souceTypes field required in model level for UpdateSubscriberRequest as it is required for every API call on the backend. Allow ListSubscribers take any String as nextToken param.
+
+# __2.19.8__ __2022-12-30__
+## __AWS IoT FleetWise__
+  - ### Features
+    - Update documentation - correct the epoch constant value of default value for expiryTime field in CreateCampaign request.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon CloudFront__
+  - ### Features
+    - Extend response headers policy to support removing headers from viewer responses
+
+# __2.19.7__ __2022-12-29__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Secrets Manager__
+  - ### Features
+    - Added owning service filter, include planned deletion flag, and next rotation date response parameter in ListSecrets.
+
+## __Amazon API Gateway__
+  - ### Features
+    - Documentation updates for Amazon API Gateway
+
+## __Amazon Connect Wisdom Service__
+  - ### Features
+    - This release extends Wisdom CreateContent and StartContentUpload APIs to support PDF and MicrosoftWord docx document uploading.
+
+## __Amazon EMR__
+  - ### Features
+    - Added GetClusterSessionCredentials API to allow Amazon SageMaker Studio to connect to EMR on EC2 clusters with runtime roles and AWS Lake Formation-based access control for Apache Spark, Apache Hive, and Presto queries.
+
+# __2.19.6__ __2022-12-28__
+## __AWS Network Firewall__
+  - ### Features
+    - AWS Network Firewall now provides status messages for firewalls to help you troubleshoot when your endpoint fails.
+
+## __AWS Route53 Recovery Control Config__
+  - ### Features
+    - Added support for Python paginators in the route53-recovery-control-config List* APIs.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - This release allows you to modify the encryption in transit setting, for existing Redis clusters. You can now change the TLS configuration of your Redis clusters without the need to re-build or re-provision the clusters or impact application availability.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds support for Custom Engine Version (CEV) on RDS Custom SQL Server.
+
+# __2.19.5__ __2022-12-27__
+## __AWS Transfer Family__
+  - ### Features
+    - Add additional operations to throw ThrottlingExceptions
+
+## __Amazon MemoryDB__
+  - ### Features
+    - This release adds support for MemoryDB Reserved nodes which provides a significant discount compared to on-demand node pricing. Reserved nodes are not physical nodes, but rather a billing discount applied to the use of on-demand nodes in your account.
+
+# __2.19.4__ __2022-12-23__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Participant Service__
+  - ### Features
+    - Amazon Connect Chat introduces the Message Receipts feature. This feature allows agents and customers to receive message delivered and read receipts after they send a chat message.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Support for Routing Profile filter, SortCriteria, and grouping by Routing Profiles for GetCurrentMetricData API. Support for RoutingProfiles, UserHierarchyGroups, and Agents as filters, NextStatus and AgentStatusName for GetCurrentUserData. Adds ApproximateTotalCount to both APIs.
+
+## __Amazon Detective__
+  - ### Features
+    - This release adds a missed AccessDeniedException type to several endpoints.
+
+## __Amazon FSx__
+  - ### Features
+    - Fix a bug where a recent release might break certain existing SDKs.
+
+## __Inspector2__
+  - ### Features
+    - Amazon Inspector adds support for scanning NodeJS 18.x and Go 1.x AWS Lambda function runtimes.
+
+# __2.19.3__ __2022-12-22__
+## __AWS Compute Optimizer__
+  - ### Features
+    - This release enables AWS Compute Optimizer to analyze and generate optimization recommendations for ecs services running on Fargate.
+
+## __AWS IoT Core Device Advisor__
+  - ### Features
+    - This release adds the following new features: 1) Documentation updates for IoT Device Advisor APIs. 2) Updated required request parameters for IoT Device Advisor APIs. 3) Added new service feature: ability to provide the test endpoint when customer executing the StartSuiteRun API.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Secrets Manager__
+  - ### Features
+    - Documentation updates for Secrets Manager
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect Chat introduces the Idle Participant/Autodisconnect feature, which allows users to set timeouts relating to the activity of chat participants, using the new UpdateParticipantRoleConfig API.
+
+## __Amazon Kinesis Video WebRTC Storage__
+  - ### Features
+    - Amazon Kinesis Video Streams offers capabilities to stream video and audio in real-time via WebRTC to the cloud for storage, playback, and analytical processing. Customers can use our enhanced WebRTC SDK and cloud APIs to enable real-time streaming, as well as media ingestion to the cloud.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Add support for managing master user password in AWS Secrets Manager for the DBInstance and DBCluster.
+
+# __2.19.2__ __2022-12-21__
+## __AWS License Manager Linux Subscriptions__
+  - ### Features
+    - AWS License Manager now offers cross-region, cross-account tracking of commercial Linux subscriptions on AWS. This includes subscriptions purchased as part of EC2 subscription-included AMIs, on the AWS Marketplace, or brought to AWS via Red Hat Cloud Access Program.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Support__
+  - ### Features
+    - Documentation updates for the AWS Support API
+
+## __AWS Transfer Family__
+  - ### Features
+    - This release adds support for Decrypt as a workflow step type.
+
+## __Amazon Connect Participant Service__
+  - ### Features
+    - Amazon Connect Chat now allows for JSON (application/json) message types to be sent in the SendMessage API.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect Chat now allows for JSON (application/json) message types to be sent as part of the initial message in the StartChatContact API.
+
+## __Amazon EventBridge Scheduler__
+  - ### Features
+    - Updated the ListSchedules and ListScheduleGroups APIs to allow the NamePrefix field to start with a number. Updated the validation for executionRole field to support any role name.
+
+## __Amazon Macie 2__
+  - ### Features
+    - This release adds support for analyzing Amazon S3 objects that use the S3 Glacier Instant Retrieval (Glacier_IR) storage class.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release enables adding RStudio Workbench support to an existing Amazon SageMaker Studio domain. It allows setting your RStudio on SageMaker environment configuration parameters and also updating the RStudioConnectUrl and RStudioPackageManagerUrl parameters for existing domains
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Doc-only updates for December 2022.
+
+# __2.19.1__ __2022-12-20__
+## __AWS Batch__
+  - ### Features
+    - Adds isCancelled and isTerminated to DescribeJobs response.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - This release adds support for two new features to AWS Elemental MediaLive. First, you can now burn-in timecodes to your MediaLive outputs. Second, we now now support the ability to decode Dolby E audio when it comes in on an input.
+
+## __AWS Resource Explorer__
+  - ### Features
+    - Documentation updates for AWS Resource Explorer.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds support for pagination in the EC2 DescribeImages API.
+
+## __Amazon Lookout for Equipment__
+  - ### Features
+    - This release adds support for listing inference schedulers by status.
+
+## __Amazon Route 53 Domains__
+  - ### Features
+    - Use Route 53 domain APIs to change owner, create/delete DS record, modify IPS tag, resend authorization. New: AssociateDelegationSignerToDomain, DisassociateDelegationSignerFromDomain, PushDomain, ResendOperationAuthorization. Updated: UpdateDomainContact, ListOperations, CheckDomainTransferability.
+
+## __Amazon S3 Transfer Manager__
+  - ### Bugfixes
+    - Add `s3-transfer-manager` to bom so that users can use bom to manage its version.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker Autopilot adds support for new objective metrics in CreateAutoMLJob API.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - Enable our batch transcription jobs for Swedish and Vietnamese.
+
+## __AmazonNimbleStudio__
+  - ### Features
+    - Amazon Nimble Studio now supports configuring session storage volumes and persistence, as well as backup and restore sessions through launch profiles.
+
+# __2.19.0__ __2022-12-19__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Include the raw `partitions.json` data as a string within `DefaultPartitionDataProvider` so it doesn't need to be loaded at runtime as a classpath resource.
+
+## __Amazon Athena__
+  - ### Features
+    - Add missed InvalidRequestException in GetCalculationExecutionCode,StopCalculationExecution APIs. Correct required parameters (Payload and Type) in UpdateNotebook API. Change Notebook size from 15 Mb to 10 Mb.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release adds support for alarm-based rollbacks in ECS, a new feature that allows customers to add automated safeguards for Amazon ECS service rolling updates.
+
+## __Amazon Kinesis Video Streams__
+  - ### Features
+    - Amazon Kinesis Video Streams offers capabilities to stream video and audio in real-time via WebRTC to the cloud for storage, playback, and analytical processing. Customers can use our enhanced WebRTC SDK and cloud APIs to enable real-time streaming, as well as media ingestion to the cloud.
+
+## __Amazon Kinesis Video WebRTC Storage__
+  - ### Features
+    - Amazon Kinesis Video Streams offers capabilities to stream video and audio in real-time via WebRTC to the cloud for storage, playback, and analytical processing. Customers can use our enhanced WebRTC SDK and cloud APIs to enable real-time streaming, as well as media ingestion to the cloud.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Add support for --enable-customer-owned-ip to RDS create-db-instance-read-replica API for RDS on Outposts.
+
+## __Amazon S3 Transfer Manager__
+  - ### Features
+    - The Amazon S3 Transfer Manager is now generally available. Visit [Dev Guide](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/transfer-manager.html) for more information,
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - AWS Sagemaker - Sagemaker Images now supports Aliases as secondary identifiers for ImageVersions. SageMaker Images now supports additional metadata for ImageVersions for better images management.
+
+# __2.18.41__ __2022-12-16__
+## __AWS DataSync__
+  - ### Features
+    - AWS DataSync now supports the use of tags with task executions. With this new feature, you can apply tags each time you execute a task, giving you greater control and management over your task executions.
+
+## __AWS IoT FleetWise__
+  - ### Features
+    - Updated error handling for empty resource names in "UpdateSignalCatalog" and "GetModelManifest" operations.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Appflow__
+  - ### Features
+    - This release updates the ListConnectorEntities API action so that it returns paginated responses that customers can retrieve with next tokens.
+
+## __Amazon CloudFront__
+  - ### Features
+    - Updated documentation for CloudFront
+
+## __Amazon Elastic File System__
+  - ### Features
+    - General documentation updates for EFS.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - This release provides the valid characters for the Description and Name field.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Do not prefix copy-source with / when using the sourceBucket and sourceKey APIs.
+
+## __Amazon S3 Transfer Manager__
+  - ### Features
+    - Change default `targetThroughputInGbps` from 5 to 10
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - AWS sagemaker - Features: This release adds support for random seed, it's an integer value used to initialize a pseudo-random number generator. Setting a random seed will allow the hyperparameter tuning search strategies to produce more consistent configurations for the same tuning job.
+
+# __2.18.40__ __2022-12-15__
+## __AWS Backup Gateway__
+  - ### Features
+    - This release adds support for VMware vSphere tags, enabling customer to protect VMware virtual machines using tag-based policies for AWS tags mapped from vSphere tags. This release also adds support for customer-accessible gateway-hypervisor interaction log and upload bandwidth rate limit schedule.
+
+## __AWS Glue__
+  - ### Features
+    - This release adds support for AWS Glue Crawler with native DeltaLake tables, allowing Crawlers to classify Delta Lake format tables and catalog them for query engines to query against.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Added new resource details objects to ASFF, including resources for AwsEc2LaunchTemplate, AwsSageMakerNotebookInstance, AwsWafv2WebAcl and AwsWafv2RuleGroup.
+
+## __AWSMainframeModernization__
+  - ### Features
+    - Adds an optional create-only `KmsKeyId` property to Environment and Application resources.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Added support for "English - New Zealand" and "English - South African" to be used with Amazon Connect Custom Vocabulary APIs.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release adds support for container port ranges in ECS, a new capability that allows customers to provide container port ranges to simplify use cases where multiple ports are in use in a container. This release updates TaskDefinition mutation APIs and the Task description APIs.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Add support for Windows managed nodes groups.
+
+## __Amazon Kinesis__
+  - ### Features
+    - Added StreamARN parameter for Kinesis Data Streams APIs. Added a new opaque pagination token for ListStreams. SDKs will auto-generate Account Endpoint when accessing Kinesis Data Streams.
+
+## __Amazon Location Service__
+  - ### Features
+    - This release adds support for a new style, "VectorOpenDataStandardLight" which can be used with the new data source, "Open Data Maps (Preview)".
+
+## __Amazon S3 Transfer Manager__
+  - ### Features
+    - Do not base 64 encode when writing `ResumableFileDownload` to disk.
+    - Flattened and removed OverrideConfigurations such that these can be configured directly to S3TransferManagerBuilder, upload and transfer Requests. Also refactored certain attributes and API names to represent better meaningful names.
+    - Moved POJO classes to `software.amazon.awssdk.transfer.s3.model` and moved configuration classes to `software.amazon.awssdk.transfer.s3.config`
+    - Rename `DownloadDirectoryRequest.destinationDirectory` to `destination`.
+    - Rename `ResumableFileDownload`'s `to` and `writeTo` methods to `serializeTo` to make it clear that these aren't affecting the download.
+    - Rename `UploadDirectoryRequest.prefix` and `delimiter` to `s3Prefix` and `s3Delimiter` to make it clear these are S3 parameters, not file-system parameters.
+
+  - ### Bugfixes
+    - Allow pausing a resumed download, even if the resumed download hasn't started.
+    - Fixed issues in S3 Transfer Manager resumeDownloadFile API where errors were being wrapped by SdkClientException
+    - Require setting the bytes transferred on transfer progress snapshots. This prevents programming bugs where the caller forgets to set the value and it gets defaulted to 0.
+
+  - ### Removals
+    - Backward incompatible changes after removing s3ClientConfiguration() from builder API of S3TransferManager Interface.
+      - Added crtBuilder in S3AsyncClient Interface.
+      - Backward incompatible changes after changing args of test() API in DownloadFilter Interface from DownloadFileContext to S3Object.
+    - Make `aws-crt` an optional dependency in `s3-transfer-manager` module. Customers need to explicitly add `aws-crt` dependency if they want to use CRT-based Transfer Manager
+    - Remove UploadDirectoryRequest's override configuration's `recursive` option. The same functionality can be achieved with `UploadDirectoryRequest.builder().maxDepth(1)` or S3TransferManager.builder().maxUploadDirectoryDepth(1).
+    - Remove `DownloadDirectoryRequest.prefix` and `delimiter`. The same functionality is already available via the `listObjectsV2RequestTransformer`.
+    - Removed charset options from `ResumableFileDownload`'s string options, because there's no reason to choose something other than UTF-8.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - SageMaker Inference Recommender now allows customers to load tests their models on various instance types using private VPC.
+
+## __Amazon Translate__
+  - ### Features
+    - Raised the input byte size limit of the Text field in the TranslateText API to 10000 bytes.
+
+# __2.18.39__ __2022-12-14__
+## __AWS Cost Explorer Service__
+  - ### Features
+    - This release supports percentage-based thresholds on Cost Anomaly Detection alert subscriptions.
+
+## __AWS Network Manager__
+  - ### Features
+    - Appliance Mode support for AWS Cloud WAN.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon CloudWatch__
+  - ### Features
+    - Adding support for Metrics Insights Alarms
+
+## __Amazon SageMaker Metrics Service__
+  - ### Features
+    - Update SageMaker Metrics documentation.
+
+## __Redshift Data API Service__
+  - ### Features
+    - This release adds a new --client-token field to ExecuteStatement and BatchExecuteStatement operations. Customers can now run queries with the additional client token parameter to ensures idempotency.
+
+# __2.18.38__ __2022-12-13__
+## __AWS CloudTrail__
+  - ### Features
+    - Merging mainline branch for service model into mainline release branch. There are no new APIs.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This deployment adds ClientPasswordAuthType field to the Auth structure of the DBProxy.
+
+# __2.18.36__ __2022-12-12__
+## __AWS Migration Hub Refactor Spaces__
+  - ### Features
+    - This release adds support for Lambda alias service endpoints. Lambda alias ARNs can now be passed into CreateService.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS WAFV2__
+  - ### Features
+    - Documents the naming requirement for logging destinations that you use with web ACLs.
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - This release allows custom strings in PartyType and Gender through 2 new attributes in the CreateProfile and UpdateProfile APIs: PartyTypeString and GenderString.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release updates DescribeFpgaImages to show supported instance types of AFIs in its response.
+
+## __Amazon Kinesis Video Streams__
+  - ### Features
+    - This release adds support for public preview of Kinesis Video Stream at Edge enabling customers to provide configuration for the Kinesis Video Stream EdgeAgent running on an on-premise IoT device. Customers can now locally record from cameras and stream videos to the cloud on configured schedule.
+
+## __Amazon Lookout for Vision__
+  - ### Features
+    - This documentation update adds kms:GenerateDataKey as a required permission to StartModelPackagingJob.
+
+## __Amazon Rekognition__
+  - ### Features
+    - Adds support for "aliases" and "categories", inclusion and exclusion filters for labels and label categories, and aggregating labels by video segment timestamps for Stored Video Label Detection APIs.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Update the RDS API model to support copying option groups during the CopyDBSnapshot operation
+
+## __Amazon SageMaker Metrics Service__
+  - ### Features
+    - This release introduces support SageMaker Metrics APIs.
+
+# __2.18.35__ __2022-12-09__
+## __AWS Elemental MediaLive__
+  - ### Features
+    - Link devices now support buffer size (latency) configuration. A higher latency value means a longer delay in transmitting from the device to MediaLive, but improved resiliency. A lower latency value means a shorter delay, but less resiliency.
+
+## __AWS Elemental MediaPackage VOD__
+  - ### Features
+    - This release provides the approximate number of assets in a packaging group.
+
+## __AWS IoT FleetWise__
+  - ### Features
+    - Deprecated assignedValue property for actuators and attributes. Added a message to invalid nodes and invalid decoder manifest exceptions.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fixed an issue that could cause exception to be thrown from `CombinedResponseAsyncHttpResponseHandler#onStream` when `onError` got invoked first
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Doc-only update for CloudWatch Logs, for Tagging Permissions clarifications
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fixed an issue that could result in exceptions or signature validation failures when signing or presigning S3 requests using the signer directly when paths contain encoded or path traversal characters.
+
+# __2.18.34__ __2022-12-08__
+## __AWS IoT TwinMaker__
+  - ### Features
+    - This release adds the following new features: 1) New APIs for managing a continuous sync of assets and asset models from AWS IoT SiteWise. 2) Support user friendly names for component types (ComponentTypeName) and properties (DisplayName).
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Auto Scaling__
+  - ### Features
+    - Adds support for metric math for target tracking scaling policies, saving you the cost and effort of publishing a custom metric to CloudWatch. Also adds support for VPC Lattice by adding the Attach/Detach/DescribeTrafficSources APIs and a new health check type to the CreateAutoScalingGroup API.
+
+## __Migration Hub Strategy Recommendations__
+  - ### Features
+    - This release adds known application filtering, server selection for assessments, support for potential recommendations, and indications for configuration and assessment status. For more information, see the AWS Migration Hub documentation at https://docs.aws.amazon.com/migrationhub/index.html
+
+# __2.18.33__ __2022-12-07__
+## __AWS Cost Explorer Service__
+  - ### Features
+    - This release adds the LinkedAccountName field to the GetAnomalies API response under RootCause
+
+## __AWS Key Management Service__
+  - ### Features
+    - Updated examples and exceptions for External Key Store (XKS).
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Adding utilities for signing CloudFront URLs and cookies
+    - Updated endpoint and partition metadata.
+
+## __Amazon CloudFront__
+  - ### Features
+    - Introducing UpdateDistributionWithStagingConfig that can be used to promote the staging configuration to the production.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Adds support for EKS add-ons configurationValues fields and DescribeAddonConfiguration function
+
+## __Amazon S3__
+  - ### Bugfixes
+    - S3 query param validation
+
+      The SDK will raise SdkClientException when a null value is set for a member marked with the required trait.
+
+# __2.18.32__ __2022-12-06__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Adding utilities for signing CloudFront URLs and cookies
+    - Updated endpoint and partition metadata.
+
+## __AWSBillingConductor__
+  - ### Features
+    - This release adds the Tiering Pricing Rule feature.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release provides APIs that enable you to programmatically manage rules for Contact Lens conversational analytics and third party applications. For more information, see https://docs.aws.amazon.com/connect/latest/APIReference/rules-api.html
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Endpoint Ruleset update: Use http instead of https for the "local" region.
+
+## __Amazon DynamoDB Streams__
+  - ### Features
+    - Endpoint Ruleset update: Use http instead of https for the "local" region.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds the BlueGreenDeploymentNotFoundFault to the AddTagsToResource, ListTagsForResource, and RemoveTagsFromResource operations.
+
+## __Amazon SageMaker Feature Store Runtime__
+  - ### Features
+    - For online + offline Feature Groups, added ability to target PutRecord and DeleteRecord actions to only online store, or only offline store. If target store parameter is not specified, actions will apply to both stores.
+
+# __2.18.31__ __2022-12-05__
+## __AWS Cost Explorer Service__
+  - ### Features
+    - This release introduces two new APIs that offer a 1-click experience to refresh Savings Plans recommendations. The two APIs are StartSavingsPlansPurchaseRecommendationGeneration and ListSavingsPlansPurchaseRecommendationGeneration.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Support for clients with AWS Query protocol migrating towards AwsJson in order to support custom error codes.
+        - Contributed by: [@ziyanli-amazon](https://github.com/ziyanli-amazon)
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for EC2.
+
+## __Amazon Interactive Video Service Chat__
+  - ### Features
+    - Adds PendingVerification error type to messaging APIs to block the resource usage for accounts identified as being fraudulent.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds the InvalidDBInstanceStateFault to the RestoreDBClusterFromSnapshot operation.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - Amazon Transcribe now supports creating custom language models in the following languages: Japanese (ja-JP) and German (de-DE).
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@ziyanli-amazon](https://github.com/ziyanli-amazon)
+# __2.18.30__ __2022-12-02__
+## __AWS AppSync__
+  - ### Features
+    - Fixes the URI for the evaluatecode endpoint to include the /v1 prefix (ie. "/v1/dataplane-evaluatecode").
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - The AWS Elemental MediaConvert SDK has added support for configurable ID3 eMSG box attributes and the ability to signal them with InbandEventStream tags in DASH and CMAF outputs.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - Updates to Event Signaling and Management (ESAM) API and documentation.
+
+## __AWS Proton__
+  - ### Features
+    - CreateEnvironmentAccountConnection RoleArn input is now optional
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Added AsyncResponseBody.fromInputStream and AsyncRequestBody.forBlockingInputStream, allowing streaming operation requests to be written to like an input stream.
+
+  - ### Bugfixes
+    - This changes fixes the previously incorrect handling of `hostPrefix` in services, causing requests for some services to have the wrong URL. This change also undoes the suppression of rules-based endpoint generation for all services apart from EventBridge, S3, and S3 Control, which was implemented in [#3520](https://github.com/aws/aws-sdk-java-v2/issues/3520) because of the previously mentioned `hostPrefix` issue.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Documentation updates for Amazon ECS
+
+## __Amazon Polly__
+  - ### Features
+    - Add language code for Finnish (fi-FI)
+
+## __Amazon Simple Notification Service__
+  - ### Features
+    - This release adds the message payload-filtering feature to the SNS Subscribe, SetSubscriptionAttributes, and GetSubscriptionAttributes API actions
+
+## __Firewall Management Service__
+  - ### Features
+    - AWS Firewall Manager now supports Fortigate Cloud Native Firewall as a Service as a third-party policy type.
+
+## __Redshift Serverless__
+  - ### Features
+    - Add Table Level Restore operations for Amazon Redshift Serverless. Add multi-port support for Amazon Redshift Serverless endpoints. Add Tagging support to Snapshots and Recovery Points in Amazon Redshift Serverless.
+
+# __2.18.29__ __2022-12-01__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Added AsyncRequestBody.forBlockingOutputStream, allowing streaming operation requests to be written to like an output stream.
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - This fixes an issue with the client option validation where the client builder is incorrectly validating that a value for the SIGNER option is present, even when it's not required (because the service does not use AWS auth).
+
+       This change only does the appropriate validations based on the authtypes present in the service model.
+
+## __AWS Step Functions__
+  - ### Features
+    - This release adds support for the AWS Step Functions Map state in Distributed mode. The changes include a new MapRun resource and several new and modified APIs.
+
+## __Amazon CodeCatalyst__
+  - ### Features
+    - This release adds operations that support customers using the AWS Toolkits and Amazon CodeCatalyst, a unified software development service that helps developers develop, deploy, and maintain applications in the cloud. For more information, see the documentation.
+
+## __Amazon Comprehend__
+  - ### Features
+    - Comprehend now supports semi-structured documents (such as PDF files or image files) as inputs for custom analysis using the synchronous APIs (ClassifyDocument and DetectEntities).
+
+## __Amazon EventBridge Pipes__
+  - ### Features
+    - AWS introduces new Amazon EventBridge Pipes which allow you to connect sources (SQS, Kinesis, DDB, Kafka, MQ) to Targets (14+ EventBridge Targets) without any code, with filtering, batching, input transformation, and an optional Enrichment stage (Lambda, StepFunctions, ApiGateway, ApiDestinations)
+
+## __Amazon GameLift__
+  - ### Features
+    - GameLift introduces a new feature, GameLift Anywhere. GameLift Anywhere allows you to integrate your own compute resources with GameLift. You can also use GameLift Anywhere to iteratively test your game servers without uploading the build to GameLift for every iteration.
+
+# __2.18.28__ __2022-11-30__
+## __AWS Data Exchange__
+  - ### Features
+    - This release enables data providers to license direct access to data in their Amazon S3 buckets or AWS Lake Formation data lakes through AWS Data Exchange. Subscribers get read-only access to the data and can use it in downstream AWS services, like Amazon Athena, without creating or managing copies.
+
+## __AWS Glue__
+  - ### Features
+    - This release adds support for AWS Glue Data Quality, which helps you evaluate and monitor the quality of your data and includes the API for creating, deleting, or updating data quality rulesets, runs and evaluations.
+
+## __AWS S3 Control__
+  - ### Features
+    - Amazon S3 now supports cross-account access points. S3 bucket owners can now allow trusted AWS accounts to create access points associated with their bucket.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Access Analyzer__
+  - ### Features
+    - This release adds support for S3 cross account access points. IAM Access Analyzer will now produce public or cross account findings when it detects bucket delegation to external account access points.
+
+## __Amazon Athena__
+  - ### Features
+    - This release includes support for using Apache Spark in Amazon Athena.
+
+## __Amazon DocumentDB Elastic Clusters__
+  - ### Features
+    - Launched Amazon DocumentDB Elastic Clusters. You can now use the SDK to create, list, update and delete Amazon DocumentDB Elastic Cluster resources
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Added Models as part of the Search API. Added Model shadow deployments in realtime inference, and shadow testing in managed inference. Added support for shared spaces, geospatial APIs, Model Cards, AutoMLJobStep in pipelines, Git repositories on user profiles and domains, Model sharing in Jumpstart.
+
+## __Amazon SageMaker geospatial capabilities__
+  - ### Features
+    - This release provides Amazon SageMaker geospatial APIs to build, train, deploy and visualize geospatial models.
+
+# __2.18.27__ __2022-11-29__
+## __AWS Key Management Service__
+  - ### Features
+    - AWS KMS introduces the External Key Store (XKS), a new feature for customers who want to protect their data with encryption keys stored in an external key management system under their control.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SimSpace Weaver__
+  - ### Features
+    - AWS SimSpace Weaver is a new service that helps customers build spatial simulations at new levels of scale - resulting in virtual worlds with millions of dynamic entities. See the AWS SimSpace Weaver developer guide for more details on how to get started. https://docs.aws.amazon.com/simspaceweaver
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for AWS Verified Access and the Hpc6id Amazon EC2 compute optimized instance type, which features 3rd generation Intel Xeon Scalable processors.
+
+## __Amazon Kinesis Firehose__
+  - ### Features
+    - Allow support for the Serverless offering for Amazon OpenSearch Service as a Kinesis Data Firehose delivery destination.
+
+## __Amazon Omics__
+  - ### Features
+    - Amazon Omics is a new, purpose-built service that can be used by healthcare and life science organizations to store, query, and analyze omics data. The insights from that data can be used to accelerate scientific discoveries and improve healthcare.
+
+## __Amazon Security Lake__
+  - ### Features
+    - Amazon Security Lake automatically centralizes security data from cloud, on-premises, and custom sources into a purpose-built data lake stored in your account. Security Lake makes it easier to analyze security data, so you can improve the protection of your workloads, applications, and data
+
+## __OpenSearch Service Serverless__
+  - ### Features
+    - Publish SDK for Amazon OpenSearch Serverless
+
+# __2.18.26__ __2022-11-28__
+## __AWS ARC - Zonal Shift__
+  - ### Features
+    - Amazon Route 53 Application Recovery Controller Zonal Shift is a new service that makes it easy to shift traffic away from an Availability Zone in a Region. See the developer guide for more information: https://docs.aws.amazon.com/r53recovery/latest/dg/what-is-route53-recovery.html
+
+## __AWS Compute Optimizer__
+  - ### Features
+    - Adds support for a new recommendation preference that makes it possible for customers to optimize their EC2 recommendations by utilizing an external metrics ingestion service to provide metrics.
+
+## __AWS Config__
+  - ### Features
+    - With this release, you can use AWS Config to evaluate your resources for compliance with Config rules before they are created or updated. Using Config rules in proactive mode enables you to test and build compliant resource templates or check resource configurations at the time they are provisioned.
+
+## __AWS Glue__
+  - ### Features
+    - This release allows the creation of Custom Visual Transforms (Dynamic Transforms) to be created via AWS Glue CLI/SDK.
+
+## __AWS Lambda__
+  - ### Features
+    - Adds support for Lambda SnapStart, which helps improve the startup performance of functions. Customers can now manage SnapStart based functions via CreateFunction and UpdateFunctionConfiguration APIs
+
+## __AWS License Manager User Subscriptions__
+  - ### Features
+    - AWS now offers fully-compliant, Amazon-provided licenses for Microsoft Office Professional Plus 2021 Amazon Machine Images (AMIs) on Amazon EC2. These AMIs are now available on the Amazon EC2 console and on AWS Marketplace to launch instances on-demand without any long-term licensing commitments.
+
+## __AWS S3 Control__
+  - ### Features
+    - Added two new APIs to support Amazon S3 Multi-Region Access Point failover controls: GetMultiRegionAccessPointRoutes and SubmitMultiRegionAccessPointRoutes. The failover control APIs are supported in the following Regions: us-east-1, us-west-2, eu-west-1, ap-southeast-2, and ap-northeast-1.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Adding StandardsManagedBy field to DescribeStandards API response
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Introduces ENA Express, which uses AWS SRD and dynamic routing to increase throughput and minimize latency, adds support for trust relationships between Reachability Analyzer and AWS Organizations to enable cross-account analysis, and adds support for Infrastructure Performance metric subscriptions.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Adds support for additional EKS add-ons metadata and filtering fields
+
+## __Amazon FSx__
+  - ### Features
+    - This release adds support for 4GB/s / 160K PIOPS FSx for ONTAP file systems and 10GB/s / 350K PIOPS FSx for OpenZFS file systems (Single_AZ_2). For FSx for ONTAP, this also adds support for DP volumes, snapshot policy, copy tags to backups, and Multi-AZ route table updates.
+
+## __Amazon Macie 2__
+  - ### Features
+    - Added support for configuring Macie to continually sample objects from S3 buckets and inspect them for sensitive data. Results appear in statistics, findings, and other data that Macie provides.
+
+## __Amazon QuickSight__
+  - ### Features
+    - This release adds new Describe APIs and updates Create and Update APIs to support the data model for Dashboards, Analyses, and Templates.
+
+## __Inspector2__
+  - ### Features
+    - This release adds support for Inspector to scan AWS Lambda.
+
+# __2.18.25__ __2022-11-27__
+## __AWS Backup__
+  - ### Features
+    - AWS Backup introduces support for legal hold and application stack backups. AWS Backup Audit Manager introduces support for cross-Region, cross-account reports.
+
+## __AWS IoT__
+  - ### Features
+    - Job scheduling enables the scheduled rollout of a Job with start and end times and a customizable end behavior when end time is reached. This is available for continuous and snapshot jobs. Added support for MQTT5 properties to AWS IoT TopicRule Republish Action.
+
+## __AWS IoT Data Plane__
+  - ### Features
+    - This release adds support for MQTT5 properties to AWS IoT HTTP Publish API.
+
+## __AWS IoT Wireless__
+  - ### Features
+    - This release includes a new feature for customers to calculate the position of their devices by adding three new APIs: UpdateResourcePosition, GetResourcePosition, and GetPositionEstimate.
+
+## __AWS Organizations__
+  - ### Features
+    - This release introduces delegated administrator for AWS Organizations, a new feature to help you delegate the management of your Organizations policies, enabling you to govern your AWS organization in a decentralized way. You can now allow member accounts to manage Organizations policies.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Added AsyncResponseTransformer.toBlockingInputStream, allowing streaming operation responses to be read as if they're an InputStream.
+    - Updated endpoint and partition metadata.
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Amazon Kendra now supports preview of table information from HTML tables in the search results. The most relevant cells with their corresponding rows, columns are displayed as a preview in the search result. The most relevant table cell or cells are also highlighted in table preview.
+
+## __Amazon CloudWatch__
+  - ### Features
+    - Adds cross-account support to the GetMetricData API. Adds cross-account support to the ListMetrics API through the usage of the IncludeLinkedAccounts flag and the new OwningAccounts field.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Updates to support CloudWatch Logs data protection and CloudWatch cross-account observability
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release adds support for ECS Service Connect, a new capability that simplifies writing and operating resilient distributed applications. This release updates the TaskDefinition, Cluster, Service mutation APIs with Service connect constructs and also adds a new ListServicesByNamespace API.
+
+## __Amazon Elastic File System__
+  - ### Features
+    - This release adds elastic as a new ThroughputMode value for EFS file systems and adds AFTER_1_DAY as a value for TransitionToIARules.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release enables new Aurora and RDS feature called Blue/Green Deployments that makes updates to databases safer, simpler and faster.
+
+## __Amazon Textract__
+  - ### Features
+    - This release adds support for classifying and splitting lending documents by type, and extracting information by using the Analyze Lending APIs. This release also includes support for summarized information of the processed lending document package, in addition to per document results.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - This release adds support for 'inputType' for post-call and real-time (streaming) Call Analytics within Amazon Transcribe.
+
+## __Amazon Transcribe Streaming Service__
+  - ### Features
+    - This release adds support for real-time (streaming) and post-call Call Analytics within Amazon Transcribe.
+
+## __Application Migration Service__
+  - ### Features
+    - This release adds support for Application and Wave management. We also now support custom post-launch actions.
+
+## __CloudWatch Observability Access Manager__
+  - ### Features
+    - Amazon CloudWatch Observability Access Manager is a new service that allows configuration of the CloudWatch cross-account observability feature.
+
+## __Elastic Disaster Recovery Service__
+  - ### Features
+    - Non breaking changes to existing APIs, and additional APIs added to support in-AWS failing back using AWS Elastic Disaster Recovery.
+
+# __2.18.24__ __2022-11-23__
+## __AWS SDK for Java v2__
+  - ### Features
+    - When a request fails after SDK retries, include the retried failure messages as "suppressed" exceptions. Stack traces for these suppressed exceptions are not preserved.
+    - When raising an exception as a result of a service response, if service does not return a error message, include the error code or HTTP status code in exception messages instead of the string "null".
+
+## __Amazon Managed Grafana__
+  - ### Features
+    - This release includes support for configuring a Grafana workspace to connect to a datasource within a VPC as well as new APIs for configuring Grafana settings.
+
+## __Amazon Recycle Bin__
+  - ### Features
+    - This release adds support for Rule Lock for Recycle Bin, which allows you to lock retention rules so that they can no longer be modified or deleted.
+
+# __2.18.23__ __2022-11-22__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Appflow__
+  - ### Features
+    - Adding support for Amazon AppFlow to transfer the data to Amazon Redshift databases through Amazon Redshift Data API service. This feature will support the Redshift destination connector on both public and private accessible Amazon Redshift Clusters and Amazon Redshift Serverless.
+
+## __Amazon Kinesis Analytics__
+  - ### Features
+    - Support for Apache Flink 1.15 in Kinesis Data Analytics.
+
+# __2.18.22__ __2022-11-21__
+## __Amazon Route 53__
+  - ### Features
+    - Amazon Route 53 now supports the Asia Pacific (Hyderabad) Region (ap-south-2) for latency records, geoproximity records, and private DNS for Amazon VPCs in that region.
+
+# __2.18.21__ __2022-11-18__
+## __AWS Audit Manager__
+  - ### Features
+    - This release introduces a new feature for Audit Manager: Evidence finder. You can now use evidence finder to quickly query your evidence, and add the matching evidence results to an assessment report.
+
+## __AWS Glue__
+  - ### Features
+    - AWSGlue Crawler - Adding support for Table and Column level Comments with database level datatypes for JDBC based crawler.
+
+## __AWS IoT RoboRunner__
+  - ### Features
+    - AWS IoT RoboRunner is a new service that makes it easy to build applications that help multi-vendor robots work together seamlessly. See the IoT RoboRunner developer guide for more details on getting started. https://docs.aws.amazon.com/iotroborunner/latest/dev/iotroborunner-welcome.html
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Service Catalog__
+  - ### Features
+    - This release 1. adds support for Principal Name Sharing with Service Catalog portfolio sharing. 2. Introduces repo sourced products which are created and managed with existing SC APIs. These products are synced to external repos and auto create new product versions based on changes in the repo.
+
+## __AWS Step Functions__
+  - ### Features
+    - This release adds support for using Step Functions service integrations to invoke any cross-account AWS resource, even if that service doesn't support resource-based policies or cross-account calls. See https://docs.aws.amazon.com/step-functions/latest/dg/concepts-access-cross-acct-resources.html
+
+## __AWS Systems Manager for SAP__
+  - ### Features
+    - AWS Systems Manager for SAP provides simplified operations and management of SAP applications such as SAP HANA. With this release, SAP customers and partners can automate and simplify their SAP system administration tasks such as backup/restore of SAP HANA.
+
+## __AWS Transfer Family__
+  - ### Features
+    - Adds a NONE encryption algorithm type to AS2 connectors, providing support for skipping encryption of the AS2 message body when a HTTPS URL is also specified.
+
+## __Amazon Appflow__
+  - ### Features
+    - AppFlow provides a new API called UpdateConnectorRegistration to update a custom connector that customers have previously registered. With this API, customers no longer need to unregister and then register a connector to make an update.
+
+## __Amazon Chime SDK Voice__
+  - ### Features
+    - Amazon Chime Voice Connector, Voice Connector Group and PSTN Audio Service APIs are now available in the Amazon Chime SDK Voice namespace. See https://docs.aws.amazon.com/chime-sdk/latest/dg/sdk-available-regions.html for more details.
+
+## __Amazon CloudFront__
+  - ### Features
+    - CloudFront API support for staging distributions and associated traffic management policies.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Added AllowedAccessControlTags and TagRestrictedResource for Tag Based Access Control on Amazon Connect Webpage
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Updated minor fixes for DynamoDB documentation.
+
+## __Amazon DynamoDB Streams__
+  - ### Features
+    - Updated minor fixes for DynamoDB documentation.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for copying an Amazon Machine Image's tags when copying an AMI.
+
+## __Amazon QuickSight__
+  - ### Features
+    - This release adds the following: 1) Asset management for centralized assets governance 2) QuickSight Q now supports public embedding 3) New Termination protection flag to mitigate accidental deletes 4) Athena data sources now accept a custom IAM role 5) QuickSight supports connectivity to Databricks
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Added DisableProfiler flag as a new field in ProfilerConfig
+
 # __2.18.20__ __2022-11-17__
 ## __AWS Amplify__
   - ### Features

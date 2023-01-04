@@ -22,14 +22,14 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
-import software.amazon.awssdk.transfer.s3.CompletedFileDownload;
-import software.amazon.awssdk.transfer.s3.CompletedFileUpload;
-import software.amazon.awssdk.transfer.s3.CompletedObjectTransfer;
-import software.amazon.awssdk.transfer.s3.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
-import software.amazon.awssdk.transfer.s3.TransferObjectRequest;
-import software.amazon.awssdk.transfer.s3.TransferRequest;
-import software.amazon.awssdk.transfer.s3.UploadFileRequest;
+import software.amazon.awssdk.transfer.s3.model.CompletedFileDownload;
+import software.amazon.awssdk.transfer.s3.model.CompletedFileUpload;
+import software.amazon.awssdk.transfer.s3.model.CompletedObjectTransfer;
+import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
+import software.amazon.awssdk.transfer.s3.model.TransferObjectRequest;
+import software.amazon.awssdk.transfer.s3.model.TransferRequest;
+import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
 
 /**
  * The {@link TransferListener} interface may be implemented by your application in order to receive event-driven updates on the
@@ -42,7 +42,7 @@ import software.amazon.awssdk.transfer.s3.UploadFileRequest;
  * Each {@link TransferListener} callback is invoked with an immutable {@link Context} object. Depending on the current lifecycle
  * of the request, different {@link Context} objects have different attributes available (indicated by the provided context
  * interface). Most notably, every callback is given access to the current {@link TransferProgressSnapshot}, which contains
- * helpful progress-related methods like {@link TransferProgressSnapshot#bytesTransferred()} and {@link
+ * helpful progress-related methods like {@link TransferProgressSnapshot#transferredBytes()} and {@link
  * TransferProgressSnapshot#ratioTransferred()}.
  * <p>
  * A successful transfer callback lifecycle is sequenced as follows:
@@ -89,7 +89,7 @@ import software.amazon.awssdk.transfer.s3.UploadFileRequest;
  * Upload upload = tm.upload(UploadRequest.builder()
  *                                        .putObjectRequest(b -> b.bucket("bucket").key("key"))
  *                                        .source(Paths.get(...))
- *                                        .overrideConfiguration(b -> b.addListener(LoggingTransferListener.create()))
+ *                                        .addTransferListener(LoggingTransferListener.create())
  *                                        .build());
  * }</pre>
  * And then a successful transfer may output something similar to:
@@ -108,7 +108,6 @@ import software.amazon.awssdk.transfer.s3.UploadFileRequest;
  * </pre>
  */
 @SdkPublicApi
-@SdkPreviewApi
 public interface TransferListener {
 
     /**
@@ -265,7 +264,7 @@ public interface TransferListener {
             /**
              * The exception associated with the failed transfer.
              * <p>
-             * Note that this would be the <i>cause</i>> of a {@link CompletionException}, and not a {@link CompletionException}
+             * Note that this would be the <i>cause</i> of a {@link CompletionException}, and not a {@link CompletionException}
              * itself.
              */
             Throwable exception();

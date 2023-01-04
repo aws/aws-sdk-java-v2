@@ -28,6 +28,9 @@
       "ap-south-1" : {
         "description" : "Asia Pacific (Mumbai)"
       },
+      "ap-south-2" : {
+        "description" : "Asia Pacific (Hyderabad)"
+      },
       "ap-southeast-1" : {
         "description" : "Asia Pacific (Singapore)"
       },
@@ -74,7 +77,7 @@
         "description" : "Middle East (Bahrain)"
       },
       "sa-east-1" : {
-        "description" : "South America (Sao Paulo)"
+        "description" : "South America (São Paulo)"
       },
       "us-east-1" : {
         "description" : "US East (N. Virginia)"

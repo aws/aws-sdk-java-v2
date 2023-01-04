@@ -27,7 +27,8 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
-import software.amazon.awssdk.codegen.utils.BearerAuthUtils;
+import software.amazon.awssdk.codegen.utils.AuthUtils;
+import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 
 public class AsyncClientBuilderClass implements ClassSpec {
@@ -68,11 +69,9 @@ public class AsyncClientBuilderClass implements ClassSpec {
             }
         }
 
-        if (endpointRulesSpecUtils.isEndpointRulesEnabled()) {
-            builder.addMethod(endpointProviderMethod());
-        }
+        builder.addMethod(endpointProviderMethod());
 
-        if (BearerAuthUtils.usesBearerAuth(model)) {
+        if (AuthUtils.usesBearerAuth(model)) {
             builder.addMethod(bearerTokenProviderMethod());
         }
 
@@ -120,7 +119,9 @@ public class AsyncClientBuilderClass implements ClassSpec {
                          .addAnnotation(Override.class)
                          .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
                          .returns(clientInterfaceName)
-                         .addCode("return new $T(super.asyncClientConfiguration());", clientClassName)
+                         .addStatement("$T clientConfiguration = super.asyncClientConfiguration()", SdkClientConfiguration.class)
+                         .addStatement("this.validateClientOptions(clientConfiguration)")
+                         .addCode("return new $T(clientConfiguration);", clientClassName)
                          .build();
     }
 

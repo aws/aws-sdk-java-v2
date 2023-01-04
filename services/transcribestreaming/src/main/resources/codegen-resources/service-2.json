@@ -12,6 +12,23 @@
     "uid":"transcribe-streaming-2017-10-26"
   },
   "operations":{
+    "StartCallAnalyticsStreamTranscription":{
+      "name":"StartCallAnalyticsStreamTranscription",
+      "http":{
+        "method":"POST",
+        "requestUri":"/call-analytics-stream-transcription"
+      },
+      "input":{"shape":"StartCallAnalyticsStreamTranscriptionRequest"},
+      "output":{"shape":"StartCallAnalyticsStreamTranscriptionResponse"},
+      "errors":[
+        {"shape":"BadRequestException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"InternalFailureException"},
+        {"shape":"ConflictException"},
+        {"shape":"ServiceUnavailableException"}
+      ],
+      "documentation":"<p>Starts a bidirectional HTTP/2 or WebSocket stream where audio is streamed to Amazon Transcribe and the transcription results are streamed to your application. Use this operation for <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/call-analytics.html\">Call Analytics</a> transcriptions.</p> <p>The following parameters are required:</p> <ul> <li> <p> <code>language-code</code> </p> </li> <li> <p> <code>media-encoding</code> </p> </li> <li> <p> <code>sample-rate</code> </p> </li> </ul> <p>For more information on streaming with Amazon Transcribe, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/streaming.html\">Transcribing streaming audio</a>.</p>"
+    },
     "StartMedicalStreamTranscription":{
       "name":"StartMedicalStreamTranscription",
       "http":{
@@ -27,7 +44,7 @@
         {"shape":"ConflictException"},
         {"shape":"ServiceUnavailableException"}
       ],
-      "documentation":"<p>Starts a bidirectional HTTP/2 or WebSocket stream where audio is streamed to Amazon Transcribe Medical and the transcription results are streamed to your application.</p> <p>For more information on streaming with Amazon Transcribe Medical, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/streaming.html\">Transcribing streaming audio</a>.</p>"
+      "documentation":"<p>Starts a bidirectional HTTP/2 or WebSocket stream where audio is streamed to Amazon Transcribe Medical and the transcription results are streamed to your application.</p> <p>The following parameters are required:</p> <ul> <li> <p> <code>language-code</code> </p> </li> <li> <p> <code>media-encoding</code> </p> </li> <li> <p> <code>sample-rate</code> </p> </li> </ul> <p>For more information on streaming with Amazon Transcribe Medical, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/streaming.html\">Transcribing streaming audio</a>.</p>"
     },
     "StartStreamTranscription":{
       "name":"StartStreamTranscription",
@@ -44,7 +61,7 @@
         {"shape":"ConflictException"},
         {"shape":"ServiceUnavailableException"}
       ],
-      "documentation":"<p>Starts a bidirectional HTTP/2 or WebSocket stream where audio is streamed to Amazon Transcribe and the transcription results are streamed to your application.</p> <p>The following are encoded as headers:</p> <ul> <li> <p>language-code</p> </li> <li> <p>media-encoding</p> </li> <li> <p>sample-rate</p> </li> <li> <p>session-id</p> </li> </ul> <p>For more information on streaming with Amazon Transcribe, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/streaming.html\">Transcribing streaming audio</a>.</p>"
+      "documentation":"<p>Starts a bidirectional HTTP/2 or WebSocket stream where audio is streamed to Amazon Transcribe and the transcription results are streamed to your application.</p> <p>The following parameters are required:</p> <ul> <li> <p> <code>language-code</code> or <code>identify-language</code> </p> </li> <li> <p> <code>media-encoding</code> </p> </li> <li> <p> <code>sample-rate</code> </p> </li> </ul> <p>For more information on streaming with Amazon Transcribe, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/streaming.html\">Transcribing streaming audio</a>.</p>"
     }
   },
   "shapes":{
@@ -89,6 +106,10 @@
         "AudioEvent":{
           "shape":"AudioEvent",
           "documentation":"<p>A blob of audio from your application. Your audio stream consists of one or more audio events.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/event-stream.html\">Event stream encoding</a>.</p>"
+        },
+        "ConfigurationEvent":{
+          "shape":"ConfigurationEvent",
+          "documentation":"<p>Contains audio channel definitions and post-call analytics settings.</p>"
         }
       },
       "documentation":"<p>An encoded stream of audio blobs. Audio streams are encoded as either HTTP/2 or WebSocket data frames.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/streaming.html\">Transcribing streaming audio</a>.</p>",
@@ -99,12 +120,191 @@
       "members":{
         "Message":{"shape":"String"}
       },
-      "documentation":"<p>One or more arguments to the <code>StartStreamTranscription</code> or <code>StartMedicalStreamTranscription</code> operation was not valid. For example, <code>MediaEncoding</code> or <code>LanguageCode</code> used not valid values. Check the specified parameters and try your request again.</p>",
+      "documentation":"<p>One or more arguments to the <code>StartStreamTranscription</code>, <code>StartMedicalStreamTranscription</code>, or <code>StartCallAnalyticsStreamTranscription</code> operation was not valid. For example, <code>MediaEncoding</code> or <code>LanguageCode</code> used not valid values. Check the specified parameters and try your request again.</p>",
       "error":{"httpStatusCode":400},
       "exception":true
     },
     "Boolean":{"type":"boolean"},
+    "CallAnalyticsEntity":{
+      "type":"structure",
+      "members":{
+        "BeginOffsetMillis":{
+          "shape":"Long",
+          "documentation":"<p>The time, in milliseconds, from the beginning of the audio stream to the start of the identified entity.</p>"
+        },
+        "EndOffsetMillis":{
+          "shape":"Long",
+          "documentation":"<p>The time, in milliseconds, from the beginning of the audio stream to the end of the identified entity.</p>"
+        },
+        "Category":{
+          "shape":"String",
+          "documentation":"<p>The category of information identified. For example, <code>PII</code>.</p>"
+        },
+        "Type":{
+          "shape":"String",
+          "documentation":"<p>The type of PII identified. For example, <code>NAME</code> or <code>CREDIT_DEBIT_NUMBER</code>.</p>"
+        },
+        "Content":{
+          "shape":"String",
+          "documentation":"<p>The word or words that represent the identified entity.</p>"
+        },
+        "Confidence":{
+          "shape":"Confidence",
+          "documentation":"<p>The confidence score associated with the identification of an entity in your transcript.</p> <p>Confidence scores are values between 0 and 1. A larger value indicates a higher probability that the identified entity correctly matches the entity spoken in your media.</p>"
+        }
+      },
+      "documentation":"<p>Contains entities identified as personally identifiable information (PII) in your transcription output, along with various associated attributes. Examples include category, confidence score, content, type, and start and end times.</p>"
+    },
+    "CallAnalyticsEntityList":{
+      "type":"list",
+      "member":{"shape":"CallAnalyticsEntity"}
+    },
+    "CallAnalyticsItem":{
+      "type":"structure",
+      "members":{
+        "BeginOffsetMillis":{
+          "shape":"Long",
+          "documentation":"<p>The time, in milliseconds, from the beginning of the audio stream to the start of the identified item.</p>"
+        },
+        "EndOffsetMillis":{
+          "shape":"Long",
+          "documentation":"<p>The time, in milliseconds, from the beginning of the audio stream to the end of the identified item.</p>"
+        },
+        "Type":{
+          "shape":"ItemType",
+          "documentation":"<p>The type of item identified. Options are: <code>PRONUNCIATION</code> (spoken words) and <code>PUNCTUATION</code>.</p>"
+        },
+        "Content":{
+          "shape":"String",
+          "documentation":"<p>The word or punctuation that was transcribed.</p>"
+        },
+        "Confidence":{
+          "shape":"Confidence",
+          "documentation":"<p>The confidence score associated with a word or phrase in your transcript.</p> <p>Confidence scores are values between 0 and 1. A larger value indicates a higher probability that the identified item correctly matches the item spoken in your media.</p>"
+        },
+        "VocabularyFilterMatch":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates whether the specified item matches a word in the vocabulary filter included in your Call Analytics request. If <code>true</code>, there is a vocabulary filter match.</p>"
+        },
+        "Stable":{
+          "shape":"Stable",
+          "documentation":"<p>If partial result stabilization is enabled, <code>Stable</code> indicates whether the specified item is stable (<code>true</code>) or if it may change when the segment is complete (<code>false</code>).</p>"
+        }
+      },
+      "documentation":"<p>A word, phrase, or punctuation mark in your Call Analytics transcription output, along with various associated attributes, such as confidence score, type, and start and end times.</p>"
+    },
+    "CallAnalyticsItemList":{
+      "type":"list",
+      "member":{"shape":"CallAnalyticsItem"}
+    },
+    "CallAnalyticsLanguageCode":{
+      "type":"string",
+      "enum":[
+        "en-US",
+        "en-GB",
+        "es-US",
+        "fr-CA",
+        "fr-FR",
+        "en-AU",
+        "it-IT",
+        "de-DE",
+        "pt-BR"
+      ]
+    },
+    "CallAnalyticsTranscriptResultStream":{
+      "type":"structure",
+      "members":{
+        "UtteranceEvent":{
+          "shape":"UtteranceEvent",
+          "documentation":"<p>Contains set of transcription results from one or more audio segments, along with additional information per your request parameters. This can include information relating to channel definitions, partial result stabilization, sentiment, issue detection, and other transcription-related data.</p>"
+        },
+        "CategoryEvent":{
+          "shape":"CategoryEvent",
+          "documentation":"<p>Provides information on matched categories that were used to generate real-time supervisor alerts.</p>"
+        },
+        "BadRequestException":{"shape":"BadRequestException"},
+        "LimitExceededException":{"shape":"LimitExceededException"},
+        "InternalFailureException":{"shape":"InternalFailureException"},
+        "ConflictException":{"shape":"ConflictException"},
+        "ServiceUnavailableException":{"shape":"ServiceUnavailableException"}
+      },
+      "documentation":"<p>Contains detailed information about your Call Analytics streaming session. These details are provided in the <code>UtteranceEvent</code> and <code>CategoryEvent</code> objects.</p>",
+      "eventstream":true
+    },
+    "CategoryEvent":{
+      "type":"structure",
+      "members":{
+        "MatchedCategories":{
+          "shape":"StringList",
+          "documentation":"<p>Lists the categories that were matched in your audio segment.</p>"
+        },
+        "MatchedDetails":{
+          "shape":"MatchedCategoryDetails",
+          "documentation":"<p>Contains information about the matched categories, including category names and timestamps.</p>"
+        }
+      },
+      "documentation":"<p>Provides information on any <code>TranscriptFilterType</code> categories that matched your transcription output. Matches are identified for each segment upon completion of that segment.</p>",
+      "event":true
+    },
+    "ChannelDefinition":{
+      "type":"structure",
+      "required":[
+        "ChannelId",
+        "ParticipantRole"
+      ],
+      "members":{
+        "ChannelId":{
+          "shape":"ChannelId",
+          "documentation":"<p>Specify the audio channel you want to define.</p>"
+        },
+        "ParticipantRole":{
+          "shape":"ParticipantRole",
+          "documentation":"<p>Specify the speaker you want to define. Omitting this parameter is equivalent to specifying both participants.</p>"
+        }
+      },
+      "documentation":"<p>Makes it possible to specify which speaker is on which audio channel. For example, if your agent is the first participant to speak, you would set <code>ChannelId</code> to <code>0</code> (to indicate the first channel) and <code>ParticipantRole</code> to <code>AGENT</code> (to indicate that it's the agent speaking).</p>"
+    },
+    "ChannelDefinitions":{
+      "type":"list",
+      "member":{"shape":"ChannelDefinition"},
+      "max":2,
+      "min":2
+    },
+    "ChannelId":{
+      "type":"integer",
+      "max":1,
+      "min":0
+    },
+    "CharacterOffsets":{
+      "type":"structure",
+      "members":{
+        "Begin":{
+          "shape":"Integer",
+          "documentation":"<p>Provides the character count of the first character where a match is identified. For example, the first character associated with an issue or a category match in a segment transcript.</p>"
+        },
+        "End":{
+          "shape":"Integer",
+          "documentation":"<p>Provides the character count of the last character where a match is identified. For example, the last character associated with an issue or a category match in a segment transcript.</p>"
+        }
+      },
+      "documentation":"<p>Provides the location, using character count, in your transcript where a match is identified. For example, the location of an issue or a category match within a segment.</p>"
+    },
     "Confidence":{"type":"double"},
+    "ConfigurationEvent":{
+      "type":"structure",
+      "members":{
+        "ChannelDefinitions":{
+          "shape":"ChannelDefinitions",
+          "documentation":"<p>Indicates which speaker is on which audio channel.</p>"
+        },
+        "PostCallAnalyticsSettings":{
+          "shape":"PostCallAnalyticsSettings",
+          "documentation":"<p>Provides additional optional settings for your Call Analytics post-call request, including encryption and output locations for your redacted and unredacted transcript.</p>"
+        }
+      },
+      "documentation":"<p>Allows you to set audio channel definitions and post-call analytics settings.</p>",
+      "event":true
+    },
     "ConflictException":{
       "type":"structure",
       "members":{
@@ -117,6 +317,13 @@
     "ContentIdentificationType":{
       "type":"string",
       "enum":["PII"]
+    },
+    "ContentRedactionOutput":{
+      "type":"string",
+      "enum":[
+        "redacted",
+        "redacted_and_unredacted"
+      ]
     },
     "ContentRedactionType":{
       "type":"string",
@@ -157,6 +364,7 @@
       "type":"list",
       "member":{"shape":"Entity"}
     },
+    "Integer":{"type":"integer"},
     "InternalFailureException":{
       "type":"structure",
       "members":{
@@ -166,6 +374,20 @@
       "error":{"httpStatusCode":500},
       "exception":true,
       "fault":true
+    },
+    "IssueDetected":{
+      "type":"structure",
+      "members":{
+        "CharacterOffsets":{
+          "shape":"CharacterOffsets",
+          "documentation":"<p>Provides the timestamps that identify when in an audio segment the specified issue occurs.</p>"
+        }
+      },
+      "documentation":"<p>Lists the issues that were identified in your audio segment.</p>"
+    },
+    "IssuesDetected":{
+      "type":"list",
+      "member":{"shape":"IssueDetected"}
     },
     "Item":{
       "type":"structure",
@@ -267,6 +489,12 @@
       "documentation":"<p>Your client has exceeded one of the Amazon Transcribe limits. This is typically the audio length limit. Break your audio stream into smaller chunks and try your request again.</p>",
       "error":{"httpStatusCode":429},
       "exception":true
+    },
+    "Long":{"type":"long"},
+    "MatchedCategoryDetails":{
+      "type":"map",
+      "key":{"shape":"String"},
+      "value":{"shape":"PointsOfInterest"}
     },
     "MediaEncoding":{
       "type":"string",
@@ -460,11 +688,54 @@
         "low"
       ]
     },
+    "ParticipantRole":{
+      "type":"string",
+      "enum":[
+        "AGENT",
+        "CUSTOMER"
+      ]
+    },
     "PiiEntityTypes":{
       "type":"string",
       "max":300,
       "min":1,
       "pattern":"^[A-Z_, ]+"
+    },
+    "PointsOfInterest":{
+      "type":"structure",
+      "members":{
+        "TimestampRanges":{
+          "shape":"TimestampRanges",
+          "documentation":"<p>Contains the timestamp ranges (start time through end time) of matched categories and rules.</p>"
+        }
+      },
+      "documentation":"<p>Contains the timestamps of matched categories.</p>"
+    },
+    "PostCallAnalyticsSettings":{
+      "type":"structure",
+      "required":[
+        "OutputLocation",
+        "DataAccessRoleArn"
+      ],
+      "members":{
+        "OutputLocation":{
+          "shape":"String",
+          "documentation":"<p>The Amazon S3 location where you want your Call Analytics post-call transcription output stored. You can use any of the following formats to specify the output location:</p> <ol> <li> <p>s3://DOC-EXAMPLE-BUCKET</p> </li> <li> <p>s3://DOC-EXAMPLE-BUCKET/my-output-folder/</p> </li> <li> <p>s3://DOC-EXAMPLE-BUCKET/my-output-folder/my-call-analytics-job.json</p> </li> </ol>"
+        },
+        "DataAccessRoleArn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of an IAM role that has permissions to access the Amazon S3 bucket that contains your input files. If the role that you specify doesn’t have the appropriate permissions to access the specified Amazon S3 location, your request fails.</p> <p>IAM role ARNs have the format <code>arn:partition:iam::account:role/role-name-with-path</code>. For example: <code>arn:aws:iam::111122223333:role/Admin</code>. For more information, see <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-arns\">IAM ARNs</a>.</p>"
+        },
+        "ContentRedactionOutput":{
+          "shape":"ContentRedactionOutput",
+          "documentation":"<p>Specify whether you want only a redacted transcript or both a redacted and an unredacted transcript. If you choose redacted and unredacted, two JSON files are generated and stored in the Amazon S3 output location you specify.</p> <p>Note that to include <code>ContentRedactionOutput</code> in your request, you must enable content redaction (<code>ContentRedactionType</code>).</p>"
+        },
+        "OutputEncryptionKMSKeyId":{
+          "shape":"String",
+          "documentation":"<p>The KMS key you want to use to encrypt your Call Analytics post-call output.</p> <p>If using a key located in the <b>current</b> Amazon Web Services account, you can specify your KMS key in one of four ways:</p> <ol> <li> <p>Use the KMS key ID itself. For example, <code>1234abcd-12ab-34cd-56ef-1234567890ab</code>.</p> </li> <li> <p>Use an alias for the KMS key ID. For example, <code>alias/ExampleAlias</code>.</p> </li> <li> <p>Use the Amazon Resource Name (ARN) for the KMS key ID. For example, <code>arn:aws:kms:region:account-ID:key/1234abcd-12ab-34cd-56ef-1234567890ab</code>.</p> </li> <li> <p>Use the ARN for the KMS key alias. For example, <code>arn:aws:kms:region:account-ID:alias/ExampleAlias</code>.</p> </li> </ol> <p>If using a key located in a <b>different</b> Amazon Web Services account than the current Amazon Web Services account, you can specify your KMS key in one of two ways:</p> <ol> <li> <p>Use the ARN for the KMS key ID. For example, <code>arn:aws:kms:region:account-ID:key/1234abcd-12ab-34cd-56ef-1234567890ab</code>.</p> </li> <li> <p>Use the ARN for the KMS key alias. For example, <code>arn:aws:kms:region:account-ID:alias/ExampleAlias</code>.</p> </li> </ol> <p>Note that the user making the request must have permission to use the specified KMS key.</p>"
+        }
+      },
+      "documentation":"<p>Allows you to specify additional settings for your streaming Call Analytics post-call request, including output locations for your redacted and unredacted transcript, which IAM role to use, and, optionally, which encryption key to use.</p> <p> <code>ContentRedactionOutput</code>, <code>DataAccessRoleArn</code>, and <code>OutputLocation</code> are required fields.</p>"
     },
     "RequestId":{"type":"string"},
     "Result":{
@@ -492,7 +763,7 @@
         },
         "ChannelId":{
           "shape":"String",
-          "documentation":"<p>Indicates the channel identified for the <code>Result</code>.</p>"
+          "documentation":"<p>Indicates which audio channel is associated with the <code>Result</code>.</p>"
         },
         "LanguageCode":{
           "shape":"LanguageCode",
@@ -508,6 +779,15 @@
     "ResultList":{
       "type":"list",
       "member":{"shape":"Result"}
+    },
+    "Sentiment":{
+      "type":"string",
+      "enum":[
+        "POSITIVE",
+        "NEGATIVE",
+        "MIXED",
+        "NEUTRAL"
+      ]
     },
     "ServiceUnavailableException":{
       "type":"structure",
@@ -536,6 +816,191 @@
       ]
     },
     "Stable":{"type":"boolean"},
+    "StartCallAnalyticsStreamTranscriptionRequest":{
+      "type":"structure",
+      "required":[
+        "LanguageCode",
+        "MediaSampleRateHertz",
+        "MediaEncoding",
+        "AudioStream"
+      ],
+      "members":{
+        "LanguageCode":{
+          "shape":"CallAnalyticsLanguageCode",
+          "documentation":"<p>Specify the language code that represents the language spoken in your audio.</p> <p>If you're unsure of the language spoken in your audio, consider using <code>IdentifyLanguage</code> to enable automatic language identification.</p> <p>For a list of languages supported with streaming Call Analytics, refer to the <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/supported-languages.html\">Supported languages</a> table.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-language-code"
+        },
+        "MediaSampleRateHertz":{
+          "shape":"MediaSampleRateHertz",
+          "documentation":"<p>The sample rate of the input audio (in hertz). Low-quality audio, such as telephone audio, is typically around 8,000 Hz. High-quality audio typically ranges from 16,000 Hz to 48,000 Hz. Note that the sample rate you specify must match that of your audio.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-sample-rate"
+        },
+        "MediaEncoding":{
+          "shape":"MediaEncoding",
+          "documentation":"<p>Specify the encoding of your input audio. Supported formats are:</p> <ul> <li> <p>FLAC</p> </li> <li> <p>OPUS-encoded audio in an Ogg container</p> </li> <li> <p>PCM (only signed 16-bit little-endian audio formats, which does not include WAV)</p> </li> </ul> <p>For more information, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/how-input.html#how-input-audio\">Media formats</a>.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-media-encoding"
+        },
+        "VocabularyName":{
+          "shape":"VocabularyName",
+          "documentation":"<p>Specify the name of the custom vocabulary that you want to use when processing your transcription. Note that vocabulary names are case sensitive.</p> <p>If the language of the specified custom vocabulary doesn't match the language identified in your media, the custom vocabulary is not applied to your transcription.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/custom-vocabulary.html\">Custom vocabularies</a>.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-vocabulary-name"
+        },
+        "SessionId":{
+          "shape":"SessionId",
+          "documentation":"<p>Specify a name for your Call Analytics transcription session. If you don't include this parameter in your request, Amazon Transcribe generates an ID and returns it in the response.</p> <p>You can use a session ID to retry a streaming session.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-session-id"
+        },
+        "AudioStream":{"shape":"AudioStream"},
+        "VocabularyFilterName":{
+          "shape":"VocabularyFilterName",
+          "documentation":"<p>Specify the name of the custom vocabulary filter that you want to use when processing your transcription. Note that vocabulary filter names are case sensitive.</p> <p>If the language of the specified custom vocabulary filter doesn't match the language identified in your media, the vocabulary filter is not applied to your transcription.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/vocabulary-filtering.html\">Using vocabulary filtering with unwanted words</a>.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-vocabulary-filter-name"
+        },
+        "VocabularyFilterMethod":{
+          "shape":"VocabularyFilterMethod",
+          "documentation":"<p>Specify how you want your vocabulary filter applied to your transcript.</p> <p>To replace words with <code>***</code>, choose <code>mask</code>.</p> <p>To delete words, choose <code>remove</code>.</p> <p>To flag words without changing them, choose <code>tag</code>.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-vocabulary-filter-method"
+        },
+        "LanguageModelName":{
+          "shape":"ModelName",
+          "documentation":"<p>Specify the name of the custom language model that you want to use when processing your transcription. Note that language model names are case sensitive.</p> <p>The language of the specified language model must match the language code you specify in your transcription request. If the languages don't match, the custom language model isn't applied. There are no errors or warnings associated with a language mismatch.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/custom-language-models.html\">Custom language models</a>.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-language-model-name"
+        },
+        "EnablePartialResultsStabilization":{
+          "shape":"Boolean",
+          "documentation":"<p>Enables partial result stabilization for your transcription. Partial result stabilization can reduce latency in your output, but may impact accuracy. For more information, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/streaming.html#streaming-partial-result-stabilization\">Partial-result stabilization</a>.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-enable-partial-results-stabilization"
+        },
+        "PartialResultsStability":{
+          "shape":"PartialResultsStability",
+          "documentation":"<p>Specify the level of stability to use when you enable partial results stabilization (<code>EnablePartialResultsStabilization</code>).</p> <p>Low stability provides the highest accuracy. High stability transcribes faster, but with slightly lower accuracy.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/streaming.html#streaming-partial-result-stabilization\">Partial-result stabilization</a>.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-partial-results-stability"
+        },
+        "ContentIdentificationType":{
+          "shape":"ContentIdentificationType",
+          "documentation":"<p>Labels all personally identifiable information (PII) identified in your transcript.</p> <p>Content identification is performed at the segment level; PII specified in <code>PiiEntityTypes</code> is flagged upon complete transcription of an audio segment.</p> <p>You can’t set <code>ContentIdentificationType</code> and <code>ContentRedactionType</code> in the same request. If you set both, your request returns a <code>BadRequestException</code>.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/pii-redaction.html\">Redacting or identifying personally identifiable information</a>.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-content-identification-type"
+        },
+        "ContentRedactionType":{
+          "shape":"ContentRedactionType",
+          "documentation":"<p>Redacts all personally identifiable information (PII) identified in your transcript.</p> <p>Content redaction is performed at the segment level; PII specified in <code>PiiEntityTypes</code> is redacted upon complete transcription of an audio segment.</p> <p>You can’t set <code>ContentRedactionType</code> and <code>ContentIdentificationType</code> in the same request. If you set both, your request returns a <code>BadRequestException</code>.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/pii-redaction.html\">Redacting or identifying personally identifiable information</a>.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-content-redaction-type"
+        },
+        "PiiEntityTypes":{
+          "shape":"PiiEntityTypes",
+          "documentation":"<p>Specify which types of personally identifiable information (PII) you want to redact in your transcript. You can include as many types as you'd like, or you can select <code>ALL</code>.</p> <p>To include <code>PiiEntityTypes</code> in your Call Analytics request, you must also include either <code>ContentIdentificationType</code> or <code>ContentRedactionType</code>.</p> <p>Values must be comma-separated and can include: <code>BANK_ACCOUNT_NUMBER</code>, <code>BANK_ROUTING</code>, <code>CREDIT_DEBIT_NUMBER</code>, <code>CREDIT_DEBIT_CVV</code>, <code>CREDIT_DEBIT_EXPIRY</code>, <code>PIN</code>, <code>EMAIL</code>, <code>ADDRESS</code>, <code>NAME</code>, <code>PHONE</code>, <code>SSN</code>, or <code>ALL</code>.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-pii-entity-types"
+        }
+      },
+      "payload":"AudioStream"
+    },
+    "StartCallAnalyticsStreamTranscriptionResponse":{
+      "type":"structure",
+      "members":{
+        "RequestId":{
+          "shape":"RequestId",
+          "documentation":"<p>Provides the identifier for your Call Analytics streaming request.</p>",
+          "location":"header",
+          "locationName":"x-amzn-request-id"
+        },
+        "LanguageCode":{
+          "shape":"CallAnalyticsLanguageCode",
+          "documentation":"<p>Provides the language code that you specified in your Call Analytics request.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-language-code"
+        },
+        "MediaSampleRateHertz":{
+          "shape":"MediaSampleRateHertz",
+          "documentation":"<p>Provides the sample rate that you specified in your Call Analytics request.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-sample-rate"
+        },
+        "MediaEncoding":{
+          "shape":"MediaEncoding",
+          "documentation":"<p>Provides the media encoding you specified in your Call Analytics request.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-media-encoding"
+        },
+        "VocabularyName":{
+          "shape":"VocabularyName",
+          "documentation":"<p>Provides the name of the custom vocabulary that you specified in your Call Analytics request.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-vocabulary-name"
+        },
+        "SessionId":{
+          "shape":"SessionId",
+          "documentation":"<p>Provides the identifier for your Call Analytics transcription session.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-session-id"
+        },
+        "CallAnalyticsTranscriptResultStream":{
+          "shape":"CallAnalyticsTranscriptResultStream",
+          "documentation":"<p>Provides detailed information about your Call Analytics streaming session.</p>"
+        },
+        "VocabularyFilterName":{
+          "shape":"VocabularyFilterName",
+          "documentation":"<p>Provides the name of the custom vocabulary filter that you specified in your Call Analytics request.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-vocabulary-filter-name"
+        },
+        "VocabularyFilterMethod":{
+          "shape":"VocabularyFilterMethod",
+          "documentation":"<p>Provides the vocabulary filtering method used in your Call Analytics transcription.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-vocabulary-filter-method"
+        },
+        "LanguageModelName":{
+          "shape":"ModelName",
+          "documentation":"<p>Provides the name of the custom language model that you specified in your Call Analytics request.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-language-model-name"
+        },
+        "EnablePartialResultsStabilization":{
+          "shape":"Boolean",
+          "documentation":"<p>Shows whether partial results stabilization was enabled for your Call Analytics transcription.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-enable-partial-results-stabilization"
+        },
+        "PartialResultsStability":{
+          "shape":"PartialResultsStability",
+          "documentation":"<p>Provides the stabilization level used for your transcription.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-partial-results-stability"
+        },
+        "ContentIdentificationType":{
+          "shape":"ContentIdentificationType",
+          "documentation":"<p>Shows whether content identification was enabled for your Call Analytics transcription.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-content-identification-type"
+        },
+        "ContentRedactionType":{
+          "shape":"ContentRedactionType",
+          "documentation":"<p>Shows whether content redaction was enabled for your Call Analytics transcription.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-content-redaction-type"
+        },
+        "PiiEntityTypes":{
+          "shape":"PiiEntityTypes",
+          "documentation":"<p>Lists the PII entity types you specified in your Call Analytics request.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-pii-entity-types"
+        }
+      },
+      "payload":"CallAnalyticsTranscriptResultStream"
+    },
     "StartMedicalStreamTranscriptionRequest":{
       "type":"structure",
       "required":[
@@ -721,13 +1186,13 @@
         },
         "MediaEncoding":{
           "shape":"MediaEncoding",
-          "documentation":"<p>Specify the encoding used for the input audio. Supported formats are:</p> <ul> <li> <p>FLAC</p> </li> <li> <p>OPUS-encoded audio in an Ogg container</p> </li> <li> <p>PCM (only signed 16-bit little-endian audio formats, which does not include WAV)</p> </li> </ul> <p>For more information, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/how-input.html#how-input-audio\">Media formats</a>.</p>",
+          "documentation":"<p>Specify the encoding of your input audio. Supported formats are:</p> <ul> <li> <p>FLAC</p> </li> <li> <p>OPUS-encoded audio in an Ogg container</p> </li> <li> <p>PCM (only signed 16-bit little-endian audio formats, which does not include WAV)</p> </li> </ul> <p>For more information, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/how-input.html#how-input-audio\">Media formats</a>.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-media-encoding"
         },
         "VocabularyName":{
           "shape":"VocabularyName",
-          "documentation":"<p>Specify the name of the custom vocabulary that you want to use when processing your transcription. Note that vocabulary names are case sensitive.</p> <p>If the language of the specified custom vocabulary doesn't match the language identified in your media, your job fails.</p> <important> <p>This parameter is <b>not</b> intended for use with the <code>IdentifyLanguage</code> parameter. If you're including <code>IdentifyLanguage</code> in your request and want to use one or more custom vocabularies with your transcription, use the <code>VocabularyNames</code> parameter instead.</p> </important> <p>For more information, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/custom-vocabulary.html\">Custom vocabularies</a>.</p>",
+          "documentation":"<p>Specify the name of the custom vocabulary that you want to use when processing your transcription. Note that vocabulary names are case sensitive.</p> <p>If the language of the specified custom vocabulary doesn't match the language identified in your media, the custom vocabulary is not applied to your transcription.</p> <important> <p>This parameter is <b>not</b> intended for use with the <code>IdentifyLanguage</code> parameter. If you're including <code>IdentifyLanguage</code> in your request and want to use one or more custom vocabularies with your transcription, use the <code>VocabularyNames</code> parameter instead.</p> </important> <p>For more information, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/custom-vocabulary.html\">Custom vocabularies</a>.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-vocabulary-name"
         },
@@ -743,7 +1208,7 @@
         },
         "VocabularyFilterName":{
           "shape":"VocabularyFilterName",
-          "documentation":"<p>Specify the name of the custom vocabulary filter that you want to use when processing your transcription. Note that vocabulary filter names are case sensitive.</p> <p>If the language of the specified custom vocabulary filter doesn't match the language identified in your media, your job fails.</p> <important> <p>This parameter is <b>not</b> intended for use with the <code>IdentifyLanguage</code> parameter. If you're including <code>IdentifyLanguage</code> in your request and want to use one or more vocabulary filters with your transcription, use the <code>VocabularyFilterNames</code> parameter instead.</p> </important> <p>For more information, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/vocabulary-filtering.html\">Using vocabulary filtering with unwanted words</a>.</p>",
+          "documentation":"<p>Specify the name of the custom vocabulary filter that you want to use when processing your transcription. Note that vocabulary filter names are case sensitive.</p> <p>If the language of the specified custom vocabulary filter doesn't match the language identified in your media, the vocabulary filter is not applied to your transcription.</p> <important> <p>This parameter is <b>not</b> intended for use with the <code>IdentifyLanguage</code> parameter. If you're including <code>IdentifyLanguage</code> in your request and want to use one or more vocabulary filters with your transcription, use the <code>VocabularyFilterNames</code> parameter instead.</p> </important> <p>For more information, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/vocabulary-filtering.html\">Using vocabulary filtering with unwanted words</a>.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-vocabulary-filter-name"
         },
@@ -803,7 +1268,7 @@
         },
         "LanguageModelName":{
           "shape":"ModelName",
-          "documentation":"<p>Specify the name of the custom language model that you want to use when processing your transcription. Note that language model names are case sensitive.</p> <p>The language of the specified language model must match the language code you specify in your transcription request. If the languages don't match, the language model isn't applied. There are no errors or warnings associated with a language mismatch.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/custom-language-models.html\">Custom language models</a>.</p>",
+          "documentation":"<p>Specify the name of the custom language model that you want to use when processing your transcription. Note that language model names are case sensitive.</p> <p>The language of the specified language model must match the language code you specify in your transcription request. If the languages don't match, the custom language model isn't applied. There are no errors or warnings associated with a language mismatch.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/custom-language-models.html\">Custom language models</a>.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-language-model-name"
         },
@@ -983,6 +1448,28 @@
       "payload":"TranscriptResultStream"
     },
     "String":{"type":"string"},
+    "StringList":{
+      "type":"list",
+      "member":{"shape":"String"}
+    },
+    "TimestampRange":{
+      "type":"structure",
+      "members":{
+        "BeginOffsetMillis":{
+          "shape":"Long",
+          "documentation":"<p>The time, in milliseconds, from the beginning of the audio stream to the start of the category match.</p>"
+        },
+        "EndOffsetMillis":{
+          "shape":"Long",
+          "documentation":"<p>The time, in milliseconds, from the beginning of the audio stream to the end of the category match.</p>"
+        }
+      },
+      "documentation":"<p>Contains the timestamp range (start time through end time) of a matched category.</p>"
+    },
+    "TimestampRanges":{
+      "type":"list",
+      "member":{"shape":"TimestampRange"}
+    },
     "Transcript":{
       "type":"structure",
       "members":{
@@ -1042,6 +1529,53 @@
         "DICTATION"
       ]
     },
+    "UtteranceEvent":{
+      "type":"structure",
+      "members":{
+        "UtteranceId":{
+          "shape":"String",
+          "documentation":"<p>The unique identifier that is associated with the specified <code>UtteranceEvent</code>.</p>"
+        },
+        "IsPartial":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates whether the segment in the <code>UtteranceEvent</code> is complete (<code>FALSE</code>) or partial (<code>TRUE</code>).</p>"
+        },
+        "ParticipantRole":{
+          "shape":"ParticipantRole",
+          "documentation":"<p>Provides the role of the speaker for each audio channel, either <code>CUSTOMER</code> or <code>AGENT</code>.</p>"
+        },
+        "BeginOffsetMillis":{
+          "shape":"Long",
+          "documentation":"<p>The time, in milliseconds, from the beginning of the audio stream to the start of the <code>UtteranceEvent</code>.</p>"
+        },
+        "EndOffsetMillis":{
+          "shape":"Long",
+          "documentation":"<p>The time, in milliseconds, from the beginning of the audio stream to the start of the <code>UtteranceEvent</code>.</p>"
+        },
+        "Transcript":{
+          "shape":"String",
+          "documentation":"<p>Contains transcribed text.</p>"
+        },
+        "Items":{
+          "shape":"CallAnalyticsItemList",
+          "documentation":"<p>Contains words, phrases, or punctuation marks that are associated with the specified <code>UtteranceEvent</code>.</p>"
+        },
+        "Entities":{
+          "shape":"CallAnalyticsEntityList",
+          "documentation":"<p>Contains entities identified as personally identifiable information (PII) in your transcription output.</p>"
+        },
+        "Sentiment":{
+          "shape":"Sentiment",
+          "documentation":"<p>Provides the sentiment that was detected in the specified segment.</p>"
+        },
+        "IssuesDetected":{
+          "shape":"IssuesDetected",
+          "documentation":"<p>Provides the issue that was detected in the specified segment.</p>"
+        }
+      },
+      "documentation":"<p>Contains set of transcription results from one or more audio segments, along with additional information about the parameters included in your request. For example, channel definitions, partial result stabilization, sentiment, and issue detection.</p>",
+      "event":true
+    },
     "VocabularyFilterMethod":{
       "type":"string",
       "enum":[
@@ -1075,5 +1609,5 @@
       "pattern":"^[a-zA-Z0-9,-._]+"
     }
   },
-  "documentation":"<p>Amazon Transcribe streaming offers two types of real-time transcription: <b>Standard</b> and <b>Medical</b>.</p> <ul> <li> <p> <b>Standard transcriptions</b> are the most common option. Refer to for details.</p> </li> <li> <p> <b>Medical transcriptions</b> are tailored to medical professionals and incorporate medical terms. A common use case for this service is transcribing doctor-patient dialogue in real time, so doctors can focus on their patient instead of taking notes. Refer to for details.</p> </li> </ul>"
+  "documentation":"<p>Amazon Transcribe streaming offers three main types of real-time transcription: <b>Standard</b>, <b>Medical</b>, and <b>Call Analytics</b>.</p> <ul> <li> <p> <b>Standard transcriptions</b> are the most common option. Refer to for details.</p> </li> <li> <p> <b>Medical transcriptions</b> are tailored to medical professionals and incorporate medical terms. A common use case for this service is transcribing doctor-patient dialogue in real time, so doctors can focus on their patient instead of taking notes. Refer to for details.</p> </li> <li> <p> <b>Call Analytics transcriptions</b> are designed for use with call center audio on two different channels; if you're looking for insight into customer service calls, use this option. Refer to for details.</p> </li> </ul>"
 }

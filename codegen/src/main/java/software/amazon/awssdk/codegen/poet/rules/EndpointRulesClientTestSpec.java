@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.codegen.poet.rules;
 
+import static software.amazon.awssdk.codegen.poet.rules.TestGeneratorUtils.getHostPrefixTemplate;
+
 import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.jr.stree.JrsArray;
 import com.fasterxml.jackson.jr.stree.JrsObject;
@@ -56,6 +58,7 @@ import software.amazon.awssdk.codegen.model.service.Location;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.codegen.utils.AuthUtils;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.rules.testing.AsyncTestCase;
@@ -217,7 +220,8 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
                               SyncTestCase.class,
                               test.getDocumentation(),
                               syncOperationCallLambda(opModel, test.getParams(), opInput.getOperationParams()),
-                              TestGeneratorUtils.createExpect(test.getExpect()), getSkipReasonBlock(test.getDocumentation()));
+                              TestGeneratorUtils.createExpect(test.getExpect(), opModel, opInput.getOperationParams()),
+                              getSkipReasonBlock(test.getDocumentation()));
 
                     if (operationInputsIter.hasNext()) {
                         b.addCode(",");
@@ -228,7 +232,8 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
                           SyncTestCase.class,
                           test.getDocumentation(),
                           syncOperationCallLambda(defaultOpModel, test.getParams(), Collections.emptyMap()),
-                          TestGeneratorUtils.createExpect(test.getExpect()), getSkipReasonBlock(test.getDocumentation()));
+                          TestGeneratorUtils.createExpect(test.getExpect(), defaultOpModel, null),
+                          getSkipReasonBlock(test.getDocumentation()));
             }
 
             if (testIter.hasNext()) {
@@ -248,6 +253,9 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
         b.beginControlFlow("() -> ");
         b.addStatement("$T builder = $T.builder()", syncClientBuilder(), syncClientClass());
         b.addStatement("builder.credentialsProvider($T.CREDENTIALS_PROVIDER)", BaseRuleSetClientTest.class);
+        if (AuthUtils.usesBearerAuth(model)) {
+            b.addStatement("builder.tokenProvider($T.TOKEN_PROVIDER)", BaseRuleSetClientTest.class);
+        }
         b.addStatement("builder.httpClient(getSyncHttpClient())");
 
         if (params != null) {
@@ -272,6 +280,9 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
         b.beginControlFlow("() -> ");
         b.addStatement("$T builder = $T.builder()", asyncClientBuilder(), asyncClientClass());
         b.addStatement("builder.credentialsProvider($T.CREDENTIALS_PROVIDER)", BaseRuleSetClientTest.class);
+        if (AuthUtils.usesBearerAuth(model)) {
+            b.addStatement("builder.tokenProvider($T.TOKEN_PROVIDER)", BaseRuleSetClientTest.class);
+        }
         b.addStatement("builder.httpClient(getAsyncHttpClient())");
 
         if (params != null) {
@@ -355,7 +366,8 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
                               AsyncTestCase.class,
                               test.getDocumentation(),
                               asyncOperationCallLambda(opModel, test.getParams(), opInput.getOperationParams()),
-                              TestGeneratorUtils.createExpect(test.getExpect()), getSkipReasonBlock(test.getDocumentation()));
+                              TestGeneratorUtils.createExpect(test.getExpect(), opModel, opInput.getOperationParams()),
+                              getSkipReasonBlock(test.getDocumentation()));
 
                     if (operationInputsIter.hasNext()) {
                         b.addCode(",");
@@ -366,7 +378,8 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
                           AsyncTestCase.class,
                           test.getDocumentation(),
                           asyncOperationCallLambda(defaultOpModel, test.getParams(), Collections.emptyMap()),
-                          TestGeneratorUtils.createExpect(test.getExpect()), getSkipReasonBlock(test.getDocumentation()));
+                          TestGeneratorUtils.createExpect(test.getExpect(), defaultOpModel, null),
+                          getSkipReasonBlock(test.getDocumentation()));
             }
 
             if (testIter.hasNext()) {
@@ -399,8 +412,10 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
             return b.add(".build()").build();
         }
 
+        String hostPrefix = getHostPrefixTemplate(opModel).orElse("");
+
         inputShape.getMembers().forEach(m -> {
-            if (!boundToPath(m)) {
+            if (!boundToPath(m) && !hostPrefix.contains("{" + m.getC2jName() + "}")) {
                 return;
             }
 
@@ -442,6 +457,12 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
         }
 
         if (opModel.hasStreamingOutput() || opModel.hasStreamingInput()) {
+            return false;
+        }
+
+        String hostPrefix = getHostPrefixTemplate(opModel).orElse("");
+
+        if (hostPrefix.contains("{") && hostPrefix.contains("}")) {
             return false;
         }
 

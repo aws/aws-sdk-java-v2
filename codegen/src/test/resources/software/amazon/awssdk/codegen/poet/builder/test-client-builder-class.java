@@ -19,6 +19,10 @@ import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.services.json.endpoints.JsonClientContextParams;
+import software.amazon.awssdk.services.json.endpoints.JsonEndpointProvider;
+import software.amazon.awssdk.services.json.endpoints.internal.JsonEndpointAuthSchemeInterceptor;
+import software.amazon.awssdk.services.json.endpoints.internal.JsonRequestSetEndpointInterceptor;
+import software.amazon.awssdk.services.json.endpoints.internal.JsonResolveEndpointInterceptor;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Validate;
@@ -41,7 +45,8 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
 
     @Override
     protected final SdkClientConfiguration mergeServiceDefaults(SdkClientConfiguration config) {
-        return config.merge(c -> c.option(SdkAdvancedClientOption.SIGNER, defaultSigner())
+        return config.merge(c -> c.option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
+                                  .option(SdkAdvancedClientOption.SIGNER, defaultSigner())
                                   .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
                                   .option(SdkClientOption.SERVICE_CONFIGURATION, ServiceConfiguration.builder().build())
                                   .option(AwsClientOption.TOKEN_PROVIDER, defaultTokenProvider())
@@ -51,6 +56,9 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
     @Override
     protected final SdkClientConfiguration finalizeServiceConfiguration(SdkClientConfiguration config) {
         List<ExecutionInterceptor> endpointInterceptors = new ArrayList<>();
+        endpointInterceptors.add(new JsonResolveEndpointInterceptor());
+        endpointInterceptors.add(new JsonEndpointAuthSchemeInterceptor());
+        endpointInterceptors.add(new JsonRequestSetEndpointInterceptor());
         ClasspathInterceptorChainFactory interceptorFactory = new ClasspathInterceptorChainFactory();
         List<ExecutionInterceptor> interceptors = interceptorFactory
             .getInterceptors("software/amazon/awssdk/services/json/execution.interceptors");
@@ -129,6 +137,10 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
         return "json-service";
     }
 
+    private JsonEndpointProvider defaultEndpointProvider() {
+        return JsonEndpointProvider.defaultProvider();
+    }
+
     public B serviceConfiguration(ServiceConfiguration serviceConfiguration) {
         clientConfiguration.option(SdkClientOption.SERVICE_CONFIGURATION, serviceConfiguration);
         return thisBuilder();
@@ -150,5 +162,14 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
     protected final AttributeMap serviceHttpConfig() {
         AttributeMap result = MyServiceHttpConfig.defaultHttpConfig();
         return result;
+    }
+
+    protected static void validateClientOptions(SdkClientConfiguration c) {
+        Validate.notNull(c.option(SdkAdvancedClientOption.SIGNER),
+                         "The 'overrideConfiguration.advancedOption[SIGNER]' must be configured in the client builder.");
+        Validate.notNull(c.option(SdkAdvancedClientOption.TOKEN_SIGNER),
+                         "The 'overrideConfiguration.advancedOption[TOKEN_SIGNER]' must be configured in the client builder.");
+        Validate.notNull(c.option(AwsClientOption.TOKEN_PROVIDER),
+                         "The 'overrideConfiguration.advancedOption[TOKEN_PROVIDER]' must be configured in the client builder.");
     }
 }

@@ -18,7 +18,6 @@ package software.amazon.awssdk.codegen.emitters.tasks;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.codegen.emitters.GeneratorTask;
@@ -27,6 +26,7 @@ import software.amazon.awssdk.codegen.emitters.PoetGeneratorTask;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.service.ClientContextParam;
 import software.amazon.awssdk.codegen.poet.rules.ClientContextParamsClassSpec;
+import software.amazon.awssdk.codegen.poet.rules.DefaultPartitionDataProviderSpec;
 import software.amazon.awssdk.codegen.poet.rules.EndpointAuthSchemeInterceptorClassSpec;
 import software.amazon.awssdk.codegen.poet.rules.EndpointParametersClassSpec;
 import software.amazon.awssdk.codegen.poet.rules.EndpointProviderInterfaceSpec;
@@ -46,16 +46,12 @@ public final class EndpointProviderTasks extends BaseGeneratorTasks {
 
     @Override
     protected List<GeneratorTask> createTasks() throws Exception {
-        if (!generatorTaskParams.getModel().getCustomizationConfig().useRuleBasedEndpoints()) {
-            return Collections.emptyList();
-        }
-
         List<GeneratorTask> tasks = new ArrayList<>();
         tasks.add(generateInterface());
         tasks.add(generateParams());
         tasks.add(generateDefaultProvider());
         tasks.addAll(generateInterceptors());
-        if (shouldGenerateTests()) {
+        if (shouldGenerateEndpointTests()) {
             tasks.add(generateClientTests());
             tasks.add(generateProviderTests());
         }
@@ -63,6 +59,7 @@ public final class EndpointProviderTasks extends BaseGeneratorTasks {
             tasks.add(generateClientContextParams());
         }
         tasks.add(new RulesEngineRuntimeGeneratorTask(generatorTaskParams));
+        tasks.add(generateDefaultPartitionsProvider());
         return tasks;
     }
 
@@ -76,6 +73,11 @@ public final class EndpointProviderTasks extends BaseGeneratorTasks {
 
     private GeneratorTask generateDefaultProvider() {
         return new PoetGeneratorTask(endpointRulesInternalDir(), model.getFileHeader(), new EndpointProviderSpec(model));
+    }
+
+    private GeneratorTask generateDefaultPartitionsProvider() {
+        return new PoetGeneratorTask(endpointRulesInternalDir(), model.getFileHeader(),
+                                     new DefaultPartitionDataProviderSpec(model));
     }
 
     private Collection<GeneratorTask> generateInterceptors() {
@@ -110,10 +112,10 @@ public final class EndpointProviderTasks extends BaseGeneratorTasks {
         return generatorTaskParams.getPathProvider().getEndpointRulesTestDirectory();
     }
 
-    private boolean shouldGenerateTests() {
+    private boolean shouldGenerateEndpointTests() {
         CustomizationConfig customizationConfig = generatorTaskParams.getModel().getCustomizationConfig();
-
-        return !Boolean.TRUE.equals(customizationConfig.isSkipEndpointTestGeneration());
+        return !Boolean.TRUE.equals(customizationConfig.isSkipEndpointTestGeneration()) &&
+               !generatorTaskParams.getModel().getEndpointTestSuiteModel().getTestCases().isEmpty();
     }
 
     private boolean hasClientContextParams() {

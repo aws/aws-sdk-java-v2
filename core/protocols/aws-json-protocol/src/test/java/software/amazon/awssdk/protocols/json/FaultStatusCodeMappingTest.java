@@ -43,10 +43,13 @@ public class FaultStatusCodeMappingTest {
                                            .errorCode("ServiceException")
                                            .httpStatusCode(tc.metadataStatusCode)
                                            .exceptionBuilderSupplier(AwsServiceException::builder)
-                                           .build()));
+                                           .build()), false);
 
-        SdkHttpFullResponse.Builder responseBuilder = SdkHttpFullResponse.builder()
-                                                                         .content(errorContent("ServiceException"));
+        SdkHttpFullResponse.Builder responseBuilder =
+            SdkHttpFullResponse
+                .builder()
+                .content(errorContent("ServiceException"))
+                .putHeader("x-amzn-query-error", "actualErrorCode;Sender");
 
         if (tc.httpStatusCode != null) {
             responseBuilder.statusCode(tc.httpStatusCode);
@@ -55,6 +58,27 @@ public class FaultStatusCodeMappingTest {
         AwsServiceException exception = unmarshaller.handle(responseBuilder.build(), new ExecutionAttributes());
 
         assertThat(exception.statusCode()).isEqualTo(tc.expectedStatusCode);
+        assertThat(exception.awsErrorDetails().errorCode()).isEqualTo("ServiceException");
+    }
+
+    @ParameterizedTest
+    @MethodSource("x_amzn_query_error_testCases")
+    public void unmarshal_faultValue_useCorrectly_awsQueryCompatible(QueryErrorTestCase tc) {
+        AwsJsonProtocolErrorUnmarshaller unmarshaller = makeUnmarshaller(
+            Arrays.asList(ExceptionMetadata.builder()
+                                           .errorCode("ServiceException")
+                                           .exceptionBuilderSupplier(AwsServiceException::builder)
+                                           .build()), tc.hasAwsQueryCompatible);
+
+        SdkHttpFullResponse.Builder responseBuilder =
+            SdkHttpFullResponse
+                .builder()
+                .content(errorContent("ServiceException"))
+                .putHeader("x-amzn-query-error", tc.queryErrorHeader);
+
+        AwsServiceException exception = unmarshaller.handle(responseBuilder.build(), new ExecutionAttributes());
+
+        assertThat(exception.awsErrorDetails().errorCode()).isEqualTo(tc.expectedErrorCode);
     }
 
     public static List<TestCase> unmarshal_faultValue_testCases() {
@@ -66,7 +90,20 @@ public class FaultStatusCodeMappingTest {
         );
     }
 
-    private static AwsJsonProtocolErrorUnmarshaller makeUnmarshaller(List<ExceptionMetadata> exceptionMetadata) {
+    public static List<QueryErrorTestCase> x_amzn_query_error_testCases() {
+        return Arrays.asList(
+            new QueryErrorTestCase(true, "customErrorCode;Sender", "customErrorCode"),
+            new QueryErrorTestCase(true, "customError CodeSender", "ServiceException"),
+            new QueryErrorTestCase(true, "customError", "ServiceException"),
+            new QueryErrorTestCase(true, ";Sender", "ServiceException"),
+            new QueryErrorTestCase(true, null, "ServiceException"),
+            new QueryErrorTestCase(true, "", "ServiceException"),
+            new QueryErrorTestCase(false, "customErrorCode;Sender", "ServiceException")
+        );
+    }
+
+    private static AwsJsonProtocolErrorUnmarshaller makeUnmarshaller(List<ExceptionMetadata> exceptionMetadata,
+                                                                     boolean hasAwsQueryCompatible) {
         return AwsJsonProtocolErrorUnmarshaller.builder()
                                                .exceptions(exceptionMetadata)
                                                .jsonProtocolUnmarshaller(JsonProtocolUnmarshaller.builder()
@@ -76,6 +113,7 @@ public class FaultStatusCodeMappingTest {
                                                .errorMessageParser((resp, content) -> "Some server error")
                                                .errorCodeParser((resp, content) ->
                                                                     content.getJsonNode().asObject().get("errorCode").asString())
+                                               .hasAwsQueryCompatible(hasAwsQueryCompatible)
                                                .build();
     }
 
@@ -98,6 +136,18 @@ public class FaultStatusCodeMappingTest {
             this.httpStatusCode = httpStatusCode;
             this.metadataStatusCode = metadataStatusCode;
             this.expectedStatusCode = expectedStatusCode;
+        }
+    }
+
+    private static class QueryErrorTestCase {
+        private final boolean hasAwsQueryCompatible;
+        private final String queryErrorHeader;
+        private final String expectedErrorCode;
+
+        public QueryErrorTestCase(boolean hasAwsQueryCompatible, String queryErrorHeader, String expectedErrorCode) {
+            this.hasAwsQueryCompatible = hasAwsQueryCompatible;
+            this.queryErrorHeader = queryErrorHeader;
+            this.expectedErrorCode = expectedErrorCode;
         }
     }
 }

@@ -59,6 +59,7 @@ jobs:
         with:
           role-to-assume: ${{ secrets.CI_AWS_ROLE_ARN }}
           aws-region: us-west-2
+          role-duration-seconds: 7200
       - name: Run JDK8 windows build
         uses: aws-actions/aws-codebuild-run-build@v1
         with:
@@ -71,6 +72,7 @@ jobs:
         with:
           role-to-assume: ${{ secrets.CI_AWS_ROLE_ARN }}
           aws-region: us-west-2
+          role-duration-seconds: 7200
       - name: Run native image test
         uses: aws-actions/aws-codebuild-run-build@v1
         with:

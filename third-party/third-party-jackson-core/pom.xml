@@ -20,7 +20,7 @@
     <parent>
         <artifactId>third-party</artifactId>
         <groupId>software.amazon.awssdk</groupId>
-        <version>2.18.21-SNAPSHOT</version>
+        <version>2.19.11-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -70,6 +70,15 @@
                             <shadedPattern>software.amazon.awssdk.thirdparty.jackson.core</shadedPattern>
                         </relocation>
                     </relocations>
+                    <filters>
+                        <filter>
+                            <artifact>com.fasterxml.jackson.core:*</artifact>
+                            <excludes>
+                                <exclude>META-INF/**/pom.xml</exclude>
+                                <exclude>META-INF/**/pom.properties</exclude>
+                            </excludes>
+                        </filter>
+                    </filters>
                     <transformers>
                         <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                     </transformers>
@@ -118,6 +127,10 @@
                         <manifestEntries>
                             <Automatic-Module-Name>software.amazon.awssdk.thirdparty.jackson.core</Automatic-Module-Name>
                         </manifestEntries>
+                        <manifest>
+                            <addDefaultEntries>false</addDefaultEntries>
+                        </manifest>
+                        <addMavenDescriptor>false</addMavenDescriptor>
                     </archive>
                 </configuration>
             </plugin>

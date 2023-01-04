@@ -15,16 +15,32 @@
 
 package software.amazon.awssdk.codegen.model.service;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.Map;
+import software.amazon.awssdk.codegen.internal.Jackson;
 import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.model.rules.endpoints.RuleModel;
+import software.amazon.awssdk.utils.IoUtils;
 
 public class EndpointRuleSetModel {
     private String serviceId;
     private String version;
     private Map<String, ParameterModel> parameters;
     private List<RuleModel> rules;
+
+    public static EndpointRuleSetModel defaultRules(String endpointPrefix) {
+        try (InputStream defaultRulesSet = EndpointRuleSetModel.class
+                .getResourceAsStream("/software/amazon/awssdk/codegen/default-endpoint-rule-set.json")) {
+            String rules = IoUtils.toUtf8String(defaultRulesSet);
+            rules = String.format(rules, endpointPrefix);
+            return Jackson.load(EndpointRuleSetModel.class, rules);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
 
     public String getServiceId() {
         return serviceId;

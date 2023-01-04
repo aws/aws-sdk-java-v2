@@ -94,6 +94,8 @@ public final class AwsS3V4SignerParams extends Aws4SignerParams {
         private Boolean enablePayloadSigning = DEFAULT_PAYLOAD_SIGNING_ENABLED;
 
         private BuilderImpl() {
+            // By default, S3 should not normalize paths
+            normalizePath(false);
         }
 
         @Override
