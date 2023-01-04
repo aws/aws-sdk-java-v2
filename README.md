@@ -52,7 +52,7 @@ To automatically manage module versions (currently all modules have the same ver
     <dependency>
       <groupId>software.amazon.awssdk</groupId>
       <artifactId>bom</artifactId>
-      <version>2.19.9</version>
+      <version><!--get from mvn repository--></version>
       <type>pom</type>
       <scope>import</scope>
     </dependency>
@@ -86,12 +86,12 @@ Alternatively you can add dependencies for the specific services you use only:
 <dependency>
   <groupId>software.amazon.awssdk</groupId>
   <artifactId>ec2</artifactId>
-  <version>2.19.9</version>
+  <version><!--get from mvn repository--></version>
 </dependency>
 <dependency>
   <groupId>software.amazon.awssdk</groupId>
   <artifactId>s3</artifactId>
-  <version>2.19.9</version>
+  <version><!--get from mvn repository-->/version>
 </dependency>
 ```
 
