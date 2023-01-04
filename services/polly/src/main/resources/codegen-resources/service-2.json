@@ -418,7 +418,10 @@
         "en-NZ",
         "en-ZA",
         "ca-ES",
-        "de-AT"
+        "de-AT",
+        "yue-CN",
+        "ar-AE",
+        "fi-FI"
       ]
     },
     "LanguageCodeList":{
@@ -1082,7 +1085,14 @@
         "Daniel",
         "Liam",
         "Pedro",
-        "Kajal"
+        "Kajal",
+        "Hiujin",
+        "Laura",
+        "Elin",
+        "Ida",
+        "Suvi",
+        "Ola",
+        "Hala"
       ]
     },
     "VoiceList":{

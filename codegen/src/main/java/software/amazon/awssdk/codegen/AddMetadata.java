@@ -58,6 +58,7 @@ final class AddMetadata {
                 .withRequestTransformPackageName(namingStrategy.getRequestTransformPackageName(serviceName))
                 .withPaginatorsPackageName(namingStrategy.getPaginatorsPackageName(serviceName))
                 .withWaitersPackageName(namingStrategy.getWaitersPackageName(serviceName))
+                .withEndpointRulesPackageName(namingStrategy.getEndpointRulesPackageName(serviceName))
                 .withServiceAbbreviation(serviceMetadata.getServiceAbbreviation())
                 .withServiceFullName(serviceMetadata.getServiceFullName())
                 .withServiceName(serviceName)
@@ -76,7 +77,8 @@ final class AddMetadata {
                 .withUid(serviceMetadata.getUid())
                 .withServiceId(serviceMetadata.getServiceId())
                 .withSupportsH2(supportsH2(serviceMetadata))
-                .withJsonVersion(getJsonVersion(metadata, serviceMetadata));
+                .withJsonVersion(getJsonVersion(metadata, serviceMetadata))
+                .withAwsQueryCompatible(serviceMetadata.getAwsQueryCompatible());
 
         return metadata;
     }

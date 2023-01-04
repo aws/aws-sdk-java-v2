@@ -26,6 +26,7 @@ import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.util.concurrent.CompletableFuture;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
@@ -75,6 +76,11 @@ public class AsyncHttpChecksumIntegrationTest extends S3IntegrationTestBase {
     @AfterEach
     public void clear() {
         interceptor.reset();
+    }
+
+    @AfterAll
+    public static void tearDown() {
+        deleteBucketAndAllContents(BUCKET);
     }
 
     @Test

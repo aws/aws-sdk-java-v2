@@ -23,6 +23,8 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.internal.WebIdentityCredentialsUtils;
 import software.amazon.awssdk.auth.credentials.internal.WebIdentityTokenCredentialProperties;
 import software.amazon.awssdk.core.SdkSystemSetting;
+import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -44,7 +46,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @SdkPublicApi
 public class WebIdentityTokenFileCredentialsProvider
-    implements AwsCredentialsProvider,
+    implements AwsCredentialsProvider, SdkAutoCloseable,
                ToCopyableBuilder<WebIdentityTokenFileCredentialsProvider.Builder, WebIdentityTokenFileCredentialsProvider> {
 
     private final AwsCredentialsProvider credentialsProvider;
@@ -123,6 +125,11 @@ public class WebIdentityTokenFileCredentialsProvider
     @Override
     public Builder toBuilder() {
         return new BuilderImpl(this);
+    }
+
+    @Override
+    public void close() {
+        IoUtils.closeIfCloseable(credentialsProvider, null);
     }
 
     /**

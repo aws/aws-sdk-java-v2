@@ -1,106 +1,163 @@
 ## Overview
 
-This project provides a much improved experience for S3 customers needing to easily perform uploads and downloads of
-objects to and from S3 by providing the S3 S3TransferManager, a high level
-library built on the [AWS Common Runtime S3 Client](https://github.com/awslabs/aws-crt-java).
+The S3 Transfer Manager is a high-level transfer utility built on top of the asynchronous S3 client. 
+It provides a simple API to allow you to transfer files and directories between your application 
+and Amazon S3. The S3 Transfer Manager also enables you to monitor a transfer's progress in real-time, 
+as well as pause the transfer for execution at a later time.
 
 ## Getting Started
 
-### Add a dependency for the transfer manager 
+### Add a dependency for the S3 Transfer Manager 
 
-First, you need to include the dependency in your project.
+First, you need to include `s3-transfer-manager` and `aws-crt` in your project.
 
 ```xml
 <dependency>
   <groupId>software.amazon.awssdk</groupId>
   <artifactId>s3-transfer-manager</artifactId>
-  <version>${awsjavasdk.version}-PREVIEW</version>
+  <version>${awsjavasdk.version}</version>
+</dependency>
+<dependency>
+  <groupId>software.amazon.awssdk.crt</groupId>
+  <artifactId>aws-crt</artifactId>
+  <version>${awscrt.version}</version>
 </dependency>
 ```
 
-Note that you need to replace `${awsjavasdk.version}` with the latest
-SDK version.
+Note that you need to replace `${awsjavasdk.version}` and `${awscrt.version}` with the latest
+version.
 
-### Instantiate the transfer manager
+### Instantiate the S3 Transfer Manager
 
 You can instantiate the transfer manager easily using the default settings:
 
 ```java
-S3TransferManager tm = S3TransferManager.create();
+S3TransferManager transferManager = S3TransferManager.create();
 ```
 
-If you wish to configure settings, we recommend using the builder instead:
+If you wish to configure settings, or use an underlying CRT-based S3 client you have already constructed, 
+we recommend using the builder instead:
+
 
 ```java
-S3TransferManager tm =
+S3AsyncClient s3AsyncClient =
+    S3AsyncClient.crtBuilder()
+                 .credentialsProvider(DefaultCredentialsProvider.create())
+                 .region(Region.US_WEST_2)
+                 .targetThroughputInGbps(20.0)
+                 .minimumPartSizeInBytes(8 * MB)
+                 .build();
+
+S3TransferManager transferManager =
     S3TransferManager.builder()
-                     .s3ClientConfiguration(b -> b.credentialsProvider(credentialProvider)
-                                                  .region(Region.US_WEST_2)
-                                                  .targetThroughputInGbps(20.0)
-                                                  .minimumPartSizeInBytes(8 * MB))
+                     .s3Client(s3AsyncClient)
                      .build();
 ```
 
-### Upload a file to S3
+### Transfer a single object
 
-To upload a file to S3, you just need to provide the source file path and the `PutObjectRequest` that should be used for the upload:
+#### Upload a file to S3 and log the upload’s progress with a TransferListener
+To upload a file to Amazon S3, you need to provide the source file path and a PutObjectRequest specifying the target bucket and key.
+Optionally, you can monitor the progress of the transfer by attaching a TransferListener. The provided LoggingTransferListener
+logs a basic progress bar; users can also implement their own listeners.
 
 ```java
-FileUpload upload =
-    tm.uploadFile(u -> u.source(Paths.get("myFile.txt"))
-                        .putObjectRequest(p -> p.bucket("bucket").key("key")));
-upload.completionFuture().join();
+S3TransferManager transferManager = S3TransferManager.create();
+
+UploadFileRequest uploadFileRequest =
+    UploadFileRequest.builder()
+                     .putObjectRequest(req -> req.bucket("bucket").key("key"))
+                      // attaching a LoggingTransferListener that will log the progress
+                     .addTransferListener(LoggingTransferListener.create())
+                     .source(Paths.get("myFile.txt"))
+                     .build();
+
+FileUpload upload = transferManager.uploadFile(uploadFileRequest);
+
+    // Wait for the transfer to complete
+    upload.completionFuture().join();
 ```
 
-### Download an S3 object to a file
+#### Download an S3 object to a local file and log the download’s progress with a TransferListener
 
-To download an object, you just need to provide the destination file path and the `GetObjectRequest` that should be used for the download:
+To download an object, you need to provide the destination file path and a GetObjectRequest specifying the source bucket and key.
+Same as upload, you can monitor the progress of the transfer by attaching a TransferListener.
 
 ```java
-FileDownload download =
-    tm.downloadFile(d -> d.getObjectRequest(g -> g.bucket("bucket").key("key"))
-                          .destination(Paths.get("myFile.txt")));
+S3TransferManager transferManager = S3TransferManager.create();
+
+DownloadFileRequest downloadFileRequest =
+DownloadFileRequest.builder()
+                   .getObjectRequest(req -> req.bucket("bucket").key("key"))
+                   .destination(Paths.get("myFile.txt"))
+                    // attaching a LoggingTransferListener that will log the progress
+                   .addTransferListener(LoggingTransferListener.create())
+                   .build();
+
+FileDownload download = transferManager.downloadFile(downloadFileRequest);
+
+// Wait for the transfer to complete
 download.completionFuture().join();
 ```
 
-### Upload any content to S3
+#### Copy an S3 object from one location to another
+To copy an object, you need to provide a CopyObjectRequest with source and destination location.
 
-You may upload any arbitrary content to S3 by providing an `AsyncRequestBody`:
+```
+S3TransferManager transferManager = S3TransferManager.create();
+CopyObjectRequest copyObjectRequest = CopyObjectRequest.builder()
+                                                       .sourceBucket("source_bucket")
+                                                       .sourceKey("source_key")
+                                                       .destinationBucket("dest_bucket")
+                                                       .destinationKey("dest_key")
+                                                       .build();
+CopyRequest copyRequest = CopyRequest.builder()
+                                     .copyObjectRequest(copyObjectRequest)
+                                     .build();
 
-```java
-Upload upload =
-    tm.upload(u -> u.requestBody(AsyncRequestBody.fromString("Hello world"))
-                    .putObjectRequest(p -> p.bucket("bucket").key("key")));
-upload.completionFuture().join();
+Copy copy = transferManager.copy(copyRequest);
+
+// Wait for the transfer to complete
+CompletedCopy completedCopy = copy.completionFuture().join();
 ```
 
-Refer to the static factory methods available in `AsyncRequestBody` for other content sources.
+### Transfer multiple objects in the same directory
 
-### Download an S3 object to a custom destination
+#### Upload a local directory to an S3 bucket
 
-You may download an object from S3 to a custom destination by providing an `AsyncResponseTransformer`:
-
-*(This example buffers the entire object in memory and is not suitable for large objects.)*
+To upload a local directory recursively to an S3 bucket, you need to provide the source directory and the target bucket.
 
 ```java
-Download<ResponseBytes<GetObjectResponse>> download =
-    tm.download(d -> d.getObjectRequest(g -> g.bucket("bucket").key("key"))
-                      .responseTransformer(AsyncResponseTransformer.toBytes()));
-download.completionFuture().join();
+S3TransferManager transferManager = S3TransferManager.create();
+DirectoryUpload directoryUpload = transferManager.uploadDirectory(UploadDirectoryRequest.builder()
+                                                 .sourceDirectory(Paths.get("source/directory"))
+                                                 .bucket("bucket")
+                                                 .build());
+
+// Wait for the transfer to complete
+CompletedDirectoryUpload completedDirectoryUpload = directoryUpload.completionFuture().join();
+
+// Print out any failed uploads
+completedDirectoryUpload.failedTransfers().forEach(System.out::println);
 ```
 
-Refer to the static factory methods available in `AsyncResponseTransformer` for other destinations.
+#### Download S3 objects within the same bucket to a local directory
 
-### Attach a TransferListener
-
-To monitor a transfer's progress, you can include a `TransferListener` with your transfer request:
+To download all S3 objects within the same bucket, you need to provide the destination directory and the source bucket.
 
 ```java
-FileUpload upload =
-    tm.uploadFile(u -> u.source(Paths.get("myFile.txt"))
-                        .putObjectRequest(p -> p.bucket("bucket").key("key"))
-                        .overrideConfiguration(o -> o.addListener(LoggingTransferListener.create())));
-upload.completionFuture().join();
-```
+S3TransferManager transferManager = S3TransferManager.create();
+         DirectoryDownload directoryDownload =
+             transferManager.downloadDirectory(
+                  DownloadDirectoryRequest.builder()
+                                          .destination(Paths.get("destination/directory"))
+                                          .bucket("bucket")
+                                          // only download objects with prefix "photos"
+                                          .listObjectsV2RequestTransformer(l -> l.prefix("photos"))
+                                          .build());
+// Wait for the transfer to complete
+CompletedDirectoryDownload completedDirectoryDownload = directoryDownload.completionFuture().join();
 
-You can provide your own implementation of a `TransferListener` to implement progress-bar-type functionality.
+// Print out any failed downloads
+completedDirectoryDownload.failedTransfers().forEach(System.out::println);
+```

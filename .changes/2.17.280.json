@@ -1,0 +1,42 @@
+{
+    "version": "2.17.280",
+    "date": "2022-09-22",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Backup Gateway",
+            "contributor": "",
+            "description": "Changes include: new GetVirtualMachineApi to fetch a single user's VM, improving ListVirtualMachines to fetch filtered VMs as well as all VMs, and improving GetGatewayApi to now also return the gateway's MaintenanceStartTime."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Device Farm",
+            "contributor": "",
+            "description": "This release adds the support for VPC-ENI based connectivity for private devices on AWS Device Farm."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "contributor": "",
+            "description": "Added support for S3 Event Notifications for Catalog Target Crawlers."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SSO Identity Store",
+            "contributor": "",
+            "description": "Documentation updates for the Identity Store CLI Reference."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Documentation updates for Amazon EC2."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}

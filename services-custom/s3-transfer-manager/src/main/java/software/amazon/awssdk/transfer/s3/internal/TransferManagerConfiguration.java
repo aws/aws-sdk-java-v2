@@ -18,7 +18,6 @@ package software.amazon.awssdk.transfer.s3.internal;
 import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.TRANSFER_MANAGER_DEFAULTS;
 import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.UPLOAD_DIRECTORY_FOLLOW_SYMBOLIC_LINKS;
 import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.UPLOAD_DIRECTORY_MAX_DEPTH;
-import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.UPLOAD_DIRECTORY_RECURSIVE;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -26,13 +25,11 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
-import software.amazon.awssdk.transfer.s3.UploadDirectoryOverrideConfiguration;
-import software.amazon.awssdk.transfer.s3.UploadDirectoryRequest;
+import software.amazon.awssdk.transfer.s3.model.UploadDirectoryRequest;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.ExecutorUtils;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
-import software.amazon.awssdk.utils.Validate;
 
 /**
  * Contains resolved configuration settings for {@link S3TransferManager}.
@@ -43,18 +40,10 @@ public class TransferManagerConfiguration implements SdkAutoCloseable {
     private final AttributeMap options;
 
     private TransferManagerConfiguration(Builder builder) {
-        UploadDirectoryOverrideConfiguration uploadDirectoryConfiguration =
-            Validate.paramNotNull(builder.uploadDirectoryOverrideConfiguration, "uploadDirectoryOverrideConfiguration");
         AttributeMap.Builder standardOptions = AttributeMap.builder();
-
-        standardOptions.put(TransferConfigurationOption.UPLOAD_DIRECTORY_FOLLOW_SYMBOLIC_LINKS,
-                            uploadDirectoryConfiguration.followSymbolicLinks().orElse(null));
-        standardOptions.put(TransferConfigurationOption.UPLOAD_DIRECTORY_MAX_DEPTH,
-                            uploadDirectoryConfiguration.maxDepth().orElse(null));
-        standardOptions.put(TransferConfigurationOption.UPLOAD_DIRECTORY_RECURSIVE,
-                            uploadDirectoryConfiguration.recursive().orElse(null));
+        standardOptions.put(UPLOAD_DIRECTORY_FOLLOW_SYMBOLIC_LINKS, builder.uploadDirectoryFollowSymbolicLinks);
+        standardOptions.put(UPLOAD_DIRECTORY_MAX_DEPTH, builder.uploadDirectoryMaxDepth);
         finalizeExecutor(builder, standardOptions);
-
         options = standardOptions.build().merge(TRANSFER_MANAGER_DEFAULTS);
     }
 
@@ -74,21 +63,13 @@ public class TransferManagerConfiguration implements SdkAutoCloseable {
         return options.get(option);
     }
 
-    public boolean resolveUploadDirectoryRecursive(UploadDirectoryRequest request) {
-        return request.overrideConfiguration()
-                      .flatMap(UploadDirectoryOverrideConfiguration::recursive)
-                      .orElseGet(() -> options.get(UPLOAD_DIRECTORY_RECURSIVE));
-    }
-
     public boolean resolveUploadDirectoryFollowSymbolicLinks(UploadDirectoryRequest request) {
-        return request.overrideConfiguration()
-                      .flatMap(UploadDirectoryOverrideConfiguration::followSymbolicLinks)
+        return request.followSymbolicLinks()
                       .orElseGet(() -> options.get(UPLOAD_DIRECTORY_FOLLOW_SYMBOLIC_LINKS));
     }
 
     public int resolveUploadDirectoryMaxDepth(UploadDirectoryRequest request) {
-        return request.overrideConfiguration()
-                      .flatMap(UploadDirectoryOverrideConfiguration::maxDepth)
+        return request.maxDepth()
                       .orElseGet(() -> options.get(UPLOAD_DIRECTORY_MAX_DEPTH));
     }
 
@@ -97,7 +78,6 @@ public class TransferManagerConfiguration implements SdkAutoCloseable {
         options.close();
     }
 
-    // TODO: revisit this before GA
     private Executor defaultExecutor() {
         int maxPoolSize = 100;
         ThreadPoolExecutor executor = new ThreadPoolExecutor(0, maxPoolSize,
@@ -115,12 +95,19 @@ public class TransferManagerConfiguration implements SdkAutoCloseable {
     }
 
     public static final class Builder {
-        private UploadDirectoryOverrideConfiguration uploadDirectoryOverrideConfiguration =
-            UploadDirectoryOverrideConfiguration.builder().build();
+
+        private Boolean uploadDirectoryFollowSymbolicLinks;
+        private Integer uploadDirectoryMaxDepth;
         private Executor executor;
 
-        public Builder uploadDirectoryConfiguration(UploadDirectoryOverrideConfiguration configuration) {
-            this.uploadDirectoryOverrideConfiguration = configuration;
+
+        public Builder uploadDirectoryFollowSymbolicLinks(Boolean uploadDirectoryFollowSymbolicLinks) {
+            this.uploadDirectoryFollowSymbolicLinks = uploadDirectoryFollowSymbolicLinks;
+            return this;
+        }
+
+        public Builder uploadDirectoryMaxDepth(Integer uploadDirectoryMaxDepth) {
+            this.uploadDirectoryMaxDepth = uploadDirectoryMaxDepth;
             return this;
         }
 

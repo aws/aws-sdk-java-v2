@@ -7,9 +7,10 @@ phases:
 
   build:
     commands:
-      - mvn clean install -T1C
+      - mvn clean install -T1C $MAVEN_OPTIONS
       - JAVA_VERSION=$(java -version 2>&1 | grep -i version | cut -d'"' -f2 | cut -d'.' -f1-1)
       - echo $JAVA_VERSION
+      - echo $MAVEN_OPTIONS
       - |
         if [ "$JAVA_VERSION" -ge "9" ]; then
           cd test/module-path-tests

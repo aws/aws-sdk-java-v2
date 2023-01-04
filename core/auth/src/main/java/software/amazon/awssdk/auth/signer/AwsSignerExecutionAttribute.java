@@ -15,9 +15,11 @@
 
 package software.amazon.awssdk.auth.signer;
 
+import java.time.Clock;
 import java.time.Instant;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.signer.params.Aws4SignerParams;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
@@ -57,6 +59,19 @@ public final class AwsSignerExecutionAttribute extends SdkExecutionAttribute {
      * The key to specify whether to use double url encoding during signing.
      */
     public static final ExecutionAttribute<Boolean> SIGNER_DOUBLE_URL_ENCODE = new ExecutionAttribute<>("DoubleUrlEncode");
+
+    /**
+     * The key to specify whether to normalize the resource path during signing.
+     */
+    public static final ExecutionAttribute<Boolean> SIGNER_NORMALIZE_PATH =
+        new ExecutionAttribute<>("NormalizePath");
+
+
+    /**
+     * An override clock to use during signing.
+     * @see Aws4SignerParams.Builder#signingClockOverride(Clock)
+     */
+    public static final ExecutionAttribute<Clock> SIGNING_CLOCK = new ExecutionAttribute<>("Clock");
 
     /**
      * The key to specify the expiration time when pre-signing aws requests.

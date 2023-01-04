@@ -46,21 +46,21 @@ public class NonArnOutpostRequestTest extends S3ControlWireMockTestBase {
     @Test
     public void listRegionalBuckets_outpostIdNotNull_shouldRedirect() {
         S3ControlClient s3Control = initializedBuilder().region(Region.of("us-west-2")).build();
-        stubFor(get(urlMatching("/v20180820/bucket")).willReturn(aResponse().withBody("<xml></xml>").withStatus(200)));
+        stubFor(get(urlMatching(EXPECTED_URL)).willReturn(aResponse().withBody("<xml></xml>").withStatus(200)));
 
         s3Control.listRegionalBuckets(b -> b.outpostId("op-01234567890123456").accountId("123456789012"));
         String expectedHost = "s3-outposts.us-west-2.amazonaws.com";
-        verifyOutpostRequest("us-west-2", expectedHost);
+        verifyOutpostRequest("us-west-2", EXPECTED_URL, expectedHost);
     }
 
     @Test
     public void listRegionalBuckets_outpostIdNull_shouldNotRedirect() {
         S3ControlClient s3Control = initializedBuilder().region(Region.of("us-west-2")).build();
-        stubFor(get(urlMatching("/v20180820/bucket")).willReturn(aResponse().withBody("<xml></xml>").withStatus(200)));
+        stubFor(get(urlMatching(EXPECTED_URL)).willReturn(aResponse().withBody("<xml></xml>").withStatus(200)));
 
         s3Control.listRegionalBuckets(b -> b.accountId("123456789012"));
         String expectedHost = "123456789012.s3-control.us-west-2.amazonaws.com";
-        verifyS3ControlRequest("us-west-2", expectedHost);
+        verifyS3ControlRequest("us-west-2", EXPECTED_URL, expectedHost);
     }
 
     @Test
@@ -88,11 +88,5 @@ public class NonArnOutpostRequestTest extends S3ControlWireMockTestBase {
         verify(putRequestedFor(urlEqualTo("/v20180820/bucket/test")).withHeader("Authorization", containing("us-west-2/s3/aws4_request")));
         assertThat(getRecordedEndpoints().size(), is(1));
         assertThat(getRecordedEndpoints().get(0).getHost(), is(expectedHost));
-    }
-
-
-    @Override
-    String expectedUrl() {
-        return EXPECTED_URL;
     }
 }

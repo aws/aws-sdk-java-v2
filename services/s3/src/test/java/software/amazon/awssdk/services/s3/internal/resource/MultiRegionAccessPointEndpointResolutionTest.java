@@ -24,6 +24,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -87,22 +88,23 @@ public class MultiRegionAccessPointEndpointResolutionTest {
                                            .build();
 
         assertThatThrownBy(() -> s3Client.listObjects(ListObjectsRequest.builder().bucket(MULTI_REGION_ARN).build()))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("dualstack");
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("S3 MRAP does not support dual-stack");
     }
 
     @Test
     public void multiRegionArn_fipsRegion_throwsIllegalArgumentException() throws Exception {
         mockHttpClient.stubNextResponse(mockListObjectsResponse());
-        S3Client s3Client = clientBuilder().region(Region.of("fips-us-east-1"))
+        S3Client s3Client = clientBuilder().region(Region.of("us-west-2"))
+                                           .fipsEnabled(true)
                                            .serviceConfiguration(S3Configuration.builder()
                                                                                 .dualstackEnabled(false)
                                                                                 .build())
                                            .build();
 
         assertThatThrownBy(() -> s3Client.listObjects(ListObjectsRequest.builder().bucket(MULTI_REGION_ARN).build()))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("FIPS");
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("S3 MRAP does not support FIPS");
     }
 
     @Test
@@ -114,8 +116,8 @@ public class MultiRegionAccessPointEndpointResolutionTest {
                                            .build();
 
         assertThatThrownBy(() -> s3Client.listObjects(ListObjectsRequest.builder().bucket(MULTI_REGION_ARN).build()))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("accelerate");
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("S3 MRAP does not support S3 Accelerate");
     }
 
     @Test
@@ -127,8 +129,8 @@ public class MultiRegionAccessPointEndpointResolutionTest {
                                            .build();
 
         assertThatThrownBy(() -> s3Client.listObjects(ListObjectsRequest.builder().bucket(MULTI_REGION_ARN).build()))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("path style addressing");
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("Path-style addressing cannot be used with ARN buckets");
     }
 
     @Test

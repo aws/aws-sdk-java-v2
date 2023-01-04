@@ -130,7 +130,7 @@ public class AsyncRequestBodyFlexibleChecksumInTrailerTest {
         assertThat(requests.get(0).getBody()).contains(expectedRequestBody.getBytes());
         assertThat(requests.get(1).getBody()).contains(expectedRequestBody.getBytes());
 
-        verify(putRequestedFor(anyUrl()).withHeader(CONTENT_TYPE, equalTo(Mimetype.MIMETYPE_TEXT_PLAIN)));
+        verify(putRequestedFor(anyUrl()).withHeader(CONTENT_TYPE, equalTo(Mimetype.MIMETYPE_TEXT_PLAIN + "; charset=UTF-8")));
         verifyHeadersForPutRequest("81", "3", "x-amz-checksum-sha256");
 
         verify(putRequestedFor(anyUrl()).withRequestBody(

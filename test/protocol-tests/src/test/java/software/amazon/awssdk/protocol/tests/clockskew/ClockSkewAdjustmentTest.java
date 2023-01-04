@@ -166,7 +166,7 @@ public class ClockSkewAdjustmentTest {
                         .willReturn(aResponse()
                                             .withStatus(statusCode)
                                             .withHeader("x-amzn-ErrorType", errorCode)
-                                            .withHeader("Date", DateUtils.formatRfc1123Date(serviceTime))
+                                            .withHeader("Date", DateUtils.formatRfc822Date(serviceTime))
                                             .withBody("{}")));
     }
 
@@ -180,7 +180,7 @@ public class ClockSkewAdjustmentTest {
                         .willReturn(aResponse()
                                             .withStatus(statusCode)
                                             .withHeader("x-amzn-ErrorType", errorCode)
-                                            .withHeader("Date", DateUtils.formatRfc1123Date(serviceTime))
+                                            .withHeader("Date", DateUtils.formatRfc822Date(serviceTime))
                                             .withBody("{}")));
 
         stubFor(post(urlEqualTo(PATH))

@@ -24,8 +24,11 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
@@ -41,6 +44,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.internal.util.HttpChecksumUtils;
 import software.amazon.awssdk.core.signer.Presigner;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Pair;
@@ -81,6 +85,7 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
                                                 ContentChecksum contentChecksum) {
 
         SdkHttpFullRequest.Builder mutableRequest = request.toBuilder();
+
         AwsCredentials sanitizedCredentials = sanitizeCredentials(signingParams.awsCredentials());
         if (sanitizedCredentials instanceof AwsSessionCredentials) {
             addSessionCredentials(mutableRequest, (AwsSessionCredentials) sanitizedCredentials);
@@ -97,9 +102,11 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
         putChecksumHeader(signingParams.checksumParams(), contentChecksum.contentFlexibleChecksum(),
                 mutableRequest, contentChecksum.contentHash());
 
-        CanonicalRequest canonicalRequest = createCanonicalRequest(mutableRequest,
+        CanonicalRequest canonicalRequest = createCanonicalRequest(request,
+                                                                   mutableRequest,
                                                                    contentChecksum.contentHash(),
-                                                                   signingParams.doubleUrlEncode());
+                                                                   signingParams.doubleUrlEncode(),
+                                                                   signingParams.normalizePath());
 
         String canonicalRequestString = canonicalRequest.string();
         String stringToSign = createStringToSign(canonicalRequestString, requestParams);
@@ -138,8 +145,11 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
         // Add the important parameters for v4 signing
         String contentSha256 = calculateContentHashPresign(mutableRequest, signingParams);
 
-        CanonicalRequest canonicalRequest = createCanonicalRequest(mutableRequest, contentSha256,
-                                                                   signingParams.doubleUrlEncode());
+        CanonicalRequest canonicalRequest = createCanonicalRequest(request,
+                                                                   mutableRequest,
+                                                                   contentSha256,
+                                                                   signingParams.doubleUrlEncode(),
+                                                                   signingParams.normalizePath());
 
         addPreSignInformationToRequest(mutableRequest, canonicalRequest, sanitizedCredentials,
                                        requestParams, expirationInSeconds);
@@ -237,10 +247,12 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
      * .amazon.com/general/latest/gr/sigv4-create-canonical-request.html to
      * generate the canonical request.
      */
-    private CanonicalRequest createCanonicalRequest(SdkHttpFullRequest.Builder request,
+    private CanonicalRequest createCanonicalRequest(SdkHttpFullRequest request,
+                                                    SdkHttpFullRequest.Builder requestBuilder,
                                                     String contentSha256,
-                                                    boolean doubleUrlEncode) {
-        return new CanonicalRequest(request, contentSha256, doubleUrlEncode);
+                                                    boolean doubleUrlEncode,
+                                                    boolean normalizePath) {
+        return new CanonicalRequest(request, requestBuilder, contentSha256, doubleUrlEncode, normalizePath);
     }
 
     /**
@@ -250,6 +262,8 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
      */
     private String createStringToSign(String canonicalRequest,
                                       Aws4SignerRequestParams requestParams) {
+
+        LOG.debug(() -> "AWS4 Canonical Request: " + canonicalRequest);
 
         String requestHash = BinaryUtils.toHex(hash(canonicalRequest));
 
@@ -330,7 +344,7 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
      * @param ch the character to be tested
      * @return true if the character is white  space, false otherwise.
      */
-    private boolean isWhiteSpace(final char ch) {
+    private static boolean isWhiteSpace(char ch) {
         return ch == ' ' || ch == '\t' || ch == '\n' || ch == '\u000b' || ch == '\r' || ch == '\f';
     }
 
@@ -400,10 +414,18 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
         paramsBuilder.awsCredentials(executionAttributes.getAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS))
                      .signingName(executionAttributes.getAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME))
                      .signingRegion(executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNING_REGION))
-                     .timeOffset(executionAttributes.getAttribute(AwsSignerExecutionAttribute.TIME_OFFSET));
+                     .timeOffset(executionAttributes.getAttribute(AwsSignerExecutionAttribute.TIME_OFFSET))
+                     .signingClockOverride(executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNING_CLOCK));
 
-        if (executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE) != null) {
-            paramsBuilder.doubleUrlEncode(executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE));
+        Boolean doubleUrlEncode = executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE);
+        if (doubleUrlEncode != null) {
+            paramsBuilder.doubleUrlEncode(doubleUrlEncode);
+        }
+
+        Boolean normalizePath =
+            executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNER_NORMALIZE_PATH);
+        if (normalizePath != null) {
+            paramsBuilder.normalizePath(normalizePath);
         }
         ChecksumSpecs checksumSpecs = executionAttributes.getAttribute(RESOLVED_CHECKSUM_SPECS);
         if (checksumSpecs != null && checksumSpecs.algorithm() != null) {
@@ -453,30 +475,41 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
         return null;
     }
 
-    private class CanonicalRequest {
-        private final SdkHttpFullRequest.Builder request;
+    static final class CanonicalRequest {
+        private final SdkHttpFullRequest request;
+        private final SdkHttpFullRequest.Builder requestBuilder;
         private final String contentSha256;
         private final boolean doubleUrlEncode;
+        private final boolean normalizePath;
 
         private String canonicalRequestString;
         private StringBuilder signedHeaderStringBuilder;
         private List<Pair<String, List<String>>> canonicalHeaders;
         private String signedHeaderString;
 
-        private CanonicalRequest(SdkHttpFullRequest.Builder request, String contentSha256, boolean doubleUrlEncode) {
+        CanonicalRequest(SdkHttpFullRequest request,
+                         SdkHttpFullRequest.Builder requestBuilder,
+                         String contentSha256,
+                         boolean doubleUrlEncode,
+                         boolean normalizePath) {
             this.request = request;
+            this.requestBuilder = requestBuilder;
             this.contentSha256 = contentSha256;
             this.doubleUrlEncode = doubleUrlEncode;
+            this.normalizePath = normalizePath;
         }
 
         public String string() {
             if (canonicalRequestString == null) {
                 StringBuilder canonicalRequest = new StringBuilder(512);
-                canonicalRequest.append(request.method().toString())
+                canonicalRequest.append(requestBuilder.method().toString())
                                 .append(SignerConstant.LINE_SEPARATOR);
-                addCanonicalizedResourcePath(canonicalRequest, request.encodedPath(), doubleUrlEncode);
+                addCanonicalizedResourcePath(canonicalRequest,
+                                             request,
+                                             doubleUrlEncode,
+                                             normalizePath);
                 canonicalRequest.append(SignerConstant.LINE_SEPARATOR);
-                addCanonicalizedQueryString(canonicalRequest, request);
+                addCanonicalizedQueryString(canonicalRequest, requestBuilder);
                 canonicalRequest.append(SignerConstant.LINE_SEPARATOR);
                 addCanonicalizedHeaderString(canonicalRequest, canonicalHeaders());
                 canonicalRequest.append(SignerConstant.LINE_SEPARATOR)
@@ -486,6 +519,82 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
                 this.canonicalRequestString = canonicalRequest.toString();
             }
             return canonicalRequestString;
+        }
+
+        private void addCanonicalizedResourcePath(StringBuilder result,
+                                                  SdkHttpRequest request,
+                                                  boolean urlEncode,
+                                                  boolean normalizePath) {
+            String path = normalizePath ? request.getUri().normalize().getRawPath()
+                                        : request.encodedPath();
+
+            if (StringUtils.isEmpty(path)) {
+                result.append("/");
+                return;
+            }
+
+            if (urlEncode) {
+                path = SdkHttpUtils.urlEncodeIgnoreSlashes(path);
+            }
+
+            if (!path.startsWith("/")) {
+                result.append("/");
+            }
+            result.append(path);
+
+            // Normalization can leave a trailing slash at the end of the resource path,
+            // even if the input path doesn't end with one. Example input: /foo/bar/.
+            // Remove the trailing slash if the input path doesn't end with one.
+            boolean trimTrailingSlash = normalizePath &&
+                                        path.length() > 1 &&
+                                        !request.encodedPath().endsWith("/") &&
+                                        result.charAt(result.length() - 1) == '/';
+            if (trimTrailingSlash) {
+                result.setLength(result.length() - 1);
+            }
+        }
+
+        /**
+         * Examines the specified query string parameters and returns a
+         * canonicalized form.
+         * <p>
+         * The canonicalized query string is formed by first sorting all the query
+         * string parameters, then URI encoding both the key and value and then
+         * joining them, in order, separating key value pairs with an '&amp;'.
+         *
+         * @return A canonicalized form for the specified query string parameters.
+         */
+        private void addCanonicalizedQueryString(StringBuilder result, SdkHttpRequest.Builder httpRequest) {
+
+            SortedMap<String, List<String>> sorted = new TreeMap<>();
+
+            /**
+             * Signing protocol expects the param values also to be sorted after url
+             * encoding in addition to sorted parameter names.
+             */
+            httpRequest.forEachRawQueryParameter((key, values) -> {
+                if (StringUtils.isEmpty(key)) {
+                    // Do not sign empty keys.
+                    return;
+                }
+
+                String encodedParamName = SdkHttpUtils.urlEncode(key);
+
+                List<String> encodedValues = new ArrayList<>(values.size());
+                for (String value : values) {
+                    String encodedValue = SdkHttpUtils.urlEncode(value);
+
+                    // Null values should be treated as empty for the purposes of signing, not missing.
+                    // For example "?foo=" instead of "?foo".
+                    String signatureFormattedEncodedValue = encodedValue == null ? "" : encodedValue;
+
+                    encodedValues.add(signatureFormattedEncodedValue);
+                }
+                Collections.sort(encodedValues);
+                sorted.put(encodedParamName, encodedValues);
+            });
+
+            SdkHttpUtils.flattenQueryParameters(result, sorted);
         }
 
         public StringBuilder signedHeaderStringBuilder() {
@@ -505,7 +614,7 @@ public abstract class AbstractAws4Signer<T extends Aws4SignerParams, U extends A
 
         private List<Pair<String, List<String>>> canonicalHeaders() {
             if (canonicalHeaders == null) {
-                canonicalHeaders = canonicalizeSigningHeaders(request);
+                canonicalHeaders = canonicalizeSigningHeaders(requestBuilder);
             }
             return canonicalHeaders;
         }

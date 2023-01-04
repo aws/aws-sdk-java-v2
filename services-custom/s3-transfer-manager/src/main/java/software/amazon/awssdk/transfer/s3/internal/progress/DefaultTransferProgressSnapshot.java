@@ -17,6 +17,8 @@ package software.amazon.awssdk.transfer.s3.internal.progress;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.OptionalDouble;
+import java.util.OptionalLong;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.transfer.s3.progress.TransferProgressSnapshot;
@@ -33,19 +35,20 @@ public final class DefaultTransferProgressSnapshot
     implements ToCopyableBuilder<DefaultTransferProgressSnapshot.Builder, DefaultTransferProgressSnapshot>,
                TransferProgressSnapshot {
 
-    private final long bytesTransferred;
-    private final Long transferSizeInBytes;
+    private final long transferredBytes;
+    private final Long totalBytes;
     private final SdkResponse sdkResponse;
 
     private DefaultTransferProgressSnapshot(Builder builder) {
-        if (builder.transferSizeInBytes != null) {
-            Validate.isNotNegative(builder.transferSizeInBytes, "transferSizeInBytes");
-            Validate.isTrue(builder.bytesTransferred <= builder.transferSizeInBytes,
-                            "bytesTransferred (%s) must not be greater than transferSizeInBytes (%s)",
-                            builder.bytesTransferred, builder.transferSizeInBytes);
+        if (builder.totalBytes != null) {
+            Validate.isNotNegative(builder.totalBytes, "totalBytes");
+            Validate.isTrue(builder.transferredBytes <= builder.totalBytes,
+                            "transferredBytes (%s) must not be greater than totalBytes (%s)",
+                            builder.transferredBytes, builder.totalBytes);
         }
-        this.bytesTransferred = Validate.isNotNegative(builder.bytesTransferred, "bytesTransferred");
-        this.transferSizeInBytes = builder.transferSizeInBytes;
+        Validate.paramNotNull(builder.transferredBytes, "byteTransferred");
+        this.transferredBytes = Validate.isNotNegative(builder.transferredBytes, "transferredBytes");
+        this.totalBytes = builder.totalBytes;
         this.sdkResponse = builder.sdkResponse;
     }
 
@@ -59,13 +62,13 @@ public final class DefaultTransferProgressSnapshot
     }
 
     @Override
-    public long bytesTransferred() {
-        return bytesTransferred;
+    public long transferredBytes() {
+        return transferredBytes;
     }
 
     @Override
-    public Optional<Long> transferSizeInBytes() {
-        return Optional.ofNullable(transferSizeInBytes);
+    public OptionalLong totalBytes() {
+        return totalBytes == null ? OptionalLong.empty() : OptionalLong.of(totalBytes);
     }
 
     @Override
@@ -74,10 +77,11 @@ public final class DefaultTransferProgressSnapshot
     }
 
     @Override
-    public Optional<Double> ratioTransferred() {
-        return transferSizeInBytes()
-            .map(Long::doubleValue)
-            .map(size -> (size == 0) ? 1.0 : (bytesTransferred / size));
+    public OptionalDouble ratioTransferred() {
+        if (totalBytes == null) {
+            return OptionalDouble.empty();
+        }
+        return totalBytes == 0 ? OptionalDouble.of(1.0) : OptionalDouble.of(transferredBytes / totalBytes.doubleValue());
     }
 
     @Override
@@ -91,10 +95,10 @@ public final class DefaultTransferProgressSnapshot
 
         DefaultTransferProgressSnapshot that = (DefaultTransferProgressSnapshot) o;
 
-        if (bytesTransferred != that.bytesTransferred) {
+        if (transferredBytes != that.transferredBytes) {
             return false;
         }
-        if (!Objects.equals(transferSizeInBytes, that.transferSizeInBytes)) {
+        if (!Objects.equals(totalBytes, that.totalBytes)) {
             return false;
         }
         return Objects.equals(sdkResponse, that.sdkResponse);
@@ -102,22 +106,25 @@ public final class DefaultTransferProgressSnapshot
 
     @Override
     public int hashCode() {
-        int result = (int) (bytesTransferred ^ (bytesTransferred >>> 32));
-        result = 31 * result + (transferSizeInBytes != null ? transferSizeInBytes.hashCode() : 0);
+        int result = (int) (transferredBytes ^ (transferredBytes >>> 32));
+        result = 31 * result + (totalBytes != null ? totalBytes.hashCode() : 0);
         result = 31 * result + (sdkResponse != null ? sdkResponse.hashCode() : 0);
         return result;
     }
 
     @Override
-    public Optional<Long> bytesRemaining() {
-        return transferSizeInBytes().map(size -> size - bytesTransferred);
+    public OptionalLong remainingBytes() {
+        if (totalBytes == null) {
+            return OptionalLong.empty();
+        }
+        return OptionalLong.of(totalBytes - transferredBytes);
     }
 
     @Override
     public String toString() {
         return ToString.builder("TransferProgressSnapshot")
-                       .add("bytesTransferred", bytesTransferred)
-                       .add("transferSizeInBytes", transferSizeInBytes)
+                       .add("transferredBytes", transferredBytes)
+                       .add("totalBytes", totalBytes)
                        .add("sdkResponse", sdkResponse)
                        .build();
     }
@@ -125,35 +132,35 @@ public final class DefaultTransferProgressSnapshot
 
 
     public static final class Builder implements CopyableBuilder<Builder, DefaultTransferProgressSnapshot> {
-        private long bytesTransferred = 0L;
-        private Long transferSizeInBytes;
+        private Long transferredBytes;
+        private Long totalBytes;
         private SdkResponse sdkResponse;
 
         private Builder() {
         }
 
         private Builder(DefaultTransferProgressSnapshot snapshot) {
-            this.bytesTransferred = snapshot.bytesTransferred;
-            this.transferSizeInBytes = snapshot.transferSizeInBytes;
+            this.transferredBytes = snapshot.transferredBytes;
+            this.totalBytes = snapshot.totalBytes;
             this.sdkResponse = snapshot.sdkResponse;
         }
 
-        public Builder bytesTransferred(long bytesTransferred) {
-            this.bytesTransferred = bytesTransferred;
+        public Builder transferredBytes(Long transferredBytes) {
+            this.transferredBytes = transferredBytes;
             return this;
         }
 
-        public long getBytesTransferred() {
-            return bytesTransferred;
+        public long getTransferredBytes() {
+            return transferredBytes;
         }
 
-        public Builder transferSizeInBytes(Long transferSizeInBytes) {
-            this.transferSizeInBytes = transferSizeInBytes;
+        public Builder totalBytes(Long totalBytes) {
+            this.totalBytes = totalBytes;
             return this;
         }
 
-        public Long getTransferSizeInBytes() {
-            return transferSizeInBytes;
+        public Long getTotalBytes() {
+            return totalBytes;
         }
 
         public Builder sdkResponse(SdkResponse sdkResponse) {

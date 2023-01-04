@@ -26,17 +26,17 @@ public class DefaultTransferProgressSnapshotTest {
     @Test
     public void bytesTransferred_greaterThan_transferSize_shouldThrow() {
         DefaultTransferProgressSnapshot.Builder builder = DefaultTransferProgressSnapshot.builder()
-                                                                                         .bytesTransferred(2)
-                                                                                         .transferSizeInBytes(1L);
+                                                                                         .transferredBytes(2L)
+                                                                                         .totalBytes(1L);
         assertThatThrownBy(builder::build)
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("bytesTransferred (2) must not be greater than transferSizeInBytes (1)");
+            .hasMessage("transferredBytes (2) must not be greater than totalBytes (1)");
     }
 
     @Test
     public void ratioTransferred_withoutTransferSize_isEmpty() {
         TransferProgressSnapshot snapshot = DefaultTransferProgressSnapshot.builder()
-                                                                           .bytesTransferred(1)
+                                                                           .transferredBytes(1L)
                                                                            .build();
         assertThat(snapshot.ratioTransferred()).isNotPresent();
     }
@@ -44,8 +44,8 @@ public class DefaultTransferProgressSnapshotTest {
     @Test
     public void ratioTransferred_withTransferSize_isCorrect() {
         TransferProgressSnapshot snapshot = DefaultTransferProgressSnapshot.builder()
-                                                                           .bytesTransferred(1)
-                                                                           .transferSizeInBytes(2L)
+                                                                           .transferredBytes(1L)
+                                                                           .totalBytes(2L)
                                                                            .build();
         assertThat(snapshot.ratioTransferred()).hasValue(0.5);
     }
@@ -53,17 +53,17 @@ public class DefaultTransferProgressSnapshotTest {
     @Test
     public void bytesRemainingTransferred_withoutTransferSize_isEmpty() {
         TransferProgressSnapshot snapshot = DefaultTransferProgressSnapshot.builder()
-                                                                           .bytesTransferred(1)
+                                                                           .transferredBytes(1L)
                                                                            .build();
-        assertThat(snapshot.bytesRemaining()).isNotPresent();
+        assertThat(snapshot.remainingBytes()).isNotPresent();
     }
 
     @Test
     public void bytesRemainingTransferred_withTransferSize_isCorrect() {
         TransferProgressSnapshot snapshot = DefaultTransferProgressSnapshot.builder()
-                                                                           .bytesTransferred(1)
-                                                                           .transferSizeInBytes(3L)
+                                                                           .transferredBytes(1L)
+                                                                           .totalBytes(3L)
                                                                            .build();
-        assertThat(snapshot.bytesRemaining()).hasValue(2L);
+        assertThat(snapshot.remainingBytes()).hasValue(2L);
     }
 }

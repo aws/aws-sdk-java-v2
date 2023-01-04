@@ -17,6 +17,7 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.immutable;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.beans.Transient;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -398,6 +399,11 @@ public class ImmutableIntrospectorTest {
             throw new UnsupportedOperationException();
         }
 
+        @Transient
+        public int ignoreMeToo() {
+            throw new UnsupportedOperationException();
+        }
+
         public static final class Builder {
             public Builder attribute(int attribute) {
                 throw new UnsupportedOperationException();
@@ -410,7 +416,7 @@ public class ImmutableIntrospectorTest {
     }
 
     @Test
-    public void simpleImmutableWithIgnoredGetter() {
+    public void simpleImmutableWithIgnoredGetters() {
         ImmutableInfo<SimpleImmutableWithIgnoredGetter> immutableInfo =
             ImmutableIntrospector.getImmutableInfo(SimpleImmutableWithIgnoredGetter.class);
 
@@ -441,6 +447,11 @@ public class ImmutableIntrospectorTest {
 
             @DynamoDbIgnore
             public int ignoreMe() {
+                throw new UnsupportedOperationException();
+            }
+
+            @Transient
+            public int ignoreMeToo() {
                 throw new UnsupportedOperationException();
             }
 

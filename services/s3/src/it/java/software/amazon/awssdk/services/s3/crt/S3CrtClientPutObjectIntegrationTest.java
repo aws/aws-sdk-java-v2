@@ -36,6 +36,7 @@ import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.crt.CrtResource;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
 import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
@@ -49,7 +50,7 @@ public class S3CrtClientPutObjectIntegrationTest extends S3IntegrationTestBase {
     private static final int OBJ_SIZE = 8 * 1024 * 1024;
 
     private static RandomTempFile testFile;
-    private static S3CrtAsyncClient s3Crt;
+    private static S3AsyncClient s3Crt;
 
     @BeforeAll
     public static void setup() throws Exception {

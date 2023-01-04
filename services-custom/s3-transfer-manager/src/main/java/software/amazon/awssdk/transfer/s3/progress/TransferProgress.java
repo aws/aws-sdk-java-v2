@@ -16,20 +16,19 @@
 package software.amazon.awssdk.transfer.s3.progress;
 
 import software.amazon.awssdk.annotations.Mutable;
-import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.transfer.s3.Copy;
-import software.amazon.awssdk.transfer.s3.Download;
-import software.amazon.awssdk.transfer.s3.ObjectTransfer;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
-import software.amazon.awssdk.transfer.s3.Upload;
+import software.amazon.awssdk.transfer.s3.model.Copy;
+import software.amazon.awssdk.transfer.s3.model.Download;
+import software.amazon.awssdk.transfer.s3.model.ObjectTransfer;
+import software.amazon.awssdk.transfer.s3.model.Upload;
 
 /**
  * {@link TransferProgress} is a <b>stateful</b> representation of the progress of a transfer initiated by {@link
  * S3TransferManager}. {@link TransferProgress} offers the ability to take a {@link #snapshot()} of the current progress,
  * represented by an immutable {@link TransferProgressSnapshot}, which contains helpful progress-related methods like {@link
- * TransferProgressSnapshot#bytesTransferred()} and {@link TransferProgressSnapshot#ratioTransferred()}. {@link TransferProgress}
+ * TransferProgressSnapshot#transferredBytes()} and {@link TransferProgressSnapshot#ratioTransferred()}. {@link TransferProgress}
  * is attached to {@link ObjectTransfer} objects, namely {@link Upload}, {@link Download}, and {@link Copy}.
  * <p>
  * Where possible, it is typically recommended to <b>avoid</b> directly querying {@link TransferProgress} and to instead leverage
@@ -51,11 +50,10 @@ import software.amazon.awssdk.transfer.s3.Upload;
 @Mutable
 @ThreadSafe
 @SdkPublicApi
-@SdkPreviewApi
 public interface TransferProgress {
 
     /**
-     * Take a snapshot of the current progress, represented by an immutable {@link TransferProgressSnapshot}.
+     * Takes a snapshot of the current progress, represented by an immutable {@link TransferProgressSnapshot}.
      */
     TransferProgressSnapshot snapshot();
 }

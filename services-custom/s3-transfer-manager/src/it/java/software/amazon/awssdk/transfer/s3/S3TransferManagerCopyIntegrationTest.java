@@ -28,6 +28,8 @@ import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.transfer.s3.model.CompletedCopy;
+import software.amazon.awssdk.transfer.s3.model.Copy;
 import software.amazon.awssdk.transfer.s3.progress.LoggingTransferListener;
 
 public class S3TransferManagerCopyIntegrationTest extends S3IntegrationTestBase {
@@ -35,28 +37,17 @@ public class S3TransferManagerCopyIntegrationTest extends S3IntegrationTestBase 
     private static final String ORIGINAL_OBJ = "test_file.dat";
     private static final String COPIED_OBJ = "test_file_copy.dat";
     private static final String ORIGINAL_OBJ_SPECIAL_CHARACTER = "original-special-chars-@$%";
-    private static final String COPIED_OBJ_SPECIAL_CHARACTER= "special-special-chars-@$%";
+    private static final String COPIED_OBJ_SPECIAL_CHARACTER = "special-special-chars-@$%";
     private static final long OBJ_SIZE = ThreadLocalRandom.current().nextLong(8 * MB, 16 * MB + 1);
-
-    private static S3TransferManager tm;
 
     @BeforeAll
     public static void setUp() throws Exception {
-        S3IntegrationTestBase.setUp();
         createBucket(BUCKET);
-        tm = S3TransferManager.builder()
-                              .s3ClientConfiguration(c -> c
-                                  .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                                  .region(DEFAULT_REGION)
-                                  .maxConcurrency(100))
-                              .build();
     }
 
     @AfterAll
     public static void teardown() throws Exception {
-        tm.close();
         deleteBucketAndAllContents(BUCKET);
-        S3IntegrationTestBase.cleanUp();
     }
 
     @Test
@@ -88,7 +79,7 @@ public class S3TransferManagerCopyIntegrationTest extends S3IntegrationTestBase 
                 .sourceKey(original)
                 .destinationBucket(BUCKET)
                 .destinationKey(destination))
-            .overrideConfiguration(o -> o.addListener(LoggingTransferListener.create())));
+            .addTransferListener(LoggingTransferListener.create()));
 
         CompletedCopy completedCopy = copy.completionFuture().join();
         assertThat(completedCopy.response().responseMetadata().requestId()).isNotNull();

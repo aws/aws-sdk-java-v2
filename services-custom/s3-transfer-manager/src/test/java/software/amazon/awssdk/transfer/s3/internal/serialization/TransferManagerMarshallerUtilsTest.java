@@ -52,7 +52,7 @@ class TransferManagerMarshallerUtilsTest {
     @ParameterizedTest
     @MethodSource("unmarshallingValues")
     void getUnmarshaller(MarshallingType<Object> type, TransferManagerJsonUnmarshaller<?> expectedUnmarshaller)  {
-        TransferManagerJsonUnmarshaller<Object> marshaller = TransferManagerMarshallingUtils.getUnmarshaller(type);
+        TransferManagerJsonUnmarshaller<Object> marshaller = (TransferManagerJsonUnmarshaller<Object>) TransferManagerMarshallingUtils.getUnmarshaller(type);
         assertThat(marshaller).isEqualTo(expectedUnmarshaller);
     }
 

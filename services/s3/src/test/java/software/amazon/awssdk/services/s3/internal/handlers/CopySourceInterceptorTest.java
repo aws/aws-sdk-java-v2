@@ -36,22 +36,40 @@ public class CopySourceInterceptorTest {
     public static Collection<String[]> parameters() throws Exception {
         return Arrays.asList(new String[][] {
             {"bucket", "simpleKey", null,
-             "/bucket/simpleKey"},
+             "bucket/simpleKey"},
 
             {"bucket", "key/with/slashes", null,
-             "/bucket/key/with/slashes"},
+             "bucket/key/with/slashes"},
 
             {"bucket", "\uD83E\uDEA3", null,
-             "/bucket/%F0%9F%AA%A3"},
+             "bucket/%F0%9F%AA%A3"},
 
             {"bucket", "specialChars._ +!#$&'()*,:;=?@\"", null,
-             "/bucket/specialChars._%20%2B%21%23%24%26%27%28%29%2A%2C%3A%3B%3D%3F%40%22"},
+             "bucket/specialChars._%20%2B%21%23%24%26%27%28%29%2A%2C%3A%3B%3D%3F%40%22"},
 
             {"bucket", "%20", null,
-             "/bucket/%2520"},
+             "bucket/%2520"},
 
             {"bucket", "key/with/version", "ZJlqdTGGfnWjRWjm.WtQc5XRTNJn3sz_",
-             "/bucket/key/with/version?versionId=ZJlqdTGGfnWjRWjm.WtQc5XRTNJn3sz_"}
+             "bucket/key/with/version?versionId=ZJlqdTGGfnWjRWjm.WtQc5XRTNJn3sz_"},
+
+            {"source-bucke-e00000144705073101keauk155va6smod88ynqbeta0--op-s3", "CT-debug-Info-16", null,
+             "source-bucke-e00000144705073101keauk155va6smod88ynqbeta0--op-s3/CT-debug-Info-16"},
+
+            {"source-bucke-e00000144705073101keauk155va6smod88ynqbeta0--op-s3", "CT-debug-Info-16", "123",
+             "source-bucke-e00000144705073101keauk155va6smod88ynqbeta0--op-s3/CT-debug-Info-16?versionId=123"},
+
+            {"arn:aws:s3-outposts:us-west-2:123456789012:outpost/my-outpost/bucket/my-bucket", "my-key", null,
+             "arn%3Aaws%3As3-outposts%3Aus-west-2%3A123456789012%3Aoutpost/my-outpost/bucket/my-bucket/object/my-key"},
+
+            {"arn:aws:s3-outposts:us-west-2:123456789012:outpost/my-outpost/bucket/my-bucket", "my-key", "123",
+             "arn%3Aaws%3As3-outposts%3Aus-west-2%3A123456789012%3Aoutpost/my-outpost/bucket/my-bucket/object/my-key?versionId=123"},
+
+            {"arn:aws:s3:us-west-2:123456789012:accesspoint/my-access-point", "my-key", null,
+             "arn%3Aaws%3As3%3Aus-west-2%3A123456789012%3Aaccesspoint/my-access-point/object/my-key"},
+
+            {"arn:aws:s3:us-west-2:123456789012:accesspoint/my-access-point", "my-key", "123",
+             "arn%3Aaws%3As3%3Aus-west-2%3A123456789012%3Aaccesspoint/my-access-point/object/my-key?versionId=123"}
         });
     }
 
@@ -125,7 +143,10 @@ public class CopySourceInterceptorTest {
 
     @Test
     public void modifyRequest_Throws_whenSourceBucketNotSpecified_withCopyObjectRequest() {
-        CopyObjectRequest originalRequest = CopyObjectRequest.builder().build();
+        CopyObjectRequest originalRequest = CopyObjectRequest.builder()
+                                                             .sourceKey(sourceKey)
+                                                             .sourceVersionId(sourceVersionId)
+                                                             .build();
 
         assertThatThrownBy(() -> {
             interceptor.modifyRequest(() -> originalRequest, new ExecutionAttributes());
@@ -135,7 +156,10 @@ public class CopySourceInterceptorTest {
 
     @Test
     public void modifyRequest_Throws_whenSourceBucketNotSpecified_withUploadPartCopyRequest() {
-        UploadPartCopyRequest originalRequest = UploadPartCopyRequest.builder().build();
+        UploadPartCopyRequest originalRequest = UploadPartCopyRequest.builder()
+                                                                     .sourceKey(sourceKey)
+                                                                     .sourceVersionId(sourceVersionId)
+                                                                     .build();
 
         assertThatThrownBy(() -> {
             interceptor.modifyRequest(() -> originalRequest, new ExecutionAttributes());
@@ -144,30 +168,28 @@ public class CopySourceInterceptorTest {
     }
 
     @Test
-    public void modifyRequest_insertsSlashObject_whenAccessPointArn() {
-        String accessPointArn = "arn:aws:s3:us-west-2:123456789012:accesspoint/my-access-point";
+    public void modifyRequest_Throws_whenSourceKeyNotSpecified_withCopyObjectRequest() {
         CopyObjectRequest originalRequest = CopyObjectRequest.builder()
-                                                             .sourceBucket(accessPointArn)
-                                                             .sourceKey("my-key")
+                                                             .sourceBucket(sourceBucket)
+                                                             .sourceVersionId(sourceVersionId)
                                                              .build();
-        CopyObjectRequest modifiedRequest = (CopyObjectRequest) interceptor
-            .modifyRequest(() -> originalRequest, new ExecutionAttributes());
 
-        assertThat(modifiedRequest.copySource()).isEqualTo(
-            "/arn%3Aaws%3As3%3Aus-west-2%3A123456789012%3Aaccesspoint/my-access-point/object/my-key");
+        assertThatThrownBy(() -> {
+            interceptor.modifyRequest(() -> originalRequest, new ExecutionAttributes());
+        }).isInstanceOf(IllegalArgumentException.class)
+          .hasMessage("Parameter 'sourceKey' must not be null");
     }
 
     @Test
-    public void modifyRequest_insertsSlashObject_whenOutpostArn() {
-        String outpostBucketArn = "arn:aws:s3-outposts:us-west-2:123456789012:outpost/my-outpost/bucket/my-bucket";
-        CopyObjectRequest originalRequest = CopyObjectRequest.builder()
-                                                             .sourceBucket(outpostBucketArn)
-                                                             .sourceKey("my-key")
-                                                             .build();
-        CopyObjectRequest modifiedRequest = (CopyObjectRequest) interceptor
-            .modifyRequest(() -> originalRequest, new ExecutionAttributes());
+    public void modifyRequest_Throws_whenSourceKeyNotSpecified_withUploadPartCopyRequest() {
+        UploadPartCopyRequest originalRequest = UploadPartCopyRequest.builder()
+                                                                     .sourceBucket(sourceBucket)
+                                                                     .sourceVersionId(sourceVersionId)
+                                                                     .build();
 
-        assertThat(modifiedRequest.copySource()).isEqualTo(
-            "/arn%3Aaws%3As3-outposts%3Aus-west-2%3A123456789012%3Aoutpost/my-outpost/bucket/my-bucket/object/my-key");
+        assertThatThrownBy(() -> {
+            interceptor.modifyRequest(() -> originalRequest, new ExecutionAttributes());
+        }).isInstanceOf(IllegalArgumentException.class)
+          .hasMessage("Parameter 'sourceKey' must not be null");
     }
 }

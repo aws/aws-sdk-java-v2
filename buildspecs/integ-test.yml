@@ -15,9 +15,10 @@ phases:
           AWS_SESSION_TOKEN=`echo $ASSUME_ROLE_OUTPUT | awk '{ print $3 }'`
           echo "Using role $INTEGRATION_TEST_ROLE_ARN with access key $AWS_ACCESS_KEY_ID."
         fi
-      - mvn clean install -Dskip.unit.tests -P integration-tests -Dfindbugs.skip -Dcheckstyle.skip -T1C
+      - mvn clean install -Dskip.unit.tests -P integration-tests -Dfindbugs.skip -Dcheckstyle.skip -T1C $MAVEN_OPTIONS
       - JAVA_VERSION=$(java -version 2>&1 | grep -i version | cut -d'"' -f2 | cut -d'.' -f1-1)
       - echo $JAVA_VERSION
+      - echo $MAVEN_OPTIONS
       - |
         if [ "$JAVA_VERSION" -ge "9" ]; then
           cd test/module-path-tests

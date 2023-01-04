@@ -76,7 +76,7 @@ public final class ClockSkew {
             log.debug(() -> "Reported service date: " + serverDate);
 
             try {
-                return Optional.of(DateUtils.parseRfc1123Date(serverDate));
+                return Optional.of(DateUtils.parseRfc822Date(serverDate));
             } catch (RuntimeException e) {
                 log.warn(() -> "Unable to parse clock skew offset from response: " + serverDate, e);
                 return Optional.empty();

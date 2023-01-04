@@ -87,7 +87,7 @@ public class AwsServiceExceptionTest {
                              int statusCode,
                              Instant serverDate) {
         AwsServiceException exception = exception(clientSideTimeOffset, errorCode, statusCode,
-                                                  DateUtils.formatRfc1123Date(serverDate));
+                                                  DateUtils.formatRfc822Date(serverDate));
         assertThat(exception.isClockSkewException()).isTrue();
     }
 
@@ -96,7 +96,7 @@ public class AwsServiceExceptionTest {
                                 int statusCode,
                                 Instant serverDate) {
         AwsServiceException exception = exception(clientSideTimeOffset, errorCode, statusCode,
-                                                  DateUtils.formatRfc1123Date(serverDate));
+                                                  DateUtils.formatRfc822Date(serverDate));
         assertThat(exception.isClockSkewException()).isFalse();
     }
 

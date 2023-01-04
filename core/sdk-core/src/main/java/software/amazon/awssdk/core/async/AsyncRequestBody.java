@@ -16,16 +16,20 @@
 package software.amazon.awssdk.core.async;
 
 import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.internal.async.ByteArrayAsyncRequestBody;
 import software.amazon.awssdk.core.internal.async.FileAsyncRequestBody;
+import software.amazon.awssdk.core.internal.async.InputStreamWithExecutorAsyncRequestBody;
 import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.utils.BinaryUtils;
 
@@ -123,7 +127,8 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      * @see ByteArrayAsyncRequestBody
      */
     static AsyncRequestBody fromString(String string, Charset cs) {
-        return new ByteArrayAsyncRequestBody(string.getBytes(cs), Mimetype.MIMETYPE_TEXT_PLAIN);
+        return new ByteArrayAsyncRequestBody(string.getBytes(cs),
+                                             Mimetype.MIMETYPE_TEXT_PLAIN + "; charset=" + cs.name());
     }
 
     /**
@@ -157,6 +162,80 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      */
     static AsyncRequestBody fromByteBuffer(ByteBuffer byteBuffer) {
         return fromBytes(BinaryUtils.copyAllBytesFrom(byteBuffer));
+    }
+
+    /**
+     * Creates a {@link AsyncRequestBody} from a {@link InputStream}.
+     *
+     * <p>An {@link ExecutorService} is required in order to perform the blocking data reads, to prevent blocking the
+     * non-blocking event loop threads owned by the SDK.
+     */
+    static AsyncRequestBody fromInputStream(InputStream inputStream, Long contentLength, ExecutorService executor) {
+        return new InputStreamWithExecutorAsyncRequestBody(inputStream, contentLength, executor);
+    }
+
+    /**
+     * Creates a {@link BlockingInputStreamAsyncRequestBody} to use for writing an input stream to the downstream service.
+     *
+     * <p><b>Example Usage</b>
+     *
+     * <p>
+     * {@snippet :
+     *     S3AsyncClient s3 = S3AsyncClient.create(); // Use one client for your whole application!
+     *
+     *     byte[] dataToSend = "Hello".getBytes(StandardCharsets.UTF_8);
+     *     InputStream streamToSend = new ByteArrayInputStream();
+     *     long streamToSendLength = dataToSend.length();
+     *
+     *     // Start the operation
+     *     BlockingInputStreamAsyncRequestBody body =
+     *         AsyncRequestBody.forBlockingInputStream(streamToSendLength);
+     *     CompletableFuture<PutObjectResponse> responseFuture =
+     *         s3.putObject(r -> r.bucket("bucketName").key("key"), body);
+     *
+     *     // Write the input stream to the running operation
+     *     body.writeInputStream(streamToSend);
+     *
+     *     // Wait for the service to respond.
+     *     PutObjectResponse response = responseFuture.join();
+     * }
+     */
+    static BlockingInputStreamAsyncRequestBody forBlockingInputStream(Long contentLength) {
+        return new BlockingInputStreamAsyncRequestBody(contentLength);
+    }
+
+    /**
+     * Creates a {@link BlockingOutputStreamAsyncRequestBody} to use for writing to the downstream service as if it's an output
+     * stream. Retries are not supported for this request body.
+     *
+     * <p>The caller is responsible for calling {@link OutputStream#close()} on the {@link #outputStream()} when writing is
+     * complete.
+     *
+     * <p><b>Example Usage</b>
+     * <p>
+     * {@snippet :
+     *     S3AsyncClient s3 = S3AsyncClient.create(); // Use one client for your whole application!
+     *
+     *     byte[] dataToSend = "Hello".getBytes(StandardCharsets.UTF_8);
+     *     long lengthOfDataToSend = dataToSend.length();
+     *
+     *     // Start the operation
+     *     BlockingInputStreamAsyncRequestBody body =
+     *         AsyncRequestBody.forBlockingOutputStream(lengthOfDataToSend);
+     *     CompletableFuture<PutObjectResponse> responseFuture =
+     *         s3.putObject(r -> r.bucket("bucketName").key("key"), body);
+     *
+     *     // Write the input stream to the running operation
+     *     try (CancellableOutputStream outputStream = body.outputStream()) {
+     *         outputStream.write(dataToSend);
+     *     }
+     *
+     *     // Wait for the service to respond.
+     *     PutObjectResponse response = responseFuture.join();
+     * }
+     */
+    static BlockingOutputStreamAsyncRequestBody forBlockingOutputStream(Long contentLength) {
+        return new BlockingOutputStreamAsyncRequestBody(contentLength);
     }
 
     /**

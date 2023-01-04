@@ -146,7 +146,8 @@ public final class RequestBody {
      * @return RequestBody instance.
      */
     public static RequestBody fromString(String contents, Charset cs) {
-        return fromBytesDirect(contents.getBytes(cs), Mimetype.MIMETYPE_TEXT_PLAIN);
+        return fromBytesDirect(contents.getBytes(cs),
+                               Mimetype.MIMETYPE_TEXT_PLAIN + "; charset=" + cs.name());
     }
 
     /**
