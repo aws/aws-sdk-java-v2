@@ -75,9 +75,9 @@ public abstract class BaseAwsJsonProtocolFactory {
         this.protocolUnmarshaller = JsonProtocolUnmarshaller
             .builder()
             .parser(JsonNodeParser.builder()
-                                  .jsonFactory(getSdkFactory().getJsonFactory())
+                                  .jsonFactory(getSdkJsonFactory().getJsonFactory())
                                   .build())
-            .defaultTimestampFormats(getDefaultTimestampFormats())
+            .defaultTimestampFormats(getMarshallLocationFormatMap())
             .build();
     }
 
@@ -167,6 +167,10 @@ public abstract class BaseAwsJsonProtocolFactory {
      * @return Instance of {@link StructuredJsonFactory} to use in creating handlers.
      */
     protected StructuredJsonFactory getSdkFactory() {
+        return getSdkJsonFactory();
+    }
+
+    private static StructuredJsonFactory getSdkJsonFactory() {
         return AwsStructuredPlainJsonFactory.SDK_JSON_FACTORY;
     }
 
@@ -175,6 +179,10 @@ public abstract class BaseAwsJsonProtocolFactory {
      * can be overridden by subclasses to customize behavior.
      */
     protected Map<MarshallLocation, TimestampFormatTrait.Format> getDefaultTimestampFormats() {
+        return getMarshallLocationFormatMap();
+    }
+
+    private static Map<MarshallLocation, TimestampFormatTrait.Format> getMarshallLocationFormatMap() {
         Map<MarshallLocation, TimestampFormatTrait.Format> formats = new EnumMap<>(MarshallLocation.class);
         formats.put(MarshallLocation.HEADER, TimestampFormatTrait.Format.RFC_822);
         formats.put(MarshallLocation.PAYLOAD, TimestampFormatTrait.Format.UNIX_TIMESTAMP);

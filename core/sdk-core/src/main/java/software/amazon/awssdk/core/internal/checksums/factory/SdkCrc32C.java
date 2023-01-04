@@ -593,37 +593,34 @@ public final class SdkCrc32C implements Checksum, Cloneable {
 
     @Override
     public void update(byte[] b, int off, int len) {
-        int localCrc = crc;
 
         while (len > 7) {
-            int c0 = (b[off + 0] ^ localCrc) & 0xff;
-            localCrc >>>= 8;
-            int c1 = (b[off + 1] ^ (localCrc)) & 0xff;
-            localCrc >>>= 8;
-            int c2 = (b[off + 2] ^ (localCrc)) & 0xff;
-            localCrc >>>= 8;
-            int c3 = (b[off + 3] ^ (localCrc)) & 0xff;
-            localCrc = (T[T8_7_START + c0] ^ T[T8_6_START + c1]) ^
+            int c0 = (b[off + 0] ^ crc) & 0xff;
+            crc >>>= 8;
+            int c1 = (b[off + 1] ^ (crc)) & 0xff;
+            crc >>>= 8;
+            int c2 = (b[off + 2] ^ (crc)) & 0xff;
+            crc >>>= 8;
+            int c3 = (b[off + 3] ^ (crc)) & 0xff;
+            crc = (T[T8_7_START + c0] ^ T[T8_6_START + c1]) ^
                        (T[T8_5_START + c2] ^ T[T_8_4_START + c3]);
             int c4 = b[off + 4] & 0xff;
             int c5 = b[off + 5] & 0xff;
             int c6 = b[off + 6] & 0xff;
             int c7 = b[off + 7] & 0xff;
 
-            localCrc ^= (T[T8_3_START + c4] ^ T[T8_2_START + c5]) ^
+            crc ^= (T[T8_3_START + c4] ^ T[T8_2_START + c5]) ^
                         (T[T8_1_START + c6] ^ T[T8_0_START + c7]);
 
             off += 8;
             len -= 8;
+
         }
 
         /* loop unroll - duff's device style */
         for (int index = 0; index < len; index++) {
-            localCrc = (localCrc >>> 8) ^ T[T8_0_START + ((localCrc ^ b[off++]) & 0xff)];
+            crc = (crc >>> 8) ^ T[T8_0_START + ((crc ^ b[off++]) & 0xff)];
         }
-
-        // Publish crc out to object
-        crc = localCrc;
     }
 
     @Override

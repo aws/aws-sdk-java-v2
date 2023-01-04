@@ -266,4 +266,104 @@
         <Method name="fromFile"/>
         <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
     </Match>
+
+    <!-- Commonly used CONSTANTS Name which are declared as fields    -->
+    <Match>
+        <Or>
+            <Field name="INSTANCE"/>
+            <Field name="NONE"/>
+        </Or>
+        <Bug pattern="MS_EXPOSE_REP"/>
+    </Match>
+
+    <!--  Commonly used Constants in Regions  -->
+    <Match>
+        <Or>
+            <Class name="software.amazon.awssdk.regions.EndpointTag"/>
+            <Class name="software.amazon.awssdk.regions.Region"/>
+        </Or>
+        <Or>
+            <Field name="ENDPOINT_TAGS"/>
+            <Field name="REGIONS"/>
+        </Or>
+        <Bug pattern="MS_EXPOSE_REP"/>
+    </Match>
+
+    <!--enableSuppression, writableStackTrace cannot be copied for a RuntimeException    -->
+    <Match>
+        <Class name="software.amazon.awssdk.utils.async.StoringSubscriber$Event"/>
+        <Field name="error"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+
+    <!-- Copy of Completable future is not available in Java 8 -->
+    <Match>
+        <Class name="software.amazon.awssdk.utils.async.SequentialSubscriber"/>
+        <Field name="future"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!--  As the name suggest these method intentionally expose the references to avoid creating copies  -->
+    <Match>
+        <Or>
+            <Class name="software.amazon.awssdk.internal.http.LowCopyListMap$ForBuildable"/>
+            <Class name="software.amazon.awssdk.internal.http.LowCopyListMap$ForBuilder"/>
+        </Or>
+        <Or>
+            <Method name="forInternalRead"/>
+            <Method name="forInternalWrite"/>
+        </Or>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+
+    <!-- Commonly used fields in http clients which are internal and donot have copy   -->
+    <Match>
+        <Or>
+            <Class name="software.amazon.awssdk.http.apache.internal.ApacheHttpRequestConfig"/>
+            <Class name="software.amazon.awssdk.http.apache.internal.ApacheHttpRequestConfig$Builder"/>
+            <Class name="software.amazon.awssdk.http.apache.internal.conn.IdleConnectionReaper"/>
+            <Class name="software.amazon.awssdk.http.apache.internal.net.DelegateSocket"/>
+            <Class name="software.amazon.awssdk.http.apache.internal.net.DelegateSslSocket"/>
+        </Or>
+        <Or>
+            <Field name="localAddress"/>
+            <Field name="sock"/>
+        </Or>
+        <Bug pattern="EI_EXPOSE_REP, EI_EXPOSE_REP2, MS_EXPOSE_REP"/>
+    </Match>
+
+    <!-- Commonly used fields in netty clients which are internal and do not have copy   -->
+
+    <Match>
+        <Or>
+            <Package name="software.amazon.awssdk.http.nio.netty.internal"/>
+            <Package name="software.amazon.awssdk.http.nio.netty.internal.http2"/>
+            <Package name="software.amazon.awssdk.http.nio.netty.internal.nrs"/>
+        </Or>
+        <Or>
+            <Field name="configuration"/>
+            <Field name="channelPoolRef"/>
+            <Field name="executeFuture"/>
+            <Field name="initPromise"/>
+            <Field name="noSubscriberError"/>
+        </Or>
+        <Bug pattern="EI_EXPOSE_REP2, EI_EXPOSE_REP"/>
+    </Match>
+
+    <!-- Builder is passed with the instance that is just created, skipping this as this need re-design of builders -->
+    <Match>
+        <Or>
+            <Class name="software.amazon.awssdk.protocols.json.internal.marshall.JsonProtocolMarshaller"/>
+            <Class name="software.amazon.awssdk.protocols.query.AwsQueryProtocolFactory"/>
+            <Class name="software.amazon.awssdk.protocols.xml.AwsXmlProtocolFactory"/>
+        </Or>
+        <Bug pattern="MC_OVERRIDABLE_METHOD_CALL_IN_CONSTRUCTOR"/>
+    </Match>
+
+    <!-- TODO: This will be remove for final merge to master PR , ignore this for now    -->
+    <Match>AwsRequest
+        <Bug pattern="EI_EXPOSE_REP, EI_EXPOSE_REP2"/>
+    </Match>
+    <!-- TODO : Needs to remove this.   -->
+
 </FindBugsFilter>

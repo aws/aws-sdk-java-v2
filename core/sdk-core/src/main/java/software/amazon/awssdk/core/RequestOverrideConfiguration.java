@@ -67,7 +67,7 @@ public abstract class RequestOverrideConfiguration {
      * @return The optional additional headers.
      */
     public Map<String, List<String>> headers() {
-        return headers;
+        return CollectionUtils.unmodifiableMapOfLists(headers);
     }
 
     /**
@@ -76,7 +76,7 @@ public abstract class RequestOverrideConfiguration {
      * @return The optional additional query parameters.
      */
     public Map<String, List<String>> rawQueryParameters() {
-        return rawQueryParameters;
+        return CollectionUtils.unmodifiableMapOfLists(rawQueryParameters);
     }
 
     /**
@@ -149,7 +149,7 @@ public abstract class RequestOverrideConfiguration {
      * attribute value added on the request.
      */
     public ExecutionAttributes executionAttributes() {
-        return executionAttributes;
+        return executionAttributes != null ? executionAttributes.toBuilder().build() : null;
     }
 
     @Override
@@ -425,14 +425,15 @@ public abstract class RequestOverrideConfiguration {
         }
 
         protected BuilderImpl(RequestOverrideConfiguration sdkRequestOverrideConfig) {
-            headers(sdkRequestOverrideConfig.headers);
-            rawQueryParameters(sdkRequestOverrideConfig.rawQueryParameters);
-            sdkRequestOverrideConfig.apiNames.forEach(this::addApiName);
-            apiCallTimeout(sdkRequestOverrideConfig.apiCallTimeout);
-            apiCallAttemptTimeout(sdkRequestOverrideConfig.apiCallAttemptTimeout);
-            signer(sdkRequestOverrideConfig.signer().orElse(null));
-            metricPublishers(sdkRequestOverrideConfig.metricPublishers());
-            executionAttributes(sdkRequestOverrideConfig.executionAttributes());
+            this.headers = sdkRequestOverrideConfig.headers;
+            this.rawQueryParameters = sdkRequestOverrideConfig.rawQueryParameters;
+            sdkRequestOverrideConfig.apiNames.forEach(apiName -> this.apiNames.add(apiName));
+            this.apiCallTimeout = sdkRequestOverrideConfig.apiCallTimeout;
+            this.apiCallAttemptTimeout = sdkRequestOverrideConfig.apiCallAttemptTimeout;
+            this.signer = sdkRequestOverrideConfig.signer().orElse(null);
+            this.metricPublishers = sdkRequestOverrideConfig.metricPublishers();
+            Validate.paramNotNull(sdkRequestOverrideConfig.executionAttributes(), "executionAttributes");
+            this.executionAttributesBuilder = sdkRequestOverrideConfig.executionAttributes().toBuilder();
         }
 
         @Override
@@ -562,7 +563,7 @@ public abstract class RequestOverrideConfiguration {
 
         @Override
         public List<MetricPublisher> metricPublishers() {
-            return metricPublishers;
+            return Collections.unmodifiableList(metricPublishers);
         }
 
         @Override

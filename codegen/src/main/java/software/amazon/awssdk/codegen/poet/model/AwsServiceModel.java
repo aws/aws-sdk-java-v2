@@ -89,7 +89,7 @@ public class AwsServiceModel implements ClassSpec {
                                                  intermediateModel);
         this.modelBuilderSpecs = resolveBuilderSpecs();
         this.serviceModelCopiers = new ServiceModelCopiers(this.intermediateModel);
-        this.modelMethodOverrides = new ModelMethodOverrides(className(), this.poetExtensions);
+        this.modelMethodOverrides = new ModelMethodOverrides(shapeModelSpec.className(), this.poetExtensions);
     }
 
     @Override

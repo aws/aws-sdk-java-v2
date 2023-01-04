@@ -90,7 +90,9 @@ public abstract class AwsRequest extends SdkRequest {
         }
 
         protected BuilderImpl(AwsRequest request) {
-            request.overrideConfiguration().ifPresent(this::overrideConfiguration);
+            if (request.overrideConfiguration().isPresent()) {
+                this.awsRequestOverrideConfig = request.overrideConfiguration().get();
+            }
         }
 
         @Override

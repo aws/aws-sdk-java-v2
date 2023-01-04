@@ -71,7 +71,7 @@ public final class Response<T> {
      * be null.
      */
     public SdkException exception() {
-        return exception;
+        return exception != null ? exception.toBuilder().build() : null;
     }
 
     /**
@@ -153,7 +153,7 @@ public final class Response<T> {
          * be null.
          */
         public Builder<T> exception(SdkException exception) {
-            this.exception = exception;
+            this.exception = exception != null ? exception.toBuilder().build() : null;
             return this;
         }
 

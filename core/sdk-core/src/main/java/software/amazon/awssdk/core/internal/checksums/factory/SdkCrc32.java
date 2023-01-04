@@ -585,16 +585,15 @@ public final class SdkCrc32 implements Checksum, Cloneable {
 
     @Override
     public void update(byte[] b, int offset, int len) {
-        int localCrc = crc;
 
         int remainder = len & 0x7;
         int i = offset;
         for (int end = offset + len - remainder; i < end; i += 8) {
-            int x = localCrc ^
+            int x = crc ^
                     ((((b[i] << 24) >>> 24) + ((b[i + 1] << 24) >>> 16)) +
                      (((b[i + 2] << 24) >>> 8) + (b[i + 3] << 24)));
 
-            localCrc = ((T[((x << 24) >>> 24) + 0x700] ^ T[((x << 16) >>> 24) + 0x600]) ^
+            crc = ((T[((x << 24) >>> 24) + 0x700] ^ T[((x << 16) >>> 24) + 0x600]) ^
                         (T[((x << 8) >>> 24) + 0x500] ^ T[(x >>> 24) + 0x400])) ^
                        ((T[((b[i + 4] << 24) >>> 24) + 0x300] ^ T[((b[i + 5] << 24) >>> 24) + 0x200]) ^
                         (T[((b[i + 6] << 24) >>> 24) + 0x100] ^ T[((b[i + 7] << 24) >>> 24)]));
@@ -603,11 +602,9 @@ public final class SdkCrc32 implements Checksum, Cloneable {
         /* loop unroll - duff's device style */
 
         for (int index = 0; index < remainder; index++) {
-            localCrc = (localCrc >>> 8) ^ T[((localCrc ^ b[i++]) << 24) >>> 24];
+            crc = (crc >>> 8) ^ T[((crc ^ b[i++]) << 24) >>> 24];
         }
 
-        // Publish crc out to object
-        crc = localCrc;
     }
 
     @Override

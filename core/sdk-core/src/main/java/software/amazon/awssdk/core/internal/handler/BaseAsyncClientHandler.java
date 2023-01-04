@@ -28,6 +28,7 @@ import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.AsyncClientHandler;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.exception.SdkException;
@@ -65,7 +66,9 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
         super(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
         this.client = client;
-        this.crc32Validator = response -> Crc32Validation.validate(isCalculateCrc32FromCompressedData(), response);
+        this.crc32Validator =
+            response -> Crc32Validation
+                .validate(clientConfiguration.option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED), response);
     }
 
     @Override

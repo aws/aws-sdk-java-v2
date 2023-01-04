@@ -17,6 +17,7 @@ package software.amazon.awssdk.http.apache.internal;
 
 import static software.amazon.awssdk.utils.StringUtils.lowerCase;
 
+import java.util.Collections;
 import java.util.Set;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
@@ -40,7 +41,7 @@ public class SdkProxyRoutePlanner extends DefaultRoutePlanner {
     public SdkProxyRoutePlanner(String proxyHost, int proxyPort, String proxyProtocol, Set<String> nonProxyHosts) {
         super(DefaultSchemePortResolver.INSTANCE);
         proxy = new HttpHost(proxyHost, proxyPort, proxyProtocol);
-        this.hostPatterns = nonProxyHosts;
+        this.hostPatterns = Collections.unmodifiableSet(nonProxyHosts);
     }
 
     private boolean doesTargetMatchNonProxyHosts(HttpHost target) {
