@@ -24,5 +24,20 @@
     "allPublicMethods": true,
     "allDeclaredClasses": true,
     "allPublicClasses": true
-  }
+  },
+  {
+    "name":"org.apache.commons.logging.impl.Jdk14Logger",
+    "methods":[{"name":"<init>","parameterTypes":["java.lang.String"] }]
+  },
+  {
+    "name":"org.apache.commons.logging.impl.Log4JLogger"
+  },
+  {
+    "name":"org.apache.commons.logging.impl.LogFactoryImpl",
+    "methods":[{"name":"<init>","parameterTypes":[] }]
+  },
+  {
+    "name":"org.apache.commons.logging.impl.WeakHashtable",
+    "methods":[{"name":"<init>","parameterTypes":[] }]
+  }  
 ]
