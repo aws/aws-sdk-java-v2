@@ -1,0 +1,24 @@
+{
+    "version": "2.19.10",
+    "date": "2023-01-04",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Logs",
+            "contributor": "",
+            "description": "Update to remove sequenceToken as a required field in PutLogEvents calls."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "contributor": "",
+            "description": "Adding support for QuickSetup Document Type in Systems Manager"
+        },
+        {
+            "type": "feature",
+            "category": "Application Auto Scaling",
+            "contributor": "",
+            "description": "Customers can now use the existing DescribeScalingActivities API to also see the detailed and machine-readable reasons for Application Auto Scaling not scaling their resources and, if needed, take the necessary corrective actions."
+        }
+    ]
+}
