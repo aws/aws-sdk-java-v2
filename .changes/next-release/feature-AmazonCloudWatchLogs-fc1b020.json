@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon CloudWatch Logs",
+    "contributor": "",
+    "description": "Update to remove sequenceToken as a required field in PutLogEvents calls."
+}
