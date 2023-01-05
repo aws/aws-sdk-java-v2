@@ -17,6 +17,7 @@ package software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 
@@ -30,6 +31,8 @@ public class DocumentBean {
     private List<AbstractImmutable> abstractImmutableList;
     private Map<String, AbstractBean> abstractBeanMap;
     private Map<String, AbstractImmutable> abstractImmutableMap;
+    private Set<AbstractBean> abstractBeanSet;
+    private Set<AbstractImmutable> abstractImmutableSet;
 
     @DynamoDbPartitionKey
     public String getId() {
@@ -60,6 +63,13 @@ public class DocumentBean {
         this.abstractBeanList = abstractBeanList;
     }
 
+    public Set<AbstractBean> getAbstractBeanSet() {
+        return abstractBeanSet;
+    }
+    public void setAbstractBeanSet(Set<AbstractBean> abstractBeanSet) {
+        this.abstractBeanSet = abstractBeanSet;
+    }
+
     public Map<String, AbstractBean> getAbstractBeanMap() {
         return abstractBeanMap;
     }
@@ -79,6 +89,13 @@ public class DocumentBean {
     }
     public void setAbstractImmutableList(List<AbstractImmutable> abstractImmutableList) {
         this.abstractImmutableList = abstractImmutableList;
+    }
+
+    public Set<AbstractImmutable> getAbstractImmutableSet() {
+        return abstractImmutableSet;
+    }
+    public void setAbstractImmutableSet(Set<AbstractImmutable> abstractImmutableSet) {
+        this.abstractImmutableSet = abstractImmutableSet;
     }
 
     public Map<String, AbstractImmutable> getAbstractImmutableMap() {
