@@ -15,17 +15,18 @@
 
 package software.amazon.awssdk.auth.credentials;
 
-import static java.util.Collections.unmodifiableSet;
-
 import java.io.IOException;
+import java.net.Inet6Address;
+import java.net.InetAddress;
 import java.net.URI;
+import java.net.UnknownHostException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
+import java.util.Objects;
+import java.util.function.Predicate;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.internal.ContainerCredentialsRetryPolicy;
 import software.amazon.awssdk.auth.credentials.internal.HttpCredentialsLoader;
@@ -65,7 +66,9 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
 public final class ContainerCredentialsProvider
     implements HttpCredentialsProvider,
                ToCopyableBuilder<ContainerCredentialsProvider.Builder, ContainerCredentialsProvider> {
-    private static final Set<String> ALLOWED_HOSTS = unmodifiableSet(new HashSet<>(Arrays.asList("localhost", "127.0.0.1")));
+    private static final Predicate<InetAddress> ALLOWED_HOSTS_IPv4_RULES = InetAddress::isLoopbackAddress;
+    private static final Predicate<InetAddress> ALLOWED_HOSTS_IPv6_RULES = InetAddress::isLoopbackAddress;
+    private static final String HTTPS = "https";
 
     private final String endpoint;
     private final HttpCredentialsLoader httpCredentialsLoader;
@@ -207,17 +210,43 @@ public final class ContainerCredentialsProvider
 
         private URI createGenericContainerUrl() {
             URI uri = URI.create(SdkSystemSetting.AWS_CONTAINER_CREDENTIALS_FULL_URI.getStringValueOrThrow());
-            if (!ALLOWED_HOSTS.contains(uri.getHost())) {
+            if (!isHttps(uri) && !isAllowedHost(uri.getHost())) {
                 String envVarName = SdkSystemSetting.AWS_CONTAINER_CREDENTIALS_FULL_URI.environmentVariable();
                 throw SdkClientException.builder()
-                                        .message(String.format("The full URI (%s) contained within environment " +
-                                                               "variable %s has an invalid host. Host can only be one of [%s].",
-                                                               uri,
-                                                               envVarName,
-                                                               String.join(",", ALLOWED_HOSTS)))
+                                        .message(String.format("The full URI (%s) contained within environment variable " +
+                                                               "%s has an invalid host. Host should resolve to a loopback" +
+                                                               " address.",
+                                                               uri, envVarName))
                                         .build();
             }
             return uri;
+        }
+
+        private boolean isHttps(URI endpoint) {
+            return Objects.equals(HTTPS, endpoint.getScheme());
+        }
+
+        private boolean isAllowedHost(String host) {
+            try {
+                InetAddress[] addresses = InetAddress.getAllByName(host);
+
+                return addresses.length > 0 && Arrays.stream(addresses)
+                                                     .allMatch(this::matchesAllowedHostRules);
+
+            } catch (UnknownHostException e) {
+                throw SdkClientException.builder()
+                                        .cause(e)
+                                        .message(String.format("host (%s) could not be resolved to an IP address.", host))
+                                        .build();
+            }
+        }
+
+        private boolean matchesAllowedHostRules(InetAddress inetAddress) {
+            if (inetAddress instanceof Inet6Address) {
+                return ALLOWED_HOSTS_IPv6_RULES.test(inetAddress);
+            }
+
+            return ALLOWED_HOSTS_IPv4_RULES.test(inetAddress);
         }
     }
 
