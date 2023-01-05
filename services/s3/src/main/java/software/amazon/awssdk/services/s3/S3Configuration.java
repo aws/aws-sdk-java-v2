@@ -335,7 +335,7 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
         /**
          * The supplier of profile file instances that should be consulted to determine the default value of
          * {@link #useArnRegionEnabled(Boolean)} or {@link #multiRegionEnabled(Boolean)}.
-         * This is not used, if those parameters are configured.
+         * This is not used, if those parameters are configured on the builder.
          *
          * <p>
          * By default, the {@link ProfileFile#defaultProfileFile()} is used.
