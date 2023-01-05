@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "Add `s3-transfer-manager` in `aws-sdk-java` module so that it's included in `bundle`."
-}

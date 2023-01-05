@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AmplifyBackend",
-    "contributor": "",
-    "description": "Updated GetBackendAPIModels response to include ModelIntrospectionSchema json string"
-}
