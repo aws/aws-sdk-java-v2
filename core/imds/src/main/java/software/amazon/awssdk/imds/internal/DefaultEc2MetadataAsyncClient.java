@@ -95,7 +95,7 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
 
         CompletableFuture<MetadataResponse> result = tokenFuture.thenCompose(token -> {
             SdkHttpFullRequest baseMetadataRequest = requestMarshaller.createDataRequest(path, token.value(), tokenTtl);
-            return AsyncHttpRequestHelper.sendAsyncMetadataRequest(httpClient, baseMetadataRequest);
+            return AsyncHttpRequestHelper.sendAsyncMetadataRequest(httpClient, baseMetadataRequest, returnFuture);
         }).thenApply(MetadataResponse::create);
 
         CompletableFutureUtils.forwardExceptionTo(returnFuture, result);

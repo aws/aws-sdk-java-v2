@@ -39,22 +39,24 @@ final class AsyncHttpRequestHelper {
     }
 
     public static CompletableFuture<String> sendAsyncMetadataRequest(SdkAsyncHttpClient httpClient,
-                                                                     SdkHttpFullRequest baseRequest) {
+                                                                     SdkHttpFullRequest baseRequest,
+                                                                     CompletableFuture<?> parentFuture) {
         StringResponseHandler stringResponseHandler = new StringResponseHandler();
-        return sendAsync(httpClient, baseRequest, stringResponseHandler, stringResponseHandler::setFuture);
+        return sendAsync(httpClient, baseRequest, stringResponseHandler, stringResponseHandler::setFuture, parentFuture);
     }
 
     public static CompletableFuture<Token> sendAsyncTokenRequest(Duration ttlSeconds,
                                                                  SdkAsyncHttpClient httpClient,
                                                                  SdkHttpFullRequest baseRequest) {
         TokenResponseHandler tokenResponseHandler = new TokenResponseHandler(ttlSeconds.getSeconds());
-        return sendAsync(httpClient, baseRequest, tokenResponseHandler, tokenResponseHandler::setFuture);
+        return sendAsync(httpClient, baseRequest, tokenResponseHandler, tokenResponseHandler::setFuture, null);
     }
 
     static <T> CompletableFuture<T> sendAsync(SdkAsyncHttpClient client,
                                               SdkHttpFullRequest request,
                                               HttpResponseHandler<T> handler,
-                                              Consumer<CompletableFuture<T>> withFuture) {
+                                              Consumer<CompletableFuture<T>> withFuture,
+                                              CompletableFuture<?> parentFuture) {
         SdkHttpContentPublisher requestContentPublisher = new SimpleHttpContentPublisher(request);
         TransformingAsyncResponseHandler<T> responseHandler = new AsyncResponseHandler<>(handler,
                                                                                              Function.identity(),
@@ -67,7 +69,10 @@ final class AsyncHttpRequestHelper {
                                                                  .responseHandler(responseHandler)
                                                                  .build();
         CompletableFuture<Void> executeFuture = client.execute(metadataRequest);
-        CompletableFutureUtils.forwardExceptionTo(responseHandlerFuture, executeFuture);
+        if (parentFuture != null) {
+            CompletableFutureUtils.forwardExceptionTo(parentFuture, executeFuture);
+            CompletableFutureUtils.forwardExceptionTo(parentFuture, responseHandlerFuture);
+        }
         return responseHandlerFuture;
 
     }

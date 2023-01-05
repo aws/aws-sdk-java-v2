@@ -21,7 +21,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
 
 /**
@@ -56,20 +55,19 @@ final class AsyncTokenCache implements Supplier<CompletableFuture<Token>> {
      * The collection of future that are waiting for the refresh call to complete. If a call to {@link AsyncTokenCache#get()}
      * is made while the token request is happening, a future will be added to this collection. All future in this collection
      * are completed once the token request is done.
+     * Should only be modified while holding the lock on {@link AsyncTokenCache#refreshLock}.
      */
-    private Collection<CompletableFuture<Token>> waitingFutures;
+    private Collection<CompletableFuture<Token>> waitingFutures = new ArrayList<>();
 
     /**
      * Indicates if the token refresh request is currently running or not.
      */
-    private final AtomicBoolean refreshRunning;
+    private final AtomicBoolean refreshRunning = new AtomicBoolean(false);
 
     private final Object refreshLock = new Object();
 
     AsyncTokenCache(Supplier<CompletableFuture<Token>> supplier) {
         this.supplier = supplier;
-        this.waitingFutures = new ArrayList<>();
-        this.refreshRunning = new AtomicBoolean(false);
     }
 
     @Override
@@ -86,17 +84,15 @@ final class AsyncTokenCache implements Supplier<CompletableFuture<Token>> {
                 return CompletableFuture.completedFuture(currentValue);
             }
             CompletableFuture<Token> result = new CompletableFuture<>();
-            if (refreshRunning.get()) {
-                waitingFutures.add(result);
-            } else {
-                CompletableFuture<Token> tokenRequest = startRefresh(result);
-                CompletableFutureUtils.forwardExceptionTo(result, tokenRequest);
+            waitingFutures.add(result);
+            if (!refreshRunning.get()) {
+                startRefresh();
             }
             return result;
         }
     }
 
-    private CompletableFuture<Token> startRefresh(CompletableFuture<Token> parent) {
+    private void startRefresh() {
         log.debug(() -> "IMDS token expired or null, starting asynchronous refresh.");
         CompletableFuture<Token> tokenRequest = supplier.get();
         refreshRunning.set(true); // After supplier.get(), in case that throws an exception
@@ -113,10 +109,8 @@ final class AsyncTokenCache implements Supplier<CompletableFuture<Token>> {
                 if (token != null) {
                     log.debug(() -> "IMDS token refresh completed. Token value: " + token.value());
                     cachedToken = token;
-                    parent.complete(cachedToken);
                 } else {
                     log.error(() -> "IMDS token refresh completed with error.", throwable);
-                    parent.completeExceptionally(throwable);
                 }
             }
 
@@ -128,7 +122,6 @@ final class AsyncTokenCache implements Supplier<CompletableFuture<Token>> {
                 }
             });
         });
-        return tokenRequest;
     }
 
     private boolean needsRefresh(Token token) {
