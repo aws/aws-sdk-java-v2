@@ -70,12 +70,13 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
     S3CrtAsyncClientBuilder region(Region region);
 
     /**
-     * Sets the minimum part size for transfer parts. Decreasing the minimum part size causes
-     * multipart transfer to be split into a larger number of smaller parts. Setting this value too low
-     * has a negative effect on transfer speeds, causing extra latency and network communication for each part.
+     * Sets the minimum part size for transfer parts. Decreasing the minimum part size causes multipart transfer to be split into
+     * a larger number of smaller parts. Setting this value too low has a negative effect on transfer speeds, causing extra
+     * latency and network communication for each part.
      *
      * <p>
-     * By default, it is 8MB
+     * By default, it is 8MB. See <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/qfacts.html">Amazon S3 multipart
+     * upload limits</a> for guidance.
      *
      * @param uploadPartSize The minimum part size for transfer parts.
      * @return this builder for method chaining.
@@ -83,12 +84,16 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
     S3CrtAsyncClientBuilder minimumPartSizeInBytes(Long uploadPartSize);
 
     /**
-     * The target throughput for transfer requests. Higher value means more S3 connections
-     * will be opened. Whether the transfer manager can achieve the configured target throughput depends
-     * on various factors such as the network bandwidth of the environment and the configured {@link #maxConcurrency}.
+     * The target throughput for transfer requests. Higher value means more connections will be established with S3.
      *
      * <p>
-     * By default, it is 10 Gbps
+     * Whether the transfer manager can achieve the configured target throughput depends on various factors such as the network
+     * bandwidth of the environment and the configured {@link #maxConcurrency}.
+     *
+     * <p>
+     * By default, it is 10 Gbps. If users want to transfer as fast as possible, it's recommended to set it to the maximum network
+     * bandwidth on the host that the application is running on. For EC2 instances, you can find network bandwidth for a specific
+     * instance type in <a href="https://aws.amazon.com/ec2/instance-types/">Amazon EC2 instance type page</a>.
      *
      * @param targetThroughputInGbps the target throughput in Gbps
      * @return this builder for method chaining.
