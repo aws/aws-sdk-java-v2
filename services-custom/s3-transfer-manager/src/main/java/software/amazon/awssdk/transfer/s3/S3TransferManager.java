@@ -19,8 +19,6 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
-import java.util.function.Function;
-import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
@@ -162,7 +160,6 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkPublicApi
 @ThreadSafe
-@SdkPreviewApi
 public interface S3TransferManager extends SdkAutoCloseable {
 
     /**
@@ -304,22 +301,10 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * @param downloadRequest the download request, containing a {@link GetObjectRequest} and {@link AsyncResponseTransformer}
      * @param <ResultT>       The type of data the {@link AsyncResponseTransformer} produces
      * @return A {@link Download} that can be used to track the ongoing transfer
-     * @see #download(Function)
      * @see #downloadFile(DownloadFileRequest)
      */
     default <ResultT> Download<ResultT> download(DownloadRequest<ResultT> downloadRequest) {
         throw new UnsupportedOperationException();
-    }
-
-    /**
-     * This is a convenience method that creates an instance of the {@link DownloadRequest} builder, avoiding the need to create
-     * one manually via {@link DownloadRequest#builder()}.
-     *
-     * @see #download(DownloadRequest)
-     */
-    default <ResultT> Download<ResultT> download(Function<DownloadRequest.UntypedBuilder,
-        DownloadRequest.TypedBuilder<ResultT>> request) {
-        return download(DownloadRequest.builder().applyMutation(request).build());
     }
 
     /**
@@ -328,6 +313,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * Users can monitor the progress of the transfer by attaching a {@link TransferListener}. The provided
      * {@link LoggingTransferListener} logs a basic progress bar; users can also implement their own listeners.
      *
+     * Upload a local file to an object in S3. For non-file-based uploads, you may use {@link #upload(UploadRequest)} instead.
      * <p>
      * <b>Usage Example:</b>
      * {@snippet :
@@ -705,8 +691,8 @@ public interface S3TransferManager extends SdkAutoCloseable {
          * {@link S3AsyncClient} if not provided.
          *
          * <p>
-         * It's highly recommended using {@link S3AsyncClient#crtBuilder()} to create an {@link S3AsyncClient} instance to benefit
-         * from multipart upload/download feature and maximum throughput.
+         * It's highly recommended to use {@link S3AsyncClient#crtBuilder()} to create an {@link S3AsyncClient} instance to
+         * benefit from multipart upload/download feature and maximum throughput.
          *
          * <p>
          * Note: the provided {@link S3AsyncClient} will not be closed when the transfer manager is closed; it must be closed by
@@ -721,11 +707,10 @@ public interface S3TransferManager extends SdkAutoCloseable {
         /**
          * Specifies the executor that {@link S3TransferManager} will use to execute background tasks before handing them off to
          * the underlying S3 async client, such as visiting file tree in a
-         * {@link S3TransferManager#uploadDirectory(UploadDirectoryRequest)}
-         * operation
+         * {@link S3TransferManager#uploadDirectory(UploadDirectoryRequest)} operation.
          *
          * <p>
-         * The SDK will create an executor if not provided
+         * The SDK will create an executor if not provided.
          *
          * <p>
          * <b>This executor must be shut down by the user when it is ready to be disposed. The SDK will not close the executor

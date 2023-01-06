@@ -16,14 +16,12 @@
 package software.amazon.awssdk.transfer.s3.model;
 
 import java.util.concurrent.CompletableFuture;
-import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
  * A copy transfer of an object that is already stored in S3.
  */
 @SdkPublicApi
-@SdkPreviewApi
 public interface Copy extends ObjectTransfer {
     @Override
     CompletableFuture<CompletedCopy> completionFuture();

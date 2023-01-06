@@ -222,23 +222,4 @@ public class ByteBufferStoringSubscriber implements Subscriber<ByteBuffer> {
          */
         SUCCESS
     }
-
-    private static final class DemandIgnoringSubscription implements Subscription {
-        private final Subscription delegate;
-
-        private DemandIgnoringSubscription(Subscription delegate) {
-            this.delegate = delegate;
-        }
-
-        @Override
-        public void request(long n) {
-            // Ignore demand requests from downstream, they want too much.
-            // We feed them the amount that we want.
-        }
-
-        @Override
-        public void cancel() {
-            delegate.cancel();
-        }
-    }
 }

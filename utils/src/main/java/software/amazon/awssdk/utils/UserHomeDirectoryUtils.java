@@ -30,8 +30,7 @@ public final class UserHomeDirectoryUtils {
     }
 
     public static String userHomeDirectory() {
-        // To match the logic of the CLI we have to consult environment variables directly.
-        // CHECKSTYLE:OFF
+        // CHECKSTYLE:OFF - To match the logic of the CLI we have to consult environment variables directly.
         Optional<String> home = SystemSetting.getStringValueFromEnvironmentVariable("HOME");
 
         if (home.isPresent()) {

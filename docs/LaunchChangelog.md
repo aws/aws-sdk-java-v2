@@ -819,9 +819,11 @@ The parsing of the `~/.aws/config` and `~/.aws/credentials` has changed to more 
 # 7. High-Level Libraries
 
 All high-level libraries will be re-designed to match the 2.0 programming model and re-introduced over time.
+The following libraries are available in 2.0:
 
 | 1.11.x | 2.0 | Since version |
 |---|---|---|
 | DynamoDBMapper | [DynamoDbEnhancedClient](https://github.com/aws/aws-sdk-java-v2/blob/464be97535cc82a4adb2e5b9fdadd9d4ac739ef8/services-custom/dynamodb-enhanced/README.md) | 2.12.0 |
 | Waiters | [Waiters](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/waiters.html) | 2.15.0 |
-| TransferManager | [S3TransferManager](https://github.com/aws/aws-sdk-java-v2/blob/master/services-custom/s3-transfer-manager/README.md) (Developer Preview) | 2.17.16-PREVIEW
+| CloudFrontUrlSigner, CloudFrontCookieSigner | [CloudFrontUtilities](https://aws.amazon.com/blogs/developer/amazon-cloudfront-signed-urls-and-cookies-are-now-supported-in-aws-sdk-for-java-2-x/) | 2.18.33 |
+| TransferManager | [S3TransferManager](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/transfer-manager.html) | 2.19.0 |

@@ -16,11 +16,7 @@
 package software.amazon.awssdk.transfer.s3.model;
 
 import java.util.concurrent.CompletableFuture;
-import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.transfer.s3.model.CompletedTransfer;
-import software.amazon.awssdk.transfer.s3.model.DirectoryTransfer;
-import software.amazon.awssdk.transfer.s3.model.ObjectTransfer;
 
 /**
  * Represents the upload or download of one or more objects to or from S3.
@@ -29,7 +25,6 @@ import software.amazon.awssdk.transfer.s3.model.ObjectTransfer;
  * @see DirectoryTransfer
  */
 @SdkPublicApi
-@SdkPreviewApi
 public interface Transfer {
     /**
      * @return The future that will be completed when this transfer is complete.

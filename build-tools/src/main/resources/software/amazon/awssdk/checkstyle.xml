@@ -384,7 +384,6 @@
             <property name="ignoreComments" value="true"/>
         </module>
 
-
         <!-- Checks that we don't use AttributeKey.newInstance directly -->
         <module name="Regexp">
             <property name="format" value="AttributeKey\.newInstance"/>
@@ -399,6 +398,10 @@
             <property name="illegalPattern" value="true"/>
             <property name="message" value="Use software.amazon.awssdk.core.internal.util.ClassLoaderHelper Class to load the class."/>
             <property name="ignoreComments" value="true"/>
+        </module>
+
+        <!-- Checks that we don't use the @Ignore annotation on tests -->
+        <module name="software.amazon.awssdk.buildtools.checkstyle.NoIgnoreAnnotationsCheck">
         </module>
 
         <!-- Checks that we don't use plural enum names -->

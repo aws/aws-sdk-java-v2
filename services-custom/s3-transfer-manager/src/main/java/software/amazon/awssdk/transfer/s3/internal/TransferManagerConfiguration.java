@@ -78,7 +78,6 @@ public class TransferManagerConfiguration implements SdkAutoCloseable {
         options.close();
     }
 
-    // TODO: revisit this before GA
     private Executor defaultExecutor() {
         int maxPoolSize = 100;
         ThreadPoolExecutor executor = new ThreadPoolExecutor(0, maxPoolSize,

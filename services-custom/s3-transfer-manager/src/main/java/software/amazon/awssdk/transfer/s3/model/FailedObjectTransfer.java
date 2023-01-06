@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.transfer.s3.model;
 
-import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 
@@ -24,7 +23,6 @@ import software.amazon.awssdk.transfer.s3.S3TransferManager;
  * {@link S3TransferManager#uploadDirectory}
  */
 @SdkPublicApi
-@SdkPreviewApi
 public interface FailedObjectTransfer {
 
     /**

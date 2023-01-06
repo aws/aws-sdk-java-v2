@@ -108,7 +108,6 @@ import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
  * </pre>
  */
 @SdkPublicApi
-@SdkPreviewApi
 public interface TransferListener {
 
     /**

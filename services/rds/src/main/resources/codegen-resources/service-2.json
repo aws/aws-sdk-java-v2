@@ -283,9 +283,10 @@
       "errors":[
         {"shape":"CustomDBEngineVersionAlreadyExistsFault"},
         {"shape":"CustomDBEngineVersionQuotaExceededFault"},
+        {"shape":"Ec2ImagePropertiesNotSupportedFault"},
         {"shape":"KMSKeyNotAccessibleFault"}
       ],
-      "documentation":"<p>Creates a custom DB engine version (CEV). A CEV is a binary volume snapshot of a database engine and specific AMI. The supported engines are the following:</p> <ul> <li> <p>Oracle Database 12.1 Enterprise Edition with the January 2021 or later RU/RUR</p> </li> <li> <p>Oracle Database 19c Enterprise Edition with the January 2021 or later RU/RUR</p> </li> </ul> <p>Amazon RDS, which is a fully managed service, supplies the Amazon Machine Image (AMI) and database software. The Amazon RDS database software is preinstalled, so you need only select a DB engine and version, and create your database. With Amazon RDS Custom for Oracle, you upload your database installation files in Amazon S3.</p> <p>When you create a custom engine version, you specify the files in a JSON document called a CEV manifest. This document describes installation .zip files stored in Amazon S3. RDS Custom creates your CEV from the installation files that you provided. This service model is called Bring Your Own Media (BYOM).</p> <p>Creation takes approximately two hours. If creation fails, RDS Custom issues <code>RDS-EVENT-0196</code> with the message <code>Creation failed for custom engine version</code>, and includes details about the failure. For example, the event prints missing files.</p> <p>After you create the CEV, it is available for use. You can create multiple CEVs, and create multiple RDS Custom instances from any CEV. You can also change the status of a CEV to make it available or inactive.</p> <note> <p>The MediaImport service that imports files from Amazon S3 to create CEVs isn't integrated with Amazon Web Services CloudTrail. If you turn on data logging for Amazon RDS in CloudTrail, calls to the <code>CreateCustomDbEngineVersion</code> event aren't logged. However, you might see calls from the API gateway that accesses your Amazon S3 bucket. These calls originate from the MediaImport service for the <code>CreateCustomDbEngineVersion</code> event.</p> </note> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/custom-cev.html#custom-cev.create\"> Creating a CEV</a> in the <i>Amazon RDS User Guide</i>.</p>"
+      "documentation":"<p>Creates a custom DB engine version (CEV).</p>"
     },
     "CreateDBCluster":{
       "name":"CreateDBCluster",
@@ -409,7 +410,8 @@
         {"shape":"KMSKeyNotAccessibleFault"},
         {"shape":"DomainNotFoundFault"},
         {"shape":"BackupPolicyNotFoundFault"},
-        {"shape":"NetworkTypeNotSupported"}
+        {"shape":"NetworkTypeNotSupported"},
+        {"shape":"CertificateNotFoundFault"}
       ],
       "documentation":"<p>Creates a new DB instance.</p> <p>The new DB instance can be an RDS DB instance, or it can be a DB instance in an Aurora DB cluster. For an Aurora DB cluster, you can call this operation multiple times to add more than one DB instance to the cluster.</p> <p>For more information about creating an RDS DB instance, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_CreateDBInstance.html\"> Creating an Amazon RDS DB instance</a> in the <i>Amazon RDS User Guide</i>.</p> <p>For more information about creating a DB instance in an Aurora DB cluster, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Aurora.CreateInstance.html\"> Creating an Amazon Aurora DB cluster</a> in the <i>Amazon Aurora User Guide</i>.</p>"
     },
@@ -958,7 +960,7 @@
       "errors":[
         {"shape":"CertificateNotFoundFault"}
       ],
-      "documentation":"<p>Lists the set of CA certificates provided by Amazon RDS for this Amazon Web Services account.</p>"
+      "documentation":"<p>Lists the set of CA certificates provided by Amazon RDS for this Amazon Web Services account.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.SSL.html\">Using SSL/TLS to encrypt a connection to a DB instance</a> in the <i>Amazon RDS User Guide</i> and <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/UsingWithRDS.SSL.html\"> Using SSL/TLS to encrypt a connection to a DB cluster</a> in the <i>Amazon Aurora User Guide</i>.</p>"
     },
     "DescribeDBClusterBacktracks":{
       "name":"DescribeDBClusterBacktracks",
@@ -3125,6 +3127,10 @@
       "min":3,
       "pattern":".*"
     },
+    "CACertificateIdentifiersList":{
+      "type":"list",
+      "member":{"shape":"String"}
+    },
     "CancelExportTaskMessage":{
       "type":"structure",
       "required":["ExportTaskIdentifier"],
@@ -3171,8 +3177,22 @@
           "documentation":"<p>If there is an override for the default certificate identifier, when the override expires.</p>"
         }
       },
-      "documentation":"<p>A CA certificate for an Amazon Web Services account.</p>",
+      "documentation":"<p>A CA certificate for an Amazon Web Services account.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.SSL.html\">Using SSL/TLS to encrypt a connection to a DB instance</a> in the <i>Amazon RDS User Guide</i> and <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/UsingWithRDS.SSL.html\"> Using SSL/TLS to encrypt a connection to a DB cluster</a> in the <i>Amazon Aurora User Guide</i>.</p>",
       "wrapper":true
+    },
+    "CertificateDetails":{
+      "type":"structure",
+      "members":{
+        "CAIdentifier":{
+          "shape":"String",
+          "documentation":"<p>The CA identifier of the CA certificate used for the DB instance's server certificate.</p>"
+        },
+        "ValidTill":{
+          "shape":"TStamp",
+          "documentation":"<p>The expiration date of the DB instance’s server certificate.</p>"
+        }
+      },
+      "documentation":"<p>Returns the details of the DB instance’s server certificate.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.SSL.html\">Using SSL/TLS to encrypt a connection to a DB instance</a> in the <i>Amazon RDS User Guide</i> and <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/UsingWithRDS.SSL.html\"> Using SSL/TLS to encrypt a connection to a DB cluster</a> in the <i>Amazon Aurora User Guide</i>.</p>"
     },
     "CertificateList":{
       "type":"list",
@@ -3549,10 +3569,7 @@
       "type":"structure",
       "required":[
         "Engine",
-        "EngineVersion",
-        "DatabaseInstallationFilesS3BucketName",
-        "KMSKeyId",
-        "Manifest"
+        "EngineVersion"
       ],
       "members":{
         "Engine":{
@@ -3570,6 +3587,10 @@
         "DatabaseInstallationFilesS3Prefix":{
           "shape":"String255",
           "documentation":"<p>The Amazon S3 directory that contains the database installation files for your CEV. For example, a valid bucket name is <code>123456789012/cev1</code>. If this setting isn't specified, no prefix is assumed.</p>"
+        },
+        "ImageId":{
+          "shape":"String255",
+          "documentation":"<p>The ID of the AMI. An AMI ID is required to create a CEV for RDS Custom for SQL Server.</p>"
         },
         "KMSKeyId":{
           "shape":"KmsKeyIdOrArn",
@@ -3677,7 +3698,7 @@
         },
         "MasterUserPassword":{
           "shape":"String",
-          "documentation":"<p>The password for the master database user. This password can contain any printable ASCII character except \"/\", \"\"\", or \"@\".</p> <p>Constraints: Must contain from 8 to 41 characters.</p> <p>Valid for: Aurora DB clusters and Multi-AZ DB clusters</p>"
+          "documentation":"<p>The password for the master database user. This password can contain any printable ASCII character except \"/\", \"\"\", or \"@\".</p> <p>Constraints:</p> <ul> <li> <p>Must contain from 8 to 41 characters.</p> </li> <li> <p>Can't be specified if <code>ManageMasterUserPassword</code> is turned on.</p> </li> </ul> <p>Valid for: Aurora DB clusters and Multi-AZ DB clusters</p>"
         },
         "OptionGroupName":{
           "shape":"String",
@@ -3811,6 +3832,14 @@
         "DBSystemId":{
           "shape":"String",
           "documentation":"<p>Reserved for future use.</p>"
+        },
+        "ManageMasterUserPassword":{
+          "shape":"BooleanOptional",
+          "documentation":"<p>A value that indicates whether to manage the master user password with Amazon Web Services Secrets Manager.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-secrets-manager.html\">Password management with Amazon Web Services Secrets Manager</a> in the <i>Amazon RDS User Guide</i> and <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/rds-secrets-manager.html\">Password management with Amazon Web Services Secrets Manager</a> in the <i>Amazon Aurora User Guide.</i> </p> <p>Constraints:</p> <ul> <li> <p>Can't manage the master user password with Amazon Web Services Secrets Manager if <code>MasterUserPassword</code> is specified.</p> </li> </ul> <p>Valid for: Aurora DB clusters and Multi-AZ DB clusters</p>"
+        },
+        "MasterUserSecretKmsKeyId":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Web Services KMS key identifier to encrypt a secret that is automatically generated and managed in Amazon Web Services Secrets Manager.</p> <p>This setting is valid only if the master user password is managed by RDS in Amazon Web Services Secrets Manager for the DB cluster.</p> <p>The Amazon Web Services KMS key identifier is the key ARN, key ID, alias ARN, or alias name for the KMS key. To use a KMS key in a different Amazon Web Services account, specify the key ARN or alias ARN.</p> <p>If you don't specify <code>MasterUserSecretKmsKeyId</code>, then the <code>aws/secretsmanager</code> KMS key is used to encrypt the secret. If the secret is in a different Amazon Web Services account, then you can't use the <code>aws/secretsmanager</code> KMS key to encrypt the secret, and you must use a customer managed KMS key.</p> <p>There is a default KMS key for your Amazon Web Services account. Your Amazon Web Services account has a different default KMS key for each Amazon Web Services Region.</p> <p>Valid for: Aurora DB clusters and Multi-AZ DB clusters</p>"
         }
       },
       "documentation":"<p/>"
@@ -3916,7 +3945,7 @@
         },
         "MasterUserPassword":{
           "shape":"String",
-          "documentation":"<p>The password for the master user. The password can include any printable ASCII character except \"/\", \"\"\", or \"@\".</p> <p> <b>Amazon Aurora</b> </p> <p>Not applicable. The password for the master user is managed by the DB cluster.</p> <p> <b>MariaDB</b> </p> <p>Constraints: Must contain from 8 to 41 characters.</p> <p> <b>Microsoft SQL Server</b> </p> <p>Constraints: Must contain from 8 to 128 characters.</p> <p> <b>MySQL</b> </p> <p>Constraints: Must contain from 8 to 41 characters.</p> <p> <b>Oracle</b> </p> <p>Constraints: Must contain from 8 to 30 characters.</p> <p> <b>PostgreSQL</b> </p> <p>Constraints: Must contain from 8 to 128 characters.</p>"
+          "documentation":"<p>The password for the master user. The password can include any printable ASCII character except \"/\", \"\"\", or \"@\".</p> <p> <b>Amazon Aurora</b> </p> <p>Not applicable. The password for the master user is managed by the DB cluster.</p> <p>Constraints: Can't be specified if <code>ManageMasterUserPassword</code> is turned on.</p> <p> <b>MariaDB</b> </p> <p>Constraints: Must contain from 8 to 41 characters.</p> <p> <b>Microsoft SQL Server</b> </p> <p>Constraints: Must contain from 8 to 128 characters.</p> <p> <b>MySQL</b> </p> <p>Constraints: Must contain from 8 to 41 characters.</p> <p> <b>Oracle</b> </p> <p>Constraints: Must contain from 8 to 30 characters.</p> <p> <b>PostgreSQL</b> </p> <p>Constraints: Must contain from 8 to 128 characters.</p>"
         },
         "DBSecurityGroups":{
           "shape":"DBSecurityGroupNameList",
@@ -4080,7 +4109,7 @@
         },
         "EnableCustomerOwnedIp":{
           "shape":"BooleanOptional",
-          "documentation":"<p>A value that indicates whether to enable a customer-owned IP address (CoIP) for an RDS on Outposts DB instance.</p> <p>A <i>CoIP</i> provides local or external connectivity to resources in your Outpost subnets through your on-premises network. For some use cases, a CoIP can provide lower latency for connections to the DB instance from outside of its virtual private cloud (VPC) on your local network.</p> <p>For more information about RDS on Outposts, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-on-outposts.html\">Working with Amazon RDS on Amazon Web Services Outposts</a> in the <i>Amazon RDS User Guide</i>.</p> <p>For more information about CoIPs, see <a href=\"https://docs.aws.amazon.com/outposts/latest/userguide/outposts-networking-components.html#ip-addressing\">Customer-owned IP addresses</a> in the <i>Amazon Web Services Outposts User Guide</i>.</p>"
+          "documentation":"<p>A value that indicates whether to enable a customer-owned IP address (CoIP) for an RDS on Outposts DB instance.</p> <p>A <i>CoIP</i> provides local or external connectivity to resources in your Outpost subnets through your on-premises network. For some use cases, a CoIP can provide lower latency for connections to the DB instance from outside of its virtual private cloud (VPC) on your local network.</p> <p>For more information about RDS on Outposts, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-on-outposts.html\">Working with Amazon RDS on Amazon Web Services Outposts</a> in the <i>Amazon RDS User Guide</i>.</p> <p>For more information about CoIPs, see <a href=\"https://docs.aws.amazon.com/outposts/latest/userguide/routing.html#ip-addressing\">Customer-owned IP addresses</a> in the <i>Amazon Web Services Outposts User Guide</i>.</p>"
         },
         "CustomIamInstanceProfile":{
           "shape":"String",
@@ -4097,6 +4126,18 @@
         "StorageThroughput":{
           "shape":"IntegerOptional",
           "documentation":"<p>Specifies the storage throughput value for the DB instance.</p> <p>This setting applies only to the <code>gp3</code> storage type.</p> <p>This setting doesn't apply to RDS Custom or Amazon Aurora.</p>"
+        },
+        "ManageMasterUserPassword":{
+          "shape":"BooleanOptional",
+          "documentation":"<p>A value that indicates whether to manage the master user password with Amazon Web Services Secrets Manager.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-secrets-manager.html\">Password management with Amazon Web Services Secrets Manager</a> in the <i>Amazon RDS User Guide.</i> </p> <p>Constraints:</p> <ul> <li> <p>Can't manage the master user password with Amazon Web Services Secrets Manager if <code>MasterUserPassword</code> is specified.</p> </li> </ul>"
+        },
+        "MasterUserSecretKmsKeyId":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Web Services KMS key identifier to encrypt a secret that is automatically generated and managed in Amazon Web Services Secrets Manager.</p> <p>This setting is valid only if the master user password is managed by RDS in Amazon Web Services Secrets Manager for the DB instance.</p> <p>The Amazon Web Services KMS key identifier is the key ARN, key ID, alias ARN, or alias name for the KMS key. To use a KMS key in a different Amazon Web Services account, specify the key ARN or alias ARN.</p> <p>If you don't specify <code>MasterUserSecretKmsKeyId</code>, then the <code>aws/secretsmanager</code> KMS key is used to encrypt the secret. If the secret is in a different Amazon Web Services account, then you can't use the <code>aws/secretsmanager</code> KMS key to encrypt the secret, and you must use a customer managed KMS key.</p> <p>There is a default KMS key for your Amazon Web Services account. Your Amazon Web Services account has a different default KMS key for each Amazon Web Services Region.</p>"
+        },
+        "CACertificateIdentifier":{
+          "shape":"String",
+          "documentation":"<p>Specifies the CA certificate identifier to use for the DB instance’s server certificate.</p> <p>This setting doesn't apply to RDS Custom.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.SSL.html\">Using SSL/TLS to encrypt a connection to a DB instance</a> in the <i>Amazon RDS User Guide</i> and <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/UsingWithRDS.SSL.html\"> Using SSL/TLS to encrypt a connection to a DB cluster</a> in the <i>Amazon Aurora User Guide</i>.</p>"
         }
       },
       "documentation":"<p/>"
@@ -4244,6 +4285,10 @@
         "StorageThroughput":{
           "shape":"IntegerOptional",
           "documentation":"<p>Specifies the storage throughput value for the read replica.</p> <p>This setting doesn't apply to RDS Custom or Amazon Aurora.</p>"
+        },
+        "EnableCustomerOwnedIp":{
+          "shape":"BooleanOptional",
+          "documentation":"<p>A value that indicates whether to enable a customer-owned IP address (CoIP) for an RDS on Outposts read replica.</p> <p>A <i>CoIP</i> provides local or external connectivity to resources in your Outpost subnets through your on-premises network. For some use cases, a CoIP can provide lower latency for connections to the read replica from outside of its virtual private cloud (VPC) on your local network.</p> <p>For more information about RDS on Outposts, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-on-outposts.html\">Working with Amazon RDS on Amazon Web Services Outposts</a> in the <i>Amazon RDS User Guide</i>.</p> <p>For more information about CoIPs, see <a href=\"https://docs.aws.amazon.com/outposts/latest/userguide/routing.html#ip-addressing\">Customer-owned IP addresses</a> in the <i>Amazon Web Services Outposts User Guide</i>.</p>"
         }
       }
     },
@@ -4609,6 +4654,20 @@
       },
       "exception":true
     },
+    "CustomDBEngineVersionAMI":{
+      "type":"structure",
+      "members":{
+        "ImageId":{
+          "shape":"String",
+          "documentation":"<p>A value that indicates the ID of the AMI.</p>"
+        },
+        "Status":{
+          "shape":"String",
+          "documentation":"<p>A value that indicates the status of a custom engine version (CEV).</p>"
+        }
+      },
+      "documentation":"<p>A value that indicates the AMI information.</p>"
+    },
     "CustomDBEngineVersionAlreadyExistsFault":{
       "type":"structure",
       "members":{
@@ -4661,7 +4720,7 @@
       "type":"string",
       "max":60,
       "min":1,
-      "pattern":"^(11\\.\\d{1}|12\\.\\d{1}|18|19)(\\.[a-zA-Z0-9_.-]{1,50})$"
+      "pattern":"^[a-z0-9_.-]{1,60}$"
     },
     "CustomEngineVersionStatus":{
       "type":"string",
@@ -4944,6 +5003,10 @@
         "DBSystemId":{
           "shape":"String",
           "documentation":"<p>Reserved for future use.</p>"
+        },
+        "MasterUserSecret":{
+          "shape":"MasterUserSecret",
+          "documentation":"<p>Contains the secret managed by RDS in Amazon Web Services Secrets Manager for the master user password.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-secrets-manager.html\">Password management with Amazon Web Services Secrets Manager</a> in the <i>Amazon RDS User Guide</i> and <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/rds-secrets-manager.html\">Password management with Amazon Web Services Secrets Manager</a> in the <i>Amazon Aurora User Guide.</i> </p>"
         }
       },
       "documentation":"<p>Contains the details of an Amazon Aurora DB cluster or Multi-AZ DB cluster.</p> <p>For an Amazon Aurora DB cluster, this data type is used as a response element in the operations <code>CreateDBCluster</code>, <code>DeleteDBCluster</code>, <code>DescribeDBClusters</code>, <code>FailoverDBCluster</code>, <code>ModifyDBCluster</code>, <code>PromoteReadReplicaDBCluster</code>, <code>RestoreDBClusterFromS3</code>, <code>RestoreDBClusterFromSnapshot</code>, <code>RestoreDBClusterToPointInTime</code>, <code>StartDBCluster</code>, and <code>StopDBCluster</code>.</p> <p>For a Multi-AZ DB cluster, this data type is used as a response element in the operations <code>CreateDBCluster</code>, <code>DeleteDBCluster</code>, <code>DescribeDBClusters</code>, <code>FailoverDBCluster</code>, <code>ModifyDBCluster</code>, <code>RebootDBCluster</code>, <code>RestoreDBClusterFromSnapshot</code>, and <code>RestoreDBClusterToPointInTime</code>.</p> <p>For more information on Amazon Aurora DB clusters, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/CHAP_AuroraOverview.html\"> What is Amazon Aurora?</a> in the <i>Amazon Aurora User Guide.</i> </p> <p>For more information on Multi-AZ DB clusters, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/multi-az-db-clusters-concepts.html\"> Multi-AZ deployments with two readable standby DB instances</a> in the <i>Amazon RDS User Guide.</i> </p>",
@@ -5598,6 +5661,14 @@
           "shape":"CharacterSet",
           "documentation":"<p>The default character set for new instances of this engine version, if the <code>CharacterSetName</code> parameter of the CreateDBInstance API isn't specified.</p>"
         },
+        "Image":{
+          "shape":"CustomDBEngineVersionAMI",
+          "documentation":"<p>The EC2 image</p>"
+        },
+        "DBEngineMediaType":{
+          "shape":"String",
+          "documentation":"<p>A value that indicates the source media provider of the AMI based on the usage operation. Applicable for RDS Custom for SQL Server.</p>"
+        },
         "SupportedCharacterSets":{
           "shape":"SupportedCharacterSetsList",
           "documentation":"<p>A list of the character sets supported by this engine for the <code>CharacterSetName</code> parameter of the <code>CreateDBInstance</code> operation.</p>"
@@ -5678,6 +5749,14 @@
         "CustomDBEngineVersionManifest":{
           "shape":"CustomDBEngineVersionManifest",
           "documentation":"<p>JSON string that lists the installation files and parameters that RDS Custom uses to create a custom engine version (CEV). RDS Custom applies the patches in the order in which they're listed in the manifest. You can set the Oracle home, Oracle base, and UNIX/Linux user and group using the installation parameters. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/custom-cev.preparing.html#custom-cev.preparing.manifest.fields\">JSON fields in the CEV manifest</a> in the <i>Amazon RDS User Guide</i>. </p>"
+        },
+        "SupportsCertificateRotationWithoutRestart":{
+          "shape":"BooleanOptional",
+          "documentation":"<p>A value that indicates whether the engine version supports rotating the server certificate without rebooting the DB instance.</p>"
+        },
+        "SupportedCACertificateIdentifiers":{
+          "shape":"CACertificateIdentifiersList",
+          "documentation":"<p>A list of the supported CA certificate identifiers.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.SSL.html\">Using SSL/TLS to encrypt a connection to a DB instance</a> in the <i>Amazon RDS User Guide</i> and <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/UsingWithRDS.SSL.html\"> Using SSL/TLS to encrypt a connection to a DB cluster</a> in the <i>Amazon Aurora User Guide</i>.</p>"
         }
       },
       "documentation":"<p>This data type is used as a response element in the action <code>DescribeDBEngineVersions</code>.</p>"
@@ -5876,7 +5955,7 @@
         },
         "CACertificateIdentifier":{
           "shape":"String",
-          "documentation":"<p>The identifier of the CA certificate for this DB instance.</p>"
+          "documentation":"<p>The identifier of the CA certificate for this DB instance.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.SSL.html\">Using SSL/TLS to encrypt a connection to a DB instance</a> in the <i>Amazon RDS User Guide</i> and <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/UsingWithRDS.SSL.html\"> Using SSL/TLS to encrypt a connection to a DB cluster</a> in the <i>Amazon Aurora User Guide</i>.</p>"
         },
         "DomainMemberships":{
           "shape":"DomainMembershipList",
@@ -5957,7 +6036,7 @@
         },
         "CustomerOwnedIpEnabled":{
           "shape":"BooleanOptional",
-          "documentation":"<p>Specifies whether a customer-owned IP address (CoIP) is enabled for an RDS on Outposts DB instance.</p> <p>A <i>CoIP </i>provides local or external connectivity to resources in your Outpost subnets through your on-premises network. For some use cases, a CoIP can provide lower latency for connections to the DB instance from outside of its virtual private cloud (VPC) on your local network.</p> <p>For more information about RDS on Outposts, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-on-outposts.html\">Working with Amazon RDS on Amazon Web Services Outposts</a> in the <i>Amazon RDS User Guide</i>.</p> <p>For more information about CoIPs, see <a href=\"https://docs.aws.amazon.com/outposts/latest/userguide/outposts-networking-components.html#ip-addressing\">Customer-owned IP addresses</a> in the <i>Amazon Web Services Outposts User Guide</i>.</p>"
+          "documentation":"<p>Specifies whether a customer-owned IP address (CoIP) is enabled for an RDS on Outposts DB instance.</p> <p>A <i>CoIP </i>provides local or external connectivity to resources in your Outpost subnets through your on-premises network. For some use cases, a CoIP can provide lower latency for connections to the DB instance from outside of its virtual private cloud (VPC) on your local network.</p> <p>For more information about RDS on Outposts, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-on-outposts.html\">Working with Amazon RDS on Amazon Web Services Outposts</a> in the <i>Amazon RDS User Guide</i>.</p> <p>For more information about CoIPs, see <a href=\"https://docs.aws.amazon.com/outposts/latest/userguide/routing.html#ip-addressing\">Customer-owned IP addresses</a> in the <i>Amazon Web Services Outposts User Guide</i>.</p>"
         },
         "AwsBackupRecoveryPointArn":{
           "shape":"String",
@@ -6014,6 +6093,14 @@
         "DBSystemId":{
           "shape":"String",
           "documentation":"<p>The Oracle system ID (Oracle SID) for a container database (CDB). The Oracle SID is also the name of the CDB. This setting is valid for RDS Custom only.</p>"
+        },
+        "MasterUserSecret":{
+          "shape":"MasterUserSecret",
+          "documentation":"<p>Contains the secret managed by RDS in Amazon Web Services Secrets Manager for the master user password.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-secrets-manager.html\">Password management with Amazon Web Services Secrets Manager</a> in the <i>Amazon RDS User Guide.</i> </p>"
+        },
+        "CertificateDetails":{
+          "shape":"CertificateDetails",
+          "documentation":"<p>The details of the DB instance's server certificate.</p>"
         }
       },
       "documentation":"<p>Contains the details of an Amazon RDS DB instance.</p> <p>This data type is used as a response element in the operations <code>CreateDBInstance</code>, <code>CreateDBInstanceReadReplica</code>, <code>DeleteDBInstance</code>, <code>DescribeDBInstances</code>, <code>ModifyDBInstance</code>, <code>PromoteReadReplica</code>, <code>RebootDBInstance</code>, <code>RestoreDBInstanceFromDBSnapshot</code>, <code>RestoreDBInstanceFromS3</code>, <code>RestoreDBInstanceToPointInTime</code>, <code>StartDBInstance</code>, and <code>StopDBInstance</code>.</p>",
@@ -8926,6 +9013,18 @@
         "locationName":"EC2SecurityGroup"
       }
     },
+    "Ec2ImagePropertiesNotSupportedFault":{
+      "type":"structure",
+      "members":{
+      },
+      "documentation":"<p>The AMI configuration prerequisite has not been met.</p>",
+      "error":{
+        "code":"Ec2ImagePropertiesNotSupportedFault",
+        "httpStatusCode":400,
+        "senderFault":true
+      },
+      "exception":true
+    },
     "Endpoint":{
       "type":"structure",
       "members":{
@@ -9986,6 +10085,24 @@
     },
     "Long":{"type":"long"},
     "LongOptional":{"type":"long"},
+    "MasterUserSecret":{
+      "type":"structure",
+      "members":{
+        "SecretArn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the secret.</p>"
+        },
+        "SecretStatus":{
+          "shape":"String",
+          "documentation":"<p>The status of the secret.</p> <p>The possible status values include the following:</p> <ul> <li> <p> <code>creating</code> - The secret is being created.</p> </li> <li> <p> <code>active</code> - The secret is available for normal use and rotation.</p> </li> <li> <p> <code>rotating</code> - The secret is being rotated.</p> </li> <li> <p> <code>impaired</code> - The secret can be used to access database credentials, but it can't be rotated. A secret might have this status if, for example, permissions are changed so that RDS can no longer access either the secret or the KMS key for the secret.</p> <p>When a secret has this status, you can correct the condition that caused the status. Alternatively, modify the DB instance to turn off automatic management of database credentials, and then modify the DB instance again to turn on automatic management of database credentials.</p> </li> </ul>"
+        },
+        "KmsKeyId":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Web Services KMS key identifier that is used to encrypt the secret.</p>"
+        }
+      },
+      "documentation":"<p>Contains the secret managed by RDS in Amazon Web Services Secrets Manager for the master user password.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-secrets-manager.html\">Password management with Amazon Web Services Secrets Manager</a> in the <i>Amazon RDS User Guide</i> and <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/rds-secrets-manager.html\">Password management with Amazon Web Services Secrets Manager</a> in the <i>Amazon Aurora User Guide.</i> </p>"
+    },
     "MaxRecords":{
       "type":"integer",
       "max":100,
@@ -10152,7 +10269,7 @@
         },
         "NewDBClusterIdentifier":{
           "shape":"String",
-          "documentation":"<p>The new DB cluster identifier for the DB cluster when renaming a DB cluster. This value is stored as a lowercase string.</p> <p>Constraints:</p> <ul> <li> <p>Must contain from 1 to 63 letters, numbers, or hyphens</p> </li> <li> <p>The first character must be a letter</p> </li> <li> <p>Can't end with a hyphen or contain two consecutive hyphens</p> </li> </ul> <p>Example: <code>my-cluster2</code> </p> <p>Valid for: Aurora DB clusters only</p>"
+          "documentation":"<p>The new DB cluster identifier for the DB cluster when renaming a DB cluster. This value is stored as a lowercase string.</p> <p>Constraints:</p> <ul> <li> <p>Must contain from 1 to 63 letters, numbers, or hyphens</p> </li> <li> <p>The first character must be a letter</p> </li> <li> <p>Can't end with a hyphen or contain two consecutive hyphens</p> </li> </ul> <p>Example: <code>my-cluster2</code> </p> <p>Valid for: Aurora DB clusters and Multi-AZ DB clusters</p>"
         },
         "ApplyImmediately":{
           "shape":"Boolean",
@@ -10176,7 +10293,7 @@
         },
         "MasterUserPassword":{
           "shape":"String",
-          "documentation":"<p>The new password for the master database user. This password can contain any printable ASCII character except \"/\", \"\"\", or \"@\".</p> <p>Constraints: Must contain from 8 to 41 characters.</p> <p>Valid for: Aurora DB clusters and Multi-AZ DB clusters</p>"
+          "documentation":"<p>The new password for the master database user. This password can contain any printable ASCII character except \"/\", \"\"\", or \"@\".</p> <p>Constraints:</p> <ul> <li> <p>Must contain from 8 to 41 characters.</p> </li> <li> <p>Can't be specified if <code>ManageMasterUserPassword</code> is turned on.</p> </li> </ul> <p>Valid for: Aurora DB clusters and Multi-AZ DB clusters</p>"
         },
         "OptionGroupName":{
           "shape":"String",
@@ -10286,6 +10403,18 @@
         "NetworkType":{
           "shape":"String",
           "documentation":"<p>The network type of the DB cluster.</p> <p>Valid values:</p> <ul> <li> <p> <code>IPV4</code> </p> </li> <li> <p> <code>DUAL</code> </p> </li> </ul> <p>The network type is determined by the <code>DBSubnetGroup</code> specified for the DB cluster. A <code>DBSubnetGroup</code> can support only the IPv4 protocol or the IPv4 and the IPv6 protocols (<code>DUAL</code>).</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/USER_VPC.WorkingWithRDSInstanceinaVPC.html\"> Working with a DB instance in a VPC</a> in the <i>Amazon Aurora User Guide.</i> </p> <p>Valid for: Aurora DB clusters only</p>"
+        },
+        "ManageMasterUserPassword":{
+          "shape":"BooleanOptional",
+          "documentation":"<p>A value that indicates whether to manage the master user password with Amazon Web Services Secrets Manager.</p> <p>If the DB cluster doesn't manage the master user password with Amazon Web Services Secrets Manager, you can turn on this management. In this case, you can't specify <code>MasterUserPassword</code>.</p> <p>If the DB cluster already manages the master user password with Amazon Web Services Secrets Manager, and you specify that the master user password is not managed with Amazon Web Services Secrets Manager, then you must specify <code>MasterUserPassword</code>. In this case, RDS deletes the secret and uses the new password for the master user specified by <code>MasterUserPassword</code>.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-secrets-manager.html\">Password management with Amazon Web Services Secrets Manager</a> in the <i>Amazon RDS User Guide</i> and <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/rds-secrets-manager.html\">Password management with Amazon Web Services Secrets Manager</a> in the <i>Amazon Aurora User Guide.</i> </p> <p>Valid for: Aurora DB clusters and Multi-AZ DB clusters</p>"
+        },
+        "RotateMasterUserPassword":{
+          "shape":"BooleanOptional",
+          "documentation":"<p>A value that indicates whether to rotate the secret managed by Amazon Web Services Secrets Manager for the master user password.</p> <p>This setting is valid only if the master user password is managed by RDS in Amazon Web Services Secrets Manager for the DB cluster. The secret value contains the updated password.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-secrets-manager.html\">Password management with Amazon Web Services Secrets Manager</a> in the <i>Amazon RDS User Guide</i> and <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/rds-secrets-manager.html\">Password management with Amazon Web Services Secrets Manager</a> in the <i>Amazon Aurora User Guide.</i> </p> <p>Constraints:</p> <ul> <li> <p>You must apply the change immediately when rotating the master user password.</p> </li> </ul> <p>Valid for: Aurora DB clusters and Multi-AZ DB clusters</p>"
+        },
+        "MasterUserSecretKmsKeyId":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Web Services KMS key identifier to encrypt a secret that is automatically generated and managed in Amazon Web Services Secrets Manager.</p> <p>This setting is valid only if both of the following conditions are met:</p> <ul> <li> <p>The DB cluster doesn't manage the master user password in Amazon Web Services Secrets Manager.</p> <p>If the DB cluster already manages the master user password in Amazon Web Services Secrets Manager, you can't change the KMS key that is used to encrypt the secret.</p> </li> <li> <p>You are turning on <code>ManageMasterUserPassword</code> to manage the master user password in Amazon Web Services Secrets Manager.</p> <p>If you are turning on <code>ManageMasterUserPassword</code> and don't specify <code>MasterUserSecretKmsKeyId</code>, then the <code>aws/secretsmanager</code> KMS key is used to encrypt the secret. If the secret is in a different Amazon Web Services account, then you can't use the <code>aws/secretsmanager</code> KMS key to encrypt the secret, and you must use a customer managed KMS key.</p> </li> </ul> <p>The Amazon Web Services KMS key identifier is the key ARN, key ID, alias ARN, or alias name for the KMS key. To use a KMS key in a different Amazon Web Services account, specify the key ARN or alias ARN.</p> <p>There is a default KMS key for your Amazon Web Services account. Your Amazon Web Services account has a different default KMS key for each Amazon Web Services Region.</p> <p>Valid for: Aurora DB clusters and Multi-AZ DB clusters</p>"
         }
       },
       "documentation":"<p/>"
@@ -10360,7 +10489,7 @@
         },
         "DBInstanceClass":{
           "shape":"String",
-          "documentation":"<p>The new compute and memory capacity of the DB instance, for example db.m4.large. Not all DB instance classes are available in all Amazon Web Services Regions, or for all database engines. For the full list of DB instance classes, and availability for your engine, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.DBInstanceClass.html\">DB instance classes</a> in the <i>Amazon RDS User Guide</i> or <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Concepts.DBInstanceClass.html\">Aurora DB instance classes</a> in the <i>Amazon Aurora User Guide</i>.</p> <p>If you modify the DB instance class, an outage occurs during the change. The change is applied during the next maintenance window, unless <code>ApplyImmediately</code> is enabled for this request.</p> <p>This setting doesn't apply to RDS Custom for Oracle.</p> <p>Default: Uses existing setting</p>"
+          "documentation":"<p>The new compute and memory capacity of the DB instance, for example db.m4.large. Not all DB instance classes are available in all Amazon Web Services Regions, or for all database engines. For the full list of DB instance classes, and availability for your engine, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.DBInstanceClass.html\">DB Instance Class</a> in the <i>Amazon RDS User Guide</i> or <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Concepts.DBInstanceClass.html\">Aurora DB instance classes</a> in the <i>Amazon Aurora User Guide</i>. For RDS Custom, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/custom-reqs-limits.html#custom-reqs-limits.instances\">DB instance class support for RDS Custom for Oracle</a> and <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/custom-reqs-limits-MS.html#custom-reqs-limits.instancesMS\"> DB instance class support for RDS Custom for SQL Server</a>.</p> <p>If you modify the DB instance class, an outage occurs during the change. The change is applied during the next maintenance window, unless you specify <code>ApplyImmediately</code> in your request. </p> <p>Default: Uses existing setting</p>"
         },
         "DBSubnetGroupName":{
           "shape":"String",
@@ -10380,7 +10509,7 @@
         },
         "MasterUserPassword":{
           "shape":"String",
-          "documentation":"<p>The new password for the master user. The password can include any printable ASCII character except \"/\", \"\"\", or \"@\".</p> <p>Changing this parameter doesn't result in an outage and the change is asynchronously applied as soon as possible. Between the time of the request and the completion of the request, the <code>MasterUserPassword</code> element exists in the <code>PendingModifiedValues</code> element of the operation response.</p> <p>This setting doesn't apply to RDS Custom.</p> <p> <b>Amazon Aurora</b> </p> <p>Not applicable. The password for the master user is managed by the DB cluster. For more information, see <code>ModifyDBCluster</code>.</p> <p>Default: Uses existing setting</p> <p> <b>MariaDB</b> </p> <p>Constraints: Must contain from 8 to 41 characters.</p> <p> <b>Microsoft SQL Server</b> </p> <p>Constraints: Must contain from 8 to 128 characters.</p> <p> <b>MySQL</b> </p> <p>Constraints: Must contain from 8 to 41 characters.</p> <p> <b>Oracle</b> </p> <p>Constraints: Must contain from 8 to 30 characters.</p> <p> <b>PostgreSQL</b> </p> <p>Constraints: Must contain from 8 to 128 characters.</p> <note> <p>Amazon RDS API operations never return the password, so this action provides a way to regain access to a primary instance user if the password is lost. This includes restoring privileges that might have been accidentally revoked.</p> </note>"
+          "documentation":"<p>The new password for the master user. The password can include any printable ASCII character except \"/\", \"\"\", or \"@\".</p> <p>Changing this parameter doesn't result in an outage and the change is asynchronously applied as soon as possible. Between the time of the request and the completion of the request, the <code>MasterUserPassword</code> element exists in the <code>PendingModifiedValues</code> element of the operation response.</p> <p>This setting doesn't apply to RDS Custom.</p> <p> <b>Amazon Aurora</b> </p> <p>Not applicable. The password for the master user is managed by the DB cluster. For more information, see <code>ModifyDBCluster</code>.</p> <p>Default: Uses existing setting</p> <p>Constraints: Can't be specified if <code>ManageMasterUserPassword</code> is turned on.</p> <p> <b>MariaDB</b> </p> <p>Constraints: Must contain from 8 to 41 characters.</p> <p> <b>Microsoft SQL Server</b> </p> <p>Constraints: Must contain from 8 to 128 characters.</p> <p> <b>MySQL</b> </p> <p>Constraints: Must contain from 8 to 41 characters.</p> <p> <b>Oracle</b> </p> <p>Constraints: Must contain from 8 to 30 characters.</p> <p> <b>PostgreSQL</b> </p> <p>Constraints: Must contain from 8 to 128 characters.</p> <note> <p>Amazon RDS API operations never return the password, so this action provides a way to regain access to a primary instance user if the password is lost. This includes restoring privileges that might have been accidentally revoked.</p> </note>"
         },
         "DBParameterGroupName":{
           "shape":"String",
@@ -10444,7 +10573,7 @@
         },
         "CACertificateIdentifier":{
           "shape":"String",
-          "documentation":"<p>Specifies the certificate to associate with the DB instance.</p> <p>This setting doesn't apply to RDS Custom.</p>"
+          "documentation":"<p>Specifies the CA certificate identifier to use for the DB instance’s server certificate.</p> <p>This setting doesn't apply to RDS Custom.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.SSL.html\">Using SSL/TLS to encrypt a connection to a DB instance</a> in the <i>Amazon RDS User Guide</i> and <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/UsingWithRDS.SSL.html\"> Using SSL/TLS to encrypt a connection to a DB cluster</a> in the <i>Amazon Aurora User Guide</i>.</p>"
         },
         "Domain":{
           "shape":"String",
@@ -10524,7 +10653,7 @@
         },
         "EnableCustomerOwnedIp":{
           "shape":"BooleanOptional",
-          "documentation":"<p>A value that indicates whether to enable a customer-owned IP address (CoIP) for an RDS on Outposts DB instance.</p> <p>A <i>CoIP</i> provides local or external connectivity to resources in your Outpost subnets through your on-premises network. For some use cases, a CoIP can provide lower latency for connections to the DB instance from outside of its virtual private cloud (VPC) on your local network.</p> <p>For more information about RDS on Outposts, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-on-outposts.html\">Working with Amazon RDS on Amazon Web Services Outposts</a> in the <i>Amazon RDS User Guide</i>.</p> <p>For more information about CoIPs, see <a href=\"https://docs.aws.amazon.com/outposts/latest/userguide/outposts-networking-components.html#ip-addressing\">Customer-owned IP addresses</a> in the <i>Amazon Web Services Outposts User Guide</i>.</p>"
+          "documentation":"<p>A value that indicates whether to enable a customer-owned IP address (CoIP) for an RDS on Outposts DB instance.</p> <p>A <i>CoIP</i> provides local or external connectivity to resources in your Outpost subnets through your on-premises network. For some use cases, a CoIP can provide lower latency for connections to the DB instance from outside of its virtual private cloud (VPC) on your local network.</p> <p>For more information about RDS on Outposts, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-on-outposts.html\">Working with Amazon RDS on Amazon Web Services Outposts</a> in the <i>Amazon RDS User Guide</i>.</p> <p>For more information about CoIPs, see <a href=\"https://docs.aws.amazon.com/outposts/latest/userguide/routing.html#ip-addressing\">Customer-owned IP addresses</a> in the <i>Amazon Web Services Outposts User Guide</i>.</p>"
         },
         "AwsBackupRecoveryPointArn":{
           "shape":"AwsBackupRecoveryPointArn",
@@ -10545,6 +10674,18 @@
         "StorageThroughput":{
           "shape":"IntegerOptional",
           "documentation":"<p>Specifies the storage throughput value for the DB instance.</p> <p>This setting applies only to the <code>gp3</code> storage type.</p> <p>This setting doesn't apply to RDS Custom or Amazon Aurora.</p>"
+        },
+        "ManageMasterUserPassword":{
+          "shape":"BooleanOptional",
+          "documentation":"<p>A value that indicates whether to manage the master user password with Amazon Web Services Secrets Manager.</p> <p>If the DB cluster doesn't manage the master user password with Amazon Web Services Secrets Manager, you can turn on this management. In this case, you can't specify <code>MasterUserPassword</code>.</p> <p>If the DB cluster already manages the master user password with Amazon Web Services Secrets Manager, and you specify that the master user password is not managed with Amazon Web Services Secrets Manager, then you must specify <code>MasterUserPassword</code>. In this case, RDS deletes the secret and uses the new password for the master user specified by <code>MasterUserPassword</code>.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-secrets-manager.html\">Password management with Amazon Web Services Secrets Manager</a> in the <i>Amazon RDS User Guide.</i> </p> <p>Constraints:</p> <ul> <li> <p>Can't manage the master user password with Amazon Web Services Secrets Manager if <code>MasterUserPassword</code> is specified.</p> </li> </ul>"
+        },
+        "RotateMasterUserPassword":{
+          "shape":"BooleanOptional",
+          "documentation":"<p>A value that indicates whether to rotate the secret managed by Amazon Web Services Secrets Manager for the master user password.</p> <p>This setting is valid only if the master user password is managed by RDS in Amazon Web Services Secrets Manager for the DB cluster. The secret value contains the updated password.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-secrets-manager.html\">Password management with Amazon Web Services Secrets Manager</a> in the <i>Amazon RDS User Guide.</i> </p> <p>Constraints:</p> <ul> <li> <p>You must apply the change immediately when rotating the master user password.</p> </li> </ul>"
+        },
+        "MasterUserSecretKmsKeyId":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Web Services KMS key identifier to encrypt a secret that is automatically generated and managed in Amazon Web Services Secrets Manager.</p> <p>This setting is valid only if both of the following conditions are met:</p> <ul> <li> <p>The DB instance doesn't manage the master user password in Amazon Web Services Secrets Manager.</p> <p>If the DB instance already manages the master user password in Amazon Web Services Secrets Manager, you can't change the KMS key used to encrypt the secret.</p> </li> <li> <p>You are turning on <code>ManageMasterUserPassword</code> to manage the master user password in Amazon Web Services Secrets Manager.</p> <p>If you are turning on <code>ManageMasterUserPassword</code> and don't specify <code>MasterUserSecretKmsKeyId</code>, then the <code>aws/secretsmanager</code> KMS key is used to encrypt the secret. If the secret is in a different Amazon Web Services account, then you can't use the <code>aws/secretsmanager</code> KMS key to encrypt the secret, and you must use a customer managed KMS key.</p> </li> </ul> <p>The Amazon Web Services KMS key identifier is the key ARN, key ID, alias ARN, or alias name for the KMS key. To use a KMS key in a different Amazon Web Services account, specify the key ARN or alias ARN.</p> <p>There is a default KMS key for your Amazon Web Services account. Your Amazon Web Services account has a different default KMS key for each Amazon Web Services Region.</p>"
         }
       },
       "documentation":"<p/>"
@@ -11675,7 +11816,7 @@
         },
         "CACertificateIdentifier":{
           "shape":"String",
-          "documentation":"<p>The identifier of the CA certificate for the DB instance.</p>"
+          "documentation":"<p>The identifier of the CA certificate for the DB instance.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.SSL.html\">Using SSL/TLS to encrypt a connection to a DB instance</a> in the <i>Amazon RDS User Guide</i> and <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/UsingWithRDS.SSL.html\"> Using SSL/TLS to encrypt a connection to a DB cluster</a> in the <i>Amazon Aurora User Guide</i>.</p>"
         },
         "DBSubnetGroupName":{
           "shape":"String",
@@ -12348,7 +12489,6 @@
         "DBClusterIdentifier",
         "Engine",
         "MasterUsername",
-        "MasterUserPassword",
         "SourceEngine",
         "SourceEngineVersion",
         "S3BucketName",
@@ -12405,7 +12545,7 @@
         },
         "MasterUserPassword":{
           "shape":"String",
-          "documentation":"<p>The password for the master database user. This password can contain any printable ASCII character except \"/\", \"\"\", or \"@\".</p> <p>Constraints: Must contain from 8 to 41 characters.</p>"
+          "documentation":"<p>The password for the master database user. This password can contain any printable ASCII character except \"/\", \"\"\", or \"@\".</p> <p>Constraints:</p> <ul> <li> <p>Must contain from 8 to 41 characters.</p> </li> <li> <p>Can't be specified if <code>ManageMasterUserPassword</code> is turned on.</p> </li> </ul>"
         },
         "OptionGroupName":{
           "shape":"String",
@@ -12480,6 +12620,14 @@
         "NetworkType":{
           "shape":"String",
           "documentation":"<p>The network type of the DB cluster.</p> <p>Valid values:</p> <ul> <li> <p> <code>IPV4</code> </p> </li> <li> <p> <code>DUAL</code> </p> </li> </ul> <p>The network type is determined by the <code>DBSubnetGroup</code> specified for the DB cluster. A <code>DBSubnetGroup</code> can support only the IPv4 protocol or the IPv4 and the IPv6 protocols (<code>DUAL</code>).</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/USER_VPC.WorkingWithRDSInstanceinaVPC.html\"> Working with a DB instance in a VPC</a> in the <i>Amazon Aurora User Guide.</i> </p>"
+        },
+        "ManageMasterUserPassword":{
+          "shape":"BooleanOptional",
+          "documentation":"<p>A value that indicates whether to manage the master user password with Amazon Web Services Secrets Manager.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-secrets-manager.html\">Password management with Amazon Web Services Secrets Manager</a> in the <i>Amazon RDS User Guide</i> and <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/rds-secrets-manager.html\">Password management with Amazon Web Services Secrets Manager</a> in the <i>Amazon Aurora User Guide.</i> </p> <p>Constraints:</p> <ul> <li> <p>Can't manage the master user password with Amazon Web Services Secrets Manager if <code>MasterUserPassword</code> is specified.</p> </li> </ul>"
+        },
+        "MasterUserSecretKmsKeyId":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Web Services KMS key identifier to encrypt a secret that is automatically generated and managed in Amazon Web Services Secrets Manager.</p> <p>This setting is valid only if the master user password is managed by RDS in Amazon Web Services Secrets Manager for the DB cluster.</p> <p>The Amazon Web Services KMS key identifier is the key ARN, key ID, alias ARN, or alias name for the KMS key. To use a KMS key in a different Amazon Web Services account, specify the key ARN or alias ARN.</p> <p>If you don't specify <code>MasterUserSecretKmsKeyId</code>, then the <code>aws/secretsmanager</code> KMS key is used to encrypt the secret. If the secret is in a different Amazon Web Services account, then you can't use the <code>aws/secretsmanager</code> KMS key to encrypt the secret, and you must use a customer managed KMS key.</p> <p>There is a default KMS key for your Amazon Web Services account. Your Amazon Web Services account has a different default KMS key for each Amazon Web Services Region.</p>"
         }
       }
     },
@@ -12848,7 +12996,7 @@
         },
         "EnableCustomerOwnedIp":{
           "shape":"BooleanOptional",
-          "documentation":"<p>A value that indicates whether to enable a customer-owned IP address (CoIP) for an RDS on Outposts DB instance.</p> <p>A <i>CoIP</i> provides local or external connectivity to resources in your Outpost subnets through your on-premises network. For some use cases, a CoIP can provide lower latency for connections to the DB instance from outside of its virtual private cloud (VPC) on your local network.</p> <p>This setting doesn't apply to RDS Custom.</p> <p>For more information about RDS on Outposts, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-on-outposts.html\">Working with Amazon RDS on Amazon Web Services Outposts</a> in the <i>Amazon RDS User Guide</i>.</p> <p>For more information about CoIPs, see <a href=\"https://docs.aws.amazon.com/outposts/latest/userguide/outposts-networking-components.html#ip-addressing\">Customer-owned IP addresses</a> in the <i>Amazon Web Services Outposts User Guide</i>.</p>"
+          "documentation":"<p>A value that indicates whether to enable a customer-owned IP address (CoIP) for an RDS on Outposts DB instance.</p> <p>A <i>CoIP</i> provides local or external connectivity to resources in your Outpost subnets through your on-premises network. For some use cases, a CoIP can provide lower latency for connections to the DB instance from outside of its virtual private cloud (VPC) on your local network.</p> <p>This setting doesn't apply to RDS Custom.</p> <p>For more information about RDS on Outposts, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-on-outposts.html\">Working with Amazon RDS on Amazon Web Services Outposts</a> in the <i>Amazon RDS User Guide</i>.</p> <p>For more information about CoIPs, see <a href=\"https://docs.aws.amazon.com/outposts/latest/userguide/routing.html#ip-addressing\">Customer-owned IP addresses</a> in the <i>Amazon Web Services Outposts User Guide</i>.</p>"
         },
         "CustomIamInstanceProfile":{
           "shape":"String",
@@ -12917,7 +13065,7 @@
         },
         "MasterUserPassword":{
           "shape":"String",
-          "documentation":"<p>The password for the master user. The password can include any printable ASCII character except \"/\", \"\"\", or \"@\".</p> <p>Constraints: Must contain from 8 to 41 characters.</p>"
+          "documentation":"<p>The password for the master user. The password can include any printable ASCII character except \"/\", \"\"\", or \"@\".</p> <p>Constraints: Can't be specified if <code>ManageMasterUserPassword</code> is turned on.</p> <p> <b>MariaDB</b> </p> <p>Constraints: Must contain from 8 to 41 characters.</p> <p> <b>Microsoft SQL Server</b> </p> <p>Constraints: Must contain from 8 to 128 characters.</p> <p> <b>MySQL</b> </p> <p>Constraints: Must contain from 8 to 41 characters.</p> <p> <b>Oracle</b> </p> <p>Constraints: Must contain from 8 to 30 characters.</p> <p> <b>PostgreSQL</b> </p> <p>Constraints: Must contain from 8 to 128 characters.</p>"
         },
         "DBSecurityGroups":{
           "shape":"DBSecurityGroupNameList",
@@ -13074,6 +13222,14 @@
         "StorageThroughput":{
           "shape":"IntegerOptional",
           "documentation":"<p>Specifies the storage throughput value for the DB instance.</p> <p>This setting doesn't apply to RDS Custom or Amazon Aurora.</p>"
+        },
+        "ManageMasterUserPassword":{
+          "shape":"BooleanOptional",
+          "documentation":"<p>A value that indicates whether to manage the master user password with Amazon Web Services Secrets Manager.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-secrets-manager.html\">Password management with Amazon Web Services Secrets Manager</a> in the <i>Amazon RDS User Guide.</i> </p> <p>Constraints:</p> <ul> <li> <p>Can't manage the master user password with Amazon Web Services Secrets Manager if <code>MasterUserPassword</code> is specified.</p> </li> </ul>"
+        },
+        "MasterUserSecretKmsKeyId":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Web Services KMS key identifier to encrypt a secret that is automatically generated and managed in Amazon Web Services Secrets Manager.</p> <p>This setting is valid only if the master user password is managed by RDS in Amazon Web Services Secrets Manager for the DB instance.</p> <p>The Amazon Web Services KMS key identifier is the key ARN, key ID, alias ARN, or alias name for the KMS key. To use a KMS key in a different Amazon Web Services account, specify the key ARN or alias ARN.</p> <p>If you don't specify <code>MasterUserSecretKmsKeyId</code>, then the <code>aws/secretsmanager</code> KMS key is used to encrypt the secret. If the secret is in a different Amazon Web Services account, then you can't use the <code>aws/secretsmanager</code> KMS key to encrypt the secret, and you must use a customer managed KMS key.</p> <p>There is a default KMS key for your Amazon Web Services account. Your Amazon Web Services account has a different default KMS key for each Amazon Web Services Region.</p>"
         }
       }
     },
@@ -13218,7 +13374,7 @@
         },
         "EnableCustomerOwnedIp":{
           "shape":"BooleanOptional",
-          "documentation":"<p>A value that indicates whether to enable a customer-owned IP address (CoIP) for an RDS on Outposts DB instance.</p> <p>A <i>CoIP</i> provides local or external connectivity to resources in your Outpost subnets through your on-premises network. For some use cases, a CoIP can provide lower latency for connections to the DB instance from outside of its virtual private cloud (VPC) on your local network.</p> <p>This setting doesn't apply to RDS Custom.</p> <p>For more information about RDS on Outposts, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-on-outposts.html\">Working with Amazon RDS on Amazon Web Services Outposts</a> in the <i>Amazon RDS User Guide</i>.</p> <p>For more information about CoIPs, see <a href=\"https://docs.aws.amazon.com/outposts/latest/userguide/outposts-networking-components.html#ip-addressing\">Customer-owned IP addresses</a> in the <i>Amazon Web Services Outposts User Guide</i>.</p>"
+          "documentation":"<p>A value that indicates whether to enable a customer-owned IP address (CoIP) for an RDS on Outposts DB instance.</p> <p>A <i>CoIP</i> provides local or external connectivity to resources in your Outpost subnets through your on-premises network. For some use cases, a CoIP can provide lower latency for connections to the DB instance from outside of its virtual private cloud (VPC) on your local network.</p> <p>This setting doesn't apply to RDS Custom.</p> <p>For more information about RDS on Outposts, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-on-outposts.html\">Working with Amazon RDS on Amazon Web Services Outposts</a> in the <i>Amazon RDS User Guide</i>.</p> <p>For more information about CoIPs, see <a href=\"https://docs.aws.amazon.com/outposts/latest/userguide/routing.html#ip-addressing\">Customer-owned IP addresses</a> in the <i>Amazon Web Services Outposts User Guide</i>.</p>"
         },
         "CustomIamInstanceProfile":{
           "shape":"String",
@@ -13687,7 +13843,7 @@
         },
         "KmsKeyId":{
           "shape":"String",
-          "documentation":"<p>The ID of the Amazon Web Services KMS key to use to encrypt the snapshot exported to Amazon S3. The Amazon Web Services KMS key identifier is the key ARN, key ID, alias ARN, or alias name for the KMS key. The caller of this operation must be authorized to execute the following operations. These can be set in the Amazon Web Services KMS key policy:</p> <ul> <li> <p>GrantOperation.Encrypt</p> </li> <li> <p>GrantOperation.Decrypt</p> </li> <li> <p>GrantOperation.GenerateDataKey</p> </li> <li> <p>GrantOperation.GenerateDataKeyWithoutPlaintext</p> </li> <li> <p>GrantOperation.ReEncryptFrom</p> </li> <li> <p>GrantOperation.ReEncryptTo</p> </li> <li> <p>GrantOperation.CreateGrant</p> </li> <li> <p>GrantOperation.DescribeKey</p> </li> <li> <p>GrantOperation.RetireGrant</p> </li> </ul>"
+          "documentation":"<p>The ID of the Amazon Web Services KMS key to use to encrypt the snapshot exported to Amazon S3. The Amazon Web Services KMS key identifier is the key ARN, key ID, alias ARN, or alias name for the KMS key. The caller of this operation must be authorized to run the following operations. These can be set in the Amazon Web Services KMS key policy:</p> <ul> <li> <p>kms:Encrypt</p> </li> <li> <p>kms:Decrypt</p> </li> <li> <p>kms:GenerateDataKey</p> </li> <li> <p>kms:GenerateDataKeyWithoutPlaintext</p> </li> <li> <p>kms:ReEncryptFrom</p> </li> <li> <p>kms:ReEncryptTo</p> </li> <li> <p>kms:CreateGrant</p> </li> <li> <p>kms:DescribeKey</p> </li> <li> <p>kms:RetireGrant</p> </li> </ul>"
         },
         "S3Prefix":{
           "shape":"String",

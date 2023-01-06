@@ -1,6 +1,0 @@
-{
-    "type": "removal",
-    "category": "Amazon S3 Transfer Manager",
-    "contributor": "",
-    "description": "Remove UploadDirectoryRequest's override configuration's `recursive` option. The same functionality can be achieved with `UploadDirectoryRequest.builder().maxDepth(1)` or S3TransferManager.builder().maxUploadDirectoryDepth(1)."
-}

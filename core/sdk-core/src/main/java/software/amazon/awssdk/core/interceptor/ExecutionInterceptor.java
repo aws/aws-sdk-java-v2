@@ -23,8 +23,8 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
-// Disable CS to avoid "Unused Import" error. If we use the FQCN in the Javadoc, we'll run into line length issues instead.
-// CHECKSTYLE:OFF
+
+// CHECKSTYLE:OFF - Avoid "Unused Import" error. If we use the FQCN in the Javadoc, we'll run into line length issues instead.
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 // CHECKSTYLE:ON
 import software.amazon.awssdk.core.retry.RetryPolicy;

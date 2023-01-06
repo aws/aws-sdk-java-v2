@@ -16,7 +16,6 @@
 package software.amazon.awssdk.transfer.s3.model;
 
 import java.util.List;
-import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.transfer.s3.progress.TransferListener;
 
@@ -29,7 +28,6 @@ import software.amazon.awssdk.transfer.s3.progress.TransferListener;
  * @see DownloadRequest
  */
 @SdkPublicApi
-@SdkPreviewApi
 public interface TransferObjectRequest extends TransferRequest {
 
     List<TransferListener> transferListeners();

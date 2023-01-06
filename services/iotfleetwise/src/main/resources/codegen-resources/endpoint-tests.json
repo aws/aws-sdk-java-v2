@@ -9,8 +9,8 @@
             },
             "params": {
                 "UseDualStack": true,
-                "UseFIPS": true,
-                "Region": "eu-central-1"
+                "Region": "eu-central-1",
+                "UseFIPS": true
             }
         },
         {
@@ -22,8 +22,8 @@
             },
             "params": {
                 "UseDualStack": false,
-                "UseFIPS": true,
-                "Region": "eu-central-1"
+                "Region": "eu-central-1",
+                "UseFIPS": true
             }
         },
         {
@@ -35,8 +35,8 @@
             },
             "params": {
                 "UseDualStack": true,
-                "UseFIPS": false,
-                "Region": "eu-central-1"
+                "Region": "eu-central-1",
+                "UseFIPS": false
             }
         },
         {
@@ -48,8 +48,8 @@
             },
             "params": {
                 "UseDualStack": false,
-                "UseFIPS": false,
-                "Region": "eu-central-1"
+                "Region": "eu-central-1",
+                "UseFIPS": false
             }
         },
         {
@@ -61,8 +61,8 @@
             },
             "params": {
                 "UseDualStack": true,
-                "UseFIPS": true,
-                "Region": "us-east-1"
+                "Region": "us-east-1",
+                "UseFIPS": true
             }
         },
         {
@@ -74,8 +74,8 @@
             },
             "params": {
                 "UseDualStack": false,
-                "UseFIPS": true,
-                "Region": "us-east-1"
+                "Region": "us-east-1",
+                "UseFIPS": true
             }
         },
         {
@@ -87,8 +87,8 @@
             },
             "params": {
                 "UseDualStack": true,
-                "UseFIPS": false,
-                "Region": "us-east-1"
+                "Region": "us-east-1",
+                "UseFIPS": false
             }
         },
         {
@@ -100,8 +100,8 @@
             },
             "params": {
                 "UseDualStack": false,
-                "UseFIPS": false,
-                "Region": "us-east-1"
+                "Region": "us-east-1",
+                "UseFIPS": false
             }
         },
         {
@@ -113,8 +113,8 @@
             },
             "params": {
                 "UseDualStack": false,
-                "UseFIPS": false,
                 "Region": "us-east-1",
+                "UseFIPS": false,
                 "Endpoint": "https://example.com"
             }
         },
@@ -125,8 +125,8 @@
             },
             "params": {
                 "UseDualStack": false,
-                "UseFIPS": true,
                 "Region": "us-east-1",
+                "UseFIPS": true,
                 "Endpoint": "https://example.com"
             }
         },
@@ -137,8 +137,8 @@
             },
             "params": {
                 "UseDualStack": true,
-                "UseFIPS": false,
                 "Region": "us-east-1",
+                "UseFIPS": false,
                 "Endpoint": "https://example.com"
             }
         }

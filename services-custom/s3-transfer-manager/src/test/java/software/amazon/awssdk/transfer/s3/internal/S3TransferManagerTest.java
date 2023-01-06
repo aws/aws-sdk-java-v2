@@ -32,6 +32,7 @@ import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.async.ResponsePublisher;
 import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
@@ -48,6 +49,7 @@ import software.amazon.awssdk.transfer.s3.model.CopyRequest;
 import software.amazon.awssdk.transfer.s3.model.DownloadDirectoryRequest;
 import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
+import software.amazon.awssdk.transfer.s3.model.DownloadRequest;
 import software.amazon.awssdk.transfer.s3.model.UploadDirectoryRequest;
 import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
 
@@ -206,13 +208,13 @@ class S3TransferManagerTest {
         CompletableFuture<GetObjectResponse> s3CrtFuture = new CompletableFuture<>();
         when(mockS3Crt.getObject(any(GetObjectRequest.class), any(AsyncResponseTransformer.class)))
             .thenReturn(s3CrtFuture);
+        DownloadRequest<ResponseBytes<GetObjectResponse>> downloadRequest =
+            DownloadRequest.builder()
+                           .getObjectRequest(g -> g.bucket("bucket").key("key"))
+                           .responseTransformer(AsyncResponseTransformer.toBytes()).build();
 
         CompletableFuture<CompletedDownload<ResponseBytes<GetObjectResponse>>> future =
-            tm.download(d -> d
-                  .getObjectRequest(g -> g.bucket("bucket")
-                                          .key("key"))
-                  .responseTransformer(AsyncResponseTransformer.toBytes()))
-              .completionFuture();
+            tm.download(downloadRequest).completionFuture();
         future.cancel(true);
         assertThat(s3CrtFuture).isCancelled();
     }
@@ -236,8 +238,14 @@ class S3TransferManagerTest {
                                    .completionFuture().join())
             .hasMessageContaining("support S3 Object Lambda resources").hasCauseInstanceOf(IllegalArgumentException.class);
 
-        assertThatThrownBy(() -> tm.download(b -> b.getObjectRequest(p -> p.bucket(objectLambdaArn).key("key"))
-                                                   .responseTransformer(AsyncResponseTransformer.toBytes()))
+
+        DownloadRequest<ResponseBytes<GetObjectResponse>> downloadRequest =
+            DownloadRequest.builder()
+                           .getObjectRequest(g -> g.bucket(objectLambdaArn).key("key"))
+                           .responseTransformer(AsyncResponseTransformer.toBytes())
+                           .build();
+
+        assertThatThrownBy(() -> tm.download(downloadRequest)
                                    .completionFuture().join())
             .hasMessageContaining("support S3 Object Lambda resources").hasCauseInstanceOf(IllegalArgumentException.class);
 
@@ -280,9 +288,12 @@ class S3TransferManagerTest {
                                    .completionFuture().join())
             .hasMessageContaining("multi-region access point ARN").hasCauseInstanceOf(IllegalArgumentException.class);
 
-        assertThatThrownBy(() -> tm.download(b -> b.getObjectRequest(p -> p.bucket(mrapArn).key("key"))
-                                                   .responseTransformer(AsyncResponseTransformer.toBytes()))
-                                   .completionFuture().join())
+        DownloadRequest<ResponseBytes<GetObjectResponse>> downloadRequest =
+            DownloadRequest.builder()
+                           .getObjectRequest(g -> g.bucket(mrapArn).key("key"))
+                           .responseTransformer(AsyncResponseTransformer.toBytes()).build();
+
+        assertThatThrownBy(() -> tm.download(downloadRequest).completionFuture().join())
             .hasMessageContaining("multi-region access point ARN").hasCauseInstanceOf(IllegalArgumentException.class);
 
         assertThatThrownBy(() -> tm.uploadDirectory(b -> b.bucket(mrapArn)

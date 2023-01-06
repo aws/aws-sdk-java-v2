@@ -22,8 +22,15 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.net.URL;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
+import java.util.jar.JarFile;
+import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
@@ -181,5 +188,17 @@ public class EndpointRulesSpecUtils {
 
     public TypeName resolverReturnType() {
         return ParameterizedTypeName.get(CompletableFuture.class, Endpoint.class);
+    }
+
+    public List<String> rulesEngineResourceFiles() {
+        URL currentJarUrl = EndpointRulesSpecUtils.class.getProtectionDomain().getCodeSource().getLocation();
+        try (JarFile jarFile = new JarFile(currentJarUrl.getFile())) {
+            return jarFile.stream()
+                          .map(ZipEntry::getName)
+                          .filter(e -> e.startsWith("software/amazon/awssdk/codegen/rules"))
+                          .collect(Collectors.toList());
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 }

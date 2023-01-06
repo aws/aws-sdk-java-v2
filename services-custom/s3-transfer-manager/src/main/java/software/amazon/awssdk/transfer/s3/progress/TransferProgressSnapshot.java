@@ -19,7 +19,6 @@ import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.OptionalLong;
 import software.amazon.awssdk.annotations.Immutable;
-import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.SdkResponse;
@@ -53,7 +52,6 @@ import software.amazon.awssdk.transfer.s3.model.Upload;
 @Immutable
 @ThreadSafe
 @SdkPublicApi
-@SdkPreviewApi
 public interface TransferProgressSnapshot {
 
     /**

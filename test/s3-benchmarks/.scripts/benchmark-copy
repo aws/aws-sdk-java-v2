@@ -1,0 +1,67 @@
+#!/bin/bash
+
+#
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+#
+#  http://aws.amazon.com/apache2.0
+#
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+#
+
+# Script for running multiple Transfer manager benchmarks at the same time
+
+usage() {
+  echo "usage:"
+  echo "    benchmark-copy [<size>]"
+  echo "example: "
+  echo "    benchmark-copy"
+  echo "    benchmark-copy 4GB"
+}
+
+sizes_str="1B 8MB-1 8MB+1 128MB 4GB 30GB 90GB"
+versions_str="v1 v2"
+sizes=( $sizes_str )
+versions=( $versions_str )
+
+echo "===== TM PERF TEST SUITE - COPY ====="
+
+run_benchmark() {
+  echo "Benchmark: $version - $size"
+  result_file=copy_"$version"_"$size".txt
+  cmd="java -jar ../target/s3-benchmarks.jar \
+            --readBufferInMB=3072 \
+            --bucket=do-not-delete-crt-s3-eu-west-1 \
+            --partSizeInMB=8 \
+            --maxThroughput=100.0 \
+            --iteration=8 \
+            --version=$version \
+            --operation=copy \
+            --key=$size"
+
+  echo "$cmd" | sed 's/ \{1,\}/ /g' > "result/$result_file"
+  $cmd | tee -a "result/$result_file"
+  echo "Benchmark done"
+}
+
+for (( i = 0; i < "${#versions[@]}"; i++ ))
+do
+  version="${versions[$i]}"
+  if [ ! -z "$1" ]
+  then
+    size="$1"
+    run_benchmark
+  else
+    for (( j = 0; j < "${#sizes[@]}"; j++ ))
+    do
+      size="${sizes[$j]}"
+      run_benchmark
+    done
+  fi
+done
