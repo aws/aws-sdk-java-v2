@@ -53,6 +53,12 @@ public final class NettyUtils {
      */
     public static final SucceededFuture<?> SUCCEEDED_FUTURE = new SucceededFuture<>(null, null);
 
+    public static final String CLOSED_CHANNEL_ERROR_MESSAGE = "The connection was closed during the request. The request will "
+                                                              + "usually succeed on a retry, but if it does not: consider "
+                                                              + "disabling any proxies you have configured, enabling debug "
+                                                              + "logging, or performing a TCP dump to identify the root cause. "
+                                                              + "If this is a streaming operation, validate that data is being "
+                                                              + "read or written in a timely manner.";
     private static final Logger log = Logger.loggerFor(NettyUtils.class);
 
     private NettyUtils() {
@@ -140,10 +146,7 @@ public final class NettyUtils {
                                                       channel.parent().attr(CHANNEL_DIAGNOSTICS).get() : null;
 
         StringBuilder error = new StringBuilder();
-        error.append("The connection was closed during the request. The request will usually succeed on a retry, but if it does"
-                     + " not: consider disabling any proxies you have configured, enabling debug logging, or performing a TCP"
-                     + " dump to identify the root cause. If this is a streaming operation, validate that data is being read or"
-                     + " written in a timely manner.");
+        error.append(CLOSED_CHANNEL_ERROR_MESSAGE);
 
         if (channelDiagnostics != null) {
             error.append(" Channel Information: ").append(channelDiagnostics);
