@@ -1,3 +1,16 @@
+# __2.19.12__ __2023-01-06__
+## __AWS Audit Manager__
+  - ### Features
+    - This release introduces a new data retention option in your Audit Manager settings. You can now use the DeregistrationPolicy parameter to specify if you want to delete your data when you deregister Audit Manager.
+
+## __AWS Certificate Manager Private Certificate Authority__
+  - ### Features
+    - Added revocation parameter validation: bucket names must match S3 bucket naming rules and CNAMEs conform to RFC2396 restrictions on the use of special characters in URIs.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
 # __2.19.11__ __2023-01-05__
 ## __AWS App Runner__
   - ### Features
