@@ -213,8 +213,8 @@ public final class ContainerCredentialsProvider
                 String envVarName = SdkSystemSetting.AWS_CONTAINER_CREDENTIALS_FULL_URI.environmentVariable();
                 throw SdkClientException.builder()
                                         .message(String.format("The full URI (%s) contained within environment variable " +
-                                                               "%s has an invalid host. Host should resolve to a loopback" +
-                                                               " address.",
+                                                               "%s has an invalid host. Host should resolve to a loopback " +
+                                                               "address or have the full URI be HTTPS.",
                                                                uri, envVarName))
                                         .build();
             }
