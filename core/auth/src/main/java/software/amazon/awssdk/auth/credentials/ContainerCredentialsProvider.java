@@ -16,7 +16,6 @@
 package software.amazon.awssdk.auth.credentials;
 
 import java.io.IOException;
-import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.UnknownHostException;
@@ -66,8 +65,8 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
 public final class ContainerCredentialsProvider
     implements HttpCredentialsProvider,
                ToCopyableBuilder<ContainerCredentialsProvider.Builder, ContainerCredentialsProvider> {
-    private static final Predicate<InetAddress> ALLOWED_HOSTS_IPv4_RULES = InetAddress::isLoopbackAddress;
-    private static final Predicate<InetAddress> ALLOWED_HOSTS_IPv6_RULES = InetAddress::isLoopbackAddress;
+    private static final Predicate<InetAddress> IS_LOOPBACK_ADDRESS = InetAddress::isLoopbackAddress;
+    private static final Predicate<InetAddress> ALLOWED_HOSTS_RULES = IS_LOOPBACK_ADDRESS;
     private static final String HTTPS = "https";
 
     private final String endpoint;
@@ -226,6 +225,15 @@ public final class ContainerCredentialsProvider
             return Objects.equals(HTTPS, endpoint.getScheme());
         }
 
+        /**
+         * Determines if the addresses for a given host are resolved to a loopback address.
+         * <p>
+         *     This is a best-effort in determining what address a host will be resolved to. DNS caching might be disabled,
+         *     or could expire between this check and when the API is invoked.
+         * </p>
+         * @param host The name or IP address of the host.
+         * @return A boolean specifying whether the host is allowed as an endpoint for credentials loading.
+         */
         private boolean isAllowedHost(String host) {
             try {
                 InetAddress[] addresses = InetAddress.getAllByName(host);
@@ -242,11 +250,7 @@ public final class ContainerCredentialsProvider
         }
 
         private boolean matchesAllowedHostRules(InetAddress inetAddress) {
-            if (inetAddress instanceof Inet6Address) {
-                return ALLOWED_HOSTS_IPv6_RULES.test(inetAddress);
-            }
-
-            return ALLOWED_HOSTS_IPv4_RULES.test(inetAddress);
+            return ALLOWED_HOSTS_RULES.test(inetAddress);
         }
     }
 

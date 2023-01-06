@@ -1,6 +1,0 @@
-{
-    "category": "Amazon Elastic Container Service (ECS)", 
-    "contributor": "", 
-    "type": "bugfix", 
-    "description": "HTTP(S) credential provider requires the implementation to verify that the resolved addresses for the host are actually loopback addresses."
-}
