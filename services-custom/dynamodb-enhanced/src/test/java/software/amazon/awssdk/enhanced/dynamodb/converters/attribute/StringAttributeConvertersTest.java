@@ -39,9 +39,12 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+
+import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues;
+import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.ArnAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.CharSequenceAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.CharacterArrayAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.CharacterAttributeConverter;
@@ -59,6 +62,28 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.Zon
 import software.amazon.awssdk.utils.ImmutableMap;
 
 public class StringAttributeConvertersTest {
+
+    @Test
+    public void arnAttributeConverterBehaves() {
+        ArnAttributeConverter converter = ArnAttributeConverter.create();
+        Arn arn = Arn.fromString("arn:partition:service:region:account:resourcetype/resource");
+        Arn arnSlashQualifier = Arn.fromString("arn:partition:service:region:account:resourcetype/resource/qualifier");
+        Arn arnColonQualifier = Arn.fromString("arn:partition:service:region:account:resourcetype/resource:qualifier");
+        Arn arnNoRegion = Arn.fromString("arn:partition:service::account:resourcetype/resource");
+
+        assertThat(transformFrom(converter, arn).s()).isEqualTo(arn.toString());
+        assertThat(transformTo(converter, fromString(arn.toString()))).isEqualTo(arn);
+        
+        assertThat(transformFrom(converter, arnSlashQualifier).s()).isEqualTo(arnSlashQualifier.toString());
+        assertThat(transformTo(converter, fromString(arnSlashQualifier.toString()))).isEqualTo(arnSlashQualifier);
+        
+        assertThat(transformFrom(converter, arnColonQualifier).s()).isEqualTo(arnColonQualifier.toString());
+        assertThat(transformTo(converter, fromString(arnColonQualifier.toString()))).isEqualTo(arnColonQualifier);
+
+        assertThat(transformFrom(converter, arnNoRegion).s()).isEqualTo(arnNoRegion.toString());
+        assertThat(transformTo(converter, fromString(arnNoRegion.toString()))).isEqualTo(arnNoRegion);
+    }
+
     @Test
     public void charArrayAttributeConverterBehaves() {
         CharacterArrayAttributeConverter converter = CharacterArrayAttributeConverter.create();
