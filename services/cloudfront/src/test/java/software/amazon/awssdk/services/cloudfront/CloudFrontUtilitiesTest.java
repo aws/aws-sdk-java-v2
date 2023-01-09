@@ -90,6 +90,25 @@ class CloudFrontUtilitiesTest {
     }
 
     @Test
+    void getSignedURLWithCannedPolicy_withQueryParams_producesValidUrl() {
+        Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
+        String resourceUrlWithQueryParams = "https://d1npcfkc2mojrf.cloudfront.net/s3ObjectKey?a=b&c=d";
+        SignedUrl signedUrl =
+            cloudFrontUtilities.getSignedUrlWithCannedPolicy(r -> r
+                .resourceUrl(resourceUrlWithQueryParams)
+                .privateKey(keyPair.getPrivate())
+                .keyPairId("keyPairId")
+                .expirationDate(expirationDate));
+        String url = signedUrl.url();
+
+        String signature = url.substring(url.indexOf("&Signature"), url.indexOf("&Key-Pair-Id"));
+        String expected = "https://d1npcfkc2mojrf.cloudfront.net/s3ObjectKey?a=b&c=d&Expires=1704067200"
+                          + signature
+                          + "&Key-Pair-Id=keyPairId";
+        assertThat(expected).isEqualTo(url);
+    }
+
+    @Test
     void getSignedURLWithCustomPolicy_producesValidUrl() throws Exception {
         Instant activeDate = LocalDate.of(2022, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
@@ -110,6 +129,30 @@ class CloudFrontUtilitiesTest {
         String policy = url.substring(url.indexOf("Policy=") + 7, url.indexOf("&Signature"));
         String signature = url.substring(url.indexOf("&Signature"), url.indexOf("&Key-Pair-Id"));
         String expected = "https://d1npcfkc2mojrf.cloudfront.net/s3ObjectKey?Policy="
+                          + policy
+                          + signature
+                          + "&Key-Pair-Id=keyPairId";
+        assertThat(expected).isEqualTo(url);
+    }
+
+    @Test
+    void getSignedURLWithCustomPolicy_withQueryParams_producesValidUrl() {
+        Instant activeDate = LocalDate.of(2022, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
+        Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
+        String ipRange = "1.2.3.4";
+        String resourceUrlWithQueryParams = "https://d1npcfkc2mojrf.cloudfront.net/s3ObjectKey?a=b&c=d";
+        SignedUrl signedUrl =
+            cloudFrontUtilities.getSignedUrlWithCustomPolicy(r -> r
+                .resourceUrl(resourceUrlWithQueryParams)
+                .privateKey(keyPair.getPrivate())
+                .keyPairId("keyPairId")
+                .expirationDate(expirationDate)
+                .activeDate(activeDate)
+                .ipRange(ipRange));
+        String url = signedUrl.url();
+        String policy = url.substring(url.indexOf("Policy=") + 7, url.indexOf("&Signature"));
+        String signature = url.substring(url.indexOf("&Signature"), url.indexOf("&Key-Pair-Id"));
+        String expected = "https://d1npcfkc2mojrf.cloudfront.net/s3ObjectKey?a=b&c=d&Policy="
                           + policy
                           + signature
                           + "&Key-Pair-Id=keyPairId";
