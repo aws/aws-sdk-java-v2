@@ -1,0 +1,42 @@
+{
+    "version": "2.19.13",
+    "date": "2023-01-09",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Network Firewall",
+            "contributor": "",
+            "description": "Network Firewall now supports the Suricata rule action reject, in addition to the actions pass, drop, and alert."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Resource Access Manager",
+            "contributor": "",
+            "description": "Enabled FIPS aws-us-gov endpoints in SDK."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Container Registry Public",
+            "contributor": "",
+            "description": "This release for Amazon ECR Public makes several change to bring the SDK into sync with the API."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Kendra Intelligent Ranking",
+            "contributor": "",
+            "description": "Introducing Amazon Kendra Intelligent Ranking, a new set of Kendra APIs that leverages Kendra semantic ranking capabilities to improve the quality of search results from other search services (i.e. OpenSearch, ElasticSearch, Solr)."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkSpaces Web",
+            "contributor": "",
+            "description": "This release adds support for a new portal authentication type: AWS IAM Identity Center (successor to AWS Single Sign-On)."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}
