@@ -31,6 +31,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static software.amazon.awssdk.imds.EndpointMode.IPV4;
 import static software.amazon.awssdk.imds.EndpointMode.IPV6;
+import static software.amazon.awssdk.imds.TestConstants.AMI_ID_RESOURCE;
+import static software.amazon.awssdk.imds.TestConstants.EC2_METADATA_TOKEN_TTL_HEADER;
+import static software.amazon.awssdk.imds.TestConstants.TOKEN_HEADER;
+import static software.amazon.awssdk.imds.TestConstants.TOKEN_RESOURCE_PATH;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import java.net.URI;
@@ -51,11 +55,6 @@ import software.amazon.awssdk.imds.MetadataResponse;
 @WireMockTest
 abstract class BaseEc2MetadataClientTest<T, B extends Ec2MetadataClientBuilder<B, T>> {
 
-    protected static final String TOKEN_RESOURCE_PATH = "/latest/api/token";
-    protected static final String TOKEN_HEADER = "x-aws-ec2-metadata-token";
-    protected static final String EC2_METADATA_TOKEN_TTL_HEADER = "x-aws-ec2-metadata-token-ttl-seconds";
-    protected static final String EC2_METADATA_ROOT = "/latest/meta-data";
-    protected static final String AMI_ID_RESOURCE = EC2_METADATA_ROOT + "/ami-id";
     protected static final int DEFAULT_TOTAL_ATTEMPTS = 4;
 
     protected abstract BaseEc2MetadataClient overrideClient(Consumer<B> builderConsumer);

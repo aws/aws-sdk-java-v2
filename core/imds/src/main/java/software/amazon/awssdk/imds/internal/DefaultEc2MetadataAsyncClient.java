@@ -15,6 +15,9 @@
 
 package software.amazon.awssdk.imds.internal;
 
+import static software.amazon.awssdk.imds.internal.AsyncHttpRequestHelper.sendAsyncMetadataRequest;
+import static software.amazon.awssdk.imds.internal.AsyncHttpRequestHelper.sendAsyncTokenRequest;
+
 import java.net.URI;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
@@ -54,7 +57,7 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
     private final ScheduledExecutorService asyncRetryScheduler;
     private final boolean httpClientIsInternal;
     private final boolean retryExecutorIsInternal;
-    private final Supplier<CompletableFuture<Token>> tokenCache;
+    private final AsyncTokenCache tokenCache;
 
     private DefaultEc2MetadataAsyncClient(Ec2MetadataAsyncBuilder builder) {
         super(builder);
@@ -72,7 +75,7 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
         this.retryExecutorIsInternal = builder.scheduledExecutorService == null;
         Supplier<CompletableFuture<Token>> tokenSupplier = () -> {
             SdkHttpFullRequest baseTokenRequest = requestMarshaller.createTokenRequest(tokenTtl);
-            return AsyncHttpRequestHelper.sendAsyncTokenRequest(tokenTtl, httpClient, baseTokenRequest);
+            return sendAsyncTokenRequest(tokenTtl, httpClient, baseTokenRequest);
         };
 
         this.tokenCache = new AsyncTokenCache(tokenSupplier);
@@ -91,15 +94,13 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
 
     private void get(String path, RetryPolicyContext retryPolicyContext, CompletableFuture<MetadataResponse> returnFuture) {
         CompletableFuture<Token> tokenFuture = tokenCache.get();
-        CompletableFutureUtils.forwardExceptionTo(returnFuture, tokenFuture);
 
         CompletableFuture<MetadataResponse> result = tokenFuture.thenCompose(token -> {
             SdkHttpFullRequest baseMetadataRequest = requestMarshaller.createDataRequest(path, token.value(), tokenTtl);
-            return AsyncHttpRequestHelper.sendAsyncMetadataRequest(httpClient, baseMetadataRequest, returnFuture);
+            return sendAsyncMetadataRequest(httpClient, baseMetadataRequest, returnFuture);
         }).thenApply(MetadataResponse::create);
 
         CompletableFutureUtils.forwardExceptionTo(returnFuture, result);
-        CompletableFutureUtils.forwardExceptionTo(tokenFuture, result);
 
         result.whenComplete((response, error) -> {
             if (response != null) {
