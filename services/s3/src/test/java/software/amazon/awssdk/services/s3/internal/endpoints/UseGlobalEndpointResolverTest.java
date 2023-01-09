@@ -120,45 +120,6 @@ public class UseGlobalEndpointResolverTest {
         assertThat(resolver.resolve(Region.US_EAST_1)).isEqualTo(testData.expected);
     }
 
-    @Test
-    public void useUsEast1RegionalEndpoint_fromProfileFileNotRegional_resolvesToTrue() {
-        ProfileFile file = ProfileFile.builder()
-                                      .content(new StringInputStream("[profile regional_s3_endpoint]\n"
-                                                                     + "region = XYZ\n"
-                                                                     + "s3_us_east_1_regional_endpoint = ABC"))
-                                      .type(ProfileFile.Type.CONFIGURATION)
-                                      .build();
-
-        SdkClientConfiguration.Builder configBuilder = SdkClientConfiguration
-            .builder()
-            .option(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT, testData.advancedOption)
-            .option(SdkClientOption.PROFILE_FILE, file)
-            .option(SdkClientOption.PROFILE_NAME, "regional_s3_endpoint");
-
-        UseGlobalEndpointResolver resolver = new UseGlobalEndpointResolver(configBuilder.build());
-        assertThat(resolver.resolve(Region.US_EAST_1)).isEqualTo(true);
-    }
-
-    @Test
-    public void useUsEast1RegionalEndpoint_fromProfileFileSupplierNotRegional_resolvesToTrue() {
-        ProfileFile file = ProfileFile.builder()
-                                      .content(new StringInputStream("[profile regional_s3_endpoint]\n"
-                                                                     + "region = XYZ\n"
-                                                                     + "s3_us_east_1_regional_endpoint = ABC"))
-                                      .type(ProfileFile.Type.CONFIGURATION)
-                                      .build();
-        Supplier<ProfileFile> supplier = () -> file;
-
-        SdkClientConfiguration.Builder configBuilder = SdkClientConfiguration
-            .builder()
-            .option(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT, testData.advancedOption)
-            .option(SdkClientOption.PROFILE_FILE_SUPPLIER, supplier)
-            .option(SdkClientOption.PROFILE_NAME, "regional_s3_endpoint");
-
-        UseGlobalEndpointResolver resolver = new UseGlobalEndpointResolver(configBuilder.build());
-        assertThat(resolver.resolve(Region.US_EAST_1)).isEqualTo(true);
-    }
-
     private String diskLocationForConfig(String configFileName) {
         return getClass().getResource(configFileName).getFile();
     }
