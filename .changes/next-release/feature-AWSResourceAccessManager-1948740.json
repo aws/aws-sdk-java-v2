@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Resource Access Manager",
-    "contributor": "",
-    "description": "Enabled FIPS aws-us-gov endpoints in SDK."
-}
