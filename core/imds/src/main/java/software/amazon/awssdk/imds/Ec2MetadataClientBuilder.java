@@ -17,6 +17,7 @@ package software.amazon.awssdk.imds;
 
 import java.net.URI;
 import java.time.Duration;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
@@ -33,15 +34,30 @@ public interface Ec2MetadataClientBuilder<B, T> extends SdkBuilder<Ec2MetadataCl
     /**
      * Define the retry policy which includes the number of retry attempts for any failed request.
      * <p>
-     * If not specified, defaults to 3 retry attempts and a {@link BackoffStrategy#defaultStrategy()}  backoff strategy} that
-     * uses {@link RetryMode#STANDARD}
+     * If not specified, defaults to 3 retry attempts and a {@link BackoffStrategy#defaultStrategy()} backoff strategy} that
+     * uses {@link RetryMode#STANDARD}. Can be also specified by using the
+     * {@link Ec2MetadataClientBuilder#retryPolicy(Consumer)} method. If both methods are called multiple time, the last call
+     * will overwrite previous calls.
      *
      * @param retryPolicy The retry policy which includes the number of retry attempts for any failed request.
      * @return a reference to this builder
      */
     B retryPolicy(Ec2MetadataRetryPolicy retryPolicy);
 
-    Ec2MetadataRetryPolicy getRetryPolicy();
+    /**
+     * Define the retry policy which includes the number of retry attempts for any failed request. Can be used instead of
+     * {@link Ec2MetadataClientBuilder#retryPolicy(Ec2MetadataRetryPolicy)} to use a "fluent consumer" syntax. User
+     * <em>should not</em> manually build the builder in the consumer.
+     * <p>
+     * If not specified, defaults to 3 retry attempts and a {@link BackoffStrategy#defaultStrategy()} backoff strategy} that
+     * uses {@link RetryMode#STANDARD}. Can be also specified by using the
+     * {@link Ec2MetadataClientBuilder#retryPolicy(Ec2MetadataRetryPolicy)} method. If both methods are called multiple time, the
+     * last call will overwrite previous calls.
+     *
+     * @param builderConsumer the consumer
+     * @return a reference to this builder
+     */
+    B retryPolicy(Consumer<Ec2MetadataRetryPolicy.Builder> builderConsumer);
 
     /**
      * Define the endpoint of IMDS.
@@ -54,8 +70,6 @@ public interface Ec2MetadataClientBuilder<B, T> extends SdkBuilder<Ec2MetadataCl
      */
     B endpoint(URI endpoint);
 
-    URI getEndpoint();
-
     /**
      * Define the Time to live (TTL) of the token. The token represents a logical session. The TTL specifies the length of time
      * that the token is valid and, therefore, the duration of the session. Defaults to 21,600 seconds (6 hours) if not specified.
@@ -64,8 +78,6 @@ public interface Ec2MetadataClientBuilder<B, T> extends SdkBuilder<Ec2MetadataCl
      * @return a reference to this builder
      */
     B tokenTtl(Duration tokenTtl);
-
-    Duration getTokenTtl();
 
     /**
      * Define the endpoint mode of IMDS. Supported values include IPv4 and IPv6. Used to determine the endpoint of the IMDS
@@ -79,8 +91,5 @@ public interface Ec2MetadataClientBuilder<B, T> extends SdkBuilder<Ec2MetadataCl
      * @return a reference to this builder
      */
     B endpointMode(EndpointMode endpointMode);
-
-    EndpointMode getEndpointMode();
-
 
 }

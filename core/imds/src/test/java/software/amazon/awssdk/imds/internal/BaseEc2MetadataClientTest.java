@@ -48,9 +48,9 @@ import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.retry.backoff.FixedDelayBackoffStrategy;
 import software.amazon.awssdk.imds.Ec2MetadataClientBuilder;
+import software.amazon.awssdk.imds.Ec2MetadataResponse;
 import software.amazon.awssdk.imds.Ec2MetadataRetryPolicy;
 import software.amazon.awssdk.imds.EndpointMode;
-import software.amazon.awssdk.imds.MetadataResponse;
 
 @WireMockTest
 abstract class BaseEc2MetadataClientTest<T, B extends Ec2MetadataClientBuilder<B, T>> {
@@ -59,7 +59,7 @@ abstract class BaseEc2MetadataClientTest<T, B extends Ec2MetadataClientBuilder<B
 
     protected abstract BaseEc2MetadataClient overrideClient(Consumer<B> builderConsumer);
 
-    protected abstract void successAssertions(String path, Consumer<MetadataResponse> assertions);
+    protected abstract void successAssertions(String path, Consumer<Ec2MetadataResponse> assertions);
 
     protected abstract <T extends Throwable> void failureAssertions(String path, Class<T> exceptionType,
                                                                     Consumer<T> assertions);

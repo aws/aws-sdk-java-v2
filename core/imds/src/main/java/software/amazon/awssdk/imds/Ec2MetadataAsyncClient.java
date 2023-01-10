@@ -20,6 +20,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.internal.http.loader.DefaultSdkAsyncHttpClientBuilder;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.imds.internal.DefaultEc2MetadataAsyncClient;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
@@ -31,22 +32,27 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
 public interface Ec2MetadataAsyncClient extends SdkAutoCloseable {
 
     /**
-     * Gets the specified instance metadata value by the given path.
+     * Gets the specified instance metadata value by the given path. For more information about instance metadata, check the
+     * <a href=https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html>Instance metadata documentation</a>.
      *
      * @param path Input path
      * @return A CompletableFuture that completes when the MetadataResponse is made available.
      */
-    CompletableFuture<MetadataResponse> get(String path);
+    CompletableFuture<Ec2MetadataResponse> get(String path);
 
     /**
      * Create an {@link Ec2MetadataAsyncClient} instance using the default values.
      *
-     * @return
+     * @return the client instance.
      */
     static Ec2MetadataAsyncClient create() {
         return builder().build();
     }
 
+    /**
+     * Creates a builder for
+     * @return
+     */
     static Ec2MetadataAsyncClient.Builder builder() {
         return DefaultEc2MetadataAsyncClient.builder();
     }
@@ -84,5 +90,12 @@ public interface Ec2MetadataAsyncClient extends SdkAutoCloseable {
          * @return a reference to this builder
          */
         Builder httpClient(SdkAsyncHttpClient httpClient);
+
+        /**
+         *
+         * @param builder
+         * @return
+         */
+        Builder httpClient(DefaultSdkAsyncHttpClientBuilder builder);
     }
 }

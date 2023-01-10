@@ -15,6 +15,11 @@
 
 package software.amazon.awssdk.imds.internal;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.put;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
 
@@ -23,8 +28,10 @@ import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import java.net.URI;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder;
 import software.amazon.awssdk.imds.Ec2MetadataClient;
-import software.amazon.awssdk.imds.MetadataResponse;
+import software.amazon.awssdk.imds.Ec2MetadataResponse;
 
 @WireMockTest
 class Ec2MetadataClientTest extends BaseEc2MetadataClientTest<Ec2MetadataClient, Ec2MetadataClient.Builder> {
@@ -55,8 +62,8 @@ class Ec2MetadataClientTest extends BaseEc2MetadataClientTest<Ec2MetadataClient,
     }
 
     @Override
-    protected void successAssertions(String path, Consumer<MetadataResponse> assertions) {
-        MetadataResponse response = client.get(path);
+    protected void successAssertions(String path, Consumer<Ec2MetadataResponse> assertions) {
+        Ec2MetadataResponse response = client.get(path);
         assertions.accept(response);
     }
 
@@ -66,5 +73,17 @@ class Ec2MetadataClientTest extends BaseEc2MetadataClientTest<Ec2MetadataClient,
         Throwable ex = catchThrowable(() -> client.get(path));
         assertThat(ex).isInstanceOf(exceptionType);
         assertions.accept((T) ex);
+    }
+
+    @Test
+    void builder_httpClientWithDefaultBuilder_shouldBuildProperly() {
+        Ec2MetadataClient buildClient = Ec2MetadataClient.builder()
+            .httpClient(new DefaultSdkHttpClientBuilder())
+            .endpoint(URI.create("http://localhost:" + port))
+            .build();
+        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody("some-token")));
+        stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody("{}")));
+        Ec2MetadataResponse response = buildClient.get(AMI_ID_RESOURCE);
+        assertThat(response.asString()).isEqualTo("{}");
     }
 }

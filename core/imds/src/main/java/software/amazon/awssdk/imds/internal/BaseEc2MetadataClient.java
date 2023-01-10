@@ -25,7 +25,6 @@ import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
-import software.amazon.awssdk.imds.Ec2MetadataClientBuilder;
 import software.amazon.awssdk.imds.Ec2MetadataRetryPolicy;
 import software.amazon.awssdk.imds.EndpointMode;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -50,16 +49,21 @@ public abstract class BaseEc2MetadataClient {
     protected final RequestMarshaller requestMarshaller;
     protected final Duration tokenTtl;
 
-    protected BaseEc2MetadataClient(Ec2MetadataClientBuilder<?, ?> builder) {
+    protected BaseEc2MetadataClient(DefaultEc2MetadataClient.Ec2MetadataBuilder builder) {
         this.retryPolicy = Validate.getOrDefault(builder.getRetryPolicy(), Ec2MetadataRetryPolicy.builder()::build);
         this.tokenTtl = Validate.getOrDefault(builder.getTokenTtl(), () -> DEFAULT_TOKEN_TTL);
-        this.endpoint = getEndpoint(builder);
+        this.endpoint = getEndpoint(builder.getEndpoint(), builder.getEndpointMode());
         this.requestMarshaller = new RequestMarshaller(this.endpoint);
     }
 
-    private URI getEndpoint(Ec2MetadataClientBuilder<?, ?> builder) {
-        URI builderEndpoint = builder.getEndpoint();
-        EndpointMode builderEndpointMode = builder.getEndpointMode();
+    protected BaseEc2MetadataClient(DefaultEc2MetadataAsyncClient.Ec2MetadataAsyncBuilder builder) {
+        this.retryPolicy = Validate.getOrDefault(builder.getRetryPolicy(), Ec2MetadataRetryPolicy.builder()::build);
+        this.tokenTtl = Validate.getOrDefault(builder.getTokenTtl(), () -> DEFAULT_TOKEN_TTL);
+        this.endpoint = getEndpoint(builder.getEndpoint(), builder.getEndpointMode());
+        this.requestMarshaller = new RequestMarshaller(this.endpoint);
+    }
+
+    private URI getEndpoint(URI builderEndpoint, EndpointMode builderEndpointMode) {
         Validate.mutuallyExclusive("Only one of 'endpoint' or 'endpointMode' must be specified, but not both",
                                    builderEndpoint, builderEndpointMode);
         if (builderEndpoint != null) {

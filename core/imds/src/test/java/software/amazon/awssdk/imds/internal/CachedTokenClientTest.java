@@ -37,7 +37,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.imds.Ec2MetadataClient;
-import software.amazon.awssdk.imds.MetadataResponse;
+import software.amazon.awssdk.imds.Ec2MetadataResponse;
 
 @WireMockTest
 class CachedTokenClientTest {
@@ -85,7 +85,7 @@ class CachedTokenClientTest {
 
         // 3 requests
         Ec2MetadataClient client = clientBuilder.build();
-        MetadataResponse response = client.get("/latest/meta-data/ami-id");
+        Ec2MetadataResponse response = client.get("/latest/meta-data/ami-id");
         assertThat(response.asString()).isEqualTo("Success");
         response = client.get("/latest/meta-data/ami-id");
         assertThat(response.asString()).isEqualTo("Success");
@@ -109,7 +109,7 @@ class CachedTokenClientTest {
 
         int totalRequests = 10;
         for (int i = 0; i < totalRequests; i++) {
-            MetadataResponse response = client.get("/latest/meta-data/ami-id");
+            Ec2MetadataResponse response = client.get("/latest/meta-data/ami-id");
             assertThat(response.asString()).isEqualTo("{}");
         }
         verify(exactly(2), putRequestedFor(urlPathEqualTo("/latest/api/token"))

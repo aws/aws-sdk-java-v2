@@ -47,7 +47,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.imds.Ec2MetadataAsyncClient;
-import software.amazon.awssdk.imds.MetadataResponse;
+import software.amazon.awssdk.imds.Ec2MetadataResponse;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DefaultEc2MetadataAsyncClientTest {
@@ -74,9 +74,9 @@ public class DefaultEc2MetadataAsyncClientTest {
                                       .tokenTtl(Duration.ofSeconds(1024))
                                       .build())
         {
-            CompletableFuture<MetadataResponse> res = client.get(AMI_ID_RESOURCE);
+            CompletableFuture<Ec2MetadataResponse> res = client.get(AMI_ID_RESOURCE);
             assertThat(res).isNotCompleted();
-            MetadataResponse response = res.get();
+            Ec2MetadataResponse response = res.get();
             assertThat(res).isCompleted();
             assertThat(response.asString()).isEqualTo("{}");
             verify(exactly(1), putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
@@ -103,7 +103,7 @@ public class DefaultEc2MetadataAsyncClientTest {
         {
             Logger log = LoggerFactory.getLogger(DefaultEc2MetadataAsyncClientTest.class);
             log.error("TEST LOGGER TEST");
-            CompletableFuture<MetadataResponse> res = client.get(AMI_ID_RESOURCE);
+            CompletableFuture<Ec2MetadataResponse> res = client.get(AMI_ID_RESOURCE);
             assertThat(res).isNotCompleted();
             assertThatThrownBy(res::get).isInstanceOf(ExecutionException.class);
             assertThat(res).isCompletedExceptionally();
@@ -130,7 +130,7 @@ public class DefaultEc2MetadataAsyncClientTest {
         {
             Logger log = LoggerFactory.getLogger(DefaultEc2MetadataAsyncClientTest.class);
             log.error("TEST LOGGER TEST");
-            CompletableFuture<MetadataResponse> res = client.get(AMI_ID_RESOURCE);
+            CompletableFuture<Ec2MetadataResponse> res = client.get(AMI_ID_RESOURCE);
             assertThat(res).isNotCompleted();
             assertThatThrownBy(res::get).isInstanceOf(ExecutionException.class);
             assertThat(res).isCompletedExceptionally();
@@ -156,7 +156,7 @@ public class DefaultEc2MetadataAsyncClientTest {
                                        .tokenTtl(Duration.ofSeconds(1024))
                                        .build())
         {
-            CompletableFuture<MetadataResponse> res = client.get(AMI_ID_RESOURCE);
+            CompletableFuture<Ec2MetadataResponse> res = client.get(AMI_ID_RESOURCE);
             assertThat(res).isNotCompleted();
             assertThatThrownBy(res::get).isInstanceOf(ExecutionException.class);
             assertThat(res).isCompletedExceptionally();
@@ -185,19 +185,19 @@ public class DefaultEc2MetadataAsyncClientTest {
                                        .tokenTtl(Duration.ofSeconds(1024))
                                        .build())
         {
-            List<CompletableFuture<MetadataResponse>> requests = Stream.iterate(0, x -> x + 1)
-                                                                       .map(i -> client.get(AMI_ID_RESOURCE + "/" + i))
-                                                                       .limit(totalRequest)
-                                                                       .collect(Collectors.toList());
-            CompletableFuture<List<MetadataResponse>> responses =
+            List<CompletableFuture<Ec2MetadataResponse>> requests = Stream.iterate(0, x -> x + 1)
+                                                                          .map(i -> client.get(AMI_ID_RESOURCE + "/" + i))
+                                                                          .limit(totalRequest)
+                                                                          .collect(Collectors.toList());
+            CompletableFuture<List<Ec2MetadataResponse>> responses =
                 CompletableFuture.allOf(requests.toArray(new CompletableFuture[0]))
                                  .thenApply(unusedVoid -> requests.stream()
                                                                   .map(CompletableFuture::join)
                                                                   .collect(Collectors.toList()));
 
-            List<MetadataResponse> resolvedResponses = responses.join();
+            List<Ec2MetadataResponse> resolvedResponses = responses.join();
             for (int i = 0; i < totalRequest; i++) {
-                MetadataResponse response = resolvedResponses.get(i);
+                Ec2MetadataResponse response = resolvedResponses.get(i);
                 assertThat(response.asString()).isEqualTo("response::" + i);
             }
             verify(exactly(totalRequest), putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))

@@ -24,6 +24,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -38,9 +39,9 @@ import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.HttpStatusFamily;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.imds.Ec2MetadataClient;
+import software.amazon.awssdk.imds.Ec2MetadataResponse;
 import software.amazon.awssdk.imds.Ec2MetadataRetryPolicy;
 import software.amazon.awssdk.imds.EndpointMode;
-import software.amazon.awssdk.imds.MetadataResponse;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.cache.CachedSupplier;
@@ -94,7 +95,7 @@ public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implem
      *                            request.
      */
     @Override
-    public MetadataResponse get(String path) {
+    public Ec2MetadataResponse get(String path) {
         Throwable lastCause = null;
         // 3 retries means 4 total attempts
         Token token = null;
@@ -133,7 +134,7 @@ public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implem
         throw sdkClientExceptionBuilder.build();
     }
 
-    private MetadataResponse sendRequest(String path, String token) throws IOException {
+    private Ec2MetadataResponse sendRequest(String path, String token) throws IOException {
 
         HttpExecuteRequest httpExecuteRequest =
             HttpExecuteRequest.builder()
@@ -165,7 +166,7 @@ public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implem
         AbortableInputStream abortableInputStream = responseBody.orElseThrow(
             SdkClientException.builder().message("Response body empty with Status Code " + statusCode)::build);
         String data = uncheckedInputStreamToUtf8(abortableInputStream);
-        return MetadataResponse.create(data);
+        return Ec2MetadataResponse.create(data);
     }
 
     private void pauseBeforeRetryIfNeeded(RetryPolicyContext retryPolicyContext) {
@@ -223,7 +224,7 @@ public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implem
         return new Token(value, ttl);
     }
 
-    private static final class Ec2MetadataBuilder implements Ec2MetadataClient.Builder {
+    protected static final class Ec2MetadataBuilder implements Ec2MetadataClient.Builder {
 
         private Ec2MetadataRetryPolicy retryPolicy;
 
@@ -236,6 +237,8 @@ public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implem
         private SdkHttpClient httpClient;
 
 
+        private boolean httpClientIsInternal = true;
+
         private Ec2MetadataBuilder() {
         }
 
@@ -243,6 +246,14 @@ public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implem
         public Ec2MetadataBuilder retryPolicy(Ec2MetadataRetryPolicy retryPolicy) {
             this.retryPolicy = retryPolicy;
             return this;
+        }
+
+        @Override
+        public Builder retryPolicy(Consumer<Ec2MetadataRetryPolicy.Builder> builderConsumer) {
+            Validate.notNull(builderConsumer, "builderConsumer must not be null");
+            Ec2MetadataRetryPolicy.Builder builder = new Ec2MetadataRetryPolicy.BuilderImpl();
+            builderConsumer.accept(builder);
+            return retryPolicy(builder.build());
         }
 
         @Override
@@ -266,25 +277,30 @@ public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implem
         @Override
         public Ec2MetadataBuilder httpClient(SdkHttpClient httpClient) {
             this.httpClient = httpClient;
+            this.httpClientIsInternal = false;
             return this;
         }
 
         @Override
+        public Builder httpClient(DefaultSdkHttpClientBuilder builder) {
+            SdkHttpClient builtHttpClient = builder.build();
+            this.httpClientIsInternal = true;
+            this.httpClient = builtHttpClient;
+            return this;
+        }
+
         public Ec2MetadataRetryPolicy getRetryPolicy() {
             return this.retryPolicy;
         }
 
-        @Override
         public URI getEndpoint() {
             return this.endpoint;
         }
 
-        @Override
         public Duration getTokenTtl() {
             return this.tokenTtl;
         }
 
-        @Override
         public EndpointMode getEndpointMode() {
             return this.endpointMode;
         }
