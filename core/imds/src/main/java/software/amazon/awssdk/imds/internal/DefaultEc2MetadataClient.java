@@ -15,10 +15,13 @@
 
 package software.amazon.awssdk.imds.internal;
 
+import static software.amazon.awssdk.imds.internal.RequestMarshaller.EC2_METADATA_TOKEN_TTL_HEADER;
+
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URI;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
@@ -38,9 +41,10 @@ import software.amazon.awssdk.imds.Ec2MetadataClient;
 import software.amazon.awssdk.imds.Ec2MetadataRetryPolicy;
 import software.amazon.awssdk.imds.EndpointMode;
 import software.amazon.awssdk.imds.MetadataResponse;
-import software.amazon.awssdk.imds.TokenCacheStrategy;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.cache.CachedSupplier;
+import software.amazon.awssdk.utils.cache.RefreshResult;
 
 /**
  * An Implementation of the Ec2Metadata Interface.
@@ -60,8 +64,10 @@ public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implem
         super(builder);
         this.httpClient = Validate.getOrDefault(builder.httpClient,
                                                 () -> new DefaultSdkHttpClientBuilder().buildWithDefaults(IMDS_HTTP_DEFAULTS));
-        this.tokenCache = Validate.getOrDefault(builder.tokenCacheStrategy, () -> TokenCacheStrategy.NONE)
-                                  .getCachedSupplier(this::getToken, this.tokenTtl);
+        this.tokenCache = CachedSupplier.builder(() -> RefreshResult.builder(this.getToken())
+                                                                    .staleTime(Instant.now().plus(tokenTtl))
+                                                                    .build())
+                                        .build();
         this.httpClientIsInternal = builder.httpClient == null;
     }
 
@@ -204,11 +210,17 @@ public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implem
                                     .build();
         }
 
+        Duration ttl = response.httpResponse()
+                               .firstMatchingHeader(EC2_METADATA_TOKEN_TTL_HEADER)
+                               .map(Long::parseLong)
+                               .map(Duration::ofSeconds)
+                               .orElse(tokenTtl);
+
         AbortableInputStream abortableInputStream = response.responseBody().orElseThrow(
             SdkClientException.builder().message("Empty response body")::build);
 
         String value = uncheckedInputStreamToUtf8(abortableInputStream);
-        return new Token(value, tokenTtl);
+        return new Token(value, ttl);
     }
 
     private static final class Ec2MetadataBuilder implements Ec2MetadataClient.Builder {
@@ -223,7 +235,6 @@ public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implem
 
         private SdkHttpClient httpClient;
 
-        private TokenCacheStrategy tokenCacheStrategy;
 
         private Ec2MetadataBuilder() {
         }
@@ -276,17 +287,6 @@ public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implem
         @Override
         public EndpointMode getEndpointMode() {
             return this.endpointMode;
-        }
-
-        @Override
-        public Builder tokenCacheStrategy(TokenCacheStrategy tokenCacheStrategy) {
-            this.tokenCacheStrategy = tokenCacheStrategy;
-            return this;
-        }
-
-        @Override
-        public TokenCacheStrategy getTokenCacheStrategy() {
-            return this.tokenCacheStrategy;
         }
 
         @Override

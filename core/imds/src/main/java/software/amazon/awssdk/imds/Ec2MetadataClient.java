@@ -68,6 +68,7 @@ public interface Ec2MetadataClient extends SdkAutoCloseable {
          * @return a reference to this builder
          */
         Builder httpClient(SdkHttpClient httpClient);
+
     }
 
 }

@@ -15,6 +15,9 @@
 
 package software.amazon.awssdk.imds.internal;
 
+import static software.amazon.awssdk.imds.internal.AsyncHttpRequestHelper.sendAsyncMetadataRequest;
+import static software.amazon.awssdk.imds.internal.AsyncHttpRequestHelper.sendAsyncTokenRequest;
+
 import java.net.URI;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
@@ -23,26 +26,19 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.internal.http.TransformingAsyncResponseHandler;
-import software.amazon.awssdk.core.internal.http.async.AsyncResponseHandler;
-import software.amazon.awssdk.core.internal.http.async.SimpleHttpContentPublisher;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkAsyncHttpClientBuilder;
 import software.amazon.awssdk.core.retry.RetryPolicyContext;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 import software.amazon.awssdk.imds.Ec2MetadataAsyncClient;
 import software.amazon.awssdk.imds.Ec2MetadataRetryPolicy;
 import software.amazon.awssdk.imds.EndpointMode;
 import software.amazon.awssdk.imds.MetadataResponse;
-import software.amazon.awssdk.imds.TokenCacheStrategy;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
@@ -61,6 +57,7 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
     private final ScheduledExecutorService asyncRetryScheduler;
     private final boolean httpClientIsInternal;
     private final boolean retryExecutorIsInternal;
+    private final AsyncTokenCache tokenCache;
 
     private DefaultEc2MetadataAsyncClient(Ec2MetadataAsyncBuilder builder) {
         super(builder);
@@ -76,6 +73,12 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
             });
         this.httpClientIsInternal = builder.httpClient == null;
         this.retryExecutorIsInternal = builder.scheduledExecutorService == null;
+        Supplier<CompletableFuture<Token>> tokenSupplier = () -> {
+            SdkHttpFullRequest baseTokenRequest = requestMarshaller.createTokenRequest(tokenTtl);
+            return sendAsyncTokenRequest(tokenTtl, httpClient, baseTokenRequest);
+        };
+
+        this.tokenCache = new AsyncTokenCache(tokenSupplier);
     }
 
     public static Ec2MetadataAsyncClient.Builder builder() {
@@ -90,16 +93,14 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
     }
 
     private void get(String path, RetryPolicyContext retryPolicyContext, CompletableFuture<MetadataResponse> returnFuture) {
-        SdkHttpFullRequest baseTokenRequest = requestMarshaller.createTokenRequest(tokenTtl);
-        CompletableFuture<String> tokenFuture = sendAsyncRequest(baseTokenRequest);
-        CompletableFutureUtils.forwardExceptionTo(returnFuture, tokenFuture);
+        CompletableFuture<Token> tokenFuture = tokenCache.get();
 
         CompletableFuture<MetadataResponse> result = tokenFuture.thenCompose(token -> {
-            SdkHttpFullRequest baseMetadataRequest = requestMarshaller.createDataRequest(path, token, tokenTtl);
-            return sendAsyncRequest(baseMetadataRequest);
+            SdkHttpFullRequest baseMetadataRequest = requestMarshaller.createDataRequest(path, token.value(), tokenTtl);
+            return sendAsyncMetadataRequest(httpClient, baseMetadataRequest, returnFuture);
         }).thenApply(MetadataResponse::create);
 
-        CompletableFutureUtils.forwardExceptionTo(tokenFuture, result);
+        CompletableFutureUtils.forwardExceptionTo(returnFuture, result);
 
         result.whenComplete((response, error) -> {
             if (response != null) {
@@ -114,30 +115,11 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
             log.debug(() -> "Retrying request: Attempt " + newAttempt);
             RetryPolicyContext newContext =
                 RetryPolicyContext.builder()
-                                  .request(baseTokenRequest)
                                   .retriesAttempted(newAttempt)
                                   .exception(SdkClientException.create(error.getMessage(), error))
                                   .build();
             scheduledRetryAttempt(() -> get(path, newContext, returnFuture), newContext);
         });
-    }
-
-    private CompletableFuture<String> sendAsyncRequest(SdkHttpFullRequest baseRequest) {
-        SdkHttpContentPublisher requestContentPublisher = new SimpleHttpContentPublisher(baseRequest);
-        StringResponseHandler stringResponseHandler = new StringResponseHandler();
-        TransformingAsyncResponseHandler<String> responseHandler = new AsyncResponseHandler<>(stringResponseHandler,
-                                                                                              Function.identity(),
-                                                                                              new ExecutionAttributes());
-        CompletableFuture<String> responseHandlerFuture = responseHandler.prepare();
-        stringResponseHandler.setFuture(responseHandlerFuture);
-        AsyncExecuteRequest metadataRequest = AsyncExecuteRequest.builder()
-                                                                 .request(baseRequest)
-                                                                 .requestContentPublisher(requestContentPublisher)
-                                                                 .responseHandler(responseHandler)
-                                                                 .build();
-        CompletableFuture<Void> executeFuture = httpClient.execute(metadataRequest);
-        CompletableFutureUtils.forwardExceptionTo(responseHandlerFuture, executeFuture);
-        return responseHandlerFuture;
     }
 
     private void scheduledRetryAttempt(Runnable runnable, RetryPolicyContext retryPolicyContext) {
@@ -229,19 +211,6 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
         public EndpointMode getEndpointMode() {
             return this.endpointMode;
         }
-
-        @Override
-        public Ec2MetadataAsyncBuilder tokenCacheStrategy(TokenCacheStrategy tokenCacheStrategy) {
-            // TODO
-            return this;
-        }
-
-        @Override
-        public TokenCacheStrategy getTokenCacheStrategy() {
-            // TODO
-            return null;
-        }
-
 
         @Override
         public Ec2MetadataAsyncClient build() {
