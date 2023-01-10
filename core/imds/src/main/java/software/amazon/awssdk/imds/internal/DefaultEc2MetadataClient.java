@@ -69,7 +69,7 @@ public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implem
                                                                     .staleTime(Instant.now().plus(tokenTtl))
                                                                     .build())
                                         .build();
-        this.httpClientIsInternal = builder.httpClient == null;
+        this.httpClientIsInternal = builder.httpClientIsInternal;
     }
 
     @Override
@@ -235,7 +235,6 @@ public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implem
         private EndpointMode endpointMode;
 
         private SdkHttpClient httpClient;
-
 
         private boolean httpClientIsInternal = true;
 

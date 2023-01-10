@@ -49,7 +49,8 @@ public abstract class BaseEc2MetadataClient {
     protected final RequestMarshaller requestMarshaller;
     protected final Duration tokenTtl;
 
-    private BaseEc2MetadataClient(Ec2MetadataRetryPolicy retryPolicy, Duration tokenTtl, URI endpoint, EndpointMode endpointMode) {
+    private BaseEc2MetadataClient(Ec2MetadataRetryPolicy retryPolicy, Duration tokenTtl, URI endpoint,
+                                  EndpointMode endpointMode) {
         this.retryPolicy = Validate.getOrDefault(retryPolicy, Ec2MetadataRetryPolicy.builder()::build);
         this.tokenTtl = Validate.getOrDefault(tokenTtl, () -> DEFAULT_TOKEN_TTL);
         this.endpoint = getEndpoint(endpoint, endpointMode);

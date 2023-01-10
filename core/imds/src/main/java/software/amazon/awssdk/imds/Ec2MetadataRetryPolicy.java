@@ -58,7 +58,7 @@ public final class Ec2MetadataRetryPolicy implements ToCopyableBuilder<Ec2Metada
         }
         Ec2MetadataRetryPolicy ec2MetadataRetryPolicy = (Ec2MetadataRetryPolicy) obj;
 
-        if (numRetries != ec2MetadataRetryPolicy.numRetries) {
+        if (!Objects.equals(numRetries, ec2MetadataRetryPolicy.numRetries)) {
             return false;
         }
         return Objects.equals(backoffStrategy, ec2MetadataRetryPolicy.backoffStrategy);
