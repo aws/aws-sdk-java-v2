@@ -49,18 +49,19 @@ public abstract class BaseEc2MetadataClient {
     protected final RequestMarshaller requestMarshaller;
     protected final Duration tokenTtl;
 
-    protected BaseEc2MetadataClient(DefaultEc2MetadataClient.Ec2MetadataBuilder builder) {
-        this.retryPolicy = Validate.getOrDefault(builder.getRetryPolicy(), Ec2MetadataRetryPolicy.builder()::build);
-        this.tokenTtl = Validate.getOrDefault(builder.getTokenTtl(), () -> DEFAULT_TOKEN_TTL);
-        this.endpoint = getEndpoint(builder.getEndpoint(), builder.getEndpointMode());
+    private BaseEc2MetadataClient(Ec2MetadataRetryPolicy retryPolicy, Duration tokenTtl, URI endpoint, EndpointMode endpointMode) {
+        this.retryPolicy = Validate.getOrDefault(retryPolicy, Ec2MetadataRetryPolicy.builder()::build);
+        this.tokenTtl = Validate.getOrDefault(tokenTtl, () -> DEFAULT_TOKEN_TTL);
+        this.endpoint = getEndpoint(endpoint, endpointMode);
         this.requestMarshaller = new RequestMarshaller(this.endpoint);
     }
 
+    protected BaseEc2MetadataClient(DefaultEc2MetadataClient.Ec2MetadataBuilder builder) {
+        this(builder.getRetryPolicy(), builder.getTokenTtl(), builder.getEndpoint(), builder.getEndpointMode());
+    }
+
     protected BaseEc2MetadataClient(DefaultEc2MetadataAsyncClient.Ec2MetadataAsyncBuilder builder) {
-        this.retryPolicy = Validate.getOrDefault(builder.getRetryPolicy(), Ec2MetadataRetryPolicy.builder()::build);
-        this.tokenTtl = Validate.getOrDefault(builder.getTokenTtl(), () -> DEFAULT_TOKEN_TTL);
-        this.endpoint = getEndpoint(builder.getEndpoint(), builder.getEndpointMode());
-        this.requestMarshaller = new RequestMarshaller(this.endpoint);
+        this(builder.getRetryPolicy(), builder.getTokenTtl(), builder.getEndpoint(), builder.getEndpointMode());
     }
 
     private URI getEndpoint(URI builderEndpoint, EndpointMode builderEndpointMode) {
