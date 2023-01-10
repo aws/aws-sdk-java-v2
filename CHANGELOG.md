@@ -1,3 +1,24 @@
+# __2.19.14__ __2023-01-10__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Prevent NullPointerException in Netty exception handler
+        - Contributed by: [@sigurjonviktorsson](https://github.com/sigurjonviktorsson)
+
+## __Amazon Location Service__
+  - ### Features
+    - This release adds support for two new route travel models, Bicycle and Motorcycle which can be used with Grab data source.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds support for configuring allocated storage on the CreateDBInstanceReadReplica, RestoreDBInstanceFromDBSnapshot, and RestoreDBInstanceToPointInTime APIs.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@sigurjonviktorsson](https://github.com/sigurjonviktorsson)
 # __2.19.13__ __2023-01-09__
 ## __AWS Network Firewall__
   - ### Features
