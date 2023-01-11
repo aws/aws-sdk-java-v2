@@ -32,7 +32,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * The primary supported Arn format is:
  *
  * <code>
- * arn::&#60;partition&#62;::&#60;service&#62;::&#60;region&#62;::&#60;account&#62;::&#60;resource&#62;
+ * arn:&#60;partition&#62;:&#60;service&#62;:&#60;region&#62;:&#60;account&#62;:&#60;resource&#62;
  * </code>
  *
  * <p>
