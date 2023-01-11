@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWSKendraFrontendService",
-    "contributor": "",
-    "description": "This release adds support to new document types - RTF, XML, XSLT, MS_EXCEL, CSV, JSON, MD"
-}
