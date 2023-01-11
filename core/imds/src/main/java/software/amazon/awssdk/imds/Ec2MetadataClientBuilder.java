@@ -25,7 +25,7 @@ import software.amazon.awssdk.imds.internal.Ec2MetadataEndpointProvider;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
- * Base shared builder interface for Ec2MetadataClient
+ * Base shared builder interface for Ec2MetadataClients, sync and async.
  * @param <B> the Builder Type
  * @param <T> the Ec2MetadataClient Type
  */

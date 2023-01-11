@@ -122,8 +122,6 @@ public final class Ec2MetadataRetryPolicy implements ToCopyableBuilder<Ec2Metada
          */
         Builder numRetries(Integer numRetries);
 
-        @Override
-        Ec2MetadataRetryPolicy build();
     }
 
     public static final class BuilderImpl implements Builder {

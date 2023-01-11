@@ -30,7 +30,7 @@ import software.amazon.awssdk.utils.Validate;
 /**
  * The class is used for response handling and parsing the metadata fetched by the get call in the {@link Ec2MetadataClient}
  * interface.
- * The class provides convenience methods to the users to parse the metadata as a String, List and Document.
+ * The class provides convenience methods to the users to parse the metadata as a String, List and Document (json).
  */
 @SdkPublicApi
 public final class Ec2MetadataResponse {
