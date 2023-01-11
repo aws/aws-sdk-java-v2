@@ -44,7 +44,9 @@ public class UseGlobalEndpointResolver {
         String defaultS3UsEast1RegionalEndpointFromSmartDefaults =
             config.option(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT);
         this.useUsEast1RegionalEndpoint =
-            new Lazy<>(() -> useUsEast1RegionalEndpoint(() -> config.option(SdkClientOption.PROFILE_FILE),
+            new Lazy<>(() -> useUsEast1RegionalEndpoint(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER) != null ?
+                                                        config.option(SdkClientOption.PROFILE_FILE_SUPPLIER) :
+                                                        () -> config.option(SdkClientOption.PROFILE_FILE),
                                                         () -> config.option(SdkClientOption.PROFILE_NAME),
                                                         defaultS3UsEast1RegionalEndpointFromSmartDefaults));
     }
