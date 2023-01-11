@@ -50,8 +50,8 @@ public interface Ec2MetadataAsyncClient extends SdkAutoCloseable {
     }
 
     /**
-     * Creates a builder for
-     * @return
+     * Creates a builder for an async client instance.
+     * @return the newly created builder instance.
      */
     static Ec2MetadataAsyncClient.Builder builder() {
         return DefaultEc2MetadataAsyncClient.builder();
@@ -92,9 +92,12 @@ public interface Ec2MetadataAsyncClient extends SdkAutoCloseable {
         Builder httpClient(SdkAsyncHttpClient httpClient);
 
         /**
+         * A http client builder used to retrieve an instance of an {@link SdkAsyncHttpClient}. If specified, the Ec2 Client will
+         * use the instance returned by the builder and manage its lifetime by closing the http client once the Ec2 Client
+         * itself is closed.
          *
-         * @param builder
-         * @return
+         * @param builder the builder to used to retrieve an instance.
+         * @return a reference to this builder
          */
         Builder httpClient(DefaultSdkAsyncHttpClientBuilder builder);
     }

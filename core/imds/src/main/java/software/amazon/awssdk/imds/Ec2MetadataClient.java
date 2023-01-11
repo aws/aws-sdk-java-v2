@@ -75,9 +75,12 @@ public interface Ec2MetadataClient extends SdkAutoCloseable {
         Builder httpClient(SdkHttpClient httpClient);
 
         /**
+         * A http client builder used to retrieve an instance of an {@link SdkHttpClient}. If specified, the Ec2 Client will
+         * use the instance returned by the builder and manage its lifetime by closing the http client once the Ec2 Client
+         * itself is closed.
          *
-         * @param builder
-         * @return
+         * @param builder the builder to used to retrieve an instance.
+         * @return a reference to this builder
          */
         Builder httpClient(DefaultSdkHttpClientBuilder builder);
     }

@@ -292,15 +292,15 @@ public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implem
             return this.retryPolicy;
         }
 
-        public URI getEndpoint() {
+        URI getEndpoint() {
             return this.endpoint;
         }
 
-        public Duration getTokenTtl() {
+        Duration getTokenTtl() {
             return this.tokenTtl;
         }
 
-        public EndpointMode getEndpointMode() {
+        EndpointMode getEndpointMode() {
             return this.endpointMode;
         }
 
