@@ -1,3 +1,33 @@
+# __2.19.16__ __2023-01-12__
+## __AWS Clean Rooms Service__
+  - ### Features
+    - Initial release of AWS Clean Rooms
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - The AWS Elemental MediaConvert SDK has added support for compact DASH manifest generation, audio normalization using TruePeak measurements, and the ability to clip the sample range in the color corrector.
+
+## __AWS Lambda__
+  - ### Features
+    - Add support for MaximumConcurrency parameter for SQS event source. Customers can now limit the maximum concurrent invocations for their SQS Event Source Mapping.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Secrets Manager__
+  - ### Features
+    - Update documentation for new ListSecrets and DescribeSecret parameters
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Bug fix: logGroupName is now not a required field in GetLogEvents, FilterLogEvents, GetLogGroupFields, and DescribeLogStreams APIs as logGroupIdentifier can be provided instead
+
+# __2.19.15__ __2023-01-11__
+## __AWSKendraFrontendService__
+  - ### Features
+    - This release adds support to new document types - RTF, XML, XSLT, MS_EXCEL, CSV, JSON, MD
+
 # __2.19.14__ __2023-01-10__
 ## __AWS SDK for Java v2__
   - ### Features
