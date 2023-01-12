@@ -28,6 +28,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static software.amazon.awssdk.imds.TestConstants.EC2_METADATA_TOKEN_TTL_HEADER;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
@@ -78,7 +79,9 @@ class CachedTokenClientTest {
                                                         .willSetStateTo("Cause Success"));
         stubFor(put(urlPathEqualTo("/latest/api/token")).inScenario("Retry Scenario")
                                                         .whenScenarioStateIs("Cause Success")
-                                                        .willReturn(aResponse().withBody("token-ok")));
+                                                        .willReturn(aResponse()
+                                                                        .withBody("token-ok")
+                                                                        .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, "21600")));
         stubFor(get(urlPathEqualTo("/latest/meta-data/ami-id")).inScenario("Retry Scenario")
                                                                .whenScenarioStateIs("Cause Success")
                                                                .willReturn(aResponse().withBody("Success")));
@@ -100,7 +103,8 @@ class CachedTokenClientTest {
 
     @Test
     void get_multipleCallsSuccess_shouldReuseToken() throws Exception {
-        stubFor(put(urlPathEqualTo("/latest/api/token")).willReturn(aResponse().withBody("some-token")));
+        stubFor(put(urlPathEqualTo("/latest/api/token")).willReturn(
+            aResponse().withBody("some-token").withHeader(EC2_METADATA_TOKEN_TTL_HEADER, "21600")));
         stubFor(get(urlPathEqualTo("/latest/meta-data/ami-id"))
                     .willReturn(aResponse().withBody("{}").withFixedDelay(800)));
 

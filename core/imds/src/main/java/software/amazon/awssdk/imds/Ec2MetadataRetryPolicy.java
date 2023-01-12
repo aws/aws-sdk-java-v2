@@ -124,12 +124,12 @@ public final class Ec2MetadataRetryPolicy implements ToCopyableBuilder<Ec2Metada
 
     }
 
-    public static final class BuilderImpl implements Builder {
+    private static final class BuilderImpl implements Builder {
 
         private Integer numRetries;
         private BackoffStrategy backoffStrategy;
 
-        public BuilderImpl() {
+        private BuilderImpl() {
         }
 
         @Override

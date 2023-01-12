@@ -26,6 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
 import static org.junit.jupiter.api.Assertions.fail;
 import static software.amazon.awssdk.imds.TestConstants.AMI_ID_RESOURCE;
+import static software.amazon.awssdk.imds.TestConstants.EC2_METADATA_TOKEN_TTL_HEADER;
 import static software.amazon.awssdk.imds.TestConstants.TOKEN_RESOURCE_PATH;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
@@ -36,11 +37,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkAsyncHttpClientBuilder;
-import software.amazon.awssdk.http.async.AsyncExecuteRequest;
-import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.imds.Ec2MetadataAsyncClient;
 import software.amazon.awssdk.imds.Ec2MetadataResponse;
 
@@ -115,10 +112,12 @@ class Ec2MetadataAsyncClientTest extends BaseEc2MetadataClientTest<Ec2MetadataAs
                                                                    .httpClient(new DefaultSdkAsyncHttpClientBuilder())
                                                                    .endpoint(URI.create("http://localhost:" + port))
                                                                    .build();
-        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody("some-token")));
+        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(
+            aResponse().withBody("some-token").withHeader(EC2_METADATA_TOKEN_TTL_HEADER, "21600")));
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody("some-value")));
         CompletableFuture<Ec2MetadataResponse> responseFuture = buildClient.get(AMI_ID_RESOURCE);
         Ec2MetadataResponse response = responseFuture.join();
         assertThat(response.asString()).isEqualTo("some-value");
     }
+
 }

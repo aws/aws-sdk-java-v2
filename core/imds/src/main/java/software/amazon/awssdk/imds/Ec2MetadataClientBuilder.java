@@ -36,8 +36,8 @@ public interface Ec2MetadataClientBuilder<B, T> extends SdkBuilder<Ec2MetadataCl
      * <p>
      * If not specified, defaults to 3 retry attempts and a {@link BackoffStrategy#defaultStrategy()} backoff strategy} that
      * uses {@link RetryMode#STANDARD}. Can be also specified by using the
-     * {@link Ec2MetadataClientBuilder#retryPolicy(Consumer)} method. If both methods are called multiple time, the last call
-     * will overwrite previous calls.
+     * {@link Ec2MetadataClientBuilder#retryPolicy(Consumer)} method. if any of the retryPolicy methods are called multiple times,
+     * only the last invocation will be considered.
      *
      * @param retryPolicy The retry policy which includes the number of retry attempts for any failed request.
      * @return a reference to this builder
@@ -51,8 +51,8 @@ public interface Ec2MetadataClientBuilder<B, T> extends SdkBuilder<Ec2MetadataCl
      * <p>
      * If not specified, defaults to 3 retry attempts and a {@link BackoffStrategy#defaultStrategy()} backoff strategy} that
      * uses {@link RetryMode#STANDARD}. Can be also specified by using the
-     * {@link Ec2MetadataClientBuilder#retryPolicy(Ec2MetadataRetryPolicy)} method. If both methods are called multiple time, the
-     * last call will overwrite previous calls.
+     * {@link Ec2MetadataClientBuilder#retryPolicy(Ec2MetadataRetryPolicy)} method. if any of the retryPolicy methods are
+     * called multiple times, only the last invocation will be considered.
      *
      * @param builderConsumer the consumer
      * @return a reference to this builder

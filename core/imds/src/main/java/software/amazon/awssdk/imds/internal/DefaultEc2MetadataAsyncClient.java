@@ -26,6 +26,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -41,6 +42,7 @@ import software.amazon.awssdk.imds.Ec2MetadataRetryPolicy;
 import software.amazon.awssdk.imds.EndpointMode;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
+import software.amazon.awssdk.utils.Either;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 import software.amazon.awssdk.utils.Validate;
@@ -61,9 +63,16 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
 
     private DefaultEc2MetadataAsyncClient(Ec2MetadataAsyncBuilder builder) {
         super(builder);
-        this.httpClient = Validate.getOrDefault(
-            builder.httpClient,
-            () -> new DefaultSdkAsyncHttpClientBuilder().buildWithDefaults(AttributeMap.empty()));
+
+        // http client
+        Validate.isTrue(builder.httpClient == null || builder.httpClientBuilder == null,
+                        "The httpClient and the httpClientBuilder can't both be configured.");
+        this.httpClient = Either
+            .fromNullable(builder.httpClient, builder.httpClientBuilder)
+            .map(e -> e.map(Function.identity(), SdkAsyncHttpClient.Builder::build))
+            .orElseGet(() -> new DefaultSdkAsyncHttpClientBuilder().buildWithDefaults(AttributeMap.empty()));
+        this.httpClientIsInternal = builder.httpClient == null;
+
         this.asyncRetryScheduler = Validate.getOrDefault(
             builder.scheduledExecutorService,
             () -> {
@@ -71,11 +80,10 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
                     new ThreadFactoryBuilder().threadNamePrefix("IMDS-ScheduledExecutor").build();
                 return Executors.newScheduledThreadPool(DEFAULT_RETRY_THREAD_POOL_SIZE, threadFactory);
             });
-        this.httpClientIsInternal = builder.httpClientIsInternal;
         this.retryExecutorIsInternal = builder.scheduledExecutorService == null;
         Supplier<CompletableFuture<Token>> tokenSupplier = () -> {
             SdkHttpFullRequest baseTokenRequest = requestMarshaller.createTokenRequest(tokenTtl);
-            return sendAsyncTokenRequest(tokenTtl, httpClient, baseTokenRequest);
+            return sendAsyncTokenRequest(httpClient, baseTokenRequest);
         };
 
         this.tokenCache = new AsyncTokenCache(tokenSupplier);
@@ -151,9 +159,9 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
 
         private SdkAsyncHttpClient httpClient;
 
-        private ScheduledExecutorService scheduledExecutorService;
+        private SdkAsyncHttpClient.Builder<?> httpClientBuilder;
 
-        private boolean httpClientIsInternal = true;
+        private ScheduledExecutorService scheduledExecutorService;
 
         private Ec2MetadataAsyncBuilder() {
         }
@@ -167,7 +175,7 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
         @Override
         public Ec2MetadataAsyncBuilder retryPolicy(Consumer<Ec2MetadataRetryPolicy.Builder> builderConsumer) {
             Validate.notNull(builderConsumer, "builderConsumer must not be null");
-            Ec2MetadataRetryPolicy.Builder builder = new Ec2MetadataRetryPolicy.BuilderImpl();
+            Ec2MetadataRetryPolicy.Builder builder = Ec2MetadataRetryPolicy.builder();
             builderConsumer.accept(builder);
             this.retryPolicy = builder.build();
             return this;
@@ -194,15 +202,12 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
         @Override
         public Ec2MetadataAsyncBuilder httpClient(SdkAsyncHttpClient httpClient) {
             this.httpClient = httpClient;
-            this.httpClientIsInternal = false;
             return this;
         }
 
         @Override
-        public Builder httpClient(DefaultSdkAsyncHttpClientBuilder builder) {
-            SdkAsyncHttpClient builtHttpClient = builder.build();
-            this.httpClientIsInternal = true;
-            this.httpClient = builtHttpClient;
+        public Builder httpClient(SdkAsyncHttpClient.Builder<?> builder) {
+            this.httpClientBuilder = builder;
             return this;
         }
 
@@ -216,15 +221,15 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
             return this.retryPolicy;
         }
 
-        URI getEndpoint() {
+        public URI getEndpoint() {
             return this.endpoint;
         }
 
-        Duration getTokenTtl() {
+        public Duration getTokenTtl() {
             return this.tokenTtl;
         }
 
-        EndpointMode getEndpointMode() {
+        public EndpointMode getEndpointMode() {
             return this.endpointMode;
         }
 

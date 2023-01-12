@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.imds.internal;
 
-import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -45,10 +44,9 @@ final class AsyncHttpRequestHelper {
         return sendAsync(httpClient, baseRequest, stringResponseHandler, stringResponseHandler::setFuture, parentFuture);
     }
 
-    public static CompletableFuture<Token> sendAsyncTokenRequest(Duration ttlSeconds,
-                                                                 SdkAsyncHttpClient httpClient,
+    public static CompletableFuture<Token> sendAsyncTokenRequest(SdkAsyncHttpClient httpClient,
                                                                  SdkHttpFullRequest baseRequest) {
-        TokenResponseHandler tokenResponseHandler = new TokenResponseHandler(ttlSeconds.getSeconds());
+        TokenResponseHandler tokenResponseHandler = new TokenResponseHandler();
         return sendAsync(httpClient, baseRequest, tokenResponseHandler, tokenResponseHandler::setFuture, null);
     }
 

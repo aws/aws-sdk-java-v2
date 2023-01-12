@@ -39,6 +39,10 @@ public class StringResponseHandler implements HttpResponseHandler<String> {
         this.future = future;
     }
 
+    protected CompletableFuture<?> getFuture() {
+        return this.future;
+    }
+
     @Override
     public String handle(SdkHttpFullResponse response, ExecutionAttributes executionAttributes) throws Exception {
         HttpStatusFamily statusCode = HttpStatusFamily.of(response.statusCode());

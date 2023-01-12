@@ -17,7 +17,6 @@ package software.amazon.awssdk.imds;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.imds.internal.DefaultEc2MetadataClient;
@@ -82,7 +81,7 @@ public interface Ec2MetadataClient extends SdkAutoCloseable {
          * @param builder the builder to used to retrieve an instance.
          * @return a reference to this builder
          */
-        Builder httpClient(DefaultSdkHttpClientBuilder builder);
+        Builder httpClient(SdkHttpClient.Builder<?> builder);
     }
 
 }

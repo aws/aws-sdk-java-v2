@@ -61,7 +61,8 @@ class LargeAsyncRequestTest {
             bytes[i] = (byte) (i % 128);
         }
         String ec2MetadataContent = new String(bytes, StandardCharsets.US_ASCII);
-        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody("some-token")));
+        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(
+            aResponse().withBody("some-token").withHeader(EC2_METADATA_TOKEN_TTL_HEADER, "21600")));
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody(ec2MetadataContent)));
 
         try (Ec2MetadataAsyncClient client =

@@ -68,7 +68,8 @@ abstract class BaseEc2MetadataClientTest<T, B extends Ec2MetadataClientBuilder<B
 
     @Test
     void get_successOnFirstTry_shouldNotRetryAndSucceed() {
-        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody("some-token")));
+        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(
+            aResponse().withBody("some-token").withHeader(EC2_METADATA_TOKEN_TTL_HEADER, "21600")));
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody("{}")));
         successAssertions(AMI_ID_RESOURCE, response -> {
             assertThat(response.asString()).isEqualTo("{}");
@@ -81,7 +82,8 @@ abstract class BaseEc2MetadataClientTest<T, B extends Ec2MetadataClientBuilder<B
 
     @Test
     void get_failsEverytime_shouldRetryAndFails() {
-        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody("some-token")));
+        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(
+            aResponse().withBody("some-token").withHeader(EC2_METADATA_TOKEN_TTL_HEADER, "21600")));
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withStatus(500).withBody("Error 500")));
         failureAssertions(AMI_ID_RESOURCE, SdkClientException.class, ex -> {
             verify(exactly(1), putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
@@ -93,7 +95,8 @@ abstract class BaseEc2MetadataClientTest<T, B extends Ec2MetadataClientBuilder<B
 
     @Test
     void get_returnsStatus4XX_shouldFailsAndNotRetry() {
-        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody("some-token")));
+        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(
+            aResponse().withBody("some-token").withHeader(EC2_METADATA_TOKEN_TTL_HEADER, "21600")));
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withStatus(400).withBody("error")));
         failureAssertions(AMI_ID_RESOURCE, SdkClientException.class, ex -> {
             verify(exactly(1), putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
@@ -105,7 +108,8 @@ abstract class BaseEc2MetadataClientTest<T, B extends Ec2MetadataClientBuilder<B
 
     @Test
     void get_failsOnceThenSucceed_withCustomClient_shouldSucceed() {
-        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody("some-token")));
+        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(
+            aResponse().withBody("some-token").withHeader(EC2_METADATA_TOKEN_TTL_HEADER, "21600")));
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE))
                     .inScenario("Retry Scenario")
                     .whenScenarioStateIs(STARTED)
@@ -163,7 +167,10 @@ abstract class BaseEc2MetadataClientTest<T, B extends Ec2MetadataClientBuilder<B
                                                         .willSetStateTo("Cause Success"));
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).inScenario("Retry Scenario")
                                                         .whenScenarioStateIs("Cause Success")
-                                                        .willReturn(aResponse().withBody("some-token")));
+                                                        .willReturn(
+                                                            aResponse()
+                                                                .withBody("some-token")
+                                                                .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, "21600")));
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).inScenario("Retry Scenario")
                                                     .whenScenarioStateIs("Cause Success")
                                                     .willReturn(aResponse().withBody("Success")));
@@ -238,7 +245,8 @@ abstract class BaseEc2MetadataClientTest<T, B extends Ec2MetadataClientBuilder<B
 
     @Test
     void get_tokenExpiresWhileRetrying_shouldSucceedWithNewToken() {
-        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withStatus(200).withBody("some-token")));
+        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(
+            aResponse().withBody("some-token").withHeader(EC2_METADATA_TOKEN_TTL_HEADER, "2")));
 
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).inScenario("Retry Scenario")
                                                     .whenScenarioStateIs(STARTED)
@@ -276,7 +284,34 @@ abstract class BaseEc2MetadataClientTest<T, B extends Ec2MetadataClientBuilder<B
             verify(exactly(4), getRequestedFor(urlPathEqualTo(AMI_ID_RESOURCE))
                 .withHeader(TOKEN_HEADER, equalTo("some-token")));
         });
+    }
 
+    @Test
+    void getToken_responseWithoutTtlHeaders_shouldFailAfterRetries() {
+        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(
+            aResponse().withBody("some-token"))); // no EC2_METADATA_TOKEN_TTL_HEADER header
+        stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withStatus(200).withBody("some-value")));
+        failureAssertions(AMI_ID_RESOURCE, SdkClientException.class, e -> {
+            verify(exactly(4), putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+                .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
+            verify(exactly(0), getRequestedFor(urlPathEqualTo(AMI_ID_RESOURCE))
+                .withHeader(TOKEN_HEADER, equalTo("some-token")));
+        });
+    }
+
+    @Test
+    void getToken_responseTtlHeadersNotANumber_shouldFailAfterRetries() {
+        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody("some-token")));
+        stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withStatus(200).withBody("some-value")));
+        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(
+            aResponse().withBody("some-token").withHeader(EC2_METADATA_TOKEN_TTL_HEADER, "not-a-number")));
+        stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withStatus(200).withBody("some-value")));
+        failureAssertions(AMI_ID_RESOURCE, SdkClientException.class, e -> {
+            verify(exactly(4), putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+                .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
+            verify(exactly(0), getRequestedFor(urlPathEqualTo(AMI_ID_RESOURCE))
+                .withHeader(TOKEN_HEADER, equalTo("some-token")));
+        });
     }
 
 }

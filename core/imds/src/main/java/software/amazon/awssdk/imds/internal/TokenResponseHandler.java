@@ -18,23 +18,20 @@ package software.amazon.awssdk.imds.internal;
 import static software.amazon.awssdk.imds.internal.RequestMarshaller.EC2_METADATA_TOKEN_TTL_HEADER;
 
 import java.time.Duration;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
-import software.amazon.awssdk.utils.Logger;
 
 @SdkInternalApi
 public final class TokenResponseHandler implements HttpResponseHandler<Token> {
-    private static final Logger log = Logger.loggerFor(TokenResponseHandler.class);
-
-    private final long ttlSeconds;
 
     private final StringResponseHandler delegateHandler;
 
-    public TokenResponseHandler(long ttlSeconds) {
-        this.ttlSeconds = ttlSeconds;
+    public TokenResponseHandler() {
         this.delegateHandler = new StringResponseHandler();
     }
 
@@ -45,16 +42,21 @@ public final class TokenResponseHandler implements HttpResponseHandler<Token> {
     @Override
     public Token handle(SdkHttpFullResponse response, ExecutionAttributes executionAttributes) throws Exception {
         String tokenValue = delegateHandler.handle(response, executionAttributes);
-        Duration ttl = response.firstMatchingHeader(EC2_METADATA_TOKEN_TTL_HEADER)
-                               .map(Long::parseLong)
-                               .map(Duration::ofSeconds)
-                               .orElseGet(() -> {
-                                   log.warn(() -> String.format("No %s header in response from token request. Local token will "
-                                                                + "use ttl passed in to the request.",
-                                                                EC2_METADATA_TOKEN_TTL_HEADER));
-                                   return Duration.ofSeconds(ttlSeconds);
-                               });
-        return new Token(tokenValue, ttl);
-    }
+        Optional<String> ttl = response.firstMatchingHeader(EC2_METADATA_TOKEN_TTL_HEADER);
 
+        if (!ttl.isPresent()) {
+            delegateHandler.getFuture().completeExceptionally(
+                RetryableException.create(EC2_METADATA_TOKEN_TTL_HEADER + " header not found in token response"));
+            return null;
+        }
+        Duration ttlDuration;
+        try {
+            ttlDuration = Duration.ofSeconds(Long.parseLong(ttl.get()));
+        } catch (NumberFormatException nfe) {
+            delegateHandler.getFuture().completeExceptionally(
+                RetryableException.create("Invalid token format received from IMDS server", nfe));
+            return null;
+        }
+        return new Token(tokenValue, ttlDuration);
+    }
 }

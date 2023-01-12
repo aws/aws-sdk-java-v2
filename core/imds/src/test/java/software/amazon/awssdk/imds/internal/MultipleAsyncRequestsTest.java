@@ -60,7 +60,8 @@ class MultipleAsyncRequestsTest {
         int totalRequests = 128;
         String tokenValue = "some-token";
 
-        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody(tokenValue)));
+        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(
+            aResponse().withBody(tokenValue).withHeader(EC2_METADATA_TOKEN_TTL_HEADER, "21600")));
         for (int i = 0; i < totalRequests; i++) {
             ResponseDefinitionBuilder responseStub = aResponse().withStatus(200).withBody("response::" + i);
             stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE + "/" + i)).willReturn(responseStub));
