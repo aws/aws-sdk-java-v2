@@ -40,7 +40,6 @@ import software.amazon.awssdk.imds.Ec2MetadataAsyncClient;
 import software.amazon.awssdk.imds.Ec2MetadataResponse;
 import software.amazon.awssdk.imds.Ec2MetadataRetryPolicy;
 import software.amazon.awssdk.imds.EndpointMode;
-import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Either;
 import software.amazon.awssdk.utils.Logger;
@@ -70,7 +69,7 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
         this.httpClient = Either
             .fromNullable(builder.httpClient, builder.httpClientBuilder)
             .map(e -> e.map(Function.identity(), SdkAsyncHttpClient.Builder::build))
-            .orElseGet(() -> new DefaultSdkAsyncHttpClientBuilder().buildWithDefaults(AttributeMap.empty()));
+            .orElseGet(() -> new DefaultSdkAsyncHttpClientBuilder().buildWithDefaults(IMDS_HTTP_DEFAULTS));
         this.httpClientIsInternal = builder.httpClient == null;
 
         this.asyncRetryScheduler = Validate.getOrDefault(
