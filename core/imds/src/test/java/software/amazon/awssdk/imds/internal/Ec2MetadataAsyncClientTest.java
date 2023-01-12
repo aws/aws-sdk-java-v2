@@ -23,6 +23,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
 import static org.junit.jupiter.api.Assertions.fail;
 import static software.amazon.awssdk.imds.TestConstants.AMI_ID_RESOURCE;
@@ -38,6 +39,7 @@ import java.util.function.Consumer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkAsyncHttpClientBuilder;
+import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.imds.Ec2MetadataAsyncClient;
 import software.amazon.awssdk.imds.Ec2MetadataResponse;
 
@@ -118,6 +120,15 @@ class Ec2MetadataAsyncClientTest extends BaseEc2MetadataClientTest<Ec2MetadataAs
         CompletableFuture<Ec2MetadataResponse> responseFuture = buildClient.get(AMI_ID_RESOURCE);
         Ec2MetadataResponse response = responseFuture.join();
         assertThat(response.asString()).isEqualTo("some-value");
+    }
+
+    @Test
+    void builder_httpClientAndHttpBuilder_shouldThrowException() {
+        assertThatThrownBy(() -> Ec2MetadataAsyncClient.builder()
+                                                       .httpClient(new DefaultSdkAsyncHttpClientBuilder())
+                                                       .httpClient(NettyNioAsyncHttpClient.create())
+                                                       .build())
+            .isInstanceOf(IllegalArgumentException.class);
     }
 
 }
