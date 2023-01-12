@@ -78,7 +78,7 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
         this.dualstackEnabled = FieldWithDefault.create(builder.dualstackEnabled, DEFAULT_DUALSTACK_ENABLED);
         this.accelerateModeEnabled = FieldWithDefault.create(builder.accelerateModeEnabled, DEFAULT_ACCELERATE_MODE_ENABLED);
         this.pathStyleAccessEnabled = FieldWithDefault.create(builder.pathStyleAccessEnabled, DEFAULT_PATH_STYLE_ACCESS_ENABLED);
-        this.checksumValidationEnabled =  FieldWithDefault.create(builder.checksumValidationEnabled,
+        this.checksumValidationEnabled = FieldWithDefault.create(builder.checksumValidationEnabled,
                                                                  DEFAULT_CHECKSUM_VALIDATION_ENABLED);
         this.chunkedEncodingEnabled = FieldWithDefault.create(builder.chunkedEncodingEnabled, DEFAULT_CHUNKED_ENCODING_ENABLED);
         this.profileFile = FieldWithDefault.create(builder.profileFile, ProfileFile::defaultProfileFile);
