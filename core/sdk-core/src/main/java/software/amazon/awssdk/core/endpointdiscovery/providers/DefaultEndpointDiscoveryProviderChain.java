@@ -30,7 +30,9 @@ public class DefaultEndpointDiscoveryProviderChain extends EndpointDiscoveryProv
     }
 
     public DefaultEndpointDiscoveryProviderChain(SdkClientConfiguration clientConfiguration) {
-        this(() -> clientConfiguration.option(SdkClientOption.PROFILE_FILE),
+        this(clientConfiguration.option(SdkClientOption.PROFILE_FILE_SUPPLIER) != null ?
+             clientConfiguration.option(SdkClientOption.PROFILE_FILE_SUPPLIER) :
+             () -> clientConfiguration.option(SdkClientOption.PROFILE_FILE),
               clientConfiguration.option(SdkClientOption.PROFILE_NAME));
     }
 

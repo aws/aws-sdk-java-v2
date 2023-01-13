@@ -40,7 +40,9 @@ final class KinesisRetryPolicy {
         }
 
         RetryMode retryMode = RetryMode.resolver()
-                                       .profileFile(() -> config.option(SdkClientOption.PROFILE_FILE))
+                                       .profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER) != null ?
+                                                    config.option(SdkClientOption.PROFILE_FILE_SUPPLIER) :
+                                                    () -> config.option(SdkClientOption.PROFILE_FILE))
                                        .profileName(config.option(SdkClientOption.PROFILE_NAME))
                                        .defaultRetryMode(config.option(SdkClientOption.DEFAULT_RETRY_MODE))
                                        .resolve();

@@ -36,6 +36,7 @@ import static software.amazon.awssdk.core.client.config.SdkClientOption.EXECUTIO
 import static software.amazon.awssdk.core.client.config.SdkClientOption.INTERNAL_USER_AGENT;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.METRIC_PUBLISHERS;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.PROFILE_FILE;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.PROFILE_FILE_SUPPLIER;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.PROFILE_NAME;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_POLICY;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.SCHEDULED_EXECUTOR_SERVICE;
@@ -86,6 +87,7 @@ import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.profiles.ProfileFileSupplier;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Either;
@@ -231,6 +233,9 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         builder.option(DISABLE_HOST_PREFIX_INJECTION,
                        clientOverrideConfiguration.advancedOption(DISABLE_HOST_PREFIX_INJECTION).orElse(null));
         builder.option(PROFILE_FILE, clientOverrideConfiguration.defaultProfileFile().orElse(null));
+        builder.option(PROFILE_FILE_SUPPLIER, clientOverrideConfiguration.defaultProfileFile()
+                                                                         .map(ProfileFileSupplier::fixedProfileFile)
+                                                                         .orElse(null));
         builder.option(PROFILE_NAME, clientOverrideConfiguration.defaultProfileName().orElse(null));
         builder.option(METRIC_PUBLISHERS, clientOverrideConfiguration.metricPublishers());
         builder.option(EXECUTION_ATTRIBUTES, clientOverrideConfiguration.executionAttributes());
@@ -261,11 +266,15 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     private SdkClientConfiguration mergeGlobalDefaults(SdkClientConfiguration configuration) {
         // Don't load the default profile file if the customer already gave us one.
         ProfileFile configuredProfileFile = configuration.option(PROFILE_FILE);
-        ProfileFile profileFile = configuredProfileFile != null ? configuredProfileFile : ProfileFile.defaultProfileFile();
+        ProfileFile profileFile = Optional.ofNullable(configuredProfileFile).orElse(ProfileFile.defaultProfileFile());
+
+        Supplier<ProfileFile> configuredProfileFileSupplier = configuration.option(PROFILE_FILE_SUPPLIER);
+        Supplier<ProfileFile> profileFileSupplier = Optional.ofNullable(configuredProfileFileSupplier).orElse(() -> profileFile);
 
         return configuration.merge(c -> c.option(EXECUTION_INTERCEPTORS, new ArrayList<>())
                                          .option(ADDITIONAL_HTTP_HEADERS, new LinkedHashMap<>())
                                          .option(PROFILE_FILE, profileFile)
+                                         .option(PROFILE_FILE_SUPPLIER, profileFileSupplier)
                                          .option(PROFILE_NAME, ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow())
                                          .option(USER_AGENT_PREFIX, SdkUserAgent.create().userAgent())
                                          .option(USER_AGENT_SUFFIX, "")
@@ -330,7 +339,9 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         }
 
         RetryMode retryMode = RetryMode.resolver()
-                                       .profileFile(() -> config.option(SdkClientOption.PROFILE_FILE))
+                                       .profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER) != null ?
+                                                    config.option(SdkClientOption.PROFILE_FILE_SUPPLIER) :
+                                                    () -> config.option(SdkClientOption.PROFILE_FILE))
                                        .profileName(config.option(SdkClientOption.PROFILE_NAME))
                                        .defaultRetryMode(config.option(SdkClientOption.DEFAULT_RETRY_MODE))
                                        .resolve();

@@ -60,8 +60,8 @@ public class SsoOidcProfileTokenProviderFactoryTest {
     void create_throwsExceptionIfRegionNotPassed() {
         String startUrl = "https://my-start-url.com";
         Assertions.assertThatExceptionOfType(NullPointerException.class).isThrownBy(
-            () -> SdkTokenProviderFactoryProperties.builder().
-                                                   startUrl(startUrl)
+            () -> SdkTokenProviderFactoryProperties.builder()
+                                                   .startUrl(startUrl)
                                                    .build()
         ).withMessage("region must not be null.");
     }
@@ -71,8 +71,8 @@ public class SsoOidcProfileTokenProviderFactoryTest {
         String region = "test-region";
 
         Assertions.assertThatExceptionOfType(NullPointerException.class).isThrownBy(
-            () -> SdkTokenProviderFactoryProperties.builder().
-                                                   region(region)
+            () -> SdkTokenProviderFactoryProperties.builder()
+                                                   .region(region)
                                                    .build()
         ).withMessage("startUrl must not be null.");
     }
@@ -90,6 +90,22 @@ public class SsoOidcProfileTokenProviderFactoryTest {
                                           .build();
         SdkTokenProvider sdkTokenProvider = new SsoOidcProfileTokenProviderFactory().create(profiles,
                                                                                             profiles.profile("ssotoken").get());
+        Assertions.assertThat(sdkTokenProvider).isNotNull();
+
+    }
+
+    @Test
+    void create_SsooidcTokenProvider_from_SsooidcSpecificProfileSupplier() {
+        String profileContent = "[profile ssotoken]\n" +
+                                "sso_session=admin\n" +
+                                "[sso-session admin]\n" +
+                                "sso_region=us-east-1\n" +
+                                "sso_start_url= https://start-url\n";
+        ProfileFile profiles = ProfileFile.builder()
+                                          .content(new StringInputStream(profileContent))
+                                          .type(ProfileFile.Type.CONFIGURATION)
+                                          .build();
+        SdkTokenProvider sdkTokenProvider = new SsoOidcProfileTokenProviderFactory().create(() -> profiles,"ssotoken");
         Assertions.assertThat(sdkTokenProvider).isNotNull();
 
     }
@@ -123,6 +139,22 @@ public class SsoOidcProfileTokenProviderFactoryTest {
 
         Assertions.assertThatExceptionOfType(IllegalStateException.class)
                   .isThrownBy(() -> new SsoOidcProfileTokenProviderFactory().create(profiles, profiles.profile("sso").get()));
+
+    }
+
+    @Test
+    void create_SsooidcTokenProvider_with_ssoRoleNameInProfileSupplier() {
+        String profileContent = "[profile sso]\n" +
+                                "sso_region=us-east-1\n" +
+                                "sso_role_name=ssoSpecificRole\n" +
+                                "sso_start_url= https://start-url\n";
+        ProfileFile profiles = ProfileFile.builder()
+                                          .content(new StringInputStream(profileContent))
+                                          .type(ProfileFile.Type.CONFIGURATION)
+                                          .build();
+
+        Assertions.assertThatNoException()
+                  .isThrownBy(() -> new SsoOidcProfileTokenProviderFactory().create(() -> profiles, "sso"));
 
     }
 
