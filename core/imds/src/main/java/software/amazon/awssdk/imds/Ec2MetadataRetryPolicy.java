@@ -38,7 +38,7 @@ public final class Ec2MetadataRetryPolicy implements ToCopyableBuilder<Ec2Metada
     private static final int DEFAULT_RETRY_ATTEMPTS = 3;
 
     private final BackoffStrategy backoffStrategy;
-    private final int numRetries;
+    private final Integer numRetries;
 
     private Ec2MetadataRetryPolicy(BuilderImpl builder) {
 
@@ -58,7 +58,7 @@ public final class Ec2MetadataRetryPolicy implements ToCopyableBuilder<Ec2Metada
         }
         Ec2MetadataRetryPolicy ec2MetadataRetryPolicy = (Ec2MetadataRetryPolicy) obj;
 
-        if (numRetries != ec2MetadataRetryPolicy.numRetries) {
+        if (!Objects.equals(numRetries, ec2MetadataRetryPolicy.numRetries)) {
             return false;
         }
         return Objects.equals(backoffStrategy, ec2MetadataRetryPolicy.backoffStrategy);
@@ -122,8 +122,6 @@ public final class Ec2MetadataRetryPolicy implements ToCopyableBuilder<Ec2Metada
          */
         Builder numRetries(Integer numRetries);
 
-        @Override
-        Ec2MetadataRetryPolicy build();
     }
 
     private static final class BuilderImpl implements Builder {

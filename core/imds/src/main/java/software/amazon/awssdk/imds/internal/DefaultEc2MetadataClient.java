@@ -24,6 +24,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -38,9 +40,10 @@ import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.HttpStatusFamily;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.imds.Ec2MetadataClient;
+import software.amazon.awssdk.imds.Ec2MetadataResponse;
 import software.amazon.awssdk.imds.Ec2MetadataRetryPolicy;
 import software.amazon.awssdk.imds.EndpointMode;
-import software.amazon.awssdk.imds.MetadataResponse;
+import software.amazon.awssdk.utils.Either;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.cache.CachedSupplier;
@@ -62,13 +65,19 @@ public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implem
 
     private DefaultEc2MetadataClient(Ec2MetadataBuilder builder) {
         super(builder);
-        this.httpClient = Validate.getOrDefault(builder.httpClient,
-                                                () -> new DefaultSdkHttpClientBuilder().buildWithDefaults(IMDS_HTTP_DEFAULTS));
+
+        Validate.isTrue(builder.httpClient == null || builder.httpClientBuilder == null,
+                        "The httpClient and the httpClientBuilder can't both be configured.");
+        this.httpClient = Either
+            .fromNullable(builder.httpClient, builder.httpClientBuilder)
+            .map(e -> e.map(Function.identity(), SdkHttpClient.Builder::build))
+            .orElseGet(() -> new DefaultSdkHttpClientBuilder().buildWithDefaults(IMDS_HTTP_DEFAULTS));
+        this.httpClientIsInternal = builder.httpClient == null;
+
         this.tokenCache = CachedSupplier.builder(() -> RefreshResult.builder(this.getToken())
                                                                     .staleTime(Instant.now().plus(tokenTtl))
                                                                     .build())
                                         .build();
-        this.httpClientIsInternal = builder.httpClient == null;
     }
 
     @Override
@@ -94,7 +103,7 @@ public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implem
      *                            request.
      */
     @Override
-    public MetadataResponse get(String path) {
+    public Ec2MetadataResponse get(String path) {
         Throwable lastCause = null;
         // 3 retries means 4 total attempts
         Token token = null;
@@ -133,7 +142,7 @@ public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implem
         throw sdkClientExceptionBuilder.build();
     }
 
-    private MetadataResponse sendRequest(String path, String token) throws IOException {
+    private Ec2MetadataResponse sendRequest(String path, String token) throws IOException {
 
         HttpExecuteRequest httpExecuteRequest =
             HttpExecuteRequest.builder()
@@ -165,7 +174,7 @@ public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implem
         AbortableInputStream abortableInputStream = responseBody.orElseThrow(
             SdkClientException.builder().message("Response body empty with Status Code " + statusCode)::build);
         String data = uncheckedInputStreamToUtf8(abortableInputStream);
-        return MetadataResponse.create(data);
+        return Ec2MetadataResponse.create(data);
     }
 
     private void pauseBeforeRetryIfNeeded(RetryPolicyContext retryPolicyContext) {
@@ -210,20 +219,27 @@ public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implem
                                     .build();
         }
 
-        Duration ttl = response.httpResponse()
-                               .firstMatchingHeader(EC2_METADATA_TOKEN_TTL_HEADER)
-                               .map(Long::parseLong)
-                               .map(Duration::ofSeconds)
-                               .orElse(tokenTtl);
+        String ttl = response.httpResponse()
+                             .firstMatchingHeader(EC2_METADATA_TOKEN_TTL_HEADER)
+                             .orElseThrow(() -> SdkClientException
+                                 .builder()
+                                 .message(EC2_METADATA_TOKEN_TTL_HEADER + " header not found in token response")
+                                 .build());
+        Duration ttlDuration;
+        try {
+            ttlDuration = Duration.ofSeconds(Long.parseLong(ttl));
+        } catch (NumberFormatException nfe) {
+            throw SdkClientException.create("Invalid token format received from IMDS server", nfe);
+        }
 
         AbortableInputStream abortableInputStream = response.responseBody().orElseThrow(
             SdkClientException.builder().message("Empty response body")::build);
 
         String value = uncheckedInputStreamToUtf8(abortableInputStream);
-        return new Token(value, ttl);
+        return new Token(value, ttlDuration);
     }
 
-    private static final class Ec2MetadataBuilder implements Ec2MetadataClient.Builder {
+    protected static final class Ec2MetadataBuilder implements Ec2MetadataClient.Builder {
 
         private Ec2MetadataRetryPolicy retryPolicy;
 
@@ -235,6 +251,7 @@ public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implem
 
         private SdkHttpClient httpClient;
 
+        private SdkHttpClient.Builder<?> httpClientBuilder;
 
         private Ec2MetadataBuilder() {
         }
@@ -243,6 +260,14 @@ public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implem
         public Ec2MetadataBuilder retryPolicy(Ec2MetadataRetryPolicy retryPolicy) {
             this.retryPolicy = retryPolicy;
             return this;
+        }
+
+        @Override
+        public Builder retryPolicy(Consumer<Ec2MetadataRetryPolicy.Builder> builderConsumer) {
+            Validate.notNull(builderConsumer, "builderConsumer must not be null");
+            Ec2MetadataRetryPolicy.Builder builder = Ec2MetadataRetryPolicy.builder();
+            builderConsumer.accept(builder);
+            return retryPolicy(builder.build());
         }
 
         @Override
@@ -270,21 +295,23 @@ public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implem
         }
 
         @Override
+        public Builder httpClient(SdkHttpClient.Builder<?> builder) {
+            this.httpClientBuilder = builder;
+            return this;
+        }
+
         public Ec2MetadataRetryPolicy getRetryPolicy() {
             return this.retryPolicy;
         }
 
-        @Override
         public URI getEndpoint() {
             return this.endpoint;
         }
 
-        @Override
         public Duration getTokenTtl() {
             return this.tokenTtl;
         }
 
-        @Override
         public EndpointMode getEndpointMode() {
             return this.endpointMode;
         }

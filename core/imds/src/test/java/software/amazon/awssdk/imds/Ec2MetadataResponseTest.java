@@ -29,14 +29,14 @@ import software.amazon.awssdk.thirdparty.jackson.core.JsonParseException;
 /**
  * The class tests the utility methods provided by MetadataResponse Class .
  */
-class MetadataResponseTest {
+class Ec2MetadataResponseTest {
 
     @Test
     void check_asString_success() {
 
         String response = "foobar";
 
-        MetadataResponse metadataResponse = MetadataResponse.create(response);
+        Ec2MetadataResponse metadataResponse = Ec2MetadataResponse.create(response);
         String result = metadataResponse.asString();
         assertThat(result).isEqualTo(response);
 
@@ -44,7 +44,7 @@ class MetadataResponseTest {
 
     @Test
     void check_asString_failure() {
-        assertThatThrownBy(() -> MetadataResponse.create(null)).isInstanceOf(NullPointerException.class);
+        assertThatThrownBy(() -> Ec2MetadataResponse.create(null)).isInstanceOf(NullPointerException.class);
     }
 
     @Test
@@ -52,7 +52,7 @@ class MetadataResponseTest {
 
         String response = "sai\ntest";
 
-        MetadataResponse metadataResponse = MetadataResponse.create(response);
+        Ec2MetadataResponse metadataResponse = Ec2MetadataResponse.create(response);
         List<String> result = metadataResponse.asList();
         assertThat(result).hasSize(2);
     }
@@ -62,7 +62,7 @@ class MetadataResponseTest {
 
         String response = "test1-test2";
 
-        MetadataResponse metadataResponse = MetadataResponse.create(response);
+        Ec2MetadataResponse metadataResponse = Ec2MetadataResponse.create(response);
         List<String> result = metadataResponse.asList();
         assertThat(result).hasSize(1);
     }
@@ -74,7 +74,7 @@ class MetadataResponseTest {
                               + "\"devpayProductCodes\":[\"bar\",\"foo\"]"
                               + "}";
 
-        MetadataResponse metadataResponse = MetadataResponse.create(jsonResponse);
+        Ec2MetadataResponse metadataResponse = Ec2MetadataResponse.create(jsonResponse);
         Document document = metadataResponse.asDocument();
         Map<String, Document> expectedMap = new LinkedHashMap<>();
 
@@ -91,14 +91,14 @@ class MetadataResponseTest {
     @Test
     void toDocument_nonJsonFormat_ExpectIllegalArgument() {
         String malformed = "this is not json";
-        MetadataResponse metadataResponse = MetadataResponse.create(malformed);
+        Ec2MetadataResponse metadataResponse = Ec2MetadataResponse.create(malformed);
         assertThatThrownBy(metadataResponse::asDocument).getCause().isInstanceOf(JsonParseException.class);
     }
 
     @Test
     void equals_hasCode() {
-        MetadataResponse metadataResponse = MetadataResponse.create("Line 1");
-        assertThat(metadataResponse).isEqualTo(MetadataResponse.create("Line 1"))
+        Ec2MetadataResponse metadataResponse = Ec2MetadataResponse.create("Line 1");
+        assertThat(metadataResponse).isEqualTo(Ec2MetadataResponse.create("Line 1"))
                                     .hasSameHashCodeAs("Line 1");
         assertThat(metadataResponse.equals(null)).isFalse();
     }

@@ -15,17 +15,25 @@
 
 package software.amazon.awssdk.imds.internal;
 
+import static software.amazon.awssdk.imds.internal.BaseEc2MetadataClient.uncheckedInputStreamToUtf8;
+import static software.amazon.awssdk.imds.internal.RequestMarshaller.EC2_METADATA_TOKEN_TTL_HEADER;
+
 import java.time.Duration;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.exception.RetryableException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.internal.http.TransformingAsyncResponseHandler;
 import software.amazon.awssdk.core.internal.http.async.AsyncResponseHandler;
 import software.amazon.awssdk.core.internal.http.async.SimpleHttpContentPublisher;
+import software.amazon.awssdk.http.AbortableInputStream;
+import software.amazon.awssdk.http.HttpStatusFamily;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
@@ -41,28 +49,22 @@ final class AsyncHttpRequestHelper {
     public static CompletableFuture<String> sendAsyncMetadataRequest(SdkAsyncHttpClient httpClient,
                                                                      SdkHttpFullRequest baseRequest,
                                                                      CompletableFuture<?> parentFuture) {
-        StringResponseHandler stringResponseHandler = new StringResponseHandler();
-        return sendAsync(httpClient, baseRequest, stringResponseHandler, stringResponseHandler::setFuture, parentFuture);
+        return sendAsync(httpClient, baseRequest, AsyncHttpRequestHelper::handleResponse, parentFuture);
     }
 
-    public static CompletableFuture<Token> sendAsyncTokenRequest(Duration ttlSeconds,
-                                                                 SdkAsyncHttpClient httpClient,
+    public static CompletableFuture<Token> sendAsyncTokenRequest(SdkAsyncHttpClient httpClient,
                                                                  SdkHttpFullRequest baseRequest) {
-        TokenResponseHandler tokenResponseHandler = new TokenResponseHandler(ttlSeconds.getSeconds());
-        return sendAsync(httpClient, baseRequest, tokenResponseHandler, tokenResponseHandler::setFuture, null);
+        return sendAsync(httpClient, baseRequest, AsyncHttpRequestHelper::handleTokenResponse, null);
     }
 
-    static <T> CompletableFuture<T> sendAsync(SdkAsyncHttpClient client,
-                                              SdkHttpFullRequest request,
-                                              HttpResponseHandler<T> handler,
-                                              Consumer<CompletableFuture<T>> withFuture,
-                                              CompletableFuture<?> parentFuture) {
+    private static <T> CompletableFuture<T> sendAsync(SdkAsyncHttpClient client,
+                                                      SdkHttpFullRequest request,
+                                                      HttpResponseHandler<T> handler,
+                                                      CompletableFuture<?> parentFuture) {
         SdkHttpContentPublisher requestContentPublisher = new SimpleHttpContentPublisher(request);
-        TransformingAsyncResponseHandler<T> responseHandler = new AsyncResponseHandler<>(handler,
-                                                                                             Function.identity(),
-                                                                                             new ExecutionAttributes());
+        TransformingAsyncResponseHandler<T> responseHandler =
+            new AsyncResponseHandler<>(handler, Function.identity(), new ExecutionAttributes());
         CompletableFuture<T> responseHandlerFuture = responseHandler.prepare();
-        withFuture.accept(responseHandlerFuture);
         AsyncExecuteRequest metadataRequest = AsyncExecuteRequest.builder()
                                                                  .request(request)
                                                                  .requestContentPublisher(requestContentPublisher)
@@ -74,7 +76,39 @@ final class AsyncHttpRequestHelper {
             CompletableFutureUtils.forwardExceptionTo(parentFuture, responseHandlerFuture);
         }
         return responseHandlerFuture;
-
     }
 
+    private static String handleResponse(SdkHttpFullResponse response, ExecutionAttributes executionAttributes) {
+        HttpStatusFamily statusCode = HttpStatusFamily.of(response.statusCode());
+        AbortableInputStream inputStream =
+            response.content().orElseThrow(() -> SdkClientException.create("Unexpected error: empty response content"));
+        String responseContent = uncheckedInputStreamToUtf8(inputStream);
+
+        // non-retryable error
+        if (statusCode.isOneOf(HttpStatusFamily.CLIENT_ERROR)) {
+            throw SdkClientException.builder().message(responseContent).build();
+        }
+
+        // retryable error
+        if (statusCode.isOneOf(HttpStatusFamily.SERVER_ERROR)) {
+            throw RetryableException.create(responseContent);
+        }
+        return responseContent;
+    }
+
+    private static Token handleTokenResponse(SdkHttpFullResponse response, ExecutionAttributes executionAttributes) {
+        String tokenValue = handleResponse(response, executionAttributes);
+        Optional<String> ttl = response.firstMatchingHeader(EC2_METADATA_TOKEN_TTL_HEADER);
+
+        if (!ttl.isPresent()) {
+            throw SdkClientException.create(EC2_METADATA_TOKEN_TTL_HEADER + " header not found in token response");
+        }
+        try {
+            Duration ttlDuration = Duration.ofSeconds(Long.parseLong(ttl.get()));
+            return new Token(tokenValue, ttlDuration);
+        } catch (NumberFormatException nfe) {
+            throw SdkClientException.create(
+                "Invalid token format received from IMDS server. Token received:  " + tokenValue, nfe);
+        }
+    }
 }

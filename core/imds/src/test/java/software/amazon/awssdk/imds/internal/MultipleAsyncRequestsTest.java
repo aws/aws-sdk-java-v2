@@ -43,7 +43,7 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.imds.Ec2MetadataAsyncClient;
-import software.amazon.awssdk.imds.MetadataResponse;
+import software.amazon.awssdk.imds.Ec2MetadataResponse;
 
 @WireMockTest
 class MultipleAsyncRequestsTest {
@@ -60,7 +60,8 @@ class MultipleAsyncRequestsTest {
         int totalRequests = 128;
         String tokenValue = "some-token";
 
-        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody(tokenValue)));
+        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(
+            aResponse().withBody(tokenValue).withHeader(EC2_METADATA_TOKEN_TTL_HEADER, "21600")));
         for (int i = 0; i < totalRequests; i++) {
             ResponseDefinitionBuilder responseStub = aResponse().withStatus(200).withBody("response::" + i);
             stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE + "/" + i)).willReturn(responseStub));
@@ -68,19 +69,19 @@ class MultipleAsyncRequestsTest {
         Ec2MetadataAsyncClient client = Ec2MetadataAsyncClient.builder()
                                                               .endpoint(URI.create("http://localhost:" + this.port))
                                                               .build();
-        List<CompletableFuture<MetadataResponse>> requests = Stream.iterate(0, x -> x + 1)
-                                                                   .map(i -> client.get(AMI_ID_RESOURCE + "/" + i))
-                                                                   .limit(totalRequests)
-                                                                   .collect(Collectors.toList());
-        CompletableFuture<List<MetadataResponse>> responses = CompletableFuture
+        List<CompletableFuture<Ec2MetadataResponse>> requests = Stream.iterate(0, x -> x + 1)
+                                                                      .map(i -> client.get(AMI_ID_RESOURCE + "/" + i))
+                                                                      .limit(totalRequests)
+                                                                      .collect(Collectors.toList());
+        CompletableFuture<List<Ec2MetadataResponse>> responses = CompletableFuture
             .allOf(requests.toArray(new CompletableFuture[0]))
             .thenApply(unusedVoid -> requests.stream()
                                              .map(CompletableFuture::join)
                                              .collect(Collectors.toList()));
 
-        List<MetadataResponse> resolvedResponses = responses.join();
+        List<Ec2MetadataResponse> resolvedResponses = responses.join();
         for (int i = 0; i < totalRequests; i++) {
-            MetadataResponse response = resolvedResponses.get(i);
+            Ec2MetadataResponse response = resolvedResponses.get(i);
             assertThat(response.asString()).isEqualTo("response::" + i);
         }
         verify(exactly(1), putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))

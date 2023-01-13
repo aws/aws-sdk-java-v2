@@ -30,14 +30,18 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
 public interface Ec2MetadataClient extends SdkAutoCloseable {
 
     /**
-     * Gets the specified instance metadata value by the given path.
+     * Gets the specified instance metadata value by the given path. For more information about instance metadata, check the
+     * <a href=https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html>Instance metadata documentation</a>
+     *
      * @param path  Input path
      * @return Instance metadata value as part of MetadataResponse Object
      */
-    MetadataResponse get(String path);
+    Ec2MetadataResponse get(String path);
 
     /**
      * Create an {@link Ec2MetadataClient} instance using the default values.
+     *
+     * @return the client instance.
      */
     static Ec2MetadataClient create() {
         return builder().build();
@@ -69,6 +73,15 @@ public interface Ec2MetadataClient extends SdkAutoCloseable {
          */
         Builder httpClient(SdkHttpClient httpClient);
 
+        /**
+         * A http client builder used to retrieve an instance of an {@link SdkHttpClient}. If specified, the Ec2 Metadata Client
+         * will use the instance returned by the builder and manage its lifetime by closing the http client once the Ec2 Client
+         * itself is closed.
+         *
+         * @param builder the builder to used to retrieve an instance.
+         * @return a reference to this builder
+         */
+        Builder httpClient(SdkHttpClient.Builder<?> builder);
     }
 
 }

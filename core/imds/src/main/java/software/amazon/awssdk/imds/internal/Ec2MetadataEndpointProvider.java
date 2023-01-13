@@ -61,8 +61,7 @@ public final class Ec2MetadataEndpointProvider {
     /**
      * Resolve the endpoint to be used for the {@link DefaultEc2MetadataClient} client. Users may manually provide an endpoint
      * through the {@code AWS_EC2_METADATA_SERVICE_ENDPOINT} environment variable or the {@code ec2_metadata_service_endpoint}
-     * key in
-     * their aws config file.
+     * key in their aws config file.
      * If an endpoint is specified is this manner, use it. If no value are provide, the defaults to:
      * <ol>
      *     <li>If endpoint mode is set to IPv4: {@code "http://169.254.169.254"}</li>

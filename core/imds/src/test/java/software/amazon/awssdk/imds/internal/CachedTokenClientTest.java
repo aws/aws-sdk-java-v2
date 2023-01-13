@@ -28,6 +28,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static software.amazon.awssdk.imds.TestConstants.EC2_METADATA_TOKEN_TTL_HEADER;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
@@ -37,7 +38,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.imds.Ec2MetadataClient;
-import software.amazon.awssdk.imds.MetadataResponse;
+import software.amazon.awssdk.imds.Ec2MetadataResponse;
 
 @WireMockTest
 class CachedTokenClientTest {
@@ -78,14 +79,16 @@ class CachedTokenClientTest {
                                                         .willSetStateTo("Cause Success"));
         stubFor(put(urlPathEqualTo("/latest/api/token")).inScenario("Retry Scenario")
                                                         .whenScenarioStateIs("Cause Success")
-                                                        .willReturn(aResponse().withBody("token-ok")));
+                                                        .willReturn(aResponse()
+                                                                        .withBody("token-ok")
+                                                                        .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, "21600")));
         stubFor(get(urlPathEqualTo("/latest/meta-data/ami-id")).inScenario("Retry Scenario")
                                                                .whenScenarioStateIs("Cause Success")
                                                                .willReturn(aResponse().withBody("Success")));
 
         // 3 requests
         Ec2MetadataClient client = clientBuilder.build();
-        MetadataResponse response = client.get("/latest/meta-data/ami-id");
+        Ec2MetadataResponse response = client.get("/latest/meta-data/ami-id");
         assertThat(response.asString()).isEqualTo("Success");
         response = client.get("/latest/meta-data/ami-id");
         assertThat(response.asString()).isEqualTo("Success");
@@ -100,7 +103,8 @@ class CachedTokenClientTest {
 
     @Test
     void get_multipleCallsSuccess_shouldReuseToken() throws Exception {
-        stubFor(put(urlPathEqualTo("/latest/api/token")).willReturn(aResponse().withBody("some-token")));
+        stubFor(put(urlPathEqualTo("/latest/api/token")).willReturn(
+            aResponse().withBody("some-token").withHeader(EC2_METADATA_TOKEN_TTL_HEADER, "21600")));
         stubFor(get(urlPathEqualTo("/latest/meta-data/ami-id"))
                     .willReturn(aResponse().withBody("{}").withFixedDelay(800)));
 
@@ -109,7 +113,7 @@ class CachedTokenClientTest {
 
         int totalRequests = 10;
         for (int i = 0; i < totalRequests; i++) {
-            MetadataResponse response = client.get("/latest/meta-data/ami-id");
+            Ec2MetadataResponse response = client.get("/latest/meta-data/ami-id");
             assertThat(response.asString()).isEqualTo("{}");
         }
         verify(exactly(2), putRequestedFor(urlPathEqualTo("/latest/api/token"))

@@ -41,7 +41,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.imds.Ec2MetadataAsyncClient;
-import software.amazon.awssdk.imds.MetadataResponse;
+import software.amazon.awssdk.imds.Ec2MetadataResponse;
 
 @WireMockTest
 class LargeAsyncRequestTest {
@@ -61,7 +61,8 @@ class LargeAsyncRequestTest {
             bytes[i] = (byte) (i % 128);
         }
         String ec2MetadataContent = new String(bytes, StandardCharsets.US_ASCII);
-        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody("some-token")));
+        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(
+            aResponse().withBody("some-token").withHeader(EC2_METADATA_TOKEN_TTL_HEADER, "21600")));
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody(ec2MetadataContent)));
 
         try (Ec2MetadataAsyncClient client =
@@ -69,8 +70,8 @@ class LargeAsyncRequestTest {
                                        .endpoint(URI.create("http://localhost:" + port))
                                        .httpClient(NettyNioAsyncHttpClient.builder().readTimeout(Duration.ofSeconds(30)).build())
                                        .build()) {
-            CompletableFuture<MetadataResponse> res = client.get(AMI_ID_RESOURCE);
-            MetadataResponse response = res.get();
+            CompletableFuture<Ec2MetadataResponse> res = client.get(AMI_ID_RESOURCE);
+            Ec2MetadataResponse response = res.get();
             assertThat(response.asString()).hasSize(size);
             assertThat(response.asString()).isEqualTo(ec2MetadataContent);
             verify(exactly(1), putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))

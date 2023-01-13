@@ -23,9 +23,11 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
 import static org.junit.jupiter.api.Assertions.fail;
 import static software.amazon.awssdk.imds.TestConstants.AMI_ID_RESOURCE;
+import static software.amazon.awssdk.imds.TestConstants.EC2_METADATA_TOKEN_TTL_HEADER;
 import static software.amazon.awssdk.imds.TestConstants.TOKEN_RESOURCE_PATH;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
@@ -36,8 +38,10 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.core.internal.http.loader.DefaultSdkAsyncHttpClientBuilder;
+import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.imds.Ec2MetadataAsyncClient;
-import software.amazon.awssdk.imds.MetadataResponse;
+import software.amazon.awssdk.imds.Ec2MetadataResponse;
 
 @WireMockTest
 class Ec2MetadataAsyncClientTest extends BaseEc2MetadataClientTest<Ec2MetadataAsyncClient, Ec2MetadataAsyncClient.Builder> {
@@ -68,8 +72,8 @@ class Ec2MetadataAsyncClientTest extends BaseEc2MetadataClientTest<Ec2MetadataAs
     }
 
     @Override
-    protected void successAssertions(String path, Consumer<MetadataResponse> assertions) {
-        CompletableFuture<MetadataResponse> response = client.get(path);
+    protected void successAssertions(String path, Consumer<Ec2MetadataResponse> assertions) {
+        CompletableFuture<Ec2MetadataResponse> response = client.get(path);
         try {
             assertions.accept(response.join());
         } catch (Exception e) {
@@ -80,7 +84,7 @@ class Ec2MetadataAsyncClientTest extends BaseEc2MetadataClientTest<Ec2MetadataAs
     @Override
     @SuppressWarnings("unchecked") // safe because of assertion: assertThat(ex).getCause().isInstanceOf(exceptionType);
     protected <T extends Throwable> void failureAssertions(String path, Class<T> exceptionType, Consumer<T> assertions) {
-        CompletableFuture<MetadataResponse> future = client.get(path);
+        CompletableFuture<Ec2MetadataResponse> future = client.get(path);
         Throwable ex = catchThrowable(future::join);
         assertThat(future).isCompletedExceptionally();
         assertThat(ex).getCause().isInstanceOf(exceptionType);
@@ -94,7 +98,7 @@ class Ec2MetadataAsyncClientTest extends BaseEc2MetadataClientTest<Ec2MetadataAs
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(
             aResponse().withBody("some-content").withFixedDelay(1000)));
 
-        CompletableFuture<MetadataResponse> responseFuture = client.get(AMI_ID_RESOURCE);
+        CompletableFuture<Ec2MetadataResponse> responseFuture = client.get(AMI_ID_RESOURCE);
         try {
             responseFuture.cancel(true);
             responseFuture.join();
@@ -103,4 +107,28 @@ class Ec2MetadataAsyncClientTest extends BaseEc2MetadataClientTest<Ec2MetadataAs
         }
         verify(0, getRequestedFor(urlPathEqualTo(AMI_ID_RESOURCE)));
     }
+
+    @Test
+    void builder_httpClientWithDefaultBuilder_shouldBuildProperly() {
+        Ec2MetadataAsyncClient buildClient = Ec2MetadataAsyncClient.builder()
+                                                                   .httpClient(new DefaultSdkAsyncHttpClientBuilder())
+                                                                   .endpoint(URI.create("http://localhost:" + port))
+                                                                   .build();
+        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(
+            aResponse().withBody("some-token").withHeader(EC2_METADATA_TOKEN_TTL_HEADER, "21600")));
+        stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody("some-value")));
+        CompletableFuture<Ec2MetadataResponse> responseFuture = buildClient.get(AMI_ID_RESOURCE);
+        Ec2MetadataResponse response = responseFuture.join();
+        assertThat(response.asString()).isEqualTo("some-value");
+    }
+
+    @Test
+    void builder_httpClientAndHttpBuilder_shouldThrowException() {
+        assertThatThrownBy(() -> Ec2MetadataAsyncClient.builder()
+                                                       .httpClient(new DefaultSdkAsyncHttpClientBuilder())
+                                                       .httpClient(NettyNioAsyncHttpClient.create())
+                                                       .build())
+            .isInstanceOf(IllegalArgumentException.class);
+    }
+
 }

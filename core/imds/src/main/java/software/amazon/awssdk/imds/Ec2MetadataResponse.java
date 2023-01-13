@@ -28,28 +28,28 @@ import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * The class is used for response handling and parsing the metadata fetched by the get call in the {@link Ec2MetadataClient}
- * interface.
- * The class provides convenience methods to the users to parse the metadata as a String, List and Document.
+ * This class is used for response handling and parsing the metadata fetched by the get call in the {@link Ec2MetadataClient}
+ * interface. It provides convenience methods to the users to parse the metadata as a String and List. Also provides
+ * ways to parse the metadata as Document type if it is in the json format.
  */
 @SdkPublicApi
-public final class MetadataResponse {
+public final class Ec2MetadataResponse {
 
     private static final JsonNodeParser JSON_NODE_PARSER = JsonNode.parserBuilder().removeErrorLocations(true).build();
     
     private final String body;
 
-    private MetadataResponse(String body) {
+    private Ec2MetadataResponse(String body) {
         this.body = Validate.notNull(body, "Metadata is null");
     }
 
     /**
-     * Create a {@link MetadataResponse} with the given body as it's content.
+     * Create a {@link Ec2MetadataResponse} with the given body as it's content.
      * @param body the content of the response
-     * @return a {@link MetadataResponse} with the given body as it's content.
+     * @return a {@link Ec2MetadataResponse} with the given body as it's content.
      */
-    public static MetadataResponse create(String body) {
-        return new MetadataResponse(body);
+    public static Ec2MetadataResponse create(String body) {
+        return new Ec2MetadataResponse(body);
     }
 
     /**
@@ -86,7 +86,7 @@ public final class MetadataResponse {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        MetadataResponse that = (MetadataResponse) o;
+        Ec2MetadataResponse that = (Ec2MetadataResponse) o;
         return body.equals(that.body);
     }
 
