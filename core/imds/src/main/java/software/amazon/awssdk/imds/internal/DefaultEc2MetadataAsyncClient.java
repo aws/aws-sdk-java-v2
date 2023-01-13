@@ -63,7 +63,6 @@ public final class DefaultEc2MetadataAsyncClient extends BaseEc2MetadataClient i
     private DefaultEc2MetadataAsyncClient(Ec2MetadataAsyncBuilder builder) {
         super(builder);
 
-        // http client
         Validate.isTrue(builder.httpClient == null || builder.httpClientBuilder == null,
                         "The httpClient and the httpClientBuilder can't both be configured.");
         this.httpClient = Either
