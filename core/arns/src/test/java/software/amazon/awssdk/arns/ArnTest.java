@@ -245,13 +245,13 @@ public class ArnTest {
     @Test
     public void arnWithoutPartition_ThrowsIllegalArgumentException() {
         String arnString = "arn::s3:us-east-1:12345678910:myresource";
-        assertThatThrownBy(() -> Arn.fromString(arnString)).hasMessageContaining("artition must not be blank or empty.");
+        assertThatThrownBy(() -> Arn.fromString(arnString)).getCause().hasMessageContaining("partition must not be blank or empty.");
     }
 
     @Test
     public void arnWithoutService_ThrowsIllegalArgumentException() {
         String arnString = "arn:aws::us-east-1:12345678910:myresource";
-        assertThatThrownBy(() -> Arn.fromString(arnString)).hasMessageContaining("service must not be blank or empty");
+        assertThatThrownBy(() -> Arn.fromString(arnString)).getCause().hasMessageContaining("service must not be blank or empty");
     }
 
     @Test
@@ -294,5 +294,17 @@ public class ArnTest {
     public void invalidArnWithoutAccountId_ThrowsIllegalArgumentException() {
         String arnString = "arn:aws:s3:us-east-1:";
         assertThatThrownBy(() -> Arn.fromString(arnString)).hasMessageContaining("Malformed ARN");
+    }
+
+    @Test
+    public void invalidArn_NullArn() {
+        String arnString = null;
+        assertThatThrownBy(() -> Arn.fromString(arnString)).isInstanceOf(NullPointerException.class);
+    }
+
+    @Test
+    public void invalidArn_EmptyArn() {
+        String arnString = "";
+        assertThatThrownBy(() -> Arn.fromString(arnString)).hasMessageContaining("arn must not be blank or empty.");
     }
 }
