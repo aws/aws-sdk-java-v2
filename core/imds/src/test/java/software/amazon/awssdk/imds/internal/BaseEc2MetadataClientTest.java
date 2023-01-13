@@ -287,12 +287,12 @@ abstract class BaseEc2MetadataClientTest<T, B extends Ec2MetadataClientBuilder<B
     }
 
     @Test
-    void getToken_responseWithoutTtlHeaders_shouldFailAfterRetries() {
+    void getToken_responseWithoutTtlHeaders_shouldFailAndNotRetry() {
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(
             aResponse().withBody("some-token"))); // no EC2_METADATA_TOKEN_TTL_HEADER header
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withStatus(200).withBody("some-value")));
         failureAssertions(AMI_ID_RESOURCE, SdkClientException.class, e -> {
-            verify(exactly(4), putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+            verify(exactly(1), putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
                 .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
             verify(exactly(0), getRequestedFor(urlPathEqualTo(AMI_ID_RESOURCE))
                 .withHeader(TOKEN_HEADER, equalTo("some-token")));
@@ -300,18 +300,17 @@ abstract class BaseEc2MetadataClientTest<T, B extends Ec2MetadataClientBuilder<B
     }
 
     @Test
-    void getToken_responseTtlHeadersNotANumber_shouldFailAfterRetries() {
+    void getToken_responseTtlHeadersNotANumber_shouldFailAndNotRetry() {
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody("some-token")));
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withStatus(200).withBody("some-value")));
         stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(
             aResponse().withBody("some-token").withHeader(EC2_METADATA_TOKEN_TTL_HEADER, "not-a-number")));
         stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withStatus(200).withBody("some-value")));
         failureAssertions(AMI_ID_RESOURCE, SdkClientException.class, e -> {
-            verify(exactly(4), putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+            verify(exactly(1), putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
                 .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
             verify(exactly(0), getRequestedFor(urlPathEqualTo(AMI_ID_RESOURCE))
                 .withHeader(TOKEN_HEADER, equalTo("some-token")));
         });
     }
-
 }

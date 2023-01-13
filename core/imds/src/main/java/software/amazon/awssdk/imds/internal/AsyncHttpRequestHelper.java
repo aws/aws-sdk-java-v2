@@ -101,13 +101,13 @@ final class AsyncHttpRequestHelper {
         Optional<String> ttl = response.firstMatchingHeader(EC2_METADATA_TOKEN_TTL_HEADER);
 
         if (!ttl.isPresent()) {
-            throw RetryableException.create(EC2_METADATA_TOKEN_TTL_HEADER + " header not found in token response");
+            throw SdkClientException.create(EC2_METADATA_TOKEN_TTL_HEADER + " header not found in token response");
         }
         try {
             Duration ttlDuration = Duration.ofSeconds(Long.parseLong(ttl.get()));
             return new Token(tokenValue, ttlDuration);
         } catch (NumberFormatException nfe) {
-            throw RetryableException.create(
+            throw SdkClientException.create(
                 "Invalid token format received from IMDS server. Token received:  " + tokenValue, nfe);
         }
     }

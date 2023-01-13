@@ -221,7 +221,7 @@ public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implem
 
         String ttl = response.httpResponse()
                              .firstMatchingHeader(EC2_METADATA_TOKEN_TTL_HEADER)
-                             .orElseThrow(() -> RetryableException
+                             .orElseThrow(() -> SdkClientException
                                  .builder()
                                  .message(EC2_METADATA_TOKEN_TTL_HEADER + " header not found in token response")
                                  .build());
@@ -229,7 +229,7 @@ public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implem
         try {
             ttlDuration = Duration.ofSeconds(Long.parseLong(ttl));
         } catch (NumberFormatException nfe) {
-            throw RetryableException.create("Invalid token format received from IMDS server", nfe);
+            throw SdkClientException.create("Invalid token format received from IMDS server", nfe);
         }
 
         AbortableInputStream abortableInputStream = response.responseBody().orElseThrow(
