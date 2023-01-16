@@ -37,13 +37,13 @@
             "packageName": "AwsJavaSdk-ThirdParty-JacksonCore",
             "artifactType": "JAR",
             "includes": ["target/aws-sdk-java-third-party-jackson-core-*.jar"],
-            "excludes": ["target/aws-sdk-java-third-party-jackson-core-*-javadoc.jar"]
+            "excludes": ["aws-sdk-java-third-party-jackson-core-*-javadoc.jar"]
         },
         "third-party-jackson-dataformat-cbor": {
             "packageName": "AwsJavaSdk-ThirdParty-JacksonDataformatCbor",
             "artifactType": "JAR",
             "includes": ["target/aws-sdk-java-third-party-jackson-dataformat-cbor-*.jar"],
-            "excludes": ["target/aws-sdk-java-third-party-jackson-dataformat-cbor-*-javadoc.jar"]
+            "excludes": ["aws-sdk-java-third-party-jackson-dataformat-cbor-*-javadoc.jar"]
         },
         "ruleset-testing-core": {
             "packageName": "AwsJavaSdk-Test-RuleSetTestingCore"
