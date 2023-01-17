@@ -1,3 +1,24 @@
+# __2.19.18__ __2023-01-17__
+## __AWS Cloud9__
+  - ### Features
+    - Added minimum value to AutomaticStopTimeMinutes parameter.
+
+## __AWS Network Firewall__
+  - ### Features
+    - Network Firewall now allows creation of dual stack endpoints, enabling inspection of IPv6 traffic.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWSBillingConductor__
+  - ### Features
+    - This release adds support for SKU Scope for pricing plans.
+
+## __EC2 Image Builder__
+  - ### Features
+    - Add support for AWS Marketplace product IDs as input during CreateImageRecipe for the parent-image parameter. Add support for listing third-party components.
+
 # __2.19.17__ __2023-01-13__
 ## __AWS Outposts__
   - ### Features
