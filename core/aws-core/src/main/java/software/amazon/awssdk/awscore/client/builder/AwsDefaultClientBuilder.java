@@ -21,6 +21,7 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -245,7 +246,7 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
     private URI endpointFromConfig(SdkClientConfiguration config) {
         return new DefaultServiceEndpointBuilder(serviceEndpointPrefix(), DEFAULT_ENDPOINT_PROTOCOL)
             .withRegion(config.option(AwsClientOption.AWS_REGION))
-            .withProfileFile(() -> config.option(SdkClientOption.PROFILE_FILE))
+            .withProfileFile(profileFileSupplierOrFallbackToProfileFile(config))
             .withProfileName(config.option(SdkClientOption.PROFILE_NAME))
             .putAdvancedOption(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT,
                                config.option(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT))
@@ -272,10 +273,10 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
             throw new IllegalStateException("No region was configured, and use-region-provider-chain was disabled.");
         }
 
-        ProfileFile profileFile = config.option(SdkClientOption.PROFILE_FILE);
+        Supplier<ProfileFile> profileFile = profileFileSupplierOrFallbackToProfileFile(config);
         String profileName = config.option(SdkClientOption.PROFILE_NAME);
         return DefaultAwsRegionProviderChain.builder()
-                                            .profileFile(() -> profileFile)
+                                            .profileFile(profileFile)
                                             .profileName(profileName)
                                             .build()
                                             .getRegion();
@@ -286,7 +287,7 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
             config.option(AwsClientOption.DEFAULTS_MODE) != null ?
             config.option(AwsClientOption.DEFAULTS_MODE) :
             DefaultsModeResolver.create()
-                                .profileFile(() -> config.option(SdkClientOption.PROFILE_FILE))
+                                .profileFile(profileFileSupplierOrFallbackToProfileFile(config))
                                 .profileName(config.option(SdkClientOption.PROFILE_NAME))
                                 .resolve();
 
@@ -313,10 +314,10 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
      * Load the dualstack endpoint setting from the default provider logic.
      */
     private Boolean resolveUseDualstackFromDefaultProvider(SdkClientConfiguration config) {
-        ProfileFile profileFile = config.option(SdkClientOption.PROFILE_FILE);
+        Supplier<ProfileFile> profileFile = profileFileSupplierOrFallbackToProfileFile(config);
         String profileName = config.option(SdkClientOption.PROFILE_NAME);
         return DualstackEnabledProvider.builder()
-                                       .profileFile(() -> profileFile)
+                                       .profileFile(profileFile)
                                        .profileName(profileName)
                                        .build()
                                        .isDualstackEnabled()
@@ -336,10 +337,10 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
      * Load the dualstack endpoint setting from the default provider logic.
      */
     private Boolean resolveUseFipsFromDefaultProvider(SdkClientConfiguration config) {
-        ProfileFile profileFile = config.option(SdkClientOption.PROFILE_FILE);
+        Supplier<ProfileFile> profileFile = profileFileSupplierOrFallbackToProfileFile(config);
         String profileName = config.option(SdkClientOption.PROFILE_NAME);
         return FipsEnabledProvider.builder()
-                                  .profileFile(() -> profileFile)
+                                  .profileFile(profileFile)
                                   .profileName(profileName)
                                   .build()
                                   .isFipsEnabled()
@@ -353,7 +354,7 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
         return config.option(AwsClientOption.CREDENTIALS_PROVIDER) != null
                ? config.option(AwsClientOption.CREDENTIALS_PROVIDER)
                : DefaultCredentialsProvider.builder()
-                                           .profileFile(config.option(SdkClientOption.PROFILE_FILE))
+                                           .profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
                                            .profileName(config.option(SdkClientOption.PROFILE_NAME))
                                            .build();
     }
@@ -370,7 +371,7 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
         }
 
         RetryMode retryMode = RetryMode.resolver()
-                                       .profileFile(() -> config.option(SdkClientOption.PROFILE_FILE))
+                                       .profileFile(profileFileSupplierOrFallbackToProfileFile(config))
                                        .profileName(config.option(SdkClientOption.PROFILE_NAME))
                                        .defaultRetryMode(config.option(SdkClientOption.DEFAULT_RETRY_MODE))
                                        .resolve();
@@ -465,5 +466,14 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
         }
 
         return Pair.of(region, Optional.empty());
+    }
+
+    private Supplier<ProfileFile> profileFileSupplierOrFallbackToProfileFile(SdkClientConfiguration config) {
+        Supplier<ProfileFile> profileFile = config.option(SdkClientOption.PROFILE_FILE_SUPPLIER);
+        if (profileFile != null) {
+            return profileFile;
+        }
+
+        return () -> config.option(SdkClientOption.PROFILE_FILE);
     }
 }

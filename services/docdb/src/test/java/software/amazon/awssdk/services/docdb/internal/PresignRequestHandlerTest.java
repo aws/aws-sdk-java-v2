@@ -165,6 +165,8 @@ public class PresignRequestHandlerTest {
         return new ExecutionAttributes().putAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS, CREDENTIALS)
                                         .putAttribute(AwsSignerExecutionAttribute.SIGNING_REGION, DESTINATION_REGION)
                                         .putAttribute(SdkExecutionAttribute.PROFILE_FILE, ProfileFile.defaultProfileFile())
+                                        .putAttribute(SdkExecutionAttribute.PROFILE_FILE_SUPPLIER,
+                                                      ProfileFile::defaultProfileFile)
                                         .putAttribute(SdkExecutionAttribute.PROFILE_NAME, "default");
     }
 

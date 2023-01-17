@@ -242,7 +242,7 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
         Boolean accelerateModeEnabled();
 
         /**
-         * Option to enable using the accelerate enedpoint when accessing S3. Accelerate
+         * Option to enable using the accelerate endpoint when accessing S3. Accelerate
          * endpoints allow faster transfer of objects by using Amazon CloudFront's
          * globally distributed edge locations.
          *
