@@ -42,21 +42,21 @@ public final class SsoOidcProfileTokenProviderFactory implements ChildProfileTok
 
     @Override
     public SdkTokenProvider create(ProfileFile profileFile, Profile profile) {
-        return new SsooidcProfileTokenProvider(profileFile, profile);
+        return new SsoOidcProfileTokenProvider(profileFile, profile);
     }
 
     public SdkTokenProvider create(Supplier<ProfileFile> profileFile, String profileName) {
-        return new SsooidcSuppliedProfileTokenProvider(profileFile, profileName);
+        return new SsoOidcSuppliedProfileTokenProvider(profileFile, profileName);
     }
 
-    private static final class SsooidcSuppliedProfileTokenProvider implements SdkTokenProvider, SdkAutoCloseable {
+    private static final class SsoOidcSuppliedProfileTokenProvider implements SdkTokenProvider, SdkAutoCloseable {
 
         private final Supplier<ProfileFile> profileFile;
         private final String profileName;
         private volatile ProfileFile currentProfileFile;
-        private volatile SsooidcProfileTokenProvider currentTokenProvider;
+        private volatile SsoOidcProfileTokenProvider currentTokenProvider;
 
-        private SsooidcSuppliedProfileTokenProvider(Supplier<ProfileFile> profileFile, String profileName) {
+        private SsoOidcSuppliedProfileTokenProvider(Supplier<ProfileFile> profileFile, String profileName) {
             this.profileFile = profileFile;
             this.profileName = profileName;
         }
@@ -73,7 +73,7 @@ public final class SsoOidcProfileTokenProviderFactory implements ChildProfileTok
                     if (!Objects.equals(profileFileInstance, currentProfileFile)) {
                         Profile profileInstance = resolveProfile(profileFileInstance, profileName);
                         currentProfileFile = profileFileInstance;
-                        currentTokenProvider = new SsooidcProfileTokenProvider(profileFileInstance, profileInstance);
+                        currentTokenProvider = new SsoOidcProfileTokenProvider(profileFileInstance, profileInstance);
                     }
                 }
             }
@@ -102,10 +102,10 @@ public final class SsoOidcProfileTokenProviderFactory implements ChildProfileTok
      * A wrapper for a {@link SdkTokenProvider} that is returned by this factory when {@link #create(ProfileFile,Profile)} is
      * invoked. This wrapper is important because it ensures the token provider is closed when it is no longer needed.
      */
-    private static final class SsooidcProfileTokenProvider implements SdkTokenProvider, SdkAutoCloseable {
+    private static final class SsoOidcProfileTokenProvider implements SdkTokenProvider, SdkAutoCloseable {
         private final SsoOidcTokenProvider sdkTokenProvider;
 
-        private SsooidcProfileTokenProvider(ProfileFile profileFile, Profile profile) {
+        private SsoOidcProfileTokenProvider(ProfileFile profileFile, Profile profile) {
             String profileSsoSectionName = profile.property(
                 ProfileSection.SSO_SESSION
                     .getPropertyKeyName()).orElseThrow(() -> new IllegalStateException(

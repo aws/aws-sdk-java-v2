@@ -95,7 +95,7 @@ public class SsoOidcProfileTokenProviderFactoryTest {
     }
 
     @Test
-    void create_SsooidcTokenProvider_from_SsooidcSpecificProfileSupplier() {
+    void create_SsoOidcTokenProvider_from_SsooidcSpecificProfileSupplier() {
         String profileContent = "[profile ssotoken]\n" +
                                 "sso_session=admin\n" +
                                 "[sso-session admin]\n" +
@@ -105,13 +105,13 @@ public class SsoOidcProfileTokenProviderFactoryTest {
                                           .content(new StringInputStream(profileContent))
                                           .type(ProfileFile.Type.CONFIGURATION)
                                           .build();
-        SdkTokenProvider sdkTokenProvider = new SsoOidcProfileTokenProviderFactory().create(() -> profiles,"ssotoken");
+        SdkTokenProvider sdkTokenProvider = new SsoOidcProfileTokenProviderFactory().create(() -> profiles, "ssotoken");
         Assertions.assertThat(sdkTokenProvider).isNotNull();
 
     }
 
     @Test
-    void create_SsooidcTokenProvider_with_ssoAccountIdInProfile() {
+    void create_SsoOidcTokenProvider_with_ssoAccountIdInProfile() {
         String profileContent = "[profile sso]\n" +
                                 "sso_region=us-east-1\n" +
                                 "sso_account_id=1234567\n" +
@@ -127,7 +127,7 @@ public class SsoOidcProfileTokenProviderFactoryTest {
     }
 
     @Test
-    void create_SsooidcTokenProvider_with_ssoRoleNameInProfile() {
+    void create_SsoOidcTokenProvider_with_ssoRoleNameInProfile() {
         String profileContent = "[profile sso]\n" +
                                 "sso_region=us-east-1\n" +
                                 "sso_role_name=ssoSpecificRole\n" +
@@ -143,7 +143,7 @@ public class SsoOidcProfileTokenProviderFactoryTest {
     }
 
     @Test
-    void create_SsooidcTokenProvider_with_ssoRoleNameInProfileSupplier() {
+    void create_SsoOidcTokenProvider_with_ssoRoleNameInProfileSupplier() {
         String profileContent = "[profile sso]\n" +
                                 "sso_region=us-east-1\n" +
                                 "sso_role_name=ssoSpecificRole\n" +

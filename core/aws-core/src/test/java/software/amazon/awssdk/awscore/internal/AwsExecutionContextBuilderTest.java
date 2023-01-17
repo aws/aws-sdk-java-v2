@@ -183,9 +183,7 @@ public class AwsExecutionContextBuilderTest {
 
     @Test
     public void invokeInterceptorsAndCreateExecutionContext_profileFileSupplier_storesValueInExecutionAttributes() {
-        HttpChecksum httpCrc32Checksum = HttpChecksum.builder().requestAlgorithm("crc32").isRequestStreaming(true).build();
-        ClientExecutionParams<SdkRequest, SdkResponse> executionParams = clientExecutionParams()
-            .putExecutionAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM, httpCrc32Checksum);
+        ClientExecutionParams<SdkRequest, SdkResponse> executionParams = clientExecutionParams();
         Supplier<ProfileFile> profileFileSupplier = () -> null;
         SdkClientConfiguration clientConfig = testClientConfiguration()
             .option(SdkClientOption.PROFILE_FILE_SUPPLIER, profileFileSupplier)

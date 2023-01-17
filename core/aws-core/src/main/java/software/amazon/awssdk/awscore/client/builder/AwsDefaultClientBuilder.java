@@ -20,7 +20,6 @@ import static software.amazon.awssdk.awscore.client.config.AwsClientOption.DEFAU
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
@@ -471,7 +470,7 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
 
     private Supplier<ProfileFile> profileFileSupplierOrFallbackToProfileFile(SdkClientConfiguration config) {
         Supplier<ProfileFile> profileFile = config.option(SdkClientOption.PROFILE_FILE_SUPPLIER);
-        if (Objects.nonNull(profileFile)) {
+        if (profileFile != null) {
             return profileFile;
         }
 
