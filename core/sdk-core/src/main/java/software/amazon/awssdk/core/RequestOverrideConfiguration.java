@@ -67,7 +67,7 @@ public abstract class RequestOverrideConfiguration {
      * @return The optional additional headers.
      */
     public Map<String, List<String>> headers() {
-        return CollectionUtils.unmodifiableMapOfLists(headers);
+        return headers;
     }
 
     /**
@@ -76,7 +76,7 @@ public abstract class RequestOverrideConfiguration {
      * @return The optional additional query parameters.
      */
     public Map<String, List<String>> rawQueryParameters() {
-        return CollectionUtils.unmodifiableMapOfLists(rawQueryParameters);
+        return rawQueryParameters;
     }
 
     /**
@@ -149,7 +149,7 @@ public abstract class RequestOverrideConfiguration {
      * attribute value added on the request.
      */
     public ExecutionAttributes executionAttributes() {
-        return executionAttributes != null ? executionAttributes.toBuilder().build() : null;
+        return executionAttributes;
     }
 
     @Override
@@ -444,7 +444,7 @@ public abstract class RequestOverrideConfiguration {
         @Override
         public B putHeader(String name, List<String> values) {
             Validate.paramNotNull(values, "values");
-            headers.put(name, new ArrayList<>(values));
+            headers.put(name, values != null ? new ArrayList<>(values) : null);
             return (B) this;
         }
 

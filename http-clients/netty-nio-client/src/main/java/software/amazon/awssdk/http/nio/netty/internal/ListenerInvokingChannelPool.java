@@ -23,7 +23,6 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.pool.ChannelPoolHandler;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.Promise;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
@@ -85,7 +84,7 @@ public final class ListenerInvokingChannelPool implements SdkChannelPool {
                                        List<ChannelPoolListener> listeners) {
         this.delegatePool = delegatePool;
         this.promiseFactory = promiseFactory;
-        this.listeners = Collections.unmodifiableList(listeners);
+        this.listeners = listeners;
     }
 
     @Override

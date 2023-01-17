@@ -68,7 +68,7 @@ public class ChecksumSpecs {
     }
 
     public List<Algorithm> responseValidationAlgorithms() {
-        return responseValidationAlgorithms != null ? Collections.unmodifiableList(responseValidationAlgorithms) : null;
+        return responseValidationAlgorithms;
     }
 
     @Override

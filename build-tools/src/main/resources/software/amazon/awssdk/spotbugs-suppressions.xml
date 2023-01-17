@@ -289,32 +289,6 @@
         <Bug pattern="MS_EXPOSE_REP"/>
     </Match>
 
-    <!--enableSuppression, writableStackTrace cannot be copied for a RuntimeException    -->
-    <Match>
-        <Class name="software.amazon.awssdk.utils.async.StoringSubscriber$Event"/>
-        <Field name="error"/>
-        <Bug pattern="EI_EXPOSE_REP"/>
-    </Match>
-
-    <!-- Copy of Completable future is not available in Java 8 -->
-    <Match>
-        <Class name="software.amazon.awssdk.utils.async.SequentialSubscriber"/>
-        <Field name="future"/>
-        <Bug pattern="EI_EXPOSE_REP2"/>
-    </Match>
-
-    <!--  As the name suggest these method intentionally expose the references to avoid creating copies  -->
-    <Match>
-        <Or>
-            <Class name="software.amazon.awssdk.internal.http.LowCopyListMap$ForBuildable"/>
-            <Class name="software.amazon.awssdk.internal.http.LowCopyListMap$ForBuilder"/>
-        </Or>
-        <Or>
-            <Method name="forInternalRead"/>
-            <Method name="forInternalWrite"/>
-        </Or>
-        <Bug pattern="EI_EXPOSE_REP"/>
-    </Match>
 
     <!-- Commonly used fields in http clients which are internal and donot have copy   -->
     <Match>
@@ -329,26 +303,9 @@
             <Field name="localAddress"/>
             <Field name="sock"/>
         </Or>
-        <Bug pattern="EI_EXPOSE_REP, EI_EXPOSE_REP2, MS_EXPOSE_REP"/>
+        <Bug pattern="MS_EXPOSE_REP"/>
     </Match>
 
-    <!-- Commonly used fields in netty clients which are internal and do not have copy   -->
-
-    <Match>
-        <Or>
-            <Package name="software.amazon.awssdk.http.nio.netty.internal"/>
-            <Package name="software.amazon.awssdk.http.nio.netty.internal.http2"/>
-            <Package name="software.amazon.awssdk.http.nio.netty.internal.nrs"/>
-        </Or>
-        <Or>
-            <Field name="configuration"/>
-            <Field name="channelPoolRef"/>
-            <Field name="executeFuture"/>
-            <Field name="initPromise"/>
-            <Field name="noSubscriberError"/>
-        </Or>
-        <Bug pattern="EI_EXPOSE_REP2, EI_EXPOSE_REP"/>
-    </Match>
 
     <!-- Builder is passed with the instance that is just created, skipping this as this need re-design of builders -->
     <Match>
@@ -360,7 +317,7 @@
         <Bug pattern="MC_OVERRIDABLE_METHOD_CALL_IN_CONSTRUCTOR"/>
     </Match>
 
-    <!-- TODO: This will be remove for final merge to master PR , ignore this for now    -->
+    <!-- TODO: This will be remove for final merge to master PR , ignore this for now.Currently there are multiple such instances in internal classes    -->
     <Match>AwsRequest
         <Bug pattern="EI_EXPOSE_REP, EI_EXPOSE_REP2"/>
     </Match>

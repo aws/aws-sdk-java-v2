@@ -21,7 +21,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.utils.CollectionUtils;
 
 /**
  * Represents an endpoint computed by an {@link EndpointProvider}. And endpoint minimally defines the {@code URI}, but may also
@@ -44,7 +43,7 @@ public final class Endpoint {
     }
 
     public Map<String, List<String>> headers() {
-        return CollectionUtils.unmodifiableMapOfLists(headers);
+        return headers;
     }
 
     public Builder toBuilder() {
