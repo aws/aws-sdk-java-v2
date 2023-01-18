@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon CloudWatch",
+    "contributor": "",
+    "description": "Enable cross-account streams in CloudWatch Metric Streams via Observability Access Manager."
+}
