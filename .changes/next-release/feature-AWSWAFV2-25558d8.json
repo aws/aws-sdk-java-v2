@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS WAFV2",
+    "contributor": "",
+    "description": "Improved the visibility of the guidance for updating AWS WAF resources, such as web ACLs and rule groups."
+}
