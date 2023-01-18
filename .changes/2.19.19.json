@@ -1,0 +1,36 @@
+{
+    "version": "2.19.19",
+    "date": "2023-01-18",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS WAFV2",
+            "contributor": "",
+            "description": "Improved the visibility of the guidance for updating AWS WAF resources, such as web ACLs and rule groups."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch",
+            "contributor": "",
+            "description": "Enable cross-account streams in CloudWatch Metric Streams via Observability Access Manager."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic File System",
+            "contributor": "",
+            "description": "Documentation updates for EFS access points limit increase"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Interactive Video Service Chat",
+            "contributor": "",
+            "description": "Updates the range for a Chat Room's maximumMessageRatePerSecond field."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

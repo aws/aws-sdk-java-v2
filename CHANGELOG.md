@@ -1,3 +1,24 @@
+# __2.19.19__ __2023-01-18__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS WAFV2__
+  - ### Features
+    - Improved the visibility of the guidance for updating AWS WAF resources, such as web ACLs and rule groups.
+
+## __Amazon CloudWatch__
+  - ### Features
+    - Enable cross-account streams in CloudWatch Metric Streams via Observability Access Manager.
+
+## __Amazon Elastic File System__
+  - ### Features
+    - Documentation updates for EFS access points limit increase
+
+## __Amazon Interactive Video Service Chat__
+  - ### Features
+    - Updates the range for a Chat Room's maximumMessageRatePerSecond field.
+
 # __2.19.18__ __2023-01-17__
 ## __AWS Cloud9__
   - ### Features
