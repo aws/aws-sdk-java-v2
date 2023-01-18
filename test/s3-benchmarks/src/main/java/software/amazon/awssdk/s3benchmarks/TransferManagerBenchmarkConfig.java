@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.s3benchmarks;
 
+import java.time.Duration;
 import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
 
 public final class TransferManagerBenchmarkConfig {
@@ -25,6 +26,8 @@ public final class TransferManagerBenchmarkConfig {
     private final Long partSizeInMb;
     private final ChecksumAlgorithm checksumAlgorithm;
     private final Integer iteration;
+    private final Long contentLengthInMb;
+    private final Duration timeout;
 
     private final Long readBufferSizeInMb;
     private final BenchmarkRunner.TransferManagerOperation operation;
@@ -41,6 +44,8 @@ public final class TransferManagerBenchmarkConfig {
         this.readBufferSizeInMb = builder.readBufferSizeInMb;
         this.operation = builder.operation;
         this.prefix = builder.prefix;
+        this.contentLengthInMb = builder.contentLengthInMb;
+        this.timeout = builder.timeout;
     }
 
     public String filePath() {
@@ -83,6 +88,14 @@ public final class TransferManagerBenchmarkConfig {
         return prefix;
     }
 
+    public Long contentLengthInMb() {
+        return contentLengthInMb;
+    }
+
+    public Duration timeout() {
+        return this.timeout;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -99,6 +112,8 @@ public final class TransferManagerBenchmarkConfig {
                ", iteration: " + iteration +
                ", readBufferSizeInMb: " + readBufferSizeInMb +
                ", operation: " + operation +
+               ", contentLengthInMb: " + contentLengthInMb +
+               ", timeout:" + timeout +
                '}';
     }
 
@@ -110,10 +125,13 @@ public final class TransferManagerBenchmarkConfig {
         private String key;
         private Double targetThroughput;
         private Long partSizeInMb;
+        private Long contentLengthInMb;
 
         private Integer iteration;
         private BenchmarkRunner.TransferManagerOperation operation;
         private String prefix;
+
+        private Duration timeout;
 
         public Builder filePath(String filePath) {
             this.filePath = filePath;
@@ -162,6 +180,16 @@ public final class TransferManagerBenchmarkConfig {
 
         public Builder prefix(String prefix) {
             this.prefix = prefix;
+            return this;
+        }
+
+        public Builder contentLengthInMb(Long contentLengthInMb) {
+            this.contentLengthInMb = contentLengthInMb;
+            return this;
+        }
+
+        public Builder timeout(Duration timeout) {
+            this.timeout = timeout;
             return this;
         }
 

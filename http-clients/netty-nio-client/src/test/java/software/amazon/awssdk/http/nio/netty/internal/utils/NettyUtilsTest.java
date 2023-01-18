@@ -29,6 +29,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslHandler;
+import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
 import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.Future;
@@ -41,6 +42,7 @@ import javax.net.ssl.SSLEngine;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.slf4j.Logger;
 import software.amazon.awssdk.http.nio.netty.internal.MockChannel;
 
@@ -221,5 +223,49 @@ public class NettyUtilsTest {
         });
 
         verify(delegateLogger).error(msg, error);
+    }
+
+    @Test
+    public void closedChannelMessage_with_nullChannelAttribute() throws Exception {
+
+        Channel channel = Mockito.mock(Channel.class);
+        when(channel.parent()).thenReturn(null);
+
+        assertThat(NettyUtils.closedChannelMessage(channel))
+            .isEqualTo(NettyUtils.CLOSED_CHANNEL_ERROR_MESSAGE);
+    }
+
+    @Test
+    public void closedChannelMessage_with_nullChannel() throws Exception {
+        Channel channel = null;
+        assertThat(NettyUtils.closedChannelMessage(channel))
+            .isEqualTo(NettyUtils.CLOSED_CHANNEL_ERROR_MESSAGE);
+    }
+
+
+    @Test
+    public void closedChannelMessage_with_nullParentChannel() throws Exception {
+
+        Channel channel = mock(Channel.class);
+        Attribute attribute = mock(Attribute.class);
+        when(channel.parent()).thenReturn(null);
+        when(channel.attr(any())).thenReturn(attribute);
+
+        assertThat(NettyUtils.closedChannelMessage(channel))
+            .isEqualTo(NettyUtils.CLOSED_CHANNEL_ERROR_MESSAGE);
+    }
+
+    @Test
+    public void closedChannelMessage_with_nullParentChannelAttribute() throws Exception {
+
+        Channel channel = mock(Channel.class);
+        Attribute attribute = mock(Attribute.class);
+        Channel parentChannel = mock(Channel.class);
+        when(channel.parent()).thenReturn(parentChannel);
+        when(channel.attr(any())).thenReturn(attribute);
+        when(parentChannel.attr(any())).thenReturn(null);
+
+        assertThat(NettyUtils.closedChannelMessage(channel))
+            .isEqualTo(NettyUtils.CLOSED_CHANNEL_ERROR_MESSAGE);
     }
 }
