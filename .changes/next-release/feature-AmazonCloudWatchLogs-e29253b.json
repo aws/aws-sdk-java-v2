@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon CloudWatch Logs",
+    "contributor": "",
+    "description": "Bug fix - Removed the regex pattern validation from CoralModel to avoid potential security issue."
+}
