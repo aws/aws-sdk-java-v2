@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Glue",
+    "contributor": "",
+    "description": "Release Glue Studio Hudi Data Lake Format for SDK/CLI"
+}
