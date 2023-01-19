@@ -1,3 +1,56 @@
+# __2.19.20__ __2023-01-19__
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental MediaLive adds support for SCTE 35 preRollMilliSeconds.
+
+## __AWS Glue__
+  - ### Features
+    - Release Glue Studio Hudi Data Lake Format for SDK/CLI
+
+## __AWS Ground Station__
+  - ### Features
+    - Add configurable prepass and postpass times for DataflowEndpointGroup. Add Waiter to allow customers to wait for a contact that was reserved through ReserveContact
+
+## __AWS Panorama__
+  - ### Features
+    - Added AllowMajorVersionUpdate option to OTAJobConfig to make appliance software major version updates opt-in.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Appflow__
+  - ### Features
+    - Adding support for Salesforce Pardot connector in Amazon AppFlow.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Bug fix - Removed the regex pattern validation from CoralModel to avoid potential security issue.
+
+## __Amazon Connect Participant Service__
+  - ### Features
+    - This release updates Amazon Connect Participant's GetTranscript api to provide transcripts of past chats on a persistent chat session.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect Chat introduces Persistent Chat, allowing customers to resume previous conversations with context and transcripts carried over from previous chats, eliminating the need to repeat themselves and allowing agents to provide personalized service with access to entire conversation history.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds SSM Parameter Resource Aliasing support to EC2 Launch Templates. Launch Templates can now store parameter aliases in place of AMI Resource IDs. CreateLaunchTemplateVersion and DescribeLaunchTemplateVersions now support a convenience flag, ResolveAlias, to return the resolved parameter value.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - This release adds the enhanced dry run option, that checks for validation errors that might occur when deploying configuration changes and provides a summary of these errors, if any. The feature will also indicate whether a blue/green deployment will be required to apply a change.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - HyperParameterTuningJobs now allow passing environment variables into the corresponding TrainingJobs
+
+## __CodeArtifact__
+  - ### Features
+    - Documentation updates for CodeArtifact
+
 # __2.19.19__ __2023-01-18__
 ## __AWS SDK for Java v2__
   - ### Features
