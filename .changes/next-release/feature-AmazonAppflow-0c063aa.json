@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Appflow",
+    "contributor": "",
+    "description": "Adding support for Salesforce Pardot connector in Amazon AppFlow."
+}
