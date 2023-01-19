@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Panorama",
+    "contributor": "",
+    "description": "Added AllowMajorVersionUpdate option to OTAJobConfig to make appliance software major version updates opt-in."
+}
