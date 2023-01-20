@@ -1,3 +1,20 @@
+# __2.19.21__ __2023-01-20__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - C6in, M6in, M6idn, R6in and R6idn instances are powered by 3rd Generation Intel Xeon Scalable processors (code named Ice Lake) with an all-core turbo frequency of 3.5 GHz.
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - API and Doc update. Update to arns field in BatchGetStreamKey. Also updates to operations and structures.
+
+## __Amazon QuickSight__
+  - ### Features
+    - This release adds support for data bars in QuickSight table and increases pivot table field well limit.
+
 # __2.19.20__ __2023-01-19__
 ## __AWS Elemental MediaLive__
   - ### Features
