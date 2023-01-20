@@ -15,18 +15,17 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.document;
 
-import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkNumber;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.KeyAttributeMetadata;
-
 
 /**
  * Interface representing Document API for DynamoDB. Document API operations are used to carry open content i.e. data with no
@@ -97,25 +96,28 @@ public interface EnhancedDocument {
      * Returns the value of the specified attribute in the current document as a specified {@link EnhancedType}; or null if the
      * attribute either doesn't exist or the attribute value is null.
      * <p>
-     * <b>Retrieving different types of attribute values</b>
+     * <b>Retrieving String Type for a document</b>
      * {@snippet :
-     * <p>
-     * //get EnhancedDocument of String Type for EnhancedDocument document
-     * String resultString = document.get("key", EnhancedType.of(String.class));
-     * <p>
-     * //get EnhancedDocument of Custom Type for which Convertor Provider was defined for a document
      * Custom resultCustom = document.get("key", EnhancedType.of(Custom.class));
-     * <p>
-     * //get EnhancedDocument of List of String.
+     * }
+     * <b>Retrieving Custom Type for which Convertor Provider was defined while creating the document</b>
+     * {@snippet :
+     * Custom resultCustom = document.get("key", EnhancedType.of(Custom.class));
+     * }
+     * <b>Retrieving list of strings in a document</b>
+     * {@snippet :
      * List<String> resultList = document.get("key", EnhancedType.listOf(String.class));
-     * <p>
-     * //get EnhancedDocument of nested Map with list string values.
-     * Map<String, List<String>>> resultNested = document.get("key", new EnhancedType<Map<String, List<String>>>(){}); }
+     * }
+     * <b>Retrieving a Map with List of strings in its values</b>
+     * {@snippet :
+     * Map<String, List<String>>> resultNested = document.get("key", new EnhancedType<Map<String, List<String>>>(){});
+     * }
      * </p>
      * @param attributeName Name of the attribute.
      * @param type          EnhancedType of the value
      * @param <T>           The type of the attribute value.
      * @return Attribute value of type T
+     * }
      */
     <T> T get(String attributeName, EnhancedType<T> type);
 
@@ -129,7 +131,7 @@ public interface EnhancedDocument {
     String getString(String attributeName);
 
     /**
-     * Gets the {@link Number} value of specified attribute in the document.
+     * Gets the {@link SdkNumber} value of specified attribute in the document.
      *
      * @param attributeName Name of the attribute.
      * @return value of the specified attribute in the current document as a number; or null if the attribute either doesn't exist
@@ -138,27 +140,15 @@ public interface EnhancedDocument {
     SdkNumber getSdkNumber(String attributeName);
 
     /**
-     * Gets the byte array value of specified attribute in the document.
+     * Gets the {@link SdkBytes} value of specified attribute in the document.
      *
      * @param attributeName Name of the attribute.
-     * @return the value of the specified attribute in the current document as a byte array; or null if the attribute either
+     * @return the value of the specified attribute in the current document as SdkBytes; or null if the attribute either
      * doesn't exist or the attribute value is null.
      * @throws UnsupportedOperationException If the attribute value involves a byte buffer which is not backed by an accessible
      *                                       array
      */
-    byte[] getBinary(String attributeName);
-
-    /**
-     * Gets the value of the specified attribute in the current document as a
-     * <code>ByteBuffer</code>; or null if the attribute either doesn't exist or the attribute value is null.
-     *
-     * @param attributeName Name of the attribute.
-     * @return the value of the specified attribute in the current document as a ByteBuffer; or null if the attribute either
-     * doesn't exist or the attribute value is null.
-     * @throws UnsupportedOperationException If the attribute value involves a byte buffer which is not backed by an accessible
-     *                                       array
-     */
-    ByteBuffer getByteBuffer(String attributeName);
+    SdkBytes getSdkBytes(String attributeName);
 
     /**
      * Gets the Set of String values of the given attribute in the current document.
@@ -170,31 +160,22 @@ public interface EnhancedDocument {
     Set<String> getStringSet(String attributeName);
 
     /**
-     * Gets the Set of Number values of the given attribute in the current document.
+     * Gets the Set of {@link SdkNumber} values of the given attribute in the current document.
      *
      * @param attributeName Name of the attribute.
-     * @return value of the specified attribute in the current document as a set of BigDecimal's; or null if the attribute either
+     * @return value of the specified attribute in the current document as a set of SdkNumber; or null if the attribute either
      * doesn't exist or the attribute value is null.
      */
-    Set<Number> getNumberSet(String attributeName);
+    Set<SdkNumber> getNumberSet(String attributeName);
 
     /**
-     * Gets the Set of Binary values of the given attribute in the current document.
+     * Gets the Set of {@link SdkBytes} values of the given attribute in the current document.
      *
      * @param attributeName Name of the attribute.
-     * @return value of the specified attribute in the current document as a set of byte arrays; or null if the attribute either
+     * @return value of the specified attribute in the current document as a set of SdkBytes; or null if the attribute either
      * doesn't exist or the attribute value is null.
      */
-    Set<byte[]> getBinarySet(String attributeName);
-
-    /**
-     * Gets the Set of ByteBuffer values of the given attribute in the current document.
-     *
-     * @param attributeName Name of the attribute.
-     * @return value of the specified attribute in the current document as a set of <code>ByteBuffer</code>; or null if the
-     * attribute either doesn't exist or the attribute value is null.
-     */
-    Set<ByteBuffer> getByteBufferSet(String attributeName);
+    Set<SdkBytes> getSdkBytesSet(String attributeName);
 
     /**
      * Gets the List of values of type T for the given attribute in the current document.
@@ -202,7 +183,7 @@ public interface EnhancedDocument {
      * @param attributeName Name of the attribute.
      * @param type          {@link EnhancedType} of Type T.         
      * @param <T>           Type T of List elements
-     * @return value of the specified attribute in the current document as a set of <code>ByteBuffer</code>; or null if the
+     * @return value of the specified attribute in the current document as a list of type T; or null if the
      * attribute either doesn't exist or the attribute value is null.
      */
 
@@ -224,7 +205,8 @@ public interface EnhancedDocument {
 
     /**
      * Convenience method to return the specified attribute in the current item as a (copy of) map of
-     * string-to-<code>T</code>'s where T must be a subclass of <code>Number</code>; or null if the attribute doesn't exist.
+     * string-to-<code>SdkNumber</code>'s where T must be a subclass of <code>Number</code>; or null if the attribute doesn't
+     * exist.
      *
      * @param attributeName Name of the attribute.
      * @param valueType     the specific number type of the value to be returned.
@@ -287,15 +269,7 @@ public interface EnhancedDocument {
      * @param attributeName Name of the attribute.
      * @return value of the specified attribute in the current document as a non-null Boolean.
      */
-    Boolean getBOOL(String attributeName);
-
-    /**
-     * Gets the boolean value for the specified attribute.
-     *
-     * @param attributeName Name of the attribute.
-     * @return value of the specified attribute in the current document as a primitive boolean
-     */
-    boolean getBoolean(String attributeName);
+    Boolean getBoolean(String attributeName);
 
     /**
      * Gets the value as Object for a given attribute in the current document.
@@ -327,23 +301,11 @@ public interface EnhancedDocument {
     EnhancedType<?> getTypeOf(String attributeName);
 
     /**
-     * Iterable for all the attributes in the EnhancedDocument
-     *
-     * @return all attributes of the current item.
-     */
-    Iterable<Map.Entry<String, Object>> attributes();
-
-    /**
      * Gets the current EnhancedDocument as Map.
      *
      * @return attributes of the current document as a map.
      */
     Map<String, Object> asMap();
-
-    /**
-     * Returns the number of attributes in the current EnhancedDocument.
-     */
-    int numberOfAttributes();
 
     /**
      *
@@ -352,21 +314,11 @@ public interface EnhancedDocument {
     String toJson();
 
     /**
-     * Convenience method to decode the designated binary attributes from base-64 encoding; converting binary lists into binary
-     * sets
-     *
-     * @param binaryAttrNames names of binary attributes or binary set attributes currently base-64 encoded (typically when
-     *                        converted from a JSON string.)
-     * @return decoded binary attributes values from base-64 encoding values of the given binaryAttrNames.
-     */
-    EnhancedDocument base64Decode(String... binaryAttrNames);
-
-    /**
      * Gets the entire enhanced document as a pretty JSON string.
      *
      * @return document as a pretty JSON string. Note all binary data will become base-64 encoded in the resultant string
      */
-    String toJSONPretty();
+    String toJsonPretty();
 
     @NotThreadSafe
     interface Builder {
@@ -389,7 +341,6 @@ public interface EnhancedDocument {
          */
         Builder add(String attributeName, Object value);
 
-
         /**
          * Appends an attribute of name attributeName with specified  {@link String} value to the document builder.
          *
@@ -409,22 +360,13 @@ public interface EnhancedDocument {
         Builder addNumber(String attributeName, Number value);
 
         /**
-         * Appends an attribute of name attributeName with specified byte array value to the document builder.
+         * Appends an attribute of name attributeName with specified {@link SdkBytes} value to the document builder.
          *
          * @param attributeName Name of the attribute that needs to be added in the Document.
          * @param value         The byte array value that needs to be set.
          * @return Builder instance to construct a {@link EnhancedDocument}
          */
-        Builder addBinary(String attributeName, byte[] value);
-
-        /**
-         * Appends an attribute of name attributeName with specified {@link ByteBuffer} value to the document builder.
-         *
-         * @param attributeName Name of the attribute that needs to be added in the Document.
-         * @param value         The ByteBuffer value that needs to be set.
-         * @return Builder instance to construct a {@link EnhancedDocument}
-         */
-        Builder addBinary(String attributeName, ByteBuffer value);
+        Builder addSdkBytes(String attributeName, SdkBytes value);
 
         /**
          * Appends an attribute of name attributeName with specified boolean value to the document builder.
@@ -453,24 +395,6 @@ public interface EnhancedDocument {
         Builder addStringSet(String attributeName, Set<String> values);
 
         /**
-         * Appends an attribute of name attributeName with specified Set of {@link String} values to the document builder.
-         *
-         * @param attributeName Name of the attribute that needs to be added in the Document.
-         * @param value         Set of String values that needs to be set.
-         * @return Builder instance to construct a {@link EnhancedDocument}
-         */
-        Builder addStringSet(String attributeName, String... value);
-
-        /**
-         * Appends an attribute of name attributeName with specified Set of {@link Number} values to the document builder.
-         *
-         * @param attributeName Name of the attribute that needs to be added in the Document.
-         * @param value         Set of Number values that needs to be set.
-         * @return Builder instance to construct a {@link EnhancedDocument}
-         */
-        Builder addNumberSet(String attributeName, Number... value);
-
-        /**
          * Appends an attribute of name attributeName with specified Set of {@link Number} values to the document builder.
          *
          * @param attributeName Name of the attribute that needs to be added in the Document.
@@ -480,41 +404,13 @@ public interface EnhancedDocument {
         Builder addNumberSet(String attributeName, Set<Number> values);
 
         /**
-         * Appends an attribute of name attributeName with specified Set of byte array values to the document builder.
+         * Appends an attribute of name attributeName with specified Set of {@link SdkBytes} values to the document builder.
          *
          * @param attributeName Name of the attribute that needs to be added in the Document.
-         * @param values        Set of byte array values that needs to be set.
+         * @param values        Set of SdkBytes values that needs to be set.
          * @return Builder instance to construct a {@link EnhancedDocument}
          */
-        Builder addBinarySet(String attributeName, Set<byte[]> values);
-
-        /**
-         * Appends an attribute of name attributeName with specified  {@link Set}  of {@link ByteBuffer} values to the document
-         * builder.
-         *
-         * @param attributeName Name of the attribute that needs to be added in the Document.
-         * @param values        Set of ByteBuffer values that needs to be set.
-         * @return Builder instance to construct a {@link EnhancedDocument}
-         */
-        Builder addByteBufferSet(String attributeName, Set<ByteBuffer> values);
-
-        /**
-         * Appends an attribute of name attributeName with specified binary byte array values to the document builder.
-         *
-         * @param attributeName Name of the attribute that needs to be added in the Document.
-         * @param values        The binary byte array values that needs to be set.
-         * @return Builder instance to construct a {@link EnhancedDocument}
-         */
-        Builder addBinarySet(String attributeName, byte[]... values);
-
-        /**
-         * Appends an attribute of name attributeName with specified set of ByteBuffer values to the document builder.
-         *
-         * @param attributeName Name of the attribute that needs to be added in the Document.
-         * @param values        The ByteBuffer values that needs to be set.
-         * @return Builder instance to construct a {@link EnhancedDocument}
-         */
-        Builder addBinarySet(String attributeName, ByteBuffer... values);
+        Builder addSdkBytesSet(String attributeName, Set<SdkBytes> values);
 
         /**
          * Appends an attribute of name attributeName with specified list of values to the document builder.
@@ -524,15 +420,6 @@ public interface EnhancedDocument {
          * @return Builder instance to construct a {@link EnhancedDocument}
          */
         Builder addList(String attributeName, List<?> value);
-
-        /**
-         * Appends an attribute of name attributeName with specified list of values to the document builder.
-         *
-         * @param attributeName Name of the attribute that needs to be added in the Document.
-         * @param values        The list of values that needs to be set.
-         * @return Builder instance to construct a {@link EnhancedDocument}
-         */
-        Builder addList(String attributeName, Object... values);
 
         /**
          * Appends an attribute of name attributeName with specified map values to the document builder.
@@ -553,15 +440,6 @@ public interface EnhancedDocument {
         Builder addJson(String attributeName, String json);
 
         /**
-         * Convenience builder methods that sets the attributes of this documents from the specified KeyAttributeMetadata
-         * components.
-         *
-         * @param components KeyAttributeMetadata of the attributes
-         * @return Builder instance to construct a {@link EnhancedDocument}
-         */
-        Builder keyComponents(KeyAttributeMetadata... components);
-
-        /**
          * Convenience builder methods that sets an attribute of this document for the specified key attribute name and value.
          *
          * @param keyAttrName  Name of the attribute that needs to be added in the Document.
@@ -571,13 +449,12 @@ public interface EnhancedDocument {
         Builder keyComponent(KeyAttributeMetadata keyAttrName, Object keyAttrValue);
 
         /**
-         * Appends collection of attributeConverterProvider to the document builder These
+         * Appends collection of attributeConverterProvider to the document builder. These
          * AttributeConverterProvider will be used to convert any given key to custom type T.
-         *
          * @param attributeConverterProvider determining the {@link AttributeConverter} to use for converting a value.
          * @return Builder instance to construct a {@link EnhancedDocument}
          */
-        Builder addAttributeConverterProviders(AttributeConverterProvider... attributeConverterProvider);
+        Builder addAttributeConverterProvider(AttributeConverterProvider attributeConverterProvider);
 
         /**
          * Sets the collection of attributeConverterProviders to the document builder. These AttributeConverterProvider will be
@@ -611,6 +488,5 @@ public interface EnhancedDocument {
          * @return instance of {@link EnhancedDocument} implementation.
          */
         EnhancedDocument build();
-
     }
 }
