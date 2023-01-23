@@ -1,3 +1,115 @@
+# __2.19.21__ __2023-01-20__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - C6in, M6in, M6idn, R6in and R6idn instances are powered by 3rd Generation Intel Xeon Scalable processors (code named Ice Lake) with an all-core turbo frequency of 3.5 GHz.
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - API and Doc update. Update to arns field in BatchGetStreamKey. Also updates to operations and structures.
+
+## __Amazon QuickSight__
+  - ### Features
+    - This release adds support for data bars in QuickSight table and increases pivot table field well limit.
+
+# __2.19.20__ __2023-01-19__
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental MediaLive adds support for SCTE 35 preRollMilliSeconds.
+
+## __AWS Glue__
+  - ### Features
+    - Release Glue Studio Hudi Data Lake Format for SDK/CLI
+
+## __AWS Ground Station__
+  - ### Features
+    - Add configurable prepass and postpass times for DataflowEndpointGroup. Add Waiter to allow customers to wait for a contact that was reserved through ReserveContact
+
+## __AWS Panorama__
+  - ### Features
+    - Added AllowMajorVersionUpdate option to OTAJobConfig to make appliance software major version updates opt-in.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Appflow__
+  - ### Features
+    - Adding support for Salesforce Pardot connector in Amazon AppFlow.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Bug fix - Removed the regex pattern validation from CoralModel to avoid potential security issue.
+
+## __Amazon Connect Participant Service__
+  - ### Features
+    - This release updates Amazon Connect Participant's GetTranscript api to provide transcripts of past chats on a persistent chat session.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect Chat introduces Persistent Chat, allowing customers to resume previous conversations with context and transcripts carried over from previous chats, eliminating the need to repeat themselves and allowing agents to provide personalized service with access to entire conversation history.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds SSM Parameter Resource Aliasing support to EC2 Launch Templates. Launch Templates can now store parameter aliases in place of AMI Resource IDs. CreateLaunchTemplateVersion and DescribeLaunchTemplateVersions now support a convenience flag, ResolveAlias, to return the resolved parameter value.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - This release adds the enhanced dry run option, that checks for validation errors that might occur when deploying configuration changes and provides a summary of these errors, if any. The feature will also indicate whether a blue/green deployment will be required to apply a change.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - HyperParameterTuningJobs now allow passing environment variables into the corresponding TrainingJobs
+
+## __CodeArtifact__
+  - ### Features
+    - Documentation updates for CodeArtifact
+
+# __2.19.19__ __2023-01-18__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS WAFV2__
+  - ### Features
+    - Improved the visibility of the guidance for updating AWS WAF resources, such as web ACLs and rule groups.
+
+## __Amazon CloudWatch__
+  - ### Features
+    - Enable cross-account streams in CloudWatch Metric Streams via Observability Access Manager.
+
+## __Amazon Elastic File System__
+  - ### Features
+    - Documentation updates for EFS access points limit increase
+
+## __Amazon Interactive Video Service Chat__
+  - ### Features
+    - Updates the range for a Chat Room's maximumMessageRatePerSecond field.
+
+# __2.19.18__ __2023-01-17__
+## __AWS Cloud9__
+  - ### Features
+    - Added minimum value to AutomaticStopTimeMinutes parameter.
+
+## __AWS Network Firewall__
+  - ### Features
+    - Network Firewall now allows creation of dual stack endpoints, enabling inspection of IPv6 traffic.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWSBillingConductor__
+  - ### Features
+    - This release adds support for SKU Scope for pricing plans.
+
+## __EC2 Image Builder__
+  - ### Features
+    - Add support for AWS Marketplace product IDs as input during CreateImageRecipe for the parent-image parameter. Add support for listing third-party components.
+
 # __2.19.17__ __2023-01-13__
 ## __AWS Outposts__
   - ### Features
