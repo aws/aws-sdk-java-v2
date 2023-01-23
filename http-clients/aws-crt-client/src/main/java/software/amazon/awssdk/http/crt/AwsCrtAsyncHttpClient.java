@@ -111,20 +111,20 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
             this.tlsContext = registerOwnedResource(clientTlsContext);
             this.readBufferSize = builder.readBufferSize == null ?  DEFAULT_STREAM_WINDOW_SIZE : builder.readBufferSize;
             this.maxConnectionsPerEndpoint = config.get(SdkHttpConfigurationOption.MAX_CONNECTIONS);
-            this.monitoringOptions = revolveHttpMonitoringOptions(builder.connectionHealthChecksConfiguration);
+            this.monitoringOptions = revolveHttpMonitoringOptions(builder.connectionHealthConfiguration);
             this.maxConnectionIdleInMilliseconds = config.get(SdkHttpConfigurationOption.CONNECTION_MAX_IDLE_TIMEOUT).toMillis();
             this.proxyOptions = buildProxyOptions(builder.proxyConfiguration);
         }
     }
 
-    private HttpMonitoringOptions revolveHttpMonitoringOptions(ConnectionHealthChecksConfiguration config) {
+    private HttpMonitoringOptions revolveHttpMonitoringOptions(ConnectionHealthConfiguration config) {
         if (config == null) {
             return null;
         }
 
         HttpMonitoringOptions httpMonitoringOptions = new HttpMonitoringOptions();
-        httpMonitoringOptions.setMinThroughputBytesPerSecond(config.minThroughputInBytesPerSecond());
-        int seconds = (int) config.allowableThroughputFailureInterval().getSeconds();
+        httpMonitoringOptions.setMinThroughputBytesPerSecond(config.minimumThroughputInBps());
+        int seconds = (int) config.minimumThroughputTimeout().getSeconds();
         httpMonitoringOptions.setAllowableThroughputFailureIntervalSeconds(seconds);
         return httpMonitoringOptions;
     }
@@ -355,25 +355,25 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
          *
          * <p>
          * You can set a throughput threshold for a connection to be considered healthy.
-         * If a connection falls below this threshold ({@link ConnectionHealthChecksConfiguration#minThroughputInBytesPerSecond()
+         * If a connection falls below this threshold ({@link ConnectionHealthConfiguration#minimumThroughputInBps()
          * }) for the configurable amount
-         * of time ({@link ConnectionHealthChecksConfiguration#allowableThroughputFailureInterval()}),
+         * of time ({@link ConnectionHealthConfiguration#minimumThroughputTimeout()}),
          * then the connection is considered unhealthy and will be shut down.
          *
          * @param healthChecksConfiguration The health checks config to use
          * @return The builder of the method chaining.
          */
-        Builder connectionHealthChecksConfiguration(ConnectionHealthChecksConfiguration healthChecksConfiguration);
+        Builder connectionHealthConfiguration(ConnectionHealthConfiguration healthChecksConfiguration);
 
         /**
-         * A convenience method that creates an instance of the {@link ConnectionHealthChecksConfiguration} builder, avoiding the
-         * need to create one manually via {@link ConnectionHealthChecksConfiguration#builder()}.
+         * A convenience method that creates an instance of the {@link ConnectionHealthConfiguration} builder, avoiding the
+         * need to create one manually via {@link ConnectionHealthConfiguration#builder()}.
          *
          * @param healthChecksConfigurationBuilder The health checks config builder to use
          * @return The builder of the method chaining.
-         * @see #connectionHealthChecksConfiguration(ConnectionHealthChecksConfiguration)
+         * @see #connectionHealthConfiguration(ConnectionHealthConfiguration)
          */
-        Builder connectionHealthChecksConfiguration(Consumer<ConnectionHealthChecksConfiguration.Builder>
+        Builder connectionHealthConfiguration(Consumer<ConnectionHealthConfiguration.Builder>
                                                         healthChecksConfigurationBuilder);
 
         /**
@@ -428,7 +428,7 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         private final AttributeMap.Builder standardOptions = AttributeMap.builder();
         private Integer readBufferSize;
         private ProxyConfiguration proxyConfiguration;
-        private ConnectionHealthChecksConfiguration connectionHealthChecksConfiguration;
+        private ConnectionHealthConfiguration connectionHealthConfiguration;
         private TcpKeepAliveConfiguration tcpKeepAliveConfiguration;
 
         private DefaultBuilder() {
@@ -470,17 +470,17 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         }
 
         @Override
-        public Builder connectionHealthChecksConfiguration(ConnectionHealthChecksConfiguration monitoringOptions) {
-            this.connectionHealthChecksConfiguration = monitoringOptions;
+        public Builder connectionHealthConfiguration(ConnectionHealthConfiguration monitoringOptions) {
+            this.connectionHealthConfiguration = monitoringOptions;
             return this;
         }
 
         @Override
-        public Builder connectionHealthChecksConfiguration(Consumer<ConnectionHealthChecksConfiguration.Builder>
+        public Builder connectionHealthConfiguration(Consumer<ConnectionHealthConfiguration.Builder>
                                                                        configurationBuilder) {
-            ConnectionHealthChecksConfiguration.Builder builder = ConnectionHealthChecksConfiguration.builder();
+            ConnectionHealthConfiguration.Builder builder = ConnectionHealthConfiguration.builder();
             configurationBuilder.accept(builder);
-            return connectionHealthChecksConfiguration(builder.build());
+            return connectionHealthConfiguration(builder.build());
         }
 
         @Override
