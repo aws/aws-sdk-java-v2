@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Glue DataBrew",
+    "contributor": "",
+    "description": "Enabled FIPS us-gov-west-1 endpoints in SDK."
+}
