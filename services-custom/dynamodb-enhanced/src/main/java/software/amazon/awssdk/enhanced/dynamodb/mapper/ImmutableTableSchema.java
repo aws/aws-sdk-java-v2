@@ -29,6 +29,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -108,6 +109,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPrese
 @ThreadSafe
 public final class ImmutableTableSchema<T> extends WrappedTableSchema<T, StaticImmutableTableSchema<T, ?>> {
     private static final String ATTRIBUTE_TAG_STATIC_SUPPLIER_NAME = "attributeTagFor";
+    private static final Map<Class<?>, ImmutableTableSchema<?>> IMMUTABLE_TABLE_SCHEMA_CACHE = new ConcurrentHashMap<>();
 
     private ImmutableTableSchema(StaticImmutableTableSchema<T, ?> wrappedTableSchema) {
         super(wrappedTableSchema);
@@ -124,8 +126,10 @@ public final class ImmutableTableSchema<T> extends WrappedTableSchema<T, StaticI
      * @param <T> The immutable class type.
      * @return An initialized {@link ImmutableTableSchema}
      */
+    @SuppressWarnings("unchecked")
     public static <T> ImmutableTableSchema<T> create(Class<T> immutableClass) {
-        return create(immutableClass, new MetaTableSchemaCache());
+        return (ImmutableTableSchema<T>) IMMUTABLE_TABLE_SCHEMA_CACHE.computeIfAbsent(
+            immutableClass, clz -> create(clz, new MetaTableSchemaCache()));
     }
 
     private static <T> ImmutableTableSchema<T> create(Class<T> immutableClass,
