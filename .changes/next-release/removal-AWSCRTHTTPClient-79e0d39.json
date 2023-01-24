@@ -1,6 +1,0 @@
-{
-    "type": "removal",
-    "category": "AWS CRT HTTP Client",
-    "contributor": "",
-    "description": "Removed `tlsCipherPreference`."
-}

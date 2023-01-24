@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS CRT HTTP Client",
-    "contributor": "",
-    "description": "Renamed `readBufferSize` -> `readBufferSizeInBytes`."
-}
