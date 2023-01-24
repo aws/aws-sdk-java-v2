@@ -76,14 +76,6 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
     private static final String AWS_COMMON_RUNTIME = "AwsCommonRuntime";
     private static final int DEFAULT_STREAM_WINDOW_SIZE = 16 * 1024 * 1024; // 16 MB
 
-    private static final Duration CRT_SDK_DEFAULT_CONNECTION_TIMEOUT = Duration.ofSeconds(3);
-    // Override default connection timeout for Crt client to be in line with the CRT default:
-    // https://github.com/awslabs/aws-crt-java/blob/main/src/main/java/software/amazon/awssdk/crt/io/SocketOptions.java#L79
-    private static final AttributeMap CRT_HTTP_DEFAULTS =
-        AttributeMap.builder()
-                    .put(SdkHttpConfigurationOption.CONNECTION_TIMEOUT, CRT_SDK_DEFAULT_CONNECTION_TIMEOUT)
-                    .build();
-
     private final Map<URI, HttpClientConnectionManager> connectionPools = new ConcurrentHashMap<>();
     private final LinkedList<CrtResource> ownedSubResources = new LinkedList<>();
     private final ClientBootstrap bootstrap;
@@ -437,7 +429,6 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         @Override
         public SdkAsyncHttpClient build() {
             return new AwsCrtAsyncHttpClient(this, standardOptions.build()
-                                                                  .merge(CRT_HTTP_DEFAULTS)
                                                                   .merge(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS));
         }
 
@@ -445,7 +436,6 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         public SdkAsyncHttpClient buildWithDefaults(AttributeMap serviceDefaults) {
             return new AwsCrtAsyncHttpClient(this, standardOptions.build()
                                                            .merge(serviceDefaults)
-                                                           .merge(CRT_HTTP_DEFAULTS)
                                                            .merge(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS));
         }
 
