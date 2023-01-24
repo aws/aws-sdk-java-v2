@@ -76,8 +76,8 @@ public class AwsCrtHttpClientSpiVerificationTest {
     @BeforeClass
     public static void setup() throws Exception {
         client = AwsCrtAsyncHttpClient.builder()
-                                      .connectionHealthChecksConfiguration(b -> b.minThroughputInBytesPerSecond(4068L)
-                                                                                 .allowableThroughputFailureInterval(Duration.ofSeconds(3)))
+                                      .connectionHealthConfiguration(b -> b.minimumThroughputInBps(4068L)
+                                                                           .minimumThroughputTimeout(Duration.ofSeconds(3)))
                                       .build();
     }
 
