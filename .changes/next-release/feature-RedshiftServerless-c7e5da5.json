@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Redshift Serverless",
+    "contributor": "",
+    "description": "Added query monitoring rules as possible parameters for create and update workgroup operations."
+}
