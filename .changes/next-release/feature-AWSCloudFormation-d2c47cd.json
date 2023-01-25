@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CloudFormation",
+    "contributor": "",
+    "description": "Enabled FIPS aws-us-gov endpoints in SDK."
+}
