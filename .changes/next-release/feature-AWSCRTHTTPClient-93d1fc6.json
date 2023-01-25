@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CRT HTTP Client",
+    "contributor": "",
+    "description": "Throw UnsupportedOperationException if the AWS CRT HTTP Client is configured with HTTP/2 protocol."
+}

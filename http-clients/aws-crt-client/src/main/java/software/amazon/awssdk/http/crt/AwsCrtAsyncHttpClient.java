@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http.crt;
 
 import static software.amazon.awssdk.http.HttpMetric.HTTP_CLIENT_NAME;
+import static software.amazon.awssdk.http.SdkHttpConfigurationOption.PROTOCOL;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
@@ -38,6 +39,7 @@ import software.amazon.awssdk.crt.io.SocketOptions;
 import software.amazon.awssdk.crt.io.TlsCipherPreference;
 import software.amazon.awssdk.crt.io.TlsContext;
 import software.amazon.awssdk.crt.io.TlsContextOptions;
+import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
@@ -89,6 +91,10 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
     private boolean isClosed = false;
 
     private AwsCrtAsyncHttpClient(DefaultBuilder builder, AttributeMap config) {
+        if (config.get(PROTOCOL) == Protocol.HTTP2) {
+            throw new UnsupportedOperationException("HTTP/2 is not supported in AwsCrtAsyncHttpClient yet. Use "
+                                               + "NettyNioAsyncHttpClient instead.");
+        }
 
         try (ClientBootstrap clientBootstrap = new ClientBootstrap(null, null);
              SocketOptions clientSocketOptions = buildSocketOptions(builder, config);
