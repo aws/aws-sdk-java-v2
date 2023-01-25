@@ -46,10 +46,11 @@ public class DocumentUnmarshaller implements JsonNodeVisitor<Document> {
         return Document.fromString(string);
     }
 
+    // TODO : A separate PR will be raised on Master and these changes will be merged separately for Master branch.
     @Override
     public Document visitArray(List<JsonNode> array) {
         return Document.fromList(array.stream()
-                                      .map(node -> node.visit(this))
+                                      .map(node -> node == null ? Document.fromNull() : node.visit(this))
                                       .collect(Collectors.toList()));
     }
 

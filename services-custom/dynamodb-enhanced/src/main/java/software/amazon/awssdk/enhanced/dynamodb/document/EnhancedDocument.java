@@ -25,7 +25,6 @@ import software.amazon.awssdk.core.SdkNumber;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
-import software.amazon.awssdk.enhanced.dynamodb.KeyAttributeMetadata;
 
 /**
  * Interface representing Document API for DynamoDB. Document API operations are used to carry open content i.e. data with no
@@ -145,8 +144,6 @@ public interface EnhancedDocument {
      * @param attributeName Name of the attribute.
      * @return the value of the specified attribute in the current document as SdkBytes; or null if the attribute either
      * doesn't exist or the attribute value is null.
-     * @throws UnsupportedOperationException If the attribute value involves a byte buffer which is not backed by an accessible
-     *                                       array
      */
     SdkBytes getSdkBytes(String attributeName);
 
@@ -188,6 +185,15 @@ public interface EnhancedDocument {
      */
 
     <T> List<T> getList(String attributeName, EnhancedType<T> type);
+
+
+    /**
+     * Gets the List of values for the given attribute in the current document.
+     * @param attributeName Name of the attribute.
+     * @return value of the specified attribute in the current document as a list; or null if the
+     * attribute either doesn't exist or the attribute value is null.
+     */
+    List<?> getList(String attributeName);
 
     /**
      * Gets the Map with Key as String and values as type T for the given attribute in the current document.
@@ -261,13 +267,16 @@ public interface EnhancedDocument {
      * @return value of the specified attribute in the current document as a JSON string with pretty indentation; or null if the
      * attribute either doesn't exist or the attribute value is null.
      */
-    String getJSONPretty(String attributeName);
+    String getJsonPretty(String attributeName);
 
     /**
      * Gets the {@link Boolean} value for the specified attribute.
      *
      * @param attributeName Name of the attribute.
      * @return value of the specified attribute in the current document as a non-null Boolean.
+     * @throws RuntimeException
+     *             if either the attribute doesn't exist or if the attribute
+     *             value cannot be converted into a boolean value.
      */
     Boolean getBoolean(String attributeName);
 
@@ -440,13 +449,12 @@ public interface EnhancedDocument {
         Builder addJson(String attributeName, String json);
 
         /**
-         * Convenience builder methods that sets an attribute of this document for the specified key attribute name and value.
-         *
-         * @param keyAttrName  Name of the attribute that needs to be added in the Document.
-         * @param keyAttrValue The value that needs to be set.
+         * Appends an attribute of name attributeName with specified value of the give EnhancedDocument.
+         * @param attributeName Name of the attribute that needs to be added in the Document.
+         * @param enhancedDocument that needs to be added as a value to a key attribute.
          * @return Builder instance to construct a {@link EnhancedDocument}
          */
-        Builder keyComponent(KeyAttributeMetadata keyAttrName, Object keyAttrValue);
+        Builder addEnhancedDocument(String attributeName, EnhancedDocument enhancedDocument);
 
         /**
          * Appends collection of attributeConverterProvider to the document builder. These
