@@ -1,6 +1,0 @@
-{
-    "category": "AWS CRT HTTP Client", 
-    "contributor": "", 
-    "type": "feature", 
-    "description": "Remove CRT connection timeout default"
-}
