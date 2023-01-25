@@ -2467,6 +2467,9 @@
       },
       "input":{"shape":"ListInferenceRecommendationsJobStepsRequest"},
       "output":{"shape":"ListInferenceRecommendationsJobStepsResponse"},
+      "errors":[
+        {"shape":"ResourceNotFound"}
+      ],
       "documentation":"<p>Returns a list of the subtasks for an Inference Recommender job.</p> <p>The supported subtasks are benchmarks, which evaluate the performance of your model on different instance types.</p>"
     },
     "ListInferenceRecommendationsJobs":{
@@ -15259,7 +15262,7 @@
         },
         "ShadowProductionVariants":{
           "shape":"ProductionVariantSummaryList",
-          "documentation":"<p>A list of the shadow variants hosted on the endpoint. Each shadow variant is a model in shadow mode with production traffic replicated from the proudction variant.</p>"
+          "documentation":"<p>A list of the shadow variants hosted on the endpoint. Each shadow variant is a model in shadow mode with production traffic replicated from the production variant.</p>"
         }
       },
       "documentation":"<p>A hosted endpoint for real-time inference.</p>"
@@ -17176,6 +17179,10 @@
         "HyperParameterTuningResourceConfig":{
           "shape":"HyperParameterTuningResourceConfig",
           "documentation":"<p>The configuration for the hyperparameter tuning resources, including the compute instances and storage volumes, used for training jobs launched by the tuning job. By default, storage volumes hold model artifacts and incremental states. Choose <code>File</code> for <code>TrainingInputMode</code> in the <code>AlgorithmSpecification</code> parameter to additionally store training data in the storage volume (optional).</p>"
+        },
+        "Environment":{
+          "shape":"HyperParameterTrainingJobEnvironmentMap",
+          "documentation":"<p>An environment variable that you can pass into the SageMaker <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_CreateTrainingJob.html\">CreateTrainingJob</a> API. You can use an existing <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_CreateTrainingJob.html#sagemaker-CreateTrainingJob-request-Environment\">environment variable from the training container</a> or use your own. See <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/automatic-model-tuning-define-metrics.html\">Define metrics and variables</a> for more information.</p> <note> <p>The maximum number of items specified for <code>Map Entries</code> refers to the maximum number of environment variables for each <code>TrainingJobDefinition</code> and also the maximum for the hyperparameter tuning job itself. That is, the sum of the number of environment variables for all the training job definitions can't exceed the maximum number specified.</p> </note>"
         }
       },
       "documentation":"<p>Defines the training jobs launched by a hyperparameter tuning job.</p>"
@@ -17191,6 +17198,22 @@
       "member":{"shape":"HyperParameterTrainingJobDefinition"},
       "max":10,
       "min":1
+    },
+    "HyperParameterTrainingJobEnvironmentKey":{
+      "type":"string",
+      "max":512,
+      "pattern":"[a-zA-Z_][a-zA-Z0-9_]*"
+    },
+    "HyperParameterTrainingJobEnvironmentMap":{
+      "type":"map",
+      "key":{"shape":"HyperParameterTrainingJobEnvironmentKey"},
+      "value":{"shape":"HyperParameterTrainingJobEnvironmentValue"},
+      "max":48
+    },
+    "HyperParameterTrainingJobEnvironmentValue":{
+      "type":"string",
+      "max":512,
+      "pattern":"[\\S\\s]*"
     },
     "HyperParameterTrainingJobSummaries":{
       "type":"list",
@@ -17275,7 +17298,7 @@
         },
         "InstanceCount":{
           "shape":"TrainingInstanceCount",
-          "documentation":"<p>The number of instances of the type specified by <code>InstanceType</code>. Choose an instance count larger than 1 for distributed training algorithms. See <a href=\"https://docs.aws.amazon.com/data-parallel-use-api.html\">SageMaker distributed training jobs</a> for more informcration.</p>"
+          "documentation":"<p>The number of instances of the type specified by <code>InstanceType</code>. Choose an instance count larger than 1 for distributed training algorithms. See <a href=\"https://docs.aws.amazon.com/data-parallel-use-api.html\">SageMaker distributed training jobs</a> for more information.</p>"
         },
         "VolumeSizeInGB":{
           "shape":"VolumeSizeInGB",
@@ -18107,6 +18130,10 @@
         "ModelConfiguration":{
           "shape":"ModelConfiguration",
           "documentation":"<p>Defines the model configuration.</p>"
+        },
+        "RecommendationId":{
+          "shape":"String",
+          "documentation":"<p>The recommendation ID which uniquely identifies each recommendation.</p>"
         }
       },
       "documentation":"<p>A list of recommendations made by Amazon SageMaker Inference Recommender.</p>"
@@ -23424,6 +23451,10 @@
         "EnvironmentParameters":{
           "shape":"EnvironmentParameters",
           "documentation":"<p>Defines the environment parameters that includes key, value types, and values.</p>"
+        },
+        "CompilationJobName":{
+          "shape":"RecommendationJobCompilationJobName",
+          "documentation":"<p>The name of the compilation job used to create the recommended model artifacts.</p>"
         }
       },
       "documentation":"<p>Defines the model configuration. Includes the specification name and environment parameters.</p>"
@@ -27039,7 +27070,7 @@
         },
         "VolumeSizeInGB":{
           "shape":"ProductionVariantVolumeSizeInGB",
-          "documentation":"<p>The size, in GB, of the ML storage volume attached to individual inference instance associated with the production variant. Currenly only Amazon EBS gp2 storage volumes are supported.</p>"
+          "documentation":"<p>The size, in GB, of the ML storage volume attached to individual inference instance associated with the production variant. Currently only Amazon EBS gp2 storage volumes are supported.</p>"
         },
         "ModelDataDownloadTimeoutInSeconds":{
           "shape":"ProductionVariantModelDataDownloadTimeoutInSeconds",
@@ -27225,7 +27256,8 @@
         "ml.r6gd.4xlarge",
         "ml.r6gd.8xlarge",
         "ml.r6gd.12xlarge",
-        "ml.r6gd.16xlarge"
+        "ml.r6gd.16xlarge",
+        "ml.p4de.24xlarge"
       ]
     },
     "ProductionVariantList":{
@@ -27981,6 +28013,12 @@
       "max":256,
       "pattern":"arn:aws[a-z\\-]*:sagemaker:[a-z0-9\\-]*:[0-9]{12}:inference-recommendations-job/.*"
     },
+    "RecommendationJobCompilationJobName":{
+      "type":"string",
+      "max":63,
+      "min":1,
+      "pattern":"^[a-zA-Z0-9](-*[a-zA-Z0-9]){0,62}$"
+    },
     "RecommendationJobCompiledOutputConfig":{
       "type":"structure",
       "members":{
@@ -28021,9 +28059,19 @@
         "SupportedInstanceTypes":{
           "shape":"RecommendationJobSupportedInstanceTypes",
           "documentation":"<p>A list of the instance types that are used to generate inferences in real-time.</p>"
+        },
+        "DataInputConfig":{
+          "shape":"RecommendationJobDataInputConfig",
+          "documentation":"<p>Specifies the name and shape of the expected data inputs for your trained model with a JSON dictionary form. This field is used for optimizing your model using SageMaker Neo. For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_InputConfig.html#sagemaker-Type-InputConfig-DataInputConfig\">DataInputConfig</a>.</p>"
         }
       },
       "documentation":"<p>Specifies mandatory fields for running an Inference Recommender job directly in the <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_CreateInferenceRecommendationsJob.html\">CreateInferenceRecommendationsJob</a> API. The fields specified in <code>ContainerConfig</code> override the corresponding fields in the model package. Use <code>ContainerConfig</code> if you want to specify these fields for the recommendation job but don't want to edit them in your model package.</p>"
+    },
+    "RecommendationJobDataInputConfig":{
+      "type":"string",
+      "max":1024,
+      "min":1,
+      "pattern":"[\\S\\s]+"
     },
     "RecommendationJobDescription":{
       "type":"string",
@@ -28045,7 +28093,6 @@
     },
     "RecommendationJobInputConfig":{
       "type":"structure",
-      "required":["ModelPackageVersionArn"],
       "members":{
         "ModelPackageVersionArn":{
           "shape":"ModelPackageArn",
@@ -28082,6 +28129,10 @@
         "VpcConfig":{
           "shape":"RecommendationJobVpcConfig",
           "documentation":"<p>Inference Recommender provisions SageMaker endpoints with access to VPC in the inference recommendation job.</p>"
+        },
+        "ModelName":{
+          "shape":"ModelName",
+          "documentation":"<p>The name of the created model.</p>"
         }
       },
       "documentation":"<p>The input configuration of the recommendation job.</p>"
@@ -28238,6 +28289,14 @@
         "ModelLatency":{
           "shape":"Integer",
           "documentation":"<p>The expected model latency at maximum invocation per minute for the instance.</p>"
+        },
+        "CpuUtilization":{
+          "shape":"UtilizationMetric",
+          "documentation":"<p>The expected CPU utilization at maximum invocations per minute for the instance.</p> <p> <code>NaN</code> indicates that the value is not available.</p>"
+        },
+        "MemoryUtilization":{
+          "shape":"UtilizationMetric",
+          "documentation":"<p>The expected memory utilization at maximum invocations per minute for the instance.</p> <p> <code>NaN</code> indicates that the value is not available.</p>"
         }
       },
       "documentation":"<p>The metrics of recommendations.</p>"
@@ -31875,7 +31934,7 @@
         },
         "ExcludeRetainedVariantProperties":{
           "shape":"VariantPropertyList",
-          "documentation":"<p>When you are updating endpoint resources with <a>UpdateEndpointInput$RetainAllVariantProperties</a>, whose value is set to <code>true</code>, <code>ExcludeRetainedVariantProperties</code> specifies the list of type <a>VariantProperty</a> to override with the values provided by <code>EndpointConfig</code>. If you don't specify a value for <code>ExcludeAllVariantProperties</code>, no variant properties are overridden. </p>"
+          "documentation":"<p>When you are updating endpoint resources with <a>UpdateEndpointInput$RetainAllVariantProperties</a>, whose value is set to <code>true</code>, <code>ExcludeRetainedVariantProperties</code> specifies the list of type <a>VariantProperty</a> to override with the values provided by <code>EndpointConfig</code>. If you don't specify a value for <code>ExcludeRetainedVariantProperties</code>, no variant properties are overridden. </p>"
         },
         "DeploymentConfig":{
           "shape":"DeploymentConfig",
@@ -32867,6 +32926,10 @@
         }
       },
       "documentation":"<p>A collection of settings that apply to users of Amazon SageMaker Studio. These settings are specified when the <code>CreateUserProfile</code> API is called, and as <code>DefaultUserSettings</code> when the <code>CreateDomain</code> API is called.</p> <p> <code>SecurityGroups</code> is aggregated when specified in both calls. For all other settings in <code>UserSettings</code>, the values specified in <code>CreateUserProfile</code> take precedence over those specified in <code>CreateDomain</code>.</p>"
+    },
+    "UtilizationMetric":{
+      "type":"float",
+      "min":0.0
     },
     "ValidationFraction":{
       "type":"float",

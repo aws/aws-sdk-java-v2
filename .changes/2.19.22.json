@@ -1,0 +1,24 @@
+{
+    "version": "2.19.22",
+    "date": "2023-01-23",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Lambda",
+            "contributor": "",
+            "description": "Release Lambda RuntimeManagementConfig, enabling customers to better manage runtime updates to their Lambda functions. This release adds two new APIs, GetRuntimeManagementConfig and PutRuntimeManagementConfig, as well as support on existing Create/Get/Update function APIs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Amazon SageMaker Inference now supports P4de instance types."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}
