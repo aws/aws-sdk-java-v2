@@ -19,7 +19,6 @@ import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TRUST_ALL_C
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.crt.Log;
 import software.amazon.awssdk.http.SdkAsyncHttpClientH1TestSuite;
@@ -46,10 +45,5 @@ public class H1ServerBehaviorTest extends SdkAsyncHttpClientH1TestSuite {
     protected SdkAsyncHttpClient setupClient() {
         return AwsCrtAsyncHttpClient.builder()
                                     .buildWithDefaults(AttributeMap.builder().put(TRUST_ALL_CERTIFICATES, true).build());
-    }
-
-    @Test
-    // TODO: Remove this override. Temporarily disabling test because it's causing memory leak
-    public void naughtyHeaderCharactersDoNotGetToServer() {
     }
 }
