@@ -101,7 +101,7 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
             this.bootstrap = registerOwnedResource(clientBootstrap);
             this.socketOptions = registerOwnedResource(clientSocketOptions);
             this.tlsContext = registerOwnedResource(clientTlsContext);
-            this.readBufferSize = builder.readBufferSize == null ?  DEFAULT_STREAM_WINDOW_SIZE : builder.readBufferSize;
+            this.readBufferSize = builder.readBufferSize == null ? DEFAULT_STREAM_WINDOW_SIZE : builder.readBufferSize;
             this.maxConnectionsPerEndpoint = config.get(SdkHttpConfigurationOption.MAX_CONNECTIONS);
             this.monitoringOptions = revolveHttpMonitoringOptions(builder.connectionHealthConfiguration);
             this.maxConnectionIdleInMilliseconds = config.get(SdkHttpConfigurationOption.CONNECTION_MAX_IDLE_TIMEOUT).toMillis();
@@ -207,7 +207,7 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
                 .withSocketOptions(socketOptions)
                 .withTlsContext(tlsContext)
                 .withUri(uri)
-                .withWindowSize((int) readBufferSize)
+                .withWindowSize(NumericUtils.saturatedCast(readBufferSize))
                 .withMaxConnections(maxConnectionsPerEndpoint)
                 .withManualWindowManagement(true)
                 .withProxyOptions(proxyOptions)
@@ -320,10 +320,9 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
          * client before we stop reading from the underlying TCP socket and wait for the Subscriber
          * to read more data.
          *
-         * @param readBufferSize The number of bytes that can be buffered
+         * @param readBufferSize The number of bytes that can be buffered. The maximum buffering size value is
+         *                       capped at {@code Integer.MAX}.
          * @return The builder of the method chaining.
-         *
-         * TODO: This is also used for the write buffer size. Should we rename it?
          */
         Builder readBufferSizeInBytes(Long readBufferSize);
 
