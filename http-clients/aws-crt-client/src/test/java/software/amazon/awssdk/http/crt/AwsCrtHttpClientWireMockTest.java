@@ -23,6 +23,7 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.http.HttpTestUtils.createProvider;
+import static software.amazon.awssdk.http.SdkHttpConfigurationOption.PROTOCOL;
 import static software.amazon.awssdk.http.crt.CrtHttpClientTestUtils.createRequest;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
@@ -33,10 +34,13 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import software.amazon.awssdk.crt.CrtResource;
+import software.amazon.awssdk.crt.Log;
+import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.RecordingResponseHandler;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
+import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Logger;
 
 public class AwsCrtHttpClientWireMockTest {
@@ -48,7 +52,8 @@ public class AwsCrtHttpClientWireMockTest {
 
     @BeforeClass
     public static void setup() {
-        System.setProperty("aws.crt.debugnative", "false");
+        System.setProperty("aws.crt.debugnative", "true");
+        Log.initLoggingToStdout(Log.LogLevel.Warn);
     }
 
     @AfterClass
@@ -63,6 +68,15 @@ public class AwsCrtHttpClientWireMockTest {
 
         client.close();
         assertThatThrownBy(() -> makeSimpleRequest(client)).hasMessageContaining("is closed");
+    }
+
+    @Test
+    public void invalidProtocol_shouldThrowException() {
+        AttributeMap attributeMap = AttributeMap.builder()
+                                                .put(PROTOCOL, Protocol.HTTP2)
+                                                .build();
+        assertThatThrownBy(() -> AwsCrtAsyncHttpClient.builder().buildWithDefaults(attributeMap))
+            .isInstanceOf(UnsupportedOperationException.class);
     }
 
     @Test
