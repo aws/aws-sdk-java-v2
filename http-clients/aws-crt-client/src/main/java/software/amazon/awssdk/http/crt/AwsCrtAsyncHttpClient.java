@@ -358,6 +358,9 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
          * of time ({@link ConnectionHealthConfiguration#minimumThroughputTimeout()}),
          * then the connection is considered unhealthy and will be shut down.
          *
+         * <p>
+         * By default, monitoring options are disabled. You can enable {@code healthChecks} by providing this configuration
+         * and specifying the options for monitoring for the connection manager.
          * @param healthChecksConfiguration The health checks config to use
          * @return The builder of the method chaining.
          */

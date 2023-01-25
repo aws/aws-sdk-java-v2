@@ -1,3 +1,44 @@
+# __2.19.24__ __2023-01-25__
+## __AWS CRT HTTP Client__
+  - ### Features
+    - Remove CRT connection timeout default
+
+## __AWS CloudFormation__
+  - ### Features
+    - Enabled FIPS aws-us-gov endpoints in SDK.
+
+## __AWS S3 Control__
+  - ### Features
+    - Add additional endpoint tests for S3 Control. Fix missing endpoint parameters for PutBucketVersioning and GetBucketVersioning. Prior to this fix, those operations may have resulted in an invalid endpoint being resolved.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Security Token Service__
+  - ### Features
+    - Doc only change to update wording in a key topic
+
+## __AWSMainframeModernization__
+  - ### Features
+    - Add returnCode, batchJobIdentifier in GetBatchJobExecution response, for user to view the batch job execution result & unique identifier from engine. Also removed unused headers from REST APIs
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds new functionality that allows customers to provision IPv6 CIDR blocks through Amazon VPC IP Address Manager (IPAM) as well as allowing customers to utilize IPAM Resource Discovery APIs.
+
+## __Amazon Polly__
+  - ### Features
+    - Add 5 new neural voices - Sergio (es-ES), Andres (es-MX), Remi (fr-FR), Adriano (it-IT) and Thiago (pt-BR).
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - SageMaker Inference Recommender now decouples from Model Registry and could accept Model Name to invoke inference recommendations job; Inference Recommender now provides CPU/Memory Utilization metrics data in recommendation output.
+
+## __Redshift Serverless__
+  - ### Features
+    - Added query monitoring rules as possible parameters for create and update workgroup operations.
+
 # __2.19.23__ __2023-01-24__
 ## __AWS CRT HTTP Client__
   - ### Features
