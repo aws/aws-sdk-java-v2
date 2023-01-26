@@ -151,9 +151,6 @@ public final class ProfileCredentialsProvider
 
     @Override
     public void close() {
-        if (profileFile instanceof SdkAutoCloseable) {
-            ((SdkAutoCloseable) profileFile).close();
-        }
         // The delegate credentials provider may be closeable (eg. if it's an STS credentials provider). In this case, we should
         // clean it up when this credentials provider is closed.
         IoUtils.closeIfCloseable(credentialsProvider, null);

@@ -81,8 +81,6 @@ class ProfileFileSupplierTest {
         ProfileFile file2 = supplier.get();
 
         assertThat(file2).isSameAs(file1);
-
-        supplier.close();
     }
 
     @Test
@@ -104,8 +102,6 @@ class ProfileFileSupplierTest {
         ProfileFile file2 = supplier.get();
 
         assertThat(file2).isSameAs(file1);
-
-        supplier.close();
     }
 
     @Test
@@ -141,8 +137,6 @@ class ProfileFileSupplierTest {
             String awsSecretAccessKey = awsSecretAccessKeyOptional.get();
             assertThat(awsSecretAccessKey).isEqualTo("modifiedSecretAccessKey");
         });
-
-        supplier.close();
     }
 
     @Test
@@ -164,8 +158,6 @@ class ProfileFileSupplierTest {
         ProfileFile file2 = supplier.get();
 
         assertThat(file2).isNotSameAs(file1);
-
-        supplier.close();
     }
 
     @Test
@@ -189,8 +181,6 @@ class ProfileFileSupplierTest {
 
         assertThat(file2).isSameAs(file1);
         assertThat(file3).isNotSameAs(file2);
-
-        supplier.close();
     }
 
     @Test
@@ -227,8 +217,6 @@ class ProfileFileSupplierTest {
         assertThat(file3).isNotSameAs(file2);
         assertThat(file4).isNotSameAs(file3);
         assertThat(file5).isSameAs(file4);
-
-        supplier.close();
     }
 
     @Test
@@ -252,8 +240,6 @@ class ProfileFileSupplierTest {
             String awsSecretAccessKey = awsSecretAccessKeyOptional.get();
             assertThat(awsSecretAccessKey).isEqualTo("defaultSecretAccessKey");
         });
-
-        supplier.close();
     }
 
     @Test
@@ -280,8 +266,6 @@ class ProfileFileSupplierTest {
             String awsSecretAccessKey = awsSecretAccessKeyOptional.get();
             assertThat(awsSecretAccessKey).isEqualTo("defaultSecretAccessKey");
         });
-
-        supplier.close();
     }
 
     @Test
@@ -314,8 +298,6 @@ class ProfileFileSupplierTest {
             String region = regionOptional.get();
             assertThat(region).isEqualTo("us-west-2");
         });
-
-        supplier.close();
     }
 
     @Test
@@ -355,8 +337,6 @@ class ProfileFileSupplierTest {
             String region = regionOptional.get();
             assertThat(region).isEqualTo("us-west-2");
         });
-
-        supplier.close();
     }
 
     @Test
@@ -386,8 +366,6 @@ class ProfileFileSupplierTest {
                                                        .collect(Collectors.toList());
 
         assertThat(suppliedProfileFiles).isEqualTo(distinctAggregateFiles);
-
-        supplier.close();
     }
 
     @Test
@@ -430,8 +408,6 @@ class ProfileFileSupplierTest {
                                                        .collect(Collectors.toList());
 
         assertThat(suppliedProfileFiles).isEqualTo(distinctAggregateProfileFiles);
-
-        supplier.close();
     }
 
     @Test
@@ -440,8 +416,6 @@ class ProfileFileSupplierTest {
         ProfileFileSupplier supplier = ProfileFileSupplier.fixedProfileFile(file);
 
         assertThat(supplier).isNotNull();
-
-        supplier.close();
     }
 
     @Test
@@ -479,8 +453,6 @@ class ProfileFileSupplierTest {
         supplier.get();
 
         assertThat(blockCount.get()).isEqualTo(actualProfilesCount);
-
-        supplier.close();
     }
 
     private Path generateTestFile(String contents, String filename) {

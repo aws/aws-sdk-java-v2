@@ -96,11 +96,6 @@ final class ProfileFileSupplierBuilder {
                 public ProfileFile get() {
                     return refresher.refreshIfStale();
                 }
-
-                @Override
-                public void close() {
-                    refresher.close();
-                }
             };
         }
 

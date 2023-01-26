@@ -16,14 +16,12 @@
 package software.amazon.awssdk.profiles;
 
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.profiles.internal.ProfileFileRefresher;
-import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**
  * Encapsulates the logic for supplying either a single or multiple ProfileFile instances.
@@ -33,11 +31,7 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
  */
 @SdkPublicApi
 @FunctionalInterface
-public interface ProfileFileSupplier extends Supplier<ProfileFile>, SdkAutoCloseable {
-
-    @Override
-    default void close() {
-    }
+public interface ProfileFileSupplier extends Supplier<ProfileFile> {
 
     /**
      * Creates a {@link ProfileFileSupplier} capable of producing multiple profile objects by aggregating the default
@@ -58,7 +52,7 @@ public interface ProfileFileSupplier extends Supplier<ProfileFile>, SdkAutoClose
             = ProfileFileLocation.configurationFileLocation()
                                  .map(path -> reloadWhenModified(path, ProfileFile.Type.CONFIGURATION));
 
-        ProfileFileSupplier supplier = () -> null;
+        ProfileFileSupplier supplier = () -> ProfileFile.builder().build();
         if (credentialsSupplierOptional.isPresent() && configurationSupplierOptional.isPresent()) {
             supplier = aggregate(credentialsSupplierOptional.get(), configurationSupplierOptional.get());
         } else if (credentialsSupplierOptional.isPresent()) {
@@ -97,10 +91,6 @@ public interface ProfileFileSupplier extends Supplier<ProfileFile>, SdkAutoClose
                 return refresher.refreshIfStale();
             }
 
-            @Override
-            public void close() {
-                refresher.close();
-            }
         };
     }
 
@@ -137,11 +127,6 @@ public interface ProfileFileSupplier extends Supplier<ProfileFile>, SdkAutoClose
                 }
 
                 return refreshAndGetCurrentAggregate(aggregator);
-            }
-
-            @Override
-            public void close() {
-                Arrays.stream(suppliers).forEach(ProfileFileSupplier::close);
             }
 
             private ProfileFile refreshAndGetCurrentAggregate(ProfileFile.Aggregator aggregator) {

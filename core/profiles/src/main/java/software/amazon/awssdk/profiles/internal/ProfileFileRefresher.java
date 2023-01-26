@@ -28,7 +28,6 @@ import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.profiles.ProfileFile;
-import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.cache.CachedSupplier;
 import software.amazon.awssdk.utils.cache.RefreshResult;
 
@@ -36,7 +35,7 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
  * Class used for caching and reloading ProfileFile objects from a Supplier.
  */
 @SdkInternalApi
-public final class ProfileFileRefresher implements SdkAutoCloseable {
+public final class ProfileFileRefresher {
 
     private static final ProfileFileRefreshRecord EMPTY_REFRESH_RECORD = ProfileFileRefreshRecord.builder()
                                                                                                  .refreshTime(Instant.MIN)
@@ -81,30 +80,23 @@ public final class ProfileFileRefresher implements SdkAutoCloseable {
         return cachedOrRefreshedProfileFile;
     }
 
-    @Override
-    public void close() {
-        profileFileCache.close();
-    }
-
     private RefreshResult<ProfileFileRefreshRecord> refreshResult() {
         try {
             return reloadAsRefreshResultIfStale();
         } catch (RuntimeException exception) {
             Instant now = Instant.now();
-            Instant staleTime = now;
             ProfileFile exceptionProfileFile = exceptionHandler.apply(exception);
             ProfileFileRefreshRecord refreshRecord = ProfileFileRefreshRecord.builder()
                                                                              .profileFile(exceptionProfileFile)
                                                                              .refreshTime(now)
                                                                              .build();
 
-            return wrapIntoRefreshResult(refreshRecord, staleTime);
+            return wrapIntoRefreshResult(refreshRecord, now);
         }
     }
 
     private RefreshResult<ProfileFileRefreshRecord> reloadAsRefreshResultIfStale() {
         Instant now = clock.instant();
-        Instant staleTime = now;
         ProfileFileRefreshRecord refreshRecord;
 
         if (canReloadProfileFile() || hasNotBeenPreviouslyLoaded()) {
@@ -117,7 +109,7 @@ public final class ProfileFileRefresher implements SdkAutoCloseable {
             refreshRecord = currentRefreshRecord;
         }
 
-        return wrapIntoRefreshResult(refreshRecord, staleTime);
+        return wrapIntoRefreshResult(refreshRecord, now);
     }
 
     private <T> RefreshResult<T> wrapIntoRefreshResult(T value, Instant staleTime) {
