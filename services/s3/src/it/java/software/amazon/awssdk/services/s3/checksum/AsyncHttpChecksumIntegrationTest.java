@@ -111,12 +111,12 @@ public class AsyncHttpChecksumIntegrationTest extends S3IntegrationTestBase {
                                           .build(), AsyncRequestBody.fromString("Hello world")).join();
         assertThat(interceptor.requestChecksumInTrailer()).isEqualTo("x-amz-checksum-crc32");
         assertThat(interceptor.requestChecksumInHeader()).isNull();
+        assertThat(interceptor.contentEncoding()).isEqualTo("aws-chunked");
 
         String response = s3Async.getObject(GetObjectRequest.builder().bucket(BUCKET)
                                                             .key(KEY).checksumMode(ChecksumMode.ENABLED)
                                                             .build(), AsyncResponseTransformer.toBytes()).join().asUtf8String();
         assertThat(interceptor.validationAlgorithm()).isEqualTo(Algorithm.CRC32);
-        assertThat(interceptor.contentEncoding()).isEqualTo("aws-chunked");
         assertThat(interceptor.responseValidation()).isEqualTo(ChecksumValidation.VALIDATED);
         assertThat(response).isEqualTo("Hello world");
     }
