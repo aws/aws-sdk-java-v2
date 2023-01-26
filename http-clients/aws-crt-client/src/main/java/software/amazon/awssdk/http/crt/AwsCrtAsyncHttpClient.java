@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http.crt;
 
 import static software.amazon.awssdk.http.HttpMetric.HTTP_CLIENT_NAME;
+import static software.amazon.awssdk.http.SdkHttpConfigurationOption.PROTOCOL;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
@@ -38,6 +39,7 @@ import software.amazon.awssdk.crt.io.SocketOptions;
 import software.amazon.awssdk.crt.io.TlsCipherPreference;
 import software.amazon.awssdk.crt.io.TlsContext;
 import software.amazon.awssdk.crt.io.TlsContextOptions;
+import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
@@ -74,7 +76,7 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
     private static final Logger log = Logger.loggerFor(AwsCrtAsyncHttpClient.class);
 
     private static final String AWS_COMMON_RUNTIME = "AwsCommonRuntime";
-    private static final int DEFAULT_STREAM_WINDOW_SIZE = 16 * 1024 * 1024; // 16 MB
+    private static final long DEFAULT_STREAM_WINDOW_SIZE = 16L * 1024L * 1024L; // 16 MB
 
     private final Map<URI, HttpClientConnectionManager> connectionPools = new ConcurrentHashMap<>();
     private final LinkedList<CrtResource> ownedSubResources = new LinkedList<>();
@@ -84,11 +86,15 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
     private final HttpProxyOptions proxyOptions;
     private final HttpMonitoringOptions monitoringOptions;
     private final long maxConnectionIdleInMilliseconds;
-    private final int readBufferSize;
+    private final long readBufferSize;
     private final int maxConnectionsPerEndpoint;
     private boolean isClosed = false;
 
     private AwsCrtAsyncHttpClient(DefaultBuilder builder, AttributeMap config) {
+        if (config.get(PROTOCOL) == Protocol.HTTP2) {
+            throw new UnsupportedOperationException("HTTP/2 is not supported in AwsCrtAsyncHttpClient yet. Use "
+                                               + "NettyNioAsyncHttpClient instead.");
+        }
 
         try (ClientBootstrap clientBootstrap = new ClientBootstrap(null, null);
              SocketOptions clientSocketOptions = buildSocketOptions(builder, config);
@@ -101,7 +107,7 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
             this.bootstrap = registerOwnedResource(clientBootstrap);
             this.socketOptions = registerOwnedResource(clientSocketOptions);
             this.tlsContext = registerOwnedResource(clientTlsContext);
-            this.readBufferSize = builder.readBufferSize == null ?  DEFAULT_STREAM_WINDOW_SIZE : builder.readBufferSize;
+            this.readBufferSize = builder.readBufferSize == null ? DEFAULT_STREAM_WINDOW_SIZE : builder.readBufferSize;
             this.maxConnectionsPerEndpoint = config.get(SdkHttpConfigurationOption.MAX_CONNECTIONS);
             this.monitoringOptions = revolveHttpMonitoringOptions(builder.connectionHealthConfiguration);
             this.maxConnectionIdleInMilliseconds = config.get(SdkHttpConfigurationOption.CONNECTION_MAX_IDLE_TIMEOUT).toMillis();
@@ -207,7 +213,7 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
                 .withSocketOptions(socketOptions)
                 .withTlsContext(tlsContext)
                 .withUri(uri)
-                .withWindowSize(readBufferSize)
+                .withWindowSize(NumericUtils.saturatedCast(readBufferSize))
                 .withMaxConnections(maxConnectionsPerEndpoint)
                 .withManualWindowManagement(true)
                 .withProxyOptions(proxyOptions)
@@ -320,12 +326,11 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
          * client before we stop reading from the underlying TCP socket and wait for the Subscriber
          * to read more data.
          *
-         * @param readBufferSize The number of bytes that can be buffered
+         * @param readBufferSize The number of bytes that can be buffered. The maximum buffering size value is
+         *                       capped at {@code Integer.MAX}.
          * @return The builder of the method chaining.
-         *
-         * TODO: This is also used for the write buffer size. Should we rename it?
          */
-        Builder readBufferSizeInBytes(Integer readBufferSize);
+        Builder readBufferSizeInBytes(Long readBufferSize);
 
         /**
          * Sets the http proxy configuration to use for this client.
@@ -421,7 +426,7 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
      */
     private static final class DefaultBuilder implements Builder {
         private final AttributeMap.Builder standardOptions = AttributeMap.builder();
-        private Integer readBufferSize;
+        private Long readBufferSize;
         private ProxyConfiguration proxyConfiguration;
         private ConnectionHealthConfiguration connectionHealthConfiguration;
         private TcpKeepAliveConfiguration tcpKeepAliveConfiguration;
@@ -450,7 +455,7 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         }
 
         @Override
-        public Builder readBufferSizeInBytes(Integer readBufferSize) {
+        public Builder readBufferSizeInBytes(Long readBufferSize) {
             Validate.isPositiveOrNull(readBufferSize, "readBufferSize");
             this.readBufferSize = readBufferSize;
             return this;

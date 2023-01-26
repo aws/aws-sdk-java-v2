@@ -73,7 +73,8 @@ public final class CrtRequestExecutor {
 
             // If we didn't get a connection for some reason, fail the request
             if (throwable != null) {
-                reportFailure(new IOException("An exception occurred when acquiring a connection", throwable),
+                reportFailure(crtConn,
+                              new IOException("An exception occurred when acquiring a connection", throwable),
                               requestFuture,
                               asyncRequest.responseHandler());
                 return;
@@ -121,12 +122,13 @@ public final class CrtRequestExecutor {
                 // it's semantically an IOException anyway.
                 toThrow = new IOException(e);
             }
-            reportFailure(toThrow,
+            reportFailure(crtConn,
+                          toThrow,
                           requestFuture,
                           asyncRequest.responseHandler());
         } catch (IllegalStateException | CrtRuntimeException e) {
             // CRT throws IllegalStateException if the connection is closed
-            reportFailure(new IOException("An exception occurred when making the request", e),
+            reportFailure(crtConn, new IOException("An exception occurred when making the request", e),
                           requestFuture,
                           asyncRequest.responseHandler());
         }
@@ -156,9 +158,14 @@ public final class CrtRequestExecutor {
     /**
      * Notify the provided response handler and future of the failure.
      */
-    private void reportFailure(Throwable cause,
+    private void reportFailure(HttpClientConnection crtConn,
+                               Throwable cause,
                                CompletableFuture<Void> executeFuture,
                                SdkAsyncHttpResponseHandler responseHandler) {
+        if (crtConn != null) {
+            crtConn.close();
+        }
+
         try {
             responseHandler.onError(cause);
         } catch (Exception e) {

@@ -1,3 +1,30 @@
+# __2.19.25__ __2023-01-26__
+## __AWS CRT HTTP Client__
+  - ### Features
+    - Throw UnsupportedOperationException if the AWS CRT HTTP Client is configured with HTTP/2 protocol.
+
+  - ### Bugfixes
+    - Fix an issue that could result in resource leak when sending request fails due to errors such as invalid request.
+
+## __AWS IoT FleetWise__
+  - ### Features
+    - Add model validation to BatchCreateVehicle and BatchUpdateVehicle operations that invalidate requests with an empty vehicles list.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Append Content-encoding header instead of over writing the header when Checksum algorithm is selected along with user set Content-encoding
+
+## __Amazon EventBridge__
+  - ### Features
+    - Minor comments for Redshift Serverless workgroup target support.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Allow FIPS to be used with path-style URLs.
+
 # __2.19.24__ __2023-01-25__
 ## __AWS CRT HTTP Client__
   - ### Features
