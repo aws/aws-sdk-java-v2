@@ -449,7 +449,7 @@ public interface EnhancedDocument {
         Builder addJson(String attributeName, String json);
 
         /**
-         * Appends an attribute of name attributeName with specified value of the give EnhancedDocument.
+         * Appends an attribute of name attributeName with specified value of the given EnhancedDocument.
          * @param attributeName Name of the attribute that needs to be added in the Document.
          * @param enhancedDocument that needs to be added as a value to a key attribute.
          * @return Builder instance to construct a {@link EnhancedDocument}

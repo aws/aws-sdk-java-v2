@@ -25,7 +25,19 @@ import software.amazon.awssdk.protocols.jsoncore.JsonNodeVisitor;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 @SdkInternalApi
-public class JsonNodeToAttributeValueMapConvertor implements JsonNodeVisitor<AttributeValue> {
+public class JsonNodeToAttributeValueMapConverter implements JsonNodeVisitor<AttributeValue> {
+
+    private JsonNodeToAttributeValueMapConverter(){
+    }
+
+    private static JsonNodeToAttributeValueMapConverter INSTANCE = new JsonNodeToAttributeValueMapConverter();
+
+    public static JsonNodeToAttributeValueMapConverter instance(){
+        return INSTANCE;
+    }
+
+
+
     @Override
     public AttributeValue visitNull() {
         return AttributeValue.builder().build();

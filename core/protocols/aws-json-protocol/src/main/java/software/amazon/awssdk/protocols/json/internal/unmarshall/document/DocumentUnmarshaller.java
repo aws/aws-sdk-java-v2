@@ -50,7 +50,7 @@ public class DocumentUnmarshaller implements JsonNodeVisitor<Document> {
     @Override
     public Document visitArray(List<JsonNode> array) {
         return Document.fromList(array.stream()
-                                      .map(node -> node == null ? Document.fromNull() : node.visit(this))
+                                      .map(node -> node.visit(this))
                                       .collect(Collectors.toList()));
     }
 

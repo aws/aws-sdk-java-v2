@@ -67,8 +67,8 @@ public final class JsonItemAttributeConverter implements AttributeConverter<Json
 
     @Override
     public AttributeValue transformFrom(JsonNode input) {
-        JsonNodeToAttributeValueMapConvertor jsonNodeToAttributeValueMapConvertor = new JsonNodeToAttributeValueMapConvertor();
-        return input.visit(jsonNodeToAttributeValueMapConvertor);
+        JsonNodeToAttributeValueMapConverter attributeValueMapConverter = JsonNodeToAttributeValueMapConverter.instance();
+        return input.visit(attributeValueMapConverter);
     }
 
     @Override
@@ -132,8 +132,10 @@ public final class JsonItemAttributeConverter implements AttributeConverter<Json
         @Override
         public JsonNode convertListOfAttributeValues(List<AttributeValue> value) {
             return new ArrayJsonNode(value.stream().map(
-                attributeValue -> EnhancedAttributeValue.fromAttributeValue(
-                    attributeValue).convert(VISITOR)).collect(Collectors.toList()));
+                attributeValue -> {
+                    EnhancedAttributeValue enhancedAttributeValue = EnhancedAttributeValue.fromAttributeValue(attributeValue);
+                    return enhancedAttributeValue.isNull() ? NullJsonNode.instance() : enhancedAttributeValue.convert(VISITOR);
+                }).collect(Collectors.toList()));
 
         }
     }
