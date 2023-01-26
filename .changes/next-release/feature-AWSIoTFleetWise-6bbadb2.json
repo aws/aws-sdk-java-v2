@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS IoT FleetWise",
-    "contributor": "",
-    "description": "Add model validation to BatchCreateVehicle and BatchUpdateVehicle operations that invalidate requests with an empty vehicles list."
-}
