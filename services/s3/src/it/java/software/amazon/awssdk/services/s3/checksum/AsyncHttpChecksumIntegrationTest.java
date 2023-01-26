@@ -49,6 +49,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.utils.CaptureChecksumValidationInterceptor;
+import software.amazon.awssdk.services.s3.utils.ChecksumUtils;
 import software.amazon.awssdk.testutils.RandomTempFile;
 
 public class AsyncHttpChecksumIntegrationTest extends S3IntegrationTestBase {
@@ -115,6 +116,7 @@ public class AsyncHttpChecksumIntegrationTest extends S3IntegrationTestBase {
                                                             .key(KEY).checksumMode(ChecksumMode.ENABLED)
                                                             .build(), AsyncResponseTransformer.toBytes()).join().asUtf8String();
         assertThat(interceptor.validationAlgorithm()).isEqualTo(Algorithm.CRC32);
+        assertThat(interceptor.contentEncoding()).isEqualTo("aws-chunked");
         assertThat(interceptor.responseValidation()).isEqualTo(ChecksumValidation.VALIDATED);
         assertThat(response).isEqualTo("Hello world");
     }
@@ -126,10 +128,12 @@ public class AsyncHttpChecksumIntegrationTest extends S3IntegrationTestBase {
         s3Async.putObject(PutObjectRequest.builder()
                                           .bucket(BUCKET)
                                           .key(KEY)
+                                          .contentEncoding("gzip")
                                           .checksumAlgorithm(ChecksumAlgorithm.CRC32)
                                           .build(), AsyncRequestBody.fromString(createDataOfSize(64 * KB, 'a'))).join();
         assertThat(interceptor.requestChecksumInTrailer()).isEqualTo("x-amz-checksum-crc32");
         assertThat(interceptor.requestChecksumInHeader()).isNull();
+        assertThat(interceptor.contentEncoding()).isEqualTo("gzip,aws-chunked");
 
         String response = s3Async.getObject(GetObjectRequest.builder().bucket(BUCKET)
                                                             .key(KEY).checksumMode(ChecksumMode.ENABLED)

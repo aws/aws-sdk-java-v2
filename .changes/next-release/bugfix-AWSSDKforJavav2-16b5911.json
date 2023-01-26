@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Append Content-encoding header instead of over writing the header when Checksum algorithm is selected along with user set Content-encoding"
+}
