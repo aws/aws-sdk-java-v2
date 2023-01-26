@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS CRT HTTP Client",
+    "contributor": "",
+    "description": "Fix an issue that could result in resource leak when sending request fails due to errors such as invalid request."
+}
