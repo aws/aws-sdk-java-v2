@@ -48,9 +48,9 @@ import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
- * Default implementation of {@link EnhancedDocument}. This class is used by SDK to create Enhanced Documents. The class
- * internally saves attributeValueMap which is saved to ddb as it is. The aattribute values are retrieved
- * by converting attributeValue from attributeValueMap at the time of get.
+ * Default implementation of {@link EnhancedDocument}. This class is used by SDK to create Enhanced Documents.
+ * Internally saves attributes in an attributeValueMap which can be written to DynamoDB without further conversion.
+ * The attribute values are retrieve by converting attributeValue from attributeValueMap at the time of get.
  */
 @Immutable
 @SdkInternalApi
@@ -60,10 +60,17 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
 
     private final ChainConverterProvider attributeConverterProviders;
 
-    public DefaultEnhancedDocument(Map<String, AttributeValue> attributeValueMap,
+    private static final JsonItemAttributeConverter jsonConverter = JsonItemAttributeConverter.create();
+
+    private DefaultEnhancedDocument(Map<String, AttributeValue> attributeValueMap,
                                    ChainConverterProvider attributeConverterProviders) {
         this.attributeValueMap = attributeValueMap;
         this.attributeConverterProviders = attributeConverterProviders;
+    }
+
+    public static DefaultEnhancedDocument fromAttributeValueMapAndConverters(Map<String, AttributeValue> attributeValueMap,
+                                                                             ChainConverterProvider attributeConverterProviders) {
+        return new DefaultEnhancedDocument(attributeValueMap, attributeConverterProviders);
     }
 
     public DefaultEnhancedDocument(DefaultBuilder builder) {
@@ -87,7 +94,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
 
     @Override
     public boolean isNull(String attributeName) {
-        return isPresent(attributeName) && attributeValueMap.get(attributeName).nul();
+        return isPresent(attributeName) && NULL_ATTRIBUTE_VALUE.equals(attributeValueMap.get(attributeName));
     }
 
     @Override
@@ -119,10 +126,13 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
     @Override
     public SdkNumber getSdkNumber(String attributeName) {
         AttributeValue attributeValue = attributeValueMap.get(attributeName);
-        return attributeValue != null
-               ? SdkNumber.fromString(
-            attributeConverterProviders.converterFor(EnhancedType.of(String.class)).transformTo(attributeValue))
-               : null;
+
+        if (attributeValue == null) {
+            return null;
+        }
+        String stringValue = attributeConverterProviders.converterFor(EnhancedType.of(String.class))
+                                                        .transformTo(attributeValue);
+        return SdkNumber.fromString(stringValue);
     }
 
     @Override
@@ -233,14 +243,15 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
 
     @Override
     public EnhancedDocument getMapAsDocument(String attributeName) {
-
         AttributeValue attributeValue = attributeValueMap.get(attributeName);
         if (attributeValue == null) {
             return null;
         }
         if (!attributeValue.hasM()) {
-            throw new RuntimeException("Cannot get " + attributeName + " attribute as map since its of type "
-                                               + attributeValue.type());
+            throw new RuntimeException("Cannot get "
+                                       + attributeName
+                                       + " attribute as map since its of type "
+                                       + attributeValue.type());
         }
         return new DefaultEnhancedDocument(attributeValue.m(), this.attributeConverterProviders);
     }
@@ -251,8 +262,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
         if (attributeValueMap.get(attributeName) == null) {
             return null;
         }
-        JsonItemAttributeConverter jsonItemAttributeConverter = JsonItemAttributeConverter.create();
-        JsonNode jsonNode = jsonItemAttributeConverter.transformTo(attributeValueMap.get(attributeName));
+        JsonNode jsonNode = jsonConverter.transformTo(attributeValueMap.get(attributeName));
         Document document = jsonNode.visit(new DocumentUnmarshaller());
         return document.toString();
     }
@@ -327,13 +337,13 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
 
     public static class DefaultBuilder implements EnhancedDocument.Builder {
 
-
         Map<String, AttributeValue> attributeValueMap = new LinkedHashMap<>();
         ChainConverterProvider converterProvider = ChainConverterProvider.create(DefaultAttributeConverterProvider.create());
         List<AttributeConverterProvider> attributeConverterProviders;
 
         public DefaultBuilder(DefaultEnhancedDocument enhancedDocument) {
-            attributeValueMap = enhancedDocument.attributeValueMap;
+            attributeValueMap = attributeValueMap != null ? new LinkedHashMap<>(enhancedDocument.attributeValueMap)
+                                                          : new LinkedHashMap<>();
             attributeConverterProviders = enhancedDocument.attributeConverterProviders != null ?
                                           enhancedDocument.attributeConverterProviders.chainedProviders() : null;
         }
@@ -390,10 +400,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
 
         @Override
         public Builder addNumberSet(String attributeName, Set<Number> values) {
-
-
             List<String> collect = values.stream().map(value -> value.toString()).collect(Collectors.toList());
-
             attributeValueMap.put(attributeName, AttributeValue.fromNs(collect));
             return this;
         }
@@ -442,7 +449,6 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
 
         @Override
         public Builder addAttributeConverterProvider(AttributeConverterProvider attributeConverterProvider) {
-
             if (attributeConverterProviders == null) {
                 attributeConverterProviders = new ArrayList<>();
             }
@@ -452,7 +458,6 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
 
         @Override
         public Builder attributeConverterProviders(List<AttributeConverterProvider> attributeConverterProviders) {
-
             this.attributeConverterProviders = attributeConverterProviders != null ? new ArrayList<>(attributeConverterProviders)
                                                                                    : null;
             return null;
@@ -461,10 +466,8 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
         // TODO : Will add test for attributeConverterProvider in future revision on next PR.
         @Override
         public Builder attributeConverterProviders(AttributeConverterProvider... attributeConverterProvider) {
-
             this.attributeConverterProviders = attributeConverterProvider != null
                                                ? Arrays.asList(attributeConverterProvider)
-
                                                : null;
             return this;
         }
@@ -476,9 +479,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
             if (jsonNode == null) {
                 throw new IllegalArgumentException("Could not parse argument json " + json);
             }
-
-            JsonItemAttributeConverter jsonItemAttributeConverter = JsonItemAttributeConverter.create();
-            AttributeValue attributeValue = jsonItemAttributeConverter.transformFrom(jsonNode);
+            AttributeValue attributeValue = jsonConverter.transformFrom(jsonNode);
             this.attributeValueMap = attributeValue.m();
             return this;
         }

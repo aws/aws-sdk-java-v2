@@ -30,6 +30,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -63,25 +64,27 @@ public class DefaultEnhancedDocumentTest {
     private static Stream<Arguments> attributeValueMapsCorrespondingDocuments() {
 
 
+        EnhancedDocument simpleKeyValueDoc = documentBuilder().add(SIMPLE_STRING_KEY, SIMPLE_STRING)
+                                                  .build();
+        AttributeValue simpleAttributeValueMap = AttributeValue.fromM(
+            mapFromSimpleKeyAttributeValue(Pair.of(SIMPLE_STRING_KEY, AttributeValue.fromS(SIMPLE_STRING))));
+
         return Stream.of(
 
-            //1. Null valuw
-            Arguments.of(
-                // {"nullKey": null}
-                map()
-                    .withKeyValue("nullKey", AttributeValue.fromNul(true)),
-                documentBuilder()
-                    .addNull("nullKey")
-                    .build(), "{" + "\"nullKey\": null" + "}"
+            //1. Null value // {"nullKey": null}
+            Arguments.of(map()
+                             .withKeyValue("nullKey", AttributeValue.fromNul(true)),
+                         documentBuilder()
+                             .addNull("nullKey")
+                             .build(),
+                         "{" + "\"nullKey\": null" + "}"
             ),
 
             //2. Simple String
-            Arguments.of(
-                map()
-                    .withKeyValue(SIMPLE_STRING_KEY, AttributeValue.fromS(SIMPLE_STRING)),
-                documentBuilder()
-                    .add(SIMPLE_STRING_KEY, SIMPLE_STRING)
-                    .build(), "{" + "\"stringKey\": \"stringValue\"" + "}"
+            Arguments.of(map()
+                             .withKeyValue(SIMPLE_STRING_KEY, AttributeValue.fromS(SIMPLE_STRING)),
+                         simpleKeyValueDoc,
+                         "{" + "\"stringKey\": \"stringValue\"" + "}"
             ),
 
             // 3. Different Number Types
@@ -91,7 +94,8 @@ public class DefaultEnhancedDocumentTest {
                 , documentBuilder()
                              .add(SIMPLE_NUMBER_KEY, Integer.valueOf(SIMPLE_INT_NUMBER))
                              .add(BIG_DECIMAL_NUMBER_KEY, new BigDecimal(10))
-                             .build(), "{" + "\"numberKey\": 10," + "\"bigDecimalNumberKey\": 10" + "}"
+                             .build(),
+                         "{" + "\"numberKey\": 10," + "\"bigDecimalNumberKey\": 10" + "}"
 
             ),
             // 4. String and Number combination
@@ -101,9 +105,8 @@ public class DefaultEnhancedDocumentTest {
                 , documentBuilder()
                              .add(SIMPLE_STRING_KEY, SIMPLE_STRING)
                              .add(SIMPLE_NUMBER_KEY, 10)
-                             .build()
-                , "{\"stringKey\": \"stringValue\",\"numberKey\": 10}"
-
+                             .build(),
+                         "{\"stringKey\": \"stringValue\",\"numberKey\": 10}"
             ),
 
             // 5. String,Number, Bool, Null together
@@ -121,12 +124,10 @@ public class DefaultEnhancedDocumentTest {
                 , "{\"stringKey\": \"stringValue\",\"numberKey\": 10,\"boolKey\": true,\"nullKey\": null}"
             ),
 
-
             //6. Nested Array with a map
             Arguments.of(
-                map().withKeyValue(
-                    "numberStringSet",
-                    AttributeValue.fromL(Arrays.asList(
+                map()
+                    .withKeyValue("numberStringSet", AttributeValue.fromL(Arrays.asList(
                         AttributeValue.fromS("One"),
                         AttributeValue.fromN("1"),
                         AttributeValue.fromNul(true),
@@ -144,9 +145,7 @@ public class DefaultEnhancedDocumentTest {
                                            new HashSet<String>(),
                                            getSdkBytesSet(SdkBytes.fromUtf8String("a"), SdkBytes.fromUtf8String("b")),
                                            mapFromSimpleKeyValue(Pair.of(SIMPLE_NUMBER_KEY, SIMPLE_STRING))
-                             )
-                    )
-
+                             ))
                     .build()
                 , "{\"numberStringSet\": [\"One\", 1, null, [], [\"a\", \"b\"], {\"numberKey\": \"stringValue\"}]}"),
 
@@ -163,11 +162,9 @@ public class DefaultEnhancedDocumentTest {
                                                                                SDK_BYTES_ARRAY[1],
                                                                                SDK_BYTES_ARRAY[2]))
                              .addStringSet(STRING_SET_KEY, getStringSet(STRINGS_ARRAY))
-
                              .build(),
                          "{\"stringKey\": \"stringValue\",\"numberSet\": [1, 2, 3],\"sdkBytesSet\": [\"a\", \"b\", \"c\"],"
                          + "\"stringSet\": [\"a\", \"b\", \"c\"]}"),
-
 
             //  8. List , Map and Simple Type together
             Arguments.of(map()
@@ -190,13 +187,11 @@ public class DefaultEnhancedDocumentTest {
                                  Pair.of("1", Arrays.asList(STRINGS_ARRAY)),
                                  Pair.of("2", 1)
                              ))
-
                              .build(),
                          "{\"numberKey\": 1,\"numberList\": [1, 2, 3],\"sdkByteKey\": \"a\",\"mapKey\": {\"1\": [\"a\", \"b\", "
                          + "\"c\"],\"2\": 1}}"),
 
-
-            //9 .Construction of document from MAP
+            //9 .Construction of document from Json
             Arguments.of(map()
                              .withKeyValue(SIMPLE_NUMBER_KEY, AttributeValue.fromN("1"))
                              .withKeyValue("numberList",
@@ -205,27 +200,35 @@ public class DefaultEnhancedDocumentTest {
                                                                               AttributeValue.fromN(NUMBER_STRING_ARRAY[2]))))
                              .withKeyValue("mapKey", AttributeValue.fromM(
                                  mapFromKeyValuePairs(Pair.of(EnhancedType.listOf(String.class), Arrays.asList(STRINGS_ARRAY)),
-                                                      Pair.of(EnhancedType.of(Integer.class), 1)
-
-                                 )))
-                , documentBuilder().json(
-                    "{\"numberKey\": 1,"
-                    + "\"numberList\": " + "[1, 2, 3],"
-                    + "\"mapKey\": "
-                    + "{\"1\": [\"a\", \"b\", \"c\"],"
-                    + "\"2\": 1}"
-                    + "}"
-                ).build()
+                                                      Pair.of(EnhancedType.of(Integer.class), 1))))
+                , documentBuilder()
+                             .json(
+                                 "{\"numberKey\": 1,"
+                                 + "\"numberList\": " + "[1, 2, 3],"
+                                 + "\"mapKey\": "
+                                 + "{\"1\": [\"a\", \"b\", \"c\"],"
+                                 + "\"2\": 1}"
+                                 + "}")
+                             .build()
                 , "{\"numberKey\": 1,\"numberList\": [1, 2, 3],\"mapKey\": {\"1\": [\"a\", \"b\", \"c\"],\"2\": 1}}"),
 
-            Arguments.of(map().withKeyValue("docKey",
-                                            AttributeValue.fromM(
-                                                mapFromSimpleKeyAttributeValue(
-                                                    Pair.of(SIMPLE_STRING_KEY,
-                                                            AttributeValue.fromS(SIMPLE_STRING))))),
-                         documentBuilder().addEnhancedDocument("docKey",
-                                                               documentBuilder().add(SIMPLE_STRING_KEY, SIMPLE_STRING).build()).build()
-                , "{\"docKey\": {" + "\"stringKey\": \"stringValue\"}}"));
+
+            //10 .Construction of document from EnhancedDocument
+            Arguments.of(map()
+                             .withKeyValue("level1_k1", simpleAttributeValueMap)
+                             .withKeyValue("level1_k2", AttributeValue.fromM(
+
+                                 mapFromSimpleKeyAttributeValue(Pair.of("level2_k1", simpleAttributeValueMap)))),
+                         documentBuilder()
+                             .addEnhancedDocument("level1_k1", simpleKeyValueDoc)
+                             .addEnhancedDocument("level1_k2" ,
+                                                  simpleKeyValueDoc.toBuilder()
+                                                                          .addEnhancedDocument("level2_k1",
+                                                                                               simpleKeyValueDoc)
+                                                                          .build())
+                             .build() ,
+                         "{\"level1_k1\": {\"stringKey\": \"stringValue\"},\"level1_k2\": {\"level2_k1\": {\"stringKey\": "
+                         + "\"stringValue\"}}}"));
     }
 
     private static Map<String, Object> mapFromSimpleKeyValue(Pair<String, Object>... pairs) {
@@ -297,7 +300,7 @@ public class DefaultEnhancedDocumentTest {
          * The builder method internally creates a AttributeValueMap which is saved to the ddb, if this matches then
          * the document is as expected
          */
-        assertThat(expectedMap.getAttributeValueMap()).isEqualTo(enhancedDocument.getAttributeValueMap());
+        assertThat(enhancedDocument.getAttributeValueMap()).isEqualTo(expectedMap.getAttributeValueMap());
         assertThat(enhancedDocument.toJson()).isEqualTo(expectedJson);
     }
 
@@ -306,16 +309,32 @@ public class DefaultEnhancedDocumentTest {
     void validate_GetterMethodsOfDefaultDocument(AttributeStringValueMap expectedMap,
                                                  DefaultEnhancedDocument enhancedDocument,
                                                  String expectedJson) {
-        DefaultEnhancedDocument defaultEnhancedDocument = new DefaultEnhancedDocument(
-            expectedMap.getAttributeValueMap(),
-            ChainConverterProvider.create(DefaultAttributeConverterProvider.create()));
-
+        DefaultEnhancedDocument defaultEnhancedDocument = DefaultEnhancedDocument
+            .fromAttributeValueMapAndConverters(expectedMap.getAttributeValueMap(),
+                                                ChainConverterProvider.create(DefaultAttributeConverterProvider.create()));
 
         validateAttributeValueMapAndDocument(expectedMap, defaultEnhancedDocument);
         assertThat(defaultEnhancedDocument.toJson()).isEqualTo(expectedJson);
+    }
+
+
+    @Test
+    void nullDocumentGet(){
+
+        DefaultEnhancedDocument nullDocument = (DefaultEnhancedDocument) documentBuilder()
+            .addNull("nullDocument")
+            .addString("nonNull", "stringValue")
+            .build();
+
+        assertThat(nullDocument.isNull("nullDocument")).isTrue();
+        assertThat(nullDocument.isNull("nonNull")).isFalse();
+
+        ;
+        assertThat(nullDocument.getAttributeValueMap().get("nullDocument")).isEqualTo(AttributeValue.fromNul(true));
 
 
     }
+
 
     static class AttributeStringValueMap {
         Map<String, AttributeValue> attributeValueMap = new LinkedHashMap<>();
