@@ -1,250 +1,29 @@
 {
     "testCases": [
         {
-            "documentation": "For region ap-south-1 with FIPS enabled and DualStack enabled",
+            "documentation": "For region us-iso-east-1 with FIPS enabled and DualStack disabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://serverlessrepo-fips.ap-south-1.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "ap-south-1",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region ap-south-1 with FIPS enabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo-fips.ap-south-1.amazonaws.com"
+                    "url": "https://serverlessrepo-fips.us-iso-east-1.c2s.ic.gov"
                 }
             },
             "params": {
                 "UseDualStack": false,
-                "Region": "ap-south-1",
-                "UseFIPS": true
+                "UseFIPS": true,
+                "Region": "us-iso-east-1"
             }
         },
         {
-            "documentation": "For region ap-south-1 with FIPS disabled and DualStack enabled",
+            "documentation": "For region us-iso-east-1 with FIPS disabled and DualStack disabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://serverlessrepo.ap-south-1.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "ap-south-1",
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region ap-south-1 with FIPS disabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo.ap-south-1.amazonaws.com"
+                    "url": "https://serverlessrepo.us-iso-east-1.c2s.ic.gov"
                 }
             },
             "params": {
                 "UseDualStack": false,
-                "Region": "ap-south-1",
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region us-gov-east-1 with FIPS enabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo-fips.us-gov-east-1.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "us-gov-east-1",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region us-gov-east-1 with FIPS enabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo-fips.us-gov-east-1.amazonaws.com"
-                }
-            },
-            "params": {
-                "UseDualStack": false,
-                "Region": "us-gov-east-1",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region us-gov-east-1 with FIPS disabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo.us-gov-east-1.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "us-gov-east-1",
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region us-gov-east-1 with FIPS disabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo.us-gov-east-1.amazonaws.com"
-                }
-            },
-            "params": {
-                "UseDualStack": false,
-                "Region": "us-gov-east-1",
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region ca-central-1 with FIPS enabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo-fips.ca-central-1.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "ca-central-1",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region ca-central-1 with FIPS enabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo-fips.ca-central-1.amazonaws.com"
-                }
-            },
-            "params": {
-                "UseDualStack": false,
-                "Region": "ca-central-1",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region ca-central-1 with FIPS disabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo.ca-central-1.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "ca-central-1",
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region ca-central-1 with FIPS disabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo.ca-central-1.amazonaws.com"
-                }
-            },
-            "params": {
-                "UseDualStack": false,
-                "Region": "ca-central-1",
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region eu-central-1 with FIPS enabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo-fips.eu-central-1.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "eu-central-1",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region eu-central-1 with FIPS enabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo-fips.eu-central-1.amazonaws.com"
-                }
-            },
-            "params": {
-                "UseDualStack": false,
-                "Region": "eu-central-1",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region eu-central-1 with FIPS disabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo.eu-central-1.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "eu-central-1",
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region eu-central-1 with FIPS disabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo.eu-central-1.amazonaws.com"
-                }
-            },
-            "params": {
-                "UseDualStack": false,
-                "Region": "eu-central-1",
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region us-west-1 with FIPS enabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo-fips.us-west-1.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "us-west-1",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region us-west-1 with FIPS enabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo-fips.us-west-1.amazonaws.com"
-                }
-            },
-            "params": {
-                "UseDualStack": false,
-                "Region": "us-west-1",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region us-west-1 with FIPS disabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo.us-west-1.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "us-west-1",
-                "UseFIPS": false
+                "UseFIPS": false,
+                "Region": "us-iso-east-1"
             }
         },
         {
@@ -256,515 +35,8 @@
             },
             "params": {
                 "UseDualStack": false,
-                "Region": "us-west-1",
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region us-west-2 with FIPS enabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo-fips.us-west-2.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "us-west-2",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region us-west-2 with FIPS enabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo-fips.us-west-2.amazonaws.com"
-                }
-            },
-            "params": {
-                "UseDualStack": false,
-                "Region": "us-west-2",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region us-west-2 with FIPS disabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo.us-west-2.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "us-west-2",
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region us-west-2 with FIPS disabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo.us-west-2.amazonaws.com"
-                }
-            },
-            "params": {
-                "UseDualStack": false,
-                "Region": "us-west-2",
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region eu-north-1 with FIPS enabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo-fips.eu-north-1.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "eu-north-1",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region eu-north-1 with FIPS enabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo-fips.eu-north-1.amazonaws.com"
-                }
-            },
-            "params": {
-                "UseDualStack": false,
-                "Region": "eu-north-1",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region eu-north-1 with FIPS disabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo.eu-north-1.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "eu-north-1",
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region eu-north-1 with FIPS disabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo.eu-north-1.amazonaws.com"
-                }
-            },
-            "params": {
-                "UseDualStack": false,
-                "Region": "eu-north-1",
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region eu-west-3 with FIPS enabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo-fips.eu-west-3.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "eu-west-3",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region eu-west-3 with FIPS enabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo-fips.eu-west-3.amazonaws.com"
-                }
-            },
-            "params": {
-                "UseDualStack": false,
-                "Region": "eu-west-3",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region eu-west-3 with FIPS disabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo.eu-west-3.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "eu-west-3",
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region eu-west-3 with FIPS disabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo.eu-west-3.amazonaws.com"
-                }
-            },
-            "params": {
-                "UseDualStack": false,
-                "Region": "eu-west-3",
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region eu-west-2 with FIPS enabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo-fips.eu-west-2.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "eu-west-2",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region eu-west-2 with FIPS enabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo-fips.eu-west-2.amazonaws.com"
-                }
-            },
-            "params": {
-                "UseDualStack": false,
-                "Region": "eu-west-2",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region eu-west-2 with FIPS disabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo.eu-west-2.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "eu-west-2",
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region eu-west-2 with FIPS disabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo.eu-west-2.amazonaws.com"
-                }
-            },
-            "params": {
-                "UseDualStack": false,
-                "Region": "eu-west-2",
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region eu-west-1 with FIPS enabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo-fips.eu-west-1.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "eu-west-1",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region eu-west-1 with FIPS enabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo-fips.eu-west-1.amazonaws.com"
-                }
-            },
-            "params": {
-                "UseDualStack": false,
-                "Region": "eu-west-1",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region eu-west-1 with FIPS disabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo.eu-west-1.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "eu-west-1",
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region eu-west-1 with FIPS disabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo.eu-west-1.amazonaws.com"
-                }
-            },
-            "params": {
-                "UseDualStack": false,
-                "Region": "eu-west-1",
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region ap-northeast-2 with FIPS enabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo-fips.ap-northeast-2.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "ap-northeast-2",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region ap-northeast-2 with FIPS enabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo-fips.ap-northeast-2.amazonaws.com"
-                }
-            },
-            "params": {
-                "UseDualStack": false,
-                "Region": "ap-northeast-2",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region ap-northeast-2 with FIPS disabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo.ap-northeast-2.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "ap-northeast-2",
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region ap-northeast-2 with FIPS disabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo.ap-northeast-2.amazonaws.com"
-                }
-            },
-            "params": {
-                "UseDualStack": false,
-                "Region": "ap-northeast-2",
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region ap-northeast-1 with FIPS enabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo-fips.ap-northeast-1.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "ap-northeast-1",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region ap-northeast-1 with FIPS enabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo-fips.ap-northeast-1.amazonaws.com"
-                }
-            },
-            "params": {
-                "UseDualStack": false,
-                "Region": "ap-northeast-1",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region ap-northeast-1 with FIPS disabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo.ap-northeast-1.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "ap-northeast-1",
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region ap-northeast-1 with FIPS disabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo.ap-northeast-1.amazonaws.com"
-                }
-            },
-            "params": {
-                "UseDualStack": false,
-                "Region": "ap-northeast-1",
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region me-south-1 with FIPS enabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo-fips.me-south-1.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "me-south-1",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region me-south-1 with FIPS enabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo-fips.me-south-1.amazonaws.com"
-                }
-            },
-            "params": {
-                "UseDualStack": false,
-                "Region": "me-south-1",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region me-south-1 with FIPS disabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo.me-south-1.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "me-south-1",
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region me-south-1 with FIPS disabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo.me-south-1.amazonaws.com"
-                }
-            },
-            "params": {
-                "UseDualStack": false,
-                "Region": "me-south-1",
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region sa-east-1 with FIPS enabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo-fips.sa-east-1.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "sa-east-1",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region sa-east-1 with FIPS enabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo-fips.sa-east-1.amazonaws.com"
-                }
-            },
-            "params": {
-                "UseDualStack": false,
-                "Region": "sa-east-1",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region sa-east-1 with FIPS disabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo.sa-east-1.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "sa-east-1",
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region sa-east-1 with FIPS disabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo.sa-east-1.amazonaws.com"
-                }
-            },
-            "params": {
-                "UseDualStack": false,
-                "Region": "sa-east-1",
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region ap-east-1 with FIPS enabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo-fips.ap-east-1.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "ap-east-1",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region ap-east-1 with FIPS enabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo-fips.ap-east-1.amazonaws.com"
-                }
-            },
-            "params": {
-                "UseDualStack": false,
-                "Region": "ap-east-1",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region ap-east-1 with FIPS disabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo.ap-east-1.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "ap-east-1",
-                "UseFIPS": false
+                "UseFIPS": false,
+                "Region": "us-west-1"
             }
         },
         {
@@ -776,255 +48,73 @@
             },
             "params": {
                 "UseDualStack": false,
-                "Region": "ap-east-1",
-                "UseFIPS": false
+                "UseFIPS": false,
+                "Region": "ap-east-1"
             }
         },
         {
-            "documentation": "For region cn-north-1 with FIPS enabled and DualStack enabled",
+            "documentation": "For region eu-north-1 with FIPS disabled and DualStack disabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://serverlessrepo-fips.cn-north-1.api.amazonwebservices.com.cn"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "cn-north-1",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region cn-north-1 with FIPS enabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo-fips.cn-north-1.amazonaws.com.cn"
+                    "url": "https://serverlessrepo.eu-north-1.amazonaws.com"
                 }
             },
             "params": {
                 "UseDualStack": false,
-                "Region": "cn-north-1",
-                "UseFIPS": true
+                "UseFIPS": false,
+                "Region": "eu-north-1"
             }
         },
         {
-            "documentation": "For region cn-north-1 with FIPS disabled and DualStack enabled",
+            "documentation": "For region ap-northeast-2 with FIPS disabled and DualStack disabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://serverlessrepo.cn-north-1.api.amazonwebservices.com.cn"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "cn-north-1",
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region cn-north-1 with FIPS disabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo.cn-north-1.amazonaws.com.cn"
+                    "url": "https://serverlessrepo.ap-northeast-2.amazonaws.com"
                 }
             },
             "params": {
                 "UseDualStack": false,
-                "Region": "cn-north-1",
-                "UseFIPS": false
+                "UseFIPS": false,
+                "Region": "ap-northeast-2"
             }
         },
         {
-            "documentation": "For region us-gov-west-1 with FIPS enabled and DualStack enabled",
+            "documentation": "For region ap-northeast-1 with FIPS disabled and DualStack disabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://serverlessrepo-fips.us-gov-west-1.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "us-gov-west-1",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region us-gov-west-1 with FIPS enabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo-fips.us-gov-west-1.amazonaws.com"
+                    "url": "https://serverlessrepo.ap-northeast-1.amazonaws.com"
                 }
             },
             "params": {
                 "UseDualStack": false,
-                "Region": "us-gov-west-1",
-                "UseFIPS": true
+                "UseFIPS": false,
+                "Region": "ap-northeast-1"
             }
         },
         {
-            "documentation": "For region us-gov-west-1 with FIPS disabled and DualStack enabled",
+            "documentation": "For region us-west-2 with FIPS disabled and DualStack disabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://serverlessrepo.us-gov-west-1.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "us-gov-west-1",
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region us-gov-west-1 with FIPS disabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo.us-gov-west-1.amazonaws.com"
+                    "url": "https://serverlessrepo.us-west-2.amazonaws.com"
                 }
             },
             "params": {
                 "UseDualStack": false,
-                "Region": "us-gov-west-1",
-                "UseFIPS": false
+                "UseFIPS": false,
+                "Region": "us-west-2"
             }
         },
         {
-            "documentation": "For region ap-southeast-1 with FIPS enabled and DualStack enabled",
+            "documentation": "For region sa-east-1 with FIPS disabled and DualStack disabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://serverlessrepo-fips.ap-southeast-1.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "ap-southeast-1",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region ap-southeast-1 with FIPS enabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo-fips.ap-southeast-1.amazonaws.com"
+                    "url": "https://serverlessrepo.sa-east-1.amazonaws.com"
                 }
             },
             "params": {
                 "UseDualStack": false,
-                "Region": "ap-southeast-1",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region ap-southeast-1 with FIPS disabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo.ap-southeast-1.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "ap-southeast-1",
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region ap-southeast-1 with FIPS disabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo.ap-southeast-1.amazonaws.com"
-                }
-            },
-            "params": {
-                "UseDualStack": false,
-                "Region": "ap-southeast-1",
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region ap-southeast-2 with FIPS enabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo-fips.ap-southeast-2.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "ap-southeast-2",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region ap-southeast-2 with FIPS enabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo-fips.ap-southeast-2.amazonaws.com"
-                }
-            },
-            "params": {
-                "UseDualStack": false,
-                "Region": "ap-southeast-2",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region ap-southeast-2 with FIPS disabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo.ap-southeast-2.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "ap-southeast-2",
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region ap-southeast-2 with FIPS disabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo.ap-southeast-2.amazonaws.com"
-                }
-            },
-            "params": {
-                "UseDualStack": false,
-                "Region": "ap-southeast-2",
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region us-east-1 with FIPS enabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo-fips.us-east-1.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "us-east-1",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region us-east-1 with FIPS enabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo-fips.us-east-1.amazonaws.com"
-                }
-            },
-            "params": {
-                "UseDualStack": false,
-                "Region": "us-east-1",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region us-east-1 with FIPS disabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo.us-east-1.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "us-east-1",
-                "UseFIPS": false
+                "UseFIPS": false,
+                "Region": "sa-east-1"
             }
         },
         {
@@ -1036,47 +126,21 @@
             },
             "params": {
                 "UseDualStack": false,
-                "Region": "us-east-1",
-                "UseFIPS": false
+                "UseFIPS": false,
+                "Region": "us-east-1"
             }
         },
         {
-            "documentation": "For region us-east-2 with FIPS enabled and DualStack enabled",
+            "documentation": "For region ca-central-1 with FIPS disabled and DualStack disabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://serverlessrepo-fips.us-east-2.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "us-east-2",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region us-east-2 with FIPS enabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo-fips.us-east-2.amazonaws.com"
+                    "url": "https://serverlessrepo.ca-central-1.amazonaws.com"
                 }
             },
             "params": {
                 "UseDualStack": false,
-                "Region": "us-east-2",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region us-east-2 with FIPS disabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo.us-east-2.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "us-east-2",
-                "UseFIPS": false
+                "UseFIPS": false,
+                "Region": "ca-central-1"
             }
         },
         {
@@ -1088,47 +152,255 @@
             },
             "params": {
                 "UseDualStack": false,
-                "Region": "us-east-2",
-                "UseFIPS": false
+                "UseFIPS": false,
+                "Region": "us-east-2"
             }
         },
         {
-            "documentation": "For region cn-northwest-1 with FIPS enabled and DualStack enabled",
+            "documentation": "For region eu-west-1 with FIPS disabled and DualStack disabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://serverlessrepo-fips.cn-northwest-1.api.amazonwebservices.com.cn"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "cn-northwest-1",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region cn-northwest-1 with FIPS enabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://serverlessrepo-fips.cn-northwest-1.amazonaws.com.cn"
+                    "url": "https://serverlessrepo.eu-west-1.amazonaws.com"
                 }
             },
             "params": {
                 "UseDualStack": false,
-                "Region": "cn-northwest-1",
-                "UseFIPS": true
+                "UseFIPS": false,
+                "Region": "eu-west-1"
             }
         },
         {
-            "documentation": "For region cn-northwest-1 with FIPS disabled and DualStack enabled",
+            "documentation": "For region eu-west-2 with FIPS disabled and DualStack disabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://serverlessrepo.cn-northwest-1.api.amazonwebservices.com.cn"
+                    "url": "https://serverlessrepo.eu-west-2.amazonaws.com"
+                }
+            },
+            "params": {
+                "UseDualStack": false,
+                "UseFIPS": false,
+                "Region": "eu-west-2"
+            }
+        },
+        {
+            "documentation": "For region eu-west-3 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://serverlessrepo.eu-west-3.amazonaws.com"
+                }
+            },
+            "params": {
+                "UseDualStack": false,
+                "UseFIPS": false,
+                "Region": "eu-west-3"
+            }
+        },
+        {
+            "documentation": "For region me-south-1 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://serverlessrepo.me-south-1.amazonaws.com"
+                }
+            },
+            "params": {
+                "UseDualStack": false,
+                "UseFIPS": false,
+                "Region": "me-south-1"
+            }
+        },
+        {
+            "documentation": "For region ap-southeast-1 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://serverlessrepo.ap-southeast-1.amazonaws.com"
+                }
+            },
+            "params": {
+                "UseDualStack": false,
+                "UseFIPS": false,
+                "Region": "ap-southeast-1"
+            }
+        },
+        {
+            "documentation": "For region ap-southeast-2 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://serverlessrepo.ap-southeast-2.amazonaws.com"
+                }
+            },
+            "params": {
+                "UseDualStack": false,
+                "UseFIPS": false,
+                "Region": "ap-southeast-2"
+            }
+        },
+        {
+            "documentation": "For region eu-central-1 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://serverlessrepo.eu-central-1.amazonaws.com"
+                }
+            },
+            "params": {
+                "UseDualStack": false,
+                "UseFIPS": false,
+                "Region": "eu-central-1"
+            }
+        },
+        {
+            "documentation": "For region ap-south-1 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://serverlessrepo.ap-south-1.amazonaws.com"
+                }
+            },
+            "params": {
+                "UseDualStack": false,
+                "UseFIPS": false,
+                "Region": "ap-south-1"
+            }
+        },
+        {
+            "documentation": "For region us-east-1 with FIPS enabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://serverlessrepo-fips.us-east-1.api.aws"
                 }
             },
             "params": {
                 "UseDualStack": true,
-                "Region": "cn-northwest-1",
-                "UseFIPS": false
+                "UseFIPS": true,
+                "Region": "us-east-1"
+            }
+        },
+        {
+            "documentation": "For region us-east-1 with FIPS enabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://serverlessrepo-fips.us-east-1.amazonaws.com"
+                }
+            },
+            "params": {
+                "UseDualStack": false,
+                "UseFIPS": true,
+                "Region": "us-east-1"
+            }
+        },
+        {
+            "documentation": "For region us-east-1 with FIPS disabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://serverlessrepo.us-east-1.api.aws"
+                }
+            },
+            "params": {
+                "UseDualStack": true,
+                "UseFIPS": false,
+                "Region": "us-east-1"
+            }
+        },
+        {
+            "documentation": "For region us-gov-west-1 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://serverlessrepo.us-gov-west-1.amazonaws.com"
+                }
+            },
+            "params": {
+                "UseDualStack": false,
+                "UseFIPS": false,
+                "Region": "us-gov-west-1"
+            }
+        },
+        {
+            "documentation": "For region us-gov-west-1 with FIPS enabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://serverlessrepo.us-gov-west-1.amazonaws.com"
+                }
+            },
+            "params": {
+                "UseDualStack": false,
+                "UseFIPS": true,
+                "Region": "us-gov-west-1"
+            }
+        },
+        {
+            "documentation": "For region us-gov-east-1 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://serverlessrepo.us-gov-east-1.amazonaws.com"
+                }
+            },
+            "params": {
+                "UseDualStack": false,
+                "UseFIPS": false,
+                "Region": "us-gov-east-1"
+            }
+        },
+        {
+            "documentation": "For region us-gov-east-1 with FIPS enabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://serverlessrepo.us-gov-east-1.amazonaws.com"
+                }
+            },
+            "params": {
+                "UseDualStack": false,
+                "UseFIPS": true,
+                "Region": "us-gov-east-1"
+            }
+        },
+        {
+            "documentation": "For region us-gov-east-1 with FIPS enabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://serverlessrepo-fips.us-gov-east-1.api.aws"
+                }
+            },
+            "params": {
+                "UseDualStack": true,
+                "UseFIPS": true,
+                "Region": "us-gov-east-1"
+            }
+        },
+        {
+            "documentation": "For region us-gov-east-1 with FIPS disabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://serverlessrepo.us-gov-east-1.api.aws"
+                }
+            },
+            "params": {
+                "UseDualStack": true,
+                "UseFIPS": false,
+                "Region": "us-gov-east-1"
+            }
+        },
+        {
+            "documentation": "For region us-isob-east-1 with FIPS enabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://serverlessrepo-fips.us-isob-east-1.sc2s.sgov.gov"
+                }
+            },
+            "params": {
+                "UseDualStack": false,
+                "UseFIPS": true,
+                "Region": "us-isob-east-1"
+            }
+        },
+        {
+            "documentation": "For region us-isob-east-1 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://serverlessrepo.us-isob-east-1.sc2s.sgov.gov"
+                }
+            },
+            "params": {
+                "UseDualStack": false,
+                "UseFIPS": false,
+                "Region": "us-isob-east-1"
             }
         },
         {
@@ -1140,8 +412,60 @@
             },
             "params": {
                 "UseDualStack": false,
-                "Region": "cn-northwest-1",
-                "UseFIPS": false
+                "UseFIPS": false,
+                "Region": "cn-northwest-1"
+            }
+        },
+        {
+            "documentation": "For region cn-north-1 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://serverlessrepo.cn-north-1.amazonaws.com.cn"
+                }
+            },
+            "params": {
+                "UseDualStack": false,
+                "UseFIPS": false,
+                "Region": "cn-north-1"
+            }
+        },
+        {
+            "documentation": "For region cn-north-1 with FIPS enabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://serverlessrepo-fips.cn-north-1.api.amazonwebservices.com.cn"
+                }
+            },
+            "params": {
+                "UseDualStack": true,
+                "UseFIPS": true,
+                "Region": "cn-north-1"
+            }
+        },
+        {
+            "documentation": "For region cn-north-1 with FIPS enabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://serverlessrepo-fips.cn-north-1.amazonaws.com.cn"
+                }
+            },
+            "params": {
+                "UseDualStack": false,
+                "UseFIPS": true,
+                "Region": "cn-north-1"
+            }
+        },
+        {
+            "documentation": "For region cn-north-1 with FIPS disabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://serverlessrepo.cn-north-1.api.amazonwebservices.com.cn"
+                }
+            },
+            "params": {
+                "UseDualStack": true,
+                "UseFIPS": false,
+                "Region": "cn-north-1"
             }
         },
         {
@@ -1153,8 +477,8 @@
             },
             "params": {
                 "UseDualStack": false,
-                "Region": "us-east-1",
                 "UseFIPS": false,
+                "Region": "us-east-1",
                 "Endpoint": "https://example.com"
             }
         },
@@ -1165,8 +489,8 @@
             },
             "params": {
                 "UseDualStack": false,
-                "Region": "us-east-1",
                 "UseFIPS": true,
+                "Region": "us-east-1",
                 "Endpoint": "https://example.com"
             }
         },
@@ -1177,8 +501,8 @@
             },
             "params": {
                 "UseDualStack": true,
-                "Region": "us-east-1",
                 "UseFIPS": false,
+                "Region": "us-east-1",
                 "Endpoint": "https://example.com"
             }
         }

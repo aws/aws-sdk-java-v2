@@ -1,3 +1,52 @@
+# __2.19.26__ __2023-01-27__
+## __AWS Elastic Beanstalk__
+  - ### Features
+    - Enabled FIPS endpoints for GovCloud (US) regions in SDK.
+
+## __AWS Fault Injection Simulator__
+  - ### Features
+    - Enabled FIPS endpoints for GovCloud (US) regions in SDK.
+
+## __AWS Greengrass__
+  - ### Features
+    - Enabled FIPS endpoints for GovCloud (US) regions in SDK.
+
+## __AWS IoT Greengrass V2__
+  - ### Features
+    - Enabled FIPS endpoints for GovCloud (US) in SDK.
+
+## __AWS MediaTailor__
+  - ### Features
+    - This release introduces the As Run logging type, along with API and documentation updates.
+
+## __AWS Outposts__
+  - ### Features
+    - Adding support for payment term in GetOrder, CreateOrder responses.
+
+## __AWSServerlessApplicationRepository__
+  - ### Features
+    - Enabled FIPS endpoints for GovCloud (US) regions in SDK.
+
+## __Amazon AppStream__
+  - ### Features
+    - Fixing the issue where Appstream waiters hang for fleet_started and fleet_stopped.
+
+## __Amazon Glacier__
+  - ### Features
+    - Enabled FIPS endpoints for GovCloud (US) regions in SDK.
+
+## __Amazon SageMaker Runtime__
+  - ### Features
+    - Amazon SageMaker Runtime which supports InvokeEndpointAsync asynchronously can now invoke endpoints with custom timeout values. Asynchronous invocations support longer processing times.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release supports running SageMaker Training jobs with container images that are in a private Docker registry.
+
+## __Application Auto Scaling__
+  - ### Features
+    - Enabled FIPS endpoints for GovCloud (US) regions in SDK.
+
 # __2.19.25__ __2023-01-26__
 ## __AWS CRT HTTP Client__
   - ### Features
