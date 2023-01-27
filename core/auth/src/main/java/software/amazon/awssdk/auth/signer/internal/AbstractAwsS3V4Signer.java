@@ -236,7 +236,7 @@ public abstract class AbstractAwsS3V4Signer extends AbstractAws4Signer<AwsS3V4Si
                             ChecksumSpecs.builder().headerName(signerParams.checksumParams().checksumHeaderName()).build())) {
                         isTrailingChecksum = true;
                         mutableRequest.putHeader("x-amz-trailer", headerForTrailerChecksumLocation);
-                        mutableRequest.putHeader("Content-Encoding", "aws-chunked");
+                        mutableRequest.appendHeader("Content-Encoding", "aws-chunked");
                     }
                 }
                 // Make sure "Content-Length" header is not empty so that HttpClient

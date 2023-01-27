@@ -23,7 +23,7 @@ import software.amazon.awssdk.metrics.MetricCollector;
 @SdkInternalApi
 public final class CrtRequestContext {
     private final AsyncExecuteRequest request;
-    private final int readBufferSize;
+    private final long readBufferSize;
     private final HttpClientConnectionManager crtConnPool;
     private final MetricCollector metricCollector;
 
@@ -42,7 +42,7 @@ public final class CrtRequestContext {
         return request;
     }
 
-    public int readBufferSize() {
+    public long readBufferSize() {
         return readBufferSize;
     }
 
@@ -56,7 +56,7 @@ public final class CrtRequestContext {
 
     public static class Builder {
         private AsyncExecuteRequest request;
-        private int readBufferSize;
+        private long readBufferSize;
         private HttpClientConnectionManager crtConnPool;
 
         private Builder() {
@@ -67,7 +67,7 @@ public final class CrtRequestContext {
             return this;
         }
 
-        public Builder readBufferSize(int readBufferSize) {
+        public Builder readBufferSize(long readBufferSize) {
             this.readBufferSize = readBufferSize;
             return this;
         }

@@ -1,3 +1,112 @@
+# __2.19.25__ __2023-01-26__
+## __AWS CRT HTTP Client__
+  - ### Features
+    - Throw UnsupportedOperationException if the AWS CRT HTTP Client is configured with HTTP/2 protocol.
+
+  - ### Bugfixes
+    - Fix an issue that could result in resource leak when sending request fails due to errors such as invalid request.
+
+## __AWS IoT FleetWise__
+  - ### Features
+    - Add model validation to BatchCreateVehicle and BatchUpdateVehicle operations that invalidate requests with an empty vehicles list.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Append Content-encoding header instead of over writing the header when Checksum algorithm is selected along with user set Content-encoding
+
+## __Amazon EventBridge__
+  - ### Features
+    - Minor comments for Redshift Serverless workgroup target support.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Allow FIPS to be used with path-style URLs.
+
+# __2.19.24__ __2023-01-25__
+## __AWS CRT HTTP Client__
+  - ### Features
+    - Remove CRT connection timeout default
+
+## __AWS CloudFormation__
+  - ### Features
+    - Enabled FIPS aws-us-gov endpoints in SDK.
+
+## __AWS S3 Control__
+  - ### Features
+    - Add additional endpoint tests for S3 Control. Fix missing endpoint parameters for PutBucketVersioning and GetBucketVersioning. Prior to this fix, those operations may have resulted in an invalid endpoint being resolved.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Security Token Service__
+  - ### Features
+    - Doc only change to update wording in a key topic
+
+## __AWSMainframeModernization__
+  - ### Features
+    - Add returnCode, batchJobIdentifier in GetBatchJobExecution response, for user to view the batch job execution result & unique identifier from engine. Also removed unused headers from REST APIs
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds new functionality that allows customers to provision IPv6 CIDR blocks through Amazon VPC IP Address Manager (IPAM) as well as allowing customers to utilize IPAM Resource Discovery APIs.
+
+## __Amazon Polly__
+  - ### Features
+    - Add 5 new neural voices - Sergio (es-ES), Andres (es-MX), Remi (fr-FR), Adriano (it-IT) and Thiago (pt-BR).
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - SageMaker Inference Recommender now decouples from Model Registry and could accept Model Name to invoke inference recommendations job; Inference Recommender now provides CPU/Memory Utilization metrics data in recommendation output.
+
+## __Redshift Serverless__
+  - ### Features
+    - Added query monitoring rules as possible parameters for create and update workgroup operations.
+
+# __2.19.23__ __2023-01-24__
+## __AWS CRT HTTP Client__
+  - ### Features
+    - Renamed `readBufferSize` -> `readBufferSizeInBytes`.
+    - Renamed: `ConnectionHealthChecksConfiguration` -> `ConnectionHealthConfiguration`
+      Renamed: `allowableThroughputFailureInterval` -> `minimumThroughputTimeout`
+      Renamed: `minThroughputInBytesPerSecond` -> `minimumThroughputInBps`
+      Renamed: `AwsCrtAsyncHttpClient.builder().connectionHealthChecksConfiguration` -> `AwsCrtAsyncHttpClient.builder().connectionHealthConfiguration`
+
+  - ### Removals
+    - Removed `tlsCipherPreference`.
+
+## __AWS Glue DataBrew__
+  - ### Features
+    - Enabled FIPS us-gov-west-1 endpoints in SDK.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Systems Manager for SAP__
+  - ### Features
+    - This release provides updates to documentation and support for listing operations performed by AWS Systems Manager for SAP.
+
+## __Amazon Route 53__
+  - ### Features
+    - Amazon Route 53 now supports the Asia Pacific (Melbourne) Region (ap-southeast-4) for latency records, geoproximity records, and private DNS for Amazon VPCs in that region.
+
+# __2.19.22__ __2023-01-23__
+## __AWS Lambda__
+  - ### Features
+    - Release Lambda RuntimeManagementConfig, enabling customers to better manage runtime updates to their Lambda functions. This release adds two new APIs, GetRuntimeManagementConfig and PutRuntimeManagementConfig, as well as support on existing Create/Get/Update function APIs.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker Inference now supports P4de instance types.
+
 # __2.19.21__ __2023-01-20__
 ## __AWS SDK for Java v2__
   - ### Features

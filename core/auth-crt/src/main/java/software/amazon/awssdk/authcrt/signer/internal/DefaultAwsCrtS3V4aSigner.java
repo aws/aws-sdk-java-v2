@@ -224,6 +224,6 @@ public final class DefaultAwsCrtS3V4aSigner implements AwsCrtS3V4aSigner {
     private static void updateRequestWithTrailer(SignerChecksumParams signerChecksumParams,
                                                  SdkHttpFullRequest.Builder mutableRequest) {
         mutableRequest.putHeader("x-amz-trailer", signerChecksumParams.checksumHeaderName());
-        mutableRequest.putHeader("Content-Encoding", "aws-chunked");
+        mutableRequest.appendHeader("Content-Encoding", "aws-chunked");
     }
 }

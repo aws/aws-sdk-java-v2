@@ -105,7 +105,7 @@ public final class AsyncRequestBodyHttpChecksumTrailerInterceptor implements Exe
 
         return context.httpRequest().copy(r ->
                 r.putHeader(HttpChecksumConstant.HEADER_FOR_TRAILER_REFERENCE, checksum.headerName())
-                        .putHeader("Content-encoding", HttpChecksumConstant.AWS_CHUNKED_HEADER)
+                        .appendHeader("Content-encoding", HttpChecksumConstant.AWS_CHUNKED_HEADER)
                         .putHeader("x-amz-content-sha256", HttpChecksumConstant.CONTENT_SHA_256_FOR_UNSIGNED_TRAILER)
                         .putHeader("x-amz-decoded-content-length", Long.toString(originalContentLength))
                         .putHeader(Header.CONTENT_LENGTH,
