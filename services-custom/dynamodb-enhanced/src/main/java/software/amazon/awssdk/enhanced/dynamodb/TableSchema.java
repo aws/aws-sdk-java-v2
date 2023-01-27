@@ -72,8 +72,9 @@ public interface TableSchema<T> {
      * {@link BeanTableSchema} implementation of this interface that can map records to and from items of that bean
      * class.
      *
-     * Creating a {@link BeanTableSchema} is a moderately expensive operation, and should be performed sparingly. This is
-     * usually done once at application startup.
+     * <p>
+     * It's recommended to only create a {@link BeanTableSchema} once for a single bean class, usually at application start up,
+     * because it's a moderately expensive operation.
      *
      * @param beanClass The bean class this {@link TableSchema} will map records to.
      * @param <T> The type of the item this {@link TableSchema} will map records to.
@@ -88,8 +89,9 @@ public interface TableSchema<T> {
      * {@link ImmutableTableSchema} implementation of this interface that can map records to and from items of that
      * immutable class.
      *
-     * Creating a {@link ImmutableTableSchema} is a moderately expensive operation, and should be performed sparingly. This is
-     * usually done once at application startup.
+     * <p>
+     * It's recommended to only create an {@link ImmutableTableSchema} once for a single immutable class, usually at application
+     * start up, because it's a moderately expensive operation.
      *
      * @param immutableClass The immutable class this {@link TableSchema} will map records to.
      * @param <T> The type of the item this {@link TableSchema} will map records to.
@@ -103,15 +105,15 @@ public interface TableSchema<T> {
      * Scans a class that has been annotated with DynamoDb enhanced client annotations and then returns an appropriate
      * {@link TableSchema} implementation that can map records to and from items of that class. Currently supported
      * top level annotations (see documentation on those classes for more information on how to use them):
+     * {@link DynamoDbBean}, {@link DynamoDbImmutable}.
+     *
      * <p>
-     * {@link software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean}<br>
-     * {@link software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbImmutable}
+     * It's recommended to only invoke this operation once for a single class, usually at application start up,
+     * because it's a moderately expensive operation.
      *
-     * This is a moderately expensive operation, and should be performed sparingly. This is usually done once at
-     * application startup.
-     *
+     * <p>
      * If this table schema is not behaving as you expect, enable debug logging for
-     * 'software.amazon.awssdk.enhanced.dynamodb.beans'.
+     * {@code software.amazon.awssdk.enhanced.dynamodb.beans}.
      *
      * @param annotatedClass A class that has been annotated with DynamoDb enhanced client annotations.
      * @param <T> The type of the item this {@link TableSchema} will map records to.
