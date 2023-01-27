@@ -2,5 +2,5 @@
     "type": "feature",
     "category": "AWS SDK for Java v2",
     "contributor": "",
-    "description": "Token caching for Ec2 Metadata Requests"
+    "description": "Implementation of the EC2 Instance Metadata Client"
 }
