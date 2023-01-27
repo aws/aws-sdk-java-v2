@@ -2,5 +2,5 @@
     "type": "feature",
     "category": "AWS SDK for Java v2",
     "contributor": "",
-    "description": "Implementation of the EC2 Instance Metadata Client"
+    "description": "EC2 Instance Metadata Client is now generally available - https://github.com/aws/aws-sdk-java-v2/issues/61"
 }
