@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Application Auto Scaling",
+    "contributor": "",
+    "description": "Enabled FIPS endpoints for GovCloud (US) regions in SDK."
+}
