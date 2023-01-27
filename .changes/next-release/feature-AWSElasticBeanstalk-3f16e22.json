@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Elastic Beanstalk",
+    "contributor": "",
+    "description": "Enabled FIPS endpoints for GovCloud (US) regions in SDK."
+}
