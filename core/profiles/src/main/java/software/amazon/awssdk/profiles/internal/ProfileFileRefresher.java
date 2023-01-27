@@ -23,7 +23,6 @@ import java.time.Clock;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
@@ -44,12 +43,10 @@ public final class ProfileFileRefresher {
     private volatile ProfileFileRefreshRecord currentRefreshRecord;
     private final Supplier<ProfileFile> profileFile;
     private final Path profileFilePath;
-    private final Function<RuntimeException, ProfileFile> exceptionHandler;
     private final Consumer<ProfileFile> onProfileFileReload;
     private final Clock clock;
 
     private ProfileFileRefresher(Builder builder) {
-        this.exceptionHandler = builder.exceptionHandler;
         this.clock = builder.clock;
         this.profileFile = builder.profileFile;
         this.profileFilePath = builder.profileFilePath;
@@ -81,18 +78,7 @@ public final class ProfileFileRefresher {
     }
 
     private RefreshResult<ProfileFileRefreshRecord> refreshResult() {
-        try {
-            return reloadAsRefreshResultIfStale();
-        } catch (RuntimeException exception) {
-            Instant now = Instant.now();
-            ProfileFile exceptionProfileFile = exceptionHandler.apply(exception);
-            ProfileFileRefreshRecord refreshRecord = ProfileFileRefreshRecord.builder()
-                                                                             .profileFile(exceptionProfileFile)
-                                                                             .refreshTime(now)
-                                                                             .build();
-
-            return wrapIntoRefreshResult(refreshRecord, now);
-        }
+        return reloadAsRefreshResultIfStale();
     }
 
     private RefreshResult<ProfileFileRefreshRecord> reloadAsRefreshResultIfStale() {
@@ -156,7 +142,6 @@ public final class ProfileFileRefresher {
         private Supplier<ProfileFile> profileFile;
         private Path profileFilePath;
         private Consumer<ProfileFile> onProfileFileReload = p -> { };
-        private Function<RuntimeException, ProfileFile> exceptionHandler;
         private Clock clock = Clock.systemUTC();
 
         private Builder() {
@@ -178,15 +163,6 @@ public final class ProfileFileRefresher {
         @SdkTestInternalApi
         public Builder clock(Clock clock) {
             this.clock = clock;
-            return this;
-        }
-
-        /**
-         * @param exceptionHandler Handler which takes action when a Runtime exception occurs while loading a profile file.
-         *                         Handler can return a previously stored profile file or throw back the exception.
-         */
-        public Builder exceptionHandler(Function<RuntimeException, ProfileFile> exceptionHandler) {
-            this.exceptionHandler = exceptionHandler;
             return this;
         }
 

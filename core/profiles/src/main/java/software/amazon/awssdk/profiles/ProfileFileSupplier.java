@@ -18,6 +18,7 @@ package software.amazon.awssdk.profiles;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -105,8 +106,8 @@ public interface ProfileFileSupplier extends Supplier<ProfileFile> {
     }
 
     /**
-     * Creates a {@link ProfileFileSupplier} by combining the {@link ProfileFile} objects from two {@code ProfileFileSupplier}s.
-     * Objects are passed into {@link ProfileFile.Aggregator}.
+     * Creates a {@link ProfileFileSupplier} by combining the {@link ProfileFile} objects from multiple {@code
+     * ProfileFileSupplier}s. Objects are passed into {@link ProfileFile.Aggregator}.
      *
      * @param suppliers Array of {@code ProfileFileSupplier} objects. {@code ProfileFile} objects are passed to
      *                  {@link ProfileFile.Aggregator#addFile(ProfileFile)} in the same argument order as the supplier that
@@ -118,25 +119,39 @@ public interface ProfileFileSupplier extends Supplier<ProfileFile> {
         return new ProfileFileSupplier() {
 
             final AtomicReference<ProfileFile> currentAggregateProfileFile = new AtomicReference<>();
+            final ConcurrentHashMap<Supplier<ProfileFile>, ProfileFile> currentValuesBySupplier = new ConcurrentHashMap<>();
 
             @Override
             public ProfileFile get() {
-                ProfileFile.Aggregator aggregator = ProfileFile.aggregator();
+                boolean refreshAggregate = false;
                 for (ProfileFileSupplier supplier : suppliers) {
-                    aggregator.addFile(supplier.get());
+                    if (didSuppliedValueChange(supplier)) {
+                        refreshAggregate = true;
+                    }
                 }
 
-                return refreshAndGetCurrentAggregate(aggregator);
+                if (refreshAggregate) {
+                    refreshCurrentAggregate();
+                }
+
+                return  currentAggregateProfileFile.get();
             }
 
-            private ProfileFile refreshAndGetCurrentAggregate(ProfileFile.Aggregator aggregator) {
+            private boolean didSuppliedValueChange(Supplier<ProfileFile> supplier) {
+                ProfileFile next = supplier.get();
+                ProfileFile current = currentValuesBySupplier.put(supplier, next);
+
+                return !Objects.equals(next, current);
+            }
+
+            private void refreshCurrentAggregate() {
+                ProfileFile.Aggregator aggregator = ProfileFile.aggregator();
+                currentValuesBySupplier.values().forEach(aggregator::addFile);
                 ProfileFile current = currentAggregateProfileFile.get();
                 ProfileFile next = aggregator.build();
                 if (!Objects.equals(current, next)) {
                     currentAggregateProfileFile.compareAndSet(current, next);
                 }
-
-                return currentAggregateProfileFile.get();
             }
 
         };

@@ -247,28 +247,6 @@ public class ProfileFileRefresherTest {
         Assertions.assertThat(refreshOperationsCounter.get()).isEqualTo(actualRefreshOperations);
     }
 
-    @Test
-    void refreshIfStale_profileDeleted_returnsProfileFileFromExceptionHandler() {
-        Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
-        ProfileFile fallbackProfile = credentialFile("[test]\nx = y");
-
-        AdjustableClock clock = new AdjustableClock();
-        ProfileFileRefresher refresher = refresherWithClock(clock)
-            .profileFile(() -> profileFile(credentialsFilePath))
-            .profileFilePath(credentialsFilePath)
-            .exceptionHandler(e -> fallbackProfile)
-            .build();
-
-        try {
-            Files.deleteIfExists(credentialsFilePath);
-            ProfileFile file1 = refresher.refreshIfStale();
-
-            Assertions.assertThat(file1).isSameAs(fallbackProfile);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     private ProfileFile credentialFile(String credentialFile) {
         return ProfileFile.builder()
                           .content(new StringInputStream(credentialFile))
