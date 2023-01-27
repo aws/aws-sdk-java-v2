@@ -27,8 +27,13 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Stream;
+import org.assertj.core.internal.Integers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
@@ -42,6 +47,7 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
 
 public class S3CrtAsyncHttpClientTest {
     private static final URI DEFAULT_ENDPOINT = URI.create("https://127.0.0.1:443");
@@ -69,14 +75,23 @@ public class S3CrtAsyncHttpClientTest {
         asyncHttpClient = new S3CrtAsyncHttpClient(s3Client, s3NativeClientConfiguration);
     }
 
-    @Test
-    public void defaultRequest_shouldSetMetaRequestOptionsCorrectly() {
-        AsyncExecuteRequest asyncExecuteRequest = getExecuteRequestBuilder().build();
+    private static Stream<Integer> ports() {
+        return Stream.of(null, 1234, 443);
+    }
+
+    @ParameterizedTest
+    @MethodSource("ports")
+    public void defaultRequest_shouldSetMetaRequestOptionsCorrectly(Integer port) {
+        AsyncExecuteRequest asyncExecuteRequest = getExecuteRequestBuilder(port).build();
 
         S3MetaRequestOptions actual = makeRequest(asyncExecuteRequest);
         assertThat(actual.getMetaRequestType()).isEqualTo(S3MetaRequestOptions.MetaRequestType.DEFAULT);
         assertThat(actual.getCredentialsProvider()).isNull();
-        assertThat(actual.getEndpoint()).isEqualTo(URI.create(DEFAULT_ENDPOINT.getScheme() + "://" + DEFAULT_ENDPOINT.getHost()));
+        String expectedEndpoint = port == null || port.equals(443) ?
+                                  DEFAULT_ENDPOINT.getScheme() + "://" + DEFAULT_ENDPOINT.getHost() :
+                                  DEFAULT_ENDPOINT.getScheme() + "://" + DEFAULT_ENDPOINT.getHost() + ":" + port;
+        assertThat(actual.getEndpoint()).hasToString(expectedEndpoint);
+
 
         HttpRequest httpRequest = actual.getHttpRequest();
         assertThat(httpRequest.getEncodedPath()).isEqualTo("/key");
@@ -86,8 +101,9 @@ public class S3CrtAsyncHttpClientTest {
                                                  .collect(HashMap::new, (m, h) -> m.put(h.getName(), h.getValue())
                                                      , Map::putAll);
 
+        String expectedPort = port == null || port.equals(443)  ? "" : ":" + port;
         assertThat(headers).hasSize(4)
-                           .containsEntry("Host", DEFAULT_ENDPOINT.getHost())
+                           .containsEntry("Host", DEFAULT_ENDPOINT.getHost() + expectedPort)
                            .containsEntry("custom-header", "foobar")
                            .containsEntry("amz-sdk-invocation-id", "1234")
                            .containsEntry("Content-Length", "100");
@@ -293,6 +309,10 @@ public class S3CrtAsyncHttpClientTest {
     }
 
     private AsyncExecuteRequest.Builder getExecuteRequestBuilder() {
+        return getExecuteRequestBuilder(443);
+    }
+
+    private AsyncExecuteRequest.Builder getExecuteRequestBuilder(Integer port) {
         return AsyncExecuteRequest.builder()
                                   .responseHandler(responseHandler)
                                   .requestContentPublisher(contentPublisher)
@@ -300,7 +320,7 @@ public class S3CrtAsyncHttpClientTest {
                                                          .protocol(DEFAULT_ENDPOINT.getScheme())
                                                          .method(SdkHttpMethod.GET)
                                                          .host(DEFAULT_ENDPOINT.getHost())
-                                                         .port(DEFAULT_ENDPOINT.getPort())
+                                                         .port(port)
                                                          .encodedPath("/key")
                                                          .putHeader(CONTENT_LENGTH, "100")
                                                          .putHeader("amz-sdk-invocation-id",
