@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon AppStream",
+    "contributor": "",
+    "description": "Fixing the issue where Appstream waiters hang for fleet_started and fleet_stopped."
+}
