@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Fault Injection Simulator",
+    "contributor": "",
+    "description": "Enabled FIPS endpoints for GovCloud (US) regions in SDK."
+}
