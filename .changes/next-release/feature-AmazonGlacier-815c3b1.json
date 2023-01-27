@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Glacier",
-    "contributor": "",
-    "description": "Enabled FIPS endpoints for GovCloud (US) regions in SDK."
-}
