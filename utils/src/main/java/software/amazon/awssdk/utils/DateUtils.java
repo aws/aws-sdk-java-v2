@@ -25,11 +25,14 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.time.chrono.IsoChronology;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 
@@ -47,6 +50,20 @@ public final class DateUtils {
             .appendPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")
             .toFormatter()
             .withZone(UTC);
+
+    /**
+     * RFC 822 date/time formatter.
+     */
+    static final DateTimeFormatter RFC_822_DATE_TIME = new DateTimeFormatterBuilder()
+        .parseCaseInsensitive()
+        .parseLenient()
+        .appendPattern("EEE, dd MMM yyyy HH:mm:ss")
+        .appendLiteral(' ')
+        .appendOffset("+HHMM", "GMT")
+        .toFormatter()
+        .withLocale(Locale.US)
+        .withResolverStyle(ResolverStyle.SMART)
+        .withChronology(IsoChronology.INSTANCE);
 
     // ISO_INSTANT does not handle offsets in Java 12-. See https://bugs.openjdk.java.net/browse/JDK-8166138
     private static final List<DateTimeFormatter> ALTERNATE_ISO_8601_FORMATTERS =
@@ -100,6 +117,33 @@ public final class DateUtils {
      */
     public static String formatIso8601Date(Instant date) {
         return ISO_INSTANT.format(date);
+    }
+
+    /**
+     * Parses the specified date string as an RFC 822 date and returns the Date object.
+     *
+     * @param dateString
+     *            The date string to parse.
+     *
+     * @return The parsed Date object.
+     */
+    public static Instant parseRfc822Date(String dateString) {
+        if (dateString == null) {
+            return null;
+        }
+        return parseInstant(dateString, RFC_822_DATE_TIME);
+    }
+
+    /**
+     * Formats the specified date as an RFC 822 string.
+     *
+     * @param instant
+     *            The instant to format.
+     *
+     * @return The RFC 822 string representing the specified date.
+     */
+    public static String formatRfc822Date(Instant instant) {
+        return RFC_822_DATE_TIME.format(ZonedDateTime.ofInstant(instant, UTC));
     }
 
     /**

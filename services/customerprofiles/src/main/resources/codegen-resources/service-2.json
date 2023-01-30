@@ -28,7 +28,7 @@
         {"shape":"ThrottlingException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Associates a new key value with a specific profile, such as a Contact Trace Record (CTR) ContactId.</p> <p>A profile object can have a single unique key and any number of additional keys that can be used to identify the profile that it belongs to.</p>"
+      "documentation":"<p>Associates a new key value with a specific profile, such as a Contact Record ContactId.</p> <p>A profile object can have a single unique key and any number of additional keys that can be used to identify the profile that it belongs to.</p>"
     },
     "CreateDomain":{
       "name":"CreateDomain",
@@ -535,7 +535,7 @@
         {"shape":"ThrottlingException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Adds an integration between the service and a third-party service, which includes Amazon AppFlow and Amazon Connect.</p> <p>An integration can belong to only one domain.</p>"
+      "documentation":"<p>Adds an integration between the service and a third-party service, which includes Amazon AppFlow and Amazon Connect.</p> <p>An integration can belong to only one domain.</p> <p>To add or remove tags on an existing Integration, see <a href=\"https://docs.aws.amazon.com/customerprofiles/latest/APIReference/API_TagResource.html\"> TagResource </a>/<a href=\"https://docs.aws.amazon.com/customerprofiles/latest/APIReference/API_UntagResource.html\"> UntagResource</a>.</p>"
     },
     "PutProfileObject":{
       "name":"PutProfileObject",
@@ -552,7 +552,7 @@
         {"shape":"ThrottlingException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Adds additional objects to customer profiles of a given ObjectType.</p> <p>When adding a specific profile object, like a Contact Trace Record (CTR), an inferred profile can get created if it is not mapped to an existing profile. The resulting profile will only have a phone number populated in the standard ProfileObject. Any additional CTRs with the same phone number will be mapped to the same inferred profile.</p> <p>When a ProfileObject is created and if a ProfileObjectType already exists for the ProfileObject, it will provide data to a standard profile depending on the ProfileObjectType definition.</p> <p>PutProfileObject needs an ObjectType, which can be created using PutProfileObjectType.</p>"
+      "documentation":"<p>Adds additional objects to customer profiles of a given ObjectType.</p> <p>When adding a specific profile object, like a Contact Record, an inferred profile can get created if it is not mapped to an existing profile. The resulting profile will only have a phone number populated in the standard ProfileObject. Any additional Contact Records with the same phone number will be mapped to the same inferred profile.</p> <p>When a ProfileObject is created and if a ProfileObjectType already exists for the ProfileObject, it will provide data to a standard profile depending on the ProfileObjectType definition.</p> <p>PutProfileObject needs an ObjectType, which can be created using PutProfileObjectType.</p>"
     },
     "PutProfileObjectType":{
       "name":"PutProfileObjectType",
@@ -569,7 +569,7 @@
         {"shape":"ThrottlingException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Defines a ProfileObjectType.</p>"
+      "documentation":"<p>Defines a ProfileObjectType.</p> <p>To add or remove tags on an existing ObjectType, see <a href=\"https://docs.aws.amazon.com/customerprofiles/latest/APIReference/API_TagResource.html\"> TagResource</a>/<a href=\"https://docs.aws.amazon.com/customerprofiles/latest/APIReference/API_UntagResource.html\">UntagResource</a>.</p>"
     },
     "SearchProfiles":{
       "name":"SearchProfiles",
@@ -586,7 +586,7 @@
         {"shape":"ThrottlingException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Searches for profiles within a specific domain name using name, phone number, email address, account number, or a custom defined index.</p>"
+      "documentation":"<p>Searches for profiles within a specific domain using one or more predefined search keys (e.g., _fullName, _phone, _email, _account, etc.) and/or custom-defined search keys. A search key is a data type pair that consists of a <code>KeyName</code> and <code>Values</code> list.</p> <p>This operation supports searching for profiles with a minimum of 1 key-value(s) pair and up to 5 key-value(s) pairs using either <code>AND</code> or <code>OR</code> logic.</p>"
     },
     "TagResource":{
       "name":"TagResource",
@@ -633,7 +633,7 @@
         {"shape":"ThrottlingException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Updates the properties of a domain, including creating or selecting a dead letter queue or an encryption key.</p> <p>After a domain is created, the name can’t be changed.</p> <p>Use this API or <a href=\"https://docs.aws.amazon.com/customerprofiles/latest/APIReference/API_CreateDomain.html\">CreateDomain</a> to enable <a href=\"https://docs.aws.amazon.com/customerprofiles/latest/APIReference/API_GetMatches.html\">identity resolution</a>: set <code>Matching</code> to true. </p> <p>To prevent cross-service impersonation when you call this API, see <a href=\"https://docs.aws.amazon.com/connect/latest/adminguide/cross-service-confused-deputy-prevention.html\">Cross-service confused deputy prevention</a> for sample policies that you should apply. </p>"
+      "documentation":"<p>Updates the properties of a domain, including creating or selecting a dead letter queue or an encryption key.</p> <p>After a domain is created, the name can’t be changed.</p> <p>Use this API or <a href=\"https://docs.aws.amazon.com/customerprofiles/latest/APIReference/API_CreateDomain.html\">CreateDomain</a> to enable <a href=\"https://docs.aws.amazon.com/customerprofiles/latest/APIReference/API_GetMatches.html\">identity resolution</a>: set <code>Matching</code> to true. </p> <p>To prevent cross-service impersonation when you call this API, see <a href=\"https://docs.aws.amazon.com/connect/latest/adminguide/cross-service-confused-deputy-prevention.html\">Cross-service confused deputy prevention</a> for sample policies that you should apply. </p> <p>To add or remove tags on an existing Domain, see <a href=\"https://docs.aws.amazon.com/customerprofiles/latest/APIReference/API_TagResource.html\">TagResource</a>/<a href=\"https://docs.aws.amazon.com/customerprofiles/latest/APIReference/API_UntagResource.html\">UntagResource</a>.</p>"
     },
     "UpdateProfile":{
       "name":"UpdateProfile",
@@ -684,7 +684,7 @@
         },
         "KeyName":{
           "shape":"name",
-          "documentation":"<p>A searchable identifier of a customer profile.</p>"
+          "documentation":"<p>A searchable identifier of a customer profile. The predefined keys you can use include: _account, _profileId, _assetId, _caseId, _orderId, _fullName, _phone, _email, _ctrContactId, _marketoLeadId, _salesforceAccountId, _salesforceContactId, _salesforceAssetId, _zendeskUserId, _zendeskExternalId, _zendeskTicketId, _serviceNowSystemId, _serviceNowIncidentId, _segmentUserId, _shopifyCustomerId, _shopifyOrderId.</p>"
         },
         "Values":{
           "shape":"requestValueList",
@@ -710,6 +710,24 @@
           "documentation":"<p>A list of key values.</p>"
         }
       }
+    },
+    "AdditionalSearchKey":{
+      "type":"structure",
+      "required":[
+        "KeyName",
+        "Values"
+      ],
+      "members":{
+        "KeyName":{
+          "shape":"name",
+          "documentation":"<p>A searchable identifier of a customer profile.</p>"
+        },
+        "Values":{
+          "shape":"requestValueList",
+          "documentation":"<p>A list of key values.</p>"
+        }
+      },
+      "documentation":"<p>A data type pair that consists of a <code>KeyName</code> and <code>Values</code> list that is used in conjunction with the <a href=\"https://docs.aws.amazon.com/customerprofiles/latest/APIReference/API_SearchProfiles.html#customerprofiles-SearchProfiles-request-KeyName\">KeyName</a> and <a href=\"https://docs.aws.amazon.com/customerprofiles/latest/APIReference/API_SearchProfiles.html#customerprofiles-SearchProfiles-request-Values\">Values</a> parameters to search for profiles using the <a href=\"https://docs.aws.amazon.com/customerprofiles/latest/APIReference/API_SearchProfiles.html\">SearchProfiles</a> API.</p>"
     },
     "Address":{
       "type":"structure",
@@ -887,6 +905,10 @@
         "ConflictResolution":{
           "shape":"ConflictResolution",
           "documentation":"<p>How the auto-merging process should resolve conflicts between different profiles. For example, if Profile A and Profile B have the same <code>FirstName</code> and <code>LastName</code> (and that is the matching criteria), which <code>EmailAddress</code> should be used? </p>"
+        },
+        "MinAllowedConfidenceScoreForMerging":{
+          "shape":"Double0To1",
+          "documentation":"<p>A number between 0 and 1 that represents the minimum confidence score required for profiles within a matching group to be merged during the auto-merge process. A higher score means higher similarity required to merge profiles. </p>"
         }
       },
       "documentation":"<p>Configuration settings for how to perform the auto-merging of profiles.</p>"
@@ -1223,6 +1245,14 @@
         "Attributes":{
           "shape":"Attributes",
           "documentation":"<p>A key value pair of attributes of a customer profile.</p>"
+        },
+        "PartyTypeString":{
+          "shape":"string1To255",
+          "documentation":"<p>An alternative to <code>PartyType</code> which accepts any string as input.</p>"
+        },
+        "GenderString":{
+          "shape":"string1To255",
+          "documentation":"<p>An alternative to <code>Gender</code> which accepts any string as input.</p>"
         }
       }
     },
@@ -1493,6 +1523,11 @@
       "documentation":"<p>Usage-specific statistics about the domain.</p>"
     },
     "Double":{"type":"double"},
+    "Double0To1":{
+      "type":"double",
+      "max":1.0,
+      "min":0.0
+    },
     "ExportingConfig":{
       "type":"structure",
       "members":{
@@ -1669,6 +1704,20 @@
       "max":256,
       "pattern":"[a-zA-Z0-9][\\w!@#.-]+"
     },
+    "FoundByKeyValue":{
+      "type":"structure",
+      "members":{
+        "KeyName":{
+          "shape":"name",
+          "documentation":"<p>A searchable identifier of a customer profile.</p>"
+        },
+        "Values":{
+          "shape":"requestValueList",
+          "documentation":"<p>A list of key values.</p>"
+        }
+      },
+      "documentation":"<p>A data type pair that consists of a <code>KeyName</code> and <code>Values</code> list that were used to find a profile returned in response to a <a href=\"https://docs.aws.amazon.com/customerprofiles/latest/APIReference/API_SearchProfiles.html\">SearchProfiles</a> request. </p>"
+    },
     "Gender":{
       "type":"string",
       "enum":[
@@ -1698,6 +1747,10 @@
         "ConflictResolution":{
           "shape":"ConflictResolution",
           "documentation":"<p>How the auto-merging process should resolve conflicts between different profiles.</p>"
+        },
+        "MinAllowedConfidenceScoreForMerging":{
+          "shape":"Double0To1",
+          "documentation":"<p>Minimum confidence score required for profiles within a matching group to be merged during the auto-merge process.</p>"
         }
       }
     },
@@ -1910,6 +1963,10 @@
         "WorkflowId":{
           "shape":"string1To255",
           "documentation":"<p>Unique identifier for the workflow.</p>"
+        },
+        "IsUnstructured":{
+          "shape":"optionalBoolean",
+          "documentation":"<p>Boolean to indicate if the Flow associated with the Integration is created via Appflow console or with ObjectTypeName equals _unstructured via API/CLI in flowDefinition</p>"
         }
       }
     },
@@ -2521,6 +2578,10 @@
         "WorkflowId":{
           "shape":"string1To255",
           "documentation":"<p>Unique identifier for the workflow.</p>"
+        },
+        "IsUnstructured":{
+          "shape":"optionalBoolean",
+          "documentation":"<p>Boolean to indicate if the Flow associated with the Integration is created via Appflow console or with ObjectTypeName equals _unstructured via API/CLI in flowDefinition</p>"
         }
       },
       "documentation":"<p>An integration in list of integrations.</p>"
@@ -2911,7 +2972,7 @@
         },
         "ConfidenceScore":{
           "shape":"Double",
-          "documentation":"<p>A number between 0 and 1 that represents the confidence level of assigning profiles to a matching group. A score of 1 likely indicates an exact match.</p>"
+          "documentation":"<p>A number between 0 and 1, where a higher score means higher similarity. Examining match confidence scores lets you distinguish between groups of similar records in which the system is highly confident (which you may decide to merge), groups of similar records about which the system is uncertain (which you may decide to have reviewed by a human), and groups of similar records that the system deems to be unlikely (which you may decide to reject). Given confidence scores vary as per the data input, it should not be used an absolute measure of matching quality.</p>"
         }
       },
       "documentation":"<p>The Match group object.</p>"
@@ -3195,6 +3256,10 @@
         "Attributes":{
           "shape":"Attributes",
           "documentation":"<p>A key value pair of attributes of a customer profile.</p>"
+        },
+        "FoundByItems":{
+          "shape":"foundByList",
+          "documentation":"<p>A list of items used to find a profile returned in a <a href=\"https://docs.aws.amazon.com/customerprofiles/latest/APIReference/API_SearchProfiles.html\">SearchProfiles</a> response. An item is a key-value(s) pair that matches an attribute in the profile.</p> <p>If the optional <code>AdditionalSearchKeys</code> parameter was included in the <a href=\"https://docs.aws.amazon.com/customerprofiles/latest/APIReference/API_SearchProfiles.html\">SearchProfiles</a> request, the <code>FoundByItems</code> list should be interpreted based on the <code>LogicalOperator</code> used in the request:</p> <ul> <li> <p> <code>AND</code> - The profile included in the response matched all of the search keys specified in the request. The <code>FoundByItems</code> will include all of the key-value(s) pairs that were specified in the request (as this is a requirement of <code>AND</code> search logic).</p> </li> <li> <p> <code>OR</code> - The profile included in the response matched at least one of the search keys specified in the request. The <code>FoundByItems</code> will include each of the key-value(s) pairs that the profile was found by.</p> </li> </ul> <p>The <code>OR</code> relationship is the default behavior if the <code>LogicalOperator</code> parameter is not included in the <a href=\"https://docs.aws.amazon.com/customerprofiles/latest/APIReference/API_SearchProfiles.html\">SearchProfiles</a> request.</p>"
         }
       },
       "documentation":"<p>The standard profile of a customer.</p>"
@@ -3302,6 +3367,10 @@
         "WorkflowId":{
           "shape":"string1To255",
           "documentation":"<p>Unique identifier for the workflow.</p>"
+        },
+        "IsUnstructured":{
+          "shape":"optionalBoolean",
+          "documentation":"<p>Boolean to indicate if the Flow associated with the Integration is created via Appflow console or with ObjectTypeName equals _unstructured via API/CLI in flowDefinition</p>"
         }
       }
     },
@@ -3364,7 +3433,7 @@
         },
         "TemplateId":{
           "shape":"name",
-          "documentation":"<p>A unique identifier for the object template.</p>"
+          "documentation":"<p>A unique identifier for the object template. For some attributes in the request, the service will use the default value from the object template when TemplateId is present. If these attributes are present in the request, the service may return a <code>BadRequestException</code>. These attributes include: AllowProfileCreation, SourceLastUpdatedTimestampFormat, Fields, and Keys. For example, if AllowProfileCreation is set to true when TemplateId is set, the service may return a <code>BadRequestException</code>.</p>"
         },
         "ExpirationDays":{
           "shape":"expirationDaysInteger",
@@ -3643,7 +3712,7 @@
         },
         "MaxResults":{
           "shape":"maxSize100",
-          "documentation":"<p>The maximum number of objects returned per page.</p>",
+          "documentation":"<p>The maximum number of objects returned per page.</p> <p>The default is 20 if this parameter is not included in the request.</p>",
           "location":"querystring",
           "locationName":"max-results"
         },
@@ -3660,6 +3729,14 @@
         "Values":{
           "shape":"requestValueList",
           "documentation":"<p>A list of key values.</p>"
+        },
+        "AdditionalSearchKeys":{
+          "shape":"additionalSearchKeysList",
+          "documentation":"<p>A list of <code>AdditionalSearchKey</code> objects that are each searchable identifiers of a profile. Each <code>AdditionalSearchKey</code> object contains a <code>KeyName</code> and a list of <code>Values</code> associated with that specific key (i.e., a key-value(s) pair). These additional search keys will be used in conjunction with the <code>LogicalOperator</code> and the required <code>KeyName</code> and <code>Values</code> parameters to search for profiles that satisfy the search criteria. </p>"
+        },
+        "LogicalOperator":{
+          "shape":"logicalOperator",
+          "documentation":"<p>Relationship between all specified search keys that will be used to search for profiles. This includes the required <code>KeyName</code> and <code>Values</code> parameters as well as any key-value(s) pairs specified in the <code>AdditionalSearchKeys</code> list.</p> <p>This parameter influences which profiles will be returned in the response in the following manner:</p> <ul> <li> <p> <code>AND</code> - The response only includes profiles that match all of the search keys.</p> </li> <li> <p> <code>OR</code> - The response includes profiles that match at least one of the search keys.</p> </li> </ul> <p>The <code>OR</code> relationship is the default behavior if this parameter is not included in the request.</p>"
         }
       }
     },
@@ -3668,7 +3745,7 @@
       "members":{
         "Items":{
           "shape":"ProfileList",
-          "documentation":"<p>The list of SearchProfiles instances.</p>"
+          "documentation":"<p>The list of Profiles matching the search criteria.</p>"
         },
         "NextToken":{
           "shape":"token",
@@ -4209,6 +4286,14 @@
         "Attributes":{
           "shape":"UpdateAttributes",
           "documentation":"<p>A key value pair of attributes of a customer profile.</p>"
+        },
+        "PartyTypeString":{
+          "shape":"string0To255",
+          "documentation":"<p>An alternative to <code>PartyType</code> which accepts any string as input.</p>"
+        },
+        "GenderString":{
+          "shape":"string0To255",
+          "documentation":"<p>An alternative to <code>Gender</code> which accepts any string as input.</p>"
         }
       }
     },
@@ -4294,6 +4379,12 @@
       },
       "documentation":"<p>The properties that are applied when using Zendesk as a flow source.</p>"
     },
+    "additionalSearchKeysList":{
+      "type":"list",
+      "member":{"shape":"AdditionalSearchKey"},
+      "max":4,
+      "min":1
+    },
     "boolean":{"type":"boolean"},
     "encryptionKey":{
       "type":"string",
@@ -4304,6 +4395,19 @@
       "type":"integer",
       "max":1098,
       "min":1
+    },
+    "foundByList":{
+      "type":"list",
+      "member":{"shape":"FoundByKeyValue"},
+      "max":5,
+      "min":1
+    },
+    "logicalOperator":{
+      "type":"string",
+      "enum":[
+        "AND",
+        "OR"
+      ]
     },
     "long":{"type":"long"},
     "matchesNumber":{
@@ -4396,5 +4500,5 @@
       "pattern":"[a-f0-9]{32}"
     }
   },
-  "documentation":"<fullname>Amazon Connect Customer Profiles</fullname> <p>Welcome to the Amazon Connect Customer Profiles API Reference. This guide provides information about the Amazon Connect Customer Profiles API, including supported operations, data types, parameters, and schemas.</p> <p>Amazon Connect Customer Profiles is a unified customer profile for your contact center that has pre-built connectors powered by AppFlow that make it easy to combine customer information from third party applications, such as Salesforce (CRM), ServiceNow (ITSM), and your enterprise resource planning (ERP), with contact history from your Amazon Connect contact center.</p> <p>If you're new to Amazon Connect , you might find it helpful to also review the <a href=\"https://docs.aws.amazon.com/connect/latest/adminguide/what-is-amazon-connect.html\">Amazon Connect Administrator Guide</a>.</p>"
+  "documentation":"<fullname>Amazon Connect Customer Profiles</fullname> <p>Amazon Connect Customer Profiles is a unified customer profile for your contact center that has pre-built connectors powered by AppFlow that make it easy to combine customer information from third party applications, such as Salesforce (CRM), ServiceNow (ITSM), and your enterprise resource planning (ERP), with contact history from your Amazon Connect contact center. If you're new to Amazon Connect, you might find it helpful to review the <a href=\"https://docs.aws.amazon.com/connect/latest/adminguide/\">Amazon Connect Administrator Guide</a>.</p>"
 }

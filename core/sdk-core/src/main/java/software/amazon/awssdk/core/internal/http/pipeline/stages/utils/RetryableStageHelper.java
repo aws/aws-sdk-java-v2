@@ -16,6 +16,8 @@
 package software.amazon.awssdk.core.internal.http.pipeline.stages.utils;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.OptionalDouble;
 import java.util.concurrent.CompletionException;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -57,6 +59,7 @@ public class RetryableStageHelper {
     private final RetryPolicy retryPolicy;
     private final RateLimitingTokenBucket rateLimitingTokenBucket;
     private final HttpClientDependencies dependencies;
+    private final List<String> exceptionMessageHistory = new ArrayList<>();
 
     private int attemptNumber = 0;
     private SdkHttpResponse lastResponse = null;
@@ -116,6 +119,14 @@ public class RetryableStageHelper {
      */
     public SdkException retryPolicyDisallowedRetryException() {
         context.executionContext().metricCollector().reportMetric(CoreMetric.RETRY_COUNT, retriesAttemptedSoFar(true));
+        for (int i = 0; i < exceptionMessageHistory.size() - 1; i++) {
+            SdkClientException pastException =
+                SdkClientException.builder()
+                                  .message("Request attempt " + (i + 1) + " failure: " + exceptionMessageHistory.get(i))
+                                  .writableStackTrace(false)
+                                  .build();
+            lastException.addSuppressed(pastException);
+        }
         return lastException;
     }
 
@@ -207,9 +218,11 @@ public class RetryableStageHelper {
             setLastException(lastException.getCause());
         } else if (lastException instanceof SdkException) {
             this.lastException = (SdkException) lastException;
+            exceptionMessageHistory.add(this.lastException.getMessage());
         } else {
             this.lastException = SdkClientException.create("Unable to execute HTTP request: " + lastException.getMessage(),
                                                            lastException);
+            exceptionMessageHistory.add(this.lastException.getMessage());
         }
     }
 

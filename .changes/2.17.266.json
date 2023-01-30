@@ -1,0 +1,30 @@
+{
+    "version": "2.17.266",
+    "date": "2022-09-01",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Control Tower",
+            "contributor": "",
+            "description": "This release contains the first SDK for AWS Control Tower. It introduces a new set of APIs: EnableControl, DisableControl, GetControlOperation, and ListEnabledControls."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CodeGuru Reviewer",
+            "contributor": "",
+            "description": "Documentation updates to fix formatting issues in CLI and SDK documentation."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Route 53",
+            "contributor": "",
+            "description": "Documentation updates for Amazon Route 53."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}

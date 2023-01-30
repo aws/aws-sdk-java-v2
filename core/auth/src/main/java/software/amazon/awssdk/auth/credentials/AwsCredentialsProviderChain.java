@@ -27,6 +27,8 @@ import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * {@link AwsCredentialsProvider} implementation that chains together multiple credentials providers.
@@ -44,7 +46,10 @@ import software.amazon.awssdk.utils.Validate;
  * providers in the chain that need to be closed.</p>
  */
 @SdkPublicApi
-public final class AwsCredentialsProviderChain implements AwsCredentialsProvider, SdkAutoCloseable {
+public final class AwsCredentialsProviderChain
+    implements AwsCredentialsProvider,
+               SdkAutoCloseable,
+               ToCopyableBuilder<AwsCredentialsProviderChain.Builder, AwsCredentialsProviderChain> {
     private static final Logger log = Logger.loggerFor(AwsCredentialsProviderChain.class);
 
     private final List<AwsCredentialsProvider> credentialsProviders;
@@ -124,10 +129,15 @@ public final class AwsCredentialsProviderChain implements AwsCredentialsProvider
                        .build();
     }
 
+    @Override
+    public Builder toBuilder() {
+        return new BuilderImpl(this);
+    }
+
     /**
      * A builder for a {@link AwsCredentialsProviderChain} that allows controlling its behavior.
      */
-    public interface Builder {
+    public interface Builder extends CopyableBuilder<Builder, AwsCredentialsProviderChain> {
 
         /**
          * Controls whether the chain should reuse the last successful credentials provider in the chain. Reusing the last
@@ -161,6 +171,11 @@ public final class AwsCredentialsProviderChain implements AwsCredentialsProvider
         private List<AwsCredentialsProvider> credentialsProviders = new ArrayList<>();
 
         private BuilderImpl() {
+        }
+
+        private BuilderImpl(AwsCredentialsProviderChain provider) {
+            this.reuseLastProviderEnabled = provider.reuseLastProviderEnabled;
+            this.credentialsProviders = provider.credentialsProviders;
         }
 
         @Override

@@ -46,6 +46,12 @@ public class SdkAdvancedClientOption<T> extends ClientOption<T> {
     public static final SdkAdvancedClientOption<Signer> SIGNER = new SdkAdvancedClientOption<>(Signer.class);
 
     /**
+     * Define the signer that should be used for token-based authentication with AWS.
+     */
+    public static final SdkAdvancedClientOption<Signer> TOKEN_SIGNER = new SdkAdvancedClientOption<>(Signer.class);
+
+
+    /**
      * SDK uses endpoint trait and hostPrefix trait specified in service model to modify
      * the endpoint host that the API request is sent to.
      *

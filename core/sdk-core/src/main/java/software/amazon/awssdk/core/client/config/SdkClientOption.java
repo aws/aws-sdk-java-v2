@@ -27,10 +27,12 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
+import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.utils.AttributeMap;
 
 /**
  * A set of internal options required by the SDK via {@link SdkClientConfiguration}.
@@ -161,6 +163,17 @@ public final class SdkClientOption<T> extends ClientOption<T> {
      * @see RetryMode.Resolver#defaultRetryMode(RetryMode)
      */
     public static final SdkClientOption<RetryMode> DEFAULT_RETRY_MODE = new SdkClientOption<>(RetryMode.class);
+
+    /**
+     * The {@link EndpointProvider} configured on the client.
+     */
+    public static final SdkClientOption<EndpointProvider> ENDPOINT_PROVIDER = new SdkClientOption<>(EndpointProvider.class);
+
+    /**
+     * The container for any client contexts parameters set on the client.
+     */
+    public static final SdkClientOption<AttributeMap> CLIENT_CONTEXT_PARAMS =
+        new SdkClientOption<>(AttributeMap.class);
 
     private SdkClientOption(Class<T> valueClass) {
         super(valueClass);

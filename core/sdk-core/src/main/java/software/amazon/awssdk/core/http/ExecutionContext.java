@@ -91,11 +91,12 @@ public final class ExecutionContext implements ToCopyableBuilder<ExecutionContex
         private Builder() {
         }
 
-        public Builder(ExecutionContext executionContext) {
+        private Builder(ExecutionContext executionContext) {
             this.signer = executionContext.signer;
             this.interceptorContext = executionContext.interceptorContext;
             this.interceptorChain = executionContext.interceptorChain;
             this.executionAttributes = executionContext.executionAttributes;
+            this.metricCollector = executionContext.metricCollector;
         }
 
         public Builder interceptorContext(InterceptorContext interceptorContext) {

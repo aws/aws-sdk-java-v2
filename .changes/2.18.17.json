@@ -1,0 +1,48 @@
+{
+    "version": "2.18.17",
+    "date": "2022-11-14",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Lake Formation",
+            "contributor": "",
+            "description": "This release adds a new parameter \"Parameters\" in the DataLakeSettings."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Proton",
+            "contributor": "",
+            "description": "Add support for CodeBuild Provisioning"
+        },
+        {
+            "type": "feature",
+            "category": "AWS X-Ray",
+            "contributor": "",
+            "description": "This release enhances GetServiceGraph API to support new type of edge to represent links between SQS and Lambda in event-driven applications."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Customer Profiles",
+            "contributor": "",
+            "description": "This release enhances the SearchProfiles API by providing functionality to search for profiles using multiple keys and logical operators."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Managed Blockchain",
+            "contributor": "",
+            "description": "Updating the API docs data type: NetworkEthereumAttributes, and the operations DeleteNode, and CreateNode to also include the supported Goerli network."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "This release adds support for restoring an RDS Multi-AZ DB cluster snapshot to a Single-AZ deployment or a Multi-AZ DB instance deployment."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkDocs",
+            "contributor": "",
+            "description": "Added 2 new document related operations, DeleteDocumentVersion and RestoreDocumentVersions."
+        }
+    ]
+}

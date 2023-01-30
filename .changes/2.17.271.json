@@ -1,0 +1,42 @@
+{
+    "version": "2.17.271",
+    "date": "2022-09-09",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS CloudTrail",
+            "contributor": "",
+            "description": "This release adds CloudTrail getChannel and listChannels APIs to allow customer to view the ServiceLinkedChannel configurations."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Performance Insights",
+            "contributor": "",
+            "description": "Increases the maximum values of two RDS Performance Insights APIs. The maximum value of the Limit parameter of DimensionGroup is 25. The MaxResult maximum is now 25 for the following APIs: DescribeDimensionKeys, GetResourceMetrics, ListAvailableResourceDimensions, and ListAvailableResourceMetrics."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lex Model Building V2",
+            "contributor": "",
+            "description": "This release is for supporting Composite Slot Type feature in AWS Lex V2. Composite Slot Type will help developer to logically group coherent slots and maintain their inter-relationships in runtime conversation."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lex Runtime V2",
+            "contributor": "",
+            "description": "This release is for supporting Composite Slot Type feature in AWS Lex V2. Composite Slot Type will help developer to logically group coherent slots and maintain their inter-relationships in runtime conversation."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Redshift",
+            "contributor": "",
+            "description": "This release updates documentation for AQUA features and other description updates."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}

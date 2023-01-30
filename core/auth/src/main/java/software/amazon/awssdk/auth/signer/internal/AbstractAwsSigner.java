@@ -21,11 +21,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.SortedMap;
-import java.util.TreeMap;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -38,10 +33,8 @@ import software.amazon.awssdk.core.io.SdkDigestInputStream;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.StringUtils;
-import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
  * Abstract base class for AWS signing protocol implementations. Provides
@@ -219,43 +212,6 @@ public abstract class AbstractAwsSigner implements Signer {
         return hash(data, null);
     }
 
-    /**
-     * Examines the specified query string parameters and returns a
-     * canonicalized form.
-     * <p>
-     * The canonicalized query string is formed by first sorting all the query
-     * string parameters, then URI encoding both the key and value and then
-     * joining them, in order, separating key value pairs with an '&amp;'.
-     *
-     * @return A canonicalized form for the specified query string parameters.
-     */
-    protected void addCanonicalizedQueryString(StringBuilder result, SdkHttpRequest.Builder httpRequest) {
-
-        SortedMap<String, List<String>> sorted = new TreeMap<>();
-
-        /**
-         * Signing protocol expects the param values also to be sorted after url
-         * encoding in addition to sorted parameter names.
-         */
-        httpRequest.forEachRawQueryParameter((key, values) -> {
-            String encodedParamName = SdkHttpUtils.urlEncode(key);
-            List<String> encodedValues = new ArrayList<>(values.size());
-            for (String value : values) {
-                String encodedValue = SdkHttpUtils.urlEncode(value);
-
-                // Null values should be treated as empty for the purposes of signing, not missing.
-                // For example "?foo=" instead of "?foo".
-                String signatureFormattedEncodedValue = encodedValue == null ? "" : encodedValue;
-
-                encodedValues.add(signatureFormattedEncodedValue);
-            }
-            Collections.sort(encodedValues);
-            sorted.put(encodedParamName, encodedValues);
-        });
-
-        SdkHttpUtils.flattenQueryParameters(result, sorted);
-    }
-
     protected InputStream getBinaryRequestPayloadStream(ContentStreamProvider streamProvider) {
         try {
             if (streamProvider == null) {
@@ -270,31 +226,6 @@ public abstract class AbstractAwsSigner implements Signer {
                                     .cause(e)
                                     .build();
         }
-    }
-
-    protected void addCanonicalizedResourcePath(StringBuilder result, String resourcePath, boolean urlEncode) {
-        if (StringUtils.isEmpty(resourcePath)) {
-            result.append("/");
-        } else {
-            String value = urlEncode ? SdkHttpUtils.urlEncodeIgnoreSlashes(resourcePath) : resourcePath;
-            if (value.startsWith("/")) {
-                result.append(value);
-            } else {
-                result.append("/").append(value);
-            }
-        }
-    }
-
-    protected String getCanonicalizedEndpoint(SdkHttpFullRequest request) {
-        String endpointForStringToSign = StringUtils.lowerCase(request.host());
-
-        // Omit the port from the endpoint if we're using the default port for the protocol. Some HTTP clients (ie. Apache) don't
-        // allow you to specify it in the request, so we're standardizing around not including it. See SdkHttpRequest#port().
-        if (!SdkHttpUtils.isUsingStandardPort(request.protocol(), request.port())) {
-            endpointForStringToSign += ":" + request.port();
-        }
-
-        return endpointForStringToSign;
     }
 
     /**

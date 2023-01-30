@@ -65,6 +65,11 @@ public final class CoreMetric {
     public static final SdkMetric<Duration> CREDENTIALS_FETCH_DURATION =
         metric("CredentialsFetchDuration", Duration.class, MetricLevel.INFO);
 
+    /**
+     * The duration of time taken to fetch signing credentials for the API call.
+     */
+    public static final SdkMetric<Duration> TOKEN_FETCH_DURATION =
+        metric("TokenFetchDuration", Duration.class, MetricLevel.INFO);
 
     /**
      * The duration of time that the SDK has waited before this API call attempt, based on the

@@ -1,0 +1,30 @@
+{
+    "version": "2.17.243",
+    "date": "2022-07-29",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Shield",
+            "contributor": "",
+            "description": "AWS Shield Advanced now supports filtering for ListProtections and ListProtectionGroups."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Documentation updates for Amazon EC2."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon FSx",
+            "contributor": "",
+            "description": "Documentation updates for Amazon FSx"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}

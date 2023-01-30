@@ -1,0 +1,60 @@
+{
+    "version": "2.17.222",
+    "date": "2022-06-29",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS Common Runtime HTTP Client",
+            "contributor": "",
+            "description": "Improve connection reusing by keying connection pools using hostname + port, instead of the full URI."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaLive",
+            "contributor": "",
+            "description": "This release adds support for automatic renewal of MediaLive reservations at the end of each reservation term. Automatic renewal is optional. This release also adds support for labelling accessibility-focused audio and caption tracks in HLS outputs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon AppStream",
+            "contributor": "",
+            "description": "Includes support for StreamingExperienceSettings in CreateStack and UpdateStack APIs"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EMR",
+            "contributor": "",
+            "description": "This release introduces additional optional parameter \"Throughput\" to VolumeSpecification to enable user to configure throughput for gp3 ebs volumes."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "This release adds: UpdateFeatureGroup, UpdateFeatureMetadata, DescribeFeatureMetadata APIs; FeatureMetadata type in Search API; LastModifiedTime, LastUpdateStatus, OnlineStoreTotalSizeBytes in DescribeFeatureGroup API."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Translate",
+            "contributor": "",
+            "description": "Added ListLanguages API which can be used to list the languages supported by Translate."
+        },
+        {
+            "type": "feature",
+            "category": "Elastic Load Balancing",
+            "contributor": "",
+            "description": "This release adds two attributes for ALB. One, helps to preserve the host header and the other helps to modify, preserve, or remove the X-Forwarded-For header in the HTTP request."
+        },
+        {
+            "type": "feature",
+            "category": "Redshift Serverless",
+            "contributor": "",
+            "description": "Add new API operations for Amazon Redshift Serverless, a new way of using Amazon Redshift without needing to manually manage provisioned clusters. The new operations let you interact with Redshift Serverless resources, such as create snapshots, list VPC endpoints, delete resource policies, and more."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}

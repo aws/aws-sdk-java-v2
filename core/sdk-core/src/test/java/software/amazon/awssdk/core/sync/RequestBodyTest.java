@@ -26,6 +26,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -53,7 +54,13 @@ public class RequestBodyTest {
     @Test
     public void stringConstructorHasCorrectContentType() {
         RequestBody requestBody = RequestBody.fromString("hello world");
-        assertThat(requestBody.contentType()).isEqualTo(Mimetype.MIMETYPE_TEXT_PLAIN);
+        assertThat(requestBody.contentType()).isEqualTo(Mimetype.MIMETYPE_TEXT_PLAIN + "; charset=UTF-8");
+    }
+
+    @Test
+    public void stringConstructorWithCharsetHasCorrectContentType() {
+        RequestBody requestBody = RequestBody.fromString("hello world", StandardCharsets.US_ASCII);
+        assertThat(requestBody.contentType()).isEqualTo(Mimetype.MIMETYPE_TEXT_PLAIN + "; charset=US-ASCII");
     }
 
     @Test

@@ -24,7 +24,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 
 /**
- * Proxy configuration for {@link AwsCrtAsyncHttpClient}. This class is used to configure an HTTP proxy to be used by
+ * Proxy configuration for {@link AwsCrtAsyncHttpClient}. This class is used to configure an HTTPS or HTTP proxy to be used by
  * the {@link AwsCrtAsyncHttpClient}.
  *
  * @see AwsCrtAsyncHttpClient.Builder#proxyConfiguration(ProxyConfiguration)
@@ -34,6 +34,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 @SdkPublicApi
 @SdkPreviewApi
 public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfiguration.Builder, ProxyConfiguration> {
+    private static final String HTTPS = "https";
     private final String scheme;
     private final String host;
     private final int port;
@@ -59,34 +60,41 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
     }
 
     /**
-     * @return The proxy host from the configuration if set, or from the "http.proxyHost" system property if
-     * {@link Builder#useSystemPropertyValues(Boolean)} is set to true
+     * @return The proxy host from the configuration if set, else from the "https.proxyHost" or "http.proxyHost" system property,
+     * based on the scheme used, if {@link ProxyConfiguration.Builder#useSystemPropertyValues(Boolean)} is set to true
      */
     public String host() {
         return host;
     }
 
     /**
-     * @return The proxy port from the configuration if set, or from the "http.proxyPort" system property if
-     * {@link Builder#useSystemPropertyValues(Boolean)} is set to true
+     * @return The proxy port from the configuration if set, else from the "https.proxyPort" or "http.proxyPort" system property,
+     * based on the scheme used, if {@link ProxyConfiguration.Builder#useSystemPropertyValues(Boolean)} is set to true
      */
     public int port() {
         return port;
     }
 
     /**
-     * @return The proxy username from the configuration if set, or from the "http.proxyUser" system property if
-     * {@link Builder#useSystemPropertyValues(Boolean)} is set to true
+     * @return The proxy username from the configuration if set, else from the "https.proxyUser" or "http.proxyUser" system
+     * property, based on the scheme used, if {@link ProxyConfiguration.Builder#useSystemPropertyValues(Boolean)} is set to true
      * */
     public String username() {
+        if (Objects.equals(scheme(), HTTPS)) {
+            return resolveValue(username, ProxySystemSetting.HTTPS_PROXY_USERNAME);
+        }
         return resolveValue(username, ProxySystemSetting.PROXY_USERNAME);
     }
 
     /**
-     * @return The proxy password from the configuration if set, or from the "http.proxyPassword" system property if
-     * {@link Builder#useSystemPropertyValues(Boolean)} is set to true
+     * @return The proxy password from the configuration if set, else from the "https.proxyPassword" or "http.proxyPassword"
+     * system property, based on the scheme used, if {@link ProxyConfiguration.Builder#useSystemPropertyValues(Boolean)} is set
+     * to true
      * */
     public String password() {
+        if (Objects.equals(scheme(), HTTPS)) {
+            return resolveValue(password, ProxySystemSetting.HTTPS_PROXY_PASSWORD);
+        }
         return resolveValue(password, ProxySystemSetting.PROXY_PASSWORD);
     }
 
@@ -203,12 +211,20 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
     }
 
     private String resolveHost(String host) {
+        if (Objects.equals(scheme(), HTTPS)) {
+            return resolveValue(host, ProxySystemSetting.HTTPS_PROXY_HOST);
+        }
         return resolveValue(host, ProxySystemSetting.PROXY_HOST);
     }
 
     private int resolvePort(int port) {
-        return port == 0 && Boolean.TRUE.equals(useSystemPropertyValues) ?
-               ProxySystemSetting.PROXY_PORT.getStringValue().map(Integer::parseInt).orElse(0) : port;
+        if (port == 0 && Boolean.TRUE.equals(useSystemPropertyValues)) {
+            if (Objects.equals(scheme(), HTTPS)) {
+                return ProxySystemSetting.HTTPS_PROXY_PORT.getStringValue().map(Integer::parseInt).orElse(0);
+            }
+            return ProxySystemSetting.PROXY_PORT.getStringValue().map(Integer::parseInt).orElse(0);
+        }
+        return port;
     }
 
     /**

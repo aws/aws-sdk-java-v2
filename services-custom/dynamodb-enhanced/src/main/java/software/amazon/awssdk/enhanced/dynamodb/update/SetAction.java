@@ -156,6 +156,9 @@ public final class SetAction implements UpdateAction, ToCopyableBuilder<SetActio
         private Map<String, String> expressionNames;
         private Map<String, AttributeValue> expressionValues;
 
+        private Builder() {
+        }
+
         /**
          * A string expression representing the attribute to be acted upon
          */

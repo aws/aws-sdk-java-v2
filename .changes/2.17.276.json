@@ -1,0 +1,24 @@
+{
+    "version": "2.17.276",
+    "date": "2022-09-16",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Fixed issue where request used to fail while calculating Trailer based checksum for Async Request body."
+        },
+        {
+            "type": "feature",
+            "category": "AWS CodeStar Notifications",
+            "contributor": "",
+            "description": "This release adds tag based access control for the UntagResource API."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "contributor": "",
+            "description": "This release supports new task definition sizes."
+        }
+    ]
+}

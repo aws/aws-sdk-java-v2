@@ -1,0 +1,36 @@
+{
+    "version": "2.17.257",
+    "date": "2022-08-19",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWSKendraFrontendService",
+            "contributor": "",
+            "description": "This release adds support for a new authentication type - Personal Access Token (PAT) for confluence server."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "This release adds SearchSecurityProfiles API which can be used to search for Security Profile resources within a Connect Instance."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Interactive Video Service Chat",
+            "contributor": "",
+            "description": "Documentation Change for IVS Chat API Reference - Doc-only update to change text/description for tags field."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lookout for Metrics",
+            "contributor": "",
+            "description": "This release is to make GetDataQualityMetrics API publicly available."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}

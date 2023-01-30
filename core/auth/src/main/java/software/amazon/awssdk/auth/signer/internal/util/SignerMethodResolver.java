@@ -23,8 +23,10 @@ import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.signer.Aws4UnsignedPayloadSigner;
 import software.amazon.awssdk.auth.signer.AwsS3V4Signer;
 import software.amazon.awssdk.auth.signer.internal.AbstractAwsS3V4Signer;
+import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.internal.signer.SigningMethod;
+import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.core.signer.Signer;
 
 @SdkInternalApi
@@ -50,12 +52,12 @@ public final class SignerMethodResolver {
                                                          AwsCredentials credentials) {
 
         SigningMethod signingMethod = SigningMethod.UNSIGNED_PAYLOAD;
-        if (signer != null) {
+        if (signer != null && !CredentialType.TOKEN.equals(signer.credentialType())) {
             if (isProtocolBasedStreamingSigningAuth(signer, executionAttributes)) {
                 signingMethod = SigningMethod.PROTOCOL_STREAMING_SIGNING_AUTH;
             } else if (isProtocolBasedUnsigned(signer, executionAttributes)) {
                 signingMethod = SigningMethod.PROTOCOL_BASED_UNSIGNED;
-            } else if (isAnonymous(credentials)) {
+            } else if (isAnonymous(credentials) || signer instanceof NoOpSigner) {
                 signingMethod = SigningMethod.UNSIGNED_PAYLOAD;
             } else {
                 signingMethod = SigningMethod.HEADER_BASED_AUTH;

@@ -53,6 +53,12 @@ public final class NettyUtils {
      */
     public static final SucceededFuture<?> SUCCEEDED_FUTURE = new SucceededFuture<>(null, null);
 
+    public static final String CLOSED_CHANNEL_ERROR_MESSAGE = "The connection was closed during the request. The request will "
+                                                              + "usually succeed on a retry, but if it does not: consider "
+                                                              + "disabling any proxies you have configured, enabling debug "
+                                                              + "logging, or performing a TCP dump to identify the root cause. "
+                                                              + "If this is a streaming operation, validate that data is being "
+                                                              + "read or written in a timely manner.";
     private static final Logger log = Logger.loggerFor(NettyUtils.class);
 
     private NettyUtils() {
@@ -115,7 +121,8 @@ public final class NettyUtils {
         return "Maximum pending connection acquisitions exceeded. The request rate is too high for the client to keep up.\n"
 
                + "Consider taking any of the following actions to mitigate the issue: increase max connections, "
-               + "increase max pending acquire count, decrease pool lease timeout, or slowing the request rate.\n"
+               + "increase max pending acquire count, decrease connection acquisition timeout, or "
+               + "slow the request rate.\n"
 
                + "Increasing the max connections can increase client throughput (unless the network interface is already "
                + "fully utilized), but can eventually start to hit operation system limitations on the number of file "
@@ -132,15 +139,14 @@ public final class NettyUtils {
     }
 
     public static String closedChannelMessage(Channel channel) {
-        ChannelDiagnostics channelDiagnostics = channel.attr(CHANNEL_DIAGNOSTICS).get();
-        ChannelDiagnostics parentChannelDiagnostics = channel.parent() != null ? channel.parent().attr(CHANNEL_DIAGNOSTICS).get()
-                                                                               : null;
+        ChannelDiagnostics channelDiagnostics = channel != null && channel.attr(CHANNEL_DIAGNOSTICS) != null ?
+                                                channel.attr(CHANNEL_DIAGNOSTICS).get() : null;
+        ChannelDiagnostics parentChannelDiagnostics = channel != null && channel.parent() != null && 
+                                                      channel.parent().attr(CHANNEL_DIAGNOSTICS) != null ?
+                                                      channel.parent().attr(CHANNEL_DIAGNOSTICS).get() : null;
 
         StringBuilder error = new StringBuilder();
-        error.append("The connection was closed during the request. The request will usually succeed on a retry, but if it does"
-                     + " not: consider disabling any proxies you have configured, enabling debug logging, or performing a TCP"
-                     + " dump to identify the root cause. If this is a streaming operation, validate that data is being read or"
-                     + " written in a timely manner.");
+        error.append(CLOSED_CHANNEL_ERROR_MESSAGE);
 
         if (channelDiagnostics != null) {
             error.append(" Channel Information: ").append(channelDiagnostics);

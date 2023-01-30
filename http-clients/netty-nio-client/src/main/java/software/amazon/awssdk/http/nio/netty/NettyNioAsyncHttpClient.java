@@ -239,7 +239,6 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
          * {@link #maxPendingConnectionAcquires(Integer)}</p>) and can cause increased latencies. If the client is overloaded
          * enough such that the pending connection queue fills up, subsequent requests may be rejected or time out
          * (see {@link #connectionAcquisitionTimeout(Duration)}).
-         * </p>
          *
          * @param maxConcurrency New value for max concurrency.
          * @return This builder for method chaining.

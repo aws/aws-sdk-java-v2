@@ -24,7 +24,8 @@
       "errors":[
         {"shape":"ValidationException"},
         {"shape":"ConflictException"},
-        {"shape":"InternalServerException"}
+        {"shape":"InternalServerException"},
+        {"shape":"ThrottlingException"}
       ],
       "documentation":"<p>Associates a backup gateway with your server. After you complete the association process, you can back up and restore your VMs through the gateway.</p>"
     },
@@ -38,7 +39,8 @@
       "output":{"shape":"CreateGatewayOutput"},
       "errors":[
         {"shape":"ValidationException"},
-        {"shape":"InternalServerException"}
+        {"shape":"InternalServerException"},
+        {"shape":"ThrottlingException"}
       ],
       "documentation":"<p>Creates a backup gateway. After you create a gateway, you can associate it with a server using the <code>AssociateGatewayToServer</code> operation.</p>"
     },
@@ -53,7 +55,8 @@
       "errors":[
         {"shape":"ValidationException"},
         {"shape":"InternalServerException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"}
       ],
       "documentation":"<p>Deletes a backup gateway.</p>",
       "idempotent":true
@@ -68,9 +71,11 @@
       "output":{"shape":"DeleteHypervisorOutput"},
       "errors":[
         {"shape":"ValidationException"},
+        {"shape":"ConflictException"},
         {"shape":"InternalServerException"},
         {"shape":"AccessDeniedException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"}
       ],
       "documentation":"<p>Deletes a hypervisor.</p>",
       "idempotent":true
@@ -87,9 +92,26 @@
         {"shape":"ValidationException"},
         {"shape":"ConflictException"},
         {"shape":"InternalServerException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"}
       ],
       "documentation":"<p>Disassociates a backup gateway from the specified server. After the disassociation process finishes, the gateway can no longer access the virtual machines on the server.</p>"
+    },
+    "GetBandwidthRateLimitSchedule":{
+      "name":"GetBandwidthRateLimitSchedule",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GetBandwidthRateLimitScheduleInput"},
+      "output":{"shape":"GetBandwidthRateLimitScheduleOutput"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"}
+      ],
+      "documentation":"<p>Retrieves the bandwidth rate limit schedule for a specified gateway. By default, gateways do not have bandwidth rate limit schedules, which means no bandwidth rate limiting is in effect. Use this to get a gateway's bandwidth rate limit schedule.</p>"
     },
     "GetGateway":{
       "name":"GetGateway",
@@ -102,9 +124,58 @@
       "errors":[
         {"shape":"ValidationException"},
         {"shape":"InternalServerException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"}
       ],
       "documentation":"<p>By providing the ARN (Amazon Resource Name), this API returns the gateway.</p>"
+    },
+    "GetHypervisor":{
+      "name":"GetHypervisor",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GetHypervisorInput"},
+      "output":{"shape":"GetHypervisorOutput"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"}
+      ],
+      "documentation":"<p>This action requests information about the specified hypervisor to which the gateway will connect. A hypervisor is hardware, software, or firmware that creates and manages virtual machines, and allocates resources to them.</p>"
+    },
+    "GetHypervisorPropertyMappings":{
+      "name":"GetHypervisorPropertyMappings",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GetHypervisorPropertyMappingsInput"},
+      "output":{"shape":"GetHypervisorPropertyMappingsOutput"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"}
+      ],
+      "documentation":"<p>This action retrieves the property mappings for the specified hypervisor. A hypervisor property mapping displays the relationship of entity properties available from the on-premises hypervisor to the properties available in Amazon Web Services.</p>"
+    },
+    "GetVirtualMachine":{
+      "name":"GetVirtualMachine",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GetVirtualMachineInput"},
+      "output":{"shape":"GetVirtualMachineOutput"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"}
+      ],
+      "documentation":"<p>By providing the ARN (Amazon Resource Name), this API returns the virtual machine.</p>"
     },
     "ImportHypervisorConfiguration":{
       "name":"ImportHypervisorConfiguration",
@@ -116,8 +187,10 @@
       "output":{"shape":"ImportHypervisorConfigurationOutput"},
       "errors":[
         {"shape":"ValidationException"},
+        {"shape":"ConflictException"},
         {"shape":"InternalServerException"},
-        {"shape":"AccessDeniedException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ThrottlingException"}
       ],
       "documentation":"<p>Connect to a hypervisor by importing its configuration.</p>"
     },
@@ -131,7 +204,8 @@
       "output":{"shape":"ListGatewaysOutput"},
       "errors":[
         {"shape":"ValidationException"},
-        {"shape":"InternalServerException"}
+        {"shape":"InternalServerException"},
+        {"shape":"ThrottlingException"}
       ],
       "documentation":"<p>Lists backup gateways owned by an Amazon Web Services account in an Amazon Web Services Region. The returned list is ordered by gateway Amazon Resource Name (ARN).</p>"
     },
@@ -145,7 +219,8 @@
       "output":{"shape":"ListHypervisorsOutput"},
       "errors":[
         {"shape":"ValidationException"},
-        {"shape":"InternalServerException"}
+        {"shape":"InternalServerException"},
+        {"shape":"ThrottlingException"}
       ],
       "documentation":"<p>Lists your hypervisors.</p>"
     },
@@ -160,7 +235,8 @@
       "errors":[
         {"shape":"ValidationException"},
         {"shape":"InternalServerException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"}
       ],
       "documentation":"<p>Lists the tags applied to the resource identified by its Amazon Resource Name (ARN).</p>"
     },
@@ -174,9 +250,46 @@
       "output":{"shape":"ListVirtualMachinesOutput"},
       "errors":[
         {"shape":"ValidationException"},
-        {"shape":"InternalServerException"}
+        {"shape":"InternalServerException"},
+        {"shape":"ThrottlingException"}
       ],
       "documentation":"<p>Lists your virtual machines.</p>"
+    },
+    "PutBandwidthRateLimitSchedule":{
+      "name":"PutBandwidthRateLimitSchedule",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"PutBandwidthRateLimitScheduleInput"},
+      "output":{"shape":"PutBandwidthRateLimitScheduleOutput"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"}
+      ],
+      "documentation":"<p>This action sets the bandwidth rate limit schedule for a specified gateway. By default, gateways do not have a bandwidth rate limit schedule, which means no bandwidth rate limiting is in effect. Use this to initiate a gateway's bandwidth rate limit schedule.</p>",
+      "idempotent":true
+    },
+    "PutHypervisorPropertyMappings":{
+      "name":"PutHypervisorPropertyMappings",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"PutHypervisorPropertyMappingsInput"},
+      "output":{"shape":"PutHypervisorPropertyMappingsOutput"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"ConflictException"},
+        {"shape":"InternalServerException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"}
+      ],
+      "documentation":"<p>This action sets the property mappings for the specified hypervisor. A hypervisor property mapping displays the relationship of entity properties available from the on-premises hypervisor to the properties available in Amazon Web Services.</p>",
+      "idempotent":true
     },
     "PutMaintenanceStartTime":{
       "name":"PutMaintenanceStartTime",
@@ -190,9 +303,27 @@
         {"shape":"ValidationException"},
         {"shape":"ConflictException"},
         {"shape":"InternalServerException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"}
       ],
       "documentation":"<p>Set the maintenance start time for a gateway.</p>"
+    },
+    "StartVirtualMachinesMetadataSync":{
+      "name":"StartVirtualMachinesMetadataSync",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"StartVirtualMachinesMetadataSyncInput"},
+      "output":{"shape":"StartVirtualMachinesMetadataSyncOutput"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"}
+      ],
+      "documentation":"<p>This action sends a request to sync metadata across the specified virtual machines.</p>"
     },
     "TagResource":{
       "name":"TagResource",
@@ -205,7 +336,8 @@
       "errors":[
         {"shape":"ValidationException"},
         {"shape":"InternalServerException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"}
       ],
       "documentation":"<p>Tag the resource.</p>"
     },
@@ -221,7 +353,8 @@
         {"shape":"ValidationException"},
         {"shape":"ConflictException"},
         {"shape":"InternalServerException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"}
       ],
       "documentation":"<p>Tests your hypervisor configuration to validate that backup gateway can connect with the hypervisor and its resources.</p>"
     },
@@ -236,7 +369,8 @@
       "errors":[
         {"shape":"ValidationException"},
         {"shape":"InternalServerException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"}
       ],
       "documentation":"<p>Removes tags from the resource.</p>"
     },
@@ -252,7 +386,8 @@
         {"shape":"ValidationException"},
         {"shape":"ConflictException"},
         {"shape":"InternalServerException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"}
       ],
       "documentation":"<p>Updates a gateway's name. Specify which gateway to update using the Amazon Resource Name (ARN) of the gateway in your request.</p>"
     },
@@ -267,7 +402,8 @@
       "errors":[
         {"shape":"ValidationException"},
         {"shape":"InternalServerException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"}
       ],
       "documentation":"<p>Updates the gateway virtual machine (VM) software. The request immediately triggers the software update.</p> <note> <p>When you make this request, you get a <code>200 OK</code> success response immediately. However, it might take some time for the update to complete.</p> </note>"
     },
@@ -281,9 +417,11 @@
       "output":{"shape":"UpdateHypervisorOutput"},
       "errors":[
         {"shape":"ValidationException"},
+        {"shape":"ConflictException"},
         {"shape":"InternalServerException"},
         {"shape":"AccessDeniedException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"}
       ],
       "documentation":"<p>Updates a hypervisor metadata, including its host, username, and password. Specify which hypervisor to update using the Amazon Resource Name (ARN) of the hypervisor in your request.</p>"
     }
@@ -333,6 +471,55 @@
           "documentation":"<p>The Amazon Resource Name (ARN) of a gateway.</p>"
         }
       }
+    },
+    "AverageUploadRateLimit":{
+      "type":"long",
+      "box":true,
+      "max":8000000000000,
+      "min":51200
+    },
+    "BandwidthRateLimitInterval":{
+      "type":"structure",
+      "required":[
+        "DaysOfWeek",
+        "EndHourOfDay",
+        "EndMinuteOfHour",
+        "StartHourOfDay",
+        "StartMinuteOfHour"
+      ],
+      "members":{
+        "AverageUploadRateLimitInBitsPerSec":{
+          "shape":"AverageUploadRateLimit",
+          "documentation":"<p>The average upload rate limit component of the bandwidth rate limit interval, in bits per second. This field does not appear in the response if the upload rate limit is not set.</p> <note> <p>For Backup Gateway, the minimum value is <code>(Value)</code>.</p> </note>"
+        },
+        "DaysOfWeek":{
+          "shape":"DaysOfWeek",
+          "documentation":"<p>The days of the week component of the bandwidth rate limit interval, represented as ordinal numbers from 0 to 6, where 0 represents Sunday and 6 represents Saturday.</p>"
+        },
+        "EndHourOfDay":{
+          "shape":"HourOfDay",
+          "documentation":"<p>The hour of the day to end the bandwidth rate limit interval.</p>"
+        },
+        "EndMinuteOfHour":{
+          "shape":"MinuteOfHour",
+          "documentation":"<p>The minute of the hour to end the bandwidth rate limit interval.</p> <important> <p>The bandwidth rate limit interval ends at the end of the minute. To end an interval at the end of an hour, use the value <code>59</code>.</p> </important>"
+        },
+        "StartHourOfDay":{
+          "shape":"HourOfDay",
+          "documentation":"<p>The hour of the day to start the bandwidth rate limit interval.</p>"
+        },
+        "StartMinuteOfHour":{
+          "shape":"MinuteOfHour",
+          "documentation":"<p>The minute of the hour to start the bandwidth rate limit interval. The interval begins at the start of that minute. To begin an interval exactly at the start of the hour, use the value <code>0</code>.</p>"
+        }
+      },
+      "documentation":"<p>Describes a bandwidth rate limit interval for a gateway. A bandwidth rate limit schedule consists of one or more bandwidth rate limit intervals. A bandwidth rate limit interval defines a period of time on one or more days of the week, during which bandwidth rate limits are specified for uploading, downloading, or both.</p>"
+    },
+    "BandwidthRateLimitIntervals":{
+      "type":"list",
+      "member":{"shape":"BandwidthRateLimitInterval"},
+      "max":20,
+      "min":0
     },
     "ConflictException":{
       "type":"structure",
@@ -393,6 +580,12 @@
       "box":true,
       "max":6,
       "min":0
+    },
+    "DaysOfWeek":{
+      "type":"list",
+      "member":{"shape":"DayOfWeek"},
+      "max":7,
+      "min":1
     },
     "DeleteGatewayInput":{
       "type":"structure",
@@ -506,6 +699,10 @@
           "shape":"Time",
           "documentation":"<p>Details showing the last time Backup gateway communicated with the cloud, in Unix format and UTC time.</p>"
         },
+        "MaintenanceStartTime":{
+          "shape":"MaintenanceStartTime",
+          "documentation":"<p>Returns your gateway's weekly maintenance start time including the day and time of the week. Note that values are in terms of the gateway's time zone. Can be weekly or monthly.</p>"
+        },
         "NextUpdateAvailabilityTime":{
           "shape":"Time",
           "documentation":"<p>Details showing the next update availability time of the gateway.</p>"
@@ -525,6 +722,29 @@
       "type":"list",
       "member":{"shape":"Gateway"}
     },
+    "GetBandwidthRateLimitScheduleInput":{
+      "type":"structure",
+      "required":["GatewayArn"],
+      "members":{
+        "GatewayArn":{
+          "shape":"GatewayArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the gateway. Use the <a href=\"https://docs.aws.amazon.com/aws-backup/latest/devguide/API_BGW_ListGateways.html\"> <code>ListGateways</code> </a> operation to return a list of gateways for your account and Amazon Web Services Region.</p>"
+        }
+      }
+    },
+    "GetBandwidthRateLimitScheduleOutput":{
+      "type":"structure",
+      "members":{
+        "BandwidthRateLimitIntervals":{
+          "shape":"BandwidthRateLimitIntervals",
+          "documentation":"<p>An array containing bandwidth rate limit schedule intervals for a gateway. When no bandwidth rate limit intervals have been scheduled, the array is empty.</p>"
+        },
+        "GatewayArn":{
+          "shape":"GatewayArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the gateway. Use the <a href=\"https://docs.aws.amazon.com/aws-backup/latest/devguide/API_BGW_ListGateways.html\"> <code>ListGateways</code> </a> operation to return a list of gateways for your account and Amazon Web Services Region.</p>"
+        }
+      }
+    },
     "GetGatewayInput":{
       "type":"structure",
       "required":["GatewayArn"],
@@ -541,6 +761,71 @@
         "Gateway":{
           "shape":"GatewayDetails",
           "documentation":"<p>By providing the ARN (Amazon Resource Name), this API returns the gateway.</p>"
+        }
+      }
+    },
+    "GetHypervisorInput":{
+      "type":"structure",
+      "required":["HypervisorArn"],
+      "members":{
+        "HypervisorArn":{
+          "shape":"ServerArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the hypervisor.</p>"
+        }
+      }
+    },
+    "GetHypervisorOutput":{
+      "type":"structure",
+      "members":{
+        "Hypervisor":{
+          "shape":"HypervisorDetails",
+          "documentation":"<p>Details about the requested hypervisor.</p>"
+        }
+      }
+    },
+    "GetHypervisorPropertyMappingsInput":{
+      "type":"structure",
+      "required":["HypervisorArn"],
+      "members":{
+        "HypervisorArn":{
+          "shape":"ServerArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the hypervisor.</p>"
+        }
+      }
+    },
+    "GetHypervisorPropertyMappingsOutput":{
+      "type":"structure",
+      "members":{
+        "HypervisorArn":{
+          "shape":"ServerArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the hypervisor.</p>"
+        },
+        "IamRoleArn":{
+          "shape":"IamRoleArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the IAM role.</p>"
+        },
+        "VmwareToAwsTagMappings":{
+          "shape":"VmwareToAwsTagMappings",
+          "documentation":"<p>This is a display of the mappings of on-premises VMware tags to the Amazon Web Services tags.</p>"
+        }
+      }
+    },
+    "GetVirtualMachineInput":{
+      "type":"structure",
+      "required":["ResourceArn"],
+      "members":{
+        "ResourceArn":{
+          "shape":"ResourceArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the virtual machine.</p>"
+        }
+      }
+    },
+    "GetVirtualMachineOutput":{
+      "type":"structure",
+      "members":{
+        "VirtualMachine":{
+          "shape":"VirtualMachineDetails",
+          "documentation":"<p>This object contains the basic attributes of <code>VirtualMachine</code> contained by the output of <code>GetVirtualMachine</code> </p>"
         }
       }
     },
@@ -582,6 +867,48 @@
       },
       "documentation":"<p>Represents the hypervisor's permissions to which the gateway will connect.</p> <p>A hypervisor is hardware, software, or firmware that creates and manages virtual machines, and allocates resources to them.</p>"
     },
+    "HypervisorDetails":{
+      "type":"structure",
+      "members":{
+        "Host":{
+          "shape":"Host",
+          "documentation":"<p>The server host of the hypervisor. This can be either an IP address or a fully-qualified domain name (FQDN).</p>"
+        },
+        "HypervisorArn":{
+          "shape":"ServerArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the hypervisor.</p>"
+        },
+        "KmsKeyArn":{
+          "shape":"KmsKeyArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the KMS used to encrypt the hypervisor.</p>"
+        },
+        "LastSuccessfulMetadataSyncTime":{
+          "shape":"Time",
+          "documentation":"<p>This is the time when the most recent successful sync of metadata occurred.</p>"
+        },
+        "LatestMetadataSyncStatus":{
+          "shape":"SyncMetadataStatus",
+          "documentation":"<p>This is the most recent status for the indicated metadata sync.</p>"
+        },
+        "LatestMetadataSyncStatusMessage":{
+          "shape":"string",
+          "documentation":"<p>This is the most recent status for the indicated metadata sync.</p>"
+        },
+        "LogGroupArn":{
+          "shape":"LogGroupArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the group of gateways within the requested log.</p>"
+        },
+        "Name":{
+          "shape":"Name",
+          "documentation":"<p>This is the name of the specified hypervisor.</p>"
+        },
+        "State":{
+          "shape":"HypervisorState",
+          "documentation":"<p>This is the current state of the specified hypervisor.</p> <p>The possible states are <code>PENDING</code>, <code>ONLINE</code>, <code>OFFLINE</code>, or <code>ERROR</code>.</p>"
+        }
+      },
+      "documentation":"<p>These are the details of the specified hypervisor. A hypervisor is hardware, software, or firmware that creates and manages virtual machines, and allocates resources to them.</p>"
+    },
     "HypervisorId":{
       "type":"string",
       "max":100,
@@ -599,6 +926,12 @@
     "Hypervisors":{
       "type":"list",
       "member":{"shape":"Hypervisor"}
+    },
+    "IamRoleArn":{
+      "type":"string",
+      "max":2048,
+      "min":20,
+      "pattern":"^arn:(aws|aws-cn|aws-us-gov):iam::([0-9]+):role/(\\S+)$"
     },
     "ImportHypervisorConfigurationInput":{
       "type":"structure",
@@ -739,6 +1072,10 @@
     "ListVirtualMachinesInput":{
       "type":"structure",
       "members":{
+        "HypervisorArn":{
+          "shape":"ServerArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the hypervisor connected to your virtual machine.</p>"
+        },
         "MaxResults":{
           "shape":"MaxResults",
           "documentation":"<p>The maximum number of virtual machines to list.</p>"
@@ -761,6 +1098,38 @@
           "documentation":"<p>A list of your <code>VirtualMachine</code> objects, ordered by their Amazon Resource Names (ARNs).</p>"
         }
       }
+    },
+    "LogGroupArn":{
+      "type":"string",
+      "max":2048,
+      "min":0,
+      "pattern":"^$|^arn:(aws|aws-cn|aws-us-gov):logs:([a-zA-Z0-9-]+):([0-9]+):log-group:[a-zA-Z0-9_\\-\\/\\.]+:\\*$"
+    },
+    "MaintenanceStartTime":{
+      "type":"structure",
+      "required":[
+        "HourOfDay",
+        "MinuteOfHour"
+      ],
+      "members":{
+        "DayOfMonth":{
+          "shape":"DayOfMonth",
+          "documentation":"<p>The day of the month component of the maintenance start time represented as an ordinal number from 1 to 28, where 1 represents the first day of the month and 28 represents the last day of the month.</p>"
+        },
+        "DayOfWeek":{
+          "shape":"DayOfWeek",
+          "documentation":"<p>An ordinal number between 0 and 6 that represents the day of the week, where 0 represents Sunday and 6 represents Saturday. The day of week is in the time zone of the gateway.</p>"
+        },
+        "HourOfDay":{
+          "shape":"HourOfDay",
+          "documentation":"<p>The hour component of the maintenance start time represented as <i>hh</i>, where <i>hh</i> is the hour (0 to 23). The hour of the day is in the time zone of the gateway.</p>"
+        },
+        "MinuteOfHour":{
+          "shape":"MinuteOfHour",
+          "documentation":"<p>The minute component of the maintenance start time represented as <i>mm</i>, where <i>mm</i> is the minute (0 to 59). The minute of the hour is in the time zone of the gateway.</p>"
+        }
+      },
+      "documentation":"<p>This is your gateway's weekly maintenance start time including the day and time of the week. Note that values are in terms of the gateway's time zone. Can be weekly or monthly.</p>"
     },
     "MaxResults":{
       "type":"integer",
@@ -797,6 +1166,63 @@
       "max":4096,
       "min":1,
       "pattern":"^[^\\x00]+$"
+    },
+    "PutBandwidthRateLimitScheduleInput":{
+      "type":"structure",
+      "required":[
+        "BandwidthRateLimitIntervals",
+        "GatewayArn"
+      ],
+      "members":{
+        "BandwidthRateLimitIntervals":{
+          "shape":"BandwidthRateLimitIntervals",
+          "documentation":"<p>An array containing bandwidth rate limit schedule intervals for a gateway. When no bandwidth rate limit intervals have been scheduled, the array is empty.</p>"
+        },
+        "GatewayArn":{
+          "shape":"GatewayArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the gateway. Use the <a href=\"https://docs.aws.amazon.com/aws-backup/latest/devguide/API_BGW_ListGateways.html\"> <code>ListGateways</code> </a> operation to return a list of gateways for your account and Amazon Web Services Region.</p>"
+        }
+      }
+    },
+    "PutBandwidthRateLimitScheduleOutput":{
+      "type":"structure",
+      "members":{
+        "GatewayArn":{
+          "shape":"GatewayArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the gateway. Use the <a href=\"https://docs.aws.amazon.com/aws-backup/latest/devguide/API_BGW_ListGateways.html\"> <code>ListGateways</code> </a> operation to return a list of gateways for your account and Amazon Web Services Region.</p>"
+        }
+      }
+    },
+    "PutHypervisorPropertyMappingsInput":{
+      "type":"structure",
+      "required":[
+        "HypervisorArn",
+        "IamRoleArn",
+        "VmwareToAwsTagMappings"
+      ],
+      "members":{
+        "HypervisorArn":{
+          "shape":"ServerArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the hypervisor.</p>"
+        },
+        "IamRoleArn":{
+          "shape":"IamRoleArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the IAM role.</p>"
+        },
+        "VmwareToAwsTagMappings":{
+          "shape":"VmwareToAwsTagMappings",
+          "documentation":"<p>This action requests the mappings of on-premises VMware tags to the Amazon Web Services tags.</p>"
+        }
+      }
+    },
+    "PutHypervisorPropertyMappingsOutput":{
+      "type":"structure",
+      "members":{
+        "HypervisorArn":{
+          "shape":"ServerArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the hypervisor.</p>"
+        }
+      }
     },
     "PutMaintenanceStartTimeInput":{
       "type":"structure",
@@ -860,6 +1286,35 @@
       "max":500,
       "min":50,
       "pattern":"^arn:(aws|aws-cn|aws-us-gov):backup-gateway(:[a-zA-Z-0-9]+){3}\\/[a-zA-Z-0-9]+$"
+    },
+    "StartVirtualMachinesMetadataSyncInput":{
+      "type":"structure",
+      "required":["HypervisorArn"],
+      "members":{
+        "HypervisorArn":{
+          "shape":"ServerArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the hypervisor.</p>"
+        }
+      }
+    },
+    "StartVirtualMachinesMetadataSyncOutput":{
+      "type":"structure",
+      "members":{
+        "HypervisorArn":{
+          "shape":"ServerArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the hypervisor.</p>"
+        }
+      }
+    },
+    "SyncMetadataStatus":{
+      "type":"string",
+      "enum":[
+        "CREATED",
+        "RUNNING",
+        "FAILED",
+        "PARTIALLY_FAILED",
+        "SUCCEEDED"
+      ]
     },
     "Tag":{
       "type":"structure",
@@ -955,6 +1410,19 @@
       "members":{
       }
     },
+    "ThrottlingException":{
+      "type":"structure",
+      "required":["ErrorCode"],
+      "members":{
+        "ErrorCode":{
+          "shape":"string",
+          "documentation":"<p>Error: TPS has been limited to protect against intentional or unintentional high request volumes.</p>"
+        },
+        "Message":{"shape":"string"}
+      },
+      "documentation":"<p>TPS has been limited to protect against intentional or unintentional high request volumes.</p>",
+      "exception":true
+    },
     "Time":{"type":"timestamp"},
     "UntagResourceInput":{
       "type":"structure",
@@ -1036,6 +1504,10 @@
           "shape":"ServerArn",
           "documentation":"<p>The Amazon Resource Name (ARN) of the hypervisor to update.</p>"
         },
+        "LogGroupArn":{
+          "shape":"LogGroupArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the group of gateways within the requested log.</p>"
+        },
         "Name":{
           "shape":"Name",
           "documentation":"<p>The updated name for the hypervisor</p>"
@@ -1108,9 +1580,107 @@
       },
       "documentation":"<p>A virtual machine that is on a hypervisor.</p>"
     },
+    "VirtualMachineDetails":{
+      "type":"structure",
+      "members":{
+        "HostName":{
+          "shape":"Name",
+          "documentation":"<p>The host name of the virtual machine.</p>"
+        },
+        "HypervisorId":{
+          "shape":"string",
+          "documentation":"<p>The ID of the virtual machine's hypervisor.</p>"
+        },
+        "LastBackupDate":{
+          "shape":"Time",
+          "documentation":"<p>The most recent date a virtual machine was backed up, in Unix format and UTC time.</p>"
+        },
+        "Name":{
+          "shape":"Name",
+          "documentation":"<p>The name of the virtual machine.</p>"
+        },
+        "Path":{
+          "shape":"Path",
+          "documentation":"<p>The path of the virtual machine.</p>"
+        },
+        "ResourceArn":{
+          "shape":"ResourceArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the virtual machine. For example, <code>arn:aws:backup-gateway:us-west-1:0000000000000:vm/vm-0000ABCDEFGIJKL</code>.</p>"
+        },
+        "VmwareTags":{
+          "shape":"VmwareTags",
+          "documentation":"<p>These are the details of the VMware tags associated with the specified virtual machine.</p>"
+        }
+      },
+      "documentation":"<p>Your <code>VirtualMachine</code> objects, ordered by their Amazon Resource Names (ARNs).</p>"
+    },
     "VirtualMachines":{
       "type":"list",
       "member":{"shape":"VirtualMachine"}
+    },
+    "VmwareCategory":{
+      "type":"string",
+      "max":80,
+      "min":1
+    },
+    "VmwareTag":{
+      "type":"structure",
+      "members":{
+        "VmwareCategory":{
+          "shape":"VmwareCategory",
+          "documentation":"<p>The is the category of VMware.</p>"
+        },
+        "VmwareTagDescription":{
+          "shape":"string",
+          "documentation":"<p>This is a user-defined description of a VMware tag.</p>"
+        },
+        "VmwareTagName":{
+          "shape":"VmwareTagName",
+          "documentation":"<p>This is the user-defined name of a VMware tag.</p>"
+        }
+      },
+      "documentation":"<p>A VMware tag is a tag attached to a specific virtual machine. A <a href=\"https://docs.aws.amazon.com/aws-backup/latest/devguide/API_BGW_Tag.html\">tag</a> is a key-value pair you can use to manage, filter, and search for your resources.</p> <p>The content of VMware tags can be matched to Amazon Web Services tags.</p>"
+    },
+    "VmwareTagName":{
+      "type":"string",
+      "max":80,
+      "min":1
+    },
+    "VmwareTags":{
+      "type":"list",
+      "member":{"shape":"VmwareTag"}
+    },
+    "VmwareToAwsTagMapping":{
+      "type":"structure",
+      "required":[
+        "AwsTagKey",
+        "AwsTagValue",
+        "VmwareCategory",
+        "VmwareTagName"
+      ],
+      "members":{
+        "AwsTagKey":{
+          "shape":"TagKey",
+          "documentation":"<p>The key part of the Amazon Web Services tag's key-value pair.</p>"
+        },
+        "AwsTagValue":{
+          "shape":"TagValue",
+          "documentation":"<p>The value part of the Amazon Web Services tag's key-value pair.</p>"
+        },
+        "VmwareCategory":{
+          "shape":"VmwareCategory",
+          "documentation":"<p>The is the category of VMware.</p>"
+        },
+        "VmwareTagName":{
+          "shape":"VmwareTagName",
+          "documentation":"<p>This is the user-defined name of a VMware tag.</p>"
+        }
+      },
+      "documentation":"<p>This displays the mapping of on-premises VMware tags to the corresponding Amazon Web Services tags.</p>"
+    },
+    "VmwareToAwsTagMappings":{
+      "type":"list",
+      "member":{"shape":"VmwareToAwsTagMapping"}
     },
     "VpcEndpoint":{
       "type":"string",

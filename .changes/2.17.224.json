@@ -1,0 +1,18 @@
+{
+    "version": "2.17.224",
+    "date": "2022-07-01",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Database Migration Service",
+            "contributor": "",
+            "description": "Added new features for AWS DMS version 3.4.7 that includes new endpoint settings for S3, OpenSearch, Postgres, SQLServer and Oracle."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "Adds support for additional retention periods to Performance Insights."
+        }
+    ]
+}

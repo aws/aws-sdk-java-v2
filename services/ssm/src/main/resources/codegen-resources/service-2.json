@@ -28,7 +28,7 @@
         {"shape":"TooManyTagsError"},
         {"shape":"TooManyUpdates"}
       ],
-      "documentation":"<p>Adds or overwrites one or more tags for the specified resource. Tags are metadata that you can assign to your automations, documents, managed nodes, maintenance windows, Parameter Store parameters, and patch baselines. Tags enable you to categorize your resources in different ways, for example, by purpose, owner, or environment. Each tag consists of a key and an optional value, both of which you define. For example, you could define a set of tags for your account's managed nodes that helps you track each node's owner and stack level. For example:</p> <ul> <li> <p> <code>Key=Owner,Value=DbAdmin</code> </p> </li> <li> <p> <code>Key=Owner,Value=SysAdmin</code> </p> </li> <li> <p> <code>Key=Owner,Value=Dev</code> </p> </li> <li> <p> <code>Key=Stack,Value=Production</code> </p> </li> <li> <p> <code>Key=Stack,Value=Pre-Production</code> </p> </li> <li> <p> <code>Key=Stack,Value=Test</code> </p> </li> </ul> <p>Most resources can have a maximum of 50 tags. Automations can have a maximum of 5 tags.</p> <p>We recommend that you devise a set of tag keys that meets your needs for each resource type. Using a consistent set of tag keys makes it easier for you to manage your resources. You can search and filter the resources based on the tags you add. Tags don't have any semantic meaning to and are interpreted strictly as a string of characters.</p> <p>For more information about using tags with Amazon Elastic Compute Cloud (Amazon EC2) instances, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html\">Tagging your Amazon EC2 resources</a> in the <i>Amazon EC2 User Guide</i>.</p>"
+      "documentation":"<p>Adds or overwrites one or more tags for the specified resource. <i>Tags</i> are metadata that you can assign to your automations, documents, managed nodes, maintenance windows, Parameter Store parameters, and patch baselines. Tags enable you to categorize your resources in different ways, for example, by purpose, owner, or environment. Each tag consists of a key and an optional value, both of which you define. For example, you could define a set of tags for your account's managed nodes that helps you track each node's owner and stack level. For example:</p> <ul> <li> <p> <code>Key=Owner,Value=DbAdmin</code> </p> </li> <li> <p> <code>Key=Owner,Value=SysAdmin</code> </p> </li> <li> <p> <code>Key=Owner,Value=Dev</code> </p> </li> <li> <p> <code>Key=Stack,Value=Production</code> </p> </li> <li> <p> <code>Key=Stack,Value=Pre-Production</code> </p> </li> <li> <p> <code>Key=Stack,Value=Test</code> </p> </li> </ul> <p>Most resources can have a maximum of 50 tags. Automations can have a maximum of 5 tags.</p> <p>We recommend that you devise a set of tag keys that meets your needs for each resource type. Using a consistent set of tag keys makes it easier for you to manage your resources. You can search and filter the resources based on the tags you add. Tags don't have any semantic meaning to and are interpreted strictly as a string of characters.</p> <p>For more information about using tags with Amazon Elastic Compute Cloud (Amazon EC2) instances, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html\">Tagging your Amazon EC2 resources</a> in the <i>Amazon EC2 User Guide</i>.</p>"
     },
     "AssociateOpsItemRelatedItem":{
       "name":"AssociateOpsItemRelatedItem",
@@ -111,7 +111,8 @@
         {"shape":"InvalidParameters"},
         {"shape":"InvalidTarget"},
         {"shape":"InvalidSchedule"},
-        {"shape":"InvalidTargetMaps"}
+        {"shape":"InvalidTargetMaps"},
+        {"shape":"InvalidTag"}
       ],
       "documentation":"<p>A State Manager association defines the state that you want to maintain on your managed nodes. For example, an association can specify that anti-virus software must be installed and running on your managed nodes, or that certain ports must be closed. For static targets, the association specifies a schedule for when the configuration is reapplied. For dynamic targets, such as an Amazon Web Services resource group or an Amazon Web Services autoscaling group, State Manager, a capability of Amazon Web Services Systems Manager applies the configuration when new managed nodes are added to the group. The association also specifies actions to take when applying the configuration. For example, an association for anti-virus software might run once a day. If the software isn't installed, then State Manager installs it. If the software is installed, but the service isn't running, then the association might instruct State Manager to start the service. </p>"
     },
@@ -184,7 +185,8 @@
         {"shape":"InternalServerError"},
         {"shape":"OpsItemAlreadyExistsException"},
         {"shape":"OpsItemLimitExceededException"},
-        {"shape":"OpsItemInvalidParameterException"}
+        {"shape":"OpsItemInvalidParameterException"},
+        {"shape":"OpsItemAccessDeniedException"}
       ],
       "documentation":"<p>Creates a new OpsItem. You must have permission in Identity and Access Management (IAM) to create a new OpsItem. For more information, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/OpsCenter-getting-started.html\">Getting started with OpsCenter</a> in the <i>Amazon Web Services Systems Manager User Guide</i>.</p> <p>Operations engineers and IT professionals use Amazon Web Services Systems Manager OpsCenter to view, investigate, and remediate operational issues impacting the performance and health of their Amazon Web Services resources. For more information, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/OpsCenter.html\">Amazon Web Services Systems Manager OpsCenter</a> in the <i>Amazon Web Services Systems Manager User Guide</i>. </p>"
     },
@@ -385,6 +387,21 @@
         {"shape":"ResourceDataSyncInvalidConfigurationException"}
       ],
       "documentation":"<p>Deletes a resource data sync configuration. After the configuration is deleted, changes to data on managed nodes are no longer synced to or from the target. Deleting a sync configuration doesn't delete data.</p>"
+    },
+    "DeleteResourcePolicy":{
+      "name":"DeleteResourcePolicy",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DeleteResourcePolicyRequest"},
+      "output":{"shape":"DeleteResourcePolicyResponse"},
+      "errors":[
+        {"shape":"InternalServerError"},
+        {"shape":"ResourcePolicyInvalidParameterException"},
+        {"shape":"ResourcePolicyConflictException"}
+      ],
+      "documentation":"<p>Deletes a Systems Manager resource policy. A resource policy helps you to define the IAM entity (for example, an Amazon Web Services account) that can manage your Systems Manager resources. Currently, <code>OpsItemGroup</code> is the only resource that supports Systems Manager resource policies. The resource policy for <code>OpsItemGroup</code> enables Amazon Web Services accounts to view and interact with OpsCenter operational work items (OpsItems).</p>"
     },
     "DeregisterManagedInstance":{
       "name":"DeregisterManagedInstance",
@@ -1147,7 +1164,8 @@
       "output":{"shape":"GetOpsItemResponse"},
       "errors":[
         {"shape":"InternalServerError"},
-        {"shape":"OpsItemNotFoundException"}
+        {"shape":"OpsItemNotFoundException"},
+        {"shape":"OpsItemAccessDeniedException"}
       ],
       "documentation":"<p>Get information about an OpsItem by using the ID. You must have permission in Identity and Access Management (IAM) to view information about an OpsItem. For more information, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/OpsCenter-getting-started.html\">Getting started with OpsCenter</a> in the <i>Amazon Web Services Systems Manager User Guide</i>.</p> <p>Operations engineers and IT professionals use Amazon Web Services Systems Manager OpsCenter to view, investigate, and remediate operational issues impacting the performance and health of their Amazon Web Services resources. For more information, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/OpsCenter.html\">OpsCenter</a> in the <i>Amazon Web Services Systems Manager User Guide</i>. </p>"
     },
@@ -1275,6 +1293,20 @@
         {"shape":"InternalServerError"}
       ],
       "documentation":"<p>Retrieves the patch baseline that should be used for the specified patch group.</p>"
+    },
+    "GetResourcePolicies":{
+      "name":"GetResourcePolicies",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GetResourcePoliciesRequest"},
+      "output":{"shape":"GetResourcePoliciesResponse"},
+      "errors":[
+        {"shape":"InternalServerError"},
+        {"shape":"ResourcePolicyInvalidParameterException"}
+      ],
+      "documentation":"<p>Returns an array of the <code>Policy</code> object.</p>"
     },
     "GetServiceSetting":{
       "name":"GetServiceSetting",
@@ -1588,7 +1620,7 @@
         {"shape":"InvalidResourceType"},
         {"shape":"InvalidResourceId"}
       ],
-      "documentation":"<p>Registers a compliance type and other compliance details on a designated resource. This operation lets you register custom compliance details with a resource. This call overwrites existing compliance information on the resource, so you must provide a full list of compliance items each time that you send the request.</p> <p>ComplianceType can be one of the following:</p> <ul> <li> <p>ExecutionId: The execution ID when the patch, association, or custom compliance item was applied.</p> </li> <li> <p>ExecutionType: Specify patch, association, or Custom:<code>string</code>.</p> </li> <li> <p>ExecutionTime. The time the patch, association, or custom compliance item was applied to the managed node.</p> </li> <li> <p>Id: The patch, association, or custom compliance ID.</p> </li> <li> <p>Title: A title.</p> </li> <li> <p>Status: The status of the compliance item. For example, <code>approved</code> for patches, or <code>Failed</code> for associations.</p> </li> <li> <p>Severity: A patch severity. For example, <code>critical</code>.</p> </li> <li> <p>DocumentName: An SSM document name. For example, <code>AWS-RunPatchBaseline</code>.</p> </li> <li> <p>DocumentVersion: An SSM document version number. For example, 4.</p> </li> <li> <p>Classification: A patch classification. For example, <code>security updates</code>.</p> </li> <li> <p>PatchBaselineId: A patch baseline ID.</p> </li> <li> <p>PatchSeverity: A patch severity. For example, <code>Critical</code>.</p> </li> <li> <p>PatchState: A patch state. For example, <code>InstancesWithFailedPatches</code>.</p> </li> <li> <p>PatchGroup: The name of a patch group.</p> </li> <li> <p>InstalledTime: The time the association, patch, or custom compliance item was applied to the resource. Specify the time by using the following format: yyyy-MM-dd'T'HH:mm:ss'Z'</p> </li> </ul>"
+      "documentation":"<p>Registers a compliance type and other compliance details on a designated resource. This operation lets you register custom compliance details with a resource. This call overwrites existing compliance information on the resource, so you must provide a full list of compliance items each time that you send the request.</p> <p>ComplianceType can be one of the following:</p> <ul> <li> <p>ExecutionId: The execution ID when the patch, association, or custom compliance item was applied.</p> </li> <li> <p>ExecutionType: Specify patch, association, or Custom:<code>string</code>.</p> </li> <li> <p>ExecutionTime. The time the patch, association, or custom compliance item was applied to the managed node.</p> </li> <li> <p>Id: The patch, association, or custom compliance ID.</p> </li> <li> <p>Title: A title.</p> </li> <li> <p>Status: The status of the compliance item. For example, <code>approved</code> for patches, or <code>Failed</code> for associations.</p> </li> <li> <p>Severity: A patch severity. For example, <code>Critical</code>.</p> </li> <li> <p>DocumentName: An SSM document name. For example, <code>AWS-RunPatchBaseline</code>.</p> </li> <li> <p>DocumentVersion: An SSM document version number. For example, 4.</p> </li> <li> <p>Classification: A patch classification. For example, <code>security updates</code>.</p> </li> <li> <p>PatchBaselineId: A patch baseline ID.</p> </li> <li> <p>PatchSeverity: A patch severity. For example, <code>Critical</code>.</p> </li> <li> <p>PatchState: A patch state. For example, <code>InstancesWithFailedPatches</code>.</p> </li> <li> <p>PatchGroup: The name of a patch group.</p> </li> <li> <p>InstalledTime: The time the association, patch, or custom compliance item was applied to the resource. Specify the time by using the following format: yyyy-MM-dd'T'HH:mm:ss'Z'</p> </li> </ul>"
     },
     "PutInventory":{
       "name":"PutInventory",
@@ -1640,6 +1672,22 @@
         {"shape":"IncompatiblePolicyException"}
       ],
       "documentation":"<p>Add a parameter to the system.</p>"
+    },
+    "PutResourcePolicy":{
+      "name":"PutResourcePolicy",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"PutResourcePolicyRequest"},
+      "output":{"shape":"PutResourcePolicyResponse"},
+      "errors":[
+        {"shape":"InternalServerError"},
+        {"shape":"ResourcePolicyInvalidParameterException"},
+        {"shape":"ResourcePolicyLimitExceededException"},
+        {"shape":"ResourcePolicyConflictException"}
+      ],
+      "documentation":"<p>Creates or updates a Systems Manager resource policy. A resource policy helps you to define the IAM entity (for example, an Amazon Web Services account) that can manage your Systems Manager resources. Currently, <code>OpsItemGroup</code> is the only resource that supports Systems Manager resource policies. The resource policy for <code>OpsItemGroup</code> enables Amazon Web Services accounts to view and interact with OpsCenter operational work items (OpsItems).</p>"
     },
     "RegisterDefaultPatchBaseline":{
       "name":"RegisterDefaultPatchBaseline",
@@ -2067,7 +2115,8 @@
         {"shape":"OpsItemNotFoundException"},
         {"shape":"OpsItemAlreadyExistsException"},
         {"shape":"OpsItemLimitExceededException"},
-        {"shape":"OpsItemInvalidParameterException"}
+        {"shape":"OpsItemInvalidParameterException"},
+        {"shape":"OpsItemAccessDeniedException"}
       ],
       "documentation":"<p>Edit or change an OpsItem. You must have permission in Identity and Access Management (IAM) to update an OpsItem. For more information, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/OpsCenter-getting-started.html\">Getting started with OpsCenter</a> in the <i>Amazon Web Services Systems Manager User Guide</i>.</p> <p>Operations engineers and IT professionals use Amazon Web Services Systems Manager OpsCenter to view, investigate, and remediate operational issues impacting the performance and health of their Amazon Web Services resources. For more information, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/OpsCenter.html\">OpsCenter</a> in the <i>Amazon Web Services Systems Manager User Guide</i>. </p>"
     },
@@ -2266,6 +2315,68 @@
       "max":10
     },
     "AggregatorSchemaOnly":{"type":"boolean"},
+    "Alarm":{
+      "type":"structure",
+      "required":["Name"],
+      "members":{
+        "Name":{
+          "shape":"AlarmName",
+          "documentation":"<p>The name of your CloudWatch alarm.</p>"
+        }
+      },
+      "documentation":"<p>A CloudWatch alarm you apply to an automation or command.</p>"
+    },
+    "AlarmConfiguration":{
+      "type":"structure",
+      "required":["Alarms"],
+      "members":{
+        "IgnorePollAlarmFailure":{
+          "shape":"Boolean",
+          "documentation":"<p>If you specify <code>true</code> for this value, your automation or command continue to run even if we can't gather information about the state of your CloudWatch alarm. The default value is <code>false</code>.</p>"
+        },
+        "Alarms":{
+          "shape":"AlarmList",
+          "documentation":"<p>The name of the CloudWatch alarm specified in the configuration.</p>"
+        }
+      },
+      "documentation":"<p>The details for the CloudWatch alarm you want to apply to an automation or command.</p>"
+    },
+    "AlarmList":{
+      "type":"list",
+      "member":{"shape":"Alarm"},
+      "max":1,
+      "min":1
+    },
+    "AlarmName":{
+      "type":"string",
+      "max":255,
+      "min":1,
+      "pattern":"^(?!\\s*$).+"
+    },
+    "AlarmStateInformation":{
+      "type":"structure",
+      "required":[
+        "Name",
+        "State"
+      ],
+      "members":{
+        "Name":{
+          "shape":"AlarmName",
+          "documentation":"<p>The name of your CloudWatch alarm.</p>"
+        },
+        "State":{
+          "shape":"ExternalAlarmState",
+          "documentation":"<p>The state of your CloudWatch alarm.</p>"
+        }
+      },
+      "documentation":"<p>The details about the state of your CloudWatch alarm.</p>"
+    },
+    "AlarmStateInformationList":{
+      "type":"list",
+      "member":{"shape":"AlarmStateInformation"},
+      "max":1,
+      "min":1
+    },
     "AllowedPattern":{
       "type":"string",
       "max":1024,
@@ -2509,6 +2620,11 @@
           "shape":"TargetMaps",
           "documentation":"<p>A key-value mapping of document parameters to target resources. Both Targets and TargetMaps can't be specified together.</p>",
           "box":true
+        },
+        "AlarmConfiguration":{"shape":"AlarmConfiguration"},
+        "TriggeredAlarms":{
+          "shape":"AlarmStateInformationList",
+          "documentation":"<p>The CloudWatch alarm that was invoked during the association.</p>"
         }
       },
       "documentation":"<p>Describes the parameters for a document.</p>"
@@ -2559,6 +2675,11 @@
         "ResourceCountByStatus":{
           "shape":"ResourceCountByStatus",
           "documentation":"<p>An aggregate status of the resources in the execution based on the status type.</p>"
+        },
+        "AlarmConfiguration":{"shape":"AlarmConfiguration"},
+        "TriggeredAlarms":{
+          "shape":"AlarmStateInformationList",
+          "documentation":"<p>The CloudWatch alarms that were invoked by the association.</p>"
         }
       },
       "documentation":"<p>Includes information about the specified association.</p>"
@@ -3195,6 +3316,14 @@
           "shape":"ProgressCounters",
           "documentation":"<p>An aggregate of step execution statuses displayed in the Amazon Web Services Systems Manager console for a multi-Region and multi-account Automation execution.</p>"
         },
+        "AlarmConfiguration":{
+          "shape":"AlarmConfiguration",
+          "documentation":"<p>The details for the CloudWatch alarm applied to your automation.</p>"
+        },
+        "TriggeredAlarms":{
+          "shape":"AlarmStateInformationList",
+          "documentation":"<p>The CloudWatch alarm that was invoked by the automation.</p>"
+        },
         "AutomationSubtype":{
           "shape":"AutomationSubtype",
           "documentation":"<p>The subtype of the Automation operation. Currently, the only supported value is <code>ChangeRequest</code>.</p>"
@@ -3377,6 +3506,14 @@
         "AutomationType":{
           "shape":"AutomationType",
           "documentation":"<p>Use this filter with <a>DescribeAutomationExecutions</a>. Specify either Local or CrossAccount. CrossAccount is an Automation that runs in multiple Amazon Web Services Regions and Amazon Web Services accounts. For more information, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-automation-multiple-accounts-and-regions.html\">Running Automation workflows in multiple Amazon Web Services Regions and accounts</a> in the <i>Amazon Web Services Systems Manager User Guide</i>. </p>"
+        },
+        "AlarmConfiguration":{
+          "shape":"AlarmConfiguration",
+          "documentation":"<p>The details for the CloudWatch alarm applied to your automation.</p>"
+        },
+        "TriggeredAlarms":{
+          "shape":"AlarmStateInformationList",
+          "documentation":"<p>The CloudWatch alarm that was invoked by the automation.</p>"
         },
         "AutomationSubtype":{
           "shape":"AutomationSubtype",
@@ -3666,7 +3803,7 @@
         },
         "ExpiresAfter":{
           "shape":"DateTime",
-          "documentation":"<p>If this time is reached and the command hasn't already started running, it won't run. Calculated based on the <code>ExpiresAfter</code> user input provided as part of the <code>SendCommand</code> API operation.</p>"
+          "documentation":"<p>If a command expires, it changes status to <code>DeliveryTimedOut</code> for all invocations that have the status <code>InProgress</code>, <code>Pending</code>, or <code>Delayed</code>. <code>ExpiresAfter</code> is calculated based on the total timeout for the overall command. For more information, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/monitor-commands.html?icmpid=docs_ec2_console#monitor-about-status-timeouts\">Understanding command timeout values</a> in the <i>Amazon Web Services Systems Manager User Guide</i>.</p>"
         },
         "Parameters":{
           "shape":"Parameters",
@@ -3690,7 +3827,7 @@
         },
         "StatusDetails":{
           "shape":"StatusDetails",
-          "documentation":"<p>A detailed status of the command execution. <code>StatusDetails</code> includes more information than <code>Status</code> because it includes states resulting from error and concurrency control parameters. <code>StatusDetails</code> can show different results than Status. For more information about these statuses, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/monitor-commands.html\">Understanding command statuses</a> in the <i>Amazon Web Services Systems Manager User Guide</i>. StatusDetails can be one of the following values:</p> <ul> <li> <p>Pending: The command hasn't been sent to any managed nodes.</p> </li> <li> <p>In Progress: The command has been sent to at least one managed node but hasn't reached a final state on all managed nodes.</p> </li> <li> <p>Success: The command successfully ran on all invocations. This is a terminal state.</p> </li> <li> <p>Delivery Timed Out: The value of MaxErrors or more command invocations shows a status of Delivery Timed Out. This is a terminal state.</p> </li> <li> <p>Execution Timed Out: The value of MaxErrors or more command invocations shows a status of Execution Timed Out. This is a terminal state.</p> </li> <li> <p>Failed: The value of MaxErrors or more command invocations shows a status of Failed. This is a terminal state.</p> </li> <li> <p>Incomplete: The command was attempted on all managed nodes and one or more invocations doesn't have a value of Success but not enough invocations failed for the status to be Failed. This is a terminal state.</p> </li> <li> <p>Cancelled: The command was terminated before it was completed. This is a terminal state.</p> </li> <li> <p>Rate Exceeded: The number of managed nodes targeted by the command exceeded the account limit for pending invocations. The system has canceled the command before running it on any managed node. This is a terminal state.</p> </li> </ul>"
+          "documentation":"<p>A detailed status of the command execution. <code>StatusDetails</code> includes more information than <code>Status</code> because it includes states resulting from error and concurrency control parameters. <code>StatusDetails</code> can show different results than Status. For more information about these statuses, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/monitor-commands.html\">Understanding command statuses</a> in the <i>Amazon Web Services Systems Manager User Guide</i>. StatusDetails can be one of the following values:</p> <ul> <li> <p>Pending: The command hasn't been sent to any managed nodes.</p> </li> <li> <p>In Progress: The command has been sent to at least one managed node but hasn't reached a final state on all managed nodes.</p> </li> <li> <p>Success: The command successfully ran on all invocations. This is a terminal state.</p> </li> <li> <p>Delivery Timed Out: The value of MaxErrors or more command invocations shows a status of Delivery Timed Out. This is a terminal state.</p> </li> <li> <p>Execution Timed Out: The value of MaxErrors or more command invocations shows a status of Execution Timed Out. This is a terminal state.</p> </li> <li> <p>Failed: The value of MaxErrors or more command invocations shows a status of Failed. This is a terminal state.</p> </li> <li> <p>Incomplete: The command was attempted on all managed nodes and one or more invocations doesn't have a value of Success but not enough invocations failed for the status to be Failed. This is a terminal state.</p> </li> <li> <p>Cancelled: The command was terminated before it was completed. This is a terminal state.</p> </li> <li> <p>Rate Exceeded: The number of managed nodes targeted by the command exceeded the account limit for pending invocations. The system has canceled the command before running it on any managed node. This is a terminal state.</p> </li> <li> <p>Delayed: The system attempted to send the command to the managed node but wasn't successful. The system retries again.</p> </li> </ul>"
         },
         "OutputS3Region":{
           "shape":"S3Region",
@@ -3743,6 +3880,14 @@
         "TimeoutSeconds":{
           "shape":"TimeoutSeconds",
           "documentation":"<p>The <code>TimeoutSeconds</code> value specified for a command.</p>"
+        },
+        "AlarmConfiguration":{
+          "shape":"AlarmConfiguration",
+          "documentation":"<p>The details for the CloudWatch alarm applied to your command.</p>"
+        },
+        "TriggeredAlarms":{
+          "shape":"AlarmStateInformationList",
+          "documentation":"<p>The CloudWatch alarm that was invoked by the command.</p>"
         }
       },
       "documentation":"<p>Describes a command request.</p>"
@@ -3828,7 +3973,7 @@
         },
         "StatusDetails":{
           "shape":"StatusDetails",
-          "documentation":"<p>A detailed status of the command execution for each invocation (each managed node targeted by the command). StatusDetails includes more information than Status because it includes states resulting from error and concurrency control parameters. StatusDetails can show different results than Status. For more information about these statuses, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/monitor-commands.html\">Understanding command statuses</a> in the <i>Amazon Web Services Systems Manager User Guide</i>. StatusDetails can be one of the following values:</p> <ul> <li> <p>Pending: The command hasn't been sent to the managed node.</p> </li> <li> <p>In Progress: The command has been sent to the managed node but hasn't reached a terminal state.</p> </li> <li> <p>Success: The execution of the command or plugin was successfully completed. This is a terminal state.</p> </li> <li> <p>Delivery Timed Out: The command wasn't delivered to the managed node before the delivery timeout expired. Delivery timeouts don't count against the parent command's <code>MaxErrors</code> limit, but they do contribute to whether the parent command status is Success or Incomplete. This is a terminal state.</p> </li> <li> <p>Execution Timed Out: Command execution started on the managed node, but the execution wasn't complete before the execution timeout expired. Execution timeouts count against the <code>MaxErrors</code> limit of the parent command. This is a terminal state.</p> </li> <li> <p>Failed: The command wasn't successful on the managed node. For a plugin, this indicates that the result code wasn't zero. For a command invocation, this indicates that the result code for one or more plugins wasn't zero. Invocation failures count against the <code>MaxErrors</code> limit of the parent command. This is a terminal state.</p> </li> <li> <p>Cancelled: The command was terminated before it was completed. This is a terminal state.</p> </li> <li> <p>Undeliverable: The command can't be delivered to the managed node. The managed node might not exist or might not be responding. Undeliverable invocations don't count against the parent command's MaxErrors limit and don't contribute to whether the parent command status is Success or Incomplete. This is a terminal state.</p> </li> <li> <p>Terminated: The parent command exceeded its MaxErrors limit and subsequent command invocations were canceled by the system. This is a terminal state.</p> </li> </ul>"
+          "documentation":"<p>A detailed status of the command execution for each invocation (each managed node targeted by the command). StatusDetails includes more information than Status because it includes states resulting from error and concurrency control parameters. StatusDetails can show different results than Status. For more information about these statuses, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/monitor-commands.html\">Understanding command statuses</a> in the <i>Amazon Web Services Systems Manager User Guide</i>. StatusDetails can be one of the following values:</p> <ul> <li> <p>Pending: The command hasn't been sent to the managed node.</p> </li> <li> <p>In Progress: The command has been sent to the managed node but hasn't reached a terminal state.</p> </li> <li> <p>Success: The execution of the command or plugin was successfully completed. This is a terminal state.</p> </li> <li> <p>Delivery Timed Out: The command wasn't delivered to the managed node before the delivery timeout expired. Delivery timeouts don't count against the parent command's <code>MaxErrors</code> limit, but they do contribute to whether the parent command status is Success or Incomplete. This is a terminal state.</p> </li> <li> <p>Execution Timed Out: Command execution started on the managed node, but the execution wasn't complete before the execution timeout expired. Execution timeouts count against the <code>MaxErrors</code> limit of the parent command. This is a terminal state.</p> </li> <li> <p>Failed: The command wasn't successful on the managed node. For a plugin, this indicates that the result code wasn't zero. For a command invocation, this indicates that the result code for one or more plugins wasn't zero. Invocation failures count against the <code>MaxErrors</code> limit of the parent command. This is a terminal state.</p> </li> <li> <p>Cancelled: The command was terminated before it was completed. This is a terminal state.</p> </li> <li> <p>Undeliverable: The command can't be delivered to the managed node. The managed node might not exist or might not be responding. Undeliverable invocations don't count against the parent command's MaxErrors limit and don't contribute to whether the parent command status is Success or Incomplete. This is a terminal state.</p> </li> <li> <p>Terminated: The parent command exceeded its MaxErrors limit and subsequent command invocations were canceled by the system. This is a terminal state.</p> </li> <li> <p>Delayed: The system attempted to send the command to the managed node but wasn't successful. The system retries again.</p> </li> </ul>"
         },
         "TraceOutput":{
           "shape":"InvocationTraceOutput",
@@ -4271,7 +4416,7 @@
         },
         "IamRole":{
           "shape":"IamRole",
-          "documentation":"<p>The name of the Identity and Access Management (IAM) role that you want to assign to the managed node. This IAM role must provide AssumeRole permissions for the Amazon Web Services Systems Manager service principal <code>ssm.amazonaws.com</code>. For more information, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/sysman-service-role.html\">Create an IAM service role for a hybrid environment</a> in the <i>Amazon Web Services Systems Manager User Guide</i>.</p>"
+          "documentation":"<p>The name of the Identity and Access Management (IAM) role that you want to assign to the managed node. This IAM role must provide AssumeRole permissions for the Amazon Web Services Systems Manager service principal <code>ssm.amazonaws.com</code>. For more information, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/sysman-service-role.html\">Create an IAM service role for a hybrid environment</a> in the <i>Amazon Web Services Systems Manager User Guide</i>.</p> <note> <p>You can't specify an IAM service-linked role for this parameter. You must create a unique role.</p> </note>"
         },
         "RegistrationLimit":{
           "shape":"RegistrationLimit",
@@ -4397,7 +4542,8 @@
           "shape":"TargetMaps",
           "documentation":"<p>A key-value mapping of document parameters to target resources. Both Targets and TargetMaps can't be specified together.</p>",
           "box":true
-        }
+        },
+        "AlarmConfiguration":{"shape":"AlarmConfiguration"}
       },
       "documentation":"<p>Describes the association of a Amazon Web Services Systems Manager document (SSM document) and a managed node.</p>"
     },
@@ -4491,7 +4637,13 @@
           "shape":"TargetMaps",
           "documentation":"<p>A key-value mapping of document parameters to target resources. Both Targets and TargetMaps can't be specified together.</p>",
           "box":true
-        }
+        },
+        "Tags":{
+          "shape":"TagList",
+          "documentation":"<p>Adds or overwrites one or more tags for a State Manager association. <i>Tags</i> are metadata that you can assign to your Amazon Web Services resources. Tags enable you to categorize your resources in different ways, for example, by purpose, owner, or environment. Each tag consists of a key and an optional value, both of which you define. </p>",
+          "box":true
+        },
+        "AlarmConfiguration":{"shape":"AlarmConfiguration"}
       }
     },
     "CreateAssociationResult":{
@@ -4524,7 +4676,7 @@
         },
         "Name":{
           "shape":"DocumentName",
-          "documentation":"<p>A name for the SSM document.</p> <important> <p>You can't use the following strings as document name prefixes. These are reserved by Amazon Web Services for use as document name prefixes:</p> <ul> <li> <p> <code>aws-</code> </p> </li> <li> <p> <code>amazon</code> </p> </li> <li> <p> <code>amzn</code> </p> </li> </ul> </important>"
+          "documentation":"<p>A name for the SSM document.</p> <important> <p>You can't use the following strings as document name prefixes. These are reserved by Amazon Web Services for use as document name prefixes:</p> <ul> <li> <p> <code>aws</code> </p> </li> <li> <p> <code>amazon</code> </p> </li> <li> <p> <code>amzn</code> </p> </li> </ul> </important>"
         },
         "DisplayName":{
           "shape":"DocumentDisplayName",
@@ -4532,7 +4684,7 @@
         },
         "VersionName":{
           "shape":"DocumentVersionName",
-          "documentation":"<p>An optional field specifying the version of the artifact you are creating with the document. For example, \"Release 12, Update 6\". This value is unique across all versions of a document, and can't be changed.</p>"
+          "documentation":"<p>An optional field specifying the version of the artifact you are creating with the document. For example, <code>Release12.1</code>. This value is unique across all versions of a document, and can't be changed.</p>"
         },
         "DocumentType":{
           "shape":"DocumentType",
@@ -4646,7 +4798,7 @@
         },
         "OpsItemType":{
           "shape":"OpsItemType",
-          "documentation":"<p>The type of OpsItem to create. Currently, the only valid values are <code>/aws/changerequest</code> and <code>/aws/issue</code>.</p>"
+          "documentation":"<p>The type of OpsItem to create. Systems Manager supports the following types of OpsItems:</p> <ul> <li> <p> <code>/aws/issue</code> </p> <p>This type of OpsItem is used for default OpsItems created by OpsCenter. </p> </li> <li> <p> <code>/aws/changerequest</code> </p> <p>This type of OpsItem is used by Change Manager for reviewing and approving or rejecting change requests. </p> </li> <li> <p> <code>/aws/insights</code> </p> <p>This type of OpsItem is used by OpsCenter for aggregating and reporting on duplicate OpsItems. </p> </li> </ul>"
         },
         "OperationalData":{
           "shape":"OpsItemOperationalData",
@@ -4699,6 +4851,10 @@
         "PlannedEndTime":{
           "shape":"DateTime",
           "documentation":"<p>The time specified in a change request for a runbook workflow to end. Currently supported only for the OpsItem type <code>/aws/changerequest</code>.</p>"
+        },
+        "AccountId":{
+          "shape":"OpsItemAccountId",
+          "documentation":"<p>The target Amazon Web Services account where you want to create an OpsItem. To make this call, your account must be configured to work with OpsItems across accounts. For more information, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-OpsCenter-multiple-accounts.html\">Setting up OpsCenter to work with OpsItems across accounts</a> in the <i>Amazon Web Services Systems Manager User Guide</i>.</p>"
         }
       }
     },
@@ -4708,6 +4864,10 @@
         "OpsItemId":{
           "shape":"String",
           "documentation":"<p>The ID of the OpsItem.</p>"
+        },
+        "OpsItemArn":{
+          "shape":"OpsItemArn",
+          "documentation":"<p>The OpsItem Amazon Resource Name (ARN).</p>"
         }
       }
     },
@@ -5061,6 +5221,33 @@
       }
     },
     "DeleteResourceDataSyncResult":{
+      "type":"structure",
+      "members":{
+      }
+    },
+    "DeleteResourcePolicyRequest":{
+      "type":"structure",
+      "required":[
+        "ResourceArn",
+        "PolicyId",
+        "PolicyHash"
+      ],
+      "members":{
+        "ResourceArn":{
+          "shape":"ResourceArnString",
+          "documentation":"<p>Amazon Resource Name (ARN) of the resource to which the policies are attached.</p>"
+        },
+        "PolicyId":{
+          "shape":"PolicyId",
+          "documentation":"<p>The policy ID.</p>"
+        },
+        "PolicyHash":{
+          "shape":"PolicyHash",
+          "documentation":"<p>ID of the current policy version. The hash helps to prevent multiple calls from attempting to overwrite a policy.</p>"
+        }
+      }
+    },
+    "DeleteResourcePolicyResponse":{
       "type":"structure",
       "members":{
       }
@@ -5620,7 +5807,7 @@
         },
         "Filters":{
           "shape":"InstanceInformationStringFilterList",
-          "documentation":"<p>One or more filters. Use a filter to return a more specific list of managed nodes. You can filter based on tags applied to EC2 instances. Use this <code>Filters</code> data type instead of <code>InstanceInformationFilterList</code>, which is deprecated.</p>"
+          "documentation":"<p>One or more filters. Use a filter to return a more specific list of managed nodes. You can filter based on tags applied to your managed nodes. Use this <code>Filters</code> data type instead of <code>InstanceInformationFilterList</code>, which is deprecated.</p>"
         },
         "MaxResults":{
           "shape":"MaxResultsEC2Compatible",
@@ -6772,7 +6959,7 @@
       "members":{
         "Message":{"shape":"String"}
       },
-      "documentation":"<p>The document can't be shared with more Amazon Web Services user accounts. You can share a document with a maximum of 20 accounts. You can publicly share up to five documents. If you need to increase this limit, contact Amazon Web Services Support.</p>",
+      "documentation":"<p>The document can't be shared with more Amazon Web Services user accounts. You can specify a maximum of 20 accounts per API operation to share a private document.</p> <p>By default, you can share a private document with a maximum of 1,000 accounts and publicly share up to five documents.</p> <p>If you need to increase the quota for privately or publicly shared Systems Manager documents, contact Amazon Web Services Support.</p>",
       "exception":true
     },
     "DocumentPermissionMaxResults":{
@@ -6795,6 +6982,14 @@
         "Version":{
           "shape":"DocumentVersion",
           "documentation":"<p>The document version required by the current document.</p>"
+        },
+        "RequireType":{
+          "shape":"RequireType",
+          "documentation":"<p>The document type of the required SSM document.</p>"
+        },
+        "VersionName":{
+          "shape":"DocumentVersionName",
+          "documentation":"<p>An optional field specifying the version of the artifact associated with the document. For example, \"Release 12, Update 6\". This value is unique across all versions of a document, and can't be changed.</p>"
         }
       },
       "documentation":"<p>An SSM document required by the current document.</p>"
@@ -6919,7 +7114,10 @@
         "ChangeCalendar",
         "Automation.ChangeTemplate",
         "ProblemAnalysis",
-        "ProblemAnalysisTemplate"
+        "ProblemAnalysisTemplate",
+        "CloudFormation",
+        "ConformancePackTemplate",
+        "QuickSetup"
       ]
     },
     "DocumentVersion":{
@@ -7063,6 +7261,13 @@
       "pattern":"[\\w+=,.@/-]+"
     },
     "ExpirationDate":{"type":"timestamp"},
+    "ExternalAlarmState":{
+      "type":"string",
+      "enum":[
+        "UNKNOWN",
+        "ALARM"
+      ]
+    },
     "FailedCreateAssociation":{
       "type":"structure",
       "members":{
@@ -7698,6 +7903,14 @@
         "EndTime":{
           "shape":"DateTime",
           "documentation":"<p>The time the task execution completed.</p>"
+        },
+        "AlarmConfiguration":{
+          "shape":"AlarmConfiguration",
+          "documentation":"<p>The details for the CloudWatch alarm you applied to your maintenance window task.</p>"
+        },
+        "TriggeredAlarms":{
+          "shape":"AlarmStateInformationList",
+          "documentation":"<p>The CloudWatch alarms that were invoked by the maintenance window task.</p>"
         }
       }
     },
@@ -7857,6 +8070,10 @@
           "shape":"MaintenanceWindowTaskCutoffBehavior",
           "documentation":"<p>The action to take on tasks when the maintenance window cutoff time is reached. <code>CONTINUE_TASK</code> means that tasks continue to run. For Automation, Lambda, Step Functions tasks, <code>CANCEL_TASK</code> means that currently running task invocations continue, but no new task invocations are started. For Run Command tasks, <code>CANCEL_TASK</code> means the system attempts to stop the task by sending a <code>CancelCommand</code> operation.</p>",
           "box":true
+        },
+        "AlarmConfiguration":{
+          "shape":"AlarmConfiguration",
+          "documentation":"<p>The details for the CloudWatch alarm you applied to your maintenance window task.</p>"
         }
       }
     },
@@ -7867,6 +8084,10 @@
         "OpsItemId":{
           "shape":"OpsItemId",
           "documentation":"<p>The ID of the OpsItem that you want to get.</p>"
+        },
+        "OpsItemArn":{
+          "shape":"OpsItemArn",
+          "documentation":"<p>The OpsItem Amazon Resource Name (ARN).</p>"
         }
       }
     },
@@ -8210,13 +8431,66 @@
         }
       }
     },
+    "GetResourcePoliciesRequest":{
+      "type":"structure",
+      "required":["ResourceArn"],
+      "members":{
+        "ResourceArn":{
+          "shape":"ResourceArnString",
+          "documentation":"<p>Amazon Resource Name (ARN) of the resource to which the policies are attached.</p>"
+        },
+        "NextToken":{
+          "shape":"String",
+          "documentation":"<p>A token to start the list. Use this token to get the next set of results.</p>"
+        },
+        "MaxResults":{
+          "shape":"ResourcePolicyMaxResults",
+          "documentation":"<p>The maximum number of items to return for this call. The call also returns a token that you can specify in a subsequent call to get the next set of results.</p>"
+        }
+      }
+    },
+    "GetResourcePoliciesResponse":{
+      "type":"structure",
+      "members":{
+        "NextToken":{
+          "shape":"String",
+          "documentation":"<p>The token for the next set of items to return. Use this token to get the next set of results.</p>"
+        },
+        "Policies":{
+          "shape":"GetResourcePoliciesResponseEntries",
+          "documentation":"<p>An array of the <code>Policy</code> object.</p>"
+        }
+      }
+    },
+    "GetResourcePoliciesResponseEntries":{
+      "type":"list",
+      "member":{"shape":"GetResourcePoliciesResponseEntry"}
+    },
+    "GetResourcePoliciesResponseEntry":{
+      "type":"structure",
+      "members":{
+        "PolicyId":{
+          "shape":"PolicyId",
+          "documentation":"<p>A policy ID.</p>"
+        },
+        "PolicyHash":{
+          "shape":"PolicyHash",
+          "documentation":"<p>ID of the current policy version. The hash helps to prevent a situation where multiple users attempt to overwrite a policy. You must provide this hash when updating or deleting a policy.</p>"
+        },
+        "Policy":{
+          "shape":"Policy",
+          "documentation":"<p>A resource policy helps you to define the IAM entity (for example, an Amazon Web Services account) that can manage your Systems Manager resources. Currently, <code>OpsItemGroup</code> is the only resource that supports Systems Manager resource policies. The resource policy for <code>OpsItemGroup</code> enables Amazon Web Services accounts to view and interact with OpsCenter operational work items (OpsItems).</p>"
+        }
+      },
+      "documentation":"<p>A resource policy helps you to define the IAM entity (for example, an Amazon Web Services account) that can manage your Systems Manager resources. Currently, <code>OpsItemGroup</code> is the only resource that supports Systems Manager resource policies. The resource policy for <code>OpsItemGroup</code> enables Amazon Web Services accounts to view and interact with OpsCenter operational work items (OpsItems).</p>"
+    },
     "GetServiceSettingRequest":{
       "type":"structure",
       "required":["SettingId"],
       "members":{
         "SettingId":{
           "shape":"ServiceSettingId",
-          "documentation":"<p>The ID of the service setting to get. The setting ID can be one of the following.</p> <ul> <li> <p> <code>/ssm/automation/customer-script-log-destination</code> </p> </li> <li> <p> <code>/ssm/automation/customer-script-log-group-name</code> </p> </li> <li> <p> <code>/ssm/documents/console/public-sharing-permission</code> </p> </li> <li> <p> <code>/ssm/parameter-store/default-parameter-tier</code> </p> </li> <li> <p> <code>/ssm/parameter-store/high-throughput-enabled</code> </p> </li> <li> <p> <code>/ssm/managed-instance/activation-tier</code> </p> </li> </ul>"
+          "documentation":"<p>The ID of the service setting to get. The setting ID can be one of the following.</p> <ul> <li> <p> <code>/ssm/automation/customer-script-log-destination</code> </p> </li> <li> <p> <code>/ssm/automation/customer-script-log-group-name</code> </p> </li> <li> <p> <code>/ssm/documents/console/public-sharing-permission</code> </p> </li> <li> <p> <code>/ssm/managed-instance/activation-tier</code> </p> </li> <li> <p> <code>/ssm/opsinsights/opscenter</code> </p> </li> <li> <p> <code>/ssm/parameter-store/default-parameter-tier</code> </p> </li> <li> <p> <code>/ssm/parameter-store/high-throughput-enabled</code> </p> </li> </ul>"
         }
       },
       "documentation":"<p>The request body of the GetServiceSetting API operation.</p>"
@@ -8582,7 +8856,7 @@
       "members":{
         "Key":{
           "shape":"InstanceInformationStringFilterKey",
-          "documentation":"<p>The filter key name to describe your managed nodes. For example:</p> <p>\"InstanceIds\"|\"AgentVersion\"|\"PingStatus\"|\"PlatformTypes\"|\"ActivationIds\"|\"IamRole\"|\"ResourceType\"|\"AssociationStatus\"|\"Tag Key\"</p> <important> <p> <code>Tag key</code> isn't a valid filter. You must specify either <code>tag-key</code> or <code>tag:keyname</code> and a string. Here are some valid examples: tag-key, tag:123, tag:al!, tag:Windows. Here are some <i>invalid</i> examples: tag-keys, Tag Key, tag:, tagKey, abc:keyname.</p> </important>"
+          "documentation":"<p>The filter key name to describe your managed nodes.</p> <p>Valid filter key values: ActivationIds | AgentVersion | AssociationStatus | IamRole | InstanceIds | PingStatus | PlatformTypes | ResourceType | SourceIds | SourceTypes | \"tag-key\" | \"tag:<code>{keyname}</code> </p> <ul> <li> <p>Valid values for the <code>AssociationStatus</code> filter key: Success | Pending | Failed</p> </li> <li> <p>Valid values for the <code>PingStatus</code> filter key: Online | ConnectionLost | Inactive (deprecated)</p> </li> <li> <p>Valid values for the <code>PlatformType</code> filter key: Windows | Linux | MacOS</p> </li> <li> <p>Valid values for the <code>ResourceType</code> filter key: EC2Instance | ManagedInstance</p> </li> <li> <p>Valid values for the <code>SourceType</code> filter key: AWS::EC2::Instance | AWS::SSM::ManagedInstance | AWS::IoT::Thing</p> </li> <li> <p>Valid tag examples: <code>Key=tag-key,Values=Purpose</code> | <code>Key=tag:Purpose,Values=Test</code>.</p> </li> </ul>"
         },
         "Values":{
           "shape":"InstanceInformationFilterValueSet",
@@ -8692,17 +8966,17 @@
         },
         "CriticalNonCompliantCount":{
           "shape":"PatchCriticalNonCompliantCount",
-          "documentation":"<p>The number of managed nodes where patches that are specified as <code>Critical</code> for compliance reporting in the patch baseline aren't installed. These patches might be missing, have failed installation, were rejected, or were installed but awaiting a required managed node reboot. The status of these managed nodes is <code>NON_COMPLIANT</code>.</p>",
+          "documentation":"<p>The number of patches per node that are specified as <code>Critical</code> for compliance reporting in the patch baseline aren't installed. These patches might be missing, have failed installation, were rejected, or were installed but awaiting a required managed node reboot. The status of these managed nodes is <code>NON_COMPLIANT</code>.</p>",
           "box":true
         },
         "SecurityNonCompliantCount":{
           "shape":"PatchSecurityNonCompliantCount",
-          "documentation":"<p>The number of managed nodes where patches that are specified as <code>Security</code> in a patch advisory aren't installed. These patches might be missing, have failed installation, were rejected, or were installed but awaiting a required managed node reboot. The status of these managed nodes is <code>NON_COMPLIANT</code>.</p>",
+          "documentation":"<p>The number of patches per node that are specified as <code>Security</code> in a patch advisory aren't installed. These patches might be missing, have failed installation, were rejected, or were installed but awaiting a required managed node reboot. The status of these managed nodes is <code>NON_COMPLIANT</code>.</p>",
           "box":true
         },
         "OtherNonCompliantCount":{
           "shape":"PatchOtherNonCompliantCount",
-          "documentation":"<p>The number of managed nodes with patches installed that are specified as other than <code>Critical</code> or <code>Security</code> but aren't compliant with the patch baseline. The status of these managed nodes is <code>NON_COMPLIANT</code>.</p>",
+          "documentation":"<p>The number of patches per node that are specified as other than <code>Critical</code> or <code>Security</code> but aren't compliant with the patch baseline. The status of these managed nodes is <code>NON_COMPLIANT</code>.</p>",
           "box":true
         }
       },
@@ -9139,6 +9413,14 @@
         "Message":{"shape":"String"}
       },
       "documentation":"<p>The schedule is invalid. Verify your cron or rate expression and try again.</p>",
+      "exception":true
+    },
+    "InvalidTag":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"String"}
+      },
+      "documentation":"<p>The specified tag key or value isn't valid.</p>",
       "exception":true
     },
     "InvalidTarget":{
@@ -10253,7 +10535,7 @@
       "members":{
         "S3BucketName":{
           "shape":"S3BucketName",
-          "documentation":"<p>The name of an S3 bucket where execution logs are stored .</p>"
+          "documentation":"<p>The name of an S3 bucket where execution logs are stored.</p>"
         },
         "S3KeyPrefix":{
           "shape":"S3KeyPrefix",
@@ -10402,6 +10684,14 @@
         "TaskType":{
           "shape":"MaintenanceWindowTaskType",
           "documentation":"<p>The type of task that ran.</p>"
+        },
+        "AlarmConfiguration":{
+          "shape":"AlarmConfiguration",
+          "documentation":"<p>The details for the CloudWatch alarm applied to your maintenance window task.</p>"
+        },
+        "TriggeredAlarms":{
+          "shape":"AlarmStateInformationList",
+          "documentation":"<p>The CloudWatch alarm that was invoked by the maintenance window task.</p>"
         }
       },
       "documentation":"<p>Information about a task execution performed as part of a maintenance window execution.</p>"
@@ -10832,6 +11122,10 @@
           "shape":"MaintenanceWindowTaskCutoffBehavior",
           "documentation":"<p>The specification for whether tasks should continue to run after the cutoff time specified in the maintenance windows is reached. </p>",
           "box":true
+        },
+        "AlarmConfiguration":{
+          "shape":"AlarmConfiguration",
+          "documentation":"<p>The details for the CloudWatch alarm applied to your maintenance window task.</p>"
         }
       },
       "documentation":"<p>Information about a task defined for a maintenance window.</p>"
@@ -11117,6 +11411,7 @@
         "WINDOWS",
         "AMAZON_LINUX",
         "AMAZON_LINUX_2",
+        "AMAZON_LINUX_2022",
         "UBUNTU",
         "REDHAT_ENTERPRISE_LINUX",
         "SUSE",
@@ -11318,7 +11613,7 @@
         },
         "OpsItemType":{
           "shape":"OpsItemType",
-          "documentation":"<p>The type of OpsItem. Currently, the only valid values are <code>/aws/changerequest</code> and <code>/aws/issue</code>.</p>"
+          "documentation":"<p>The type of OpsItem. Systems Manager supports the following types of OpsItems:</p> <ul> <li> <p> <code>/aws/issue</code> </p> <p>This type of OpsItem is used for default OpsItems created by OpsCenter. </p> </li> <li> <p> <code>/aws/changerequest</code> </p> <p>This type of OpsItem is used by Change Manager for reviewing and approving or rejecting change requests. </p> </li> <li> <p> <code>/aws/insights</code> </p> <p>This type of OpsItem is used by OpsCenter for aggregating and reporting on duplicate OpsItems. </p> </li> </ul>"
         },
         "CreatedTime":{
           "shape":"DateTime",
@@ -11395,9 +11690,25 @@
         "PlannedEndTime":{
           "shape":"DateTime",
           "documentation":"<p>The time specified in a change request for a runbook workflow to end. Currently supported only for the OpsItem type <code>/aws/changerequest</code>.</p>"
+        },
+        "OpsItemArn":{
+          "shape":"OpsItemArn",
+          "documentation":"<p>The OpsItem Amazon Resource Name (ARN).</p>"
         }
       },
       "documentation":"<p>Operations engineers and IT professionals use Amazon Web Services Systems Manager OpsCenter to view, investigate, and remediate operational work items (OpsItems) impacting the performance and health of their Amazon Web Services resources. OpsCenter is integrated with Amazon EventBridge and Amazon CloudWatch. This means you can configure these services to automatically create an OpsItem in OpsCenter when a CloudWatch alarm enters the ALARM state or when EventBridge processes an event from any Amazon Web Services service that publishes events. Configuring Amazon CloudWatch alarms and EventBridge events to automatically create OpsItems allows you to quickly diagnose and remediate issues with Amazon Web Services resources from a single console.</p> <p>To help you diagnose issues, each OpsItem includes contextually relevant information such as the name and ID of the Amazon Web Services resource that generated the OpsItem, alarm or event details, alarm history, and an alarm timeline graph. For the Amazon Web Services resource, OpsCenter aggregates information from Config, CloudTrail logs, and EventBridge, so you don't have to navigate across multiple console pages during your investigation. For more information, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/OpsCenter.html\">OpsCenter</a> in the <i>Amazon Web Services Systems Manager User Guide</i>. </p>"
+    },
+    "OpsItemAccessDeniedException":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"String"}
+      },
+      "documentation":"<p>You don't have permission to view OpsItems in the specified account. Verify that your account is configured either as a Systems Manager delegated administrator or that you are logged into the Organizations management account.</p>",
+      "exception":true
+    },
+    "OpsItemAccountId":{
+      "type":"string",
+      "pattern":"^[0-9]{12}$"
     },
     "OpsItemAlreadyExistsException":{
       "type":"structure",
@@ -11407,6 +11718,12 @@
       },
       "documentation":"<p>The OpsItem already exists.</p>",
       "exception":true
+    },
+    "OpsItemArn":{
+      "type":"string",
+      "max":2048,
+      "min":20,
+      "pattern":"arn:(aws[a-zA-Z-]*)?:ssm:[a-z0-9-\\.]{0,63}:[0-9]{12}:opsitem.*"
     },
     "OpsItemCategory":{
       "type":"string",
@@ -11591,7 +11908,8 @@
         "ChangeRequestByApproverName",
         "ChangeRequestByTemplate",
         "ChangeRequestByTargetsResourceGroup",
-        "InsightByType"
+        "InsightByType",
+        "AccountId"
       ]
     },
     "OpsItemFilterOperator":{
@@ -11895,7 +12213,7 @@
         },
         "OpsItemType":{
           "shape":"OpsItemType",
-          "documentation":"<p>The type of OpsItem. Currently, the only valid values are <code>/aws/changerequest</code> and <code>/aws/issue</code>.</p>"
+          "documentation":"<p>The type of OpsItem. Systems Manager supports the following types of OpsItems:</p> <ul> <li> <p> <code>/aws/issue</code> </p> <p>This type of OpsItem is used for default OpsItems created by OpsCenter. </p> </li> <li> <p> <code>/aws/changerequest</code> </p> <p>This type of OpsItem is used by Change Manager for reviewing and approving or rejecting change requests. </p> </li> <li> <p> <code>/aws/insights</code> </p> <p>This type of OpsItem is used by OpsCenter for aggregating and reporting on duplicate OpsItems. </p> </li> </ul>"
         },
         "ActualStartTime":{
           "shape":"DateTime",
@@ -13105,6 +13423,12 @@
       "documentation":"<p>You specified more than the maximum number of allowed policies for the parameter. The maximum is 10.</p>",
       "exception":true
     },
+    "Policy":{
+      "type":"string",
+      "pattern":"\\S+"
+    },
+    "PolicyHash":{"type":"string"},
+    "PolicyId":{"type":"string"},
     "Product":{"type":"string"},
     "ProgressCounters":{
       "type":"structure",
@@ -13269,6 +13593,44 @@
         "Tier":{
           "shape":"ParameterTier",
           "documentation":"<p>The tier assigned to the parameter.</p>"
+        }
+      }
+    },
+    "PutResourcePolicyRequest":{
+      "type":"structure",
+      "required":[
+        "ResourceArn",
+        "Policy"
+      ],
+      "members":{
+        "ResourceArn":{
+          "shape":"ResourceArnString",
+          "documentation":"<p>Amazon Resource Name (ARN) of the resource to which you want to attach a policy.</p>"
+        },
+        "Policy":{
+          "shape":"Policy",
+          "documentation":"<p>A policy you want to associate with a resource.</p>"
+        },
+        "PolicyId":{
+          "shape":"PolicyId",
+          "documentation":"<p>The policy ID.</p>"
+        },
+        "PolicyHash":{
+          "shape":"PolicyHash",
+          "documentation":"<p>ID of the current policy version. The hash helps to prevent a situation where multiple users attempt to overwrite a policy. You must provide this hash when updating or deleting a policy.</p>"
+        }
+      }
+    },
+    "PutResourcePolicyResponse":{
+      "type":"structure",
+      "members":{
+        "PolicyId":{
+          "shape":"PolicyId",
+          "documentation":"<p>The policy ID. To update a policy, you must specify <code>PolicyId</code> and <code>PolicyHash</code>.</p>"
+        },
+        "PolicyHash":{
+          "shape":"PolicyHash",
+          "documentation":"<p>ID of the current policy version.</p>"
         }
       }
     },
@@ -13456,6 +13818,10 @@
           "shape":"MaintenanceWindowTaskCutoffBehavior",
           "documentation":"<p>Indicates whether tasks should continue to run after the cutoff time specified in the maintenance windows is reached. </p> <ul> <li> <p> <code>CONTINUE_TASK</code>: When the cutoff time is reached, any tasks that are running continue. The default value.</p> </li> <li> <p> <code>CANCEL_TASK</code>:</p> <ul> <li> <p>For Automation, Lambda, Step Functions tasks: When the cutoff time is reached, any task invocations that are already running continue, but no new task invocations are started.</p> </li> <li> <p>For Run Command tasks: When the cutoff time is reached, the system sends a <a>CancelCommand</a> operation that attempts to cancel the command associated with the task. However, there is no guarantee that the command will be terminated and the underlying process stopped.</p> </li> </ul> <p>The status for tasks that are not completed is <code>TIMED_OUT</code>.</p> </li> </ul>",
           "box":true
+        },
+        "AlarmConfiguration":{
+          "shape":"AlarmConfiguration",
+          "documentation":"<p>The CloudWatch alarm you want to apply to your maintenance window task.</p>"
         }
       }
     },
@@ -13555,13 +13921,18 @@
       "members":{
       }
     },
+    "RequireType":{
+      "type":"string",
+      "max":128,
+      "pattern":"^[a-zA-Z0-9_\\-.]{1,128}$"
+    },
     "ResetServiceSettingRequest":{
       "type":"structure",
       "required":["SettingId"],
       "members":{
         "SettingId":{
           "shape":"ServiceSettingId",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the service setting to reset. The setting ID can be one of the following.</p> <ul> <li> <p> <code>/ssm/automation/customer-script-log-destination</code> </p> </li> <li> <p> <code>/ssm/automation/customer-script-log-group-name</code> </p> </li> <li> <p> <code>/ssm/documents/console/public-sharing-permission</code> </p> </li> <li> <p> <code>/ssm/parameter-store/default-parameter-tier</code> </p> </li> <li> <p> <code>/ssm/parameter-store/high-throughput-enabled</code> </p> </li> <li> <p> <code>/ssm/managed-instance/activation-tier</code> </p> </li> </ul>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the service setting to reset. The setting ID can be one of the following.</p> <ul> <li> <p> <code>/ssm/automation/customer-script-log-destination</code> </p> </li> <li> <p> <code>/ssm/automation/customer-script-log-group-name</code> </p> </li> <li> <p> <code>/ssm/documents/console/public-sharing-permission</code> </p> </li> <li> <p> <code>/ssm/managed-instance/activation-tier</code> </p> </li> <li> <p> <code>/ssm/opsinsights/opscenter</code> </p> </li> <li> <p> <code>/ssm/parameter-store/default-parameter-tier</code> </p> </li> <li> <p> <code>/ssm/parameter-store/high-throughput-enabled</code> </p> </li> </ul>"
         }
       },
       "documentation":"<p>The request body of the ResetServiceSetting API operation.</p>"
@@ -13589,6 +13960,11 @@
         }
       },
       "documentation":"<p>Information about targets that resolved during the Automation execution.</p>"
+    },
+    "ResourceArnString":{
+      "type":"string",
+      "max":2048,
+      "min":20
     },
     "ResourceComplianceSummaryItem":{
       "type":"structure",
@@ -13953,6 +14329,42 @@
       "documentation":"<p>Error returned when the caller has exceeded the default resource quotas. For example, too many maintenance windows or patch baselines have been created.</p> <p>For information about resource quotas in Systems Manager, see <a href=\"https://docs.aws.amazon.com/general/latest/gr/ssm.html#limits_ssm\">Systems Manager service quotas</a> in the <i>Amazon Web Services General Reference</i>.</p>",
       "exception":true
     },
+    "ResourcePolicyConflictException":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"String"}
+      },
+      "documentation":"<p>The hash provided in the call doesn't match the stored hash. This exception is thrown when trying to update an obsolete policy version or when multiple requests to update a policy are sent.</p>",
+      "exception":true
+    },
+    "ResourcePolicyInvalidParameterException":{
+      "type":"structure",
+      "members":{
+        "ParameterNames":{"shape":"ResourcePolicyParameterNamesList"},
+        "Message":{"shape":"String"}
+      },
+      "documentation":"<p>One or more parameters specified for the call aren't valid. Verify the parameters and their values and try again.</p>",
+      "exception":true
+    },
+    "ResourcePolicyLimitExceededException":{
+      "type":"structure",
+      "members":{
+        "Limit":{"shape":"Integer"},
+        "LimitType":{"shape":"String"},
+        "Message":{"shape":"String"}
+      },
+      "documentation":"<p>The <a>PutResourcePolicy</a> API action enforces two limits. A policy can't be greater than 1024 bytes in size. And only one policy can be attached to <code>OpsItemGroup</code>. Verify these limits and try again.</p>",
+      "exception":true
+    },
+    "ResourcePolicyMaxResults":{
+      "type":"integer",
+      "max":50,
+      "min":1
+    },
+    "ResourcePolicyParameterNamesList":{
+      "type":"list",
+      "member":{"shape":"String"}
+    },
     "ResourceType":{
       "type":"string",
       "enum":[
@@ -13971,7 +14383,8 @@
         "PatchBaseline",
         "OpsItem",
         "OpsMetadata",
-        "Automation"
+        "Automation",
+        "Association"
       ]
     },
     "ResponseCode":{"type":"integer"},
@@ -14270,7 +14683,7 @@
         },
         "ServiceRoleArn":{
           "shape":"ServiceRole",
-          "documentation":"<p>The ARN of the Identity and Access Management (IAM) service role to use to publish Amazon Simple Notification Service (Amazon SNS) notifications for Run Command commands.</p>"
+          "documentation":"<p>The ARN of the Identity and Access Management (IAM) service role to use to publish Amazon Simple Notification Service (Amazon SNS) notifications for Run Command commands.</p> <p>This role must provide the <code>sns:Publish</code> permission for your notification topic. For information about creating and using this service role, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/monitoring-sns-notifications.html\">Monitoring Systems Manager status changes using Amazon SNS notifications</a> in the <i>Amazon Web Services Systems Manager User Guide</i>.</p>"
         },
         "NotificationConfig":{
           "shape":"NotificationConfig",
@@ -14279,6 +14692,10 @@
         "CloudWatchOutputConfig":{
           "shape":"CloudWatchOutputConfig",
           "documentation":"<p>Enables Amazon Web Services Systems Manager to send Run Command output to Amazon CloudWatch Logs. Run Command is a capability of Amazon Web Services Systems Manager.</p>"
+        },
+        "AlarmConfiguration":{
+          "shape":"AlarmConfiguration",
+          "documentation":"<p>The CloudWatch alarm you want to apply to your command.</p>"
         }
       }
     },
@@ -14531,7 +14948,7 @@
       "members":{
         "CriticalCount":{
           "shape":"ComplianceSummaryCount",
-          "documentation":"<p>The total number of resources or compliance items that have a severity level of critical. Critical severity is determined by the organization that published the compliance items.</p>"
+          "documentation":"<p>The total number of resources or compliance items that have a severity level of <code>Critical</code>. Critical severity is determined by the organization that published the compliance items.</p>"
         },
         "HighCount":{
           "shape":"ComplianceSummaryCount",
@@ -14669,6 +15086,10 @@
         "Tags":{
           "shape":"TagList",
           "documentation":"<p>Optional metadata that you assign to a resource. You can specify a maximum of five tags for an automation. Tags enable you to categorize a resource in different ways, such as by purpose, owner, or environment. For example, you might want to tag an automation to identify an environment or operating system. In this case, you could specify the following key-value pairs:</p> <ul> <li> <p> <code>Key=environment,Value=test</code> </p> </li> <li> <p> <code>Key=OS,Value=Windows</code> </p> </li> </ul> <note> <p>To add tags to an existing automation, use the <a>AddTagsToResource</a> operation.</p> </note>"
+        },
+        "AlarmConfiguration":{
+          "shape":"AlarmConfiguration",
+          "documentation":"<p>The CloudWatch alarm you want to apply to your automation.</p>"
         }
       }
     },
@@ -14754,7 +15175,7 @@
         },
         "DocumentName":{
           "shape":"DocumentARN",
-          "documentation":"<p>The name of the SSM document to define the parameters and plugin settings for the session. For example, <code>SSM-SessionManagerRunShell</code>. You can call the <a>GetDocument</a> API to verify the document exists before attempting to start a session. If no document name is provided, a shell to the managed node is launched by default.</p>"
+          "documentation":"<p>The name of the SSM document you want to use to define the type of session, input parameters, or preferences for the session. For example, <code>SSM-SessionManagerRunShell</code>. You can call the <a>GetDocument</a> API to verify the document exists before attempting to start a session. If no document name is provided, a shell to the managed node is launched by default. For more information, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-sessions-start.html\">Start a session</a> in the <i>Amazon Web Services Systems Manager User Guide</i>.</p>"
         },
         "Reason":{
           "shape":"SessionReason",
@@ -14775,7 +15196,7 @@
         },
         "TokenValue":{
           "shape":"TokenValue",
-          "documentation":"<p>An encrypted token value containing session and caller information. Used to authenticate the connection to the managed node.</p>"
+          "documentation":"<p>An encrypted token value containing session and caller information. This token is used to authenticate the connection to the managed node, and is valid only long enough to ensure the connection is successful. Never share your session's token.</p>"
         },
         "StreamUrl":{
           "shape":"StreamUrl",
@@ -14902,6 +15323,10 @@
           "shape":"TargetLocation",
           "documentation":"<p>The combination of Amazon Web Services Regions and Amazon Web Services accounts targeted by the current Automation execution.</p>",
           "box":true
+        },
+        "TriggeredAlarms":{
+          "shape":"AlarmStateInformationList",
+          "documentation":"<p>The CloudWatch alarms that were invoked by the automation.</p>"
         }
       },
       "documentation":"<p>Detailed information about an the execution state of an Automation step.</p>"
@@ -15032,7 +15457,7 @@
     "TagValue":{
       "type":"string",
       "max":256,
-      "min":1,
+      "min":0,
       "pattern":"^([\\p{L}\\p{Z}\\p{N}_.:/=+\\-@]*)$"
     },
     "Target":{
@@ -15088,6 +15513,10 @@
         "ExecutionRoleName":{
           "shape":"ExecutionRoleName",
           "documentation":"<p>The Automation execution role used by the currently running Automation. If not specified, the default value is <code>AWS-SystemsManager-AutomationExecutionRole</code>.</p>",
+          "box":true
+        },
+        "TargetLocationAlarmConfiguration":{
+          "shape":"AlarmConfiguration",
           "box":true
         }
       },
@@ -15389,7 +15818,8 @@
           "shape":"TargetMaps",
           "documentation":"<p>A key-value mapping of document parameters to target resources. Both Targets and TargetMaps can't be specified together.</p>",
           "box":true
-        }
+        },
+        "AlarmConfiguration":{"shape":"AlarmConfiguration"}
       }
     },
     "UpdateAssociationResult":{
@@ -15788,6 +16218,10 @@
           "shape":"MaintenanceWindowTaskCutoffBehavior",
           "documentation":"<p>Indicates whether tasks should continue to run after the cutoff time specified in the maintenance windows is reached. </p> <ul> <li> <p> <code>CONTINUE_TASK</code>: When the cutoff time is reached, any tasks that are running continue. The default value.</p> </li> <li> <p> <code>CANCEL_TASK</code>:</p> <ul> <li> <p>For Automation, Lambda, Step Functions tasks: When the cutoff time is reached, any task invocations that are already running continue, but no new task invocations are started.</p> </li> <li> <p>For Run Command tasks: When the cutoff time is reached, the system sends a <a>CancelCommand</a> operation that attempts to cancel the command associated with the task. However, there is no guarantee that the command will be terminated and the underlying process stopped.</p> </li> </ul> <p>The status for tasks that are not completed is <code>TIMED_OUT</code>.</p> </li> </ul>",
           "box":true
+        },
+        "AlarmConfiguration":{
+          "shape":"AlarmConfiguration",
+          "documentation":"<p>The CloudWatch alarm you want to apply to your maintenance window task.</p>"
         }
       }
     },
@@ -15850,6 +16284,10 @@
           "shape":"MaintenanceWindowTaskCutoffBehavior",
           "documentation":"<p>The specification for whether tasks should continue to run after the cutoff time specified in the maintenance windows is reached. </p>",
           "box":true
+        },
+        "AlarmConfiguration":{
+          "shape":"AlarmConfiguration",
+          "documentation":"<p>The details for the CloudWatch alarm you applied to your maintenance window task.</p>"
         }
       }
     },
@@ -15866,7 +16304,7 @@
         },
         "IamRole":{
           "shape":"IamRole",
-          "documentation":"<p>The IAM role you want to assign or change.</p>"
+          "documentation":"<p>The name of the Identity and Access Management (IAM) role that you want to assign to the managed node. This IAM role must provide AssumeRole permissions for the Amazon Web Services Systems Manager service principal <code>ssm.amazonaws.com</code>. For more information, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/sysman-service-role.html\">Create an IAM service role for a hybrid environment</a> in the <i>Amazon Web Services Systems Manager User Guide</i>.</p> <note> <p>You can't specify an IAM service-linked role for this parameter. You must create a unique role.</p> </note>"
         }
       }
     },
@@ -15938,6 +16376,10 @@
         "PlannedEndTime":{
           "shape":"DateTime",
           "documentation":"<p>The time specified in a change request for a runbook workflow to end. Currently supported only for the OpsItem type <code>/aws/changerequest</code>.</p>"
+        },
+        "OpsItemArn":{
+          "shape":"OpsItemArn",
+          "documentation":"<p>The OpsItem Amazon Resource Name (ARN).</p>"
         }
       }
     },
@@ -16127,11 +16569,11 @@
       "members":{
         "SettingId":{
           "shape":"ServiceSettingId",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the service setting to reset. For example, <code>arn:aws:ssm:us-east-1:111122223333:servicesetting/ssm/parameter-store/high-throughput-enabled</code>. The setting ID can be one of the following.</p> <ul> <li> <p> <code>/ssm/automation/customer-script-log-destination</code> </p> </li> <li> <p> <code>/ssm/automation/customer-script-log-group-name</code> </p> </li> <li> <p> <code>/ssm/documents/console/public-sharing-permission</code> </p> </li> <li> <p> <code>/ssm/parameter-store/default-parameter-tier</code> </p> </li> <li> <p> <code>/ssm/parameter-store/high-throughput-enabled</code> </p> </li> <li> <p> <code>/ssm/managed-instance/activation-tier</code> </p> </li> </ul>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the service setting to reset. For example, <code>arn:aws:ssm:us-east-1:111122223333:servicesetting/ssm/parameter-store/high-throughput-enabled</code>. The setting ID can be one of the following.</p> <ul> <li> <p> <code>/ssm/automation/customer-script-log-destination</code> </p> </li> <li> <p> <code>/ssm/automation/customer-script-log-group-name</code> </p> </li> <li> <p> <code>/ssm/documents/console/public-sharing-permission</code> </p> </li> <li> <p> <code>/ssm/managed-instance/activation-tier</code> </p> </li> <li> <p> <code>/ssm/opsinsights/opscenter</code> </p> </li> <li> <p> <code>/ssm/parameter-store/default-parameter-tier</code> </p> </li> <li> <p> <code>/ssm/parameter-store/high-throughput-enabled</code> </p> </li> </ul>"
         },
         "SettingValue":{
           "shape":"ServiceSettingValue",
-          "documentation":"<p>The new value to specify for the service setting. The following list specifies the available values for each setting.</p> <ul> <li> <p> <code>/ssm/parameter-store/default-parameter-tier</code>: <code>Standard</code>, <code>Advanced</code>, <code>Intelligent-Tiering</code> </p> </li> <li> <p> <code>/ssm/parameter-store/high-throughput-enabled</code>: <code>true</code> or <code>false</code> </p> </li> <li> <p> <code>/ssm/managed-instance/activation-tier</code>: <code>true</code> or <code>false</code> </p> </li> <li> <p> <code>/ssm/automation/customer-script-log-destination</code>: <code>CloudWatch</code> </p> </li> <li> <p> <code>/ssm/automation/customer-script-log-group-name</code>: the name of an Amazon CloudWatch Logs log group</p> </li> <li> <p> <code>/ssm/documents/console/public-sharing-permission</code>: <code>Enable</code> or <code>Disable</code> </p> </li> <li> <p> <code>/ssm/managed-instance/activation-tier</code>: <code>standard</code> or <code>advanced</code> </p> </li> </ul>"
+          "documentation":"<p>The new value to specify for the service setting. The following list specifies the available values for each setting.</p> <ul> <li> <p> <code>/ssm/automation/customer-script-log-destination</code>: <code>CloudWatch</code> </p> </li> <li> <p> <code>/ssm/automation/customer-script-log-group-name</code>: the name of an Amazon CloudWatch Logs log group</p> </li> <li> <p> <code>/ssm/documents/console/public-sharing-permission</code>: <code>Enable</code> or <code>Disable</code> </p> </li> <li> <p> <code>/ssm/managed-instance/activation-tier</code>: <code>standard</code> or <code>advanced</code> </p> </li> <li> <p> <code>/ssm/opsinsights/opscenter</code>: <code>Enabled</code> or <code>Disabled</code> </p> </li> <li> <p> <code>/ssm/parameter-store/default-parameter-tier</code>: <code>Standard</code>, <code>Advanced</code>, <code>Intelligent-Tiering</code> </p> </li> <li> <p> <code>/ssm/parameter-store/high-throughput-enabled</code>: <code>true</code> or <code>false</code> </p> </li> </ul>"
         }
       },
       "documentation":"<p>The request body of the UpdateServiceSetting API operation.</p>"
@@ -16157,5 +16599,5 @@
       "pattern":"^[0-9]{1,6}(\\.[0-9]{1,6}){2,3}$"
     }
   },
-  "documentation":"<p>Amazon Web Services Systems Manager is a collection of capabilities that helps you automate management tasks such as collecting system inventory, applying operating system (OS) patches, automating the creation of Amazon Machine Images (AMIs), and configuring operating systems (OSs) and applications at scale. Systems Manager lets you remotely and securely manage the configuration of your managed nodes. A <i>managed node</i> is any Amazon Elastic Compute Cloud (Amazon EC2) instance, edge device, or on-premises server or virtual machine (VM) that has been configured for Systems Manager. </p> <note> <p>With support for IoT Greengrass core devices, the phrase <i>managed instance</i> has been changed to <i>managed node</i> in most of the Systems Manager documentation. The Systems Manager console, API calls, error messages, and SSM documents still use the term <i>instance</i>.</p> </note> <p>This reference is intended to be used with the <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/\">Amazon Web Services Systems Manager User Guide</a>.</p> <p>To get started, verify prerequisites and configure managed nodes. For more information, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-setting-up.html\">Setting up Amazon Web Services Systems Manager</a> in the <i>Amazon Web Services Systems Manager User Guide</i>.</p> <p class=\"title\"> <b>Related resources</b> </p> <ul> <li> <p>For information about how to use a Query API, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/making-api-requests.html\">Making API requests</a>. </p> </li> <li> <p>For information about other API operations you can perform on EC2 instances, see the <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/\">Amazon EC2 API Reference</a>.</p> </li> <li> <p>For information about AppConfig, a capability of Systems Manager, see the <a href=\"https://docs.aws.amazon.com/appconfig/latest/userguide/\">AppConfig User Guide</a> and the <a href=\"https://docs.aws.amazon.com/appconfig/2019-10-09/APIReference/\">AppConfig API Reference</a>.</p> </li> <li> <p>For information about Incident Manager, a capability of Systems Manager, see the <a href=\"https://docs.aws.amazon.com/incident-manager/latest/userguide/\">Incident Manager User Guide</a> and the <a href=\"https://docs.aws.amazon.com/incident-manager/latest/APIReference/\">Incident Manager API Reference</a>.</p> </li> </ul>"
+  "documentation":"<p>Amazon Web Services Systems Manager is the operations hub for your Amazon Web Services applications and resources and a secure end-to-end management solution for hybrid cloud environments that enables safe and secure operations at scale.</p> <p>This reference is intended to be used with the <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/\">Amazon Web Services Systems Manager User Guide</a>. To get started, see <a href=\"https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-setting-up.html\">Setting up Amazon Web Services Systems Manager</a>.</p> <p class=\"title\"> <b>Related resources</b> </p> <ul> <li> <p>For information about each of the capabilities that comprise Systems Manager, see <a href=\"https://docs.aws.amazon.com/systems-manager-automation-runbooks/latest/userguide/what-is-systems-manager.html#systems-manager-capabilities\">Systems Manager capabilities</a> in the <i>Amazon Web Services Systems Manager User Guide</i>.</p> </li> <li> <p>For details about predefined runbooks for Automation, a capability of Amazon Web Services Systems Manager, see the <i> <a href=\"https://docs.aws.amazon.com/systems-manager-automation-runbooks/latest/userguide/automation-runbook-reference.html\">Systems Manager Automation runbook reference</a> </i>.</p> </li> <li> <p>For information about AppConfig, a capability of Systems Manager, see the <i> <a href=\"https://docs.aws.amazon.com/appconfig/latest/userguide/\">AppConfig User Guide</a> </i> and the <i> <a href=\"https://docs.aws.amazon.com/appconfig/2019-10-09/APIReference/\">AppConfig API Reference</a> </i>.</p> </li> <li> <p>For information about Incident Manager, a capability of Systems Manager, see the <i> <a href=\"https://docs.aws.amazon.com/incident-manager/latest/userguide/\">Systems Manager Incident Manager User Guide</a> </i> and the <i> <a href=\"https://docs.aws.amazon.com/incident-manager/latest/APIReference/\">Systems Manager Incident Manager API Reference</a> </i>.</p> </li> </ul>"
 }

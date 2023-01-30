@@ -26,15 +26,13 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 @SdkInternalApi
 public class BetweenConditional implements QueryConditional {
-    private static final UnaryOperator<String> EXPRESSION_KEY_MAPPER =
-        k -> "#AMZN_MAPPED_" + cleanAttributeName(k);
-    private static final UnaryOperator<String> EXPRESSION_VALUE_KEY_MAPPER =
-        k -> ":AMZN_MAPPED_" + cleanAttributeName(k);
+
     private static final UnaryOperator<String> EXPRESSION_OTHER_VALUE_KEY_MAPPER =
         k -> ":AMZN_MAPPED_" + cleanAttributeName(k) + "2";
 
@@ -57,10 +55,10 @@ public class BetweenConditional implements QueryConditional {
                                                + "of the items has a null sort key.");
         }
 
-        String partitionKeyToken = EXPRESSION_KEY_MAPPER.apply(queryConditionalKeyValues1.partitionKey());
-        String partitionValueToken = EXPRESSION_VALUE_KEY_MAPPER.apply(queryConditionalKeyValues1.partitionKey());
-        String sortKeyToken = EXPRESSION_KEY_MAPPER.apply(queryConditionalKeyValues1.sortKey());
-        String sortKeyValueToken1 = EXPRESSION_VALUE_KEY_MAPPER.apply(queryConditionalKeyValues1.sortKey());
+        String partitionKeyToken = EnhancedClientUtils.keyRef(queryConditionalKeyValues1.partitionKey());
+        String partitionValueToken = EnhancedClientUtils.valueRef(queryConditionalKeyValues1.partitionKey());
+        String sortKeyToken = EnhancedClientUtils.keyRef(queryConditionalKeyValues1.sortKey());
+        String sortKeyValueToken1 = EnhancedClientUtils.valueRef(queryConditionalKeyValues1.sortKey());
         String sortKeyValueToken2 = EXPRESSION_OTHER_VALUE_KEY_MAPPER.apply(queryConditionalKeyValues2.sortKey());
 
         String queryExpression = String.format("%s = %s AND %s BETWEEN %s AND %s",

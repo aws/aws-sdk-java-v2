@@ -204,6 +204,15 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
                                                                                           clientConfiguration);
 
             SdkHttpFullRequest marshalled = (SdkHttpFullRequest) finalizeSdkHttpRequestContext.httpRequest();
+
+            // Ensure that the signing configuration is still valid after the
+            // request has been potentially transformed.
+            try {
+                validateSigningConfiguration(marshalled, executionContext.signer());
+            } catch (Exception e) {
+                return CompletableFutureUtils.failedFuture(e);
+            }
+
             Optional<RequestBody> requestBody = finalizeSdkHttpRequestContext.requestBody();
 
             // For non-streaming requests, RequestBody can be modified in the interceptors. eg:

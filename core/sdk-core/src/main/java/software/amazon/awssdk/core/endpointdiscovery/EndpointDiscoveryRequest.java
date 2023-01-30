@@ -143,6 +143,7 @@ public final class EndpointDiscoveryRequest
             this.identifiers = request.identifiers;
             this.cacheKey = request.cacheKey;
             this.required = request.required;
+            this.defaultEndpoint = request.defaultEndpoint;
         }
 
         @Override

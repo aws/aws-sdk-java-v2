@@ -1,0 +1,72 @@
+{
+    "version": "2.17.270",
+    "date": "2022-09-08",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Common Runtime HTTP Client",
+            "contributor": "",
+            "description": "Adds support for Https proxy system properties: host, port, user, password"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaLive",
+            "contributor": "",
+            "description": "This change exposes API settings which allow Dolby Atmos and Dolby Vision to be used when running a channel using Elemental Media Live"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EMR Containers",
+            "contributor": "",
+            "description": "EMR on EKS now allows running Spark SQL using the newly introduced Spark SQL Job Driver in the Start Job Run API"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "This release adds support to send VPC Flow Logs to kinesis-data-firehose as new destination type"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lookout for Metrics",
+            "contributor": "",
+            "description": "Release dimension value filtering feature to allow customers to define dimension filters for including only a subset of their dataset to be used by LookoutMetrics."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Route 53",
+            "contributor": "",
+            "description": "Amazon Route 53 now supports the Middle East (UAE) Region (me-central-1) for latency records, geoproximity records, and private DNS for Amazon VPCs in that region."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "This release adds Mode to AutoMLJobConfig."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "contributor": "",
+            "description": "This release adds support for Systems Manager State Manager Association tagging."
+        },
+        {
+            "type": "feature",
+            "category": "Apache HTTP Client",
+            "contributor": "",
+            "description": "Adds support for Https proxy system properties: host, port, user, password"
+        },
+        {
+            "type": "feature",
+            "category": "Netty NIO HTTP Client",
+            "contributor": "",
+            "description": "Adds support for Https proxy system properties: host, port, user, password"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}

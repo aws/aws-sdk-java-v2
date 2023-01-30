@@ -36,6 +36,7 @@ import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumRequiredTrait;
 import software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumTrait;
+import software.amazon.awssdk.codegen.poet.client.traits.NoneAuthTypeRequestTrait;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
 import software.amazon.awssdk.codegen.poet.model.EventStreamSpecHelper;
 import software.amazon.awssdk.core.SdkPojoBuilder;
@@ -130,9 +131,12 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
                                                .add(".withMetricCollector(apiCallMetricCollector)\n" +
                                                     hostPrefixExpression(opModel) +
                                                     discoveredEndpoint(opModel))
+                                               .add(credentialType(opModel, model))
                                                .add(".withInput($L)", opModel.getInput().getVariableName())
                                                .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
-                                               .add(HttpChecksumTrait.create(opModel));
+                                               .add(HttpChecksumTrait.create(opModel))
+                                               .add(NoneAuthTypeRequestTrait.create(opModel));
+
 
         s3ArnableFields(opModel, model).ifPresent(codeBlock::add);
 
@@ -204,10 +208,12 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
         }
 
         builder.add(hostPrefixExpression(opModel))
+               .add(credentialType(opModel, model))
                .add(".withMetricCollector(apiCallMetricCollector)\n")
                .add(asyncRequestBody(opModel))
                .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
-               .add(HttpChecksumTrait.create(opModel));
+               .add(HttpChecksumTrait.create(opModel))
+               .add(NoneAuthTypeRequestTrait.create(opModel));
 
         s3ArnableFields(opModel, model).ifPresent(builder::add);
 

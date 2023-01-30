@@ -141,11 +141,25 @@ public class BeanTableSchemaTest {
     }
 
     @Test
+    public void transient_propertyIsIgnored() {
+        BeanTableSchema<IgnoredAttributeBean> beanTableSchema = BeanTableSchema.create(IgnoredAttributeBean.class);
+        IgnoredAttributeBean ignoredAttributeBean = new IgnoredAttributeBean();
+        ignoredAttributeBean.setId("id-value");
+        ignoredAttributeBean.setInteger2Attribute(123);
+
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(ignoredAttributeBean, false);
+
+        assertThat(itemMap.size(), is(1));
+        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
+    }
+
+    @Test
     public void setterAnnotations_alsoWork() {
         BeanTableSchema<SetterAnnotatedBean> beanTableSchema = BeanTableSchema.create(SetterAnnotatedBean.class);
         SetterAnnotatedBean setterAnnotatedBean = new SetterAnnotatedBean();
         setterAnnotatedBean.setId("id-value");
         setterAnnotatedBean.setIntegerAttribute(123);
+        setterAnnotatedBean.setInteger2Attribute(123);
 
         assertThat(beanTableSchema.tableMetadata().primaryPartitionKey(), is("id"));
 

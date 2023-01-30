@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.http.urlconnection;
 
+import static software.amazon.awssdk.http.Header.ACCEPT;
 import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
 import static software.amazon.awssdk.http.HttpStatusFamily.CLIENT_ERROR;
 import static software.amazon.awssdk.http.HttpStatusFamily.SERVER_ERROR;
@@ -60,6 +61,7 @@ import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.HttpStatusFamily;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
+import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.TlsKeyManagersProvider;
 import software.amazon.awssdk.http.TlsTrustManagersProvider;
@@ -148,10 +150,17 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
     }
 
     private HttpURLConnection createAndConfigureConnection(HttpExecuteRequest request) {
-        HttpURLConnection connection = connectionFactory.createConnection(request.httpRequest().getUri());
-        request.httpRequest()
-               .forEachHeader((key, values) -> values.forEach(value -> connection.setRequestProperty(key, value)));
-        invokeSafely(() -> connection.setRequestMethod(request.httpRequest().method().name()));
+        SdkHttpRequest sdkHttpRequest = request.httpRequest();
+        HttpURLConnection connection = connectionFactory.createConnection(sdkHttpRequest.getUri());
+        sdkHttpRequest.forEachHeader((key, values) -> values.forEach(value -> connection.setRequestProperty(key, value)));
+
+        if (!sdkHttpRequest.firstMatchingHeader(ACCEPT).isPresent()) {
+            // Override Accept header because the default one in JDK does not comply with RFC 7231
+            // See: https://bugs.openjdk.org/browse/JDK-8163921
+            connection.setRequestProperty(ACCEPT, "*/*");
+        }
+
+        invokeSafely(() -> connection.setRequestMethod(sdkHttpRequest.method().name()));
         if (request.contentStreamProvider().isPresent()) {
             connection.setDoOutput(true);
         }
@@ -160,8 +169,8 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
         // See: https://github.com/aws/aws-sdk-java-v2/issues/975
         connection.setInstanceFollowRedirects(false);
 
-        request.httpRequest().firstMatchingHeader(CONTENT_LENGTH).map(Long::parseLong)
-               .ifPresent(connection::setFixedLengthStreamingMode);
+        sdkHttpRequest.firstMatchingHeader(CONTENT_LENGTH).map(Long::parseLong)
+                      .ifPresent(connection::setFixedLengthStreamingMode);
 
         return connection;
     }
@@ -311,7 +320,9 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
         }
 
         private Optional<InputStream> tryGetInputStream() {
-            return getAndHandle100Bug(() -> invokeSafely(connection::getInputStream), true);
+            return responseHasNoContent()
+                   ? Optional.empty()
+                   : getAndHandle100Bug(() -> invokeSafely(connection::getInputStream), true);
         }
 
         private Optional<InputStream> tryGetErrorStream() {

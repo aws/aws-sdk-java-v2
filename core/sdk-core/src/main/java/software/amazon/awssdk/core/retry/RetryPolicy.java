@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.retry;
 import java.util.Objects;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ToBuilderIgnoreField;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.internal.retry.SdkDefaultRetrySetting;
 import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
@@ -182,6 +183,7 @@ public final class RetryPolicy implements ToCopyableBuilder<RetryPolicy.Builder,
     }
 
     @Override
+    @ToBuilderIgnoreField("retryMode")
     public Builder toBuilder() {
         return builder(retryMode).additionalRetryConditionsAllowed(additionalRetryConditionsAllowed)
                                  .numRetries(numRetries)

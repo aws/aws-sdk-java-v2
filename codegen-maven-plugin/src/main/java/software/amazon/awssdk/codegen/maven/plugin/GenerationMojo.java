@@ -32,6 +32,8 @@ import software.amazon.awssdk.codegen.C2jModels;
 import software.amazon.awssdk.codegen.CodeGenerator;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
+import software.amazon.awssdk.codegen.model.rules.endpoints.EndpointTestSuiteModel;
+import software.amazon.awssdk.codegen.model.service.EndpointRuleSetModel;
 import software.amazon.awssdk.codegen.model.service.Paginators;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Waiters;
@@ -47,6 +49,9 @@ public class GenerationMojo extends AbstractMojo {
     private static final String CUSTOMIZATION_CONFIG_FILE = "customization.config";
     private static final String WAITERS_FILE = "waiters-2.json";
     private static final String PAGINATORS_FILE = "paginators-1.json";
+    private static final String ENDPOINT_RULE_SET_FILE = "endpoint-rule-set.json";
+    private static final String ENDPOINT_TESTS_FILE = "endpoint-tests.json";
+
 
     @Parameter(property = "codeGenResources", defaultValue = "${basedir}/src/main/resources/codegen-resources/")
     private File codeGenResources;
@@ -61,11 +66,13 @@ public class GenerationMojo extends AbstractMojo {
     private MavenProject project;
 
     private Path sourcesDirectory;
+    private Path resourcesDirectory;
     private Path testsDirectory;
 
     @Override
     public void execute() throws MojoExecutionException {
         this.sourcesDirectory = Paths.get(outputDirectory).resolve("generated-sources").resolve("sdk");
+        this.resourcesDirectory = Paths.get(outputDirectory).resolve("generated-resources").resolve("sdk-resources");
         this.testsDirectory = Paths.get(outputDirectory).resolve("generated-test-sources").resolve("sdk-tests");
 
         findModelRoots().forEach(p -> {
@@ -76,6 +83,8 @@ public class GenerationMojo extends AbstractMojo {
                                   .serviceModel(loadServiceModel(modelRootPath))
                                   .waitersModel(loadWaiterModel(modelRootPath))
                                   .paginatorsModel(loadPaginatorModel(modelRootPath))
+                                  .endpointRuleSetModel(loadEndpointRuleSetModel(modelRootPath))
+                                  .endpointTestSuiteModel(loadEndpointTestSuiteModel(modelRootPath))
                                   .build());
         });
         project.addCompileSourceRoot(sourcesDirectory.toFile().getAbsolutePath());
@@ -105,6 +114,7 @@ public class GenerationMojo extends AbstractMojo {
         CodeGenerator.builder()
                      .models(models)
                      .sourcesDirectory(sourcesDirectory.toFile().getAbsolutePath())
+                     .resourcesDirectory(resourcesDirectory.toFile().getAbsolutePath())
                      .testsDirectory(testsDirectory.toFile().getAbsolutePath())
                      .intermediateModelFileNamePrefix(intermediateModelFileNamePrefix(models))
                      .build()
@@ -132,6 +142,14 @@ public class GenerationMojo extends AbstractMojo {
 
     private Paginators loadPaginatorModel(Path root) {
         return loadOptionalModel(Paginators.class, root.resolve(PAGINATORS_FILE)).orElse(Paginators.none());
+    }
+
+    private EndpointRuleSetModel loadEndpointRuleSetModel(Path root) {
+        return loadOptionalModel(EndpointRuleSetModel.class, root.resolve(ENDPOINT_RULE_SET_FILE)).orElse(null);
+    }
+
+    private EndpointTestSuiteModel loadEndpointTestSuiteModel(Path root) {
+        return loadOptionalModel(EndpointTestSuiteModel.class, root.resolve(ENDPOINT_TESTS_FILE)).orElse(null);
     }
 
     /**

@@ -15,5 +15,8 @@
 
 <FindbugsPlugin>
     <Detector class="software.amazon.awssdk.buildtools.findbugs.DisallowMethodCall" speed="fast" />
+    <Detector class="software.amazon.awssdk.buildtools.findbugs.ToBuilderIsCorrect" speed="fast" />
+
     <BugPattern abbrev="BM" type="SDK_BAD_METHOD_CALL" category="PERFORMANCE" />
+    <BugPattern abbrev="BTB" type="BAD_TO_BUILDER" category="BUG" />
 </FindbugsPlugin>

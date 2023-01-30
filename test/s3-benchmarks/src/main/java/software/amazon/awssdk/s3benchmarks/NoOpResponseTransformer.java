@@ -15,18 +15,17 @@
 
 package software.amazon.awssdk.s3benchmarks;
 
-import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
-import software.amazon.awssdk.http.async.SimpleSubscriber;
-import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
 /**
  * A no-op {@link AsyncResponseTransformer}
  */
-public class NoOpResponseTransformer implements AsyncResponseTransformer<GetObjectResponse, Void> {
+public class NoOpResponseTransformer<T> implements AsyncResponseTransformer<T, Void> {
     private CompletableFuture<Void> future;
 
     @Override
@@ -36,22 +35,48 @@ public class NoOpResponseTransformer implements AsyncResponseTransformer<GetObje
     }
 
     @Override
-    public void onResponse(GetObjectResponse response) {
+    public void onResponse(T response) {
+        // do nothing
     }
 
     @Override
     public void onStream(SdkPublisher<ByteBuffer> publisher) {
-        publisher.subscribe(new SimpleSubscriber(Buffer::clear) {
-            @Override
-            public void onComplete() {
-                super.onComplete();
-                future.complete(null);
-            }
-        });
+        publisher.subscribe(new NoOpSubscriber(future));
     }
 
     @Override
     public void exceptionOccurred(Throwable error) {
         future.completeExceptionally(error);
     }
+
+    static class NoOpSubscriber implements Subscriber<ByteBuffer> {
+        private final CompletableFuture<Void> future;
+        private Subscription subscription;
+
+        NoOpSubscriber(CompletableFuture<Void> future) {
+            this.future = future;
+        }
+
+        @Override
+        public void onSubscribe(Subscription s) {
+            this.subscription = s;
+            subscription.request(Long.MAX_VALUE);
+        }
+
+        @Override
+        public void onNext(ByteBuffer byteBuffer) {
+            subscription.request(1);
+        }
+
+        @Override
+        public void onError(Throwable throwable) {
+            future.completeExceptionally(throwable);
+        }
+
+        @Override
+        public void onComplete() {
+            future.complete(null);
+        }
+    }
+
 }

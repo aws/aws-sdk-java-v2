@@ -185,6 +185,16 @@
       "output":{"shape":"AllTypesStructure"},
       "httpChecksumRequired": true
     },
+    "OperationWithNoneAuthType":{
+      "name":"OperationWithNoneAuthType",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2016-03-11/allTypes"
+      },
+      "input":{"shape":"AllTypesStructure"},
+      "output":{"shape":"AllTypesStructure"},
+      "authtype": "none"
+    },
     "OperationWithRequestChecksumRequired":{
       "name":"OperationWithRequestChecksumRequired",
       "http":{
@@ -294,6 +304,14 @@
         "requestValidationModeMember": "ChecksumMode",
         "responseAlgorithms": ["CRC32C", "CRC32", "SHA1", "SHA256"]
       }
+    },
+    "QueryParameterOperation":{
+      "name":"QueryParameterOperation",
+      "http":{
+        "method":"DELETE",
+        "requestUri":"/2016-03-11/queryParameterOperation/{PathParam}"
+      },
+      "input":{"shape":"QueryParameterOperationRequest"}
     }
   },
   "shapes":{
@@ -889,6 +907,11 @@
           "location":"header",
           "locationName":"x-amz-checksum-mode"
         },
+        "ContentEncoding":{
+          "shape":"String",
+          "location":"header",
+          "locationName":"Content-Encoding"
+        },
         "ChecksumAlgorithm":{
           "shape":"ChecksumAlgorithm",
           "location":"header",
@@ -907,12 +930,83 @@
           "location":"header",
           "locationName":"x-amz-checksum-mode"
         },
+        "ContentEncoding":{
+          "shape":"String",
+          "location":"header",
+          "locationName":"Content-Encoding"
+        },
         "ChecksumAlgorithm":{
           "shape":"ChecksumAlgorithm",
           "location":"header",
           "locationName":"x-amz-checksum-algorithm"
         }
       }
+    },
+    "NestedQueryParameterOperation":{
+      "type":"structure",
+      "required":[
+        "QueryParamOne"
+      ],
+      "members":{
+        "QueryParamOne":{
+          "shape":"String",
+          "location":"querystring",
+          "locationName":"QueryParamOne"
+        },
+        "QueryParamTwo":{
+          "shape":"String",
+          "location":"querystring",
+          "locationName":"QueryParamTwo"
+        }
+      }
+    },
+    "QueryParameterOperationRequest":{
+      "type":"structure",
+      "required":[
+        "PathParam",
+        "QueryParamOne",
+        "StringHeaderMember",
+        "RequiredListQueryParams",
+        "RequiredMapQueryParams"
+      ],
+      "members":{
+        "PathParam":{
+          "shape":"String",
+          "location":"uri",
+          "locationName":"PathParam"
+        },
+        "QueryParamOne":{
+          "shape":"String",
+          "location":"querystring",
+          "locationName":"QueryParamOne"
+        },
+        "QueryParamTwo":{
+          "shape":"String",
+          "location":"querystring",
+          "locationName":"QueryParamTwo"
+        },
+        "StringHeaderMember":{
+          "shape":"String",
+          "location":"header",
+          "locationName":"x-amz-header-string"
+        },
+        "NestedQueryParameterOperation":{
+          "shape":"NestedQueryParameterOperation"
+        },
+        "RequiredListQueryParams":{
+          "shape":"ListOfIntegers",
+          "location":"querystring"
+        },
+        "OptionalListQueryParams":{
+          "shape":"ListOfStrings",
+          "location":"querystring"
+        },
+        "RequiredMapQueryParams":{
+          "shape":"MapOfStringToString",
+          "location":"querystring"
+        }
+      },
+      "payload":"NestedQueryParameterOperation"
     }
   }
 }

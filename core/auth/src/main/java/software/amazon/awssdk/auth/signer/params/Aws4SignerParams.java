@@ -31,6 +31,7 @@ import software.amazon.awssdk.utils.Validate;
 @SdkPublicApi
 public class Aws4SignerParams {
     private final Boolean doubleUrlEncode;
+    private final Boolean normalizePath;
     private final AwsCredentials awsCredentials;
     private final String signingName;
     private final Region signingRegion;
@@ -39,7 +40,8 @@ public class Aws4SignerParams {
     private final SignerChecksumParams checksumParams;
 
     Aws4SignerParams(BuilderImpl<?> builder) {
-        this.doubleUrlEncode = Validate.paramNotNull(builder.doubleUrlEncode, "Double Url encode");
+        this.doubleUrlEncode = Validate.paramNotNull(builder.doubleUrlEncode, "Double url encode");
+        this.normalizePath = Validate.paramNotNull(builder.normalizePath, "Normalize resource path");
         this.awsCredentials = Validate.paramNotNull(builder.awsCredentials, "Credentials");
         this.signingName = Validate.paramNotNull(builder.signingName, "service signing name");
         this.signingRegion = Validate.paramNotNull(builder.signingRegion, "signing region");
@@ -54,6 +56,10 @@ public class Aws4SignerParams {
 
     public Boolean doubleUrlEncode() {
         return doubleUrlEncode;
+    }
+
+    public Boolean normalizePath() {
+        return normalizePath;
     }
 
     public AwsCredentials awsCredentials() {
@@ -80,7 +86,7 @@ public class Aws4SignerParams {
         return checksumParams;
     }
 
-    public interface Builder<B extends Builder> {
+    public interface Builder<B extends Builder<B>> {
 
         /**
          * Set this value to double url-encode the resource path when constructing the
@@ -91,6 +97,14 @@ public class Aws4SignerParams {
          * @param doubleUrlEncode Set true to enable double url encoding. Otherwise false.
          */
         B doubleUrlEncode(Boolean doubleUrlEncode);
+
+        /**
+         * Whether the resource path should be "normalized" according to RFC3986 when
+         * constructing the canonical request.
+         *
+         * By default, all services except S3 enable resource path normalization.
+         */
+        B normalizePath(Boolean normalizePath);
 
         /**
          * Sets the aws credentials to use for computing the signature.
@@ -141,10 +155,11 @@ public class Aws4SignerParams {
         Aws4SignerParams build();
     }
 
-    protected static class BuilderImpl<B extends Builder> implements Builder<B> {
+    protected static class BuilderImpl<B extends Builder<B>> implements Builder<B> {
         private static final Boolean DEFAULT_DOUBLE_URL_ENCODE = Boolean.TRUE;
 
         private Boolean doubleUrlEncode = DEFAULT_DOUBLE_URL_ENCODE;
+        private Boolean normalizePath = Boolean.TRUE;
         private AwsCredentials awsCredentials;
         private String signingName;
         private Region signingRegion;
@@ -153,7 +168,17 @@ public class Aws4SignerParams {
         private SignerChecksumParams checksumParams;
 
         protected BuilderImpl() {
+        }
 
+        protected BuilderImpl(Aws4SignerParams params) {
+            doubleUrlEncode = params.doubleUrlEncode;
+            normalizePath = params.normalizePath;
+            awsCredentials = params.awsCredentials;
+            signingName = params.signingName;
+            signingRegion = params.signingRegion;
+            timeOffset = params.timeOffset;
+            signingClockOverride = params.signingClockOverride;
+            checksumParams = params.checksumParams;
         }
 
         @Override
@@ -164,6 +189,16 @@ public class Aws4SignerParams {
 
         public void setDoubleUrlEncode(Boolean doubleUrlEncode) {
             doubleUrlEncode(doubleUrlEncode);
+        }
+
+        @Override
+        public B normalizePath(Boolean normalizePath) {
+            this.normalizePath = normalizePath;
+            return (B) this;
+        }
+
+        public void setNormalizePath(Boolean normalizePath) {
+            normalizePath(normalizePath);
         }
 
         @Override

@@ -16,6 +16,7 @@
 package software.amazon.awssdk.codegen.model.service;
 
 import java.util.List;
+import java.util.Map;
 import software.amazon.awssdk.codegen.checksum.HttpChecksum;
 import software.amazon.awssdk.codegen.model.intermediate.EndpointDiscovery;
 
@@ -50,6 +51,8 @@ public class Operation {
     private boolean httpChecksumRequired;
 
     private HttpChecksum httpChecksum;
+
+    private Map<String, StaticContextParam> staticContextParams;
 
     public String getName() {
         return name;
@@ -184,5 +187,13 @@ public class Operation {
 
     public void setHttpChecksum(HttpChecksum httpChecksum) {
         this.httpChecksum = httpChecksum;
+    }
+
+    public Map<String, StaticContextParam> getStaticContextParams() {
+        return staticContextParams;
+    }
+
+    public void setStaticContextParams(Map<String, StaticContextParam> staticContextParams) {
+        this.staticContextParams = staticContextParams;
     }
 }

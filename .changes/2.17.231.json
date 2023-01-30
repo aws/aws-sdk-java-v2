@@ -1,0 +1,18 @@
+{
+    "version": "2.17.231",
+    "date": "2022-07-13",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "URL Connection Client",
+            "contributor": "",
+            "description": "Set the `Accept` header for `UrlConnectionHttpClient` because the default one does not comply with RFC 7231. See https://bugs.openjdk.org/browse/JDK-8163921"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon AppConfig",
+            "contributor": "",
+            "description": "Adding Create, Get, Update, Delete, and List APIs for new two new resources: Extensions and ExtensionAssociations."
+        }
+    ]
+}

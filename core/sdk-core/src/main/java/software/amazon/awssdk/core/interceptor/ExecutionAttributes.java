@@ -109,7 +109,7 @@ public class ExecutionAttributes implements ToCopyableBuilder<ExecutionAttribute
 
     @Override
     public Builder toBuilder() {
-        return builder().putAll(attributes);
+        return new ExecutionAttributes.Builder(this);
     }
 
     public ExecutionAttributes copy() {
@@ -168,6 +168,10 @@ public class ExecutionAttributes implements ToCopyableBuilder<ExecutionAttribute
         private final Map<ExecutionAttribute<?>, Object> executionAttributes = new HashMap<>();
 
         private Builder() {
+        }
+
+        private Builder(ExecutionAttributes attributes) {
+            this.executionAttributes.putAll(attributes.attributes);
         }
 
         /**

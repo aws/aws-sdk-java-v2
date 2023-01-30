@@ -1,0 +1,42 @@
+{
+    "version": "2.17.252",
+    "date": "2022-08-12",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Chime SDK Messaging",
+            "contributor": "",
+            "description": "The Amazon Chime SDK now supports channels with up to one million participants with elastic channels."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Interactive Video Service",
+            "contributor": "",
+            "description": "Updates various list api MaxResults ranges"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Personalize Runtime",
+            "contributor": "",
+            "description": "This release provides support for promotions in AWS Personalize runtime."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Prometheus Service",
+            "contributor": "",
+            "description": "This release adds log APIs that allow customers to manage logging for their Amazon Managed Service for Prometheus workspaces."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "Adds support for RDS Custom to DBInstanceClass in ModifyDBInstance"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}

@@ -215,6 +215,7 @@ public final class TestXmlNamespaceRequest extends ProtocolRestXmlRequest implem
          * This is a convenience method that creates an instance of the {@link XmlNamespaceMember.Builder} avoiding the
          * need to create one manually via {@link XmlNamespaceMember#builder()}.
          *
+         * <p>
          * When the {@link Consumer} completes, {@link XmlNamespaceMember.Builder#build()} is called immediately and its
          * result is passed to {@link #xmlNamespaceMember(XmlNamespaceMember)}.
          *

@@ -239,7 +239,7 @@ public abstract class SdkHttpClientTestSuite {
         validateResponse(rsp, returnCode, sdkHttpMethod);
     }
 
-    private void stubForMockRequest(int returnCode) {
+    protected void stubForMockRequest(int returnCode) {
         ResponseDefinitionBuilder responseBuilder = aResponse().withStatus(returnCode)
                                                                .withHeader("Some-Header", "With Value")
                                                                .withBody("hello");
@@ -277,7 +277,7 @@ public abstract class SdkHttpClientTestSuite {
         mockServer.resetMappings();
     }
 
-    private SdkHttpFullRequest mockSdkRequest(String uriString, SdkHttpMethod method) {
+    protected SdkHttpFullRequest mockSdkRequest(String uriString, SdkHttpMethod method) {
         URI uri = URI.create(uriString);
         SdkHttpFullRequest.Builder requestBuilder = SdkHttpFullRequest.builder()
                                                             .uri(uri)

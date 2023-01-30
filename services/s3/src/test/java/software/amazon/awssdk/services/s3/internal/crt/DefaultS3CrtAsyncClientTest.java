@@ -18,15 +18,17 @@ package software.amazon.awssdk.services.s3.internal.crt;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import software.amazon.awssdk.auth.signer.AwsS3V4Signer;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 
-public class DefaultS3CrtAsyncClientTest {
+class DefaultS3CrtAsyncClientTest {
 
     @Test
-    public void requestSignerOverrideProvided_shouldThrowException() {
+    void requestSignerOverrideProvided_shouldThrowException() {
         try (S3AsyncClient s3AsyncClient = S3CrtAsyncClient.builder().build()) {
             assertThatThrownBy(() -> s3AsyncClient.getObject(
                 b -> b.bucket("bucket").key("key").overrideConfiguration(o -> o.signer(AwsS3V4Signer.create())),
@@ -36,5 +38,19 @@ public class DefaultS3CrtAsyncClientTest {
                 b -> b.bucket("bucket").key("key").overrideConfiguration(o -> o.signer(AwsS3V4Signer.create())),
                 AsyncRequestBody.fromString("foobar")).join()).hasCauseInstanceOf(UnsupportedOperationException.class);
         }
+    }
+
+    @ParameterizedTest
+    @ValueSource(longs = {0, -1L})
+    void invalidConfig_shouldThrowException(long value) {
+
+        assertThatThrownBy(() -> S3AsyncClient.crtBuilder().maxConcurrency((int) value).build()).isInstanceOf(IllegalArgumentException.class)
+                                                                                                .hasMessageContaining("positive");
+        assertThatThrownBy(() -> S3AsyncClient.crtBuilder().initialReadBufferSizeInBytes(value).build()).isInstanceOf(IllegalArgumentException.class)
+                                                                                                        .hasMessageContaining(
+                                                                                                            "positive");
+        assertThatThrownBy(() -> S3AsyncClient.crtBuilder().minimumPartSizeInBytes(value).build()).isInstanceOf(IllegalArgumentException.class)
+                                                                                                  .hasMessageContaining(
+                                                                                                      "positive");
     }
 }

@@ -18,6 +18,7 @@ package software.amazon.awssdk.services.s3.internal.crt;
 
 import java.nio.charset.StandardCharsets;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
@@ -38,6 +39,11 @@ public final class CrtCredentialsProviderAdapter implements SdkAutoCloseable {
         this.credentialsProvider = credentialsProvider;
         this.crtCredentials = new DelegateCredentialsProvider.DelegateCredentialsProviderBuilder()
             .withHandler(() -> {
+
+                if (credentialsProvider instanceof AnonymousCredentialsProvider) {
+                    return Credentials.createAnonymousCredentials();
+                }
+
                 AwsCredentials sdkCredentials = credentialsProvider.resolveCredentials();
                 byte[] accessKey = sdkCredentials.accessKeyId().getBytes(StandardCharsets.UTF_8);
                 byte[] secreteKey = sdkCredentials.secretAccessKey().getBytes(StandardCharsets.UTF_8);
@@ -47,10 +53,10 @@ public final class CrtCredentialsProviderAdapter implements SdkAutoCloseable {
                     sessionTokens =
                         ((AwsSessionCredentials) sdkCredentials).sessionToken().getBytes(StandardCharsets.UTF_8);
                 }
-
                 return new Credentials(accessKey,
-                                       secreteKey,
-                                       sessionTokens);
+                                           secreteKey,
+                                           sessionTokens);
+
             }).build();
     }
 

@@ -1,0 +1,93 @@
+{
+    "testCases": [
+        {
+            "documentation": "test case 1",
+            "params": {
+                "region": "us-east-1"
+            },
+            "expect": {
+                "endpoint": {
+                    "url": "https://myservice.aws"
+                }
+            }
+        },
+        {
+            "documentation": "test case 2",
+            "params": {
+                "region": "us-east-1",
+                "booleanContextParam": true,
+                "stringContextParam": "this is a test"
+            },
+            "expect": {
+                "endpoint": {
+                    "url": "https://myservice.aws"
+                }
+            }
+        },
+        {
+            "documentation": "test case 3",
+            "params": {
+                "region": "us-east-1"
+            },
+            "operationInputs": [
+                {
+                    "operationName": "OperationWithContextParam",
+                    "operationParams": {
+                        "StringMember": "this is a test"
+                    }
+                }
+            ],
+            "expect": {
+                "endpoint": {
+                    "url": "https://myservice.aws"
+                }
+            }
+        },
+        {
+            "documentation": "test case 4",
+            "params": {
+                "region": "us-east-6"
+            },
+            "operationInputs": [
+                {
+                    "operationName": "OperationWithContextParam",
+                    "operationParams": {
+                        "StringMember": "this is a test"
+                    }
+                }
+            ],
+            "expect": {
+                "endpoint": {
+                    "url": "https://myservice.aws"
+                }
+            }
+        },
+        {
+            "documentation": "For region us-iso-west-1 with FIPS enabled and DualStack enabled",
+            "expect": {
+                "error": "Should have been skipped!"
+            },
+            "params": {
+            }
+        },
+        {
+            "documentation": "Has complex operation input",
+            "expect": {
+                "error": "Missing info"
+            },
+            "params": {
+            },
+            "operationInputs": [
+                {
+                    "operationName": "OperationWithContextParam",
+                    "operationParams": {
+                        "NestedMember": {
+                            "ChecksumMode": "foo"
+                        }
+                    }
+                }
+            ]
+        }
+    ],
+    "version": "1.0"
+}

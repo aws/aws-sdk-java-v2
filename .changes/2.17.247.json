@@ -1,0 +1,36 @@
+{
+    "version": "2.17.247",
+    "date": "2022-08-04",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Config",
+            "contributor": "",
+            "description": "Add resourceType enums for Athena, GlobalAccelerator, Detective and EC2 types"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Database Migration Service",
+            "contributor": "",
+            "description": "Documentation updates for Database Migration Service (DMS)."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT",
+            "contributor": "",
+            "description": "The release is to support attach a provisioning template to CACert for JITP function, Customer now doesn't have to hardcode a roleArn and templateBody during register a CACert to enable JITP."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Chime SDK Meetings",
+            "contributor": "",
+            "description": "Adds support for Tags on Amazon Chime SDK WebRTC sessions"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}

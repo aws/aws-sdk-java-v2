@@ -14,9 +14,11 @@
   -->
 
 <MessageCollection>
-
     <Detector class="software.amazon.awssdk.buildtools.findbugs.DisallowMethodCall" >
         <Details>This detector checks for method calls that are not allowed for use.</Details>
+    </Detector>
+    <Detector class="software.amazon.awssdk.buildtools.findbugs.ToBuilderIsCorrect" >
+        <Details>This detector checks for correct CopyableBuilder definition.</Details>
     </Detector>
 
     <BugPattern type="SDK_BAD_METHOD_CALL">
@@ -41,6 +43,11 @@
             ]]>
         </Details>
     </BugPattern>
+    <BugPattern type="BAD_TO_BUILDER">
+        <ShortDescription>Bad toBuilder implementation</ShortDescription>
+        <LongDescription>Bad toBuilder implementation. See the SpotBugs logs for problem details.</LongDescription>
+        <Details>Bad toBuilder implementation. See the SpotBugs logs for problem details.</Details>
+    </BugPattern>
 
-    <BugCode abbrev="BM">Bad method</BugCode>
+    <BugCode abbrev="BTB">Bad toBuilder implementation</BugCode>
 </MessageCollection>

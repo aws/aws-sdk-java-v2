@@ -40,6 +40,7 @@
       "output":{"shape":"CreateApplicationResponse"},
       "errors":[
         {"shape":"ValidationException"},
+        {"shape":"ResourceNotFoundException"},
         {"shape":"InternalServerException"},
         {"shape":"ConflictException"}
       ],
@@ -78,6 +79,22 @@
         {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Displays detailed information about a specified application.</p>"
+    },
+    "GetDashboardForJobRun":{
+      "name":"GetDashboardForJobRun",
+      "http":{
+        "method":"GET",
+        "requestUri":"/applications/{applicationId}/jobruns/{jobRunId}/dashboard",
+        "responseCode":200
+      },
+      "input":{"shape":"GetDashboardForJobRunRequest"},
+      "output":{"shape":"GetDashboardForJobRunResponse"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InternalServerException"}
+      ],
+      "documentation":"<p>Returns a URL to access the job run dashboard.</p>"
     },
     "GetJobRun":{
       "name":"GetJobRun",
@@ -271,7 +288,7 @@
         },
         "releaseLabel":{
           "shape":"ReleaseLabel",
-          "documentation":"<p>The EMR release version associated with the application.</p>"
+          "documentation":"<p>The EMR release associated with the application.</p>"
         },
         "type":{
           "shape":"EngineType",
@@ -316,6 +333,18 @@
         "networkConfiguration":{
           "shape":"NetworkConfiguration",
           "documentation":"<p>The network configuration for customer VPC connectivity for the application.</p>"
+        },
+        "architecture":{
+          "shape":"Architecture",
+          "documentation":"<p>The CPU architecture of an application.</p>"
+        },
+        "imageConfiguration":{
+          "shape":"ImageConfiguration",
+          "documentation":"<p>The image configuration applied to all worker types.</p>"
+        },
+        "workerTypeSpecifications":{
+          "shape":"WorkerTypeSpecificationMap",
+          "documentation":"<p>The specification applied to each worker type.</p>"
         }
       },
       "documentation":"<p>Information about an application. EMR Serverless uses applications to run jobs.</p>"
@@ -386,7 +415,7 @@
         },
         "releaseLabel":{
           "shape":"ReleaseLabel",
-          "documentation":"<p>The EMR release version associated with the application.</p>"
+          "documentation":"<p>The EMR release associated with the application.</p>"
         },
         "type":{
           "shape":"EngineType",
@@ -407,9 +436,20 @@
         "updatedAt":{
           "shape":"Date",
           "documentation":"<p>The date and time when the application was last updated.</p>"
+        },
+        "architecture":{
+          "shape":"Architecture",
+          "documentation":"<p>The CPU architecture of an application.</p>"
         }
       },
       "documentation":"<p>The summary of attributes associated with an application.</p>"
+    },
+    "Architecture":{
+      "type":"string",
+      "enum":[
+        "ARM64",
+        "X86_64"
+      ]
     },
     "AutoStartConfig":{
       "type":"structure",
@@ -430,8 +470,7 @@
         },
         "idleTimeoutMinutes":{
           "shape":"AutoStopConfigIdleTimeoutMinutesInteger",
-          "documentation":"<p>The amount of idle time in minutes after which your application will automatically stop. Defaults to 15 minutes.</p>",
-          "box":true
+          "documentation":"<p>The amount of idle time in minutes after which your application will automatically stop. Defaults to 15 minutes.</p>"
         }
       },
       "documentation":"<p>The configuration for an application to automatically stop after a certain amount of time being idle.</p>"
@@ -562,7 +601,7 @@
         },
         "releaseLabel":{
           "shape":"ReleaseLabel",
-          "documentation":"<p>The EMR release version associated with the application.</p>"
+          "documentation":"<p>The EMR release associated with the application.</p>"
         },
         "type":{
           "shape":"EngineType",
@@ -596,6 +635,18 @@
         "networkConfiguration":{
           "shape":"NetworkConfiguration",
           "documentation":"<p>The network configuration for customer VPC connectivity.</p>"
+        },
+        "architecture":{
+          "shape":"Architecture",
+          "documentation":"<p>The CPU architecture of an application.</p>"
+        },
+        "imageConfiguration":{
+          "shape":"ImageConfigurationInput",
+          "documentation":"<p>The image configuration for all worker types. You can either set this parameter or <code>imageConfiguration</code> for each worker type in <code>workerTypeSpecifications</code>.</p>"
+        },
+        "workerTypeSpecifications":{
+          "shape":"WorkerTypeSpecificationInputMap",
+          "documentation":"<p>The key-value pairs that specify worker type to <code>WorkerTypeSpecificationInput</code>. This parameter must contain all valid worker types for a Spark or Hive application. Valid worker types include <code>Driver</code> and <code>Executor</code> for Spark applications and <code>HiveDriver</code> and <code>TezTask</code> for Hive applications. You can either set image details in this parameter for each worker type, or in <code>imageConfiguration</code> for all worker types.</p>"
         }
       }
     },
@@ -704,6 +755,36 @@
         }
       }
     },
+    "GetDashboardForJobRunRequest":{
+      "type":"structure",
+      "required":[
+        "applicationId",
+        "jobRunId"
+      ],
+      "members":{
+        "applicationId":{
+          "shape":"ApplicationId",
+          "documentation":"<p>The ID of the application.</p>",
+          "location":"uri",
+          "locationName":"applicationId"
+        },
+        "jobRunId":{
+          "shape":"JobRunId",
+          "documentation":"<p>The ID of the job run.</p>",
+          "location":"uri",
+          "locationName":"jobRunId"
+        }
+      }
+    },
+    "GetDashboardForJobRunResponse":{
+      "type":"structure",
+      "members":{
+        "url":{
+          "shape":"Url",
+          "documentation":"<p>The URL to view job run's dashboard.</p>"
+        }
+      }
+    },
     "GetJobRunRequest":{
       "type":"structure",
       "required":[
@@ -766,6 +847,43 @@
       "max":2048,
       "min":20,
       "pattern":"arn:(aws[a-zA-Z0-9-]*):iam::(\\d{12})?:(role((\\u002F)|(\\u002F[\\u0021-\\u007F]+\\u002F))[\\w+=,.@-]+)"
+    },
+    "ImageConfiguration":{
+      "type":"structure",
+      "required":["imageUri"],
+      "members":{
+        "imageUri":{
+          "shape":"ImageUri",
+          "documentation":"<p>The image URI.</p>"
+        },
+        "resolvedImageDigest":{
+          "shape":"ImageDigest",
+          "documentation":"<p>The SHA256 digest of the image URI. This indicates which specific image the application is configured for. The image digest doesn't exist until an application has started.</p>"
+        }
+      },
+      "documentation":"<p>The applied image configuration.</p>"
+    },
+    "ImageConfigurationInput":{
+      "type":"structure",
+      "members":{
+        "imageUri":{
+          "shape":"ImageUri",
+          "documentation":"<p>The URI of an image in the Amazon ECR registry. This field is required when you create a new application. If you leave this field blank in an update, Amazon EMR will remove the image configuration.</p>"
+        }
+      },
+      "documentation":"<p>The image configuration.</p>"
+    },
+    "ImageDigest":{
+      "type":"string",
+      "documentation":"<p>Image Digest</p>",
+      "pattern":"sha256:[0-9a-f]{64}"
+    },
+    "ImageUri":{
+      "type":"string",
+      "documentation":"<p>Image URI</p>",
+      "max":1024,
+      "min":1,
+      "pattern":"([a-z0-9]+[a-z0-9-.]*)\\/((?:[a-z0-9]+(?:[._-][a-z0-9]+)*\\/)*[a-z0-9]+(?:[._-][a-z0-9]+)*)(?:\\:([a-zA-Z0-9_][a-zA-Z0-9-._]{0,299})|@(sha256:[0-9a-f]{64}))"
     },
     "InitScriptPath":{
       "type":"string",
@@ -890,7 +1008,7 @@
         },
         "releaseLabel":{
           "shape":"ReleaseLabel",
-          "documentation":"<p>The EMR release version associated with the application your job is running on.</p>"
+          "documentation":"<p>The EMR release associated with the application your job is running on.</p>"
         },
         "configurationOverrides":{
           "shape":"ConfigurationOverrides",
@@ -998,7 +1116,7 @@
         },
         "releaseLabel":{
           "shape":"ReleaseLabel",
-          "documentation":"<p>The EMR release version associated with the application your job is running on.</p>"
+          "documentation":"<p>The EMR release associated with the application your job is running on.</p>"
         },
         "type":{
           "shape":"JobRunType",
@@ -1024,7 +1142,6 @@
         "maxResults":{
           "shape":"ListApplicationsRequestMaxResultsInteger",
           "documentation":"<p>The maximum number of applications that can be listed.</p>",
-          "box":true,
           "location":"querystring",
           "locationName":"maxResults"
         },
@@ -1075,7 +1192,6 @@
         "maxResults":{
           "shape":"ListJobRunsRequestMaxResultsInteger",
           "documentation":"<p>The maximum number of job runs that can be listed.</p>",
-          "box":true,
           "location":"querystring",
           "locationName":"maxResults"
         },
@@ -1580,7 +1696,19 @@
           "shape":"AutoStopConfig",
           "documentation":"<p>The configuration for an application to automatically stop after a certain amount of time being idle.</p>"
         },
-        "networkConfiguration":{"shape":"NetworkConfiguration"}
+        "networkConfiguration":{"shape":"NetworkConfiguration"},
+        "architecture":{
+          "shape":"Architecture",
+          "documentation":"<p>The CPU architecture of an application.</p>"
+        },
+        "imageConfiguration":{
+          "shape":"ImageConfigurationInput",
+          "documentation":"<p>The image configuration to be used for all worker types. You can either set this parameter or <code>imageConfiguration</code> for each worker type in <code>WorkerTypeSpecificationInput</code>.</p>"
+        },
+        "workerTypeSpecifications":{
+          "shape":"WorkerTypeSpecificationInputMap",
+          "documentation":"<p>The key-value pairs that specify worker type to <code>WorkerTypeSpecificationInput</code>. This parameter must contain all valid worker types for a Spark or Hive application. Valid worker types include <code>Driver</code> and <code>Executor</code> for Spark applications and <code>HiveDriver</code> and <code>TezTask</code> for Hive applications. You can either set image details in this parameter for each worker type, or in <code>imageConfiguration</code> for all worker types.</p>"
+        }
       }
     },
     "UpdateApplicationResponse":{
@@ -1598,6 +1726,11 @@
       "max":10280,
       "min":1,
       "pattern":".*[\\u0020-\\uD7FF\\uE000-\\uFFFD\\uD800\\uDBFF-\\uDC00\\uDFFF\\r\\n\\t]*.*"
+    },
+    "Url":{
+      "type":"string",
+      "max":2048,
+      "min":1
     },
     "ValidationException":{
       "type":"structure",
@@ -1638,6 +1771,36 @@
         }
       },
       "documentation":"<p>The cumulative configuration requirements for every worker instance of the worker type.</p>"
+    },
+    "WorkerTypeSpecification":{
+      "type":"structure",
+      "members":{
+        "imageConfiguration":{
+          "shape":"ImageConfiguration",
+          "documentation":"<p>The image configuration for a worker type.</p>"
+        }
+      },
+      "documentation":"<p>The specifications for a worker type.</p>"
+    },
+    "WorkerTypeSpecificationInput":{
+      "type":"structure",
+      "members":{
+        "imageConfiguration":{
+          "shape":"ImageConfigurationInput",
+          "documentation":"<p>The image configuration for a worker type.</p>"
+        }
+      },
+      "documentation":"<p>The specifications for a worker type.</p>"
+    },
+    "WorkerTypeSpecificationInputMap":{
+      "type":"map",
+      "key":{"shape":"WorkerTypeString"},
+      "value":{"shape":"WorkerTypeSpecificationInput"}
+    },
+    "WorkerTypeSpecificationMap":{
+      "type":"map",
+      "key":{"shape":"WorkerTypeString"},
+      "value":{"shape":"WorkerTypeSpecification"}
     },
     "WorkerTypeString":{
       "type":"string",

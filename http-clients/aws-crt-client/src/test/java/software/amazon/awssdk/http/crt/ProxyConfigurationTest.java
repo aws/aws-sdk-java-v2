@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URI;
 import java.util.Random;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterAll;
@@ -46,13 +47,13 @@ public class ProxyConfigurationTest {
     }
 
     @Test
-    public void build_setsAllProperties() {
+    void build_setsAllProperties() {
         verifyAllPropertiesSet(allPropertiesSetConfig());
     }
 
     @Test
-    public void build_systemPropertyDefault() {
-        setProxyProperties();
+    void build_systemPropertyDefault_Http() {
+        setHttpProxyProperties();
         ProxyConfiguration config = ProxyConfiguration.builder().build();
 
         assertThat(config.host()).isEqualTo(TEST_HOST);
@@ -63,8 +64,22 @@ public class ProxyConfigurationTest {
     }
 
     @Test
-    public void build_systemPropertyEnabled() {
-        setProxyProperties();
+    void build_systemPropertyDefault_Https() {
+        setHttpsProxyProperties();
+        ProxyConfiguration config = ProxyConfiguration.builder()
+                                                      .scheme("https")
+                                                      .build();
+
+        assertThat(config.host()).isEqualTo(TEST_HOST);
+        assertThat(config.port()).isEqualTo(TEST_PORT);
+        assertThat(config.username()).isEqualTo(TEST_USER);
+        assertThat(config.password()).isEqualTo(TEST_PASSWORD);
+        assertThat(config.scheme()).isEqualTo("https");
+    }
+
+    @Test
+    void build_systemPropertyEnabled_Http() {
+        setHttpProxyProperties();
         ProxyConfiguration config = ProxyConfiguration.builder().useSystemPropertyValues(Boolean.TRUE).build();
 
         assertThat(config.host()).isEqualTo(TEST_HOST);
@@ -75,8 +90,22 @@ public class ProxyConfigurationTest {
     }
 
     @Test
-    public void build_systemPropertyDisabled() {
-        setProxyProperties();
+    void build_systemPropertyEnabled_Https() {
+        setHttpsProxyProperties();
+        ProxyConfiguration config = ProxyConfiguration.builder()
+                                                      .scheme("https")
+                                                      .useSystemPropertyValues(Boolean.TRUE).build();
+
+        assertThat(config.host()).isEqualTo(TEST_HOST);
+        assertThat(config.port()).isEqualTo(TEST_PORT);
+        assertThat(config.username()).isEqualTo(TEST_USER);
+        assertThat(config.password()).isEqualTo(TEST_PASSWORD);
+        assertThat(config.scheme()).isEqualTo("https");
+    }
+
+    @Test
+    void build_systemPropertyDisabled() {
+        setHttpProxyProperties();
         ProxyConfiguration config = ProxyConfiguration.builder()
                                                       .host("localhost")
                                                       .port(8888)
@@ -92,8 +121,8 @@ public class ProxyConfigurationTest {
     }
 
     @Test
-    public void build_systemPropertyOverride() {
-        setProxyProperties();
+    void build_systemPropertyOverride() {
+        setHttpProxyProperties();
         ProxyConfiguration config = ProxyConfiguration.builder()
                                                       .host("localhost")
                                                       .port(8888)
@@ -109,7 +138,7 @@ public class ProxyConfigurationTest {
     }
 
     @Test
-    public void toBuilder_roundTrip_producesExactCopy() {
+    void toBuilder_roundTrip_producesExactCopy() {
         ProxyConfiguration original = allPropertiesSetConfig();
 
         ProxyConfiguration copy = original.toBuilder().build();
@@ -118,7 +147,7 @@ public class ProxyConfigurationTest {
     }
 
     @Test
-    public void toBuilderModified_doesNotModifySource() {
+    void toBuilderModified_doesNotModifySource() {
         ProxyConfiguration original = allPropertiesSetConfig();
 
         ProxyConfiguration modified = setAllPropertiesToRandomValues(original.toBuilder()).build();
@@ -186,11 +215,18 @@ public class ProxyConfigurationTest {
         return sb.toString();
     }
 
-    private void setProxyProperties() {
+    private void setHttpProxyProperties() {
         System.setProperty("http.proxyHost", TEST_HOST);
         System.setProperty("http.proxyPort", Integer.toString(TEST_PORT));
         System.setProperty("http.proxyUser", TEST_USER);
         System.setProperty("http.proxyPassword", TEST_PASSWORD);
+    }
+
+    private void setHttpsProxyProperties() {
+        System.setProperty("https.proxyHost", TEST_HOST);
+        System.setProperty("https.proxyPort", Integer.toString(TEST_PORT));
+        System.setProperty("https.proxyUser", TEST_USER);
+        System.setProperty("https.proxyPassword", TEST_PASSWORD);
     }
 
     private static void clearProxyProperties() {
@@ -198,5 +234,10 @@ public class ProxyConfigurationTest {
         System.clearProperty("http.proxyPort");
         System.clearProperty("http.proxyUser");
         System.clearProperty("http.proxyPassword");
+
+        System.clearProperty("https.proxyHost");
+        System.clearProperty("https.proxyPort");
+        System.clearProperty("https.proxyUser");
+        System.clearProperty("https.proxyPassword");
     }
 }

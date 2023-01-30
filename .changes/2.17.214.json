@@ -1,0 +1,36 @@
+{
+    "version": "2.17.214",
+    "date": "2022-06-17",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AmazonConnectCampaignService",
+            "contributor": "",
+            "description": "Added Amazon Connect high volume outbound communications SDK."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "This release updates these APIs: UpdateInstanceAttribute, DescribeInstanceAttribute and ListInstanceAttributes. You can use it to programmatically enable/disable High volume outbound communications using attribute type HIGH_VOLUME_OUTBOUND on the specified Amazon Connect instance."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB",
+            "contributor": "",
+            "description": "Doc only update for DynamoDB service"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB Streams",
+            "contributor": "",
+            "description": "Doc only update for DynamoDB service"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}

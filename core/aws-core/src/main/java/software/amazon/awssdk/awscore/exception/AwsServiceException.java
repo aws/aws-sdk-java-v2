@@ -70,7 +70,11 @@ public class AwsServiceException extends SdkServiceException {
             if (extendedRequestId() != null) {
                 details.add("Extended Request ID: " + extendedRequestId());
             }
-            return awsErrorDetails().errorMessage() + " " + details;
+            String message = super.getMessage();
+            if (message == null) {
+                message = awsErrorDetails().errorMessage();
+            }
+            return message + " " + details;
         }
 
         return super.getMessage();
@@ -231,6 +235,12 @@ public class AwsServiceException extends SdkServiceException {
         @Override
         public Builder cause(Throwable cause) {
             this.cause = cause;
+            return this;
+        }
+
+        @Override
+        public Builder writableStackTrace(Boolean writableStackTrace) {
+            this.writableStackTrace = writableStackTrace;
             return this;
         }
 

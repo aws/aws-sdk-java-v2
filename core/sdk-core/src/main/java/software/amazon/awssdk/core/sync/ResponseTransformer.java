@@ -172,7 +172,7 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
         return (response, inputStream) -> {
             try {
                 InterruptMonitor.checkInterrupted();
-                return ResponseBytes.fromByteArray(response, IoUtils.toByteArray(inputStream));
+                return ResponseBytes.fromByteArrayUnsafe(response, IoUtils.toByteArray(inputStream));
             } catch (IOException e) {
                 throw RetryableException.builder().message("Failed to read response.").cause(e).build();
             }

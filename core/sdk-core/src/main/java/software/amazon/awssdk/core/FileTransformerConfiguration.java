@@ -101,8 +101,7 @@ public final class FileTransformerConfiguration implements ToCopyableBuilder<Fil
 
     @Override
     public Builder toBuilder() {
-        return new DefaultBuilder().fileWriteOption(fileWriteOption)
-                                   .failureBehavior(failureBehavior);
+        return new DefaultBuilder(this);
     }
 
     @Override
@@ -187,6 +186,14 @@ public final class FileTransformerConfiguration implements ToCopyableBuilder<Fil
     private static class DefaultBuilder implements Builder {
         private FileWriteOption fileWriteOption;
         private FailureBehavior failureBehavior;
+
+        private DefaultBuilder() {
+        }
+
+        private DefaultBuilder(FileTransformerConfiguration fileTransformerConfiguration) {
+            this.fileWriteOption = fileTransformerConfiguration.fileWriteOption;
+            this.failureBehavior = fileTransformerConfiguration.failureBehavior;
+        }
 
         @Override
         public Builder fileWriteOption(FileWriteOption fileWriteOption) {

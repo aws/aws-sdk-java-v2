@@ -20,6 +20,8 @@ import software.amazon.awssdk.auth.credentials.internal.LazyAwsCredentialsProvid
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.ToString;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * AWS credentials provider chain that looks for credentials in this order:
@@ -41,16 +43,30 @@ import software.amazon.awssdk.utils.ToString;
  * @see InstanceProfileCredentialsProvider
  */
 @SdkPublicApi
-public final class DefaultCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
+public final class DefaultCredentialsProvider
+    implements AwsCredentialsProvider, SdkAutoCloseable,
+               ToCopyableBuilder<DefaultCredentialsProvider.Builder, DefaultCredentialsProvider> {
 
     private static final DefaultCredentialsProvider DEFAULT_CREDENTIALS_PROVIDER = new DefaultCredentialsProvider(builder());
 
     private final LazyAwsCredentialsProvider providerChain;
 
+    private final ProfileFile profileFile;
+
+    private final String profileName;
+
+    private final Boolean reuseLastProviderEnabled;
+
+    private final Boolean asyncCredentialUpdateEnabled;
+
     /**
      * @see #builder()
      */
     private DefaultCredentialsProvider(Builder builder) {
+        this.profileFile = builder.profileFile;
+        this.profileName = builder.profileName;
+        this.reuseLastProviderEnabled = builder.reuseLastProviderEnabled;
+        this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
         this.providerChain = createChain(builder);
     }
 
@@ -119,10 +135,15 @@ public final class DefaultCredentialsProvider implements AwsCredentialsProvider,
                        .build();
     }
 
+    @Override
+    public Builder toBuilder() {
+        return new Builder(this);
+    }
+
     /**
      * Configuration that defines the {@link DefaultCredentialsProvider}'s behavior.
      */
-    public static final class Builder {
+    public static final class Builder implements CopyableBuilder<Builder, DefaultCredentialsProvider> {
         private ProfileFile profileFile;
         private String profileName;
         private Boolean reuseLastProviderEnabled = true;
@@ -132,6 +153,13 @@ public final class DefaultCredentialsProvider implements AwsCredentialsProvider,
          * Created with {@link #builder()}.
          */
         private Builder() {
+        }
+
+        private Builder(DefaultCredentialsProvider credentialsProvider) {
+            this.profileFile = credentialsProvider.profileFile;
+            this.profileName = credentialsProvider.profileName;
+            this.reuseLastProviderEnabled = credentialsProvider.reuseLastProviderEnabled;
+            this.asyncCredentialUpdateEnabled = credentialsProvider.asyncCredentialUpdateEnabled;
         }
 
         public Builder profileFile(ProfileFile profileFile) {

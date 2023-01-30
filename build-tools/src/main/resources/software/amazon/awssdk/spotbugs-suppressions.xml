@@ -207,7 +207,14 @@
     </Match>
 
     <Match>
-        <Class name="software.amazon.awssdk.http.crt.internal.AwsCrtResponseBodyPublisher" />
+        <Class name="software.amazon.awssdk.utils.async.StoringSubscriber"/>
+        <Method name="drop"/>
+        <Bug pattern="RV_RETURN_VALUE_IGNORED"/>
+    </Match>
+
+
+    <Match>
+        <Class name="software.amazon.awssdk.http.crt.internal.response.CrtResponseBodyPublisher" />
         <Method name="subscribe"/>
         <Bug pattern="SIC_INNER_SHOULD_BE_STATIC_ANON"/>
     </Match>
@@ -218,6 +225,12 @@
         <Method name="execute"/>
         <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
     </Match>
+    <Match>
+        <Class name="software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient"/>
+        <Method name="&lt;init&gt;"/>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
+    </Match>
+
 
     <!-- For forward-compatibility with this having members (i.e. the checksum type) -->
     <Match>
@@ -238,5 +251,19 @@
             <Class name="software.amazon.awssdk.http.SdkHttpRequest"/>
         </Or>
         <Bug pattern="SDK_BAD_METHOD_CALL"/>
+    </Match>
+
+    <!-- False positive on JDK 11+ -->
+    <Match>
+        <Class name="software.amazon.awssdk.transfer.s3.model.ResumableFileDownload"/>
+        <Method name="fromFile"/>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
+    </Match>
+
+    <!-- False positive on JDK 11+ -->
+    <Match>
+        <Class name="software.amazon.awssdk.transfer.s3.model.ResumableFileUpload"/>
+        <Method name="fromFile"/>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
     </Match>
 </FindBugsFilter>

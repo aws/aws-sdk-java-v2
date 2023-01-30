@@ -21,6 +21,14 @@
       },
       "httpChecksumRequired": true
     },
+    "OperationWithNoneAuthType": {
+      "name": "NoneAuthTypeOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "authtype": "none"
+    },
     "APostOperation": {
       "name": "APostOperation",
       "http": {
@@ -59,6 +67,17 @@
         }
       ],
       "documentation": "<p>Performs a post operation to the xml service and has modelled output</p>"
+    },
+    "BearerAuthOperation": {
+      "name": "BearerAuthOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {
+        "shape": "BearerAuthOperationRequest"
+      },
+      "authtype": "bearer"
     },
     "StreamingInputOperation": {
       "name": "StreamingInputOperation",
@@ -336,6 +355,11 @@
         }
       },
       "event": true
+    },
+    "BearerAuthOperationRequest": {
+      "type": "structure",
+      "members": {
+      }
     }
   },
   "documentation": "A service that is implemented using the xml protocol"

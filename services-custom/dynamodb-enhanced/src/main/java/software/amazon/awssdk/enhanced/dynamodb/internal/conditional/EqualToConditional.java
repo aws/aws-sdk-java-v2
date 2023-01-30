@@ -16,27 +16,22 @@
 package software.amazon.awssdk.enhanced.dynamodb.internal.conditional;
 
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.nullAttributeValue;
-import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.cleanAttributeName;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.isNullAttributeValue;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.UnaryOperator;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 @SdkInternalApi
 public class EqualToConditional implements QueryConditional {
-    private static final UnaryOperator<String> EXPRESSION_KEY_MAPPER =
-        k -> "#AMZN_MAPPED_" + cleanAttributeName(k);
-    private static final UnaryOperator<String> EXPRESSION_VALUE_KEY_MAPPER =
-        k -> ":AMZN_MAPPED_" + cleanAttributeName(k);
 
     private final Key key;
 
@@ -77,8 +72,8 @@ public class EqualToConditional implements QueryConditional {
     private Expression partitionOnlyExpression(String partitionKey,
                                                AttributeValue partitionValue) {
 
-        String partitionKeyToken = EXPRESSION_KEY_MAPPER.apply(partitionKey);
-        String partitionKeyValueToken = EXPRESSION_VALUE_KEY_MAPPER.apply(partitionKey);
+        String partitionKeyToken = EnhancedClientUtils.keyRef(partitionKey);
+        String partitionKeyValueToken = EnhancedClientUtils.valueRef(partitionKey);
         String queryExpression = String.format("%s = %s", partitionKeyToken, partitionKeyValueToken);
 
         return Expression.builder()
@@ -99,10 +94,10 @@ public class EqualToConditional implements QueryConditional {
             return partitionOnlyExpression(partitionKey, partitionValue);
         }
 
-        String partitionKeyToken = EXPRESSION_KEY_MAPPER.apply(partitionKey);
-        String partitionKeyValueToken = EXPRESSION_VALUE_KEY_MAPPER.apply(partitionKey);
-        String sortKeyToken = EXPRESSION_KEY_MAPPER.apply(sortKey);
-        String sortKeyValueToken = EXPRESSION_VALUE_KEY_MAPPER.apply(sortKey);
+        String partitionKeyToken = EnhancedClientUtils.keyRef(partitionKey);
+        String partitionKeyValueToken = EnhancedClientUtils.valueRef(partitionKey);
+        String sortKeyToken = EnhancedClientUtils.keyRef(sortKey);
+        String sortKeyValueToken = EnhancedClientUtils.valueRef(sortKey);
 
         String queryExpression = String.format("%s = %s AND %s = %s",
                                                partitionKeyToken,

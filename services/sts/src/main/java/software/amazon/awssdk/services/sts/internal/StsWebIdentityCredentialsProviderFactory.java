@@ -15,20 +15,13 @@
 
 package software.amazon.awssdk.services.sts.internal;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UncheckedIOException;
 import java.net.URI;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.WebIdentityTokenCredentialsProviderFactory;
 import software.amazon.awssdk.auth.credentials.internal.WebIdentityTokenCredentialProperties;
-import software.amazon.awssdk.core.retry.RetryPolicyContext;
 import software.amazon.awssdk.core.retry.conditions.OrRetryCondition;
 import software.amazon.awssdk.core.retry.conditions.RetryCondition;
 import software.amazon.awssdk.profiles.Profile;
@@ -67,8 +60,9 @@ public final class StsWebIdentityCredentialsProviderFactory implements WebIdenti
             String roleSessionName = credentialProperties.roleSessionName();
             String sessionName = roleSessionName != null ? roleSessionName : "aws-sdk-java-" + System.currentTimeMillis();
 
-            OrRetryCondition retryCondition = OrRetryCondition.create(new StsRetryCondition(),
-                                                                      RetryCondition.defaultRetryCondition());
+            OrRetryCondition retryCondition =
+                OrRetryCondition.create(context -> context.exception() instanceof IdpCommunicationErrorException,
+                                        RetryCondition.defaultRetryCondition());
 
             this.stsClient = StsClient.builder()
                                       .applyMutation(this::configureEndpoint)
@@ -82,8 +76,10 @@ public final class StsWebIdentityCredentialsProviderFactory implements WebIdenti
                                                                                        .build();
 
             AssumeRoleWithWebIdentityRequestSupplier supplier =
-                new AssumeRoleWithWebIdentityRequestSupplier(request,
-                                                             credentialProperties.webIdentityTokenFile());
+                AssumeRoleWithWebIdentityRequestSupplier.builder()
+                                                        .assumeRoleWithWebIdentityRequest(request)
+                                                        .webIdentityTokenFile(credentialProperties.webIdentityTokenFile())
+                                                        .build();
 
             this.credentialsProvider =
                 StsAssumeRoleWithWebIdentityCredentialsProvider.builder()
@@ -117,40 +113,6 @@ public final class StsWebIdentityCredentialsProviderFactory implements WebIdenti
                 stsClientBuilder.region(Region.US_EAST_1);
                 stsClientBuilder.endpointOverride(URI.create("https://sts.amazonaws.com"));
             }
-        }
-    }
-
-    private static final class AssumeRoleWithWebIdentityRequestSupplier implements Supplier {
-
-        private final AssumeRoleWithWebIdentityRequest request;
-        private final Path webIdentityTokenFile;
-
-        AssumeRoleWithWebIdentityRequestSupplier(AssumeRoleWithWebIdentityRequest request,
-                                                 Path webIdentityTokenFile) {
-            this.request = request;
-            this.webIdentityTokenFile = webIdentityTokenFile;
-        }
-
-        @Override
-        public Object get() {
-            return request.toBuilder().webIdentityToken(getToken(webIdentityTokenFile)).build();
-        }
-
-        private String getToken(Path file) {
-            try (InputStream webIdentityTokenStream = Files.newInputStream(file)) {
-                return IoUtils.toUtf8String(webIdentityTokenStream);
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
-        }
-    }
-
-
-    private static final class StsRetryCondition implements RetryCondition {
-
-        @Override
-        public boolean shouldRetry(RetryPolicyContext context) {
-            return context.exception() instanceof IdpCommunicationErrorException;
         }
     }
 }

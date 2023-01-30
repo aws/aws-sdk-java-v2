@@ -1,0 +1,36 @@
+{
+    "version": "2.17.267",
+    "date": "2022-09-02",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaPackage",
+            "contributor": "",
+            "description": "Added support for AES_CTR encryption to CMAF origin endpoints"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Cognito Identity Provider",
+            "contributor": "",
+            "description": "This release adds a new \"AuthSessionValidity\" field to the UserPoolClient in Cognito. Application admins can configure this value for their users' authentication duration, which is currently fixed at 3 minutes, up to 15 minutes. Setting this field will also apply to the SMS MFA authentication flow."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "This release adds search APIs for Routing Profiles and Queues, which can be used to search for those resources within a Connect Instance."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "This release enables administrators to attribute user activity and API calls from Studio notebooks, Data Wrangler and Canvas to specific users even when users share the same execution IAM role. ExecutionRoleIdentityConfig at Sagemaker domain level enables this feature."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}

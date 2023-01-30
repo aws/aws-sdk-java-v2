@@ -851,7 +851,7 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
     }
 
     /**
-     * Describes a table in DynamoDb with the name defined for this {@link DynamoDbTable).
+     * Describes a table in DynamoDb with the name defined for this {@link DynamoDbTable}.
      * This operation calls the low-level DynamoDB API DescribeTable operation,
      * see {@link DynamoDbClient#describeTable(DescribeTableRequest)}
      * <p>

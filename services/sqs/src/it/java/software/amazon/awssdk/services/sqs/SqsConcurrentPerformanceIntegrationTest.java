@@ -45,8 +45,10 @@ public class SqsConcurrentPerformanceIntegrationTest extends IntegrationTestBase
      * You can use the netstat command to look at the current sockets connected to SQS and verify
      * that they don't sit around in CLOSE_WAIT, and are correctly being reaped.
      */
+    // CHECKSTYLE:OFF - Allowing @Ignore for this manual test
     @Test
     @Ignore
+    // CHECKSTYLE:ON
     public void testIdleConnectionReaping() throws Exception {
         sqs = SqsAsyncClient.builder().credentialsProvider(getCredentialsProvider()).build();
         sqs = SqsAsyncClient.builder().credentialsProvider(getCredentialsProvider()).build();

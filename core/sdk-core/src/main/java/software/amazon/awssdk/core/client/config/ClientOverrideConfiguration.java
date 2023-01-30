@@ -25,6 +25,7 @@ import java.util.Optional;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ToBuilderIgnoreField;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -78,16 +79,19 @@ public final class ClientOverrideConfiguration
     }
 
     @Override
+    @ToBuilderIgnoreField("advancedOptions")
     public Builder toBuilder() {
-        return new DefaultClientOverrideConfigurationBuilder().advancedOptions(advancedOptions.toBuilder())
-                .headers(headers)
-                .retryPolicy(retryPolicy)
-                .apiCallTimeout(apiCallTimeout)
-                .apiCallAttemptTimeout(apiCallAttemptTimeout)
-                .executionInterceptors(executionInterceptors)
-                .defaultProfileFile(defaultProfileFile)
-                .defaultProfileName(defaultProfileName)
-                .executionAttributes(executionAttributes);
+        return new DefaultClientOverrideConfigurationBuilder()
+            .advancedOptions(advancedOptions.toBuilder())
+            .headers(headers)
+            .retryPolicy(retryPolicy)
+            .apiCallTimeout(apiCallTimeout)
+            .apiCallAttemptTimeout(apiCallAttemptTimeout)
+            .executionInterceptors(executionInterceptors)
+            .defaultProfileFile(defaultProfileFile)
+            .defaultProfileName(defaultProfileName)
+            .executionAttributes(executionAttributes)
+            .metricPublishers(metricPublishers);
     }
 
     /**
@@ -484,7 +488,7 @@ public final class ClientOverrideConfiguration
         private ProfileFile defaultProfileFile;
         private String defaultProfileName;
         private List<MetricPublisher> metricPublishers = new ArrayList<>();
-        private ExecutionAttributes.Builder executionAttributesBuilder = ExecutionAttributes.builder();
+        private ExecutionAttributes.Builder executionAttributes = ExecutionAttributes.builder();
 
         @Override
         public Builder headers(Map<String, List<String>> headers) {
@@ -652,19 +656,19 @@ public final class ClientOverrideConfiguration
         @Override
         public Builder executionAttributes(ExecutionAttributes executionAttributes) {
             Validate.paramNotNull(executionAttributes, "executionAttributes");
-            this.executionAttributesBuilder = executionAttributes.toBuilder();
+            this.executionAttributes = executionAttributes.toBuilder();
             return this;
         }
 
         @Override
         public <T> Builder putExecutionAttribute(ExecutionAttribute<T> executionAttribute, T value) {
-            this.executionAttributesBuilder.put(executionAttribute, value);
+            this.executionAttributes.put(executionAttribute, value);
             return this;
         }
 
         @Override
         public ExecutionAttributes executionAttributes() {
-            return executionAttributesBuilder.build();
+            return executionAttributes.build();
         }
 
         @Override

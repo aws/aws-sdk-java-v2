@@ -1,0 +1,60 @@
+{
+    "version": "2.17.223",
+    "date": "2022-06-30",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "contributor": "",
+            "description": "This release adds tag as an input of CreateDatabase"
+        },
+        {
+            "type": "feature",
+            "category": "AWSKendraFrontendService",
+            "contributor": "",
+            "description": "Amazon Kendra now provides a data source connector for alfresco"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Price List Service",
+            "contributor": "",
+            "description": "Documentation update for GetProducts Response."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Well-Architected Tool",
+            "contributor": "",
+            "description": "Added support for UpdateGlobalSettings API. Added status filter to ListWorkloadShares and ListLensShares."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Athena",
+            "contributor": "",
+            "description": "This feature introduces the API support for Athena's parameterized query and BatchGetPreparedStatement API."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Customer Profiles",
+            "contributor": "",
+            "description": "This release adds the optional MinAllowedConfidenceScoreForMerging parameter to the CreateDomain, UpdateDomain, and GetAutoMergingPreview APIs in Customer Profiles. This parameter is used as a threshold to influence the profile auto-merging step of the Identity Resolution process."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EMR",
+            "contributor": "",
+            "description": "This release adds support for the ExecutionRoleArn parameter in the AddJobFlowSteps and DescribeStep APIs. Customers can use ExecutionRoleArn to specify the IAM role used for each job they submit using the AddJobFlowSteps API."
+        },
+        {
+            "type": "feature",
+            "category": "AmazonMWAA",
+            "contributor": "",
+            "description": "Documentation updates for Amazon Managed Workflows for Apache Airflow."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkMail",
+            "contributor": "",
+            "description": "This release adds support for managing user availability configurations in Amazon WorkMail."
+        }
+    ]
+}

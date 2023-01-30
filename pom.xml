@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>aws-sdk-java-pom</artifactId>
-    <version>2.17.209-SNAPSHOT</version>
+    <version>2.19.26-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Parent</name>
     <description>The Amazon Web Services SDK for Java provides Java APIs
@@ -83,15 +83,16 @@
         <module>test/s3-benchmarks</module>
         <module>test/auth-tests</module>
         <module>test/region-testing</module>
+        <module>test/ruleset-testing-core</module>
     </modules>
     <scm>
         <url>https://github.com/aws/aws-sdk-java-v2.git</url>
     </scm>
     <properties>
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
-        <awsjavasdk.previous.version>2.17.208</awsjavasdk.previous.version>
+        <awsjavasdk.previous.version>2.19.25</awsjavasdk.previous.version>
         <jackson.version>2.13.2</jackson.version>
-        <jackson.databind.version>2.13.2.2</jackson.databind.version>
+        <jackson.databind.version>2.13.4.2</jackson.databind.version>
         <jacksonjr.version>2.13.2</jacksonjr.version>
         <eventstream.version>1.0.1</eventstream.version>
         <commons.lang.version>3.12.0</commons.lang.version>
@@ -102,7 +103,7 @@
         <equalsverifier.version>3.7.1</equalsverifier.version>
         <!-- Update netty-open-ssl-version accordingly whenever we update netty version-->
         <!-- https://github.com/netty/netty/blob/4.1/pom.xml search "tcnative.version" -->
-        <netty.version>4.1.77.Final</netty.version>
+        <netty.version>4.1.86.Final</netty.version>
         <unitils.version>3.4.6</unitils.version>
         <xmlunit.version>1.3</xmlunit.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -113,10 +114,11 @@
         <rxjava.version>2.2.21</rxjava.version>
         <commons-codec.verion>1.10</commons-codec.verion>
         <jmh.version>1.29</jmh.version>
-        <awscrt.version>0.16.10</awscrt.version>
+        <awscrt.version>0.20.3</awscrt.version>
 
         <!--Test dependencies -->
         <junit5.version>5.8.1</junit5.version>
+        <mockito.junit5.version>4.6.0</mockito.junit5.version>
         <junit4.version>4.13.2</junit4.version> <!-- Used to resolve conflicts in transitive dependencies -->
         <hamcrest.version>1.3</hamcrest.version>
         <mockito.version>4.3.1</mockito.version>
@@ -125,7 +127,7 @@
         <jimfs.version>1.1</jimfs.version>
         <testng.version>7.1.0</testng.version> <!-- TCK Tests -->
         <commons-lang.verson>2.6</commons-lang.verson>
-        <netty-open-ssl-version>2.0.52.Final</netty-open-ssl-version>
+        <netty-open-ssl-version>2.0.54.Final</netty-open-ssl-version>
         <dynamodb-local.version>1.16.0</dynamodb-local.version>
         <sqllite.version>1.0.392</sqllite.version>
         <blockhound.version>1.0.6.RELEASE</blockhound.version>
@@ -136,8 +138,8 @@
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
         <maven-checkstyle-plugin.version>3.1.2</maven-checkstyle-plugin.version>
         <maven-failsafe-plugin.version>3.0.0-M5</maven-failsafe-plugin.version>
-        <maven-jar-plugin.version>3.1.1</maven-jar-plugin.version>
-        <maven-javadoc-plugin.version>3.0.1</maven-javadoc-plugin.version>
+        <maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
+        <maven-javadoc-plugin.version>3.4.1</maven-javadoc-plugin.version>
         <maven.build.timestamp.format>yyyy</maven.build.timestamp.format>
         <maven-dependency-plugin.version>3.1.1</maven-dependency-plugin.version>
         <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
@@ -148,6 +150,8 @@
         <maven-deploy-plugin.version>2.8.2</maven-deploy-plugin.version>
         <build-helper-maven-plugin.version>3.3.0</build-helper-maven-plugin.version>
         <japicmp-maven-plugin.version>0.15.6</japicmp-maven-plugin.version>
+        <versions-maven-plugin.version>2.13.0</versions-maven-plugin.version>
+        <maven-archetype-plugin.version>3.2.1</maven-archetype-plugin.version>
         <!-- Whenever we update maven-wrapper-plugin version, we need to run mvn wrapper:wrapper to update the Maven Wrapper files(mvnw, .maven and mvnw.cmd) -->
         <maven-wrapper-plugin.version>3.1.0</maven-wrapper-plugin.version>
 
@@ -167,6 +171,7 @@
         <reactive-streams.version>1.0.3</reactive-streams.version>
 
         <skip.unit.tests>${skipTests}</skip.unit.tests>
+        <integTestSourceDirectory>${project.basedir}/src/it/java</integTestSourceDirectory>
     </properties>
 
     <dependencyManagement>
@@ -217,6 +222,23 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-javadoc-plugin</artifactId>
                     <version>${maven-javadoc-plugin.version}</version>
+                    <executions>
+                        <execution>
+                            <id>generate-javadocs</id>
+                            <goals>
+                                <goal>jar</goal>
+                            </goals>
+                            <configuration>
+                                <detectJavaApiLink>false</detectJavaApiLink>
+                                <source>8</source>
+                                <notree>true</notree>
+                                <includeDependencySources>false</includeDependencySources>
+                                <doclint>none</doclint>
+                                <!-- Exclude service packages to accelerate build -->
+                                <excludePackageNames>software.amazon.awssdk.services.*:*.codegen</excludePackageNames>
+                            </configuration>
+                        </execution>
+                    </executions>
                 </plugin>
 
                 <plugin>
@@ -298,6 +320,20 @@
                                 <sources>
                                     <source>${basedir}/target/generated-sources/sdk</source>
                                 </sources>
+                            </configuration>
+                        </execution>
+                        <execution>
+                            <id>add-generated-resources</id>
+                            <phase>generate-sources</phase>
+                            <goals>
+                                <goal>add-resource</goal>
+                            </goals>
+                            <configuration>
+                                <resources>
+                                    <resource>
+                                        <directory>${basedir}/target/generated-resources/sdk-resources</directory>
+                                    </resource>
+                                </resources>
                             </configuration>
                         </execution>
                         <execution>
@@ -388,6 +424,8 @@
                         <consoleOutput>true</consoleOutput>
                         <failsOnError>true</failsOnError>
                         <logViolationsToConsole>true</logViolationsToConsole>
+                        <testSourceDirectories>${project.build.testSourceDirectory},${integTestSourceDirectory}</testSourceDirectories>
+                        <includeTestSourceDirectory>true</includeTestSourceDirectory>
                         <failOnViolation>true</failOnViolation>
                         <excludes>**/module-info.java</excludes>
                     </configuration>
@@ -401,6 +439,18 @@
         </pluginManagement>
 
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-archetype-plugin</artifactId>
+                <version>${maven-archetype-plugin.version}</version>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>versions-maven-plugin</artifactId>
+                <version>${versions-maven-plugin.version}</version>
+            </plugin>
+
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
@@ -452,6 +502,7 @@
                     </ignoredUsedUndeclaredDependencies>
                     <ignoredUnusedDeclaredDependencies>
                         <ignoredUnusedDeclaredDependency>org.junit.jupiter:*</ignoredUnusedDeclaredDependency>
+                        <ignoredUnusedDeclaredDependency>org.mockito:*</ignoredUnusedDeclaredDependency>
                         <ignoredUnusedDeclaredDependency>org.junit.vintage:*</ignoredUnusedDeclaredDependency>
                         <ignoredUnusedDeclaredDependency>software.amazon.awssdk:aws-sdk-java</ignoredUnusedDeclaredDependency>
                         <!-- Declared by the codegen maven plugins (lite and normal). Not used directly but used to override a transitive dependecy -->
@@ -574,11 +625,10 @@
                         <excludes>
                             <exclude>*.internal.*</exclude>
                             <exclude>software.amazon.awssdk.thirdparty.*</exclude>
-
-                            <!-- Modified when making HttpCredentialsProvider a public API -->
-                            <exclude>software.amazon.awssdk.auth.credentials.ContainerCredentialsProvider</exclude>
-                            <exclude>software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvider</exclude>
-                            <exclude>software.amazon.awssdk.auth.credentials.HttpCredentialsProvider</exclude>
+                            <exclude>software.amazon.awssdk.regions.*</exclude>
+                            <exclude>software.amazon.awssdk.core.signer.NoOpSigner</exclude>
+                            <exclude>software.amazon.awssdk.auth.credentials.ProfileCredentialsProviderFactory</exclude>
+                            <exclude>software.amazon.awssdk.utils.async.InputStreamSubscriber</exclude>
                         </excludes>
 
                         <ignoreMissingOldVersion>true</ignoreMissingOldVersion>
@@ -633,6 +683,7 @@
                 <spotbugs.skip>true</spotbugs.skip>
                 <mdep.analyze.skip>true</mdep.analyze.skip>
                 <japicmp.skip>true</japicmp.skip>
+                <javadoc.skip>true</javadoc.skip>
             </properties>
         </profile>
 
@@ -679,6 +730,16 @@
         </profile>
 
         <profile>
+            <id>jdk-11-plus</id>
+            <activation>
+                <jdk>[11,)</jdk>
+            </activation>
+            <properties>
+                <maven.compiler.release>8</maven.compiler.release>
+            </properties>
+        </profile>
+
+        <profile>
             <id>jdk-13-plus</id>
             <activation>
                 <jdk>[13,)</jdk>
@@ -697,6 +758,7 @@
                 <skip.unit.tests>true</skip.unit.tests>
                 <mdep.analyze.skip>true</mdep.analyze.skip>
                 <japicmp.skip>true</japicmp.skip>
+                <javadoc.skip>true</javadoc.skip>
             </properties>
         </profile>
 
@@ -713,6 +775,7 @@
                 <skip.unit.tests>true</skip.unit.tests>
                 <mdep.analyze.skip>true</mdep.analyze.skip>
                 <japicmp.skip>true</japicmp.skip>
+                <javadoc.skip>true</javadoc.skip>
             </properties>
             <build>
                 <plugins>
@@ -750,6 +813,51 @@
         </profile>
 
         <profile>
+            <id>endpoint-tests</id>
+            <activation>
+                <property>
+                    <name>doRelease</name>
+                </property>
+            </activation>
+            <properties>
+                <checkstyle.skip>true</checkstyle.skip>
+                <spotbugs.skip>true</spotbugs.skip>
+                <skip.unit.tests>true</skip.unit.tests>
+                <mdep.analyze.skip>true</mdep.analyze.skip>
+                <japicmp.skip>true</japicmp.skip>
+                <javadoc.skip>true</javadoc.skip>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <version>${maven-failsafe-plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <phase>integration-test</phase>
+                                <goals>
+                                    <goal>integration-test</goal>
+                                    <goal>verify</goal>
+                                </goals>
+                                <configuration>
+                                    <!-- Sets the VM argument line used when endpoint tests are run. -->
+                                    <argLine>${argLine}</argLine>
+                                    <includes>
+                                        <include>**/*ClientEndpointTests.java</include>
+                                        <include>**/*EndpointProviderTests.java</include>
+                                    </includes>
+                                    <trimStackTrace>false</trimStackTrace>
+                                    <rerunFailingTestsCount>2</rerunFailingTestsCount>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
             <id>stability-tests</id>
             <activation>
                 <property>
@@ -762,6 +870,7 @@
                 <skip.unit.tests>true</skip.unit.tests>
                 <mdep.analyze.skip>true</mdep.analyze.skip>
                 <japicmp.skip>true</japicmp.skip>
+                <javadoc.skip>true</javadoc.skip>
             </properties>
             <build>
                 <plugins>
@@ -800,6 +909,7 @@
                 <skip.unit.tests>true</skip.unit.tests>
                 <mdep.analyze.skip>true</mdep.analyze.skip>
                 <japicmp.skip>true</japicmp.skip>
+                <javadoc.skip>true</javadoc.skip>
             </properties>
             <build>
                 <plugins>
@@ -845,6 +955,7 @@
                 <skip.unit.tests>true</skip.unit.tests>
                 <mdep.analyze.skip>true</mdep.analyze.skip>
                 <japicmp.skip>true</japicmp.skip>
+                <javadoc.skip>true</javadoc.skip>
             </properties>
             <build>
                 <plugins>
@@ -888,7 +999,11 @@
                             <show>public</show>
                             <author>false</author>
                             <version>true</version>
+                            <!-- Disable index because jquery-ui version used is old -->
+                            <!-- Re-enable it when it's fixed in newer versions of JDK -->
+                            <noindex>true</noindex>
                             <use>false</use>
+                            <source>8</source>
                             <notree>true</notree>
                             <nodeprecatedlist>true</nodeprecatedlist>
                             <additionalJOptions>
@@ -1277,12 +1392,12 @@
                                     <packages>software.amazon.awssdk*</packages>
                                 </group>
                             </groups>
-                            <header><![CDATA[<h2>AWS SDK for Java API Reference - ${project.version}</h2>]]></header>
-                            <footer><![CDATA[
-                            <div style="margin:1.2em;"><a id="fdbk" target="_blank">Provide feedback</a></div>
-                            ]]>
-                            </footer>
+                            <header><![CDATA[
+                                <h2>AWS SDK for Java API Reference - ${project.version}</h2>
+                                ]]>
+                            </header>
                             <bottom><![CDATA[
+                              <div style="margin:1.2em;"><h3><a id="fdbk" target="_blank">Provide feedback</a><h3></div>
                               <span id="awsdocs-legal-zone-copyright"></span>
                               <script type="text/javascript">document.addEventListener("DOMContentLoaded",()=>{
                                 var a=document.createElement("meta"),b=document.createElement("meta"),c=document.createElement("script"),

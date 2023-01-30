@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.signer;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 
@@ -33,5 +34,15 @@ public interface Signer {
      * @return A signed version of the input request
      */
     SdkHttpFullRequest sign(SdkHttpFullRequest request, ExecutionAttributes executionAttributes);
+
+
+    /**
+     * Method that retrieves {@link CredentialType} i.e. the type of Credentials used by the Signer while authorizing a request.
+     *
+     * @return null by default else return {@link CredentialType} as defined by the signer implementation.
+     */
+    default CredentialType credentialType() {
+        return null;
+    }
 
 }

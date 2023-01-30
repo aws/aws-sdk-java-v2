@@ -139,6 +139,21 @@
       ],
       "documentation":"<p>Retrieves the details for the custom patterns specified by a list of names.</p>"
     },
+    "BatchGetDataQualityResult":{
+      "name":"BatchGetDataQualityResult",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"BatchGetDataQualityResultRequest"},
+      "output":{"shape":"BatchGetDataQualityResultResponse"},
+      "errors":[
+        {"shape":"InvalidInputException"},
+        {"shape":"OperationTimeoutException"},
+        {"shape":"InternalServiceException"}
+      ],
+      "documentation":"<p>Retrieves a list of data quality results for the specified result IDs.</p>"
+    },
     "BatchGetDevEndpoints":{
       "name":"BatchGetDevEndpoints",
       "http":{
@@ -250,6 +265,38 @@
       ],
       "documentation":"<p>Updates one or more partitions in a batch operation.</p>"
     },
+    "CancelDataQualityRuleRecommendationRun":{
+      "name":"CancelDataQualityRuleRecommendationRun",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"CancelDataQualityRuleRecommendationRunRequest"},
+      "output":{"shape":"CancelDataQualityRuleRecommendationRunResponse"},
+      "errors":[
+        {"shape":"EntityNotFoundException"},
+        {"shape":"InvalidInputException"},
+        {"shape":"OperationTimeoutException"},
+        {"shape":"InternalServiceException"}
+      ],
+      "documentation":"<p>Cancels the specified recommendation run that was being used to generate rules.</p>"
+    },
+    "CancelDataQualityRulesetEvaluationRun":{
+      "name":"CancelDataQualityRulesetEvaluationRun",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"CancelDataQualityRulesetEvaluationRunRequest"},
+      "output":{"shape":"CancelDataQualityRulesetEvaluationRunResponse"},
+      "errors":[
+        {"shape":"EntityNotFoundException"},
+        {"shape":"InvalidInputException"},
+        {"shape":"OperationTimeoutException"},
+        {"shape":"InternalServiceException"}
+      ],
+      "documentation":"<p>Cancels a run where a ruleset is being evaluated against a data source.</p>"
+    },
     "CancelMLTaskRun":{
       "name":"CancelMLTaskRun",
       "http":{
@@ -282,7 +329,7 @@
         {"shape":"InvalidInputException"},
         {"shape":"IllegalSessionStateException"}
       ],
-      "documentation":"<p>Cancels the statement..</p>"
+      "documentation":"<p>Cancels the statement.</p>"
     },
     "CheckSchemaVersionValidity":{
       "name":"CheckSchemaVersionValidity",
@@ -382,6 +429,24 @@
         {"shape":"ResourceNumberLimitExceededException"}
       ],
       "documentation":"<p>Creates a custom pattern that is used to detect sensitive data across the columns and rows of your structured data.</p> <p>Each custom pattern you create specifies a regular expression and an optional list of context words. If no context words are passed only a regular expression is checked.</p>"
+    },
+    "CreateDataQualityRuleset":{
+      "name":"CreateDataQualityRuleset",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"CreateDataQualityRulesetRequest"},
+      "output":{"shape":"CreateDataQualityRulesetResponse"},
+      "errors":[
+        {"shape":"InvalidInputException"},
+        {"shape":"AlreadyExistsException"},
+        {"shape":"OperationTimeoutException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"ResourceNumberLimitExceededException"}
+      ],
+      "documentation":"<p>Creates a data quality ruleset with DQDL rules applied to a specified Glue table.</p> <p>You create the ruleset using the Data Quality Definition Language (DQDL). For more information, see the Glue developer guide.</p>",
+      "idempotent":true
     },
     "CreateDatabase":{
       "name":"CreateDatabase",
@@ -774,6 +839,22 @@
         {"shape":"OperationTimeoutException"}
       ],
       "documentation":"<p>Deletes a custom pattern by specifying its name.</p>"
+    },
+    "DeleteDataQualityRuleset":{
+      "name":"DeleteDataQualityRuleset",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DeleteDataQualityRulesetRequest"},
+      "output":{"shape":"DeleteDataQualityRulesetResponse"},
+      "errors":[
+        {"shape":"EntityNotFoundException"},
+        {"shape":"InvalidInputException"},
+        {"shape":"OperationTimeoutException"},
+        {"shape":"InternalServiceException"}
+      ],
+      "documentation":"<p>Deletes a data quality ruleset.</p>"
     },
     "DeleteDatabase":{
       "name":"DeleteDatabase",
@@ -1280,6 +1361,70 @@
       ],
       "documentation":"<p>Retrieves the security configuration for a specified catalog.</p>"
     },
+    "GetDataQualityResult":{
+      "name":"GetDataQualityResult",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GetDataQualityResultRequest"},
+      "output":{"shape":"GetDataQualityResultResponse"},
+      "errors":[
+        {"shape":"InvalidInputException"},
+        {"shape":"OperationTimeoutException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"EntityNotFoundException"}
+      ],
+      "documentation":"<p>Retrieves the result of a data quality rule evaluation.</p>"
+    },
+    "GetDataQualityRuleRecommendationRun":{
+      "name":"GetDataQualityRuleRecommendationRun",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GetDataQualityRuleRecommendationRunRequest"},
+      "output":{"shape":"GetDataQualityRuleRecommendationRunResponse"},
+      "errors":[
+        {"shape":"EntityNotFoundException"},
+        {"shape":"InvalidInputException"},
+        {"shape":"OperationTimeoutException"},
+        {"shape":"InternalServiceException"}
+      ],
+      "documentation":"<p>Gets the specified recommendation run that was used to generate rules.</p>"
+    },
+    "GetDataQualityRuleset":{
+      "name":"GetDataQualityRuleset",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GetDataQualityRulesetRequest"},
+      "output":{"shape":"GetDataQualityRulesetResponse"},
+      "errors":[
+        {"shape":"EntityNotFoundException"},
+        {"shape":"InvalidInputException"},
+        {"shape":"OperationTimeoutException"},
+        {"shape":"InternalServiceException"}
+      ],
+      "documentation":"<p>Returns an existing ruleset by identifier or name.</p>"
+    },
+    "GetDataQualityRulesetEvaluationRun":{
+      "name":"GetDataQualityRulesetEvaluationRun",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GetDataQualityRulesetEvaluationRunRequest"},
+      "output":{"shape":"GetDataQualityRulesetEvaluationRunResponse"},
+      "errors":[
+        {"shape":"EntityNotFoundException"},
+        {"shape":"InvalidInputException"},
+        {"shape":"OperationTimeoutException"},
+        {"shape":"InternalServiceException"}
+      ],
+      "documentation":"<p>Retrieves a specific run where a ruleset is evaluated against a data source.</p>"
+    },
     "GetDatabase":{
       "name":"GetDatabase",
       "http":{
@@ -1358,7 +1503,7 @@
         {"shape":"OperationTimeoutException"},
         {"shape":"InvalidInputException"}
       ],
-      "documentation":"<p>Retrieves all the development endpoints in this AWS account.</p> <note> <p>When you create a development endpoint in a virtual private cloud (VPC), Glue returns only a private IP address and the public IP address field is not populated. When you create a non-VPC development endpoint, Glue returns only a public IP address.</p> </note>"
+      "documentation":"<p>Retrieves all the development endpoints in this Amazon Web Services account.</p> <note> <p>When you create a development endpoint in a virtual private cloud (VPC), Glue returns only a private IP address and the public IP address field is not populated. When you create a non-VPC development endpoint, Glue returns only a public IP address.</p> </note>"
     },
     "GetJob":{
       "name":"GetJob",
@@ -1391,7 +1536,7 @@
         {"shape":"OperationTimeoutException"},
         {"shape":"ValidationException"}
       ],
-      "documentation":"<p>Returns information on a job bookmark entry.</p>"
+      "documentation":"<p>Returns information on a job bookmark entry.</p> <p>For more information about enabling and using job bookmarks, see:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/glue/latest/dg/monitor-continuations.html\">Tracking processed data using job bookmarks</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-glue-arguments.html\">Job parameters used by Glue</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/glue/latest/dg/aws-glue-api-jobs-job.html#aws-glue-api-jobs-job-Job\">Job structure</a> </p> </li> </ul>"
     },
     "GetJobRun":{
       "name":"GetJobRun",
@@ -2076,6 +2221,21 @@
       ],
       "documentation":"<p>Retrieves the names of all crawler resources in this Amazon Web Services account, or the resources with the specified tag. This operation allows you to see which resources are available in your account, and their names.</p> <p>This operation takes the optional <code>Tags</code> field, which you can use as a filter on the response so that tagged resources can be retrieved as a group. If you choose to use tags filtering, only resources with the tag are retrieved.</p>"
     },
+    "ListCrawls":{
+      "name":"ListCrawls",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ListCrawlsRequest"},
+      "output":{"shape":"ListCrawlsResponse"},
+      "errors":[
+        {"shape":"EntityNotFoundException"},
+        {"shape":"OperationTimeoutException"},
+        {"shape":"InvalidInputException"}
+      ],
+      "documentation":"<p>Returns all the crawls of a specified crawler. Returns only the crawls that have occurred since the launch date of the crawler history feature, and only retains up to 12 months of crawls. Older crawls will not be returned.</p> <p>You may use this API to:</p> <ul> <li> <p>Retrive all the crawls of a specified crawler.</p> </li> <li> <p>Retrieve all the crawls of a specified crawler within a limited count.</p> </li> <li> <p>Retrieve all the crawls of a specified crawler in a specific time range.</p> </li> <li> <p>Retrieve all the crawls of a specified crawler with a particular state, crawl ID, or DPU hour value.</p> </li> </ul>"
+    },
     "ListCustomEntityTypes":{
       "name":"ListCustomEntityTypes",
       "http":{
@@ -2090,6 +2250,67 @@
         {"shape":"InternalServiceException"}
       ],
       "documentation":"<p>Lists all the custom patterns that have been created.</p>"
+    },
+    "ListDataQualityResults":{
+      "name":"ListDataQualityResults",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ListDataQualityResultsRequest"},
+      "output":{"shape":"ListDataQualityResultsResponse"},
+      "errors":[
+        {"shape":"InvalidInputException"},
+        {"shape":"OperationTimeoutException"},
+        {"shape":"InternalServiceException"}
+      ],
+      "documentation":"<p>Returns all data quality execution results for your account.</p>"
+    },
+    "ListDataQualityRuleRecommendationRuns":{
+      "name":"ListDataQualityRuleRecommendationRuns",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ListDataQualityRuleRecommendationRunsRequest"},
+      "output":{"shape":"ListDataQualityRuleRecommendationRunsResponse"},
+      "errors":[
+        {"shape":"InvalidInputException"},
+        {"shape":"OperationTimeoutException"},
+        {"shape":"InternalServiceException"}
+      ],
+      "documentation":"<p>Lists the recommendation runs meeting the filter criteria.</p>"
+    },
+    "ListDataQualityRulesetEvaluationRuns":{
+      "name":"ListDataQualityRulesetEvaluationRuns",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ListDataQualityRulesetEvaluationRunsRequest"},
+      "output":{"shape":"ListDataQualityRulesetEvaluationRunsResponse"},
+      "errors":[
+        {"shape":"InvalidInputException"},
+        {"shape":"OperationTimeoutException"},
+        {"shape":"InternalServiceException"}
+      ],
+      "documentation":"<p>Lists all the runs meeting the filter criteria, where a ruleset is evaluated against a data source.</p>"
+    },
+    "ListDataQualityRulesets":{
+      "name":"ListDataQualityRulesets",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ListDataQualityRulesetsRequest"},
+      "output":{"shape":"ListDataQualityRulesetsResponse"},
+      "errors":[
+        {"shape":"EntityNotFoundException"},
+        {"shape":"InvalidInputException"},
+        {"shape":"OperationTimeoutException"},
+        {"shape":"InternalServiceException"}
+      ],
+      "documentation":"<p>Returns a paginated list of rulesets for the specified list of Glue tables.</p>"
     },
     "ListDevEndpoints":{
       "name":"ListDevEndpoints",
@@ -2200,7 +2421,7 @@
         {"shape":"InternalServiceException"},
         {"shape":"OperationTimeoutException"}
       ],
-      "documentation":"<p>Retrieve a session..</p>"
+      "documentation":"<p>Retrieve a list of sessions.</p>"
     },
     "ListStatements":{
       "name":"ListStatements",
@@ -2381,7 +2602,7 @@
         {"shape":"InternalServiceException"},
         {"shape":"OperationTimeoutException"}
       ],
-      "documentation":"<p>Resets a bookmark entry.</p>"
+      "documentation":"<p>Resets a bookmark entry.</p> <p>For more information about enabling and using job bookmarks, see:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/glue/latest/dg/monitor-continuations.html\">Tracking processed data using job bookmarks</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-glue-arguments.html\">Job parameters used by Glue</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/glue/latest/dg/aws-glue-api-jobs-job.html#aws-glue-api-jobs-job-Job\">Job structure</a> </p> </li> </ul>"
     },
     "ResumeWorkflowRun":{
       "name":"ResumeWorkflowRun",
@@ -2485,6 +2706,41 @@
         {"shape":"OperationTimeoutException"}
       ],
       "documentation":"<p>Changes the schedule state of the specified crawler to <code>SCHEDULED</code>, unless the crawler is already running or the schedule state is already <code>SCHEDULED</code>.</p>"
+    },
+    "StartDataQualityRuleRecommendationRun":{
+      "name":"StartDataQualityRuleRecommendationRun",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"StartDataQualityRuleRecommendationRunRequest"},
+      "output":{"shape":"StartDataQualityRuleRecommendationRunResponse"},
+      "errors":[
+        {"shape":"InvalidInputException"},
+        {"shape":"OperationTimeoutException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"ConflictException"}
+      ],
+      "documentation":"<p>Starts a recommendation run that is used to generate rules when you don't know what rules to write. Glue Data Quality analyzes the data and comes up with recommendations for a potential ruleset. You can then triage the ruleset and modify the generated ruleset to your liking.</p>",
+      "idempotent":true
+    },
+    "StartDataQualityRulesetEvaluationRun":{
+      "name":"StartDataQualityRulesetEvaluationRun",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"StartDataQualityRulesetEvaluationRunRequest"},
+      "output":{"shape":"StartDataQualityRulesetEvaluationRunResponse"},
+      "errors":[
+        {"shape":"InvalidInputException"},
+        {"shape":"EntityNotFoundException"},
+        {"shape":"OperationTimeoutException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"ConflictException"}
+      ],
+      "documentation":"<p>Once you have a ruleset definition (either recommended or your own), you call this operation to evaluate the ruleset against a data source (Glue table). The evaluation computes results which you can retrieve with the <code>GetDataQualityResult</code> API.</p>",
+      "idempotent":true
     },
     "StartExportLabelsTaskRun":{
       "name":"StartExportLabelsTaskRun",
@@ -2843,6 +3099,25 @@
       ],
       "documentation":"<p>Updates the schedule of a crawler using a <code>cron</code> expression. </p>"
     },
+    "UpdateDataQualityRuleset":{
+      "name":"UpdateDataQualityRuleset",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"UpdateDataQualityRulesetRequest"},
+      "output":{"shape":"UpdateDataQualityRulesetResponse"},
+      "errors":[
+        {"shape":"EntityNotFoundException"},
+        {"shape":"AlreadyExistsException"},
+        {"shape":"IdempotentParameterMismatchException"},
+        {"shape":"InvalidInputException"},
+        {"shape":"OperationTimeoutException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"ResourceNumberLimitExceededException"}
+      ],
+      "documentation":"<p>Updates the specified data quality ruleset.</p>"
+    },
     "UpdateDatabase":{
       "name":"UpdateDatabase",
       "http":{
@@ -2893,7 +3168,26 @@
         {"shape":"OperationTimeoutException"},
         {"shape":"ConcurrentModificationException"}
       ],
-      "documentation":"<p>Updates an existing job definition.</p>"
+      "documentation":"<p>Updates an existing job definition. The previous job definition is completely overwritten by this information.</p>"
+    },
+    "UpdateJobFromSourceControl":{
+      "name":"UpdateJobFromSourceControl",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"UpdateJobFromSourceControlRequest"},
+      "output":{"shape":"UpdateJobFromSourceControlResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"AlreadyExistsException"},
+        {"shape":"InvalidInputException"},
+        {"shape":"ValidationException"},
+        {"shape":"EntityNotFoundException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"OperationTimeoutException"}
+      ],
+      "documentation":"<p>Synchronizes a job from the source control repository. This operation takes the job artifacts that are located in the remote repository and updates the Glue internal stores with these artifacts.</p> <p>This API supports optional parameters which take in the repository information.</p>"
     },
     "UpdateMLTransform":{
       "name":"UpdateMLTransform",
@@ -2962,6 +3256,25 @@
         {"shape":"InternalServiceException"}
       ],
       "documentation":"<p>Updates the description, compatibility setting, or version checkpoint for a schema set.</p> <p>For updating the compatibility setting, the call will not validate compatibility for the entire set of schema versions with the new compatibility setting. If the value for <code>Compatibility</code> is provided, the <code>VersionNumber</code> (a checkpoint) is also required. The API will validate the checkpoint version number for consistency.</p> <p>If the value for the <code>VersionNumber</code> (checkpoint) is provided, <code>Compatibility</code> is optional and this can be used to set/reset a checkpoint for the schema.</p> <p>This update will happen only if the schema is in the AVAILABLE state.</p>"
+    },
+    "UpdateSourceControlFromJob":{
+      "name":"UpdateSourceControlFromJob",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"UpdateSourceControlFromJobRequest"},
+      "output":{"shape":"UpdateSourceControlFromJobResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"AlreadyExistsException"},
+        {"shape":"InvalidInputException"},
+        {"shape":"ValidationException"},
+        {"shape":"EntityNotFoundException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"OperationTimeoutException"}
+      ],
+      "documentation":"<p>Synchronizes a job to the source control repository. This operation takes the job artifacts from the Glue internal stores and makes a commit to the remote repository that is configured on the job.</p> <p>This API supports optional parameters which take in the repository information.</p>"
     },
     "UpdateTable":{
       "name":"UpdateTable",
@@ -3270,6 +3583,12 @@
       "type":"string",
       "max":2048,
       "min":0
+    },
+    "AuthTokenString":{
+      "type":"string",
+      "max":255,
+      "min":1,
+      "pattern":"[\\u0020-\\uD7FF\\uE000-\\uFFFD\\uD800\\uDC00-\\uDBFF\\uDFFF\\t]*"
     },
     "BackfillError":{
       "type":"structure",
@@ -3595,6 +3914,30 @@
         "CustomEntityTypesNotFound":{
           "shape":"CustomEntityTypeNames",
           "documentation":"<p>A list of the names of custom patterns that were not found.</p>"
+        }
+      }
+    },
+    "BatchGetDataQualityResultRequest":{
+      "type":"structure",
+      "required":["ResultIds"],
+      "members":{
+        "ResultIds":{
+          "shape":"DataQualityResultIds",
+          "documentation":"<p>A list of unique result IDs for the data quality results.</p>"
+        }
+      }
+    },
+    "BatchGetDataQualityResultResponse":{
+      "type":"structure",
+      "required":["Results"],
+      "members":{
+        "Results":{
+          "shape":"DataQualityResultsList",
+          "documentation":"<p>A list of <code>DataQualityResult</code> objects representing the data quality results.</p>"
+        },
+        "ResultsNotFound":{
+          "shape":"DataQualityResultIds",
+          "documentation":"<p>A list of result IDs for which results were not found.</p>"
         }
       }
     },
@@ -4134,6 +4477,36 @@
       "box":true,
       "min":0
     },
+    "CancelDataQualityRuleRecommendationRunRequest":{
+      "type":"structure",
+      "required":["RunId"],
+      "members":{
+        "RunId":{
+          "shape":"HashString",
+          "documentation":"<p>The unique run identifier associated with this run.</p>"
+        }
+      }
+    },
+    "CancelDataQualityRuleRecommendationRunResponse":{
+      "type":"structure",
+      "members":{
+      }
+    },
+    "CancelDataQualityRulesetEvaluationRunRequest":{
+      "type":"structure",
+      "required":["RunId"],
+      "members":{
+        "RunId":{
+          "shape":"HashString",
+          "documentation":"<p>The unique run identifier associated with this run.</p>"
+        }
+      }
+    },
+    "CancelDataQualityRulesetEvaluationRunResponse":{
+      "type":"structure",
+      "members":{
+      }
+    },
     "CancelMLTaskRunRequest":{
       "type":"structure",
       "required":[
@@ -4228,6 +4601,37 @@
       "box":true,
       "max":100,
       "min":1
+    },
+    "CatalogHudiSource":{
+      "type":"structure",
+      "required":[
+        "Name",
+        "Database",
+        "Table"
+      ],
+      "members":{
+        "Name":{
+          "shape":"NodeName",
+          "documentation":"<p>The name of the Hudi data source.</p>"
+        },
+        "Database":{
+          "shape":"EnclosedInStringProperty",
+          "documentation":"<p>The name of the database to read from.</p>"
+        },
+        "Table":{
+          "shape":"EnclosedInStringProperty",
+          "documentation":"<p>The name of the table in the database to read from.</p>"
+        },
+        "AdditionalHudiOptions":{
+          "shape":"AdditionalOptions",
+          "documentation":"<p>Specifies additional connection options.</p>"
+        },
+        "OutputSchemas":{
+          "shape":"GlueSchemas",
+          "documentation":"<p>Specifies the data schema for the Hudi source.</p>"
+        }
+      },
+      "documentation":"<p>Specifies a Hudi data source that is registered in the Glue Data Catalog.</p>"
     },
     "CatalogIdString":{
       "type":"string",
@@ -4394,6 +4798,14 @@
         "ConnectionName":{
           "shape":"ConnectionName",
           "documentation":"<p>The name of the connection for an Amazon S3-backed Data Catalog table to be a target of the crawl when using a <code>Catalog</code> connection type paired with a <code>NETWORK</code> Connection type.</p>"
+        },
+        "EventQueueArn":{
+          "shape":"EventQueueArn",
+          "documentation":"<p>A valid Amazon SQS ARN. For example, <code>arn:aws:sqs:region:account:sqs</code>.</p>"
+        },
+        "DlqEventQueueArn":{
+          "shape":"EventQueueArn",
+          "documentation":"<p>A valid Amazon dead-letter SQS ARN. For example, <code>arn:aws:sqs:region:account:deadLetterQueue</code>.</p>"
         }
       },
       "documentation":"<p>Specifies an Glue Data Catalog target.</p>"
@@ -4682,6 +5094,34 @@
         "PostgreSQLCatalogTarget":{
           "shape":"PostgreSQLCatalogTarget",
           "documentation":"<p>Specifies a target that uses Postgres SQL.</p>"
+        },
+        "DynamicTransform":{
+          "shape":"DynamicTransform",
+          "documentation":"<p>Specifies a custom visual transform created by a user.</p>"
+        },
+        "EvaluateDataQuality":{
+          "shape":"EvaluateDataQuality",
+          "documentation":"<p>Specifies your data quality evaluation criteria.</p>"
+        },
+        "S3CatalogHudiSource":{
+          "shape":"S3CatalogHudiSource",
+          "documentation":"<p>Specifies a Hudi data source that is registered in the Glue Data Catalog. The Hudi data source must be stored in Amazon S3.</p>"
+        },
+        "CatalogHudiSource":{
+          "shape":"CatalogHudiSource",
+          "documentation":"<p>Specifies a Hudi data source that is registered in the Glue Data Catalog.</p>"
+        },
+        "S3HudiSource":{
+          "shape":"S3HudiSource",
+          "documentation":"<p>Specifies a Hudi data source stored in Amazon S3.</p>"
+        },
+        "S3HudiCatalogTarget":{
+          "shape":"S3HudiCatalogTarget",
+          "documentation":"<p>Specifies a target that writes to a Hudi data source in the Glue Data Catalog.</p>"
+        },
+        "S3HudiDirectTarget":{
+          "shape":"S3HudiDirectTarget",
+          "documentation":"<p>Specifies a target that writes to a Hudi data source in Amazon S3.</p>"
         }
       },
       "documentation":"<p> <code>CodeGenConfigurationNode</code> enumerates all valid Node types. One and only one of its member variables can be populated.</p>"
@@ -4976,6 +5416,12 @@
       "min":0,
       "pattern":"[\\u0020-\\uD7FF\\uE000-\\uFFFD\\uD800\\uDC00-\\uDBFF\\uDFFF\\t]*"
     },
+    "CommitIdString":{
+      "type":"string",
+      "max":40,
+      "min":1,
+      "pattern":"[\\u0020-\\uD7FF\\uE000-\\uFFFD\\uD800\\uDC00-\\uDBFF\\uDFFF\\t]*"
+    },
     "Comparator":{
       "type":"string",
       "enum":[
@@ -5123,7 +5569,7 @@
         },
         "ConnectionProperties":{
           "shape":"ConnectionProperties",
-          "documentation":"<p>These key-value pairs define parameters for the connection:</p> <ul> <li> <p> <code>HOST</code> - The host URI: either the fully qualified domain name (FQDN) or the IPv4 address of the database host.</p> </li> <li> <p> <code>PORT</code> - The port number, between 1024 and 65535, of the port on which the database host is listening for database connections.</p> </li> <li> <p> <code>USER_NAME</code> - The name under which to log in to the database. The value string for <code>USER_NAME</code> is \"<code>USERNAME</code>\".</p> </li> <li> <p> <code>PASSWORD</code> - A password, if one is used, for the user name.</p> </li> <li> <p> <code>ENCRYPTED_PASSWORD</code> - When you enable connection password protection by setting <code>ConnectionPasswordEncryption</code> in the Data Catalog encryption settings, this field stores the encrypted password.</p> </li> <li> <p> <code>JDBC_DRIVER_JAR_URI</code> - The Amazon Simple Storage Service (Amazon S3) path of the JAR file that contains the JDBC driver to use.</p> </li> <li> <p> <code>JDBC_DRIVER_CLASS_NAME</code> - The class name of the JDBC driver to use.</p> </li> <li> <p> <code>JDBC_ENGINE</code> - The name of the JDBC engine to use.</p> </li> <li> <p> <code>JDBC_ENGINE_VERSION</code> - The version of the JDBC engine to use.</p> </li> <li> <p> <code>CONFIG_FILES</code> - (Reserved for future use.)</p> </li> <li> <p> <code>INSTANCE_ID</code> - The instance ID to use.</p> </li> <li> <p> <code>JDBC_CONNECTION_URL</code> - The URL for connecting to a JDBC data source.</p> </li> <li> <p> <code>JDBC_ENFORCE_SSL</code> - A Boolean string (true, false) specifying whether Secure Sockets Layer (SSL) with hostname matching is enforced for the JDBC connection on the client. The default is false.</p> </li> <li> <p> <code>CUSTOM_JDBC_CERT</code> - An Amazon S3 location specifying the customer's root certificate. Glue uses this root certificate to validate the customer’s certificate when connecting to the customer database. Glue only handles X.509 certificates. The certificate provided must be DER-encoded and supplied in Base64 encoding PEM format.</p> </li> <li> <p> <code>SKIP_CUSTOM_JDBC_CERT_VALIDATION</code> - By default, this is <code>false</code>. Glue validates the Signature algorithm and Subject Public Key Algorithm for the customer certificate. The only permitted algorithms for the Signature algorithm are SHA256withRSA, SHA384withRSA or SHA512withRSA. For the Subject Public Key Algorithm, the key length must be at least 2048. You can set the value of this property to <code>true</code> to skip Glue’s validation of the customer certificate.</p> </li> <li> <p> <code>CUSTOM_JDBC_CERT_STRING</code> - A custom JDBC certificate string which is used for domain match or distinguished name match to prevent a man-in-the-middle attack. In Oracle database, this is used as the <code>SSL_SERVER_CERT_DN</code>; in Microsoft SQL Server, this is used as the <code>hostNameInCertificate</code>.</p> </li> <li> <p> <code>CONNECTION_URL</code> - The URL for connecting to a general (non-JDBC) data source.</p> </li> <li> <p> <code>KAFKA_BOOTSTRAP_SERVERS</code> - A comma-separated list of host and port pairs that are the addresses of the Apache Kafka brokers in a Kafka cluster to which a Kafka client will connect to and bootstrap itself.</p> </li> <li> <p> <code>KAFKA_SSL_ENABLED</code> - Whether to enable or disable SSL on an Apache Kafka connection. Default value is \"true\".</p> </li> <li> <p> <code>KAFKA_CUSTOM_CERT</code> - The Amazon S3 URL for the private CA cert file (.pem format). The default is an empty string.</p> </li> <li> <p> <code>KAFKA_SKIP_CUSTOM_CERT_VALIDATION</code> - Whether to skip the validation of the CA cert file or not. Glue validates for three algorithms: SHA256withRSA, SHA384withRSA and SHA512withRSA. Default value is \"false\".</p> </li> <li> <p> <code>SECRET_ID</code> - The secret ID used for the secret manager of credentials.</p> </li> <li> <p> <code>CONNECTOR_URL</code> - The connector URL for a MARKETPLACE or CUSTOM connection.</p> </li> <li> <p> <code>CONNECTOR_TYPE</code> - The connector type for a MARKETPLACE or CUSTOM connection.</p> </li> <li> <p> <code>CONNECTOR_CLASS_NAME</code> - The connector class name for a MARKETPLACE or CUSTOM connection.</p> </li> <li> <p> <code>KAFKA_CLIENT_KEYSTORE</code> - The Amazon S3 location of the client keystore file for Kafka client side authentication (Optional).</p> </li> <li> <p> <code>KAFKA_CLIENT_KEYSTORE_PASSWORD</code> - The password to access the provided keystore (Optional).</p> </li> <li> <p> <code>KAFKA_CLIENT_KEY_PASSWORD</code> - A keystore can consist of multiple keys, so this is the password to access the client key to be used with the Kafka server side key (Optional).</p> </li> <li> <p> <code>ENCRYPTED_KAFKA_CLIENT_KEYSTORE_PASSWORD</code> - The encrypted version of the Kafka client keystore password (if the user has the Glue encrypt passwords setting selected).</p> </li> <li> <p> <code>ENCRYPTED_KAFKA_CLIENT_KEY_PASSWORD</code> - The encrypted version of the Kafka client key password (if the user has the Glue encrypt passwords setting selected).</p> </li> </ul>"
+          "documentation":"<p>These key-value pairs define parameters for the connection:</p> <ul> <li> <p> <code>HOST</code> - The host URI: either the fully qualified domain name (FQDN) or the IPv4 address of the database host.</p> </li> <li> <p> <code>PORT</code> - The port number, between 1024 and 65535, of the port on which the database host is listening for database connections.</p> </li> <li> <p> <code>USER_NAME</code> - The name under which to log in to the database. The value string for <code>USER_NAME</code> is \"<code>USERNAME</code>\".</p> </li> <li> <p> <code>PASSWORD</code> - A password, if one is used, for the user name.</p> </li> <li> <p> <code>ENCRYPTED_PASSWORD</code> - When you enable connection password protection by setting <code>ConnectionPasswordEncryption</code> in the Data Catalog encryption settings, this field stores the encrypted password.</p> </li> <li> <p> <code>JDBC_DRIVER_JAR_URI</code> - The Amazon Simple Storage Service (Amazon S3) path of the JAR file that contains the JDBC driver to use.</p> </li> <li> <p> <code>JDBC_DRIVER_CLASS_NAME</code> - The class name of the JDBC driver to use.</p> </li> <li> <p> <code>JDBC_ENGINE</code> - The name of the JDBC engine to use.</p> </li> <li> <p> <code>JDBC_ENGINE_VERSION</code> - The version of the JDBC engine to use.</p> </li> <li> <p> <code>CONFIG_FILES</code> - (Reserved for future use.)</p> </li> <li> <p> <code>INSTANCE_ID</code> - The instance ID to use.</p> </li> <li> <p> <code>JDBC_CONNECTION_URL</code> - The URL for connecting to a JDBC data source.</p> </li> <li> <p> <code>JDBC_ENFORCE_SSL</code> - A Boolean string (true, false) specifying whether Secure Sockets Layer (SSL) with hostname matching is enforced for the JDBC connection on the client. The default is false.</p> </li> <li> <p> <code>CUSTOM_JDBC_CERT</code> - An Amazon S3 location specifying the customer's root certificate. Glue uses this root certificate to validate the customer’s certificate when connecting to the customer database. Glue only handles X.509 certificates. The certificate provided must be DER-encoded and supplied in Base64 encoding PEM format.</p> </li> <li> <p> <code>SKIP_CUSTOM_JDBC_CERT_VALIDATION</code> - By default, this is <code>false</code>. Glue validates the Signature algorithm and Subject Public Key Algorithm for the customer certificate. The only permitted algorithms for the Signature algorithm are SHA256withRSA, SHA384withRSA or SHA512withRSA. For the Subject Public Key Algorithm, the key length must be at least 2048. You can set the value of this property to <code>true</code> to skip Glue’s validation of the customer certificate.</p> </li> <li> <p> <code>CUSTOM_JDBC_CERT_STRING</code> - A custom JDBC certificate string which is used for domain match or distinguished name match to prevent a man-in-the-middle attack. In Oracle database, this is used as the <code>SSL_SERVER_CERT_DN</code>; in Microsoft SQL Server, this is used as the <code>hostNameInCertificate</code>.</p> </li> <li> <p> <code>CONNECTION_URL</code> - The URL for connecting to a general (non-JDBC) data source.</p> </li> <li> <p> <code>SECRET_ID</code> - The secret ID used for the secret manager of credentials.</p> </li> <li> <p> <code>CONNECTOR_URL</code> - The connector URL for a MARKETPLACE or CUSTOM connection.</p> </li> <li> <p> <code>CONNECTOR_TYPE</code> - The connector type for a MARKETPLACE or CUSTOM connection.</p> </li> <li> <p> <code>CONNECTOR_CLASS_NAME</code> - The connector class name for a MARKETPLACE or CUSTOM connection.</p> </li> <li> <p> <code>KAFKA_BOOTSTRAP_SERVERS</code> - A comma-separated list of host and port pairs that are the addresses of the Apache Kafka brokers in a Kafka cluster to which a Kafka client will connect to and bootstrap itself.</p> </li> <li> <p> <code>KAFKA_SSL_ENABLED</code> - Whether to enable or disable SSL on an Apache Kafka connection. Default value is \"true\".</p> </li> <li> <p> <code>KAFKA_CUSTOM_CERT</code> - The Amazon S3 URL for the private CA cert file (.pem format). The default is an empty string.</p> </li> <li> <p> <code>KAFKA_SKIP_CUSTOM_CERT_VALIDATION</code> - Whether to skip the validation of the CA cert file or not. Glue validates for three algorithms: SHA256withRSA, SHA384withRSA and SHA512withRSA. Default value is \"false\".</p> </li> <li> <p> <code>KAFKA_CLIENT_KEYSTORE</code> - The Amazon S3 location of the client keystore file for Kafka client side authentication (Optional).</p> </li> <li> <p> <code>KAFKA_CLIENT_KEYSTORE_PASSWORD</code> - The password to access the provided keystore (Optional).</p> </li> <li> <p> <code>KAFKA_CLIENT_KEY_PASSWORD</code> - A keystore can consist of multiple keys, so this is the password to access the client key to be used with the Kafka server side key (Optional).</p> </li> <li> <p> <code>ENCRYPTED_KAFKA_CLIENT_KEYSTORE_PASSWORD</code> - The encrypted version of the Kafka client keystore password (if the user has the Glue encrypt passwords setting selected).</p> </li> <li> <p> <code>ENCRYPTED_KAFKA_CLIENT_KEY_PASSWORD</code> - The encrypted version of the Kafka client key password (if the user has the Glue encrypt passwords setting selected).</p> </li> <li> <p> <code>KAFKA_SASL_MECHANISM</code> - <code>\"SCRAM-SHA-512\"</code> or <code>\"GSSAPI\"</code>. These are the two supported <a href=\"https://www.iana.org/assignments/sasl-mechanisms/sasl-mechanisms.xhtml\">SASL Mechanisms</a>.</p> </li> <li> <p> <code>KAFKA_SASL_SCRAM_USERNAME</code> - A plaintext username used to authenticate with the \"SCRAM-SHA-512\" mechanism.</p> </li> <li> <p> <code>KAFKA_SASL_SCRAM_PASSWORD</code> - A plaintext password used to authenticate with the \"SCRAM-SHA-512\" mechanism.</p> </li> <li> <p> <code>ENCRYPTED_KAFKA_SASL_SCRAM_PASSWORD</code> - The encrypted version of the Kafka SASL SCRAM password (if the user has the Glue encrypt passwords setting selected).</p> </li> <li> <p> <code>KAFKA_SASL_GSSAPI_KEYTAB</code> - The S3 location of a Kerberos <code>keytab</code> file. A keytab stores long-term keys for one or more principals. For more information, see <a href=\"https://web.mit.edu/kerberos/krb5-latest/doc/basic/keytab_def.html\">MIT Kerberos Documentation: Keytab</a>.</p> </li> <li> <p> <code>KAFKA_SASL_GSSAPI_KRB5_CONF</code> - The S3 location of a Kerberos <code>krb5.conf</code> file. A krb5.conf stores Kerberos configuration information, such as the location of the KDC server. For more information, see <a href=\"https://web.mit.edu/kerberos/krb5-1.12/doc/admin/conf_files/krb5_conf.html\">MIT Kerberos Documentation: krb5.conf</a>.</p> </li> <li> <p> <code>KAFKA_SASL_GSSAPI_SERVICE</code> - The Kerberos service name, as set with <code>sasl.kerberos.service.name</code> in your <a href=\"https://kafka.apache.org/documentation/#brokerconfigs_sasl.kerberos.service.name\">Kafka Configuration</a>.</p> </li> <li> <p> <code>KAFKA_SASL_GSSAPI_PRINCIPAL</code> - The name of the Kerberos princial used by Glue. For more information, see <a href=\"https://kafka.apache.org/documentation/#security_sasl_kerberos_clientconfig\">Kafka Documentation: Configuring Kafka Brokers</a>.</p> </li> </ul>"
         },
         "PhysicalConnectionRequirements":{
           "shape":"PhysicalConnectionRequirements",
@@ -5299,6 +5745,7 @@
       },
       "documentation":"<p>The details of a crawl in the workflow.</p>"
     },
+    "CrawlId":{"type":"string"},
     "CrawlList":{
       "type":"list",
       "member":{"shape":"Crawl"}
@@ -5310,7 +5757,8 @@
         "CANCELLING",
         "CANCELLED",
         "SUCCEEDED",
-        "FAILED"
+        "FAILED",
+        "ERROR"
       ]
     },
     "Crawler":{
@@ -5386,7 +5834,7 @@
         },
         "Configuration":{
           "shape":"CrawlerConfiguration",
-          "documentation":"<p>Crawler configuration information. This versioned JSON string allows users to specify aspects of a crawler's behavior. For more information, see <a href=\"https://docs.aws.amazon.com/glue/latest/dg/define-crawler.html#crawler-data-stores-exclude\">Include and Exclude Patterns</a>.</p>"
+          "documentation":"<p>Crawler configuration information. This versioned JSON string allows users to specify aspects of a crawler's behavior. For more information, see <a href=\"https://docs.aws.amazon.com/glue/latest/dg/crawler-configuration.html\">Setting crawler configuration options</a>.</p>"
         },
         "CrawlerSecurityConfiguration":{
           "shape":"CrawlerSecurityConfiguration",
@@ -5394,12 +5842,71 @@
         },
         "LakeFormationConfiguration":{
           "shape":"LakeFormationConfiguration",
-          "documentation":"<p>Specifies whether the crawler should use AWS Lake Formation credentials for the crawler instead of the IAM role credentials.</p>"
+          "documentation":"<p>Specifies whether the crawler should use Lake Formation credentials for the crawler instead of the IAM role credentials.</p>"
         }
       },
       "documentation":"<p>Specifies a crawler program that examines a data source and uses classifiers to try to determine its schema. If successful, the crawler records metadata concerning the data source in the Glue Data Catalog.</p>"
     },
     "CrawlerConfiguration":{"type":"string"},
+    "CrawlerHistory":{
+      "type":"structure",
+      "members":{
+        "CrawlId":{
+          "shape":"CrawlId",
+          "documentation":"<p>A UUID identifier for each crawl.</p>"
+        },
+        "State":{
+          "shape":"CrawlerHistoryState",
+          "documentation":"<p>The state of the crawl.</p>"
+        },
+        "StartTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The date and time on which the crawl started.</p>"
+        },
+        "EndTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The date and time on which the crawl ended.</p>"
+        },
+        "Summary":{
+          "shape":"NameString",
+          "documentation":"<p>A run summary for the specific crawl in JSON. Contains the catalog tables and partitions that were added, updated, or deleted.</p>"
+        },
+        "ErrorMessage":{
+          "shape":"DescriptionString",
+          "documentation":"<p>If an error occurred, the error message associated with the crawl.</p>"
+        },
+        "LogGroup":{
+          "shape":"LogGroup",
+          "documentation":"<p>The log group associated with the crawl.</p>"
+        },
+        "LogStream":{
+          "shape":"LogStream",
+          "documentation":"<p>The log stream associated with the crawl.</p>"
+        },
+        "MessagePrefix":{
+          "shape":"MessagePrefix",
+          "documentation":"<p>The prefix for a CloudWatch message about this crawl.</p>"
+        },
+        "DPUHour":{
+          "shape":"NonNegativeDouble",
+          "documentation":"<p>The number of data processing units (DPU) used in hours for the crawl.</p>"
+        }
+      },
+      "documentation":"<p>Contains the information for a run of a crawler.</p>"
+    },
+    "CrawlerHistoryList":{
+      "type":"list",
+      "member":{"shape":"CrawlerHistory"}
+    },
+    "CrawlerHistoryState":{
+      "type":"string",
+      "enum":[
+        "RUNNING",
+        "COMPLETED",
+        "FAILED",
+        "STOPPED"
+      ]
+    },
     "CrawlerLineageSettings":{
       "type":"string",
       "enum":[
@@ -5545,6 +6052,28 @@
       },
       "documentation":"<p>Specifies data stores to crawl.</p>"
     },
+    "CrawlsFilter":{
+      "type":"structure",
+      "members":{
+        "FieldName":{
+          "shape":"FieldName",
+          "documentation":"<p>A key used to filter the crawler runs for a specified crawler. Valid values for each of the field names are:</p> <ul> <li> <p> <code>CRAWL_ID</code>: A string representing the UUID identifier for a crawl.</p> </li> <li> <p> <code>STATE</code>: A string representing the state of the crawl.</p> </li> <li> <p> <code>START_TIME</code> and <code>END_TIME</code>: The epoch timestamp in milliseconds.</p> </li> <li> <p> <code>DPU_HOUR</code>: The number of data processing unit (DPU) hours used for the crawl.</p> </li> </ul>"
+        },
+        "FilterOperator":{
+          "shape":"FilterOperator",
+          "documentation":"<p>A defined comparator that operates on the value. The available operators are:</p> <ul> <li> <p> <code>GT</code>: Greater than.</p> </li> <li> <p> <code>GE</code>: Greater than or equal to.</p> </li> <li> <p> <code>LT</code>: Less than.</p> </li> <li> <p> <code>LE</code>: Less than or equal to.</p> </li> <li> <p> <code>EQ</code>: Equal to.</p> </li> <li> <p> <code>NE</code>: Not equal to.</p> </li> </ul>"
+        },
+        "FieldValue":{
+          "shape":"GenericString",
+          "documentation":"<p>The value provided for comparison on the crawl field. </p>"
+        }
+      },
+      "documentation":"<p>A list of fields, comparators and value that you can use to filter the crawler runs for a specified crawler.</p>"
+    },
+    "CrawlsFilterList":{
+      "type":"list",
+      "member":{"shape":"CrawlsFilter"}
+    },
     "CreateBlueprintRequest":{
       "type":"structure",
       "required":[
@@ -5680,10 +6209,13 @@
           "shape":"LineageConfiguration",
           "documentation":"<p>Specifies data lineage configuration settings for the crawler.</p>"
         },
-        "LakeFormationConfiguration":{"shape":"LakeFormationConfiguration"},
+        "LakeFormationConfiguration":{
+          "shape":"LakeFormationConfiguration",
+          "documentation":"<p>Specifies Lake Formation configuration settings for the crawler.</p>"
+        },
         "Configuration":{
           "shape":"CrawlerConfiguration",
-          "documentation":"<p>Crawler configuration information. This versioned JSON string allows users to specify aspects of a crawler's behavior. For more information, see <a href=\"https://docs.aws.amazon.com/glue/latest/dg/crawler-configuration.html\">Configuring a Crawler</a>.</p>"
+          "documentation":"<p>Crawler configuration information. This versioned JSON string allows users to specify aspects of a crawler's behavior. For more information, see <a href=\"https://docs.aws.amazon.com/glue/latest/dg/crawler-configuration.html\">Setting crawler configuration options</a>.</p>"
         },
         "CrawlerSecurityConfiguration":{
           "shape":"CrawlerSecurityConfiguration",
@@ -5731,6 +6263,14 @@
         "AllowSingleColumn":{
           "shape":"NullableBoolean",
           "documentation":"<p>Enables the processing of files that contain only one column.</p>"
+        },
+        "CustomDatatypeConfigured":{
+          "shape":"NullableBoolean",
+          "documentation":"<p>Enables the configuration of custom datatypes.</p>"
+        },
+        "CustomDatatypes":{
+          "shape":"CustomDatatypes",
+          "documentation":"<p>Creates a list of supported custom datatypes.</p>"
         }
       },
       "documentation":"<p>Specifies a custom CSV classifier for <code>CreateClassifier</code> to create.</p>"
@@ -5765,6 +6305,48 @@
         }
       }
     },
+    "CreateDataQualityRulesetRequest":{
+      "type":"structure",
+      "required":[
+        "Name",
+        "Ruleset"
+      ],
+      "members":{
+        "Name":{
+          "shape":"NameString",
+          "documentation":"<p>A unique name for the data quality ruleset.</p>"
+        },
+        "Description":{
+          "shape":"DescriptionString",
+          "documentation":"<p>A description of the data quality ruleset.</p>"
+        },
+        "Ruleset":{
+          "shape":"DataQualityRulesetString",
+          "documentation":"<p>A Data Quality Definition Language (DQDL) ruleset. For more information, see the Glue developer guide.</p>"
+        },
+        "Tags":{
+          "shape":"TagsMap",
+          "documentation":"<p>A list of tags applied to the data quality ruleset.</p>"
+        },
+        "TargetTable":{
+          "shape":"DataQualityTargetTable",
+          "documentation":"<p>A target table associated with the data quality ruleset.</p>"
+        },
+        "ClientToken":{
+          "shape":"HashString",
+          "documentation":"<p>Used for idempotency and is recommended to be set to a random ID (such as a UUID) to avoid creating or starting multiple instances of the same resource.</p>"
+        }
+      }
+    },
+    "CreateDataQualityRulesetResponse":{
+      "type":"structure",
+      "members":{
+        "Name":{
+          "shape":"NameString",
+          "documentation":"<p>A unique name for the data quality ruleset.</p>"
+        }
+      }
+    },
     "CreateDatabaseRequest":{
       "type":"structure",
       "required":["DatabaseInput"],
@@ -5776,6 +6358,10 @@
         "DatabaseInput":{
           "shape":"DatabaseInput",
           "documentation":"<p>The metadata for the database.</p>"
+        },
+        "Tags":{
+          "shape":"TagsMap",
+          "documentation":"<p>The tags you assign to the database.</p>"
         }
       }
     },
@@ -5902,7 +6488,7 @@
         },
         "AvailabilityZone":{
           "shape":"GenericString",
-          "documentation":"<p>The AWS Availability Zone where this <code>DevEndpoint</code> is located.</p>"
+          "documentation":"<p>The Amazon Web Services Availability Zone where this <code>DevEndpoint</code> is located.</p>"
         },
         "VpcId":{
           "shape":"GenericString",
@@ -5995,7 +6581,7 @@
         },
         "DefaultArguments":{
           "shape":"GenericMap",
-          "documentation":"<p>The default arguments for this job.</p> <p>You can specify arguments here that your own job-execution script consumes, as well as arguments that Glue itself consumes.</p> <p>For information about how to specify and consume your own Job arguments, see the <a href=\"https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-python-calling.html\">Calling Glue APIs in Python</a> topic in the developer guide.</p> <p>For information about the key-value pairs that Glue consumes to set up your job, see the <a href=\"https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-glue-arguments.html\">Special Parameters Used by Glue</a> topic in the developer guide.</p>"
+          "documentation":"<p>The default arguments for this job.</p> <p>You can specify arguments here that your own job-execution script consumes, as well as arguments that Glue itself consumes.</p> <p>Job arguments may be logged. Do not pass plaintext secrets as arguments. Retrieve secrets from a Glue Connection, Secrets Manager or other secret management mechanism if you intend to keep them within the Job. </p> <p>For information about how to specify and consume your own Job arguments, see the <a href=\"https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-python-calling.html\">Calling Glue APIs in Python</a> topic in the developer guide.</p> <p>For information about the key-value pairs that Glue consumes to set up your job, see the <a href=\"https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-glue-arguments.html\">Special Parameters Used by Glue</a> topic in the developer guide.</p>"
         },
         "NonOverridableArguments":{
           "shape":"GenericMap",
@@ -6011,7 +6597,7 @@
         },
         "AllocatedCapacity":{
           "shape":"IntegerValue",
-          "documentation":"<p>This parameter is deprecated. Use <code>MaxCapacity</code> instead.</p> <p>The number of Glue data processing units (DPUs) to allocate to this Job. You can allocate from 2 to 100 DPUs; the default is 10. A DPU is a relative measure of processing power that consists of 4 vCPUs of compute capacity and 16 GB of memory. For more information, see the <a href=\"https://aws.amazon.com/glue/pricing/\">Glue pricing page</a>.</p>",
+          "documentation":"<p>This parameter is deprecated. Use <code>MaxCapacity</code> instead.</p> <p>The number of Glue data processing units (DPUs) to allocate to this Job. You can allocate a minimum of 2 DPUs; the default is 10. A DPU is a relative measure of processing power that consists of 4 vCPUs of compute capacity and 16 GB of memory. For more information, see the <a href=\"https://aws.amazon.com/glue/pricing/\">Glue pricing page</a>.</p>",
           "deprecated":true,
           "deprecatedMessage":"This property is deprecated, use MaxCapacity instead."
         },
@@ -6021,7 +6607,7 @@
         },
         "MaxCapacity":{
           "shape":"NullableDouble",
-          "documentation":"<p>For Glue version 1.0 or earlier jobs, using the standard worker type, the number of Glue data processing units (DPUs) that can be allocated when this job runs. A DPU is a relative measure of processing power that consists of 4 vCPUs of compute capacity and 16 GB of memory. For more information, see the <a href=\"https://aws.amazon.com/glue/pricing/\">Glue pricing page</a>.</p> <p>Do not set <code>Max Capacity</code> if using <code>WorkerType</code> and <code>NumberOfWorkers</code>.</p> <p>The value that can be allocated for <code>MaxCapacity</code> depends on whether you are running a Python shell job or an Apache Spark ETL job:</p> <ul> <li> <p>When you specify a Python shell job (<code>JobCommand.Name</code>=\"pythonshell\"), you can allocate either 0.0625 or 1 DPU. The default is 0.0625 DPU.</p> </li> <li> <p>When you specify an Apache Spark ETL job (<code>JobCommand.Name</code>=\"glueetl\") or Apache Spark streaming ETL job (<code>JobCommand.Name</code>=\"gluestreaming\"), you can allocate from 2 to 100 DPUs. The default is 10 DPUs. This job type cannot have a fractional DPU allocation.</p> </li> </ul> <p>For Glue version 2.0 jobs, you cannot instead specify a <code>Maximum capacity</code>. Instead, you should specify a <code>Worker type</code> and the <code>Number of workers</code>.</p>"
+          "documentation":"<p>For Glue version 1.0 or earlier jobs, using the standard worker type, the number of Glue data processing units (DPUs) that can be allocated when this job runs. A DPU is a relative measure of processing power that consists of 4 vCPUs of compute capacity and 16 GB of memory. For more information, see the <a href=\"https://aws.amazon.com/glue/pricing/\">Glue pricing page</a>.</p> <p>Do not set <code>Max Capacity</code> if using <code>WorkerType</code> and <code>NumberOfWorkers</code>.</p> <p>The value that can be allocated for <code>MaxCapacity</code> depends on whether you are running a Python shell job or an Apache Spark ETL job:</p> <ul> <li> <p>When you specify a Python shell job (<code>JobCommand.Name</code>=\"pythonshell\"), you can allocate either 0.0625 or 1 DPU. The default is 0.0625 DPU.</p> </li> <li> <p>When you specify an Apache Spark ETL job (<code>JobCommand.Name</code>=\"glueetl\") or Apache Spark streaming ETL job (<code>JobCommand.Name</code>=\"gluestreaming\"), you can allocate a minimum of 2 DPUs. The default is 10 DPUs. This job type cannot have a fractional DPU allocation.</p> </li> </ul> <p>For Glue version 2.0 jobs, you cannot instead specify a <code>Maximum capacity</code>. Instead, you should specify a <code>Worker type</code> and the <code>Number of workers</code>.</p>"
         },
         "SecurityConfiguration":{
           "shape":"NameString",
@@ -6041,15 +6627,23 @@
         },
         "NumberOfWorkers":{
           "shape":"NullableInteger",
-          "documentation":"<p>The number of workers of a defined <code>workerType</code> that are allocated when a job runs.</p> <p>The maximum number of workers you can define are 299 for <code>G.1X</code>, and 149 for <code>G.2X</code>. </p>"
+          "documentation":"<p>The number of workers of a defined <code>workerType</code> that are allocated when a job runs.</p>"
         },
         "WorkerType":{
           "shape":"WorkerType",
-          "documentation":"<p>The type of predefined worker that is allocated when a job runs. Accepts a value of Standard, G.1X, or G.2X.</p> <ul> <li> <p>For the <code>Standard</code> worker type, each worker provides 4 vCPU, 16 GB of memory and a 50GB disk, and 2 executors per worker.</p> </li> <li> <p>For the <code>G.1X</code> worker type, each worker maps to 1 DPU (4 vCPU, 16 GB of memory, 64 GB disk), and provides 1 executor per worker. We recommend this worker type for memory-intensive jobs.</p> </li> <li> <p>For the <code>G.2X</code> worker type, each worker maps to 2 DPU (8 vCPU, 32 GB of memory, 128 GB disk), and provides 1 executor per worker. We recommend this worker type for memory-intensive jobs.</p> </li> </ul>"
+          "documentation":"<p>The type of predefined worker that is allocated when a job runs. Accepts a value of Standard, G.1X, G.2X, or G.025X.</p> <ul> <li> <p>For the <code>Standard</code> worker type, each worker provides 4 vCPU, 16 GB of memory and a 50GB disk, and 2 executors per worker.</p> </li> <li> <p>For the <code>G.1X</code> worker type, each worker maps to 1 DPU (4 vCPU, 16 GB of memory, 64 GB disk), and provides 1 executor per worker. We recommend this worker type for memory-intensive jobs.</p> </li> <li> <p>For the <code>G.2X</code> worker type, each worker maps to 2 DPU (8 vCPU, 32 GB of memory, 128 GB disk), and provides 1 executor per worker. We recommend this worker type for memory-intensive jobs.</p> </li> <li> <p>For the <code>G.025X</code> worker type, each worker maps to 0.25 DPU (2 vCPU, 4 GB of memory, 64 GB disk), and provides 1 executor per worker. We recommend this worker type for low volume streaming jobs. This worker type is only available for Glue version 3.0 streaming jobs.</p> </li> </ul>"
         },
         "CodeGenConfigurationNodes":{
           "shape":"CodeGenConfigurationNodes",
           "documentation":"<p>The representation of a directed acyclic graph on which both the Glue Studio visual component and Glue Studio code generation is based.</p>"
+        },
+        "ExecutionClass":{
+          "shape":"ExecutionClass",
+          "documentation":"<p>Indicates whether the job is run with a standard or flexible execution class. The standard execution-class is ideal for time-sensitive workloads that require fast job startup and dedicated resources.</p> <p>The flexible execution class is appropriate for time-insensitive jobs whose start and completion times may vary. </p> <p>Only jobs with Glue version 3.0 and above and command type <code>glueetl</code> will be allowed to set <code>ExecutionClass</code> to <code>FLEX</code>. The flexible execution class is available for Spark jobs.</p>"
+        },
+        "SourceControlDetails":{
+          "shape":"SourceControlDetails",
+          "documentation":"<p>The details for a source control configuration for a job, allowing synchronization of job artifacts to or from a remote repository.</p>"
         }
       }
     },
@@ -6453,15 +7047,15 @@
         },
         "MaxCapacity":{
           "shape":"NullableDouble",
-          "documentation":"<p>The number of AWS Glue data processing units (DPUs) that can be allocated when the job runs. A DPU is a relative measure of processing power that consists of 4 vCPUs of compute capacity and 16 GB memory. </p>"
+          "documentation":"<p>The number of Glue data processing units (DPUs) that can be allocated when the job runs. A DPU is a relative measure of processing power that consists of 4 vCPUs of compute capacity and 16 GB memory. </p>"
         },
         "NumberOfWorkers":{
           "shape":"NullableInteger",
-          "documentation":"<p>The number of workers to use for the session. </p>"
+          "documentation":"<p>The number of workers of a defined <code>WorkerType</code> to use for the session. </p>"
         },
         "WorkerType":{
           "shape":"WorkerType",
-          "documentation":"<p>The Worker Type. Can be one of G.1X, G.2X, Standard </p>"
+          "documentation":"<p>The type of predefined worker that is allocated to use for the session. Accepts a value of Standard, G.1X, G.2X, or G.025X.</p> <ul> <li> <p>For the <code>Standard</code> worker type, each worker provides 4 vCPU, 16 GB of memory and a 50GB disk, and 2 executors per worker.</p> </li> <li> <p>For the <code>G.1X</code> worker type, each worker maps to 1 DPU (4 vCPU, 16 GB of memory, 64 GB disk), and provides 1 executor per worker. We recommend this worker type for memory-intensive jobs.</p> </li> <li> <p>For the <code>G.2X</code> worker type, each worker maps to 2 DPU (8 vCPU, 32 GB of memory, 128 GB disk), and provides 1 executor per worker. We recommend this worker type for memory-intensive jobs.</p> </li> <li> <p>For the <code>G.025X</code> worker type, each worker maps to 0.25 DPU (2 vCPU, 4 GB of memory, 64 GB disk), and provides 1 executor per worker. We recommend this worker type for low volume streaming jobs. This worker type is only available for Glue version 3.0 streaming jobs.</p> </li> </ul>"
         },
         "SecurityConfiguration":{
           "shape":"NameString",
@@ -6469,7 +7063,7 @@
         },
         "GlueVersion":{
           "shape":"GlueVersionString",
-          "documentation":"<p>The Glue version determines the versions of Apache Spark and Python that AWS Glue supports. The GlueVersion must be greater than 2.0. </p>"
+          "documentation":"<p>The Glue version determines the versions of Apache Spark and Python that Glue supports. The GlueVersion must be greater than 2.0. </p>"
         },
         "Tags":{
           "shape":"TagsMap",
@@ -6712,6 +7306,14 @@
         "AllowSingleColumn":{
           "shape":"NullableBoolean",
           "documentation":"<p>Enables the processing of files that contain only one column.</p>"
+        },
+        "CustomDatatypeConfigured":{
+          "shape":"NullableBoolean",
+          "documentation":"<p>Enables the custom datatype to be configured.</p>"
+        },
+        "CustomDatatypes":{
+          "shape":"CustomDatatypes",
+          "documentation":"<p>A list of custom datatypes including \"BINARY\", \"BOOLEAN\", \"DATE\", \"DECIMAL\", \"DOUBLE\", \"FLOAT\", \"INT\", \"LONG\", \"SHORT\", \"STRING\", \"TIMESTAMP\".</p>"
         }
       },
       "documentation":"<p>A classifier for custom <code>CSV</code> content.</p>"
@@ -6772,6 +7374,10 @@
       },
       "documentation":"<p>Specifies a transform that uses custom code you provide to perform the data transformation. The output is a collection of DynamicFrames.</p>"
     },
+    "CustomDatatypes":{
+      "type":"list",
+      "member":{"shape":"NameString"}
+    },
     "CustomEntityType":{
       "type":"structure",
       "required":[
@@ -6809,6 +7415,58 @@
       "max":16000,
       "min":0,
       "pattern":"[\\u0020-\\uD7FF\\uE000-\\uFFFD\\uD800\\uDC00-\\uDBFF\\uDFFF\\r\\n\\t]*"
+    },
+    "DQDLString":{
+      "type":"string",
+      "max":65536,
+      "min":1,
+      "pattern":"([\\u0020-\\u007E\\r\\s\\n])*"
+    },
+    "DQResultsPublishingOptions":{
+      "type":"structure",
+      "members":{
+        "EvaluationContext":{
+          "shape":"GenericLimitedString",
+          "documentation":"<p>The context of the evaluation.</p>"
+        },
+        "ResultsS3Prefix":{
+          "shape":"EnclosedInStringProperty",
+          "documentation":"<p>The Amazon S3 prefix prepended to the results.</p>"
+        },
+        "CloudWatchMetricsEnabled":{
+          "shape":"BoxedBoolean",
+          "documentation":"<p>Enable metrics for your data quality results.</p>"
+        },
+        "ResultsPublishingEnabled":{
+          "shape":"BoxedBoolean",
+          "documentation":"<p>Enable publishing for your data quality results.</p>"
+        }
+      },
+      "documentation":"<p>Options to configure how your data quality evaluation results are published.</p>"
+    },
+    "DQStopJobOnFailureOptions":{
+      "type":"structure",
+      "members":{
+        "StopJobOnFailureTiming":{
+          "shape":"DQStopJobOnFailureTiming",
+          "documentation":"<p>When to stop job if your data quality evaluation fails. Options are Immediate or AfterDataLoad.</p>"
+        }
+      },
+      "documentation":"<p>Options to configure how your job will stop if your data quality evaluation fails.</p>"
+    },
+    "DQStopJobOnFailureTiming":{
+      "type":"string",
+      "enum":[
+        "Immediate",
+        "AfterDataLoad"
+      ]
+    },
+    "DQTransformOutput":{
+      "type":"string",
+      "enum":[
+        "PrimaryInput",
+        "EvaluationResults"
+      ]
     },
     "DagEdges":{
       "type":"list",
@@ -6854,6 +7512,374 @@
       "type":"string",
       "max":255,
       "min":1
+    },
+    "DataQualityEvaluationRunAdditionalRunOptions":{
+      "type":"structure",
+      "members":{
+        "CloudWatchMetricsEnabled":{
+          "shape":"NullableBoolean",
+          "documentation":"<p>Whether or not to enable CloudWatch metrics.</p>"
+        },
+        "ResultsS3Prefix":{
+          "shape":"UriString",
+          "documentation":"<p>Prefix for Amazon S3 to store results.</p>"
+        }
+      },
+      "documentation":"<p>Additional run options you can specify for an evaluation run.</p>"
+    },
+    "DataQualityResult":{
+      "type":"structure",
+      "members":{
+        "ResultId":{
+          "shape":"HashString",
+          "documentation":"<p>A unique result ID for the data quality result.</p>"
+        },
+        "Score":{
+          "shape":"GenericBoundedDouble",
+          "documentation":"<p>An aggregate data quality score. Represents the ratio of rules that passed to the total number of rules.</p>"
+        },
+        "DataSource":{
+          "shape":"DataSource",
+          "documentation":"<p>The table associated with the data quality result, if any.</p>"
+        },
+        "RulesetName":{
+          "shape":"NameString",
+          "documentation":"<p>The name of the ruleset associated with the data quality result.</p>"
+        },
+        "EvaluationContext":{
+          "shape":"GenericString",
+          "documentation":"<p>In the context of a job in Glue Studio, each node in the canvas is typically assigned some sort of name and data quality nodes will have names. In the case of multiple nodes, the <code>evaluationContext</code> can differentiate the nodes.</p>"
+        },
+        "StartedOn":{
+          "shape":"Timestamp",
+          "documentation":"<p>The date and time when this data quality run started.</p>"
+        },
+        "CompletedOn":{
+          "shape":"Timestamp",
+          "documentation":"<p>The date and time when this data quality run completed.</p>"
+        },
+        "JobName":{
+          "shape":"NameString",
+          "documentation":"<p>The job name associated with the data quality result, if any.</p>"
+        },
+        "JobRunId":{
+          "shape":"HashString",
+          "documentation":"<p>The job run ID associated with the data quality result, if any.</p>"
+        },
+        "RulesetEvaluationRunId":{
+          "shape":"HashString",
+          "documentation":"<p>The unique run ID for the ruleset evaluation for this data quality result.</p>"
+        },
+        "RuleResults":{
+          "shape":"DataQualityRuleResults",
+          "documentation":"<p>A list of <code>DataQualityRuleResult</code> objects representing the results for each rule. </p>"
+        }
+      },
+      "documentation":"<p>Describes a data quality result.</p>"
+    },
+    "DataQualityResultDescription":{
+      "type":"structure",
+      "members":{
+        "ResultId":{
+          "shape":"HashString",
+          "documentation":"<p>The unique result ID for this data quality result.</p>"
+        },
+        "DataSource":{
+          "shape":"DataSource",
+          "documentation":"<p>The table name associated with the data quality result.</p>"
+        },
+        "JobName":{
+          "shape":"NameString",
+          "documentation":"<p>The job name associated with the data quality result.</p>"
+        },
+        "JobRunId":{
+          "shape":"HashString",
+          "documentation":"<p>The job run ID associated with the data quality result.</p>"
+        },
+        "StartedOn":{
+          "shape":"Timestamp",
+          "documentation":"<p>The time that the run started for this data quality result.</p>"
+        }
+      },
+      "documentation":"<p>Describes a data quality result.</p>"
+    },
+    "DataQualityResultDescriptionList":{
+      "type":"list",
+      "member":{"shape":"DataQualityResultDescription"}
+    },
+    "DataQualityResultFilterCriteria":{
+      "type":"structure",
+      "members":{
+        "DataSource":{
+          "shape":"DataSource",
+          "documentation":"<p>Filter results by the specified data source. For example, retrieving all results for an Glue table.</p>"
+        },
+        "JobName":{
+          "shape":"NameString",
+          "documentation":"<p>Filter results by the specified job name.</p>"
+        },
+        "JobRunId":{
+          "shape":"HashString",
+          "documentation":"<p>Filter results by the specified job run ID.</p>"
+        },
+        "StartedAfter":{
+          "shape":"Timestamp",
+          "documentation":"<p>Filter results by runs that started after this time.</p>"
+        },
+        "StartedBefore":{
+          "shape":"Timestamp",
+          "documentation":"<p>Filter results by runs that started before this time.</p>"
+        }
+      },
+      "documentation":"<p>Criteria used to return data quality results.</p>"
+    },
+    "DataQualityResultIdList":{
+      "type":"list",
+      "member":{"shape":"HashString"},
+      "max":10,
+      "min":1
+    },
+    "DataQualityResultIds":{
+      "type":"list",
+      "member":{"shape":"HashString"},
+      "max":100,
+      "min":1
+    },
+    "DataQualityResultsList":{
+      "type":"list",
+      "member":{"shape":"DataQualityResult"}
+    },
+    "DataQualityRuleRecommendationRunDescription":{
+      "type":"structure",
+      "members":{
+        "RunId":{
+          "shape":"HashString",
+          "documentation":"<p>The unique run identifier associated with this run.</p>"
+        },
+        "Status":{
+          "shape":"TaskStatusType",
+          "documentation":"<p>The status for this run.</p>"
+        },
+        "StartedOn":{
+          "shape":"Timestamp",
+          "documentation":"<p>The date and time when this run started.</p>"
+        },
+        "DataSource":{
+          "shape":"DataSource",
+          "documentation":"<p>The data source (Glue table) associated with the recommendation run.</p>"
+        }
+      },
+      "documentation":"<p>Describes the result of a data quality rule recommendation run.</p>"
+    },
+    "DataQualityRuleRecommendationRunFilter":{
+      "type":"structure",
+      "required":["DataSource"],
+      "members":{
+        "DataSource":{
+          "shape":"DataSource",
+          "documentation":"<p>Filter based on a specified data source (Glue table).</p>"
+        },
+        "StartedBefore":{
+          "shape":"Timestamp",
+          "documentation":"<p>Filter based on time for results started before provided time.</p>"
+        },
+        "StartedAfter":{
+          "shape":"Timestamp",
+          "documentation":"<p>Filter based on time for results started after provided time.</p>"
+        }
+      },
+      "documentation":"<p>A filter for listing data quality recommendation runs.</p>"
+    },
+    "DataQualityRuleRecommendationRunList":{
+      "type":"list",
+      "member":{"shape":"DataQualityRuleRecommendationRunDescription"}
+    },
+    "DataQualityRuleResult":{
+      "type":"structure",
+      "members":{
+        "Name":{
+          "shape":"NameString",
+          "documentation":"<p>The name of the data quality rule.</p>"
+        },
+        "Description":{
+          "shape":"DescriptionString",
+          "documentation":"<p>A description of the data quality rule.</p>"
+        },
+        "EvaluationMessage":{
+          "shape":"DescriptionString",
+          "documentation":"<p>An evaluation message.</p>"
+        },
+        "Result":{
+          "shape":"DataQualityRuleResultStatus",
+          "documentation":"<p>A pass or fail status for the rule.</p>"
+        }
+      },
+      "documentation":"<p>Describes the result of the evaluation of a data quality rule.</p>"
+    },
+    "DataQualityRuleResultStatus":{
+      "type":"string",
+      "enum":[
+        "PASS",
+        "FAIL",
+        "ERROR"
+      ]
+    },
+    "DataQualityRuleResults":{
+      "type":"list",
+      "member":{"shape":"DataQualityRuleResult"},
+      "max":2000,
+      "min":1
+    },
+    "DataQualityRulesetEvaluationRunDescription":{
+      "type":"structure",
+      "members":{
+        "RunId":{
+          "shape":"HashString",
+          "documentation":"<p>The unique run identifier associated with this run.</p>"
+        },
+        "Status":{
+          "shape":"TaskStatusType",
+          "documentation":"<p>The status for this run.</p>"
+        },
+        "StartedOn":{
+          "shape":"Timestamp",
+          "documentation":"<p>The date and time when the run started.</p>"
+        },
+        "DataSource":{
+          "shape":"DataSource",
+          "documentation":"<p>The data source (an Glue table) associated with the run.</p>"
+        }
+      },
+      "documentation":"<p>Describes the result of a data quality ruleset evaluation run.</p>"
+    },
+    "DataQualityRulesetEvaluationRunFilter":{
+      "type":"structure",
+      "required":["DataSource"],
+      "members":{
+        "DataSource":{
+          "shape":"DataSource",
+          "documentation":"<p>Filter based on a data source (an Glue table) associated with the run.</p>"
+        },
+        "StartedBefore":{
+          "shape":"Timestamp",
+          "documentation":"<p>Filter results by runs that started before this time.</p>"
+        },
+        "StartedAfter":{
+          "shape":"Timestamp",
+          "documentation":"<p>Filter results by runs that started after this time.</p>"
+        }
+      },
+      "documentation":"<p>The filter criteria.</p>"
+    },
+    "DataQualityRulesetEvaluationRunList":{
+      "type":"list",
+      "member":{"shape":"DataQualityRulesetEvaluationRunDescription"}
+    },
+    "DataQualityRulesetFilterCriteria":{
+      "type":"structure",
+      "members":{
+        "Name":{
+          "shape":"NameString",
+          "documentation":"<p>The name of the ruleset filter criteria.</p>"
+        },
+        "Description":{
+          "shape":"DescriptionString",
+          "documentation":"<p>The description of the ruleset filter criteria.</p>"
+        },
+        "CreatedBefore":{
+          "shape":"Timestamp",
+          "documentation":"<p>Filter on rulesets created before this date.</p>"
+        },
+        "CreatedAfter":{
+          "shape":"Timestamp",
+          "documentation":"<p>Filter on rulesets created after this date.</p>"
+        },
+        "LastModifiedBefore":{
+          "shape":"Timestamp",
+          "documentation":"<p>Filter on rulesets last modified before this date.</p>"
+        },
+        "LastModifiedAfter":{
+          "shape":"Timestamp",
+          "documentation":"<p>Filter on rulesets last modified after this date.</p>"
+        },
+        "TargetTable":{
+          "shape":"DataQualityTargetTable",
+          "documentation":"<p>The name and database name of the target table.</p>"
+        }
+      },
+      "documentation":"<p>The criteria used to filter data quality rulesets.</p>"
+    },
+    "DataQualityRulesetList":{
+      "type":"list",
+      "member":{"shape":"DataQualityRulesetListDetails"}
+    },
+    "DataQualityRulesetListDetails":{
+      "type":"structure",
+      "members":{
+        "Name":{
+          "shape":"NameString",
+          "documentation":"<p>The name of the data quality ruleset.</p>"
+        },
+        "Description":{
+          "shape":"DescriptionString",
+          "documentation":"<p>A description of the data quality ruleset.</p>"
+        },
+        "CreatedOn":{
+          "shape":"Timestamp",
+          "documentation":"<p>The date and time the data quality ruleset was created.</p>"
+        },
+        "LastModifiedOn":{
+          "shape":"Timestamp",
+          "documentation":"<p>The date and time the data quality ruleset was last modified.</p>"
+        },
+        "TargetTable":{
+          "shape":"DataQualityTargetTable",
+          "documentation":"<p>An object representing an Glue table.</p>"
+        },
+        "RecommendationRunId":{
+          "shape":"HashString",
+          "documentation":"<p>When a ruleset was created from a recommendation run, this run ID is generated to link the two together.</p>"
+        },
+        "RuleCount":{
+          "shape":"NullableInteger",
+          "documentation":"<p>The number of rules in the ruleset.</p>"
+        }
+      },
+      "documentation":"<p>Describes a data quality ruleset returned by <code>GetDataQualityRuleset</code>.</p>"
+    },
+    "DataQualityRulesetString":{
+      "type":"string",
+      "max":65536,
+      "min":1
+    },
+    "DataQualityTargetTable":{
+      "type":"structure",
+      "required":[
+        "TableName",
+        "DatabaseName"
+      ],
+      "members":{
+        "TableName":{
+          "shape":"NameString",
+          "documentation":"<p>The name of the Glue table.</p>"
+        },
+        "DatabaseName":{
+          "shape":"NameString",
+          "documentation":"<p>The name of the database where the Glue table exists.</p>"
+        }
+      },
+      "documentation":"<p>An object representing an Glue table.</p>"
+    },
+    "DataSource":{
+      "type":"structure",
+      "required":["GlueTable"],
+      "members":{
+        "GlueTable":{
+          "shape":"GlueTable",
+          "documentation":"<p>An Glue table.</p>"
+        }
+      },
+      "documentation":"<p>A data source (an Glue table) for which you want data quality results.</p>"
     },
     "Database":{
       "type":"structure",
@@ -7198,6 +8224,21 @@
           "shape":"NameString",
           "documentation":"<p>The name of the custom pattern you deleted.</p>"
         }
+      }
+    },
+    "DeleteDataQualityRulesetRequest":{
+      "type":"structure",
+      "required":["Name"],
+      "members":{
+        "Name":{
+          "shape":"NameString",
+          "documentation":"<p>A name for the data quality ruleset.</p>"
+        }
+      }
+    },
+    "DeleteDataQualityRulesetResponse":{
+      "type":"structure",
+      "members":{
       }
     },
     "DeleteDatabaseRequest":{
@@ -7609,6 +8650,10 @@
         "WriteManifest":{
           "shape":"NullableBoolean",
           "documentation":"<p>Specifies whether to write the manifest files to the Delta table path.</p>"
+        },
+        "CreateNativeDeltaTable":{
+          "shape":"NullableBoolean",
+          "documentation":"<p>Specifies whether the crawler will create native tables, to allow integration with query engines that support querying of the Delta transaction log directly.</p>"
         }
       },
       "documentation":"<p>Specifies a Delta data store to crawl one or more Delta tables.</p>"
@@ -7686,7 +8731,7 @@
         },
         "AvailabilityZone":{
           "shape":"GenericString",
-          "documentation":"<p>The AWS Availability Zone where this <code>DevEndpoint</code> is located.</p>"
+          "documentation":"<p>The Amazon Web Services Availability Zone where this <code>DevEndpoint</code> is located.</p>"
         },
         "VpcId":{
           "shape":"GenericString",
@@ -7942,6 +8987,47 @@
       },
       "documentation":"<p>Specifies a transform that removes columns from the dataset if all values in the column are 'null'. By default, Glue Studio will recognize null objects, but some values such as empty strings, strings that are \"null\", -1 integers or other placeholders such as zeros, are not automatically recognized as nulls.</p>"
     },
+    "DynamicTransform":{
+      "type":"structure",
+      "required":[
+        "Name",
+        "TransformName",
+        "Inputs",
+        "FunctionName",
+        "Path"
+      ],
+      "members":{
+        "Name":{
+          "shape":"EnclosedInStringProperty",
+          "documentation":"<p>Specifies the name of the dynamic transform.</p>"
+        },
+        "TransformName":{
+          "shape":"EnclosedInStringProperty",
+          "documentation":"<p>Specifies the name of the dynamic transform as it appears in the Glue Studio visual editor.</p>"
+        },
+        "Inputs":{
+          "shape":"OneInput",
+          "documentation":"<p>Specifies the inputs for the dynamic transform that are required.</p>"
+        },
+        "Parameters":{
+          "shape":"TransformConfigParameterList",
+          "documentation":"<p>Specifies the parameters of the dynamic transform.</p>"
+        },
+        "FunctionName":{
+          "shape":"EnclosedInStringProperty",
+          "documentation":"<p>Specifies the name of the function of the dynamic transform.</p>"
+        },
+        "Path":{
+          "shape":"EnclosedInStringProperty",
+          "documentation":"<p>Specifies the path of the dynamic transform source and config files.</p>"
+        },
+        "Version":{
+          "shape":"EnclosedInStringProperty",
+          "documentation":"<p>This field is not used and will be deprecated in future release.</p>"
+        }
+      },
+      "documentation":"<p>Specifies the set of parameters needed to perform the dynamic transform.</p>"
+    },
     "DynamoDBCatalogSource":{
       "type":"structure",
       "required":[
@@ -7999,11 +9085,15 @@
           "documentation":"<p>The unique of the node within the workflow where the edge ends.</p>"
         }
       },
-      "documentation":"<p>An edge represents a directed connection between two components on a workflow graph.</p>"
+      "documentation":"<p>An edge represents a directed connection between two Glue components that are part of the workflow the edge belongs to.</p>"
     },
     "EdgeList":{
       "type":"list",
       "member":{"shape":"Edge"}
+    },
+    "EnableAdditionalMetadata":{
+      "type":"list",
+      "member":{"shape":"JdbcMetadataEntry"}
     },
     "EnableHybridValues":{
       "type":"string",
@@ -8108,6 +9198,41 @@
     },
     "ErrorMessageString":{"type":"string"},
     "ErrorString":{"type":"string"},
+    "EvaluateDataQuality":{
+      "type":"structure",
+      "required":[
+        "Name",
+        "Inputs",
+        "Ruleset"
+      ],
+      "members":{
+        "Name":{
+          "shape":"NodeName",
+          "documentation":"<p>The name of the data quality evaluation.</p>"
+        },
+        "Inputs":{
+          "shape":"OneInput",
+          "documentation":"<p>The inputs of your data quality evaluation.</p>"
+        },
+        "Ruleset":{
+          "shape":"DQDLString",
+          "documentation":"<p>The ruleset for your data quality evaluation.</p>"
+        },
+        "Output":{
+          "shape":"DQTransformOutput",
+          "documentation":"<p>The output of your data quality evaluation.</p>"
+        },
+        "PublishingOptions":{
+          "shape":"DQResultsPublishingOptions",
+          "documentation":"<p>Options to configure how your results are published.</p>"
+        },
+        "StopJobOnFailureOptions":{
+          "shape":"DQStopJobOnFailureOptions",
+          "documentation":"<p>Options to configure how your job will stop if your data quality evaluation fails.</p>"
+        }
+      },
+      "documentation":"<p>Specifies your data quality evaluation criteria.</p>"
+    },
     "EvaluationMetrics":{
       "type":"structure",
       "required":["TransformType"],
@@ -8139,6 +9264,14 @@
       "documentation":"<p>Batch condition that must be met (specified number of events received or batch time window expired) before EventBridge event trigger fires.</p>"
     },
     "EventQueueArn":{"type":"string"},
+    "ExecutionClass":{
+      "type":"string",
+      "enum":[
+        "FLEX",
+        "STANDARD"
+      ],
+      "max":16
+    },
     "ExecutionProperty":{
       "type":"structure",
       "members":{
@@ -8171,6 +9304,16 @@
     "ExtendedString":{
       "type":"string",
       "pattern":"[\\s\\S]*"
+    },
+    "FieldName":{
+      "type":"string",
+      "enum":[
+        "CRAWL_ID",
+        "STATE",
+        "START_TIME",
+        "END_TIME",
+        "DPU_HOUR"
+      ]
     },
     "FieldType":{"type":"string"},
     "FillMissingValues":{
@@ -8271,6 +9414,17 @@
         "GTE",
         "REGEX",
         "ISNULL"
+      ]
+    },
+    "FilterOperator":{
+      "type":"string",
+      "enum":[
+        "GT",
+        "GE",
+        "LT",
+        "LE",
+        "EQ",
+        "NE"
       ]
     },
     "FilterString":{
@@ -8654,7 +9808,7 @@
         },
         "HidePassword":{
           "shape":"Boolean",
-          "documentation":"<p>Allows you to retrieve the connection metadata without returning the password. For instance, the AWS Glue console uses this flag to retrieve the connection, and does not display the password. Set this parameter when the caller might not have permission to use the KMS key to decrypt the password, but it does have permission to access the rest of the connection properties.</p>"
+          "documentation":"<p>Allows you to retrieve the connection metadata without returning the password. For instance, the Glue console uses this flag to retrieve the connection, and does not display the password. Set this parameter when the caller might not have permission to use the KMS key to decrypt the password, but it does have permission to access the rest of the connection properties.</p>"
         }
       }
     },
@@ -8694,7 +9848,7 @@
         },
         "HidePassword":{
           "shape":"Boolean",
-          "documentation":"<p>Allows you to retrieve the connection metadata without returning the password. For instance, the AWS Glue console uses this flag to retrieve the connection, and does not display the password. Set this parameter when the caller might not have permission to use the KMS key to decrypt the password, but it does have permission to access the rest of the connection properties.</p>"
+          "documentation":"<p>Allows you to retrieve the connection metadata without returning the password. For instance, the Glue console uses this flag to retrieve the connection, and does not display the password. Set this parameter when the caller might not have permission to use the KMS key to decrypt the password, but it does have permission to access the rest of the connection properties.</p>"
         },
         "NextToken":{
           "shape":"Token",
@@ -8836,6 +9990,246 @@
         "DataCatalogEncryptionSettings":{
           "shape":"DataCatalogEncryptionSettings",
           "documentation":"<p>The requested security configuration.</p>"
+        }
+      }
+    },
+    "GetDataQualityResultRequest":{
+      "type":"structure",
+      "required":["ResultId"],
+      "members":{
+        "ResultId":{
+          "shape":"HashString",
+          "documentation":"<p>A unique result ID for the data quality result.</p>"
+        }
+      }
+    },
+    "GetDataQualityResultResponse":{
+      "type":"structure",
+      "members":{
+        "ResultId":{
+          "shape":"HashString",
+          "documentation":"<p>A unique result ID for the data quality result.</p>"
+        },
+        "Score":{
+          "shape":"GenericBoundedDouble",
+          "documentation":"<p>An aggregate data quality score. Represents the ratio of rules that passed to the total number of rules.</p>"
+        },
+        "DataSource":{
+          "shape":"DataSource",
+          "documentation":"<p>The table associated with the data quality result, if any.</p>"
+        },
+        "RulesetName":{
+          "shape":"NameString",
+          "documentation":"<p>The name of the ruleset associated with the data quality result.</p>"
+        },
+        "EvaluationContext":{
+          "shape":"GenericString",
+          "documentation":"<p>In the context of a job in Glue Studio, each node in the canvas is typically assigned some sort of name and data quality nodes will have names. In the case of multiple nodes, the <code>evaluationContext</code> can differentiate the nodes.</p>"
+        },
+        "StartedOn":{
+          "shape":"Timestamp",
+          "documentation":"<p>The date and time when the run for this data quality result started.</p>"
+        },
+        "CompletedOn":{
+          "shape":"Timestamp",
+          "documentation":"<p>The date and time when the run for this data quality result was completed.</p>"
+        },
+        "JobName":{
+          "shape":"NameString",
+          "documentation":"<p>The job name associated with the data quality result, if any.</p>"
+        },
+        "JobRunId":{
+          "shape":"HashString",
+          "documentation":"<p>The job run ID associated with the data quality result, if any.</p>"
+        },
+        "RulesetEvaluationRunId":{
+          "shape":"HashString",
+          "documentation":"<p>The unique run ID associated with the ruleset evaluation.</p>"
+        },
+        "RuleResults":{
+          "shape":"DataQualityRuleResults",
+          "documentation":"<p>A list of <code>DataQualityRuleResult</code> objects representing the results for each rule. </p>"
+        }
+      }
+    },
+    "GetDataQualityRuleRecommendationRunRequest":{
+      "type":"structure",
+      "required":["RunId"],
+      "members":{
+        "RunId":{
+          "shape":"HashString",
+          "documentation":"<p>The unique run identifier associated with this run.</p>"
+        }
+      }
+    },
+    "GetDataQualityRuleRecommendationRunResponse":{
+      "type":"structure",
+      "members":{
+        "RunId":{
+          "shape":"HashString",
+          "documentation":"<p>The unique run identifier associated with this run.</p>"
+        },
+        "DataSource":{
+          "shape":"DataSource",
+          "documentation":"<p>The data source (an Glue table) associated with this run.</p>"
+        },
+        "Role":{
+          "shape":"RoleString",
+          "documentation":"<p>An IAM role supplied to encrypt the results of the run.</p>"
+        },
+        "NumberOfWorkers":{
+          "shape":"NullableInteger",
+          "documentation":"<p>The number of <code>G.1X</code> workers to be used in the run. The default is 5.</p>"
+        },
+        "Timeout":{
+          "shape":"Timeout",
+          "documentation":"<p>The timeout for a run in minutes. This is the maximum time that a run can consume resources before it is terminated and enters <code>TIMEOUT</code> status. The default is 2,880 minutes (48 hours).</p>"
+        },
+        "Status":{
+          "shape":"TaskStatusType",
+          "documentation":"<p>The status for this run.</p>"
+        },
+        "ErrorString":{
+          "shape":"GenericString",
+          "documentation":"<p>The error strings that are associated with the run.</p>"
+        },
+        "StartedOn":{
+          "shape":"Timestamp",
+          "documentation":"<p>The date and time when this run started.</p>"
+        },
+        "LastModifiedOn":{
+          "shape":"Timestamp",
+          "documentation":"<p>A timestamp. The last point in time when this data quality rule recommendation run was modified.</p>"
+        },
+        "CompletedOn":{
+          "shape":"Timestamp",
+          "documentation":"<p>The date and time when this run was completed.</p>"
+        },
+        "ExecutionTime":{
+          "shape":"ExecutionTime",
+          "documentation":"<p>The amount of time (in seconds) that the run consumed resources.</p>"
+        },
+        "RecommendedRuleset":{
+          "shape":"DataQualityRulesetString",
+          "documentation":"<p>When a start rule recommendation run completes, it creates a recommended ruleset (a set of rules). This member has those rules in Data Quality Definition Language (DQDL) format.</p>"
+        },
+        "CreatedRulesetName":{
+          "shape":"NameString",
+          "documentation":"<p>The name of the ruleset that was created by the run.</p>"
+        }
+      }
+    },
+    "GetDataQualityRulesetEvaluationRunRequest":{
+      "type":"structure",
+      "required":["RunId"],
+      "members":{
+        "RunId":{
+          "shape":"HashString",
+          "documentation":"<p>The unique run identifier associated with this run.</p>"
+        }
+      }
+    },
+    "GetDataQualityRulesetEvaluationRunResponse":{
+      "type":"structure",
+      "members":{
+        "RunId":{
+          "shape":"HashString",
+          "documentation":"<p>The unique run identifier associated with this run.</p>"
+        },
+        "DataSource":{
+          "shape":"DataSource",
+          "documentation":"<p>The data source (an Glue table) associated with this evaluation run.</p>"
+        },
+        "Role":{
+          "shape":"RoleString",
+          "documentation":"<p>An IAM role supplied to encrypt the results of the run.</p>"
+        },
+        "NumberOfWorkers":{
+          "shape":"NullableInteger",
+          "documentation":"<p>The number of <code>G.1X</code> workers to be used in the run. The default is 5.</p>"
+        },
+        "Timeout":{
+          "shape":"Timeout",
+          "documentation":"<p>The timeout for a run in minutes. This is the maximum time that a run can consume resources before it is terminated and enters <code>TIMEOUT</code> status. The default is 2,880 minutes (48 hours).</p>"
+        },
+        "AdditionalRunOptions":{
+          "shape":"DataQualityEvaluationRunAdditionalRunOptions",
+          "documentation":"<p>Additional run options you can specify for an evaluation run.</p>"
+        },
+        "Status":{
+          "shape":"TaskStatusType",
+          "documentation":"<p>The status for this run.</p>"
+        },
+        "ErrorString":{
+          "shape":"GenericString",
+          "documentation":"<p>The error strings that are associated with the run.</p>"
+        },
+        "StartedOn":{
+          "shape":"Timestamp",
+          "documentation":"<p>The date and time when this run started.</p>"
+        },
+        "LastModifiedOn":{
+          "shape":"Timestamp",
+          "documentation":"<p>A timestamp. The last point in time when this data quality rule recommendation run was modified.</p>"
+        },
+        "CompletedOn":{
+          "shape":"Timestamp",
+          "documentation":"<p>The date and time when this run was completed.</p>"
+        },
+        "ExecutionTime":{
+          "shape":"ExecutionTime",
+          "documentation":"<p>The amount of time (in seconds) that the run consumed resources.</p>"
+        },
+        "RulesetNames":{
+          "shape":"RulesetNames",
+          "documentation":"<p>A list of ruleset names for the run.</p>"
+        },
+        "ResultIds":{
+          "shape":"DataQualityResultIdList",
+          "documentation":"<p>A list of result IDs for the data quality results for the run.</p>"
+        }
+      }
+    },
+    "GetDataQualityRulesetRequest":{
+      "type":"structure",
+      "required":["Name"],
+      "members":{
+        "Name":{
+          "shape":"NameString",
+          "documentation":"<p>The name of the ruleset.</p>"
+        }
+      }
+    },
+    "GetDataQualityRulesetResponse":{
+      "type":"structure",
+      "members":{
+        "Name":{
+          "shape":"NameString",
+          "documentation":"<p>The name of the ruleset.</p>"
+        },
+        "Description":{
+          "shape":"DescriptionString",
+          "documentation":"<p>A description of the ruleset.</p>"
+        },
+        "Ruleset":{
+          "shape":"DataQualityRulesetString",
+          "documentation":"<p>A Data Quality Definition Language (DQDL) ruleset. For more information, see the Glue developer guide.</p>"
+        },
+        "TargetTable":{
+          "shape":"DataQualityTargetTable",
+          "documentation":"<p>The name and database name of the target table.</p>"
+        },
+        "CreatedOn":{
+          "shape":"Timestamp",
+          "documentation":"<p>A timestamp. The time and date that this data quality ruleset was created.</p>"
+        },
+        "LastModifiedOn":{
+          "shape":"Timestamp",
+          "documentation":"<p>A timestamp. The last point in time when this data quality ruleset was modified.</p>"
+        },
+        "RecommendationRunId":{
+          "shape":"HashString",
+          "documentation":"<p>When a ruleset was created from a recommendation run, this run ID is generated to link the two together.</p>"
         }
       }
     },
@@ -10477,7 +11871,7 @@
           "documentation":"<p>Specifies the column definitions that make up a Glue schema.</p>"
         }
       },
-      "documentation":"<p>Specifies a user-defined schema when a schema cannot be determined by AWS Glue.</p>"
+      "documentation":"<p>Specifies a user-defined schema when a schema cannot be determined by Glue.</p>"
     },
     "GlueSchemas":{
       "type":"list",
@@ -10534,9 +11928,20 @@
         "ConnectionName":{
           "shape":"NameString",
           "documentation":"<p>The name of the connection to the Glue Data Catalog.</p>"
+        },
+        "AdditionalOptions":{
+          "shape":"GlueTableAdditionalOptions",
+          "documentation":"<p>Additional options for the table. Currently there are two keys supported:</p> <ul> <li> <p> <code>pushDownPredicate</code>: to filter on partitions without having to list and read all the files in your dataset.</p> </li> <li> <p> <code>catalogPartitionPredicate</code>: to use server-side partition pruning using partition indexes in the Glue Data Catalog.</p> </li> </ul>"
         }
       },
       "documentation":"<p>The database and table in the Glue Data Catalog that is used for input or output data.</p>"
+    },
+    "GlueTableAdditionalOptions":{
+      "type":"map",
+      "key":{"shape":"NameString"},
+      "value":{"shape":"DescriptionString"},
+      "max":10,
+      "min":1
     },
     "GlueTables":{
       "type":"list",
@@ -10668,6 +12073,15 @@
       "min":1,
       "pattern":"[\\u0020-\\uD7FF\\uE000-\\uFFFD\\uD800\\uDC00-\\uDBFF\\uDFFF\\t]*"
     },
+    "HudiTargetCompressionType":{
+      "type":"string",
+      "enum":[
+        "gzip",
+        "lzo",
+        "uncompressed",
+        "snappy"
+      ]
+    },
     "IdString":{
       "type":"string",
       "max":255,
@@ -10688,8 +12102,12 @@
     "IllegalBlueprintStateException":{
       "type":"structure",
       "members":{
-        "Message":{"shape":"MessageString"}
+        "Message":{
+          "shape":"MessageString",
+          "documentation":"<p>A message describing the problem.</p>"
+        }
       },
+      "documentation":"<p>The blueprint is in an invalid state to perform a requested operation.</p>",
       "exception":true
     },
     "IllegalSessionStateException":{
@@ -10961,6 +12379,13 @@
       "key":{"shape":"JDBCDataType"},
       "value":{"shape":"GlueRecordType"}
     },
+    "JdbcMetadataEntry":{
+      "type":"string",
+      "enum":[
+        "COMMENTS",
+        "RAWTYPES"
+      ]
+    },
     "JdbcTarget":{
       "type":"structure",
       "members":{
@@ -10975,6 +12400,10 @@
         "Exclusions":{
           "shape":"PathList",
           "documentation":"<p>A list of glob patterns used to exclude from the crawl. For more information, see <a href=\"https://docs.aws.amazon.com/glue/latest/dg/add-crawler.html\">Catalog Tables with a Crawler</a>.</p>"
+        },
+        "EnableAdditionalMetadata":{
+          "shape":"EnableAdditionalMetadata",
+          "documentation":"<p>Specify a value of <code>RAWTYPES</code> or <code>COMMENTS</code> to enable additional metadata in table responses. <code>RAWTYPES</code> provides the native-level datatype. <code>COMMENTS</code> provides comments associated with a column or table in the database.</p> <p>If you do not need additional metadata, keep the field empty.</p>"
         }
       },
       "documentation":"<p>Specifies a JDBC data store to crawl.</p>"
@@ -11036,7 +12465,7 @@
         },
         "AllocatedCapacity":{
           "shape":"IntegerValue",
-          "documentation":"<p>This field is deprecated. Use <code>MaxCapacity</code> instead.</p> <p>The number of Glue data processing units (DPUs) allocated to runs of this job. You can allocate from 2 to 100 DPUs; the default is 10. A DPU is a relative measure of processing power that consists of 4 vCPUs of compute capacity and 16 GB of memory. For more information, see the <a href=\"https://aws.amazon.com/glue/pricing/\">Glue pricing page</a>.</p> <p/>",
+          "documentation":"<p>This field is deprecated. Use <code>MaxCapacity</code> instead.</p> <p>The number of Glue data processing units (DPUs) allocated to runs of this job. You can allocate a minimum of 2 DPUs; the default is 10. A DPU is a relative measure of processing power that consists of 4 vCPUs of compute capacity and 16 GB of memory. For more information, see the <a href=\"https://aws.amazon.com/glue/pricing/\">Glue pricing page</a>.</p> <p/>",
           "deprecated":true,
           "deprecatedMessage":"This property is deprecated, use MaxCapacity instead."
         },
@@ -11046,15 +12475,15 @@
         },
         "MaxCapacity":{
           "shape":"NullableDouble",
-          "documentation":"<p>For Glue version 1.0 or earlier jobs, using the standard worker type, the number of Glue data processing units (DPUs) that can be allocated when this job runs. A DPU is a relative measure of processing power that consists of 4 vCPUs of compute capacity and 16 GB of memory. For more information, see the <a href=\"https://aws.amazon.com/glue/pricing/\">Glue pricing page</a>.</p> <p>Do not set <code>Max Capacity</code> if using <code>WorkerType</code> and <code>NumberOfWorkers</code>.</p> <p>The value that can be allocated for <code>MaxCapacity</code> depends on whether you are running a Python shell job, an Apache Spark ETL job, or an Apache Spark streaming ETL job:</p> <ul> <li> <p>When you specify a Python shell job (<code>JobCommand.Name</code>=\"pythonshell\"), you can allocate either 0.0625 or 1 DPU. The default is 0.0625 DPU.</p> </li> <li> <p>When you specify an Apache Spark ETL job (<code>JobCommand.Name</code>=\"glueetl\") or Apache Spark streaming ETL job (<code>JobCommand.Name</code>=\"gluestreaming\"), you can allocate from 2 to 100 DPUs. The default is 10 DPUs. This job type cannot have a fractional DPU allocation.</p> </li> </ul> <p>For Glue version 2.0 jobs, you cannot instead specify a <code>Maximum capacity</code>. Instead, you should specify a <code>Worker type</code> and the <code>Number of workers</code>.</p>"
+          "documentation":"<p>For Glue version 1.0 or earlier jobs, using the standard worker type, the number of Glue data processing units (DPUs) that can be allocated when this job runs. A DPU is a relative measure of processing power that consists of 4 vCPUs of compute capacity and 16 GB of memory. For more information, see the <a href=\"https://aws.amazon.com/glue/pricing/\">Glue pricing page</a>.</p> <p>Do not set <code>Max Capacity</code> if using <code>WorkerType</code> and <code>NumberOfWorkers</code>.</p> <p>The value that can be allocated for <code>MaxCapacity</code> depends on whether you are running a Python shell job, an Apache Spark ETL job, or an Apache Spark streaming ETL job:</p> <ul> <li> <p>When you specify a Python shell job (<code>JobCommand.Name</code>=\"pythonshell\"), you can allocate either 0.0625 or 1 DPU. The default is 0.0625 DPU.</p> </li> <li> <p>When you specify an Apache Spark ETL job (<code>JobCommand.Name</code>=\"glueetl\") or Apache Spark streaming ETL job (<code>JobCommand.Name</code>=\"gluestreaming\"), you can allocate a minimum of 2 DPUs. The default is 10 DPUs. This job type cannot have a fractional DPU allocation.</p> </li> </ul> <p>For Glue version 2.0 jobs, you cannot instead specify a <code>Maximum capacity</code>. Instead, you should specify a <code>Worker type</code> and the <code>Number of workers</code>.</p>"
         },
         "WorkerType":{
           "shape":"WorkerType",
-          "documentation":"<p>The type of predefined worker that is allocated when a job runs. Accepts a value of Standard, G.1X, or G.2X.</p> <ul> <li> <p>For the <code>Standard</code> worker type, each worker provides 4 vCPU, 16 GB of memory and a 50GB disk, and 2 executors per worker.</p> </li> <li> <p>For the <code>G.1X</code> worker type, each worker maps to 1 DPU (4 vCPU, 16 GB of memory, 64 GB disk), and provides 1 executor per worker. We recommend this worker type for memory-intensive jobs.</p> </li> <li> <p>For the <code>G.2X</code> worker type, each worker maps to 2 DPU (8 vCPU, 32 GB of memory, 128 GB disk), and provides 1 executor per worker. We recommend this worker type for memory-intensive jobs.</p> </li> </ul>"
+          "documentation":"<p>The type of predefined worker that is allocated when a job runs. Accepts a value of Standard, G.1X, G.2X, or G.025X.</p> <ul> <li> <p>For the <code>Standard</code> worker type, each worker provides 4 vCPU, 16 GB of memory and a 50GB disk, and 2 executors per worker.</p> </li> <li> <p>For the <code>G.1X</code> worker type, each worker maps to 1 DPU (4 vCPU, 16 GB of memory, 64 GB disk), and provides 1 executor per worker. We recommend this worker type for memory-intensive jobs.</p> </li> <li> <p>For the <code>G.2X</code> worker type, each worker maps to 2 DPU (8 vCPU, 32 GB of memory, 128 GB disk), and provides 1 executor per worker. We recommend this worker type for memory-intensive jobs.</p> </li> <li> <p>For the <code>G.025X</code> worker type, each worker maps to 0.25 DPU (2 vCPU, 4 GB of memory, 64 GB disk), and provides 1 executor per worker. We recommend this worker type for low volume streaming jobs. This worker type is only available for Glue version 3.0 streaming jobs.</p> </li> </ul>"
         },
         "NumberOfWorkers":{
           "shape":"NullableInteger",
-          "documentation":"<p>The number of workers of a defined <code>workerType</code> that are allocated when a job runs.</p> <p>The maximum number of workers you can define are 299 for <code>G.1X</code>, and 149 for <code>G.2X</code>. </p>"
+          "documentation":"<p>The number of workers of a defined <code>workerType</code> that are allocated when a job runs.</p>"
         },
         "SecurityConfiguration":{
           "shape":"NameString",
@@ -11071,6 +12500,14 @@
         "CodeGenConfigurationNodes":{
           "shape":"CodeGenConfigurationNodes",
           "documentation":"<p>The representation of a directed acyclic graph on which both the Glue Studio visual component and Glue Studio code generation is based.</p>"
+        },
+        "ExecutionClass":{
+          "shape":"ExecutionClass",
+          "documentation":"<p>Indicates whether the job is run with a standard or flexible execution class. The standard execution class is ideal for time-sensitive workloads that require fast job startup and dedicated resources.</p> <p>The flexible execution class is appropriate for time-insensitive jobs whose start and completion times may vary. </p> <p>Only jobs with Glue version 3.0 and above and command type <code>glueetl</code> will be allowed to set <code>ExecutionClass</code> to <code>FLEX</code>. The flexible execution class is available for Spark jobs.</p>"
+        },
+        "SourceControlDetails":{
+          "shape":"SourceControlDetails",
+          "documentation":"<p>The details for a source control configuration for a job, allowing synchronization of job artifacts to or from a remote repository.</p>"
         }
       },
       "documentation":"<p>Specifies a job definition.</p>"
@@ -11230,19 +12667,19 @@
         },
         "Timeout":{
           "shape":"Timeout",
-          "documentation":"<p>The <code>JobRun</code> timeout in minutes. This is the maximum time that a job run can consume resources before it is terminated and enters <code>TIMEOUT</code> status. The default is 2,880 minutes (48 hours). This overrides the timeout value set in the parent job.</p>"
+          "documentation":"<p>The <code>JobRun</code> timeout in minutes. This is the maximum time that a job run can consume resources before it is terminated and enters <code>TIMEOUT</code> status. This value overrides the timeout value set in the parent job.</p> <p>Streaming jobs do not have a timeout. The default for non-streaming jobs is 2,880 minutes (48 hours).</p>"
         },
         "MaxCapacity":{
           "shape":"NullableDouble",
-          "documentation":"<p>The number of Glue data processing units (DPUs) that can be allocated when this job runs. A DPU is a relative measure of processing power that consists of 4 vCPUs of compute capacity and 16 GB of memory. For more information, see the <a href=\"https://aws.amazon.com/glue/pricing/\">Glue pricing page</a>.</p> <p>Do not set <code>Max Capacity</code> if using <code>WorkerType</code> and <code>NumberOfWorkers</code>.</p> <p>The value that can be allocated for <code>MaxCapacity</code> depends on whether you are running a Python shell job or an Apache Spark ETL job:</p> <ul> <li> <p>When you specify a Python shell job (<code>JobCommand.Name</code>=\"pythonshell\"), you can allocate either 0.0625 or 1 DPU. The default is 0.0625 DPU.</p> </li> <li> <p>When you specify an Apache Spark ETL job (<code>JobCommand.Name</code>=\"glueetl\"), you can allocate from 2 to 100 DPUs. The default is 10 DPUs. This job type cannot have a fractional DPU allocation.</p> </li> </ul>"
+          "documentation":"<p>The number of Glue data processing units (DPUs) that can be allocated when this job runs. A DPU is a relative measure of processing power that consists of 4 vCPUs of compute capacity and 16 GB of memory. For more information, see the <a href=\"https://aws.amazon.com/glue/pricing/\">Glue pricing page</a>.</p> <p>Do not set <code>Max Capacity</code> if using <code>WorkerType</code> and <code>NumberOfWorkers</code>.</p> <p>The value that can be allocated for <code>MaxCapacity</code> depends on whether you are running a Python shell job or an Apache Spark ETL job:</p> <ul> <li> <p>When you specify a Python shell job (<code>JobCommand.Name</code>=\"pythonshell\"), you can allocate either 0.0625 or 1 DPU. The default is 0.0625 DPU.</p> </li> <li> <p>When you specify an Apache Spark ETL job (<code>JobCommand.Name</code>=\"glueetl\"), you can allocate a minimum of 2 DPUs. The default is 10 DPUs. This job type cannot have a fractional DPU allocation.</p> </li> </ul>"
         },
         "WorkerType":{
           "shape":"WorkerType",
-          "documentation":"<p>The type of predefined worker that is allocated when a job runs. Accepts a value of Standard, G.1X, or G.2X.</p> <ul> <li> <p>For the <code>Standard</code> worker type, each worker provides 4 vCPU, 16 GB of memory and a 50GB disk, and 2 executors per worker.</p> </li> <li> <p>For the <code>G.1X</code> worker type, each worker provides 4 vCPU, 16 GB of memory and a 64GB disk, and 1 executor per worker.</p> </li> <li> <p>For the <code>G.2X</code> worker type, each worker provides 8 vCPU, 32 GB of memory and a 128GB disk, and 1 executor per worker.</p> </li> </ul>"
+          "documentation":"<p>The type of predefined worker that is allocated when a job runs. Accepts a value of Standard, G.1X, G.2X, or G.025X.</p> <ul> <li> <p>For the <code>Standard</code> worker type, each worker provides 4 vCPU, 16 GB of memory and a 50GB disk, and 2 executors per worker.</p> </li> <li> <p>For the <code>G.1X</code> worker type, each worker provides 4 vCPU, 16 GB of memory and a 64GB disk, and 1 executor per worker.</p> </li> <li> <p>For the <code>G.2X</code> worker type, each worker provides 8 vCPU, 32 GB of memory and a 128GB disk, and 1 executor per worker.</p> </li> <li> <p>For the <code>G.025X</code> worker type, each worker maps to 0.25 DPU (2 vCPU, 4 GB of memory, 64 GB disk), and provides 1 executor per worker. We recommend this worker type for low volume streaming jobs. This worker type is only available for Glue version 3.0 streaming jobs.</p> </li> </ul>"
         },
         "NumberOfWorkers":{
           "shape":"NullableInteger",
-          "documentation":"<p>The number of workers of a defined <code>workerType</code> that are allocated when a job runs.</p> <p>The maximum number of workers you can define are 299 for <code>G.1X</code>, and 149 for <code>G.2X</code>. </p>"
+          "documentation":"<p>The number of workers of a defined <code>workerType</code> that are allocated when a job runs.</p>"
         },
         "SecurityConfiguration":{
           "shape":"NameString",
@@ -11262,7 +12699,11 @@
         },
         "DPUSeconds":{
           "shape":"NullableDouble",
-          "documentation":"<p>This field populates only when an Auto Scaling job run completes, and represents the total time each executor ran during the lifecycle of a job run in seconds, multiplied by a DPU factor (1 for <code>G.1X</code> and 2 for <code>G.2X</code> workers). This value may be different than the <code>executionEngineRuntime</code> * <code>MaxCapacity</code> as in the case of Auto Scaling jobs, as the number of executors running at a given time may be less than the <code>MaxCapacity</code>. Therefore, it is possible that the value of <code>DPUSeconds</code> is less than <code>executionEngineRuntime</code> * <code>MaxCapacity</code>.</p>"
+          "documentation":"<p>This field populates only for Auto Scaling job runs, and represents the total time each executor ran during the lifecycle of a job run in seconds, multiplied by a DPU factor (1 for <code>G.1X</code>, 2 for <code>G.2X</code>, or 0.25 for <code>G.025X</code> workers). This value may be different than the <code>executionEngineRuntime</code> * <code>MaxCapacity</code> as in the case of Auto Scaling jobs, as the number of executors running at a given time may be less than the <code>MaxCapacity</code>. Therefore, it is possible that the value of <code>DPUSeconds</code> is less than <code>executionEngineRuntime</code> * <code>MaxCapacity</code>.</p>"
+        },
+        "ExecutionClass":{
+          "shape":"ExecutionClass",
+          "documentation":"<p>Indicates whether the job is run with a standard or flexible execution class. The standard execution-class is ideal for time-sensitive workloads that require fast job startup and dedicated resources.</p> <p>The flexible execution class is appropriate for time-insensitive jobs whose start and completion times may vary. </p> <p>Only jobs with Glue version 3.0 and above and command type <code>glueetl</code> will be allowed to set <code>ExecutionClass</code> to <code>FLEX</code>. The flexible execution class is available for Spark jobs.</p>"
         }
       },
       "documentation":"<p>Contains information about a job run.</p>"
@@ -11280,7 +12721,9 @@
         "STOPPED",
         "SUCCEEDED",
         "FAILED",
-        "TIMEOUT"
+        "TIMEOUT",
+        "ERROR",
+        "WAITING"
       ]
     },
     "JobUpdate":{
@@ -11324,7 +12767,7 @@
         },
         "AllocatedCapacity":{
           "shape":"IntegerValue",
-          "documentation":"<p>This field is deprecated. Use <code>MaxCapacity</code> instead.</p> <p>The number of Glue data processing units (DPUs) to allocate to this job. You can allocate from 2 to 100 DPUs; the default is 10. A DPU is a relative measure of processing power that consists of 4 vCPUs of compute capacity and 16 GB of memory. For more information, see the <a href=\"https://aws.amazon.com/glue/pricing/\">Glue pricing page</a>.</p>",
+          "documentation":"<p>This field is deprecated. Use <code>MaxCapacity</code> instead.</p> <p>The number of Glue data processing units (DPUs) to allocate to this job. You can allocate a minimum of 2 DPUs; the default is 10. A DPU is a relative measure of processing power that consists of 4 vCPUs of compute capacity and 16 GB of memory. For more information, see the <a href=\"https://aws.amazon.com/glue/pricing/\">Glue pricing page</a>.</p>",
           "deprecated":true,
           "deprecatedMessage":"This property is deprecated, use MaxCapacity instead."
         },
@@ -11334,15 +12777,15 @@
         },
         "MaxCapacity":{
           "shape":"NullableDouble",
-          "documentation":"<p>For Glue version 1.0 or earlier jobs, using the standard worker type, the number of Glue data processing units (DPUs) that can be allocated when this job runs. A DPU is a relative measure of processing power that consists of 4 vCPUs of compute capacity and 16 GB of memory. For more information, see the <a href=\"https://aws.amazon.com/glue/pricing/\">Glue pricing page</a>.</p> <p>Do not set <code>Max Capacity</code> if using <code>WorkerType</code> and <code>NumberOfWorkers</code>.</p> <p>The value that can be allocated for <code>MaxCapacity</code> depends on whether you are running a Python shell job or an Apache Spark ETL job:</p> <ul> <li> <p>When you specify a Python shell job (<code>JobCommand.Name</code>=\"pythonshell\"), you can allocate either 0.0625 or 1 DPU. The default is 0.0625 DPU.</p> </li> <li> <p>When you specify an Apache Spark ETL job (<code>JobCommand.Name</code>=\"glueetl\") or Apache Spark streaming ETL job (<code>JobCommand.Name</code>=\"gluestreaming\"), you can allocate from 2 to 100 DPUs. The default is 10 DPUs. This job type cannot have a fractional DPU allocation.</p> </li> </ul> <p>For Glue version 2.0 jobs, you cannot instead specify a <code>Maximum capacity</code>. Instead, you should specify a <code>Worker type</code> and the <code>Number of workers</code>.</p>"
+          "documentation":"<p>For Glue version 1.0 or earlier jobs, using the standard worker type, the number of Glue data processing units (DPUs) that can be allocated when this job runs. A DPU is a relative measure of processing power that consists of 4 vCPUs of compute capacity and 16 GB of memory. For more information, see the <a href=\"https://aws.amazon.com/glue/pricing/\">Glue pricing page</a>.</p> <p>Do not set <code>Max Capacity</code> if using <code>WorkerType</code> and <code>NumberOfWorkers</code>.</p> <p>The value that can be allocated for <code>MaxCapacity</code> depends on whether you are running a Python shell job or an Apache Spark ETL job:</p> <ul> <li> <p>When you specify a Python shell job (<code>JobCommand.Name</code>=\"pythonshell\"), you can allocate either 0.0625 or 1 DPU. The default is 0.0625 DPU.</p> </li> <li> <p>When you specify an Apache Spark ETL job (<code>JobCommand.Name</code>=\"glueetl\") or Apache Spark streaming ETL job (<code>JobCommand.Name</code>=\"gluestreaming\"), you can allocate a minimum of 2 DPUs. The default is 10 DPUs. This job type cannot have a fractional DPU allocation.</p> </li> </ul> <p>For Glue version 2.0 jobs, you cannot instead specify a <code>Maximum capacity</code>. Instead, you should specify a <code>Worker type</code> and the <code>Number of workers</code>.</p>"
         },
         "WorkerType":{
           "shape":"WorkerType",
-          "documentation":"<p>The type of predefined worker that is allocated when a job runs. Accepts a value of Standard, G.1X, or G.2X.</p> <ul> <li> <p>For the <code>Standard</code> worker type, each worker provides 4 vCPU, 16 GB of memory and a 50GB disk, and 2 executors per worker.</p> </li> <li> <p>For the <code>G.1X</code> worker type, each worker maps to 1 DPU (4 vCPU, 16 GB of memory, 64 GB disk), and provides 1 executor per worker. We recommend this worker type for memory-intensive jobs.</p> </li> <li> <p>For the <code>G.2X</code> worker type, each worker maps to 2 DPU (8 vCPU, 32 GB of memory, 128 GB disk), and provides 1 executor per worker. We recommend this worker type for memory-intensive jobs.</p> </li> </ul>"
+          "documentation":"<p>The type of predefined worker that is allocated when a job runs. Accepts a value of Standard, G.1X, G.2X, or G.025X.</p> <ul> <li> <p>For the <code>Standard</code> worker type, each worker provides 4 vCPU, 16 GB of memory and a 50GB disk, and 2 executors per worker.</p> </li> <li> <p>For the <code>G.1X</code> worker type, each worker maps to 1 DPU (4 vCPU, 16 GB of memory, 64 GB disk), and provides 1 executor per worker. We recommend this worker type for memory-intensive jobs.</p> </li> <li> <p>For the <code>G.2X</code> worker type, each worker maps to 2 DPU (8 vCPU, 32 GB of memory, 128 GB disk), and provides 1 executor per worker. We recommend this worker type for memory-intensive jobs.</p> </li> <li> <p>For the <code>G.025X</code> worker type, each worker maps to 0.25 DPU (2 vCPU, 4 GB of memory, 64 GB disk), and provides 1 executor per worker. We recommend this worker type for low volume streaming jobs. This worker type is only available for Glue version 3.0 streaming jobs.</p> </li> </ul>"
         },
         "NumberOfWorkers":{
           "shape":"NullableInteger",
-          "documentation":"<p>The number of workers of a defined <code>workerType</code> that are allocated when a job runs.</p> <p>The maximum number of workers you can define are 299 for <code>G.1X</code>, and 149 for <code>G.2X</code>. </p>"
+          "documentation":"<p>The number of workers of a defined <code>workerType</code> that are allocated when a job runs.</p>"
         },
         "SecurityConfiguration":{
           "shape":"NameString",
@@ -11359,6 +12802,14 @@
         "CodeGenConfigurationNodes":{
           "shape":"CodeGenConfigurationNodes",
           "documentation":"<p>The representation of a directed acyclic graph on which both the Glue Studio visual component and Glue Studio code generation is based.</p>"
+        },
+        "ExecutionClass":{
+          "shape":"ExecutionClass",
+          "documentation":"<p>Indicates whether the job is run with a standard or flexible execution class. The standard execution-class is ideal for time-sensitive workloads that require fast job startup and dedicated resources.</p> <p>The flexible execution class is appropriate for time-insensitive jobs whose start and completion times may vary. </p> <p>Only jobs with Glue version 3.0 and above and command type <code>glueetl</code> will be allowed to set <code>ExecutionClass</code> to <code>FLEX</code>. The flexible execution class is available for Spark jobs.</p>"
+        },
+        "SourceControlDetails":{
+          "shape":"SourceControlDetails",
+          "documentation":"<p>The details for a source control configuration for a job, allowing synchronization of job artifacts to or from a remote repository.</p>"
         }
       },
       "documentation":"<p>Specifies information used to update an existing job definition. The previous job definition is completely overwritten by this information.</p>"
@@ -11656,14 +13107,14 @@
       "members":{
         "UseLakeFormationCredentials":{
           "shape":"NullableBoolean",
-          "documentation":"<p>Specifies whether to use AWS Lake Formation credentials for the crawler instead of the IAM role credentials.</p>"
+          "documentation":"<p>Specifies whether to use Lake Formation credentials for the crawler instead of the IAM role credentials.</p>"
         },
         "AccountId":{
           "shape":"AccountId",
           "documentation":"<p>Required for cross account crawls. For same account crawls as the target data, this can be left as null.</p>"
         }
       },
-      "documentation":"<p>Specifies AWS Lake Formation configuration settings for the crawler.</p>"
+      "documentation":"<p>Specifies Lake Formation configuration settings for the crawler.</p>"
     },
     "Language":{
       "type":"string",
@@ -11815,6 +13266,41 @@
         }
       }
     },
+    "ListCrawlsRequest":{
+      "type":"structure",
+      "required":["CrawlerName"],
+      "members":{
+        "CrawlerName":{
+          "shape":"NameString",
+          "documentation":"<p>The name of the crawler whose runs you want to retrieve.</p>"
+        },
+        "MaxResults":{
+          "shape":"PageSize",
+          "documentation":"<p>The maximum number of results to return. The default is 20, and maximum is 100.</p>"
+        },
+        "Filters":{
+          "shape":"CrawlsFilterList",
+          "documentation":"<p>Filters the crawls by the criteria you specify in a list of <code>CrawlsFilter</code> objects.</p>"
+        },
+        "NextToken":{
+          "shape":"Token",
+          "documentation":"<p>A continuation token, if this is a continuation call.</p>"
+        }
+      }
+    },
+    "ListCrawlsResponse":{
+      "type":"structure",
+      "members":{
+        "Crawls":{
+          "shape":"CrawlerHistoryList",
+          "documentation":"<p>A list of <code>CrawlerHistory</code> objects representing the crawl runs that meet your criteria.</p>"
+        },
+        "NextToken":{
+          "shape":"Token",
+          "documentation":"<p>A continuation token for paginating the returned list of tokens, returned if the current segment of the list is not the last.</p>"
+        }
+      }
+    },
     "ListCustomEntityTypesRequest":{
       "type":"structure",
       "members":{
@@ -11834,6 +13320,131 @@
         "CustomEntityTypes":{
           "shape":"CustomEntityTypes",
           "documentation":"<p>A list of <code>CustomEntityType</code> objects representing custom patterns.</p>"
+        },
+        "NextToken":{
+          "shape":"PaginationToken",
+          "documentation":"<p>A pagination token, if more results are available.</p>"
+        }
+      }
+    },
+    "ListDataQualityResultsRequest":{
+      "type":"structure",
+      "members":{
+        "Filter":{
+          "shape":"DataQualityResultFilterCriteria",
+          "documentation":"<p>The filter criteria.</p>"
+        },
+        "NextToken":{
+          "shape":"PaginationToken",
+          "documentation":"<p>A paginated token to offset the results.</p>"
+        },
+        "MaxResults":{
+          "shape":"PageSize",
+          "documentation":"<p>The maximum number of results to return.</p>"
+        }
+      }
+    },
+    "ListDataQualityResultsResponse":{
+      "type":"structure",
+      "required":["Results"],
+      "members":{
+        "Results":{
+          "shape":"DataQualityResultDescriptionList",
+          "documentation":"<p>A list of <code>DataQualityResultDescription</code> objects.</p>"
+        },
+        "NextToken":{
+          "shape":"PaginationToken",
+          "documentation":"<p>A pagination token, if more results are available.</p>"
+        }
+      }
+    },
+    "ListDataQualityRuleRecommendationRunsRequest":{
+      "type":"structure",
+      "members":{
+        "Filter":{
+          "shape":"DataQualityRuleRecommendationRunFilter",
+          "documentation":"<p>The filter criteria.</p>"
+        },
+        "NextToken":{
+          "shape":"PaginationToken",
+          "documentation":"<p>A paginated token to offset the results.</p>"
+        },
+        "MaxResults":{
+          "shape":"PageSize",
+          "documentation":"<p>The maximum number of results to return.</p>"
+        }
+      }
+    },
+    "ListDataQualityRuleRecommendationRunsResponse":{
+      "type":"structure",
+      "members":{
+        "Runs":{
+          "shape":"DataQualityRuleRecommendationRunList",
+          "documentation":"<p>A list of <code>DataQualityRuleRecommendationRunDescription</code> objects.</p>"
+        },
+        "NextToken":{
+          "shape":"PaginationToken",
+          "documentation":"<p>A pagination token, if more results are available.</p>"
+        }
+      }
+    },
+    "ListDataQualityRulesetEvaluationRunsRequest":{
+      "type":"structure",
+      "members":{
+        "Filter":{
+          "shape":"DataQualityRulesetEvaluationRunFilter",
+          "documentation":"<p>The filter criteria.</p>"
+        },
+        "NextToken":{
+          "shape":"PaginationToken",
+          "documentation":"<p>A paginated token to offset the results.</p>"
+        },
+        "MaxResults":{
+          "shape":"PageSize",
+          "documentation":"<p>The maximum number of results to return.</p>"
+        }
+      }
+    },
+    "ListDataQualityRulesetEvaluationRunsResponse":{
+      "type":"structure",
+      "members":{
+        "Runs":{
+          "shape":"DataQualityRulesetEvaluationRunList",
+          "documentation":"<p>A list of <code>DataQualityRulesetEvaluationRunDescription</code> objects representing data quality ruleset runs.</p>"
+        },
+        "NextToken":{
+          "shape":"PaginationToken",
+          "documentation":"<p>A pagination token, if more results are available.</p>"
+        }
+      }
+    },
+    "ListDataQualityRulesetsRequest":{
+      "type":"structure",
+      "members":{
+        "NextToken":{
+          "shape":"PaginationToken",
+          "documentation":"<p>A paginated token to offset the results.</p>"
+        },
+        "MaxResults":{
+          "shape":"PageSize",
+          "documentation":"<p>The maximum number of results to return.</p>"
+        },
+        "Filter":{
+          "shape":"DataQualityRulesetFilterCriteria",
+          "documentation":"<p>The filter criteria. </p>"
+        },
+        "Tags":{
+          "shape":"TagsMap",
+          "documentation":"<p>A list of key-value pair tags.</p>"
+        }
+      }
+    },
+    "ListDataQualityRulesetsResponse":{
+      "type":"structure",
+      "members":{
+        "Rulesets":{
+          "shape":"DataQualityRulesetList",
+          "documentation":"<p>A paginated list of rulesets for the specified list of Glue tables.</p>"
         },
         "NextToken":{
           "shape":"PaginationToken",
@@ -12053,7 +13664,7 @@
       "members":{
         "Ids":{
           "shape":"SessionIdList",
-          "documentation":"<p>Returns the Id of the session. </p>"
+          "documentation":"<p>Returns the ID of the session. </p>"
         },
         "Sessions":{
           "shape":"SessionList",
@@ -12077,7 +13688,10 @@
           "shape":"OrchestrationNameString",
           "documentation":"<p>The origin of the request to list statements.</p>"
         },
-        "NextToken":{"shape":"OrchestrationToken"}
+        "NextToken":{
+          "shape":"OrchestrationToken",
+          "documentation":"<p>A continuation token, if this is a continuation call.</p>"
+        }
       }
     },
     "ListStatementsResponse":{
@@ -12087,7 +13701,10 @@
           "shape":"StatementList",
           "documentation":"<p>Returns the list of statements.</p>"
         },
-        "NextToken":{"shape":"OrchestrationToken"}
+        "NextToken":{
+          "shape":"OrchestrationToken",
+          "documentation":"<p>A continuation token, if not all statements have yet been returned.</p>"
+        }
       }
     },
     "ListTriggersRequest":{
@@ -13029,6 +14646,18 @@
       "min":1
     },
     "PaginationToken":{"type":"string"},
+    "ParamType":{
+      "type":"string",
+      "enum":[
+        "str",
+        "int",
+        "float",
+        "complex",
+        "bool",
+        "list",
+        "null"
+      ]
+    },
     "ParametersMap":{
       "type":"map",
       "key":{"shape":"KeyString"},
@@ -13589,7 +15218,7 @@
     "PythonScript":{"type":"string"},
     "PythonVersionString":{
       "type":"string",
-      "pattern":"^[2-3]$"
+      "pattern":"^([2-3]|3[.]9)$"
     },
     "QuerySchemaVersionMetadataInput":{
       "type":"structure",
@@ -14066,6 +15695,12 @@
     },
     "RoleString":{"type":"string"},
     "RowTag":{"type":"string"},
+    "RulesetNames":{
+      "type":"list",
+      "member":{"shape":"NameString"},
+      "max":10,
+      "min":1
+    },
     "RunId":{"type":"string"},
     "RunStatementRequest":{
       "type":"structure",
@@ -14096,6 +15731,37 @@
           "documentation":"<p>Returns the Id of the statement that was run.</p>"
         }
       }
+    },
+    "S3CatalogHudiSource":{
+      "type":"structure",
+      "required":[
+        "Name",
+        "Database",
+        "Table"
+      ],
+      "members":{
+        "Name":{
+          "shape":"NodeName",
+          "documentation":"<p>The name of the Hudi data source.</p>"
+        },
+        "Database":{
+          "shape":"EnclosedInStringProperty",
+          "documentation":"<p>The name of the database to read from.</p>"
+        },
+        "Table":{
+          "shape":"EnclosedInStringProperty",
+          "documentation":"<p>The name of the table in the database to read from.</p>"
+        },
+        "AdditionalHudiOptions":{
+          "shape":"AdditionalOptions",
+          "documentation":"<p>Specifies additional connection options.</p>"
+        },
+        "OutputSchemas":{
+          "shape":"GlueSchemas",
+          "documentation":"<p>Specifies the data schema for the Hudi source.</p>"
+        }
+      },
+      "documentation":"<p>Specifies a Hudi data source that is registered in the Glue Data Catalog. The Hudi data source must be stored in Amazon S3.</p>"
     },
     "S3CatalogSource":{
       "type":"structure",
@@ -14374,6 +16040,111 @@
         }
       },
       "documentation":"<p>Specifies a data target that writes to Amazon S3 in Apache Parquet columnar storage.</p>"
+    },
+    "S3HudiCatalogTarget":{
+      "type":"structure",
+      "required":[
+        "Name",
+        "Inputs",
+        "Table",
+        "Database",
+        "AdditionalOptions"
+      ],
+      "members":{
+        "Name":{
+          "shape":"NodeName",
+          "documentation":"<p>The name of the data target.</p>"
+        },
+        "Inputs":{
+          "shape":"OneInput",
+          "documentation":"<p>The nodes that are inputs to the data target.</p>"
+        },
+        "PartitionKeys":{
+          "shape":"GlueStudioPathList",
+          "documentation":"<p>Specifies native partitioning using a sequence of keys.</p>"
+        },
+        "Table":{
+          "shape":"EnclosedInStringProperty",
+          "documentation":"<p>The name of the table in the database to write to.</p>"
+        },
+        "Database":{
+          "shape":"EnclosedInStringProperty",
+          "documentation":"<p>The name of the database to write to.</p>"
+        },
+        "AdditionalOptions":{
+          "shape":"AdditionalOptions",
+          "documentation":"<p>Specifies additional connection options for the connector.</p>"
+        },
+        "SchemaChangePolicy":{"shape":"CatalogSchemaChangePolicy"}
+      },
+      "documentation":"<p>Specifies a target that writes to a Hudi data source in the Glue Data Catalog.</p>"
+    },
+    "S3HudiDirectTarget":{
+      "type":"structure",
+      "required":[
+        "Name",
+        "Inputs",
+        "Path",
+        "Compression",
+        "Format",
+        "AdditionalOptions"
+      ],
+      "members":{
+        "Name":{
+          "shape":"NodeName",
+          "documentation":"<p>The name of the data target.</p>"
+        },
+        "Inputs":{
+          "shape":"OneInput",
+          "documentation":"<p>The nodes that are inputs to the data target.</p>"
+        },
+        "Path":{
+          "shape":"EnclosedInStringProperty",
+          "documentation":"<p>The Amazon S3 path of your Hudi data source to write to.</p>"
+        },
+        "Compression":{
+          "shape":"HudiTargetCompressionType",
+          "documentation":"<p>Specifies how the data is compressed. This is generally not necessary if the data has a standard file extension. Possible values are <code>\"gzip\"</code> and <code>\"bzip\"</code>).</p>"
+        },
+        "PartitionKeys":{
+          "shape":"GlueStudioPathList",
+          "documentation":"<p>Specifies native partitioning using a sequence of keys.</p>"
+        },
+        "Format":{
+          "shape":"TargetFormat",
+          "documentation":"<p>Specifies the data output format for the target.</p>"
+        },
+        "AdditionalOptions":{"shape":"AdditionalOptions"},
+        "SchemaChangePolicy":{"shape":"DirectSchemaChangePolicy"}
+      },
+      "documentation":"<p>Specifies a target that writes to a Hudi data source in Amazon S3.</p>"
+    },
+    "S3HudiSource":{
+      "type":"structure",
+      "required":[
+        "Name",
+        "Paths"
+      ],
+      "members":{
+        "Name":{
+          "shape":"NodeName",
+          "documentation":"<p>The name of the Hudi source.</p>"
+        },
+        "Paths":{
+          "shape":"EnclosedInStringProperties",
+          "documentation":"<p>A list of the Amazon S3 paths to read from.</p>"
+        },
+        "AdditionalHudiOptions":{
+          "shape":"AdditionalOptions",
+          "documentation":"<p>Specifies additional connection options.</p>"
+        },
+        "AdditionalOptions":{"shape":"S3DirectSourceAdditionalOptions"},
+        "OutputSchemas":{
+          "shape":"GlueSchemas",
+          "documentation":"<p>Specifies the data schema for the Hudi source.</p>"
+        }
+      },
+      "documentation":"<p>Specifies a Hudi data source stored in Amazon S3.</p>"
     },
     "S3JsonSource":{
       "type":"structure",
@@ -15036,7 +16807,7 @@
         },
         "MaxCapacity":{
           "shape":"NullableDouble",
-          "documentation":"<p>The number of AWS Glue data processing units (DPUs) that can be allocated when the job runs. A DPU is a relative measure of processing power that consists of 4 vCPUs of compute capacity and 16 GB memory. </p>"
+          "documentation":"<p>The number of Glue data processing units (DPUs) that can be allocated when the job runs. A DPU is a relative measure of processing power that consists of 4 vCPUs of compute capacity and 16 GB memory. </p>"
         },
         "SecurityConfiguration":{
           "shape":"NameString",
@@ -15044,7 +16815,7 @@
         },
         "GlueVersion":{
           "shape":"GlueVersionString",
-          "documentation":"<p>The Glue version determines the versions of Apache Spark and Python that AWS Glue supports. The GlueVersion must be greater than 2.0.</p>"
+          "documentation":"<p>The Glue version determines the versions of Apache Spark and Python that Glue supports. The GlueVersion must be greater than 2.0.</p>"
         }
       },
       "documentation":"<p>The period in which a remote Spark runtime environment is running.</p>"
@@ -15054,7 +16825,7 @@
       "members":{
         "Name":{
           "shape":"NameString",
-          "documentation":"<p>Specifies the name of the SessionCommand.Can be 'glueetl' or 'gluestreaming'.</p>"
+          "documentation":"<p>Specifies the name of the SessionCommand. Can be 'glueetl' or 'gluestreaming'.</p>"
         },
         "PythonVersion":{
           "shape":"PythonVersionString",
@@ -15132,6 +16903,58 @@
       "enum":[
         "DESCENDING",
         "ASCENDING"
+      ]
+    },
+    "SourceControlAuthStrategy":{
+      "type":"string",
+      "enum":[
+        "PERSONAL_ACCESS_TOKEN",
+        "AWS_SECRETS_MANAGER"
+      ]
+    },
+    "SourceControlDetails":{
+      "type":"structure",
+      "members":{
+        "Provider":{
+          "shape":"SourceControlProvider",
+          "documentation":"<p>The provider for the remote repository.</p>"
+        },
+        "Repository":{
+          "shape":"Generic512CharString",
+          "documentation":"<p>The name of the remote repository that contains the job artifacts.</p>"
+        },
+        "Owner":{
+          "shape":"Generic512CharString",
+          "documentation":"<p>The owner of the remote repository that contains the job artifacts.</p>"
+        },
+        "Branch":{
+          "shape":"Generic512CharString",
+          "documentation":"<p>An optional branch in the remote repository.</p>"
+        },
+        "Folder":{
+          "shape":"Generic512CharString",
+          "documentation":"<p>An optional folder in the remote repository.</p>"
+        },
+        "LastCommitId":{
+          "shape":"Generic512CharString",
+          "documentation":"<p>The last commit ID for a commit in the remote repository.</p>"
+        },
+        "AuthStrategy":{
+          "shape":"SourceControlAuthStrategy",
+          "documentation":"<p>The type of authentication, which can be an authentication token stored in Amazon Web Services Secrets Manager, or a personal access token.</p>"
+        },
+        "AuthToken":{
+          "shape":"Generic512CharString",
+          "documentation":"<p>The value of an authorization token.</p>"
+        }
+      },
+      "documentation":"<p>The details for a source control configuration for a job, allowing synchronization of job artifacts to or from a remote repository.</p>"
+    },
+    "SourceControlProvider":{
+      "type":"string",
+      "enum":[
+        "GITHUB",
+        "AWS_CODE_COMMIT"
       ]
     },
     "SparkConnectorSource":{
@@ -15383,6 +17206,95 @@
       "members":{
       }
     },
+    "StartDataQualityRuleRecommendationRunRequest":{
+      "type":"structure",
+      "required":[
+        "DataSource",
+        "Role"
+      ],
+      "members":{
+        "DataSource":{
+          "shape":"DataSource",
+          "documentation":"<p>The data source (Glue table) associated with this run.</p>"
+        },
+        "Role":{
+          "shape":"RoleString",
+          "documentation":"<p>An IAM role supplied to encrypt the results of the run.</p>"
+        },
+        "NumberOfWorkers":{
+          "shape":"NullableInteger",
+          "documentation":"<p>The number of <code>G.1X</code> workers to be used in the run. The default is 5.</p>"
+        },
+        "Timeout":{
+          "shape":"Timeout",
+          "documentation":"<p>The timeout for a run in minutes. This is the maximum time that a run can consume resources before it is terminated and enters <code>TIMEOUT</code> status. The default is 2,880 minutes (48 hours).</p>"
+        },
+        "CreatedRulesetName":{
+          "shape":"NameString",
+          "documentation":"<p>A name for the ruleset.</p>"
+        },
+        "ClientToken":{
+          "shape":"HashString",
+          "documentation":"<p>Used for idempotency and is recommended to be set to a random ID (such as a UUID) to avoid creating or starting multiple instances of the same resource.</p>"
+        }
+      }
+    },
+    "StartDataQualityRuleRecommendationRunResponse":{
+      "type":"structure",
+      "members":{
+        "RunId":{
+          "shape":"HashString",
+          "documentation":"<p>The unique run identifier associated with this run.</p>"
+        }
+      }
+    },
+    "StartDataQualityRulesetEvaluationRunRequest":{
+      "type":"structure",
+      "required":[
+        "DataSource",
+        "Role",
+        "RulesetNames"
+      ],
+      "members":{
+        "DataSource":{
+          "shape":"DataSource",
+          "documentation":"<p>The data source (Glue table) associated with this run.</p>"
+        },
+        "Role":{
+          "shape":"RoleString",
+          "documentation":"<p>An IAM role supplied to encrypt the results of the run.</p>"
+        },
+        "NumberOfWorkers":{
+          "shape":"NullableInteger",
+          "documentation":"<p>The number of <code>G.1X</code> workers to be used in the run. The default is 5.</p>"
+        },
+        "Timeout":{
+          "shape":"Timeout",
+          "documentation":"<p>The timeout for a run in minutes. This is the maximum time that a run can consume resources before it is terminated and enters <code>TIMEOUT</code> status. The default is 2,880 minutes (48 hours).</p>"
+        },
+        "ClientToken":{
+          "shape":"HashString",
+          "documentation":"<p>Used for idempotency and is recommended to be set to a random ID (such as a UUID) to avoid creating or starting multiple instances of the same resource.</p>"
+        },
+        "AdditionalRunOptions":{
+          "shape":"DataQualityEvaluationRunAdditionalRunOptions",
+          "documentation":"<p>Additional run options you can specify for an evaluation run.</p>"
+        },
+        "RulesetNames":{
+          "shape":"RulesetNames",
+          "documentation":"<p>A list of ruleset names.</p>"
+        }
+      }
+    },
+    "StartDataQualityRulesetEvaluationRunResponse":{
+      "type":"structure",
+      "members":{
+        "RunId":{
+          "shape":"HashString",
+          "documentation":"<p>The unique run identifier associated with this run.</p>"
+        }
+      }
+    },
     "StartExportLabelsTaskRunRequest":{
       "type":"structure",
       "required":[
@@ -15453,21 +17365,21 @@
         },
         "Arguments":{
           "shape":"GenericMap",
-          "documentation":"<p>The job arguments specifically for this run. For this job run, they replace the default arguments set in the job definition itself.</p> <p>You can specify arguments here that your own job-execution script consumes, as well as arguments that Glue itself consumes.</p> <p>For information about how to specify and consume your own Job arguments, see the <a href=\"https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-python-calling.html\">Calling Glue APIs in Python</a> topic in the developer guide.</p> <p>For information about the key-value pairs that Glue consumes to set up your job, see the <a href=\"https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-glue-arguments.html\">Special Parameters Used by Glue</a> topic in the developer guide.</p>"
+          "documentation":"<p>The job arguments specifically for this run. For this job run, they replace the default arguments set in the job definition itself.</p> <p>You can specify arguments here that your own job-execution script consumes, as well as arguments that Glue itself consumes.</p> <p>Job arguments may be logged. Do not pass plaintext secrets as arguments. Retrieve secrets from a Glue Connection, Secrets Manager or other secret management mechanism if you intend to keep them within the Job. </p> <p>For information about how to specify and consume your own Job arguments, see the <a href=\"https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-python-calling.html\">Calling Glue APIs in Python</a> topic in the developer guide.</p> <p>For information about the key-value pairs that Glue consumes to set up your job, see the <a href=\"https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-etl-glue-arguments.html\">Special Parameters Used by Glue</a> topic in the developer guide.</p>"
         },
         "AllocatedCapacity":{
           "shape":"IntegerValue",
-          "documentation":"<p>This field is deprecated. Use <code>MaxCapacity</code> instead.</p> <p>The number of Glue data processing units (DPUs) to allocate to this JobRun. From 2 to 100 DPUs can be allocated; the default is 10. A DPU is a relative measure of processing power that consists of 4 vCPUs of compute capacity and 16 GB of memory. For more information, see the <a href=\"https://aws.amazon.com/glue/pricing/\">Glue pricing page</a>.</p>",
+          "documentation":"<p>This field is deprecated. Use <code>MaxCapacity</code> instead.</p> <p>The number of Glue data processing units (DPUs) to allocate to this JobRun. You can allocate a minimum of 2 DPUs; the default is 10. A DPU is a relative measure of processing power that consists of 4 vCPUs of compute capacity and 16 GB of memory. For more information, see the <a href=\"https://aws.amazon.com/glue/pricing/\">Glue pricing page</a>.</p>",
           "deprecated":true,
           "deprecatedMessage":"This property is deprecated, use MaxCapacity instead."
         },
         "Timeout":{
           "shape":"Timeout",
-          "documentation":"<p>The <code>JobRun</code> timeout in minutes. This is the maximum time that a job run can consume resources before it is terminated and enters <code>TIMEOUT</code> status. The default is 2,880 minutes (48 hours). This overrides the timeout value set in the parent job.</p>"
+          "documentation":"<p>The <code>JobRun</code> timeout in minutes. This is the maximum time that a job run can consume resources before it is terminated and enters <code>TIMEOUT</code> status. This value overrides the timeout value set in the parent job.</p> <p>Streaming jobs do not have a timeout. The default for non-streaming jobs is 2,880 minutes (48 hours).</p>"
         },
         "MaxCapacity":{
           "shape":"NullableDouble",
-          "documentation":"<p>The number of Glue data processing units (DPUs) that can be allocated when this job runs. A DPU is a relative measure of processing power that consists of 4 vCPUs of compute capacity and 16 GB of memory. For more information, see the <a href=\"https://aws.amazon.com/glue/pricing/\">Glue pricing page</a>.</p> <p>Do not set <code>Max Capacity</code> if using <code>WorkerType</code> and <code>NumberOfWorkers</code>.</p> <p>The value that can be allocated for <code>MaxCapacity</code> depends on whether you are running a Python shell job, or an Apache Spark ETL job:</p> <ul> <li> <p>When you specify a Python shell job (<code>JobCommand.Name</code>=\"pythonshell\"), you can allocate either 0.0625 or 1 DPU. The default is 0.0625 DPU.</p> </li> <li> <p>When you specify an Apache Spark ETL job (<code>JobCommand.Name</code>=\"glueetl\"), you can allocate from 2 to 100 DPUs. The default is 10 DPUs. This job type cannot have a fractional DPU allocation.</p> </li> </ul>"
+          "documentation":"<p>The number of Glue data processing units (DPUs) that can be allocated when this job runs. A DPU is a relative measure of processing power that consists of 4 vCPUs of compute capacity and 16 GB of memory. For more information, see the <a href=\"https://aws.amazon.com/glue/pricing/\">Glue pricing page</a>.</p> <p>Do not set <code>Max Capacity</code> if using <code>WorkerType</code> and <code>NumberOfWorkers</code>.</p> <p>The value that can be allocated for <code>MaxCapacity</code> depends on whether you are running a Python shell job, or an Apache Spark ETL job:</p> <ul> <li> <p>When you specify a Python shell job (<code>JobCommand.Name</code>=\"pythonshell\"), you can allocate either 0.0625 or 1 DPU. The default is 0.0625 DPU.</p> </li> <li> <p>When you specify an Apache Spark ETL job (<code>JobCommand.Name</code>=\"glueetl\"), you can allocate a minimum of 2 DPUs. The default is 10 DPUs. This job type cannot have a fractional DPU allocation.</p> </li> </ul>"
         },
         "SecurityConfiguration":{
           "shape":"NameString",
@@ -15479,11 +17391,15 @@
         },
         "WorkerType":{
           "shape":"WorkerType",
-          "documentation":"<p>The type of predefined worker that is allocated when a job runs. Accepts a value of Standard, G.1X, or G.2X.</p> <ul> <li> <p>For the <code>Standard</code> worker type, each worker provides 4 vCPU, 16 GB of memory and a 50GB disk, and 2 executors per worker.</p> </li> <li> <p>For the <code>G.1X</code> worker type, each worker provides 4 vCPU, 16 GB of memory and a 64GB disk, and 1 executor per worker.</p> </li> <li> <p>For the <code>G.2X</code> worker type, each worker provides 8 vCPU, 32 GB of memory and a 128GB disk, and 1 executor per worker.</p> </li> </ul>"
+          "documentation":"<p>The type of predefined worker that is allocated when a job runs. Accepts a value of Standard, G.1X, G.2X, or G.025X.</p> <ul> <li> <p>For the <code>Standard</code> worker type, each worker provides 4 vCPU, 16 GB of memory and a 50GB disk, and 2 executors per worker.</p> </li> <li> <p>For the <code>G.1X</code> worker type, each worker provides 4 vCPU, 16 GB of memory and a 64GB disk, and 1 executor per worker.</p> </li> <li> <p>For the <code>G.2X</code> worker type, each worker provides 8 vCPU, 32 GB of memory and a 128GB disk, and 1 executor per worker.</p> </li> <li> <p>For the <code>G.025X</code> worker type, each worker maps to 0.25 DPU (2 vCPU, 4 GB of memory, 64 GB disk), and provides 1 executor per worker. We recommend this worker type for low volume streaming jobs. This worker type is only available for Glue version 3.0 streaming jobs.</p> </li> </ul>"
         },
         "NumberOfWorkers":{
           "shape":"NullableInteger",
-          "documentation":"<p>The number of workers of a defined <code>workerType</code> that are allocated when a job runs.</p> <p>The maximum number of workers you can define are 299 for <code>G.1X</code>, and 149 for <code>G.2X</code>. </p>"
+          "documentation":"<p>The number of workers of a defined <code>workerType</code> that are allocated when a job runs.</p>"
+        },
+        "ExecutionClass":{
+          "shape":"ExecutionClass",
+          "documentation":"<p>Indicates whether the job is run with a standard or flexible execution class. The standard execution-class is ideal for time-sensitive workloads that require fast job startup and dedicated resources.</p> <p>The flexible execution class is appropriate for time-insensitive jobs whose start and completion times may vary. </p> <p>Only jobs with Glue version 3.0 and above and command type <code>glueetl</code> will be allowed to set <code>ExecutionClass</code> to <code>FLEX</code>. The flexible execution class is available for Spark jobs.</p>"
         }
       }
     },
@@ -15799,7 +17715,10 @@
           "shape":"LocationString",
           "documentation":"<p>The physical location of the table. By default, this takes the form of the warehouse location, followed by the database location in the warehouse, followed by the table name.</p>"
         },
-        "AdditionalLocations":{"shape":"LocationStringList"},
+        "AdditionalLocations":{
+          "shape":"LocationStringList",
+          "documentation":"<p>A list of locations that point to the path where a Delta table is located.</p>"
+        },
         "InputFormat":{
           "shape":"FormatString",
           "documentation":"<p>The input format: <code>SequenceFileInputFormat</code> (binary), or <code>TextInputFormat</code>, or a custom format.</p>"
@@ -15973,7 +17892,10 @@
           "shape":"CatalogIdString",
           "documentation":"<p>The ID of the Data Catalog in which the table resides.</p>"
         },
-        "VersionId":{"shape":"VersionString"}
+        "VersionId":{
+          "shape":"VersionString",
+          "documentation":"<p>The ID of the table version.</p>"
+        }
       },
       "documentation":"<p>Represents a collection of related data organized in columns and rows.</p>"
     },
@@ -16174,7 +18096,8 @@
         "csv",
         "avro",
         "orc",
-        "parquet"
+        "parquet",
+        "hudi"
       ]
     },
     "TaskRun":{
@@ -16347,6 +18270,48 @@
       "max":255,
       "min":1,
       "pattern":"[\\p{L}\\p{N}\\p{P}]*"
+    },
+    "TransformConfigParameter":{
+      "type":"structure",
+      "required":[
+        "Name",
+        "Type"
+      ],
+      "members":{
+        "Name":{
+          "shape":"EnclosedInStringProperty",
+          "documentation":"<p>Specifies the name of the parameter in the config file of the dynamic transform.</p>"
+        },
+        "Type":{
+          "shape":"ParamType",
+          "documentation":"<p>Specifies the parameter type in the config file of the dynamic transform.</p>"
+        },
+        "ValidationRule":{
+          "shape":"EnclosedInStringProperty",
+          "documentation":"<p>Specifies the validation rule in the config file of the dynamic transform.</p>"
+        },
+        "ValidationMessage":{
+          "shape":"EnclosedInStringProperty",
+          "documentation":"<p>Specifies the validation message in the config file of the dynamic transform.</p>"
+        },
+        "Value":{
+          "shape":"EnclosedInStringProperties",
+          "documentation":"<p>Specifies the value of the parameter in the config file of the dynamic transform.</p>"
+        },
+        "ListType":{
+          "shape":"ParamType",
+          "documentation":"<p>Specifies the list type of the parameter in the config file of the dynamic transform.</p>"
+        },
+        "IsOptional":{
+          "shape":"BoxedBoolean",
+          "documentation":"<p>Specifies whether the parameter is optional or not in the config file of the dynamic transform.</p>"
+        }
+      },
+      "documentation":"<p>Specifies the parameters in the config file of the dynamic transform.</p>"
+    },
+    "TransformConfigParameterList":{
+      "type":"list",
+      "member":{"shape":"TransformConfigParameter"}
     },
     "TransformEncryption":{
       "type":"structure",
@@ -16895,10 +18860,13 @@
           "shape":"LineageConfiguration",
           "documentation":"<p>Specifies data lineage configuration settings for the crawler.</p>"
         },
-        "LakeFormationConfiguration":{"shape":"LakeFormationConfiguration"},
+        "LakeFormationConfiguration":{
+          "shape":"LakeFormationConfiguration",
+          "documentation":"<p>Specifies Lake Formation configuration settings for the crawler.</p>"
+        },
         "Configuration":{
           "shape":"CrawlerConfiguration",
-          "documentation":"<p>Crawler configuration information. This versioned JSON string allows users to specify aspects of a crawler's behavior. For more information, see <a href=\"https://docs.aws.amazon.com/glue/latest/dg/crawler-configuration.html\">Configuring a Crawler</a>.</p>"
+          "documentation":"<p>Crawler configuration information. This versioned JSON string allows users to specify aspects of a crawler's behavior. For more information, see <a href=\"https://docs.aws.amazon.com/glue/latest/dg/crawler-configuration.html\">Setting crawler configuration options</a>.</p>"
         },
         "CrawlerSecurityConfiguration":{
           "shape":"CrawlerSecurityConfiguration",
@@ -16961,9 +18929,56 @@
         "AllowSingleColumn":{
           "shape":"NullableBoolean",
           "documentation":"<p>Enables the processing of files that contain only one column.</p>"
+        },
+        "CustomDatatypeConfigured":{
+          "shape":"NullableBoolean",
+          "documentation":"<p>Specifies the configuration of custom datatypes.</p>"
+        },
+        "CustomDatatypes":{
+          "shape":"CustomDatatypes",
+          "documentation":"<p>Specifies a list of supported custom datatypes.</p>"
         }
       },
       "documentation":"<p>Specifies a custom CSV classifier to be updated.</p>"
+    },
+    "UpdateDataQualityRulesetRequest":{
+      "type":"structure",
+      "required":["Name"],
+      "members":{
+        "Name":{
+          "shape":"NameString",
+          "documentation":"<p>The name of the data quality ruleset.</p>"
+        },
+        "UpdatedName":{
+          "shape":"NameString",
+          "documentation":"<p>The new name of the ruleset, if you are renaming it.</p>"
+        },
+        "Description":{
+          "shape":"DescriptionString",
+          "documentation":"<p>A description of the ruleset.</p>"
+        },
+        "Ruleset":{
+          "shape":"DataQualityRulesetString",
+          "documentation":"<p>A Data Quality Definition Language (DQDL) ruleset. For more information, see the Glue developer guide.</p>"
+        }
+      }
+    },
+    "UpdateDataQualityRulesetResponse":{
+      "type":"structure",
+      "members":{
+        "Name":{
+          "shape":"NameString",
+          "documentation":"<p>The name of the data quality ruleset.</p>"
+        },
+        "Description":{
+          "shape":"DescriptionString",
+          "documentation":"<p>A description of the ruleset.</p>"
+        },
+        "Ruleset":{
+          "shape":"DataQualityRulesetString",
+          "documentation":"<p>A Data Quality Definition Language (DQDL) ruleset. For more information, see the Glue developer guide.</p>"
+        }
+      }
     },
     "UpdateDatabaseRequest":{
       "type":"structure",
@@ -17057,6 +19072,56 @@
       },
       "documentation":"<p>Specifies a grok classifier to update when passed to <code>UpdateClassifier</code>.</p>"
     },
+    "UpdateJobFromSourceControlRequest":{
+      "type":"structure",
+      "members":{
+        "JobName":{
+          "shape":"NameString",
+          "documentation":"<p>The name of the Glue job to be synchronized to or from the remote repository.</p>"
+        },
+        "Provider":{
+          "shape":"SourceControlProvider",
+          "documentation":"<p>The provider for the remote repository.</p>"
+        },
+        "RepositoryName":{
+          "shape":"NameString",
+          "documentation":"<p>The name of the remote repository that contains the job artifacts.</p>"
+        },
+        "RepositoryOwner":{
+          "shape":"NameString",
+          "documentation":"<p>The owner of the remote repository that contains the job artifacts.</p>"
+        },
+        "BranchName":{
+          "shape":"NameString",
+          "documentation":"<p>An optional branch in the remote repository.</p>"
+        },
+        "Folder":{
+          "shape":"NameString",
+          "documentation":"<p>An optional folder in the remote repository.</p>"
+        },
+        "CommitId":{
+          "shape":"CommitIdString",
+          "documentation":"<p>A commit ID for a commit in the remote repository.</p>"
+        },
+        "AuthStrategy":{
+          "shape":"SourceControlAuthStrategy",
+          "documentation":"<p>The type of authentication, which can be an authentication token stored in Amazon Web Services Secrets Manager, or a personal access token.</p>"
+        },
+        "AuthToken":{
+          "shape":"AuthTokenString",
+          "documentation":"<p>The value of the authorization token.</p>"
+        }
+      }
+    },
+    "UpdateJobFromSourceControlResponse":{
+      "type":"structure",
+      "members":{
+        "JobName":{
+          "shape":"NameString",
+          "documentation":"<p>The name of the Glue job.</p>"
+        }
+      }
+    },
     "UpdateJobRequest":{
       "type":"structure",
       "required":[
@@ -17070,7 +19135,7 @@
         },
         "JobUpdate":{
           "shape":"JobUpdate",
-          "documentation":"<p>Specifies the values with which to update the job definition.</p>"
+          "documentation":"<p>Specifies the values with which to update the job definition. Unspecified configuration is removed or reset to default values.</p>"
         }
       }
     },
@@ -17262,6 +19327,56 @@
         }
       }
     },
+    "UpdateSourceControlFromJobRequest":{
+      "type":"structure",
+      "members":{
+        "JobName":{
+          "shape":"NameString",
+          "documentation":"<p>The name of the Glue job to be synchronized to or from the remote repository.</p>"
+        },
+        "Provider":{
+          "shape":"SourceControlProvider",
+          "documentation":"<p>The provider for the remote repository.</p>"
+        },
+        "RepositoryName":{
+          "shape":"NameString",
+          "documentation":"<p>The name of the remote repository that contains the job artifacts.</p>"
+        },
+        "RepositoryOwner":{
+          "shape":"NameString",
+          "documentation":"<p>The owner of the remote repository that contains the job artifacts.</p>"
+        },
+        "BranchName":{
+          "shape":"NameString",
+          "documentation":"<p>An optional branch in the remote repository.</p>"
+        },
+        "Folder":{
+          "shape":"NameString",
+          "documentation":"<p>An optional folder in the remote repository.</p>"
+        },
+        "CommitId":{
+          "shape":"CommitIdString",
+          "documentation":"<p>A commit ID for a commit in the remote repository.</p>"
+        },
+        "AuthStrategy":{
+          "shape":"SourceControlAuthStrategy",
+          "documentation":"<p>The type of authentication, which can be an authentication token stored in Amazon Web Services Secrets Manager, or a personal access token.</p>"
+        },
+        "AuthToken":{
+          "shape":"AuthTokenString",
+          "documentation":"<p>The value of the authorization token.</p>"
+        }
+      }
+    },
+    "UpdateSourceControlFromJobResponse":{
+      "type":"structure",
+      "members":{
+        "JobName":{
+          "shape":"NameString",
+          "documentation":"<p>The name of the Glue job.</p>"
+        }
+      }
+    },
     "UpdateTableRequest":{
       "type":"structure",
       "required":[
@@ -17289,7 +19404,10 @@
           "shape":"TransactionIdString",
           "documentation":"<p>The transaction ID at which to update the table contents. </p>"
         },
-        "VersionId":{"shape":"VersionString"}
+        "VersionId":{
+          "shape":"VersionString",
+          "documentation":"<p>The version ID at which to update the table contents. </p>"
+        }
       }
     },
     "UpdateTableResponse":{
@@ -17549,7 +19667,8 @@
       "enum":[
         "Standard",
         "G.1X",
-        "G.2X"
+        "G.2X",
+        "G.025X"
       ]
     },
     "Workflow":{
@@ -17695,6 +19814,14 @@
         "RunningActions":{
           "shape":"IntegerValue",
           "documentation":"<p>Total number Actions in running state.</p>"
+        },
+        "ErroredActions":{
+          "shape":"IntegerValue",
+          "documentation":"<p>Indicates the count of job runs in the ERROR state in the workflow run.</p>"
+        },
+        "WaitingActions":{
+          "shape":"IntegerValue",
+          "documentation":"<p>Indicates the count of job runs in WAITING state in the workflow run.</p>"
         }
       },
       "documentation":"<p>Workflow run statistics provides statistics about the workflow run.</p>"

@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans;
 
+import java.beans.Transient;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnore;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
@@ -23,6 +24,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbParti
 public class IgnoredAttributeBean {
     private String id;
     private Integer integerAttribute;
+    private Integer integer2Attribute;
 
     @DynamoDbPartitionKey
     public String getId() {
@@ -40,5 +42,14 @@ public class IgnoredAttributeBean {
 
     public void setIntegerAttribute(Integer integerAttribute) {
         this.integerAttribute = integerAttribute;
+    }
+
+    @Transient
+    public Integer getInteger2Attribute() {
+        return integer2Attribute;
+    }
+
+    public void setInteger2Attribute(Integer integer2Attribute) {
+        this.integer2Attribute = integer2Attribute;
     }
 }

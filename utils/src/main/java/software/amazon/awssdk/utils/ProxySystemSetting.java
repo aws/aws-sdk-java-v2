@@ -18,7 +18,7 @@ package software.amazon.awssdk.utils;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
- * The system properties related to http proxy
+ * The system properties related to http and https proxies
  */
 @SdkProtectedApi
 public enum ProxySystemSetting implements SystemSetting  {
@@ -27,7 +27,12 @@ public enum ProxySystemSetting implements SystemSetting  {
     PROXY_PORT("http.proxyPort"),
     NON_PROXY_HOSTS("http.nonProxyHosts"),
     PROXY_USERNAME("http.proxyUser"),
-    PROXY_PASSWORD("http.proxyPassword")
+    PROXY_PASSWORD("http.proxyPassword"),
+
+    HTTPS_PROXY_HOST("https.proxyHost"),
+    HTTPS_PROXY_PORT("https.proxyPort"),
+    HTTPS_PROXY_USERNAME("https.proxyUser"),
+    HTTPS_PROXY_PASSWORD("https.proxyPassword")
     ;
 
     private final String systemProperty;

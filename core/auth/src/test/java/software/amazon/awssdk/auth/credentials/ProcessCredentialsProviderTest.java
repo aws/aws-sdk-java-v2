@@ -14,6 +14,8 @@
  */
 package software.amazon.awssdk.auth.credentials;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertNotNull;
 
 import java.io.File;
@@ -24,7 +26,6 @@ import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.time.Instant;
-
 import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -36,19 +37,25 @@ import software.amazon.awssdk.utils.Platform;
 
 public class ProcessCredentialsProviderTest {
 
-    private final static String PROCESS_RESOURCE_PATH = "/resources/process/";
-    private final static String RANDOM_SESSION_TOKEN = "RANDOM_TOKEN";
+    private static final String PROCESS_RESOURCE_PATH = "/resources/process/";
+    private static final String RANDOM_SESSION_TOKEN = "RANDOM_TOKEN";
     private static String scriptLocation;
+    private static String errorScriptLocation;
  
     @BeforeClass
     public static void setup()  {
-        scriptLocation = copyProcessCredentialsScript();
+        scriptLocation = copyHappyCaseProcessCredentialsScript();
+        errorScriptLocation = copyErrorCaseProcessCredentialsScript();
     }
  
     @AfterClass
     public static void teardown() {
         if (scriptLocation != null && !new File(scriptLocation).delete()) {
             throw new IllegalStateException("Failed to delete file: " + scriptLocation);
+        }
+
+        if (errorScriptLocation != null && !new File(errorScriptLocation).delete()) {
+            throw new IllegalStateException("Failed to delete file: " + errorScriptLocation);
         }
     }
  
@@ -117,6 +124,19 @@ public class ProcessCredentialsProviderTest {
     }
 
     @Test
+    public void processFailed_shouldContainErrorMessage() {
+        ProcessCredentialsProvider credentialsProvider =
+            ProcessCredentialsProvider.builder()
+                                      .command(errorScriptLocation)
+                                      .credentialRefreshThreshold(Duration.ofSeconds(20))
+                                      .build();
+
+        assertThatThrownBy(credentialsProvider::resolveCredentials)
+            .satisfies(throwable -> assertThat(throwable.getCause())
+                .hasMessageContaining("(125) with error message: Some error case"));
+    }
+
+    @Test
     public void lackOfExpirationIsCachedForever() {
         ProcessCredentialsProvider credentialsProvider =
             ProcessCredentialsProvider.builder()
@@ -175,9 +195,21 @@ public class ProcessCredentialsProviderTest {
         credentialsProvider.close();
     }
 
-    public static String copyProcessCredentialsScript() {
+    public static String copyHappyCaseProcessCredentialsScript() {
         String scriptClasspathFilename = Platform.isWindows() ? "windows-credentials-script.bat"
                                                               : "linux-credentials-script.sh";
+
+        return copyProcessCredentialsScript(scriptClasspathFilename);
+    }
+
+    public static String copyErrorCaseProcessCredentialsScript() {
+        String scriptClasspathFilename = Platform.isWindows() ? "windows-credentials-error-script.bat"
+                                                              : "linux-credentials-error-script.sh";
+
+        return copyProcessCredentialsScript(scriptClasspathFilename);
+    }
+
+    public static String copyProcessCredentialsScript(String scriptClasspathFilename) {
         String scriptClasspathLocation = PROCESS_RESOURCE_PATH + scriptClasspathFilename;
 
         InputStream scriptInputStream = null;

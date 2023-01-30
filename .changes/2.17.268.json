@@ -1,0 +1,18 @@
+{
+    "version": "2.17.268",
+    "date": "2022-09-06",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SSO Identity Store",
+            "contributor": "",
+            "description": "Documentation updates for the Identity Store CLI Reference."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "This release adds HyperParameterTuningJob type in Search API."
+        }
+    ]
+}

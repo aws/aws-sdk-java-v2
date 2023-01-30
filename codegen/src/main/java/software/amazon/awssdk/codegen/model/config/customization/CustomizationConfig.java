@@ -161,6 +161,11 @@ public class CustomizationConfig {
     private UtilitiesMethod utilitiesMethod;
 
     /**
+     * Config to generate a additional Builder methods in the client interface.
+     */
+    private List<AdditionalBuilderMethod> additionalBuilderMethods;
+
+    /**
      * Force generation of deprecated client builder method 'enableEndpointDiscovery'. Only services that already had
      * this method when it was deprecated require this flag to be set.
      */
@@ -200,6 +205,25 @@ public class CustomizationConfig {
      * Whether to generate an abstract decorator class that delegates to the async service client
      */
     private boolean delegateAsyncClientClass;
+
+    /**
+     * Whether to skip generating endpoint tests from endpoint-tests.json
+     */
+    private boolean skipEndpointTestGeneration;
+
+    /**
+     * A mapping from the skipped test's description to the reason why it's being skipped.
+     */
+    private Map<String, String> skipEndpointTests;
+
+    private boolean useGlobalEndpoint;
+
+    private List<String> interceptors = new ArrayList<>();
+
+    /**
+     * Whether marshallers perform validations against members marked with RequiredTrait.
+     */
+    private boolean requiredTraitValidationEnabled = false;
 
     private CustomizationConfig() {
     }
@@ -425,6 +449,15 @@ public class CustomizationConfig {
         this.utilitiesMethod = utilitiesMethod;
     }
 
+
+    public List<AdditionalBuilderMethod> getAdditionalBuilderMethods() {
+        return additionalBuilderMethods;
+    }
+
+    public void setAdditionalBuilderMethods(List<AdditionalBuilderMethod> additionalBuilderMethods) {
+        this.additionalBuilderMethods = additionalBuilderMethods;
+    }
+
     public boolean isEnableEndpointDiscoveryMethodRequired() {
         return enableEndpointDiscoveryMethodRequired;
     }
@@ -512,5 +545,45 @@ public class CustomizationConfig {
 
     public void setDelegateAsyncClientClass(boolean delegateAsyncClientClass) {
         this.delegateAsyncClientClass = delegateAsyncClientClass;
+    }
+
+    public boolean isSkipEndpointTestGeneration() {
+        return skipEndpointTestGeneration;
+    }
+
+    public void setSkipEndpointTestGeneration(boolean skipEndpointTestGeneration) {
+        this.skipEndpointTestGeneration = skipEndpointTestGeneration;
+    }
+
+    public boolean useGlobalEndpoint() {
+        return useGlobalEndpoint;
+    }
+
+    public void setUseGlobalEndpoint(boolean useGlobalEndpoint) {
+        this.useGlobalEndpoint = useGlobalEndpoint;
+    }
+
+    public Map<String, String> getSkipEndpointTests() {
+        return skipEndpointTests;
+    }
+
+    public void setSkipEndpointTests(Map<String, String> skipEndpointTests) {
+        this.skipEndpointTests = skipEndpointTests;
+    }
+
+    public List<String> getInterceptors() {
+        return interceptors;
+    }
+
+    public void setInterceptors(List<String> interceptors) {
+        this.interceptors = interceptors;
+    }
+    
+    public boolean isRequiredTraitValidationEnabled() {
+        return requiredTraitValidationEnabled;
+    }
+
+    public void setRequiredTraitValidationEnabled(boolean requiredTraitValidationEnabled) {
+        this.requiredTraitValidationEnabled = requiredTraitValidationEnabled;
     }
 }

@@ -1,0 +1,36 @@
+{
+    "version": "2.17.218",
+    "date": "2022-06-23",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaConvert",
+            "contributor": "",
+            "description": "AWS Elemental MediaConvert SDK has released support for automatic DolbyVision metadata generation when converting HDR10 to DolbyVision."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Migration Hub Refactor Spaces",
+            "contributor": "",
+            "description": "This release adds the new API UpdateRoute that allows route to be updated to ACTIVE/INACTIVE state. In addition, CreateRoute API will now allow users to create route in ACTIVE/INACTIVE state."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lookout for Equipment",
+            "contributor": "",
+            "description": "This release adds visualizations to the scheduled inference results. Users will be able to see interference results, including diagnostic results from their running inference schedulers."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "SageMaker Ground Truth now supports Virtual Private Cloud. Customers can launch labeling jobs and access to their private workforce in VPC mode."
+        },
+        {
+            "type": "feature",
+            "category": "Application Migration Service",
+            "contributor": "",
+            "description": "New and modified APIs for the Post-Migration Framework"
+        }
+    ]
+}

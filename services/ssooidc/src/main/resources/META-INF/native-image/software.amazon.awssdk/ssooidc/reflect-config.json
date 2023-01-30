@@ -1,0 +1,11 @@
+[
+  {
+    "name": "software.amazon.awssdk.services.ssooidc.SsoOidcTokenProviderFactory",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      }
+    ]
+  }
+]

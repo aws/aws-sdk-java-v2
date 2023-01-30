@@ -62,7 +62,8 @@ None
   [java.util.Optional](https://docs.oracle.com/javase/8/docs/api/java/util/Optional.html).
 * [Completable Future Usage](UseOfCompletableFuture.md) - Conventions
   governing the use of
-  [java.util.concurrent.CompletableFuture](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletableFuture.html).
+* [java.util.concurrent.CompletableFuture](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletableFuture.html).
+* [APIReference](APIReference.md) - Conventions used for API references
 
 **Rejected**
 

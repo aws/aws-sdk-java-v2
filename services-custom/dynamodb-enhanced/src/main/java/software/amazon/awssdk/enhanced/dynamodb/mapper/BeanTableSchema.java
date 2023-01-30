@@ -21,6 +21,7 @@ import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
+import java.beans.Transient;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -30,9 +31,11 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.WeakHashMap;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -107,6 +110,8 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPrese
 @SdkPublicApi
 @ThreadSafe
 public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableSchema<T>> {
+    private static final Map<Class<?>, BeanTableSchema<?>> BEAN_TABLE_SCHEMA_CACHE =
+        Collections.synchronizedMap(new WeakHashMap<>());
     private static final String ATTRIBUTE_TAG_STATIC_SUPPLIER_NAME = "attributeTagFor";
 
     private BeanTableSchema(StaticTableSchema<T> staticTableSchema) {
@@ -117,15 +122,18 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
      * Scans a bean class and builds a {@link BeanTableSchema} from it that can be used with the
      * {@link DynamoDbEnhancedClient}.
      *
-     * Creating an {@link BeanTableSchema} is a moderately expensive operation, and should be performed sparingly. This is
-     * usually done once at application startup.
+     * <p>
+     * It's recommended to only create a {@link BeanTableSchema} once for a single bean class, usually at application start up,
+     * because it's a moderately expensive operation.
      *
      * @param beanClass The bean class to build the table schema from.
      * @param <T> The bean class type.
      * @return An initialized {@link BeanTableSchema}
      */
+    @SuppressWarnings("unchecked")
     public static <T> BeanTableSchema<T> create(Class<T> beanClass) {
-        return create(beanClass, new MetaTableSchemaCache());
+        return (BeanTableSchema<T>) BEAN_TABLE_SCHEMA_CACHE.computeIfAbsent(beanClass, clz -> create(clz,
+                                                                                                     new MetaTableSchemaCache()));
     }
 
     private static <T> BeanTableSchema<T> create(Class<T> beanClass, MetaTableSchemaCache metaTableSchemaCache) {
@@ -415,9 +423,10 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
             return false;
         }
 
-        if (getPropertyAnnotation(propertyDescriptor, DynamoDbIgnore.class) != null) {
+        if (getPropertyAnnotation(propertyDescriptor, DynamoDbIgnore.class) != null ||
+            getPropertyAnnotation(propertyDescriptor, Transient.class) != null) {
             debugLog(beanClass, () -> "Ignoring bean property " + propertyDescriptor.getDisplayName() + " because it has "
-                                      + "@DynamoDbIgnore.");
+                                      + "@DynamoDbIgnore or @Transient.");
             return false;
         }
 

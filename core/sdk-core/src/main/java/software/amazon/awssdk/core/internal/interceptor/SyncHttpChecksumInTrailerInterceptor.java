@@ -29,6 +29,7 @@ import software.amazon.awssdk.core.checksums.SdkChecksum;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.internal.io.AwsChunkedEncodingInputStream;
 import software.amazon.awssdk.core.internal.io.AwsUnsignedChunkedEncodingInputStream;
 import software.amazon.awssdk.core.internal.util.HttpChecksumResolver;
 import software.amazon.awssdk.core.internal.util.HttpChecksumUtils;
@@ -73,7 +74,7 @@ public final class SyncHttpChecksumInTrailerInterceptor implements ExecutionInte
             RequestBody.fromContentProvider(
                 streamProvider,
                 AwsUnsignedChunkedEncodingInputStream.calculateStreamContentLength(
-                    requestBody.optionalContentLength().orElse(0L))
+                    requestBody.optionalContentLength().orElse(0L), AwsChunkedEncodingInputStream.DEFAULT_CHUNK_SIZE)
                 + checksumContentLength,
                 requestBody.contentType()));
     }
@@ -107,12 +108,13 @@ public final class SyncHttpChecksumInTrailerInterceptor implements ExecutionInte
         long originalContentLength = context.requestBody().get().optionalContentLength().orElse(0L);
         return context.httpRequest().copy(
             r -> r.putHeader(HttpChecksumConstant.HEADER_FOR_TRAILER_REFERENCE, checksum.headerName())
-                  .putHeader("Content-encoding", AWS_CHUNKED_HEADER)
+                  .appendHeader("Content-encoding", AWS_CHUNKED_HEADER)
                   .putHeader("x-amz-content-sha256", CONTENT_SHA_256_FOR_UNSIGNED_TRAILER)
                   .putHeader("x-amz-decoded-content-length", Long.toString(originalContentLength))
                   .putHeader(CONTENT_LENGTH,
                              Long.toString(AwsUnsignedChunkedEncodingInputStream.calculateStreamContentLength(
-                                 originalContentLength) + checksumContentLength)));
+                                 originalContentLength, AwsChunkedEncodingInputStream.DEFAULT_CHUNK_SIZE)
+                                           + checksumContentLength)));
     }
 
 

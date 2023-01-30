@@ -1,0 +1,54 @@
+{
+    "version": "2.17.234",
+    "date": "2022-07-18",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Application Discovery Service",
+            "contributor": "",
+            "description": "Add AWS Agentless Collector details to the GetDiscoverySummary API response"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaPackage",
+            "contributor": "",
+            "description": "This release adds \"IncludeIframeOnlyStream\" for Dash endpoints and increases the number of supported video and audio encryption presets for Speke v2"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Key Management Service",
+            "contributor": "",
+            "description": "Added support for the SM2 KeySpec in China Partition Regions"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Single Sign-On Admin",
+            "contributor": "",
+            "description": "AWS SSO now supports attaching customer managed policies and a permissions boundary to your permission sets. This release adds new API operations to manage and view the customer managed policies and the permissions boundary for a given permission set."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon ElastiCache",
+            "contributor": "",
+            "description": "Adding AutoMinorVersionUpgrade in the DescribeReplicationGroups API"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Documentation updates for Amazon EC2."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Amazon SageMaker Edge Manager provides lightweight model deployment feature to deploy machine learning models on requested devices."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}

@@ -29,6 +29,8 @@ public final class SignerConstant {
 
     public static final String X_AMZ_CONTENT_SHA256 = "x-amz-content-sha256";
 
+    public static final String AUTHORIZATION = "Authorization";
+
     static final String X_AMZ_SECURITY_TOKEN = "X-Amz-Security-Token";
 
     static final String X_AMZ_CREDENTIAL = "X-Amz-Credential";
@@ -42,8 +44,6 @@ public final class SignerConstant {
     static final String X_AMZ_SIGNATURE = "X-Amz-Signature";
 
     static final String X_AMZ_ALGORITHM = "X-Amz-Algorithm";
-
-    static final String AUTHORIZATION = "Authorization";
 
     static final String HOST = "Host";
 

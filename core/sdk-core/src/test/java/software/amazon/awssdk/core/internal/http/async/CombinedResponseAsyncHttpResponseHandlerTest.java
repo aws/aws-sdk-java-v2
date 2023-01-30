@@ -17,7 +17,10 @@ package software.amazon.awssdk.core.internal.http.async;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import io.reactivex.Flowable;
@@ -70,6 +73,18 @@ class CombinedResponseAsyncHttpResponseHandlerTest {
                                responseHandler.onStream(publisher()))
             .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("headersFuture is still not completed when onStream()");
 
+    }
+
+    @Test
+    void onStream_HeadersFutureCompleteSuccessfully_shouldNotThrowException() {
+        when(successResponseHandler.prepare()).thenReturn(CompletableFuture.completedFuture(null));
+
+        responseHandler.prepare();
+        responseHandler.onError(new RuntimeException("error"));
+        Flowable<ByteBuffer> publisher = publisher();
+        responseHandler.onStream(publisher);
+        verify(successResponseHandler, times(0)).onStream(publisher);
+        verify(errorResponseHandler, times(0)).onStream(publisher);
     }
 
     @Test

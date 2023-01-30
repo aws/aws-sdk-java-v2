@@ -146,6 +146,12 @@
       "output_token": "NextToken",
       "result_key": "RoutingProfileSummaryList"
     },
+    "ListRules": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "RuleSummaryList"
+    },
     "ListSecurityKeys": {
       "input_token": "NextToken",
       "limit_key": "MaxResults",
@@ -170,6 +176,12 @@
       "output_token": "NextToken",
       "result_key": "TaskTemplates"
     },
+    "ListTrafficDistributionGroups": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "TrafficDistributionGroupSummaryList"
+    },
     "ListUseCases": {
       "input_token": "NextToken",
       "limit_key": "MaxResults",
@@ -193,6 +205,33 @@
       "limit_key": "MaxResults",
       "output_token": "NextToken",
       "result_key": "AvailableNumbersList"
+    },
+    "SearchQueues": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "non_aggregate_keys": [
+        "ApproximateTotalCount"
+      ],
+      "output_token": "NextToken",
+      "result_key": "Queues"
+    },
+    "SearchRoutingProfiles": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "non_aggregate_keys": [
+        "ApproximateTotalCount"
+      ],
+      "output_token": "NextToken",
+      "result_key": "RoutingProfiles"
+    },
+    "SearchSecurityProfiles": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "non_aggregate_keys": [
+        "ApproximateTotalCount"
+      ],
+      "output_token": "NextToken",
+      "result_key": "SecurityProfiles"
     },
     "SearchUsers": {
       "input_token": "NextToken",

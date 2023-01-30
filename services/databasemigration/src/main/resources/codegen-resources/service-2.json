@@ -938,6 +938,20 @@
         {"shape":"AccessDeniedFault"}
       ],
       "documentation":"<p>Tests the connection between the replication instance and the endpoint.</p>"
+    },
+    "UpdateSubscriptionsToEventBridge":{
+      "name":"UpdateSubscriptionsToEventBridge",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"UpdateSubscriptionsToEventBridgeMessage"},
+      "output":{"shape":"UpdateSubscriptionsToEventBridgeResponse"},
+      "errors":[
+        {"shape":"AccessDeniedFault"},
+        {"shape":"InvalidResourceStateFault"}
+      ],
+      "documentation":"<p>Migrates 10 active and enabled Amazon SNS subscriptions at a time and converts them to corresponding Amazon EventBridge rules. By default, this operation migrates subscriptions only when all your replication instance versions are 3.4.6 or higher. If any replication instances are from versions earlier than 3.4.6, the operation raises an error and tells you to upgrade these instances to version 3.4.6 or higher. To enable migration regardless of version, set the <code>Force</code> option to true. However, if you don't upgrade instances earlier than version 3.4.6, some types of events might not be available when you use Amazon EventBridge.</p> <p>To call this operation, make sure that you have certain permissions added to your user account. For more information, see <a href=\"https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Events.html#CHAP_Events-migrate-to-eventbridge\">Migrating event subscriptions to Amazon EventBridge</a> in the <i>Amazon Web Services Database Migration Service User Guide</i>.</p>"
     }
   },
   "shapes":{
@@ -1329,7 +1343,7 @@
         },
         "EngineName":{
           "shape":"String",
-          "documentation":"<p>The type of engine for the endpoint. Valid values, depending on the <code>EndpointType</code> value, include <code>\"mysql\"</code>, <code>\"oracle\"</code>, <code>\"postgres\"</code>, <code>\"mariadb\"</code>, <code>\"aurora\"</code>, <code>\"aurora-postgresql\"</code>, <code>\"opensearch\"</code>, <code>\"redshift\"</code>, <code>\"s3\"</code>, <code>\"db2\"</code>, <code>\"azuredb\"</code>, <code>\"sybase\"</code>, <code>\"dynamodb\"</code>, <code>\"mongodb\"</code>, <code>\"kinesis\"</code>, <code>\"kafka\"</code>, <code>\"elasticsearch\"</code>, <code>\"docdb\"</code>, <code>\"sqlserver\"</code>, and <code>\"neptune\"</code>.</p>"
+          "documentation":"<p>The type of engine for the endpoint. Valid values, depending on the <code>EndpointType</code> value, include <code>\"mysql\"</code>, <code>\"oracle\"</code>, <code>\"postgres\"</code>, <code>\"mariadb\"</code>, <code>\"aurora\"</code>, <code>\"aurora-postgresql\"</code>, <code>\"opensearch\"</code>, <code>\"redshift\"</code>, <code>\"s3\"</code>, <code>\"db2\"</code>, <code>\"db2-zos\"</code>, <code>\"azuredb\"</code>, <code>\"sybase\"</code>, <code>\"dynamodb\"</code>, <code>\"mongodb\"</code>, <code>\"kinesis\"</code>, <code>\"kafka\"</code>, <code>\"elasticsearch\"</code>, <code>\"docdb\"</code>, <code>\"sqlserver\"</code>, <code>\"neptune\"</code>, and <code>\"babelfish\"</code>.</p>"
         },
         "Username":{
           "shape":"String",
@@ -1627,6 +1641,10 @@
         "ResourceIdentifier":{
           "shape":"String",
           "documentation":"<p>A friendly name for the resource identifier at the end of the <code>EndpointArn</code> response parameter that is returned in the created <code>Endpoint</code> object. The value for this parameter can have up to 31 characters. It can contain only ASCII letters, digits, and hyphen ('-'). Also, it can't end with a hyphen or contain two consecutive hyphens, and can only begin with a letter, such as <code>Example-App-ARN1</code>. For example, this value might result in the <code>EndpointArn</code> value <code>arn:aws:dms:eu-west-1:012345678901:rep:Example-App-ARN1</code>. If you don't specify a <code>ResourceIdentifier</code> value, DMS generates a default identifier value for the end of <code>EndpointArn</code>.</p>"
+        },
+        "NetworkType":{
+          "shape":"String",
+          "documentation":"<p>The type of IP address protocol used by a replication instance, such as IPv4 only or Dual-stack that supports both IPv4 and IPv6 addressing. IPv6 only is not yet supported.</p>"
         }
       },
       "documentation":"<p/>"
@@ -2448,7 +2466,7 @@
       "members":{
         "Filters":{
           "shape":"FilterList",
-          "documentation":"<p> If you specify any of the following filters, the output includes information for only those databases that meet the filter criteria: </p> <ul> <li> <p> <code>database-id</code> – The ID of the database, for example <code>d4610ac5-e323-4ad9-bc50-eaf7249dfe9d</code>.</p> </li> <li> <p> <code>database-name</code> – The name of the database.</p> </li> <li> <p> <code>database-engine</code> – The name of the database engine.</p> </li> <li> <p> <code>server-ip-address</code> – The IP address of the database server.</p> </li> <li> <p> <code>database-ip-address</code> – The IP address of the database.</p> </li> <li> <p> <code>collector-name</code> – The name of the associated Fleet Advisor collector.</p> </li> </ul> <p>An example is: <code>describe-fleet-advisor-databases --filter Name=\"database-id\",Values=\"d4610ac5-e323-4ad9-bc50-eaf7249dfe9d\"</code> </p>"
+          "documentation":"<p> If you specify any of the following filters, the output includes information for only those databases that meet the filter criteria: </p> <ul> <li> <p> <code>database-id</code> – The ID of the database.</p> </li> <li> <p> <code>database-name</code> – The name of the database.</p> </li> <li> <p> <code>database-engine</code> – The name of the database engine.</p> </li> <li> <p> <code>server-ip-address</code> – The IP address of the database server.</p> </li> <li> <p> <code>database-ip-address</code> – The IP address of the database.</p> </li> <li> <p> <code>collector-name</code> – The name of the associated Fleet Advisor collector.</p> </li> </ul> <p>An example is: <code>describe-fleet-advisor-databases --filter Name=\"database-id\",Values=\"45\"</code> </p>"
         },
         "MaxRecords":{
           "shape":"IntegerOptional",
@@ -3060,6 +3078,10 @@
         "ErrorRetryDuration":{
           "shape":"IntegerOptional",
           "documentation":"<p>The maximum number of seconds for which DMS retries failed API requests to the OpenSearch cluster.</p>"
+        },
+        "UseNewMappingType":{
+          "shape":"BooleanOptional",
+          "documentation":"<p>Set this option to <code>true</code> for DMS to migrate documentation using the documentation type <code>_doc</code>. OpenSearch and an Elasticsearch cluster only support the _doc documentation type in versions 7. x and later. The default value is <code>false</code>.</p>"
         }
       },
       "documentation":"<p>Provides information that defines an OpenSearch endpoint.</p>"
@@ -3092,11 +3114,11 @@
         },
         "EngineName":{
           "shape":"String",
-          "documentation":"<p>The database engine name. Valid values, depending on the EndpointType, include <code>\"mysql\"</code>, <code>\"oracle\"</code>, <code>\"postgres\"</code>, <code>\"mariadb\"</code>, <code>\"aurora\"</code>, <code>\"aurora-postgresql\"</code>, <code>\"opensearch\"</code>, <code>\"redshift\"</code>, <code>\"s3\"</code>, <code>\"db2\"</code>, <code>\"azuredb\"</code>, <code>\"sybase\"</code>, <code>\"dynamodb\"</code>, <code>\"mongodb\"</code>, <code>\"kinesis\"</code>, <code>\"kafka\"</code>, <code>\"elasticsearch\"</code>, <code>\"documentdb\"</code>, <code>\"sqlserver\"</code>, and <code>\"neptune\"</code>.</p>"
+          "documentation":"<p>The database engine name. Valid values, depending on the EndpointType, include <code>\"mysql\"</code>, <code>\"oracle\"</code>, <code>\"postgres\"</code>, <code>\"mariadb\"</code>, <code>\"aurora\"</code>, <code>\"aurora-postgresql\"</code>, <code>\"redshift\"</code>, <code>\"s3\"</code>, <code>\"db2\"</code>, <code>\"db2-zos\"</code>, <code>\"azuredb\"</code>, <code>\"sybase\"</code>, <code>\"dynamodb\"</code>, <code>\"mongodb\"</code>, <code>\"kinesis\"</code>, <code>\"kafka\"</code>, <code>\"elasticsearch\"</code>, <code>\"documentdb\"</code>, <code>\"sqlserver\"</code>, <code>\"neptune\"</code>, and <code>\"babelfish\"</code>.</p>"
         },
         "EngineDisplayName":{
           "shape":"String",
-          "documentation":"<p>The expanded name for the engine name. For example, if the <code>EngineName</code> parameter is \"aurora,\" this value would be \"Amazon Aurora MySQL.\"</p>"
+          "documentation":"<p>The expanded name for the engine name. For example, if the <code>EngineName</code> parameter is \"aurora\", this value would be \"Amazon Aurora MySQL\".</p>"
         },
         "Username":{
           "shape":"String",
@@ -3969,6 +3991,10 @@
         "SecretsManagerSecretId":{
           "shape":"String",
           "documentation":"<p>The full ARN, partial ARN, or friendly name of the <code>SecretsManagerSecret</code> that contains the SQL Server endpoint connection details.</p>"
+        },
+        "TrimSpaceInChar":{
+          "shape":"BooleanOptional",
+          "documentation":"<p>Use the <code>TrimSpaceInChar</code> source endpoint setting to trim data on CHAR and NCHAR data types during migration. The default value is <code>true</code>.</p>"
         }
       },
       "documentation":"<p>Provides information that defines a Microsoft SQL Server endpoint.</p>"
@@ -3999,7 +4025,7 @@
         },
         "EngineName":{
           "shape":"String",
-          "documentation":"<p>The type of engine for the endpoint. Valid values, depending on the EndpointType, include <code>\"mysql\"</code>, <code>\"oracle\"</code>, <code>\"postgres\"</code>, <code>\"mariadb\"</code>, <code>\"aurora\"</code>, <code>\"aurora-postgresql\"</code>, <code>\"opensearch\"</code>, <code>\"redshift\"</code>, <code>\"s3\"</code>, <code>\"db2\"</code>, <code>\"azuredb\"</code>, <code>\"sybase\"</code>, <code>\"dynamodb\"</code>, <code>\"mongodb\"</code>, <code>\"kinesis\"</code>, <code>\"kafka\"</code>, <code>\"elasticsearch\"</code>, <code>\"documentdb\"</code>, <code>\"sqlserver\"</code>, and <code>\"neptune\"</code>.</p>"
+          "documentation":"<p>The database engine name. Valid values, depending on the EndpointType, include <code>\"mysql\"</code>, <code>\"oracle\"</code>, <code>\"postgres\"</code>, <code>\"mariadb\"</code>, <code>\"aurora\"</code>, <code>\"aurora-postgresql\"</code>, <code>\"redshift\"</code>, <code>\"s3\"</code>, <code>\"db2\"</code>, <code>\"db2-zos\"</code>, <code>\"azuredb\"</code>, <code>\"sybase\"</code>, <code>\"dynamodb\"</code>, <code>\"mongodb\"</code>, <code>\"kinesis\"</code>, <code>\"kafka\"</code>, <code>\"elasticsearch\"</code>, <code>\"documentdb\"</code>, <code>\"sqlserver\"</code>, <code>\"neptune\"</code>, and <code>\"babelfish\"</code>.</p>"
         },
         "Username":{
           "shape":"String",
@@ -4211,6 +4237,10 @@
         "ReplicationInstanceIdentifier":{
           "shape":"String",
           "documentation":"<p>The replication instance identifier. This parameter is stored as a lowercase string.</p>"
+        },
+        "NetworkType":{
+          "shape":"String",
+          "documentation":"<p>The type of IP address protocol used by a replication instance, such as IPv4 only or Dual-stack that supports both IPv4 and IPv6 addressing. IPv6 only is not yet supported.</p>"
         }
       },
       "documentation":"<p/>"
@@ -4568,7 +4598,7 @@
         },
         "ArchivedLogsOnly":{
           "shape":"BooleanOptional",
-          "documentation":"<p>When this field is set to <code>Y</code>, DMS only accesses the archived redo logs. If the archived redo logs are stored on Oracle ASM only, the DMS user account needs to be granted ASM privileges.</p>"
+          "documentation":"<p>When this field is set to <code>Y</code>, DMS only accesses the archived redo logs. If the archived redo logs are stored on Automatic Storage Management (ASM) only, the DMS user account needs to be granted ASM privileges.</p>"
         },
         "AsmPassword":{
           "shape":"SecretString",
@@ -4664,11 +4694,15 @@
         },
         "SecretsManagerOracleAsmAccessRoleArn":{
           "shape":"String",
-          "documentation":"<p>Required only if your Oracle endpoint uses Advanced Storage Manager (ASM). The full ARN of the IAM role that specifies DMS as the trusted entity and grants the required permissions to access the <code>SecretsManagerOracleAsmSecret</code>. This <code>SecretsManagerOracleAsmSecret</code> has the secret value that allows access to the Oracle ASM of the endpoint.</p> <note> <p>You can specify one of two sets of values for these permissions. You can specify the values for this setting and <code>SecretsManagerOracleAsmSecretId</code>. Or you can specify clear-text values for <code>AsmUserName</code>, <code>AsmPassword</code>, and <code>AsmServerName</code>. You can't specify both. For more information on creating this <code>SecretsManagerOracleAsmSecret</code> and the <code>SecretsManagerOracleAsmAccessRoleArn</code> and <code>SecretsManagerOracleAsmSecretId</code> required to access it, see <a href=\"https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Security.html#security-iam-secretsmanager\">Using secrets to access Database Migration Service resources</a> in the <i>Database Migration Service User Guide</i>.</p> </note>"
+          "documentation":"<p>Required only if your Oracle endpoint uses Automatic Storage Management (ASM). The full ARN of the IAM role that specifies DMS as the trusted entity and grants the required permissions to access the <code>SecretsManagerOracleAsmSecret</code>. This <code>SecretsManagerOracleAsmSecret</code> has the secret value that allows access to the Oracle ASM of the endpoint.</p> <note> <p>You can specify one of two sets of values for these permissions. You can specify the values for this setting and <code>SecretsManagerOracleAsmSecretId</code>. Or you can specify clear-text values for <code>AsmUserName</code>, <code>AsmPassword</code>, and <code>AsmServerName</code>. You can't specify both. For more information on creating this <code>SecretsManagerOracleAsmSecret</code> and the <code>SecretsManagerOracleAsmAccessRoleArn</code> and <code>SecretsManagerOracleAsmSecretId</code> required to access it, see <a href=\"https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Security.html#security-iam-secretsmanager\">Using secrets to access Database Migration Service resources</a> in the <i>Database Migration Service User Guide</i>.</p> </note>"
         },
         "SecretsManagerOracleAsmSecretId":{
           "shape":"String",
-          "documentation":"<p>Required only if your Oracle endpoint uses Advanced Storage Manager (ASM). The full ARN, partial ARN, or friendly name of the <code>SecretsManagerOracleAsmSecret</code> that contains the Oracle ASM connection details for the Oracle endpoint.</p>"
+          "documentation":"<p>Required only if your Oracle endpoint uses Automatic Storage Management (ASM). The full ARN, partial ARN, or friendly name of the <code>SecretsManagerOracleAsmSecret</code> that contains the Oracle ASM connection details for the Oracle endpoint.</p>"
+        },
+        "TrimSpaceInChar":{
+          "shape":"BooleanOptional",
+          "documentation":"<p>Use the <code>TrimSpaceInChar</code> source endpoint setting to trim data on CHAR and NCHAR data types during migration. The default value is <code>true</code>.</p>"
         }
       },
       "documentation":"<p>Provides information that defines an Oracle endpoint.</p>"
@@ -4846,6 +4880,10 @@
         "SecretsManagerSecretId":{
           "shape":"String",
           "documentation":"<p>The full ARN, partial ARN, or friendly name of the <code>SecretsManagerSecret</code> that contains the PostgreSQL endpoint connection details.</p>"
+        },
+        "TrimSpaceInChar":{
+          "shape":"BooleanOptional",
+          "documentation":"<p>Use the <code>TrimSpaceInChar</code> source endpoint setting to trim data on CHAR and NCHAR data types during migration. The default value is <code>true</code>.</p>"
         }
       },
       "documentation":"<p>Provides information that defines a PostgreSQL endpoint.</p>"
@@ -5264,6 +5302,10 @@
           "shape":"ReplicationInstancePrivateIpAddressList",
           "documentation":"<p>One or more private IP addresses for the replication instance.</p>"
         },
+        "ReplicationInstanceIpv6Addresses":{
+          "shape":"ReplicationInstanceIpv6AddressList",
+          "documentation":"<p>One or more IPv6 addresses for the replication instance.</p>"
+        },
         "PubliclyAccessible":{
           "shape":"Boolean",
           "documentation":"<p> Specifies the accessibility options for the replication instance. A value of <code>true</code> represents an instance with a public IP address. A value of <code>false</code> represents an instance with a private IP address. The default value is <code>true</code>. </p>"
@@ -5279,9 +5321,17 @@
         "DnsNameServers":{
           "shape":"String",
           "documentation":"<p>The DNS name servers supported for the replication instance to access your on-premise source or target database.</p>"
+        },
+        "NetworkType":{
+          "shape":"String",
+          "documentation":"<p>The type of IP address protocol used by a replication instance, such as IPv4 only or Dual-stack that supports both IPv4 and IPv6 addressing. IPv6 only is not yet supported.</p>"
         }
       },
       "documentation":"<p>Provides information that defines a replication instance.</p>"
+    },
+    "ReplicationInstanceIpv6AddressList":{
+      "type":"list",
+      "member":{"shape":"String"}
     },
     "ReplicationInstanceList":{
       "type":"list",
@@ -5335,6 +5385,10 @@
         "EngineVersion":{
           "shape":"String",
           "documentation":"<p>The engine version number of the replication instance.</p>"
+        },
+        "NetworkType":{
+          "shape":"String",
+          "documentation":"<p>The type of IP address protocol used by a replication instance, such as IPv4 only or Dual-stack that supports both IPv4 and IPv6 addressing. IPv6 only is not yet supported.</p>"
         }
       },
       "documentation":"<p>Provides information about the values of pending modifications to a replication instance. This data type is an object of the <a href=\"https://docs.aws.amazon.com/dms/latest/APIReference/API_ReplicationInstance.html\"> <code>ReplicationInstance</code> </a> user-defined data type. </p>"
@@ -5361,6 +5415,10 @@
         "Subnets":{
           "shape":"SubnetList",
           "documentation":"<p>The subnets that are in the subnet group.</p>"
+        },
+        "SupportedNetworkTypes":{
+          "shape":"StringList",
+          "documentation":"<p>The IP addressing protocol supported by the subnet group. This is used by a replication instance with values such as IPv4 only or Dual-stack that supports both IPv4 and IPv6 addressing. IPv6 only is not yet supported.</p>"
         }
       },
       "documentation":"<p>Describes a subnet group in response to a request by the <code>DescribeReplicationSubnetGroups</code> operation.</p>"
@@ -5421,7 +5479,7 @@
         },
         "StopReason":{
           "shape":"String",
-          "documentation":"<p>The reason the replication task was stopped. This response parameter can return one of the following values:</p> <ul> <li> <p> <code>\"STOP_REASON_FULL_LOAD_COMPLETED\"</code> – Full-load migration completed.</p> </li> <li> <p> <code>\"STOP_REASON_CACHED_CHANGES_APPLIED\"</code> – Change data capture (CDC) load completed.</p> </li> <li> <p> <code>\"STOP_REASON_CACHED_CHANGES_NOT_APPLIED\"</code> – In a full-load and CDC migration, the full load stopped as specified before starting the CDC migration.</p> </li> <li> <p> <code>\"STOP_REASON_SERVER_TIME\"</code> – The migration stopped at the specified server time.</p> </li> </ul>"
+          "documentation":"<p>The reason the replication task was stopped. This response parameter can return one of the following values:</p> <ul> <li> <p> <code>\"Stop Reason NORMAL\"</code> </p> </li> <li> <p> <code>\"Stop Reason RECOVERABLE_ERROR\"</code> </p> </li> <li> <p> <code>\"Stop Reason FATAL_ERROR\"</code> </p> </li> <li> <p> <code>\"Stop Reason FULL_LOAD_ONLY_FINISHED\"</code> </p> </li> <li> <p> <code>\"Stop Reason STOPPED_AFTER_FULL_LOAD\"</code> – Full load completed, with cached changes not applied</p> </li> <li> <p> <code>\"Stop Reason STOPPED_AFTER_CACHED_EVENTS\"</code> – Full load completed, with cached changes applied</p> </li> <li> <p> <code>\"Stop Reason EXPRESS_LICENSE_LIMITS_REACHED\"</code> </p> </li> <li> <p> <code>\"Stop Reason STOPPED_AFTER_DDL_APPLY\"</code> – User-defined stop task after DDL applied</p> </li> <li> <p> <code>\"Stop Reason STOPPED_DUE_TO_LOW_MEMORY\"</code> </p> </li> <li> <p> <code>\"Stop Reason STOPPED_DUE_TO_LOW_DISK\"</code> </p> </li> <li> <p> <code>\"Stop Reason STOPPED_AT_SERVER_TIME\"</code> – User-defined server time for stopping task</p> </li> <li> <p> <code>\"Stop Reason STOPPED_AT_COMMIT_TIME\"</code> – User-defined commit time for stopping task</p> </li> <li> <p> <code>\"Stop Reason RECONFIGURATION_RESTART\"</code> </p> </li> <li> <p> <code>\"Stop Reason RECYCLE_TASK\"</code> </p> </li> </ul>"
         },
         "ReplicationTaskCreationDate":{
           "shape":"TStamp",
@@ -5867,7 +5925,7 @@
         },
         "CdcMinFileSize":{
           "shape":"IntegerOptional",
-          "documentation":"<p>Minimum file size, defined in megabytes, to reach for a file output to Amazon S3.</p> <p>When <code>CdcMinFileSize</code> and <code>CdcMaxBatchInterval</code> are both specified, the file write is triggered by whichever parameter condition is met first within an DMS CloudFormation template.</p> <p>The default value is 32 MB.</p>"
+          "documentation":"<p>Minimum file size, defined in kilobytes, to reach for a file output to Amazon S3.</p> <p>When <code>CdcMinFileSize</code> and <code>CdcMaxBatchInterval</code> are both specified, the file write is triggered by whichever parameter condition is met first within an DMS CloudFormation template.</p> <p>The default value is 32 MB.</p>"
         },
         "CsvNullValue":{
           "shape":"String",
@@ -5888,6 +5946,14 @@
         "DatePartitionTimezone":{
           "shape":"String",
           "documentation":"<p>When creating an S3 target endpoint, set <code>DatePartitionTimezone</code> to convert the current UTC time into a specified time zone. The conversion occurs when a date partition folder is created and a CDC filename is generated. The time zone format is Area/Location. Use this parameter when <code>DatePartitionedEnabled</code> is set to <code>true</code>, as shown in the following example.</p> <p> <code>s3-settings='{\"DatePartitionEnabled\": true, \"DatePartitionSequence\": \"YYYYMMDDHH\", \"DatePartitionDelimiter\": \"SLASH\", \"DatePartitionTimezone\":\"<i>Asia/Seoul</i>\", \"BucketName\": \"dms-nattarat-test\"}'</code> </p>"
+        },
+        "AddTrailingPaddingCharacter":{
+          "shape":"BooleanOptional",
+          "documentation":"<p>Use the S3 target endpoint setting <code>AddTrailingPaddingCharacter</code> to add padding on string data. The default value is <code>false</code>.</p>"
+        },
+        "ExpectedBucketOwner":{
+          "shape":"String",
+          "documentation":"<p>To specify a bucket owner and prevent sniping, you can use the <code>ExpectedBucketOwner</code> endpoint setting. </p> <p>Example: <code>--s3-settings='{\"ExpectedBucketOwner\": \"<i>AWS_Account_ID</i>\"}'</code> </p> <p>When you make a request to test a connection or perform a migration, S3 checks the account ID of the bucket owner against the specified parameter.</p>"
         }
       },
       "documentation":"<p>Settings for exporting data to Amazon S3. </p>"
@@ -6234,7 +6300,7 @@
       "members":{
         "EngineName":{
           "shape":"String",
-          "documentation":"<p>The database engine name. Valid values, depending on the EndpointType, include <code>\"mysql\"</code>, <code>\"oracle\"</code>, <code>\"postgres\"</code>, <code>\"mariadb\"</code>, <code>\"aurora\"</code>, <code>\"aurora-postgresql\"</code>, <code>\"redshift\"</code>, <code>\"s3\"</code>, <code>\"db2\"</code>, <code>\"azuredb\"</code>, <code>\"sybase\"</code>, <code>\"dynamodb\"</code>, <code>\"mongodb\"</code>, <code>\"kinesis\"</code>, <code>\"kafka\"</code>, <code>\"elasticsearch\"</code>, <code>\"documentdb\"</code>, <code>\"sqlserver\"</code>, and <code>\"neptune\"</code>.</p>"
+          "documentation":"<p>The database engine name. Valid values, depending on the EndpointType, include <code>\"mysql\"</code>, <code>\"oracle\"</code>, <code>\"postgres\"</code>, <code>\"mariadb\"</code>, <code>\"aurora\"</code>, <code>\"aurora-postgresql\"</code>, <code>\"redshift\"</code>, <code>\"s3\"</code>, <code>\"db2\"</code>, <code>\"db2-zos\"</code>, <code>\"azuredb\"</code>, <code>\"sybase\"</code>, <code>\"dynamodb\"</code>, <code>\"mongodb\"</code>, <code>\"kinesis\"</code>, <code>\"kafka\"</code>, <code>\"elasticsearch\"</code>, <code>\"documentdb\"</code>, <code>\"sqlserver\"</code>, <code>\"neptune\"</code>, and <code>\"babelfish\"</code>.</p>"
         },
         "SupportsCDC":{
           "shape":"Boolean",
@@ -6250,7 +6316,7 @@
         },
         "EngineDisplayName":{
           "shape":"String",
-          "documentation":"<p>The expanded name for the engine name. For example, if the <code>EngineName</code> parameter is \"aurora,\" this value would be \"Amazon Aurora MySQL.\"</p>"
+          "documentation":"<p>The expanded name for the engine name. For example, if the <code>EngineName</code> parameter is \"aurora\", this value would be \"Amazon Aurora MySQL\".</p>"
         }
       },
       "documentation":"<p>Provides information about types of supported endpoints in response to a request by the <code>DescribeEndpointTypes</code> operation. This information includes the type of endpoint, the database engine name, and whether change data capture (CDC) is supported.</p>"
@@ -6325,6 +6391,22 @@
           "shape":"Long",
           "documentation":"<p>The data definition language (DDL) used to build and modify the structure of your tables.</p>"
         },
+        "AppliedInserts":{
+          "shape":"LongOptional",
+          "documentation":"<p>The number of insert actions applied on a target table.</p>"
+        },
+        "AppliedDeletes":{
+          "shape":"LongOptional",
+          "documentation":"<p>The number of delete actions applied on a target table.</p>"
+        },
+        "AppliedUpdates":{
+          "shape":"LongOptional",
+          "documentation":"<p>The number of update actions applied on a target table.</p>"
+        },
+        "AppliedDdls":{
+          "shape":"LongOptional",
+          "documentation":"<p>The number of data definition language (DDL) statements used to build and modify the structure of your tables applied on the target.</p>"
+        },
         "FullLoadRows":{
           "shape":"Long",
           "documentation":"<p>The number of rows added during the full load operation.</p>"
@@ -6355,7 +6437,7 @@
         },
         "TableState":{
           "shape":"String",
-          "documentation":"<p>The state of the tables described.</p> <p>Valid states: Table does not exist | Before load | Full load | Table completed | Table cancelled | Table error | Table all | Table updates | Table is being reloaded</p>"
+          "documentation":"<p>The state of the tables described.</p> <p>Valid states: Table does not exist | Before load | Full load | Table completed | Table cancelled | Table error | Table is being reloaded</p>"
         },
         "ValidationPendingRecords":{
           "shape":"Long",
@@ -6455,6 +6537,26 @@
         "Connection":{
           "shape":"Connection",
           "documentation":"<p>The connection tested.</p>"
+        }
+      },
+      "documentation":"<p/>"
+    },
+    "UpdateSubscriptionsToEventBridgeMessage":{
+      "type":"structure",
+      "members":{
+        "ForceMove":{
+          "shape":"BooleanOptional",
+          "documentation":"<p>When set to true, this operation migrates DMS subscriptions for Amazon SNS notifications no matter what your replication instance version is. If not set or set to false, this operation runs only when all your replication instances are from DMS version 3.4.6 or higher. </p>"
+        }
+      },
+      "documentation":"<p/>"
+    },
+    "UpdateSubscriptionsToEventBridgeResponse":{
+      "type":"structure",
+      "members":{
+        "Result":{
+          "shape":"String",
+          "documentation":"<p>A string that indicates how many event subscriptions were migrated and how many remain to be migrated.</p>"
         }
       },
       "documentation":"<p/>"

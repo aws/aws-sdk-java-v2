@@ -25,6 +25,26 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  * Used to explicitly designate a field or getter or setter to participate as an attribute in the mapped database
  * object with a custom name. A string value must be specified to specify a different name for the attribute than the
  * mapper would automatically infer using a naming strategy.
+ *
+ * <p>
+ * Example using {@link DynamoDbAttribute}:
+ * <pre>
+ * {@code
+ * @DynamoDbBean
+ * public class Bean {
+ *      private String internalKey;
+ *
+ *      @DynamoDbAttribute("renamedInternalKey")
+ *      public String getInternalKey() {
+ *          return this.internalKey;
+ *      }
+ *
+ *      public void setInternalKey(String internalKey) {
+ *          return this.internalKey = internalKey;}
+ *      }
+ * }
+ * }
+ * </pre>
  */
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)

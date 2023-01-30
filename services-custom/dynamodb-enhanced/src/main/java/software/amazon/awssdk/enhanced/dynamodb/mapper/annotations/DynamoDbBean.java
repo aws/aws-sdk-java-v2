@@ -52,6 +52,33 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.BeanTableSchema;
  * (converterProviders = {CustomAttributeConverter.class, DefaultAttributeConverterProvider.class});
  * }
  * </pre>
+ * <p>
+ * Example using {@link DynamoDbBean}:
+ * <pre>
+ * {@code
+ * @DynamoDbBean
+ * public class Customer {
+ *     private String id;
+ *     private Instant createdOn;
+ *
+ *     @DynamoDbPartitionKey
+ *     public String getId() {
+ *          return this.id;
+ *     }
+ *
+ *     public void setId(String id) {
+ *          this.name = id;
+ *     }
+ *
+ *     public Instant getCreatedOn() {
+ *          return this.createdOn;
+ *     }
+ *     public void setCreatedOn(Instant createdOn) {
+ *          this.createdOn = createdOn;
+ *      }
+ * }
+ * }
+ * </pre>
  */
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)

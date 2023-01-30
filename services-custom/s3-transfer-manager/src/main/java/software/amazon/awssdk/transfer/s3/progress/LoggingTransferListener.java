@@ -20,7 +20,6 @@ import static software.amazon.awssdk.utils.StringUtils.repeat;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.concurrent.atomic.AtomicInteger;
-import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.Logger;
 
@@ -30,7 +29,6 @@ import software.amazon.awssdk.utils.Logger;
  * default, the progress bar has {@value #DEFAULT_MAX_TICKS} ticks, meaning an update is only logged, at most, once every 5%.
  */
 @SdkPublicApi
-@SdkPreviewApi
 public final class LoggingTransferListener implements TransferListener {
     private static final Logger log = Logger.loggerFor(LoggingTransferListener.class);
     private static final int DEFAULT_MAX_TICKS = 20;

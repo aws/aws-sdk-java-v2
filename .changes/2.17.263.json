@@ -1,0 +1,42 @@
+{
+    "version": "2.17.263",
+    "date": "2022-08-29",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "Amazon S3 Transfer Manager",
+            "contributor": "",
+            "description": "Added usage of createAnonymousCredentials to fix issue where NPE was thrown when AnonymousCredentialsProvider was passed in"
+        },
+        {
+            "type": "bugfix",
+            "category": "S3 Transfer Manager",
+            "contributor": "",
+            "description": "Fixed the file name mapping issue in downloadDirectory. See [#3366](https://github.com/aws/aws-sdk-java-v2/issues/3366)"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Bump CRT version to 0.19.2"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon FSx",
+            "contributor": "",
+            "description": "Documentation updates for Amazon FSx for NetApp ONTAP."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Voice ID",
+            "contributor": "",
+            "description": "Amazon Connect Voice ID now detects voice spoofing. When a prospective fraudster tries to spoof caller audio using audio playback or synthesized speech, Voice ID will return a risk score and outcome to indicate the how likely it is that the voice is spoofed."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}

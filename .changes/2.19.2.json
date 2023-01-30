@@ -1,0 +1,66 @@
+{
+    "version": "2.19.2",
+    "date": "2022-12-21",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS License Manager Linux Subscriptions",
+            "contributor": "",
+            "description": "AWS License Manager now offers cross-region, cross-account tracking of commercial Linux subscriptions on AWS. This includes subscriptions purchased as part of EC2 subscription-included AMIs, on the AWS Marketplace, or brought to AWS via Red Hat Cloud Access Program."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Support",
+            "contributor": "",
+            "description": "Documentation updates for the AWS Support API"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Transfer Family",
+            "contributor": "",
+            "description": "This release adds support for Decrypt as a workflow step type."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Participant Service",
+            "contributor": "",
+            "description": "Amazon Connect Chat now allows for JSON (application/json) message types to be sent in the SendMessage API."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "Amazon Connect Chat now allows for JSON (application/json) message types to be sent as part of the initial message in the StartChatContact API."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EventBridge Scheduler",
+            "contributor": "",
+            "description": "Updated the ListSchedules and ListScheduleGroups APIs to allow the NamePrefix field to start with a number. Updated the validation for executionRole field to support any role name."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Macie 2",
+            "contributor": "",
+            "description": "This release adds support for analyzing Amazon S3 objects that use the S3 Glacier Instant Retrieval (Glacier_IR) storage class."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "This release enables adding RStudio Workbench support to an existing Amazon SageMaker Studio domain. It allows setting your RStudio on SageMaker environment configuration parameters and also updating the RStudioConnectUrl and RStudioPackageManagerUrl parameters for existing domains"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "contributor": "",
+            "description": "Doc-only updates for December 2022."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

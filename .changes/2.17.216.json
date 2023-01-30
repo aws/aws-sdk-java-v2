@@ -1,0 +1,24 @@
+{
+    "version": "2.17.216",
+    "date": "2022-06-21",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Well-Architected Tool",
+            "contributor": "",
+            "description": "Adds support for lens tagging, Adds support for multiple helpful-resource urls and multiple improvement-plan urls."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "contributor": "",
+            "description": "Amazon ECS UpdateService now supports the following parameters: PlacementStrategies, PlacementConstraints and CapacityProviderStrategy."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "This release adds support for Private IP VPNs, a new feature allowing S2S VPN connections to use private ip addresses as the tunnel outside ip address over Direct Connect as transport."
+        }
+    ]
+}

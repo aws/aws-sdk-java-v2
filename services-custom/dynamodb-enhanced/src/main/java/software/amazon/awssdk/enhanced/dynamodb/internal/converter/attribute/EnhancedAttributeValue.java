@@ -15,7 +15,9 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -206,6 +208,22 @@ public final class EnhancedAttributeValue {
      * {@link #fromListOfAttributeValues(List)} for null values. This <i>will not</i> validate that there are no
      * duplicate values.
      */
+    public static EnhancedAttributeValue fromSetOfStrings(Collection<String> setOfStringsValue) {
+        Validate.paramNotNull(setOfStringsValue, "setOfStringsValue");
+        return fromSetOfStrings(new ArrayList<>(setOfStringsValue));
+    }
+
+    /**
+     * Create an {@link EnhancedAttributeValue} for a set-of-strings (ss) DynamoDB type.
+     *
+     * <p>
+     * Equivalent to: {@code EnhancedAttributeValue.fromGeneratedAttributeValue(AttributeValue.builder().ss(...).build())}
+     *
+     * <p>
+     * This call will fail with a {@link RuntimeException} if the provided value is null or contains a null value. Use
+     * {@link #fromListOfAttributeValues(List)} for null values. This <i>will not</i> validate that there are no
+     * duplicate values.
+     */
     public static EnhancedAttributeValue fromSetOfStrings(List<String> setOfStringsValue) {
         Validate.paramNotNull(setOfStringsValue, "setOfStringsValue");
         Validate.noNullElements(setOfStringsValue, "Set must not have null values.");
@@ -239,10 +257,42 @@ public final class EnhancedAttributeValue {
      * {@link #fromListOfAttributeValues(List)} for null values. This <i>will not</i> validate that there are no
      * duplicate values.
      */
+    public static EnhancedAttributeValue fromSetOfNumbers(Collection<String> setOfNumbersValue) {
+        Validate.paramNotNull(setOfNumbersValue, "setOfNumbersValue");
+        return fromSetOfNumbers(new ArrayList<>(setOfNumbersValue));
+    }
+
+    /**
+     * Create an {@link EnhancedAttributeValue} for a set-of-numbers (ns) DynamoDB type.
+     *
+     * <p>
+     * Equivalent to: {@code EnhancedAttributeValue.fromGeneratedAttributeValue(AttributeValue.builder().ns(...).build())}
+     *
+     * <p>
+     * This call will fail with a {@link RuntimeException} if the provided value is null or contains a null value. Use
+     * {@link #fromListOfAttributeValues(List)} for null values. This <i>will not</i> validate that there are no
+     * duplicate values.
+     */
     public static EnhancedAttributeValue fromSetOfNumbers(List<String> setOfNumbersValue) {
         Validate.paramNotNull(setOfNumbersValue, "setOfNumbersValue");
         Validate.noNullElements(setOfNumbersValue, "Set must not have null values.");
         return new InternalBuilder().setOfNumbersValue(setOfNumbersValue).build();
+    }
+
+    /**
+     * Create an {@link EnhancedAttributeValue} for a set-of-bytes (bs) DynamoDB type.
+     *
+     * <p>
+     * Equivalent to: {@code EnhancedAttributeValue.fromGeneratedAttributeValue(AttributeValue.builder().bs(...).build())}
+     *
+     * <p>
+     * This call will fail with a {@link RuntimeException} if the provided value is null or contains a null value. Use
+     * {@link #fromListOfAttributeValues(List)} for null values. This <i>will not</i> validate that there are no
+     * duplicate values.
+     */
+    public static EnhancedAttributeValue fromSetOfBytes(Collection<SdkBytes> setOfBytesValue) {
+        Validate.paramNotNull(setOfBytesValue, "setOfBytesValue");
+        return fromSetOfBytes(new ArrayList<>(setOfBytesValue));
     }
 
     /**

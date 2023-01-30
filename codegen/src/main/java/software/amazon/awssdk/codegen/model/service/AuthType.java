@@ -26,7 +26,8 @@ public enum AuthType {
     V4("v4"),
     V4_UNSIGNED_BODY("v4-unsigned-body"),
     S3("s3"),
-    S3V4("s3v4")
+    S3V4("s3v4"),
+    BEARER("bearer")
     ;
 
     private final String value;

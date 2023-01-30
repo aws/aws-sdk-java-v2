@@ -22,6 +22,7 @@ import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.crt.Log;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.model.BucketLocationConstraint;
 import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
@@ -50,6 +51,7 @@ public class S3IntegrationTestBase extends AwsTestBase {
      */
     @BeforeClass
     public static void setUp() throws Exception {
+        Log.initLoggingToStdout(Log.LogLevel.Warn);
         s3 = s3ClientBuilder().build();
         s3Async = s3AsyncClientBuilder().build();
     }
@@ -68,6 +70,12 @@ public class S3IntegrationTestBase extends AwsTestBase {
                             .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                             .overrideConfiguration(o -> o.addExecutionInterceptor(
                                 new UserAgentVerifyingExecutionInterceptor("NettyNio", ClientType.ASYNC)));
+    }
+
+    protected static S3CrtAsyncClientBuilder crtClientBuilder() {
+        return S3AsyncClient.crtBuilder()
+                            .region(DEFAULT_REGION)
+                            .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN);
     }
 
     protected static void createBucket(String bucketName) {
@@ -101,6 +109,8 @@ public class S3IntegrationTestBase extends AwsTestBase {
                 throw e;
             }
         }
+
+        s3.waiter().waitUntilBucketExists(r -> r.bucket(bucketName));
     }
 
     protected static void deleteBucketAndAllContents(String bucketName) {

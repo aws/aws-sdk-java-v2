@@ -36,6 +36,10 @@ import software.amazon.awssdk.enhanced.dynamodb.MappedTableResource;
  * batchGetResultPagePublisher.subscribe(page -> {
  *     page.resultsForTable(firstItemTable).forEach(item -> System.out.println(item));
  *     page.resultsForTable(secondItemTable).forEach(item -> System.out.println(item));
+ * }).exceptionally(failure -> {
+ *     System.err.println("Failure occurred in subscription.");
+ *     failure.printStackTrace();
+ *     return null;
  * });
  * }
  * </pre>
@@ -44,8 +48,25 @@ import software.amazon.awssdk.enhanced.dynamodb.MappedTableResource;
  * 2) Subscribing to results across all pages.
  * <pre>
  * {@code
- * batchGetResultPagePublisher.resultsForTable(firstItemTable).subscribe(item -> System.out.println(item));
- * batchGetResultPagePublisher.resultsForTable(secondItemTable).subscribe(item -> System.out.println(item));
+ * CompletableFuture<Void> resultFuture1 =
+ *     batchGetResultPagePublisher.resultsForTable(firstItemTable)
+ *                                .subscribe(item -> System.out.println(item));
+ *
+ * CompletableFuture<Void> resultFuture2 =
+ *     batchGetResultPagePublisher.resultsForTable(secondItemTable)
+ *                                .subscribe(item -> System.out.println(item));
+ *
+ * resultFuture1.exceptionally(failure -> {
+ *     System.err.println("Failure occurred in results for table " + firstItemTable);
+ *     failure.printStackTrace();
+ *     return null;
+ * });
+ *
+ * resultFuture2.exceptionally(failure -> {
+ *     System.err.println("Failure occurred in results for table " + secondItemTable);
+ *     failure.printStackTrace();
+ *     return null;
+ * });
  * }
  * </pre>
  */

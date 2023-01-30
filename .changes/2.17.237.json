@@ -1,0 +1,72 @@
+{
+    "version": "2.17.237",
+    "date": "2022-07-21",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "Amazon S3 Transfer Manager",
+            "contributor": "",
+            "description": "Fixed an issue where using S3ClientConfiguration.Builder.endpointOverride could cause AWS_ERROR_INVALID_ARGUMENT."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Database Migration Service",
+            "contributor": "",
+            "description": "Documentation updates for Database Migration Service (DMS)."
+        },
+        {
+            "type": "feature",
+            "category": "AWS EC2 Instance Connect",
+            "contributor": "",
+            "description": "This release includes a new exception type \"EC2InstanceUnavailableException\" for SendSSHPublicKey and SendSerialConsoleSSHPublicKey APIs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT SiteWise",
+            "contributor": "",
+            "description": "Added asynchronous API to ingest bulk historical and current data into IoT SiteWise."
+        },
+        {
+            "type": "feature",
+            "category": "AWSKendraFrontendService",
+            "contributor": "",
+            "description": "Amazon Kendra now provides Oauth2 support for SharePoint Online. For more information, see https://docs.aws.amazon.com/kendra/latest/dg/data-source-sharepoint.html"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Network Firewall",
+            "contributor": "",
+            "description": "Network Firewall now supports referencing dynamic IP sets from stateful rule groups, for IP sets stored in Amazon VPC prefix lists."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Athena",
+            "contributor": "",
+            "description": "This feature allows customers to retrieve runtime statistics for completed queries"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch",
+            "contributor": "",
+            "description": "Adding support for the suppression of Composite Alarm actions"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DocumentDB with MongoDB compatibility",
+            "contributor": "",
+            "description": "Enable copy-on-write restore type"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Fraud Detector",
+            "contributor": "",
+            "description": "The release introduces Account Takeover Insights (ATI) model. The ATI model detects fraud relating to account takeover. This release also adds support for new variable types: ARE_CREDENTIALS_VALID and SESSION_ID and adds new structures to Model Version APIs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "Adds support for creating an RDS Proxy for an RDS for MariaDB database."
+        }
+    ]
+}

@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import software.amazon.awssdk.codegen.internal.TypeUtils;
+import software.amazon.awssdk.codegen.model.service.ContextParam;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.protocol.MarshallingType;
@@ -57,6 +58,8 @@ public class MemberModel extends DocumentationModel {
     private boolean deprecated;
     
     private String deprecatedMessage;
+
+    private boolean required;
 
     private ListModel listModel;
 
@@ -107,6 +110,8 @@ public class MemberModel extends DocumentationModel {
     private String fluentDeprecatedSetterMethodName;
 
     private String deprecatedBeanStyleSetterMethodName;
+
+    private ContextParam contextParam;
 
     public String getName() {
         return name;
@@ -313,6 +318,14 @@ public class MemberModel extends DocumentationModel {
         this.deprecatedMessage = deprecatedMessage;
     }
 
+    public boolean isRequired() {
+        return required;
+    }
+
+    public void setRequired(boolean required) {
+        this.required = required;
+    }
+
     public boolean isEventPayload() {
         return eventPayload;
     }
@@ -480,17 +493,18 @@ public class MemberModel extends DocumentationModel {
             + LF;
     }
 
-    public String getDefaultConsumerFluentSetterDocumentation() {
+    public String getDefaultConsumerFluentSetterDocumentation(String variableType) {
         return (StringUtils.isNotBlank(documentation) ? documentation : defaultSetter().replace("%s", name) + "\n")
                + LF
                + "This is a convenience method that creates an instance of the {@link "
-               + variable.getSimpleType()
+               + variableType
                + ".Builder} avoiding the need to create one manually via {@link "
-               + variable.getSimpleType()
+               + variableType
                + "#builder()}.\n"
                + LF
+               + "<p>"
                + "When the {@link Consumer} completes, {@link "
-               + variable.getSimpleType()
+               + variableType
                + ".Builder#build()} is called immediately and its result is passed to {@link #"
                + getFluentGetterMethodName()
                + "("
@@ -500,14 +514,14 @@ public class MemberModel extends DocumentationModel {
                + "@param "
                + variable.getVariableName()
                + " a consumer that will call methods on {@link "
-               + variable.getSimpleType() + ".Builder}"
+               + variableType + ".Builder}"
                + LF
                + "@return " + stripHtmlTags(defaultFluentReturn())
                + LF
                + "@see #"
                + getFluentSetterMethodName()
                + "("
-               + variable.getSimpleType()
+               + variable.getVariableSetterType()
                + ")";
     }
 
@@ -742,5 +756,13 @@ public class MemberModel extends DocumentationModel {
 
     public void setUnionEnumTypeName(String unionEnumTypeName) {
         this.unionEnumTypeName = unionEnumTypeName;
+    }
+
+    public ContextParam getContextParam() {
+        return contextParam;
+    }
+
+    public void setContextParam(ContextParam contextParam) {
+        this.contextParam = contextParam;
     }
 }

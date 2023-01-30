@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core;
 
+import java.io.InputStream;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.io.SdkFilterInputStream;
 import software.amazon.awssdk.http.Abortable;
@@ -43,6 +44,12 @@ public final class ResponseInputStream<ResponseT> extends SdkFilterInputStream i
         this.abortable = Validate.paramNotNull(in, "abortableInputStream");
     }
 
+    public ResponseInputStream(ResponseT resp, InputStream in) {
+        super(in);
+        this.response = Validate.paramNotNull(resp, "response");
+        this.abortable = in instanceof Abortable ? (Abortable) in : null;
+    }
+
     /**
      * @return The unmarshalled POJO response associated with this content.
      */
@@ -52,6 +59,8 @@ public final class ResponseInputStream<ResponseT> extends SdkFilterInputStream i
 
     @Override
     public void abort() {
-        abortable.abort();
+        if (abortable != null) {
+            abortable.abort();
+        }
     }
 }

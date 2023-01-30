@@ -15,9 +15,9 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.extensions;
 
+import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.keyRef;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.valueRef;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.update.UpdateExpressionUtils.ifNotExists;
-import static software.amazon.awssdk.enhanced.dynamodb.internal.update.UpdateExpressionUtils.keyRef;
-import static software.amazon.awssdk.enhanced.dynamodb.internal.update.UpdateExpressionUtils.valueRef;
 
 import java.util.Collections;
 import java.util.HashMap;

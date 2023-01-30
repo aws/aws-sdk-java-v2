@@ -91,7 +91,7 @@ public class DefaultFailedExecutionContext implements Context.FailedExecution,
         private Builder() {
         }
 
-        public Builder(DefaultFailedExecutionContext defaultFailedExecutionContext) {
+        private Builder(DefaultFailedExecutionContext defaultFailedExecutionContext) {
             this.exception = defaultFailedExecutionContext.exception;
             this.interceptorContext = defaultFailedExecutionContext.interceptorContext;
         }

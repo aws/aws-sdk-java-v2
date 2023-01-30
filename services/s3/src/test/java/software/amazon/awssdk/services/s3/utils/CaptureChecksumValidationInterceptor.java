@@ -27,6 +27,11 @@ public class CaptureChecksumValidationInterceptor implements ExecutionIntercepto
     private  ChecksumValidation responseValidation;
     private  String requestChecksumInTrailer;
     private  String requestChecksumInHeader;
+    private  String contentEncoding;
+
+    public String contentEncoding() {
+        return contentEncoding;
+    }
 
     public Algorithm validationAlgorithm() {
         return validationAlgorithm;
@@ -64,6 +69,7 @@ public class CaptureChecksumValidationInterceptor implements ExecutionIntercepto
             executionAttributes.getOptionalAttribute(SdkExecutionAttribute.HTTP_CHECKSUM_VALIDATION_ALGORITHM).orElse(null);
         responseValidation =
             executionAttributes.getOptionalAttribute(SdkExecutionAttribute.HTTP_RESPONSE_CHECKSUM_VALIDATION).orElse(null);
+        contentEncoding = String.join(",", context.httpRequest().matchingHeaders("content-encoding"));
     }
 
     @Override

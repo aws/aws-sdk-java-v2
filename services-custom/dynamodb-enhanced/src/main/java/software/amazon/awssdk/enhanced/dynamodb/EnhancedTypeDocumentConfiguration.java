@@ -78,7 +78,7 @@ public final class EnhancedTypeDocumentConfiguration implements ToCopyableBuilde
 
     @Override
     public Builder toBuilder() {
-        return builder().preserveEmptyObject(preserveEmptyObject);
+        return builder().preserveEmptyObject(preserveEmptyObject).ignoreNulls(ignoreNulls);
     }
 
     public static Builder builder() {

@@ -36,7 +36,9 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
+import software.amazon.awssdk.codegen.model.rules.endpoints.EndpointTestSuiteModel;
 import software.amazon.awssdk.codegen.model.service.AuthType;
+import software.amazon.awssdk.codegen.model.service.EndpointRuleSetModel;
 import software.amazon.awssdk.codegen.model.service.Operation;
 import software.amazon.awssdk.codegen.model.service.Paginators;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
@@ -59,6 +61,8 @@ public class IntermediateModelBuilder {
     private final List<IntermediateModelShapeProcessor> shapeProcessors;
     private final Paginators paginators;
     private final Waiters waiters;
+    private final EndpointRuleSetModel endpointRuleSet;
+    private final EndpointTestSuiteModel endpointTestSuiteModel;
 
     public IntermediateModelBuilder(C2jModels models) {
         this.customConfig = models.customizationConfig();
@@ -68,6 +72,8 @@ public class IntermediateModelBuilder {
         this.shapeProcessors = createShapeProcessors();
         this.paginators = models.paginatorsModel();
         this.waiters = models.waitersModel();
+        this.endpointRuleSet = models.endpointRuleSetModel();
+        this.endpointTestSuiteModel = models.endpointTestSuiteModel();
     }
 
 
@@ -130,7 +136,7 @@ public class IntermediateModelBuilder {
         IntermediateModel fullModel = new IntermediateModel(
             constructMetadata(service, customConfig), operations, shapes,
             customConfig, endpointOperation, paginators.getPagination(), namingStrategy,
-            waiters.getWaiters());
+            waiters.getWaiters(), endpointRuleSet, endpointTestSuiteModel, service.getClientContextParams());
 
         customization.postprocess(fullModel);
 
@@ -149,7 +155,10 @@ public class IntermediateModelBuilder {
                                                                endpointOperation,
                                                                fullModel.getPaginators(),
                                                                namingStrategy,
-                                                               fullModel.getWaiters());
+                                                               fullModel.getWaiters(),
+                                                               fullModel.getEndpointRuleSetModel(),
+                                                               endpointTestSuiteModel,
+                                                               service.getClientContextParams());
 
         linkMembersToShapes(trimmedModel);
         linkOperationsToInputOutputShapes(trimmedModel);
@@ -222,6 +231,9 @@ public class IntermediateModelBuilder {
                 break;
             case V4_UNSIGNED_BODY:
                 shape.setRequestSignerClassFqcn("software.amazon.awssdk.auth.signer.Aws4UnsignedPayloadSigner");
+                break;
+            case BEARER:
+                shape.setRequestSignerClassFqcn("software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner");
                 break;
             case NONE:
                 break;

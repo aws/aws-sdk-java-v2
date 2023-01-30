@@ -26,12 +26,44 @@ public interface TransferManagerBenchmark {
      */
     void run();
 
-    static TransferManagerBenchmark download(TransferManagerBenchmarkConfig config) {
+    static TransferManagerBenchmark v2Download(TransferManagerBenchmarkConfig config) {
         return new TransferManagerDownloadBenchmark(config);
     }
 
-    static TransferManagerBenchmark upload(TransferManagerBenchmarkConfig config) {
+    static TransferManagerBenchmark downloadDirectory(TransferManagerBenchmarkConfig config) {
+        return new TransferManagerDownloadDirectoryBenchmark(config);
+    }
+
+    static TransferManagerBenchmark v2Upload(TransferManagerBenchmarkConfig config) {
         return new TransferManagerUploadBenchmark(config);
+    }
+
+    static TransferManagerBenchmark uploadDirectory(TransferManagerBenchmarkConfig config) {
+        return new TransferManagerUploadDirectoryBenchmark(config);
+    }
+
+    static TransferManagerBenchmark copy(TransferManagerBenchmarkConfig config) {
+        return new TransferManagerCopyBenchmark(config);
+    }
+
+    static TransferManagerBenchmark v1Download(TransferManagerBenchmarkConfig config) {
+        return new V1TransferManagerDownloadBenchmark(config);
+    }
+
+    static TransferManagerBenchmark v1DownloadDirectory(TransferManagerBenchmarkConfig config) {
+        return new V1TransferManagerDownloadDirectoryBenchmark(config);
+    }
+
+    static TransferManagerBenchmark v1Upload(TransferManagerBenchmarkConfig config) {
+        return new V1TransferManagerUploadBenchmark(config);
+    }
+
+    static TransferManagerBenchmark v1UploadDirectory(TransferManagerBenchmarkConfig config) {
+        return new V1TransferManagerUploadDirectoryBenchmark(config);
+    }
+
+    static TransferManagerBenchmark v1Copy(TransferManagerBenchmarkConfig config) {
+        return new V1TransferManagerCopyBenchmark(config);
     }
 
 }

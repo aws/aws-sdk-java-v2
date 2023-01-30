@@ -71,9 +71,49 @@ public class ContainerCredentialsEndpointProviderTest {
         assertThat(sut.endpoint().toString(), equalTo(fullUri));
     }
 
+    @Test
+    public void theLoopbackIpv6AddressIsAlsoAcceptable() throws IOException {
+        String fullUri = "http://[::1]:9851/endpoint";
+        helper.set(AWS_CONTAINER_CREDENTIALS_FULL_URI.environmentVariable(), fullUri);
+
+        assertThat(sut.endpoint().toString(), equalTo(fullUri));
+    }
+
+    @Test
+    public void anyHttpsAddressIsAlsoAcceptable() throws IOException {
+        String fullUri = "https://192.168.10.120:9851/endpoint";
+        helper.set(AWS_CONTAINER_CREDENTIALS_FULL_URI.environmentVariable(), fullUri);
+
+        assertThat(sut.endpoint().toString(), equalTo(fullUri));
+    }
+
+    @Test
+    public void anyHttpsIpv6AddressIsAlsoAcceptable() throws IOException {
+        String fullUri = "https://[::FFFF:152.16.24.123]/endpoint";
+        helper.set(AWS_CONTAINER_CREDENTIALS_FULL_URI.environmentVariable(), fullUri);
+
+        assertThat(sut.endpoint().toString(), equalTo(fullUri));
+    }
+
+    @Test(expected = SdkClientException.class)
+    public void nonLoopbackAddressIsNotAcceptable() throws IOException {
+        String fullUri = "http://192.168.10.120:9851/endpoint";
+        helper.set(AWS_CONTAINER_CREDENTIALS_FULL_URI.environmentVariable(), fullUri);
+
+        assertThat(sut.endpoint().toString(), equalTo(fullUri));
+    }
+
+    @Test(expected = SdkClientException.class)
+    public void nonLoopbackIpv6AddressIsNotAcceptable() throws IOException {
+        String fullUri = "http://[::FFFF:152.16.24.123]/endpoint";
+        helper.set(AWS_CONTAINER_CREDENTIALS_FULL_URI.environmentVariable(), fullUri);
+
+        assertThat(sut.endpoint().toString(), equalTo(fullUri));
+    }
+
     @Test(expected = SdkClientException.class)
     public void onlyLocalHostAddressesAreValid() throws IOException {
-        helper.set(AWS_CONTAINER_CREDENTIALS_FULL_URI.environmentVariable(), "https://google.com/endpoint");
+        helper.set(AWS_CONTAINER_CREDENTIALS_FULL_URI.environmentVariable(), "http://google.com/endpoint");
         sut.endpoint();
     }
 

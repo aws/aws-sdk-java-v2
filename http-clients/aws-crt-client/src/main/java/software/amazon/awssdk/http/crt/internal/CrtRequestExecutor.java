@@ -15,24 +15,30 @@
 
 package software.amazon.awssdk.http.crt.internal;
 
-import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
+import static software.amazon.awssdk.http.HttpMetric.AVAILABLE_CONCURRENCY;
+import static software.amazon.awssdk.http.HttpMetric.CONCURRENCY_ACQUIRE_DURATION;
+import static software.amazon.awssdk.http.HttpMetric.LEASED_CONCURRENCY;
+import static software.amazon.awssdk.http.HttpMetric.MAX_CONCURRENCY;
+import static software.amazon.awssdk.http.HttpMetric.PENDING_CONCURRENCY_ACQUIRES;
 
 import java.io.IOException;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.CrtRuntimeException;
 import software.amazon.awssdk.crt.http.HttpClientConnection;
-import software.amazon.awssdk.crt.http.HttpHeader;
+import software.amazon.awssdk.crt.http.HttpClientConnectionManager;
+import software.amazon.awssdk.crt.http.HttpException;
+import software.amazon.awssdk.crt.http.HttpManagerMetrics;
 import software.amazon.awssdk.crt.http.HttpRequest;
-import software.amazon.awssdk.http.Header;
+import software.amazon.awssdk.crt.http.HttpStreamResponseHandler;
 import software.amazon.awssdk.http.SdkCancellationException;
-import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
+import software.amazon.awssdk.http.crt.internal.request.CrtRequestAdapter;
+import software.amazon.awssdk.http.crt.internal.response.CrtResponseAdapter;
+import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.utils.Logger;
 
 @SdkInternalApi
@@ -40,45 +46,96 @@ public final class CrtRequestExecutor {
     private static final Logger log = Logger.loggerFor(CrtRequestExecutor.class);
 
     public CompletableFuture<Void> execute(CrtRequestContext executionContext) {
+        // go ahead and get a reference to the metricCollector since multiple futures will
+        // need it regardless.
+        MetricCollector metricCollector = executionContext.metricCollector();
+        boolean shouldPublishMetrics = metricCollector != null && !(metricCollector instanceof NoOpMetricCollector);
+
+        long acquireStartTime = 0;
+
+        if (shouldPublishMetrics) {
+            // go ahead and get acquireStartTime for the concurrency timer as early as possible,
+            // so it's as accurate as possible, but only do it in a branch since clock_gettime()
+            // results in a full sys call barrier (multiple mutexes and a hw interrupt).
+            acquireStartTime = System.nanoTime();
+        }
+
         CompletableFuture<Void> requestFuture = createExecutionFuture(executionContext.sdkRequest());
 
         // When a Connection is ready from the Connection Pool, schedule the Request on the connection
         CompletableFuture<HttpClientConnection> httpClientConnectionCompletableFuture =
             executionContext.crtConnPool().acquireConnection();
 
+        long finalAcquireStartTime = acquireStartTime;
+
         httpClientConnectionCompletableFuture.whenComplete((crtConn, throwable) -> {
             AsyncExecuteRequest asyncRequest = executionContext.sdkRequest();
+
             // If we didn't get a connection for some reason, fail the request
             if (throwable != null) {
-                handleFailure(new IOException("An exception occurred when acquiring connection", throwable),
+                reportFailure(crtConn,
+                              new IOException("An exception occurred when acquiring a connection", throwable),
                               requestFuture,
                               asyncRequest.responseHandler());
                 return;
             }
 
-            AwsCrtAsyncHttpStreamAdapter crtToSdkAdapter =
-                new AwsCrtAsyncHttpStreamAdapter(crtConn, requestFuture, asyncRequest, executionContext.readBufferSize());
-            HttpRequest crtRequest = toCrtRequest(asyncRequest, crtToSdkAdapter);
-            // Submit the Request on this Connection
-            invokeSafely(() -> {
-                try {
-                    crtConn.makeRequest(crtRequest, crtToSdkAdapter).activate();
-                } catch (IllegalStateException | CrtRuntimeException e) {
-                    log.debug(() -> "An exception occurred when making the request", e);
-                    handleFailure(new IOException("An exception occurred when making the request", e),
-                                  requestFuture,
-                                  asyncRequest.responseHandler());
+            if (shouldPublishMetrics) {
+                long acquireCompletionTime = System.nanoTime();
+                Duration acquireTimeTaken = Duration.ofNanos(acquireCompletionTime - finalAcquireStartTime);
+                metricCollector.reportMetric(CONCURRENCY_ACQUIRE_DURATION, acquireTimeTaken);
+            }
 
-                }
-            });
+            executeRequest(executionContext, requestFuture, crtConn, asyncRequest);
         });
 
+        requestFuture.whenComplete((obj, err) -> {
+            if (shouldPublishMetrics) {
+                HttpClientConnectionManager connManager = executionContext.crtConnPool();
+                HttpManagerMetrics managerMetrics = connManager.getManagerMetrics();
+                // currently this executor only handles HTTP 1.1. Until H2 is added, the max concurrency settings are 1:1 with TCP
+                // connections. When H2 is added, this code needs to be updated to handle stream multiplexing
+                metricCollector.reportMetric(MAX_CONCURRENCY, connManager.getMaxConnections());
+                metricCollector.reportMetric(AVAILABLE_CONCURRENCY, (int) managerMetrics.getAvailableConcurrency());
+                metricCollector.reportMetric(LEASED_CONCURRENCY, (int) managerMetrics.getLeasedConcurrency());
+                metricCollector.reportMetric(PENDING_CONCURRENCY_ACQUIRES, (int) managerMetrics.getPendingConcurrencyAcquires());
+            }
+        });
         return requestFuture;
     }
 
+    private void executeRequest(CrtRequestContext executionContext,
+                                CompletableFuture<Void> requestFuture,
+                                HttpClientConnection crtConn,
+                                AsyncExecuteRequest asyncRequest) {
+        HttpRequest crtRequest = CrtRequestAdapter.toCrtRequest(executionContext);
+        HttpStreamResponseHandler crtResponseHandler =
+            CrtResponseAdapter.toCrtResponseHandler(crtConn, requestFuture, asyncRequest.responseHandler());
+
+        // Submit the request on the connection
+        try {
+            crtConn.makeRequest(crtRequest, crtResponseHandler).activate();
+        } catch (HttpException e) {
+            Throwable toThrow = e;
+            if (HttpClientConnection.isErrorRetryable(e)) {
+                // IOExceptions get retried, and if the CRT says this error is retryable,
+                // it's semantically an IOException anyway.
+                toThrow = new IOException(e);
+            }
+            reportFailure(crtConn,
+                          toThrow,
+                          requestFuture,
+                          asyncRequest.responseHandler());
+        } catch (IllegalStateException | CrtRuntimeException e) {
+            // CRT throws IllegalStateException if the connection is closed
+            reportFailure(crtConn, new IOException("An exception occurred when making the request", e),
+                          requestFuture,
+                          asyncRequest.responseHandler());
+        }
+    }
+
     /**
-     * Convenience method to create the execution future and set up the cancellation logic.
-     *
+     * Create the execution future and set up the cancellation logic.
      * @return The created execution future.
      */
     private CompletableFuture<Void> createExecutionFuture(AsyncExecuteRequest request) {
@@ -88,7 +145,8 @@ public final class CrtRequestExecutor {
             if (t == null) {
                 return;
             }
-            //TODO: Aborting request once it's supported in CRT
+
+            // TODO: Aborting request once it's supported in CRT
             if (future.isCancelled()) {
                 request.responseHandler().onError(new SdkCancellationException("The request was cancelled"));
             }
@@ -97,68 +155,23 @@ public final class CrtRequestExecutor {
         return future;
     }
 
-    private void handleFailure(Throwable cause,
+    /**
+     * Notify the provided response handler and future of the failure.
+     */
+    private void reportFailure(HttpClientConnection crtConn,
+                               Throwable cause,
                                CompletableFuture<Void> executeFuture,
                                SdkAsyncHttpResponseHandler responseHandler) {
+        if (crtConn != null) {
+            crtConn.close();
+        }
+
         try {
             responseHandler.onError(cause);
         } catch (Exception e) {
-            log.error(() -> String.format("SdkAsyncHttpResponseHandler %s throw an exception in onError",
-                                          responseHandler.toString()), e);
+            log.error(() -> "SdkAsyncHttpResponseHandler " + responseHandler + " threw an exception in onError. It will be "
+                            + "ignored.", e);
         }
-
         executeFuture.completeExceptionally(cause);
-    }
-
-    private static HttpRequest toCrtRequest(AsyncExecuteRequest asyncRequest, AwsCrtAsyncHttpStreamAdapter crtToSdkAdapter) {
-        URI uri = asyncRequest.request().getUri();
-        SdkHttpRequest sdkRequest = asyncRequest.request();
-
-        String method = sdkRequest.method().name();
-        String encodedPath = sdkRequest.encodedPath();
-        if (encodedPath == null || encodedPath.length() == 0) {
-            encodedPath = "/";
-        }
-
-        String encodedQueryString = sdkRequest.encodedQueryParameters()
-                                              .map(value -> "?" + value)
-                                              .orElse("");
-
-        HttpHeader[] crtHeaderArray = asArray(createHttpHeaderList(uri, asyncRequest));
-
-        return new HttpRequest(method, encodedPath + encodedQueryString, crtHeaderArray, crtToSdkAdapter);
-    }
-
-    private static HttpHeader[] asArray(List<HttpHeader> crtHeaderList) {
-        return crtHeaderList.toArray(new HttpHeader[0]);
-    }
-
-    private static List<HttpHeader> createHttpHeaderList(URI uri, AsyncExecuteRequest asyncRequest) {
-        SdkHttpRequest sdkRequest = asyncRequest.request();
-        // worst case we may add 3 more headers here
-        List<HttpHeader> crtHeaderList = new ArrayList<>(sdkRequest.numHeaders() + 3);
-
-        // Set Host Header if needed
-        if (!sdkRequest.firstMatchingHeader(Header.HOST).isPresent()) {
-            crtHeaderList.add(new HttpHeader(Header.HOST, uri.getHost()));
-        }
-
-        // Add Connection Keep Alive Header to reuse this Http Connection as long as possible
-        if (!sdkRequest.firstMatchingHeader(Header.CONNECTION).isPresent()) {
-            crtHeaderList.add(new HttpHeader(Header.CONNECTION, Header.KEEP_ALIVE_VALUE));
-        }
-
-        // Set Content-Length if needed
-        Optional<Long> contentLength = asyncRequest.requestContentPublisher().contentLength();
-        if (!sdkRequest.firstMatchingHeader(Header.CONTENT_LENGTH).isPresent() && contentLength.isPresent()) {
-            crtHeaderList.add(new HttpHeader(Header.CONTENT_LENGTH, Long.toString(contentLength.get())));
-        }
-
-        // Add the rest of the Headers
-        sdkRequest.forEachHeader((key, value) -> {
-            value.stream().map(val -> new HttpHeader(key, val)).forEach(crtHeaderList::add);
-        });
-
-        return crtHeaderList;
     }
 }

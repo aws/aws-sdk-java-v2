@@ -1,0 +1,48 @@
+{
+    "version": "2.17.273",
+    "date": "2022-09-13",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWSKendraFrontendService",
+            "contributor": "",
+            "description": "This release enables our customer to choose the option of Sharepoint 2019 for the on-premise Sharepoint connector."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Transfer Family",
+            "contributor": "",
+            "description": "This release introduces the ability to have multiple server host keys for any of your Transfer Family servers that use the SFTP protocol."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Evidently",
+            "contributor": "",
+            "description": "This release adds support for the client-side evaluation - powered by AWS AppConfig feature."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Customer Profiles",
+            "contributor": "",
+            "description": "Added isUnstructured in response for Customer Profiles Integration APIs"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Two new features for local gateway route tables: support for static routes targeting Elastic Network Interfaces and direct VPC routing."
+        },
+        {
+            "type": "feature",
+            "category": "Elastic Disaster Recovery Service",
+            "contributor": "",
+            "description": "Fixed the data type of lagDuration that is returned in Describe Source Server API"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}

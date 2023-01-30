@@ -442,31 +442,4 @@ public class CloudSearchv2IntegrationTest extends AwsIntegrationTestBase {
 
     }
 
-    /**
-     * Tests the Scaling Parameters API. Updates the scaling parameters for the
-     * domain. Retrieves the scaling parameters and checks if it is the same.
-     */
-    @Test
-    public void testScalingParameters() {
-        ScalingParameters scalingParameters = ScalingParameters.builder()
-                                                               .desiredInstanceType(PartitionInstanceType.SEARCH_M1_SMALL)
-                                                               .desiredReplicationCount(5)
-                                                               .desiredPartitionCount(5).build();
-        cloudSearch.updateScalingParameters(UpdateScalingParametersRequest.builder()
-                                                                          .domainName(testDomainName)
-                                                                          .scalingParameters(scalingParameters).build());
-
-        DescribeScalingParametersResponse describeScalingParametersResult = cloudSearch
-                .describeScalingParameters(DescribeScalingParametersRequest.builder()
-                                                                           .domainName(testDomainName).build());
-        ScalingParameters retrievedScalingParameters = describeScalingParametersResult
-                .scalingParameters().options();
-        assertEquals(retrievedScalingParameters.desiredInstanceType(),
-                     scalingParameters.desiredInstanceType());
-        assertEquals(retrievedScalingParameters.desiredReplicationCount(),
-                     scalingParameters.desiredReplicationCount());
-        assertEquals(retrievedScalingParameters.desiredPartitionCount(),
-                     scalingParameters.desiredPartitionCount());
-    }
-
 }

@@ -53,33 +53,38 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
                                                                         .description("My KMS Key")
                                                                         .keyUsage(KeyUsageType.ENCRYPT_DECRYPT)
                                                                         .build());
-        checkValid_KeyMetadata(createKeyResult.keyMetadata());
+        try {
+            checkValid_KeyMetadata(createKeyResult.keyMetadata());
 
-        final String keyId = createKeyResult.keyMetadata().keyId();
+            final String keyId = createKeyResult.keyMetadata().keyId();
 
-        // DescribeKey
-        DescribeKeyResponse describeKeyResult = kms.describeKey(DescribeKeyRequest.builder().keyId(keyId).build());
-        checkValid_KeyMetadata(describeKeyResult.keyMetadata());
+            // DescribeKey
+            DescribeKeyResponse describeKeyResult = kms.describeKey(DescribeKeyRequest.builder().keyId(keyId).build());
+            checkValid_KeyMetadata(describeKeyResult.keyMetadata());
 
-        // Enable/DisableKey
-        kms.enableKey(EnableKeyRequest.builder().keyId(keyId).build());
-        kms.disableKey(DisableKeyRequest.builder().keyId(keyId).build());
+            // Enable/DisableKey
+            kms.enableKey(EnableKeyRequest.builder().keyId(keyId).build());
+            kms.disableKey(DisableKeyRequest.builder().keyId(keyId).build());
 
-        // ListKeys
-        ListKeysResponse listKeysResult = kms.listKeys(ListKeysRequest.builder().build());
-        Assert.assertFalse(listKeysResult.keys().isEmpty());
+            // ListKeys
+            ListKeysResponse listKeysResult = kms.listKeys(ListKeysRequest.builder().build());
+            Assert.assertFalse(listKeysResult.keys().isEmpty());
 
-        // CreateAlias
-        kms.createAlias(CreateAliasRequest.builder()
-                                          .aliasName("alias/my_key" + System.currentTimeMillis())
-                                          .targetKeyId(keyId)
-                                          .build());
+            // CreateAlias
+            kms.createAlias(CreateAliasRequest.builder()
+                                              .aliasName("alias/my_key" + System.currentTimeMillis())
+                                              .targetKeyId(keyId)
+                                              .build());
 
-        GetKeyPolicyResponse getKeyPolicyResult = kms.getKeyPolicy(GetKeyPolicyRequest.builder()
-                                                                                    .keyId(keyId)
-                                                                                    .policyName("default")
-                                                                                    .build());
-        Assert.assertNotNull(getKeyPolicyResult.policy());
+            GetKeyPolicyResponse getKeyPolicyResult = kms.getKeyPolicy(GetKeyPolicyRequest.builder()
+                                                                                          .keyId(keyId)
+                                                                                          .policyName("default")
+                                                                                          .build());
+            Assert.assertNotNull(getKeyPolicyResult.policy());
+        } finally {
+            kms.scheduleKeyDeletion(r -> r.keyId(createKeyResult.keyMetadata().keyId())
+                                          .pendingWindowInDays(7));
+        }
 
     }
 }

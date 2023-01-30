@@ -23,51 +23,42 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.http.HttpTestUtils.createProvider;
+import static software.amazon.awssdk.http.SdkHttpConfigurationOption.PROTOCOL;
 import static software.amazon.awssdk.http.crt.CrtHttpClientTestUtils.createRequest;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
 import java.util.concurrent.TimeUnit;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import software.amazon.awssdk.crt.CrtResource;
-import software.amazon.awssdk.crt.io.EventLoopGroup;
-import software.amazon.awssdk.crt.io.HostResolver;
-import software.amazon.awssdk.http.RecordingNetworkTrafficListener;
+import software.amazon.awssdk.crt.Log;
+import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.RecordingResponseHandler;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
+import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Logger;
 
 public class AwsCrtHttpClientWireMockTest {
     private static final Logger log = Logger.loggerFor(AwsCrtHttpClientWireMockTest.class);
-    private final RecordingNetworkTrafficListener wiremockTrafficListener = new RecordingNetworkTrafficListener();
 
     @Rule
     public WireMockRule mockServer = new WireMockRule(wireMockConfig()
-                                                          .dynamicPort()
-                                                          .dynamicHttpsPort()
-                                                          .networkTrafficListener(wiremockTrafficListener));
+                                                          .dynamicPort());
 
     @BeforeClass
     public static void setup() {
         System.setProperty("aws.crt.debugnative", "true");
+        Log.initLoggingToStdout(Log.LogLevel.Warn);
     }
 
-    @Before
-    public void methodSetup() {
-        wiremockTrafficListener.reset();
-    }
-
-    @After
-    public void tearDown() {
+    @AfterClass
+    public static void tearDown() {
         // Verify there is no resource leak.
-        EventLoopGroup.closeStaticDefault();
-        HostResolver.closeStaticDefault();
         CrtResource.waitForNoResources();
     }
 
@@ -77,6 +68,15 @@ public class AwsCrtHttpClientWireMockTest {
 
         client.close();
         assertThatThrownBy(() -> makeSimpleRequest(client)).hasMessageContaining("is closed");
+    }
+
+    @Test
+    public void invalidProtocol_shouldThrowException() {
+        AttributeMap attributeMap = AttributeMap.builder()
+                                                .put(PROTOCOL, Protocol.HTTP2)
+                                                .build();
+        assertThatThrownBy(() -> AwsCrtAsyncHttpClient.builder().buildWithDefaults(attributeMap))
+            .isInstanceOf(UnsupportedOperationException.class);
     }
 
     @Test

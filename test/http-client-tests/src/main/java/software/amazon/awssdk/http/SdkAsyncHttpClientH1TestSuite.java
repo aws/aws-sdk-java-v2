@@ -147,6 +147,28 @@ public abstract class SdkAsyncHttpClientH1TestSuite {
             .hasCauseInstanceOf(Exception.class);
     }
 
+    @Test
+    public void connectionsArePooledByHostAndPort() throws InterruptedException {
+        HttpTestUtils.sendRequest(client,
+                                  SdkHttpFullRequest.builder()
+                                                    .uri(URI.create("https://127.0.0.1:" + server.port() + "/foo?foo"))
+                                                    .method(SdkHttpMethod.GET)
+                                                    .build())
+                     .join();
+
+        Thread.sleep(1_000);
+
+        HttpTestUtils.sendRequest(client,
+                                  SdkHttpFullRequest.builder()
+                                                    .uri(URI.create("https://127.0.0.1:" + server.port() + "/bar?bar"))
+                                                    .method(SdkHttpMethod.GET)
+                                                    .build())
+            .join();
+
+        assertThat(server.channels.size()).isEqualTo(1);
+
+    }
+
     private static class Server extends ChannelInitializer<Channel> {
         private static final byte[] CONTENT = "helloworld".getBytes(StandardCharsets.UTF_8);
         private ServerBootstrap bootstrap;

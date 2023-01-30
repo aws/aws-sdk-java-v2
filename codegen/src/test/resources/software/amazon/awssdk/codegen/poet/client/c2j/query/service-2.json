@@ -12,7 +12,37 @@
     "uid": "query-service-2010-05-08",
     "xmlNamespace": "https://query-service.amazonaws.com/doc/2010-05-08/"
   },
+  "clientContextParams": {
+    "booleanContextParam": {
+      "type": "boolean",
+      "documentation": "A boolean client context parameter"
+    },
+    "stringContextParam": {
+      "type": "string",
+      "documentation": "a string client context parameter"
+    }
+  },
   "operations": {
+    "OperationWithContextParam": {
+      "name": "OperationWithContextParam",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input":{"shape":"WithContextParam"}
+    },
+    "OperationWithStaticContextParams": {
+      "name": "OperationWithStaticContextParams",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "staticContextParams": {
+        "staticStringParam" : {
+          "value": "hello"
+        }
+      }
+    },
     "OperationWithChecksumRequired": {
       "name": "APostOperation",
       "http": {
@@ -20,6 +50,14 @@
         "requestUri": "/"
       },
       "httpChecksumRequired": true
+    },
+    "OperationWithNoneAuthType": {
+      "name": "APostOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "authtype": "none"
     },
     "APostOperation": {
       "name": "APostOperation",
@@ -59,6 +97,17 @@
         }
       ],
       "documentation": "<p>Performs a post operation to the query service and has modelled output</p>"
+    },
+    "BearerAuthOperation": {
+      "name": "BearerAuthOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {
+        "shape": "BearerAuthOperationRequest"
+      },
+      "authtype": "bearer"
     },
     "StreamingInputOperation": {
       "name": "StreamingInputOperation",
@@ -110,6 +159,20 @@
     }
   },
   "shapes": {
+    "WithContextParam": {
+      "type": "structure",
+      "members": {
+        "StringMember" : {
+          "shape": "String",
+          "contextParam": {
+            "name": "operationContextParam"
+          }
+        },
+        "NestedMember": {
+          "shape": "ChecksumStructure"
+        }
+      }
+    },
     "APostOperationRequest": {
       "type": "structure",
       "required": [
@@ -265,6 +328,12 @@
         }
       },
       "payload":"stringMember"
+    },
+    "String":{"type":"string"},
+    "BearerAuthOperationRequest": {
+      "type": "structure",
+      "members": {
+      }
     }
   },
   "documentation": "A service that is implemented using the query protocol"

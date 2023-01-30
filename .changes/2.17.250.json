@@ -1,0 +1,24 @@
+{
+    "version": "2.17.250",
+    "date": "2022-08-10",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "URL Connection HTTP Client",
+            "contributor": "",
+            "description": "Fix for S3Client with URL Connection http client fails with EOFException when executing HeadObjectRequest for gzip encodeFix to S3Client fails with EOFException."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Data Lifecycle Manager",
+            "contributor": "",
+            "description": "This release adds support for excluding specific data (non-boot) volumes from multi-volume snapshot sets created by snapshot lifecycle policies"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "This release adds support for excluding specific data (non-root) volumes from multi-volume snapshot sets created from instances."
+        }
+    ]
+}

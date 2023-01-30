@@ -1,0 +1,42 @@
+{
+    "version": "2.17.294",
+    "date": "2022-10-18",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Cloud Map",
+            "contributor": "",
+            "description": "Updated the ListNamespaces API to support the NAME and HTTP_NAME filters, and the BEGINS_WITH filter condition."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Bump jackson-databind version to 2.13.4.2"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Fraud Detector",
+            "contributor": "",
+            "description": "Documentation Updates for Amazon Fraud Detector"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "This change allows customers to enable data capturing while running a batch transform job, and configure monitoring schedule to monitoring the captured data."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Email Service",
+            "contributor": "",
+            "description": "This release allows subscribers to enable Dedicated IPs (managed) to send email via a fully managed dedicated IP experience. It also adds identities' VerificationStatus in the response of GetEmailIdentity and ListEmailIdentities APIs, and ImportJobs counts in the response of ListImportJobs API."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated service endpoint metadata."
+        }
+    ]
+}
