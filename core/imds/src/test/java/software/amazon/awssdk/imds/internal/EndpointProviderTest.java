@@ -34,24 +34,18 @@ import software.amazon.awssdk.imds.EndpointMode;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
+import software.amazon.awssdk.utils.internal.SystemSettingUtilsTestBackdoor;
 
 /**
  * Test Class to test the endpoint resolution functionality.
  */
 class EndpointProviderTest {
 
-    private EnvironmentVariableHelper settingsHelper;
-
-    @BeforeEach
-    void init() {
-        settingsHelper = new EnvironmentVariableHelper();
-    }
-
     @AfterEach
     void reset() {
-        settingsHelper.reset();
         System.clearProperty(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT_MODE.property());
         System.clearProperty(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.property());
+        SystemSettingUtilsTestBackdoor.clearEnvironmentVariableOverrides();
     }
 
     private static Stream<Arguments> provideEndpointAndEndpointModes() {
@@ -88,9 +82,12 @@ class EndpointProviderTest {
 
         if (setConfigFile) {
             String testFile = "/profile-config/test-profiles.tst";
-            settingsHelper.set(ProfileFileSystemSetting.AWS_PROFILE, profile);
-            settingsHelper.set(ProfileFileSystemSetting.AWS_CONFIG_FILE,
-                               Paths.get(getClass().getResource(testFile).toURI()).toString());
+            SystemSettingUtilsTestBackdoor.addEnvironmentVariableOverride(
+                ProfileFileSystemSetting.AWS_PROFILE.environmentVariable(),
+                profile);
+            SystemSettingUtilsTestBackdoor.addEnvironmentVariableOverride(
+                ProfileFileSystemSetting.AWS_CONFIG_FILE.environmentVariable(),
+                Paths.get(getClass().getResource(testFile).toURI()).toString());
         }
 
         Ec2MetadataEndpointProvider endpointProvider = Ec2MetadataEndpointProvider.builder().build();
@@ -124,9 +121,13 @@ class EndpointProviderTest {
 
         if (useConfigFile) {
             String testFile = "/profile-config/test-profiles.tst";
-            settingsHelper.set(ProfileFileSystemSetting.AWS_PROFILE, "test" + configFileValue);
-            settingsHelper.set(ProfileFileSystemSetting.AWS_CONFIG_FILE,
-                           Paths.get(getClass().getResource(testFile).toURI()).toString());
+            SystemSettingUtilsTestBackdoor.addEnvironmentVariableOverride(
+                ProfileFileSystemSetting.AWS_PROFILE.environmentVariable(),
+                "test" + configFileValue);
+
+            SystemSettingUtilsTestBackdoor.addEnvironmentVariableOverride(
+                ProfileFileSystemSetting.AWS_CONFIG_FILE.environmentVariable(),
+                Paths.get(getClass().getResource(testFile).toURI()).toString());
         }
 
         Ec2MetadataEndpointProvider endpointProvider = Ec2MetadataEndpointProvider.builder().build();
