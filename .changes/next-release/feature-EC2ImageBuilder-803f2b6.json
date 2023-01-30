@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "EC2 Image Builder",
+    "contributor": "",
+    "description": "Enabled FIPS endpoints for GovCloud (US) regions in SDK."
+}
