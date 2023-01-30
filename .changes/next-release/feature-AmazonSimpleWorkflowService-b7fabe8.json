@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Simple Workflow Service",
+    "contributor": "",
+    "description": "Enabled FIPS endpoints for GovCloud (US) regions in SDK."
+}
