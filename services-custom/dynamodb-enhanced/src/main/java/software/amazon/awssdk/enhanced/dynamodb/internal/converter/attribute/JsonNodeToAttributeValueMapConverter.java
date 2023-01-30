@@ -27,16 +27,14 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 @SdkInternalApi
 public class JsonNodeToAttributeValueMapConverter implements JsonNodeVisitor<AttributeValue> {
 
-    private JsonNodeToAttributeValueMapConverter(){
+    private static final JsonNodeToAttributeValueMapConverter INSTANCE = new JsonNodeToAttributeValueMapConverter();
+
+    private JsonNodeToAttributeValueMapConverter() {
     }
 
-    private static JsonNodeToAttributeValueMapConverter INSTANCE = new JsonNodeToAttributeValueMapConverter();
-
-    public static JsonNodeToAttributeValueMapConverter instance(){
+    public static JsonNodeToAttributeValueMapConverter instance() {
         return INSTANCE;
     }
-
-
 
     @Override
     public AttributeValue visitNull() {
@@ -62,20 +60,17 @@ public class JsonNodeToAttributeValueMapConverter implements JsonNodeVisitor<Att
     public AttributeValue visitArray(List<JsonNode> array) {
         return AttributeValue.builder().l(array.stream()
                                                .map(node -> node.visit(this))
-                                               .collect(Collectors.toList())).build();
+                                               .collect(Collectors.toList()))
+                             .build();
     }
 
     @Override
     public AttributeValue visitObject(Map<String, JsonNode> object) {
-        return AttributeValue.builder().m(object.entrySet()
-                                                .stream()
-                                                .collect(
-                                                    Collectors.toMap(
-                                                        entry -> entry.getKey(),
-                                                        entry -> entry.getValue().visit(this),
-                                                        (left, right) -> left,
-                                                        LinkedHashMap::new)))
-                             .build();
+        return AttributeValue.builder().m(object.entrySet().stream()
+                                                .collect(Collectors.toMap(
+                                                    entry -> entry.getKey(),
+                                                    entry -> entry.getValue().visit(this),
+                                                    (left, right) -> left, LinkedHashMap::new))).build();
     }
 
     @Override

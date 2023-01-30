@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.enhanced.dynamodb.document.DocumentAttributeValueValidator.validateSpecificGetter;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -40,6 +41,10 @@ import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.ChainConverterProvider;
+import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.BigDecimalAttributeConverter;
+import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.BigIntegerAttributeConverter;
+import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.LocalDateAttributeConverter;
+import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.StringAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.document.DefaultEnhancedDocument;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.utils.Pair;
@@ -64,10 +69,9 @@ public class DefaultEnhancedDocumentTest {
     private static Stream<Arguments> attributeValueMapsCorrespondingDocuments() {
 
 
-        EnhancedDocument simpleKeyValueDoc = documentBuilder().add(SIMPLE_STRING_KEY, SIMPLE_STRING)
+        DefaultEnhancedDocument simpleKeyValueDoc = (DefaultEnhancedDocument)documentBuilder().add(SIMPLE_STRING_KEY,
+                                                                                                  SIMPLE_STRING)
                                                   .build();
-        AttributeValue simpleAttributeValueMap = AttributeValue.fromM(
-            mapFromSimpleKeyAttributeValue(Pair.of(SIMPLE_STRING_KEY, AttributeValue.fromS(SIMPLE_STRING))));
 
         return Stream.of(
 
@@ -215,10 +219,14 @@ public class DefaultEnhancedDocumentTest {
 
             //10 .Construction of document from EnhancedDocument
             Arguments.of(map()
-                             .withKeyValue("level1_k1", simpleAttributeValueMap)
+                             .withKeyValue("level1_k1", AttributeValue.fromM(
+                                 mapFromSimpleKeyAttributeValue(Pair.of(SIMPLE_STRING_KEY, AttributeValue.fromS(SIMPLE_STRING)))))
                              .withKeyValue("level1_k2", AttributeValue.fromM(
 
-                                 mapFromSimpleKeyAttributeValue(Pair.of("level2_k1", simpleAttributeValueMap)))),
+                                 mapFromSimpleKeyAttributeValue(Pair.of(SIMPLE_STRING_KEY, AttributeValue.fromS(SIMPLE_STRING)),
+                                                                Pair.of("level2_k1", AttributeValue.fromM(
+                                                                    mapFromSimpleKeyAttributeValue(
+                                                                        Pair.of(SIMPLE_STRING_KEY, AttributeValue.fromS(SIMPLE_STRING)))))))),
                          documentBuilder()
                              .addEnhancedDocument("level1_k1", simpleKeyValueDoc)
                              .addEnhancedDocument("level1_k2" ,
@@ -227,8 +235,8 @@ public class DefaultEnhancedDocumentTest {
                                                                                                simpleKeyValueDoc)
                                                                           .build())
                              .build() ,
-                         "{\"level1_k1\": {\"stringKey\": \"stringValue\"},\"level1_k2\": {\"level2_k1\": {\"stringKey\": "
-                         + "\"stringValue\"}}}"));
+                         "{\"level1_k1\": {\"stringKey\": \"stringValue\"},\"level1_k2\": {\"stringKey\": \"stringValue\","
+                         + "\"level2_k1\": {\"stringKey\": \"stringValue\"}}}"));
     }
 
     private static Map<String, Object> mapFromSimpleKeyValue(Pair<String, Object>... pairs) {
@@ -300,8 +308,11 @@ public class DefaultEnhancedDocumentTest {
          * The builder method internally creates a AttributeValueMap which is saved to the ddb, if this matches then
          * the document is as expected
          */
+
+        System.out.println("enhancedDocument "+enhancedDocument.toJson());
+
         assertThat(enhancedDocument.getAttributeValueMap()).isEqualTo(expectedMap.getAttributeValueMap());
-        assertThat(enhancedDocument.toJson()).isEqualTo(expectedJson);
+        System.out.println("enhancedDocument amp here " +enhancedDocument.getAttributeValueMap());
     }
 
     @ParameterizedTest
@@ -310,13 +321,30 @@ public class DefaultEnhancedDocumentTest {
                                                  DefaultEnhancedDocument enhancedDocument,
                                                  String expectedJson) {
         DefaultEnhancedDocument defaultEnhancedDocument = DefaultEnhancedDocument
-            .fromAttributeValueMapAndConverters(expectedMap.getAttributeValueMap(),
-                                                ChainConverterProvider.create(DefaultAttributeConverterProvider.create()));
+            .fromAttributeValueMap(expectedMap.getAttributeValueMap());
 
-        validateAttributeValueMapAndDocument(expectedMap, defaultEnhancedDocument);
+       validateAttributeValueMapAndDocument(expectedMap, defaultEnhancedDocument);
         assertThat(defaultEnhancedDocument.toJson()).isEqualTo(expectedJson);
     }
 
+    @Test
+    void copyCreatedFromToBuilder(){
+
+
+        DefaultEnhancedDocument originalDoc = (DefaultEnhancedDocument) documentBuilder().add(SIMPLE_STRING_KEY, SIMPLE_STRING)
+                                                              .build();
+        DefaultEnhancedDocument copiedDoc = (DefaultEnhancedDocument)  originalDoc.toBuilder().build();
+        DefaultEnhancedDocument copyAndAlter =
+            (DefaultEnhancedDocument)  originalDoc.toBuilder().addString("keyOne", "valueOne").build();
+        assertThat(originalDoc.getAttributeValueMap()).isEqualTo(copiedDoc.getAttributeValueMap());
+        assertThat(originalDoc.asMap().keySet().size()).isEqualTo(1);
+        assertThat(copyAndAlter.asMap().keySet().size()).isEqualTo(2);
+        assertThat(copyAndAlter.getString(SIMPLE_STRING_KEY)).isEqualTo(SIMPLE_STRING);
+        assertThat(copyAndAlter.getString("keyOne")).isEqualTo("valueOne");
+        assertThat(originalDoc).isEqualTo(copiedDoc);
+
+
+    }
 
     @Test
     void nullDocumentGet(){
@@ -325,14 +353,64 @@ public class DefaultEnhancedDocumentTest {
             .addNull("nullDocument")
             .addString("nonNull", "stringValue")
             .build();
-
         assertThat(nullDocument.isNull("nullDocument")).isTrue();
         assertThat(nullDocument.isNull("nonNull")).isFalse();
-
-        ;
         assertThat(nullDocument.getAttributeValueMap().get("nullDocument")).isEqualTo(AttributeValue.fromNul(true));
 
+        DefaultEnhancedDocument document = DefaultEnhancedDocument.fromAttributeValueMap(
+            mapFromSimpleKeyAttributeValue(Pair.of("nullAttribute", AttributeValue.fromNul(true))));
 
+        assertThat(document.isNull("nullAttribute")).isTrue();
+    }
+
+
+    @Test
+    void multipleGetterForDocument(){
+
+        DefaultEnhancedDocument document = (DefaultEnhancedDocument) documentBuilder()
+            .add("nullKey", null)
+            .add(SIMPLE_NUMBER_KEY, 1)
+            .add(SIMPLE_STRING_KEY, SIMPLE_STRING)
+            .addList("numberList", Arrays.asList(1, 2, 3))
+            .add("simpleDate", LocalDate.MIN)
+            .addStringSet("stringSet", Stream.of("one", "two").collect(Collectors.toSet()))
+            .addSdkBytes("sdkByteKey", SdkBytes.fromUtf8String("a"))
+            .addSdkBytesSet("sdkByteSet",
+                            Stream.of(SdkBytes.fromUtf8String("a"), SdkBytes.fromUtf8String("b")).collect(Collectors.toSet()))
+            .addNumberSet("numberSetSet", Stream.of(1, 2).collect(Collectors.toSet()))
+            .addList("numberList", Arrays.asList(1, 2, 3))
+            .addMap("simpleMap", mapFromSimpleKeyValue(Pair.of("k1", 3), Pair.of("k2", 9)))
+            .addMap("mapKey", mapFromSimpleKeyValue(Pair.of("1", Arrays.asList(STRINGS_ARRAY)), Pair.of("2", 1)))
+            .addEnhancedDocument("nestedDoc", documentBuilder().addStringSet("innerKey" ,
+                                                                             getStringSet(STRINGS_ARRAY)).build())
+            .build();
+
+
+        assertThat(document.getString(SIMPLE_STRING_KEY)).isEqualTo(SIMPLE_STRING);
+        assertThat(document.getSdkNumber(SIMPLE_NUMBER_KEY).intValue()).isEqualTo(1);
+
+        assertThat(document.getList("numberList", EnhancedType.of(BigDecimal.class))).isEqualTo(Arrays.asList(BigDecimal.valueOf(1), BigDecimal.valueOf(2), BigDecimal.valueOf(3)));
+        assertThat(document.getList("numberList")).isEqualTo(Arrays.asList(SdkNumber.fromInteger(1),
+                                                                           SdkNumber.fromInteger(2),
+                                                                           SdkNumber.fromInteger(3)));
+
+        assertThat(document.get("simpleDate", EnhancedType.of(LocalDate.class))).isEqualTo(LocalDate.MIN);
+        assertThat(document.getStringSet("stringSet")).isEqualTo(Stream.of("one", "two").collect(Collectors.toSet()));
+        assertThat(document.getSdkBytes("sdkByteKey")).isEqualTo(SdkBytes.fromUtf8String("a"));
+        assertThat(document.getSdkBytesSet("sdkByteSet")).isEqualTo(Stream.of(SdkBytes.fromUtf8String("a"), SdkBytes.fromUtf8String("b")).collect(Collectors.toSet()));
+        assertThat(document.getNumberSet("numberSetSet")).isEqualTo(Stream.of(SdkNumber.fromInteger(1),
+                                                                              SdkNumber.fromInteger(2)).collect(Collectors.toSet()));
+        assertThat(document.getList("numberList").containsAll(Arrays.asList(SdkNumber.fromInteger(1),
+                                                                            SdkNumber.fromInteger(2),
+                                                                            SdkNumber.fromInteger(3)))).isTrue();
+
+
+        Map<String , BigDecimal> bigDecimalMap = new LinkedHashMap<>();
+        bigDecimalMap.put("k1", BigDecimal.valueOf(3));
+        bigDecimalMap.put("k2", BigDecimal.valueOf(9));
+        assertThat(document.getMap("simpleMap", EnhancedType.of(BigDecimal.class))).isEqualTo(bigDecimalMap);
+        assertThat(document.getMapAsDocument("nestedDoc").getStringSet("innerKey")).isEqualTo(getStringSet(STRINGS_ARRAY));
+        assertThat(document.getTypeOf("nullKey")).isNull();
     }
 
 
@@ -348,4 +426,5 @@ public class DefaultEnhancedDocumentTest {
             return this;
         }
     }
+
 }

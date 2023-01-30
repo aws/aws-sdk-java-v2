@@ -28,6 +28,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.Immutable;
@@ -56,26 +57,26 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 @SdkInternalApi
 public class DefaultEnhancedDocument implements EnhancedDocument {
 
+    private static final DefaultAttributeConverterProvider DEFAULT_PROVIDER = DefaultAttributeConverterProvider.create();
+
+    private static final JsonItemAttributeConverter JSON_ITEM_ATTRIBUTE_CONVERTER = JsonItemAttributeConverter.create();
+
     private final Map<String, AttributeValue> attributeValueMap;
 
     private final ChainConverterProvider attributeConverterProviders;
 
-    private static final JsonItemAttributeConverter jsonConverter = JsonItemAttributeConverter.create();
-
-    private DefaultEnhancedDocument(Map<String, AttributeValue> attributeValueMap,
-                                   ChainConverterProvider attributeConverterProviders) {
+    private DefaultEnhancedDocument(Map<String, AttributeValue> attributeValueMap) {
         this.attributeValueMap = attributeValueMap;
-        this.attributeConverterProviders = attributeConverterProviders;
-    }
-
-    public static DefaultEnhancedDocument fromAttributeValueMapAndConverters(Map<String, AttributeValue> attributeValueMap,
-                                                                             ChainConverterProvider attributeConverterProviders) {
-        return new DefaultEnhancedDocument(attributeValueMap, attributeConverterProviders);
+        this.attributeConverterProviders = ChainConverterProvider.create(DEFAULT_PROVIDER);
     }
 
     public DefaultEnhancedDocument(DefaultBuilder builder) {
         attributeValueMap = Collections.unmodifiableMap(builder.getAttributeValueMap());
         attributeConverterProviders = ChainConverterProvider.create(builder.attributeConverterProviders);
+    }
+
+    public static DefaultEnhancedDocument fromAttributeValueMap(Map<String, AttributeValue> attributeValueMap) {
+        return new DefaultEnhancedDocument(attributeValueMap);
     }
 
     public static DefaultBuilder builder() {
@@ -253,7 +254,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
                                        + " attribute as map since its of type "
                                        + attributeValue.type());
         }
-        return new DefaultEnhancedDocument(attributeValue.m(), this.attributeConverterProviders);
+        return new DefaultEnhancedDocument(attributeValue.m());
     }
 
     @Override
@@ -262,7 +263,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
         if (attributeValueMap.get(attributeName) == null) {
             return null;
         }
-        JsonNode jsonNode = jsonConverter.transformTo(attributeValueMap.get(attributeName));
+        JsonNode jsonNode = JSON_ITEM_ATTRIBUTE_CONVERTER.transformTo(attributeValueMap.get(attributeName));
         Document document = jsonNode.visit(new DocumentUnmarshaller());
         return document.toString();
     }
@@ -311,7 +312,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
     @Override
     public EnhancedType<?> getTypeOf(String attributeName) {
         Object attributeValue = get(attributeName);
-        return EnhancedType.of(attributeValue.getClass());
+        return attributeValue != null ? EnhancedType.of(attributeValue.getClass()) : null;
     }
 
     @Override
@@ -338,14 +339,14 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
     public static class DefaultBuilder implements EnhancedDocument.Builder {
 
         Map<String, AttributeValue> attributeValueMap = new LinkedHashMap<>();
-        ChainConverterProvider converterProvider = ChainConverterProvider.create(DefaultAttributeConverterProvider.create());
-        List<AttributeConverterProvider> attributeConverterProviders;
+
+        List<AttributeConverterProvider> attributeConverterProviders = new ArrayList<>();
 
         public DefaultBuilder(DefaultEnhancedDocument enhancedDocument) {
-            attributeValueMap = attributeValueMap != null ? new LinkedHashMap<>(enhancedDocument.attributeValueMap)
-                                                          : new LinkedHashMap<>();
+            attributeValueMap.putAll(enhancedDocument.getAttributeValueMap());
             attributeConverterProviders = enhancedDocument.attributeConverterProviders != null ?
                                           enhancedDocument.attributeConverterProviders.chainedProviders() : null;
+
         }
 
         public DefaultBuilder() {
@@ -357,9 +358,16 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
 
         @Override
         public Builder add(String attributeName, Object value) {
-
-            attributeValueMap.put(attributeName, convert(value, converterProvider));
+            ChainConverterProvider attributeConverterProvider = providerFromBuildAndAppendDefault();
+            attributeValueMap.put(attributeName, convert(value, attributeConverterProvider));
             return this;
+        }
+
+        private ChainConverterProvider providerFromBuildAndAppendDefault() {
+            List<AttributeConverterProvider> converterProviders = new ArrayList<>(attributeConverterProviders);
+            converterProviders.add(DEFAULT_PROVIDER);
+            ChainConverterProvider attributeConverterProvider = ChainConverterProvider.create(converterProviders);
+            return attributeConverterProvider;
         }
 
         @Override
@@ -413,13 +421,13 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
 
         @Override
         public Builder addList(String attributeName, List<?> value) {
-            attributeValueMap.put(attributeName, convert(value, converterProvider));
+            attributeValueMap.put(attributeName, convert(value, providerFromBuildAndAppendDefault()));
             return this;
         }
 
         @Override
         public Builder addMap(String attributeName, Map<String, ?> value) {
-            attributeValueMap.put(attributeName, convert(value, converterProvider));
+            attributeValueMap.put(attributeName, convert(value, providerFromBuildAndAppendDefault()));
             return this;
         }
 
@@ -463,7 +471,6 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
             return null;
         }
 
-        // TODO : Will add test for attributeConverterProvider in future revision on next PR.
         @Override
         public Builder attributeConverterProviders(AttributeConverterProvider... attributeConverterProvider) {
             this.attributeConverterProviders = attributeConverterProvider != null
@@ -479,7 +486,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
             if (jsonNode == null) {
                 throw new IllegalArgumentException("Could not parse argument json " + json);
             }
-            AttributeValue attributeValue = jsonConverter.transformFrom(jsonNode);
+            AttributeValue attributeValue = JSON_ITEM_ATTRIBUTE_CONVERTER.transformFrom(jsonNode);
             this.attributeValueMap = attributeValue.m();
             return this;
         }
@@ -488,5 +495,26 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
         public EnhancedDocument build() {
             return new DefaultEnhancedDocument(this);
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DefaultEnhancedDocument that = (DefaultEnhancedDocument) o;
+
+        return Objects.equals(attributeValueMap, that.attributeValueMap) && Objects.equals(attributeConverterProviders,
+                                                                                           that.attributeConverterProviders);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = attributeValueMap != null ? attributeValueMap.hashCode() : 0;
+        result = 31 * result + (attributeConverterProviders != null ? attributeConverterProviders.hashCode() : 0);
+        return result;
     }
 }

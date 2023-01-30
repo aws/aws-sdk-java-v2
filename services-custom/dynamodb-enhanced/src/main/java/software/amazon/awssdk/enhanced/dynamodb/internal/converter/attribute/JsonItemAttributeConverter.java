@@ -83,6 +83,9 @@ public final class JsonItemAttributeConverter implements AttributeConverter<Json
 
         @Override
         public JsonNode convertMap(Map<String, AttributeValue> value) {
+            if (value == null) {
+                return null;
+            }
             Map<String, JsonNode> jsonNodeMap = new LinkedHashMap<>();
             value.entrySet().forEach(
                 k -> {
@@ -94,49 +97,72 @@ public final class JsonItemAttributeConverter implements AttributeConverter<Json
 
         @Override
         public JsonNode convertString(String value) {
+            if (value == null) {
+                return null;
+            }
             return new StringJsonNode(value);
         }
 
         @Override
         public JsonNode convertNumber(String value) {
+            if (value == null) {
+                return null;
+            }
             return new NumberJsonNode(value);
         }
 
         @Override
         public JsonNode convertBytes(SdkBytes value) {
+            if (value == null) {
+                return null;
+            }
             return new StringJsonNode(value.asUtf8String());
         }
 
         @Override
         public JsonNode convertBoolean(Boolean value) {
+            if (value == null) {
+                return null;
+            }
             return new BooleanJsonNode(value);
         }
 
         @Override
         public JsonNode convertSetOfStrings(List<String> value) {
+            if (value == null) {
+                return null;
+            }
             return new ArrayJsonNode(value.stream().map(s -> new StringJsonNode(s)).collect(Collectors.toList()));
         }
 
         @Override
         public JsonNode convertSetOfNumbers(List<String> value) {
+            if (value == null) {
+                return null;
+            }
             return new ArrayJsonNode(value.stream().map(s -> new NumberJsonNode(s)).collect(Collectors.toList()));
         }
 
         @Override
         public JsonNode convertSetOfBytes(List<SdkBytes> value) {
+            if (value == null) {
+                return null;
+            }
             return new ArrayJsonNode(value.stream().map(sdkByte ->
                                                             new StringJsonNode(sdkByte.asUtf8String())
-                ).collect(Collectors.toList()));
+            ).collect(Collectors.toList()));
         }
 
         @Override
         public JsonNode convertListOfAttributeValues(List<AttributeValue> value) {
+            if (value == null) {
+                return null;
+            }
             return new ArrayJsonNode(value.stream().map(
                 attributeValue -> {
                     EnhancedAttributeValue enhancedAttributeValue = EnhancedAttributeValue.fromAttributeValue(attributeValue);
                     return enhancedAttributeValue.isNull() ? NullJsonNode.instance() : enhancedAttributeValue.convert(VISITOR);
                 }).collect(Collectors.toList()));
-
         }
     }
 }
