@@ -1,3 +1,44 @@
+# __2.19.27__ __2023-01-30__
+## __AWS Application Discovery Service__
+  - ### Features
+    - Update ImportName validation to 255 from the current length of 100
+
+## __AWS CloudFormation__
+  - ### Features
+    - This feature provides a method of obtaining which regions a stackset has stack instances deployed in.
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - Enabled FIPS endpoints for GovCloud (US) regions in SDK.
+
+## __Amazon CloudDirectory__
+  - ### Features
+    - Enabled FIPS endpoints for GovCloud (US) regions in SDK.
+
+## __Amazon Data Lifecycle Manager__
+  - ### Features
+    - Enabled FIPS endpoints for GovCloud (US) regions in SDK.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - We add Prefix Lists as a new route destination option for LocalGatewayRoutes. This will allow customers to create routes to Prefix Lists. Prefix List routes will allow customers to group individual CIDR routes with the same target into a single route.
+
+## __Amazon Simple Workflow Service__
+  - ### Features
+    - Enabled FIPS endpoints for GovCloud (US) regions in SDK.
+
+## __DynamoDB Enhanced Client__
+  - ### Bugfixes
+    - Cache BeanTableSchema and ImmutableTableSchema to prevent potential metaspace memory leak with JDK 15+. See [#3701](https://github.com/aws/aws-sdk-java-v2/issues/3701).
+
+## __EC2 Image Builder__
+  - ### Features
+    - Enabled FIPS endpoints for GovCloud (US) regions in SDK.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Enabled FIPS endpoints for GovCloud (US) regions in SDK.
+
 # __2.19.26__ __2023-01-27__
 ## __AWS Elastic Beanstalk__
   - ### Features

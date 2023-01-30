@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Application Discovery Service",
-    "contributor": "",
-    "description": "Update ImportName validation to 255 from the current length of 100"
-}
