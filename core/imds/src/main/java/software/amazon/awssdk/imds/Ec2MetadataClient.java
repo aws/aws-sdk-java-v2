@@ -24,7 +24,35 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 
 /**
- *  Interface to represent the Ec2Metadata Client Class. Used to access instance metadata from a running instance.
+ *  Interface to represent the Ec2Metadata Client Class. Used to access instance metadata from a running EC2 instance.
+ *  <h2>Instantiate the Ec2MetadataClient</h2>
+ *  <h3>Default configuration</h3>
+ * {@snippet :
+ * Ec2MetadataClient client = Ec2MetadataClient.create();
+ * }
+ * <h3>Custom configuration</h3>
+ *  Example of a client configured for using IPV6 and a fixed delay for retry attempts :
+ * {@snippet :
+ * Ec2MetadataClient client = Ec2MetadataClient.builder()
+ *     .retryPolicy(p -> p.backoffStrategy(FixedDelayBackoffStrategy.create(Duration.ofMillis(500))))
+ *     .endpointMode(EndpointMode.IPV6)
+ *     .build();
+ * }
+ * <h2>Use the client</h2>
+ * To retrieve EC2 Instance Metadata , call the {@code get} method on the client with a path to an instance metadata:
+ * {@snippet :
+ * Ec2MetadataClient client = Ec2MetadataClient.create();
+ * Ec2MetadataResponse response = client.get("/latest/meta-data/");
+ * System.out.println(response.asString());
+ * }
+ * <h2>Closing the client</h2>
+ * Once all operations are done, you may close the client to free any resources used by it.
+ * {@snippet :
+ * Ec2MetadataClient client = Ec2MetadataClient.create();
+ * // ... do the things
+ * client.close();
+ * }
+ * <br/>Note: A single client instance should be reused for multiple requests when possible.
  */
 @SdkPublicApi
 public interface Ec2MetadataClient extends SdkAutoCloseable {
