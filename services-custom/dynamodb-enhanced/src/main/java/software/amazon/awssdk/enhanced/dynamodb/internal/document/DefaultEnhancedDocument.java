@@ -51,7 +51,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 /**
  * Default implementation of {@link EnhancedDocument}. This class is used by SDK to create Enhanced Documents.
  * Internally saves attributes in an attributeValueMap which can be written to DynamoDB without further conversion.
- * The attribute values are retrieve by converting attributeValue from attributeValueMap at the time of get.
+ * The attribute values are retrieved by converting attributeValue from attributeValueMap at the time of get.
  */
 @Immutable
 @SdkInternalApi
@@ -73,10 +73,6 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
     public DefaultEnhancedDocument(DefaultBuilder builder) {
         attributeValueMap = Collections.unmodifiableMap(builder.getAttributeValueMap());
         attributeConverterProviders = ChainConverterProvider.create(builder.attributeConverterProviders);
-    }
-
-    public static DefaultEnhancedDocument fromAttributeValueMap(Map<String, AttributeValue> attributeValueMap) {
-        return new DefaultEnhancedDocument(attributeValueMap);
     }
 
     public static DefaultBuilder builder() {
@@ -494,6 +490,11 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
         @Override
         public EnhancedDocument build() {
             return new DefaultEnhancedDocument(this);
+        }
+
+        public DefaultBuilder attributeValueMap(Map<String, AttributeValue> attributeValueMap) {
+            this.attributeValueMap = attributeValueMap != null ? new LinkedHashMap<>(attributeValueMap) : null;
+            return this;
         }
     }
 

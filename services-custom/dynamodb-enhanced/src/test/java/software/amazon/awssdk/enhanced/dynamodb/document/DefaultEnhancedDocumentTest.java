@@ -320,8 +320,11 @@ public class DefaultEnhancedDocumentTest {
     void validate_GetterMethodsOfDefaultDocument(AttributeStringValueMap expectedMap,
                                                  DefaultEnhancedDocument enhancedDocument,
                                                  String expectedJson) {
-        DefaultEnhancedDocument defaultEnhancedDocument = DefaultEnhancedDocument
-            .fromAttributeValueMap(expectedMap.getAttributeValueMap());
+        DefaultEnhancedDocument defaultEnhancedDocument = (DefaultEnhancedDocument) DefaultEnhancedDocument
+            .builder()
+            .attributeValueMap(expectedMap.getAttributeValueMap())
+            .addAttributeConverterProvider(DefaultAttributeConverterProvider.create())
+            .build();
 
        validateAttributeValueMapAndDocument(expectedMap, defaultEnhancedDocument);
         assertThat(defaultEnhancedDocument.toJson()).isEqualTo(expectedJson);
@@ -357,8 +360,11 @@ public class DefaultEnhancedDocumentTest {
         assertThat(nullDocument.isNull("nonNull")).isFalse();
         assertThat(nullDocument.getAttributeValueMap().get("nullDocument")).isEqualTo(AttributeValue.fromNul(true));
 
-        DefaultEnhancedDocument document = DefaultEnhancedDocument.fromAttributeValueMap(
-            mapFromSimpleKeyAttributeValue(Pair.of("nullAttribute", AttributeValue.fromNul(true))));
+        DefaultEnhancedDocument document = (DefaultEnhancedDocument) DefaultEnhancedDocument
+            .builder().attributeValueMap(
+                mapFromSimpleKeyAttributeValue(Pair.of("nullAttribute", AttributeValue.fromNul(true))))
+            .addAttributeConverterProvider(DefaultAttributeConverterProvider.create())
+            .build();
 
         assertThat(document.isNull("nullAttribute")).isTrue();
     }
