@@ -23,7 +23,7 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 
 /**
- * Class to parse the parameters to a SdkHttpRequest , make the call to the endpoint and send the HttpExecuteResponse
+ * Class to parse the parameters to a SdkHttpRequest, make the call to the endpoint and send the HttpExecuteResponse
  * to the DefaultEc2Metadata class for further processing.
  */
 @SdkInternalApi

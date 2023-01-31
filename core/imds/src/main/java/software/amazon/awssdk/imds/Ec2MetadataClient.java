@@ -39,7 +39,7 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
  *     .build();
  * }
  * <h2>Use the client</h2>
- * To retrieve EC2 Instance Metadata , call the {@code get} method on the client with a path to an instance metadata:
+ * To retrieve EC2 Instance Metadata, call the {@code get} method on the client with a path to an instance metadata:
  * {@snippet :
  * Ec2MetadataClient client = Ec2MetadataClient.create();
  * Ec2MetadataResponse response = client.get("/latest/meta-data/");
@@ -89,11 +89,11 @@ public interface Ec2MetadataClient extends SdkAutoCloseable {
 
         /**
          * Define the http client used by the Ec2 Metadata client. If provided, the Ec2MetadataClient will <em>NOT</em> manage the
-         * lifetime if the httpClient and must therefore be closed explicitly by calling the {@link SdkAsyncHttpClient#close()}
+         * lifetime if the httpClient and must therefore be closed explicitly by calling the {@link SdkHttpClient#close()}
          * method on it.
          * <p>
          * If not specified, the IMDS client will look for a SdkHttpClient class included in the classpath of the
-         * application and creates a new instance of that class, managed by the IMDS Client, that will be closed when the IMDS
+         * application and create a new instance of that class, managed by the IMDS Client, that will be closed when the IMDS
          * Client is closed. If no such class can be found, will throw a {@link  SdkClientException}.
          *
          * @param httpClient the http client
