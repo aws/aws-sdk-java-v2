@@ -44,9 +44,9 @@ public final class Ec2MetadataResponse {
     }
 
     /**
-     * Create a {@link Ec2MetadataResponse} with the given body as it's content.
+     * Create a {@link Ec2MetadataResponse} with the given body as its content.
      * @param body the content of the response
-     * @return a {@link Ec2MetadataResponse} with the given body as it's content.
+     * @return a {@link Ec2MetadataResponse} with the given body as its content.
      */
     public static Ec2MetadataResponse create(String body) {
         return new Ec2MetadataResponse(body);
