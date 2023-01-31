@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS CloudTrail Data Service",
-    "contributor": "",
-    "description": "Add CloudTrail Data Service to enable users to ingest activity events from non-AWS sources into CloudTrail Lake."
-}

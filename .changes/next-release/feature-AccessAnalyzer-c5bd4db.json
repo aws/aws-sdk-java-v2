@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Access Analyzer",
-    "contributor": "",
-    "description": "Enabled FIPS endpoints for GovCloud (US) regions in SDK."
-}
