@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Support",
+    "contributor": "",
+    "description": "This fixes incorrect endpoint construction when a customer is explicitly setting a region."
+}
