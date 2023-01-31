@@ -82,7 +82,11 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
 
     @Override
     public Builder toBuilder() {
-        return new DefaultBuilder(this);
+        return builder().attributeValueMap(this.attributeValueMap)
+                        .attributeConverterProviders(this.attributeConverterProviders != null
+                                                     ? this.attributeConverterProviders.chainedProviders()
+                                                     : null);
+
     }
 
     public Map<String, AttributeValue> getAttributeValueMap() {
@@ -338,13 +342,6 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
 
         List<AttributeConverterProvider> attributeConverterProviders = new ArrayList<>();
 
-        public DefaultBuilder(DefaultEnhancedDocument enhancedDocument) {
-            attributeValueMap.putAll(enhancedDocument.getAttributeValueMap());
-            attributeConverterProviders = enhancedDocument.attributeConverterProviders != null ?
-                                          enhancedDocument.attributeConverterProviders.chainedProviders() : null;
-
-        }
-
         public DefaultBuilder() {
         }
 
@@ -462,9 +459,8 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
 
         @Override
         public Builder attributeConverterProviders(List<AttributeConverterProvider> attributeConverterProviders) {
-            this.attributeConverterProviders = attributeConverterProviders != null ? new ArrayList<>(attributeConverterProviders)
-                                                                                   : null;
-            return null;
+            this.attributeConverterProviders = attributeConverterProviders;
+            return this;
         }
 
         @Override

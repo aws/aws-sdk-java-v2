@@ -40,11 +40,6 @@ import software.amazon.awssdk.core.SdkNumber;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
-import software.amazon.awssdk.enhanced.dynamodb.internal.converter.ChainConverterProvider;
-import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.BigDecimalAttributeConverter;
-import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.BigIntegerAttributeConverter;
-import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.LocalDateAttributeConverter;
-import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.StringAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.document.DefaultEnhancedDocument;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.utils.Pair;
@@ -271,7 +266,6 @@ public class DefaultEnhancedDocumentTest {
         return Stream.of(strings).collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
-
     private static DefaultEnhancedDocument.DefaultBuilder documentBuilder() {
         DefaultEnhancedDocument.DefaultBuilder defaultBuilder = DefaultEnhancedDocument.builder();
         defaultBuilder.addAttributeConverterProvider(AttributeConverterProvider.defaultProvider());
@@ -280,12 +274,10 @@ public class DefaultEnhancedDocumentTest {
 
     private static AttributeStringValueMap map() {
         return new AttributeStringValueMap();
-
     }
 
     public static void validateAttributeValueMapAndDocument(AttributeStringValueMap attributeStringValueMap,
                                                              DefaultEnhancedDocument enhancedDocument) {
-
         // assert for keys in Document
         assertThat(attributeStringValueMap.getAttributeValueMap().keySet()).isEqualTo(enhancedDocument.asMap().keySet());
 
@@ -298,7 +290,6 @@ public class DefaultEnhancedDocumentTest {
             );
     }
 
-
     @ParameterizedTest
     @MethodSource("attributeValueMapsCorrespondingDocuments")
     void validate_BuilderMethodsOfDefaultDocument(AttributeStringValueMap expectedMap,
@@ -308,9 +299,6 @@ public class DefaultEnhancedDocumentTest {
          * The builder method internally creates a AttributeValueMap which is saved to the ddb, if this matches then
          * the document is as expected
          */
-
-        System.out.println("enhancedDocument "+enhancedDocument.toJson());
-
         assertThat(enhancedDocument.getAttributeValueMap()).isEqualTo(expectedMap.getAttributeValueMap());
         System.out.println("enhancedDocument amp here " +enhancedDocument.getAttributeValueMap());
     }
@@ -332,10 +320,9 @@ public class DefaultEnhancedDocumentTest {
 
     @Test
     void copyCreatedFromToBuilder(){
-
-
-        DefaultEnhancedDocument originalDoc = (DefaultEnhancedDocument) documentBuilder().add(SIMPLE_STRING_KEY, SIMPLE_STRING)
-                                                              .build();
+        DefaultEnhancedDocument originalDoc = (DefaultEnhancedDocument) documentBuilder()
+            .add(SIMPLE_STRING_KEY, SIMPLE_STRING)
+            .build();
         DefaultEnhancedDocument copiedDoc = (DefaultEnhancedDocument)  originalDoc.toBuilder().build();
         DefaultEnhancedDocument copyAndAlter =
             (DefaultEnhancedDocument)  originalDoc.toBuilder().addString("keyOne", "valueOne").build();
@@ -345,8 +332,6 @@ public class DefaultEnhancedDocumentTest {
         assertThat(copyAndAlter.getString(SIMPLE_STRING_KEY)).isEqualTo(SIMPLE_STRING);
         assertThat(copyAndAlter.getString("keyOne")).isEqualTo("valueOne");
         assertThat(originalDoc).isEqualTo(copiedDoc);
-
-
     }
 
     @Test
@@ -369,7 +354,6 @@ public class DefaultEnhancedDocumentTest {
         assertThat(document.isNull("nullAttribute")).isTrue();
     }
 
-
     @Test
     void multipleGetterForDocument(){
 
@@ -390,7 +374,6 @@ public class DefaultEnhancedDocumentTest {
             .addEnhancedDocument("nestedDoc", documentBuilder().addStringSet("innerKey" ,
                                                                              getStringSet(STRINGS_ARRAY)).build())
             .build();
-
 
         assertThat(document.getString(SIMPLE_STRING_KEY)).isEqualTo(SIMPLE_STRING);
         assertThat(document.getSdkNumber(SIMPLE_NUMBER_KEY).intValue()).isEqualTo(1);
@@ -419,7 +402,6 @@ public class DefaultEnhancedDocumentTest {
         assertThat(document.getTypeOf("nullKey")).isNull();
     }
 
-
     static class AttributeStringValueMap {
         Map<String, AttributeValue> attributeValueMap = new LinkedHashMap<>();
 
@@ -432,5 +414,4 @@ public class DefaultEnhancedDocumentTest {
             return this;
         }
     }
-
 }
