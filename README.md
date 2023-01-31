@@ -60,7 +60,7 @@ To automatically manage module versions (currently all modules have the same ver
 </dependencyManagement>
 ```
 
-Then individual models may omit the `version` from their dependency statement:
+Then individual modules may omit the `version` from their dependency statement:
 
 ```xml
 <dependencies>
