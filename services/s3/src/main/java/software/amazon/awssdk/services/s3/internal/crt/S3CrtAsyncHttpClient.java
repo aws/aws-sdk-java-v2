@@ -44,6 +44,7 @@ import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
  * An implementation of {@link SdkAsyncHttpClient} that uses an CRT S3 HTTP client {@link S3Client} to communicate with S3.
@@ -86,7 +87,7 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
     public CompletableFuture<Void> execute(AsyncExecuteRequest asyncRequest) {
         CompletableFuture<Void> executeFuture = new CompletableFuture<>();
         URI uri = asyncRequest.request().getUri();
-        HttpRequest httpRequest = toCrtRequest(uri, asyncRequest);
+        HttpRequest httpRequest = toCrtRequest(asyncRequest);
         S3CrtResponseHandlerAdapter responseHandler =
             new S3CrtResponseHandlerAdapter(executeFuture, asyncRequest.responseHandler());
 
@@ -97,12 +98,13 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
 
         ChecksumConfig checksumConfig =
             checksumConfig(httpChecksum, requestType, s3NativeClientConfiguration.checksumValidationEnabled());
+        URI endpoint = getEndpoint(uri);
 
         S3MetaRequestOptions requestOptions = new S3MetaRequestOptions()
             .withHttpRequest(httpRequest)
             .withMetaRequestType(requestType)
             .withChecksumConfig(checksumConfig)
-            .withEndpoint(getEndpoint(uri))
+            .withEndpoint(endpoint)
             .withResponseHandler(responseHandler)
             .withResumeToken(resumeToken);
 
@@ -156,7 +158,7 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         });
     }
 
-    private static HttpRequest toCrtRequest(URI uri, AsyncExecuteRequest asyncRequest) {
+    private static HttpRequest toCrtRequest(AsyncExecuteRequest asyncRequest) {
         SdkHttpRequest sdkRequest = asyncRequest.request();
 
         String method = sdkRequest.method().name();
@@ -169,7 +171,7 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
                                               .map(value -> "?" + value)
                                               .orElse("");
 
-        HttpHeader[] crtHeaderArray = createHttpHeaderList(uri, asyncRequest).toArray(new HttpHeader[0]);
+        HttpHeader[] crtHeaderArray = createHttpHeaderList(asyncRequest).toArray(new HttpHeader[0]);
 
         S3CrtRequestBodyStreamAdapter sdkToCrtRequestPublisher =
             new S3CrtRequestBodyStreamAdapter(asyncRequest.requestContentPublisher());
@@ -207,13 +209,14 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         }
     }
 
-    private static List<HttpHeader> createHttpHeaderList(URI uri, AsyncExecuteRequest asyncRequest) {
+    private static List<HttpHeader> createHttpHeaderList(AsyncExecuteRequest asyncRequest) {
         SdkHttpRequest sdkRequest = asyncRequest.request();
         List<HttpHeader> crtHeaderList = new ArrayList<>();
 
         // Set Host Header if needed
         if (!sdkRequest.firstMatchingHeader(Header.HOST).isPresent()) {
-            crtHeaderList.add(new HttpHeader(Header.HOST, uri.getHost()));
+            String hostHeader = getHostHeaderValue(asyncRequest.request());
+            crtHeaderList.add(new HttpHeader(Header.HOST, hostHeader));
         }
 
         // Set Content-Length if needed
@@ -227,5 +230,11 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
                                                       .forEach(crtHeaderList::add));
 
         return crtHeaderList;
+    }
+
+    private static String getHostHeaderValue(SdkHttpRequest request) {
+        return SdkHttpUtils.isUsingStandardPort(request.protocol(), request.port())
+               ? request.host()
+               : request.host() + ":" + request.port();
     }
 }
