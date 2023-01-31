@@ -1,0 +1,66 @@
+{
+    "version": "2.19.27",
+    "date": "2023-01-30",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "DynamoDB Enhanced Client",
+            "contributor": "",
+            "description": "Cache BeanTableSchema and ImmutableTableSchema to prevent potential metaspace memory leak with JDK 15+. See [#3701](https://github.com/aws/aws-sdk-java-v2/issues/3701)."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Application Discovery Service",
+            "contributor": "",
+            "description": "Update ImportName validation to 255 from the current length of 100"
+        },
+        {
+            "type": "feature",
+            "category": "AWS CloudFormation",
+            "contributor": "",
+            "description": "This feature provides a method of obtaining which regions a stackset has stack instances deployed in."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaConvert",
+            "contributor": "",
+            "description": "Enabled FIPS endpoints for GovCloud (US) regions in SDK."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudDirectory",
+            "contributor": "",
+            "description": "Enabled FIPS endpoints for GovCloud (US) regions in SDK."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Data Lifecycle Manager",
+            "contributor": "",
+            "description": "Enabled FIPS endpoints for GovCloud (US) regions in SDK."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "We add Prefix Lists as a new route destination option for LocalGatewayRoutes. This will allow customers to create routes to Prefix Lists. Prefix List routes will allow customers to group individual CIDR routes with the same target into a single route."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Workflow Service",
+            "contributor": "",
+            "description": "Enabled FIPS endpoints for GovCloud (US) regions in SDK."
+        },
+        {
+            "type": "feature",
+            "category": "EC2 Image Builder",
+            "contributor": "",
+            "description": "Enabled FIPS endpoints for GovCloud (US) regions in SDK."
+        },
+        {
+            "type": "feature",
+            "category": "Managed Streaming for Kafka",
+            "contributor": "",
+            "description": "Enabled FIPS endpoints for GovCloud (US) regions in SDK."
+        }
+    ]
+}
