@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS AppSync",
+    "contributor": "",
+    "description": "This release introduces the feature to support EventBridge as AppSync data source."
+}
