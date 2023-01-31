@@ -18,7 +18,6 @@ package software.amazon.awssdk.imds;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.imds.internal.DefaultEc2MetadataClient;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
