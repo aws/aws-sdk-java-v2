@@ -81,7 +81,7 @@ public final class AwsCrtConfigurationUtils {
         return clientProxyOptions;
     }
 
-    public static HttpMonitoringOptions revolveHttpMonitoringOptions(ConnectionHealthConfiguration config) {
+    public static HttpMonitoringOptions resolveHttpMonitoringOptions(ConnectionHealthConfiguration config) {
         if (config == null) {
             return null;
         }

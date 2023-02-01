@@ -2,5 +2,5 @@
     "type": "feature",
     "category": "AWS CRT HTTP Client",
     "contributor": "",
-    "description": "Allow users to enable Post Quantum TLS via `AwsCrtAsyncHttpClient.builder().preferePostQuantumTls(true).build()`."
+    "description": "Allow users to enable Post Quantum TLS via `AwsCrtAsyncHttpClient.builder().postQuantumTlsEnabled(true).build()`."
 }
