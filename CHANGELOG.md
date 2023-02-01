@@ -1,3 +1,102 @@
+# __2.19.29__ __2023-02-01__
+## __AWS Identity and Access Management__
+  - ### Features
+    - Documentation updates for AWS Identity and Access Management (IAM).
+
+## __AWS MediaTailor__
+  - ### Features
+    - The AWS Elemental MediaTailor SDK for Channel Assembly has added support for program updates, and the ability to clip the end of VOD sources in programs.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - EC2 Instance Metadata Client is now generally available - https://github.com/aws/aws-sdk-java-v2/issues/61
+    - Updated endpoint and partition metadata.
+
+## __Amazon DevOps Guru__
+  - ### Features
+    - This release adds filter support ListAnomalyForInsight API.
+
+## __Amazon Forecast Service__
+  - ### Features
+    - This release will enable customer select INCREMENTAL as ImportModel in Forecast's CreateDatasetImportJob API. Verified latest SDK containing required attribute, following https://w.amazon.com/bin/view/AWS-Seer/Launch/Trebuchet/
+
+## __Amazon Simple Notification Service__
+  - ### Features
+    - Additional attributes added for set-topic-attributes.
+
+# __2.19.28__ __2023-01-31__
+## __AWS AppSync__
+  - ### Features
+    - This release introduces the feature to support EventBridge as AppSync data source.
+
+## __AWS CRT-based S3 Client__
+  - ### Bugfixes
+    - Fixed an issue where port number was not added to host header. See [#3721](https://github.com/aws/aws-sdk-java-v2/issues/3721) and [#3682](https://github.com/aws/aws-sdk-java-v2/issues/3682).
+
+## __AWS CloudTrail__
+  - ### Features
+    - Add new "Channel" APIs to enable users to manage channels used for CloudTrail Lake integrations, and "Resource Policy" APIs to enable users to manage the resource-based permissions policy attached to a channel.
+
+## __AWS CloudTrail Data Service__
+  - ### Features
+    - Add CloudTrail Data Service to enable users to ingest activity events from non-AWS sources into CloudTrail Lake.
+
+## __AWS Ground Station__
+  - ### Features
+    - DigIF Expansion changes to the Customer APIs.
+
+## __AWS IoT__
+  - ### Features
+    - Added support for IoT Rules Engine Cloudwatch Logs action batch mode.
+
+## __AWS Outposts__
+  - ### Features
+    - Enabled FIPS endpoints for GovCloud (US) regions in SDK.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - New fields have been added to the AWS Security Finding Format. Compliance.SecurityControlId is a unique identifier for a security control across standards. Compliance.AssociatedStandards contains all enabled standards in which a security control is enabled.
+
+## __AWS Support__
+  - ### Features
+    - This fixes incorrect endpoint construction when a customer is explicitly setting a region.
+
+## __Access Analyzer__
+  - ### Features
+    - Enabled FIPS endpoints for GovCloud (US) regions in SDK.
+
+## __Amazon Connect Participant Service__
+  - ### Features
+    - Enabled FIPS endpoints for GovCloud (US) regions in SDK.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This launch allows customers to associate up to 8 IP addresses to their NAT Gateways to increase the limit on concurrent connections to a single destination by eight times from 55K to 440K.
+
+## __Amazon Kinesis__
+  - ### Features
+    - Enabled FIPS endpoints for GovCloud (US) regions in SDK.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - Amazon OpenSearch Service adds the option for a VPC endpoint connection between two domains when the local domain uses OpenSearch version 1.3 or 2.3. You can now use remote reindex to copy indices from one VPC domain to another without a reverse proxy.
+
+## __Amazon Polly__
+  - ### Features
+    - Amazon Polly adds two new neural American English voices - Ruth, Stephen
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker Automatic Model Tuning now supports more completion criteria for Hyperparameter Optimization.
+
+## __CodeArtifact__
+  - ### Features
+    - This release introduces a new DeletePackage API, which enables deletion of a package and all of its versions from a repository.
+
 # __2.19.27__ __2023-01-30__
 ## __AWS Application Discovery Service__
   - ### Features
