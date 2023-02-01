@@ -62,11 +62,7 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
             .option(SdkClientOption.SERVICE_CONFIGURATION)).toBuilder();
         serviceConfigBuilder.profileFile(serviceConfigBuilder.profileFileSupplier() != null ?
                                          serviceConfigBuilder.profileFileSupplier() :
-                                         config.option(SdkClientOption.PROFILE_FILE_SUPPLIER) != null ?
-                                         config.option(SdkClientOption.PROFILE_FILE_SUPPLIER) :
-                                         serviceConfigBuilder.profileFile() != null ?
-                                         () -> serviceConfigBuilder.profileFile() :
-                                         () -> config.option(SdkClientOption.PROFILE_FILE));
+                                         config.option(SdkClientOption.PROFILE_FILE_SUPPLIER));
         serviceConfigBuilder.profileName(serviceConfigBuilder.profileName() != null ? serviceConfigBuilder.profileName() : config
             .option(SdkClientOption.PROFILE_NAME));
         if (serviceConfigBuilder.dualstackEnabled() != null) {

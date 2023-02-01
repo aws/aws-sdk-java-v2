@@ -367,9 +367,7 @@ public class BaseClientBuilderClass implements ClassSpec {
         ClassName clientConfigClass = ClassName.bestGuess(clientConfigClassName);
         builder.addCode("$1T.Builder serviceConfigBuilder = (($1T) config.option($2T.SERVICE_CONFIGURATION)).toBuilder();"
                         + "serviceConfigBuilder.profileFile(serviceConfigBuilder.profileFileSupplier() != null ? "
-                        + "serviceConfigBuilder.profileFileSupplier() : config.option($2T.PROFILE_FILE_SUPPLIER) != null ? "
-                        + "config.option($2T.PROFILE_FILE_SUPPLIER) : serviceConfigBuilder.profileFile() != null ? "
-                        + "() -> serviceConfigBuilder.profileFile() : () -> config.option($2T.PROFILE_FILE));"
+                        + "serviceConfigBuilder.profileFileSupplier() : config.option($2T.PROFILE_FILE_SUPPLIER));"
                         + "serviceConfigBuilder.profileName(serviceConfigBuilder.profileName() "
                         + "!= null ? serviceConfigBuilder.profileName() : config.option($2T.PROFILE_NAME));",
                         clientConfigClass, SdkClientOption.class);

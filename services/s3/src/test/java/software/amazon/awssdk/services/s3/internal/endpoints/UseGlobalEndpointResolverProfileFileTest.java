@@ -33,112 +33,59 @@ class UseGlobalEndpointResolverProfileFileTest {
         SdkClientConfiguration config = SdkClientConfiguration.builder().build();
         UseGlobalEndpointResolver resolver = new UseGlobalEndpointResolver(config);
 
-        assertThat(resolver.resolve(Region.AF_SOUTH_1)).isEqualTo(false);
+        assertThat(resolver.resolve(Region.AF_SOUTH_1)).isFalse();
     }
 
     @Test
-    void resolve_profileFileRegionalEndpointLegacy_resolvesFromPropertyAsTrue() {
-        ProfileFile file = configuration("[profile regional_s3_endpoint]\n"
-                                         + "s3_us_east_1_regional_endpoint = legacy");
-
-        SdkClientConfiguration config = SdkClientConfiguration
-            .builder()
-            .option(SdkClientOption.PROFILE_FILE, file)
-            .option(SdkClientOption.PROFILE_NAME, "regional_s3_endpoint")
-            .build();
-        UseGlobalEndpointResolver resolver = new UseGlobalEndpointResolver(config);
-
-        assertThat(resolver.resolve(Region.US_EAST_1)).isEqualTo(true);
-    }
-
-    @Test
-    void resolve_profileFileRegionalEndpointRegional_resolvesFromPropertyAsFalse() {
-        ProfileFile file = configuration("[profile regional_s3_endpoint]\n"
-                                         + "s3_us_east_1_regional_endpoint = regional");
-
-        SdkClientConfiguration config = SdkClientConfiguration
-            .builder()
-            .option(SdkClientOption.PROFILE_FILE, file)
-            .option(SdkClientOption.PROFILE_NAME, "regional_s3_endpoint")
-            .build();
-        UseGlobalEndpointResolver resolver = new UseGlobalEndpointResolver(config);
-
-        assertThat(resolver.resolve(Region.US_EAST_1)).isEqualTo(false);
-    }
-
-    @Test
-    void resolve_nullProfileFileSupplierAndNullProfileFileAndNullDefaultRegionalEndpoint_resolvesToTrue() {
+    void resolve_nullProfileFileSupplierAndNullDefaultRegionalEndpoint_resolvesToTrue() {
         SdkClientConfiguration config = SdkClientConfiguration
             .builder()
             .option(SdkClientOption.PROFILE_FILE_SUPPLIER, null)
-            .option(SdkClientOption.PROFILE_FILE, null)
             .option(SdkClientOption.PROFILE_NAME, "regional_s3_endpoint")
             .build();
         UseGlobalEndpointResolver resolver = new UseGlobalEndpointResolver(config);
 
-        assertThat(resolver.resolve(Region.US_EAST_1)).isEqualTo(true);
+        assertThat(resolver.resolve(Region.US_EAST_1)).isTrue();
     }
 
     @Test
-    void resolve_nullProfileFileSupplierAndNullProfileFileAndDefaultRegionalEndPointLegacy_resolvesToTrue() {
+    void resolve_nullProfileFileSupplierAndDefaultRegionalEndPointLegacy_resolvesToTrue() {
         SdkClientConfiguration config = SdkClientConfiguration
             .builder()
             .option(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT, "legacy")
             .option(SdkClientOption.PROFILE_FILE_SUPPLIER, null)
-            .option(SdkClientOption.PROFILE_FILE, null)
             .option(SdkClientOption.PROFILE_NAME, "regional_s3_endpoint")
             .build();
         UseGlobalEndpointResolver resolver = new UseGlobalEndpointResolver(config);
 
-        assertThat(resolver.resolve(Region.US_EAST_1)).isEqualTo(true);
+        assertThat(resolver.resolve(Region.US_EAST_1)).isTrue();
     }
 
     @Test
-    void resolve_nullProfileFileSupplierAndNullProfileFileAndDefaultRegionalEndPointRegional_resolvesToFalse() {
+    void resolve_nullProfileFileSupplierAndDefaultRegionalEndPointRegional_resolvesToFalse() {
         SdkClientConfiguration config = SdkClientConfiguration
             .builder()
             .option(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT, "regional")
             .option(SdkClientOption.PROFILE_FILE_SUPPLIER, null)
-            .option(SdkClientOption.PROFILE_FILE, null)
             .option(SdkClientOption.PROFILE_NAME, "regional_s3_endpoint")
             .build();
         UseGlobalEndpointResolver resolver = new UseGlobalEndpointResolver(config);
 
-        assertThat(resolver.resolve(Region.US_EAST_1)).isEqualTo(false);
+        assertThat(resolver.resolve(Region.US_EAST_1)).isFalse();
     }
 
     @Test
-    void resolve_nullProfileFileSupplierAndNonNullProfileFileEndpointLegacy_resolvesToTrue() {
+    void resolve_nullProfileFileSupplier_resolvesToTrue() {
         Supplier<ProfileFile> supplier = null;
-        ProfileFile file = configuration("[profile regional_s3_endpoint]\n"
-                                         + "s3_us_east_1_regional_endpoint = legacy");
 
         SdkClientConfiguration config = SdkClientConfiguration
             .builder()
             .option(SdkClientOption.PROFILE_FILE_SUPPLIER, supplier)
-            .option(SdkClientOption.PROFILE_FILE, file)
             .option(SdkClientOption.PROFILE_NAME, "regional_s3_endpoint")
             .build();
         UseGlobalEndpointResolver resolver = new UseGlobalEndpointResolver(config);
 
-        assertThat(resolver.resolve(Region.US_EAST_1)).isEqualTo(true);
-    }
-
-    @Test
-    void resolve_nullProfileFileSupplierAndNonNullProfileFileEndpointLegacy_resolvesToFalse() {
-        Supplier<ProfileFile> supplier = null;
-        ProfileFile file = configuration("[profile regional_s3_endpoint]\n"
-                                         + "s3_us_east_1_regional_endpoint = regional");
-
-        SdkClientConfiguration config = SdkClientConfiguration
-            .builder()
-            .option(SdkClientOption.PROFILE_FILE_SUPPLIER, supplier)
-            .option(SdkClientOption.PROFILE_FILE, file)
-            .option(SdkClientOption.PROFILE_NAME, "regional_s3_endpoint")
-            .build();
-        UseGlobalEndpointResolver resolver = new UseGlobalEndpointResolver(config);
-
-        assertThat(resolver.resolve(Region.US_EAST_1)).isEqualTo(false);
+        assertThat(resolver.resolve(Region.US_EAST_1)).isTrue();
     }
 
     @Test
@@ -154,7 +101,7 @@ class UseGlobalEndpointResolverProfileFileTest {
             .build();
         UseGlobalEndpointResolver resolver = new UseGlobalEndpointResolver(config);
 
-        assertThat(resolver.resolve(Region.US_EAST_1)).isEqualTo(true);
+        assertThat(resolver.resolve(Region.US_EAST_1)).isTrue();
     }
 
     @Test
@@ -170,7 +117,7 @@ class UseGlobalEndpointResolverProfileFileTest {
             .build();
         UseGlobalEndpointResolver resolver = new UseGlobalEndpointResolver(config);
 
-        assertThat(resolver.resolve(Region.US_EAST_1)).isEqualTo(false);
+        assertThat(resolver.resolve(Region.US_EAST_1)).isFalse();
     }
 
     private ProfileFile configuration(String string) {

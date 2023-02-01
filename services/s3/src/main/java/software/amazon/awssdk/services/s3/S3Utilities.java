@@ -171,9 +171,7 @@ public final class S3Utilities {
         S3Utilities.Builder builder = builder()
                           .region(clientConfiguration.option(AwsClientOption.AWS_REGION))
                           .s3Configuration((S3Configuration) clientConfiguration.option(SdkClientOption.SERVICE_CONFIGURATION))
-                          .profileFile(clientConfiguration.option(SdkClientOption.PROFILE_FILE_SUPPLIER) != null ?
-                                       clientConfiguration.option(SdkClientOption.PROFILE_FILE_SUPPLIER) :
-                                       () -> clientConfiguration.option(SdkClientOption.PROFILE_FILE))
+                          .profileFile(clientConfiguration.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
                           .profileName(clientConfiguration.option(SdkClientOption.PROFILE_NAME));
 
         if (Boolean.TRUE.equals(clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN))) {

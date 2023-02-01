@@ -246,7 +246,7 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
     private URI endpointFromConfig(SdkClientConfiguration config) {
         return new DefaultServiceEndpointBuilder(serviceEndpointPrefix(), DEFAULT_ENDPOINT_PROTOCOL)
             .withRegion(config.option(AwsClientOption.AWS_REGION))
-            .withProfileFile(profileFileSupplierOrFallbackToProfileFile(config))
+            .withProfileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
             .withProfileName(config.option(SdkClientOption.PROFILE_NAME))
             .putAdvancedOption(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT,
                                config.option(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT))
@@ -273,7 +273,7 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
             throw new IllegalStateException("No region was configured, and use-region-provider-chain was disabled.");
         }
 
-        Supplier<ProfileFile> profileFile = profileFileSupplierOrFallbackToProfileFile(config);
+        Supplier<ProfileFile> profileFile = config.option(SdkClientOption.PROFILE_FILE_SUPPLIER);
         String profileName = config.option(SdkClientOption.PROFILE_NAME);
         return DefaultAwsRegionProviderChain.builder()
                                             .profileFile(profileFile)
@@ -283,13 +283,12 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
     }
 
     private DefaultsMode resolveDefaultsMode(SdkClientConfiguration config) {
-        DefaultsMode defaultsMode =
-            config.option(AwsClientOption.DEFAULTS_MODE) != null ?
-            config.option(AwsClientOption.DEFAULTS_MODE) :
-            DefaultsModeResolver.create()
-                                .profileFile(profileFileSupplierOrFallbackToProfileFile(config))
-                                .profileName(config.option(SdkClientOption.PROFILE_NAME))
-                                .resolve();
+        DefaultsMode defaultsMode;
+        defaultsMode = config.option(AwsClientOption.DEFAULTS_MODE) != null ? config.option(AwsClientOption.DEFAULTS_MODE) :
+                       DefaultsModeResolver.create()
+                                           .profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
+                                           .profileName(config.option(SdkClientOption.PROFILE_NAME))
+                                           .resolve();
 
         if (defaultsMode == DefaultsMode.AUTO) {
             defaultsMode = autoDefaultsModeDiscovery.discover(config.option(AwsClientOption.AWS_REGION));
@@ -314,7 +313,7 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
      * Load the dualstack endpoint setting from the default provider logic.
      */
     private Boolean resolveUseDualstackFromDefaultProvider(SdkClientConfiguration config) {
-        Supplier<ProfileFile> profileFile = profileFileSupplierOrFallbackToProfileFile(config);
+        Supplier<ProfileFile> profileFile = config.option(SdkClientOption.PROFILE_FILE_SUPPLIER);
         String profileName = config.option(SdkClientOption.PROFILE_NAME);
         return DualstackEnabledProvider.builder()
                                        .profileFile(profileFile)
@@ -337,7 +336,7 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
      * Load the dualstack endpoint setting from the default provider logic.
      */
     private Boolean resolveUseFipsFromDefaultProvider(SdkClientConfiguration config) {
-        Supplier<ProfileFile> profileFile = profileFileSupplierOrFallbackToProfileFile(config);
+        Supplier<ProfileFile> profileFile = config.option(SdkClientOption.PROFILE_FILE_SUPPLIER);
         String profileName = config.option(SdkClientOption.PROFILE_NAME);
         return FipsEnabledProvider.builder()
                                   .profileFile(profileFile)
@@ -371,7 +370,7 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
         }
 
         RetryMode retryMode = RetryMode.resolver()
-                                       .profileFile(profileFileSupplierOrFallbackToProfileFile(config))
+                                       .profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
                                        .profileName(config.option(SdkClientOption.PROFILE_NAME))
                                        .defaultRetryMode(config.option(SdkClientOption.DEFAULT_RETRY_MODE))
                                        .resolve();
@@ -468,12 +467,4 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
         return Pair.of(region, Optional.empty());
     }
 
-    private Supplier<ProfileFile> profileFileSupplierOrFallbackToProfileFile(SdkClientConfiguration config) {
-        Supplier<ProfileFile> profileFile = config.option(SdkClientOption.PROFILE_FILE_SUPPLIER);
-        if (profileFile != null) {
-            return profileFile;
-        }
-
-        return () -> config.option(SdkClientOption.PROFILE_FILE);
-    }
 }

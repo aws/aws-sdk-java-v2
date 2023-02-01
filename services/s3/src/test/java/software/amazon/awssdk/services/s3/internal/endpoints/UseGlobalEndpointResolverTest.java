@@ -112,7 +112,7 @@ public class UseGlobalEndpointResolverTest {
                                           .type(ProfileFile.Type.CONFIGURATION)
                                           .build();
 
-            configBuilder.option(SdkClientOption.PROFILE_FILE, file)
+            configBuilder.option(SdkClientOption.PROFILE_FILE_SUPPLIER, () -> file)
                          .option(SdkClientOption.PROFILE_NAME, "regional_s3_endpoint");
         }
 

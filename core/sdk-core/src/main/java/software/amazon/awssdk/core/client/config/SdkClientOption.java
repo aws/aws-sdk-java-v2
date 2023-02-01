@@ -127,7 +127,15 @@ public final class SdkClientOption<T> extends ClientOption<T> {
 
     /**
      * The profile file to use for this client.
+     *
+     * @deprecated This method was used:
+     *             - To read configuration options in profile files in aws-core, sdk-core
+     *             - Build service configuration objects from profile files in codegen, s3control
+     *             - Build service configuration objects from profile files, set endpoint options in s3
+     *             - Set retry mode in dynamodb, kinesis
+     * This has been replaced with {@code PROFILE_FILE_SUPPLIER.get()}.
      */
+    @Deprecated
     public static final SdkClientOption<ProfileFile> PROFILE_FILE = new SdkClientOption<>(ProfileFile.class);
 
     /**
