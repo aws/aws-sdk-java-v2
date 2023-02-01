@@ -104,7 +104,7 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
                                                                     config.get(SdkHttpConfigurationOption.CONNECTION_TIMEOUT));
              TlsContextOptions clientTlsContextOptions =
                  TlsContextOptions.createDefaultClient()
-                                  .withCipherPreference(resolveCipherPreference(builder.preferPostQuantumTls))
+                                  .withCipherPreference(resolveCipherPreference(builder.postQuantumTlsEnabled))
                                   .withVerifyPeer(!config.get(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES));
              TlsContext clientTlsContext = new TlsContext(clientTlsContextOptions)) {
 
@@ -367,7 +367,7 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
                                               tcpKeepAliveConfigurationBuilder);
 
         /**
-         * Configure whether to prefer a hybrid post-quantum key exchange option for the Transport Layer Security (TLS) network
+         * Configure whether to enable a hybrid post-quantum key exchange option for the Transport Layer Security (TLS) network
          * encryption protocol when communicating with services that support Post Quantum TLS. If Post Quantum cipher suites are
          * not supported on the platform, the SDK will use the default TLS cipher suites.
          *
@@ -377,10 +377,10 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
          * <p>
          * It's disabled by default.
          *
-         * @param preferPostQuantumTls whether to prefer Post Quantum TLS
+         * @param postQuantumTlsEnabled whether to prefer Post Quantum TLS
          * @return The builder of the method chaining.
          */
-        Builder preferPostQuantumTls(Boolean preferPostQuantumTls);
+        Builder postQuantumTlsEnabled(Boolean postQuantumTlsEnabled);
     }
 
     /**
@@ -393,7 +393,7 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         private ProxyConfiguration proxyConfiguration;
         private ConnectionHealthConfiguration connectionHealthConfiguration;
         private TcpKeepAliveConfiguration tcpKeepAliveConfiguration;
-        private Boolean preferPostQuantumTls;
+        private Boolean postQuantumTlsEnabled;
 
         private DefaultBuilder() {
         }
@@ -474,8 +474,8 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         }
 
         @Override
-        public Builder preferPostQuantumTls(Boolean preferPostQuantumTls) {
-            this.preferPostQuantumTls = preferPostQuantumTls;
+        public Builder postQuantumTlsEnabled(Boolean postQuantumTlsEnabled) {
+            this.postQuantumTlsEnabled = postQuantumTlsEnabled;
             return this;
         }
 

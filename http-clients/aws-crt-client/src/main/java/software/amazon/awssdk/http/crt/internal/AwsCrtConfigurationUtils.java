@@ -93,9 +93,9 @@ public final class AwsCrtConfigurationUtils {
         return httpMonitoringOptions;
     }
 
-    public static TlsCipherPreference resolveCipherPreference(Boolean preferTlsCipherPreference) {
+    public static TlsCipherPreference resolveCipherPreference(Boolean postQuantumTlsEnabled) {
         TlsCipherPreference defaultTls = TlsCipherPreference.TLS_CIPHER_SYSTEM_DEFAULT;
-        if (preferTlsCipherPreference == null || !preferTlsCipherPreference) {
+        if (postQuantumTlsEnabled == null || !postQuantumTlsEnabled) {
             return defaultTls;
         }
 
