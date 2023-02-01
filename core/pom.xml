@@ -45,6 +45,7 @@
         <module>metrics-spi</module>
         <module>json-utils</module>
         <module>endpoints-spi</module>
+        <module>imds</module>
     </modules>
 
     <dependencyManagement>
