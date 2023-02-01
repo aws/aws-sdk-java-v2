@@ -1,3 +1,29 @@
+# __2.19.29__ __2023-02-01__
+## __AWS Identity and Access Management__
+  - ### Features
+    - Documentation updates for AWS Identity and Access Management (IAM).
+
+## __AWS MediaTailor__
+  - ### Features
+    - The AWS Elemental MediaTailor SDK for Channel Assembly has added support for program updates, and the ability to clip the end of VOD sources in programs.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - EC2 Instance Metadata Client is now generally available - https://github.com/aws/aws-sdk-java-v2/issues/61
+    - Updated endpoint and partition metadata.
+
+## __Amazon DevOps Guru__
+  - ### Features
+    - This release adds filter support ListAnomalyForInsight API.
+
+## __Amazon Forecast Service__
+  - ### Features
+    - This release will enable customer select INCREMENTAL as ImportModel in Forecast's CreateDatasetImportJob API. Verified latest SDK containing required attribute, following https://w.amazon.com/bin/view/AWS-Seer/Launch/Trebuchet/
+
+## __Amazon Simple Notification Service__
+  - ### Features
+    - Additional attributes added for set-topic-attributes.
+
 # __2.19.28__ __2023-01-31__
 ## __AWS AppSync__
   - ### Features
