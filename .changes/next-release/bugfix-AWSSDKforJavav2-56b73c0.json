@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "stevenshan",
+    "description": "Fix race in FlatteningSubscriber where onClose called before items passed to onNext. See [#3734](https://github.com/aws/aws-sdk-java-v2/issues/3734)"
+}
