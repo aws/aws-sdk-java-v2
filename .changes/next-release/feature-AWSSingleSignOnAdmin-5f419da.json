@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Single Sign-On Admin",
-    "contributor": "",
-    "description": "Enabled FIPS endpoints for GovCloud (US) regions in SDK."
-}
