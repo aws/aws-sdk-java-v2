@@ -69,6 +69,7 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
                                  .withClientBootstrap(s3NativeClientConfiguration.clientBootstrap())
                                  .withPartSize(s3NativeClientConfiguration.partSizeBytes())
                                  .withComputeContentMd5(false)
+                                 .withMaxConnections(s3NativeClientConfiguration.maxConcurrency())
                                  .withThroughputTargetGbps(s3NativeClientConfiguration.targetThroughputInGbps())
                                  .withInitialReadWindowSize(initialWindowSize)
                                  .withReadBackpressureEnabled(true);
