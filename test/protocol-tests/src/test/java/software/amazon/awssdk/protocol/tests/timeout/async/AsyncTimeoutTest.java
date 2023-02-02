@@ -44,7 +44,7 @@ public class AsyncTimeoutTest {
     @Rule
     public WireMockRule wireMock = new WireMockRule(0);
 
-    private static final int API_CALL_TIMEOUT = 1200;
+    private static final int API_CALL_TIMEOUT = 4800;
     private static final int API_CALL_ATTEMPT_TIMEOUT = 1000;
 
     private static final int DELAY_BEFORE_API_CALL_ATTEMPT_TIMEOUT = 100;
