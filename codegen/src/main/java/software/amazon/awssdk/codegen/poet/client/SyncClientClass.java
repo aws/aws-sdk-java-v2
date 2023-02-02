@@ -63,7 +63,6 @@ import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.utils.Logger;
 
-//TODO Make SyncClientClass extend SyncClientInterface (similar to what we do in AsyncClientClass)
 public final class SyncClientClass extends SyncClientInterface {
 
     private final IntermediateModel model;
