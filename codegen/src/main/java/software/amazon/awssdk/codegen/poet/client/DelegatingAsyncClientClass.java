@@ -25,7 +25,7 @@ import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
 import javax.lang.model.element.Modifier;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.codegen.model.config.customization.UtilitiesMethod;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
@@ -53,7 +53,7 @@ public class DelegatingAsyncClientClass extends AsyncClientInterface {
         TypeSpec.Builder result = PoetUtils.createClassBuilder(className);
 
         result.addSuperinterface(interfaceClass)
-              .addAnnotation(SdkInternalApi.class)
+              .addAnnotation(SdkProtectedApi.class)
               .addModifiers(Modifier.ABSTRACT, Modifier.PUBLIC)
               .addField(FieldSpec.builder(interfaceClass, "delegate")
                                  .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
