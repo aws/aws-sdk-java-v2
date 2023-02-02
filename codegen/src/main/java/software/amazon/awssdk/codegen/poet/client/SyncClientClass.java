@@ -43,7 +43,6 @@ import software.amazon.awssdk.codegen.model.config.customization.UtilitiesMethod
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.Protocol;
-import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.client.specs.Ec2ProtocolSpec;
@@ -65,7 +64,7 @@ import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.utils.Logger;
 
 //TODO Make SyncClientClass extend SyncClientInterface (similar to what we do in AsyncClientClass)
-public class SyncClientClass implements ClassSpec {
+public final class SyncClientClass extends SyncClientInterface {
 
     private final IntermediateModel model;
     private final PoetExtension poetExtensions;
@@ -73,6 +72,7 @@ public class SyncClientClass implements ClassSpec {
     private final ProtocolSpec protocolSpec;
 
     public SyncClientClass(GeneratorTaskParams taskParams) {
+        super(taskParams.getModel());
         this.model = taskParams.getModel();
         this.poetExtensions = taskParams.getPoetExtensions();
         this.className = poetExtensions.getClientClass(model.getMetadata().getSyncClient());
