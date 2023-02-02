@@ -76,6 +76,12 @@ public class SdkExecutionAttribute {
      */
     public static final ExecutionAttribute<Boolean> SIGNER_OVERRIDDEN = new ExecutionAttribute<>("SignerOverridden");
 
+    /**
+     * @deprecated This attribute is used for:
+     *             - Set profile file of service endpoint builder docdb, nepture, rds
+     * This has been replaced with {@code PROFILE_FILE_SUPPLIER.get()}.
+     */
+    @Deprecated
     public static final ExecutionAttribute<ProfileFile> PROFILE_FILE = new ExecutionAttribute<>("ProfileFile");
 
     public static final ExecutionAttribute<Supplier<ProfileFile>> PROFILE_FILE_SUPPLIER =
