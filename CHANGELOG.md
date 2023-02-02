@@ -1,3 +1,44 @@
+# __2.19.30__ __2023-02-02__
+## __AWS CRT HTTP Client__
+  - ### Features
+    - Allow users to enable Post Quantum TLS via `AwsCrtAsyncHttpClient.builder().postQuantumTlsEnabled(true).build()`.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Single Sign-On Admin__
+  - ### Features
+    - Enabled FIPS endpoints for GovCloud (US) regions in SDK.
+
+## __Amazon AppConfig__
+  - ### Features
+    - AWS AppConfig introduces KMS customer-managed key (CMK) encryption of configuration data, along with AWS Secrets Manager as a new configuration data source. S3 objects using SSE-KMS encryption and SSM Parameter Store SecureStrings are also now supported.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Enabled FIPS endpoints for GovCloud (US) regions in SDK.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for EC2.
+
+## __Amazon Keyspaces__
+  - ### Features
+    - Enabled FIPS endpoints for GovCloud (US) regions in SDK.
+
+## __Amazon QuickSight__
+  - ### Features
+    - QuickSight support for Radar Chart and Dashboard Publish Options
+
+## __Amazon Redshift__
+  - ### Features
+    - Enabled FIPS endpoints for GovCloud (US) regions in SDK.
+
+## __Elastic Load Balancing__
+  - ### Features
+    - The GWLB Flex Health Check project updates the default values of healthy-threshold-count from 3 to 5 and unhealthy-threshold-count from 3 to 2
+
 # __2.19.29__ __2023-02-01__
 ## __AWS Identity and Access Management__
   - ### Features
