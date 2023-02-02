@@ -42,7 +42,7 @@ public class DelegatingAsyncClientClass extends AsyncClientInterface {
     public DelegatingAsyncClientClass(IntermediateModel model) {
         super(model);
         this.model = model;
-        this.className = ClassName.get(model.getMetadata().getFullInternalPackageName(),
+        this.className = ClassName.get(model.getMetadata().getFullClientPackageName(),
                                        "Delegating" + model.getMetadata().getAsyncInterface());
         this.poetExtensions = new PoetExtension(model);
     }
