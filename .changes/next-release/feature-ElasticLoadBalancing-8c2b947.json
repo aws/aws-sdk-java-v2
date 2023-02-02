@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Elastic Load Balancing",
+    "contributor": "",
+    "description": "The GWLB Flex Health Check project updates the default values of healthy-threshold-count from 3 to 5 and unhealthy-threshold-count from 3 to 2"
+}
