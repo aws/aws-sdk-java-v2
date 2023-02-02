@@ -64,8 +64,7 @@ import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.utils.Logger;
 
-//TODO Make SyncClientClass extend SyncClientInterface (similar to what we do in AsyncClientClass)
-public class SyncClientClass implements ClassSpec {
+public class SyncClientClass extends SyncClientInterface {
 
     private final IntermediateModel model;
     private final PoetExtension poetExtensions;
@@ -73,6 +72,7 @@ public class SyncClientClass implements ClassSpec {
     private final ProtocolSpec protocolSpec;
 
     public SyncClientClass(GeneratorTaskParams taskParams) {
+        super(taskParams.getModel());
         this.model = taskParams.getModel();
         this.poetExtensions = taskParams.getPoetExtensions();
         this.className = poetExtensions.getClientClass(model.getMetadata().getSyncClient());
