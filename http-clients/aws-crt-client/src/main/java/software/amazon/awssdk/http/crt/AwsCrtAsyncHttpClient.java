@@ -272,8 +272,7 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
          * client before we stop reading from the underlying TCP socket and wait for the Subscriber
          * to read more data.
          *
-         * @param readBufferSize The number of bytes that can be buffered. The maximum buffering size value is
-         *                       capped at {@code Integer.MAX}.
+         * @param readBufferSize The number of bytes that can be buffered.
          * @return The builder of the method chaining.
          */
         Builder readBufferSizeInBytes(Long readBufferSize);
