@@ -1,3 +1,16 @@
+# __2.19.31__ __2023-02-03__
+## __AWS Proton__
+  - ### Features
+    - Add new GetResourcesSummary API
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Redshift__
+  - ### Features
+    - Corrects descriptions of the parameters for the API operations RestoreFromClusterSnapshot, RestoreTableFromClusterSnapshot, and CreateCluster.
+
 # __2.19.30__ __2023-02-02__
 ## __AWS CRT HTTP Client__
   - ### Features
