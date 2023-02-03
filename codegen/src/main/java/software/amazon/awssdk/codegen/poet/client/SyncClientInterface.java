@@ -62,7 +62,7 @@ import software.amazon.awssdk.regions.ServiceMetadata;
 import software.amazon.awssdk.regions.ServiceMetadataProvider;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 
-public final class SyncClientInterface implements ClassSpec {
+public class SyncClientInterface implements ClassSpec {
 
     private final IntermediateModel model;
     private final ClassName className;
