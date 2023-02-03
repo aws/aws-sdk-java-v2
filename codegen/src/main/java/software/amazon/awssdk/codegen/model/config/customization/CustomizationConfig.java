@@ -207,6 +207,11 @@ public class CustomizationConfig {
     private boolean delegateAsyncClientClass;
 
     /**
+     * Whether to generate an abstract decorator class that delegates to the sync service client
+     */
+    private boolean delegateSyncClientClass;
+
+    /**
      * Whether to skip generating endpoint tests from endpoint-tests.json
      */
     private boolean skipEndpointTestGeneration;
@@ -545,6 +550,14 @@ public class CustomizationConfig {
 
     public void setDelegateAsyncClientClass(boolean delegateAsyncClientClass) {
         this.delegateAsyncClientClass = delegateAsyncClientClass;
+    }
+
+    public boolean isDelegateSyncClientClass() {
+        return delegateSyncClientClass;
+    }
+
+    public void setDelegateSyncClientClass(boolean delegateSyncClientClass) {
+        this.delegateSyncClientClass = delegateSyncClientClass;
     }
 
     public boolean isSkipEndpointTestGeneration() {

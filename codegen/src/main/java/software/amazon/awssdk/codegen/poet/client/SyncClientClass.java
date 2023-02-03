@@ -43,7 +43,6 @@ import software.amazon.awssdk.codegen.model.config.customization.UtilitiesMethod
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.Protocol;
-import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.client.specs.Ec2ProtocolSpec;
@@ -64,8 +63,7 @@ import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.utils.Logger;
 
-//TODO Make SyncClientClass extend SyncClientInterface (similar to what we do in AsyncClientClass)
-public class SyncClientClass implements ClassSpec {
+public class SyncClientClass extends SyncClientInterface {
 
     private final IntermediateModel model;
     private final PoetExtension poetExtensions;
@@ -73,6 +71,7 @@ public class SyncClientClass implements ClassSpec {
     private final ProtocolSpec protocolSpec;
 
     public SyncClientClass(GeneratorTaskParams taskParams) {
+        super(taskParams.getModel());
         this.model = taskParams.getModel();
         this.poetExtensions = taskParams.getPoetExtensions();
         this.className = poetExtensions.getClientClass(model.getMetadata().getSyncClient());
@@ -185,7 +184,8 @@ public class SyncClientClass implements ClassSpec {
         return builder.build();
     }
 
-    private List<MethodSpec> operations() {
+    @Override
+    protected List<MethodSpec> operations() {
         return model.getOperations().values().stream()
                     .filter(o -> !o.hasEventStreamInput())
                     .filter(o -> !o.hasEventStreamOutput())
@@ -283,7 +283,7 @@ public class SyncClientClass implements ClassSpec {
         return methods;
     }
 
-    private List<MethodSpec> paginatedMethods(OperationModel opModel) {
+    protected List<MethodSpec> paginatedMethods(OperationModel opModel) {
         List<MethodSpec> paginatedMethodSpecs = new ArrayList<>();
 
         if (opModel.isPaginated()) {
@@ -313,7 +313,8 @@ public class SyncClientClass implements ClassSpec {
                          .build();
     }
 
-    private MethodSpec utilitiesMethod() {
+    @Override
+    protected MethodSpec utilitiesMethod() {
         UtilitiesMethod config = model.getCustomizationConfig().getUtilitiesMethod();
         ClassName returnType = PoetUtils.classNameFromFqcn(config.getReturnType());
         String instanceClass = config.getInstanceType();
@@ -386,7 +387,8 @@ public class SyncClientClass implements ClassSpec {
         return methodBuilder.build();
     }
 
-    private MethodSpec waiterMethod() {
+    @Override
+    protected MethodSpec waiterMethod() {
         return MethodSpec.methodBuilder("waiter")
                          .addModifiers(Modifier.PUBLIC)
                          .addAnnotation(Override.class)
