@@ -88,12 +88,15 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
      *
      * <p>
      * Whether the transfer manager can achieve the configured target throughput depends on various factors such as the network
-     * bandwidth of the environment and the configured {@link #maxConcurrency}.
+     * bandwidth of the environment and whether {@link #maxConcurrency} is configured.
      *
      * <p>
-     * By default, it is 10 Gbps. If users want to transfer as fast as possible, it's recommended to set it to the maximum network
-     * bandwidth on the host that the application is running on. For EC2 instances, you can find network bandwidth for a specific
+     * By default, it is 10 gigabits per second. If users want to transfer as fast as possible, it's recommended to set it to the
+     * maximum network bandwidth on the host that the application is running on. For EC2 instances, you can find network
+     * bandwidth for a specific
      * instance type in <a href="https://aws.amazon.com/ec2/instance-types/">Amazon EC2 instance type page</a>.
+     * If you are running into out of file descriptors error, consider using {@link #maxConcurrency(Integer)} to limit the
+     * number of connections.
      *
      * @param targetThroughputInGbps the target throughput in Gbps
      * @return this builder for method chaining.

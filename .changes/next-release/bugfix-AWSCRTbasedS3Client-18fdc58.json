@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS CRT-based S3 Client",
+    "contributor": "",
+    "description": "Fix an issue where maxConcurrency configured by the user on the builder was not honored."
+}
