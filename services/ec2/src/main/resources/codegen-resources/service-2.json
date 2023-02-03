@@ -152,6 +152,16 @@
       "output":{"shape":"AssignPrivateIpAddressesResult"},
       "documentation":"<p>Assigns one or more secondary private IP addresses to the specified network interface.</p> <p>You can specify one or more specific secondary IP addresses, or you can specify the number of secondary IP addresses to be automatically assigned within the subnet's CIDR block range. The number of secondary IP addresses that you can assign to an instance varies by instance type. For information about instance types, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-types.html\">Instance Types</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>. For more information about Elastic IP addresses, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/elastic-ip-addresses-eip.html\">Elastic IP Addresses</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p> <p>When you move a secondary private IP address to another network interface, any Elastic IP address that is associated with the IP address is also moved.</p> <p>Remapping an IP address is an asynchronous operation. When you move an IP address from one network interface to another, check <code>network/interfaces/macs/mac/local-ipv4s</code> in the instance metadata to confirm that the remapping is complete.</p> <p>You must specify either the IP addresses or the IP address count in the request.</p> <p>You can optionally use Prefix Delegation on the network interface. You must specify either the IPv4 Prefix Delegation prefixes, or the IPv4 Prefix Delegation count. For information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-prefix-eni.html\"> Assigning prefixes to Amazon EC2 network interfaces</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p>"
     },
+    "AssignPrivateNatGatewayAddress":{
+      "name":"AssignPrivateNatGatewayAddress",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"AssignPrivateNatGatewayAddressRequest"},
+      "output":{"shape":"AssignPrivateNatGatewayAddressResult"},
+      "documentation":"<p>Assigns one or more private IPv4 addresses to a private NAT gateway. For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html#nat-gateway-working-with\">Work with NAT gateways</a> in the <i>Amazon Virtual Private Cloud User Guide</i>.</p>"
+    },
     "AssociateAddress":{
       "name":"AssociateAddress",
       "http":{
@@ -219,7 +229,17 @@
       },
       "input":{"shape":"AssociateIpamResourceDiscoveryRequest"},
       "output":{"shape":"AssociateIpamResourceDiscoveryResult"},
-      "documentation":"<p>Associates an IPAM resource discovery with an Amazon VPC IPAM. A resource discovery is an IPAM component that enables IPAM Service to manage and monitor resources that belong to the owning account.</p>"
+      "documentation":"<p>Associates an IPAM resource discovery with an Amazon VPC IPAM. A resource discovery is an IPAM component that enables IPAM to manage and monitor resources that belong to the owning account.</p>"
+    },
+    "AssociateNatGatewayAddress":{
+      "name":"AssociateNatGatewayAddress",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"AssociateNatGatewayAddressRequest"},
+      "output":{"shape":"AssociateNatGatewayAddressResult"},
+      "documentation":"<p>Associates Elastic IP addresses (EIPs) and private IPv4 addresses with a public NAT gateway. For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html#nat-gateway-working-with\">Work with NAT gateways</a> in the <i>Amazon Virtual Private Cloud User Guide</i>.</p> <p>By default, you can associate up to 2 Elastic IP addresses per public NAT gateway. You can increase the limit by requesting a quota adjustment. For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/amazon-vpc-limits.html#vpc-limits-eips\">Elastic IP address quotas</a> in the <i>Amazon Virtual Private Cloud User Guide</i>.</p>"
     },
     "AssociateRouteTable":{
       "name":"AssociateRouteTable",
@@ -746,7 +766,7 @@
       },
       "input":{"shape":"CreateIpamResourceDiscoveryRequest"},
       "output":{"shape":"CreateIpamResourceDiscoveryResult"},
-      "documentation":"<p>Creates an IPAM resource discovery. A resource discovery is an IPAM component that enables IPAM Service to manage and monitor resources that belong to the owning account.</p>"
+      "documentation":"<p>Creates an IPAM resource discovery. A resource discovery is an IPAM component that enables IPAM to manage and monitor resources that belong to the owning account.</p>"
     },
     "CreateIpamScope":{
       "name":"CreateIpamScope",
@@ -1490,7 +1510,7 @@
       },
       "input":{"shape":"DeleteIpamResourceDiscoveryRequest"},
       "output":{"shape":"DeleteIpamResourceDiscoveryResult"},
-      "documentation":"<p>Deletes an IPAM resource discovery. A resource discovery is an IPAM component that enables IPAM Service to manage and monitor resources that belong to the owning account.</p>"
+      "documentation":"<p>Deletes an IPAM resource discovery. A resource discovery is an IPAM component that enables IPAM to manage and monitor resources that belong to the owning account.</p>"
     },
     "DeleteIpamScope":{
       "name":"DeleteIpamScope",
@@ -2662,7 +2682,7 @@
       },
       "input":{"shape":"DescribeIpamResourceDiscoveriesRequest"},
       "output":{"shape":"DescribeIpamResourceDiscoveriesResult"},
-      "documentation":"<p>Describes IPAM resource discoveries. A resource discovery is an IPAM component that enables IPAM Service to manage and monitor resources that belong to the owning account.</p>"
+      "documentation":"<p>Describes IPAM resource discoveries. A resource discovery is an IPAM component that enables IPAM to manage and monitor resources that belong to the owning account.</p>"
     },
     "DescribeIpamResourceDiscoveryAssociations":{
       "name":"DescribeIpamResourceDiscoveryAssociations",
@@ -3787,7 +3807,17 @@
       },
       "input":{"shape":"DisassociateIpamResourceDiscoveryRequest"},
       "output":{"shape":"DisassociateIpamResourceDiscoveryResult"},
-      "documentation":"<p>Disassociates a resource discovery from an Amazon VPC IPAM. A resource discovery is an IPAM component that enables IPAM Service to manage and monitor resources that belong to the owning account.</p>"
+      "documentation":"<p>Disassociates a resource discovery from an Amazon VPC IPAM. A resource discovery is an IPAM component that enables IPAM to manage and monitor resources that belong to the owning account.</p>"
+    },
+    "DisassociateNatGatewayAddress":{
+      "name":"DisassociateNatGatewayAddress",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DisassociateNatGatewayAddressRequest"},
+      "output":{"shape":"DisassociateNatGatewayAddressResult"},
+      "documentation":"<p>Disassociates secondary Elastic IP addresses (EIPs) from a public NAT gateway. You cannot disassociate your primary EIP. For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html#nat-gateway-edit-secondary\">Edit secondary IP address associations</a> in the <i>Amazon Virtual Private Cloud User Guide</i>.</p> <p>While disassociating is in progress, you cannot associate/disassociate additional EIPs while the connections are being drained. You are, however, allowed to delete the NAT gateway.</p> <p>An EIP will only be released at the end of MaxDrainDurationSeconds. The EIPs stay associated and support the existing connections but do not support any new connections (new connections are distributed across the remaining associated EIPs). As the existing connections drain out, the EIPs (and the corresponding private IPs mapped to them) get released.</p>"
     },
     "DisassociateRouteTable":{
       "name":"DisassociateRouteTable",
@@ -4244,7 +4274,7 @@
       },
       "input":{"shape":"GetIpamResourceCidrsRequest"},
       "output":{"shape":"GetIpamResourceCidrsResult"},
-      "documentation":"<p>Returns resource CIDRs managed by IPAM in a given scope. If an IPAM is associated with more than one resource discovery, the resource CIDRs across all of the resource discoveries is returned. A resource discovery is an IPAM component that enables IPAM Service to manage and monitor resources that belong to the owning account.</p>"
+      "documentation":"<p>Returns resource CIDRs managed by IPAM in a given scope. If an IPAM is associated with more than one resource discovery, the resource CIDRs across all of the resource discoveries is returned. A resource discovery is an IPAM component that enables IPAM to manage and monitor resources that belong to the owning account.</p>"
     },
     "GetLaunchTemplateData":{
       "name":"GetLaunchTemplateData",
@@ -4780,7 +4810,7 @@
       },
       "input":{"shape":"ModifyIpamResourceDiscoveryRequest"},
       "output":{"shape":"ModifyIpamResourceDiscoveryResult"},
-      "documentation":"<p>Modifies a resource discovery. A resource discovery is an IPAM component that enables IPAM Service to manage and monitor resources that belong to the owning account.</p>"
+      "documentation":"<p>Modifies a resource discovery. A resource discovery is an IPAM component that enables IPAM to manage and monitor resources that belong to the owning account.</p>"
     },
     "ModifyIpamScope":{
       "name":"ModifyIpamScope",
@@ -5766,6 +5796,16 @@
       "input":{"shape":"UnassignPrivateIpAddressesRequest"},
       "documentation":"<p>Unassigns one or more secondary private IP addresses, or IPv4 Prefix Delegation prefixes from a network interface.</p>"
     },
+    "UnassignPrivateNatGatewayAddress":{
+      "name":"UnassignPrivateNatGatewayAddress",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"UnassignPrivateNatGatewayAddressRequest"},
+      "output":{"shape":"UnassignPrivateNatGatewayAddressResult"},
+      "documentation":"<p>Unassigns secondary private NAT gateway IPv4 addresses from a private NAT gateway. You cannot unassign your primary private IP. For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html#nat-gateway-edit-secondary\">Edit secondary IP address associations</a> in the <i>Amazon Virtual Private Cloud User Guide</i>.</p> <p>While unassigning is in progress, you cannot assign/unassign additional IP addresses while the connections are being drained. You are, however, allowed to delete the NAT gateway.</p> <p>A private IP address will only be released at the end of MaxDrainDurationSeconds. The private IP addresses stay associated and support the existing connections but do not support any new connections (new connections are distributed across the remaining assigned private IP address). After the existing connections drain out, the private IP addresses get released. </p> <p/> <p/>"
+    },
     "UnmonitorInstances":{
       "name":"UnmonitorInstances",
       "http":{
@@ -6094,6 +6134,7 @@
     },
     "AcceptVpcPeeringConnectionRequest":{
       "type":"structure",
+      "required":["VpcPeeringConnectionId"],
       "members":{
         "DryRun":{
           "shape":"Boolean",
@@ -7358,6 +7399,44 @@
         }
       }
     },
+    "AssignPrivateNatGatewayAddressRequest":{
+      "type":"structure",
+      "required":["NatGatewayId"],
+      "members":{
+        "NatGatewayId":{
+          "shape":"NatGatewayId",
+          "documentation":"<p>The NAT gateway ID.</p>"
+        },
+        "PrivateIpAddresses":{
+          "shape":"IpList",
+          "documentation":"<p>The private IPv4 addresses you want to assign to the private NAT gateway.</p>",
+          "locationName":"PrivateIpAddress"
+        },
+        "PrivateIpAddressCount":{
+          "shape":"PrivateIpAddressCount",
+          "documentation":"<p>The number of private IP addresses to assign to the NAT gateway. You can't specify this parameter when also specifying private IP addresses.</p>"
+        },
+        "DryRun":{
+          "shape":"Boolean",
+          "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>"
+        }
+      }
+    },
+    "AssignPrivateNatGatewayAddressResult":{
+      "type":"structure",
+      "members":{
+        "NatGatewayId":{
+          "shape":"NatGatewayId",
+          "documentation":"<p>The NAT gateway ID.</p>",
+          "locationName":"natGatewayId"
+        },
+        "NatGatewayAddresses":{
+          "shape":"NatGatewayAddressList",
+          "documentation":"<p>NAT gateway IP addresses.</p>",
+          "locationName":"natGatewayAddressSet"
+        }
+      }
+    },
     "AssignedPrivateIpAddress":{
       "type":"structure",
       "members":{
@@ -7488,6 +7567,10 @@
     },
     "AssociateEnclaveCertificateIamRoleRequest":{
       "type":"structure",
+      "required":[
+        "CertificateArn",
+        "RoleArn"
+      ],
       "members":{
         "CertificateArn":{
           "shape":"CertificateId",
@@ -7622,6 +7705,48 @@
         }
       }
     },
+    "AssociateNatGatewayAddressRequest":{
+      "type":"structure",
+      "required":[
+        "NatGatewayId",
+        "AllocationIds"
+      ],
+      "members":{
+        "NatGatewayId":{
+          "shape":"NatGatewayId",
+          "documentation":"<p>The NAT gateway ID.</p>"
+        },
+        "AllocationIds":{
+          "shape":"AllocationIdList",
+          "documentation":"<p>The allocation IDs of EIPs that you want to associate with your NAT gateway.</p>",
+          "locationName":"AllocationId"
+        },
+        "PrivateIpAddresses":{
+          "shape":"IpList",
+          "documentation":"<p>The private IPv4 addresses that you want to assign to the NAT gateway.</p>",
+          "locationName":"PrivateIpAddress"
+        },
+        "DryRun":{
+          "shape":"Boolean",
+          "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>"
+        }
+      }
+    },
+    "AssociateNatGatewayAddressResult":{
+      "type":"structure",
+      "members":{
+        "NatGatewayId":{
+          "shape":"NatGatewayId",
+          "documentation":"<p>The NAT gateway ID.</p>",
+          "locationName":"natGatewayId"
+        },
+        "NatGatewayAddresses":{
+          "shape":"NatGatewayAddressList",
+          "documentation":"<p>The IP addresses.</p>",
+          "locationName":"natGatewayAddressSet"
+        }
+      }
+    },
     "AssociateRouteTableRequest":{
       "type":"structure",
       "required":["RouteTableId"],
@@ -7698,6 +7823,11 @@
     },
     "AssociateTransitGatewayMulticastDomainRequest":{
       "type":"structure",
+      "required":[
+        "TransitGatewayMulticastDomainId",
+        "TransitGatewayAttachmentId",
+        "SubnetIds"
+      ],
       "members":{
         "TransitGatewayMulticastDomainId":{
           "shape":"TransitGatewayMulticastDomainId",
@@ -11114,7 +11244,7 @@
           "locationName":"kmsKeyId"
         },
         "PresignedUrl":{
-          "shape":"String",
+          "shape":"CopySnapshotRequestPSU",
           "documentation":"<p>When you copy an encrypted source snapshot using the Amazon EC2 Query API, you must supply a pre-signed URL. This parameter is optional for unencrypted snapshots. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html\">Query requests</a>.</p> <p>The <code>PresignedUrl</code> should use the snapshot source endpoint, the <code>CopySnapshot</code> action, and include the <code>SourceRegion</code>, <code>SourceSnapshotId</code>, and <code>DestinationRegion</code> parameters. The <code>PresignedUrl</code> must be signed using Amazon Web Services Signature Version 4. Because EBS snapshots are stored in Amazon S3, the signing algorithm for this parameter uses the same logic that is described in <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-query-string-auth.html\">Authenticating Requests: Using Query Parameters (Amazon Web Services Signature Version 4)</a> in the <i>Amazon Simple Storage Service API Reference</i>. An invalid or improperly signed <code>PresignedUrl</code> will cause the copy operation to fail asynchronously, and the snapshot will move to an <code>error</code> state.</p>",
           "locationName":"presignedUrl"
         },
@@ -11137,6 +11267,10 @@
           "locationName":"dryRun"
         }
       }
+    },
+    "CopySnapshotRequestPSU":{
+      "type":"string",
+      "sensitive":true
     },
     "CopySnapshotResult":{
       "type":"structure",
@@ -11916,7 +12050,7 @@
         },
         "ExcessCapacityTerminationPolicy":{
           "shape":"FleetExcessCapacityTerminationPolicy",
-          "documentation":"<p>Indicates whether running instances should be terminated if the total target capacity of the EC2 Fleet is decreased below the current size of the EC2 Fleet.</p>"
+          "documentation":"<p>Indicates whether running instances should be terminated if the total target capacity of the EC2 Fleet is decreased below the current size of the EC2 Fleet.</p> <p>Supported only for fleets of type <code>maintain</code>.</p>"
         },
         "LaunchTemplateConfigs":{
           "shape":"FleetLaunchTemplateConfigListRequest",
@@ -12820,7 +12954,7 @@
         },
         "SubnetId":{
           "shape":"SubnetId",
-          "documentation":"<p>The subnet in which to create the NAT gateway.</p>"
+          "documentation":"<p>The ID of the subnet in which to create the NAT gateway.</p>"
         },
         "TagSpecifications":{
           "shape":"TagSpecificationList",
@@ -12834,6 +12968,20 @@
         "PrivateIpAddress":{
           "shape":"String",
           "documentation":"<p>The private IPv4 address to assign to the NAT gateway. If you don't provide an address, a private IPv4 address will be automatically assigned.</p>"
+        },
+        "SecondaryAllocationIds":{
+          "shape":"AllocationIdList",
+          "documentation":"<p>Secondary EIP allocation IDs. For more information about secondary addresses, see <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html#nat-gateway-creating\">Create a NAT gateway</a> in the <i>Amazon Virtual Private Cloud User Guide</i>.</p>",
+          "locationName":"SecondaryAllocationId"
+        },
+        "SecondaryPrivateIpAddresses":{
+          "shape":"IpList",
+          "documentation":"<p>Secondary private IPv4 addresses. For more information about secondary addresses, see <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html#nat-gateway-creating\">Create a NAT gateway</a> in the <i>Amazon Virtual Private Cloud User Guide</i>.</p>",
+          "locationName":"SecondaryPrivateIpAddress"
+        },
+        "SecondaryPrivateIpAddressCount":{
+          "shape":"PrivateIpAddressCount",
+          "documentation":"<p>[Private NAT gateway only] The number of secondary private IPv4 addresses you want to assign to the NAT gateway. For more information about secondary addresses, see <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html#nat-gateway-creating\">Create a NAT gateway</a> in the <i>Amazon Virtual Private Cloud User Guide</i>.</p>"
         }
       }
     },
@@ -14899,7 +15047,7 @@
         },
         "VolumeType":{
           "shape":"VolumeType",
-          "documentation":"<p>The volume type. This parameter can be one of the following values:</p> <ul> <li> <p>General Purpose SSD: <code>gp2</code> | <code>gp3</code> </p> </li> <li> <p>Provisioned IOPS SSD: <code>io1</code> | <code>io2</code> </p> </li> <li> <p>Throughput Optimized HDD: <code>st1</code> </p> </li> <li> <p>Cold HDD: <code>sc1</code> </p> </li> <li> <p>Magnetic: <code>standard</code> </p> </li> </ul> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSVolumeTypes.html\">Amazon EBS volume types</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p> <p>Default: <code>gp2</code> </p>"
+          "documentation":"<p>The volume type. This parameter can be one of the following values:</p> <ul> <li> <p>General Purpose SSD: <code>gp2</code> | <code>gp3</code> </p> </li> <li> <p>Provisioned IOPS SSD: <code>io1</code> | <code>io2</code> </p> </li> <li> <p>Throughput Optimized HDD: <code>st1</code> </p> </li> <li> <p>Cold HDD: <code>sc1</code> </p> </li> <li> <p>Magnetic: <code>standard</code> </p> </li> </ul> <important> <p>Throughput Optimized HDD (<code>st1</code>) and Cold HDD (<code>sc1</code>) volumes can't be used as boot volumes.</p> </important> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSVolumeTypes.html\">Amazon EBS volume types</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p> <p>Default: <code>gp2</code> </p>"
         },
         "DryRun":{
           "shape":"Boolean",
@@ -15112,6 +15260,7 @@
     },
     "CreateVpcPeeringConnectionRequest":{
       "type":"structure",
+      "required":["VpcId"],
       "members":{
         "DryRun":{
           "shape":"Boolean",
@@ -24954,6 +25103,10 @@
     },
     "DisassociateEnclaveCertificateIamRoleRequest":{
       "type":"structure",
+      "required":[
+        "CertificateArn",
+        "RoleArn"
+      ],
       "members":{
         "CertificateArn":{
           "shape":"CertificateId",
@@ -25054,6 +25207,47 @@
         }
       }
     },
+    "DisassociateNatGatewayAddressRequest":{
+      "type":"structure",
+      "required":[
+        "NatGatewayId",
+        "AssociationIds"
+      ],
+      "members":{
+        "NatGatewayId":{
+          "shape":"NatGatewayId",
+          "documentation":"<p>The NAT gateway ID.</p>"
+        },
+        "AssociationIds":{
+          "shape":"EipAssociationIdList",
+          "documentation":"<p>The association IDs of EIPs that have been associated with the NAT gateway.</p>",
+          "locationName":"AssociationId"
+        },
+        "MaxDrainDurationSeconds":{
+          "shape":"DrainSeconds",
+          "documentation":"<p>The maximum amount of time to wait (in seconds) before forcibly releasing the IP addresses if connections are still in progress. Default value is 350 seconds.</p>"
+        },
+        "DryRun":{
+          "shape":"Boolean",
+          "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>"
+        }
+      }
+    },
+    "DisassociateNatGatewayAddressResult":{
+      "type":"structure",
+      "members":{
+        "NatGatewayId":{
+          "shape":"NatGatewayId",
+          "documentation":"<p>The NAT gateway ID.</p>",
+          "locationName":"natGatewayId"
+        },
+        "NatGatewayAddresses":{
+          "shape":"NatGatewayAddressList",
+          "documentation":"<p>Information about the NAT gateway IP addresses.</p>",
+          "locationName":"natGatewayAddressSet"
+        }
+      }
+    },
     "DisassociateRouteTableRequest":{
       "type":"structure",
       "required":["AssociationId"],
@@ -25098,6 +25292,11 @@
     },
     "DisassociateTransitGatewayMulticastDomainRequest":{
       "type":"structure",
+      "required":[
+        "TransitGatewayMulticastDomainId",
+        "TransitGatewayAttachmentId",
+        "SubnetIds"
+      ],
       "members":{
         "TransitGatewayMulticastDomainId":{
           "shape":"TransitGatewayMulticastDomainId",
@@ -25484,6 +25683,11 @@
       "max":99.999,
       "min":0.001
     },
+    "DrainSeconds":{
+      "type":"integer",
+      "max":4000,
+      "min":1
+    },
     "DynamicRoutingValue":{
       "type":"string",
       "enum":[
@@ -25536,7 +25740,7 @@
         },
         "Encrypted":{
           "shape":"Boolean",
-          "documentation":"<p>Indicates whether the encryption state of an EBS volume is changed while being restored from a backing snapshot. The effect of setting the encryption state to <code>true</code> depends on the volume origin (new or from a snapshot), starting encryption state, ownership, and whether encryption by default is enabled. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html#encryption-parameters\">Amazon EBS encryption</a> in the <i>Amazon EC2 User Guide</i>.</p> <p>In no case can you remove encryption from an encrypted volume.</p> <p>Encrypted volumes can only be attached to instances that support Amazon EBS encryption. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html#EBSEncryption_supported_instances\">Supported instance types</a>.</p> <p>This parameter is not returned by <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeImageAttribute.html\">DescribeImageAttribute</a>.</p>",
+          "documentation":"<p>Indicates whether the encryption state of an EBS volume is changed while being restored from a backing snapshot. The effect of setting the encryption state to <code>true</code> depends on the volume origin (new or from a snapshot), starting encryption state, ownership, and whether encryption by default is enabled. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html#encryption-parameters\">Amazon EBS encryption</a> in the <i>Amazon EC2 User Guide</i>.</p> <p>In no case can you remove encryption from an encrypted volume.</p> <p>Encrypted volumes can only be attached to instances that support Amazon EBS encryption. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html#EBSEncryption_supported_instances\">Supported instance types</a>.</p> <p>This parameter is not returned by <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeImageAttribute.html\">DescribeImageAttribute</a>.</p> <p>For <a>CreateImage</a> and <a>RegisterImage</a>, you can specify this parameter only for block device mappings that result in new, empty volumes when instances are launched from the image. Omit this parameter on block device mappings that include an existing volume or snapshot. If you include this parameter, and specify an encryption setting that is different from the existing volume or snapshot, the request will fail.</p>",
           "locationName":"encrypted"
         }
       },
@@ -25714,6 +25918,13 @@
       "type":"list",
       "member":{
         "shape":"EgressOnlyInternetGateway",
+        "locationName":"item"
+      }
+    },
+    "EipAssociationIdList":{
+      "type":"list",
+      "member":{
+        "shape":"ElasticIpAssociationId",
         "locationName":"item"
       }
     },
@@ -27613,7 +27824,7 @@
         },
         "ExcessCapacityTerminationPolicy":{
           "shape":"FleetExcessCapacityTerminationPolicy",
-          "documentation":"<p>Indicates whether running instances should be terminated if the target capacity of the EC2 Fleet is decreased below the current size of the EC2 Fleet.</p>",
+          "documentation":"<p>Indicates whether running instances should be terminated if the target capacity of the EC2 Fleet is decreased below the current size of the EC2 Fleet.</p> <p>Supported only for fleets of type <code>maintain</code>.</p>",
           "locationName":"excessCapacityTerminationPolicy"
         },
         "FulfilledCapacity":{
@@ -28372,6 +28583,7 @@
     },
     "GetAssociatedEnclaveCertificateIamRolesRequest":{
       "type":"structure",
+      "required":["CertificateArn"],
       "members":{
         "CertificateArn":{
           "shape":"CertificateId",
@@ -29692,6 +29904,7 @@
     },
     "GetTransitGatewayMulticastDomainAssociationsRequest":{
       "type":"structure",
+      "required":["TransitGatewayMulticastDomainId"],
       "members":{
         "TransitGatewayMulticastDomainId":{
           "shape":"TransitGatewayMulticastDomainId",
@@ -32453,6 +32666,7 @@
     },
     "InstanceCreditSpecificationRequest":{
       "type":"structure",
+      "required":["InstanceId"],
       "members":{
         "InstanceId":{
           "shape":"InstanceId",
@@ -34800,6 +35014,13 @@
         "ipv6"
       ]
     },
+    "IpList":{
+      "type":"list",
+      "member":{
+        "shape":"String",
+        "locationName":"item"
+      }
+    },
     "IpPermission":{
       "type":"structure",
       "members":{
@@ -35678,7 +35899,7 @@
           "locationName":"tagSet"
         }
       },
-      "documentation":"<p>A resource discovery is an IPAM component that enables IPAM Service to manage and monitor resources that belong to the owning account.</p>"
+      "documentation":"<p>A resource discovery is an IPAM component that enables IPAM to manage and monitor resources that belong to the owning account.</p>"
     },
     "IpamResourceDiscoveryAssociation":{
       "type":"structure",
@@ -38820,7 +39041,7 @@
         },
         "ExcessCapacityTerminationPolicy":{
           "shape":"FleetExcessCapacityTerminationPolicy",
-          "documentation":"<p>Indicates whether running instances should be terminated if the total target capacity of the EC2 Fleet is decreased below the current size of the EC2 Fleet.</p>"
+          "documentation":"<p>Indicates whether running instances should be terminated if the total target capacity of the EC2 Fleet is decreased below the current size of the EC2 Fleet.</p> <p>Supported only for fleets of type <code>maintain</code>.</p>"
         },
         "LaunchTemplateConfigs":{
           "shape":"FleetLaunchTemplateConfigListRequest",
@@ -39794,6 +40015,7 @@
     },
     "ModifyPrivateDnsNameOptionsRequest":{
       "type":"structure",
+      "required":["InstanceId"],
       "members":{
         "DryRun":{
           "shape":"Boolean",
@@ -39971,7 +40193,7 @@
       "members":{
         "ExcessCapacityTerminationPolicy":{
           "shape":"ExcessCapacityTerminationPolicy",
-          "documentation":"<p>Indicates whether running Spot Instances should be terminated if the target capacity of the Spot Fleet request is decreased below the current size of the Spot Fleet.</p>",
+          "documentation":"<p>Indicates whether running instances should be terminated if the target capacity of the Spot Fleet request is decreased below the current size of the Spot Fleet.</p> <p>Supported only for fleets of type <code>maintain</code>.</p>",
           "locationName":"excessCapacityTerminationPolicy"
         },
         "LaunchTemplateConfigs":{
@@ -41577,6 +41799,26 @@
           "shape":"String",
           "documentation":"<p>[Public NAT gateway only] The Elastic IP address associated with the NAT gateway.</p>",
           "locationName":"publicIp"
+        },
+        "AssociationId":{
+          "shape":"String",
+          "documentation":"<p>[Public NAT gateway only] The association ID of the Elastic IP address that's associated with the NAT gateway.</p>",
+          "locationName":"associationId"
+        },
+        "IsPrimary":{
+          "shape":"Boolean",
+          "documentation":"<p>Defines if the IP address is the primary address.</p>",
+          "locationName":"isPrimary"
+        },
+        "FailureMessage":{
+          "shape":"String",
+          "documentation":"<p>The address failure message.</p>",
+          "locationName":"failureMessage"
+        },
+        "Status":{
+          "shape":"NatGatewayAddressStatus",
+          "documentation":"<p>The address status.</p>",
+          "locationName":"status"
         }
       },
       "documentation":"<p>Describes the IP addresses and network interface associated with a NAT gateway.</p>"
@@ -41587,6 +41829,17 @@
         "shape":"NatGatewayAddress",
         "locationName":"item"
       }
+    },
+    "NatGatewayAddressStatus":{
+      "type":"string",
+      "enum":[
+        "assigning",
+        "unassigning",
+        "associating",
+        "disassociating",
+        "succeeded",
+        "failed"
+      ]
     },
     "NatGatewayId":{"type":"string"},
     "NatGatewayIdStringList":{
@@ -44029,6 +44282,11 @@
         "locationName":"PrivateIpAddressConfigSet"
       }
     },
+    "PrivateIpAddressCount":{
+      "type":"integer",
+      "max":7,
+      "min":1
+    },
     "PrivateIpAddressSpecification":{
       "type":"structure",
       "members":{
@@ -44923,6 +45181,10 @@
     },
     "RegisterTransitGatewayMulticastGroupMembersRequest":{
       "type":"structure",
+      "required":[
+        "TransitGatewayMulticastDomainId",
+        "NetworkInterfaceIds"
+      ],
       "members":{
         "TransitGatewayMulticastDomainId":{
           "shape":"TransitGatewayMulticastDomainId",
@@ -44954,6 +45216,10 @@
     },
     "RegisterTransitGatewayMulticastGroupSourcesRequest":{
       "type":"structure",
+      "required":[
+        "TransitGatewayMulticastDomainId",
+        "NetworkInterfaceIds"
+      ],
       "members":{
         "TransitGatewayMulticastDomainId":{
           "shape":"TransitGatewayMulticastDomainId",
@@ -45741,7 +46007,7 @@
         },
         "ImageId":{
           "shape":"ImageId",
-          "documentation":"<p>The ID of the AMI. Alternatively, you can specify a Systems Manager parameter, which will resolve to an AMI ID on launch.</p> <p>Valid formats:</p> <ul> <li> <p> <code>ami-17characters00000</code> </p> </li> <li> <p> <code>resolve:ssm:parameter-name</code> </p> </li> <li> <p> <code>resolve:ssm:parameter-name:version-number</code> </p> </li> <li> <p> <code>resolve:ssm:parameter-name:label</code> </p> </li> </ul> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-launch-templates.html#use-an-ssm-parameter-instead-of-an-ami-id\">Use a Systems Manager parameter instead of an AMI ID</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p>"
+          "documentation":"<p>The ID of the AMI. Alternatively, you can specify a Systems Manager parameter, which will resolve to an AMI ID on launch.</p> <p>Valid formats:</p> <ul> <li> <p> <code>ami-17characters00000</code> </p> </li> <li> <p> <code>resolve:ssm:parameter-name</code> </p> </li> <li> <p> <code>resolve:ssm:parameter-name:version-number</code> </p> </li> <li> <p> <code>resolve:ssm:parameter-name:label</code> </p> </li> </ul> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/finding-an-ami.html#using-systems-manager-parameter-to-find-AMI\">Use a Systems Manager parameter to find an AMI</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p>"
         },
         "InstanceType":{
           "shape":"InstanceType",
@@ -48063,7 +48329,7 @@
       "members":{
         "AWSAccessKeyId":{
           "shape":"String",
-          "documentation":"<p>The access key ID of the owner of the bucket. Before you specify a value for your access key ID, review and follow the guidance in <a href=\"https://docs.aws.amazon.com/general/latest/gr/aws-access-keys-best-practices.html\">Best practices for managing Amazon Web Services access keys</a>.</p>"
+          "documentation":"<p>The access key ID of the owner of the bucket. Before you specify a value for your access key ID, review and follow the guidance in <a href=\"https://docs.aws.amazon.com/accounts/latest/reference/best-practices.html\">Best Practices for Amazon Web Services accounts</a> in the <i>Account ManagementReference Guide</i>.</p>"
         },
         "Bucket":{
           "shape":"String",
@@ -48629,6 +48895,7 @@
     },
     "SearchTransitGatewayMulticastGroupsRequest":{
       "type":"structure",
+      "required":["TransitGatewayMulticastDomainId"],
       "members":{
         "TransitGatewayMulticastDomainId":{
           "shape":"TransitGatewayMulticastDomainId",
@@ -48969,6 +49236,7 @@
     },
     "SecurityGroupRuleUpdate":{
       "type":"structure",
+      "required":["SecurityGroupRuleId"],
       "members":{
         "SecurityGroupRuleId":{
           "shape":"SecurityGroupRuleId",
@@ -49953,7 +50221,7 @@
         },
         "ExcessCapacityTerminationPolicy":{
           "shape":"ExcessCapacityTerminationPolicy",
-          "documentation":"<p>Indicates whether running Spot Instances should be terminated if you decrease the target capacity of the Spot Fleet request below the current size of the Spot Fleet.</p>",
+          "documentation":"<p>Indicates whether running instances should be terminated if you decrease the target capacity of the Spot Fleet request below the current size of the Spot Fleet.</p> <p>Supported only for fleets of type <code>maintain</code>.</p>",
           "locationName":"excessCapacityTerminationPolicy"
         },
         "FulfilledCapacity":{
@@ -54064,6 +54332,47 @@
         }
       },
       "documentation":"<p>Contains the parameters for UnassignPrivateIpAddresses.</p>"
+    },
+    "UnassignPrivateNatGatewayAddressRequest":{
+      "type":"structure",
+      "required":[
+        "NatGatewayId",
+        "PrivateIpAddresses"
+      ],
+      "members":{
+        "NatGatewayId":{
+          "shape":"NatGatewayId",
+          "documentation":"<p>The NAT gateway ID.</p>"
+        },
+        "PrivateIpAddresses":{
+          "shape":"IpList",
+          "documentation":"<p>The private IPv4 addresses you want to unassign.</p>",
+          "locationName":"PrivateIpAddress"
+        },
+        "MaxDrainDurationSeconds":{
+          "shape":"DrainSeconds",
+          "documentation":"<p>The maximum amount of time to wait (in seconds) before forcibly releasing the IP addresses if connections are still in progress. Default value is 350 seconds.</p>"
+        },
+        "DryRun":{
+          "shape":"Boolean",
+          "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>"
+        }
+      }
+    },
+    "UnassignPrivateNatGatewayAddressResult":{
+      "type":"structure",
+      "members":{
+        "NatGatewayId":{
+          "shape":"NatGatewayId",
+          "documentation":"<p>The NAT gateway ID.</p>",
+          "locationName":"natGatewayId"
+        },
+        "NatGatewayAddresses":{
+          "shape":"NatGatewayAddressList",
+          "documentation":"<p>Information about the NAT gateway IP addresses.</p>",
+          "locationName":"natGatewayAddressSet"
+        }
+      }
     },
     "UnlimitedSupportedInstanceFamily":{
       "type":"string",

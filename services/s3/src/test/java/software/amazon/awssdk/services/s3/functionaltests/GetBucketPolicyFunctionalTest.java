@@ -27,15 +27,16 @@ import org.junit.Rule;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.crt.Log;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClientBuilder;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
+import software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder;
 import software.amazon.awssdk.services.s3.model.GetBucketPolicyResponse;
 
 public class GetBucketPolicyFunctionalTest {
-    private static final URI HTTP_LOCALHOST_URI = URI.create("http://localhost:8080/");
     private static final String EXAMPLE_BUCKET = "Example-Bucket";
     private static final String EXAMPLE_POLICY =
         "{\"Version\":\"2012-10-17\",\"Id\":\"Policy1234\","
@@ -44,13 +45,17 @@ public class GetBucketPolicyFunctionalTest {
         + "\"Resource\":\"arn:aws:s3:::dummy-resource/*\"}]}";
 
     @Rule
-    public WireMockRule wireMock = new WireMockRule();
+    public WireMockRule wireMock = new WireMockRule(0);
+
+    private URI endpoint() {
+        return URI.create("http://localhost:" + wireMock.port());
+    }
 
     private S3ClientBuilder getSyncClientBuilder() {
 
         return S3Client.builder()
                        .region(Region.US_EAST_1)
-                       .endpointOverride(HTTP_LOCALHOST_URI)
+                       .endpointOverride(endpoint())
                        .credentialsProvider(
                            StaticCredentialsProvider.create(AwsBasicCredentials.create("key", "secret")));
     }
@@ -58,7 +63,16 @@ public class GetBucketPolicyFunctionalTest {
     private S3AsyncClientBuilder getAsyncClientBuilder() {
         return S3AsyncClient.builder()
                             .region(Region.US_EAST_1)
-                            .endpointOverride(HTTP_LOCALHOST_URI)
+                            .endpointOverride(endpoint())
+                            .credentialsProvider(
+                                StaticCredentialsProvider.create(AwsBasicCredentials.create("key", "secret")));
+
+    }
+
+    private S3CrtAsyncClientBuilder getS3CrtAsyncClientBuilder() {
+        return S3AsyncClient.crtBuilder()
+                            .region(Region.US_EAST_1)
+                            .endpointOverride(endpoint())
                             .credentialsProvider(
                                 StaticCredentialsProvider.create(AwsBasicCredentials.create("key", "secret")));
 
@@ -82,5 +96,15 @@ public class GetBucketPolicyFunctionalTest {
 
         GetBucketPolicyResponse response = s3Client.getBucketPolicy(r -> r.bucket(EXAMPLE_BUCKET)).join();
         assertThat(response.policy()).isEqualTo(EXAMPLE_POLICY);
+    }
+
+    @Test
+    public void getBucketPolicy_crtClient() {
+        stubFor(any(anyUrl()).willReturn(aResponse().withStatus(200).withBody(EXAMPLE_POLICY)));
+
+        try(S3AsyncClient s3Client = getS3CrtAsyncClientBuilder().build()) {
+            GetBucketPolicyResponse response = s3Client.getBucketPolicy(r -> r.bucket(EXAMPLE_BUCKET)).join();
+            assertThat(response.policy()).isEqualTo(EXAMPLE_POLICY);
+        }
     }
 }
