@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Proton",
+    "contributor": "",
+    "description": "Add new GetResourcesSummary API"
+}
