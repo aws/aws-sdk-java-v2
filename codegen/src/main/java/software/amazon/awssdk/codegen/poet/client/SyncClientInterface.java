@@ -221,16 +221,12 @@ public class SyncClientInterface implements ClassSpec {
         List<MethodSpec> methods = new ArrayList<>();
 
         MethodSpec.Builder builder = operationMethodSignature(model, opModel);
-        methods.add(operationBody(builder, opModel).build());
+        MethodSpec method = operationBody(builder, opModel).build();
+        methods.add(method);
 
-        operationAddConsumer(methods, opModel);
+        addConsumerMethod(methods, method, SimpleMethodOverload.NORMAL, opModel);
 
         return methods;
-    }
-
-    protected void operationAddConsumer(List<MethodSpec> specs, OperationModel opModel) {
-        specs.add(ClientClassUtils.consumerBuilderVariant(specs.get(0),
-                                                            consumerBuilderJavadoc(opModel, SimpleMethodOverload.NORMAL)));
     }
 
     protected MethodSpec.Builder operationBody(MethodSpec.Builder builder, OperationModel opModel) {
@@ -286,15 +282,10 @@ public class SyncClientInterface implements ClassSpec {
             MethodSpec paginatedMethod = paginatedMethodBody(paginatedMethodBuilder, opModel).build();
             paginatedMethodSpecs.add(paginatedMethod);
 
-            paginatedMethodAddConsumer(paginatedMethodSpecs, paginatedMethod, opModel);
+            addConsumerMethod(paginatedMethodSpecs, paginatedMethod, SimpleMethodOverload.PAGINATED, opModel);
         }
 
         return paginatedMethodSpecs;
-    }
-
-    protected void paginatedMethodAddConsumer(List<MethodSpec> specs, MethodSpec spec, OperationModel opModel) {
-        String consumerBuilderJavadoc = consumerBuilderJavadoc(opModel, SimpleMethodOverload.PAGINATED);
-        specs.add(ClientClassUtils.consumerBuilderVariant(spec, consumerBuilderJavadoc));
     }
 
     private MethodSpec paginatedSimpleMethod(OperationModel opModel) {
@@ -337,12 +328,12 @@ public class SyncClientInterface implements ClassSpec {
         if (opModel.hasStreamingInput() && opModel.hasStreamingOutput()) {
             MethodSpec simpleMethod = streamingInputOutputFileSimpleMethod(opModel, responseType, requestType);
             simpleMethods.add(simpleMethod);
-            streamingSimpleMethodsAddConsumer(simpleMethods, simpleMethod, SimpleMethodOverload.FILE, opModel);
+            addConsumerMethod(simpleMethods, simpleMethod, SimpleMethodOverload.FILE, opModel);
 
         } else if (opModel.hasStreamingInput()) {
             MethodSpec simpleMethod = uploadFromFileSimpleMethod(opModel, responseType, requestType);
             simpleMethods.add(simpleMethod);
-            streamingSimpleMethodsAddConsumer(simpleMethods, simpleMethod, SimpleMethodOverload.FILE, opModel);
+            addConsumerMethod(simpleMethods, simpleMethod, SimpleMethodOverload.FILE, opModel);
 
         } else if (opModel.hasStreamingOutput()) {
             MethodSpec downloadToFileSimpleMethod = downloadToFileSimpleMethod(opModel, responseType, requestType);
@@ -350,18 +341,18 @@ public class SyncClientInterface implements ClassSpec {
             MethodSpec bytesSimpleMethod = bytesSimpleMethod(opModel, responseType, requestType);
 
             simpleMethods.add(downloadToFileSimpleMethod);
-            streamingSimpleMethodsAddConsumer(simpleMethods, downloadToFileSimpleMethod, SimpleMethodOverload.FILE, opModel);
+            addConsumerMethod(simpleMethods, downloadToFileSimpleMethod, SimpleMethodOverload.FILE, opModel);
             simpleMethods.add(inputStreamSimpleMethod);
-            streamingSimpleMethodsAddConsumer(simpleMethods, inputStreamSimpleMethod, SimpleMethodOverload.INPUT_STREAM, opModel);
+            addConsumerMethod(simpleMethods, inputStreamSimpleMethod, SimpleMethodOverload.INPUT_STREAM, opModel);
             simpleMethods.add(bytesSimpleMethod);
-            streamingSimpleMethodsAddConsumer(simpleMethods, bytesSimpleMethod, SimpleMethodOverload.BYTES, opModel);
+            addConsumerMethod(simpleMethods, bytesSimpleMethod, SimpleMethodOverload.BYTES, opModel);
         }
 
         return simpleMethods;
     }
 
-    protected void streamingSimpleMethodsAddConsumer(List<MethodSpec> specs, MethodSpec spec, SimpleMethodOverload overload,
-                                                     OperationModel opModel) {
+    protected void addConsumerMethod(List<MethodSpec> specs, MethodSpec spec, SimpleMethodOverload overload,
+                                     OperationModel opModel) {
         String fileConsumerBuilderJavadoc = consumerBuilderJavadoc(opModel, overload);
         specs.add(ClientClassUtils.consumerBuilderVariant(spec, fileConsumerBuilderJavadoc));
     }

@@ -145,16 +145,8 @@ public class DelegatingSyncClientClass extends SyncClientInterface {
     }
 
     @Override
-    protected void operationAddConsumer(List<MethodSpec> specs, OperationModel opModel) {
-    }
-
-    @Override
-    protected void paginatedMethodAddConsumer(List<MethodSpec> specs, MethodSpec spec, OperationModel opModel) {
-    }
-
-    @Override
-    protected void streamingSimpleMethodsAddConsumer(List<MethodSpec> specs, MethodSpec spec, SimpleMethodOverload overload,
-                                                     OperationModel opModel) {
+    protected void addConsumerMethod(List<MethodSpec> specs, MethodSpec spec, SimpleMethodOverload overload,
+                                     OperationModel opModel) {
     }
 
     private MethodSpec closeMethod() {
