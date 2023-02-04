@@ -265,7 +265,7 @@ public class SyncClientInterface implements ClassSpec {
         return simpleMethodModifier(builder);
     }
 
-    private List<MethodSpec> paginatedMethods(OperationModel opModel) {
+    protected List<MethodSpec> paginatedMethods(OperationModel opModel) {
         List<MethodSpec> paginatedMethodSpecs = new ArrayList<>();
 
         if (opModel.isPaginated()) {

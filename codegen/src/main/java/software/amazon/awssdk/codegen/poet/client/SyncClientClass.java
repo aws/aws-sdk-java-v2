@@ -283,6 +283,7 @@ public class SyncClientClass extends SyncClientInterface {
         return methods;
     }
 
+    @Override
     protected List<MethodSpec> paginatedMethods(OperationModel opModel) {
         List<MethodSpec> paginatedMethodSpecs = new ArrayList<>();
 
