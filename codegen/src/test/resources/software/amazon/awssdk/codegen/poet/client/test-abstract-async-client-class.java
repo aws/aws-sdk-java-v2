@@ -1,13 +1,11 @@
-package software.amazon.awssdk.services.json.internal;
+package software.amazon.awssdk.services.json;
 
 import java.util.concurrent.CompletableFuture;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.Generated;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
-import software.amazon.awssdk.services.json.JsonAsyncClient;
-import software.amazon.awssdk.services.json.JsonUtilities;
 import software.amazon.awssdk.services.json.model.APostOperationRequest;
 import software.amazon.awssdk.services.json.model.APostOperationResponse;
 import software.amazon.awssdk.services.json.model.APostOperationWithOutputRequest;
@@ -44,7 +42,7 @@ import software.amazon.awssdk.services.json.paginators.PaginatedOperationWithRes
 import software.amazon.awssdk.services.json.paginators.PaginatedOperationWithoutResultKeyPublisher;
 
 @Generated("software.amazon.awssdk:codegen")
-@SdkInternalApi
+@SdkProtectedApi
 public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
     protected final JsonAsyncClient delegate;
 

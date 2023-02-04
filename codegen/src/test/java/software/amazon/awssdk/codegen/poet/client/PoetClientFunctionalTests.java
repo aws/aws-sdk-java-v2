@@ -37,25 +37,25 @@ public class PoetClientFunctionalTests {
         assertThat(asyncClientInterface, generatesTo("test-json-async-client-interface.java"));
     }
 
-/*    @Test
+    @Test
     public void delegatingAsyncClientClass() throws Exception {
         DelegatingAsyncClientClass asyncClientDecoratorAbstractClass =
             new DelegatingAsyncClientClass(ClientTestModels.restJsonServiceModels());
         assertThat(asyncClientDecoratorAbstractClass, generatesTo("test-abstract-async-client-class.java"));
-    }*/
+    }
 
-/*    @Test
+    @Test
     public void syncClientInterface() throws Exception {
         ClassSpec syncClientInterface = new SyncClientInterface(ClientTestModels.restJsonServiceModels());
         assertThat(syncClientInterface, generatesTo("test-json-client-interface.java"));
-    }*/
+    }
 
-/*    @Test
+    @Test
     public void delegatingSyncClientClass() throws Exception {
         DelegatingSyncClientClass syncClientDecoratorAbstractClass =
             new DelegatingSyncClientClass(ClientTestModels.restJsonServiceModels());
         assertThat(syncClientDecoratorAbstractClass, generatesTo("test-abstract-sync-client-class.java"));
-    }*/
+    }
 
     @Test
     public void simpleMethodsIntegClass() throws Exception {

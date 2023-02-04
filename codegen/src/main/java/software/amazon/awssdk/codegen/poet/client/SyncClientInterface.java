@@ -362,7 +362,7 @@ public class SyncClientInterface implements ClassSpec {
 
     protected void streamingSimpleMethodsAddConsumer(List<MethodSpec> specs, MethodSpec spec, SimpleMethodOverload overload,
                                                      OperationModel opModel) {
-        String fileConsumerBuilderJavadoc = consumerBuilderJavadoc(opModel, SimpleMethodOverload.FILE);
+        String fileConsumerBuilderJavadoc = consumerBuilderJavadoc(opModel, overload);
         specs.add(ClientClassUtils.consumerBuilderVariant(spec, fileConsumerBuilderJavadoc));
     }
 
