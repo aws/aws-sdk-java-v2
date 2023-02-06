@@ -54,7 +54,6 @@ import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
-import software.amazon.awssdk.utils.NumericUtils;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -160,7 +159,7 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
                 .withSocketOptions(socketOptions)
                 .withTlsContext(tlsContext)
                 .withUri(uri)
-                .withWindowSize(NumericUtils.saturatedCast(readBufferSize))
+                .withWindowSize(readBufferSize)
                 .withMaxConnections(maxConnectionsPerEndpoint)
                 .withManualWindowManagement(true)
                 .withProxyOptions(proxyOptions)
@@ -273,8 +272,7 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
          * client before we stop reading from the underlying TCP socket and wait for the Subscriber
          * to read more data.
          *
-         * @param readBufferSize The number of bytes that can be buffered. The maximum buffering size value is
-         *                       capped at {@code Integer.MAX}.
+         * @param readBufferSize The number of bytes that can be buffered.
          * @return The builder of the method chaining.
          */
         Builder readBufferSizeInBytes(Long readBufferSize);
