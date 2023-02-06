@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Compute Optimizer",
+    "contributor": "",
+    "description": "AWS Compute optimizer can now infer if Kafka is running on an instance."
+}
