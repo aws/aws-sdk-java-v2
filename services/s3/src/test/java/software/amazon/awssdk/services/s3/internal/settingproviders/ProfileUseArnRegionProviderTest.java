@@ -82,6 +82,20 @@ public class ProfileUseArnRegionProviderTest {
     }
 
     @Test
+    public void resolveUseArnRegion_specifiedMultipleValuesInConfigFile_shouldResolveOncePerCall() {
+        String trueConfigFile = getClass().getResource("ProfileFile_true").getFile();
+        System.setProperty(AWS_CONFIG_FILE.property(), trueConfigFile);
+
+        assertThat(provider.resolveUseArnRegion()).isEqualTo(Optional.of(TRUE));
+
+        System.clearProperty(AWS_CONFIG_FILE.property());
+        String falseConfigFile = getClass().getResource("ProfileFile_false").getFile();
+        System.setProperty(AWS_CONFIG_FILE.property(), falseConfigFile);
+
+        assertThat(provider.resolveUseArnRegion()).isEqualTo(Optional.of(FALSE));
+    }
+
+    @Test
     public void specifiedInOverrideConfig_shouldUse() {
         ExecutionInterceptor interceptor = Mockito.spy(AbstractExecutionInterceptor.class);
 

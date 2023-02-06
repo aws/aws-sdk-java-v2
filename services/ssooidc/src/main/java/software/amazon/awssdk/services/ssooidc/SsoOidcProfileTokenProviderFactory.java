@@ -15,11 +15,14 @@
 
 package software.amazon.awssdk.services.ssooidc;
 
+import java.util.Objects;
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.auth.token.credentials.ChildProfileTokenProviderFactory;
 import software.amazon.awssdk.auth.token.credentials.SdkToken;
 import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.profiles.Profile;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileProperty;
@@ -39,7 +42,59 @@ public final class SsoOidcProfileTokenProviderFactory implements ChildProfileTok
 
     @Override
     public SdkTokenProvider create(ProfileFile profileFile, Profile profile) {
-        return new SsooidcProfileTokenProvider(profileFile, profile);
+        return new SsoOidcProfileTokenProvider(profileFile, profile);
+    }
+
+    public SdkTokenProvider create(Supplier<ProfileFile> profileFile, String profileName) {
+        return new SsoOidcSuppliedProfileTokenProvider(profileFile, profileName);
+    }
+
+    private static final class SsoOidcSuppliedProfileTokenProvider implements SdkTokenProvider, SdkAutoCloseable {
+
+        private final Supplier<ProfileFile> profileFile;
+        private final String profileName;
+        private volatile ProfileFile currentProfileFile;
+        private volatile SsoOidcProfileTokenProvider currentTokenProvider;
+
+        private SsoOidcSuppliedProfileTokenProvider(Supplier<ProfileFile> profileFile, String profileName) {
+            this.profileFile = profileFile;
+            this.profileName = profileName;
+        }
+
+        @Override
+        public SdkToken resolveToken() {
+            return sdkTokenProvider().resolveToken();
+        }
+
+        private SdkTokenProvider sdkTokenProvider() {
+            ProfileFile profileFileInstance = profileFile.get();
+            if (!Objects.equals(profileFileInstance, currentProfileFile)) {
+                synchronized (this) {
+                    if (!Objects.equals(profileFileInstance, currentProfileFile)) {
+                        Profile profileInstance = resolveProfile(profileFileInstance, profileName);
+                        currentProfileFile = profileFileInstance;
+                        currentTokenProvider = new SsoOidcProfileTokenProvider(profileFileInstance, profileInstance);
+                    }
+                }
+            }
+
+            return currentTokenProvider;
+        }
+
+        private Profile resolveProfile(ProfileFile profileFile, String profileName) {
+            return profileFile.profile(profileName)
+                              .orElseThrow(() -> {
+                                  String errorMessage = String.format("Profile file contained no information for profile"
+                                                                      + "'%s': %s",
+                                                                      profileName, profileFile);
+                                  return SdkClientException.builder().message(errorMessage).build();
+                              });
+        }
+
+        @Override
+        public void close() {
+            IoUtils.closeQuietly(currentTokenProvider, null);
+        }
     }
 
 
@@ -47,10 +102,10 @@ public final class SsoOidcProfileTokenProviderFactory implements ChildProfileTok
      * A wrapper for a {@link SdkTokenProvider} that is returned by this factory when {@link #create(ProfileFile,Profile)} is
      * invoked. This wrapper is important because it ensures the token provider is closed when it is no longer needed.
      */
-    private static final class SsooidcProfileTokenProvider implements SdkTokenProvider, SdkAutoCloseable {
+    private static final class SsoOidcProfileTokenProvider implements SdkTokenProvider, SdkAutoCloseable {
         private final SsoOidcTokenProvider sdkTokenProvider;
 
-        private SsooidcProfileTokenProvider(ProfileFile profileFile, Profile profile) {
+        private SsoOidcProfileTokenProvider(ProfileFile profileFile, Profile profile) {
             String profileSsoSectionName = profile.property(
                 ProfileSection.SSO_SESSION
                     .getPropertyKeyName()).orElseThrow(() -> new IllegalStateException(

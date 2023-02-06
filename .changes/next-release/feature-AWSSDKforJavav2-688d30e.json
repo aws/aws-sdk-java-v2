@@ -1,0 +1,6 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "contributor": "", 
+    "type": "feature", 
+    "description": "- ProfileCredentialsProvider and ProfileTokenProvider can reload credentials when disk profile changes\n- Updated DefaultCredentialsProvider chain for reloading credentials\n- Service support classes store ProfileFile as a Supplier interface\n- SdkClientOption and SdkExecutionAttributes constants for PROFILE_FILE have been deprecated in favor of PROFILE_FILE_SUPPLIER"
+}
