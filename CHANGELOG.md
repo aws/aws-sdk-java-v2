@@ -1,3 +1,32 @@
+# __2.19.32__ __2023-02-06__
+## __AWS CRT-based S3 Client__
+  - ### Bugfixes
+    - Fix an issue where maxConcurrency configured by the user on the builder was not honored.
+
+## __AWS Compute Optimizer__
+  - ### Features
+    - AWS Compute optimizer can now infer if Kafka is running on an instance.
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - The AWS Elemental MediaConvert SDK has added improved scene change detection capabilities and a bandwidth reduction filter, along with video quality enhancements, to the AVC encoder.
+
+## __AWS Outposts__
+  - ### Features
+    - Adds OrderType to Order structure. Adds PreviousOrderId and PreviousLineItemId to LineItem structure. Adds new line item status REPLACED. Increases maximum length of pagination token.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - This release deprecates the PartyType and Gender enum data types from the Profile model and replaces them with new PartyTypeString and GenderString attributes, which accept any string of length up to 255.
+
+## __Amazon Fraud Detector__
+  - ### Features
+    - My AWS Service (Amazon Fraud Detector) - This release introduces Cold Start Model Training which optimizes training for small datasets and adds intelligent methods for treating unlabeled data. You can now train Online Fraud Insights or Transaction Fraud Insights models with minimal historical-data.
+
 # __2.19.31__ __2023-02-03__
 ## __AWS Proton__
   - ### Features
