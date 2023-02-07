@@ -57,7 +57,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
 
     private DefaultS3CrtAsyncClient(DefaultS3CrtClientBuilder builder) {
         super(initializeS3AsyncClient(builder));
-        this.copyObjectHelper = new CopyObjectHelper(delegate, s3NativeClientConfiguration);
+        this.copyObjectHelper = new CopyObjectHelper((S3AsyncClient) delegate(), s3NativeClientConfiguration);
     }
 
     @Override

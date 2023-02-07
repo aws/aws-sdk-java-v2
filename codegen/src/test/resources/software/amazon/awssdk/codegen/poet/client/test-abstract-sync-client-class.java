@@ -2,10 +2,11 @@ package software.amazon.awssdk.services.json;
 
 import java.nio.file.Path;
 import software.amazon.awssdk.annotations.Generated;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
@@ -37,14 +38,20 @@ import software.amazon.awssdk.services.json.model.StreamingOutputOperationReques
 import software.amazon.awssdk.services.json.model.StreamingOutputOperationResponse;
 import software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyIterable;
 import software.amazon.awssdk.services.json.paginators.PaginatedOperationWithoutResultKeyIterable;
+import software.amazon.awssdk.utils.Validate;
 
 @Generated("software.amazon.awssdk:codegen")
-@SdkProtectedApi
+@SdkPublicApi
 public abstract class DelegatingJsonClient implements JsonClient {
-    protected final JsonClient delegate;
+    private final JsonClient delegate;
 
     public DelegatingJsonClient(JsonClient delegate) {
+        Validate.paramNotNull(delegate, "delegate");
         this.delegate = delegate;
+    }
+
+    public SdkClient delegate() {
+        return this.delegate;
     }
 
     /**

@@ -26,7 +26,7 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
 import java.util.List;
 import javax.lang.model.element.Modifier;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.codegen.docs.SimpleMethodOverload;
 import software.amazon.awssdk.codegen.model.config.customization.UtilitiesMethod;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -34,9 +34,12 @@ import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.utils.PaginatorUtils;
+import software.amazon.awssdk.core.SdkClient;
+import software.amazon.awssdk.utils.Validate;
 
-public class DelegatingSyncClientClass extends SyncClientInterface {
+public class DelegatingSyncClientClass extends SyncClientInterface{
 
+    private static final String DELEGATE = "delegate";
     private final IntermediateModel model;
     private final ClassName className;
     private final PoetExtension poetExtensions;
@@ -54,12 +57,19 @@ public class DelegatingSyncClientClass extends SyncClientInterface {
         ClassName interfaceClass = poetExtensions.getClientClass(model.getMetadata().getSyncInterface());
         TypeSpec.Builder result = PoetUtils.createClassBuilder(className);
 
+        MethodSpec delegate = MethodSpec.methodBuilder(DELEGATE)
+                                        .addModifiers(Modifier.PUBLIC)
+                                        .addStatement("return this.delegate")
+                                        .returns(SdkClient.class)
+                                        .build();
+
         result.addSuperinterface(interfaceClass)
-              .addAnnotation(SdkProtectedApi.class)
+              .addAnnotation(SdkPublicApi.class)
               .addModifiers(Modifier.ABSTRACT, Modifier.PUBLIC)
-              .addField(FieldSpec.builder(interfaceClass, "delegate")
-                                 .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
+              .addField(FieldSpec.builder(interfaceClass, DELEGATE)
+                                 .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
                                  .build())
+              .addMethod(delegate)
               .addMethods(operations())
               .addMethod(closeMethod());
 
@@ -79,7 +89,8 @@ public class DelegatingSyncClientClass extends SyncClientInterface {
     private MethodSpec constructor(ClassName interfaceClass) {
         return MethodSpec.constructorBuilder()
                          .addModifiers(Modifier.PUBLIC)
-                         .addParameter(interfaceClass, "delegate")
+                         .addParameter(interfaceClass, DELEGATE)
+                         .addStatement("$T.paramNotNull(delegate, \"delegate\")", Validate.class)
                          .addStatement("this.delegate = delegate")
                          .build();
     }

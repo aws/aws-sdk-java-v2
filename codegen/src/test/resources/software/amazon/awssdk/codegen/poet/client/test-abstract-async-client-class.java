@@ -3,7 +3,8 @@ package software.amazon.awssdk.services.json;
 import java.util.concurrent.CompletableFuture;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.Generated;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.json.model.APostOperationRequest;
@@ -40,14 +41,20 @@ import software.amazon.awssdk.services.json.model.StreamingOutputOperationReques
 import software.amazon.awssdk.services.json.model.StreamingOutputOperationResponse;
 import software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyPublisher;
 import software.amazon.awssdk.services.json.paginators.PaginatedOperationWithoutResultKeyPublisher;
+import software.amazon.awssdk.utils.Validate;
 
 @Generated("software.amazon.awssdk:codegen")
-@SdkProtectedApi
+@SdkPublicApi
 public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
-    protected final JsonAsyncClient delegate;
+    private final JsonAsyncClient delegate;
 
     public DelegatingJsonAsyncClient(JsonAsyncClient delegate) {
+        Validate.paramNotNull(delegate, "delegate");
         this.delegate = delegate;
+    }
+
+    public SdkClient delegate() {
+        return this.delegate;
     }
 
     /**
