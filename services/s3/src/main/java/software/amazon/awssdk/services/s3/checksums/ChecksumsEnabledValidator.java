@@ -22,10 +22,12 @@ import static software.amazon.awssdk.services.s3.checksums.ChecksumConstant.SERV
 import static software.amazon.awssdk.services.s3.model.ServerSideEncryption.AWS_KMS;
 
 import java.util.Arrays;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.checksums.ChecksumSpecs;
 import software.amazon.awssdk.core.checksums.SdkChecksum;
 import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
@@ -108,12 +110,22 @@ public final class ChecksumsEnabledValidator {
             return false;
         }
 
-        //Checksum validation will already be done as a part of HttpChecksum validations if RESOLVED_CHECKSUM_SPECS is present.
-        if (executionAttributes.getOptionalAttribute(SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS).isPresent()) {
+        //Checksum validation is done at Service side when HTTP Checksum algorithm attribute is set.
+        if (isHttpCheckSumValidationEnabled(executionAttributes)) {
             return false;
         }
 
         return checksumEnabledPerConfig(executionAttributes);
+    }
+
+    private static boolean isHttpCheckSumValidationEnabled(ExecutionAttributes executionAttributes) {
+        Optional<ChecksumSpecs> resolvedChecksum =
+            executionAttributes.getOptionalAttribute(SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS);
+        if (resolvedChecksum.isPresent()) {
+            ChecksumSpecs checksumSpecs = resolvedChecksum.get();
+            return checksumSpecs.algorithm() != null;
+        }
+        return false;
     }
 
     public static boolean responseChecksumIsValid(SdkHttpResponse httpResponse) {
