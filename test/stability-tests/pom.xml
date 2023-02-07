@@ -68,7 +68,7 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>aws-crt-client</artifactId>
-            <version>${awsjavasdk.version}-PREVIEW</version>
+            <version>${awsjavasdk.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
