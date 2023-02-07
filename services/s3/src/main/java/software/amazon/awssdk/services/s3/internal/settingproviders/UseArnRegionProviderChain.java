@@ -18,6 +18,7 @@ package software.amazon.awssdk.services.s3.internal.settingproviders;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
@@ -49,11 +50,16 @@ public final class UseArnRegionProviderChain implements UseArnRegionProvider {
      * </ol>
      */
     public static UseArnRegionProviderChain create() {
-        return create(ProfileFile.defaultProfileFile(),
+        return create(ProfileFile::defaultProfileFile,
                       ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow());
     }
 
     public static UseArnRegionProviderChain create(ProfileFile profileFile, String profileName) {
+        return new UseArnRegionProviderChain(Arrays.asList(SystemsSettingsUseArnRegionProvider.create(),
+                                                           ProfileUseArnRegionProvider.create(profileFile, profileName)));
+    }
+
+    public static UseArnRegionProviderChain create(Supplier<ProfileFile> profileFile, String profileName) {
         return new UseArnRegionProviderChain(Arrays.asList(SystemsSettingsUseArnRegionProvider.create(),
                                                            ProfileUseArnRegionProvider.create(profileFile, profileName)));
     }

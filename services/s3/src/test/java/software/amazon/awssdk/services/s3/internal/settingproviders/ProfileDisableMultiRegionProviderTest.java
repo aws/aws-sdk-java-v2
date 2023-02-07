@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.s3.internal.settingproviders;
 
+import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -70,6 +71,20 @@ public class ProfileDisableMultiRegionProviderTest {
         System.setProperty(AWS_CONFIG_FILE.property(), configFile);
 
         assertThatThrownBy(() -> provider.resolve()).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    public void resolve_specifiedMultipleValuesInConfigFile_shouldResolveOncePerCall() {
+        String trueConfigFile = getClass().getResource("ProfileFile_true").getFile();
+        System.setProperty(AWS_CONFIG_FILE.property(), trueConfigFile);
+
+        assertThat(provider.resolve()).isEqualTo(Optional.of(TRUE));
+
+        System.clearProperty(AWS_CONFIG_FILE.property());
+        String falseConfigFile = getClass().getResource("ProfileFile_false").getFile();
+        System.setProperty(AWS_CONFIG_FILE.property(), falseConfigFile);
+
+        assertThat(provider.resolve()).isEqualTo(Optional.of(FALSE));
     }
 
     @Test

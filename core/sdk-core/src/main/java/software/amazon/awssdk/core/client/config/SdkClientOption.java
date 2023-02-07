@@ -20,6 +20,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.ServiceConfiguration;
@@ -126,8 +127,22 @@ public final class SdkClientOption<T> extends ClientOption<T> {
 
     /**
      * The profile file to use for this client.
+     *
+     * @deprecated This option was used to:
+     *             - Read configuration options in profile files in aws-core, sdk-core
+     *             - Build service configuration objects from profile files in codegen, s3control
+     *             - Build service configuration objects from profile files, set endpoint options in s3
+     *             - Set retry mode in dynamodb, kinesis
+     * This has been replaced with {@code PROFILE_FILE_SUPPLIER.get()}.
      */
+    @Deprecated
     public static final SdkClientOption<ProfileFile> PROFILE_FILE = new SdkClientOption<>(ProfileFile.class);
+
+    /**
+     * The profile file supplier to use for this client.
+     */
+    public static final SdkClientOption<Supplier<ProfileFile>> PROFILE_FILE_SUPPLIER =
+        new SdkClientOption<>(new UnsafeValueType(Supplier.class));
 
     /**
      * The profile name to use for this client.

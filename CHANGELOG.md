@@ -1,3 +1,16 @@
+# __2.19.33__ __2023-02-07__
+## __AWS SDK for Java v2__
+  - ### Features
+    - - ProfileCredentialsProvider and ProfileTokenProvider can reload credentials when disk profile changes
+      - Updated DefaultCredentialsProvider chain for reloading credentials
+      - Service support classes store ProfileFile as a Supplier interface
+      - SdkClientOption and SdkExecutionAttributes constants for PROFILE_FILE have been deprecated in favor of PROFILE_FILE_SUPPLIER
+    - Updated endpoint and partition metadata.
+
+## __AWS Transfer Family__
+  - ### Features
+    - Updated the documentation for the ImportCertificate API call, and added examples.
+
 # __2.19.32__ __2023-02-06__
 ## __AWS CRT-based S3 Client__
   - ### Bugfixes

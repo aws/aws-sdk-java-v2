@@ -15,12 +15,15 @@
 
 package software.amazon.awssdk.services.s3;
 
+import java.util.Optional;
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.ServiceConfiguration;
 import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.profiles.ProfileFileSupplier;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.services.s3.internal.FieldWithDefault;
 import software.amazon.awssdk.services.s3.internal.settingproviders.DisableMultiRegionProviderChain;
@@ -66,23 +69,23 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
     private final FieldWithDefault<Boolean> dualstackEnabled;
     private final FieldWithDefault<Boolean> checksumValidationEnabled;
     private final FieldWithDefault<Boolean> chunkedEncodingEnabled;
-    private final FieldWithDefault<Boolean> useArnRegionEnabled;
-    private final FieldWithDefault<Boolean> multiRegionEnabled;
-    private final FieldWithDefault<ProfileFile> profileFile;
+    private final Boolean useArnRegionEnabled;
+    private final Boolean multiRegionEnabled;
+    private final FieldWithDefault<Supplier<ProfileFile>> profileFile;
     private final FieldWithDefault<String> profileName;
 
     private S3Configuration(DefaultS3ServiceConfigurationBuilder builder) {
         this.dualstackEnabled = FieldWithDefault.create(builder.dualstackEnabled, DEFAULT_DUALSTACK_ENABLED);
         this.accelerateModeEnabled = FieldWithDefault.create(builder.accelerateModeEnabled, DEFAULT_ACCELERATE_MODE_ENABLED);
         this.pathStyleAccessEnabled = FieldWithDefault.create(builder.pathStyleAccessEnabled, DEFAULT_PATH_STYLE_ACCESS_ENABLED);
-        this.checksumValidationEnabled =  FieldWithDefault.create(builder.checksumValidationEnabled,
+        this.checksumValidationEnabled = FieldWithDefault.create(builder.checksumValidationEnabled,
                                                                  DEFAULT_CHECKSUM_VALIDATION_ENABLED);
         this.chunkedEncodingEnabled = FieldWithDefault.create(builder.chunkedEncodingEnabled, DEFAULT_CHUNKED_ENCODING_ENABLED);
-        this.profileFile = FieldWithDefault.createLazy(builder.profileFile, ProfileFile::defaultProfileFile);
+        this.profileFile = FieldWithDefault.create(builder.profileFile, ProfileFile::defaultProfileFile);
         this.profileName = FieldWithDefault.create(builder.profileName,
                                                    ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow());
-        this.useArnRegionEnabled = FieldWithDefault.createLazy(builder.useArnRegionEnabled, this::resolveUseArnRegionEnabled);
-        this.multiRegionEnabled = FieldWithDefault.createLazy(builder.multiRegionEnabled, this::resolveMultiRegionEnabled);
+        this.useArnRegionEnabled = builder.useArnRegionEnabled;
+        this.multiRegionEnabled = builder.multiRegionEnabled;
 
         if (accelerateModeEnabled() && pathStyleAccessEnabled()) {
             throw new IllegalArgumentException("Accelerate mode cannot be used with path style addressing");
@@ -189,7 +192,8 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
      * @return True if a different region in the ARN can be used.
      */
     public boolean useArnRegionEnabled() {
-        return useArnRegionEnabled.value();
+        return Optional.ofNullable(useArnRegionEnabled)
+                       .orElseGet(this::resolveUseArnRegionEnabled);
     }
 
     /**
@@ -198,19 +202,20 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
      * @return True if multi-region ARNs is enabled.
      */
     public boolean multiRegionEnabled() {
-        return multiRegionEnabled.value();
+        return Optional.ofNullable(multiRegionEnabled)
+                       .orElseGet(this::resolveMultiRegionEnabled);
     }
 
     @Override
     public Builder toBuilder() {
         return builder()
                 .dualstackEnabled(dualstackEnabled.valueOrNullIfDefault())
-                .multiRegionEnabled(multiRegionEnabled.valueOrNullIfDefault())
+                .multiRegionEnabled(multiRegionEnabled)
                 .accelerateModeEnabled(accelerateModeEnabled.valueOrNullIfDefault())
                 .pathStyleAccessEnabled(pathStyleAccessEnabled.valueOrNullIfDefault())
                 .checksumValidationEnabled(checksumValidationEnabled.valueOrNullIfDefault())
                 .chunkedEncodingEnabled(chunkedEncodingEnabled.valueOrNullIfDefault())
-                .useArnRegionEnabled(useArnRegionEnabled.valueOrNullIfDefault())
+                .useArnRegionEnabled(useArnRegionEnabled)
                 .profileFile(profileFile.valueOrNullIfDefault())
                 .profileName(profileName.valueOrNullIfDefault());
     }
@@ -237,7 +242,7 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
         Boolean accelerateModeEnabled();
 
         /**
-         * Option to enable using the accelerate enedpoint when accessing S3. Accelerate
+         * Option to enable using the accelerate endpoint when accessing S3. Accelerate
          * endpoints allow faster transfer of objects by using Amazon CloudFront's
          * globally distributed edge locations.
          *
@@ -325,6 +330,19 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
          */
         Builder profileFile(ProfileFile profileFile);
 
+        Supplier<ProfileFile> profileFileSupplier();
+
+        /**
+         * The supplier of profile file instances that should be consulted to determine the default value of
+         * {@link #useArnRegionEnabled(Boolean)} or {@link #multiRegionEnabled(Boolean)}.
+         * This is not used, if those parameters are configured on the builder.
+         *
+         * <p>
+         * By default, the {@link ProfileFile#defaultProfileFile()} is used.
+         * </p>
+         */
+        Builder profileFile(Supplier<ProfileFile> profileFile);
+
         String profileName();
 
         /**
@@ -347,7 +365,7 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
         private Boolean chunkedEncodingEnabled;
         private Boolean useArnRegionEnabled;
         private Boolean multiRegionEnabled;
-        private ProfileFile profileFile;
+        private Supplier<ProfileFile> profileFile;
         private String profileName;
 
         @Override
@@ -449,11 +467,25 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
 
         @Override
         public ProfileFile profileFile() {
-            return profileFile;
+            return Optional.ofNullable(profileFile)
+                .map(Supplier::get)
+                .orElse(null);
         }
 
         @Override
         public Builder profileFile(ProfileFile profileFile) {
+            return profileFile(Optional.ofNullable(profileFile)
+                                       .map(ProfileFileSupplier::fixedProfileFile)
+                                       .orElse(null));
+        }
+
+        @Override
+        public Supplier<ProfileFile> profileFileSupplier() {
+            return profileFile;
+        }
+
+        @Override
+        public Builder profileFile(Supplier<ProfileFile> profileFile) {
             this.profileFile = profileFile;
             return this;
         }

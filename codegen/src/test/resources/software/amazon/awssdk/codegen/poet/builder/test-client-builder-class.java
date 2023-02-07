@@ -68,8 +68,9 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
         interceptors = CollectionUtils.mergeLists(interceptors, config.option(SdkClientOption.EXECUTION_INTERCEPTORS));
         ServiceConfiguration.Builder serviceConfigBuilder = ((ServiceConfiguration) config
             .option(SdkClientOption.SERVICE_CONFIGURATION)).toBuilder();
-        serviceConfigBuilder.profileFile(serviceConfigBuilder.profileFile() != null ? serviceConfigBuilder.profileFile() : config
-            .option(SdkClientOption.PROFILE_FILE));
+        serviceConfigBuilder.profileFile(serviceConfigBuilder.profileFileSupplier() != null ?
+                                         serviceConfigBuilder.profileFileSupplier() :
+                                         config.option(SdkClientOption.PROFILE_FILE_SUPPLIER));
         serviceConfigBuilder.profileName(serviceConfigBuilder.profileName() != null ? serviceConfigBuilder.profileName() : config
             .option(SdkClientOption.PROFILE_NAME));
         if (serviceConfigBuilder.dualstackEnabled() != null) {

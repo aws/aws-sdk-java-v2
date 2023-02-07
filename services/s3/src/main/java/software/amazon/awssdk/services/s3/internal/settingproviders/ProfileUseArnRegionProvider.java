@@ -28,7 +28,7 @@ import software.amazon.awssdk.utils.StringUtils;
 @SdkInternalApi
 public final class ProfileUseArnRegionProvider implements UseArnRegionProvider {
     /**
-     * Property name for specifying whether or not use arn region should be enabled.
+     * Property name for specifying whether or not to use arn region should be enabled.
      */
     private static final String AWS_USE_ARN_REGION = "s3_use_arn_region";
 
@@ -47,6 +47,10 @@ public final class ProfileUseArnRegionProvider implements UseArnRegionProvider {
 
     public static ProfileUseArnRegionProvider create(ProfileFile profileFile, String profileName) {
         return new ProfileUseArnRegionProvider(() -> profileFile, profileName);
+    }
+
+    public static ProfileUseArnRegionProvider create(Supplier<ProfileFile> profileFile, String profileName) {
+        return new ProfileUseArnRegionProvider(profileFile, profileName);
     }
 
     @Override
