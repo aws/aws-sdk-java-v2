@@ -34,6 +34,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import java.net.URI;
 import java.time.Duration;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -49,6 +50,11 @@ class CachedTokenClientTest {
     void init(WireMockRuntimeInfo wmRuntimeInfo) {
         this.clientBuilder = Ec2MetadataClient.builder()
                                               .endpoint(URI.create("http://localhost:" + wmRuntimeInfo.getHttpPort()));
+    }
+
+    @AfterEach
+    void tearDown(WireMockRuntimeInfo wmRuntimeInfo) {
+        wmRuntimeInfo.getWireMock().resetMappings();
     }
 
     @Test
