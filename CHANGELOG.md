@@ -1,3 +1,315 @@
+# __2.19.33__ __2023-02-07__
+## __AWS SDK for Java v2__
+  - ### Features
+    - - ProfileCredentialsProvider and ProfileTokenProvider can reload credentials when disk profile changes
+      - Updated DefaultCredentialsProvider chain for reloading credentials
+      - Service support classes store ProfileFile as a Supplier interface
+      - SdkClientOption and SdkExecutionAttributes constants for PROFILE_FILE have been deprecated in favor of PROFILE_FILE_SUPPLIER
+    - Updated endpoint and partition metadata.
+
+## __AWS Transfer Family__
+  - ### Features
+    - Updated the documentation for the ImportCertificate API call, and added examples.
+
+# __2.19.32__ __2023-02-06__
+## __AWS CRT-based S3 Client__
+  - ### Bugfixes
+    - Fix an issue where maxConcurrency configured by the user on the builder was not honored.
+
+## __AWS Compute Optimizer__
+  - ### Features
+    - AWS Compute optimizer can now infer if Kafka is running on an instance.
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - The AWS Elemental MediaConvert SDK has added improved scene change detection capabilities and a bandwidth reduction filter, along with video quality enhancements, to the AVC encoder.
+
+## __AWS Outposts__
+  - ### Features
+    - Adds OrderType to Order structure. Adds PreviousOrderId and PreviousLineItemId to LineItem structure. Adds new line item status REPLACED. Increases maximum length of pagination token.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - This release deprecates the PartyType and Gender enum data types from the Profile model and replaces them with new PartyTypeString and GenderString attributes, which accept any string of length up to 255.
+
+## __Amazon Fraud Detector__
+  - ### Features
+    - My AWS Service (Amazon Fraud Detector) - This release introduces Cold Start Model Training which optimizes training for small datasets and adds intelligent methods for treating unlabeled data. You can now train Online Fraud Insights or Transaction Fraud Insights models with minimal historical-data.
+
+# __2.19.31__ __2023-02-03__
+## __AWS Proton__
+  - ### Features
+    - Add new GetResourcesSummary API
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Redshift__
+  - ### Features
+    - Corrects descriptions of the parameters for the API operations RestoreFromClusterSnapshot, RestoreTableFromClusterSnapshot, and CreateCluster.
+
+# __2.19.30__ __2023-02-02__
+## __AWS CRT HTTP Client__
+  - ### Features
+    - Allow users to enable Post Quantum TLS via `AwsCrtAsyncHttpClient.builder().postQuantumTlsEnabled(true).build()`.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Single Sign-On Admin__
+  - ### Features
+    - Enabled FIPS endpoints for GovCloud (US) regions in SDK.
+
+## __Amazon AppConfig__
+  - ### Features
+    - AWS AppConfig introduces KMS customer-managed key (CMK) encryption of configuration data, along with AWS Secrets Manager as a new configuration data source. S3 objects using SSE-KMS encryption and SSM Parameter Store SecureStrings are also now supported.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Enabled FIPS endpoints for GovCloud (US) regions in SDK.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for EC2.
+
+## __Amazon Keyspaces__
+  - ### Features
+    - Enabled FIPS endpoints for GovCloud (US) regions in SDK.
+
+## __Amazon QuickSight__
+  - ### Features
+    - QuickSight support for Radar Chart and Dashboard Publish Options
+
+## __Amazon Redshift__
+  - ### Features
+    - Enabled FIPS endpoints for GovCloud (US) regions in SDK.
+
+## __Elastic Load Balancing__
+  - ### Features
+    - The GWLB Flex Health Check project updates the default values of healthy-threshold-count from 3 to 5 and unhealthy-threshold-count from 3 to 2
+
+# __2.19.29__ __2023-02-01__
+## __AWS Identity and Access Management__
+  - ### Features
+    - Documentation updates for AWS Identity and Access Management (IAM).
+
+## __AWS MediaTailor__
+  - ### Features
+    - The AWS Elemental MediaTailor SDK for Channel Assembly has added support for program updates, and the ability to clip the end of VOD sources in programs.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - EC2 Instance Metadata Client is now generally available - https://github.com/aws/aws-sdk-java-v2/issues/61
+    - Updated endpoint and partition metadata.
+
+## __Amazon DevOps Guru__
+  - ### Features
+    - This release adds filter support ListAnomalyForInsight API.
+
+## __Amazon Forecast Service__
+  - ### Features
+    - This release will enable customer select INCREMENTAL as ImportModel in Forecast's CreateDatasetImportJob API. Verified latest SDK containing required attribute, following https://w.amazon.com/bin/view/AWS-Seer/Launch/Trebuchet/
+
+## __Amazon Simple Notification Service__
+  - ### Features
+    - Additional attributes added for set-topic-attributes.
+
+# __2.19.28__ __2023-01-31__
+## __AWS AppSync__
+  - ### Features
+    - This release introduces the feature to support EventBridge as AppSync data source.
+
+## __AWS CRT-based S3 Client__
+  - ### Bugfixes
+    - Fixed an issue where port number was not added to host header. See [#3721](https://github.com/aws/aws-sdk-java-v2/issues/3721) and [#3682](https://github.com/aws/aws-sdk-java-v2/issues/3682).
+
+## __AWS CloudTrail__
+  - ### Features
+    - Add new "Channel" APIs to enable users to manage channels used for CloudTrail Lake integrations, and "Resource Policy" APIs to enable users to manage the resource-based permissions policy attached to a channel.
+
+## __AWS CloudTrail Data Service__
+  - ### Features
+    - Add CloudTrail Data Service to enable users to ingest activity events from non-AWS sources into CloudTrail Lake.
+
+## __AWS Ground Station__
+  - ### Features
+    - DigIF Expansion changes to the Customer APIs.
+
+## __AWS IoT__
+  - ### Features
+    - Added support for IoT Rules Engine Cloudwatch Logs action batch mode.
+
+## __AWS Outposts__
+  - ### Features
+    - Enabled FIPS endpoints for GovCloud (US) regions in SDK.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - New fields have been added to the AWS Security Finding Format. Compliance.SecurityControlId is a unique identifier for a security control across standards. Compliance.AssociatedStandards contains all enabled standards in which a security control is enabled.
+
+## __AWS Support__
+  - ### Features
+    - This fixes incorrect endpoint construction when a customer is explicitly setting a region.
+
+## __Access Analyzer__
+  - ### Features
+    - Enabled FIPS endpoints for GovCloud (US) regions in SDK.
+
+## __Amazon Connect Participant Service__
+  - ### Features
+    - Enabled FIPS endpoints for GovCloud (US) regions in SDK.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This launch allows customers to associate up to 8 IP addresses to their NAT Gateways to increase the limit on concurrent connections to a single destination by eight times from 55K to 440K.
+
+## __Amazon Kinesis__
+  - ### Features
+    - Enabled FIPS endpoints for GovCloud (US) regions in SDK.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - Amazon OpenSearch Service adds the option for a VPC endpoint connection between two domains when the local domain uses OpenSearch version 1.3 or 2.3. You can now use remote reindex to copy indices from one VPC domain to another without a reverse proxy.
+
+## __Amazon Polly__
+  - ### Features
+    - Amazon Polly adds two new neural American English voices - Ruth, Stephen
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker Automatic Model Tuning now supports more completion criteria for Hyperparameter Optimization.
+
+## __CodeArtifact__
+  - ### Features
+    - This release introduces a new DeletePackage API, which enables deletion of a package and all of its versions from a repository.
+
+# __2.19.27__ __2023-01-30__
+## __AWS Application Discovery Service__
+  - ### Features
+    - Update ImportName validation to 255 from the current length of 100
+
+## __AWS CloudFormation__
+  - ### Features
+    - This feature provides a method of obtaining which regions a stackset has stack instances deployed in.
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - Enabled FIPS endpoints for GovCloud (US) regions in SDK.
+
+## __Amazon CloudDirectory__
+  - ### Features
+    - Enabled FIPS endpoints for GovCloud (US) regions in SDK.
+
+## __Amazon Data Lifecycle Manager__
+  - ### Features
+    - Enabled FIPS endpoints for GovCloud (US) regions in SDK.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - We add Prefix Lists as a new route destination option for LocalGatewayRoutes. This will allow customers to create routes to Prefix Lists. Prefix List routes will allow customers to group individual CIDR routes with the same target into a single route.
+
+## __Amazon Simple Workflow Service__
+  - ### Features
+    - Enabled FIPS endpoints for GovCloud (US) regions in SDK.
+
+## __DynamoDB Enhanced Client__
+  - ### Bugfixes
+    - Cache BeanTableSchema and ImmutableTableSchema to prevent potential metaspace memory leak with JDK 15+. See [#3701](https://github.com/aws/aws-sdk-java-v2/issues/3701).
+
+## __EC2 Image Builder__
+  - ### Features
+    - Enabled FIPS endpoints for GovCloud (US) regions in SDK.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Enabled FIPS endpoints for GovCloud (US) regions in SDK.
+
+# __2.19.26__ __2023-01-27__
+## __AWS Elastic Beanstalk__
+  - ### Features
+    - Enabled FIPS endpoints for GovCloud (US) regions in SDK.
+
+## __AWS Fault Injection Simulator__
+  - ### Features
+    - Enabled FIPS endpoints for GovCloud (US) regions in SDK.
+
+## __AWS Greengrass__
+  - ### Features
+    - Enabled FIPS endpoints for GovCloud (US) regions in SDK.
+
+## __AWS IoT Greengrass V2__
+  - ### Features
+    - Enabled FIPS endpoints for GovCloud (US) in SDK.
+
+## __AWS MediaTailor__
+  - ### Features
+    - This release introduces the As Run logging type, along with API and documentation updates.
+
+## __AWS Outposts__
+  - ### Features
+    - Adding support for payment term in GetOrder, CreateOrder responses.
+
+## __AWSServerlessApplicationRepository__
+  - ### Features
+    - Enabled FIPS endpoints for GovCloud (US) regions in SDK.
+
+## __Amazon AppStream__
+  - ### Features
+    - Fixing the issue where Appstream waiters hang for fleet_started and fleet_stopped.
+
+## __Amazon Glacier__
+  - ### Features
+    - Enabled FIPS endpoints for GovCloud (US) regions in SDK.
+
+## __Amazon SageMaker Runtime__
+  - ### Features
+    - Amazon SageMaker Runtime which supports InvokeEndpointAsync asynchronously can now invoke endpoints with custom timeout values. Asynchronous invocations support longer processing times.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release supports running SageMaker Training jobs with container images that are in a private Docker registry.
+
+## __Application Auto Scaling__
+  - ### Features
+    - Enabled FIPS endpoints for GovCloud (US) regions in SDK.
+
+# __2.19.25__ __2023-01-26__
+## __AWS CRT HTTP Client__
+  - ### Features
+    - Throw UnsupportedOperationException if the AWS CRT HTTP Client is configured with HTTP/2 protocol.
+
+  - ### Bugfixes
+    - Fix an issue that could result in resource leak when sending request fails due to errors such as invalid request.
+
+## __AWS IoT FleetWise__
+  - ### Features
+    - Add model validation to BatchCreateVehicle and BatchUpdateVehicle operations that invalidate requests with an empty vehicles list.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Append Content-encoding header instead of over writing the header when Checksum algorithm is selected along with user set Content-encoding
+
+## __Amazon EventBridge__
+  - ### Features
+    - Minor comments for Redshift Serverless workgroup target support.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Allow FIPS to be used with path-style URLs.
+
 # __2.19.24__ __2023-01-25__
 ## __AWS CRT HTTP Client__
   - ### Features

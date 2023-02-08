@@ -87,4 +87,32 @@ public class S3ConfigurationTest {
         assertThat(config.multiRegionEnabled()).isEqualTo(true);
     }
 
+    @Test
+    public void multiRegionEnabled_enabledInCProfile_shouldResolveToConfigCorrectlyOncePerCall() {
+        S3Configuration config = S3Configuration.builder().build();
+
+        String trueProfileConfig = getClass().getResource("internal/settingproviders/ProfileFile_true").getFile();
+        System.setProperty(AWS_CONFIG_FILE.property(), trueProfileConfig);
+        assertThat(config.multiRegionEnabled()).isEqualTo(false);
+
+        System.clearProperty(AWS_CONFIG_FILE.property());
+        String falseProfileConfig = getClass().getResource("internal/settingproviders/ProfileFile_false").getFile();
+        System.setProperty(AWS_CONFIG_FILE.property(), falseProfileConfig);
+        assertThat(config.multiRegionEnabled()).isEqualTo(true);
+    }
+
+    @Test
+    public void useArnRegionEnabled_enabledInCProfile_shouldResolveToConfigCorrectlyOncePerCall() {
+        S3Configuration config = S3Configuration.builder().build();
+
+        String trueProfileConfig = getClass().getResource("internal/settingproviders/ProfileFile_true").getFile();
+        System.setProperty(AWS_CONFIG_FILE.property(), trueProfileConfig);
+        assertThat(config.useArnRegionEnabled()).isEqualTo(true);
+
+        System.clearProperty(AWS_CONFIG_FILE.property());
+        String falseProfileConfig = getClass().getResource("internal/settingproviders/ProfileFile_false").getFile();
+        System.setProperty(AWS_CONFIG_FILE.property(), falseProfileConfig);
+        assertThat(config.useArnRegionEnabled()).isEqualTo(false);
+    }
+
 }

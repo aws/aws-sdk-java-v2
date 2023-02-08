@@ -34,6 +34,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.authcrt.signer.internal.DefaultAwsCrtS3V4aSigner;
+import software.amazon.awssdk.core.HttpChecksumConstant;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.checksums.Algorithm;
 import software.amazon.awssdk.core.checksums.ChecksumValidation;
@@ -45,13 +46,12 @@ import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
 import software.amazon.awssdk.services.s3.model.ChecksumMode;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
-import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.utils.CaptureChecksumValidationInterceptor;
+import software.amazon.awssdk.services.s3.utils.ChecksumUtils;
 import software.amazon.awssdk.testutils.RandomTempFile;
-import software.amazon.awssdk.testutils.Waiter;
 
 public class HttpChecksumIntegrationTest extends S3IntegrationTestBase {
 
@@ -102,6 +102,7 @@ public class HttpChecksumIntegrationTest extends S3IntegrationTestBase {
                                                                                 .key(KEY)
                                                                                 .build(), RequestBody.fromString("Hello world"));
         assertThat(interceptor.requestChecksumInTrailer()).isEqualTo("x-amz-checksum-crc32");
+        assertThat(interceptor.contentEncoding()).isEqualTo(HttpChecksumConstant.AWS_CHUNKED_HEADER);
         assertThat(interceptor.requestChecksumInHeader()).isNull();
         assertThat(putObjectResponse.sdkHttpResponse().firstMatchingHeader("x-amz-checksum-crc32"))
             .hasValue("i9aeUg==");
@@ -112,11 +113,13 @@ public class HttpChecksumIntegrationTest extends S3IntegrationTestBase {
         PutObjectResponse putObjectResponse = s3Https.putObject(PutObjectRequest.builder()
                                                                                 .bucket(BUCKET)
                                                                                 .checksumAlgorithm(ChecksumAlgorithm.CRC32)
+                                                                                .contentEncoding("gzip")
                                                                                 .checksumCRC32("i9aeUg==")
                                                                                 .key(KEY)
                                                                                 .build(), RequestBody.fromString("Hello world"));
         assertThat(interceptor.requestChecksumInHeader()).isEqualTo("i9aeUg==");
         assertThat(interceptor.requestChecksumInTrailer()).isNull();
+        assertThat(interceptor.contentEncoding()).isEqualTo("gzip");
         assertThat(putObjectResponse.sdkHttpResponse().firstMatchingHeader("x-amz-checksum-crc32")).hasValue("i9aeUg==");
     }
 
@@ -191,6 +194,7 @@ public class HttpChecksumIntegrationTest extends S3IntegrationTestBase {
             new InputStreamReader(s3HttpsObject, StandardCharsets.UTF_8))
             .lines()
             .collect(Collectors.joining("\n"));
+        assertThat(interceptor.contentEncoding()).isEmpty();
         assertThat(interceptor.validationAlgorithm()).isEqualTo(Algorithm.CRC32);
         assertThat(interceptor.responseValidation()).isEqualTo(ChecksumValidation.VALIDATED);
         assertThat(text).isEqualTo("Hello world");
@@ -204,10 +208,12 @@ public class HttpChecksumIntegrationTest extends S3IntegrationTestBase {
         s3.putObject(PutObjectRequest.builder()
                                      .bucket(BUCKET)
                                      .key(KEY)
+                                     .contentEncoding("gzip")
                                      .checksumAlgorithm(ChecksumAlgorithm.CRC32)
                                      .build(), RequestBody.fromString(""));
 
         assertThat(interceptor.requestChecksumInTrailer()).isEqualTo("x-amz-checksum-crc32");
+        assertThat(interceptor.contentEncoding()).isEqualTo("gzip,aws-chunked");
         assertThat(interceptor.requestChecksumInHeader()).isNull();
 
         ResponseInputStream<GetObjectResponse> s3HttpsObject =
@@ -247,16 +253,18 @@ public class HttpChecksumIntegrationTest extends S3IntegrationTestBase {
     }
 
     @Test
-    public void syncValidUnsignedTrailerChecksumCalculatedBySdkClientWithSigv4a() {
+    public void syncValidSignedTrailerChecksumCalculatedBySdkClientWithSigv4a_withContentEncoding() {
 
         s3.putObject(PutObjectRequest.builder()
                                      .bucket(BUCKET)
                                      .key(KEY)
                                      .checksumAlgorithm(ChecksumAlgorithm.CRC32)
+                                     .contentEncoding("gzip")
                                      .overrideConfiguration(o -> o.signer(DefaultAwsCrtS3V4aSigner.create()))
                                      .build(), RequestBody.fromString("Hello world"));
 
         assertThat(interceptor.requestChecksumInTrailer()).isEqualTo("x-amz-checksum-crc32");
+        assertThat(interceptor.contentEncoding()).isEqualTo("gzip,aws-chunked");
         assertThat(interceptor.requestChecksumInHeader()).isNull();
 
         ResponseInputStream<GetObjectResponse> s3HttpsObject =
@@ -276,9 +284,11 @@ public class HttpChecksumIntegrationTest extends S3IntegrationTestBase {
                                           .bucket(BUCKET)
                                           .key(KEY)
                                           .checksumAlgorithm(ChecksumAlgorithm.CRC32)
+                                          .contentEncoding("gzip")
                                           .build(), RequestBody.fromString(createDataOfSize(HUGE_MSG_SIZE, 'a')));
 
         assertThat(interceptor.requestChecksumInTrailer()).isEqualTo("x-amz-checksum-crc32");
+        assertThat(interceptor.contentEncoding()).isEqualTo("gzip,aws-chunked");
         assertThat(interceptor.requestChecksumInHeader()).isNull();
 
         Thread.sleep(1000);

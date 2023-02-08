@@ -108,7 +108,7 @@ public final class SyncHttpChecksumInTrailerInterceptor implements ExecutionInte
         long originalContentLength = context.requestBody().get().optionalContentLength().orElse(0L);
         return context.httpRequest().copy(
             r -> r.putHeader(HttpChecksumConstant.HEADER_FOR_TRAILER_REFERENCE, checksum.headerName())
-                  .putHeader("Content-encoding", AWS_CHUNKED_HEADER)
+                  .appendHeader("Content-encoding", AWS_CHUNKED_HEADER)
                   .putHeader("x-amz-content-sha256", CONTENT_SHA_256_FOR_UNSIGNED_TRAILER)
                   .putHeader("x-amz-decoded-content-length", Long.toString(originalContentLength))
                   .putHeader(CONTENT_LENGTH,

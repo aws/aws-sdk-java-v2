@@ -18,6 +18,7 @@ package software.amazon.awssdk.services.s3.internal.settingproviders;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
@@ -50,11 +51,17 @@ public final class DisableMultiRegionProviderChain implements DisableMultiRegion
      * </ol>
      */
     public static DisableMultiRegionProviderChain create() {
-        return create(ProfileFile.defaultProfileFile(),
+        return create(ProfileFile::defaultProfileFile,
                       ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow());
     }
 
     public static DisableMultiRegionProviderChain create(ProfileFile profileFile, String profileName) {
+        return new DisableMultiRegionProviderChain(Arrays.asList(
+            SystemsSettingsDisableMultiRegionProvider.create(),
+            ProfileDisableMultiRegionProvider.create(profileFile, profileName)));
+    }
+
+    public static DisableMultiRegionProviderChain create(Supplier<ProfileFile> profileFile, String profileName) {
         return new DisableMultiRegionProviderChain(Arrays.asList(
             SystemsSettingsDisableMultiRegionProvider.create(),
             ProfileDisableMultiRegionProvider.create(profileFile, profileName)));

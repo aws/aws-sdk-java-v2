@@ -22,7 +22,7 @@ import software.amazon.awssdk.profiles.Profile;
 import software.amazon.awssdk.profiles.ProfileFile;
 
 /**
- * Context class that defines the required properties for creation of a Credentials provider*
+ * Context class that defines the required properties for creation of a Credentials provider.
  */
 @SdkProtectedApi
 public final class ProfileProviderCredentialsContext {

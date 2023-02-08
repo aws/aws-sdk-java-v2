@@ -16,6 +16,11 @@
 package software.amazon.awssdk.http.crt;
 
 import static software.amazon.awssdk.http.HttpMetric.HTTP_CLIENT_NAME;
+import static software.amazon.awssdk.http.SdkHttpConfigurationOption.PROTOCOL;
+import static software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils.buildProxyOptions;
+import static software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils.buildSocketOptions;
+import static software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils.resolveCipherPreference;
+import static software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils.resolveHttpMonitoringOptions;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
@@ -26,7 +31,6 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
-import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.crt.http.HttpClientConnectionManager;
@@ -35,9 +39,9 @@ import software.amazon.awssdk.crt.http.HttpMonitoringOptions;
 import software.amazon.awssdk.crt.http.HttpProxyOptions;
 import software.amazon.awssdk.crt.io.ClientBootstrap;
 import software.amazon.awssdk.crt.io.SocketOptions;
-import software.amazon.awssdk.crt.io.TlsCipherPreference;
 import software.amazon.awssdk.crt.io.TlsContext;
 import software.amazon.awssdk.crt.io.TlsContextOptions;
+import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
@@ -49,7 +53,6 @@ import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
-import software.amazon.awssdk.utils.NumericUtils;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -65,16 +68,13 @@ import software.amazon.awssdk.utils.Validate;
                                                 .build();
  * }
  *
- *
- * <b>NOTE:</b> This is a Preview API and is subject to change so it should not be used in production.
  */
 @SdkPublicApi
-@SdkPreviewApi
 public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
     private static final Logger log = Logger.loggerFor(AwsCrtAsyncHttpClient.class);
 
     private static final String AWS_COMMON_RUNTIME = "AwsCommonRuntime";
-    private static final int DEFAULT_STREAM_WINDOW_SIZE = 16 * 1024 * 1024; // 16 MB
+    private static final long DEFAULT_STREAM_WINDOW_SIZE = 16L * 1024L * 1024L; // 16 MB
 
     private final Map<URI, HttpClientConnectionManager> connectionPools = new ConcurrentHashMap<>();
     private final LinkedList<CrtResource> ownedSubResources = new LinkedList<>();
@@ -84,86 +84,34 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
     private final HttpProxyOptions proxyOptions;
     private final HttpMonitoringOptions monitoringOptions;
     private final long maxConnectionIdleInMilliseconds;
-    private final int readBufferSize;
+    private final long readBufferSize;
     private final int maxConnectionsPerEndpoint;
     private boolean isClosed = false;
 
     private AwsCrtAsyncHttpClient(DefaultBuilder builder, AttributeMap config) {
+        if (config.get(PROTOCOL) == Protocol.HTTP2) {
+            throw new UnsupportedOperationException("HTTP/2 is not supported in AwsCrtAsyncHttpClient yet. Use "
+                                               + "NettyNioAsyncHttpClient instead.");
+        }
 
         try (ClientBootstrap clientBootstrap = new ClientBootstrap(null, null);
-             SocketOptions clientSocketOptions = buildSocketOptions(builder, config);
+             SocketOptions clientSocketOptions = buildSocketOptions(builder.tcpKeepAliveConfiguration,
+                                                                    config.get(SdkHttpConfigurationOption.CONNECTION_TIMEOUT));
              TlsContextOptions clientTlsContextOptions =
                  TlsContextOptions.createDefaultClient()
-                                  .withCipherPreference(TlsCipherPreference.TLS_CIPHER_SYSTEM_DEFAULT)
+                                  .withCipherPreference(resolveCipherPreference(builder.postQuantumTlsEnabled))
                                   .withVerifyPeer(!config.get(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES));
              TlsContext clientTlsContext = new TlsContext(clientTlsContextOptions)) {
 
             this.bootstrap = registerOwnedResource(clientBootstrap);
             this.socketOptions = registerOwnedResource(clientSocketOptions);
             this.tlsContext = registerOwnedResource(clientTlsContext);
-            this.readBufferSize = builder.readBufferSize == null ?  DEFAULT_STREAM_WINDOW_SIZE : builder.readBufferSize;
+            this.readBufferSize = builder.readBufferSize == null ? DEFAULT_STREAM_WINDOW_SIZE : builder.readBufferSize;
             this.maxConnectionsPerEndpoint = config.get(SdkHttpConfigurationOption.MAX_CONNECTIONS);
-            this.monitoringOptions = revolveHttpMonitoringOptions(builder.connectionHealthConfiguration);
+            this.monitoringOptions = resolveHttpMonitoringOptions(builder.connectionHealthConfiguration);
             this.maxConnectionIdleInMilliseconds = config.get(SdkHttpConfigurationOption.CONNECTION_MAX_IDLE_TIMEOUT).toMillis();
-            this.proxyOptions = buildProxyOptions(builder.proxyConfiguration);
+            this.proxyOptions = buildProxyOptions(builder.proxyConfiguration, tlsContext);
         }
-    }
-
-    private HttpMonitoringOptions revolveHttpMonitoringOptions(ConnectionHealthConfiguration config) {
-        if (config == null) {
-            return null;
-        }
-
-        HttpMonitoringOptions httpMonitoringOptions = new HttpMonitoringOptions();
-        httpMonitoringOptions.setMinThroughputBytesPerSecond(config.minimumThroughputInBps());
-        int seconds = (int) config.minimumThroughputTimeout().getSeconds();
-        httpMonitoringOptions.setAllowableThroughputFailureIntervalSeconds(seconds);
-        return httpMonitoringOptions;
-    }
-
-    private HttpProxyOptions buildProxyOptions(ProxyConfiguration proxyConfiguration) {
-        if (proxyConfiguration == null) {
-            return null;
-        }
-
-        HttpProxyOptions clientProxyOptions = new HttpProxyOptions();
-
-        clientProxyOptions.setHost(proxyConfiguration.host());
-        clientProxyOptions.setPort(proxyConfiguration.port());
-
-        if ("https".equalsIgnoreCase(proxyConfiguration.scheme())) {
-            clientProxyOptions.setTlsContext(tlsContext);
-        }
-
-        if (proxyConfiguration.username() != null && proxyConfiguration.password() != null) {
-            clientProxyOptions.setAuthorizationUsername(proxyConfiguration.username());
-            clientProxyOptions.setAuthorizationPassword(proxyConfiguration.password());
-            clientProxyOptions.setAuthorizationType(HttpProxyOptions.HttpProxyAuthorizationType.Basic);
-        } else {
-            clientProxyOptions.setAuthorizationType(HttpProxyOptions.HttpProxyAuthorizationType.None);
-        }
-
-        return clientProxyOptions;
-    }
-
-    private SocketOptions buildSocketOptions(DefaultBuilder builder, AttributeMap config) {
-        SocketOptions clientSocketOptions = new SocketOptions();
-
-        Duration connectionTimeout = config.get(SdkHttpConfigurationOption.CONNECTION_TIMEOUT);
-        if (connectionTimeout != null) {
-            clientSocketOptions.connectTimeoutMs = NumericUtils.saturatedCast(connectionTimeout.toMillis());
-        }
-
-        TcpKeepAliveConfiguration tcpKeepAliveConfiguration = builder.tcpKeepAliveConfiguration;
-        if (tcpKeepAliveConfiguration != null) {
-            clientSocketOptions.keepAliveIntervalSecs =
-                NumericUtils.saturatedCast(tcpKeepAliveConfiguration.keepAliveInterval().getSeconds());
-            clientSocketOptions.keepAliveTimeoutSecs =
-                NumericUtils.saturatedCast(tcpKeepAliveConfiguration.keepAliveTimeout().getSeconds());
-
-        }
-
-        return clientSocketOptions;
     }
 
     /**
@@ -320,12 +268,10 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
          * client before we stop reading from the underlying TCP socket and wait for the Subscriber
          * to read more data.
          *
-         * @param readBufferSize The number of bytes that can be buffered
+         * @param readBufferSize The number of bytes that can be buffered.
          * @return The builder of the method chaining.
-         *
-         * TODO: This is also used for the write buffer size. Should we rename it?
          */
-        Builder readBufferSizeInBytes(Integer readBufferSize);
+        Builder readBufferSizeInBytes(Long readBufferSize);
 
         /**
          * Sets the http proxy configuration to use for this client.
@@ -413,6 +359,22 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
          */
         Builder tcpKeepAliveConfiguration(Consumer<TcpKeepAliveConfiguration.Builder>
                                               tcpKeepAliveConfigurationBuilder);
+
+        /**
+         * Configure whether to enable a hybrid post-quantum key exchange option for the Transport Layer Security (TLS) network
+         * encryption protocol when communicating with services that support Post Quantum TLS. If Post Quantum cipher suites are
+         * not supported on the platform, the SDK will use the default TLS cipher suites.
+         *
+         * <p>
+         * See <a href="https://docs.aws.amazon.com/kms/latest/developerguide/pqtls.html">Using hybrid post-quantum TLS with AWS KMS</a>
+         *
+         * <p>
+         * It's disabled by default.
+         *
+         * @param postQuantumTlsEnabled whether to prefer Post Quantum TLS
+         * @return The builder of the method chaining.
+         */
+        Builder postQuantumTlsEnabled(Boolean postQuantumTlsEnabled);
     }
 
     /**
@@ -421,10 +383,11 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
      */
     private static final class DefaultBuilder implements Builder {
         private final AttributeMap.Builder standardOptions = AttributeMap.builder();
-        private Integer readBufferSize;
+        private Long readBufferSize;
         private ProxyConfiguration proxyConfiguration;
         private ConnectionHealthConfiguration connectionHealthConfiguration;
         private TcpKeepAliveConfiguration tcpKeepAliveConfiguration;
+        private Boolean postQuantumTlsEnabled;
 
         private DefaultBuilder() {
         }
@@ -450,7 +413,7 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         }
 
         @Override
-        public Builder readBufferSizeInBytes(Integer readBufferSize) {
+        public Builder readBufferSizeInBytes(Long readBufferSize) {
             Validate.isPositiveOrNull(readBufferSize, "readBufferSize");
             this.readBufferSize = readBufferSize;
             return this;
@@ -502,6 +465,12 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
             TcpKeepAliveConfiguration.Builder builder = TcpKeepAliveConfiguration.builder();
             tcpKeepAliveConfigurationBuilder.accept(builder);
             return tcpKeepAliveConfiguration(builder.build());
+        }
+
+        @Override
+        public Builder postQuantumTlsEnabled(Boolean postQuantumTlsEnabled) {
+            this.postQuantumTlsEnabled = postQuantumTlsEnabled;
+            return this;
         }
 
         @Override
