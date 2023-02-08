@@ -850,16 +850,16 @@ public abstract class DelegatingJsonClient implements JsonClient {
         return streamingOutputOperation(streamingOutputOperationRequest, ResponseTransformer.toBytes());
     }
 
-    @Override
-    public void close() {
-        delegate.close();
-    }
-
     /**
      * Creates an instance of {@link JsonUtilities} object with the configuration set on this client.
      */
     @Override
     public JsonUtilities utilities() {
         return delegate.utilities();
+    }
+
+    @Override
+    public void close() {
+        delegate.close();
     }
 }

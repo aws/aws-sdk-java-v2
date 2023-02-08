@@ -102,11 +102,6 @@ final class DefaultJsonClient implements JsonClient {
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
     }
 
-    @Override
-    public final String serviceName() {
-        return SERVICE_NAME;
-    }
-
     /**
      * <p>
      * Performs a post operation to the query service and has no output
@@ -942,6 +937,39 @@ final class DefaultJsonClient implements JsonClient {
         }
     }
 
+    /**
+     * Creates an instance of {@link JsonUtilities} object with the configuration set on this client.
+     */
+    @Override
+    public JsonUtilities utilities() {
+        return JsonUtilities.create(param1, param2, param3);
+    }
+
+    private <T extends JsonRequest> T applyPaginatorUserAgent(T request) {
+        Consumer<AwsRequestOverrideConfiguration.Builder> userAgentApplier = b -> b.addApiName(ApiName.builder()
+                                                                                                      .version(VersionInfo.SDK_VERSION).name("PAGINATED").build());
+        AwsRequestOverrideConfiguration overrideConfiguration = request.overrideConfiguration()
+                                                                       .map(c -> c.toBuilder().applyMutation(userAgentApplier).build())
+                                                                       .orElse((AwsRequestOverrideConfiguration.builder().applyMutation(userAgentApplier).build()));
+        return (T) request.toBuilder().overrideConfiguration(overrideConfiguration).build();
+    }
+
+    private <T extends JsonRequest> T applySignerOverride(T request, Signer signer) {
+        if (request.overrideConfiguration().flatMap(c -> c.signer()).isPresent()) {
+            return request;
+        }
+        Consumer<AwsRequestOverrideConfiguration.Builder> signerOverride = b -> b.signer(signer).build();
+        AwsRequestOverrideConfiguration overrideConfiguration = request.overrideConfiguration()
+                                                                       .map(c -> c.toBuilder().applyMutation(signerOverride).build())
+                                                                       .orElse((AwsRequestOverrideConfiguration.builder().applyMutation(signerOverride).build()));
+        return (T) request.toBuilder().overrideConfiguration(overrideConfiguration).build();
+    }
+
+    @Override
+    public final String serviceName() {
+        return SERVICE_NAME;
+    }
+
     private static List<MetricPublisher> resolveMetricPublishers(SdkClientConfiguration clientConfiguration,
                                                                  RequestOverrideConfiguration requestOverrideConfiguration) {
         List<MetricPublisher> publishers = null;
@@ -976,30 +1004,5 @@ final class DefaultJsonClient implements JsonClient {
     @Override
     public void close() {
         clientHandler.close();
-    }
-
-    private <T extends JsonRequest> T applyPaginatorUserAgent(T request) {
-        Consumer<AwsRequestOverrideConfiguration.Builder> userAgentApplier = b -> b.addApiName(ApiName.builder()
-                                                                                                      .version(VersionInfo.SDK_VERSION).name("PAGINATED").build());
-        AwsRequestOverrideConfiguration overrideConfiguration = request.overrideConfiguration()
-                                                                       .map(c -> c.toBuilder().applyMutation(userAgentApplier).build())
-                                                                       .orElse((AwsRequestOverrideConfiguration.builder().applyMutation(userAgentApplier).build()));
-        return (T) request.toBuilder().overrideConfiguration(overrideConfiguration).build();
-    }
-
-    private <T extends JsonRequest> T applySignerOverride(T request, Signer signer) {
-        if (request.overrideConfiguration().flatMap(c -> c.signer()).isPresent()) {
-            return request;
-        }
-        Consumer<AwsRequestOverrideConfiguration.Builder> signerOverride = b -> b.signer(signer).build();
-        AwsRequestOverrideConfiguration overrideConfiguration = request.overrideConfiguration()
-                                                                       .map(c -> c.toBuilder().applyMutation(signerOverride).build())
-                                                                       .orElse((AwsRequestOverrideConfiguration.builder().applyMutation(signerOverride).build()));
-        return (T) request.toBuilder().overrideConfiguration(overrideConfiguration).build();
-    }
-
-    @Override
-    public JsonUtilities utilities() {
-        return JsonUtilities.create(param1, param2, param3);
     }
 }

@@ -77,43 +77,66 @@ public class SyncClientInterface implements ClassSpec {
     }
 
     @Override
-    public TypeSpec poetSpec() {
-        TypeSpec.Builder result = PoetUtils.createInterfaceBuilder(className);
-
-
-        result.addSuperinterface(SdkClient.class)
-              .addAnnotation(SdkPublicApi.class)
-              .addAnnotation(ThreadSafe.class)
-              .addField(FieldSpec.builder(String.class, "SERVICE_NAME")
-                                 .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
-                                 .initializer("$S", model.getMetadata().getSigningName())
-                                 .build())
-               .addField(FieldSpec.builder(String.class, "SERVICE_METADATA_ID")
-                                  .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
-                                  .initializer("$S", model.getMetadata().getEndpointPrefix())
-                                  .addJavadoc("Value for looking up the service's metadata from the {@link $T}.",
-                                              ServiceMetadataProvider.class)
-                                  .build());
-
-        PoetUtils.addJavadoc(result::addJavadoc, getJavadoc());
-
-        if (!model.getCustomizationConfig().isExcludeClientCreateMethod()) {
-            result.addMethod(create());
-        }
-
-        result.addMethod(builder())
-              .addMethods(operations())
-              .addMethod(serviceMetadata());
-
+    public final TypeSpec poetSpec() {
+        TypeSpec.Builder result = createTypeSpec();
+        addInterfaceClass(result);
+        addAnnotations(result);
+        addModifiers(result);
+        addFields(result);
+        result.addMethods(operations());
         if (model.getCustomizationConfig().getUtilitiesMethod() != null) {
             result.addMethod(utilitiesMethod());
         }
-
         if (model.hasWaiters()) {
             result.addMethod(waiterMethod());
         }
-
+        addAdditionalMethods(result);
+        addCloseMethod(result);
         return result.build();
+    }
+
+    protected void addInterfaceClass(TypeSpec.Builder type) {
+        type.addSuperinterface(SdkClient.class);
+    }
+
+    protected TypeSpec.Builder createTypeSpec() {
+        return PoetUtils.createInterfaceBuilder(className);
+    }
+
+    protected void addAnnotations(TypeSpec.Builder type) {
+        type.addAnnotation(SdkPublicApi.class)
+            .addAnnotation(ThreadSafe.class);
+    }
+
+    protected void addModifiers(TypeSpec.Builder type) {
+    }
+
+    protected void addCloseMethod(TypeSpec.Builder type) {
+    }
+
+    protected void addFields(TypeSpec.Builder type) {
+        type.addField(FieldSpec.builder(String.class, "SERVICE_NAME")
+                               .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
+                               .initializer("$S", model.getMetadata().getSigningName())
+                               .build())
+            .addField(FieldSpec.builder(String.class, "SERVICE_METADATA_ID")
+                               .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
+                               .initializer("$S", model.getMetadata().getEndpointPrefix())
+                               .addJavadoc("Value for looking up the service's metadata from the {@link $T}.",
+                                           ServiceMetadataProvider.class)
+                               .build());
+    }
+
+    protected void addAdditionalMethods(TypeSpec.Builder type) {
+
+        if (!model.getCustomizationConfig().isExcludeClientCreateMethod()) {
+            type.addMethod(create());
+        }
+
+        type.addMethod(builder())
+            .addMethod(serviceMetadata());
+
+        PoetUtils.addJavadoc(type::addJavadoc, getJavadoc());
     }
 
     @Override

@@ -49,11 +49,6 @@ final class DefaultProtocolRestJsonWithCustomContentTypeClient implements Protoc
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
     }
 
-    @Override
-    public final String serviceName() {
-        return SERVICE_NAME;
-    }
-
     /**
      * Invokes the OneOperation operation.
      *
@@ -72,31 +67,36 @@ final class DefaultProtocolRestJsonWithCustomContentTypeClient implements Protoc
      */
     @Override
     public OneOperationResponse oneOperation(OneOperationRequest oneOperationRequest) throws AwsServiceException,
-            SdkClientException, ProtocolRestJsonWithCustomContentTypeException {
+                                                                                             SdkClientException, ProtocolRestJsonWithCustomContentTypeException {
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                .isPayloadJson(true).build();
+                                                                       .isPayloadJson(true).build();
 
         HttpResponseHandler<OneOperationResponse> responseHandler = protocolFactory.createResponseHandler(operationMetadata,
-                OneOperationResponse::builder);
+                                                                                                          OneOperationResponse::builder);
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                operationMetadata);
+                                                                                                   operationMetadata);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, oneOperationRequest
-                .overrideConfiguration().orElse(null));
+            .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-                .create("ApiCall");
+            .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "AmazonProtocolRestJsonWithCustomContentType");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "OneOperation");
 
             return clientHandler.execute(new ClientExecutionParams<OneOperationRequest, OneOperationResponse>()
-                    .withOperationName("OneOperation").withResponseHandler(responseHandler)
-                    .withErrorResponseHandler(errorResponseHandler).withInput(oneOperationRequest)
-                    .withMetricCollector(apiCallMetricCollector)
-                    .withMarshaller(new OneOperationRequestMarshaller(protocolFactory)));
+                                             .withOperationName("OneOperation").withResponseHandler(responseHandler)
+                                             .withErrorResponseHandler(errorResponseHandler).withInput(oneOperationRequest)
+                                             .withMetricCollector(apiCallMetricCollector)
+                                             .withMarshaller(new OneOperationRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
+    }
+
+    @Override
+    public final String serviceName() {
+        return SERVICE_NAME;
     }
 
     private static List<MetricPublisher> resolveMetricPublishers(SdkClientConfiguration clientConfiguration,
@@ -121,8 +121,8 @@ final class DefaultProtocolRestJsonWithCustomContentTypeClient implements Protoc
 
     private <T extends BaseAwsJsonProtocolFactory.Builder<T>> T init(T builder) {
         return builder.clientConfiguration(clientConfiguration)
-                .defaultServiceExceptionSupplier(ProtocolRestJsonWithCustomContentTypeException::builder)
-                .protocol(AwsJsonProtocol.REST_JSON).protocolVersion("1.1").contentType("application/json");
+                      .defaultServiceExceptionSupplier(ProtocolRestJsonWithCustomContentTypeException::builder)
+                      .protocol(AwsJsonProtocol.REST_JSON).protocolVersion("1.1").contentType("application/json");
     }
 
     @Override

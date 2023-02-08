@@ -37,7 +37,7 @@ import software.amazon.awssdk.codegen.utils.PaginatorUtils;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.utils.Validate;
 
-public class DelegatingSyncClientClass extends SyncClientInterface{
+public class DelegatingSyncClientClass extends SyncClientInterface {
 
     private static final String DELEGATE = "delegate";
     private final IntermediateModel model;
@@ -53,9 +53,8 @@ public class DelegatingSyncClientClass extends SyncClientInterface{
     }
 
     @Override
-    public TypeSpec poetSpec() {
+    protected void addInterfaceClass(TypeSpec.Builder type) {
         ClassName interfaceClass = poetExtensions.getClientClass(model.getMetadata().getSyncInterface());
-        TypeSpec.Builder result = PoetUtils.createClassBuilder(className);
 
         MethodSpec delegate = MethodSpec.methodBuilder(DELEGATE)
                                         .addModifiers(Modifier.PUBLIC)
@@ -63,27 +62,31 @@ public class DelegatingSyncClientClass extends SyncClientInterface{
                                         .returns(SdkClient.class)
                                         .build();
 
-        result.addSuperinterface(interfaceClass)
-              .addAnnotation(SdkPublicApi.class)
-              .addModifiers(Modifier.ABSTRACT, Modifier.PUBLIC)
-              .addField(FieldSpec.builder(interfaceClass, DELEGATE)
-                                 .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
-                                 .build())
-              .addMethod(delegate)
-              .addMethods(operations())
-              .addMethod(closeMethod());
+        type.addSuperinterface(interfaceClass)
+            .addMethod(constructor(interfaceClass))
+            .addField(FieldSpec.builder(interfaceClass, DELEGATE)
+                               .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
+                               .build())
+            .addMethod(delegate);
+    }
 
-        result.addMethod(constructor(interfaceClass));
+    @Override
+    protected TypeSpec.Builder createTypeSpec() {
+        return PoetUtils.createClassBuilder(className);
+    }
 
-        if (model.getCustomizationConfig().getUtilitiesMethod() != null) {
-            result.addMethod(utilitiesMethod());
-        }
+    @Override
+    protected void addAnnotations(TypeSpec.Builder type) {
+        type.addAnnotation(SdkPublicApi.class);
+    }
 
-        if (model.hasWaiters()) {
-            result.addMethod(waiterMethod());
-        }
+    @Override
+    protected void addModifiers(TypeSpec.Builder type) {
+        type.addModifiers(Modifier.ABSTRACT, Modifier.PUBLIC);
+    }
 
-        return result.build();
+    @Override
+    protected void addFields(TypeSpec.Builder type) {
     }
 
     private MethodSpec constructor(ClassName interfaceClass) {
@@ -160,11 +163,18 @@ public class DelegatingSyncClientClass extends SyncClientInterface{
                                      OperationModel opModel) {
     }
 
-    private MethodSpec closeMethod() {
-        return MethodSpec.methodBuilder("close")
-                         .addAnnotation(Override.class)
-                         .addModifiers(Modifier.PUBLIC)
-                         .addStatement("delegate.close()")
-                         .build();
+    @Override
+    protected void addAdditionalMethods(TypeSpec.Builder type) {
+    }
+
+    @Override
+    protected void addCloseMethod(TypeSpec.Builder type) {
+        MethodSpec method = MethodSpec.methodBuilder("close")
+                                      .addAnnotation(Override.class)
+                                      .addModifiers(Modifier.PUBLIC)
+                                      .addStatement("delegate.close()")
+                                      .build();
+
+        type.addMethod(method);
     }
 }

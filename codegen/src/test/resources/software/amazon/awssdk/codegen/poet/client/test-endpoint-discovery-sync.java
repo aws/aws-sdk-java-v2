@@ -69,11 +69,6 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
         }
     }
 
-    @Override
-    public final String serviceName() {
-        return SERVICE_NAME;
-    }
-
     /**
      * Invokes the DescribeEndpoints operation.
      *
@@ -301,6 +296,11 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
+    }
+
+    @Override
+    public final String serviceName() {
+        return SERVICE_NAME;
     }
 
     private static List<MetricPublisher> resolveMetricPublishers(SdkClientConfiguration clientConfiguration,
