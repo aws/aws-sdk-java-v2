@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS CRT HTTP Client",
-    "contributor": "",
-    "description": "The AWS CRT HTTP Client is now generally available. Visit [Dev Guide](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/http-configuration-crt.html) for more information."
-}
