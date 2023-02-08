@@ -552,7 +552,7 @@ public abstract class DelegatingJsonClient implements JsonClient {
     public <ReturnT> ReturnT putOperationWithChecksum(PutOperationWithChecksumRequest putOperationWithChecksumRequest,
                                                       RequestBody requestBody, ResponseTransformer<PutOperationWithChecksumResponse, ReturnT> responseTransformer)
         throws AwsServiceException, SdkClientException, JsonException {
-        return delegate.putOperationWithChecksum(putOperationWithChecksumRequest, requestBody);
+        return delegate.putOperationWithChecksum(putOperationWithChecksumRequest, requestBody, responseTransformer);
     }
 
     /**
@@ -698,7 +698,7 @@ public abstract class DelegatingJsonClient implements JsonClient {
         StreamingInputOutputOperationRequest streamingInputOutputOperationRequest, RequestBody requestBody,
         ResponseTransformer<StreamingInputOutputOperationResponse, ReturnT> responseTransformer) throws AwsServiceException,
                                                                                                         SdkClientException, JsonException {
-        return delegate.streamingInputOutputOperation(streamingInputOutputOperationRequest, requestBody);
+        return delegate.streamingInputOutputOperation(streamingInputOutputOperationRequest, requestBody, responseTransformer);
     }
 
     /**
@@ -856,6 +856,11 @@ public abstract class DelegatingJsonClient implements JsonClient {
     @Override
     public JsonUtilities utilities() {
         return delegate.utilities();
+    }
+
+    @Override
+    public final String serviceName() {
+        return SERVICE_NAME;
     }
 
     @Override

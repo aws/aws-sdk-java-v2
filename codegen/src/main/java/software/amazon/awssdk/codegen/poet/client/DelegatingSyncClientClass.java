@@ -15,10 +15,7 @@
 
 package software.amazon.awssdk.codegen.poet.client;
 
-import static software.amazon.awssdk.codegen.internal.Constant.EVENT_PUBLISHER_PARAM_NAME;
-import static software.amazon.awssdk.codegen.internal.Constant.EVENT_RESPONSE_HANDLER_PARAM_NAME;
-import static software.amazon.awssdk.codegen.internal.Constant.SYNC_STREAMING_INPUT_PARAM;
-import static software.amazon.awssdk.codegen.internal.Constant.SYNC_STREAMING_OUTPUT_PARAM;
+import static java.util.stream.Collectors.joining;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
@@ -38,8 +35,6 @@ import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.utils.Validate;
 
 public class DelegatingSyncClientClass extends SyncClientInterface {
-
-    private static final String DELEGATE = "delegate";
     private final IntermediateModel model;
     private final ClassName className;
     private final PoetExtension poetExtensions;
@@ -56,7 +51,7 @@ public class DelegatingSyncClientClass extends SyncClientInterface {
     protected void addInterfaceClass(TypeSpec.Builder type) {
         ClassName interfaceClass = poetExtensions.getClientClass(model.getMetadata().getSyncInterface());
 
-        MethodSpec delegate = MethodSpec.methodBuilder(DELEGATE)
+        MethodSpec delegate = MethodSpec.methodBuilder("delegate")
                                         .addModifiers(Modifier.PUBLIC)
                                         .addStatement("return this.delegate")
                                         .returns(SdkClient.class)
@@ -64,7 +59,7 @@ public class DelegatingSyncClientClass extends SyncClientInterface {
 
         type.addSuperinterface(interfaceClass)
             .addMethod(constructor(interfaceClass))
-            .addField(FieldSpec.builder(interfaceClass, DELEGATE)
+            .addField(FieldSpec.builder(interfaceClass, "delegate")
                                .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
                                .build())
             .addMethod(delegate);
@@ -89,13 +84,25 @@ public class DelegatingSyncClientClass extends SyncClientInterface {
     protected void addFields(TypeSpec.Builder type) {
     }
 
-    private MethodSpec constructor(ClassName interfaceClass) {
-        return MethodSpec.constructorBuilder()
-                         .addModifiers(Modifier.PUBLIC)
-                         .addParameter(interfaceClass, DELEGATE)
-                         .addStatement("$T.paramNotNull(delegate, \"delegate\")", Validate.class)
-                         .addStatement("this.delegate = delegate")
-                         .build();
+    @Override
+    protected void addConsumerMethod(List<MethodSpec> specs, MethodSpec spec, SimpleMethodOverload overload,
+                                     OperationModel opModel) {
+    }
+
+    @Override
+    protected void addAdditionalMethods(TypeSpec.Builder type) {
+        type.addMethod(nameMethod());
+    }
+
+    @Override
+    protected void addCloseMethod(TypeSpec.Builder type) {
+        MethodSpec method = MethodSpec.methodBuilder("close")
+                                      .addAnnotation(Override.class)
+                                      .addModifiers(Modifier.PUBLIC)
+                                      .addStatement("delegate.close()")
+                                      .build();
+
+        type.addMethod(method);
     }
 
     @Override
@@ -113,31 +120,10 @@ public class DelegatingSyncClientClass extends SyncClientInterface {
         builder.addModifiers(Modifier.PUBLIC)
                .addAnnotation(Override.class);
 
-        if (opModel.hasStreamingInput() || opModel.hasStreamingOutput()) {
-            String variableName = opModel.hasStreamingInput() ? SYNC_STREAMING_INPUT_PARAM : SYNC_STREAMING_OUTPUT_PARAM;
-            return builder.addStatement("return delegate.$N($N, $N)",
-                                        opModel.getMethodName(),
-                                        opModel.getInput().getVariableName(),
-                                        variableName);
-        }
-
-        if (opModel.hasEventStreamInput() && opModel.hasEventStreamOutput()) {
-            return builder.addStatement("return delegate.$N($N, $N, $N)",
-                                        opModel.getMethodName(),
-                                        opModel.getInput().getVariableName(),
-                                        EVENT_PUBLISHER_PARAM_NAME,
-                                        SYNC_STREAMING_OUTPUT_PARAM);
-        }
-
-        if (opModel.hasEventStreamInput() || opModel.hasEventStreamOutput()) {
-            String variableName = opModel.hasEventStreamInput() ? EVENT_PUBLISHER_PARAM_NAME : EVENT_RESPONSE_HANDLER_PARAM_NAME;
-            return builder.addStatement("return delegate.$N($N, $N)",
-                                        opModel.getMethodName(),
-                                        opModel.getInput().getVariableName(),
-                                        variableName);
-        }
-
-        return builder.addStatement("return delegate.$N($N)", opModel.getMethodName(), opModel.getInput().getVariableName());
+        builder.addStatement("return delegate.$N($L)",
+                             opModel.getMethodName(),
+                             builder.parameters.stream().map(p -> p.name).collect(joining(", ")));
+        return builder;
     }
 
     @Override
@@ -158,23 +144,21 @@ public class DelegatingSyncClientClass extends SyncClientInterface {
         return builder.addAnnotation(Override.class).addStatement("return delegate.waiter()");
     }
 
-    @Override
-    protected void addConsumerMethod(List<MethodSpec> specs, MethodSpec spec, SimpleMethodOverload overload,
-                                     OperationModel opModel) {
+    private MethodSpec constructor(ClassName interfaceClass) {
+        return MethodSpec.constructorBuilder()
+                         .addModifiers(Modifier.PUBLIC)
+                         .addParameter(interfaceClass, "delegate")
+                         .addStatement("$T.paramNotNull(delegate, \"delegate\")", Validate.class)
+                         .addStatement("this.delegate = delegate")
+                         .build();
     }
 
-    @Override
-    protected void addAdditionalMethods(TypeSpec.Builder type) {
-    }
-
-    @Override
-    protected void addCloseMethod(TypeSpec.Builder type) {
-        MethodSpec method = MethodSpec.methodBuilder("close")
-                                      .addAnnotation(Override.class)
-                                      .addModifiers(Modifier.PUBLIC)
-                                      .addStatement("delegate.close()")
-                                      .build();
-
-        type.addMethod(method);
+    private MethodSpec nameMethod() {
+        return MethodSpec.methodBuilder("serviceName")
+                         .addAnnotation(Override.class)
+                         .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+                         .returns(String.class)
+                         .addStatement("return SERVICE_NAME")
+                         .build();
     }
 }
