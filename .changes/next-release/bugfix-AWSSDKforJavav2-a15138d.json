@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon S3",
+    "contributor": "",
+    "description": "Bug fix for Default Md5 checksum was getting skipped even when new http checksum was not set to any checksum algorithm."
+}
