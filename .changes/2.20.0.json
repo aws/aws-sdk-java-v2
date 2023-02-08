@@ -1,0 +1,48 @@
+{
+    "version": "2.20.0",
+    "date": "2023-02-08",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "Amazon S3",
+            "contributor": "",
+            "description": "Bug fix for Default Md5 checksum was getting skipped even when new http checksum was not set to any checksum algorithm."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Backup",
+            "contributor": "",
+            "description": "This release added one attribute (resource name) in the output model of our 9 existing APIs in AWS backup so that customers will see the resource name at the output. No input required from Customers."
+        },
+        {
+            "type": "feature",
+            "category": "AWS CRT HTTP Client",
+            "contributor": "",
+            "description": "The AWS CRT HTTP Client is now generally available. Visit [Dev Guide](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/http-configuration-crt.html) for more information."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "contributor": "",
+            "description": "DirectJDBCSource + Glue 4.0 streaming options"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Lake Formation",
+            "contributor": "",
+            "description": "This release removes the LFTagpolicyResource expression limits."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudFront",
+            "contributor": "",
+            "description": "CloudFront Origin Access Control extends support to AWS Elemental MediaStore origins."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

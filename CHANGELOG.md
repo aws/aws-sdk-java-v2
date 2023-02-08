@@ -1,3 +1,32 @@
+# __2.20.0__ __2023-02-08__
+## __AWS Backup__
+  - ### Features
+    - This release added one attribute (resource name) in the output model of our 9 existing APIs in AWS backup so that customers will see the resource name at the output. No input required from Customers.
+
+## __AWS CRT HTTP Client__
+  - ### Features
+    - The AWS CRT HTTP Client is now generally available. Visit [Dev Guide](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/http-configuration-crt.html) for more information.
+
+## __AWS Glue__
+  - ### Features
+    - DirectJDBCSource + Glue 4.0 streaming options
+
+## __AWS Lake Formation__
+  - ### Features
+    - This release removes the LFTagpolicyResource expression limits.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon CloudFront__
+  - ### Features
+    - CloudFront Origin Access Control extends support to AWS Elemental MediaStore origins.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Bug fix for Default Md5 checksum was getting skipped even when new http checksum was not set to any checksum algorithm.
+
 # __2.19.33__ __2023-02-07__
 ## __AWS SDK for Java v2__
   - ### Features
