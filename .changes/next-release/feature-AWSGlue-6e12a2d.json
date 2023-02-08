@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Glue",
+    "contributor": "",
+    "description": "DirectJDBCSource + Glue 4.0 streaming options"
+}
