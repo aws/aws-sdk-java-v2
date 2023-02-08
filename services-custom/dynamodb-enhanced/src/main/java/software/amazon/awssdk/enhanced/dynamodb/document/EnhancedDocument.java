@@ -24,7 +24,9 @@ import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkNumber;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
+import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
+import software.amazon.awssdk.enhanced.dynamodb.internal.document.DefaultEnhancedDocument;
 
 /**
  * Interface representing Document API for DynamoDB. Document API operations are used to carry open content i.e. data with no
@@ -37,6 +39,9 @@ import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 @SdkPublicApi
 public interface EnhancedDocument {
 
+    DefaultAttributeConverterProvider defaultProvider = DefaultAttributeConverterProvider.create();
+
+
     /**
      * Convenience factory method - instantiates an <code>EnhancedDocument</code> from the given JSON String.
      *
@@ -44,8 +49,13 @@ public interface EnhancedDocument {
      * @return A new instance of EnhancedDocument.
      */
     static EnhancedDocument fromJson(String json) {
-        // TODO : return default implementation
-        return null;
+        if (json == null) {
+            return null;
+        }
+        return DefaultEnhancedDocument.builder()
+                                      .json(json)
+                                      .addAttributeConverterProvider(defaultProvider)
+                                      .build();
     }
 
     /**
@@ -55,16 +65,20 @@ public interface EnhancedDocument {
      * @return A new instance of EnhancedDocument.
      */
     static EnhancedDocument fromMap(Map<String, Object> attributes) {
-        // TODO : return default implementation
-        return null;
+        if (attributes == null) {
+            return null;
+        }
+        DefaultEnhancedDocument.DefaultBuilder defaultBuilder = DefaultEnhancedDocument.builder();
+        attributes.entrySet().forEach(key -> defaultBuilder.add(key.getKey(), key.getValue()));
+        return defaultBuilder.addAttributeConverterProvider(defaultProvider)
+                             .build();
     }
 
     /**
      * Creates a default builder for {@link EnhancedDocument}.
      */
     static Builder builder() {
-        // TODO : return default implementation
-        return null;
+        return DefaultEnhancedDocument.builder();
     }
 
     /**

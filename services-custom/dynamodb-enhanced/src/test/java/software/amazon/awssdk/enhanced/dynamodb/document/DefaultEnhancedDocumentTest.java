@@ -60,6 +60,12 @@ public class DefaultEnhancedDocumentTest {
     static final String SIMPLE_STRING = "stringValue";
     static final String SIMPLE_STRING_KEY = "stringKey";
     static final String SIMPLE_INT_NUMBER = "10";
+    public static final String ARRAY_AND_MAP_IN_JSON = "{\"numberKey\": 1,"
+                                                       + "\"numberList\": " + "[1, 2, 3],"
+                                                       + "\"mapKey\": "
+                                                       + "{\"1\": [\"a\", \"b\", \"c\"],"
+                                                       + "\"2\": 1}"
+                                                       + "}";
 
     private static Stream<Arguments> attributeValueMapsCorrespondingDocuments() {
 
@@ -201,13 +207,7 @@ public class DefaultEnhancedDocumentTest {
                                  mapFromKeyValuePairs(Pair.of(EnhancedType.listOf(String.class), Arrays.asList(STRINGS_ARRAY)),
                                                       Pair.of(EnhancedType.of(Integer.class), 1))))
                 , documentBuilder()
-                             .json(
-                                 "{\"numberKey\": 1,"
-                                 + "\"numberList\": " + "[1, 2, 3],"
-                                 + "\"mapKey\": "
-                                 + "{\"1\": [\"a\", \"b\", \"c\"],"
-                                 + "\"2\": 1}"
-                                 + "}")
+                             .json(ARRAY_AND_MAP_IN_JSON)
                              .build()
                 , "{\"numberKey\": 1,\"numberList\": [1, 2, 3],\"mapKey\": {\"1\": [\"a\", \"b\", \"c\"],\"2\": 1}}"),
 
