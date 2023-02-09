@@ -1,253 +1,6 @@
 {
     "testCases": [
         {
-            "documentation": "For region eu-central-1 with FIPS enabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://evidently-fips.eu-central-1.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "eu-central-1",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region eu-central-1 with FIPS enabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://evidently-fips.eu-central-1.amazonaws.com"
-                }
-            },
-            "params": {
-                "UseDualStack": false,
-                "Region": "eu-central-1",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region eu-central-1 with FIPS disabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://evidently.eu-central-1.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "eu-central-1",
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region eu-central-1 with FIPS disabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://evidently.eu-central-1.amazonaws.com"
-                }
-            },
-            "params": {
-                "UseDualStack": false,
-                "Region": "eu-central-1",
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region us-west-2 with FIPS enabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://evidently-fips.us-west-2.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "us-west-2",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region us-west-2 with FIPS enabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://evidently-fips.us-west-2.amazonaws.com"
-                }
-            },
-            "params": {
-                "UseDualStack": false,
-                "Region": "us-west-2",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region us-west-2 with FIPS disabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://evidently.us-west-2.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "us-west-2",
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region us-west-2 with FIPS disabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://evidently.us-west-2.amazonaws.com"
-                }
-            },
-            "params": {
-                "UseDualStack": false,
-                "Region": "us-west-2",
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region eu-north-1 with FIPS enabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://evidently-fips.eu-north-1.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "eu-north-1",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region eu-north-1 with FIPS enabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://evidently-fips.eu-north-1.amazonaws.com"
-                }
-            },
-            "params": {
-                "UseDualStack": false,
-                "Region": "eu-north-1",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region eu-north-1 with FIPS disabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://evidently.eu-north-1.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "eu-north-1",
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region eu-north-1 with FIPS disabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://evidently.eu-north-1.amazonaws.com"
-                }
-            },
-            "params": {
-                "UseDualStack": false,
-                "Region": "eu-north-1",
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region eu-west-1 with FIPS enabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://evidently-fips.eu-west-1.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "eu-west-1",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region eu-west-1 with FIPS enabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://evidently-fips.eu-west-1.amazonaws.com"
-                }
-            },
-            "params": {
-                "UseDualStack": false,
-                "Region": "eu-west-1",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region eu-west-1 with FIPS disabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://evidently.eu-west-1.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "eu-west-1",
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region eu-west-1 with FIPS disabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://evidently.eu-west-1.amazonaws.com"
-                }
-            },
-            "params": {
-                "UseDualStack": false,
-                "Region": "eu-west-1",
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region ap-northeast-1 with FIPS enabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://evidently-fips.ap-northeast-1.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "ap-northeast-1",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region ap-northeast-1 with FIPS enabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://evidently-fips.ap-northeast-1.amazonaws.com"
-                }
-            },
-            "params": {
-                "UseDualStack": false,
-                "Region": "ap-northeast-1",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region ap-northeast-1 with FIPS disabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://evidently.ap-northeast-1.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "ap-northeast-1",
-                "UseFIPS": false
-            }
-        },
-        {
             "documentation": "For region ap-northeast-1 with FIPS disabled and DualStack disabled",
             "expect": {
                 "endpoint": {
@@ -255,47 +8,8 @@
                 }
             },
             "params": {
-                "UseDualStack": false,
                 "Region": "ap-northeast-1",
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region ap-southeast-1 with FIPS enabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://evidently-fips.ap-southeast-1.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "ap-southeast-1",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region ap-southeast-1 with FIPS enabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://evidently-fips.ap-southeast-1.amazonaws.com"
-                }
-            },
-            "params": {
                 "UseDualStack": false,
-                "Region": "ap-southeast-1",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region ap-southeast-1 with FIPS disabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://evidently.ap-southeast-1.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "ap-southeast-1",
                 "UseFIPS": false
             }
         },
@@ -307,47 +21,8 @@
                 }
             },
             "params": {
-                "UseDualStack": false,
                 "Region": "ap-southeast-1",
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region ap-southeast-2 with FIPS enabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://evidently-fips.ap-southeast-2.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "ap-southeast-2",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region ap-southeast-2 with FIPS enabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://evidently-fips.ap-southeast-2.amazonaws.com"
-                }
-            },
-            "params": {
                 "UseDualStack": false,
-                "Region": "ap-southeast-2",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region ap-southeast-2 with FIPS disabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://evidently.ap-southeast-2.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "ap-southeast-2",
                 "UseFIPS": false
             }
         },
@@ -359,47 +34,47 @@
                 }
             },
             "params": {
-                "UseDualStack": false,
                 "Region": "ap-southeast-2",
+                "UseDualStack": false,
                 "UseFIPS": false
             }
         },
         {
-            "documentation": "For region us-east-1 with FIPS enabled and DualStack enabled",
+            "documentation": "For region eu-central-1 with FIPS disabled and DualStack disabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://evidently-fips.us-east-1.api.aws"
+                    "url": "https://evidently.eu-central-1.amazonaws.com"
                 }
             },
             "params": {
-                "UseDualStack": true,
-                "Region": "us-east-1",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region us-east-1 with FIPS enabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://evidently-fips.us-east-1.amazonaws.com"
-                }
-            },
-            "params": {
+                "Region": "eu-central-1",
                 "UseDualStack": false,
-                "Region": "us-east-1",
-                "UseFIPS": true
+                "UseFIPS": false
             }
         },
         {
-            "documentation": "For region us-east-1 with FIPS disabled and DualStack enabled",
+            "documentation": "For region eu-north-1 with FIPS disabled and DualStack disabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://evidently.us-east-1.api.aws"
+                    "url": "https://evidently.eu-north-1.amazonaws.com"
                 }
             },
             "params": {
-                "UseDualStack": true,
-                "Region": "us-east-1",
+                "Region": "eu-north-1",
+                "UseDualStack": false,
+                "UseFIPS": false
+            }
+        },
+        {
+            "documentation": "For region eu-west-1 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://evidently.eu-west-1.amazonaws.com"
+                }
+            },
+            "params": {
+                "Region": "eu-west-1",
+                "UseDualStack": false,
                 "UseFIPS": false
             }
         },
@@ -411,47 +86,8 @@
                 }
             },
             "params": {
-                "UseDualStack": false,
                 "Region": "us-east-1",
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region us-east-2 with FIPS enabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://evidently-fips.us-east-2.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "us-east-2",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region us-east-2 with FIPS enabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://evidently-fips.us-east-2.amazonaws.com"
-                }
-            },
-            "params": {
                 "UseDualStack": false,
-                "Region": "us-east-2",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region us-east-2 with FIPS disabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://evidently.us-east-2.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "us-east-2",
                 "UseFIPS": false
             }
         },
@@ -463,8 +99,216 @@
                 }
             },
             "params": {
-                "UseDualStack": false,
                 "Region": "us-east-2",
+                "UseDualStack": false,
+                "UseFIPS": false
+            }
+        },
+        {
+            "documentation": "For region us-west-2 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://evidently.us-west-2.amazonaws.com"
+                }
+            },
+            "params": {
+                "Region": "us-west-2",
+                "UseDualStack": false,
+                "UseFIPS": false
+            }
+        },
+        {
+            "documentation": "For region us-east-1 with FIPS enabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://evidently-fips.us-east-1.api.aws"
+                }
+            },
+            "params": {
+                "Region": "us-east-1",
+                "UseDualStack": true,
+                "UseFIPS": true
+            }
+        },
+        {
+            "documentation": "For region us-east-1 with FIPS enabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://evidently-fips.us-east-1.amazonaws.com"
+                }
+            },
+            "params": {
+                "Region": "us-east-1",
+                "UseDualStack": false,
+                "UseFIPS": true
+            }
+        },
+        {
+            "documentation": "For region us-east-1 with FIPS disabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://evidently.us-east-1.api.aws"
+                }
+            },
+            "params": {
+                "Region": "us-east-1",
+                "UseDualStack": true,
+                "UseFIPS": false
+            }
+        },
+        {
+            "documentation": "For region cn-north-1 with FIPS enabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://evidently-fips.cn-north-1.api.amazonwebservices.com.cn"
+                }
+            },
+            "params": {
+                "Region": "cn-north-1",
+                "UseDualStack": true,
+                "UseFIPS": true
+            }
+        },
+        {
+            "documentation": "For region cn-north-1 with FIPS enabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://evidently-fips.cn-north-1.amazonaws.com.cn"
+                }
+            },
+            "params": {
+                "Region": "cn-north-1",
+                "UseDualStack": false,
+                "UseFIPS": true
+            }
+        },
+        {
+            "documentation": "For region cn-north-1 with FIPS disabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://evidently.cn-north-1.api.amazonwebservices.com.cn"
+                }
+            },
+            "params": {
+                "Region": "cn-north-1",
+                "UseDualStack": true,
+                "UseFIPS": false
+            }
+        },
+        {
+            "documentation": "For region cn-north-1 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://evidently.cn-north-1.amazonaws.com.cn"
+                }
+            },
+            "params": {
+                "Region": "cn-north-1",
+                "UseDualStack": false,
+                "UseFIPS": false
+            }
+        },
+        {
+            "documentation": "For region us-gov-east-1 with FIPS enabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://evidently-fips.us-gov-east-1.api.aws"
+                }
+            },
+            "params": {
+                "Region": "us-gov-east-1",
+                "UseDualStack": true,
+                "UseFIPS": true
+            }
+        },
+        {
+            "documentation": "For region us-gov-east-1 with FIPS enabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://evidently-fips.us-gov-east-1.amazonaws.com"
+                }
+            },
+            "params": {
+                "Region": "us-gov-east-1",
+                "UseDualStack": false,
+                "UseFIPS": true
+            }
+        },
+        {
+            "documentation": "For region us-gov-east-1 with FIPS disabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://evidently.us-gov-east-1.api.aws"
+                }
+            },
+            "params": {
+                "Region": "us-gov-east-1",
+                "UseDualStack": true,
+                "UseFIPS": false
+            }
+        },
+        {
+            "documentation": "For region us-gov-east-1 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://evidently.us-gov-east-1.amazonaws.com"
+                }
+            },
+            "params": {
+                "Region": "us-gov-east-1",
+                "UseDualStack": false,
+                "UseFIPS": false
+            }
+        },
+        {
+            "documentation": "For region us-iso-east-1 with FIPS enabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://evidently-fips.us-iso-east-1.c2s.ic.gov"
+                }
+            },
+            "params": {
+                "Region": "us-iso-east-1",
+                "UseDualStack": false,
+                "UseFIPS": true
+            }
+        },
+        {
+            "documentation": "For region us-iso-east-1 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://evidently.us-iso-east-1.c2s.ic.gov"
+                }
+            },
+            "params": {
+                "Region": "us-iso-east-1",
+                "UseDualStack": false,
+                "UseFIPS": false
+            }
+        },
+        {
+            "documentation": "For region us-isob-east-1 with FIPS enabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://evidently-fips.us-isob-east-1.sc2s.sgov.gov"
+                }
+            },
+            "params": {
+                "Region": "us-isob-east-1",
+                "UseDualStack": false,
+                "UseFIPS": true
+            }
+        },
+        {
+            "documentation": "For region us-isob-east-1 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://evidently.us-isob-east-1.sc2s.sgov.gov"
+                }
+            },
+            "params": {
+                "Region": "us-isob-east-1",
+                "UseDualStack": false,
                 "UseFIPS": false
             }
         },
@@ -476,8 +320,8 @@
                 }
             },
             "params": {
-                "UseDualStack": false,
                 "Region": "us-east-1",
+                "UseDualStack": false,
                 "UseFIPS": false,
                 "Endpoint": "https://example.com"
             }
@@ -488,8 +332,8 @@
                 "error": "Invalid Configuration: FIPS and custom endpoint are not supported"
             },
             "params": {
-                "UseDualStack": false,
                 "Region": "us-east-1",
+                "UseDualStack": false,
                 "UseFIPS": true,
                 "Endpoint": "https://example.com"
             }
@@ -500,8 +344,8 @@
                 "error": "Invalid Configuration: Dualstack and custom endpoint are not supported"
             },
             "params": {
-                "UseDualStack": true,
                 "Region": "us-east-1",
+                "UseDualStack": true,
                 "UseFIPS": false,
                 "Endpoint": "https://example.com"
             }
