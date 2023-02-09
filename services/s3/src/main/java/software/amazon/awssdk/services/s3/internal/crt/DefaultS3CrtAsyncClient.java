@@ -108,11 +108,6 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                                    .s3ClientConfiguration(s3NativeClientConfiguration);
     }
 
-    @Override
-    public String serviceName() {
-        return SERVICE_NAME;
-    }
-
     public static final class DefaultS3CrtClientBuilder implements S3CrtAsyncClientBuilder {
         private Long readBufferSizeInBytes;
         private AwsCredentialsProvider credentialsProvider;

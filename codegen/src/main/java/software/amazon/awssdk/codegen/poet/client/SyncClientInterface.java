@@ -17,6 +17,10 @@ package software.amazon.awssdk.codegen.poet.client;
 
 import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
+import static javax.lang.model.element.Modifier.DEFAULT;
+import static javax.lang.model.element.Modifier.FINAL;
+import static javax.lang.model.element.Modifier.PUBLIC;
+import static javax.lang.model.element.Modifier.STATIC;
 import static software.amazon.awssdk.codegen.internal.Constant.SYNC_CLIENT_DESTINATION_PATH_PARAM_NAME;
 import static software.amazon.awssdk.codegen.internal.Constant.SYNC_CLIENT_SOURCE_PATH_PARAM_NAME;
 import static software.amazon.awssdk.codegen.internal.Constant.SYNC_STREAMING_INPUT_PARAM;
@@ -35,7 +39,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
-import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
@@ -116,11 +119,11 @@ public class SyncClientInterface implements ClassSpec {
 
     protected void addFields(TypeSpec.Builder type) {
         type.addField(FieldSpec.builder(String.class, "SERVICE_NAME")
-                               .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
+                               .addModifiers(PUBLIC, STATIC, FINAL)
                                .initializer("$S", model.getMetadata().getSigningName())
                                .build())
             .addField(FieldSpec.builder(String.class, "SERVICE_METADATA_ID")
-                               .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
+                               .addModifiers(PUBLIC, STATIC, FINAL)
                                .initializer("$S", model.getMetadata().getEndpointPrefix())
                                .addJavadoc("Value for looking up the service's metadata from the {@link $T}.",
                                            ServiceMetadataProvider.class)
@@ -152,7 +155,7 @@ public class SyncClientInterface implements ClassSpec {
     private MethodSpec create() {
         return MethodSpec.methodBuilder("create")
                          .returns(className)
-                         .addModifiers(Modifier.STATIC, Modifier.PUBLIC)
+                         .addModifiers(STATIC, PUBLIC)
                          .addJavadoc(
                                  "Create a {@link $T} with the region loaded from the {@link $T} and credentials loaded from the "
                                  + "{@link $T}.", className, DefaultAwsRegionProviderChain.class,
@@ -166,7 +169,7 @@ public class SyncClientInterface implements ClassSpec {
         ClassName builderInterface = ClassName.get(clientPackageName, model.getMetadata().getSyncBuilderInterface());
         return MethodSpec.methodBuilder("builder")
                          .returns(builderInterface)
-                         .addModifiers(Modifier.STATIC, Modifier.PUBLIC)
+                         .addModifiers(STATIC, PUBLIC)
                          .addJavadoc("Create a builder that can be used to configure and create a {@link $T}.", className)
                          .addStatement("return new $T()", builderClass)
                          .build();
@@ -185,7 +188,7 @@ public class SyncClientInterface implements ClassSpec {
     private MethodSpec serviceMetadata() {
         return MethodSpec.methodBuilder("serviceMetadata")
                          .returns(ServiceMetadata.class)
-                         .addModifiers(Modifier.STATIC, Modifier.PUBLIC)
+                         .addModifiers(STATIC, PUBLIC)
                          .addStatement("return $T.of(SERVICE_METADATA_ID)", ServiceMetadata.class)
                          .build();
     }
@@ -229,7 +232,7 @@ public class SyncClientInterface implements ClassSpec {
 
         MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder(methodName)
                                                            .returns(returnType)
-                                                           .addModifiers(Modifier.PUBLIC)
+                                                           .addModifiers(PUBLIC)
                                                            .addJavadoc(opModel.getDocs(model, ClientType.SYNC,
                                                                                        simpleMethodOverload))
                                                            .addExceptions(getExceptionClasses(model, opModel));
@@ -253,7 +256,7 @@ public class SyncClientInterface implements ClassSpec {
     }
 
     protected MethodSpec.Builder operationBody(MethodSpec.Builder builder, OperationModel opModel) {
-        return builder.addModifiers(Modifier.DEFAULT)
+        return builder.addModifiers(DEFAULT)
                       .addStatement("throw new $T()", UnsupportedOperationException.class);
     }
 
@@ -282,7 +285,7 @@ public class SyncClientInterface implements ClassSpec {
 
         MethodSpec.Builder builder = MethodSpec.methodBuilder(methodName)
                                                .returns(returnType)
-                                               .addModifiers(Modifier.PUBLIC)
+                                               .addModifiers(PUBLIC)
                                                .addExceptions(getExceptionClasses(model, opModel));
 
         return simpleMethodModifier(builder);
@@ -324,7 +327,7 @@ public class SyncClientInterface implements ClassSpec {
     }
 
     protected MethodSpec.Builder paginatedMethodBody(MethodSpec.Builder builder, OperationModel operationModel) {
-        return builder.addModifiers(Modifier.DEFAULT)
+        return builder.addModifiers(DEFAULT)
                       .addStatement("throw new $T()", UnsupportedOperationException.class);
     }
 
@@ -390,7 +393,7 @@ public class SyncClientInterface implements ClassSpec {
                                                               SYNC_CLIENT_SOURCE_PATH_PARAM_NAME).build();
         MethodSpec.Builder builder = MethodSpec.methodBuilder(methodName)
                                                .returns(responseType)
-                                               .addModifiers(Modifier.PUBLIC)
+                                               .addModifiers(PUBLIC)
                                                .addParameter(inputVarParam)
                                                .addParameter(srcPathParam)
                                                .addJavadoc(opModel.getDocs(model, ClientType.SYNC, SimpleMethodOverload.FILE))
@@ -410,7 +413,7 @@ public class SyncClientInterface implements ClassSpec {
         TypeName returnType = ParameterizedTypeName.get(ClassName.get(ResponseInputStream.class), responseType);
         MethodSpec.Builder builder = MethodSpec.methodBuilder(opModel.getMethodName())
                                                .returns(returnType)
-                                               .addModifiers(Modifier.PUBLIC)
+                                               .addModifiers(PUBLIC)
                                                .addParameter(requestType, opModel.getInput().getVariableName())
                                                .addJavadoc(opModel.getDocs(model, ClientType.SYNC,
                                                                            SimpleMethodOverload.INPUT_STREAM))
@@ -429,7 +432,7 @@ public class SyncClientInterface implements ClassSpec {
         TypeName returnType = ParameterizedTypeName.get(ClassName.get(ResponseBytes.class), responseType);
         MethodSpec.Builder builder = MethodSpec.methodBuilder(opModel.getMethodName() + "AsBytes")
                                                .returns(returnType)
-                                               .addModifiers(Modifier.PUBLIC)
+                                               .addModifiers(PUBLIC)
                                                .addParameter(requestType, opModel.getInput().getVariableName())
                                                .addJavadoc(opModel.getDocs(model, ClientType.SYNC, SimpleMethodOverload.BYTES))
                                                .addExceptions(getExceptionClasses(model, opModel))
@@ -450,7 +453,7 @@ public class SyncClientInterface implements ClassSpec {
             ParameterSpec.builder(ClassName.get(Path.class), SYNC_CLIENT_DESTINATION_PATH_PARAM_NAME).build();
         MethodSpec.Builder builder = MethodSpec.methodBuilder(methodName)
                                                .returns(responseType)
-                                               .addModifiers(Modifier.PUBLIC)
+                                               .addModifiers(PUBLIC)
                                                .addParameter(inputVarParam)
                                                .addParameter(dstFileParam)
                                                .addJavadoc(opModel.getDocs(model, ClientType.SYNC, SimpleMethodOverload.FILE))
@@ -477,7 +480,7 @@ public class SyncClientInterface implements ClassSpec {
             ParameterSpec.builder(ClassName.get(Path.class), SYNC_CLIENT_DESTINATION_PATH_PARAM_NAME).build();
         MethodSpec.Builder builder = MethodSpec.methodBuilder(methodName)
                          .returns(responseType)
-                         .addModifiers(Modifier.PUBLIC)
+                         .addModifiers(PUBLIC)
                          .addParameter(inputVarParam)
                          .addParameter(srcFileParam)
                          .addParameter(dstFileParam)
@@ -494,7 +497,7 @@ public class SyncClientInterface implements ClassSpec {
     }
 
     protected MethodSpec.Builder simpleMethodModifier(MethodSpec.Builder builder) {
-        return builder.addModifiers(Modifier.DEFAULT);
+        return builder.addModifiers(DEFAULT);
     }
 
     private static List<ClassName> getExceptionClasses(IntermediateModel model, OperationModel opModel) {
@@ -519,7 +522,7 @@ public class SyncClientInterface implements ClassSpec {
 
         MethodSpec.Builder builder = MethodSpec.methodBuilder(UtilitiesMethod.METHOD_NAME)
                                                .returns(returnType)
-                                               .addModifiers(Modifier.PUBLIC)
+                                               .addModifiers(PUBLIC)
                                                .addJavadoc("Creates an instance of {@link $T} object with the "
                                                            + "configuration set on this client.", returnType);
 
@@ -527,12 +530,12 @@ public class SyncClientInterface implements ClassSpec {
     }
 
     protected MethodSpec.Builder utilitiesOperationBody(MethodSpec.Builder builder) {
-        return builder.addModifiers(Modifier.DEFAULT).addStatement("throw new $T()", UnsupportedOperationException.class);
+        return builder.addModifiers(DEFAULT).addStatement("throw new $T()", UnsupportedOperationException.class);
     }
 
     protected MethodSpec waiterMethod() {
         MethodSpec.Builder builder = MethodSpec.methodBuilder("waiter")
-                                               .addModifiers(Modifier.PUBLIC)
+                                               .addModifiers(PUBLIC)
                                                .returns(poetExtensions.getSyncWaiterInterface())
                                                .addJavadoc(WaiterDocs.waiterMethodInClient(poetExtensions
                                                                                                .getSyncWaiterInterface()));
@@ -541,7 +544,7 @@ public class SyncClientInterface implements ClassSpec {
     }
 
     protected MethodSpec.Builder waiterOperationBody(MethodSpec.Builder builder) {
-        return builder.addModifiers(Modifier.DEFAULT, Modifier.PUBLIC)
+        return builder.addModifiers(DEFAULT, PUBLIC)
                       .addStatement("throw new $T()", UnsupportedOperationException.class);
     }
 }

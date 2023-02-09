@@ -16,13 +16,16 @@
 package software.amazon.awssdk.codegen.poet.client;
 
 import static java.util.stream.Collectors.joining;
+import static javax.lang.model.element.Modifier.ABSTRACT;
+import static javax.lang.model.element.Modifier.FINAL;
+import static javax.lang.model.element.Modifier.PRIVATE;
+import static javax.lang.model.element.Modifier.PUBLIC;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
 import java.util.List;
-import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.codegen.docs.SimpleMethodOverload;
 import software.amazon.awssdk.codegen.model.config.customization.UtilitiesMethod;
@@ -52,7 +55,7 @@ public class DelegatingSyncClientClass extends SyncClientInterface {
         ClassName interfaceClass = poetExtensions.getClientClass(model.getMetadata().getSyncInterface());
 
         MethodSpec delegate = MethodSpec.methodBuilder("delegate")
-                                        .addModifiers(Modifier.PUBLIC)
+                                        .addModifiers(PUBLIC)
                                         .addStatement("return this.delegate")
                                         .returns(SdkClient.class)
                                         .build();
@@ -60,7 +63,7 @@ public class DelegatingSyncClientClass extends SyncClientInterface {
         type.addSuperinterface(interfaceClass)
             .addMethod(constructor(interfaceClass))
             .addField(FieldSpec.builder(interfaceClass, "delegate")
-                               .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
+                               .addModifiers(PRIVATE, FINAL)
                                .build())
             .addMethod(delegate);
     }
@@ -77,7 +80,7 @@ public class DelegatingSyncClientClass extends SyncClientInterface {
 
     @Override
     protected void addModifiers(TypeSpec.Builder type) {
-        type.addModifiers(Modifier.ABSTRACT, Modifier.PUBLIC);
+        type.addModifiers(ABSTRACT, PUBLIC);
     }
 
     @Override
@@ -98,7 +101,7 @@ public class DelegatingSyncClientClass extends SyncClientInterface {
     protected void addCloseMethod(TypeSpec.Builder type) {
         MethodSpec method = MethodSpec.methodBuilder("close")
                                       .addAnnotation(Override.class)
-                                      .addModifiers(Modifier.PUBLIC)
+                                      .addModifiers(PUBLIC)
                                       .addStatement("delegate.close()")
                                       .build();
 
@@ -117,7 +120,7 @@ public class DelegatingSyncClientClass extends SyncClientInterface {
 
     @Override
     protected MethodSpec.Builder operationBody(MethodSpec.Builder builder, OperationModel opModel) {
-        builder.addModifiers(Modifier.PUBLIC)
+        builder.addModifiers(PUBLIC)
                .addAnnotation(Override.class);
 
         builder.addStatement("return delegate.$N($L)",
@@ -129,7 +132,7 @@ public class DelegatingSyncClientClass extends SyncClientInterface {
     @Override
     protected MethodSpec.Builder paginatedMethodBody(MethodSpec.Builder builder, OperationModel opModel) {
         String methodName = PaginatorUtils.getPaginatedMethodName(opModel.getMethodName());
-        return builder.addModifiers(Modifier.PUBLIC)
+        return builder.addModifiers(PUBLIC)
                       .addAnnotation(Override.class)
                       .addStatement("return delegate.$N($N)", methodName, opModel.getInput().getVariableName());
     }
@@ -146,7 +149,7 @@ public class DelegatingSyncClientClass extends SyncClientInterface {
 
     private MethodSpec constructor(ClassName interfaceClass) {
         return MethodSpec.constructorBuilder()
-                         .addModifiers(Modifier.PUBLIC)
+                         .addModifiers(PUBLIC)
                          .addParameter(interfaceClass, "delegate")
                          .addStatement("$T.paramNotNull(delegate, \"delegate\")", Validate.class)
                          .addStatement("this.delegate = delegate")
@@ -156,7 +159,7 @@ public class DelegatingSyncClientClass extends SyncClientInterface {
     private MethodSpec nameMethod() {
         return MethodSpec.methodBuilder("serviceName")
                          .addAnnotation(Override.class)
-                         .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+                         .addModifiers(PUBLIC, FINAL)
                          .returns(String.class)
                          .addStatement("return SERVICE_NAME")
                          .build();

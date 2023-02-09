@@ -58,6 +58,14 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
     }
 
     /**
+     * Creates an instance of {@link JsonUtilities} object with the configuration set on this client.
+     */
+    @Override
+    public JsonUtilities utilities() {
+        return delegate.utilities();
+    }
+
+    /**
      * <p>
      * Performs a post operation to the query service and has no output
      * </p>
@@ -161,7 +169,7 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
     @Override
     public CompletableFuture<Void> eventStreamOperation(EventStreamOperationRequest eventStreamOperationRequest,
                                                         Publisher<InputEventStream> requestStream, EventStreamOperationResponseHandler asyncResponseHandler) {
-        return delegate.eventStreamOperation(eventStreamOperationRequest, requestStream, asyncResponseTransformer);
+        return delegate.eventStreamOperation(eventStreamOperationRequest, requestStream, asyncResponseHandler);
     }
 
     /**
@@ -547,7 +555,7 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
     public <ReturnT> CompletableFuture<ReturnT> putOperationWithChecksum(
         PutOperationWithChecksumRequest putOperationWithChecksumRequest, AsyncRequestBody requestBody,
         AsyncResponseTransformer<PutOperationWithChecksumResponse, ReturnT> asyncResponseTransformer) {
-        return delegate.putOperationWithChecksum(putOperationWithChecksumRequest, requestBody);
+        return delegate.putOperationWithChecksum(putOperationWithChecksumRequest, requestBody, asyncResponseTransformer);
     }
 
     /**
@@ -613,7 +621,8 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
     public <ReturnT> CompletableFuture<ReturnT> streamingInputOutputOperation(
         StreamingInputOutputOperationRequest streamingInputOutputOperationRequest, AsyncRequestBody requestBody,
         AsyncResponseTransformer<StreamingInputOutputOperationResponse, ReturnT> asyncResponseTransformer) {
-        return delegate.streamingInputOutputOperation(streamingInputOutputOperationRequest, requestBody);
+        return delegate
+            .streamingInputOutputOperation(streamingInputOutputOperationRequest, requestBody, asyncResponseTransformer);
     }
 
     /**
@@ -648,15 +657,12 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
     }
 
     @Override
-    public void close() {
-        delegate.close();
+    public final String serviceName() {
+        return SERVICE_NAME;
     }
 
-    /**
-     * Creates an instance of {@link JsonUtilities} object with the configuration set on this client.
-     */
     @Override
-    public JsonUtilities utilities() {
-        return delegate.utilities();
+    public void close() {
+        delegate.close();
     }
 }

@@ -102,11 +102,6 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
         this.executorService = clientConfiguration.option(SdkClientOption.SCHEDULED_EXECUTOR_SERVICE);
     }
 
-    @Override
-    public final String serviceName() {
-        return SERVICE_NAME;
-    }
-
     /**
      * <p>
      * Performs a post operation to the query service and has no output
@@ -784,8 +779,13 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
     }
 
     @Override
-    public void close() {
-        clientHandler.close();
+    public QueryAsyncWaiter waiter() {
+        return QueryAsyncWaiter.builder().client(this).scheduledExecutorService(executorService).build();
+    }
+
+    @Override
+    public final String serviceName() {
+        return SERVICE_NAME;
     }
 
     private AwsQueryProtocolFactory init() {
@@ -828,7 +828,7 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
     }
 
     @Override
-    public QueryAsyncWaiter waiter() {
-        return QueryAsyncWaiter.builder().client(this).scheduledExecutorService(executorService).build();
+    public void close() {
+        clientHandler.close();
     }
 }

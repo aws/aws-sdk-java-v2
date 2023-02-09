@@ -17,6 +17,8 @@ package software.amazon.awssdk.codegen.poet.client;
 
 import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PRIVATE;
+import static javax.lang.model.element.Modifier.PROTECTED;
+import static javax.lang.model.element.Modifier.PUBLIC;
 import static javax.lang.model.element.Modifier.STATIC;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.addS3ArnableFieldCode;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applyPaginatorUserAgentMethod;
@@ -32,7 +34,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
@@ -140,7 +141,7 @@ public class SyncClientClass extends SyncClientInterface {
     private MethodSpec nameMethod() {
         return MethodSpec.methodBuilder("serviceName")
                          .addAnnotation(Override.class)
-                         .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+                         .addModifiers(PUBLIC, FINAL)
                          .returns(String.class)
                          .addStatement("return SERVICE_NAME")
                          .build();
@@ -153,7 +154,7 @@ public class SyncClientClass extends SyncClientInterface {
 
     private MethodSpec constructor() {
         MethodSpec.Builder builder = MethodSpec.constructorBuilder()
-                                               .addModifiers(Modifier.PROTECTED)
+                                               .addModifiers(PROTECTED)
                                                .addParameter(SdkClientConfiguration.class, "clientConfiguration")
                                                .addStatement("this.clientHandler = new $T(clientConfiguration)",
                                                              protocolSpec.getClientHandlerClass())
@@ -315,8 +316,8 @@ public class SyncClientClass extends SyncClientInterface {
     protected void addCloseMethod(TypeSpec.Builder type) {
         MethodSpec method = MethodSpec.methodBuilder("close")
                                       .addAnnotation(Override.class)
-                                      .addModifiers(Modifier.PUBLIC)
-                                      .addStatement("clientHandler.close()")
+                                      .addModifiers(PUBLIC)
+                                      .addStatement("$N.close()", "clientHandler")
                                       .build();
 
         type.addMethod(method);
