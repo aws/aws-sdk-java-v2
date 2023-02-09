@@ -16,6 +16,8 @@
 package software.amazon.awssdk.profiles;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -124,29 +126,31 @@ public interface ProfileFileSupplier extends Supplier<ProfileFile> {
             @Override
             public ProfileFile get() {
                 boolean refreshAggregate = false;
+                List<ProfileFile> nextValues = new ArrayList<>(suppliers.length);
                 for (ProfileFileSupplier supplier : suppliers) {
-                    if (didSuppliedValueChange(supplier)) {
+                    if (didSuppliedValueChange(supplier, nextValues)) {
                         refreshAggregate = true;
                     }
                 }
 
                 if (refreshAggregate) {
-                    refreshCurrentAggregate();
+                    refreshCurrentAggregate(nextValues);
                 }
 
                 return  currentAggregateProfileFile.get();
             }
 
-            private boolean didSuppliedValueChange(Supplier<ProfileFile> supplier) {
+            private boolean didSuppliedValueChange(Supplier<ProfileFile> supplier, List<ProfileFile> nextValues) {
                 ProfileFile next = supplier.get();
+                nextValues.add(next);
                 ProfileFile current = currentValuesBySupplier.put(supplier, next);
 
                 return !Objects.equals(next, current);
             }
 
-            private void refreshCurrentAggregate() {
+            private void refreshCurrentAggregate(List<ProfileFile> nextValues) {
                 ProfileFile.Aggregator aggregator = ProfileFile.aggregator();
-                currentValuesBySupplier.values().forEach(aggregator::addFile);
+                nextValues.forEach(aggregator::addFile);
                 ProfileFile current = currentAggregateProfileFile.get();
                 ProfileFile next = aggregator.build();
                 if (!Objects.equals(current, next)) {
