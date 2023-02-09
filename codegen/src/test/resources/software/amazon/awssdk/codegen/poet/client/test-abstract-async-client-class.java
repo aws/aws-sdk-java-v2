@@ -53,10 +53,6 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
         this.delegate = delegate;
     }
 
-    public SdkClient delegate() {
-        return this.delegate;
-    }
-
     /**
      * Creates an instance of {@link JsonUtilities} object with the configuration set on this client.
      */
@@ -658,7 +654,11 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
 
     @Override
     public final String serviceName() {
-        return SERVICE_NAME;
+        return delegate.serviceName();
+    }
+
+    public SdkClient delegate() {
+        return this.delegate;
     }
 
     @Override

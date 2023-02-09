@@ -54,18 +54,8 @@ public class DelegatingSyncClientClass extends SyncClientInterface {
     protected void addInterfaceClass(TypeSpec.Builder type) {
         ClassName interfaceClass = poetExtensions.getClientClass(model.getMetadata().getSyncInterface());
 
-        MethodSpec delegate = MethodSpec.methodBuilder("delegate")
-                                        .addModifiers(PUBLIC)
-                                        .addStatement("return this.delegate")
-                                        .returns(SdkClient.class)
-                                        .build();
-
         type.addSuperinterface(interfaceClass)
-            .addMethod(constructor(interfaceClass))
-            .addField(FieldSpec.builder(interfaceClass, "delegate")
-                               .addModifiers(PRIVATE, FINAL)
-                               .build())
-            .addMethod(delegate);
+            .addMethod(constructor(interfaceClass));
     }
 
     @Override
@@ -85,6 +75,11 @@ public class DelegatingSyncClientClass extends SyncClientInterface {
 
     @Override
     protected void addFields(TypeSpec.Builder type) {
+        ClassName interfaceClass = poetExtensions.getClientClass(model.getMetadata().getSyncInterface());
+
+        type.addField(FieldSpec.builder(interfaceClass, "delegate")
+                               .addModifiers(PRIVATE, FINAL)
+                               .build());
     }
 
     @Override
@@ -94,7 +89,14 @@ public class DelegatingSyncClientClass extends SyncClientInterface {
 
     @Override
     protected void addAdditionalMethods(TypeSpec.Builder type) {
-        type.addMethod(nameMethod());
+        MethodSpec delegate = MethodSpec.methodBuilder("delegate")
+                                        .addModifiers(PUBLIC)
+                                        .addStatement("return this.delegate")
+                                        .returns(SdkClient.class)
+                                        .build();
+
+        type.addMethod(nameMethod())
+            .addMethod(delegate);
     }
 
     @Override
@@ -161,7 +163,7 @@ public class DelegatingSyncClientClass extends SyncClientInterface {
                          .addAnnotation(Override.class)
                          .addModifiers(PUBLIC, FINAL)
                          .returns(String.class)
-                         .addStatement("return SERVICE_NAME")
+                         .addStatement("return delegate.serviceName()")
                          .build();
     }
 }

@@ -50,10 +50,6 @@ public abstract class DelegatingJsonClient implements JsonClient {
         this.delegate = delegate;
     }
 
-    public SdkClient delegate() {
-        return this.delegate;
-    }
-
     /**
      * <p>
      * Performs a post operation to the query service and has no output
@@ -860,7 +856,11 @@ public abstract class DelegatingJsonClient implements JsonClient {
 
     @Override
     public final String serviceName() {
-        return SERVICE_NAME;
+        return delegate.serviceName();
+    }
+
+    public SdkClient delegate() {
+        return this.delegate;
     }
 
     @Override
