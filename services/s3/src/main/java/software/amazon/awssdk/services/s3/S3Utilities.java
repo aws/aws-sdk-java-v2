@@ -21,6 +21,7 @@ import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.Immutable;
@@ -48,6 +49,7 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.profiles.ProfileFileSupplier;
 import software.amazon.awssdk.protocols.core.OperationInfo;
 import software.amazon.awssdk.protocols.core.PathMarshaller;
 import software.amazon.awssdk.protocols.core.ProtocolUtils;
@@ -61,7 +63,6 @@ import software.amazon.awssdk.services.s3.internal.endpoints.UseGlobalEndpointRe
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetUrlRequest;
 import software.amazon.awssdk.utils.AttributeMap;
-import software.amazon.awssdk.utils.Lazy;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -75,7 +76,6 @@ import software.amazon.awssdk.utils.Validate;
  * GetUrlRequest request = GetUrlRequest.builder().bucket("foo-bucket").key("key-without-spaces").build();
  * URL url = utilities.getUrl(request);
  * </pre>
- * </p>
  *
  * <p>
  * 2) Using the low-level client {@link S3Client#utilities()} method. This is recommended as SDK will use the same
@@ -87,7 +87,6 @@ import software.amazon.awssdk.utils.Validate;
  * GetUrlRequest request = GetUrlRequest.builder().bucket("foo-bucket").key("key-without-spaces").build();
  * URL url = utilities.getUrl(request);
  * </pre>
- * </p>
  *
  * Note: This class does not make network calls.
  */
@@ -112,8 +111,8 @@ public final class S3Utilities {
     private S3Utilities(Builder builder) {
         this.region = Validate.paramNotNull(builder.region, "Region");
         this.endpoint = builder.endpoint;
-        this.profileFile = builder.profileFile != null ? () -> builder.profileFile
-                                                       : new Lazy<>(ProfileFile::defaultProfileFile)::getValue;
+        this.profileFile = Optional.ofNullable(builder.profileFile)
+                                   .orElse(ProfileFile::defaultProfileFile);
         this.profileName = builder.profileName;
 
         if (builder.s3Configuration == null) {
@@ -172,7 +171,7 @@ public final class S3Utilities {
         S3Utilities.Builder builder = builder()
                           .region(clientConfiguration.option(AwsClientOption.AWS_REGION))
                           .s3Configuration((S3Configuration) clientConfiguration.option(SdkClientOption.SERVICE_CONFIGURATION))
-                          .profileFile(clientConfiguration.option(SdkClientOption.PROFILE_FILE))
+                          .profileFile(clientConfiguration.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
                           .profileName(clientConfiguration.option(SdkClientOption.PROFILE_NAME));
 
         if (Boolean.TRUE.equals(clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN))) {
@@ -362,7 +361,7 @@ public final class S3Utilities {
         SdkClientConfiguration config =
             SdkClientConfiguration.builder()
                                   .option(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT, standardOption)
-                                  .option(SdkClientOption.PROFILE_FILE, profileFile.get())
+                                  .option(SdkClientOption.PROFILE_FILE_SUPPLIER, profileFile)
                                   .option(SdkClientOption.PROFILE_NAME, profileName)
                                   .build();
 
@@ -377,7 +376,7 @@ public final class S3Utilities {
         private URI endpoint;
 
         private S3Configuration s3Configuration;
-        private ProfileFile profileFile;
+        private Supplier<ProfileFile> profileFile;
         private String profileName;
         private Boolean dualstackEnabled;
         private Boolean fipsEnabled;
@@ -468,7 +467,13 @@ public final class S3Utilities {
          * confusing to support the full {@link ClientOverrideConfiguration} object in the future.
          */
         private Builder profileFile(ProfileFile profileFile) {
-            this.profileFile = profileFile;
+            return profileFile(Optional.ofNullable(profileFile)
+                                       .map(ProfileFileSupplier::fixedProfileFile)
+                                       .orElse(null));
+        }
+
+        private Builder profileFile(Supplier<ProfileFile> profileFileSupplier) {
+            this.profileFile = profileFileSupplier;
             return this;
         }
 

@@ -1,0 +1,48 @@
+{
+    "version": "2.19.25",
+    "date": "2023-01-26",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS CRT HTTP Client",
+            "contributor": "",
+            "description": "Fix an issue that could result in resource leak when sending request fails due to errors such as invalid request."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Append Content-encoding header instead of over writing the header when Checksum algorithm is selected along with user set Content-encoding"
+        },
+        {
+            "type": "feature",
+            "category": "AWS CRT HTTP Client",
+            "contributor": "",
+            "description": "Throw UnsupportedOperationException if the AWS CRT HTTP Client is configured with HTTP/2 protocol."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT FleetWise",
+            "contributor": "",
+            "description": "Add model validation to BatchCreateVehicle and BatchUpdateVehicle operations that invalidate requests with an empty vehicles list."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EventBridge",
+            "contributor": "",
+            "description": "Minor comments for Redshift Serverless workgroup target support."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Storage Service",
+            "contributor": "",
+            "description": "Allow FIPS to be used with path-style URLs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

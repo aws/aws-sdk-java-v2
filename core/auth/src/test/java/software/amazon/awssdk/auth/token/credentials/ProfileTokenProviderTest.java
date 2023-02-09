@@ -17,16 +17,17 @@ package software.amazon.awssdk.auth.token.credentials;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.util.function.Supplier;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.auth.token.credentials.ProfileTokenProvider;
+import org.mockito.Mockito;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.utils.StringInputStream;
 
-public class ProfileTokenProviderTest {
+class ProfileTokenProviderTest {
 
     @Test
-    public void missingProfileFile_throwsException() {
+    void missingProfileFile_throwsException() {
         ProfileTokenProvider provider =
             new ProfileTokenProvider.BuilderImpl()
                 .defaultProfileFileLoader(() -> ProfileFile.builder()
@@ -39,7 +40,7 @@ public class ProfileTokenProviderTest {
     }
 
     @Test
-    public void emptyProfileFile_throwsException() {
+    void emptyProfileFile_throwsException() {
         ProfileTokenProvider provider =
             new ProfileTokenProvider.BuilderImpl()
                 .defaultProfileFileLoader(() -> ProfileFile.builder()
@@ -52,7 +53,7 @@ public class ProfileTokenProviderTest {
     }
 
     @Test
-    public void missingProfile_throwsException() {
+    void missingProfile_throwsException() {
         ProfileFile file = profileFile("[default]\n"
                                        + "aws_access_key_id = defaultAccessKey\n"
                                        + "aws_secret_access_key = defaultSecretAccessKey");
@@ -64,13 +65,35 @@ public class ProfileTokenProviderTest {
     }
 
     @Test
-    public void compatibleProfileSettings_callsLoader() {
+    void compatibleProfileSettings_callsLoader() {
         ProfileFile file = profileFile("[default]");
 
         ProfileTokenProvider provider =
             ProfileTokenProvider.builder().profileFile(() -> file).profileName("default").build();
 
         assertThatThrownBy(provider::resolveToken).hasMessageContaining("does not have sso_session property");
+    }
+
+    @Test
+    void resolveToken_profileFileSupplier_suppliesObjectPerCall() {
+        ProfileFile file1 = profileFile("[profile sso]\n"
+                                       + "aws_access_key_id = defaultAccessKey\n"
+                                       + "aws_secret_access_key = defaultSecretAccessKey\n"
+                                       + "sso_session = xyz");
+        ProfileFile file2 = profileFile("[profile sso]\n"
+                                       + "aws_access_key_id = modifiedAccessKey\n"
+                                       + "aws_secret_access_key = modifiedSecretAccessKey\n"
+                                       + "sso_session = xyz");
+        Supplier<ProfileFile> supplier = Mockito.mock(Supplier.class);
+
+        ProfileTokenProvider provider =
+            ProfileTokenProvider.builder().profileFile(supplier).profileName("sso").build();
+
+        Mockito.when(supplier.get()).thenReturn(file1, file2);
+        assertThatThrownBy(provider::resolveToken).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(provider::resolveToken).isInstanceOf(IllegalArgumentException.class);
+
+        Mockito.verify(supplier, Mockito.times(2)).get();
     }
 
     private ProfileFile profileFile(String string) {

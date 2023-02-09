@@ -15,17 +15,20 @@
 
 package software.amazon.awssdk.services.s3control;
 
+import java.util.Optional;
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.ServiceConfiguration;
 import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.profiles.ProfileFileSupplier;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * S3 Control specific configuration allowing customers to enabled FIPS or
+ * S3 Control specific configuration allowing customers to enable FIPS or
  * dualstack.
  */
 @SdkPublicApi
@@ -48,7 +51,7 @@ public final class S3ControlConfiguration implements ServiceConfiguration,
     private final Boolean fipsModeEnabled;
     private final Boolean dualstackEnabled;
     private final Boolean useArnRegionEnabled;
-    private final ProfileFile profileFile;
+    private final Supplier<ProfileFile> profileFile;
     private final String profileName;
 
     private S3ControlConfiguration(DefaultS3ServiceConfigurationBuilder builder) {
@@ -175,6 +178,13 @@ public final class S3ControlConfiguration implements ServiceConfiguration,
          */
         Builder profileFile(ProfileFile profileFile);
 
+        Supplier<ProfileFile> profileFileSupplier();
+
+        /**
+         * The profile file supplier that should be consulted to determine the service-specific default configuration.
+         */
+        Builder profileFile(Supplier<ProfileFile> profileFile);
+
         String profileName();
 
         /**
@@ -188,7 +198,7 @@ public final class S3ControlConfiguration implements ServiceConfiguration,
 
         private Boolean dualstackEnabled;
         private Boolean fipsModeEnabled;
-        private ProfileFile profileFile;
+        private Supplier<ProfileFile> profileFile;
         private String profileName;
         private Boolean useArnRegionEnabled;
 
@@ -239,11 +249,25 @@ public final class S3ControlConfiguration implements ServiceConfiguration,
 
         @Override
         public ProfileFile profileFile() {
-            return profileFile;
+            return Optional.ofNullable(profileFile)
+                           .map(Supplier::get)
+                           .orElse(null);
         }
 
         @Override
         public Builder profileFile(ProfileFile profileFile) {
+            return profileFile(Optional.ofNullable(profileFile)
+                                       .map(ProfileFileSupplier::fixedProfileFile)
+                                       .orElse(null));
+        }
+
+        @Override
+        public Supplier<ProfileFile> profileFileSupplier() {
+            return profileFile;
+        }
+
+        @Override
+        public Builder profileFile(Supplier<ProfileFile> profileFile) {
             this.profileFile = profileFile;
             return this;
         }

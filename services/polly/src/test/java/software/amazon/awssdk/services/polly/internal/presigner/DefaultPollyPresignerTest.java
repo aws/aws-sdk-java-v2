@@ -41,7 +41,7 @@ import software.amazon.awssdk.services.polly.presigner.model.SynthesizeSpeechPre
 /**
  * Tests for {@link DefaultPollyPresigner}.
  */
-public class DefaultPollyPresignerTest {
+class DefaultPollyPresignerTest {
     private static final SynthesizeSpeechRequest BASIC_SYNTHESIZE_SPEECH_REQUEST = SynthesizeSpeechRequest.builder()
             .voiceId("Salli")
             .outputFormat(OutputFormat.PCM)
@@ -56,7 +56,7 @@ public class DefaultPollyPresignerTest {
     }
 
     @Test
-    public void presign_requestLevelCredentials_honored() {
+    void presign_requestLevelCredentials_honored() {
         AwsCredentials requestCredentials = AwsBasicCredentials.create("akid2", "skid2");
 
         PollyPresigner presigner = DefaultPollyPresigner.builder()
@@ -80,7 +80,7 @@ public class DefaultPollyPresignerTest {
     }
 
     @Test
-    public void presign_requestLevelHeaders_included() {
+    void presign_requestLevelHeaders_included() {
         PollyPresigner presigner = DefaultPollyPresigner.builder()
                 .region(Region.US_EAST_1)
                 .credentialsProvider(credentialsProvider)
@@ -104,7 +104,7 @@ public class DefaultPollyPresignerTest {
     }
 
     @Test
-    public void presign_includesRequestLevelHeaders_notBrowserCompatible() {
+    void presign_includesRequestLevelHeaders_notBrowserCompatible() {
         PollyPresigner presigner = DefaultPollyPresigner.builder()
                 .region(Region.US_EAST_1)
                 .credentialsProvider(credentialsProvider)
@@ -128,7 +128,7 @@ public class DefaultPollyPresignerTest {
     }
 
     @Test
-    public void presign_includesRequestLevelQueryParams_included() {
+    void presign_includesRequestLevelQueryParams_included() {
         PollyPresigner presigner = DefaultPollyPresigner.builder()
                 .region(Region.US_EAST_1)
                 .credentialsProvider(credentialsProvider)
@@ -151,7 +151,7 @@ public class DefaultPollyPresignerTest {
     }
 
     @Test
-    public void presign_endpointOverriden() {
+    void presign_endpointOverriden() {
         PollyPresigner presigner = DefaultPollyPresigner.builder()
                 .region(Region.US_EAST_1)
                 .credentialsProvider(credentialsProvider)
@@ -173,7 +173,7 @@ public class DefaultPollyPresignerTest {
     }
 
     @Test
-    public void close_closesCustomCloseableCredentialsProvider() throws IOException {
+    void close_closesCustomCloseableCredentialsProvider() throws IOException {
         TestCredentialsProvider mockCredentialsProvider = mock(TestCredentialsProvider.class);
 
         PollyPresigner presigner = DefaultPollyPresigner.builder()
@@ -184,6 +184,19 @@ public class DefaultPollyPresignerTest {
         presigner.close();
 
         verify(mockCredentialsProvider).close();
+    }
+
+    @Test
+    void presigner_credentialsProviderSetToNullByBuilder_createsDefaultCredentialsProvider() {
+        DefaultPollyPresigner presigner = (DefaultPollyPresigner)
+            DefaultPollyPresigner.builder()
+                                 .region(Region.US_EAST_1)
+                                 .credentialsProvider(null)
+                                 .build();
+
+
+        AwsCredentialsProvider awsCredentialsProvider = presigner.credentialsProvider();
+        assertThat(awsCredentialsProvider).isNotNull();
     }
 
     private interface TestCredentialsProvider extends AwsCredentialsProvider, Closeable {

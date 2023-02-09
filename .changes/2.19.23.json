@@ -1,0 +1,48 @@
+{
+    "version": "2.19.23",
+    "date": "2023-01-24",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS CRT HTTP Client",
+            "contributor": "",
+            "description": "Renamed `readBufferSize` -> `readBufferSizeInBytes`."
+        },
+        {
+            "type": "feature",
+            "category": "AWS CRT HTTP Client",
+            "contributor": "",
+            "description": "Renamed: `ConnectionHealthChecksConfiguration` -> `ConnectionHealthConfiguration`\nRenamed: `allowableThroughputFailureInterval` -> `minimumThroughputTimeout`\nRenamed: `minThroughputInBytesPerSecond` -> `minimumThroughputInBps`\nRenamed: `AwsCrtAsyncHttpClient.builder().connectionHealthChecksConfiguration` -> `AwsCrtAsyncHttpClient.builder().connectionHealthConfiguration`"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue DataBrew",
+            "contributor": "",
+            "description": "Enabled FIPS us-gov-west-1 endpoints in SDK."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Systems Manager for SAP",
+            "contributor": "",
+            "description": "This release provides updates to documentation and support for listing operations performed by AWS Systems Manager for SAP."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Route 53",
+            "contributor": "",
+            "description": "Amazon Route 53 now supports the Asia Pacific (Melbourne) Region (ap-southeast-4) for latency records, geoproximity records, and private DNS for Amazon VPCs in that region."
+        },
+        {
+            "type": "removal",
+            "category": "AWS CRT HTTP Client",
+            "contributor": "",
+            "description": "Removed `tlsCipherPreference`."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}
