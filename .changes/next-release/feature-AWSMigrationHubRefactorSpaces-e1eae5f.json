@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Migration Hub Refactor Spaces",
-    "contributor": "",
-    "description": "This release adds support for creating environments with a network fabric type of NONE"
-}
