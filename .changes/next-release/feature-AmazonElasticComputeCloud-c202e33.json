@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Compute Cloud",
+    "contributor": "",
+    "description": "Adds support for waiters that automatically poll for an imported snapshot until it reaches the completed state."
+}
