@@ -16,11 +16,10 @@
 package software.amazon.awssdk.profiles;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -121,36 +120,34 @@ public interface ProfileFileSupplier extends Supplier<ProfileFile> {
         return new ProfileFileSupplier() {
 
             final AtomicReference<ProfileFile> currentAggregateProfileFile = new AtomicReference<>();
-            final ConcurrentHashMap<Supplier<ProfileFile>, ProfileFile> currentValuesBySupplier = new ConcurrentHashMap<>();
+            final HashMap<Supplier<ProfileFile>, ProfileFile> currentValuesBySupplier = new LinkedHashMap<>();
 
             @Override
             public ProfileFile get() {
                 boolean refreshAggregate = false;
-                List<ProfileFile> nextValues = new ArrayList<>(suppliers.length);
                 for (ProfileFileSupplier supplier : suppliers) {
-                    if (didSuppliedValueChange(supplier, nextValues)) {
+                    if (didSuppliedValueChange(supplier)) {
                         refreshAggregate = true;
                     }
                 }
 
                 if (refreshAggregate) {
-                    refreshCurrentAggregate(nextValues);
+                    refreshCurrentAggregate();
                 }
 
                 return  currentAggregateProfileFile.get();
             }
 
-            private boolean didSuppliedValueChange(Supplier<ProfileFile> supplier, List<ProfileFile> nextValues) {
+            private synchronized boolean didSuppliedValueChange(Supplier<ProfileFile> supplier) {
                 ProfileFile next = supplier.get();
-                nextValues.add(next);
                 ProfileFile current = currentValuesBySupplier.put(supplier, next);
 
                 return !Objects.equals(next, current);
             }
 
-            private void refreshCurrentAggregate(List<ProfileFile> nextValues) {
+            private void refreshCurrentAggregate() {
                 ProfileFile.Aggregator aggregator = ProfileFile.aggregator();
-                nextValues.forEach(aggregator::addFile);
+                currentValuesBySupplier.values().forEach(aggregator::addFile);
                 ProfileFile current = currentAggregateProfileFile.get();
                 ProfileFile next = aggregator.build();
                 if (!Objects.equals(current, next)) {
