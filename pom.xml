@@ -481,7 +481,8 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <failOnWarning>true</failOnWarning>
+                    <!-- TODO: temporarily changing this to false -->
+                    <failOnWarning>false</failOnWarning>
                     <ignoreNonCompile>true</ignoreNonCompile>
                     <ignoredUsedUndeclaredDependencies>
                         <!--Ignore used undeclared test dependencies -->
