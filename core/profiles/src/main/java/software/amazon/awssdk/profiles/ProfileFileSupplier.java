@@ -16,8 +16,9 @@
 package software.amazon.awssdk.profiles;
 
 import java.nio.file.Path;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -120,7 +121,8 @@ public interface ProfileFileSupplier extends Supplier<ProfileFile> {
         return new ProfileFileSupplier() {
 
             final AtomicReference<ProfileFile> currentAggregateProfileFile = new AtomicReference<>();
-            final HashMap<Supplier<ProfileFile>, ProfileFile> currentValuesBySupplier = new LinkedHashMap<>();
+            final Map<Supplier<ProfileFile>, ProfileFile> currentValuesBySupplier
+                = Collections.synchronizedMap(new LinkedHashMap<>());
 
             @Override
             public ProfileFile get() {
@@ -138,7 +140,7 @@ public interface ProfileFileSupplier extends Supplier<ProfileFile> {
                 return  currentAggregateProfileFile.get();
             }
 
-            private synchronized boolean didSuppliedValueChange(Supplier<ProfileFile> supplier) {
+            private boolean didSuppliedValueChange(Supplier<ProfileFile> supplier) {
                 ProfileFile next = supplier.get();
                 ProfileFile current = currentValuesBySupplier.put(supplier, next);
 
