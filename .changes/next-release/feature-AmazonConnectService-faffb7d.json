@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Connect Service",
+    "contributor": "",
+    "description": "This update provides the Wisdom session ARN for contacts enabled for Wisdom in the chat channel."
+}
