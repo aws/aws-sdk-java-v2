@@ -1,3 +1,32 @@
+# __2.20.2__ __2023-02-10__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This update provides the Wisdom session ARN for contacts enabled for Wisdom in the chat channel.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds support for waiters that automatically poll for an imported snapshot until it reaches the completed state.
+
+## __Amazon Polly__
+  - ### Features
+    - Amazon Polly adds two new neural Japanese voices - Kazuha, Tomoko
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker Autopilot adds support for selecting algorithms in CreateAutoMLJob API.
+
+## __Amazon Simple Notification Service__
+  - ### Features
+    - This release adds support for SNS X-Ray active tracing as well as other updates.
+
+## __Auto Scaling__
+  - ### Features
+    - You can now either terminate/replace, ignore, or wait for EC2 Auto Scaling instances on standby or protected from scale in. Also, you can also roll back changes from a failed instance refresh.
+
 # __2.20.1__ __2023-02-09__
 ## __AWS Migration Hub Refactor Spaces__
   - ### Features
