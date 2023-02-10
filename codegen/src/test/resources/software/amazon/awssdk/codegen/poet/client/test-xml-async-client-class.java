@@ -107,11 +107,6 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
         this.executor = clientConfiguration.option(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR);
     }
 
-    @Override
-    public final String serviceName() {
-        return SERVICE_NAME;
-    }
-
     /**
      * <p>
      * Performs a post operation to the xml service and has no output
@@ -264,10 +259,8 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                 .execute(new ClientExecutionParams<BearerAuthOperationRequest, BearerAuthOperationResponse>()
                              .withOperationName("BearerAuthOperation")
                              .withMarshaller(new BearerAuthOperationRequestMarshaller(protocolFactory))
-                             .withCombinedResponseHandler(responseHandler)
-                             .credentialType(CredentialType.TOKEN)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .withInput(bearerAuthOperationRequest));
+                             .withCombinedResponseHandler(responseHandler).credentialType(CredentialType.TOKEN)
+                             .withMetricCollector(apiCallMetricCollector).withInput(bearerAuthOperationRequest));
             CompletableFuture<BearerAuthOperationResponse> whenCompleteFuture = null;
             whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -719,8 +712,8 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Xml Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "StreamingOutputOperation");
-            Pair<AsyncResponseTransformer<StreamingOutputOperationResponse, ReturnT>, CompletableFuture<Void>> pair =
-                AsyncResponseTransformerUtils.wrapWithEndOfStreamFuture(asyncResponseTransformer);
+            Pair<AsyncResponseTransformer<StreamingOutputOperationResponse, ReturnT>, CompletableFuture<Void>> pair = AsyncResponseTransformerUtils
+                .wrapWithEndOfStreamFuture(asyncResponseTransformer);
             asyncResponseTransformer = pair.left();
             CompletableFuture<Void> endOfStreamFuture = pair.right();
 
@@ -758,8 +751,8 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
     }
 
     @Override
-    public void close() {
-        clientHandler.close();
+    public final String serviceName() {
+        return SERVICE_NAME;
     }
 
     private AwsXmlProtocolFactory init() {
@@ -799,5 +792,10 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
 
     private static boolean isSignerOverridden(SdkClientConfiguration clientConfiguration) {
         return Boolean.TRUE.equals(clientConfiguration.option(SdkClientOption.SIGNER_OVERRIDDEN));
+    }
+
+    @Override
+    public void close() {
+        clientHandler.close();
     }
 }

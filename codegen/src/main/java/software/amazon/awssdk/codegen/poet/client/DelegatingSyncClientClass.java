@@ -16,7 +16,6 @@
 package software.amazon.awssdk.codegen.poet.client;
 
 import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
 import static javax.lang.model.element.Modifier.ABSTRACT;
 import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PRIVATE;
@@ -26,11 +25,9 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.codegen.docs.SimpleMethodOverload;
 import software.amazon.awssdk.codegen.model.config.customization.UtilitiesMethod;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
@@ -40,31 +37,30 @@ import software.amazon.awssdk.codegen.utils.PaginatorUtils;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.utils.Validate;
 
-public class DelegatingAsyncClientClass extends AsyncClientInterface {
-
+public class DelegatingSyncClientClass extends SyncClientInterface {
     private final IntermediateModel model;
     private final ClassName className;
     private final PoetExtension poetExtensions;
 
-    public DelegatingAsyncClientClass(IntermediateModel model) {
+    public DelegatingSyncClientClass(IntermediateModel model) {
         super(model);
         this.model = model;
         this.className = ClassName.get(model.getMetadata().getFullClientPackageName(),
-                                       "Delegating" + model.getMetadata().getAsyncInterface());
+                                       "Delegating" + model.getMetadata().getSyncInterface());
         this.poetExtensions = new PoetExtension(model);
+    }
+
+    @Override
+    protected void addInterfaceClass(TypeSpec.Builder type) {
+        ClassName interfaceClass = poetExtensions.getClientClass(model.getMetadata().getSyncInterface());
+
+        type.addSuperinterface(interfaceClass)
+            .addMethod(constructor(interfaceClass));
     }
 
     @Override
     protected TypeSpec.Builder createTypeSpec() {
         return PoetUtils.createClassBuilder(className);
-    }
-
-    @Override
-    protected void addInterfaceClass(TypeSpec.Builder type) {
-        ClassName interfaceClass = poetExtensions.getClientClass(model.getMetadata().getAsyncInterface());
-
-        type.addSuperinterface(interfaceClass)
-            .addMethod(constructor(interfaceClass));
     }
 
     @Override
@@ -79,11 +75,16 @@ public class DelegatingAsyncClientClass extends AsyncClientInterface {
 
     @Override
     protected void addFields(TypeSpec.Builder type) {
-        ClassName interfaceClass = poetExtensions.getClientClass(model.getMetadata().getAsyncInterface());
+        ClassName interfaceClass = poetExtensions.getClientClass(model.getMetadata().getSyncInterface());
 
         type.addField(FieldSpec.builder(interfaceClass, "delegate")
-                           .addModifiers(PRIVATE, FINAL)
-                           .build());
+                               .addModifiers(PRIVATE, FINAL)
+                               .build());
+    }
+
+    @Override
+    protected void addConsumerMethod(List<MethodSpec> specs, MethodSpec spec, SimpleMethodOverload overload,
+                                     OperationModel opModel) {
     }
 
     @Override
@@ -98,15 +99,6 @@ public class DelegatingAsyncClientClass extends AsyncClientInterface {
             .addMethod(delegate);
     }
 
-    private MethodSpec nameMethod() {
-        return MethodSpec.methodBuilder("serviceName")
-                         .addAnnotation(Override.class)
-                         .addModifiers(PUBLIC, FINAL)
-                         .returns(String.class)
-                         .addStatement("return delegate.serviceName()")
-                         .build();
-    }
-
     @Override
     protected void addCloseMethod(TypeSpec.Builder type) {
         MethodSpec method = MethodSpec.methodBuilder("close")
@@ -119,34 +111,13 @@ public class DelegatingAsyncClientClass extends AsyncClientInterface {
     }
 
     @Override
-    protected List<MethodSpec> operations() {
-        return model.getOperations().values().stream()
-                    .flatMap(this::operations)
-                    .sorted(Comparator.comparing(m -> m.name))
-                    .collect(toList());
-    }
-
-    private Stream<MethodSpec> operations(OperationModel opModel) {
-        List<MethodSpec> methods = new ArrayList<>();
-        methods.add(traditionalMethod(opModel));
-        if (opModel.isPaginated()) {
-            methods.add(paginatedTraditionalMethod(opModel));
-        }
-        return methods.stream();
-    }
-
-    private MethodSpec constructor(ClassName interfaceClass) {
-        return MethodSpec.constructorBuilder()
-                         .addModifiers(PUBLIC)
-                         .addParameter(interfaceClass, "delegate")
-                         .addStatement("$T.paramNotNull(delegate, \"delegate\")", Validate.class)
-                         .addStatement("this.delegate = delegate")
-                         .build();
+    public ClassName className() {
+        return className;
     }
 
     @Override
-    public ClassName className() {
-        return className;
+    protected MethodSpec.Builder simpleMethodModifier(MethodSpec.Builder builder) {
+        return builder.addAnnotation(Override.class);
     }
 
     @Override
@@ -168,7 +139,6 @@ public class DelegatingAsyncClientClass extends AsyncClientInterface {
                       .addStatement("return delegate.$N($N)", methodName, opModel.getInput().getVariableName());
     }
 
-
     @Override
     protected MethodSpec.Builder utilitiesOperationBody(MethodSpec.Builder builder) {
         return builder.addAnnotation(Override.class).addStatement("return delegate.$N()", UtilitiesMethod.METHOD_NAME);
@@ -177,5 +147,23 @@ public class DelegatingAsyncClientClass extends AsyncClientInterface {
     @Override
     protected MethodSpec.Builder waiterOperationBody(MethodSpec.Builder builder) {
         return builder.addAnnotation(Override.class).addStatement("return delegate.waiter()");
+    }
+
+    private MethodSpec constructor(ClassName interfaceClass) {
+        return MethodSpec.constructorBuilder()
+                         .addModifiers(PUBLIC)
+                         .addParameter(interfaceClass, "delegate")
+                         .addStatement("$T.paramNotNull(delegate, \"delegate\")", Validate.class)
+                         .addStatement("this.delegate = delegate")
+                         .build();
+    }
+
+    private MethodSpec nameMethod() {
+        return MethodSpec.methodBuilder("serviceName")
+                         .addAnnotation(Override.class)
+                         .addModifiers(PUBLIC, FINAL)
+                         .returns(String.class)
+                         .addStatement("return delegate.serviceName()")
+                         .build();
     }
 }

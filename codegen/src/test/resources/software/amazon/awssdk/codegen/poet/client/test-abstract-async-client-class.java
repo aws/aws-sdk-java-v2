@@ -1,13 +1,12 @@
-package software.amazon.awssdk.services.json.internal;
+package software.amazon.awssdk.services.json;
 
 import java.util.concurrent.CompletableFuture;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.Generated;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
-import software.amazon.awssdk.services.json.JsonAsyncClient;
-import software.amazon.awssdk.services.json.JsonUtilities;
 import software.amazon.awssdk.services.json.model.APostOperationRequest;
 import software.amazon.awssdk.services.json.model.APostOperationResponse;
 import software.amazon.awssdk.services.json.model.APostOperationWithOutputRequest;
@@ -42,14 +41,24 @@ import software.amazon.awssdk.services.json.model.StreamingOutputOperationReques
 import software.amazon.awssdk.services.json.model.StreamingOutputOperationResponse;
 import software.amazon.awssdk.services.json.paginators.PaginatedOperationWithResultKeyPublisher;
 import software.amazon.awssdk.services.json.paginators.PaginatedOperationWithoutResultKeyPublisher;
+import software.amazon.awssdk.utils.Validate;
 
 @Generated("software.amazon.awssdk:codegen")
-@SdkInternalApi
+@SdkPublicApi
 public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
-    protected final JsonAsyncClient delegate;
+    private final JsonAsyncClient delegate;
 
     public DelegatingJsonAsyncClient(JsonAsyncClient delegate) {
+        Validate.paramNotNull(delegate, "delegate");
         this.delegate = delegate;
+    }
+
+    /**
+     * Creates an instance of {@link JsonUtilities} object with the configuration set on this client.
+     */
+    @Override
+    public JsonUtilities utilities() {
+        return delegate.utilities();
     }
 
     /**
@@ -156,7 +165,7 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
     @Override
     public CompletableFuture<Void> eventStreamOperation(EventStreamOperationRequest eventStreamOperationRequest,
                                                         Publisher<InputEventStream> requestStream, EventStreamOperationResponseHandler asyncResponseHandler) {
-        return delegate.eventStreamOperation(eventStreamOperationRequest, requestStream, asyncResponseTransformer);
+        return delegate.eventStreamOperation(eventStreamOperationRequest, requestStream, asyncResponseHandler);
     }
 
     /**
@@ -542,7 +551,7 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
     public <ReturnT> CompletableFuture<ReturnT> putOperationWithChecksum(
         PutOperationWithChecksumRequest putOperationWithChecksumRequest, AsyncRequestBody requestBody,
         AsyncResponseTransformer<PutOperationWithChecksumResponse, ReturnT> asyncResponseTransformer) {
-        return delegate.putOperationWithChecksum(putOperationWithChecksumRequest, requestBody);
+        return delegate.putOperationWithChecksum(putOperationWithChecksumRequest, requestBody, asyncResponseTransformer);
     }
 
     /**
@@ -608,7 +617,8 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
     public <ReturnT> CompletableFuture<ReturnT> streamingInputOutputOperation(
         StreamingInputOutputOperationRequest streamingInputOutputOperationRequest, AsyncRequestBody requestBody,
         AsyncResponseTransformer<StreamingInputOutputOperationResponse, ReturnT> asyncResponseTransformer) {
-        return delegate.streamingInputOutputOperation(streamingInputOutputOperationRequest, requestBody);
+        return delegate
+            .streamingInputOutputOperation(streamingInputOutputOperationRequest, requestBody, asyncResponseTransformer);
     }
 
     /**
@@ -643,15 +653,16 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
     }
 
     @Override
-    public void close() {
-        delegate.close();
+    public final String serviceName() {
+        return delegate.serviceName();
     }
 
-    /**
-     * Creates an instance of {@link JsonUtilities} object with the configuration set on this client.
-     */
+    public SdkClient delegate() {
+        return this.delegate;
+    }
+
     @Override
-    public JsonUtilities utilities() {
-        return delegate.utilities();
+    public void close() {
+        delegate.close();
     }
 }
