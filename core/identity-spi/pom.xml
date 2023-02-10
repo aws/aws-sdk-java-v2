@@ -34,4 +34,16 @@
     <!-- TODO: this is not present in all pom.xml files. Is there a reason, or just a miss -->
     <url>https://aws.amazon.com/sdkforjava</url>
 
+    <dependencies>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>annotations</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>utils</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+    </dependencies>
 </project>
