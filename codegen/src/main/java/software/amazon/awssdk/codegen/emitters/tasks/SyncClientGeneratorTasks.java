@@ -23,6 +23,7 @@ import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.poet.builder.SyncClientBuilderClass;
 import software.amazon.awssdk.codegen.poet.builder.SyncClientBuilderInterface;
 import software.amazon.awssdk.codegen.poet.client.ClientSimpleMethodsIntegrationTests;
+import software.amazon.awssdk.codegen.poet.client.DelegatingSyncClientClass;
 import software.amazon.awssdk.codegen.poet.client.SyncClientClass;
 import software.amazon.awssdk.codegen.poet.client.SyncClientInterface;
 import software.amazon.awssdk.codegen.poet.endpointdiscovery.EndpointDiscoveryCacheLoaderGenerator;
@@ -53,11 +54,18 @@ public class SyncClientGeneratorTasks extends BaseGeneratorTasks {
         if (model.getEndpointOperation().isPresent()) {
             tasks.add(createEndpointDiscoveryCacheLoaderTask());
         }
+        if (model.getCustomizationConfig().isDelegateSyncClientClass()) {
+            tasks.add(createDecoratorClientClassTask());
+        }
         return tasks;
     }
 
     private GeneratorTask createClientClassTask() throws IOException {
         return createPoetGeneratorTask(new SyncClientClass(generatorTaskParams));
+    }
+
+    private GeneratorTask createDecoratorClientClassTask() throws IOException {
+        return createPoetGeneratorTask(new DelegatingSyncClientClass(model));
     }
 
     private GeneratorTask createClientBuilderTask() throws IOException {
