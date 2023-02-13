@@ -1,3 +1,52 @@
+# __2.20.3__ __2023-02-13__
+## __AWS Account__
+  - ### Features
+    - This release of the Account Management API enables customers to view and manage whether AWS Opt-In Regions are enabled or disabled for their Account. For more information, see https://docs.aws.amazon.com/accounts/latest/reference/manage-acct-regions.html
+
+## __AWS AppConfig Data__
+  - ### Features
+    - AWS AppConfig now offers the option to set a version label on hosted configuration versions. If a labeled hosted configuration version is deployed, its version label is available in the GetLatestConfiguration response.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Keep precedence of options when passed to ProfileFileSupplier.aggregate
+
+## __Amazon Import/Export Snowball__
+  - ### Features
+    - Adds support for EKS Anywhere on Snowball. AWS Snow Family customers can now install EKS Anywhere service on Snowball Edge Compute Optimized devices.
+
+# __2.20.2__ __2023-02-10__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This update provides the Wisdom session ARN for contacts enabled for Wisdom in the chat channel.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds support for waiters that automatically poll for an imported snapshot until it reaches the completed state.
+
+## __Amazon Polly__
+  - ### Features
+    - Amazon Polly adds two new neural Japanese voices - Kazuha, Tomoko
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker Autopilot adds support for selecting algorithms in CreateAutoMLJob API.
+
+## __Amazon Simple Notification Service__
+  - ### Features
+    - This release adds support for SNS X-Ray active tracing as well as other updates.
+
+## __Auto Scaling__
+  - ### Features
+    - You can now either terminate/replace, ignore, or wait for EC2 Auto Scaling instances on standby or protected from scale in. Also, you can also roll back changes from a failed instance refresh.
+
 # __2.20.1__ __2023-02-09__
 ## __AWS Migration Hub Refactor Spaces__
   - ### Features
