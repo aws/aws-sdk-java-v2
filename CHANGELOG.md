@@ -1,3 +1,23 @@
+# __2.20.3__ __2023-02-13__
+## __AWS Account__
+  - ### Features
+    - This release of the Account Management API enables customers to view and manage whether AWS Opt-In Regions are enabled or disabled for their Account. For more information, see https://docs.aws.amazon.com/accounts/latest/reference/manage-acct-regions.html
+
+## __AWS AppConfig Data__
+  - ### Features
+    - AWS AppConfig now offers the option to set a version label on hosted configuration versions. If a labeled hosted configuration version is deployed, its version label is available in the GetLatestConfiguration response.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Keep precedence of options when passed to ProfileFileSupplier.aggregate
+
+## __Amazon Import/Export Snowball__
+  - ### Features
+    - Adds support for EKS Anywhere on Snowball. AWS Snow Family customers can now install EKS Anywhere service on Snowball Edge Compute Optimized devices.
+
 # __2.20.2__ __2023-02-10__
 ## __AWS SDK for Java v2__
   - ### Features
