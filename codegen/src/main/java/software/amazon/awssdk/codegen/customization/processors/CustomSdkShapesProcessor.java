@@ -17,27 +17,27 @@ package software.amazon.awssdk.codegen.customization.processors;
 
 import java.util.Map;
 import software.amazon.awssdk.codegen.customization.CodegenCustomizationProcessor;
-import software.amazon.awssdk.codegen.model.config.customization.ShapeAdditions;
+import software.amazon.awssdk.codegen.model.config.customization.CustomSdkShapes;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Shape;
 
-public class ShapeAdditionsProcessor implements CodegenCustomizationProcessor {
+public class CustomSdkShapesProcessor implements CodegenCustomizationProcessor {
 
-    private final ShapeAdditions shapeAdditions;
+    private final CustomSdkShapes customSdkShapes;
 
-    ShapeAdditionsProcessor(ShapeAdditions shapeAdditions) {
-        this.shapeAdditions = shapeAdditions;
+    CustomSdkShapesProcessor(CustomSdkShapes customSdkShapes) {
+        this.customSdkShapes = customSdkShapes;
     }
 
     @Override
     public void preprocess(ServiceModel serviceModel) {
-        if (shapeAdditions == null) {
+        if (customSdkShapes == null) {
             return;
         }
         Map<String, Shape> shapes = serviceModel.getShapes();
-        for (String shapeName: shapeAdditions.getShapes().keySet()) {
-            shapes.put(shapeName, shapeAdditions.getShape(shapeName));
+        for (String shapeName: customSdkShapes.getShapes().keySet()) {
+            shapes.put(shapeName, customSdkShapes.getShape(shapeName));
         }
         serviceModel.setShapes(shapes);
     }

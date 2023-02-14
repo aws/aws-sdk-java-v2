@@ -19,7 +19,7 @@ import java.util.Collections;
 import java.util.Map;
 import software.amazon.awssdk.codegen.model.service.Shape;
 
-public class ShapeAdditions {
+public class CustomSdkShapes {
     private Map<String, Shape> shapes;
 
     public Map<String, Shape> getShapes() {
@@ -27,7 +27,7 @@ public class ShapeAdditions {
     }
 
     public void setShapes(Map<String, Shape> shapes) {
-        this.shapes = shapes != null ? shapes : Collections.emptyMap();
+        this.shapes = shapes != null ? Collections.unmodifiableMap(shapes) : Collections.emptyMap();
     }
 
     public Shape getShape(String shapeName) {
