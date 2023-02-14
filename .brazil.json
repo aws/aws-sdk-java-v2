@@ -97,7 +97,7 @@
         "com.fasterxml.jackson.jr:jackson-jr-objects": { "packageName": "Maven-com-fasterxml-jackson-jr_jackson-jr-objects", "packageVersion": "2.11.x" },
         "com.fasterxml.jackson.jr:jackson-jr-stree": { "packageName": "Maven-com-fasterxml-jackson-jr_jackson-jr-stree", "packageVersion": "2.11.x" },
         "com.jayway.jsonpath:json-path": { "packageName": "JMESPathJava", "packageVersion": "1.0" },
-        "com.squareup:javapoet": { "packageName": "Maven-com-squareup_javapoet", "packageVersion": "1.11.x" },
+        "com.squareup:javapoet": { "packageName": "Maven-com-squareup_javapoet", "packageVersion": "1.13.x" },
         "com.typesafe.netty:netty-reactive-streams": { "packageName": "Netty4", "packageVersion": "4.1" },
         "com.typesafe.netty:netty-reactive-streams-http": { "packageName": "Maven-com-typesafe-netty_netty-reactive-streams-http", "packageVersion": "2.x" },
         "commons-codec:commons-codec": { "packageName": "JakartaCommons-codec", "packageVersion": "1.x" },
