@@ -15,12 +15,14 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.document;
 
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static software.amazon.awssdk.enhanced.dynamodb.document.DefaultEnhancedDocumentTest.ARRAY_AND_MAP_IN_JSON;
 import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.enhanced.dynamodb.document.DefaultEnhancedDocumentTest.NUMBER_STRING_ARRAY;
 import static software.amazon.awssdk.enhanced.dynamodb.document.DefaultEnhancedDocumentTest.STRINGS_ARRAY;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -30,10 +32,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 
 public class EnhancedDocumentTest {
 
+    public static final String EMPTY_OR_NULL_ERROR = "attributeName cannot empty or null";
     static String INNER_JSON = "{\"1\": [\"a\", \"b\", \"c\"],\"2\": 1}";
 
     private static Stream<Arguments> documentsCreatedFromStaticMethods() {
@@ -103,10 +107,51 @@ public class EnhancedDocumentTest {
     }
 
     @Test
-    void toBuilderOverwritingOldJson(){
+    void toBuilderOverwritingOldJson() {
         EnhancedDocument document = EnhancedDocument.fromJson(ARRAY_AND_MAP_IN_JSON);
         assertThat(document.toJson()).isEqualTo(ARRAY_AND_MAP_IN_JSON);
         EnhancedDocument fromBuilder = document.toBuilder().json(INNER_JSON).build();
         assertThat(fromBuilder.toJson()).isEqualTo(INNER_JSON);
+    }
+
+  @Test
+  void builder_with_NullKeys() {
+      assertThatExceptionOfType(IllegalArgumentException.class)
+            .isThrownBy(() ->EnhancedDocument.builder().addString(null, "Sample"))
+            .withMessage(EMPTY_OR_NULL_ERROR);
+
+       assertThatExceptionOfType(IllegalArgumentException.class)
+           .isThrownBy(() ->EnhancedDocument.builder().addNull(null))
+           .withMessage(EMPTY_OR_NULL_ERROR);
+
+       assertThatExceptionOfType(IllegalArgumentException.class)
+           .isThrownBy(() ->EnhancedDocument.builder().addNumber(null, 3))
+           .withMessage(EMPTY_OR_NULL_ERROR);
+
+       assertThatExceptionOfType(IllegalArgumentException.class)
+           .isThrownBy(() ->EnhancedDocument.builder().addList(null, Arrays.asList()))
+           .withMessage(EMPTY_OR_NULL_ERROR);
+
+       assertThatExceptionOfType(IllegalArgumentException.class)
+           .isThrownBy(() ->EnhancedDocument.builder().addSdkBytes(null, SdkBytes.fromUtf8String("a")))
+           .withMessage(EMPTY_OR_NULL_ERROR);
+
+       assertThatExceptionOfType(IllegalArgumentException.class)
+           .isThrownBy(() ->EnhancedDocument.builder().addMap(null, new HashMap<>()))
+           .withMessage(EMPTY_OR_NULL_ERROR);
+
+       assertThatExceptionOfType(IllegalArgumentException.class)
+           .isThrownBy(() ->EnhancedDocument.builder().addStringSet(null, Stream.of("a").collect(Collectors.toSet())))
+           .withMessage(EMPTY_OR_NULL_ERROR);
+
+       assertThatExceptionOfType(IllegalArgumentException.class)
+           .isThrownBy(() ->EnhancedDocument.builder().addNumberSet(null, Stream.of(1).collect(Collectors.toSet())))
+           .withMessage(EMPTY_OR_NULL_ERROR);
+       assertThatExceptionOfType(IllegalArgumentException.class)
+           .isThrownBy(() ->EnhancedDocument.builder().addStringSet(null, Stream.of("a").collect(Collectors.toSet())))
+           .withMessage(EMPTY_OR_NULL_ERROR);
+       assertThatExceptionOfType(IllegalArgumentException.class)
+           .isThrownBy(() ->EnhancedDocument.builder().addSdkBytesSet(null, Stream.of(SdkBytes.fromUtf8String("a")).collect(Collectors.toSet())))
+           .withMessage(EMPTY_OR_NULL_ERROR);
     }
 }

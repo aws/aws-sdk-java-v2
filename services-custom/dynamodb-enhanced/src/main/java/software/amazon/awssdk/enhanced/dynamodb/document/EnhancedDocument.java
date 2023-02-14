@@ -39,7 +39,7 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.document.DefaultEnhance
 @SdkPublicApi
 public interface EnhancedDocument {
 
-    DefaultAttributeConverterProvider defaultProvider = DefaultAttributeConverterProvider.create();
+    DefaultAttributeConverterProvider DEFAULT_ATTRIBUTE_CONVERTER_PROVIDER = DefaultAttributeConverterProvider.create();
 
 
     /**
@@ -54,7 +54,7 @@ public interface EnhancedDocument {
         }
         return DefaultEnhancedDocument.builder()
                                       .json(json)
-                                      .addAttributeConverterProvider(defaultProvider)
+                                      .addAttributeConverterProvider(DEFAULT_ATTRIBUTE_CONVERTER_PROVIDER)
                                       .build();
     }
 
@@ -70,7 +70,7 @@ public interface EnhancedDocument {
         }
         DefaultEnhancedDocument.DefaultBuilder defaultBuilder = DefaultEnhancedDocument.builder();
         attributes.entrySet().forEach(key -> defaultBuilder.add(key.getKey(), key.getValue()));
-        return defaultBuilder.addAttributeConverterProvider(defaultProvider)
+        return defaultBuilder.addAttributeConverterProvider(DEFAULT_ATTRIBUTE_CONVERTER_PROVIDER)
                              .build();
     }
 

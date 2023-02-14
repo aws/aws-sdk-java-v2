@@ -57,6 +57,22 @@ public class DefaultEnhancedDocumentTest {
     public static final SdkBytes[] SDK_BYTES_ARRAY = {SdkBytes.fromUtf8String("a"), SdkBytes.fromUtf8String("b"),
                                                       SdkBytes.fromUtf8String("c")};
     public static final String[] NUMBER_STRING_ARRAY = {"1", "2", "3"};
+    public static final AttributeValue NUMBER_STRING_ARRAY_ATTRIBUTES_LISTS =
+        AttributeValue.fromL(Arrays.asList(AttributeValue.fromN(NUMBER_STRING_ARRAY[0]),
+                                           AttributeValue.fromN(NUMBER_STRING_ARRAY[1]),
+                                           AttributeValue.fromN(NUMBER_STRING_ARRAY[2])));
+
+    public static final AttributeValue STRING_ARRAY_ATTRIBUTES_LISTS =
+        AttributeValue.fromL(Arrays.asList(AttributeValue.fromS(STRINGS_ARRAY[0]),
+                                           AttributeValue.fromS(STRINGS_ARRAY[1]),
+                                           AttributeValue.fromS(STRINGS_ARRAY[2])));
+    public static final AttributeStringValueMap ARRAY_MAP_ATTRIBUTE_VALUE = new AttributeStringValueMap()
+        .withKeyValue(SIMPLE_NUMBER_KEY, AttributeValue.fromN("1"))
+        .withKeyValue("numberList",
+                      NUMBER_STRING_ARRAY_ATTRIBUTES_LISTS)
+        .withKeyValue("mapKey", AttributeValue.fromM(
+            mapFromKeyValuePairs(Pair.of(EnhancedType.listOf(String.class), Arrays.asList(STRINGS_ARRAY)),
+                                 Pair.of(EnhancedType.of(Integer.class), 1))));
     static final String SIMPLE_STRING = "stringValue";
     static final String SIMPLE_STRING_KEY = "stringKey";
     static final String SIMPLE_INT_NUMBER = "10";
@@ -175,9 +191,7 @@ public class DefaultEnhancedDocumentTest {
             Arguments.of(map()
                              .withKeyValue(SIMPLE_NUMBER_KEY, AttributeValue.fromN("1"))
                              .withKeyValue("numberList",
-                                           AttributeValue.fromL(Arrays.asList(AttributeValue.fromN(NUMBER_STRING_ARRAY[0]),
-                                                                              AttributeValue.fromN(NUMBER_STRING_ARRAY[1]),
-                                                                              AttributeValue.fromN(NUMBER_STRING_ARRAY[2]))))
+                                           NUMBER_STRING_ARRAY_ATTRIBUTES_LISTS)
                              .withKeyValue("sdkByteKey", AttributeValue.fromB(SdkBytes.fromUtf8String("a")))
                              .withKeyValue("mapKey", AttributeValue.fromM(
                                  mapFromKeyValuePairs(Pair.of(EnhancedType.listOf(String.class), Arrays.asList(STRINGS_ARRAY)),
@@ -197,15 +211,7 @@ public class DefaultEnhancedDocumentTest {
                          + "\"c\"],\"2\": 1}}"),
 
             //9 .Construction of document from Json
-            Arguments.of(map()
-                             .withKeyValue(SIMPLE_NUMBER_KEY, AttributeValue.fromN("1"))
-                             .withKeyValue("numberList",
-                                           AttributeValue.fromL(Arrays.asList(AttributeValue.fromN(NUMBER_STRING_ARRAY[0]),
-                                                                              AttributeValue.fromN(NUMBER_STRING_ARRAY[1]),
-                                                                              AttributeValue.fromN(NUMBER_STRING_ARRAY[2]))))
-                             .withKeyValue("mapKey", AttributeValue.fromM(
-                                 mapFromKeyValuePairs(Pair.of(EnhancedType.listOf(String.class), Arrays.asList(STRINGS_ARRAY)),
-                                                      Pair.of(EnhancedType.of(Integer.class), 1))))
+            Arguments.of(ARRAY_MAP_ATTRIBUTE_VALUE
                 , documentBuilder()
                              .json(ARRAY_AND_MAP_IN_JSON)
                              .build()
@@ -272,7 +278,7 @@ public class DefaultEnhancedDocumentTest {
         return defaultBuilder;
     }
 
-    private static AttributeStringValueMap map() {
+    public static AttributeStringValueMap map() {
         return new AttributeStringValueMap();
     }
 
@@ -402,7 +408,7 @@ public class DefaultEnhancedDocumentTest {
         assertThat(document.getTypeOf("nullKey")).isNull();
     }
 
-    static class AttributeStringValueMap {
+    public static class AttributeStringValueMap {
         Map<String, AttributeValue> attributeValueMap = new LinkedHashMap<>();
 
         public Map<String, AttributeValue> getAttributeValueMap() {

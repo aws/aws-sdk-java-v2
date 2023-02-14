@@ -47,6 +47,8 @@ import software.amazon.awssdk.protocols.json.internal.unmarshall.document.Docume
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.utils.StringUtils;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Default implementation of {@link EnhancedDocument}. This class is used by SDK to create Enhanced Documents.
@@ -365,86 +367,117 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
 
         @Override
         public Builder addString(String attributeName, String value) {
-            attributeValueMap.put(attributeName, AttributeValue.fromS(value));
+            Validate.isTrue(!StringUtils.isEmpty(attributeName), "attributeName cannot empty or null");
+            if (!isNullValueAdded(attributeName, value)) {
+                attributeValueMap.put(attributeName, AttributeValue.fromS(value));
+            }
             return this;
         }
 
         @Override
         public Builder addNumber(String attributeName, Number value) {
-            attributeValueMap.put(attributeName, AttributeValue.fromN(value != null ? String.valueOf(value) : null));
+            Validate.isTrue(!StringUtils.isEmpty(attributeName), "attributeName cannot empty or null");
+            if (!isNullValueAdded(attributeName, value)) {
+                attributeValueMap.put(attributeName, AttributeValue.fromN(String.valueOf(value)));
+            }
             return this;
         }
 
         @Override
         public Builder addSdkBytes(String attributeName, SdkBytes value) {
-            attributeValueMap.put(attributeName, AttributeValue.fromB(value));
+            Validate.isTrue(!StringUtils.isEmpty(attributeName), "attributeName cannot empty or null");
+            if (!isNullValueAdded(attributeName, value)) {
+                attributeValueMap.put(attributeName, AttributeValue.fromB(value));
+            }
             return this;
         }
 
         @Override
         public Builder addBoolean(String attributeName, boolean value) {
-            attributeValueMap.put(attributeName, AttributeValue.fromBool(value));
+            Validate.isTrue(!StringUtils.isEmpty(attributeName), "attributeName cannot empty or null");
+            if (!isNullValueAdded(attributeName, value)) {
+                attributeValueMap.put(attributeName, AttributeValue.fromBool(value));
+            }
             return this;
         }
 
         @Override
         public Builder addNull(String attributeName) {
+            Validate.isTrue(!StringUtils.isEmpty(attributeName), "attributeName cannot empty or null");
             attributeValueMap.put(attributeName, NULL_ATTRIBUTE_VALUE);
             return this;
         }
 
         @Override
         public Builder addStringSet(String attributeName, Set<String> values) {
-            attributeValueMap.put(attributeName, AttributeValue.fromSs(values.stream().collect(Collectors.toList())));
+            Validate.isTrue(!StringUtils.isEmpty(attributeName), "attributeName cannot empty or null");
+            if (!isNullValueAdded(attributeName, values)) {
+                attributeValueMap.put(attributeName, AttributeValue.fromSs(values.stream().collect(Collectors.toList())));
+            }
             return this;
         }
 
         @Override
         public Builder addNumberSet(String attributeName, Set<Number> values) {
-            List<String> collect = values.stream().map(value -> value.toString()).collect(Collectors.toList());
-            attributeValueMap.put(attributeName, AttributeValue.fromNs(collect));
+            Validate.isTrue(!StringUtils.isEmpty(attributeName), "attributeName cannot empty or null");
+            if (!isNullValueAdded(attributeName, values)) {
+                List<String> collect = values.stream().map(value -> value.toString()).collect(Collectors.toList());
+                attributeValueMap.put(attributeName, AttributeValue.fromNs(collect));
+
+            }
             return this;
         }
 
         @Override
         public Builder addSdkBytesSet(String attributeName, Set<SdkBytes> values) {
-            attributeValueMap.put(attributeName, AttributeValue.fromBs(values.stream().collect(Collectors.toList())));
+            Validate.isTrue(!StringUtils.isEmpty(attributeName), "attributeName cannot empty or null");
+            if (!isNullValueAdded(attributeName, values)) {
+                attributeValueMap.put(attributeName, AttributeValue.fromBs(values.stream().collect(Collectors.toList())));
+            }
             return this;
         }
 
         @Override
         public Builder addList(String attributeName, List<?> value) {
-            attributeValueMap.put(attributeName, convert(value, providerFromBuildAndAppendDefault()));
+            Validate.isTrue(!StringUtils.isEmpty(attributeName), "attributeName cannot empty or null");
+            if (!isNullValueAdded(attributeName, value)) {
+                attributeValueMap.put(attributeName, convert(value, providerFromBuildAndAppendDefault()));
+            }
             return this;
         }
 
         @Override
         public Builder addMap(String attributeName, Map<String, ?> value) {
-            attributeValueMap.put(attributeName, convert(value, providerFromBuildAndAppendDefault()));
+            Validate.isTrue(!StringUtils.isEmpty(attributeName), "attributeName cannot empty or null");
+            if (!isNullValueAdded(attributeName, value)) {
+                attributeValueMap.put(attributeName, convert(value, providerFromBuildAndAppendDefault()));
+            }
             return this;
         }
 
         @Override
         public Builder addJson(String attributeName, String json) {
-            JsonItemAttributeConverter jsonItemAttributeConverter = JsonItemAttributeConverter.create();
-            JsonNodeParser build = JsonNodeParser.builder().build();
-            JsonNode jsonNode = build.parse(json);
-            AttributeValue attributeValue = jsonItemAttributeConverter.transformFrom(jsonNode);
-            attributeValueMap.put(attributeName, attributeValue);
+            Validate.isTrue(!StringUtils.isEmpty(attributeName), "attributeName cannot empty or null");
+            if (!isNullValueAdded(attributeName, json)) {
+                JsonItemAttributeConverter jsonItemAttributeConverter = JsonItemAttributeConverter.create();
+                JsonNodeParser build = JsonNodeParser.builder().build();
+                JsonNode jsonNode = build.parse(json);
+                AttributeValue attributeValue = jsonItemAttributeConverter.transformFrom(jsonNode);
+                attributeValueMap.put(attributeName, attributeValue);
+            }
             return this;
         }
 
         @Override
         public Builder addEnhancedDocument(String attributeName, EnhancedDocument enhancedDocument) {
-            if (enhancedDocument == null) {
-                attributeValueMap.put(attributeName, NULL_ATTRIBUTE_VALUE);
-                return this;
+            Validate.isTrue(!StringUtils.isEmpty(attributeName), "attributeName cannot empty or null");
+            if (!isNullValueAdded(attributeName, enhancedDocument)) {
+                DefaultEnhancedDocument defaultEnhancedDocument =
+                    enhancedDocument instanceof DefaultEnhancedDocument
+                    ? (DefaultEnhancedDocument) enhancedDocument
+                    : (DefaultEnhancedDocument) enhancedDocument.toBuilder().json(enhancedDocument.toJson()).build();
+                attributeValueMap.put(attributeName, AttributeValue.fromM(defaultEnhancedDocument.attributeValueMap));
             }
-            DefaultEnhancedDocument defaultEnhancedDocument =
-                enhancedDocument instanceof DefaultEnhancedDocument
-                ? (DefaultEnhancedDocument) enhancedDocument
-                : (DefaultEnhancedDocument) enhancedDocument.toBuilder().json(enhancedDocument.toJson()).build();
-            attributeValueMap.put(attributeName, AttributeValue.fromM(defaultEnhancedDocument.attributeValueMap));
             return this;
         }
 
@@ -491,6 +524,14 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
         public DefaultBuilder attributeValueMap(Map<String, AttributeValue> attributeValueMap) {
             this.attributeValueMap = attributeValueMap != null ? new LinkedHashMap<>(attributeValueMap) : null;
             return this;
+        }
+
+        private boolean isNullValueAdded(String attributeName, Object value) {
+            if (value == null) {
+                addNull(attributeName);
+                return true;
+            }
+            return false;
         }
     }
 
