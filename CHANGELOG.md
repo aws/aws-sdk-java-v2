@@ -1,3 +1,16 @@
+# __2.20.4__ __2023-02-14__
+## __AWS DataSync__
+  - ### Features
+    - With this launch, we are giving customers the ability to use older SMB protocol versions, enabling them to use DataSync to copy data to and from their legacy storage arrays.
+
+## __Amazon AppConfig__
+  - ### Features
+    - AWS AppConfig now offers the option to set a version label on hosted configuration versions. Version labels allow you to identify specific hosted configuration versions based on an alternate versioning scheme that you define.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - With this release customers can turn host maintenance on or off when allocating or modifying a supported dedicated host. Host maintenance is turned on by default for supported hosts.
+
 # __2.20.3__ __2023-02-13__
 ## __AWS Account__
   - ### Features
