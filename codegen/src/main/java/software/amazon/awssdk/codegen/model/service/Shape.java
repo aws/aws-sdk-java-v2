@@ -34,6 +34,8 @@ public class Shape {
 
     private boolean flattened;
 
+    private boolean synthetic;
+
     private boolean exception;
 
     private boolean streaming;
@@ -153,6 +155,14 @@ public class Shape {
 
     public void setFlattened(boolean flattened) {
         this.flattened = flattened;
+    }
+
+    public boolean isSynthetic() {
+        return synthetic;
+    }
+
+    public void setSynthetic(boolean synthetic) {
+        this.synthetic = synthetic;
     }
 
     public boolean isException() {
