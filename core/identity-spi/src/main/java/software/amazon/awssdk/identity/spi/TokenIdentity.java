@@ -13,12 +13,9 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.token.credentials;
+package software.amazon.awssdk.identity.spi;
 
-import java.time.Instant;
-import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.identity.spi.TokenIdentity;
 
 /**
  * Provides token which is used to securely authorize requests to services.
@@ -27,15 +24,13 @@ import software.amazon.awssdk.identity.spi.TokenIdentity;
  * <p>For more details on tokens, see:
  * <a href="https://oauth.net/2/access-tokens">
  * https://oauth.net/2/access-tokens</a></p>
- *
- * @see SdkTokenProvider
  */
 @SdkPublicApi
-public interface SdkToken extends TokenIdentity {
+public interface TokenIdentity extends Identity {
 
-    @Override
+    /**
+     * Retrieves string field representing the literal token string.
+     * A token is a string that the OAuth client uses to make requests to the resource server.
+     */
     String token();
-
-    @Override
-    Optional<Instant> expirationTime();
 }

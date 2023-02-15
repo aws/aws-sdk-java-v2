@@ -13,29 +13,21 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.token.credentials;
+package software.amazon.awssdk.identity.spi;
 
-import java.time.Instant;
-import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.identity.spi.TokenIdentity;
 
 /**
- * Provides token which is used to securely authorize requests to services.
- * A token is a string that the OAuth client uses to make requests to the resource server.
- *
- * <p>For more details on tokens, see:
- * <a href="https://oauth.net/2/access-tokens">
- * https://oauth.net/2/access-tokens</a></p>
- *
- * @see SdkTokenProvider
+ * A special type of {@link AwsCredentialsIdentity} that provides a session token to be used in service authentication. Session
+ * tokens are typically provided by a token broker service, like AWS Security Token Service, and provide temporary access to an
+ * AWS service.
  */
 @SdkPublicApi
-public interface SdkToken extends TokenIdentity {
+public interface AwsSessionCredentialsIdentity extends AwsCredentialsIdentity {
 
-    @Override
-    String token();
-
-    @Override
-    Optional<Instant> expirationTime();
+    /**
+     * Retrieve the AWS session token. This token is retrieved from an AWS token service, and is used for authenticating that this
+     * user has received temporary permission to access some resource.
+     */
+    String sessionToken();
 }

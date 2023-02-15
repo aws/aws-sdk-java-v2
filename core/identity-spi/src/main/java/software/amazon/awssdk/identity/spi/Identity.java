@@ -13,29 +13,27 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.token.credentials;
+package software.amazon.awssdk.identity.spi;
 
 import java.time.Instant;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.identity.spi.TokenIdentity;
 
 /**
- * Provides token which is used to securely authorize requests to services.
- * A token is a string that the OAuth client uses to make requests to the resource server.
+ * Interface to represent <b>who</b> is using the SDK, i.e., the identity of the caller, used for authentication.
  *
- * <p>For more details on tokens, see:
- * <a href="https://oauth.net/2/access-tokens">
- * https://oauth.net/2/access-tokens</a></p>
+ * <p>Examples include {@link AwsCredentialsIdentity} and {@link TokenIdentity}.</p>
  *
- * @see SdkTokenProvider
+ * @see IdentityProvider
  */
 @SdkPublicApi
-public interface SdkToken extends TokenIdentity {
-
-    @Override
-    String token();
-
-    @Override
-    Optional<Instant> expirationTime();
+public interface Identity {
+    /**
+     * The time after which this identity will no longer be valid. If this is empty,
+     * an expiration time is not known (but the identity may still expire at some
+     * time in the future).
+     */
+    default Optional<Instant> expirationTime() {
+        return Optional.empty();
+    }
 }

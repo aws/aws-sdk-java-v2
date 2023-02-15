@@ -18,6 +18,7 @@ package software.amazon.awssdk.auth.credentials;
 import java.util.Objects;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.identity.spi.AwsSessionCredentialsIdentity;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
@@ -28,7 +29,7 @@ import software.amazon.awssdk.utils.Validate;
  */
 @Immutable
 @SdkPublicApi
-public final class AwsSessionCredentials implements AwsCredentials {
+public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCredentialsIdentity {
 
     private final String accessKeyId;
     private final String secretAccessKey;
@@ -52,26 +53,17 @@ public final class AwsSessionCredentials implements AwsCredentials {
         return new AwsSessionCredentials(accessKey, secretKey, sessionToken);
     }
 
-    /**
-     * Retrieve the AWS access key, used to identify the user interacting with AWS.
-     */
     @Override
     public String accessKeyId() {
         return accessKeyId;
     }
 
-    /**
-     * Retrieve the AWS secret access key, used to authenticate the user interacting with AWS.
-     */
     @Override
     public String secretAccessKey() {
         return secretAccessKey;
     }
 
-    /**
-     * Retrieve the AWS session token. This token is retrieved from an AWS token service, and is used for authenticating that this
-     * user has received temporary permission to access some resource.
-     */
+    @Override
     public String sessionToken() {
         return sessionToken;
     }
