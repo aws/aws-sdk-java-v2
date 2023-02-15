@@ -1,3 +1,36 @@
+# __2.20.5__ __2023-02-15__
+## __AWS CloudTrail__
+  - ### Features
+    - This release adds an InsufficientEncryptionPolicyException type to the StartImport endpoint
+
+## __AWS Glue__
+  - ### Features
+    - Fix DirectJDBCSource not showing up in CLI code gen
+
+## __AWS Private 5G__
+  - ### Features
+    - This release introduces a new StartNetworkResourceUpdate API, which enables return/replacement of hardware from a NetworkSite.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS WAFV2__
+  - ### Features
+    - For protected CloudFront distributions, you can now use the AWS WAF Fraud Control account takeover prevention (ATP) managed rule group to block new login attempts from clients that have recently submitted too many failed login attempts.
+
+## __Amazon Elastic File System__
+  - ### Features
+    - Documentation update for EFS to support IAM best practices.
+
+## __Amazon Fraud Detector__
+  - ### Features
+    - This release introduces Lists feature which allows customers to reference a set of values in Fraud Detector's rules. With Lists, customers can dynamically manage these attributes in real time. Lists can be created/deleted and its contents can be modified using the Fraud Detector API.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Database Activity Stream support for RDS for SQL Server.
+
 # __2.20.4__ __2023-02-14__
 ## __AWS DataSync__
   - ### Features
