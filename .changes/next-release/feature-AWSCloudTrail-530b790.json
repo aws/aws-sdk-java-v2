@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CloudTrail",
+    "contributor": "",
+    "description": "This release adds an InsufficientEncryptionPolicyException type to the StartImport endpoint"
+}
