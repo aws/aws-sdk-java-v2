@@ -31,6 +31,7 @@ import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
@@ -41,16 +42,38 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 
 /**
- * Implementation of {@link TableSchema} that builds a table schema based on DynamoDB Items. This class always maps the DynamoDB
- * items as {@link EnhancedDocument}
+ * Implementation of {@link TableSchema} that builds a table schema based on DynamoDB Items.
+ * <p>
+ * In Amazon DynamoDB, an item is a collection of attributes. Each attribute has a name and a value. An attribute value can be a
+ * scalar, a set, or a document type
+ * <p>
+ * A DocumentTableSchema is used to create a {@link DynamoDbTable} which provides read and writes access to DynamoDB table as
+ * {@link EnhancedDocument}.
+ * <p> DocumentTableSchema specifying primaryKey, sortKey and a customAttributeConverter can be created as below
+ * {@snippet :
+ * DocumentTableSchema documentTableSchema = DocumentTableSchema.builder()
+ * .primaryKey("sampleHashKey", AttributeValueType.S)
+ * .sortKey("sampleSortKey", AttributeValueType.S)
+ * .attributeConverterProviders(customAttributeConveter, AttributeConverterProvider.defaultProvider())
+ * .build();
+ *}
+ * <p> DocumentTableSchema can also be created without specifying primaryKey and sortKey in which cases the
+ * {@link TableMetadata} of DocumentTableSchema will error if we try to access attributes from metaData.
+ * Also if attributeConverterProviders are not provided then {@link DefaultAttributeConverterProvider} will be used
+ * {@snippet :
+ * DocumentTableSchema documentTableSchema = DocumentTableSchema.builder().build();
+ *}
+ *
+ * @see <a href="https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/WorkingWithItems.html" target="_top">Working
+ * with items and attributes</a>
  */
 @SdkPublicApi
-public class DocumentTableSchema implements TableSchema<EnhancedDocument> {
+public final class DocumentTableSchema implements TableSchema<EnhancedDocument> {
 
     private final TableMetadata tableMetadata;
     private final List<AttributeConverterProvider> attributeConverterProviders;
 
-    public DocumentTableSchema(Builder builder) {
+    private DocumentTableSchema(Builder builder) {
         this.attributeConverterProviders = builder.attributeConverterProviders;
         this.tableMetadata = builder.staticTableMetaDataBuilder.build();
     }
@@ -72,30 +95,24 @@ public class DocumentTableSchema implements TableSchema<EnhancedDocument> {
 
     @Override
     public Map<String, AttributeValue> itemToMap(EnhancedDocument item, boolean ignoreNulls) {
-        if (item instanceof DefaultEnhancedDocument) {
-            Map<String, AttributeValue> attributeValueMap = ((DefaultEnhancedDocument) item).getAttributeValueMap();
-            return attributeValueMap;
-        }
-        throw new IllegalArgumentException("EnhancedDocument item is not instance of DefaultEnhancedDocument");
+        return item != null ? item.toAttributeValueMap() : null;
     }
 
     @Override
     public Map<String, AttributeValue> itemToMap(EnhancedDocument item, Collection<String> attributes) {
-        if (item instanceof DefaultEnhancedDocument) {
-            Map<String, AttributeValue> result = new HashMap<>();
-            attributes.forEach(attribute ->
-                                   result.put(attribute, ((DefaultEnhancedDocument) item).getAttributeValueMap().get(attribute)));
-            return result;
-        }
-        throw new IllegalArgumentException("EnhancedDocument item is not instance of DefaultEnhancedDocument");
+        Map<String, AttributeValue> result = new HashMap<>();
+        attributes.forEach(attribute ->
+                               result.put(attribute,  item.toAttributeValueMap().get(attribute)));
+        return result;
+
     }
 
     @Override
     public AttributeValue attributeValue(EnhancedDocument item, String attributeName) {
-        if (item instanceof DefaultEnhancedDocument) {
-            return ((DefaultEnhancedDocument) item).getAttributeValueMap().get(attributeName);
+        if (item == null || item.toAttributeValueMap() == null) {
+            return null;
         }
-        throw new IllegalArgumentException("EnhancedDocument item is not instance of DefaultEnhancedDocument");
+        return item.toAttributeValueMap().get(attributeName);
     }
 
     @Override
@@ -156,13 +173,15 @@ public class DocumentTableSchema implements TableSchema<EnhancedDocument> {
          * providers must provide {@link AttributeConverter}s for Custom types. The attribute converter providers will be loaded
          * in the strict order they are supplied here.
          * <p>
-         * If no AttributeConverterProvider are provided then  {@link DefaultAttributeConverterProvider} is used, which provides
-         * standard converters for most primitive and common Java types, so that provider must be included in the supplied list if
-         * it is to be used. Providing an empty list here will cause no providers to get loaded.
+         *     By default, {@link DefaultAttributeConverterProvider} will be used,
+         *     and it will provide standard converters for most primitive and common Java types.
+         *     Configuring this will override the default behavior, so it is recommended to
+         *     always append `DefaultAttributeConverterProvider` when you configure the
+         *     custom attribute converter providers.
          * <p>
-         * Adding one custom attribute converter provider and using the default as fallback:
-         * {@code builder.attributeConverterProviders(customAttributeConverter, AttributeConverterProvider.defaultProvider()) }
-         *
+         * {@snippet :
+         *     builder.attributeConverterProviders(customAttributeConverter, AttributeConverterProvider.defaultProvider());
+         * }
          * @param attributeConverterProviders a list of attribute converter providers to use with the table schema
          */
         public Builder attributeConverterProviders(AttributeConverterProvider... attributeConverterProviders) {
@@ -175,14 +194,15 @@ public class DocumentTableSchema implements TableSchema<EnhancedDocument> {
          * providers must provide {@link AttributeConverter}s for all types used in the schema. The attribute converter providers
          * will be loaded in the strict order they are supplied here.
          * <p>
-         * If no AttributeConverterProvider are provided then {@link DefaultAttributeConverterProvider} will be used, which
-         * provides standard converters for most primitive and common Java types, so that provider must be included in the
-         * supplied list if it is to be used. Providing an empty list here will cause no providers to get loaded.
+         * By default, {@link DefaultAttributeConverterProvider} will be used, and it will provide standard converters for most
+         * primitive and common Java types. Configuring this will override the default behavior, so it is recommended to always
+         * append `DefaultAttributeConverterProvider` when you configure the custom attribute converter providers.
          * <p>
-         * Adding one custom attribute converter provider and using the default as fallback:
-         * {@code List<AttributeConverterProvider> providers = new ArrayList<>( customAttributeConverter,
-         * AttributeConverterProvider.defaultProvider()); builder.attributeConverterProviders(providers); }
-         *
+         * {@snippet :
+         *     List<AttributeConverterProvider> providers = new ArrayList<>( customAttributeConverter,
+         *     AttributeConverterProvider.defaultProvider());
+         *     builder.attributeConverterProviders(providers);
+         * }
          * @param attributeConverterProviders a list of attribute converter providers to use with the table schema
          */
         public Builder attributeConverterProviders(List<AttributeConverterProvider> attributeConverterProviders) {

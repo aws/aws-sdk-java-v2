@@ -102,17 +102,12 @@ public class DocumentTableSchemaTest {
     }
 
     @Test
-    void documentTableSchema_Errors_whenDocumentIsNotDefaultDocumentGetMapAPI(){
-        EnhancedDocument document = getAnonymousEnhancedClient();
+    void documentTableSchema_Errors_withEmptyDocument(){
+        EnhancedDocument document = getAnonymousEnhancedDocument();
         DocumentTableSchema documentTableSchema = DocumentTableSchema.builder().build();
-        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(
-            () -> documentTableSchema.itemToMap(document,false));
-        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(
-            () -> documentTableSchema.itemToMap(document,true));
-        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(
-            () -> documentTableSchema.itemToMap(document,new ArrayList<>()));
-        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(
-            () -> documentTableSchema.attributeValue(document, "someItem"));
+        assertThat(documentTableSchema.itemToMap(document,true)).isNull();
+        assertThat(documentTableSchema.itemToMap(document,new ArrayList<>())).isEqualTo(new LinkedHashMap<>());
+        assertThat(documentTableSchema.attributeValue(document, "someItem")).isNull();
     }
 
     @Test
@@ -165,7 +160,7 @@ public class DocumentTableSchemaTest {
         assertThat(stringAttributeValueMap).isEqualTo(ARRAY_MAP_ATTRIBUTE_VALUE.getAttributeValueMap());
     }
 
-    private static EnhancedDocument getAnonymousEnhancedClient() {
+    private static EnhancedDocument getAnonymousEnhancedDocument() {
         EnhancedDocument document = new EnhancedDocument() {
             @Override
             public Builder toBuilder() { return null; }
@@ -215,6 +210,11 @@ public class DocumentTableSchemaTest {
             public String toJson() {return null;}
             @Override
             public String toJsonPretty() {return null;}
+
+            @Override
+            public Map<String, AttributeValue> toAttributeValueMap() {
+                return null;
+            }
         };
         return document;
     }

@@ -88,6 +88,8 @@ import software.amazon.awssdk.utils.Validate;
 @ThreadSafe
 @Immutable
 public final class DefaultAttributeConverterProvider implements AttributeConverterProvider {
+    private static DefaultAttributeConverterProvider INSTANCE = getDefaultBuilder().build();
+
     private static final Logger log = Logger.loggerFor(DefaultAttributeConverterProvider.class);
 
     private final ConcurrentHashMap<EnhancedType<?>, AttributeConverter<?>> converterCache =
@@ -117,9 +119,8 @@ public final class DefaultAttributeConverterProvider implements AttributeConvert
      * Returns an attribute converter provider with all default converters set.
      */
     public static DefaultAttributeConverterProvider create() {
-        return getDefaultBuilder().build();
+        return INSTANCE;
     }
-
 
     /**
      * Equivalent to {@code builder(EnhancedType.of(Object.class))}.

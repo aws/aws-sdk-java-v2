@@ -305,8 +305,7 @@ public class DefaultEnhancedDocumentTest {
          * The builder method internally creates a AttributeValueMap which is saved to the ddb, if this matches then
          * the document is as expected
          */
-        assertThat(enhancedDocument.getAttributeValueMap()).isEqualTo(expectedMap.getAttributeValueMap());
-        System.out.println("enhancedDocument amp here " +enhancedDocument.getAttributeValueMap());
+        assertThat(enhancedDocument.toAttributeValueMap()).isEqualTo(expectedMap.getAttributeValueMap());
     }
 
     @ParameterizedTest
@@ -332,7 +331,7 @@ public class DefaultEnhancedDocumentTest {
         DefaultEnhancedDocument copiedDoc = (DefaultEnhancedDocument)  originalDoc.toBuilder().build();
         DefaultEnhancedDocument copyAndAlter =
             (DefaultEnhancedDocument)  originalDoc.toBuilder().addString("keyOne", "valueOne").build();
-        assertThat(originalDoc.getAttributeValueMap()).isEqualTo(copiedDoc.getAttributeValueMap());
+        assertThat(originalDoc.toAttributeValueMap()).isEqualTo(copiedDoc.toAttributeValueMap());
         assertThat(originalDoc.asMap().keySet().size()).isEqualTo(1);
         assertThat(copyAndAlter.asMap().keySet().size()).isEqualTo(2);
         assertThat(copyAndAlter.getString(SIMPLE_STRING_KEY)).isEqualTo(SIMPLE_STRING);
@@ -349,7 +348,7 @@ public class DefaultEnhancedDocumentTest {
             .build();
         assertThat(nullDocument.isNull("nullDocument")).isTrue();
         assertThat(nullDocument.isNull("nonNull")).isFalse();
-        assertThat(nullDocument.getAttributeValueMap().get("nullDocument")).isEqualTo(AttributeValue.fromNul(true));
+        assertThat(nullDocument.toAttributeValueMap().get("nullDocument")).isEqualTo(AttributeValue.fromNul(true));
 
         DefaultEnhancedDocument document = (DefaultEnhancedDocument) DefaultEnhancedDocument
             .builder().attributeValueMap(

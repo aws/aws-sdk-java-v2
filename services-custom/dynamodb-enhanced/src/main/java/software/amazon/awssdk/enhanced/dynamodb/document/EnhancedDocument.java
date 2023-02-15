@@ -27,6 +27,7 @@ import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.document.DefaultEnhancedDocument;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * Interface representing Document API for DynamoDB. Document API operations are used to carry open content i.e. data with no
@@ -38,9 +39,6 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.document.DefaultEnhance
  */
 @SdkPublicApi
 public interface EnhancedDocument {
-
-    DefaultAttributeConverterProvider DEFAULT_ATTRIBUTE_CONVERTER_PROVIDER = DefaultAttributeConverterProvider.create();
-
 
     /**
      * Convenience factory method - instantiates an <code>EnhancedDocument</code> from the given JSON String.
@@ -54,7 +52,22 @@ public interface EnhancedDocument {
         }
         return DefaultEnhancedDocument.builder()
                                       .json(json)
-                                      .addAttributeConverterProvider(DEFAULT_ATTRIBUTE_CONVERTER_PROVIDER)
+                                      .attributeConverterProviders(DefaultAttributeConverterProvider.create())
+                                      .build();
+    }
+
+    /**
+     * Convenience factory method - instantiates an <code>EnhancedDocument</code> from the given AttributeValueMap.
+     * @param attributeValueMap - Map with Attributes as String keys and AttributeValue as Value.
+     * @return A new instance of EnhancedDocument.
+     */
+    static EnhancedDocument fromAttributeValueMap(Map<String, AttributeValue> attributeValueMap) {
+        if (attributeValueMap == null) {
+            return null;
+        }
+        return DefaultEnhancedDocument.builder()
+                                      .attributeValueMap(attributeValueMap)
+                                      .attributeConverterProviders(DefaultAttributeConverterProvider.create())
                                       .build();
     }
 
@@ -70,7 +83,7 @@ public interface EnhancedDocument {
         }
         DefaultEnhancedDocument.DefaultBuilder defaultBuilder = DefaultEnhancedDocument.builder();
         attributes.entrySet().forEach(key -> defaultBuilder.add(key.getKey(), key.getValue()));
-        return defaultBuilder.addAttributeConverterProvider(DEFAULT_ATTRIBUTE_CONVERTER_PROVIDER)
+        return defaultBuilder.addAttributeConverterProvider(DefaultAttributeConverterProvider.create())
                              .build();
     }
 
@@ -342,6 +355,12 @@ public interface EnhancedDocument {
      * @return document as a pretty JSON string. Note all binary data will become base-64 encoded in the resultant string
      */
     String toJsonPretty();
+
+    /**
+     * Gets the current EnhancedDocument as a <String, AttributeValue> Map.
+     * @return EnhancedDocument as a Map with Keys as String attributes and Values as AttributeValue.
+     */
+    Map<String, AttributeValue> toAttributeValueMap();
 
     @NotThreadSafe
     interface Builder {

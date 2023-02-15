@@ -59,8 +59,6 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 public class DefaultEnhancedDocument implements EnhancedDocument {
 
-    private static final DefaultAttributeConverterProvider DEFAULT_PROVIDER = DefaultAttributeConverterProvider.create();
-
     private static final JsonItemAttributeConverter JSON_ITEM_ATTRIBUTE_CONVERTER = JsonItemAttributeConverter.create();
 
     private final Map<String, AttributeValue> attributeValueMap;
@@ -69,7 +67,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
 
     private DefaultEnhancedDocument(Map<String, AttributeValue> attributeValueMap) {
         this.attributeValueMap = attributeValueMap;
-        this.attributeConverterProviders = ChainConverterProvider.create(DEFAULT_PROVIDER);
+        this.attributeConverterProviders = ChainConverterProvider.create(DefaultAttributeConverterProvider.create());
     }
 
     public DefaultEnhancedDocument(DefaultBuilder builder) {
@@ -91,7 +89,8 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
 
     }
 
-    public Map<String, AttributeValue> getAttributeValueMap() {
+    @Override
+    public Map<String, AttributeValue> toAttributeValueMap() {
         return attributeValueMap;
     }
 
@@ -360,7 +359,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
 
         private ChainConverterProvider providerFromBuildAndAppendDefault() {
             List<AttributeConverterProvider> converterProviders = new ArrayList<>(attributeConverterProviders);
-            converterProviders.add(DEFAULT_PROVIDER);
+            converterProviders.add(DefaultAttributeConverterProvider.create());
             ChainConverterProvider attributeConverterProvider = ChainConverterProvider.create(converterProviders);
             return attributeConverterProvider;
         }
@@ -472,11 +471,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
         public Builder addEnhancedDocument(String attributeName, EnhancedDocument enhancedDocument) {
             Validate.isTrue(!StringUtils.isEmpty(attributeName), "attributeName cannot empty or null");
             if (!isNullValueAdded(attributeName, enhancedDocument)) {
-                DefaultEnhancedDocument defaultEnhancedDocument =
-                    enhancedDocument instanceof DefaultEnhancedDocument
-                    ? (DefaultEnhancedDocument) enhancedDocument
-                    : (DefaultEnhancedDocument) enhancedDocument.toBuilder().json(enhancedDocument.toJson()).build();
-                attributeValueMap.put(attributeName, AttributeValue.fromM(defaultEnhancedDocument.attributeValueMap));
+                attributeValueMap.put(attributeName, AttributeValue.fromM(enhancedDocument.toAttributeValueMap()));
             }
             return this;
         }
