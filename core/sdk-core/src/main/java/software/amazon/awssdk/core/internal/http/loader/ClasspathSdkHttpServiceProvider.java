@@ -15,9 +15,11 @@
 
 package software.amazon.awssdk.core.internal.http.loader;
 
-import java.util.Iterator;
+import java.util.List;
 import java.util.Optional;
 import java.util.ServiceLoader;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.SdkSystemSetting;
@@ -46,22 +48,33 @@ final class ClasspathSdkHttpServiceProvider<T> implements SdkHttpServiceProvider
 
     @Override
     public Optional<T> loadService() {
-        Iterator<T> httpServices = serviceLoader.loadServices(serviceClass);
-        if (!httpServices.hasNext()) {
+        Iterable<T> iterable = () -> serviceLoader.loadServices(serviceClass);
+        List<T> impls = StreamSupport
+            .stream(iterable.spliterator(), false)
+            .collect(Collectors.toList());
+
+        if (impls.isEmpty()) {
             return Optional.empty();
         }
-        T httpService = httpServices.next();
 
-        if (httpServices.hasNext()) {
+        if (impls.size() > 1) {
+
+            String implText =
+                impls.stream()
+                     .map(clazz -> clazz.getClass().getName())
+                     .collect(Collectors.joining(",","[","]"));
+
             throw SdkClientException.builder().message(
                     String.format(
                             "Multiple HTTP implementations were found on the classpath. To avoid non-deterministic loading " +
                             "implementations, please explicitly provide an HTTP client via the client builders, set the %s " +
                             "system property with the FQCN of the HTTP service to use as the default, or remove all but one " +
-                            "HTTP implementation from the classpath", implSystemProperty.property()))
+                            "HTTP implementation from the classpath.  The multiple implementations found were: %s",
+                            implSystemProperty.property(), implText))
                     .build();
         }
-        return Optional.of(httpService);
+
+        return impls.stream().findFirst();
     }
 
     /**
