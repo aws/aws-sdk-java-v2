@@ -551,7 +551,6 @@ both classes are annotated as a DynamoDb bean:
 @DynamoDbBean
 public class Customer extends GenericRecord {
     private String name;
-    private GenericRecord record;
 
     public String getName() { return this.name; }
     public void setName(String name) { this.name = name;}
