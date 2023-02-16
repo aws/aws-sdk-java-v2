@@ -93,6 +93,14 @@ public final class DocumentTableSchema implements TableSchema<EnhancedDocument> 
                       .build();
     }
 
+    /**
+     * @param item        The modelled Java object to convert into a map of attributes.
+     * @param ignoreNulls This flag is of no use for Document API, unlike Java objects where default value of undefined Object is
+     *                    null , and  since Enhanced client knows the Schemas this flag is used to decide whether to send Null
+     *                    Attribute Value or not send the attribute at all, However, in case of Document API the Enhanced client
+     *                    is not aware of the Schema, thus any fields which are not set explicitly will always be ignored.
+     * @return
+     */
     @Override
     public Map<String, AttributeValue> itemToMap(EnhancedDocument item, boolean ignoreNulls) {
         return item != null ? item.toAttributeValueMap() : null;
