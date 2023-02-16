@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon EMR",
+    "contributor": "",
+    "description": "This release provides customers the ability to define a timeout period for procuring capacity during a resize operation for Instance Fleet clusters. Customers can specify this timeout using the ResizeSpecifications parameter supported by RunJobFlow, ModifyInstanceFleet and AddInstanceFleet APIs."
+}
