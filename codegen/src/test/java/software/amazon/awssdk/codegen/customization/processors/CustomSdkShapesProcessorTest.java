@@ -48,8 +48,9 @@ public class CustomSdkShapesProcessorTest {
 
     @Test
     public void setCustomStringShape_isAddedToModel() {
-        CustomSdkShapes customSdkShapes = new CustomSdkShapes();
+        CustomSdkShapes customSdkShapes = config.getCustomSdkShapes();
         Map<String, Shape> shapes = new HashMap<>();
+        shapes.putAll(customSdkShapes.getShapes());
 
         Shape stringShape = new Shape();
         stringShape.setType("string");
@@ -72,8 +73,9 @@ public class CustomSdkShapesProcessorTest {
 
     @Test
     public void setCustomListShape_isAddedToModel() {
-        CustomSdkShapes customSdkShapes = new CustomSdkShapes();
+        CustomSdkShapes customSdkShapes = config.getCustomSdkShapes();
         Map<String, Shape> shapes = new HashMap<>();
+        shapes.putAll(customSdkShapes.getShapes());
 
         Shape listShape = new Shape();
         listShape.setType("list");
@@ -103,8 +105,9 @@ public class CustomSdkShapesProcessorTest {
 
     @Test
     public void setCustomCustomizedShape_isAddedToModel() {
-        CustomSdkShapes customSdkShapes = new CustomSdkShapes();
+        CustomSdkShapes customSdkShapes = config.getCustomSdkShapes();
         Map<String, Shape> shapes = new HashMap<>();
+        shapes.putAll(customSdkShapes.getShapes());
 
         Shape stringShape = new Shape();
         stringShape.setType("string");
@@ -134,8 +137,9 @@ public class CustomSdkShapesProcessorTest {
 
     @Test(expected = NullPointerException.class)
     public void setCustomNullShape_throwsNullPointerException() {
-        CustomSdkShapes customSdkShapes = new CustomSdkShapes();
+        CustomSdkShapes customSdkShapes = config.getCustomSdkShapes();
         Map<String, Shape> shapes = new HashMap<>();
+        shapes.putAll(customSdkShapes.getShapes());
 
         Shape stringShape = new Shape();
         stringShape.setType(null);
