@@ -30,7 +30,6 @@
     <description>
         The AWS SDK for Java - Auth module holds the classes that are used for authentication with AWS services
     </description>
-    <!-- TODO: this is not present in all pom.xml files. Is there a reason, or just a miss -->
     <url>https://aws.amazon.com/sdkforjava</url>
 
     <dependencies>

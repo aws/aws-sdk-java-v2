@@ -31,7 +31,6 @@
         The AWS SDK for Java - Identity SPI module contains the Identity interfaces that are used by other modules in
             the library.
     </description>
-    <!-- TODO: this is not present in all pom.xml files. Is there a reason, or just a miss -->
     <url>https://aws.amazon.com/sdkforjava</url>
 
     <dependencies>

@@ -31,7 +31,6 @@
         The AWS SDK for Java - Auth module holds the AWS Common Runtime based implementations that are used for
         authentication with HTTP services
     </description>
-    <!-- TODO: this is not present in all pom.xml files. Is there a reason, or just a miss -->
     <url>https://aws.amazon.com/sdkforjava</url>
 
     <dependencies>
