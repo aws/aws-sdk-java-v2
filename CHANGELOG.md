@@ -1,3 +1,160 @@
+# __2.20.6__ __2023-02-16__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS WAFV2__
+  - ### Features
+    - Added a notice for account takeover prevention (ATP). The interface incorrectly lets you to configure ATP response inspection in regional web ACLs in Region US East (N. Virginia), without returning an error. ATP response inspection is only available in web ACLs that protect CloudFront distributions.
+
+## __Amazon EMR__
+  - ### Features
+    - This release provides customers the ability to define a timeout period for procuring capacity during a resize operation for Instance Fleet clusters. Customers can specify this timeout using the ResizeSpecifications parameter supported by RunJobFlow, ModifyInstanceFleet and AddInstanceFleet APIs.
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - Doc-only update. Updated text description in DeleteChannel, Stream, and StreamSummary.
+
+## __Amazon Managed Grafana__
+  - ### Features
+    - With this release Amazon Managed Grafana now supports inbound Network Access Control that helps you to restrict user access to your Grafana workspaces
+
+# __2.20.5__ __2023-02-15__
+## __AWS CloudTrail__
+  - ### Features
+    - This release adds an InsufficientEncryptionPolicyException type to the StartImport endpoint
+
+## __AWS Glue__
+  - ### Features
+    - Fix DirectJDBCSource not showing up in CLI code gen
+
+## __AWS Private 5G__
+  - ### Features
+    - This release introduces a new StartNetworkResourceUpdate API, which enables return/replacement of hardware from a NetworkSite.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS WAFV2__
+  - ### Features
+    - For protected CloudFront distributions, you can now use the AWS WAF Fraud Control account takeover prevention (ATP) managed rule group to block new login attempts from clients that have recently submitted too many failed login attempts.
+
+## __Amazon Elastic File System__
+  - ### Features
+    - Documentation update for EFS to support IAM best practices.
+
+## __Amazon Fraud Detector__
+  - ### Features
+    - This release introduces Lists feature which allows customers to reference a set of values in Fraud Detector's rules. With Lists, customers can dynamically manage these attributes in real time. Lists can be created/deleted and its contents can be modified using the Fraud Detector API.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Database Activity Stream support for RDS for SQL Server.
+
+# __2.20.4__ __2023-02-14__
+## __AWS DataSync__
+  - ### Features
+    - With this launch, we are giving customers the ability to use older SMB protocol versions, enabling them to use DataSync to copy data to and from their legacy storage arrays.
+
+## __Amazon AppConfig__
+  - ### Features
+    - AWS AppConfig now offers the option to set a version label on hosted configuration versions. Version labels allow you to identify specific hosted configuration versions based on an alternate versioning scheme that you define.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - With this release customers can turn host maintenance on or off when allocating or modifying a supported dedicated host. Host maintenance is turned on by default for supported hosts.
+
+# __2.20.3__ __2023-02-13__
+## __AWS Account__
+  - ### Features
+    - This release of the Account Management API enables customers to view and manage whether AWS Opt-In Regions are enabled or disabled for their Account. For more information, see https://docs.aws.amazon.com/accounts/latest/reference/manage-acct-regions.html
+
+## __AWS AppConfig Data__
+  - ### Features
+    - AWS AppConfig now offers the option to set a version label on hosted configuration versions. If a labeled hosted configuration version is deployed, its version label is available in the GetLatestConfiguration response.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Keep precedence of options when passed to ProfileFileSupplier.aggregate
+
+## __Amazon Import/Export Snowball__
+  - ### Features
+    - Adds support for EKS Anywhere on Snowball. AWS Snow Family customers can now install EKS Anywhere service on Snowball Edge Compute Optimized devices.
+
+# __2.20.2__ __2023-02-10__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This update provides the Wisdom session ARN for contacts enabled for Wisdom in the chat channel.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds support for waiters that automatically poll for an imported snapshot until it reaches the completed state.
+
+## __Amazon Polly__
+  - ### Features
+    - Amazon Polly adds two new neural Japanese voices - Kazuha, Tomoko
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker Autopilot adds support for selecting algorithms in CreateAutoMLJob API.
+
+## __Amazon Simple Notification Service__
+  - ### Features
+    - This release adds support for SNS X-Ray active tracing as well as other updates.
+
+## __Auto Scaling__
+  - ### Features
+    - You can now either terminate/replace, ignore, or wait for EC2 Auto Scaling instances on standby or protected from scale in. Also, you can also roll back changes from a failed instance refresh.
+
+# __2.20.1__ __2023-02-09__
+## __AWS Migration Hub Refactor Spaces__
+  - ### Features
+    - This release adds support for creating environments with a network fabric type of NONE
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Chime SDK Meetings__
+  - ### Features
+    - Documentation updates for Chime Meetings SDK
+
+## __Amazon CloudWatch Evidently__
+  - ### Features
+    - Updated entity overrides parameter to accept up to 2500 overrides or a total of 40KB.
+
+## __Amazon EMR Containers__
+  - ### Features
+    - EMR on EKS allows configuring retry policies for job runs through the StartJobRun API. Using retry policies, a job cause a driver pod to be restarted automatically if it fails or is deleted. The job's status can be seen in the DescribeJobRun and ListJobRun APIs and monitored using CloudWatch events.
+
+## __Amazon Lex Model Building V2__
+  - ### Features
+    - AWS Lex now supports Network of Bots.
+
+## __Amazon Lex Runtime V2__
+  - ### Features
+    - AWS Lex now supports Network of Bots.
+
+## __Amazon Lightsail__
+  - ### Features
+    - Documentation updates for Lightsail
+
+## __Amazon WorkDocs__
+  - ### Features
+    - Doc only update for the WorkDocs APIs.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Removed Windows Server 2016 BYOL and made changes based on IAM campaign.
+
 # __2.20.0__ __2023-02-08__
 ## __AWS Backup__
   - ### Features

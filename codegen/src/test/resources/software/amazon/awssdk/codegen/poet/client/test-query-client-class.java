@@ -91,11 +91,6 @@ final class DefaultQueryClient implements QueryClient {
         this.protocolFactory = init();
     }
 
-    @Override
-    public final String serviceName() {
-        return SERVICE_NAME;
-    }
-
     /**
      * <p>
      * Performs a post operation to the query service and has no output
@@ -660,6 +655,35 @@ final class DefaultQueryClient implements QueryClient {
         }
     }
 
+    /**
+     * Create an instance of {@link QueryWaiter} using this client.
+     * <p>
+     * Waiters created via this method are managed by the SDK and resources will be released when the service client is
+     * closed.
+     *
+     * @return an instance of {@link QueryWaiter}
+     */
+    @Override
+    public QueryWaiter waiter() {
+        return QueryWaiter.builder().client(this).build();
+    }
+
+    private <T extends QueryRequest> T applySignerOverride(T request, Signer signer) {
+        if (request.overrideConfiguration().flatMap(c -> c.signer()).isPresent()) {
+            return request;
+        }
+        Consumer<AwsRequestOverrideConfiguration.Builder> signerOverride = b -> b.signer(signer).build();
+        AwsRequestOverrideConfiguration overrideConfiguration = request.overrideConfiguration()
+                                                                       .map(c -> c.toBuilder().applyMutation(signerOverride).build())
+                                                                       .orElse((AwsRequestOverrideConfiguration.builder().applyMutation(signerOverride).build()));
+        return (T) request.toBuilder().overrideConfiguration(overrideConfiguration).build();
+    }
+
+    @Override
+    public final String serviceName() {
+        return SERVICE_NAME;
+    }
+
     private static List<MetricPublisher> resolveMetricPublishers(SdkClientConfiguration clientConfiguration,
                                                                  RequestOverrideConfiguration requestOverrideConfiguration) {
         List<MetricPublisher> publishers = null;
@@ -687,21 +711,5 @@ final class DefaultQueryClient implements QueryClient {
     @Override
     public void close() {
         clientHandler.close();
-    }
-
-    private <T extends QueryRequest> T applySignerOverride(T request, Signer signer) {
-        if (request.overrideConfiguration().flatMap(c -> c.signer()).isPresent()) {
-            return request;
-        }
-        Consumer<AwsRequestOverrideConfiguration.Builder> signerOverride = b -> b.signer(signer).build();
-        AwsRequestOverrideConfiguration overrideConfiguration = request.overrideConfiguration()
-                                                                       .map(c -> c.toBuilder().applyMutation(signerOverride).build())
-                                                                       .orElse((AwsRequestOverrideConfiguration.builder().applyMutation(signerOverride).build()));
-        return (T) request.toBuilder().overrideConfiguration(overrideConfiguration).build();
-    }
-
-    @Override
-    public QueryWaiter waiter() {
-        return QueryWaiter.builder().client(this).build();
     }
 }

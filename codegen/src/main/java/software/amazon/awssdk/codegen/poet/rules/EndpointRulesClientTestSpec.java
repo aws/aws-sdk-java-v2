@@ -134,6 +134,18 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
     private String findDefaultRequest() {
         Map<String, OperationModel> operations = this.model.getOperations();
 
+        // If this is an endpoint discovery service, then use the endpoint
+        // operation since it goes to the service endpoint
+        Optional<String> endpointOperation = operations.entrySet()
+                                                       .stream()
+                                                       .filter(e -> e.getValue().isEndpointOperation())
+                                                       .map(Map.Entry::getKey)
+                                                       .findFirst();
+
+        if (endpointOperation.isPresent()) {
+            return endpointOperation.get();
+        }
+
         // Ideally look for something that we don't need to set any parameters
         // on. That means either a request with no members or one that does not
         // have any members bound to the URI path

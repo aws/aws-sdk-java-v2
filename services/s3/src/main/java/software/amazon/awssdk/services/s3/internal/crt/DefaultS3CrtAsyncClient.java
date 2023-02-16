@@ -38,10 +38,10 @@ import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.DelegatingS3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder;
-import software.amazon.awssdk.services.s3.internal.DelegatingS3AsyncClient;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -57,7 +57,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
 
     private DefaultS3CrtAsyncClient(DefaultS3CrtClientBuilder builder) {
         super(initializeS3AsyncClient(builder));
-        this.copyObjectHelper = new CopyObjectHelper(delegate, s3NativeClientConfiguration);
+        this.copyObjectHelper = new CopyObjectHelper((S3AsyncClient) delegate(), s3NativeClientConfiguration);
     }
 
     @Override
@@ -106,11 +106,6 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                                        .build();
         return S3CrtAsyncHttpClient.builder()
                                    .s3ClientConfiguration(s3NativeClientConfiguration);
-    }
-
-    @Override
-    public String serviceName() {
-        return SERVICE_NAME;
     }
 
     public static final class DefaultS3CrtClientBuilder implements S3CrtAsyncClientBuilder {

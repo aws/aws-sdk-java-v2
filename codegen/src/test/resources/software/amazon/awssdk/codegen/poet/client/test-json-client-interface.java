@@ -60,22 +60,6 @@ public interface JsonClient extends SdkClient {
     String SERVICE_METADATA_ID = "json-service-endpoint";
 
     /**
-     * Create a {@link JsonClient} with the region loaded from the
-     * {@link software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain} and credentials loaded from the
-     * {@link software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider}.
-     */
-    static JsonClient create() {
-        return builder().build();
-    }
-
-    /**
-     * Create a builder that can be used to configure and create a {@link JsonClient}.
-     */
-    static JsonClientBuilder builder() {
-        return new DefaultJsonClientBuilder();
-    }
-
-    /**
      * <p>
      * Performs a post operation to the query service and has no output
      * </p>
@@ -1672,14 +1656,30 @@ public interface JsonClient extends SdkClient {
                                                                               .applyMutation(streamingOutputOperationRequest).build());
     }
 
-    static ServiceMetadata serviceMetadata() {
-        return ServiceMetadata.of(SERVICE_METADATA_ID);
-    }
-
     /**
      * Creates an instance of {@link JsonUtilities} object with the configuration set on this client.
      */
     default JsonUtilities utilities() {
         throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Create a {@link JsonClient} with the region loaded from the
+     * {@link software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain} and credentials loaded from the
+     * {@link software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider}.
+     */
+    static JsonClient create() {
+        return builder().build();
+    }
+
+    /**
+     * Create a builder that can be used to configure and create a {@link JsonClient}.
+     */
+    static JsonClientBuilder builder() {
+        return new DefaultJsonClientBuilder();
+    }
+
+    static ServiceMetadata serviceMetadata() {
+        return ServiceMetadata.of(SERVICE_METADATA_ID);
     }
 }

@@ -68,19 +68,10 @@ public interface JsonAsyncClient extends SdkClient {
     String SERVICE_METADATA_ID = "json-service-endpoint";
 
     /**
-     * Create a {@link JsonAsyncClient} with the region loaded from the
-     * {@link software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain} and credentials loaded from the
-     * {@link software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider}.
+     * Creates an instance of {@link JsonUtilities} object with the configuration set on this client.
      */
-    static JsonAsyncClient create() {
-        return builder().build();
-    }
-
-    /**
-     * Create a builder that can be used to configure and create a {@link JsonAsyncClient}.
-     */
-    static JsonAsyncClientBuilder builder() {
-        return new DefaultJsonAsyncClientBuilder();
+    default JsonUtilities utilities() {
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -1752,10 +1743,19 @@ public interface JsonAsyncClient extends SdkClient {
     }
 
     /**
-     * Creates an instance of {@link JsonUtilities} object with the configuration set on this client.
+     * Create a {@link JsonAsyncClient} with the region loaded from the
+     * {@link software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain} and credentials loaded from the
+     * {@link software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider}.
      */
-    default JsonUtilities utilities() {
-        throw new UnsupportedOperationException();
+    static JsonAsyncClient create() {
+        return builder().build();
+    }
+
+    /**
+     * Create a builder that can be used to configure and create a {@link JsonAsyncClient}.
+     */
+    static JsonAsyncClientBuilder builder() {
+        return new DefaultJsonAsyncClientBuilder();
     }
 
     /**
