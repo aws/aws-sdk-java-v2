@@ -1,0 +1,6 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "contributor": "sugmanue", 
+    "type": "feature", 
+    "description": "As part of the Smithy Reference Architecture this change adds a new module for retries"
+}

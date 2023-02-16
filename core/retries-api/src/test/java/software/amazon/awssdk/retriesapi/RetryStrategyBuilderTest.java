@@ -1,0 +1,179 @@
+/*
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License").
+ * You may not use this file except in compliance with the License.
+ * A copy of the License is located at
+ *
+ *  http://aws.amazon.com/apache2.0
+ *
+ * or in the "license" file accompanying this file. This file is distributed
+ * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
+ */
+
+package software.amazon.awssdk.retriesapi;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+
+@RunWith(Parameterized.class)
+public class RetryStrategyBuilderTest {
+
+    @Parameterized.Parameters
+    public static Collection<TestCase> parameters() {
+        return Arrays.asList(
+            new TestCase()
+                .configure(b -> b.retryOnException(IllegalArgumentException.class))
+                .givenThrowable(new IllegalArgumentException())
+                .expectShouldRetry()
+            , new TestCase()
+                .configure(b -> b.retryOnException(IllegalArgumentException.class))
+                .givenThrowable(new RuntimeException())
+                .expectShouldNotRetry()
+            , new TestCase()
+                .configure(b -> b.retryOnException(IllegalArgumentException.class))
+                .givenThrowable(new NumberFormatException())
+                .expectShouldNotRetry()
+            , new TestCase()
+                .configure(b -> b.retryOnExceptionOrCause(IllegalArgumentException.class))
+                .givenThrowable(new IllegalArgumentException())
+                .expectShouldRetry()
+            , new TestCase()
+                .configure(b -> b.retryOnExceptionOrCause(IllegalArgumentException.class))
+                .givenThrowable(new NumberFormatException())
+                .expectShouldNotRetry()
+            , new TestCase()
+                .configure(b -> b.retryOnExceptionOrCause(IllegalArgumentException.class))
+                .givenThrowable(new RuntimeException(new IllegalStateException()))
+                .expectShouldNotRetry()
+            , new TestCase()
+                .configure(b -> b.retryOnExceptionOrCause(IllegalArgumentException.class))
+                .givenThrowable(new RuntimeException(new IllegalArgumentException()))
+                .expectShouldRetry()
+            , new TestCase()
+                .configure(b -> b.retryOnExceptionOrCause(IllegalArgumentException.class))
+                .givenThrowable(new RuntimeException(new RuntimeException(new IllegalArgumentException())))
+                .expectShouldRetry()
+            , new TestCase()
+                .configure(b -> b.retryOnExceptionOrCause(IllegalArgumentException.class))
+                .givenThrowable(new RuntimeException(new RuntimeException(new NumberFormatException())))
+                .expectShouldNotRetry()
+            , new TestCase()
+                .configure(b -> b.retryOnExceptionInstanceOf(IllegalArgumentException.class))
+                .givenThrowable(new IllegalArgumentException())
+                .expectShouldRetry()
+            , new TestCase()
+                .configure(b -> b.retryOnExceptionInstanceOf(IllegalArgumentException.class))
+                .givenThrowable(new RuntimeException())
+                .expectShouldNotRetry()
+            , new TestCase()
+                .configure(b -> b.retryOnExceptionInstanceOf(IllegalArgumentException.class))
+                .givenThrowable(new RuntimeException(new IllegalArgumentException()))
+                .expectShouldNotRetry()
+            , new TestCase()
+                .configure(b -> b.retryOnExceptionInstanceOf(IllegalArgumentException.class))
+                .givenThrowable(new NumberFormatException())
+                .expectShouldRetry()
+            , new TestCase()
+                .configure(b -> b.retryOnExceptionOrCauseInstanceOf(IllegalArgumentException.class))
+                .givenThrowable(new IllegalArgumentException())
+                .expectShouldRetry()
+            , new TestCase()
+                .configure(b -> b.retryOnExceptionOrCauseInstanceOf(IllegalArgumentException.class))
+                .givenThrowable(new RuntimeException())
+                .expectShouldNotRetry()
+            , new TestCase()
+                .configure(b -> b.retryOnExceptionOrCauseInstanceOf(IllegalArgumentException.class))
+                .givenThrowable(new RuntimeException(new IllegalArgumentException()))
+                .expectShouldRetry()
+            , new TestCase()
+                .configure(b -> b.retryOnExceptionOrCauseInstanceOf(IllegalArgumentException.class))
+                .givenThrowable(new NumberFormatException())
+                .expectShouldRetry()
+            , new TestCase()
+                .configure(b -> b.retryOnExceptionOrCauseInstanceOf(IllegalArgumentException.class))
+                .givenThrowable(new RuntimeException(new RuntimeException(new NumberFormatException())))
+                .expectShouldRetry()
+        );
+    }
+
+    @Parameterized.Parameter
+    public TestCase testCase;
+
+    @Test
+    public void testCase() {
+        assertThat(testCase.run()).isEqualTo(testCase.expected());
+    }
+
+    static class TestCase {
+        private final BuilderToTestDefaults builder = new BuilderToTestDefaults();
+        private Throwable testThrowable;
+        private boolean expectedTestResult;
+
+        TestCase configure(Function<RetryStrategy.Builder, RetryStrategy.Builder> configure) {
+            configure.apply(builder);
+            return this;
+        }
+
+        TestCase givenThrowable(Throwable testThrowable) {
+            this.testThrowable = testThrowable;
+            return this;
+        }
+
+        TestCase expectShouldRetry() {
+            this.expectedTestResult = true;
+            return this;
+        }
+
+        TestCase expectShouldNotRetry() {
+            this.expectedTestResult = false;
+            return this;
+        }
+
+        boolean run() {
+            return builder.shouldRetryCapture().test(testThrowable);
+        }
+
+        boolean expected() {
+            return expectedTestResult;
+        }
+    }
+
+    static class BuilderToTestDefaults implements RetryStrategy.Builder {
+        Predicate<Throwable> shouldRetryCapture = null;
+
+        Predicate<Throwable> shouldRetryCapture() {
+            return shouldRetryCapture;
+        }
+
+        @Override
+        public RetryStrategy.Builder retryOnException(Predicate<Throwable> shouldRetry) {
+            shouldRetryCapture = shouldRetry;
+            return this;
+        }
+
+        @Override
+        public RetryStrategy.Builder maxAttempts(int maxAttempts) {
+            return this;
+        }
+
+        @Override
+        public RetryStrategy.Builder treatAsThrottling(Predicate<Throwable> treatAsThrottling) {
+            return this;
+        }
+
+        @Override
+        public RetryStrategy build() {
+            return null;
+        }
+    }
+}
