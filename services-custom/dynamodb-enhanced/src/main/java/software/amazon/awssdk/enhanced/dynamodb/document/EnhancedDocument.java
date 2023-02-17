@@ -461,7 +461,7 @@ public interface EnhancedDocument {
          * @param value         The list of values that needs to be set.
          * @return Builder instance to construct a {@link EnhancedDocument}
          */
-        Builder addList(String attributeName, List<?> value);
+        Builder addList(String attributeName, List<? extends Object> value);
 
         /**
          * Appends an attribute of name attributeName with specified map values to the document builder.
@@ -470,7 +470,7 @@ public interface EnhancedDocument {
          * @param value         The map that needs to be set.
          * @return Builder instance to construct a {@link EnhancedDocument}
          */
-        Builder addMap(String attributeName, Map<String, ?> value);
+        Builder addMap(String attributeName, Map<String, ? extends Object> value);
 
         /**
          * Appends an attribute of name attributeName with specified value of the given JSON document in the form of a string.

@@ -57,7 +57,7 @@ import software.amazon.awssdk.utils.Validate;
  */
 @Immutable
 @SdkInternalApi
-public class DefaultEnhancedDocument implements EnhancedDocument {
+public class Default2EnhancedDocument implements EnhancedDocument {
 
     private static final JsonItemAttributeConverter JSON_ITEM_ATTRIBUTE_CONVERTER = JsonItemAttributeConverter.create();
 
@@ -65,19 +65,14 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
 
     private final ChainConverterProvider attributeConverterProviders;
 
-    private DefaultEnhancedDocument(Map<String, AttributeValue> attributeValueMap) {
+    private Default2EnhancedDocument(Map<String, AttributeValue> attributeValueMap) {
         this.attributeValueMap = attributeValueMap;
         this.attributeConverterProviders = ChainConverterProvider.create(DefaultAttributeConverterProvider.create());
     }
 
-    public DefaultEnhancedDocument(DefaultBuilder builder) {
-        List<AttributeConverterProvider> providers = builder.attributeConverterProviders;
-        attributeConverterProviders =
-            ChainConverterProvider.create(providers != null && !providers.isEmpty()
-                                          ? providers
-                                          : Collections.singletonList(AttributeConverterProvider.defaultProvider()));
-        attributeValueMap = Collections.unmodifiableMap(objectMapToAttributeMap(builder.attributeValueMap,
-                                                                                attributeConverterProviders));
+    public Default2EnhancedDocument(DefaultBuilder builder) {
+        attributeConverterProviders = ChainConverterProvider.create(builder.attributeConverterProviders);
+        attributeValueMap = Collections.unmodifiableMap(objectMapToAttributeMap(builder.attributeValueMap, attributeConverterProviders));
     }
 
     public static DefaultBuilder builder() {
@@ -260,7 +255,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
                                        + " attribute as map since its of type "
                                        + attributeValue.type());
         }
-        return new DefaultEnhancedDocument(attributeValue.m());
+        return new Default2EnhancedDocument(attributeValue.m());
     }
 
     @Override
@@ -337,24 +332,39 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
         return document.toString();
     }
 
+
+
+
     @Override
     public String toJsonPretty() {
         return null;
     }
 
-    public static class DefaultBuilder implements EnhancedDocument.Builder {
+    public static class DefaultBuilder implements Builder {
 
         Map<String, Object> attributeValueMap = new LinkedHashMap<>();
 
+
+
+
         List<AttributeConverterProvider> attributeConverterProviders = new ArrayList<>();
 
-        private DefaultBuilder() {
+        public DefaultBuilder() {
         }
+
 
         @Override
         public Builder add(String attributeName, Object value) {
-            attributeValueMap.put(attributeName, value);
+            ChainConverterProvider attributeConverterProvider = providerFromBuildAndAppendDefault();
+            attributeValueMap.put(attributeName, convert(value, attributeConverterProvider));
             return this;
+        }
+
+        private ChainConverterProvider providerFromBuildAndAppendDefault() {
+            List<AttributeConverterProvider> converterProviders = new ArrayList<>(attributeConverterProviders);
+            converterProviders.add(DefaultAttributeConverterProvider.create());
+            ChainConverterProvider attributeConverterProvider = ChainConverterProvider.create(converterProviders);
+            return attributeConverterProvider;
         }
 
         @Override
@@ -430,7 +440,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
         }
 
         @Override
-        public Builder addList(String attributeName, List<?> value) {
+        public Builder addList(String attributeName, List<? extends Object> value) {
             Validate.isTrue(!StringUtils.isEmpty(attributeName), "attributeName cannot empty or null");
             if (!isNullValueAdded(attributeName, value)) {
                 attributeValueMap.put(attributeName, value);
@@ -439,7 +449,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
         }
 
         @Override
-        public Builder addMap(String attributeName, Map<String, ?> value) {
+        public Builder addMap(String attributeName, Map<String, ? extends Object> value) {
             Validate.isTrue(!StringUtils.isEmpty(attributeName), "attributeName cannot empty or null");
             if (!isNullValueAdded(attributeName, value)) {
                 attributeValueMap.put(attributeName, value);
@@ -494,21 +504,12 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
 
         @Override
         public Builder json(String json) {
-            JsonNodeParser build = JsonNodeParser.builder().build();
-            JsonNode jsonNode = build.parse(json);
-            if (jsonNode == null) {
-                throw new IllegalArgumentException("Could not parse argument json " + json);
-            }
-            AttributeValue attributeValue = JSON_ITEM_ATTRIBUTE_CONVERTER.transformFrom(jsonNode);
-            if (attributeValue != null && attributeValue.hasM()) {
-                attributeValueMap = new LinkedHashMap<>(attributeValue.m());
-            }
-            return this;
+            throw new UnsupportedOperationException("Not supported");
         }
 
         @Override
         public EnhancedDocument build() {
-            return new DefaultEnhancedDocument(this);
+            return new Default2EnhancedDocument(this);
         }
 
         public DefaultBuilder attributeValueMap(Map<String, AttributeValue> attributeValueMap) {
@@ -533,7 +534,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        DefaultEnhancedDocument that = (DefaultEnhancedDocument) o;
+        Default2EnhancedDocument that = (Default2EnhancedDocument) o;
 
         return Objects.equals(attributeValueMap, that.attributeValueMap) && Objects.equals(attributeConverterProviders,
                                                                                            that.attributeConverterProviders);
@@ -545,17 +546,16 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
         result = 31 * result + (attributeConverterProviders != null ? attributeConverterProviders.hashCode() : 0);
         return result;
     }
-
     private static Map<String, AttributeValue> objectMapToAttributeMap(Map<String, Object> objectMap,
-                                                                       AttributeConverterProvider attributeConverterProvider) {
-        if (objectMap == null) {
+                                                         AttributeConverterProvider attributeConverterProvider){
+        if(objectMap == null){
             return null;
         }
         Map<String, AttributeValue> result = new LinkedHashMap<>(objectMap.size());
         objectMap.forEach((key, value) -> {
-            if (value instanceof AttributeValue) {
+            if(value instanceof  AttributeValue){
                 result.put(key, (AttributeValue) value);
-            } else {
+            }else {
                 result.put(key, convert(value, attributeConverterProvider));
             }
         });

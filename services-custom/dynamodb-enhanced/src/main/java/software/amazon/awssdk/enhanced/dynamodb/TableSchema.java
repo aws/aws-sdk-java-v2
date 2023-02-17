@@ -20,7 +20,9 @@ import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocument;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.BeanTableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.DocumentTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.ImmutableTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticImmutableTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
@@ -82,6 +84,17 @@ public interface TableSchema<T> {
      */
     static <T> BeanTableSchema<T> fromBean(Class<T> beanClass) {
         return BeanTableSchema.create(beanClass);
+    }
+
+
+    /**
+     * Provides interfaces to interact with DynamoDB tables as {@link EnhancedDocument} where the complete Schema of the table
+     * is not required.
+     * @return A {@link DocumentTableSchema.Builder} for instantiating DocumentTableSchema.
+     *
+     */
+    static DocumentTableSchema.Builder fromDocumentSchemaBuilder(){
+        return DocumentTableSchema.builder();
     }
 
     /**
