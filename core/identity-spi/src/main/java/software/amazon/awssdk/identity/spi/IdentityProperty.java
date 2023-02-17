@@ -16,6 +16,7 @@
 package software.amazon.awssdk.identity.spi;
 
 import java.util.Objects;
+import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
@@ -24,6 +25,7 @@ import software.amazon.awssdk.utils.Validate;
  * A strongly-typed property for input to an {@link IdentityProvider}.
  * @param <T> The type of the attribute.
  */
+@Immutable
 @SdkProtectedApi
 public final class IdentityProperty<T> {
     private final Class<T> clazz;

@@ -18,6 +18,7 @@ package software.amazon.awssdk.identity.spi;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
@@ -30,6 +31,7 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
  *
  * @see IdentityProvider
  */
+@Immutable
 @SdkProtectedApi
 public final class ResolveIdentityRequest {
 
