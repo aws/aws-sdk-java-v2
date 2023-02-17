@@ -49,7 +49,7 @@ Parameter Name | Default Value | Description
 `artifactId`(required) | n/a | Specifies the artifact ID of the project
 `nativeImage`(required)  | n/a | Specifies whether GraalVM Native Image configuration should be included
 `httpClient`(required) | n/a | Specifies the http client to be used by the SDK client. Available options are `url-connection-client` (sync), `apache-client` (sync), `netty-nio-client` (async). See [http clients][sdk-http-clients]
-`ssoIdc` (required) | n/a | Specify if the sso and ssoidc dependency should be include in the project. Include them to enabled the use of [IAM Identity center](https://aws.amazon.com/iam/identity-center/) for credentials.
+`ssooidc` (required) | n/a | Specify if the sso and ssoidc dependency should be included in the project. Include them to enable the use of [IAM Identity center](https://aws.amazon.com/iam/identity-center/) for credentials.
 `javaSdkVersion` | Same version as the archetype version | Specifies the version of the AWS Java SDK 2.x to be used
 `version` | 1.0-SNAPSHOT | Specifies the version of the project
 `package` | ${groupId} | Specifies the package name for the classes

@@ -42,7 +42,7 @@
     <requiredProperty key="nativeImage">
       <validationRegex>(true|false)</validationRegex>
     </requiredProperty>
-    <requiredProperty key="ssoIdc">
+    <requiredProperty key="ssooidc">
       <validationRegex>(true|false)</validationRegex>
     </requiredProperty>
   </requiredProperties>

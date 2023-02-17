@@ -50,7 +50,7 @@
             </exclusions>
         </dependency>
 
-#if( $ssoIdc == 'true')
+#if( $ssooidc == 'true')
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>sso</artifactId>
