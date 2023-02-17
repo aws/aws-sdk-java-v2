@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Glue",
+    "contributor": "",
+    "description": "Release of Delta Lake Data Lake Format for Glue Studio Service"
+}
