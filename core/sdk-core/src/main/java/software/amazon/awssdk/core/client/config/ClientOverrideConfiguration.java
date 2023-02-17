@@ -26,6 +26,7 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ToBuilderIgnoreField;
+import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -372,6 +373,9 @@ public final class ClientOverrideConfiguration
          * <p>This may be used together with {@link #apiCallAttemptTimeout()} to enforce both a timeout on each individual HTTP
          * request (i.e. each retry) and the total time spent on all requests across retries (i.e. the 'api call' time).
          *
+         * <p>
+         * You can also configure it on a per-request basis via {@link RequestOverrideConfiguration.Builder#apiCallTimeout(Duration)}.
+         * Note that request-level timeout takes precedence.
          *
          * @see ClientOverrideConfiguration#apiCallTimeout()
          */
@@ -393,6 +397,11 @@ public final class ClientOverrideConfiguration
          *
          * <p>This may be used together with {@link #apiCallTimeout()} to enforce both a timeout on each individual HTTP
          * request (i.e. each retry) and the total time spent on all requests across retries (i.e. the 'api call' time).
+         *
+         * <p>
+         * You can also configure it on a per-request basis via
+         * {@link RequestOverrideConfiguration.Builder#apiCallAttemptTimeout(Duration)}.
+         * Note that request-level timeout takes precedence.
          *
          * @see ClientOverrideConfiguration#apiCallAttemptTimeout()
          */

@@ -102,9 +102,6 @@ public abstract class RequestOverrideConfiguration {
      * <p>This may be used together with {@link #apiCallAttemptTimeout()} to enforce both a timeout on each individual HTTP
      * request (i.e. each retry) and the total time spent on all requests across retries (i.e. the 'api call' time).
      *
-     * <p>
-     * This will override the {@link ClientOverrideConfiguration#apiCallTimeout()} if it is configured.
-     *
      * @see Builder#apiCallTimeout(Duration)
      */
     public Optional<Duration> apiCallTimeout() {
@@ -123,9 +120,6 @@ public abstract class RequestOverrideConfiguration {
      * <p>This may be used together with {@link #apiCallTimeout()} to enforce both a timeout on each individual HTTP
      * request
      * (i.e. each retry) and the total time spent on all requests across retries (i.e. the 'api call' time).
-     *
-     * <p>
-     * This will override the {@link ClientOverrideConfiguration#apiCallAttemptTimeout()} if it is configured.
      *
      * @see Builder#apiCallAttemptTimeout(Duration)
      */
@@ -340,6 +334,10 @@ public abstract class RequestOverrideConfiguration {
          * <p>This may be used together with {@link #apiCallAttemptTimeout()} to enforce both a timeout on each individual HTTP
          * request (i.e. each retry) and the total time spent on all requests across retries (i.e. the 'api call' time).
          *
+         * <p>
+         * Note that this timeout takes precedence over the value configured at client level via
+         * {@link ClientOverrideConfiguration.Builder#apiCallTimeout(Duration)}.
+         *
          * @see RequestOverrideConfiguration#apiCallTimeout()
          */
         B apiCallTimeout(Duration apiCallTimeout);
@@ -357,6 +355,10 @@ public abstract class RequestOverrideConfiguration {
          *
          * <p>This may be used together with {@link #apiCallTimeout()} to enforce both a timeout on each individual HTTP
          * request (i.e. each retry) and the total time spent on all requests across retries (i.e. the 'api call' time).
+         *
+         * <p>
+         * Note that this timeout takes precedence over the value configured at client level via
+         * {@link ClientOverrideConfiguration.Builder#apiCallAttemptTimeout(Duration)}.
          *
          * @see RequestOverrideConfiguration#apiCallAttemptTimeout()
          */
