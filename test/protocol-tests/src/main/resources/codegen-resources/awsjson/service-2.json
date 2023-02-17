@@ -169,6 +169,10 @@
       "type":"timestamp",
       "timestampFormat":"iso8601"
     },
+    "UnixTimestamp":{
+      "type":"timestamp",
+      "timestampFormat":"unixTimestamp"
+    },
     "ListOfAllTypesStructs":{
       "type":"list",
       "member":{"shape":"AllTypesStructure"}
@@ -300,12 +304,12 @@
     "Timestamp":{"type":"timestamp"},
     "ListOfTimeStamp":{
       "type":"list",
-      "member":{"shape":"Timestamp"}
+      "member":{"shape":"UnixTimestamp"}
     },
     "MapOfTimeStamp":{
       "type":"map",
       "key":{"shape":"String"},
-      "value":{"shape":"Timestamp"}
+      "value":{"shape":"UnixTimestamp"}
     },
     "MyDocument": {
       "type": "structure",
