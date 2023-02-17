@@ -25,6 +25,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.HttpMetric;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
@@ -63,6 +64,12 @@ public final class MetricUtils {
         T result = c.call();
         Duration d = Duration.ofNanos(System.nanoTime() - start);
         return Pair.of(result, d);
+    }
+
+    public static void collectHttpRequestMetrics(MetricCollector metricCollector, SdkHttpFullRequest httpRequest) {
+        if (metricCollector != null && !(metricCollector instanceof NoOpMetricCollector) && httpRequest != null) {
+            metricCollector.reportMetric(CoreMetric.SERVICE_ENDPOINT, httpRequest.getUri());
+        }
     }
 
     public static void collectHttpMetrics(MetricCollector metricCollector, SdkHttpFullResponse httpResponse) {
