@@ -42,5 +42,8 @@
     <requiredProperty key="nativeImage">
       <validationRegex>(true|false)</validationRegex>
     </requiredProperty>
+    <requiredProperty key="ssoIdc">
+      <validationRegex>(true|false)</validationRegex>
+    </requiredProperty>
   </requiredProperties>
 </archetype-descriptor>

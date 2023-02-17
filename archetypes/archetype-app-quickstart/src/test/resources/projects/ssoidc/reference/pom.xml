@@ -1,11 +1,10 @@
-#parse ( "global.vm")
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>${groupId}</groupId>
-    <artifactId>${artifactId}</artifactId>
-    <version>${version}</version>
+    <groupId>software.amazonaws.test</groupId>
+    <artifactId>test-apache-artifact</artifactId>
+    <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -14,11 +13,9 @@
         <maven.shade.plugin.version>3.2.1</maven.shade.plugin.version>
         <maven.compiler.plugin.version>3.6.1</maven.compiler.plugin.version>
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
-        <aws.java.sdk.version>${javaSdkVersion}</aws.java.sdk.version>
+        <aws.java.sdk.version>2.11.0</aws.java.sdk.version>
         <slf4j.version>1.7.28</slf4j.version>
-#if( $nativeImage == 'true')
         <graalvm.native.maven.plugin.version>0.9.6</graalvm.native.maven.plugin.version>
-#end
         <junit5.version>5.8.1</junit5.version>
     </properties>
 
@@ -37,7 +34,7 @@
     <dependencies>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
-            <artifactId>${moduleName}</artifactId>
+            <artifactId>s3</artifactId>
             <exclusions>
                 <exclusion>
                     <groupId>software.amazon.awssdk</groupId>
@@ -50,7 +47,6 @@
             </exclusions>
         </dependency>
 
-#if( $ssoIdc == 'true')
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>sso</artifactId>
@@ -61,18 +57,15 @@
             <artifactId>ssooidc</artifactId>
         </dependency>
 
-#end
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
-            <artifactId>${httpClient}</artifactId>
-#if( $httpClient == 'apache-client')
+            <artifactId>apache-client</artifactId>
             <exclusions>
                 <exclusion>
                     <groupId>commons-logging</groupId>
                     <artifactId>commons-logging</artifactId>
                 </exclusion>
             </exclusions>
-#end
         </dependency>
 
         <dependency>
@@ -87,7 +80,6 @@
             <version>${slf4j.version}</version>
         </dependency>
 
-#if( $httpClient == 'apache-client')
         <!-- Needed to adapt Apache Commons Logging used by Apache HTTP Client to Slf4j to avoid
         ClassNotFoundException: org.apache.commons.logging.impl.LogFactoryImpl during runtime -->
         <dependency>
@@ -95,7 +87,6 @@
             <artifactId>jcl-over-slf4j</artifactId>
             <version>${slf4j.version}</version>
         </dependency>
-#end
 
         <!-- Test Dependencies -->
         <dependency>
@@ -116,7 +107,6 @@
         </plugins>
     </build>
 
-#if( $nativeImage == 'true')
     <profiles>
         <profile>
             <id>native-image</id>
@@ -136,8 +126,8 @@
                                 </execution>
                             </executions>
                             <configuration>
-                                <imageName>${artifactId}</imageName>
-                                <mainClass>${package}.App</mainClass>
+                                <imageName>test-apache-artifact</imageName>
+                                <mainClass>software.amazonaws.test.App</mainClass>
                                 <buildArgs combine.children="append">
                                     <buildArgs>
                                         --verbose
@@ -151,5 +141,4 @@
             </build>
         </profile>
     </profiles>
-    #end
-</project>
+    </project>
