@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.metrics;
 
+import java.net.URI;
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.retry.RetryPolicy;
@@ -49,6 +50,12 @@ public final class CoreMetric {
      */
     public static final SdkMetric<Integer> RETRY_COUNT =
         metric("RetryCount", Integer.class, MetricLevel.ERROR);
+
+    /**
+     * The endpoint for the service.
+     */
+    public static final SdkMetric<URI> SERVICE_ENDPOINT =
+        metric("ServiceEndpoint", URI.class, MetricLevel.ERROR);
 
     /**
      * The duration of the API call. This includes all call attempts made.

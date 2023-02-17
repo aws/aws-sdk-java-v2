@@ -201,6 +201,8 @@ public abstract class BaseAsyncCoreMetricsTest {
             .isGreaterThanOrEqualTo(Duration.ZERO);
         assertThat(capturedCollection.metricValues(CoreMetric.API_CALL_DURATION).get(0))
             .isGreaterThan(FIXED_DELAY);
+        assertThat(capturedCollection.metricValues(CoreMetric.SERVICE_ENDPOINT).get(0))
+            .isEqualTo(URI.create("http://localhost"));
     }
 
     void stubSuccessfulResponse() {

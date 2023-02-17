@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import static software.amazon.awssdk.core.internal.util.MetricUtils.collectHttpMetrics;
+import static software.amazon.awssdk.core.internal.util.MetricUtils.collectHttpRequestMetrics;
 import static software.amazon.awssdk.core.internal.util.MetricUtils.createAttemptMetricsCollector;
 
 import java.time.Duration;
@@ -51,6 +52,8 @@ public final class AsyncApiCallAttemptMetricCollectionStage<OutputT> implements 
         MetricCollector apiCallAttemptMetrics = createAttemptMetricsCollector(context);
         context.attemptMetricCollector(apiCallAttemptMetrics);
         reportBackoffDelay(context);
+
+        collectHttpRequestMetrics(apiCallAttemptMetrics, input);
 
         CompletableFuture<Response<OutputT>> executeFuture = wrapped.execute(input, context);
         CompletableFuture<Response<OutputT>> metricsCollectedFuture = executeFuture.whenComplete((r, t) -> {
