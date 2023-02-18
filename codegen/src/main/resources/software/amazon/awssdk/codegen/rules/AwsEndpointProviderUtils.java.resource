@@ -119,6 +119,10 @@ public final class AwsEndpointProviderUtils {
             return builder.build();
         } else if (value instanceof Value.Str) {
             String errorMsg = value.expectString();
+            if (errorMsg.contains("Invalid ARN") && errorMsg.contains(":s3:::")) {
+                            errorMsg = "Simple bucket ARNs are not supported in GetBucketLocationRequest. Pass in the name of the bucket "
+                                       + "instead";
+                        }
             throw SdkClientException.create(errorMsg);
         } else {
             throw SdkClientException.create("Rule engine return neither an endpoint result or error value. Returned value was:"
