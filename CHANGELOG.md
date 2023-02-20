@@ -1,3 +1,25 @@
+# __2.20.8__ __2023-02-20__
+## __AWS Audit Manager__
+  - ### Features
+    - This release introduces a ServiceQuotaExceededException to the UpdateAssessmentFrameworkShare API operation.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Reasons for failed diff has been approved by SDK Reviewer
+
+# __2.20.7__ __2023-02-17__
+## __AWS App Runner__
+  - ### Features
+    - This release supports removing MaxSize limit for AutoScalingConfiguration.
+
+## __AWS Glue__
+  - ### Features
+    - Release of Delta Lake Data Lake Format for Glue Studio Service
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
 # __2.20.6__ __2023-02-16__
 ## __AWS SDK for Java v2__
   - ### Features
