@@ -374,7 +374,8 @@ public final class ClientOverrideConfiguration
          * request (i.e. each retry) and the total time spent on all requests across retries (i.e. the 'api call' time).
          *
          * <p>
-         * You can also configure it on a per-request basis via {@link RequestOverrideConfiguration.Builder#apiCallTimeout(Duration)}.
+         * You can also configure it on a per-request basis via
+         * {@link RequestOverrideConfiguration.Builder#apiCallTimeout(Duration)}.
          * Note that request-level timeout takes precedence.
          *
          * @see ClientOverrideConfiguration#apiCallTimeout()
