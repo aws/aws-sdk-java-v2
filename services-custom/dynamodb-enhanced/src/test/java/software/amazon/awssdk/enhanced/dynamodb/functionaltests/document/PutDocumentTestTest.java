@@ -38,7 +38,6 @@ import software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocument;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.LocalDynamoDbSyncTestBase;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.document.converter.CustomAttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.document.converter.CustomClass;
-import software.amazon.awssdk.enhanced.dynamodb.internal.document.Default2EnhancedDocument;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.DynamoDbException;
 
@@ -122,56 +121,6 @@ public class PutDocumentTestTest extends LocalDynamoDbSyncTestBase {
 
     }
 
-    @Test
-    void putListValues() {
-
-        EnhancedDocument.Builder builder = Default2EnhancedDocument.builder()
-                                                                   .addString(HASH_KEY, "first_hash")
-                                                                   .addString(SORT_KEY, "1_sort")
-
-                                                                   // Combination of different Types
-                                                                   .addList("numberList",
-                                                                    Stream.of(BigDecimal.valueOf(1), "word").collect(Collectors.toList()))
-
-
-                                                                   .addList("customClass",
-                                                                    Arrays.asList(CustomClass.builder().foo("value").build(),
-                                                                                  CustomClass.builder().foo("value_2").build()))
-                                                                   .attributeConverterProviders(
-                                                               CustomAttributeConverterProvider.create(),
-                                                               AttributeConverterProvider.defaultProvider())
-                                       ;
-
-                                                      ;
-
-        String s = builder.build().toJson();
-        System.out.println(s);
-
-        table.putItem(EnhancedDocument.builder()
-                                      .addString(HASH_KEY, "first_hash")
-                                      .addString(SORT_KEY, "1_sort")
-                                      // Combination of different Types
-                                      .addList("numberList",
-                                               Stream.of(BigDecimal.valueOf(1), "word").collect(Collectors.toList()))
-
-                                      .addList("customClass", Collections.singletonList(CustomClass.builder().foo("value").build()))
-
-                          .attributeConverterProviders(AttributeConverterProvider.defaultProvider(),
-                                                       CustomAttributeConverterProvider.create())
-
-                                      .build());
-
-
-        System.out.println(EnhancedDocument.builder()
-                                           .addString(HASH_KEY, "first_hash")
-                                           .addString(SORT_KEY, "1_sort")
-                                           .addList("numberList",
-                                                    Stream.of(BigDecimal.valueOf(1), "word").collect(Collectors.toList()))
-
-                                           .build().toJson());
-
-
-    }
 
 
     @Test
