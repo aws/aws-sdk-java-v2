@@ -50,7 +50,7 @@
                             <goal>exec</goal>
                         </goals>
                         <configuration>
-                            <executable>python</executable>
+                            <executable>python3</executable>
                             <commandlineArgs>${basedir}/src/main/resources/map-service-to-client-prefix</commandlineArgs>
                         </configuration>
                     </execution>

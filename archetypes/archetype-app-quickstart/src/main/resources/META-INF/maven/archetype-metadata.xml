@@ -42,8 +42,8 @@
     <requiredProperty key="nativeImage">
       <validationRegex>(true|false)</validationRegex>
     </requiredProperty>
-    <requiredProperty key="ssooidc">
-      <validationRegex>(true|false)</validationRegex>
+    <requiredProperty key="credentialProvider">
+      <validationRegex>(default|identity-center)</validationRegex>
     </requiredProperty>
   </requiredProperties>
 </archetype-descriptor>

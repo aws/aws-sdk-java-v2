@@ -8,7 +8,7 @@ a dependency of [AWS Java SDK 2.x][aws-java-sdk-v2].
 
 The generated application has the following features:
 
-- Uses [Bill of Materials](BOM) to manage SDK dependencies
+- Uses [Bill of Materials][BOM] to manage SDK dependencies
 - Contains the code to create the SDK client
 - Out-of-box support of GraalVM Native Image when `nativeImage` is enabled
 
@@ -37,26 +37,27 @@ mvn archetype:generate \
     -DhttpClient=apache-client \
     -DartifactId=sample-project \
     -Dservice=s3  \
-    -DinteractiveMode=false
+    -DinteractiveMode=false \
+    -Dssooidc=false
 ```
 
 ### Parameters
       
-Parameter Name | Default Value | Description
----|-----|---
-`service` (required) | n/a | Specifies the service client to be used in the application, eg: s3, dynamodb. Only one service should be provided. You can find available services [here][java-sdk-v2-services]. 
-`groupId`(required) | n/a | Specifies the group ID of the project
-`artifactId`(required) | n/a | Specifies the artifact ID of the project
-`nativeImage`(required)  | n/a | Specifies whether GraalVM Native Image configuration should be included
-`httpClient`(required) | n/a | Specifies the http client to be used by the SDK client. Available options are `url-connection-client` (sync), `apache-client` (sync), `netty-nio-client` (async). See [http clients][sdk-http-clients]
-`ssooidc` (required) | n/a | Specify if the sso and ssoidc dependency should be included in the project. Include them to enable the use of [IAM Identity center](https://aws.amazon.com/iam/identity-center/) for credentials.
-`javaSdkVersion` | Same version as the archetype version | Specifies the version of the AWS Java SDK 2.x to be used
-`version` | 1.0-SNAPSHOT | Specifies the version of the project
-`package` | ${groupId} | Specifies the package name for the classes
-
+| Parameter Name          | Default Value                         | Description                                                                                                                                                                                                                                                                                                         |
+|-------------------------|---------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `service` (required)    | n/a                                   | Specifies the service client to be used in the application, eg: s3, dynamodb. Only one service should be provided. You can find available services [here][java-sdk-v2-services].                                                                                                                                    |
+| `groupId`(required)     | n/a                                   | Specifies the group ID of the project                                                                                                                                                                                                                                                                               |
+| `artifactId`(required)  | n/a                                   | Specifies the artifact ID of the project                                                                                                                                                                                                                                                                            |
+| `nativeImage`(required) | n/a                                   | Specifies whether GraalVM Native Image configuration should be included                                                                                                                                                                                                                                             |
+| `httpClient`(required)  | n/a                                   | Specifies the http client to be used by the SDK client. Available options are `url-connection-client` (sync), `apache-client` (sync), `netty-nio-client` (async). See [http clients][sdk-http-clients]                                                                                                              |
+| `credentialProvider`    | default                               | Specify the credential-provider to be used by the SDK client and imports relevant dependencies. Available options are `default` which uses the default credential provider chain, or `identity-center` whi uses [IAM Identity Center](https://docs.aws.amazon.com/sdkref/latest/guide/feature-sso-credentials.html) |
+| `javaSdkVersion`        | Same version as the archetype version | Specifies the version of the AWS Java SDK 2.x to be used                                                                                                                                                                                                                                                            |
+| `version`               | 1.0-SNAPSHOT                          | Specifies the version of the project                                                                                                                                                                                                                                                                                |
+| `package`               | ${groupId}                            | Specifies the package name for the classes                                                                                                                                                                                                                                                                          |
 
 [aws-java-sdk-v2]: https://github.com/aws/aws-sdk-java-v2
 [java-sdk-v2-services]: https://github.com/aws/aws-sdk-java-v2/tree/master/services
 [sdk-http-clients]: https://github.com/aws/aws-sdk-java-v2/tree/master/http-clients
 [maven-archetype-usage]: https://maven.apache.org/archetype/maven-archetype-plugin/usage.html
 [graalvm]: https://www.graalvm.org/docs/getting-started/#native-images
+[bom]: https://github.com/aws/aws-sdk-java-v2/blob/master/bom

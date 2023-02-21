@@ -50,7 +50,7 @@
             </exclusions>
         </dependency>
 
-#if( $ssooidc == 'true')
+#if( $credentialProvider == 'identity-center')
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>sso</artifactId>
