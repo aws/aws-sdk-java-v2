@@ -1,3 +1,12 @@
+# __2.20.8__ __2023-02-20__
+## __AWS Audit Manager__
+  - ### Features
+    - This release introduces a ServiceQuotaExceededException to the UpdateAssessmentFrameworkShare API operation.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Reasons for failed diff has been approved by SDK Reviewer
+
 # __2.20.7__ __2023-02-17__
 ## __AWS App Runner__
   - ### Features
