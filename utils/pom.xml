@@ -32,8 +32,8 @@
         <dependencies>
             <dependency>
                 <groupId>software.amazon.awssdk</groupId>
-                <artifactId>bom-internal</artifactId>
                 <version>${project.version}</version>
+                <artifactId>bom-internal</artifactId>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
