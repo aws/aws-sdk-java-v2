@@ -146,9 +146,11 @@ public final class DocumentUtils {
             return convertMapToAttributeValue((Map<?, ?>) sourceObject, attributeConverterProvider);
         }
         AttributeConverter attributeConverter = attributeConverterProvider.converterFor(EnhancedType.of(sourceObject.getClass()));
+        if (attributeConverter == null) {
+            throw new IllegalStateException("Converter not found for Class " + sourceObject.getClass().getSimpleName());
+        }
         return attributeConverter.transformFrom(sourceObject);
     }
-
 
     /**
      * Coverts AttributeValue to simple java objects like String, SdkNumber, Boolean, List, Set, SdkBytes or Maps.
