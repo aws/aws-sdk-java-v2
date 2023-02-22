@@ -402,7 +402,7 @@ public class DefaultEnhancedDocumentTest {
         Map<String , BigDecimal> bigDecimalMap = new LinkedHashMap<>();
         bigDecimalMap.put("k1", BigDecimal.valueOf(3));
         bigDecimalMap.put("k2", BigDecimal.valueOf(9));
-        assertThat(document.getMap("simpleMap", EnhancedType.of(BigDecimal.class))).isEqualTo(bigDecimalMap);
+        assertThat(document.getMapOfType("simpleMap", EnhancedType.of(BigDecimal.class))).isEqualTo(bigDecimalMap);
         assertThat(document.getMapAsDocument("nestedDoc").getStringSet("innerKey")).isEqualTo(getStringSet(STRINGS_ARRAY));
         assertThat(document.getTypeOf("nullKey")).isNull();
     }

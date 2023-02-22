@@ -117,6 +117,9 @@ public class APISurfaceAreaReview extends LocalDynamoDbSyncTestBase {
                                                        .build());
 
 
+
+
+
         /**
          * Creating SCHEMA with Primary and secondary keys
          */
@@ -188,6 +191,7 @@ public class APISurfaceAreaReview extends LocalDynamoDbSyncTestBase {
                                                      .addSdkBytesSet("sdkByteSet",
                                                                      Stream.of(SdkBytes.fromUtf8String("a")).collect(Collectors.toSet()))
                                                      .build();
+
 
         /**
          *{
@@ -285,6 +289,10 @@ public class APISurfaceAreaReview extends LocalDynamoDbSyncTestBase {
 
         // Extracting Custom Object\
         CustomClassForDocumentAPI customAttr = customDoc.get("custom_attr", EnhancedType.of(CustomClassForDocumentAPI.class));
+
+
+        customDoc.get("custom_attr");
+
         System.out.println("customAttr " +customAttr);
         assertThat(customAttr).isEqualTo(customObject);
 
@@ -341,13 +349,14 @@ public class APISurfaceAreaReview extends LocalDynamoDbSyncTestBase {
     }
 
     /**
-     *- Does EnhancedDocument.Builder needs add(key, Object, attributeConverterProvider)
+     *- Does EnhancedDocument.Builder needs add(key, Object, attributeConverterProvider) ==> Not required , since at the time
+     * of building the User can pass AttributeCOnverters using addAttributeConveters
      *
      * - Should we refer bytes as binary or byte in apis example addBinary(byte[] byte) or addByte(byte[] byte)
      *
      * - Map<String, Object> getRawMap(String attributeName); ==> Can we remove the use of Object ? <Zoe>
      *
-     * - getJsonPretty. Do we actually need this?
+     * - getJsonPretty. Do we actually need this? ==> removed
      *
      * - Object get(String attributeName); ==> Do we need this
      * -  We don't have jsonPretty utility elsewhere. Do we need it?

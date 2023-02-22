@@ -187,7 +187,7 @@ public class DocumentTableSchemaTest {
             @Override
             public List<?> getList(String attributeName) {return null;}
             @Override
-            public <T> Map<String, T> getMap(String attributeName, EnhancedType<T> type) {return null;}
+            public <T> Map<String, T> getMapOfType(String attributeName, EnhancedType<T> type) {return null;}
             @Override
             public <T extends Number> Map<String, T> getMapOfNumbers(String attributeName, Class<T> valueType) {return null;}
             @Override
@@ -196,10 +196,9 @@ public class DocumentTableSchemaTest {
             public EnhancedDocument getMapAsDocument(String attributeName) {return null;}
             @Override
             public String getJson(String attributeName) {return null;}
+
             @Override
-            public String getJsonPretty(String attributeName) {return null;}
-            @Override
-            public Boolean getBoolean(String attributeName) {return null;}
+            public boolean getBoolean(String attributeName) {return false;}
             @Override
             public Object get(String attributeName) {return null;}
             @Override

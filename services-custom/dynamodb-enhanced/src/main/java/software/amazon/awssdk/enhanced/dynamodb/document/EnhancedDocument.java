@@ -37,6 +37,50 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  *
  * TODO : Add some examples in the Java Doc after API Surface review.
  */
+
+/**
+ * The Document API interface for DynamoDB provides operations for working with unstructured data. This includes data with no
+ * fixed schema, data that can't be modeled using rigid types, or data that has a flexible schema. This interface defines
+ * methods for accessing a Document and provides constructor methods for instantiating a Document object. You can use the
+ * Document object to read and write data to DynamoDB using the EnhancedDynamoDB client.
+ * se the methods defined in this interface to perform operations such as adding, retrieving, updating, and deleting data.  For
+ * example, you can use the {@code putItem} method to add an item to a DynamoDB table, or the {@code getItem} method to
+ * retrieve  an item from a table.
+ * To use the Document API, you must first create an instance of the EnhancedDynamoDB client. Then, you can use the methods
+ * defined in this interface to interact with the data stored in DynamoDB.
+ * {@code Example Usage:}
+ * <pre>{@code
+ * EnhancedDynamoDbClient enhancedClient = EnhancedDynamoDbClient.builder()
+ *
+ * markdown
+ *
+ *        .dynamoDbClient(dynamoDbClient)
+ *
+ * markdown
+ *
+ *        .build();
+ *
+ * // Create a new Document object
+ * Document document = Document.create();
+ * // Add an item to the Document
+ * document.put("key", "value");
+ * // Write the item to DynamoDB using the EnhancedDynamoDB client
+ * enhancedClient.putItem(PutItemEnhancedRequest.builder("tableName").item(document).build());
+ * // Retrieve the item from DynamoDB
+ * GetItemEnhancedResponse<Document> response = enhancedClient.getItem(GetItemEnhancedRequest.builder("tableName")
+ *
+ * less
+ *
+ *        .key(Collections.singletonMap("partitionKey", "partitionValue"))
+ *
+ * markdown
+ *
+ *        .build());
+ *
+ * // Get the item from the response
+ * Document retrievedItem = response.item();
+ * }</pre>
+ * */
 @SdkPublicApi
 public interface EnhancedDocument {
 
@@ -234,7 +278,7 @@ public interface EnhancedDocument {
      * @return value of the specified attribute in the current document as a map of string-to-<code>T</code>'s; or null if the
      * attribute either doesn't exist or the attribute value is null.
      */
-    <T> Map<String, T> getMap(String attributeName, EnhancedType<T> type);
+    <T> Map<String, T> getMapOfType(String attributeName, EnhancedType<T> type);
 
     /**
      * Convenience method to return the specified attribute in the current item as a (copy of) map of
@@ -288,16 +332,7 @@ public interface EnhancedDocument {
     String getJson(String attributeName);
 
     /**
-     * Gets the JSON document value as pretty Json string for the specified attribute.
-     *
-     * @param attributeName Name of the attribute.
-     * @return value of the specified attribute in the current document as a JSON string with pretty indentation; or null if the
-     * attribute either doesn't exist or the attribute value is null.
-     */
-    String getJsonPretty(String attributeName);
-
-    /**
-     * Gets the {@link Boolean} value for the specified attribute.
+     * Gets the boolean value for the specified attribute.
      *
      * @param attributeName Name of the attribute.
      * @return value of the specified attribute in the current document as a non-null Boolean.
@@ -305,7 +340,7 @@ public interface EnhancedDocument {
      *             if either the attribute doesn't exist or if the attribute
      *             value cannot be converted into a boolean value.
      */
-    Boolean getBoolean(String attributeName);
+    boolean getBoolean(String attributeName);
 
     /**
      * Gets the value as Object for a given attribute in the current document.

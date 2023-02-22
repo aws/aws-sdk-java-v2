@@ -206,7 +206,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
     }
 
     @Override
-    public <T> Map<String, T> getMap(String attributeName, EnhancedType<T> type) {
+    public <T> Map<String, T> getMapOfType(String attributeName, EnhancedType<T> type) {
         validateConverter(type);
         AttributeValue attributeValue = attributeValueMap.get(attributeName);
         if (attributeValue == null || !attributeValue.hasM()) {
@@ -275,13 +275,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
     }
 
     @Override
-    public String getJsonPretty(String attributeName) {
-        //TODO : Implementation in next revision or next PR.
-        throw new UnsupportedOperationException("Currently unsupported");
-    }
-
-    @Override
-    public Boolean getBoolean(String attributeName) {
+    public boolean getBoolean(String attributeName) {
         return getBool(attributeName);
     }
 
