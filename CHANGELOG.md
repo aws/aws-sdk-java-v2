@@ -1,3 +1,36 @@
+# __2.20.9__ __2023-02-21__
+## __AWS Resilience Hub__
+  - ### Features
+    - In this release we improved resilience hub application creation and maintenance by introducing new resource and app component crud APIs, improving visibility and maintenance of application input sources and added support for additional information attributes to be provided by customers.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fix race condition that could cause a NullPointerException to be raised from ProfileCredentialsProvider.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Documentation updates for AWS Security Hub
+
+## __AWS Telco Network Builder__
+  - ### Features
+    - This is the initial SDK release for AWS Telco Network Builder (TNB). AWS Telco Network Builder is a network automation service that helps you deploy and manage telecom networks.
+
+## __Amazon QuickSight__
+  - ### Features
+    - S3 data sources now accept a custom IAM role.
+
+# __2.20.8__ __2023-02-20__
+## __AWS Audit Manager__
+  - ### Features
+    - This release introduces a ServiceQuotaExceededException to the UpdateAssessmentFrameworkShare API operation.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Reasons for failed diff has been approved by SDK Reviewer
+
 # __2.20.7__ __2023-02-17__
 ## __AWS App Runner__
   - ### Features
