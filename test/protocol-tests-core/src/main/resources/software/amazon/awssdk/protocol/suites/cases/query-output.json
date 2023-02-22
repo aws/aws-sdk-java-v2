@@ -370,11 +370,11 @@
     }
   },
   {
-    "description": "MapOfTimeStamp  with known values unmarshalled correctly",
+    "description": "MapOfTimeStamp with known values unmarshalled correctly",
     "given": {
       "response": {
         "status_code": 200,
-        "body": "<AllTypesResponse><AllTypesResult><MapOfTimeStamp><key>time</key><value>2591234567.123</value></MapOfTimeStamp></AllTypesResult></AllTypesResponse>"
+        "body": "<AllTypesResponse><AllTypesResult><MapOfTimeStamp><entry><key>test1</key><value>1398796238.123</value></entry><entry><key>test2</key><value>2591234567.123</value></entry></MapOfTimeStamp></AllTypesResult></AllTypesResponse>"
       }
     },
     "when": {
@@ -384,9 +384,9 @@
     },
     "then": {
       "deserializedAs": {
-        "time": {
-          "key1": "test",
-          "key2": "2591234567123"
+        "MapOfTimeStamp": {
+          "test1": "1398796238123",
+          "test2": "2591234567123"
         }
       }
     }
