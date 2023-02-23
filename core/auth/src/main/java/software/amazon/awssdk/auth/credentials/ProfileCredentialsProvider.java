@@ -56,6 +56,8 @@ public final class ProfileCredentialsProvider
     private final String profileName;
     private final Supplier<ProfileFile> defaultProfileFileLoader;
 
+    private final Object credentialsProviderLock = new Object();
+
     /**
      * @see #builder()
      */
@@ -117,9 +119,9 @@ public final class ProfileCredentialsProvider
         }
 
         ProfileFile cachedOrRefreshedProfileFile = refreshProfileFile();
-        if (isNewProfileFile(cachedOrRefreshedProfileFile)) {
-            synchronized (this) {
-                if (isNewProfileFile(cachedOrRefreshedProfileFile)) {
+        if (shouldUpdateCredentialsProvider(cachedOrRefreshedProfileFile)) {
+            synchronized (credentialsProviderLock) {
+                if (shouldUpdateCredentialsProvider(cachedOrRefreshedProfileFile)) {
                     currentProfileFile = cachedOrRefreshedProfileFile;
                     handleProfileFileReload(cachedOrRefreshedProfileFile);
                 }
@@ -137,8 +139,8 @@ public final class ProfileCredentialsProvider
         return profileFile.get();
     }
 
-    private boolean isNewProfileFile(ProfileFile profileFile) {
-        return !Objects.equals(currentProfileFile, profileFile);
+    private boolean shouldUpdateCredentialsProvider(ProfileFile profileFile) {
+        return credentialsProvider == null || !Objects.equals(currentProfileFile, profileFile);
     }
 
     @Override
