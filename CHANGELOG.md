@@ -1,3 +1,86 @@
+# __2.20.12__ __2023-02-24__
+## __AWS SecurityHub__
+  - ### Features
+    - New Security Hub APIs and updates to existing APIs that help you consolidate control findings and enable and disable controls across all supported standards
+
+## __AWS Service Catalog__
+  - ### Features
+    - Documentation updates for Service Catalog
+
+## __Amazon Connect Cases__
+  - ### Features
+    - This release adds the ability to delete domains through the DeleteDomain API. For more information see https://docs.aws.amazon.com/cases/latest/APIReference/Welcome.html
+
+## __Amazon Connect Service__
+  - ### Features
+    - StartTaskContact API now supports linked task creation with a new optional RelatedContactId parameter
+
+## __Amazon Redshift__
+  - ### Features
+    - Documentation updates for Redshift API bringing it in line with IAM best practices.
+
+# __2.20.11__ __2023-02-23__
+## __AWS IoT Wireless__
+  - ### Features
+    - In this release, we add additional capabilities for the FUOTA which allows user to configure the fragment size, the sending interval and the redundancy ratio of the FUOTA tasks
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS WAFV2__
+  - ### Features
+    - You can now associate an AWS WAF v2 web ACL with an AWS App Runner service.
+
+## __Amazon Appflow__
+  - ### Features
+    - This release enables the customers to choose whether to use Private Link for Metadata and Authorization call when using a private Salesforce connections
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release supports deleting Amazon ECS task definitions that are in the INACTIVE state.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Updated API and data types descriptions for CreateFilter, UpdateFilter, and TriggerDetails.
+
+## __Amazon Location Service__
+  - ### Features
+    - This release adds support for using Maps APIs with an API Key in addition to AWS Cognito. This includes support for adding, listing, updating and deleting API Keys.
+
+## __Amazon Macie 2__
+  - ### Features
+    - This release adds support for a new finding type, Policy:IAMUser/S3BucketSharedWithCloudFront, and S3 bucket metadata that indicates if a bucket is shared with an Amazon CloudFront OAI or OAC.
+
+## __Amazon Managed Grafana__
+  - ### Features
+    - Doc-only update. Updated information on attached role policies for customer provided roles
+
+# __2.20.10__ __2023-02-22__
+## __AWS DataSync__
+  - ### Features
+    - AWS DataSync has relaxed the minimum length constraint of AccessKey for Object Storage locations to 1.
+
+## __Amazon Chime SDK Voice__
+  - ### Features
+    - This release introduces support for Voice Connector media metrics in the Amazon Chime SDK Voice namespace
+
+## __Amazon CloudFront__
+  - ### Features
+    - CloudFront now supports block lists in origin request policies so that you can forward all headers, cookies, or query string from viewer requests to the origin *except* for those specified in the block list.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - This release lets customers configure Off-peak window and software update related properties for a new/existing domain. It enhances the capabilities of StartServiceSoftwareUpdate API; adds 2 new APIs - ListScheduledActions & UpdateScheduledAction; and allows Auto-tune to make use of Off-peak window.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Document only update for Feb 2023
+
+## __CloudWatch RUM__
+  - ### Features
+    - CloudWatch RUM now supports CloudWatch Custom Metrics
+
 # __2.20.9__ __2023-02-21__
 ## __AWS Resilience Hub__
   - ### Features
