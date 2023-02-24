@@ -1,3 +1,24 @@
+# __2.20.12__ __2023-02-24__
+## __AWS SecurityHub__
+  - ### Features
+    - New Security Hub APIs and updates to existing APIs that help you consolidate control findings and enable and disable controls across all supported standards
+
+## __AWS Service Catalog__
+  - ### Features
+    - Documentation updates for Service Catalog
+
+## __Amazon Connect Cases__
+  - ### Features
+    - This release adds the ability to delete domains through the DeleteDomain API. For more information see https://docs.aws.amazon.com/cases/latest/APIReference/Welcome.html
+
+## __Amazon Connect Service__
+  - ### Features
+    - StartTaskContact API now supports linked task creation with a new optional RelatedContactId parameter
+
+## __Amazon Redshift__
+  - ### Features
+    - Documentation updates for Redshift API bringing it in line with IAM best practices.
+
 # __2.20.11__ __2023-02-23__
 ## __AWS IoT Wireless__
   - ### Features
