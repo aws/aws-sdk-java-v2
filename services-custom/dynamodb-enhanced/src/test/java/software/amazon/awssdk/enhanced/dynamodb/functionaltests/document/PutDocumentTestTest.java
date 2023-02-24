@@ -17,27 +17,25 @@ package software.amazon.awssdk.enhanced.dynamodb.functionaltests.document;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
+import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.keyEqualTo;
+import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.sortBetween;
 
-import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.core.SdkBytes;
-import software.amazon.awssdk.core.SdkNumber;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
+import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.converters.document.CustomAttributeForDocumentConverterProvider;
+import software.amazon.awssdk.enhanced.dynamodb.converters.document.CustomClassForDocumentAPI;
 import software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocument;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.LocalDynamoDbSyncTestBase;
-import software.amazon.awssdk.enhanced.dynamodb.functionaltests.document.converter.CustomAttributeConverterProvider;
-import software.amazon.awssdk.enhanced.dynamodb.functionaltests.document.converter.CustomClass;
+import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.DynamoDbException;
 
@@ -52,10 +50,11 @@ public class PutDocumentTestTest extends LocalDynamoDbSyncTestBase {
     public static final String SORT_KEY = "sampleSortKey";
     private  DynamoDbTable<EnhancedDocument> table = enhancedClient.table(
         tableName,
-        TableSchema.fromDocumentSchemaBuilder()
-                   .primaryKey(HASH_KEY, AttributeValueType.S)
-                   .sortKey(SORT_KEY, AttributeValueType.S)
-                   .attributeConverterProviders(CustomAttributeConverterProvider.create(),
+        TableSchema.documentSchemaBuilder()
+                   .addIndexPartitionKey(TableMetadata.primaryIndexName(),HASH_KEY, AttributeValueType.S)
+                   .addIndexPartitionKey("part-index","group", AttributeValueType.S)
+                   .addIndexSortKey("sort_index","sort_key2", AttributeValueType.N)
+                   .attributeConverterProviders(CustomAttributeForDocumentConverterProvider.create(),
                                                 AttributeConverterProvider.defaultProvider())
                    .build());
 
@@ -74,39 +73,62 @@ public class PutDocumentTestTest extends LocalDynamoDbSyncTestBase {
     void putSimpleDocumentWithSimpleValues() {
         table.putItem(EnhancedDocument
                           .builder()
-                          .addString(HASH_KEY, "first_hash")
-                          .addString(SORT_KEY, "1_sort")
-                          .addNull("null_Key")
-                          .addBoolean("boolean_key", true)
-                          .addNumber("number_int", 2)
-                          .addNumber("number_SdkNumber", SdkNumber.fromString("5"))
-                          .addSdkBytes("SdkBytes", SdkBytes.fromUtf8String("sample_binary"))
+                          .putString(HASH_KEY, "first_hash")
+                          .putString(SORT_KEY, "1_sort")
+                          .putNumber("party", 1 )
                           .build());
 
         assertThat(
             table.getItem(EnhancedDocument.builder()
-                                          .add(SORT_KEY, "1_sort")
-                                          .addString(HASH_KEY, "first_hash").build()).get(SORT_KEY)).isEqualTo("1_sort");
+                                          .putObject(SORT_KEY, "1_sort")
+                                          .putString(HASH_KEY, "first_hash").build()).get(SORT_KEY)).isEqualTo("1_sort");
 
 
     }
 
     @Test
     void putSetOfValues(){
+        table.putItem(EnhancedDocument
+                          .builder()
+                          .putString(HASH_KEY, "first_hash_1")
+                          .putString(SORT_KEY, "1_sort")
+                          .putNumber("sort_key2", 2)
+                          .putNumber("party", 1 )
+                          .build());
 
-        table.putItem(r -> r.item(EnhancedDocument.builder()
-                                                  .addString(HASH_KEY, "first_hash")
-                                                  .addString(SORT_KEY, "1_sort")
-                                                  .addStringSet("stringSet",
-                                                                Stream.of("str1", "str2", "str2").collect(Collectors.toSet()))
-                                                  .addNumberSet("numberSet",
-                                                                Stream.of(1, new BigDecimal(2), 3.00).collect(Collectors.toSet()))
-                                                  .addSdkBytesSet("sdk_bytes",
-                                                                  Stream.of(SdkBytes.fromUtf8String("a"),
-                                                                            SdkBytes.fromUtf8String("b")).collect(Collectors.toSet()))
-                                                  .build()));
+
+        table.putItem(EnhancedDocument
+                          .builder()
+                          .putString(HASH_KEY, "first_hash_2")
+                          .putString(SORT_KEY, "1_sort")
+                          .putNumber("sort_key2", 3)
+                          .putNumber("party", 1 )
+
+                          .build());
+
+
+
+        table.putItem(EnhancedDocument
+                          .builder()
+                          .putString(HASH_KEY, "first_hash_2")
+                          .putString(SORT_KEY, "1_sort")
+                          .putNumber("sort_key2", 6)
+                          .putNumber("party", 1 )
+                          .build());
+
+        PageIterable<EnhancedDocument> firstHashOne =
+            table.query(sortBetween(r->r.sortValue(3).partitionValue( "part-index"),  s-> s.sortValue(10).partitionValue(
+                "part-index")));
+
+
+        // PageIterable<EnhancedDocument> query =
+        //     table.query(q -> q.queryConditional(QueryConditional.sortBeginsWith(Key.builder().sortValue("2").partitionValue(
+        //         "first").build())));
 
     }
+
+
+
 
 
     @Test
@@ -114,7 +136,8 @@ public class PutDocumentTestTest extends LocalDynamoDbSyncTestBase {
         assertThatExceptionOfType(IllegalStateException.class).isThrownBy(
             () ->         table.putItem(EnhancedDocument.builder()
                                                         // Combination of different Types
-                                                        .add("customClass", CustomClass.builder().foo("value").build())
+                                                        .putObject("customClass",
+                                                                   CustomClassForDocumentAPI.builder().string("value").build())
                                                         .build())
 
         );
@@ -129,7 +152,7 @@ public class PutDocumentTestTest extends LocalDynamoDbSyncTestBase {
         // ServiceSideException
         assertThatExceptionOfType(DynamoDbException.class)
             .isThrownBy(() ->table.putItem(EnhancedDocument.builder()
-                                                           .addString(HASH_KEY, "first_hash")
+                                                           .putString(HASH_KEY, "first_hash")
                                                            .build()))
             .withMessageContaining("One of the required keys was not given a value (Service: DynamoDb, Status Code: 400");
 
@@ -137,7 +160,7 @@ public class PutDocumentTestTest extends LocalDynamoDbSyncTestBase {
         assertThatExceptionOfType(DynamoDbException.class)
             .isThrownBy(() ->table.putItem(EnhancedDocument
                                                .builder()
-                                               .addString(SORT_KEY, "1_sort")
+                                               .putString(SORT_KEY, "1_sort")
                                                .build()))
             .withMessageContaining("One of the required keys was not given a value (Service: DynamoDb, Status Code: 400");
 

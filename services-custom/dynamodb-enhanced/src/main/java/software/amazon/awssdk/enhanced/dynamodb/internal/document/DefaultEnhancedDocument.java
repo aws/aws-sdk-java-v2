@@ -35,7 +35,6 @@ import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkNumber;
-import software.amazon.awssdk.core.document.Document;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
@@ -44,7 +43,6 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConvert
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.JsonItemAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.MapAttributeConverter;
-import software.amazon.awssdk.protocols.json.internal.unmarshall.document.DocumentUnmarshaller;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -245,8 +243,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
             return null;
         }
         JsonNode jsonNode = JSON_ITEM_ATTRIBUTE_CONVERTER.transformTo(convert(objectValue, attributeConverterProviders));
-        Document document = jsonNode.visit(new DocumentUnmarshaller());
-        return document.toString();
+        return jsonNode != null ? jsonNode.toString() : null;
     }
 
 
@@ -280,8 +277,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
             .fromM(DocumentUtils.objectMapToAttributeMap(this.attributeValueObjectMap, attributeConverterProviders));
         JsonItemAttributeConverter jsonItemAttributeConverter = JsonItemAttributeConverter.create();
         JsonNode jsonNode = jsonItemAttributeConverter.transformTo(jsonMap);
-        Document document = jsonNode.visit(new DocumentUnmarshaller());
-        return document.toString();
+        return jsonNode != null ? jsonNode.toString() : null;
     }
 
     public static class DefaultBuilder implements EnhancedDocument.Builder {

@@ -20,10 +20,10 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
+import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocument;
 
@@ -35,9 +35,9 @@ public class DocumentSchemaTableTest extends LocalDynamoDbSyncTestBase {
 
     private final DynamoDbTable<EnhancedDocument> mappedTable = enhancedClient.table(
         getConcreteTableName("table-name"),
-        TableSchema.fromDocumentSchemaBuilder()
-                   .primaryKey("sampleHashKey", AttributeValueType.S)
-                   .sortKey("sampleSortKey", AttributeValueType.S)
+        TableSchema.documentSchemaBuilder()
+                   .addIndexPartitionKey(TableMetadata.primaryIndexName(), "sampleHashKey", AttributeValueType.S)
+                   .addIndexSortKey("sort-index","sampleSortKey", AttributeValueType.S)
                    .build());
 
 
@@ -49,9 +49,9 @@ public class DocumentSchemaTableTest extends LocalDynamoDbSyncTestBase {
     void createTableWithPrimaryKeyAndSortKey(){
         DynamoDbTable<EnhancedDocument> table = enhancedClient.table(
             getConcreteTableName("table-name"),
-            TableSchema.fromDocumentSchemaBuilder()
-                       .primaryKey("sampleHashKey", AttributeValueType.S)
-                       .sortKey("sampleSortKey", AttributeValueType.S)
+            TableSchema.documentSchemaBuilder()
+                       .addIndexPartitionKey(TableMetadata.primaryIndexName(), "sampleHashKey", AttributeValueType.S)
+                       .addIndexSortKey("sort-index","sampleSortKey", AttributeValueType.S)
                        .build());
 
 
@@ -66,7 +66,7 @@ public class DocumentSchemaTableTest extends LocalDynamoDbSyncTestBase {
     void createTableWithOutPrimaryKeyAndSortKey(){
         DynamoDbTable<EnhancedDocument> table = enhancedClient.table(
             getConcreteTableName("table-name"),
-            TableSchema.fromDocumentSchemaBuilder()
+            TableSchema.documentSchemaBuilder()
                        .build());
 
         assertThatExceptionOfType(IllegalArgumentException.class)
@@ -80,7 +80,7 @@ public class DocumentSchemaTableTest extends LocalDynamoDbSyncTestBase {
     void createTableWithPrimaryKeyAndNOSortKey(){
         DynamoDbTable<EnhancedDocument> table = enhancedClient.table(
             getConcreteTableName("table-name"),
-            TableSchema.fromDocumentSchemaBuilder()
+            TableSchema.documentSchemaBuilder()
                        .build());
 
         assertThatExceptionOfType(IllegalArgumentException.class)
@@ -103,14 +103,14 @@ public class DocumentSchemaTableTest extends LocalDynamoDbSyncTestBase {
         System.out.println("mappedTable.tableName() "+mappedTable.tableName());
 
         mappedTable.putItem(EnhancedDocument.builder()
-                                .addString("sampleHashKey", "one_hash")
-                                .addString("sampleSortKey", "one_sort")
+                                .putString("sampleHashKey", "one_hash")
+                                .putString("sampleSortKey", "one_sort")
                                             .build());
 
         Thread.sleep(2000);
         EnhancedDocument item = mappedTable.getItem(EnhancedDocument.builder()
-                                                                    .addString("sampleHashKey", "one_hash")
-                                                                    .addString("sampleSortKey", "one_sort")
+                                                                    .putString("sampleHashKey", "one_hash")
+                                                                    .putString("sampleSortKey", "one_sort")
                                                                     .build());
         System.out.println("item "+item.toJson());
     }

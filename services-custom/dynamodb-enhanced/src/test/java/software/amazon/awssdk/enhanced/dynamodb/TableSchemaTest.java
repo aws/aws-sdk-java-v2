@@ -22,7 +22,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.BeanTableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.DocumentTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.ImmutableTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.InvalidBean;
@@ -70,11 +69,5 @@ public class TableSchemaTest {
         exception.expect(IllegalArgumentException.class);
         exception.expectMessage("InvalidBean");
         TableSchema.fromClass(InvalidBean.class);
-    }
-
-    @Test
-    public void fromClass_fromDocumentSchemaBuilder() {
-        DocumentTableSchema tableSchema = TableSchema.fromDocumentSchemaBuilder().build();
-        assertThat(tableSchema).isInstanceOf(DocumentTableSchema.class);
     }
 }

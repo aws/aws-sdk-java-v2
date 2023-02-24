@@ -23,10 +23,11 @@ import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
+import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.converters.document.CustomAttributeForDocumentConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocument;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.LocalDynamoDbSyncTestBase;
-import software.amazon.awssdk.enhanced.dynamodb.functionaltests.document.converter.CustomAttributeConverterProvider;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 public final class CreateTableTest extends LocalDynamoDbSyncTestBase {
@@ -44,10 +45,10 @@ public final class CreateTableTest extends LocalDynamoDbSyncTestBase {
         String tableName = getConcreteTableName("table-name");
         DynamoDbTable<EnhancedDocument> table = enhancedClient.table(
             tableName,
-            TableSchema.fromDocumentSchemaBuilder()
-                       .primaryKey("sampleHashKey", AttributeValueType.S)
-                       .sortKey("sampleSortKey", AttributeValueType.S)
-                       .attributeConverterProviders(CustomAttributeConverterProvider.create(),
+            TableSchema.documentSchemaBuilder()
+                       .addIndexPartitionKey(TableMetadata.primaryIndexName(),"sampleHashKey", AttributeValueType.S)
+                       .addIndexSortKey("sortIndex","sampleSortKey", AttributeValueType.S)
+                       .attributeConverterProviders(CustomAttributeForDocumentConverterProvider.create(),
                                                     AttributeConverterProvider.defaultProvider())
                        .build());
 
@@ -61,7 +62,7 @@ public final class CreateTableTest extends LocalDynamoDbSyncTestBase {
     void createTableWithOutPrimaryKeyAndSortKey(){
         DynamoDbTable<EnhancedDocument> table = enhancedClient.table(
             getConcreteTableName("table-name"),
-            TableSchema.fromDocumentSchemaBuilder()
+            TableSchema.documentSchemaBuilder()
                        .build());
 
         assertThatExceptionOfType(IllegalArgumentException.class)
@@ -76,8 +77,8 @@ public final class CreateTableTest extends LocalDynamoDbSyncTestBase {
         String tableName = getConcreteTableName("table-name-no-sort");
         DynamoDbTable<EnhancedDocument> table = enhancedClient.table(
             tableName,
-            TableSchema.fromDocumentSchemaBuilder()
-                       .primaryKey("sampleHashKey", AttributeValueType.S)
+            TableSchema.documentSchemaBuilder()
+                       .addIndexPartitionKey(TableMetadata.primaryIndexName(),"sampleHashKey", AttributeValueType.S)
                        .build());
 
         table.createTable();
@@ -92,8 +93,8 @@ public final class CreateTableTest extends LocalDynamoDbSyncTestBase {
         String tableName = getConcreteTableName("table-name-no-sort");
         DynamoDbTable<EnhancedDocument> table = enhancedClient.table(
             tableName,
-            TableSchema.fromDocumentSchemaBuilder()
-                       .primaryKey("sampleHashKey", AttributeValueType.S)
+            TableSchema.documentSchemaBuilder()
+                       .addIndexPartitionKey(TableMetadata.primaryIndexName(),"sampleHashKey", AttributeValueType.S)
                        .build());
 
         table.createTable();

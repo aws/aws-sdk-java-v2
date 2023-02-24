@@ -412,12 +412,6 @@ public class DefaultEnhancedDocumentTest {
         assertThat(document.getEnhancedDocument("nestedDoc").getStringSet("innerKey")).isEqualTo(getStringSet(STRINGS_ARRAY));
     }
 
-    @Test
-    void temp(){
-        System.out.println(UUID.randomUUID());
-        System.out.println(UUID.randomUUID());
-    }
-
     public static class AttributeStringValueMap {
         Map<String, AttributeValue> attributeValueMap = new LinkedHashMap<>();
 

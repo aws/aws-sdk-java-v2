@@ -319,11 +319,10 @@ public interface EnhancedDocument {
      *
      * @param attributeName Name of the attribute.
      * @return value of the specified attribute in the current document as a non-null Boolean.
-     * @throws RuntimeException
-     *             if either the attribute doesn't exist or if the attribute
-     *             value cannot be converted into a boolean value.
+     * @throws RuntimeException if either the attribute doesn't exist or if the attribute value cannot be converted into a boolean
+     *                          value.
      */
-    boolean getBoolean(String attributeName);
+    Boolean getBoolean(String attributeName);
 
     /**
      * Gets the value as Object for a given attribute in the current document.
