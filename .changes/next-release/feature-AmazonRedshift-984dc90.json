@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Redshift",
+    "contributor": "",
+    "description": "Documentation updates for Redshift API bringing it in line with IAM best practices."
+}
