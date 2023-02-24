@@ -34,7 +34,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.core.SdkBytes;
-import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.converters.document.CustomAttributeForDocumentConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.converters.document.CustomClassForDocumentAPI;
@@ -144,7 +143,7 @@ public class EnhancedDocumentTest {
             .withMessage(EMPTY_OR_NULL_ERROR);
 
         assertThatExceptionOfType(IllegalArgumentException.class)
-            .isThrownBy(() -> EnhancedDocument.builder().putObjectList(null, Arrays.asList()))
+            .isThrownBy(() -> EnhancedDocument.builder().putList(null, Arrays.asList()))
             .withMessage(EMPTY_OR_NULL_ERROR);
 
         assertThatExceptionOfType(IllegalArgumentException.class)
@@ -217,12 +216,12 @@ public class EnhancedDocumentTest {
         EnhancedDocument afterCustomClass = EnhancedDocument.builder()
                                                             .attributeConverterProviders(CustomAttributeForDocumentConverterProvider.create(), defaultProvider())
                                                             .putString("direct_attr", "sample_value")
-                                                            .putObjectList("customObject", Arrays.asList(customObjectOne,
-                                                                                                         customObjectTwo)).build();
+                                                            .putList("customObject", Arrays.asList(customObjectOne,
+                                                                                                   customObjectTwo)).build();
         EnhancedDocument beforeCustomClass = EnhancedDocument.builder()
                                                              .putString("direct_attr", "sample_value")
-                                                             .putObjectList("customObject", Arrays.asList(customObjectOne,
-                                                                                                          customObjectTwo))
+                                                             .putList("customObject", Arrays.asList(customObjectOne,
+                                                                                                    customObjectTwo))
                                                              .attributeConverterProviders(CustomAttributeForDocumentConverterProvider.create(), defaultProvider())
                                                              .build();
         assertThat(afterCustomClass.toJson()).isEqualTo("{\"direct_attr\": \"sample_value\",\"customObject\": [{\"foo\": "

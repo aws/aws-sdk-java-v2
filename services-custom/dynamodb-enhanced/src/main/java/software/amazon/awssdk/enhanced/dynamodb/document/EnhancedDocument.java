@@ -25,8 +25,6 @@ import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkNumber;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
-import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
-import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.document.DefaultEnhancedDocument;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -93,11 +91,10 @@ public interface EnhancedDocument {
      * @param json The JSON string representation of DynamoDB Item.
      * @return A new instance of EnhancedDocument.
      */
-    static EnhancedDocument fromJson(String json, List<AttributeConverterProvider> attributeConverterProviders) {
+    static EnhancedDocument fromJson(String json) {
         Validate.paramNotNull(json, "json");
         return DefaultEnhancedDocument.builder()
                                       .json(json)
-                                      .attributeConverterProviders(attributeConverterProviders)
                                       .build();
     }
 
@@ -106,12 +103,8 @@ public interface EnhancedDocument {
      * @param attributeValueMap - Map with Attributes as String keys and AttributeValue as Value.
      * @return A new instance of EnhancedDocument.
      */
-    static EnhancedDocument fromAttributeValueMap(Map<String, AttributeValue> attributeValueMap) {
-        Validate.paramNotNull(attributeValueMap, "attributeValueMap");
-        return DefaultEnhancedDocument.builder()
-                                      .attributeValueMap(attributeValueMap)
-                                      .attributeConverterProviders(DefaultAttributeConverterProvider.create())
-                                      .build();
+    static EnhancedDocument fromAttributeValueMap(Map<String, AttributeValue> attributeMap) {
+        return fromMap(attributeMap);
     }
 
     /**
@@ -120,12 +113,11 @@ public interface EnhancedDocument {
      * @param attributeMap Map of item attributeMap where each attribute should be a simple Java type, not DynamoDB type.
      * @return A new instance of EnhancedDocument.
      */
-    static EnhancedDocument fromMap(Map<String, Object> attributeMap) {
+    static EnhancedDocument fromMap(Map<String, ?> attributeMap) {
         Validate.paramNotNull(attributeMap, "attributeMap");
-        DefaultEnhancedDocument.DefaultBuilder defaultBuilder = DefaultEnhancedDocument.builder();
-        attributeMap.forEach((k, v) -> defaultBuilder.putObject(k, v));
-        return defaultBuilder.addAttributeConverterProvider(DefaultAttributeConverterProvider.create())
-                             .build();
+        DefaultEnhancedDocument.DefaultBuilder builder = DefaultEnhancedDocument.builder();
+        attributeMap.forEach(builder::putObject);
+        return builder.build();
     }
 
     /**
@@ -215,38 +207,7 @@ public interface EnhancedDocument {
      */
     SdkBytes getBytes(String attributeName);
 
-    /**
-     * Gets the Set of String values of the given attribute in the current document.
-     * This API only looks for {@link AttributeValueType#SS}. Thus, this API will return null for attribute values which are
-     * represented as List {@link AttributeValueType#L} of Strings.
-     *
-     * @param attributeName the name of the attribute.
-     * @return the value of the specified attribute in the current document as a set of strings; or null if the attribute either
-     * does not exist or the attribute value is null.
-     */
-    Set<String> getStringSet(String attributeName);
-
-    /**
-     * Gets the Set of String values of the given attribute in the current document.
-     * This API only looks for {@link AttributeValueType#NS}. Thus, this API will return null for attribute values which are
-     * represented as List {@link AttributeValueType#L} of Numbers.
-     *
-     * @param attributeName Name of the attribute.
-     * @return value of the specified attribute in the current document as a set of SdkNumber; or null if the attribute either
-     * doesn't exist or the attribute value is null.
-     */
-    Set<SdkNumber> getNumberSet(String attributeName);
-
-    /**
-     * Gets the Set of String values of the given attribute in the current document.
-     * This API only looks for {@link AttributeValueType#BS}. Thus, this API will return null for attribute values which are
-     * represented as List {@link AttributeValueType#L} of SdkBytes.
-     *
-     * @param attributeName Name of the attribute.
-     * @return value of the specified attribute in the current document as a set of SdkBytes; or null if the attribute either
-     * doesn't exist or the attribute value is null.
-     */
-    Set<SdkBytes> getBytesSet(String attributeName);
+    <T> Set<T> getSet(String attributeName, EnhancedType<T> type);
 
     /**
      * Gets the List of values of type T for the given attribute in the current document.
@@ -259,16 +220,6 @@ public interface EnhancedDocument {
      */
 
     <T> List<T> getList(String attributeName, EnhancedType<T> type);
-
-
-    /**
-     * Gets the List of values for the given attribute in the current document.
-     * @param attributeName Name of the attribute.
-     * @return value of the specified attribute in the current document as a list; or null if the
-     * attribute either doesn't exist or the attribute value is null.
-     */
-    List<?> getList(String attributeName);
-
 
     /**
      * Returns a map of a specific type based on the given attribute name, key type, and value type.
@@ -284,26 +235,7 @@ public interface EnhancedDocument {
      * @param <K> The type of the Map keys.
      * @param <V> The type of the Map values.
      */
-    <K, V> Map<K, V> getMapType(String attributeName, EnhancedType<K> keyType, EnhancedType<V> valueType);
-
-    /**
-     * Convenience method to return the value of the specified attribute in the current document as a map of
-     * string-to-<code>Object</code>'s; or null if the attribute either doesn't exist or the attribute value is null. Note that
-     * any numeric type of the map will be returned as <code>SdkNumber</code>.
-     *
-     * @param attributeName Name of the attribute.
-     * @return value of the specified attribute in the current document as a raw map.
-     */
-    Map<String, Object> getRawMap(String attributeName);
-
-    /**
-     * Gets the Map value of the specified attribute as an EnhancedDocument.
-     *
-     * @param attributeName Name of the attribute.
-     * @return Map value of the specified attribute in the current document as EnhancedDocument or null if the attribute either
-     * doesn't exist or the attribute value is null.
-     */
-    EnhancedDocument getEnhancedDocument(String attributeName);
+    <K, V> Map<K, V> getMap(String attributeName, EnhancedType<K> keyType, EnhancedType<V> valueType);
 
     /**
      * Gets the JSON document value of the specified attribute.
@@ -323,34 +255,7 @@ public interface EnhancedDocument {
      *             if either the attribute doesn't exist or if the attribute
      *             value cannot be converted into a boolean value.
      */
-    boolean getBoolean(String attributeName);
-
-    /**
-     * Gets the value as Object for a given attribute in the current document.
-     * An attribute value can be a
-     * <ul>
-     * <li>Number</li>
-     * <li>String</li>
-     * <li>Binary (ie byte array or byte buffer)</li>
-     * <li>Boolean</li>
-     * <li>Null</li>
-     * <li>List (of any of the types on this list)</li>
-     * <li>Map (with string key to value of any of the types on this list)</li>
-     * <li>Set (of any of the types on this list)</li>
-     * </ul>
-     *
-     * @param attributeName Name of the attribute.
-     * @return value of the specified attribute in the current document as an object; or null if the attribute either doesn't
-     * exist or the attribute value is null.
-     */
-    Object get(String attributeName);
-
-    /**
-     * Gets the current EnhancedDocument as Map.
-     *
-     * @return attributes of the current document as a map.
-     */
-    Map<String, Object> toMap();
+    Boolean getBoolean(String attributeName);
 
     /**
      *
@@ -363,6 +268,14 @@ public interface EnhancedDocument {
      * @return EnhancedDocument as a Map with Keys as String attributes and Values as AttributeValue.
      */
     Map<String, AttributeValue> toAttributeValueMap();
+
+    /**
+     * TODO: Improve Javadoc.
+     *
+     * This returns the document with the exact types added via the put* methods on the {@link Builder} (without performing any
+     * conversions).
+     */
+    Map<String, Object> toMap();
 
     @NotThreadSafe
     interface Builder {
@@ -419,7 +332,7 @@ public interface EnhancedDocument {
          * @param value         The boolean value that needs to be set.
          * @return Builder instance to construct a {@link EnhancedDocument}
          */
-        Builder putBoolean(String attributeName, boolean value);
+        Builder putBoolean(String attributeName, Boolean value);
 
         /**
          * Appends an attribute of name attributeName with a null value.
@@ -436,25 +349,7 @@ public interface EnhancedDocument {
          * @param values        Set of String values that needs to be set.
          * @return Builder instance to construct a {@link EnhancedDocument}
          */
-        Builder putStringSet(String attributeName, Set<String> values);
-
-        /**
-         * Appends an attribute of name attributeName with specified Set of {@link Number} values to the document builder.
-         *
-         * @param attributeName the name of the attribute to be added to the document.
-         * @param values        Set of Number values that needs to be set.
-         * @return Builder instance to construct a {@link EnhancedDocument}
-         */
-        Builder putNumberSet(String attributeName, Set<Number> values);
-
-        /**
-         * Appends an attribute of name attributeName with specified Set of {@link SdkBytes} values to the document builder.
-         *
-         * @param attributeName the name of the attribute to be added to the document.
-         * @param values        Set of SdkBytes values that needs to be set.
-         * @return Builder instance to construct a {@link EnhancedDocument}
-         */
-        Builder putBytesSet(String attributeName, Set<SdkBytes> values);
+        Builder putSet(String attributeName, Set<?> values);
 
         /**
          * Appends an attribute of name attributeName with specified list of values to the document builder.
@@ -463,7 +358,7 @@ public interface EnhancedDocument {
          * @param value         The list of values that needs to be set.
          * @return Builder instance to construct a {@link EnhancedDocument}
          */
-        Builder putObjectList(String attributeName, List<?> value);
+        Builder putList(String attributeName, List<?> value);
 
 
         /**
@@ -472,20 +367,9 @@ public interface EnhancedDocument {
          *
          * @param attributeName the name of the attribute to be added to the document
          * @param value         the map of values to be set
-         * @param keyType       the class type of the keys in the map
-         * @param <T>           the type parameter for the keys in the map
          * @return a builder instance to construct a {@link EnhancedDocument}
          */
-        <T> Builder putMap(String attributeName, Map<T, ?> value, Class<T> keyType);
-
-        /**
-         * Appends an attribute to the document builder, with the given name and a map of values to be set.
-         * @param attributeName the name of the attribute to be added to the document
-         * @param value         the map of values to be set
-         * @return a builder instance to construct a {@link EnhancedDocument}
-         * @throws NullPointerException if the attributeName or value is null
-         */
-        Builder putMap(String attributeName, Map<String, ?> value);
+        Builder putMap(String attributeName, Map<?, ?> value);
 
         /**
          * Appends an attribute of name attributeName with specified value of the given JSON document in the form of a string.

@@ -160,8 +160,8 @@ public class DefaultEnhancedDocumentTest {
                                                                                     AttributeValue.fromS(SIMPLE_STRING))))
                     )))
                 , documentBuilder()
-                    .putObjectList("numberStringSet",
-                                   Arrays.asList("One",
+                    .putList("numberStringSet",
+                             Arrays.asList("One",
                                            1,
                                            null,
                                            new HashSet<String>(),
@@ -201,7 +201,7 @@ public class DefaultEnhancedDocumentTest {
                                  ))),
                          documentBuilder()
                              .putObject(SIMPLE_NUMBER_KEY, 1)
-                             .putObjectList("numberList", Arrays.asList(1, 2, 3))
+                             .putList("numberList", Arrays.asList(1, 2, 3))
                              .putBytes("sdkByteKey", SdkBytes.fromUtf8String("a"))
                              .putMap("mapKey", mapFromSimpleKeyValue(
                                  Pair.of("1", Arrays.asList(STRINGS_ARRAY)),
@@ -367,7 +367,7 @@ public class DefaultEnhancedDocumentTest {
             .putObject("nullKey", null)
             .putObject(SIMPLE_NUMBER_KEY, 1)
             .putObject(SIMPLE_STRING_KEY, SIMPLE_STRING)
-            .putObjectList("numberList", Arrays.asList(1, 2, 3))
+            .putList("numberList", Arrays.asList(1, 2, 3))
             .putObject("simpleDate", LocalDate.MIN)
             .putStringSet("stringSet", Stream.of("one", "two").collect(Collectors.toSet()))
             .putBytes("sdkByteKey", SdkBytes.fromUtf8String("a"))

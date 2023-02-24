@@ -15,13 +15,10 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.mapper;
 
-import static software.amazon.awssdk.enhanced.dynamodb.TableMetadata.primaryIndexName;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -36,10 +33,8 @@ import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocument;
-import software.amazon.awssdk.enhanced.dynamodb.internal.converter.ChainConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.ConverterProviderResolver;
 import software.amazon.awssdk.enhanced.dynamodb.internal.document.DefaultEnhancedDocument;
-import software.amazon.awssdk.enhanced.dynamodb.internal.document.DocumentUtils;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 
@@ -90,8 +85,8 @@ public final class DocumentTableSchema implements TableSchema<EnhancedDocument> 
             return null;
         }
         DefaultEnhancedDocument.DefaultBuilder builder = DefaultEnhancedDocument.builder();
-        return builder.attributeValueMap(attributeMap)
-                      .attributeConverterProviders(attributeConverterProviders)
+        attributeMap.forEach(builder::putObject);
+        return builder.attributeConverterProviders(attributeConverterProviders)
                       .build();
     }
 
@@ -109,7 +104,7 @@ public final class DocumentTableSchema implements TableSchema<EnhancedDocument> 
             return null;
         }
         List<AttributeConverterProvider> providers = mergeAttributeConverterProviders(item);
-        return DocumentUtils.objectMapToAttributeMap(item.toMap(), providers);
+        return item.toBuilder().attributeConverterProviders(providers).build().toAttributeValueMap();
     }
 
     private List<AttributeConverterProvider> mergeAttributeConverterProviders(EnhancedDocument item) {
@@ -133,7 +128,7 @@ public final class DocumentTableSchema implements TableSchema<EnhancedDocument> 
                                           .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         List<AttributeConverterProvider> providers = mergeAttributeConverterProviders(item);
-        return DocumentUtils.objectMapToAttributeMap(filteredList, providers);
+        return item.toBuilder().attributeConverterProviders(providers).build().toAttributeValueMap();
     }
 
     @Override
@@ -142,8 +137,11 @@ public final class DocumentTableSchema implements TableSchema<EnhancedDocument> 
             return null;
         }
         List<AttributeConverterProvider> providers = mergeAttributeConverterProviders(item);
-        Object sourceObject = item.toMap().get(attributeName);
-        return sourceObject != null ? DocumentUtils.convert(sourceObject, providers) : null;
+        return item.toBuilder()
+                   .attributeConverterProviders(providers)
+                   .build()
+                   .toAttributeValueMap()
+                   .get(attributeName);
     }
 
     @Override
