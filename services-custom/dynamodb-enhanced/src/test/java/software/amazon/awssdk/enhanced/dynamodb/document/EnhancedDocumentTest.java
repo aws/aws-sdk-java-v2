@@ -16,6 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb.document;
 
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider.defaultProvider;
 import static software.amazon.awssdk.enhanced.dynamodb.document.DefaultEnhancedDocumentTest.ARRAY_AND_MAP_IN_JSON;
 import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.enhanced.dynamodb.document.DefaultEnhancedDocumentTest.NUMBER_STRING_ARRAY;
@@ -33,6 +34,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.converters.document.CustomAttributeForDocumentConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.converters.document.CustomClassForDocumentAPI;
@@ -45,7 +47,7 @@ public class EnhancedDocumentTest {
     private static Stream<Arguments> documentsCreatedFromStaticMethods() {
         Map<String, Object> map = getStringObjectMap();
         return Stream.of(
-            Arguments.of(EnhancedDocument.fromJson(ARRAY_AND_MAP_IN_JSON)),
+            Arguments.of(EnhancedDocument.fromJson(ARRAY_AND_MAP_IN_JSON,Arrays.asList(defaultProvider()))),
             Arguments.of(EnhancedDocument.fromMap(map)));
     }
 
@@ -68,7 +70,7 @@ public class EnhancedDocumentTest {
 
         enhancedDocument.getJson("mapKey").equals(INNER_JSON);
 
-        assertThat(enhancedDocument.getSdkNumber("numberKey").intValue()).isEqualTo(1);
+        assertThat(enhancedDocument.getNumber("numberKey").intValue()).isEqualTo(1);
 
         assertThat(enhancedDocument.getList("numberList")
                                    .stream()
@@ -82,18 +84,28 @@ public class EnhancedDocumentTest {
             .isEqualTo(Arrays.asList(NUMBER_STRING_ARRAY));
 
 
-        assertThat(enhancedDocument.getMapAsDocument("mapKey").toJson())
-            .isEqualTo(EnhancedDocument.fromJson(INNER_JSON).toJson());
+        assertThat(enhancedDocument.getEnhancedDocument("mapKey").toJson())
+            .isEqualTo(EnhancedDocument.fromJson(INNER_JSON, Arrays.asList(defaultProvider())).toJson());
 
         // This is same as V1, where the Json List of String is identified as List of Strings rather than set of string
-        assertThat(enhancedDocument.getMapAsDocument("mapKey").getList("1")).isEqualTo(Arrays.asList(STRINGS_ARRAY));
-        assertThat(enhancedDocument.getMapAsDocument("mapKey").getStringSet("1")).isNull();
+        assertThat(enhancedDocument.getEnhancedDocument("mapKey").getList("1")).isEqualTo(Arrays.asList(STRINGS_ARRAY));
+        assertThat(enhancedDocument.getEnhancedDocument("mapKey").getStringSet("1")).isNull();
     }
 
     @Test
     void nullArgsInStaticConstructor() {
-        assertThat(EnhancedDocument.fromMap(null)).isNull();
-        assertThat(EnhancedDocument.fromJson(null)).isNull();
+
+        assertThatExceptionOfType(NullPointerException.class)
+            .isThrownBy(() -> EnhancedDocument.fromMap(null))
+            .withMessage("attributeMap must not be null.");
+
+        assertThatExceptionOfType(NullPointerException.class)
+            .isThrownBy(() -> EnhancedDocument.fromJson(null, Arrays.asList(defaultProvider())))
+            .withMessage("json must not be null.");
+
+        assertThatExceptionOfType(NullPointerException.class)
+            .isThrownBy(() -> EnhancedDocument.fromAttributeValueMap(null))
+            .withMessage("attributeValueMap must not be null.");
     }
 
     @Test
@@ -101,7 +113,8 @@ public class EnhancedDocumentTest {
 
         Set<String> stringSet = Stream.of(STRINGS_ARRAY).collect(Collectors.toSet());
         EnhancedDocument enhancedDocument = EnhancedDocument.builder()
-                                                            .addStringSet("stringSet", stringSet)
+            .addAttributeConverterProvider(defaultProvider())
+                                                            .putStringSet("stringSet", stringSet)
                                                             .build();
 
         assertThat(enhancedDocument.getStringSet("stringSet")).isEqualTo(stringSet);
@@ -110,7 +123,7 @@ public class EnhancedDocumentTest {
 
     @Test
     void toBuilderOverwritingOldJson() {
-        EnhancedDocument document = EnhancedDocument.fromJson(ARRAY_AND_MAP_IN_JSON);
+        EnhancedDocument document = EnhancedDocument.fromJson(ARRAY_AND_MAP_IN_JSON, Arrays.asList(defaultProvider()));
         assertThat(document.toJson()).isEqualTo(ARRAY_AND_MAP_IN_JSON);
         EnhancedDocument fromBuilder = document.toBuilder().json(INNER_JSON).build();
         assertThat(fromBuilder.toJson()).isEqualTo(INNER_JSON);
@@ -119,41 +132,41 @@ public class EnhancedDocumentTest {
     @Test
     void builder_with_NullKeys() {
         assertThatExceptionOfType(IllegalArgumentException.class)
-            .isThrownBy(() -> EnhancedDocument.builder().addString(null, "Sample"))
+            .isThrownBy(() -> EnhancedDocument.builder().putString(null, "Sample"))
             .withMessage(EMPTY_OR_NULL_ERROR);
 
         assertThatExceptionOfType(IllegalArgumentException.class)
-            .isThrownBy(() -> EnhancedDocument.builder().addNull(null))
+            .isThrownBy(() -> EnhancedDocument.builder().putNull(null))
             .withMessage(EMPTY_OR_NULL_ERROR);
 
         assertThatExceptionOfType(IllegalArgumentException.class)
-            .isThrownBy(() -> EnhancedDocument.builder().addNumber(null, 3))
+            .isThrownBy(() -> EnhancedDocument.builder().putNumber(null, 3))
             .withMessage(EMPTY_OR_NULL_ERROR);
 
         assertThatExceptionOfType(IllegalArgumentException.class)
-            .isThrownBy(() -> EnhancedDocument.builder().addList(null, Arrays.asList()))
+            .isThrownBy(() -> EnhancedDocument.builder().putObjectList(null, Arrays.asList()))
             .withMessage(EMPTY_OR_NULL_ERROR);
 
         assertThatExceptionOfType(IllegalArgumentException.class)
-            .isThrownBy(() -> EnhancedDocument.builder().addSdkBytes(null, SdkBytes.fromUtf8String("a")))
+            .isThrownBy(() -> EnhancedDocument.builder().putBytes(null, SdkBytes.fromUtf8String("a")))
             .withMessage(EMPTY_OR_NULL_ERROR);
 
         assertThatExceptionOfType(IllegalArgumentException.class)
-            .isThrownBy(() -> EnhancedDocument.builder().addMap(null, new HashMap<>()))
+            .isThrownBy(() -> EnhancedDocument.builder().putMap(null, new HashMap<>()))
             .withMessage(EMPTY_OR_NULL_ERROR);
 
         assertThatExceptionOfType(IllegalArgumentException.class)
-            .isThrownBy(() -> EnhancedDocument.builder().addStringSet(null, Stream.of("a").collect(Collectors.toSet())))
+            .isThrownBy(() -> EnhancedDocument.builder().putStringSet(null, Stream.of("a").collect(Collectors.toSet())))
             .withMessage(EMPTY_OR_NULL_ERROR);
 
         assertThatExceptionOfType(IllegalArgumentException.class)
-            .isThrownBy(() -> EnhancedDocument.builder().addNumberSet(null, Stream.of(1).collect(Collectors.toSet())))
+            .isThrownBy(() -> EnhancedDocument.builder().putNumberSet(null, Stream.of(1).collect(Collectors.toSet())))
             .withMessage(EMPTY_OR_NULL_ERROR);
         assertThatExceptionOfType(IllegalArgumentException.class)
-            .isThrownBy(() -> EnhancedDocument.builder().addStringSet(null, Stream.of("a").collect(Collectors.toSet())))
+            .isThrownBy(() -> EnhancedDocument.builder().putStringSet(null, Stream.of("a").collect(Collectors.toSet())))
             .withMessage(EMPTY_OR_NULL_ERROR);
         assertThatExceptionOfType(IllegalArgumentException.class)
-            .isThrownBy(() -> EnhancedDocument.builder().addSdkBytesSet(null, Stream.of(SdkBytes.fromUtf8String("a")).collect(Collectors.toSet())))
+            .isThrownBy(() -> EnhancedDocument.builder().putBytesSet(null, Stream.of(SdkBytes.fromUtf8String("a")).collect(Collectors.toSet())))
             .withMessage(EMPTY_OR_NULL_ERROR);
     }
 
@@ -161,20 +174,13 @@ public class EnhancedDocumentTest {
     void errorWhen_NoAttributeConverter_IsProviderIsDefined() {
         CustomClassForDocumentAPI customObject = CustomClassForDocumentAPI.builder().string("str_one").aBoolean(false).build();
 
-        assertThatExceptionOfType(IllegalStateException.class).isThrownBy(
-            () -> EnhancedDocument.builder().add("customObject", customObject).build())
-                                                              .withMessage("Converter not found for EnhancedType(software.amazon.awssdk.enhanced.dynamodb.converters.document.CustomClassForDocumentAPI)");
+        EnhancedDocument enhancedDocument =
+            EnhancedDocument.builder().addAttributeConverterProvider(defaultProvider()).putObject("customObject", customObject).build();
 
-        assertThatExceptionOfType(IllegalStateException.class).isThrownBy(
-            () -> EnhancedDocument.builder().addList("customObject", Arrays.asList(customObject)).build())
-                                                              .withMessage("Converter not found for EnhancedType(software.amazon.awssdk.enhanced.dynamodb.converters.document.CustomClassForDocumentAPI)");
-
-        Map<String, CustomClassForDocumentAPI> customClassMap = new LinkedHashMap<>();
-        customClassMap.put("one", customObject);
-
-        assertThatExceptionOfType(IllegalStateException.class).isThrownBy(
-            () -> EnhancedDocument.builder().addMap("customObject", customClassMap).build())
-                                                              .withMessage("Converter not found for EnhancedType(software.amazon.awssdk.enhanced.dynamodb.converters.document.CustomClassForDocumentAPI)");
+        assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> enhancedDocument.get("customObject",
+                                                                                                     EnhancedType.of(CustomClassForDocumentAPI.class)))
+            .withMessage("AttributeConverter not found for type EnhancedType(software.amazon.awssdk.enhanced.dynamodb.converters.document.CustomClassForDocumentAPI). "
+                         + "Please add an AttributeConverterProvider for this type. If it is a default type, add the DefaultAttributeConverterProvider to the Document builder.");
     }
 
     @Test
@@ -183,14 +189,16 @@ public class EnhancedDocumentTest {
                                                                           .longNumber(26L)
                                                                           .aBoolean(false).build();
         EnhancedDocument afterCustomClass = EnhancedDocument.builder()
-                                                            .attributeConverterProviders(CustomAttributeForDocumentConverterProvider.create())
-                                                            .addString("direct_attr", "sample_value")
-                                                            .add("customObject", customObject).build();
+                                                            .attributeConverterProviders(
+                                                                defaultProvider(),
+                                                                CustomAttributeForDocumentConverterProvider.create())
+                                                            .putString("direct_attr", "sample_value")
+                                                            .putObject("customObject", customObject).build();
 
         EnhancedDocument beforeCustomClass = EnhancedDocument.builder()
-                                                             .addString("direct_attr", "sample_value")
-                                                             .add("customObject", customObject)
-                                                             .attributeConverterProviders(CustomAttributeForDocumentConverterProvider.create())
+                                                             .putString("direct_attr", "sample_value")
+                                                             .putObject("customObject", customObject)
+                                                             .attributeConverterProviders(CustomAttributeForDocumentConverterProvider.create(), defaultProvider())
                                                              .build();
         assertThat(afterCustomClass.toJson()).isEqualTo("{\"direct_attr\": \"sample_value\",\"customObject\": {\"foo\": "
                                                         + "\"str_one\"}}");
@@ -207,15 +215,15 @@ public class EnhancedDocumentTest {
                                                                              .longNumber(27L)
                                                                              .aBoolean(true).build();
         EnhancedDocument afterCustomClass = EnhancedDocument.builder()
-                                                            .attributeConverterProviders(CustomAttributeForDocumentConverterProvider.create())
-                                                            .addString("direct_attr", "sample_value")
-                                                            .addList("customObject", Arrays.asList(customObjectOne,
-                                                                                                   customObjectTwo)).build();
+                                                            .attributeConverterProviders(CustomAttributeForDocumentConverterProvider.create(), defaultProvider())
+                                                            .putString("direct_attr", "sample_value")
+                                                            .putObjectList("customObject", Arrays.asList(customObjectOne,
+                                                                                                         customObjectTwo)).build();
         EnhancedDocument beforeCustomClass = EnhancedDocument.builder()
-                                                             .addString("direct_attr", "sample_value")
-                                                             .addList("customObject", Arrays.asList(customObjectOne,
-                                                                                                    customObjectTwo))
-                                                             .attributeConverterProviders(CustomAttributeForDocumentConverterProvider.create())
+                                                             .putString("direct_attr", "sample_value")
+                                                             .putObjectList("customObject", Arrays.asList(customObjectOne,
+                                                                                                          customObjectTwo))
+                                                             .attributeConverterProviders(CustomAttributeForDocumentConverterProvider.create(), defaultProvider())
                                                              .build();
         assertThat(afterCustomClass.toJson()).isEqualTo("{\"direct_attr\": \"sample_value\",\"customObject\": [{\"foo\": "
                                                         + "\"str_one\"}, {\"foo\": \"str_two\"}]}");
@@ -237,12 +245,12 @@ public class EnhancedDocumentTest {
 
         EnhancedDocument afterCustomClass = EnhancedDocument.builder()
                                                             .attributeConverterProviders(CustomAttributeForDocumentConverterProvider.create())
-                                                            .addString("direct_attr", "sample_value")
-                                                            .addMap("customObject", map)
+                                                            .putString("direct_attr", "sample_value")
+                                                            .putMap("customObject", map)
                                                             .build();
         EnhancedDocument beforeCustomClass = EnhancedDocument.builder()
-                                                             .addString("direct_attr", "sample_value")
-                                                             .addMap("customObject", map)
+                                                             .putString("direct_attr", "sample_value")
+                                                             .putMap("customObject", map)
                                                              .attributeConverterProviders(CustomAttributeForDocumentConverterProvider.create())
                                                              .build();
 

@@ -36,10 +36,10 @@ public class DocumentAttributeValueValidator {
             return enhancedAttributeValue.asString().equals(enhancedDocument.getString(key));
         }
         if (enhancedAttributeValue.isNumber()) {
-            return enhancedAttributeValue.asNumber().equals(enhancedDocument.getSdkNumber(key).stringValue());
+            return enhancedAttributeValue.asNumber().equals(enhancedDocument.getNumber(key).stringValue());
         }
         if (enhancedAttributeValue.isBytes()) {
-            return enhancedAttributeValue.asBytes().equals(enhancedDocument.getSdkBytes(key));
+            return enhancedAttributeValue.asBytes().equals(enhancedDocument.getBytes(key));
         }
         if (enhancedAttributeValue.isBoolean()) {
             return enhancedAttributeValue.asBoolean().equals(enhancedDocument.getBoolean(key));
@@ -48,12 +48,12 @@ public class DocumentAttributeValueValidator {
             return enhancedDocument.isNull(key);
         }
         if (enhancedAttributeValue.isMap()) {
-            return validateMapAsDocument(enhancedAttributeValue.asMap(), enhancedDocument.getMapAsDocument(key))
+            return validateMapAsDocument(enhancedAttributeValue.asMap(), enhancedDocument.getEnhancedDocument(key))
                    && validateGenericMap(enhancedAttributeValue.asMap(), enhancedDocument.getRawMap(key));
         }
         if (enhancedAttributeValue.isSetOfBytes()) {
-            return enhancedAttributeValue.asSetOfBytes().containsAll(enhancedDocument.getSdkBytesSet(key))
-                   && enhancedDocument.getSdkBytesSet(key).containsAll(enhancedAttributeValue.asSetOfBytes());
+            return enhancedAttributeValue.asSetOfBytes().containsAll(enhancedDocument.getBytesSet(key))
+                   && enhancedDocument.getBytesSet(key).containsAll(enhancedAttributeValue.asSetOfBytes());
         }
         if (enhancedAttributeValue.isSetOfNumbers()) {
             List<SdkNumber> strings =
@@ -138,7 +138,7 @@ public class DocumentAttributeValueValidator {
     }
 
     private static boolean validateMapAsDocument(Map<String, AttributeValue> attributeValueMap, EnhancedDocument mapAsDocument) {
-        if (attributeValueMap.size() != mapAsDocument.asMap().size()) {
+        if (attributeValueMap.size() != mapAsDocument.toMap().size()) {
             return false;
         }
         return attributeValueMap.entrySet().stream()

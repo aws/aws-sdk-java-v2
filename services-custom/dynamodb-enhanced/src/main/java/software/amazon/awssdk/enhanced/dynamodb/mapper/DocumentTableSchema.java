@@ -36,8 +36,10 @@ import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocument;
+import software.amazon.awssdk.enhanced.dynamodb.internal.converter.ChainConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.ConverterProviderResolver;
 import software.amazon.awssdk.enhanced.dynamodb.internal.document.DefaultEnhancedDocument;
+import software.amazon.awssdk.enhanced.dynamodb.internal.document.DocumentUtils;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 
@@ -103,24 +105,45 @@ public final class DocumentTableSchema implements TableSchema<EnhancedDocument> 
      */
     @Override
     public Map<String, AttributeValue> itemToMap(EnhancedDocument item, boolean ignoreNulls) {
-        return item != null ? item.toAttributeValueMap() : null;
+        if (item == null) {
+            return null;
+        }
+        List<AttributeConverterProvider> providers = mergeAttributeConverterProviders(item);
+        return DocumentUtils.objectMapToAttributeMap(item.toMap(), providers);
     }
+
+    private List<AttributeConverterProvider> mergeAttributeConverterProviders(EnhancedDocument item) {
+        List<AttributeConverterProvider> providers = new ArrayList<>();
+        if(item.attributeConverterProviders() != null){
+            providers.addAll(item.attributeConverterProviders());
+        }
+        providers.addAll(attributeConverterProviders);
+        return providers;
+    }
+
 
     @Override
     public Map<String, AttributeValue> itemToMap(EnhancedDocument item, Collection<String> attributes) {
-        Map<String, AttributeValue> result = new HashMap<>();
-        attributes.forEach(attribute ->
-                               result.put(attribute,  item.toAttributeValueMap().get(attribute)));
-        return result;
+        if(item.toMap() == null){
+            return null;
+        }
+        Map<String, Object> filteredList = item.toMap().entrySet()
+                                          .stream()
+                                          .filter(entry -> attributes.contains(entry.getKey()))
+                                          .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
+        List<AttributeConverterProvider> providers = mergeAttributeConverterProviders(item);
+        return DocumentUtils.objectMapToAttributeMap(filteredList, providers);
     }
 
     @Override
     public AttributeValue attributeValue(EnhancedDocument item, String attributeName) {
-        if (item == null || item.toAttributeValueMap() == null) {
+        if (item == null || item.toMap() == null) {
             return null;
         }
-        return item.toAttributeValueMap().get(attributeName);
+        List<AttributeConverterProvider> providers = mergeAttributeConverterProviders(item);
+        Object sourceObject = item.toMap().get(attributeName);
+        return sourceObject != null ? DocumentUtils.convert(sourceObject, providers) : null;
     }
 
     @Override
@@ -135,7 +158,7 @@ public final class DocumentTableSchema implements TableSchema<EnhancedDocument> 
 
     @Override
     public List<String> attributeNames() {
-        return tableMetadata.primaryKeys().stream().collect(Collectors.toList());
+        return tableMetadata.keyAttributes().stream().map(key -> key.name()).collect(Collectors.toList());
     }
 
     @Override
@@ -156,23 +179,25 @@ public final class DocumentTableSchema implements TableSchema<EnhancedDocument> 
 
         /**
          * Adds information about a partition key associated with a specific index.
-         *
-         * @param attributeName      the name of the attribute that represents the partition key
+         * @param indexName the name of the index to associate the partition key with
+         * @param attributeName the name of the attribute that represents the partition key
          * @param attributeValueType the {@link AttributeValueType} of the partition key
+         * @throws IllegalArgumentException if a partition key has already been defined for this index
          */
-        public Builder primaryKey(String attributeName, AttributeValueType attributeValueType) {
-            staticTableMetaDataBuilder.addIndexPartitionKey(primaryIndexName(), attributeName, attributeValueType);
+        public Builder addIndexPartitionKey(String indexName, String attributeName, AttributeValueType attributeValueType) {
+            staticTableMetaDataBuilder.addIndexPartitionKey(indexName, attributeName, attributeValueType);
             return this;
         }
 
         /**
          * Adds information about a sort key associated with a specific index.
-         *
-         * @param attributeName      the name of the attribute that represents the sort key
+         * @param indexName the name of the index to associate the sort key with
+         * @param attributeName the name of the attribute that represents the sort key
          * @param attributeValueType the {@link AttributeValueType} of the sort key
+         * @throws IllegalArgumentException if a sort key has already been defined for this index
          */
-        public Builder sortKey(String attributeName, AttributeValueType attributeValueType) {
-            staticTableMetaDataBuilder.addIndexSortKey(primaryIndexName(), attributeName, attributeValueType);
+        public Builder addIndexSortKey(String indexName, String attributeName, AttributeValueType attributeValueType) {
+            staticTableMetaDataBuilder.addIndexSortKey(indexName, attributeName, attributeValueType);
             return this;
         }
 

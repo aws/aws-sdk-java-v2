@@ -61,6 +61,7 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.Opt
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.OptionalLongAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.PeriodAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.SdkBytesAttributeConverter;
+import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.SdkNumberAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.SetAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.ShortAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.StringAttributeConverter;
@@ -247,7 +248,8 @@ public final class DefaultAttributeConverterProvider implements AttributeConvert
                                                 .addConverter(UuidAttributeConverter.create())
                                                 .addConverter(ZonedDateTimeAsStringAttributeConverter.create())
                                                 .addConverter(ZoneIdAttributeConverter.create())
-                                                .addConverter(ZoneOffsetAttributeConverter.create());
+                                                .addConverter(ZoneOffsetAttributeConverter.create())
+                                                .addConverter(SdkNumberAttributeConverter.create());
     }
 
     /**
