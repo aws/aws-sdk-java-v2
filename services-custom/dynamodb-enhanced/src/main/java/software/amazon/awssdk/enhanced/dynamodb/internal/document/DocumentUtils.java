@@ -22,6 +22,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -111,7 +112,7 @@ public final class DocumentUtils {
     }
 
     private static AttributeValue convertSetToAttributeValue(Set<?> objects,
-                                                             AttributeConverterProvider attributeConverterProvider) {
+                                                             List<AttributeConverterProvider> attributeConverterProviders) {
 
         if (!objects.isEmpty()) {
             Iterator<?> iterator = objects.iterator();
@@ -120,36 +121,56 @@ public final class DocumentUtils {
                 firstNonNullElement = iterator.next();
             }
             if (firstNonNullElement != null) {
-                return attributeConverterProvider.converterFor(EnhancedType.setOf(firstNonNullElement.getClass()))
-                                                 .transformFrom((Set) objects);
+                return getAttributeConverterOrError(EnhancedType.setOf(firstNonNullElement.getClass()),
+                                                    attributeConverterProviders).transformFrom((Set) objects);
             }
         }
         // If Set is empty or if all elements are null then default to empty string set.
         return AttributeValue.fromSs(new ArrayList<>());
     }
 
-
     /**
      * Converts sourceObject to AttributeValue based on provided AttributeConverterProvider.
      */
-    public static AttributeValue convert(Object sourceObject, AttributeConverterProvider attributeConverterProvider) {
+    public static AttributeValue convert(Object sourceObject, List<AttributeConverterProvider> attributeConverterProviders) {
+
         if (sourceObject == null) {
             return NULL_ATTRIBUTE_VALUE;
         }
+
+        if(sourceObject instanceof AttributeValue){
+            return (AttributeValue) sourceObject;
+        }
+
         if (sourceObject instanceof List) {
-            return convertListToAttributeValue((Collection) sourceObject, attributeConverterProvider);
+            return convertListToAttributeValue((Collection) sourceObject, attributeConverterProviders);
         }
         if (sourceObject instanceof Set) {
-            return convertSetToAttributeValue((Set<?>) sourceObject, attributeConverterProvider);
+            return convertSetToAttributeValue((Set<?>) sourceObject, attributeConverterProviders);
         }
         if (sourceObject instanceof Map) {
-            return convertMapToAttributeValue((Map<?, ?>) sourceObject, attributeConverterProvider);
+            return convertMapToAttributeValue((Map<?, ?>) sourceObject, attributeConverterProviders);
         }
-        AttributeConverter attributeConverter = attributeConverterProvider.converterFor(EnhancedType.of(sourceObject.getClass()));
-        if (attributeConverter == null) {
-            throw new IllegalStateException("Converter not found for Class " + sourceObject.getClass().getSimpleName());
-        }
+
+        AttributeConverter attributeConverter = getAttributeConverterOrError(EnhancedType.of(sourceObject.getClass()),
+                                                                             attributeConverterProviders);
         return attributeConverter.transformFrom(sourceObject);
+    }
+
+    public static<T> AttributeConverter<T> getAttributeConverterOrError(EnhancedType<T> type,
+                                                                        List<AttributeConverterProvider> attributeConverterProviders) {
+        return attributeConverterProviders.stream()
+                                          .map(provider -> {
+                                              try {
+                                                  return provider.converterFor(type);
+                                              } catch (IllegalStateException illegalStateException) {
+                                                  return null;
+                                              }
+                                          })
+                                          .filter(Objects::nonNull)
+                                          .findFirst()
+            .orElseThrow(() -> new IllegalStateException("AttributeConverter not found for type " + type
+                                                         + ". Please add an AttributeConverterProvider for this type. If it is a default type, add the DefaultAttributeConverterProvider to the Document builder."));
     }
 
     /**
@@ -169,17 +190,35 @@ public final class DocumentUtils {
      * Iterators Collection of objects and converts each element.
      */
     private static AttributeValue convertListToAttributeValue(Collection<?> objects,
-                                                              AttributeConverterProvider attributeConverterProvider) {
+                                                              List<AttributeConverterProvider> attributeConverterProvider) {
         return AttributeValue.fromL(objects.stream()
                                            .map(obj -> convert(obj, attributeConverterProvider))
                                            .collect(Collectors.toList()));
     }
 
     private static AttributeValue convertMapToAttributeValue(Map<?, ?> objects,
-                                                             AttributeConverterProvider attributeConverterProvider) {
+                                                             List<AttributeConverterProvider> attributeConverterProvider) {
         Map<String, AttributeValue> attributeValueMap = new HashMap<>();
         objects.forEach((key, value) -> attributeValueMap.put(String.valueOf(key), convert(value, attributeConverterProvider)));
         return AttributeValue.fromM(attributeValueMap);
     }
+
+    public static Map<String, AttributeValue> objectMapToAttributeMap(Map<String, Object> objectMap,
+                                                                       List<AttributeConverterProvider> attributeConverterProvider) {
+        if (objectMap == null) {
+            return null;
+        }
+        Map<String, AttributeValue> result = new LinkedHashMap<>(objectMap.size());
+        objectMap.forEach((key, value) -> {
+            if (value instanceof AttributeValue) {
+                result.put(key, (AttributeValue) value);
+            } else {
+                result.put(key, convert(value, attributeConverterProvider));
+            }
+        });
+        return result;
+    }
+
+
 
 }

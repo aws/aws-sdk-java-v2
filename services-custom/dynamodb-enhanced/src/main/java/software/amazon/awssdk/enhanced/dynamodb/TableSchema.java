@@ -93,7 +93,7 @@ public interface TableSchema<T> {
      * @return A {@link DocumentTableSchema.Builder} for instantiating DocumentTableSchema.
      *
      */
-    static DocumentTableSchema.Builder fromDocumentSchemaBuilder(){
+    static DocumentTableSchema.Builder documentSchemaBuilder(){
         return DocumentTableSchema.builder();
     }
 

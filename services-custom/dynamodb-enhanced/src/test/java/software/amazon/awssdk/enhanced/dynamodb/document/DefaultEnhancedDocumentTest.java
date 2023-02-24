@@ -28,6 +28,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -86,8 +87,8 @@ public class DefaultEnhancedDocumentTest {
     private static Stream<Arguments> attributeValueMapsCorrespondingDocuments() {
 
 
-        DefaultEnhancedDocument simpleKeyValueDoc = (DefaultEnhancedDocument)documentBuilder().add(SIMPLE_STRING_KEY,
-                                                                                                  SIMPLE_STRING)
+        DefaultEnhancedDocument simpleKeyValueDoc = (DefaultEnhancedDocument)documentBuilder().putObject(SIMPLE_STRING_KEY,
+                                                                                                         SIMPLE_STRING)
                                                   .build();
 
         return Stream.of(
@@ -96,7 +97,7 @@ public class DefaultEnhancedDocumentTest {
             Arguments.of(map()
                              .withKeyValue("nullKey", AttributeValue.fromNul(true)),
                          documentBuilder()
-                             .addNull("nullKey")
+                             .putNull("nullKey")
                              .build(),
                          "{" + "\"nullKey\": null" + "}"
             ),
@@ -113,8 +114,8 @@ public class DefaultEnhancedDocumentTest {
                              .withKeyValue(SIMPLE_NUMBER_KEY, AttributeValue.fromN(SIMPLE_INT_NUMBER))
                              .withKeyValue(BIG_DECIMAL_NUMBER_KEY, AttributeValue.fromN(new BigDecimal(10).toString()))
                 , documentBuilder()
-                             .add(SIMPLE_NUMBER_KEY, Integer.valueOf(SIMPLE_INT_NUMBER))
-                             .add(BIG_DECIMAL_NUMBER_KEY, new BigDecimal(10))
+                             .putObject(SIMPLE_NUMBER_KEY, Integer.valueOf(SIMPLE_INT_NUMBER))
+                             .putObject(BIG_DECIMAL_NUMBER_KEY, new BigDecimal(10))
                              .build(),
                          "{" + "\"numberKey\": 10," + "\"bigDecimalNumberKey\": 10" + "}"
 
@@ -124,8 +125,8 @@ public class DefaultEnhancedDocumentTest {
                              .withKeyValue(SIMPLE_STRING_KEY, AttributeValue.fromS(SIMPLE_STRING))
                              .withKeyValue(SIMPLE_NUMBER_KEY, AttributeValue.fromN(SIMPLE_INT_NUMBER))
                 , documentBuilder()
-                             .add(SIMPLE_STRING_KEY, SIMPLE_STRING)
-                             .add(SIMPLE_NUMBER_KEY, 10)
+                             .putObject(SIMPLE_STRING_KEY, SIMPLE_STRING)
+                             .putObject(SIMPLE_NUMBER_KEY, 10)
                              .build(),
                          "{\"stringKey\": \"stringValue\",\"numberKey\": 10}"
             ),
@@ -137,10 +138,10 @@ public class DefaultEnhancedDocumentTest {
                              .withKeyValue(BOOL_KEY, AttributeValue.fromBool(true))
                              .withKeyValue(NULL_KEY, AttributeValue.fromNul(true))
                 , documentBuilder()
-                             .add(SIMPLE_STRING_KEY, SIMPLE_STRING)
-                             .add(SIMPLE_NUMBER_KEY, 10)
-                             .add(BOOL_KEY, true)
-                             .add(NULL_KEY, null)
+                             .putObject(SIMPLE_STRING_KEY, SIMPLE_STRING)
+                             .putObject(SIMPLE_NUMBER_KEY, 10)
+                             .putObject(BOOL_KEY, true)
+                             .putObject(NULL_KEY, null)
                              .build()
                 , "{\"stringKey\": \"stringValue\",\"numberKey\": 10,\"boolKey\": true,\"nullKey\": null}"
             ),
@@ -159,8 +160,8 @@ public class DefaultEnhancedDocumentTest {
                                                                                     AttributeValue.fromS(SIMPLE_STRING))))
                     )))
                 , documentBuilder()
-                    .addList("numberStringSet",
-                             Arrays.asList("One",
+                    .putObjectList("numberStringSet",
+                                   Arrays.asList("One",
                                            1,
                                            null,
                                            new HashSet<String>(),
@@ -177,12 +178,12 @@ public class DefaultEnhancedDocumentTest {
                              .withKeyValue(SDK_BYTES_SET_KEY, AttributeValue.fromBs(Arrays.asList(SDK_BYTES_ARRAY)))
                              .withKeyValue(STRING_SET_KEY, AttributeValue.fromSs(Arrays.asList(STRINGS_ARRAY))),
                          documentBuilder()
-                             .add(SIMPLE_STRING_KEY, SIMPLE_STRING)
-                             .addNumberSet(NUMBER_SET_KEY, getNumberSet(1, 2, 3))
-                             .addSdkBytesSet(SDK_BYTES_SET_KEY, getSdkBytesSet(SDK_BYTES_ARRAY[0],
-                                                                               SDK_BYTES_ARRAY[1],
-                                                                               SDK_BYTES_ARRAY[2]))
-                             .addStringSet(STRING_SET_KEY, getStringSet(STRINGS_ARRAY))
+                             .putObject(SIMPLE_STRING_KEY, SIMPLE_STRING)
+                             .putNumberSet(NUMBER_SET_KEY, getNumberSet(1, 2, 3))
+                             .putBytesSet(SDK_BYTES_SET_KEY, getSdkBytesSet(SDK_BYTES_ARRAY[0],
+                                                                            SDK_BYTES_ARRAY[1],
+                                                                            SDK_BYTES_ARRAY[2]))
+                             .putStringSet(STRING_SET_KEY, getStringSet(STRINGS_ARRAY))
                              .build(),
                          "{\"stringKey\": \"stringValue\",\"numberSet\": [1, 2, 3],\"sdkBytesSet\": [\"a\", \"b\", \"c\"],"
                          + "\"stringSet\": [\"a\", \"b\", \"c\"]}"),
@@ -199,10 +200,10 @@ public class DefaultEnhancedDocumentTest {
 
                                  ))),
                          documentBuilder()
-                             .add(SIMPLE_NUMBER_KEY, 1)
-                             .addList("numberList", Arrays.asList(1, 2, 3))
-                             .addSdkBytes("sdkByteKey", SdkBytes.fromUtf8String("a"))
-                             .addMap("mapKey", mapFromSimpleKeyValue(
+                             .putObject(SIMPLE_NUMBER_KEY, 1)
+                             .putObjectList("numberList", Arrays.asList(1, 2, 3))
+                             .putBytes("sdkByteKey", SdkBytes.fromUtf8String("a"))
+                             .putMap("mapKey", mapFromSimpleKeyValue(
                                  Pair.of("1", Arrays.asList(STRINGS_ARRAY)),
                                  Pair.of("2", 1)
                              ))
@@ -229,10 +230,10 @@ public class DefaultEnhancedDocumentTest {
                                                                     mapFromSimpleKeyAttributeValue(
                                                                         Pair.of(SIMPLE_STRING_KEY, AttributeValue.fromS(SIMPLE_STRING)))))))),
                          documentBuilder()
-                             .addEnhancedDocument("level1_k1", simpleKeyValueDoc)
-                             .addEnhancedDocument("level1_k2" ,
+                             .putEnhancedDocument("level1_k1", simpleKeyValueDoc)
+                             .putEnhancedDocument("level1_k2" ,
                                                   simpleKeyValueDoc.toBuilder()
-                                                                          .addEnhancedDocument("level2_k1",
+                                                                          .putEnhancedDocument("level2_k1",
                                                                                                simpleKeyValueDoc)
                                                                           .build())
                              .build() ,
@@ -285,7 +286,7 @@ public class DefaultEnhancedDocumentTest {
     public static void validateAttributeValueMapAndDocument(AttributeStringValueMap attributeStringValueMap,
                                                              DefaultEnhancedDocument enhancedDocument) {
         // assert for keys in Document
-        assertThat(attributeStringValueMap.getAttributeValueMap().keySet()).isEqualTo(enhancedDocument.asMap().keySet());
+        assertThat(attributeStringValueMap.getAttributeValueMap().keySet()).isEqualTo(enhancedDocument.toMap().keySet());
 
         attributeStringValueMap
             .getAttributeValueMap()
@@ -326,14 +327,14 @@ public class DefaultEnhancedDocumentTest {
     @Test
     void copyCreatedFromToBuilder(){
         DefaultEnhancedDocument originalDoc = (DefaultEnhancedDocument) documentBuilder()
-            .add(SIMPLE_STRING_KEY, SIMPLE_STRING)
+            .putObject(SIMPLE_STRING_KEY, SIMPLE_STRING)
             .build();
         DefaultEnhancedDocument copiedDoc = (DefaultEnhancedDocument)  originalDoc.toBuilder().build();
         DefaultEnhancedDocument copyAndAlter =
-            (DefaultEnhancedDocument)  originalDoc.toBuilder().addString("keyOne", "valueOne").build();
+            (DefaultEnhancedDocument)  originalDoc.toBuilder().putString("keyOne", "valueOne").build();
         assertThat(originalDoc.toAttributeValueMap()).isEqualTo(copiedDoc.toAttributeValueMap());
-        assertThat(originalDoc.asMap().keySet().size()).isEqualTo(1);
-        assertThat(copyAndAlter.asMap().keySet().size()).isEqualTo(2);
+        assertThat(originalDoc.toMap().keySet().size()).isEqualTo(1);
+        assertThat(copyAndAlter.toMap().keySet().size()).isEqualTo(2);
         assertThat(copyAndAlter.getString(SIMPLE_STRING_KEY)).isEqualTo(SIMPLE_STRING);
         assertThat(copyAndAlter.getString("keyOne")).isEqualTo("valueOne");
         assertThat(originalDoc).isEqualTo(copiedDoc);
@@ -343,8 +344,8 @@ public class DefaultEnhancedDocumentTest {
     void nullDocumentGet(){
 
         DefaultEnhancedDocument nullDocument = (DefaultEnhancedDocument) documentBuilder()
-            .addNull("nullDocument")
-            .addString("nonNull", "stringValue")
+            .putNull("nullDocument")
+            .putString("nonNull", "stringValue")
             .build();
         assertThat(nullDocument.isNull("nullDocument")).isTrue();
         assertThat(nullDocument.isNull("nonNull")).isFalse();
@@ -363,25 +364,25 @@ public class DefaultEnhancedDocumentTest {
     void multipleGetterForDocument(){
 
         DefaultEnhancedDocument document = (DefaultEnhancedDocument) documentBuilder()
-            .add("nullKey", null)
-            .add(SIMPLE_NUMBER_KEY, 1)
-            .add(SIMPLE_STRING_KEY, SIMPLE_STRING)
-            .addList("numberList", Arrays.asList(1, 2, 3))
-            .add("simpleDate", LocalDate.MIN)
-            .addStringSet("stringSet", Stream.of("one", "two").collect(Collectors.toSet()))
-            .addSdkBytes("sdkByteKey", SdkBytes.fromUtf8String("a"))
-            .addSdkBytesSet("sdkByteSet",
-                            Stream.of(SdkBytes.fromUtf8String("a"), SdkBytes.fromUtf8String("b")).collect(Collectors.toSet()))
-            .addNumberSet("numberSetSet", Stream.of(1, 2).collect(Collectors.toSet()))
-            .addList("numberList", Arrays.asList(1, 2, 3))
-            .addMap("simpleMap", mapFromSimpleKeyValue(Pair.of("k1", 3), Pair.of("k2", 9)))
-            .addMap("mapKey", mapFromSimpleKeyValue(Pair.of("1", Arrays.asList(STRINGS_ARRAY)), Pair.of("2", 1)))
-            .addEnhancedDocument("nestedDoc", documentBuilder().addStringSet("innerKey" ,
+            .putObject("nullKey", null)
+            .putObject(SIMPLE_NUMBER_KEY, 1)
+            .putObject(SIMPLE_STRING_KEY, SIMPLE_STRING)
+            .putObjectList("numberList", Arrays.asList(1, 2, 3))
+            .putObject("simpleDate", LocalDate.MIN)
+            .putStringSet("stringSet", Stream.of("one", "two").collect(Collectors.toSet()))
+            .putBytes("sdkByteKey", SdkBytes.fromUtf8String("a"))
+            .putBytesSet("sdkByteSet",
+                         Stream.of(SdkBytes.fromUtf8String("a"), SdkBytes.fromUtf8String("b")).collect(Collectors.toSet()))
+            .putNumberSet("numberSetSet", Stream.of(1, 2).collect(Collectors.toSet()))
+            .putObjectList("numberList", Arrays.asList(1, 2, 3))
+            .putMap("simpleMap", mapFromSimpleKeyValue(Pair.of("78b3522c-2ab3-4162-8c5d-f093fa76e68c", 3), Pair.of("4ae1f694-52ce-4cf6-8211-232ccf780da8", 9)))
+            .putMap("mapKey", mapFromSimpleKeyValue(Pair.of("1", Arrays.asList(STRINGS_ARRAY)), Pair.of("2", 1)))
+            .putEnhancedDocument("nestedDoc", documentBuilder().putStringSet("innerKey" ,
                                                                              getStringSet(STRINGS_ARRAY)).build())
             .build();
 
         assertThat(document.getString(SIMPLE_STRING_KEY)).isEqualTo(SIMPLE_STRING);
-        assertThat(document.getSdkNumber(SIMPLE_NUMBER_KEY).intValue()).isEqualTo(1);
+        assertThat(document.getNumber(SIMPLE_NUMBER_KEY).intValue()).isEqualTo(1);
 
         assertThat(document.getList("numberList", EnhancedType.of(BigDecimal.class))).isEqualTo(Arrays.asList(BigDecimal.valueOf(1), BigDecimal.valueOf(2), BigDecimal.valueOf(3)));
         assertThat(document.getList("numberList")).isEqualTo(Arrays.asList(SdkNumber.fromInteger(1),
@@ -390,8 +391,8 @@ public class DefaultEnhancedDocumentTest {
 
         assertThat(document.get("simpleDate", EnhancedType.of(LocalDate.class))).isEqualTo(LocalDate.MIN);
         assertThat(document.getStringSet("stringSet")).isEqualTo(Stream.of("one", "two").collect(Collectors.toSet()));
-        assertThat(document.getSdkBytes("sdkByteKey")).isEqualTo(SdkBytes.fromUtf8String("a"));
-        assertThat(document.getSdkBytesSet("sdkByteSet")).isEqualTo(Stream.of(SdkBytes.fromUtf8String("a"), SdkBytes.fromUtf8String("b")).collect(Collectors.toSet()));
+        assertThat(document.getBytes("sdkByteKey")).isEqualTo(SdkBytes.fromUtf8String("a"));
+        assertThat(document.getBytesSet("sdkByteSet")).isEqualTo(Stream.of(SdkBytes.fromUtf8String("a"), SdkBytes.fromUtf8String("b")).collect(Collectors.toSet()));
         assertThat(document.getNumberSet("numberSetSet")).isEqualTo(Stream.of(SdkNumber.fromInteger(1),
                                                                               SdkNumber.fromInteger(2)).collect(Collectors.toSet()));
         assertThat(document.getList("numberList").containsAll(Arrays.asList(SdkNumber.fromInteger(1),
@@ -400,11 +401,21 @@ public class DefaultEnhancedDocumentTest {
 
 
         Map<String , BigDecimal> bigDecimalMap = new LinkedHashMap<>();
-        bigDecimalMap.put("k1", BigDecimal.valueOf(3));
-        bigDecimalMap.put("k2", BigDecimal.valueOf(9));
-        assertThat(document.getMapOfType("simpleMap", EnhancedType.of(BigDecimal.class))).isEqualTo(bigDecimalMap);
-        assertThat(document.getMapAsDocument("nestedDoc").getStringSet("innerKey")).isEqualTo(getStringSet(STRINGS_ARRAY));
-        assertThat(document.getTypeOf("nullKey")).isNull();
+        bigDecimalMap.put("78b3522c-2ab3-4162-8c5d-f093fa76e68c", BigDecimal.valueOf(3));
+        bigDecimalMap.put("4ae1f694-52ce-4cf6-8211-232ccf780da8", BigDecimal.valueOf(9));
+
+        Map<UUID , BigDecimal> uuiDbigDecimalMap = new LinkedHashMap<>();
+        uuiDbigDecimalMap.put(UUID.fromString("78b3522c-2ab3-4162-8c5d-f093fa76e68c"), BigDecimal.valueOf(3));
+        uuiDbigDecimalMap.put(UUID.fromString("4ae1f694-52ce-4cf6-8211-232ccf780da8"), BigDecimal.valueOf(9));
+        assertThat(document.getMapType("simpleMap", EnhancedType.of(String.class), EnhancedType.of(BigDecimal.class))).isEqualTo(bigDecimalMap);
+        assertThat(document.getMapType("simpleMap", EnhancedType.of(UUID.class), EnhancedType.of(BigDecimal.class))).isEqualTo(uuiDbigDecimalMap);
+        assertThat(document.getEnhancedDocument("nestedDoc").getStringSet("innerKey")).isEqualTo(getStringSet(STRINGS_ARRAY));
+    }
+
+    @Test
+    void temp(){
+        System.out.println(UUID.randomUUID());
+        System.out.println(UUID.randomUUID());
     }
 
     public static class AttributeStringValueMap {

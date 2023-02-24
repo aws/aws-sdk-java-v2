@@ -46,14 +46,8 @@ public class CustomClassForDocumentAttributeConverter implements AttributeConver
         Map<String, AttributeValue> attributeValueMap = new HashMap<>();
 
         if(input.string() != null){
-            attributeValueMap.put("string", AttributeValue.fromS(input.string()));
+            attributeValueMap.put("foo", AttributeValue.fromS(input.string()));
         }
-
-        if(input.longNumber() != null){
-            attributeValueMap.put("longNumber", AttributeValue.fromN(input.longNumber().toString()));
-        }
-
-        attributeValueMap.put("aBoolean", AttributeValue.fromBool(input.aBoolean()));
 
         if(input.stringSet() != null){
             attributeValueMap.put("stringSet", AttributeValue.fromSs(input.stringSet().stream().collect(Collectors.toList())));
@@ -90,53 +84,27 @@ public class CustomClassForDocumentAttributeConverter implements AttributeConver
     @Override
     public CustomClassForDocumentAPI transformTo(AttributeValue input) {
 
-        if(input == null){
-            return null;
-        }
-
-        EnhancedAttributeValue value = EnhancedAttributeValue.fromAttributeValue(input);
-
         Map<String, AttributeValue> customAttr = input.m();
 
         CustomClassForDocumentAPI.Builder builder = CustomClassForDocumentAPI.builder();
-        builder.string(StringAttributeConverter.create().transformTo(customAttr.get("string")));
-
-        if(value.isSetOfNumbers())
-            builder.stringSet(SetAttributeConverter.setConverter(StringAttributeConverter.create()).transformTo(customAttr.get("stringSet")));
-
-        if(value.isBytes())
+        builder.string(StringAttributeConverter.create().transformTo(customAttr.get("foo")));
+        builder.stringSet(SetAttributeConverter.setConverter(StringAttributeConverter.create()).transformTo(customAttr.get("stringSet")));
         builder.binary(SdkBytes.fromByteArray(ByteArrayAttributeConverter.create().transformTo(customAttr.get("binary"))));
 
-        if(value.isSetOfBytes())
-            builder.binarySet(SetAttributeConverter.setConverter(ByteArrayAttributeConverter.create()).transformTo(customAttr.get("binarySet")));
+        builder.binarySet(SetAttributeConverter.setConverter(ByteArrayAttributeConverter.create()).transformTo(customAttr.get("binarySet")));
 
-        if(EnhancedAttributeValue.fromAttributeValue(customAttr.get("aBoolean")).isBoolean())
-            builder.aBoolean(BooleanAttributeConverter.create().transformTo(customAttr.get("aBoolean")));
-        if(value.isListOfAttributeValues())
-            builder.booleanSet(SetAttributeConverter.setConverter(BooleanAttributeConverter.create()).transformTo(customAttr.get(
+        builder.aBoolean(BooleanAttributeConverter.create().transformTo(customAttr.get("aBoolean")));
+        builder.booleanSet(SetAttributeConverter.setConverter(BooleanAttributeConverter.create()).transformTo(customAttr.get(
             "booleanSet")));
 
-        if(EnhancedAttributeValue.fromAttributeValue(customAttr.get("longNumber")).isNumber())
-            builder.longNumber(LongAttributeConverter.create().transformTo(customAttr.get("longNumber")));
+        builder.longNumber(LongAttributeConverter.create().transformTo(customAttr.get("longNumber")));
+        builder.longSet(SetAttributeConverter.setConverter(LongAttributeConverter.create()).transformTo(customAttr.get("longSet")));
 
-        if(value.isSetOfNumbers())
+        builder.bigDecimal(BigDecimalAttributeConverter.create().transformTo(customAttr.get("bigDecimal")));
+        builder.bigDecimalSet(SetAttributeConverter.setConverter(BigDecimalAttributeConverter.create()).transformTo(customAttr.get("bigDecimalSet")));
 
-            builder.longSet(SetAttributeConverter.setConverter(LongAttributeConverter.create()).transformTo(customAttr.get("longSet")));
-
-        if(value.isNumber())
-            builder.bigDecimal(BigDecimalAttributeConverter.create().transformTo(customAttr.get("bigDecimal")));
-
-        if(value.isSetOfNumbers())
-
-            builder.bigDecimalSet(SetAttributeConverter.setConverter(BigDecimalAttributeConverter.create()).transformTo(customAttr.get("bigDecimalSet")));
-
-        if(value.isListOfAttributeValues())
-
-            builder.customClassList(ListAttributeConverter.create(create()).transformTo(customAttr.get("customClassList")));
-
-        if(value.isMap())
-
-            builder.innerCustomClass(create().transformTo(customAttr.get("innerCustomClass")));
+        builder.customClassList(ListAttributeConverter.create(create()).transformTo(customAttr.get("customClassList")));
+        builder.innerCustomClass(create().transformTo(customAttr.get("innerCustomClass")));
 
         return builder.build();
     }

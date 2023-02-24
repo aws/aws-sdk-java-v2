@@ -19,104 +19,10 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import software.amazon.awssdk.core.SdkBytes;
 
 public class CustomClassForDocumentAPI {
-
-    @Override
-    public String toString() {
-        return "CustomClassForDocumentAPI{" +
-               "string='" + string + '\'' +
-               ", stringSet=" + stringSet +
-               ", binary=" + binary +
-               ", binarySet=" + binarySet +
-               ", aBoolean=" + aBoolean +
-               ", booleanSet=" + booleanSet +
-               ", longNumber=" + longNumber +
-               ", longSet=" + longSet +
-               ", bigDecimal=" + bigDecimal +
-               ", bigDecimalSet=" + bigDecimalSet +
-               ", customClassForDocumentAPIList=" + customClassForDocumentAPIList +
-               ", instantList=" + instantList +
-               ", customClassMap=" + customClassMap +
-               ", innerCustomClassForDocumentAPI=" + innerCustomClassForDocumentAPI +
-               '}';
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        CustomClassForDocumentAPI that = (CustomClassForDocumentAPI) o;
-
-        if (aBoolean != that.aBoolean) {
-            return false;
-        }
-        if (!Objects.equals(string, that.string)) {
-            return false;
-        }
-        if (!Objects.equals(stringSet, that.stringSet)) {
-            return false;
-        }
-        if (!Objects.equals(binary, that.binary)) {
-            return false;
-        }
-        if (!Objects.equals(binarySet, that.binarySet)) {
-            return false;
-        }
-        if (!Objects.equals(booleanSet, that.booleanSet)) {
-            return false;
-        }
-        if (!Objects.equals(longNumber, that.longNumber)) {
-            return false;
-        }
-        if (!Objects.equals(longSet, that.longSet)) {
-            return false;
-        }
-        if (!Objects.equals(bigDecimal, that.bigDecimal)) {
-            return false;
-        }
-        if (!Objects.equals(bigDecimalSet, that.bigDecimalSet)) {
-            return false;
-        }
-        if (!Objects.equals(customClassForDocumentAPIList, that.customClassForDocumentAPIList)) {
-            return false;
-        }
-        if (!Objects.equals(instantList, that.instantList)) {
-            return false;
-        }
-        if (!Objects.equals(customClassMap, that.customClassMap)) {
-            return false;
-        }
-        return Objects.equals(innerCustomClassForDocumentAPI, that.innerCustomClassForDocumentAPI);
-    }
-
-    @Override
-    public int hashCode() {
-        int result = string != null ? string.hashCode() : 0;
-        result = 31 * result + (stringSet != null ? stringSet.hashCode() : 0);
-        result = 31 * result + (binary != null ? binary.hashCode() : 0);
-        result = 31 * result + (binarySet != null ? binarySet.hashCode() : 0);
-        result = 31 * result + (aBoolean ? 1 : 0);
-        result = 31 * result + (booleanSet != null ? booleanSet.hashCode() : 0);
-        result = 31 * result + (longNumber != null ? longNumber.hashCode() : 0);
-        result = 31 * result + (longSet != null ? longSet.hashCode() : 0);
-        result = 31 * result + (bigDecimal != null ? bigDecimal.hashCode() : 0);
-        result = 31 * result + (bigDecimalSet != null ? bigDecimalSet.hashCode() : 0);
-        result = 31 * result + (customClassForDocumentAPIList != null ? customClassForDocumentAPIList.hashCode() : 0);
-        result = 31 * result + (instantList != null ? instantList.hashCode() : 0);
-        result = 31 * result + (customClassMap != null ? customClassMap.hashCode() : 0);
-        result = 31 * result + (innerCustomClassForDocumentAPI != null ? innerCustomClassForDocumentAPI.hashCode() : 0);
-        return result;
-    }
-
     public String string() {
         return string;
     }

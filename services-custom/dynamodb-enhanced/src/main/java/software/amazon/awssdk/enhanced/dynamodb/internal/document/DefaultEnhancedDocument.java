@@ -17,7 +17,7 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.document;
 
 import static software.amazon.awssdk.enhanced.dynamodb.internal.document.DocumentUtils.NULL_ATTRIBUTE_VALUE;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.document.DocumentUtils.convert;
-import static software.amazon.awssdk.enhanced.dynamodb.internal.document.DocumentUtils.convertAttributeValueToObject;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.document.DocumentUtils.getAttributeConverterOrError;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.document.DocumentUtils.toSimpleList;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.document.DocumentUtils.toSimpleMapValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.document.DocumentUtils.toSimpleValue;
@@ -38,11 +38,12 @@ import software.amazon.awssdk.core.SdkNumber;
 import software.amazon.awssdk.core.document.Document;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
-import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocument;
-import software.amazon.awssdk.enhanced.dynamodb.internal.converter.ChainConverterProvider;
+import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConverter;
+import software.amazon.awssdk.enhanced.dynamodb.internal.converter.StringConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.JsonItemAttributeConverter;
+import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.MapAttributeConverter;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.document.DocumentUnmarshaller;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
@@ -61,24 +62,17 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
 
     private static final JsonItemAttributeConverter JSON_ITEM_ATTRIBUTE_CONVERTER = JsonItemAttributeConverter.create();
 
-    private final Map<String, AttributeValue> attributeValueMap;
+    private final Map<String, Object> attributeValueObjectMap;
 
-    private final ChainConverterProvider attributeConverterProviders;
-
-    private DefaultEnhancedDocument(Map<String, AttributeValue> attributeValueMap) {
-        this.attributeValueMap = attributeValueMap;
-        this.attributeConverterProviders = ChainConverterProvider.create(DefaultAttributeConverterProvider.create());
-    }
-
+    private final List<AttributeConverterProvider> attributeConverterProviders;
+    
     public DefaultEnhancedDocument(DefaultBuilder builder) {
-        List<AttributeConverterProvider> providers = builder.attributeConverterProviders;
-        attributeConverterProviders =
-            ChainConverterProvider.create(providers != null && !providers.isEmpty()
-                                          ? providers
-                                          : Collections.singletonList(AttributeConverterProvider.defaultProvider()));
-        attributeValueMap = Collections.unmodifiableMap(objectMapToAttributeMap(builder.attributeValueMap,
-                                                                                attributeConverterProviders));
+        Validate.notEmpty(builder.attributeConverterProviders,
+                          "The attributeConverterProviders must not be empty", builder.attributeConverterProviders);
+        this.attributeConverterProviders = builder.attributeConverterProviders;
+        attributeValueObjectMap = Collections.unmodifiableMap(builder.attributeValueObjectMap);
     }
+
 
     public static DefaultBuilder builder() {
         return new DefaultBuilder();
@@ -87,161 +81,138 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
 
     @Override
     public Builder toBuilder() {
-        return builder().attributeValueMap(this.attributeValueMap)
-                        .attributeConverterProviders(this.attributeConverterProviders != null
-                                                     ? this.attributeConverterProviders.chainedProviders()
-                                                     : null);
-
+        return new DefaultBuilder(this.attributeValueObjectMap, this.attributeConverterProviders);
     }
 
     @Override
     public Map<String, AttributeValue> toAttributeValueMap() {
-        return attributeValueMap;
+        return DocumentUtils.objectMapToAttributeMap(attributeValueObjectMap, attributeConverterProviders);
+    }
+
+    @Override
+    public List<AttributeConverterProvider> attributeConverterProviders() {
+        return attributeConverterProviders;
     }
 
     @Override
     public boolean isNull(String attributeName) {
-        return isPresent(attributeName) && NULL_ATTRIBUTE_VALUE.equals(attributeValueMap.get(attributeName));
+        return isPresent(attributeName) && NULL_ATTRIBUTE_VALUE.equals(attributeValueObjectMap.get(attributeName));
     }
 
     @Override
     public boolean isPresent(String attributeName) {
-        return attributeValueMap.containsKey(attributeName);
+        return attributeValueObjectMap.containsKey(attributeName);
     }
 
     @Override
     public <T> T get(String attributeName, EnhancedType<T> type) {
-        AttributeConverter<T> attributeConverter = attributeConverterProviders.converterFor(type);
-        if (attributeConverter == null) {
-            throw new IllegalArgumentException("type " + type + " is not found in AttributeConverterProviders");
-        }
-        AttributeValue attributeValue = attributeValueMap.get(attributeName);
-        if (attributeValue == null) {
+        Object objectValue = attributeValueObjectMap.get(attributeName);
+        if (objectValue == null) {
             return null;
         }
-        return attributeConverter.transformTo(attributeValue);
+        AttributeConverter<T> attributeConverter = getAttributeConverterOrError(type, attributeConverterProviders);
+        return attributeConverter.transformTo(convert(objectValue, attributeConverterProviders));
     }
 
     @Override
     public String getString(String attributeName) {
-        AttributeValue attributeValue = attributeValueMap.get(attributeName);
-        return attributeValue != null
-               ? attributeConverterProviders.converterFor(EnhancedType.of(String.class)).transformTo(attributeValue)
-               : null;
+        return  get(attributeName, String.class);
     }
 
     @Override
-    public SdkNumber getSdkNumber(String attributeName) {
-        AttributeValue attributeValue = attributeValueMap.get(attributeName);
+    public SdkNumber getNumber(String attributeName) {
+        return get(attributeName, SdkNumber.class);
+    }
 
-        if (attributeValue == null) {
+    private <T> T get(String attributeName, Class<T> clazz) {
+        Object objectValue = attributeValueObjectMap.get(attributeName);
+        if (objectValue == null) {
             return null;
         }
-        String stringValue = attributeConverterProviders.converterFor(EnhancedType.of(String.class))
-                                                        .transformTo(attributeValue);
-        return SdkNumber.fromString(stringValue);
+        return getAttributeConverterOrError(EnhancedType.of(clazz), attributeConverterProviders)
+                                                        .transformTo(convert(objectValue, attributeConverterProviders));
     }
 
     @Override
-    public SdkBytes getSdkBytes(String attributeName) {
-        AttributeValue attributeValue = attributeValueMap.get(attributeName);
-
-        return attributeValue != null
-               ? attributeConverterProviders.converterFor(EnhancedType.of(SdkBytes.class)).transformTo(attributeValue)
-               : null;
+    public SdkBytes getBytes(String attributeName) {
+        return get(attributeName, SdkBytes.class);
     }
 
     @Override
     public Set<String> getStringSet(String attributeName) {
-        AttributeValue attributeValue = attributeValueMap.get(attributeName);
-        if (attributeValue == null || !attributeValue.hasSs()) {
-            return null;
+        Object objectValue = attributeValueObjectMap.get(attributeName);
+        AttributeValue attributeValue = convert(objectValue, attributeConverterProviders);
+
+        if(attributeValue.hasSs()){
+            return attributeValue.ss().stream().collect(Collectors.toSet());
         }
-        return attributeValue.ss().stream().collect(Collectors.toSet());
+        return null;
     }
 
     @Override
     public Set<SdkNumber> getNumberSet(String attributeName) {
-        AttributeValue attributeValue = attributeValueMap.get(attributeName);
-        if (attributeValue == null || !attributeValue.hasNs()) {
-            return null;
+        Object objectValue = attributeValueObjectMap.get(attributeName);
+        AttributeValue attributeValue = convert(objectValue, attributeConverterProviders);
+        if(attributeValue.hasNs()){
+            return attributeValue.ns().stream().map(number -> SdkNumber.fromString(number)).collect(Collectors.toSet());
         }
-        return attributeValue.ns().stream().map(SdkNumber::fromString).collect(Collectors.toSet());
+        return null;
     }
 
     @Override
-    public Set<SdkBytes> getSdkBytesSet(String attributeName) {
-        AttributeValue attributeValue = attributeValueMap.get(attributeName);
-        if (attributeValue == null || !attributeValue.hasBs()) {
-            return null;
+    public Set<SdkBytes> getBytesSet(String attributeName) {
+        Object objectValue = attributeValueObjectMap.get(attributeName);
+        AttributeValue attributeValue = convert(objectValue, attributeConverterProviders);
+        if(attributeValue.hasBs()){
+            return attributeValue.bs().stream().collect(Collectors.toSet());
         }
-        return attributeValue.bs().stream()
-                             .map(item -> SdkBytes.fromByteArray(item.asByteArrayUnsafe()))
-                             .collect(Collectors.toSet());
+        return null;
     }
 
     @Override
     public <T> List<T> getList(String attributeName, EnhancedType<T> type) {
 
-        AttributeConverter<T> attributeConverter = attributeConverterProviders.converterFor(type);
-        if (attributeConverter == null) {
-            throw new IllegalArgumentException("type " + type + " is not found in AttributeConverterProviders");
-        }
-
-        AttributeValue attributeValue = attributeValueMap.get(attributeName);
+        AttributeValue attributeValue = convert(attributeValueObjectMap.get(attributeName), attributeConverterProviders);
         if (attributeValue == null || !attributeValue.hasL()) {
             return null;
         }
         return attributeValue.l().stream().map(
-            value -> attributeConverterProviders.converterFor(type).transformTo(value)).collect(Collectors.toList());
+            value -> getAttributeConverterOrError(type, attributeConverterProviders).transformTo(value)).collect(Collectors.toList());
     }
 
     @Override
     public List<?> getList(String attributeName) {
-        AttributeValue attributeValue = attributeValueMap.get(attributeName);
-        if (attributeValue == null || !attributeValue.hasL()) {
+        Object objectValue = attributeValueObjectMap.get(attributeName);
+        if(objectValue == null){
+            return null;
+        }
+        AttributeValue attributeValue = convert(objectValue, attributeConverterProviders);
+        if (objectValue == null || !attributeValue.hasL()) {
             return null;
         }
         return toSimpleList(attributeValue.l());
     }
 
     @Override
-    public <T> Map<String, T> getMapOfType(String attributeName, EnhancedType<T> type) {
-        validateConverter(type);
-        AttributeValue attributeValue = attributeValueMap.get(attributeName);
-        if (attributeValue == null || !attributeValue.hasM()) {
-            return null;
-        }
-        Map<String, T> result = new LinkedHashMap<>();
-        attributeValue.m().forEach((key, value) ->
-                                       result.put(key, attributeConverterProviders.converterFor(type).transformTo(value)));
-        return result;
-    }
+    public <K, V> Map<K, V> getMapType(String attributeName, EnhancedType<K> keyType, EnhancedType<V> valueType) {
 
-    private <T> void validateConverter(EnhancedType<T> type) {
-        AttributeConverter<T> attributeConverter = attributeConverterProviders.converterFor(type);
-        if (attributeConverter == null) {
-            throw new IllegalArgumentException("type " + type + " is not found in AttributeConverterProviders");
+        StringConverter<K> keyConverter = StringConverterProvider.defaultProvider().converterFor(keyType);
+        if (keyConverter == null) {
+            throw new IllegalStateException("Key Converter not found for " + keyType);
         }
-    }
-
-    @Override
-    public <T extends Number> Map<String, T> getMapOfNumbers(String attributeName, Class<T> valueType) {
-        AttributeValue attributeValue = attributeValueMap.get(attributeName);
-        if (attributeValue == null || !attributeValue.hasM()) {
-            return null;
+        AttributeConverter<V> valueConverter = getAttributeConverterOrError(valueType, attributeConverterProviders);
+        if (valueConverter == null) {
+            throw new IllegalStateException("Converter not found for " + valueType);
         }
-        Map<String, T> result = new LinkedHashMap<>();
-        attributeValue.m().entrySet().forEach(
-            entry -> result.put(entry.getKey(),
-                                attributeConverterProviders.converterFor(
-                                    EnhancedType.of(valueType)).transformTo(entry.getValue())));
-        return result;
+        Object objectValue = attributeValueObjectMap.get(attributeName);
+        AttributeValue attributeValue = convert(objectValue, attributeConverterProviders);
+        return MapAttributeConverter.mapConverter(keyConverter, valueConverter).transformTo(attributeValue);
     }
 
     @Override
     public Map<String, Object> getRawMap(String attributeName) {
-        AttributeValue attributeValue = attributeValueMap.get(attributeName);
+        Object objectValue = attributeValueObjectMap.get(attributeName);
+        AttributeValue attributeValue = convert(objectValue, attributeConverterProviders);
         if (attributeValue == null || !attributeValue.hasM()) {
             return null;
         }
@@ -249,8 +220,9 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
     }
 
     @Override
-    public EnhancedDocument getMapAsDocument(String attributeName) {
-        AttributeValue attributeValue = attributeValueMap.get(attributeName);
+    public EnhancedDocument getEnhancedDocument(String attributeName) {
+        Object objectValue = attributeValueObjectMap.get(attributeName);
+        AttributeValue attributeValue = convert(objectValue, attributeConverterProviders);
         if (attributeValue == null) {
             return null;
         }
@@ -260,205 +232,184 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
                                        + " attribute as map since its of type "
                                        + attributeValue.type());
         }
-        return new DefaultEnhancedDocument(attributeValue.m());
+        return new DefaultBuilder().attributeValueMap(attributeValue.m())
+                                   .attributeConverterProviders(attributeConverterProviders)
+                                   .build();
     }
 
     @Override
     public String getJson(String attributeName) {
 
-        if (attributeValueMap.get(attributeName) == null) {
+        Object objectValue = attributeValueObjectMap.get(attributeName);
+        if (objectValue == null) {
             return null;
         }
-        JsonNode jsonNode = JSON_ITEM_ATTRIBUTE_CONVERTER.transformTo(attributeValueMap.get(attributeName));
+        JsonNode jsonNode = JSON_ITEM_ATTRIBUTE_CONVERTER.transformTo(convert(objectValue, attributeConverterProviders));
         Document document = jsonNode.visit(new DocumentUnmarshaller());
         return document.toString();
     }
 
-    @Override
-    public boolean getBoolean(String attributeName) {
-        return getBool(attributeName);
-    }
 
-    /**
-     * Keeping the backward compatibility with older version of sdk where 0 and 1 are treated a true and false respectively.
-     */
-    private Boolean getBool(String attributeName) {
-        Object object = get(attributeName);
-        if (object instanceof Boolean) {
-            return (Boolean) object;
-        }
-        if (object instanceof String || object instanceof SdkNumber) {
-            if ("1".equals(object.toString())) {
-                return true;
-            }
-            if ("0".equals(object.toString())) {
-                return false;
-            }
-            return Boolean.valueOf((String) object);
-        }
-        throw new IllegalStateException("Value of attribute " + attributeName + " of type " + getTypeOf(attributeName)
-                                        + " cannot be converted into a Boolean value.");
+    @Override
+    public Boolean getBoolean(String attributeName) {
+        return get(attributeName, Boolean.class);
     }
 
     @Override
     public Object get(String attributeName) {
-        AttributeValue attributeValue = attributeValueMap.get(attributeName);
-        if (attributeValue == null) {
+        Object objectValue = attributeValueObjectMap.get(attributeName);
+        if (objectValue == null) {
             return null;
         }
-        return convertAttributeValueToObject(attributeValue);
+        AttributeValue attributeValue = convert(objectValue, attributeConverterProviders);
+        return toSimpleValue(attributeValue);
     }
 
     @Override
-    public EnhancedType<?> getTypeOf(String attributeName) {
-        Object attributeValue = get(attributeName);
-        return attributeValue != null ? EnhancedType.of(attributeValue.getClass()) : null;
-    }
-
-    @Override
-    public Map<String, Object> asMap() {
+    public Map<String, Object> toMap() {
         Map<String, Object> result = new LinkedHashMap<>();
-        attributeValueMap.forEach((s, attributeValue) -> result.put(s, toSimpleValue(attributeValue)));
+        attributeValueObjectMap.forEach((s, objectValue) -> {
+            result.put(s, toSimpleValue(convert(objectValue, attributeConverterProviders)));
+        });
         return result;
     }
 
     @Override
     public String toJson() {
-        AttributeValue jsonMap = AttributeValue.fromM(attributeValueMap);
+        AttributeValue jsonMap = AttributeValue
+            .fromM(DocumentUtils.objectMapToAttributeMap(this.attributeValueObjectMap, attributeConverterProviders));
         JsonItemAttributeConverter jsonItemAttributeConverter = JsonItemAttributeConverter.create();
         JsonNode jsonNode = jsonItemAttributeConverter.transformTo(jsonMap);
         Document document = jsonNode.visit(new DocumentUnmarshaller());
         return document.toString();
     }
 
-    @Override
-    public String toJsonPretty() {
-        return null;
-    }
-
     public static class DefaultBuilder implements EnhancedDocument.Builder {
 
-        Map<String, Object> attributeValueMap = new LinkedHashMap<>();
+        Map<String, Object> attributeValueObjectMap = new LinkedHashMap<>();
 
         List<AttributeConverterProvider> attributeConverterProviders = new ArrayList<>();
 
         private DefaultBuilder() {
         }
 
+        private DefaultBuilder(Map<String, Object> attributeValueObjectMap,  
+                               List<AttributeConverterProvider> attributeConverterProviders) {
+            this.attributeValueObjectMap = new LinkedHashMap<>(attributeValueObjectMap);
+            this.attributeConverterProviders = new ArrayList<>(attributeConverterProviders);
+        }
+
         @Override
-        public Builder add(String attributeName, Object value) {
-            attributeValueMap.put(attributeName, value);
+        public Builder putObject(String attributeName, Object value) {
+            this.attributeValueObjectMap.put(attributeName, value);
             return this;
         }
 
         @Override
-        public Builder addString(String attributeName, String value) {
+        public Builder putString(String attributeName, String value) {
+            Validate.isTrue(!StringUtils.isEmpty(attributeName), "attributeName cannot empty or null");
+            attributeValueObjectMap.put(attributeName, value);
+            return this;
+        }
+
+        @Override
+        public Builder putNumber(String attributeName, Number value) {
+            Validate.isTrue(!StringUtils.isEmpty(attributeName), "attributeName cannot empty or null");
+            attributeValueObjectMap.put(attributeName, value);
+            return this;
+        }
+
+        @Override
+        public Builder putBytes(String attributeName, SdkBytes value) {
+            Validate.isTrue(!StringUtils.isEmpty(attributeName), "attributeName cannot empty or null");
+            attributeValueObjectMap.put(attributeName, value);
+            return this;
+        }
+
+        @Override
+        public Builder putBoolean(String attributeName, boolean value) {
+            Validate.isTrue(!StringUtils.isEmpty(attributeName), "attributeName cannot empty or null");
+            attributeValueObjectMap.put(attributeName, value);
+            return this;
+        }
+
+        @Override
+        public Builder putNull(String attributeName) {
+            Validate.isTrue(!StringUtils.isEmpty(attributeName), "attributeName cannot empty or null");
+            attributeValueObjectMap.put(attributeName, NULL_ATTRIBUTE_VALUE);
+            return this;
+        }
+
+        // Single Set API
+        @Override
+        public Builder putStringSet(String attributeName, Set<String> values) {
+            Validate.isTrue(!StringUtils.isEmpty(attributeName), "attributeName cannot empty or null");
+            attributeValueObjectMap.put(attributeName, values);
+            return this;
+        }
+
+        @Override
+        public Builder putNumberSet(String attributeName, Set<Number> values) {
+            Validate.isTrue(!StringUtils.isEmpty(attributeName), "attributeName cannot empty or null");
+            attributeValueObjectMap.put(attributeName, values);
+            return this;
+        }
+
+        @Override
+        public Builder putBytesSet(String attributeName, Set<SdkBytes> values) {
+            Validate.isTrue(!StringUtils.isEmpty(attributeName), "attributeName cannot empty or null");
+            attributeValueObjectMap.put(attributeName, values);
+            return this;
+        }
+
+        @Override
+        public Builder putObjectList(String attributeName, List<?> value) {
+            Validate.isTrue(!StringUtils.isEmpty(attributeName), "attributeName cannot empty or null");
+            attributeValueObjectMap.put(attributeName, value);
+            return this;
+        }
+
+        @Override
+        public <T> Builder putMap(String attributeName, Map<T, ?> value, Class<T> keyType) {
             Validate.isTrue(!StringUtils.isEmpty(attributeName), "attributeName cannot empty or null");
             if (!isNullValueAdded(attributeName, value)) {
-                attributeValueMap.put(attributeName, AttributeValue.fromS(value));
+                StringConverter<T> converter =
+                    StringConverterProvider.defaultProvider().converterFor(EnhancedType.of(keyType));
+                if(converter == null){
+                    throw new IllegalArgumentException("The Key cannot be converted to String" );
+
+                }
+                Map<String, Object> result = new LinkedHashMap<>(value.size());
+                value.forEach((k, v) -> result.put(converter.toString(k), v));
+                attributeValueObjectMap.put(attributeName, result);
             }
             return this;
         }
 
         @Override
-        public Builder addNumber(String attributeName, Number value) {
-            Validate.isTrue(!StringUtils.isEmpty(attributeName), "attributeName cannot empty or null");
-            if (!isNullValueAdded(attributeName, value)) {
-                attributeValueMap.put(attributeName, AttributeValue.fromN(String.valueOf(value)));
-            }
+        public Builder putMap(String attributeName, Map<String, ?> value) {
+            putMap(attributeName, value, String.class);
             return this;
         }
 
         @Override
-        public Builder addSdkBytes(String attributeName, SdkBytes value) {
-            Validate.isTrue(!StringUtils.isEmpty(attributeName), "attributeName cannot empty or null");
-            if (!isNullValueAdded(attributeName, value)) {
-                attributeValueMap.put(attributeName, AttributeValue.fromB(value));
-            }
-            return this;
-        }
-
-        @Override
-        public Builder addBoolean(String attributeName, boolean value) {
-            Validate.isTrue(!StringUtils.isEmpty(attributeName), "attributeName cannot empty or null");
-            if (!isNullValueAdded(attributeName, value)) {
-                attributeValueMap.put(attributeName, AttributeValue.fromBool(value));
-            }
-            return this;
-        }
-
-        @Override
-        public Builder addNull(String attributeName) {
-            Validate.isTrue(!StringUtils.isEmpty(attributeName), "attributeName cannot empty or null");
-            attributeValueMap.put(attributeName, NULL_ATTRIBUTE_VALUE);
-            return this;
-        }
-
-        @Override
-        public Builder addStringSet(String attributeName, Set<String> values) {
-            Validate.isTrue(!StringUtils.isEmpty(attributeName), "attributeName cannot empty or null");
-            if (!isNullValueAdded(attributeName, values)) {
-                attributeValueMap.put(attributeName, AttributeValue.fromSs(values.stream().collect(Collectors.toList())));
-            }
-            return this;
-        }
-
-        @Override
-        public Builder addNumberSet(String attributeName, Set<Number> values) {
-            Validate.isTrue(!StringUtils.isEmpty(attributeName), "attributeName cannot empty or null");
-            if (!isNullValueAdded(attributeName, values)) {
-                List<String> collect = values.stream().map(value -> value.toString()).collect(Collectors.toList());
-                attributeValueMap.put(attributeName, AttributeValue.fromNs(collect));
-
-            }
-            return this;
-        }
-
-        @Override
-        public Builder addSdkBytesSet(String attributeName, Set<SdkBytes> values) {
-            Validate.isTrue(!StringUtils.isEmpty(attributeName), "attributeName cannot empty or null");
-            if (!isNullValueAdded(attributeName, values)) {
-                attributeValueMap.put(attributeName, AttributeValue.fromBs(values.stream().collect(Collectors.toList())));
-            }
-            return this;
-        }
-
-        @Override
-        public Builder addList(String attributeName, List<?> value) {
-            Validate.isTrue(!StringUtils.isEmpty(attributeName), "attributeName cannot empty or null");
-            if (!isNullValueAdded(attributeName, value)) {
-                attributeValueMap.put(attributeName, value);
-            }
-            return this;
-        }
-
-        @Override
-        public Builder addMap(String attributeName, Map<String, ?> value) {
-            Validate.isTrue(!StringUtils.isEmpty(attributeName), "attributeName cannot empty or null");
-            if (!isNullValueAdded(attributeName, value)) {
-                attributeValueMap.put(attributeName, value);
-            }
-            return this;
-        }
-
-        @Override
-        public Builder addJson(String attributeName, String json) {
+        public Builder putJson(String attributeName, String json) {
             Validate.isTrue(!StringUtils.isEmpty(attributeName), "attributeName cannot empty or null");
             if (!isNullValueAdded(attributeName, json)) {
                 JsonItemAttributeConverter jsonItemAttributeConverter = JsonItemAttributeConverter.create();
                 JsonNodeParser build = JsonNodeParser.builder().build();
                 JsonNode jsonNode = build.parse(json);
                 AttributeValue attributeValue = jsonItemAttributeConverter.transformFrom(jsonNode);
-                attributeValueMap.put(attributeName, attributeValue);
+                attributeValueObjectMap.put(attributeName, attributeValue);
             }
             return this;
         }
 
         @Override
-        public Builder addEnhancedDocument(String attributeName, EnhancedDocument enhancedDocument) {
+        public Builder putEnhancedDocument(String attributeName, EnhancedDocument enhancedDocument) {
             Validate.isTrue(!StringUtils.isEmpty(attributeName), "attributeName cannot empty or null");
             if (!isNullValueAdded(attributeName, enhancedDocument)) {
-                attributeValueMap.put(attributeName, AttributeValue.fromM(enhancedDocument.toAttributeValueMap()));
+                attributeValueObjectMap.put(attributeName, AttributeValue.fromM(enhancedDocument.toAttributeValueMap()));
             }
             return this;
         }
@@ -488,6 +439,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
 
         @Override
         public Builder json(String json) {
+            Validate.paramNotNull(json, "json");
             JsonNodeParser build = JsonNodeParser.builder().build();
             JsonNode jsonNode = build.parse(json);
             if (jsonNode == null) {
@@ -495,7 +447,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
             }
             AttributeValue attributeValue = JSON_ITEM_ATTRIBUTE_CONVERTER.transformFrom(jsonNode);
             if (attributeValue != null && attributeValue.hasM()) {
-                attributeValueMap = new LinkedHashMap<>(attributeValue.m());
+                attributeValueObjectMap = new LinkedHashMap<>(attributeValue.m());
             }
             return this;
         }
@@ -506,13 +458,13 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
         }
 
         public DefaultBuilder attributeValueMap(Map<String, AttributeValue> attributeValueMap) {
-            this.attributeValueMap = attributeValueMap != null ? new LinkedHashMap<>(attributeValueMap) : null;
+            this.attributeValueObjectMap = attributeValueMap != null ? new LinkedHashMap<>(attributeValueMap) : null;
             return this;
         }
 
         private boolean isNullValueAdded(String attributeName, Object value) {
             if (value == null) {
-                addNull(attributeName);
+                putNull(attributeName);
                 return true;
             }
             return false;
@@ -529,30 +481,14 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
         }
         DefaultEnhancedDocument that = (DefaultEnhancedDocument) o;
 
-        return Objects.equals(attributeValueMap, that.attributeValueMap) && Objects.equals(attributeConverterProviders,
-                                                                                           that.attributeConverterProviders);
+        return Objects.equals(attributeValueObjectMap, that.attributeValueObjectMap) && Objects.equals(attributeConverterProviders,
+                                                                                                       that.attributeConverterProviders);
     }
 
     @Override
     public int hashCode() {
-        int result = attributeValueMap != null ? attributeValueMap.hashCode() : 0;
+        int result = attributeValueObjectMap != null ? attributeValueObjectMap.hashCode() : 0;
         result = 31 * result + (attributeConverterProviders != null ? attributeConverterProviders.hashCode() : 0);
-        return result;
-    }
-
-    private static Map<String, AttributeValue> objectMapToAttributeMap(Map<String, Object> objectMap,
-                                                                       AttributeConverterProvider attributeConverterProvider) {
-        if (objectMap == null) {
-            return null;
-        }
-        Map<String, AttributeValue> result = new LinkedHashMap<>(objectMap.size());
-        objectMap.forEach((key, value) -> {
-            if (value instanceof AttributeValue) {
-                result.put(key, (AttributeValue) value);
-            } else {
-                result.put(key, convert(value, attributeConverterProvider));
-            }
-        });
         return result;
     }
 

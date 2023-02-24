@@ -17,14 +17,11 @@ package software.amazon.awssdk.enhanced.dynamodb.functionaltests.document;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.document.PutDocumentTestTest.HASH_KEY;
-import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.document.PutDocumentTestTest.SORT_KEY;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,7 +39,6 @@ import software.amazon.awssdk.enhanced.dynamodb.converters.document.CustomAttrib
 import software.amazon.awssdk.enhanced.dynamodb.converters.document.CustomClassForDocumentAPI;
 import software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocument;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.LocalDynamoDbSyncTestBase;
-import software.amazon.awssdk.enhanced.dynamodb.functionaltests.document.converter.CustomAttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.DocumentTableSchema;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
@@ -86,7 +82,7 @@ public class APISurfaceAreaReview extends LocalDynamoDbSyncTestBase {
      * {@link TableSchema}
      * Changes       : New API added
      * Type         : Interface
-     * package      :software.amazon.awssdk.enhanced.dynamodbt
+     * package      :software.amazon.awssdk.enhanced.dynamodb
      * API Access   :Public API
      */
 
@@ -109,10 +105,10 @@ public class APISurfaceAreaReview extends LocalDynamoDbSyncTestBase {
          */
 
         DynamoDbTable<EnhancedDocument> table =
-            enhancedClient.table(tableName, TableSchema.fromDocumentSchemaBuilder()
-                                                       .primaryKey("sampleHashKey", AttributeValueType.S)
-                                                       .sortKey("sampleSortKey", AttributeValueType.S)
-                                                       .attributeConverterProviders(CustomAttributeConverterProvider.create(),
+            enhancedClient.table(tableName, TableSchema.documentSchemaBuilder()
+                                                       .addIndexPartitionKey(TableMetadata.primaryIndexName(),"sampleHashKey", AttributeValueType.S)
+                                                       .addIndexSortKey("sort-index","sampleSortKey", AttributeValueType.S)
+                                                       .attributeConverterProviders(CustomAttributeForDocumentConverterProvider.create(),
                                                                                     AttributeConverterProvider.defaultProvider())
                                                        .build());
 
@@ -124,10 +120,10 @@ public class APISurfaceAreaReview extends LocalDynamoDbSyncTestBase {
          * Creating SCHEMA with Primary and secondary keys
          */
 
-        DocumentTableSchema tableSchema = TableSchema.fromDocumentSchemaBuilder()
-                                                     .primaryKey("sampleHashKey", AttributeValueType.S)
-                                                     .sortKey("sampleSortKey", AttributeValueType.S)
-                                                     .attributeConverterProviders(CustomAttributeConverterProvider.create(),
+        DocumentTableSchema tableSchema = TableSchema.documentSchemaBuilder()
+                                                     .addIndexPartitionKey(TableMetadata.primaryIndexName(),"sampleHashKey", AttributeValueType.S)
+                                                     .addIndexSortKey("sort-index","sampleSortKey", AttributeValueType.S)
+                                                     .attributeConverterProviders(CustomAttributeForDocumentConverterProvider.create(),
                                                                                   AttributeConverterProvider.defaultProvider())
                                                      .build();
 
@@ -139,8 +135,8 @@ public class APISurfaceAreaReview extends LocalDynamoDbSyncTestBase {
 
          */
 
-        DocumentTableSchema tableSchemaNoKey = TableSchema.fromDocumentSchemaBuilder()
-                                                          .attributeConverterProviders(CustomAttributeConverterProvider.create(),
+        DocumentTableSchema tableSchemaNoKey = TableSchema.documentSchemaBuilder()
+                                                          .attributeConverterProviders(CustomAttributeForDocumentConverterProvider.create(),
                                                                                        AttributeConverterProvider.defaultProvider())
                                                           .build();
         DynamoDbTable<EnhancedDocument> tableWithNoPrimaryDefined = enhancedClient.table(tableName, tableSchemaNoKey);
@@ -178,18 +174,18 @@ public class APISurfaceAreaReview extends LocalDynamoDbSyncTestBase {
          * No attributeConverters supplied, in this case it uses the {@link DefaultAttributeConverterProvider} and does not error
          */
         EnhancedDocument simpleDoc = EnhancedDocument.builder()
-                                                     .addString("HashKey", "abcdefg123")
-                                                     .addNull("nullKey")
-                                                     .addNumber("numberKey", 2.0)
-                                                     .addSdkBytes("sdkByte", SdkBytes.fromUtf8String("a"))
-                                                     .addBoolean("booleanKey", true)
-                                                     .addJson("jsonKey", "{\"1\": [\"a\", \"b\", \"c\"],\"2\": 1}")
-                                                     .addStringSet("stingSet",
+                                                     .putString("HashKey", "abcdefg123")
+                                                     .putNull("nullKey")
+                                                     .putNumber("numberKey", 2.0)
+                                                     .putBytes("sdkByte", SdkBytes.fromUtf8String("a"))
+                                                     .putBoolean("booleanKey", true)
+                                                     .putJson("jsonKey", "{\"1\": [\"a\", \"b\", \"c\"],\"2\": 1}")
+                                                     .putStringSet("stingSet",
                                                                    Stream.of("a", "b", "c").collect(Collectors.toSet()))
 
-                                                     .addNumberSet("numberSet", Stream.of(1, 2, 3, 4).collect(Collectors.toSet()))
-                                                     .addSdkBytesSet("sdkByteSet",
-                                                                     Stream.of(SdkBytes.fromUtf8String("a")).collect(Collectors.toSet()))
+                                                     .putNumberSet("numberSet", Stream.of(1, 2, 3, 4).collect(Collectors.toSet()))
+                                                     .putBytesSet("sdkByteSet",
+                                                                  Stream.of(SdkBytes.fromUtf8String("a")).collect(Collectors.toSet()))
                                                      .build();
 
 
@@ -238,10 +234,10 @@ public class APISurfaceAreaReview extends LocalDynamoDbSyncTestBase {
         assertThat(simpleDoc.getString("HashKey")).isEqualTo("abcdefg123");
         assertThat(simpleDoc.isNull("nullKey")).isTrue();
 
-        assertThat(simpleDoc.getSdkNumber("numberKey")).isNotEqualTo(2.0);
-        assertThat(simpleDoc.getSdkNumber("numberKey").doubleValue()).isEqualTo(2.0);
+        assertThat(simpleDoc.getNumber("numberKey")).isNotEqualTo(2.0);
+        assertThat(simpleDoc.getNumber("numberKey").doubleValue()).isEqualTo(2.0);
 
-        assertThat(simpleDoc.getSdkBytes("sdkByte")).isEqualTo(SdkBytes.fromUtf8String("a"));
+        assertThat(simpleDoc.getBytes("sdkByte")).isEqualTo(SdkBytes.fromUtf8String("a"));
         assertThat(simpleDoc.getBoolean("booleanKey")).isTrue();
         assertThat(simpleDoc.getJson("jsonKey")).isEqualTo("{\"1\": [\"a\", \"b\", \"c\"],\"2\": 1}");
         assertThat(simpleDoc.getStringSet("stingSet")).isEqualTo(Stream.of("a", "b", "c").collect(Collectors.toSet()));
@@ -251,7 +247,7 @@ public class APISurfaceAreaReview extends LocalDynamoDbSyncTestBase {
             .isEqualTo(Stream.of(1, 2, 3, 4).collect(Collectors.toSet()));
         
         
-        assertThat(simpleDoc.getSdkBytesSet("sdkByteSet")).isEqualTo(Stream.of(SdkBytes.fromUtf8String("a")).collect(Collectors.toSet()));
+        assertThat(simpleDoc.getBytesSet("sdkByteSet")).isEqualTo(Stream.of(SdkBytes.fromUtf8String("a")).collect(Collectors.toSet()));
 
 
         // Trying to access some other Types
@@ -276,10 +272,10 @@ public class APISurfaceAreaReview extends LocalDynamoDbSyncTestBase {
         // Class which directly adds a Custom Object by specifying the
         EnhancedDocument customDoc = EnhancedDocument.builder()
                                                             .attributeConverterProviders(CustomAttributeForDocumentConverterProvider.create())
-                                                            .addString("direct_attr", "sample_value")
-                                                            .add("custom_attr", customObject)
-                                                            .addList("customO_list", Arrays.asList(customObjectOne,
-                                                                                                   customObjectTwo)).build();
+                                                            .putString("direct_attr", "sample_value")
+                                                            .putObject("custom_attr", customObject)
+                                                            .putObjectList("customO_list", Arrays.asList(customObjectOne,
+                                                                                                         customObjectTwo)).build();
 
         assertThat(customDoc.toJson()).isEqualTo("{\"direct_attr\": \"sample_value\",\"custom_attr\": {\"aBoolean\": false,"
                                                  + "\"string\": \"str\",\"longNumber\": 25},\"customO_list\": [{\"aBoolean\": "
@@ -317,8 +313,8 @@ public class APISurfaceAreaReview extends LocalDynamoDbSyncTestBase {
         assertThatExceptionOfType(IllegalStateException.class)
             .isThrownBy(() ->
                 EnhancedDocument.builder()
-                                .addString("direct_attr", "sample_value")
-                                .add("custom_attr", customObject)
+                                .putString("direct_attr", "sample_value")
+                                .putObject("custom_attr", customObject)
                                 .build()
 
             ).withMessage("Converter not found for EnhancedType(software.amazon.awssdk.enhanced.dynamodb.converters"
@@ -331,19 +327,19 @@ public class APISurfaceAreaReview extends LocalDynamoDbSyncTestBase {
     void putSimpleDocumentWithSimpleValues() {
         table.putItem(EnhancedDocument
                           .builder()
-                          .addString(HASH_KEY, "first_hash")
-                          .addString(SORT_KEY, "1_sort")
-                          .addNull("null_Key")
-                          .addBoolean("boolean_key", true)
-                          .addNumber("number_int", 2)
-                          .addNumber("number_SdkNumber", SdkNumber.fromString("5"))
-                          .addSdkBytes("SdkBytes", SdkBytes.fromUtf8String("sample_binary"))
+                          .putString(HASH_KEY, "first_hash")
+                          .putString(SORT_KEY, "1_sort")
+                          .putNull("null_Key")
+                          .putBoolean("boolean_key", true)
+                          .putNumber("number_int", 2)
+                          .putNumber("number_SdkNumber", SdkNumber.fromString("5"))
+                          .putBytes("SdkBytes", SdkBytes.fromUtf8String("sample_binary"))
                           .build());
 
         assertThat(
             table.getItem(EnhancedDocument.builder()
-                                          .add(SORT_KEY, "1_sort")
-                                          .addString(HASH_KEY, "first_hash").build()).get(SORT_KEY)).isEqualTo("1_sort");
+                                          .putObject(SORT_KEY, "1_sort")
+                                          .putString(HASH_KEY, "first_hash").build()).get(SORT_KEY)).isEqualTo("1_sort");
 
 
     }
@@ -388,10 +384,10 @@ public class APISurfaceAreaReview extends LocalDynamoDbSyncTestBase {
     public static final String SORT_KEY = "sampleSortKey";
     private  DynamoDbTable<EnhancedDocument> table = enhancedClient.table(
         tableName,
-        TableSchema.fromDocumentSchemaBuilder()
-                   .primaryKey(HASH_KEY, AttributeValueType.S)
-                   .sortKey(SORT_KEY, AttributeValueType.S)
-                   .attributeConverterProviders(CustomAttributeConverterProvider.create(),
+        TableSchema.documentSchemaBuilder()
+                   .addIndexPartitionKey(TableMetadata.primaryIndexName(),HASH_KEY, AttributeValueType.S)
+                   .addIndexSortKey("sort-key",SORT_KEY, AttributeValueType.S)
+                   .attributeConverterProviders(CustomAttributeForDocumentConverterProvider.create(),
                                                 AttributeConverterProvider.defaultProvider())
                    .build());
 
