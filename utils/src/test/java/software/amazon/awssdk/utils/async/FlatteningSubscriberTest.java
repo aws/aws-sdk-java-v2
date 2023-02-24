@@ -18,10 +18,17 @@ package software.amazon.awssdk.utils.async;
 import static org.mockito.Mockito.times;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
+import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
@@ -193,6 +200,63 @@ public class FlatteningSubscriberTest {
 
         downstream.request(1);
         Mockito.verifyNoMoreInteractions(mockUpstream, mockDelegate);
+    }
+
+    @Test
+    public void stochastic_dataFlushedBeforeOnComplete() {
+        ExecutorService exec = Executors.newSingleThreadExecutor();
+        try {
+            for (int i = 0; i < 30_000_000; ++i) {
+                Publisher<List<String>> iterablePublisher = subscriber -> subscriber.onSubscribe(new Subscription() {
+                    @Override
+                    public void request(long l) {
+                        exec.submit(() -> {
+                            subscriber.onNext(Collections.singletonList("data"));
+                            subscriber.onComplete();
+                        });
+                    }
+
+                    @Override
+                    public void cancel() {
+                    }
+                });
+
+                AtomicInteger seen = new AtomicInteger(0);
+                CompletableFuture<Void> finished = new CompletableFuture<>();
+                FlatteningSubscriber<String> elementSubscriber = new FlatteningSubscriber<>(new Subscriber<String>() {
+                    @Override
+                    public void onSubscribe(Subscription subscription) {
+                        subscription.request(1);
+                    }
+
+                    @Override
+                    public void onNext(String s) {
+                        seen.incrementAndGet();
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        finished.completeExceptionally(e);
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        if (seen.get() != 1) {
+                            finished.completeExceptionally(
+                                new RuntimeException("Should have gotten 1 element before onComplete"));
+                        } else {
+                            finished.complete(null);
+                        }
+                    }
+                });
+
+                iterablePublisher.subscribe(elementSubscriber);
+
+                finished.join();
+            }
+        } finally {
+            exec.shutdown();
+        }
     }
 
     private Subscription getDownstreamFromDelegate() {
