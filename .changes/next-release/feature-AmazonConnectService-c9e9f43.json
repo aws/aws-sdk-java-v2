@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Connect Service",
+    "contributor": "",
+    "description": "StartTaskContact API now supports linked task creation with a new optional RelatedContactId parameter"
+}
