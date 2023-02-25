@@ -1,0 +1,3 @@
+software.amazon.awssdk.services.dynamodb.DefaultDynamoDbAsyncClient
+software.amazon.awssdk.services.dynamodb.DynamoDbClient
+software.amazon.awssdk.services.dynamodb.model.CreateBackupResponse

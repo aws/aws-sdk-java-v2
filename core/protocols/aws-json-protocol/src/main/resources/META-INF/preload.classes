@@ -1,0 +1,7 @@
+software.amazon.awssdk.protocols.json.internal.unmarshall.JsonUnmarshallerContext
+software.amazon.awssdk.protocols.json.internal.unmarshall.JsonResponseHandler
+software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory
+software.amazon.awssdk.protocols.json.internal.unmarshall.AwsJsonResponseHandler
+software.amazon.awssdk.protocols.json.internal.unmarshall.AwsJsonProtocolErrorUnmarshaller
+software.amazon.awssdk.protocols.json.internal.unmarshall.JsonErrorCodeParser
+software.amazon.awssdk.protocols.json.internal.unmarshall.SdkJsonErrorMessageParser
