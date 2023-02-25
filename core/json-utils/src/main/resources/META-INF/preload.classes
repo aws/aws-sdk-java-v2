@@ -1,0 +1,16 @@
+software.amazon.awssdk.protocols.jsoncore.JsonNode
+software.amazon.awssdk.protocols.jsoncore.internal.BooleanJsonNode
+software.amazon.awssdk.protocols.jsoncore.JsonWriter
+software.amazon.awssdk.protocols.jsoncore.JsonWriter$JsonGenerationException
+software.amazon.awssdk.protocols.jsoncore.JsonNodeParser$1
+software.amazon.awssdk.protocols.jsoncore.internal.ArrayJsonNode
+software.amazon.awssdk.protocols.jsoncore.JsonWriter$Builder
+software.amazon.awssdk.protocols.jsoncore.internal.EmbeddedObjectJsonNode
+software.amazon.awssdk.protocols.jsoncore.internal.ObjectJsonNode
+software.amazon.awssdk.protocols.jsoncore.internal.NullJsonNode
+software.amazon.awssdk.protocols.jsoncore.JsonNodeVisitor
+software.amazon.awssdk.protocols.jsoncore.internal.StringJsonNode
+software.amazon.awssdk.protocols.jsoncore.JsonNodeParser$Builder
+software.amazon.awssdk.protocols.jsoncore.JsonNodeParser
+software.amazon.awssdk.protocols.jsoncore.internal.NumberJsonNode
+software.amazon.awssdk.protocols.jsoncore.JsonWriter$1

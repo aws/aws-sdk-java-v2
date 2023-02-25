@@ -51,7 +51,9 @@ import software.amazon.awssdk.codegen.poet.client.specs.ProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.QueryProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.XmlProtocolSpec;
 import software.amazon.awssdk.codegen.utils.PaginatorUtils;
+import software.amazon.awssdk.core.PreloadClassProcessor;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
+import software.amazon.awssdk.core.WarmUpConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
@@ -105,7 +107,8 @@ public class SyncClientClass extends SyncClientInterface {
         type.addField(logger())
             .addField(SyncClientHandler.class, "clientHandler", PRIVATE, FINAL)
             .addField(protocolSpec.protocolFactory(model))
-            .addField(SdkClientConfiguration.class, "clientConfiguration", PRIVATE, FINAL);
+            .addField(SdkClientConfiguration.class, "clientConfiguration", PRIVATE, FINAL)
+            .addField(PreloadClassProcessor.class, "preloadClassProcessor", PRIVATE, FINAL);
     }
 
     @Override
@@ -130,6 +133,21 @@ public class SyncClientClass extends SyncClientInterface {
         protocolSpec.createErrorResponseHandler().ifPresent(type::addMethod);
 
         type.addMethod(protocolSpec.initProtocolFactory(model));
+
+        type.addMethod(warmUpMethod());
+    }
+
+    @Override
+    protected MethodSpec warmUpMethod() {
+        return MethodSpec.methodBuilder("warmUp")
+                         .addModifiers(PUBLIC)
+                         .addParameter(WarmUpConfiguration.class, "configuration")
+
+                         .beginControlFlow("if (configuration.preloadClasses())")
+                         .addStatement("preloadClassProcessor.loadClasses(configuration.initializeClasses())")
+                         .endControlFlow()
+                         .addStatement("configuration.primeFunctions().forEach(f -> f.run())")
+                         .build();
     }
 
     private FieldSpec logger() {
@@ -186,6 +204,8 @@ public class SyncClientClass extends SyncClientInterface {
 
             builder.endControlFlow();
         }
+
+        builder.addStatement("this.preloadClassProcessor = new $T();", PreloadClassProcessor.class);
 
         return builder.build();
     }

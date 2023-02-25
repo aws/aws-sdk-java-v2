@@ -71,7 +71,7 @@ public final class QueryParamMarshaller {
     private QueryParamMarshaller() {
     }
 
-    private static class SimpleQueryParamMarshaller<T> implements JsonMarshaller<T> {
+    private static final class SimpleQueryParamMarshaller<T> implements JsonMarshaller<T> {
 
         private final ValueToStringConverter.ValueToString<T> converter;
 

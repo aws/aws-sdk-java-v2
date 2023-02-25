@@ -69,7 +69,9 @@ import software.amazon.awssdk.codegen.poet.StaticImport;
 import software.amazon.awssdk.codegen.poet.client.specs.ProtocolSpec;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
 import software.amazon.awssdk.codegen.poet.model.EventStreamSpecHelper;
+import software.amazon.awssdk.core.PreloadClassProcessor;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
+import software.amazon.awssdk.core.WarmUpConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.AsyncResponseTransformerUtils;
 import software.amazon.awssdk.core.async.SdkPublisher;
@@ -133,6 +135,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
                                .build())
             .addField(AsyncClientHandler.class, "clientHandler", PRIVATE, FINAL)
             .addField(protocolSpec.protocolFactory(model))
+            .addField(PreloadClassProcessor.class, "preloadClassProcessor", PRIVATE, FINAL)
             .addField(SdkClientConfiguration.class, "clientConfiguration", PRIVATE, FINAL);
 
         // Kinesis doesn't support CBOR for STS yet so need another protocol factory for JSON
@@ -162,6 +165,21 @@ public final class AsyncClientClass extends AsyncClientInterface {
         }
 
         protocolSpec.createErrorResponseHandler().ifPresent(type::addMethod);
+        type.addMethod(warmUpMethod());
+    }
+
+
+    @Override
+    protected MethodSpec warmUpMethod() {
+        return MethodSpec.methodBuilder("warmUp")
+                         .addModifiers(PUBLIC)
+                         .addParameter(WarmUpConfiguration.class, "configuration")
+
+                         .beginControlFlow("if (configuration.preloadClasses())")
+                         .addStatement("preloadClassProcessor.loadClasses(configuration.initializeClasses())")
+                         .endControlFlow()
+                         .addStatement("configuration.primeFunctions().forEach(f -> f.run())")
+                         .build();
     }
 
     @Override
@@ -247,6 +265,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
             builder.addStatement("this.executorService = clientConfiguration.option($T.SCHEDULED_EXECUTOR_SERVICE)",
                                  SdkClientOption.class);
         }
+        builder.addStatement("this.preloadClassProcessor = new $T();", PreloadClassProcessor.class);
 
         return builder.build();
     }

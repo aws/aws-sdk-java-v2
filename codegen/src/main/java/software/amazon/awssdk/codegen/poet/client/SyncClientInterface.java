@@ -58,6 +58,7 @@ import software.amazon.awssdk.codegen.utils.PaginatorUtils;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.SdkClient;
+import software.amazon.awssdk.core.WarmUpConfiguration;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
@@ -140,6 +141,16 @@ public class SyncClientInterface implements ClassSpec {
             .addMethod(serviceMetadata());
 
         PoetUtils.addJavadoc(type::addJavadoc, getJavadoc());
+
+        type.addMethod(warmUpMethod());
+    }
+
+    protected MethodSpec warmUpMethod() {
+        return MethodSpec.methodBuilder("warmUp")
+                         .addModifiers(PUBLIC, DEFAULT)
+                         .addParameter(WarmUpConfiguration.class, "configuration")
+                         .addStatement("throw new $T()", UnsupportedOperationException.class)
+                         .build();
     }
 
     @Override
