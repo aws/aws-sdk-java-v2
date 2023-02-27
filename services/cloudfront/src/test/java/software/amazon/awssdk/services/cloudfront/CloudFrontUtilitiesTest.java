@@ -215,6 +215,52 @@ class CloudFrontUtilitiesTest {
     }
 
     @Test
+    void getSignedURLWithCannedPolicy_withEncodedUrl_doesNotDecodeUrl() {
+        String encodedUrl = "https://d1npcfkc2mojrf.cloudfront.net/s3ObjectKey/%40blob?v=1n1dm%2F01n1dm0";
+        Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
+        SignedUrl signedUrl =
+            cloudFrontUtilities.getSignedUrlWithCannedPolicy(r -> r
+                .resourceUrl(encodedUrl)
+                .privateKey(keyPair.getPrivate())
+                .keyPairId("keyPairId")
+                .expirationDate(expirationDate));
+        String url = signedUrl.url();
+        String signature = url.substring(url.indexOf("&Signature"), url.indexOf("&Key-Pair-Id"));
+        String expected = "https://d1npcfkc2mojrf.cloudfront.net/s3ObjectKey/%40blob?v=1n1dm%2F01n1dm0&Expires=1704067200"
+                          + signature
+                          + "&Key-Pair-Id=keyPairId";
+        assertThat(expected).isEqualTo(url);
+    }
+
+    @Test
+    void getSignedURLWithCustomPolicy_withEncodedUrl_doesNotDecodeUrl() {
+        String encodedUrl = "https://d1npcfkc2mojrf.cloudfront.net/s3ObjectKey/%40blob?v=1n1dm%2F01n1dm0";
+        Instant activeDate = LocalDate.of(2022, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
+        Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
+        String ipRange = "1.2.3.4";
+        SignedUrl signedUrl = cloudFrontUtilities.getSignedUrlWithCustomPolicy(r -> {
+            try {
+                r.resourceUrl(encodedUrl)
+                 .privateKey(keyFilePath)
+                 .keyPairId("keyPairId")
+                 .expirationDate(expirationDate)
+                 .activeDate(activeDate)
+                 .ipRange(ipRange);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
+        String url = signedUrl.url();
+        String policy = url.substring(url.indexOf("Policy=") + 7, url.indexOf("&Signature"));
+        String signature = url.substring(url.indexOf("&Signature"), url.indexOf("&Key-Pair-Id"));
+        String expected = "https://d1npcfkc2mojrf.cloudfront.net/s3ObjectKey/%40blob?v=1n1dm%2F01n1dm0&Policy="
+                          + policy
+                          + signature
+                          + "&Key-Pair-Id=keyPairId";
+        assertThat(expected).isEqualTo(url);
+    }
+
+    @Test
     void getCookiesForCannedPolicy_producesValidCookies() throws Exception {
         Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         CannedSignerRequest request = CannedSignerRequest.builder()
