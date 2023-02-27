@@ -1,3 +1,40 @@
+# __2.20.13__ __2023-02-27__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - The AWS Elemental MediaConvert SDK has added support for HDR10 to SDR tone mapping, and animated GIF video input sources.
+
+## __AWS Lambda__
+  - ### Features
+    - This release adds the ability to create ESMs with Document DB change streams as event source. For more information see https://docs.aws.amazon.com/lambda/latest/dg/with-documentdb.html.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fix race in FlatteningSubscriber where onClose called before items passed to onNext. See [#3734](https://github.com/aws/aws-sdk-java-v2/issues/3734)
+        - Contributed by: [@stevenshan](https://github.com/stevenshan)
+
+## __Amazon CloudWatch Internet Monitor__
+  - ### Features
+    - CloudWatch Internet Monitor is a a new service within CloudWatch that will help application developers and network engineers continuously monitor internet performance metrics such as availability and performance between their AWS-hosted applications and end-users of these applications
+
+## __Amazon DevOps Guru__
+  - ### Features
+    - This release adds the description field on ListAnomaliesForInsight and DescribeAnomaly API responses for proactive anomalies.
+
+## __Amazon Timestream Write__
+  - ### Features
+    - This release adds the ability to ingest batched historical data or migrate data in bulk from S3 into Timestream using CSV files.
+
+## __Elastic Disaster Recovery Service__
+  - ### Features
+    - New fields were added to reflect availability zone data in source server and recovery instance description commands responses, as well as source server launch status.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@stevenshan](https://github.com/stevenshan)
 # __2.20.12__ __2023-02-24__
 ## __AWS SecurityHub__
   - ### Features
