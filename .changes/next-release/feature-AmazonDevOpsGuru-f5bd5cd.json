@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon DevOps Guru",
+    "contributor": "",
+    "description": "This release adds the description field on ListAnomaliesForInsight and DescribeAnomaly API responses for proactive anomalies."
+}
