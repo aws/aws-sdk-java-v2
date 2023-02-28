@@ -22,6 +22,11 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
+import software.amazon.awssdk.enhanced.dynamodb.update.AddAction;
+import software.amazon.awssdk.enhanced.dynamodb.update.DeleteAction;
+import software.amazon.awssdk.enhanced.dynamodb.update.RemoveAction;
+import software.amazon.awssdk.enhanced.dynamodb.update.SetAction;
+import software.amazon.awssdk.enhanced.dynamodb.update.UpdateExpression;
 import software.amazon.awssdk.services.dynamodb.model.ReturnValuesOnConditionCheckFailure;
 
 /**
@@ -41,12 +46,14 @@ public class TransactUpdateItemEnhancedRequest<T> {
     private final T item;
     private final Boolean ignoreNulls;
     private final Expression conditionExpression;
+    private final UpdateExpression updateExpression;
     private final String returnValuesOnConditionCheckFailure;
 
     private TransactUpdateItemEnhancedRequest(Builder<T> builder) {
         this.item = builder.item;
         this.ignoreNulls = builder.ignoreNulls;
         this.conditionExpression = builder.conditionExpression;
+        this.updateExpression = builder.updateExpression;
         this.returnValuesOnConditionCheckFailure = builder.returnValuesOnConditionCheckFailure;
     }
 
@@ -90,6 +97,13 @@ public class TransactUpdateItemEnhancedRequest<T> {
      */
     public Expression conditionExpression() {
         return conditionExpression;
+    }
+
+    /**
+     * Returns the update expression {@link UpdateExpression} set on this request object, or null if it doesn't exist.
+     */
+    public UpdateExpression updateExpression() {
+        return updateExpression;
     }
 
     /**
@@ -140,6 +154,9 @@ public class TransactUpdateItemEnhancedRequest<T> {
         if (!Objects.equals(conditionExpression, that.conditionExpression)) {
             return false;
         }
+        if (!Objects.equals(updateExpression, that.updateExpression)) {
+            return false;
+        }
         return Objects.equals(returnValuesOnConditionCheckFailure, that.returnValuesOnConditionCheckFailure);
     }
 
@@ -148,6 +165,7 @@ public class TransactUpdateItemEnhancedRequest<T> {
         int result = Objects.hashCode(item);
         result = 31 * result + Objects.hashCode(ignoreNulls);
         result = 31 * result + Objects.hashCode(conditionExpression);
+        result = 31 * result + Objects.hashCode(updateExpression);
         result = 31 * result + Objects.hashCode(returnValuesOnConditionCheckFailure);
         return result;
     }
@@ -162,6 +180,8 @@ public class TransactUpdateItemEnhancedRequest<T> {
         private T item;
         private Boolean ignoreNulls;
         private Expression conditionExpression;
+
+        private UpdateExpression updateExpression;
         private String returnValuesOnConditionCheckFailure;
 
         private Builder() {
@@ -205,6 +225,35 @@ public class TransactUpdateItemEnhancedRequest<T> {
          */
         public Builder<T> item(T item) {
             this.item = item;
+            return this;
+        }
+
+        /**
+         * Define an {@link UpdateExpression} to control updating specific parts of the item in DynamoDb. The update expression
+         * corresponds to the DynamoDb update expression format. It can be used to set, modify and delete attributes for
+         * use cases that simply supplying the item does not cover; in particular, manipulating composed attributes such as
+         * sets or lists:
+         * <ul>
+         * <li>Add/remove elements to/from list attributes</li>
+         * <li>Add/remove elements to/from set attributes</li>
+         * <li>Unset or nullify attributes without modifying the whole attribute</li>
+         * </ul>
+         * <p>
+         * This method will throw an exception if the expression references an attribute that is already present on the
+         * item, or is modified through an extension.
+         * <p>
+         * <b>Note: </b>This is a powerful mechanism that bypasses many of the abstractions and
+         * safety checks in the enhanced client, and should be used with caution. Only use it when submitting only
+         * a configured item bean/object is insufficient.
+         * <p>
+         * See {@link UpdateExpression}, {@link AddAction}, {@link DeleteAction}, {@link SetAction} and
+         * {@link RemoveAction} for syntax and examples.
+         *
+         * @param updateExpression a composed expression of type {@link UpdateExpression}
+         * @return a builder of this type
+         */
+        public Builder<T> updateExpression(UpdateExpression updateExpression) {
+            this.updateExpression = updateExpression;
             return this;
         }
 

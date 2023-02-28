@@ -140,6 +140,10 @@ public final class UpdateExpression {
         return result;
     }
 
+    public boolean isEmpty() {
+        return removeActions().isEmpty() && setActions().isEmpty() && deleteActions.isEmpty() && addActions.isEmpty();
+    }
+
     /**
      * A builder for {@link UpdateExpression}
      */

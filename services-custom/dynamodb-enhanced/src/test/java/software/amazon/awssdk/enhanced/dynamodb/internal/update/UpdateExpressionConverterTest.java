@@ -51,9 +51,7 @@ class UpdateExpressionConverterTest {
         UpdateExpression updateExpression = UpdateExpression.builder().build();
         Expression expression = UpdateExpressionConverter.toExpression(updateExpression);
 
-        assertThat(expression.expression()).isEmpty();
-        assertThat(expression.expressionNames()).isEmpty();
-        assertThat(expression.expressionValues()).isEmpty();
+        assertThat(expression).isNull();
     }
 
     @Test
