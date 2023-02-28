@@ -216,7 +216,7 @@ class CloudFrontUtilitiesTest {
 
     @Test
     void getSignedURLWithCannedPolicy_withEncodedUrl_doesNotDecodeUrl() {
-        String encodedUrl = "https://d1npcfkc2mojrf.cloudfront.net/s3ObjectKey/%40blob?v=1n1dm%2F01n1dm0";
+        String encodedUrl = "https://distributionDomain/s3ObjectKey/%40blob?v=1n1dm%2F01n1dm0";
         Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         SignedUrl signedUrl =
             cloudFrontUtilities.getSignedUrlWithCannedPolicy(r -> r
@@ -226,7 +226,7 @@ class CloudFrontUtilitiesTest {
                 .expirationDate(expirationDate));
         String url = signedUrl.url();
         String signature = url.substring(url.indexOf("&Signature"), url.indexOf("&Key-Pair-Id"));
-        String expected = "https://d1npcfkc2mojrf.cloudfront.net/s3ObjectKey/%40blob?v=1n1dm%2F01n1dm0&Expires=1704067200"
+        String expected = "https://distributionDomain/s3ObjectKey/%40blob?v=1n1dm%2F01n1dm0&Expires=1704067200"
                           + signature
                           + "&Key-Pair-Id=keyPairId";
         assertThat(expected).isEqualTo(url);
@@ -234,7 +234,7 @@ class CloudFrontUtilitiesTest {
 
     @Test
     void getSignedURLWithCustomPolicy_withEncodedUrl_doesNotDecodeUrl() {
-        String encodedUrl = "https://d1npcfkc2mojrf.cloudfront.net/s3ObjectKey/%40blob?v=1n1dm%2F01n1dm0";
+        String encodedUrl = "https://distributionDomain/s3ObjectKey/%40blob?v=1n1dm%2F01n1dm0";
         Instant activeDate = LocalDate.of(2022, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         String ipRange = "1.2.3.4";
@@ -253,7 +253,7 @@ class CloudFrontUtilitiesTest {
         String url = signedUrl.url();
         String policy = url.substring(url.indexOf("Policy=") + 7, url.indexOf("&Signature"));
         String signature = url.substring(url.indexOf("&Signature"), url.indexOf("&Key-Pair-Id"));
-        String expected = "https://d1npcfkc2mojrf.cloudfront.net/s3ObjectKey/%40blob?v=1n1dm%2F01n1dm0&Policy="
+        String expected = "https://distributionDomain/s3ObjectKey/%40blob?v=1n1dm%2F01n1dm0&Policy="
                           + policy
                           + signature
                           + "&Key-Pair-Id=keyPairId";
