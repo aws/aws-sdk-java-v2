@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Comprehend",
-    "contributor": "",
-    "description": "Amazon Comprehend now supports flywheels to help you train and manage new model versions for custom models."
-}
