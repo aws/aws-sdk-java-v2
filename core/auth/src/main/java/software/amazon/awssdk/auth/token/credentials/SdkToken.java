@@ -15,16 +15,13 @@
 
 package software.amazon.awssdk.auth.token.credentials;
 
-import java.time.Instant;
-import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
 
 /**
- * Provides token which is used to securely authorize requests to services.
- * A token is a string that the OAuth client uses to make requests to the resource server.
+ * Provides token which is used to securely authorize requests to services that use token based auth, e.g., OAuth.
  *
- * <p>For more details on tokens, see:
+ * <p>For more details on OAuth tokens, see:
  * <a href="https://oauth.net/2/access-tokens">
  * https://oauth.net/2/access-tokens</a></p>
  *
@@ -32,10 +29,4 @@ import software.amazon.awssdk.identity.spi.TokenIdentity;
  */
 @SdkPublicApi
 public interface SdkToken extends TokenIdentity {
-
-    @Override
-    String token();
-
-    @Override
-    Optional<Instant> expirationTime();
 }

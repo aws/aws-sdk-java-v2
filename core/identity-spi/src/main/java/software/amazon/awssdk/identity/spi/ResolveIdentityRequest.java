@@ -24,7 +24,7 @@ import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
- * A request to resolve an Identity.
+ * A request to resolve an {@link Identity}.
  *
  * The Identity may be determined for each request based on properties of the request (e.g. different credentials per bucket
  * for S3).

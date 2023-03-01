@@ -18,10 +18,9 @@ package software.amazon.awssdk.identity.spi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
- * Provides token which is used to securely authorize requests to services.
- * A token is a string that the OAuth client uses to make requests to the resource server.
+ * Provides token which is used to securely authorize requests to services that use token based auth, e.g., OAuth.
  *
- * <p>For more details on tokens, see:
+ * <p>For more details on OAuth tokens, see:
  * <a href="https://oauth.net/2/access-tokens">
  * https://oauth.net/2/access-tokens</a></p>
  */
@@ -30,7 +29,6 @@ public interface TokenIdentity extends Identity {
 
     /**
      * Retrieves string field representing the literal token string.
-     * A token is a string that the OAuth client uses to make requests to the resource server.
      */
     String token();
 }

@@ -30,10 +30,4 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
  */
 @SdkPublicApi
 public interface AwsCredentials extends AwsCredentialsIdentity {
-
-    @Override
-    String accessKeyId();
-
-    @Override
-    String secretAccessKey();
 }
