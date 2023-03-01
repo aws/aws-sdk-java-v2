@@ -87,6 +87,15 @@
                     }
                 }
             ]
+        },
+        {
+            "documentation": "Has has undeclared input parameter",
+            "expect": {
+                "error": "Missing info"
+            },
+            "params": {
+                "NotAParam": "ABC"
+            }
         }
     ],
     "version": "1.0"
