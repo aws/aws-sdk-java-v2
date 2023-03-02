@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Objects;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
@@ -31,8 +32,9 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
  *
  * @see IdentityProvider
  */
-@Immutable
 @SdkProtectedApi
+@Immutable
+@ThreadSafe
 public final class ResolveIdentityRequest {
 
     private final Map<IdentityProperty<?>, ?> properties;

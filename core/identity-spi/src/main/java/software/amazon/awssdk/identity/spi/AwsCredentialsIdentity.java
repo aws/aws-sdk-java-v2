@@ -16,6 +16,7 @@
 package software.amazon.awssdk.identity.spi;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 
 /**
  * Provides access to the AWS credentials used for accessing services: AWS access key ID and secret access key. These
@@ -26,6 +27,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  * https://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html#access-keys-and-secret-access-keys</a></p>
  */
 @SdkPublicApi
+@ThreadSafe
 public interface AwsCredentialsIdentity extends Identity {
 
     static AwsCredentialsIdentity create(String accessKeyId,

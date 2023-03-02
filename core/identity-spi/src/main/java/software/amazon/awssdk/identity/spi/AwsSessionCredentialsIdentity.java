@@ -16,6 +16,7 @@
 package software.amazon.awssdk.identity.spi;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 
 /**
  * A special type of {@link AwsCredentialsIdentity} that provides a session token to be used in service authentication. Session
@@ -23,6 +24,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  * AWS service.
  */
 @SdkPublicApi
+@ThreadSafe
 public interface AwsSessionCredentialsIdentity extends AwsCredentialsIdentity {
 
     /**

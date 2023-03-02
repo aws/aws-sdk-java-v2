@@ -18,6 +18,7 @@ package software.amazon.awssdk.identity.spi;
 import java.time.Instant;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 
 /**
  * Interface to represent <b>who</b> is using the SDK, i.e., the identity of the caller, used for authentication.
@@ -27,6 +28,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  * @see IdentityProvider
  */
 @SdkPublicApi
+@ThreadSafe
 public interface Identity {
     /**
      * The time after which this identity will no longer be valid. If this is empty,

@@ -18,11 +18,13 @@ package software.amazon.awssdk.identity.spi;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 
 /**
  * Interface for loading {@link Identity} that is used for authentication.
  */
 @SdkPublicApi
+@ThreadSafe
 public interface IdentityProvider<IdentityT extends Identity> {
     /**
      * Retrieve the class of identity this identity provider produces.
@@ -42,7 +44,7 @@ public interface IdentityProvider<IdentityT extends Identity> {
      * Resolve the identity from this identity provider.
      *
      * Similar to {@link #resolveIdentity(ResolveIdentityRequest)}, but takes a lambda to configure a new
-     * {@link ResolveIdentityRequest.Builder}. This removes the need to called {@link ResolveIdentityRequest#builder()} and
+     * {@link ResolveIdentityRequest.Builder}. This removes the need to call {@link ResolveIdentityRequest#builder()} and
      * {@link ResolveIdentityRequest.Builder#build()}.
      *
      * @param consumer A {@link Consumer} to which an empty {@link ResolveIdentityRequest.Builder} will be given.

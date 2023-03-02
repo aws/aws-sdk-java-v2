@@ -16,6 +16,7 @@
 package software.amazon.awssdk.identity.spi;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 
 /**
  * Provides token which is used to securely authorize requests to services that use token based auth, e.g., OAuth.
@@ -25,6 +26,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  * https://oauth.net/2/access-tokens</a></p>
  */
 @SdkPublicApi
+@ThreadSafe
 public interface TokenIdentity extends Identity {
 
     /**
