@@ -28,7 +28,7 @@ import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartCopyRequest;
-import software.amazon.awssdk.transfer.s3.internal.DefaultS3TransferManager;
+import software.amazon.awssdk.transfer.s3.internal.S3TransferManagerFactory;
 import software.amazon.awssdk.transfer.s3.model.CompletedDirectoryDownload;
 import software.amazon.awssdk.transfer.s3.model.CompletedDirectoryUpload;
 import software.amazon.awssdk.transfer.s3.model.Copy;
@@ -678,7 +678,7 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * Creates a default builder for {@link S3TransferManager}.
      */
     static S3TransferManager.Builder builder() {
-        return DefaultS3TransferManager.builder();
+        return new S3TransferManagerFactory.DefaultBuilder();
     }
 
     /**
