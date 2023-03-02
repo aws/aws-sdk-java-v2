@@ -30,17 +30,6 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 @ThreadSafe
 public interface AwsCredentialsIdentity extends Identity {
 
-    static AwsCredentialsIdentity create(String accessKeyId,
-                                         String secretAccessKey) {
-        return new AwsCredentialsIdentityImpl(accessKeyId, secretAccessKey);
-    }
-
-    static AwsSessionCredentialsIdentity create(String accessKeyId,
-                                                String secretAccessKey,
-                                                String sessionToken) {
-        return new AwsSessionCredentialsIdentityImpl(accessKeyId, secretAccessKey, sessionToken);
-    }
-
     /**
      * Retrieve the AWS access key, used to identify the user interacting with services.
      */
