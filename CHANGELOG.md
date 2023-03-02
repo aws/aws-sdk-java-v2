@@ -1,3 +1,32 @@
+# __2.20.16__ __2023-03-02__
+## __AWS IoT__
+  - ### Features
+    - A recurring maintenance window is an optional configuration used for rolling out the job document to all devices in the target group observing a predetermined start time, duration, and frequency that the maintenance window occurs.
+
+## __AWS Organizations__
+  - ### Features
+    - This release introduces a new reason code, ACCOUNT_CREATION_NOT_COMPLETE, to ConstraintViolationException in CreateOrganization API.
+
+## __AWS Performance Insights__
+  - ### Features
+    - This release adds a new field PeriodAlignment to allow the customer specifying the returned timestamp of time periods to be either the start or end time.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon EventBridge Pipes__
+  - ### Features
+    - This release fixes some input parameter range and patterns.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Add a new field "EndpointMetrics" in SageMaker Inference Recommender "ListInferenceRecommendationsJobSteps" API response.
+
+## __Migration Hub Strategy Recommendations__
+  - ### Features
+    - This release updates the File Import API to allow importing servers already discovered by customers with reduced pre-requisites.
+
 # __2.20.15__ __2023-03-01__
 ## __AWS Price List Service__
   - ### Features

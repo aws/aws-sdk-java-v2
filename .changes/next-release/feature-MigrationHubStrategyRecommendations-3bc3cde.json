@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Migration Hub Strategy Recommendations",
-    "contributor": "",
-    "description": "This release updates the File Import API to allow importing servers already discovered by customers with reduced pre-requisites."
-}

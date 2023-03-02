@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Performance Insights",
-    "contributor": "",
-    "description": "This release adds a new field PeriodAlignment to allow the customer specifying the returned timestamp of time periods to be either the start or end time."
-}
