@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon SageMaker Service",
+    "contributor": "",
+    "description": "Add a new field \"EndpointMetrics\" in SageMaker Inference Recommender \"ListInferenceRecommendationsJobSteps\" API response."
+}
