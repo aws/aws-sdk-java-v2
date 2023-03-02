@@ -18,6 +18,7 @@ package software.amazon.awssdk.services.s3.internal.crt;
 import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.SDK_HTTP_EXECUTION_ATTRIBUTES;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.HTTP_CHECKSUM;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.OPERATION_NAME;
+import static software.amazon.awssdk.services.s3.internal.crt.S3NativeClientConfiguration.DEFAULT_PART_SIZE_IN_BYTES;
 
 import java.net.URI;
 import java.util.concurrent.CompletableFuture;
@@ -52,12 +53,13 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient implements S3CrtAsyncClient {
     private static final String CRT_CLIENT_CLASSPATH = "software.amazon.awssdk.crt.s3.S3Client";
-    private static S3NativeClientConfiguration s3NativeClientConfiguration;
     private final CopyObjectHelper copyObjectHelper;
 
     private DefaultS3CrtAsyncClient(DefaultS3CrtClientBuilder builder) {
         super(initializeS3AsyncClient(builder));
-        this.copyObjectHelper = new CopyObjectHelper((S3AsyncClient) delegate(), s3NativeClientConfiguration);
+        long partSizeInBytes = builder.minimalPartSizeInBytes == null ? DEFAULT_PART_SIZE_IN_BYTES :
+                               builder.minimalPartSizeInBytes;
+        this.copyObjectHelper = new CopyObjectHelper((S3AsyncClient) delegate(),  partSizeInBytes);
     }
 
     @Override
@@ -93,7 +95,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         Validate.isPositiveOrNull(builder.targetThroughputInGbps, "targetThroughputInGbps");
         Validate.isPositiveOrNull(builder.minimalPartSizeInBytes, "minimalPartSizeInBytes");
 
-        s3NativeClientConfiguration =
+        S3NativeClientConfiguration s3NativeClientConfiguration =
             S3NativeClientConfiguration.builder()
                                        .checksumValidationEnabled(builder.checksumValidationEnabled)
                                        .targetThroughputInGbps(builder.targetThroughputInGbps)
@@ -104,6 +106,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                                        .credentialsProvider(builder.credentialsProvider)
                                        .readBufferSizeInBytes(builder.readBufferSizeInBytes)
                                        .build();
+
         return S3CrtAsyncHttpClient.builder()
                                    .s3ClientConfiguration(s3NativeClientConfiguration);
     }
