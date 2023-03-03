@@ -1,3 +1,32 @@
+# __2.20.17__ __2023-03-03__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - The AWS Elemental MediaConvert SDK has improved handling for different input and output color space combinations.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental MediaLive adds support for Nielsen watermark timezones.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Documentation updates for DynamoDB.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for a new boot mode for EC2 instances called 'UEFI Preferred'.
+
+## __Amazon Macie 2__
+  - ### Features
+    - Documentation updates for Amazon Macie
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - Amazon Transcribe now supports role access for these API operations: CreateVocabulary, UpdateVocabulary, CreateVocabularyFilter, and UpdateVocabularyFilter.
+
 # __2.20.16__ __2023-03-02__
 ## __AWS IoT__
   - ### Features
