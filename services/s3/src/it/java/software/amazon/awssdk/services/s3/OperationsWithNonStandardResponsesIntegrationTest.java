@@ -66,10 +66,10 @@ public final class OperationsWithNonStandardResponsesIntegrationTest extends S3I
     }
 
     @Test
-    public void getBucketLocation_withArn_throwsDetailedErrorMessage2() {
+    public void getBucketLocation_withArn_throwsErrorMessageToUseBucketNameInstead() {
         String bucketArn = "arn:aws:s3:::mybucket";
         SdkClientException exception = assertThrows(SdkClientException.class,
-                                                    () -> {s3.getBucketLocation(b-> b.bucket(bucketArn).build());});
+                                                    () -> s3.getBucketLocation(b-> b.bucket(bucketArn).build()));
 
         assertEquals(exception.getMessage(), "Simple bucket ARNs are not supported in GetBucketLocationRequest. Pass in "
                                              + "the name of the bucket instead");
