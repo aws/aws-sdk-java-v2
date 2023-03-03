@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Transcribe Service",
+    "contributor": "",
+    "description": "Amazon Transcribe now supports role access for these API operations: CreateVocabulary, UpdateVocabulary, CreateVocabularyFilter, and UpdateVocabularyFilter."
+}
