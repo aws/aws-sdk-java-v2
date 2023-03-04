@@ -13,10 +13,10 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.credentials;
+package software.amazon.awssdk.identity.spi;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.annotations.ThreadSafe;
 
 /**
  * Provides access to the AWS credentials used for accessing services: AWS access key ID and secret access key. These
@@ -25,9 +25,18 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
  * <p>For more details on AWS access keys, see:
  * <a href="https://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html#access-keys-and-secret-access-keys">
  * https://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html#access-keys-and-secret-access-keys</a></p>
- *
- * @see AwsCredentialsProvider
  */
 @SdkPublicApi
-public interface AwsCredentials extends AwsCredentialsIdentity {
+@ThreadSafe
+public interface AwsCredentialsIdentity extends Identity {
+
+    /**
+     * Retrieve the AWS access key, used to identify the user interacting with services.
+     */
+    String accessKeyId();
+
+    /**
+     * Retrieve the AWS secret access key, used to authenticate the user interacting with services.
+     */
+    String secretAccessKey();
 }
