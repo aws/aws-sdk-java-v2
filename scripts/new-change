@@ -37,13 +37,12 @@ entry, save an empty file and no entry will be generated.
 import argparse
 import hashlib
 import json
-import os
 import re
 import string
 import subprocess
 import sys
 import tempfile
-
+import os
 from changelog.git import stage_file
 
 VALID_CHARS = set(string.ascii_letters + string.digits)
