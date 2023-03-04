@@ -13,20 +13,25 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.retriesapi;
+package software.amazon.awssdk.api.retries;
 
-import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.annotations.ThreadSafe;
+import java.time.Duration;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.utils.Validate;
 
 /**
- * An opaque token representing an in-progress execution.
- *
- * <p>Created via {@link RetryStrategy#acquireInitialToken} before a first attempt and refreshed
- * after each attempt failure via {@link RetryStrategy#refreshRetryToken}.
- *
- * <p>Released via {@link RetryStrategy#recordSuccess} after a successful attempt.
+ * Strategy that do not back off: retry immediately.
  */
-@SdkPublicApi
-@ThreadSafe
-public interface RetryToken {
+@SdkProtectedApi
+final class Immediately implements BackoffStrategy {
+    @Override
+    public Duration computeDelay(int attempt) {
+        Validate.isPositive(attempt, "attempt");
+        return Duration.ZERO;
+    }
+
+    @Override
+    public String toString() {
+        return "(Immediately)";
+    }
 }

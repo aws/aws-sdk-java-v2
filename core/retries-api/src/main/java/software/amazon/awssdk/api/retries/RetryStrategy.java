@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.retriesapi;
+package software.amazon.awssdk.api.retries;
 
 import java.util.function.Predicate;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -205,4 +205,3 @@ public interface RetryStrategy extends ToCopyableBuilder<RetryStrategy.Builder, 
         RetryStrategy build();
     }
 }
-

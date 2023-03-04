@@ -13,16 +13,20 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.retriesapi;
+package software.amazon.awssdk.api.retries;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 
 /**
- * Response given to the calling code by the {@link RetryStrategy} after calling
- * {@link RetryStrategy#recordSuccess(RecordSuccessRequest)}.
+ * An opaque token representing an in-progress execution.
+ *
+ * <p>Created via {@link RetryStrategy#acquireInitialToken} before a first attempt and refreshed
+ * after each attempt failure via {@link RetryStrategy#refreshRetryToken}.
+ *
+ * <p>Released via {@link RetryStrategy#recordSuccess} after a successful attempt.
  */
 @SdkPublicApi
 @ThreadSafe
-public interface RecordSuccessResponse {
+public interface RetryToken {
 }

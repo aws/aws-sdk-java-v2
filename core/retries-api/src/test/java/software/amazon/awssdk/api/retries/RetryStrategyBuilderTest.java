@@ -13,22 +13,20 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.retriesapi;
+package software.amazon.awssdk.api.retries;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
-@RunWith(Parameterized.class)
 public class RetryStrategyBuilderTest {
 
-    @Parameterized.Parameters
     public static Collection<TestCase> parameters() {
         return Arrays.asList(
             new TestCase()
@@ -106,12 +104,10 @@ public class RetryStrategyBuilderTest {
         );
     }
 
-    @Parameterized.Parameter
-    public TestCase testCase;
-
-    @Test
-    public void testCase() {
-        assertThat(testCase.run()).isEqualTo(testCase.expected());
+    @ParameterizedTest
+    @MethodSource("parameters")
+    public void testCase(TestCase testCase) {
+        assertThat(testCase.run(), equalTo(testCase.expected()));
     }
 
     static class TestCase {

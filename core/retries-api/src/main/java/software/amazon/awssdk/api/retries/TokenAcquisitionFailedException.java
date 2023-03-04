@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.retriesapi;
+package software.amazon.awssdk.api.retries;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
@@ -22,11 +22,14 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  */
 @SdkPublicApi
 public final class TokenAcquisitionFailedException extends RuntimeException {
+    private final RetryToken token;
+
     /**
      * Exception construction accepting message with no root cause.
      */
     public TokenAcquisitionFailedException(String msg) {
         super(msg);
+        token = null;
     }
 
     /**
@@ -34,5 +37,22 @@ public final class TokenAcquisitionFailedException extends RuntimeException {
      */
     public TokenAcquisitionFailedException(String msg, Throwable cause) {
         super(msg, cause);
+        token = null;
+    }
+
+    /**
+     * Exception constructor accepting message, retry token, and a root cause.
+     */
+    public TokenAcquisitionFailedException(String msg, RetryToken token, Throwable cause) {
+        super(msg, cause);
+        this.token = token;
+    }
+
+    /**
+     * Returns the retry token that tracked the execution.
+     * @return the retry token that tracked the execution.
+     */
+    public RetryToken token() {
+        return token;
     }
 }
