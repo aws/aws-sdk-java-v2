@@ -29,6 +29,7 @@ import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
+import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.converters.document.CustomAttributeForDocumentConverterProvider;
@@ -80,8 +81,8 @@ public class PutDocumentTestTest extends LocalDynamoDbSyncTestBase {
 
         assertThat(
             table.getItem(EnhancedDocument.builder()
-                                          .putObject(SORT_KEY, "1_sort")
-                                          .putString(HASH_KEY, "first_hash").build()).get(SORT_KEY)).isEqualTo("1_sort");
+                                          .putString(SORT_KEY, "1_sort")
+                                          .putString(HASH_KEY, "first_hash").build()).get(SORT_KEY, EnhancedType.of(String.class))).isEqualTo("1_sort");
 
 
     }
@@ -136,8 +137,9 @@ public class PutDocumentTestTest extends LocalDynamoDbSyncTestBase {
         assertThatExceptionOfType(IllegalStateException.class).isThrownBy(
             () ->         table.putItem(EnhancedDocument.builder()
                                                         // Combination of different Types
-                                                        .putObject("customClass",
-                                                                   CustomClassForDocumentAPI.builder().string("value").build())
+                                                        .putWithType("customClass",
+                                                                     CustomClassForDocumentAPI.builder().string("value").build(),
+                                                                     EnhancedType.of(CustomClassForDocumentAPI.class))
                                                         .build())
 
         );

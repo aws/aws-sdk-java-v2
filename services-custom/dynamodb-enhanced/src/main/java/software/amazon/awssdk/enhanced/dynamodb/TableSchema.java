@@ -86,14 +86,13 @@ public interface TableSchema<T> {
         return BeanTableSchema.create(beanClass);
     }
 
-
     /**
-     * Provides interfaces to interact with DynamoDB tables as {@link EnhancedDocument} where the complete Schema of the table
-     * is not required.
-     * @return A {@link DocumentTableSchema.Builder} for instantiating DocumentTableSchema.
+     * Provides interfaces to interact with DynamoDB tables as {@link EnhancedDocument} where the complete Schema of the table is
+     * not required.
      *
+     * @return A {@link DocumentTableSchema.Builder} for instantiating DocumentTableSchema.
      */
-    static DocumentTableSchema.Builder documentSchemaBuilder(){
+    static DocumentTableSchema.Builder documentSchemaBuilder() {
         return DocumentTableSchema.builder();
     }
 

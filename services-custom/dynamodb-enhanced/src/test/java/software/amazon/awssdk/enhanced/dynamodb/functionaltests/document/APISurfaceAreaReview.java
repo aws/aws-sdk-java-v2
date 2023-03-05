@@ -17,6 +17,7 @@ package software.amazon.awssdk.enhanced.dynamodb.functionaltests.document;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider.defaultProvider;
 
 import java.util.Arrays;
 import java.util.List;
@@ -27,7 +28,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkNumber;
-import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
@@ -88,6 +88,12 @@ public class APISurfaceAreaReview extends LocalDynamoDbSyncTestBase {
 
 
     /**
+     * The Surface API focuses on the creation and retrieval of attributes using the DocumentAPI.
+     * It covers the creation of {@link EnhancedDocument} during a Put operation and retrieval of attributes during a
+     * Get operation from DDB. While it doesn't provide in-depth details about EnhancedDynamoDB operations,
+     * it does cover the usage of EnhancedDocument with Enhanced DynamoDB operations.
+     */
+    /**
      * Creating a table Schema.
      */
     @Test
@@ -109,7 +115,7 @@ public class APISurfaceAreaReview extends LocalDynamoDbSyncTestBase {
                                                        .addIndexPartitionKey(TableMetadata.primaryIndexName(),"sampleHashKey", AttributeValueType.S)
                                                        .addIndexSortKey("sort-index","sampleSortKey", AttributeValueType.S)
                                                        .attributeConverterProviders(CustomAttributeForDocumentConverterProvider.create(),
-                                                                                    AttributeConverterProvider.defaultProvider())
+                                                                                    defaultProvider())
                                                        .build());
 
 
@@ -124,7 +130,7 @@ public class APISurfaceAreaReview extends LocalDynamoDbSyncTestBase {
                                                      .addIndexPartitionKey(TableMetadata.primaryIndexName(),"sampleHashKey", AttributeValueType.S)
                                                      .addIndexSortKey("sort-index","sampleSortKey", AttributeValueType.S)
                                                      .attributeConverterProviders(CustomAttributeForDocumentConverterProvider.create(),
-                                                                                  AttributeConverterProvider.defaultProvider())
+                                                                                  defaultProvider())
                                                      .build();
 
         assertThat(tableSchema.attributeNames()).isEqualTo(Arrays.asList("sampleHashKey", "sampleSortKey"));
@@ -137,7 +143,7 @@ public class APISurfaceAreaReview extends LocalDynamoDbSyncTestBase {
 
         DocumentTableSchema tableSchemaNoKey = TableSchema.documentSchemaBuilder()
                                                           .attributeConverterProviders(CustomAttributeForDocumentConverterProvider.create(),
-                                                                                       AttributeConverterProvider.defaultProvider())
+                                                                                       defaultProvider())
                                                           .build();
         DynamoDbTable<EnhancedDocument> tableWithNoPrimaryDefined = enhancedClient.table(tableName, tableSchemaNoKey);
         // User cannot create a table
@@ -151,13 +157,6 @@ public class APISurfaceAreaReview extends LocalDynamoDbSyncTestBase {
 
 
     }
-
-    /**
-     * Question 1 : Should we add API to input {@link TableMetadata} in DocumentTableSchema.Builder ?
-     * Note that  {@link TableMetadata} cannot be set by user on DocumentTableSchema.Builder.
-     *
-     */
-
 
     /**
      * Creating implementation of {@link EnhancedDocument} interface
@@ -174,6 +173,7 @@ public class APISurfaceAreaReview extends LocalDynamoDbSyncTestBase {
          * No attributeConverters supplied, in this case it uses the {@link DefaultAttributeConverterProvider} and does not error
          */
         EnhancedDocument simpleDoc = EnhancedDocument.builder()
+            .attributeConverterProviders(defaultProvider())
                                                      .putString("HashKey", "abcdefg123")
                                                      .putNull("nullKey")
                                                      .putNumber("numberKey", 2.0)
@@ -222,10 +222,10 @@ public class APISurfaceAreaReview extends LocalDynamoDbSyncTestBase {
 
          */
 
-        assertThat(simpleDoc.toJson()).isEqualTo("{\"HashKey\": \"abcdefg123\",\"nullKey\": null,\"numberKey\": 2.0,"
-                                                            + "\"sdkByte\": \"a\",\"booleanKey\": true,\"jsonKey\": {\"1\": "
-                                                            + "[\"a\", \"b\", \"c\"],\"2\": 1},\"stingSet\": [\"a\", \"b\", "
-                                                            + "\"c\"],\"numberSet\": [1, 2, 3, 4],\"sdkByteSet\": [\"a\"]}");
+        assertThat(simpleDoc.toJson()).isEqualTo("{\"HashKey\": \"abcdefg123\", \"nullKey\": null, \"numberKey\": 2.0, "
+                                                 + "\"sdkByte\": \"a\", \"booleanKey\": true, \"jsonKey\": {\"1\": [\"a\", "
+                                                 + "\"b\", \"c\"],\"2\": 1}, \"stingSet\": [\"a\", \"b\", \"c\"], "
+                                                 + "\"numberSet\": [1, 2, 3, 4], \"sdkByteSet\": [\"a\"]}");
 
 
         assertThat(simpleDoc.isPresent("HashKey")).isTrue();
@@ -241,22 +241,21 @@ public class APISurfaceAreaReview extends LocalDynamoDbSyncTestBase {
         assertThat(simpleDoc.getBoolean("booleanKey")).isTrue();
         assertThat(simpleDoc.getJson("jsonKey")).isEqualTo("{\"1\": [\"a\", \"b\", \"c\"],\"2\": 1}");
         assertThat(simpleDoc.getStringSet("stingSet")).isEqualTo(Stream.of("a", "b", "c").collect(Collectors.toSet()));
-        
+
         assertThat(simpleDoc.getNumberSet("numberSet")
                             .stream().map(n -> n.intValue()).collect(Collectors.toSet()))
             .isEqualTo(Stream.of(1, 2, 3, 4).collect(Collectors.toSet()));
-        
-        
+
+
         assertThat(simpleDoc.getBytesSet("sdkByteSet")).isEqualTo(Stream.of(SdkBytes.fromUtf8String("a")).collect(Collectors.toSet()));
 
 
         // Trying to access some other Types
         assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> simpleDoc.getBoolean("sdkByteSet"))
-                                                              .withMessage("Value of attribute sdkByteSet of type "
-                                                                           + "EnhancedType(java.util.Collections$UnmodifiableRandomAccessList) "
-                                                                           + "cannot be converted into a Boolean value.");
+                                                              .withMessageContaining("BooleanAttributeConverter cannot convert "
+                                                                                     + "an attribute of type BS into the requested type class java.lang.Boolean");
 
-        
+
     }
 
     @Test
@@ -265,36 +264,43 @@ public class APISurfaceAreaReview extends LocalDynamoDbSyncTestBase {
         // test code ignore- start
         CustomClassForDocumentAPI customObject = getCustomObject("str", 25L, false);
         CustomClassForDocumentAPI customObjectOne = getCustomObject("str_one", 26L, false);
-        CustomClassForDocumentAPI customObjectTwo = getCustomObject("str_two", 27L, true);
+        CustomClassForDocumentAPI customObjectTwo = getCustomObject("str_two", 27L, false);
         // test code ignore- end
 
 
         // Class which directly adds a Custom Object by specifying the
         EnhancedDocument customDoc = EnhancedDocument.builder()
-                                                            .attributeConverterProviders(CustomAttributeForDocumentConverterProvider.create())
+                                                            .attributeConverterProviders(
+                                                                CustomAttributeForDocumentConverterProvider.create(),
+                                                                defaultProvider()
+                                                            )
                                                             .putString("direct_attr", "sample_value")
-                                                            .putObject("custom_attr", customObject)
-                                                            .putObjectList("customO_list", Arrays.asList(customObjectOne,
-                                                                                                         customObjectTwo)).build();
+                                                            .putWithType("custom_attr", customObject,
+                                                                         EnhancedType.of(CustomClassForDocumentAPI.class))
+                                                            .putList(
+                                                                "custom_list"
+                                                                , Arrays.asList(customObjectOne, customObjectTwo)
+                                                                , EnhancedType.of(CustomClassForDocumentAPI.class)
+                                                            )
+                                                     .build();
 
-        assertThat(customDoc.toJson()).isEqualTo("{\"direct_attr\": \"sample_value\",\"custom_attr\": {\"aBoolean\": false,"
-                                                 + "\"string\": \"str\",\"longNumber\": 25},\"customO_list\": [{\"aBoolean\": "
-                                                 + "false,\"string\": \"str_one\",\"longNumber\": 26}, {\"aBoolean\": true,"
-                                                 + "\"string\": \"str_two\",\"longNumber\": 27}]}");
+        assertThat(customDoc.toJson()).isEqualTo("{\"direct_attr\": \"sample_value\", \"custom_attr\": {\"string\": \"str\","
+                                                 + "\"longNumber\": 25}, \"custom_list\": [{\"string\": \"str_one\","
+                                                 + "\"longNumber\": 26}, {\"string\": \"str_two\",\"longNumber\": 27}]}");
 
 
         // Extracting Custom Object\
         CustomClassForDocumentAPI customAttr = customDoc.get("custom_attr", EnhancedType.of(CustomClassForDocumentAPI.class));
 
 
-        customDoc.get("custom_attr");
+        customDoc.get("custom_attr", EnhancedType.of(CustomClassForDocumentAPI.class));
 
         System.out.println("customAttr " +customAttr);
         assertThat(customAttr).isEqualTo(customObject);
 
 
         // Extracting custom List
-        List<CustomClassForDocumentAPI> extractedList = customDoc.getList("customO_list",
+        List<CustomClassForDocumentAPI> extractedList = customDoc.getList("custom_list",
                                                                         EnhancedType.of(CustomClassForDocumentAPI.class));
 
         assertThat(extractedList).isEqualTo(Arrays.asList(customObjectOne,customObjectTwo));
@@ -310,12 +316,19 @@ public class APISurfaceAreaReview extends LocalDynamoDbSyncTestBase {
 
         CustomClassForDocumentAPI customObject = getCustomObject("str", 25L, false);
 
+        EnhancedDocument enhancedDocument = EnhancedDocument.builder()
+                                                 .putString("direct_attr", "sample_value")
+            .attributeConverterProviders(defaultProvider())
+                                                 .putWithType("custom_attr", customObject,
+                                                              EnhancedType.of(CustomClassForDocumentAPI.class))
+                                                 .build();
+
+        // Note that Converter Not found exception is thrown even though we are accessing the string attribute
+        // because all the attributes are converted during lazy loading
+        //
         assertThatExceptionOfType(IllegalStateException.class)
-            .isThrownBy(() ->
-                EnhancedDocument.builder()
-                                .putString("direct_attr", "sample_value")
-                                .putObject("custom_attr", customObject)
-                                .build()
+            .isThrownBy(() -> enhancedDocument.getString("direct_attr")
+
 
             ).withMessage("Converter not found for EnhancedType(software.amazon.awssdk.enhanced.dynamodb.converters"
                                       + ".document.CustomClassForDocumentAPI)");
@@ -338,35 +351,12 @@ public class APISurfaceAreaReview extends LocalDynamoDbSyncTestBase {
 
         assertThat(
             table.getItem(EnhancedDocument.builder()
-                                          .putObject(SORT_KEY, "1_sort")
-                                          .putString(HASH_KEY, "first_hash").build()).get(SORT_KEY)).isEqualTo("1_sort");
+                              .attributeConverterProviders(defaultProvider())
+                                          .putString(SORT_KEY, "1_sort")
+                                          .putString(HASH_KEY, "first_hash").build()).getString(SORT_KEY)).isEqualTo("1_sort");
 
 
     }
-
-    /**
-     *- Does EnhancedDocument.Builder needs add(key, Object, attributeConverterProvider) ==> Not required , since at the time
-     * of building the User can pass AttributeCOnverters using addAttributeConveters
-     *
-     * - Should we refer bytes as binary or byte in apis example addBinary(byte[] byte) or addByte(byte[] byte)
-     *
-     * - Map<String, Object> getRawMap(String attributeName); ==> Can we remove the use of Object ? <Zoe>
-     *
-     * - getJsonPretty. Do we actually need this? ==> removed
-     *
-     * - Object get(String attributeName); ==> Do we need this
-     * -  We don't have jsonPretty utility elsewhere. Do we need it?
-     *
-     * - Builder add(String attributeName, Object value); ==> Using raw type is a bit code smell and error prone to me.Should  it
-     *  be add(String attrbuteName, EnhancedAttributeValue value)?
-     *
-     * - Builder keyComponent(KeyAttributeMetadata keyAttrName, Object keyAttrValue); ==> Use case
-     * - Boolean getBoolean(String attributeName) throws Illegal state exceptions ??
-     * - Should we have toAttributeValueMap and fromAttributeValueMap methods in EnhancedDocument?
-     */
-
-
-    //END OF Surface API Review
 
     private static CustomClassForDocumentAPI getCustomObject(String str_one, long longNumber, boolean aBoolean) {
         return CustomClassForDocumentAPI.builder().string(str_one)
@@ -388,7 +378,7 @@ public class APISurfaceAreaReview extends LocalDynamoDbSyncTestBase {
                    .addIndexPartitionKey(TableMetadata.primaryIndexName(),HASH_KEY, AttributeValueType.S)
                    .addIndexSortKey("sort-key",SORT_KEY, AttributeValueType.S)
                    .attributeConverterProviders(CustomAttributeForDocumentConverterProvider.create(),
-                                                AttributeConverterProvider.defaultProvider())
+                                                defaultProvider())
                    .build());
 
 
@@ -401,6 +391,5 @@ public class APISurfaceAreaReview extends LocalDynamoDbSyncTestBase {
     public void clearAll(){
         table.describeTable();
     }
-
 
 }

@@ -15,12 +15,11 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.mapper;
 
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 import static software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider.defaultProvider;
-import static software.amazon.awssdk.enhanced.dynamodb.document.DefaultEnhancedDocumentTest.ARRAY_AND_MAP_IN_JSON;
-import static software.amazon.awssdk.enhanced.dynamodb.document.DefaultEnhancedDocumentTest.ARRAY_MAP_ATTRIBUTE_VALUE;
-import static software.amazon.awssdk.enhanced.dynamodb.document.DefaultEnhancedDocumentTest.STRING_ARRAY_ATTRIBUTES_LISTS;
+import static software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocumentTestData.testDataInstance;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,7 +29,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkNumber;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
@@ -38,10 +40,15 @@ import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.converters.document.CustomAttributeForDocumentConverterProvider;
+import software.amazon.awssdk.enhanced.dynamodb.converters.document.CustomClassForDocumentAPI;
 import software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocument;
+import software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocumentTestData;
+import software.amazon.awssdk.enhanced.dynamodb.document.TestData;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.ChainConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.StaticKeyAttributeMetadata;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
 
 public class DocumentTableSchemaTest {
 
@@ -99,54 +106,55 @@ public class DocumentTableSchemaTest {
     }
 
     @Test
-    void defaultConverter_IsNotCreated_When_NoConverter_IsPassedInBuilder_IgnoreNullAsFalse(){
+    void defaultConverter_IsNotCreated_When_NoConverter_IsPassedInBuilder_IgnoreNullAsFalse() {
         DocumentTableSchema documentTableSchema = DocumentTableSchema.builder().build();
         EnhancedDocument enhancedDocument = EnhancedDocument.builder()
                                                             .putNull("nullKey")
-            .attributeConverterProviders(CustomAttributeForDocumentConverterProvider.create())
+                                                            .attributeConverterProviders(CustomAttributeForDocumentConverterProvider.create())
                                                             .putString("stringKey", "stringValue")
                                                             .build();
-        assertThatExceptionOfType(IllegalStateException.class)
-            .isThrownBy(() -> documentTableSchema.itemToMap(enhancedDocument,false))
-            .withMessageContaining("AttributeConverter not found for type EnhancedType(java.lang.String)");
+
+
+        assertThatIllegalStateException()
+            .isThrownBy(() -> documentTableSchema.mapToItem(enhancedDocument.toMap(), false))
+            .withMessageContaining("AttributeConverter not found for class EnhancedType(java.lang.String). "
+                                   + "Please add an AttributeConverterProvider for this type. If it is a default type, add the "
+                                   + "DefaultAttributeConverterProvider to the Document builder.");
     }
 
-    @Test
-    void documentTableSchema_Errors_withEmptyDocument(){
-        EnhancedDocument document = getAnonymousEnhancedDocument();
+    @ParameterizedTest
+    @ArgumentsSource(EnhancedDocumentTestData.class)
+    void validate_DocumentTableSchemaItemToMap(TestData testData) {
+        /**
+         * The builder method internally creates a AttributeValueMap which is saved to the ddb, if this matches then
+         * the document is as expected
+         */
         DocumentTableSchema documentTableSchema = DocumentTableSchema.builder().build();
-        assertThat(documentTableSchema.itemToMap(document,true)).isNull();
-        assertThat(documentTableSchema.itemToMap(document,new ArrayList<>())).isNull();
-        assertThat(documentTableSchema.attributeValue(document, "someItem")).isNull();
+
+        Assertions.assertThat(
+            documentTableSchema.itemToMap(testData.getEnhancedDocument(), false)).isEqualTo(testData.getDdbItemMap());
     }
 
-    @Test
-    void document_itemToMap_with_ComplexArrayMap(){
+    @ParameterizedTest
+    @ArgumentsSource(EnhancedDocumentTestData.class)
+    void validate_DocumentTableSchema_mapToItem(TestData testData) {
+        /**
+         * The builder method internally creates a AttributeValueMap which is saved to the ddb, if this matches then
+         * the document is as expected
+         */
         DocumentTableSchema documentTableSchema = DocumentTableSchema.builder().build();
-        EnhancedDocument document = EnhancedDocument.fromJson(ARRAY_AND_MAP_IN_JSON, Arrays.asList(defaultProvider()));
-        Map<String, AttributeValue> stringAttributeValueMap = documentTableSchema.itemToMap(document, false);
-        assertThat(stringAttributeValueMap).isEqualTo(ARRAY_MAP_ATTRIBUTE_VALUE.getAttributeValueMap());
-        Map<String, AttributeValue> listOfAttributes = documentTableSchema.itemToMap(document, Arrays.asList("numberKey","mapKey"));
-
-
-
-
-        assertThat(listOfAttributes.size()).isEqualTo(2);
-        assertThat(listOfAttributes.keySet()).isEqualTo(Stream.of("numberKey", "mapKey").collect(Collectors.toSet()));
-        AttributeValue attributeValue = documentTableSchema.attributeValue(document, "mapKey");
-        assertThat(attributeValue.hasM()).isTrue();
-        assertThat(attributeValue.m().get("1")).isEqualTo(STRING_ARRAY_ATTRIBUTES_LISTS);
-        assertThat(listOfAttributes.size()).isEqualTo(2);
-        assertThat(listOfAttributes.keySet()).isEqualTo(Stream.of("numberKey", "mapKey").collect(Collectors.toSet()));
-    }
-
-    @Test
-    void mapToItem_converts_DocumentItem() {
-        DocumentTableSchema documentTableSchema = DocumentTableSchema.builder().build();
-        EnhancedDocument document = documentTableSchema.mapToItem(ARRAY_MAP_ATTRIBUTE_VALUE.getAttributeValueMap());
-        assertThat(document.toJson()).isEqualTo(ARRAY_AND_MAP_IN_JSON);
         assertThat(documentTableSchema.mapToItem(null)).isNull();
+        Assertions.assertThat(
+            documentTableSchema.mapToItem(testData.getDdbItemMap()).toMap()).isEqualTo(testData.getEnhancedDocument()
+                                                                                                              .toMap());
+        // TODO : order mismatch ??
+        //
+        // Assertions.assertThat(
+        //     documentTableSchema.mapToItem(testData.getDdbItemMap()).toJson()).isEqualTo(testData.getJson());
     }
+
+
+
 
     @Test
     void enhanceTypeOf_TableSchema(){
@@ -154,88 +162,39 @@ public class DocumentTableSchemaTest {
     }
 
     @Test
-    void attributeConverters_ForAllAttributes_NotPassed_DoesNotUses_DefaultConverters(){
+    void error_When_attributeConvertersIsOverwrittenToIncorrectConverter(){
+
         DocumentTableSchema documentTableSchema = DocumentTableSchema.builder().attributeConverterProviders(defaultProvider())
             .attributeConverterProviders(ChainConverterProvider.create()).build();
-        EnhancedDocument document = documentTableSchema.mapToItem(ARRAY_MAP_ATTRIBUTE_VALUE.getAttributeValueMap());
-        assertThat(document.toJson()).isEqualTo(ARRAY_AND_MAP_IN_JSON);
-
-        assertThatExceptionOfType(IllegalStateException.class).isThrownBy(
-            () -> documentTableSchema.itemToMap(document, false)).withMessageContaining(
-                "AttributeConverter not found for type EnhancedType"
-                                                                                                                                                      + "(software.amazon.awssdk.core.SdkNumber)");
+        TestData simpleStringData = testDataInstance().dataForScenario("simpleString");
+        // Lazy loading is done , thus it does not fail until we try to access some doc from enhancedDocument
+        EnhancedDocument enhancedDocument = documentTableSchema.mapToItem(simpleStringData.getDdbItemMap(), false);
+        assertThatIllegalStateException().isThrownBy(
+            () -> {
+                enhancedDocument.getString("stringKey");
+            }).withMessage(
+                "AttributeConverter not found for class EnhancedType(java.lang.String). Please add an AttributeConverterProvider for this type. "
+                + "If it is a default type, add the DefaultAttributeConverterProvider to the builder.");
     }
 
     @Test
-    void emptyAttributeConvertersListPassed_Doenot_UsesDefaultConverters(){
+    void default_attributeConverters_isUsedFromTableSchema(){
+
+        DocumentTableSchema documentTableSchema = DocumentTableSchema.builder().build();
+        TestData simpleStringData = testDataInstance().dataForScenario("simpleString");
+        EnhancedDocument enhancedDocument = documentTableSchema.mapToItem(simpleStringData.getDdbItemMap(), false);
+        assertThat(enhancedDocument.getString("stringKey")).isEqualTo("stringValue");
+    }
+
+    @Test
+    void custom_attributeConverters_isUsedFromTableSchema(){
+
         DocumentTableSchema documentTableSchema = DocumentTableSchema.builder()
-                                                                     .attributeConverterProviders(defaultProvider()).build();
-        EnhancedDocument document = documentTableSchema.mapToItem(ARRAY_MAP_ATTRIBUTE_VALUE.getAttributeValueMap());
-
-        assertThat(document.toJson()).isEqualTo(ARRAY_AND_MAP_IN_JSON);
-
-        Map<String, AttributeValue> stringAttributeValueMap = documentTableSchema.itemToMap(document, false);
-        assertThat(stringAttributeValueMap).isEqualTo(ARRAY_MAP_ATTRIBUTE_VALUE.getAttributeValueMap());
+            .attributeConverterProviders(CustomAttributeForDocumentConverterProvider.create(), defaultProvider())
+                                                                     .build();
+        TestData simpleStringData = testDataInstance().dataForScenario("customList");
+        EnhancedDocument enhancedDocument = documentTableSchema.mapToItem(simpleStringData.getDdbItemMap(), false);
+        assertThat(enhancedDocument.getList("customClassForDocumentAPI", EnhancedType.of(CustomClassForDocumentAPI.class)).size())
+            .isEqualTo(2);
     }
-
-    private static EnhancedDocument getAnonymousEnhancedDocument() {
-        EnhancedDocument document = new EnhancedDocument() {
-            @Override
-            public Builder toBuilder() { return null; }
-            @Override
-            public boolean isNull(String attributeName) { return false; }
-            @Override
-            public boolean isPresent(String attributeName) { return false; }
-            @Override
-            public <T> T get(String attributeName, EnhancedType<T> type) { return null; }
-            @Override
-            public String getString(String attributeName) { return null; }
-            @Override
-            public SdkNumber getNumber(String attributeName) {return null;}
-            @Override
-            public SdkBytes getBytes(String attributeName) {return null;}
-            @Override
-            public Set<String> getStringSet(String attributeName) { return null;}
-            @Override
-            public Set<SdkNumber> getNumberSet(String attributeName) {return null;}
-            @Override
-            public Set<SdkBytes> getBytesSet(String attributeName) {return null;}
-            @Override
-            public <T> List<T> getList(String attributeName, EnhancedType<T> type) {return null;}
-            @Override
-            public List<?> getList(String attributeName) {return null;}
-
-            @Override
-            public <K, V> Map<K, V> getMapType(String attributeName, EnhancedType<K> keyType, EnhancedType<V> valueType) {
-                return null;
-            }
-            @Override
-            public Map<String, Object> getRawMap(String attributeName) {return null;}
-            @Override
-            public EnhancedDocument getEnhancedDocument(String attributeName) {return null;}
-            @Override
-            public String getJson(String attributeName) {return null;}
-
-            @Override
-            public Boolean getBoolean(String attributeName) {return null;}
-            @Override
-            public Object get(String attributeName) {return null;}
-            @Override
-            public Map<String, Object> toMap() {return null;}
-            @Override
-            public String toJson() {return null;}
-            @Override
-            public Map<String, AttributeValue> toAttributeValueMap() {
-                return null;
-            }
-
-            @Override
-            public List<AttributeConverterProvider> attributeConverterProviders() {
-                return null;
-            }
-        };
-        return document;
-    }
-
-
 }

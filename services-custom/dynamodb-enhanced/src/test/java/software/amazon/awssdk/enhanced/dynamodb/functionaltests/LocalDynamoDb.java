@@ -59,7 +59,7 @@ class LocalDynamoDb {
 
         try {
             server = createServer(portString);
-  //          server.start();
+            server.start();
         } catch (Exception e) {
             throw propagate(e);
         }
@@ -70,7 +70,7 @@ class LocalDynamoDb {
      * @return A DynamoDbClient pointing to the local DynamoDb instance
      */
     DynamoDbClient createClient() {
-        String endpoint = String.format("http://localhost:%d", 8000);
+        String endpoint = String.format("http://localhost:%d", port);
         return DynamoDbClient.builder()
                              .endpointOverride(URI.create(endpoint))
                              // The region is meaningless for local DynamoDb but required for client builder validation
