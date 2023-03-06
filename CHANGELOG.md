@@ -1,3 +1,12 @@
+# __2.20.18__ __2023-03-06__
+## __AWS Account__
+  - ### Features
+    - AWS Account alternate contact email addresses can now have a length of 254 characters and contain the character "|".
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - Updated text description in DeleteChannel, Stream, and StreamSummary.
+
 # __2.20.17__ __2023-03-03__
 ## __AWS Elemental MediaConvert__
   - ### Features
