@@ -107,6 +107,30 @@ public final class EnhancedDocumentTestData implements ArgumentsProvider {
 
                                       .build());
 
+        testDataList.add(dataBuilder().scenario("record")
+
+                                      .ddbItemMap(map().withKeyValue("id", AttributeValue.fromS("id-value"))
+                                                      .withKeyValue("sort",AttributeValue.fromS("sort-value"))
+                                                      .withKeyValue("attribute", AttributeValue.fromS("one"))
+                                                      .withKeyValue("attribute2", AttributeValue.fromS("two"))
+                                                      .withKeyValue("attribute3", AttributeValue.fromS("three")).get())
+                                      .enhancedDocument(
+                                            defaultDocBuilder()
+                                                .putString("id","id-value")
+                                                .putString("sort","sort-value")
+                                                .putString("attribute","one")
+                                                .putString("attribute2","two")
+                                                .putString("attribute3","three")
+                                                .build()
+                                      )
+
+
+                                      .attributeConverterProvider(defaultProvider())
+                                      .json("{\"id\": \"id-value\", \"sort\": \"sort-value\", \"attribute\": "
+                                            + "\"one\", \"attribute2\": \"two\", \"attribute3\": \"three\"}")
+
+                                      .build());
+
         testDataList.add(dataBuilder().scenario("differentNumberTypes")
                                       .ddbItemMap(map()
                                                       .withKeyValue("numberKey", AttributeValue.fromN("10"))
