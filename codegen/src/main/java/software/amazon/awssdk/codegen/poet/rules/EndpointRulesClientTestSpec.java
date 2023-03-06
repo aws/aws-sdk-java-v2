@@ -520,6 +520,11 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
             config.add("$T.builder()", configClass());
 
             params.forEach((n, v) -> {
+
+                if (!endpointRulesSpecUtils.isDeclaredParam(n)) {
+                    return;
+                }
+
                 CodeBlock valueLiteral = endpointRulesSpecUtils.treeNodeToLiteral(v);
                 switch (n) {
                     case "UseDualStack":
@@ -653,9 +658,9 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
 
     private MethodSpec methodSetupMethod() {
         MethodSpec.Builder b = MethodSpec.methodBuilder("methodSetup")
-            .addModifiers(Modifier.PUBLIC)
-            .addAnnotation(BeforeEach.class)
-            .returns(void.class);
+                                         .addModifiers(Modifier.PUBLIC)
+                                         .addAnnotation(BeforeEach.class)
+                                         .returns(void.class);
 
         b.addStatement("super.methodSetup()");
 
@@ -675,9 +680,9 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
 
     private FieldSpec s3RegionEndpointSystemPropertySaveValueField() {
         return FieldSpec.builder(String.class, "regionalEndpointPropertySaveValue")
-            .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
-            .initializer("$T.getProperty($L)", System.class, s3RegionalEndpointSystemPropertyCode())
-            .build();
+                        .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
+                        .initializer("$T.getProperty($L)", System.class, s3RegionalEndpointSystemPropertyCode())
+                        .build();
     }
 
     private MethodSpec teardownMethod() {
