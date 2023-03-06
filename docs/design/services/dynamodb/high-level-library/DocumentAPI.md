@@ -44,7 +44,7 @@ providers.
 
 // New API in TableSchema to create a DocumentTableSchema 
 DocumentTableSchema documentTableSchema =
-    TableSchema.fromDocumentSchemaBuilder()
+    TableSchema.documentSchemaBuilder()
                .addIndexPartitionKey(primaryIndexName(), "sample_hash_name", AttributeValueType.S)
                .addIndexSortKey("gsi_index", "sample_sort_name", AttributeValueType.N)
                .addAttributeConverterProviders(cutomAttributeConverters)
@@ -78,7 +78,7 @@ EnhancedDocument documentTableItem = documentTable.getItem(
 Number sampleSortvalue = documentTableItem.get("sample_sort_name", EnhancedType.of(Number.class));
 
 // Accessing an attribute from document using specific getters.
-sampleSortvalue = documentTableItem.getSdkNumber("sample_sort_name"); 
+sampleSortvalue = documentTableItem.getNumber("sample_sort_name"); 
 
 // Accessing an attribute of custom class using custom converters.
 CustomClass customClass = documentTableItem.get("custom_nested_map", new CustomAttributeConverter()));

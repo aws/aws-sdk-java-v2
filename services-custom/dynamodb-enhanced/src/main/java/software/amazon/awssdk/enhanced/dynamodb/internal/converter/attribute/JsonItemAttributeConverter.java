@@ -73,6 +73,9 @@ public final class JsonItemAttributeConverter implements AttributeConverter<Json
 
     @Override
     public JsonNode transformTo(AttributeValue input) {
+        if (AttributeValue.fromNul(true).equals(input)) {
+            return NullJsonNode.instance();
+        }
         return EnhancedAttributeValue.fromAttributeValue(input).convert(VISITOR);
     }
 

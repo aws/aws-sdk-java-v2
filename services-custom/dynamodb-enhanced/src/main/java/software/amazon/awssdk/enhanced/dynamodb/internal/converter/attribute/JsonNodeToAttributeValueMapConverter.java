@@ -38,7 +38,7 @@ public class JsonNodeToAttributeValueMapConverter implements JsonNodeVisitor<Att
 
     @Override
     public AttributeValue visitNull() {
-        return AttributeValue.builder().build();
+        return AttributeValue.fromNul(true);
     }
 
     @Override
@@ -70,7 +70,8 @@ public class JsonNodeToAttributeValueMapConverter implements JsonNodeVisitor<Att
                                                 .collect(Collectors.toMap(
                                                     entry -> entry.getKey(),
                                                     entry -> entry.getValue().visit(this),
-                                                    (left, right) -> left, LinkedHashMap::new))).build();
+                                                    (left, right) -> left, LinkedHashMap::new)))
+                             .build();
     }
 
     @Override
