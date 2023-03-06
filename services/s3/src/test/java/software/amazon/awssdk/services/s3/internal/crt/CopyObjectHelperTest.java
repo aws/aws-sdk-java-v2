@@ -58,15 +58,11 @@ class CopyObjectHelperTest {
     private static final String MULTIPART_ID = "multipartId";
     private S3AsyncClient s3AsyncClient;
     private CopyObjectHelper copyHelper;
-    private S3NativeClientConfiguration s3NativeClientConfiguration;
 
     @BeforeEach
     public void setUp() {
-        s3NativeClientConfiguration = S3NativeClientConfiguration.builder()
-                                                                 .partSizeInBytes(1024L)
-                                                                 .build();
         s3AsyncClient = Mockito.mock(S3AsyncClient.class);
-        copyHelper = new CopyObjectHelper(s3AsyncClient, s3NativeClientConfiguration);
+        copyHelper = new CopyObjectHelper(s3AsyncClient, 1024L);
     }
 
     @Test
