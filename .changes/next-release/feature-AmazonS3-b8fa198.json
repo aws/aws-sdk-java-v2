@@ -1,0 +1,6 @@
+{
+    "category": "Amazon S3", 
+    "contributor": "", 
+    "type": "feature", 
+    "description": "Adding PartType field to UploadPartRequest to indicate whether the part is the last part or not."
+}
