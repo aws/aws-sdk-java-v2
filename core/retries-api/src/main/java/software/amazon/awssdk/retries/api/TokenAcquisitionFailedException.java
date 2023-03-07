@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.api.retries;
+package software.amazon.awssdk.retries.api;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 

@@ -13,25 +13,25 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.api.retries;
+package software.amazon.awssdk.retries.api;
 
 import java.time.Duration;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 
 /**
- * Strategy that do not back off: retry immediately.
+ * Determines how long to wait before each execution attempt.
  */
-@SdkProtectedApi
-final class Immediately implements BackoffStrategy {
-    @Override
-    public Duration computeDelay(int attempt) {
-        Validate.isPositive(attempt, "attempt");
-        return Duration.ZERO;
-    }
+@SdkPublicApi
+@ThreadSafe
+public interface BackoffStrategy {
 
-    @Override
-    public String toString() {
-        return "(Immediately)";
-    }
+    /**
+     * Compute the amount of time to wait before the provided attempt number is executed.
+     *
+     * @param attempt The attempt to compute the delay for, starting at one.
+     * @throws IllegalArgumentException If the given attempt is less or equal to zero.
+     */
+    Duration computeDelay(int attempt);
+
 }

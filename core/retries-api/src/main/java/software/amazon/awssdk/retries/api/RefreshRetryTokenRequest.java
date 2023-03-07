@@ -13,21 +13,35 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.api.retries;
+package software.amazon.awssdk.retries.api;
 
+import java.time.Duration;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 
 /**
  * Request that the calling code makes to the {@link RetryStrategy} using
- * {@link RetryStrategy#recordSuccess(RecordSuccessRequest)} to notify that the attempted execution succeeded.
+ * {@link RetryStrategy#refreshRetryToken(RefreshRetryTokenRequest)} to notify that the attempted execution failed and the
+ * {@link RetryToken} needs to be refreshed.
  */
 @SdkPublicApi
 @ThreadSafe
-public interface RecordSuccessRequest {
+public interface RefreshRetryTokenRequest {
     /**
      * A {@link RetryToken} acquired a previous {@link RetryStrategy#acquireInitialToken} or
      * {@link RetryStrategy#refreshRetryToken} call.
      */
     RetryToken token();
+
+    /**
+     * A suggestion of how long to wait from the last attempt failure. For HTTP calls, this is usually extracted from a "retry
+     * after" header from the downstream service.
+     */
+    Optional<Duration> suggestedDelay();
+
+    /**
+     * The cause of the last attempt failure.
+     */
+    Throwable failure();
 }
