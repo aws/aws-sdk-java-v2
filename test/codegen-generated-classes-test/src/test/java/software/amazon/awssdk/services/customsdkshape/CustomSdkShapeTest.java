@@ -24,11 +24,11 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import java.net.URI;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
@@ -36,24 +36,21 @@ import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestxml.ProtocolRestXmlClient;
 
+@WireMockTest
 public class CustomSdkShapeTest {
 
     private ProtocolRestXmlClient xmlClient;
-
-    @Rule
-    public WireMockRule wireMock = new WireMockRule(0);
-
     @Mock
     private SdkHttpClient mockHttpClient;
 
-    @Before
-    public void setUp() {
+    @BeforeEach
+    public void setUp(WireMockRuntimeInfo wmRuntimeInfo) {
         xmlClient = ProtocolRestXmlClient.builder()
                                          .region(Region.US_WEST_2)
                                          .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid",
                                                                                                                           "skid")))
                                          .httpClient(mockHttpClient)
-                                         .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
+                                         .endpointOverride(URI.create("http://localhost:" + wmRuntimeInfo.getHttpPort()))
                                          .build();
 
     }
@@ -63,6 +60,7 @@ public class CustomSdkShapeTest {
         stubFor(any(urlMatching(".*"))
                     .willReturn(aResponse().withStatus(200).withBody("<xml></xml>")));
         xmlClient.allTypes(c -> c.sdkPartType("DEFAULT").build());
+        xmlClient.allTypes(c -> c.sdkPartType("LAST").build());
         verify(anyRequestedFor(anyUrl()).withRequestBody(notMatching("^.*SdkPartType.*$")));
     }
 

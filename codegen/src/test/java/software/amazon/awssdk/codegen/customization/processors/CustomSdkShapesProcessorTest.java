@@ -15,14 +15,15 @@
 
 package software.amazon.awssdk.codegen.customization.processors;
 
+import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.codegen.C2jModels;
 import software.amazon.awssdk.codegen.IntermediateModelBuilder;
 import software.amazon.awssdk.codegen.model.config.customization.CustomSdkShapes;
@@ -38,7 +39,7 @@ public class CustomSdkShapesProcessorTest {
     CustomizationConfig config;
     ServiceModel serviceModel;
 
-    @Before
+    @BeforeEach
     public void setUp() throws IOException {
         File serviceModelFile = new File(AwsModelSpecTest.class.getResource("service-2.json").getFile());
         File customizationConfigFile = new File(AwsModelSpecTest.class.getResource("customization.config").getFile());
@@ -135,7 +136,7 @@ public class CustomSdkShapesProcessorTest {
         assertThat(serviceModel.getShape(customizedShapeName).getType().equals(shapeName));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void setCustomNullShape_throwsNullPointerException() {
         CustomSdkShapes customSdkShapes = config.getCustomSdkShapes();
         Map<String, Shape> shapes = new HashMap<>();
@@ -149,12 +150,11 @@ public class CustomSdkShapesProcessorTest {
         customSdkShapes.setShapes(shapes);
         config.setCustomSdkShapes(customSdkShapes);
 
-        // Throws NullPointerException
-        new IntermediateModelBuilder(C2jModels.builder()
-                                              .serviceModel(serviceModel)
-                                              .customizationConfig(config)
-                                              .build())
-            .build();
-
+        assertThatNullPointerException()
+            .isThrownBy(() ->  new IntermediateModelBuilder(C2jModels.builder()
+                                                                     .serviceModel(serviceModel)
+                                                                     .customizationConfig(config)
+                                                                     .build()).
+                build());
     }
 }

@@ -36,10 +36,10 @@ public class CustomSdkShapesProcessor implements CodegenCustomizationProcessor {
             return;
         }
         Map<String, Shape> shapes = serviceModel.getShapes();
-        for (String shapeName: customSdkShapes.getShapes().keySet()) {
-            customSdkShapes.getShape(shapeName).setSynthetic(true);
-            shapes.put(shapeName, customSdkShapes.getShape(shapeName));
-        }
+        customSdkShapes.getShapes().forEach((shapeName, shape) -> {
+            shape.setSynthetic(true);
+            shapes.put(shapeName, shape);
+        });
         serviceModel.setShapes(shapes);
     }
 
