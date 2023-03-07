@@ -172,6 +172,7 @@
 
         <skip.unit.tests>${skipTests}</skip.unit.tests>
         <integTestSourceDirectory>${project.basedir}/src/it/java</integTestSourceDirectory>
+        <javadoc.resourcesDir>${session.executionRootDirectory}</javadoc.resourcesDir>
     </properties>
 
     <dependencyManagement>
@@ -1016,6 +1017,11 @@
                             <doctitle>AWS SDK for Java API Reference - ${awsjavasdk.version}</doctitle>
                             <packagesheader>AWS SDK for Java</packagesheader>
                             <excludePackageNames>:*.codegen:software.amazon.awssdk.services.protocol*</excludePackageNames>
+                            <docfilessubdirs>true</docfilessubdirs>
+                            <javadocDirectory>${javadoc.resourcesDir}/javadoc-resources</javadocDirectory>
+                            <addStylesheets>
+                                <addStylesheet>aws-sdk-java-v2-javadoc.css</addStylesheet>
+                            </addStylesheets>
                             <groups>
                                 <group>
                                     <title>Greengrass</title>
