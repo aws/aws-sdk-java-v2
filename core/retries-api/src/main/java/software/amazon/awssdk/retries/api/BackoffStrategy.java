@@ -33,5 +33,4 @@ public interface BackoffStrategy {
      * @throws IllegalArgumentException If the given attempt is less or equal to zero.
      */
     Duration computeDelay(int attempt);
-
 }

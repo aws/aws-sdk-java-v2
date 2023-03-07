@@ -25,6 +25,9 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 @SdkPublicApi
 @ThreadSafe
 public interface RecordSuccessResponse {
-
+    /**
+     * A {@link RetryToken} acquired a previous {@link RetryStrategy#acquireInitialToken} or
+     * {@link RetryStrategy#refreshRetryToken} call.
+     */
     RetryToken token();
 }
