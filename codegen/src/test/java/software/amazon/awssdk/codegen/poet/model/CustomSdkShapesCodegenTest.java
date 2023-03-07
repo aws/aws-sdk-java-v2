@@ -35,7 +35,7 @@ import software.amazon.awssdk.codegen.utils.ModelLoaderUtils;
 
 public class CustomSdkShapesCodegenTest {
 
-    private static IntermediateModel intermediateModel;
+    private IntermediateModel intermediateModel;
 
     @Before
     public void setUp() throws IOException {
@@ -63,7 +63,6 @@ public class CustomSdkShapesCodegenTest {
         for (MemberModel member: baseTypeShapeMembers) {
             memberNames.add(member.getName());
         }
-        assertThat(memberNames.contains("CustomShape1")).isTrue();
-        assertThat(memberNames.contains("CustomShape2")).isTrue();
+        assertThat(memberNames).contains("CustomShape1","CustomShape2");
     }
 }

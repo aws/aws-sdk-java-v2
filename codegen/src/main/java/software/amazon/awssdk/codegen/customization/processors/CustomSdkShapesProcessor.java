@@ -45,6 +45,6 @@ public class CustomSdkShapesProcessor implements CodegenCustomizationProcessor {
 
     @Override
     public void postprocess(IntermediateModel intermediateModel) {
-
+        // added custom shapes in service model instead of intermediate model
     }
 }

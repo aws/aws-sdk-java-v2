@@ -67,9 +67,9 @@ public class CustomSdkShapesProcessorTest {
                                               .build())
             .build();
 
-        assertThat(serviceModel.getShapes().containsKey(shapeName)).isTrue();
-        assertThat(serviceModel.getShapes().containsValue(stringShape)).isTrue();
-        assertThat(serviceModel.getShape(shapeName).getType().equals("string"));
+        assertThat(serviceModel.getShapes()).containsKey(shapeName);
+        assertThat(serviceModel.getShapes()).containsValue(stringShape);
+        assertThat(serviceModel.getShape(shapeName).getType()).isEqualTo("string");
     }
 
     @Test
@@ -97,11 +97,11 @@ public class CustomSdkShapesProcessorTest {
                                               .build())
             .build();
 
-        assertThat(serviceModel.getShapes().containsKey(shapeName)).isTrue();
-        assertThat(serviceModel.getShapes().containsValue(listShape)).isTrue();
-        assertThat(serviceModel.getShape(shapeName).getType().equals("list"));
-        assertThat(serviceModel.getShape(shapeName).getMembers().containsKey(memberName));
-
+        assertThat(serviceModel.getShapes()).containsKey(shapeName);
+        assertThat(serviceModel.getShapes()).containsValue(listShape);
+        assertThat(serviceModel.getShape(shapeName).getType()).isEqualTo("list");
+        assertThat(serviceModel.getShape(shapeName).getListMember()).isEqualTo(member);
+        assertThat(serviceModel.getShape(shapeName).getListMember().getShape()).isEqualTo("Event");
     }
 
     @Test
@@ -131,9 +131,9 @@ public class CustomSdkShapesProcessorTest {
                                               .build())
             .build();
 
-        assertThat(serviceModel.getShapes().containsKey(customizedShapeName)).isTrue();
-        assertThat(serviceModel.getShapes().containsValue(customizedShape)).isTrue();
-        assertThat(serviceModel.getShape(customizedShapeName).getType().equals(shapeName));
+        assertThat(serviceModel.getShapes()).containsKey(customizedShapeName);
+        assertThat(serviceModel.getShapes()).containsValue(customizedShape);
+        assertThat(serviceModel.getShape(customizedShapeName).getType()).isEqualTo(shapeName);
     }
 
     @Test
