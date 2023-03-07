@@ -38,6 +38,7 @@ import software.amazon.awssdk.codegen.poet.model.EventModelSpec;
 import software.amazon.awssdk.codegen.poet.model.EventStreamSpecHelper;
 import software.amazon.awssdk.codegen.poet.model.ResponseMetadataSpec;
 import software.amazon.awssdk.codegen.poet.model.ServiceModelCopiers;
+import software.amazon.awssdk.codegen.poet.model.ServiceOperationsSpec;
 
 class ModelClassGeneratorTasks extends BaseGeneratorTasks {
     private final String modelClassDir;
@@ -68,6 +69,7 @@ class ModelClassGeneratorTasks extends BaseGeneratorTasks {
                 .forEach(tasks::add);
 
         tasks.add(new PoetGeneratorTask(modelClassDir, model.getFileHeader(), new ResponseMetadataSpec(model)));
+        tasks.add(new PoetGeneratorTask(modelClassDir, model.getFileHeader(), new ServiceOperationsSpec(model)));
 
         return tasks;
     }
