@@ -34,7 +34,7 @@
                 <configuration>
                     <archive>
                         <manifestEntries>
-                            <Automatic-Module-Name>software.amazon.awssdk.retriesapi</Automatic-Module-Name>
+                            <Automatic-Module-Name>software.amazon.awssdk.retries.api</Automatic-Module-Name>
                         </manifestEntries>
                     </archive>
                 </configuration>
