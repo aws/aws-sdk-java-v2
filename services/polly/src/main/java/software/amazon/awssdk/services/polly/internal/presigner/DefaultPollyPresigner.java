@@ -30,6 +30,7 @@ import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.CredentialUtils;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
@@ -48,6 +49,8 @@ import software.amazon.awssdk.core.signer.Presigner;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.regions.Region;
@@ -72,7 +75,7 @@ public final class DefaultPollyPresigner implements PollyPresigner {
     private final Supplier<ProfileFile> profileFile;
     private final String profileName;
     private final Region region;
-    private final AwsCredentialsProvider credentialsProvider;
+    private final IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider;
     private final URI endpointOverride;
     private final Boolean dualstackEnabled;
     private final Boolean fipsEnabled;
@@ -112,7 +115,10 @@ public final class DefaultPollyPresigner implements PollyPresigner {
         return region;
     }
 
-    public AwsCredentialsProvider credentialsProvider() {
+    // TODO: Why are these 3 getters public? And why methods instead of accessing the members directly - used only inside this
+    //       class. And this class is @SdkInternalApi
+    //       Maybe package scope for unit test
+    public IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider() {
         return credentialsProvider;
     }
 
@@ -198,7 +204,7 @@ public final class DefaultPollyPresigner implements PollyPresigner {
 
     private ExecutionAttributes createExecutionAttributes(PresignRequest presignRequest, PollyRequest requestToPresign) {
         Instant signatureExpiration = Instant.now().plus(presignRequest.signatureDuration());
-        AwsCredentials credentials = resolveCredentialsProvider(requestToPresign).resolveCredentials();
+        AwsCredentials credentials = resolveCredentials(resolveCredentialsProvider(requestToPresign));
         Validate.validState(credentials != null, "Credential providers must never return null.");
 
         return new ExecutionAttributes()
@@ -212,9 +218,14 @@ public final class DefaultPollyPresigner implements PollyPresigner {
                 .putAttribute(PRESIGNER_EXPIRATION, signatureExpiration);
     }
 
-    private AwsCredentialsProvider resolveCredentialsProvider(PollyRequest request) {
-        return request.overrideConfiguration().flatMap(AwsRequestOverrideConfiguration::credentialsProvider)
+    private IdentityProvider<? extends AwsCredentialsIdentity> resolveCredentialsProvider(PollyRequest request) {
+        return request.overrideConfiguration().flatMap(AwsRequestOverrideConfiguration::credentialsIdentityProvider)
                 .orElse(credentialsProvider());
+    }
+
+    private AwsCredentials resolveCredentials(IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider) {
+        AwsCredentialsIdentity credentials = credentialsProvider.resolveIdentity().join();
+        return CredentialUtils.toCredentials(credentials);
     }
 
     private Presigner resolvePresigner(PollyRequest request) {
@@ -255,7 +266,7 @@ public final class DefaultPollyPresigner implements PollyPresigner {
 
     public static class BuilderImpl implements PollyPresigner.Builder {
         private Region region;
-        private AwsCredentialsProvider credentialsProvider;
+        private IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider;
         private URI endpointOverride;
         private Boolean dualstackEnabled;
         private Boolean fipsEnabled;
@@ -268,6 +279,11 @@ public final class DefaultPollyPresigner implements PollyPresigner {
 
         @Override
         public Builder credentialsProvider(AwsCredentialsProvider credentialsProvider) {
+            return credentialsProvider((IdentityProvider<? extends AwsCredentialsIdentity>) credentialsProvider);
+        }
+
+        @Override
+        public Builder credentialsProvider(IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider) {
             this.credentialsProvider = credentialsProvider;
             return this;
         }

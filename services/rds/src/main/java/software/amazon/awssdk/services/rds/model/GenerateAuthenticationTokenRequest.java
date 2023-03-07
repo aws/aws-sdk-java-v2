@@ -18,6 +18,9 @@ package software.amazon.awssdk.services.rds.model;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.CredentialUtils;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.rds.RdsUtilities;
 import software.amazon.awssdk.utils.Validate;
@@ -77,6 +80,8 @@ public final class GenerateAuthenticationTokenRequest implements
      * @return The credentials provider to sign the IAM auth request with. If specified, takes precedence over the value
      * specified in {@link RdsUtilities.Builder#credentialsProvider(AwsCredentialsProvider)}}
      */
+    // TODO: should another method returning IdentityProvider<? extends AwsCredentialsIdentity> be added and used in
+    //       DefaultRdsUtilities?
     public AwsCredentialsProvider credentialsProvider() {
         return credentialsProvider;
     }
@@ -131,10 +136,23 @@ public final class GenerateAuthenticationTokenRequest implements
         /**
          * The credentials provider to sign the IAM auth request with. If specified, takes precedence over the value
          * specified in {@link RdsUtilities.Builder#credentialsProvider(AwsCredentialsProvider)}}
+         * TODO: should it link to both overloaded methods? Or just #credentialsProvider()? Or just RdsUtilities.Builder?
          *
          * @return This object for method chaining
          */
-        Builder credentialsProvider(AwsCredentialsProvider credentialsProvider);
+        default Builder credentialsProvider(AwsCredentialsProvider credentialsProvider) {
+            return credentialsProvider((IdentityProvider<? extends AwsCredentialsIdentity>) credentialsProvider);
+        }
+
+        /**
+         * The credentials provider to sign the IAM auth request with. If specified, takes precedence over the value
+         * specified in {@link RdsUtilities.Builder#credentialsProvider(IdentityProvider)}}
+         *
+         * @return This object for method chaining
+         */
+        default Builder credentialsProvider(IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider) {
+            throw new UnsupportedOperationException();
+        }
 
         @Override
         GenerateAuthenticationTokenRequest build();
@@ -185,6 +203,12 @@ public final class GenerateAuthenticationTokenRequest implements
         @Override
         public Builder credentialsProvider(AwsCredentialsProvider credentialsProvider) {
             this.credentialsProvider = credentialsProvider;
+            return this;
+        }
+
+        @Override
+        public Builder credentialsProvider(IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider) {
+            this.credentialsProvider = CredentialUtils.toCredentialsProvider(credentialsProvider);
             return this;
         }
 

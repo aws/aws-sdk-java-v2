@@ -18,6 +18,8 @@ package software.amazon.awssdk.services.rds;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.rds.model.GenerateAuthenticationTokenRequest;
 
@@ -96,7 +98,19 @@ public interface RdsUtilities {
          *
          * @return This object for method chaining
          */
-        Builder credentialsProvider(AwsCredentialsProvider credentialsProvider);
+        default Builder credentialsProvider(AwsCredentialsProvider credentialsProvider) {
+            return credentialsProvider((IdentityProvider<? extends AwsCredentialsIdentity>) credentialsProvider);
+        }
+
+        /**
+         * The default credentials provider to use when working with the methods in {@link RdsUtilities} class.
+         *
+         * @return This object for method chaining
+         */
+        default Builder credentialsProvider(IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider) {
+            throw new UnsupportedOperationException();
+        }
+
 
         /**
          * Create a {@link RdsUtilities}

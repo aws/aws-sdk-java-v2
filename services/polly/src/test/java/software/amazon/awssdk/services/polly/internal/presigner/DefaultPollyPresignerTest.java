@@ -31,6 +31,8 @@ import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.polly.model.OutputFormat;
 import software.amazon.awssdk.services.polly.model.SynthesizeSpeechRequest;
@@ -195,7 +197,7 @@ class DefaultPollyPresignerTest {
                                  .build();
 
 
-        AwsCredentialsProvider awsCredentialsProvider = presigner.credentialsProvider();
+        IdentityProvider<? extends AwsCredentialsIdentity> awsCredentialsProvider = presigner.credentialsProvider();
         assertThat(awsCredentialsProvider).isNotNull();
     }
 

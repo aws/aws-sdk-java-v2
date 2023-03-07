@@ -243,6 +243,8 @@ public class SyncClientClass extends SyncClientInterface {
             method.addStatement("$T cachedEndpoint = null", URI.class);
             method.beginControlFlow("if (endpointDiscoveryEnabled)");
 
+            // TODO: If new clientOption for CREDENTIALS_IDENTITY_PROVIDER is used, this needs to be updated.
+            //       Also see if use of AwsRequestOverrideConfiguration::credentialsProvider should be changed to new method.
             method.addCode("$T key = $N.overrideConfiguration()", String.class, opModel.getInput().getVariableName())
                   .addCode("    .flatMap($T::credentialsProvider)", AwsRequestOverrideConfiguration.class)
                   .addCode("    .orElseGet(() -> clientConfiguration.option($T.CREDENTIALS_PROVIDER))", AwsClientOption.class)

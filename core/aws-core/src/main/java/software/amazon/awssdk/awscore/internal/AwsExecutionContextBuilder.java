@@ -19,15 +19,12 @@ import static software.amazon.awssdk.auth.signer.internal.util.SignerMethodResol
 import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
-import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.internal.authcontext.AuthorizationStrategy;
 import software.amazon.awssdk.awscore.internal.authcontext.AuthorizationStrategyFactory;
 import software.amazon.awssdk.core.HttpChecksumConstant;
-import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
@@ -136,33 +133,6 @@ public final class AwsExecutionContextBuilder {
                                .signer(signer)
                                .metricCollector(metricCollector)
                                .build();
-    }
-
-    /**
-     * Resolves the credentials provider, with the request override configuration taking precedence over the
-     * provided default.
-     *
-     * @return The credentials provider that will be used by the SDK to resolve credentials
-     */
-    public static AwsCredentialsProvider resolveCredentialsProvider(SdkRequest originalRequest,
-                                                                    AwsCredentialsProvider defaultProvider) {
-        return originalRequest.overrideConfiguration()
-                              .filter(c -> c instanceof AwsRequestOverrideConfiguration)
-                              .map(c -> (AwsRequestOverrideConfiguration) c)
-                              .flatMap(AwsRequestOverrideConfiguration::credentialsProvider)
-                              .orElse(defaultProvider);
-    }
-
-    /**
-     * Request override signers take precedence over the default alternative, for instance what is specified in the
-     * client. Request override signers can also be modified by modifyRequest interceptors.
-     *
-     * @return The signer that will be used by the SDK to sign the request
-     */
-    public static Signer resolveSigner(SdkRequest request, Signer defaultSigner) {
-        return request.overrideConfiguration()
-                      .flatMap(RequestOverrideConfiguration::signer)
-                      .orElse(defaultSigner);
     }
 
     /**

@@ -21,15 +21,28 @@ import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.core.client.config.ClientOption;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
 
 @SdkProtectedApi
 public final class AwsClientOption<T> extends ClientOption<T> {
+    // TODO: Should the existing option be removed?
+    //       Or replaced with same name (CREDENTIALS_PROVIDER) but new type below?
+    //       This class is SdkProtectedApi, and it seems customer cannot create an option with this directly (we do it in
+    //       AwsDefaultClientBuilder). Is there risk of old generated code when there are mixed versions of modules?
+    // If it is kept, should it be marked @Deprecated?
     /**
      * @see AwsClientBuilder#credentialsProvider(AwsCredentialsProvider)
      */
     public static final AwsClientOption<AwsCredentialsProvider> CREDENTIALS_PROVIDER =
             new AwsClientOption<>(AwsCredentialsProvider.class);
+
+    /**
+     * @see AwsClientBuilder#credentialsProvider(IdentityProvider)
+     */
+    public static final AwsClientOption<IdentityProvider<? extends AwsCredentialsIdentity>> CREDENTIALS_IDENTITY_PROVIDER =
+        new AwsClientOption<>(new UnsafeValueType(IdentityProvider.class));
 
     /**
      * AWS Region the client was configured with. Note that this is not always the signing region in the case of global
@@ -84,5 +97,9 @@ public final class AwsClientOption<T> extends ClientOption<T> {
 
     private AwsClientOption(Class<T> valueClass) {
         super(valueClass);
+    }
+
+    private AwsClientOption(UnsafeValueType valueType) {
+        super(valueType);
     }
 }
