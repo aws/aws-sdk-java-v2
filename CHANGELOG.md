@@ -1,3 +1,119 @@
+# __2.20.18__ __2023-03-06__
+## __AWS Account__
+  - ### Features
+    - AWS Account alternate contact email addresses can now have a length of 254 characters and contain the character "|".
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - Updated text description in DeleteChannel, Stream, and StreamSummary.
+
+# __2.20.17__ __2023-03-03__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - The AWS Elemental MediaConvert SDK has improved handling for different input and output color space combinations.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental MediaLive adds support for Nielsen watermark timezones.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Documentation updates for DynamoDB.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for a new boot mode for EC2 instances called 'UEFI Preferred'.
+
+## __Amazon Macie 2__
+  - ### Features
+    - Documentation updates for Amazon Macie
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - Amazon Transcribe now supports role access for these API operations: CreateVocabulary, UpdateVocabulary, CreateVocabularyFilter, and UpdateVocabularyFilter.
+
+# __2.20.16__ __2023-03-02__
+## __AWS IoT__
+  - ### Features
+    - A recurring maintenance window is an optional configuration used for rolling out the job document to all devices in the target group observing a predetermined start time, duration, and frequency that the maintenance window occurs.
+
+## __AWS Organizations__
+  - ### Features
+    - This release introduces a new reason code, ACCOUNT_CREATION_NOT_COMPLETE, to ConstraintViolationException in CreateOrganization API.
+
+## __AWS Performance Insights__
+  - ### Features
+    - This release adds a new field PeriodAlignment to allow the customer specifying the returned timestamp of time periods to be either the start or end time.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon EventBridge Pipes__
+  - ### Features
+    - This release fixes some input parameter range and patterns.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Add a new field "EndpointMetrics" in SageMaker Inference Recommender "ListInferenceRecommendationsJobSteps" API response.
+
+## __Migration Hub Strategy Recommendations__
+  - ### Features
+    - This release updates the File Import API to allow importing servers already discovered by customers with reduced pre-requisites.
+
+# __2.20.15__ __2023-03-01__
+## __AWS Price List Service__
+  - ### Features
+    - This release adds 2 new APIs - ListPriceLists which returns a list of applicable price lists, and GetPriceListFileUrl which outputs a URL to retrieve your price lists from the generated file from ListPriceLists
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon CodeCatalyst__
+  - ### Features
+    - Published Dev Environments StopDevEnvironmentSession API
+
+## __Amazon S3 on Outposts__
+  - ### Features
+    - S3 on Outposts introduces a new API ListOutpostsWithS3, with this API you can list all your Outposts with S3 capacity.
+
+# __2.20.14__ __2023-02-28__
+## __AWS Key Management Service__
+  - ### Features
+    - AWS KMS is deprecating the RSAES_PKCS1_V1_5 wrapping algorithm option in the GetParametersForImport API that is used in the AWS KMS Import Key Material feature. AWS KMS will end support for this wrapping algorithm by October 1, 2023.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Add commons-codec to bom-internal to fix dependency convergence issue. See [#3787](https://github.com/aws/aws-sdk-java-v2/issues/3787)
+
+## __Amazon Comprehend__
+  - ### Features
+    - Amazon Comprehend now supports flywheels to help you train and manage new model versions for custom models.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release allows IMDS support to be set to v2-only on an existing AMI, so that all future instances launched from that AMI will use IMDSv2 by default.
+
+## __Amazon Lightsail__
+  - ### Features
+    - This release adds Lightsail for Research feature support, such as GUI session access, cost estimates, stop instance on idle, and disk auto mount.
+
+## __Amazon Managed Blockchain__
+  - ### Features
+    - This release adds support for tagging to the accessor resource in Amazon Managed Blockchain
+
+## __Amazon Omics__
+  - ### Features
+    - Minor model changes to accomodate batch imports feature
+
 # __2.20.13__ __2023-02-27__
 ## __AWS Elemental MediaConvert__
   - ### Features
