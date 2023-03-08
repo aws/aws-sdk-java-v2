@@ -93,6 +93,7 @@ public final class EnhancedDocumentTestData implements ArgumentsProvider {
                                                             .putNull("nullKey")
                                                             .build())
                                       .json("{\"nullKey\": null}")
+                                      .attributeConverterProvider(defaultProvider())
                                       .build());
 
 
@@ -177,6 +178,7 @@ public final class EnhancedDocumentTestData implements ArgumentsProvider {
                                       .build());
 
         testDataList.add(dataBuilder().scenario("differentNumberSets")
+                             .isGeneric(false)
                                       .ddbItemMap(map()
                                                       .withKeyValue("floatSet", AttributeValue.fromNs(Arrays.asList("2.0", "3.0")))
                                                       .withKeyValue("integerSet", AttributeValue.fromNs(Arrays.asList("-1", "0", "1")))
@@ -239,11 +241,19 @@ public final class EnhancedDocumentTestData implements ArgumentsProvider {
                                           .addAttribute("customClassForDocumentAPI", EnhancedType.of(CustomClassForDocumentAPI.class)))
                                       .attributeConverterProvider(ChainConverterProvider.create(CustomAttributeForDocumentConverterProvider.create(),
                                                                                                 defaultProvider()))
-                                      .json("{\"customClassForDocumentAPI\": [{\"string\": \"11\",\"instantList\": [\"2023-03-01T17:14:05.049Z\", "
-                                            + "\"2023-03-01T17:14:05.049Z\", \"2023-03-01T17:14:05.049Z\"],\"stringSet\": [\"12\", \"13\", "
-                                            + "\"14\"],\"longNumber\": 11}, {\"string\": \"202\",\"instantList\": [\"2023-03-01T17:14:05.240Z\", "
-                                            + "\"2023-03-01T17:14:05.240Z\", \"2023-03-01T17:14:05.240Z\"],\"stringSet\": [\"203\", \"204\", "
-                                            + "\"205\"],\"longNumber\": 202}]}")
+                                      .json("{\"customClassForDocumentAPI\": [{"
+                                            + "\"instantList\": [\"2023-03-01T17:14:05.049Z\", \"2023-03-01T17:14:05.049Z\", \"2023-03-01T17:14:05.049Z\"],"
+                                            + "\"longNumber\": 11,"
+                                            + "\"string\": \"11\","
+                                            + "\"stringSet\": [\"12\", \"13\", \"14\"]"
+                                            + "}, "
+                                            + "{"
+                                            + "\"instantList\": [\"2023-03-01T17:14:05.240Z\", \"2023-03-01T17:14:05.240Z\", "
+                                            + "\"2023-03-01T17:14:05.240Z\"],"
+                                            + "\"longNumber\": 202,"
+                                            + "\"string\": \"202\","
+                                            + "\"stringSet\": [\"203\", \"204\", \"205\"]"
+                                            + "}]}")
 
                                       .build());
 
@@ -366,11 +376,12 @@ public final class EnhancedDocumentTestData implements ArgumentsProvider {
                                                             EnhancedType.of(CustomClassForDocumentAPI.class))
                                               .build()
                                       )
-                                      .json("{\"customMapValue\": {\"entryOne\": {\"string\": \"12\",\"instantList\": "
-                                            + "[\"2023-03-01T17:14:05.050Z\", "
-                                            + "\"2023-03-01T17:14:05.050Z\", \"2023-03-01T17:14:05.050Z\"],\"stringSet\": "
-                                            + "[\"13\", \"14\", \"15\"],"
-                                            + "\"longNumber\": 12}}}")
+                                      .json("{\"customMapValue\": {\"entryOne\": {"
+                                            + "\"instantList\": [\"2023-03-01T17:14:05.050Z\", \"2023-03-01T17:14:05.050Z\", \"2023-03-01T17:14:05.050Z\"],"
+                                            + "\"longNumber\": 12,"
+                                            + "\"string\": \"12\","
+                                            + "\"stringSet\": [\"13\", \"14\", \"15\"]"
+                                            + "}}}")
                                       .typeMap(typeMap()
                                                    .addAttribute("customMapValue", EnhancedType.of(CharSequence.class),
                                                                  EnhancedType.of(CustomClassForDocumentAPI.class)))
@@ -435,16 +446,21 @@ public final class EnhancedDocumentTestData implements ArgumentsProvider {
                                                   ,defaultProvider())
 
                                               .putJson("customMapValue",
-                                                       "{\"entryOne\": {\"string\": \"12\",\"instantList\": "
-                                                       + "[\"2023-03-01T17:14:05.050Z\", "
-                                                       + "\"2023-03-01T17:14:05.050Z\", \"2023-03-01T17:14:05.050Z\"], "
-                                                       + "\"longNumber\": 12}}")
+                                                       "{\"entryOne\": "
+                                                       + "{"
+                                                       + "\"instantList\": [\"2023-03-01T17:14:05.050Z\", \"2023-03-01T17:14:05.050Z\", \"2023-03-01T17:14:05.050Z\"], "
+                                                       + "\"longNumber\": 12, "
+                                                       + "\"string\": \"12\""
+                                                       + "}"
+                                                       + "}")
                                               .build()
                                       )
-                                      .json("{\"customMapValue\": {\"entryOne\": {\"string\": \"12\",\"instantList\": "
-                                            + "[\"2023-03-01T17:14:05.050Z\", "
-                                            + "\"2023-03-01T17:14:05.050Z\", \"2023-03-01T17:14:05.050Z\"],\"longNumber\": "
-                                            + "12}}}")
+                                      .json("{\"customMapValue\": {\"entryOne\": {"
+                                            + "\"instantList\": [\"2023-03-01T17:14:05.050Z\", \"2023-03-01T17:14:05.050Z\", "
+                                            + "\"2023-03-01T17:14:05.050Z\"],"
+                                            + "\"longNumber\": 12,"
+                                            + "\"string\": \"12\""
+                                            + "}}}")
                                       .typeMap(typeMap()
                                                    .addAttribute("customMapValue", EnhancedType.of(CharSequence.class),
                                                                  EnhancedType.of(CustomClassForDocumentAPI.class)))
@@ -479,6 +495,7 @@ public final class EnhancedDocumentTestData implements ArgumentsProvider {
 
         // singleSdkByte SetOfSdkBytes ListOfSdkBytes and Map of SdkBytes
         testDataList.add(dataBuilder().scenario("bytesSet")
+                             .isGeneric(false)
                                       .ddbItemMap(
                                           map()
                                               .withKeyValue("bytes", AttributeValue.fromB(SdkBytes.fromUtf8String("HelloWorld")))
@@ -582,33 +599,33 @@ public final class EnhancedDocumentTestData implements ArgumentsProvider {
                                                                                             boolean excludeSetsInMap) {
 
         Map<String, AttributeValue> map = new LinkedHashMap<>();
-
+        map.put("instantList",
+                AttributeValue.fromL(Stream.of(
+                                               ofEpochMilli(FIXED_INSTANT_TIME + base +offset) ,ofEpochMilli(FIXED_INSTANT_TIME + base + offset),
+                                               ofEpochMilli(FIXED_INSTANT_TIME + base + offset))
+                                           .map(r -> AttributeValue.fromS(String.valueOf(r))).collect(Collectors.toList())));
+        map.put("longNumber", AttributeValue.fromN(String.valueOf(base + offset)));
         map.put("string", AttributeValue.fromS(String.valueOf(base + offset)));
         if(! excludeSetsInMap){
             map.put("stringSet",
                     AttributeValue.fromSs(Stream.of(1 + base + offset,2 + base +offset, 3 + base +offset).map(r -> String.valueOf(r)).collect(Collectors.toList())));
 
         }
-        map.put("longNumber", AttributeValue.fromN(String.valueOf(base + offset)));
-        map.put("instantList",
-                AttributeValue.fromL(Stream.of(
-                                               ofEpochMilli(FIXED_INSTANT_TIME + base +offset) ,ofEpochMilli(FIXED_INSTANT_TIME + base + offset),
-                                               ofEpochMilli(FIXED_INSTANT_TIME + base + offset))
-                                           .map(r -> AttributeValue.fromS(String.valueOf(r))).collect(Collectors.toList())));
+
         return map;
     }
 
     private static CustomClassForDocumentAPI getCustomClassForDocumentAPIWithBaseAndOffset(int offset, int base) {
 
         return CustomClassForDocumentAPI.builder()
-                                        .string(String.valueOf(base + offset))
-                                        .stringSet(Stream.of(1+ base + offset, 2 +base + offset, 3 + base  + offset).map(String::valueOf).collect(Collectors.toCollection(LinkedHashSet::new)))
-                                        .longNumber(Long.valueOf(base + offset))
                                         .instantList(Stream.of(
                                                                ofEpochMilli(FIXED_INSTANT_TIME + base + offset),
                                                                ofEpochMilli(FIXED_INSTANT_TIME + base + offset),
                                                                ofEpochMilli(FIXED_INSTANT_TIME + base + offset))
                                                            .collect(Collectors.toList()))
+                                        .longNumber(Long.valueOf(base + offset))
+                                        .string(String.valueOf(base + offset))
+                                        .stringSet(Stream.of(1+ base + offset, 2 +base + offset, 3 + base  + offset).map(String::valueOf).collect(Collectors.toCollection(LinkedHashSet::new)))
                                         .build();
 
     }
@@ -676,12 +693,14 @@ public final class EnhancedDocumentTestData implements ArgumentsProvider {
 
     private static CustomClassForDocumentAPI customValueWithBaseAndOffset(int offset, int base) {
 
-        return CustomClassForDocumentAPI.builder().string(String.valueOf(base + offset))
-                                        .stringSet(Stream.of(1 + base + offset,2 + base +offset, 3 + base +offset).map(r -> String.valueOf(r)).collect(Collectors.toCollection(LinkedHashSet::new)))
-                                        .longNumber(Long.valueOf(base + offset))
+        return CustomClassForDocumentAPI.builder()
                                         .instantList(Stream.of(
                                             ofEpochMilli(FIXED_INSTANT_TIME + base +offset) ,ofEpochMilli(FIXED_INSTANT_TIME + base + offset),
                                             ofEpochMilli(FIXED_INSTANT_TIME + base + offset)).collect(Collectors.toList()))
+                                        .longNumber(Long.valueOf(base + offset))
+                                        .string(String.valueOf(base + offset))
+                                        .stringSet(Stream.of(1 + base + offset,2 + base +offset, 3 + base +offset).map(r -> String.valueOf(r)).collect(Collectors.toCollection(LinkedHashSet::new)))
+
                                         .build();
 
     }

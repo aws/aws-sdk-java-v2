@@ -24,36 +24,9 @@ import java.util.Set;
 import software.amazon.awssdk.core.SdkBytes;
 
 public class CustomClassForDocumentAPI {
-    public String string() {
-        return string;
-    }
-
-    public Set<String> stringSet() {
-        return stringSet;
-    }
-
-    public SdkBytes binary() {
-        return binary;
-    }
-
-    public Set<byte[]> binarySet() {
-        return binarySet;
-    }
 
     public boolean aBoolean() {
         return aBoolean;
-    }
-
-    public Set<Boolean> booleanSet() {
-        return booleanSet;
-    }
-
-    public Long longNumber() {
-        return longNumber;
-    }
-
-    public Set<Long> longSet() {
-        return longSet;
     }
 
     public BigDecimal bigDecimal() {
@@ -64,8 +37,36 @@ public class CustomClassForDocumentAPI {
         return bigDecimalSet;
     }
 
+    public SdkBytes binary() {
+        return binary;
+    }
+
+    public Set<byte[]> binarySet() {
+        return binarySet;
+    }
+
+
+    public Set<Boolean> booleanSet() {
+        return booleanSet;
+    }
+
     public List<CustomClassForDocumentAPI> customClassList() {
         return customClassForDocumentAPIList;
+    }
+
+    public Long longNumber() {
+        return longNumber;
+    }
+
+    public Set<Long> longSet() {
+        return longSet;
+    }
+    public String string() {
+        return string;
+    }
+
+    public Set<String> stringSet() {
+        return stringSet;
     }
 
     public List<Instant> instantList() {
@@ -80,7 +81,6 @@ public class CustomClassForDocumentAPI {
         return innerCustomClassForDocumentAPI;
     }
 
-    private final String string;
     private final Set<String> stringSet;
     private final SdkBytes binary;
     private final Set<byte[]> binarySet;
@@ -94,6 +94,9 @@ public class CustomClassForDocumentAPI {
     private final List<Instant> instantList;
     private final Map<String, CustomClassForDocumentAPI> customClassMap;
     private final CustomClassForDocumentAPI innerCustomClassForDocumentAPI;
+
+    private final String string;
+
 
     public static Builder builder(){
         return new Builder();
@@ -214,20 +217,20 @@ public class CustomClassForDocumentAPI {
     @Override
     public String toString() {
         return "CustomClassForDocumentAPI{" +
-               "string='" + string + '\'' +
-               ", stringSet=" + stringSet +
-               ", binary=" + binary +
-               ", binarySet=" + binarySet +
-               ", aBoolean=" + aBoolean +
-               ", booleanSet=" + booleanSet +
-               ", longNumber=" + longNumber +
-               ", longSet=" + longSet +
+               "aBoolean=" + aBoolean +
                ", bigDecimal=" + bigDecimal +
                ", bigDecimalSet=" + bigDecimalSet +
+               ", binary=" + binary +
+               ", binarySet=" + binarySet +
+               ", booleanSet=" + booleanSet +
                ", customClassForDocumentAPIList=" + customClassForDocumentAPIList +
-               ", instantList=" + instantList +
                ", customClassMap=" + customClassMap +
                ", innerCustomClassForDocumentAPI=" + innerCustomClassForDocumentAPI +
+               ", instantList=" + instantList +
+               ", longNumber=" + longNumber +
+               ", longSet=" + longSet +
+               ", string='" + string + '\'' +
+               ", stringSet=" + stringSet +
                '}';
     }
 

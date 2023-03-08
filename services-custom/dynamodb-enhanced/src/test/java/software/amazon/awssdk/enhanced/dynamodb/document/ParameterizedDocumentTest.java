@@ -48,10 +48,14 @@ public class ParameterizedDocumentTest {
     @ParameterizedTest
     @ArgumentsSource(EnhancedDocumentTestData.class)
     void validate_validateJsonStringAreEqual(TestData testData) {
+        System.out.println(testData.getScenario());
         /**
          * The builder method internally creates a AttributeValueMap which is saved to the ddb, if this matches then
          * the document is as expected
          */
+
+        System.out.println("testData.getEnhancedDocument().toJson() " +testData.getEnhancedDocument().toJson());
+        System.out.println("testData.getEnhancedDocument().toJson() " +testData.getEnhancedDocument().toMap());
         assertThat(testData.getEnhancedDocument().toJson()).isEqualTo(testData.getJson());
     }
 
