@@ -1,3 +1,44 @@
+# __2.20.20__ __2023-03-08__
+## __AWS Elemental MediaPackage__
+  - ### Features
+    - This release provides the date and time live resources were created.
+
+## __AWS Elemental MediaPackage VOD__
+  - ### Features
+    - This release provides the date and time VOD resources were created.
+
+## __AWS Lake Formation__
+  - ### Features
+    - This release adds two new API support "GetDataCellsFiler" and "UpdateDataCellsFilter", and also updates the corresponding documentation.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Athena__
+  - ### Features
+    - A new field SubstatementType is added to GetQueryExecution API, so customers have an error free way to detect the query type and interpret the result.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Adds deletion protection support to DynamoDB tables. Tables with deletion protection enabled cannot be deleted. Deletion protection is disabled by default, can be enabled via the CreateTable or UpdateTable APIs, and is visible in TableDescription. This setting is not replicated for Global Tables.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Introducing Amazon EC2 C7g, M7g and R7g instances, powered by the latest generation AWS Graviton3 processors and deliver up to 25% better performance over Graviton2-based instances.
+
+## __Amazon Route 53 Resolver__
+  - ### Features
+    - Add dual-stack and IPv6 support for Route 53 Resolver Endpoint,Add IPv6 target IP in Route 53 Resolver Forwarding Rule
+
+## __Amazon S3__
+  - ### Features
+    - Adding PartType field to UploadPartRequest to indicate whether the part is the last part or not.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - There needs to be a user identity to specify the SageMaker user who perform each action regarding the entity. However, these is a not a unified concept of user identity across SageMaker service that could be used today.
+
 # __2.20.19__ __2023-03-07__
 ## __AWS Database Migration Service__
   - ### Features
