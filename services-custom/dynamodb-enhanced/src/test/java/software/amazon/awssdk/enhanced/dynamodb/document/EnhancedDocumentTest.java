@@ -226,8 +226,8 @@ public class EnhancedDocumentTest{
                                                                              EnhancedType.of(CustomClassForDocumentAPI.class))
                                                                 .build();
 
-            assertThat(afterCustomClass.toJson()).isEqualTo("{\"direct_attr\": \"sample_value\", \"customObject\": {\"string\":"
-                                                            + " \"str_one\",\"longNumber\": 26}}");
+            assertThat(afterCustomClass.toJson()).isEqualTo("{\"direct_attr\": \"sample_value\", \"customObject\": "
+                                                            + "{\"longNumber\": 26,\"string\": \"str_one\"}}");
 
             EnhancedDocument enhancedDocument = EnhancedDocument.builder()
                                                      .putString("direct_attr", "sample_value")
