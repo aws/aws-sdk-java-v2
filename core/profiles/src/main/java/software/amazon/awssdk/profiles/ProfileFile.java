@@ -273,7 +273,7 @@ public final class ProfileFile {
         @Override
         public Builder content(Path contentLocation) {
             Validate.paramNotNull(contentLocation, "profileLocation");
-            Validate.validState(contentLocation.toFile().exists(), "Profile file '%s' does not exist.", contentLocation);
+            Validate.validState(Files.exists(contentLocation), "Profile file '%s' does not exist.", contentLocation);
 
             this.content = null;
             this.contentLocation = contentLocation;

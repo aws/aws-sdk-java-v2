@@ -129,7 +129,7 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
 
         S3Configuration serviceConfiguration = b.serviceConfiguration != null ? b.serviceConfiguration :
                                                 S3Configuration.builder()
-                                                               .profileFile(profileFile())
+                                                               .profileFile(profileFileSupplier())
                                                                .profileName(profileName())
                                                                .checksumValidationEnabled(false)
                                                                .build();
@@ -214,7 +214,7 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
         } else {
             URI defaultEndpoint = new DefaultServiceEndpointBuilder(SERVICE_NAME, "https")
                 .withRegion(region())
-                .withProfileFile(this::profileFile)
+                .withProfileFile(profileFileSupplier())
                 .withProfileName(profileName())
                 .withDualstackEnabled(serviceConfiguration.dualstackEnabled())
                 .withFipsEnabled(fipsEnabled())
@@ -533,7 +533,7 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
 
         SdkClientConfiguration config = clientConfiguration.toBuilder()
             .option(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT, legacyOption)
-            .option(SdkClientOption.PROFILE_FILE, profileFile())
+            .option(SdkClientOption.PROFILE_FILE_SUPPLIER, profileFileSupplier())
             .option(SdkClientOption.PROFILE_NAME, profileName())
             .build();
 

@@ -73,11 +73,6 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
         }
     }
 
-    @Override
-    public final String serviceName() {
-        return SERVICE_NAME;
-    }
-
     /**
      * Invokes the DescribeEndpoints operation asynchronously.
      *
@@ -350,8 +345,8 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
     }
 
     @Override
-    public void close() {
-        clientHandler.close();
+    public final String serviceName() {
+        return SERVICE_NAME;
     }
 
     private <T extends BaseAwsJsonProtocolFactory.Builder<T>> T init(T builder) {
@@ -378,5 +373,10 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
     private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,
                                                                                 JsonOperationMetadata operationMetadata) {
         return protocolFactory.createErrorResponseHandler(operationMetadata);
+    }
+
+    @Override
+    public void close() {
+        clientHandler.close();
     }
 }

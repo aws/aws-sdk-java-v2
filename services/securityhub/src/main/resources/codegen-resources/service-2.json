@@ -80,6 +80,38 @@
       ],
       "documentation":"<p>Enables the standards specified by the provided <code>StandardsArn</code>. To obtain the ARN for a standard, use the <code>DescribeStandards</code> operation.</p> <p>For more information, see the <a href=\"https://docs.aws.amazon.com/securityhub/latest/userguide/securityhub-standards.html\">Security Standards</a> section of the <i>Security Hub User Guide</i>.</p>"
     },
+    "BatchGetSecurityControls":{
+      "name":"BatchGetSecurityControls",
+      "http":{
+        "method":"POST",
+        "requestUri":"/securityControls/batchGet"
+      },
+      "input":{"shape":"BatchGetSecurityControlsRequest"},
+      "output":{"shape":"BatchGetSecurityControlsResponse"},
+      "errors":[
+        {"shape":"InternalException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"InvalidAccessException"},
+        {"shape":"InvalidInputException"}
+      ],
+      "documentation":"<p> Provides details about a batch of security controls for the current Amazon Web Services account and Amazon Web Services Region. </p>"
+    },
+    "BatchGetStandardsControlAssociations":{
+      "name":"BatchGetStandardsControlAssociations",
+      "http":{
+        "method":"POST",
+        "requestUri":"/associations/batchGet"
+      },
+      "input":{"shape":"BatchGetStandardsControlAssociationsRequest"},
+      "output":{"shape":"BatchGetStandardsControlAssociationsResponse"},
+      "errors":[
+        {"shape":"InternalException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"InvalidAccessException"},
+        {"shape":"InvalidInputException"}
+      ],
+      "documentation":"<p> For a batch of security controls and standards, identifies whether each control is currently enabled or disabled in a standard. </p>"
+    },
     "BatchImportFindings":{
       "name":"BatchImportFindings",
       "http":{
@@ -111,6 +143,22 @@
         {"shape":"InvalidAccessException"}
       ],
       "documentation":"<p>Used by Security Hub customers to update information about their investigation into a finding. Requested by administrator accounts or member accounts. Administrator accounts can update findings for their account and their member accounts. Member accounts can update findings for their account.</p> <p>Updates from <code>BatchUpdateFindings</code> do not affect the value of <code>UpdatedAt</code> for a finding.</p> <p>Administrator and member accounts can use <code>BatchUpdateFindings</code> to update the following finding fields and objects.</p> <ul> <li> <p> <code>Confidence</code> </p> </li> <li> <p> <code>Criticality</code> </p> </li> <li> <p> <code>Note</code> </p> </li> <li> <p> <code>RelatedFindings</code> </p> </li> <li> <p> <code>Severity</code> </p> </li> <li> <p> <code>Types</code> </p> </li> <li> <p> <code>UserDefinedFields</code> </p> </li> <li> <p> <code>VerificationState</code> </p> </li> <li> <p> <code>Workflow</code> </p> </li> </ul> <p>You can configure IAM policies to restrict access to fields and field values. For example, you might not want member accounts to be able to suppress findings or change the finding severity. See <a href=\"https://docs.aws.amazon.com/securityhub/latest/userguide/finding-update-batchupdatefindings.html#batchupdatefindings-configure-access\">Configuring access to BatchUpdateFindings</a> in the <i>Security Hub User Guide</i>.</p>"
+    },
+    "BatchUpdateStandardsControlAssociations":{
+      "name":"BatchUpdateStandardsControlAssociations",
+      "http":{
+        "method":"PATCH",
+        "requestUri":"/associations"
+      },
+      "input":{"shape":"BatchUpdateStandardsControlAssociationsRequest"},
+      "output":{"shape":"BatchUpdateStandardsControlAssociationsResponse"},
+      "errors":[
+        {"shape":"InternalException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"InvalidAccessException"},
+        {"shape":"InvalidInputException"}
+      ],
+      "documentation":"<p> For a batch of security controls and standards, this operation updates the enablement status of a control in a standard. </p>"
     },
     "CreateActionTarget":{
       "name":"CreateActionTarget",
@@ -527,7 +575,7 @@
         {"shape":"ResourceConflictException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Enables Security Hub for your account in the current Region or the Region you specify in the request.</p> <p>When you enable Security Hub, you grant to Security Hub the permissions necessary to gather findings from other services that are integrated with Security Hub.</p> <p>When you use the <code>EnableSecurityHub</code> operation to enable Security Hub, you also automatically enable the following standards.</p> <ul> <li> <p>CIS Amazon Web Services Foundations</p> </li> <li> <p>Amazon Web Services Foundational Security Best Practices</p> </li> </ul> <p>You do not enable the Payment Card Industry Data Security Standard (PCI DSS) standard. </p> <p>To not enable the automatically enabled standards, set <code>EnableDefaultStandards</code> to <code>false</code>.</p> <p>After you enable Security Hub, to enable a standard, use the <code>BatchEnableStandards</code> operation. To disable a standard, use the <code>BatchDisableStandards</code> operation.</p> <p>To learn more, see the <a href=\"https://docs.aws.amazon.com/securityhub/latest/userguide/securityhub-settingup.html\">setup information</a> in the <i>Security Hub User Guide</i>.</p>"
+      "documentation":"<p>Enables Security Hub for your account in the current Region or the Region you specify in the request.</p> <p>When you enable Security Hub, you grant to Security Hub the permissions necessary to gather findings from other services that are integrated with Security Hub.</p> <p>When you use the <code>EnableSecurityHub</code> operation to enable Security Hub, you also automatically enable the following standards:</p> <ul> <li> <p>Center for Internet Security (CIS) Amazon Web Services Foundations Benchmark v1.2.0</p> </li> <li> <p>Amazon Web Services Foundational Security Best Practices</p> </li> </ul> <p>Other standards are not automatically enabled. </p> <p>To opt out of automatically enabled standards, set <code>EnableDefaultStandards</code> to <code>false</code>.</p> <p>After you enable Security Hub, to enable a standard, use the <code>BatchEnableStandards</code> operation. To disable a standard, use the <code>BatchDisableStandards</code> operation.</p> <p>To learn more, see the <a href=\"https://docs.aws.amazon.com/securityhub/latest/userguide/securityhub-settingup.html\">setup information</a> in the <i>Security Hub User Guide</i>.</p>"
     },
     "GetAdministratorAccount":{
       "name":"GetAdministratorAccount",
@@ -778,6 +826,38 @@
         {"shape":"LimitExceededException"}
       ],
       "documentation":"<p>Lists the Security Hub administrator accounts. Can only be called by the organization management account.</p>"
+    },
+    "ListSecurityControlDefinitions":{
+      "name":"ListSecurityControlDefinitions",
+      "http":{
+        "method":"GET",
+        "requestUri":"/securityControls/definitions"
+      },
+      "input":{"shape":"ListSecurityControlDefinitionsRequest"},
+      "output":{"shape":"ListSecurityControlDefinitionsResponse"},
+      "errors":[
+        {"shape":"InternalException"},
+        {"shape":"InvalidInputException"},
+        {"shape":"InvalidAccessException"},
+        {"shape":"LimitExceededException"}
+      ],
+      "documentation":"<p> Lists all of the security controls that apply to a specified standard. </p>"
+    },
+    "ListStandardsControlAssociations":{
+      "name":"ListStandardsControlAssociations",
+      "http":{
+        "method":"GET",
+        "requestUri":"/associations"
+      },
+      "input":{"shape":"ListStandardsControlAssociationsRequest"},
+      "output":{"shape":"ListStandardsControlAssociationsResponse"},
+      "errors":[
+        {"shape":"InternalException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"InvalidAccessException"},
+        {"shape":"InvalidInputException"}
+      ],
+      "documentation":"<p> Specifies whether a control is currently enabled or disabled in each enabled standard in the calling account. </p>"
     },
     "ListTagsForResource":{
       "name":"ListTagsForResource",
@@ -1191,6 +1271,27 @@
       "type":"list",
       "member":{"shape":"NonEmptyString"}
     },
+    "AssociatedStandard":{
+      "type":"structure",
+      "members":{
+        "StandardsId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The unique identifier of a standard in which a control is enabled. This field consists of the resource portion of the Amazon Resource Name (ARN) returned for a standard in the <a href=\"https://docs.aws.amazon.com/securityhub/1.0/APIReference/API_DescribeStandards.html\">DescribeStandards</a> API response. </p>"
+        }
+      },
+      "documentation":"<p> Information about an enabled security standard in which a security control is enabled. </p>"
+    },
+    "AssociatedStandardsList":{
+      "type":"list",
+      "member":{"shape":"AssociatedStandard"}
+    },
+    "AssociationStatus":{
+      "type":"string",
+      "enum":[
+        "ENABLED",
+        "DISABLED"
+      ]
+    },
     "AutoEnableStandards":{
       "type":"string",
       "enum":[
@@ -1245,11 +1346,11 @@
         },
         "FirstSeen":{
           "shape":"NonEmptyString",
-          "documentation":"<p>An ISO8601-formatted timestamp that indicates when the API call was first observed.</p>"
+          "documentation":"<p>An ISO8601-formatted timestamp that indicates when the API call was first observed.</p> <p>A correctly formatted example is <code>2020-05-21T20:16:34.724Z</code>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For more information, see <a href=\"https://www.rfc-editor.org/rfc/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>.</p>"
         },
         "LastSeen":{
           "shape":"NonEmptyString",
-          "documentation":"<p>An ISO8601-formatted timestamp that indicates when the API call was most recently observed.</p>"
+          "documentation":"<p>An ISO8601-formatted timestamp that indicates when the API call was most recently observed.</p> <p>A correctly formatted example is <code>2020-05-21T20:16:34.724Z</code>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For more information, see <a href=\"https://www.rfc-editor.org/rfc/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>.</p>"
         }
       },
       "documentation":"<p>Provided if <code>ActionType</code> is <code>AWS_API_CALL</code>. It provides details about the API call that was detected.</p>"
@@ -1385,7 +1486,7 @@
         },
         "CreatedDate":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when the API was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the API was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "Version":{
           "shape":"NonEmptyString",
@@ -1467,11 +1568,11 @@
         },
         "CreatedDate":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when the stage was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the stage was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "LastUpdatedDate":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when the stage was most recently updated.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the stage was most recently updated.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "WebAclArn":{
           "shape":"NonEmptyString",
@@ -1497,7 +1598,7 @@
         },
         "CreatedDate":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when the API was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the API was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "Description":{
           "shape":"NonEmptyString",
@@ -1561,7 +1662,7 @@
         },
         "CreatedDate":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when the stage was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the stage was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "Description":{
           "shape":"NonEmptyString",
@@ -1577,7 +1678,7 @@
         },
         "LastUpdatedDate":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when the stage was most recently updated.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the stage was most recently updated.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "RouteSettings":{
           "shape":"AwsApiGatewayV2RouteSettings",
@@ -1645,7 +1746,7 @@
         },
         "CreatedTime":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when the auto scaling group was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the auto scaling group was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "MixedInstancesPolicy":{
           "shape":"AwsAutoScalingAutoScalingGroupMixedInstancesPolicyDetails",
@@ -1855,7 +1956,7 @@
         },
         "CreatedTime":{
           "shape":"NonEmptyString",
-          "documentation":"<p>The creation date and time for the launch configuration.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>The creation date and time for the launch configuration.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "EbsOptimized":{
           "shape":"Boolean",
@@ -2115,7 +2216,7 @@
         },
         "SnsTopicArn":{
           "shape":"NonEmptyString",
-          "documentation":"<p>An ARN that uniquely identifies the Amazon SNS topic for a backup vault’s events. </p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) that uniquely identifies the Amazon SNS topic for a backup vault's events. </p>"
         }
       },
       "documentation":"<p>Provides details about the Amazon SNS event notifications for the specified backup vault. </p>"
@@ -2261,7 +2362,7 @@
         },
         "CreatedAt":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when the certificate was requested.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the certificate was requested.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "DomainName":{
           "shape":"NonEmptyString",
@@ -2281,7 +2382,7 @@
         },
         "ImportedAt":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when the certificate was imported. Provided if the certificate type is <code>IMPORTED</code>.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the certificate was imported. Provided if the certificate type is <code>IMPORTED</code>.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "InUseBy":{
           "shape":"StringList",
@@ -2289,7 +2390,7 @@
         },
         "IssuedAt":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when the certificate was issued. Provided if the certificate type is <code>AMAZON_ISSUED</code>.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the certificate was issued. Provided if the certificate type is <code>AMAZON_ISSUED</code>.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "Issuer":{
           "shape":"NonEmptyString",
@@ -2305,11 +2406,11 @@
         },
         "NotAfter":{
           "shape":"NonEmptyString",
-          "documentation":"<p>The time after which the certificate becomes invalid.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>The time after which the certificate becomes invalid.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "NotBefore":{
           "shape":"NonEmptyString",
-          "documentation":"<p>The time before which the certificate is not valid.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>The time before which the certificate is not valid.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "Options":{
           "shape":"AwsCertificateManagerCertificateOptions",
@@ -2443,7 +2544,7 @@
         },
         "UpdatedAt":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when the renewal summary was last updated.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the renewal summary was last updated.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         }
       },
       "documentation":"<p>Contains information about the Certificate Manager managed renewal for an <code>AMAZON_ISSUED</code> certificate.</p>"
@@ -2623,7 +2724,7 @@
         },
         "LastModifiedTime":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when that the distribution was last modified.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when that the distribution was last modified.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "Logging":{
           "shape":"AwsCloudFrontDistributionLogging",
@@ -3333,7 +3434,7 @@
         },
         "LastUpdateToPayPerRequestDateTime":{
           "shape":"NonEmptyString",
-          "documentation":"<p>If the billing mode is <code>PAY_PER_REQUEST</code>, indicates when the billing mode was set to that value.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>If the billing mode is <code>PAY_PER_REQUEST</code>, indicates when the billing mode was set to that value.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         }
       },
       "documentation":"<p>Provides information about the billing for read/write capacity on the table.</p>"
@@ -3351,7 +3452,7 @@
         },
         "CreationDateTime":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when the table was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the table was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "GlobalSecondaryIndexes":{
           "shape":"AwsDynamoDbTableGlobalSecondaryIndexList",
@@ -3529,11 +3630,11 @@
       "members":{
         "LastDecreaseDateTime":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when the provisioned throughput was last decreased.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the provisioned throughput was last decreased.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "LastIncreaseDateTime":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when the provisioned throughput was last increased.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the provisioned throughput was last increased.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "NumberOfDecreasesToday":{
           "shape":"Integer",
@@ -3625,7 +3726,7 @@
         },
         "RestoreDateTime":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates the point in time that the table was restored to.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates the point in time that the table was restored to.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "RestoreInProgress":{
           "shape":"Boolean",
@@ -3639,7 +3740,7 @@
       "members":{
         "InaccessibleEncryptionDateTime":{
           "shape":"NonEmptyString",
-          "documentation":"<p>If the key is inaccessible, the date and time when DynamoDB detected that the key was inaccessible.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>If the key is inaccessible, the date and time when DynamoDB detected that the key was inaccessible.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "Status":{
           "shape":"NonEmptyString",
@@ -3753,7 +3854,7 @@
         },
         "LaunchedAt":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when the instance was launched.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the instance was launched.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "NetworkInterfaces":{
           "shape":"AwsEc2InstanceNetworkInterfacesList",
@@ -4269,7 +4370,7 @@
         },
         "OnDemandMaxPricePercentageOverLowestPrice":{
           "shape":"Integer",
-          "documentation":"<p> The price protection threshold for On-Demand Instances. This is the maximum you’ll pay for an On-Demand Instance, expressed as a percentage above the least expensive current generation M, C, or R instance type with your specified attributes. When Amazon EC2 selects instance types with your attributes, it excludes instance types priced above your threshold.</p> <p>The parameter accepts an integer, which Amazon EC2 interprets as a percentage.</p> <p>A high value, such as <code>999999</code>, turns off price protection.</p>"
+          "documentation":"<p> The price protection threshold for On-Demand Instances. This is the maximum you'll pay for an On-Demand Instance, expressed as a percentage above the least expensive current generation M, C, or R instance type with your specified attributes. When Amazon EC2 selects instance types with your attributes, it excludes instance types priced above your threshold.</p> <p>The parameter accepts an integer, which Amazon EC2 interprets as a percentage.</p> <p>A high value, such as <code>999999</code>, turns off price protection.</p>"
         },
         "RequireHibernateSupport":{
           "shape":"Boolean",
@@ -4277,7 +4378,7 @@
         },
         "SpotMaxPricePercentageOverLowestPrice":{
           "shape":"Integer",
-          "documentation":"<p> The price protection threshold for Spot Instances. This is the maximum you’ll pay for a Spot Instance, expressed as a percentage above the least expensive current generation M, C, or R instance type with your specified attributes. When Amazon EC2 selects instance types with your attributes, it excludes instance types priced above your threshold. </p> <p>The parameter accepts an integer, which Amazon EC2 interprets as a percentage.</p> <p>A high value, such as <code>999999</code>, turns off price protection.</p>"
+          "documentation":"<p> The price protection threshold for Spot Instances. This is the maximum you'll pay for a Spot Instance, expressed as a percentage above the least expensive current generation M, C, or R instance type with your specified attributes. When Amazon EC2 selects instance types with your attributes, it excludes instance types priced above your threshold. </p> <p>The parameter accepts an integer, which Amazon EC2 interprets as a percentage.</p> <p>A high value, such as <code>999999</code>, turns off price protection.</p>"
         },
         "TotalLocalStorageGB":{
           "shape":"AwsEc2LaunchTemplateDataInstanceRequirementsTotalLocalStorageGBDetails",
@@ -4389,7 +4490,7 @@
       "members":{
         "HttpEndpoint":{
           "shape":"NonEmptyString",
-          "documentation":"<p> Enables or disables the HTTP metadata endpoint on your instances. If the parameter is not specified, the default state is enabled, and you won’t be able to access your instance metadata. </p>"
+          "documentation":"<p> Enables or disables the HTTP metadata endpoint on your instances. If the parameter is not specified, the default state is enabled, and you won't be able to access your instance metadata. </p>"
         },
         "HttpProtocolIpv6":{
           "shape":"NonEmptyString",
@@ -4747,7 +4848,7 @@
       "members":{
         "AttachTime":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when the attachment initiated.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the attachment initiated.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "AttachmentId":{
           "shape":"NonEmptyString",
@@ -5151,7 +5252,7 @@
       "members":{
         "CreateTime":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when the volume was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the volume was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "DeviceName":{
           "shape":"NonEmptyString",
@@ -5525,7 +5626,7 @@
         },
         "LastStatusChange":{
           "shape":"NonEmptyString",
-          "documentation":"<p>The date and time of the last change in status.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>The date and time of the last change in status.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "OutsideIpAddress":{
           "shape":"NonEmptyString",
@@ -5571,7 +5672,7 @@
         },
         "ImagePublishedAt":{
           "shape":"NonEmptyString",
-          "documentation":"<p>The date and time when the image was pushed to the repository.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>The date and time when the image was pushed to the repository.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         }
       },
       "documentation":"<p>Information about an Amazon ECR image.</p>"
@@ -7626,7 +7727,7 @@
         },
         "CreatedTime":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when the load balancer was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the load balancer was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "DnsName":{
           "shape":"NonEmptyString",
@@ -7826,7 +7927,7 @@
         },
         "CreatedTime":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when the load balancer was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the load balancer was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "DNSName":{
           "shape":"NonEmptyString",
@@ -7878,7 +7979,7 @@
         },
         "CreatedAt":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when the IAM access key was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the IAM access key was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "PrincipalId":{
           "shape":"NonEmptyString",
@@ -7930,7 +8031,7 @@
         },
         "CreationDate":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when the session was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the session was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         }
       },
       "documentation":"<p>Attributes of the session that the key was used for.</p>"
@@ -7995,7 +8096,7 @@
         },
         "CreateDate":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when the IAM group was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the IAM group was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "GroupId":{
           "shape":"NonEmptyString",
@@ -8039,7 +8140,7 @@
         },
         "CreateDate":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when the instance profile was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the instance profile was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "InstanceProfileId":{
           "shape":"NonEmptyString",
@@ -8077,7 +8178,7 @@
         },
         "CreateDate":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when the role was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the role was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "Path":{
           "shape":"NonEmptyString",
@@ -8121,7 +8222,7 @@
         },
         "CreateDate":{
           "shape":"NonEmptyString",
-          "documentation":"<p>When the policy was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>When the policy was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "DefaultVersionId":{
           "shape":"NonEmptyString",
@@ -8157,7 +8258,7 @@
         },
         "UpdateDate":{
           "shape":"NonEmptyString",
-          "documentation":"<p>When the policy was most recently updated.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>When the policy was most recently updated.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         }
       },
       "documentation":"<p>Represents an IAM permissions policy.</p>"
@@ -8175,7 +8276,7 @@
         },
         "CreateDate":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when the version was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the version was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         }
       },
       "documentation":"<p>A version of an IAM policy.</p>"
@@ -8203,7 +8304,7 @@
         },
         "CreateDate":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when the role was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the role was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "InstanceProfileList":{
           "shape":"AwsIamInstanceProfileList",
@@ -8256,7 +8357,7 @@
         },
         "CreateDate":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when the user was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the user was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "GroupList":{
           "shape":"StringList",
@@ -8348,7 +8449,7 @@
         },
         "CreationDate":{
           "shape":"Double",
-          "documentation":"<p>Indicates when the KMS key was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the KMS key was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "KeyId":{
           "shape":"NonEmptyString",
@@ -8442,7 +8543,7 @@
         },
         "LastModified":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when the function was last updated.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the function was last updated.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "Layers":{
           "shape":"AwsLambdaFunctionLayerList",
@@ -8582,7 +8683,7 @@
         },
         "CreatedDate":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when the version was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the version was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         }
       },
       "documentation":"<p>Details about a Lambda layer version.</p>"
@@ -9129,7 +9230,7 @@
         },
         "ClusterCreateTime":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when the DB cluster was created, in Universal Coordinated Time (UTC).</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the DB cluster was created, in Universal Coordinated Time (UTC).</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "EnabledCloudWatchLogsExports":{
           "shape":"StringList",
@@ -9243,7 +9344,7 @@
         },
         "SnapshotCreateTime":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when the snapshot was taken.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the snapshot was taken.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "Engine":{
           "shape":"NonEmptyString",
@@ -9267,7 +9368,7 @@
         },
         "ClusterCreateTime":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when the DB cluster was created, in Universal Coordinated Time (UTC).</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the DB cluster was created, in Universal Coordinated Time (UTC).</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "MasterUsername":{
           "shape":"NonEmptyString",
@@ -9417,7 +9518,7 @@
         },
         "InstanceCreateTime":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when the DB instance was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the DB instance was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "KmsKeyId":{
           "shape":"NonEmptyString",
@@ -9493,7 +9594,7 @@
         },
         "LatestRestorableTime":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Specifies the latest time to which a database can be restored with point-in-time restore.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Specifies the latest time to which a database can be restored with point-in-time restore.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "AutoMinorVersionUpgrade":{
           "shape":"Boolean",
@@ -10068,7 +10169,7 @@
         },
         "SubscriptionCreationTime":{
           "shape":"NonEmptyString",
-          "documentation":"<p>The datetime when the event notification subscription was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>The datetime when the event notification subscription was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         }
       },
       "documentation":"<p>Details about an Amazon RDS event notification subscription. The subscription allows Amazon RDS to post events to an SNS topic.</p>"
@@ -10180,7 +10281,7 @@
         },
         "ManualSnapshotRetentionPeriod":{
           "shape":"Integer",
-          "documentation":"<p>The number of days that manual snapshots are retained in the destination region after they are copied from a source region.</p> <p>If the value is <code>-1</code>, then the manual snapshot is retained indefinitely.</p> <p>Valid values: Either <code>-1</code> or an integer between 1 and 3,653</p>"
+          "documentation":"<p>The number of days that manual snapshots are retained in the destination Region after they are copied from a source Region.</p> <p>If the value is <code>-1</code>, then the manual snapshot is retained indefinitely.</p> <p>Valid values: Either <code>-1</code> or an integer between 1 and 3,653</p>"
         },
         "RetentionPeriod":{
           "shape":"Integer",
@@ -10191,14 +10292,14 @@
           "documentation":"<p>The name of the snapshot copy grant.</p>"
         }
       },
-      "documentation":"<p>Information about a cross-Region snapshot copy.</p>"
+      "documentation":"<p>You can configure Amazon Redshift to copy snapshots for a cluster to another Amazon Web Services Region. This parameter provides information about a cross-Region snapshot copy.</p>"
     },
     "AwsRedshiftClusterDeferredMaintenanceWindow":{
       "type":"structure",
       "members":{
         "DeferMaintenanceEndTime":{
           "shape":"NonEmptyString",
-          "documentation":"<p>The end of the time window for which maintenance was deferred.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>The end of the time window for which maintenance was deferred.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "DeferMaintenanceIdentifier":{
           "shape":"NonEmptyString",
@@ -10206,7 +10307,7 @@
         },
         "DeferMaintenanceStartTime":{
           "shape":"NonEmptyString",
-          "documentation":"<p>The start of the time window for which maintenance was deferred.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>The start of the time window for which maintenance was deferred.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         }
       },
       "documentation":"<p>A time windows during which maintenance was deferred for an Amazon Redshift cluster.</p>"
@@ -10236,7 +10337,7 @@
         },
         "ClusterCreateTime":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when the cluster was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the cluster was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "ClusterIdentifier":{
           "shape":"NonEmptyString",
@@ -10308,7 +10409,7 @@
         },
         "ExpectedNextSnapshotScheduleTime":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when the next snapshot is expected to be taken. The cluster must have a valid snapshot schedule and have backups enabled.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the next snapshot is expected to be taken. The cluster must have a valid snapshot schedule and have backups enabled.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "ExpectedNextSnapshotScheduleTimeStatus":{
           "shape":"NonEmptyString",
@@ -10340,7 +10441,7 @@
         },
         "NextMaintenanceWindowStartTime":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates the start of the next maintenance window.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates the start of the next maintenance window.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "NodeType":{
           "shape":"NonEmptyString",
@@ -10474,11 +10575,11 @@
         },
         "LastFailureTime":{
           "shape":"NonEmptyString",
-          "documentation":"<p>The last time when logs failed to be delivered.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>The last time when logs failed to be delivered.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "LastSuccessfulDeliveryTime":{
           "shape":"NonEmptyString",
-          "documentation":"<p>The last time that logs were delivered successfully.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>The last time that logs were delivered successfully.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "LoggingEnabled":{
           "shape":"Boolean",
@@ -10654,7 +10755,7 @@
         },
         "ExpirationDate":{
           "shape":"NonEmptyString",
-          "documentation":"<p>The date when objects are moved or deleted.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>The date when objects are moved or deleted.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "ExpirationInDays":{
           "shape":"Integer",
@@ -10804,7 +10905,7 @@
       "members":{
         "Date":{
           "shape":"NonEmptyString",
-          "documentation":"<p>A date on which to transition objects to the specified storage class. If you provide <code>Date</code>, you cannot provide <code>Days</code>.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>A date on which to transition objects to the specified storage class. If you provide <code>Date</code>, you cannot provide <code>Days</code>.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "Days":{
           "shape":"Integer",
@@ -10852,7 +10953,7 @@
         },
         "CreatedAt":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when the S3 bucket was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the S3 bucket was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "ServerSideEncryptionConfiguration":{
           "shape":"AwsS3BucketServerSideEncryptionConfiguration",
@@ -11125,7 +11226,7 @@
       "members":{
         "LastModified":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when the object was last modified.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the object was last modified.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "ETag":{
           "shape":"NonEmptyString",
@@ -11159,11 +11260,11 @@
         },
         "AdditionalCodeRepositories":{
           "shape":"NonEmptyStringList",
-          "documentation":"<p> An array of up to three Git repositories associated with the notebook instance. These can be either the names of Git repositories stored as resources in your account, or the URL of Git repositories in <a href=\"https://docs.aws.amazon.com/codecommit/latest/userguide/welcome.html\">AWS CodeCommit</a> or in any other Git repository. These repositories are cloned at the same level as the default repository of your notebook instance. For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/nbi-git-repo.html\">Associating Git repositories with SageMaker notebook instances</a> in the <i>Amazon SageMaker Developer Guide</i>. </p>"
+          "documentation":"<p> An array of up to three Git repositories associated with the notebook instance. These can be either the names of Git repositories stored as resources in your account, or the URL of Git repositories in <a href=\"https://docs.aws.amazon.com/codecommit/latest/userguide/welcome.html\">CodeCommit</a> or in any other Git repository. These repositories are cloned at the same level as the default repository of your notebook instance. For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/nbi-git-repo.html\">Associating Git repositories with SageMaker notebook instances</a> in the <i>Amazon SageMaker Developer Guide</i>. </p>"
         },
         "DefaultCodeRepository":{
           "shape":"NonEmptyString",
-          "documentation":"<p> The Git repository associated with the notebook instance as its default code repository. This can be either the name of a Git repository stored as a resource in your account, or the URL of a Git repository in <a href=\"https://docs.aws.amazon.com/codecommit/latest/userguide/welcome.html\">AWS CodeCommit</a> or in any other Git repository. When you open a notebook instance, it opens in the directory that contains this repository. For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/nbi-git-repo.html\">Associating Git repositories with SageMaker notebook instances</a> in the <i>Amazon SageMaker Developer Guide</i>. </p>"
+          "documentation":"<p> The Git repository associated with the notebook instance as its default code repository. This can be either the name of a Git repository stored as a resource in your account, or the URL of a Git repository in <a href=\"https://docs.aws.amazon.com/codecommit/latest/userguide/welcome.html\">CodeCommit</a> or in any other Git repository. When you open a notebook instance, it opens in the directory that contains this repository. For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/nbi-git-repo.html\">Associating Git repositories with SageMaker notebook instances</a> in the <i>Amazon SageMaker Developer Guide</i>. </p>"
         },
         "DirectInternetAccess":{
           "shape":"NonEmptyString",
@@ -11347,19 +11448,19 @@
         },
         "FirstObservedAt":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when the security-findings provider first observed the potential security issue that a finding captured.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the security-findings provider first observed the potential security issue that a finding captured.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "LastObservedAt":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when the security-findings provider most recently observed the potential security issue that a finding captured.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the security-findings provider most recently observed the potential security issue that a finding captured.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "CreatedAt":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when the security-findings provider created the potential security issue that a finding captured.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the security-findings provider created the potential security issue that a finding captured.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "UpdatedAt":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when the security-findings provider last updated the finding record.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the security-findings provider last updated the finding record.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "Severity":{
           "shape":"Severity",
@@ -11505,19 +11606,19 @@
         },
         "FirstObservedAt":{
           "shape":"DateFilterList",
-          "documentation":"<p>An ISO8601-formatted timestamp that indicates when the security-findings provider first observed the potential security issue that a finding captured.</p>"
+          "documentation":"<p>An ISO8601-formatted timestamp that indicates when the security-findings provider first observed the potential security issue that a finding captured.</p> <p>A correctly formatted example is <code>2020-05-21T20:16:34.724Z</code>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For more information, see <a href=\"https://www.rfc-editor.org/rfc/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>.</p>"
         },
         "LastObservedAt":{
           "shape":"DateFilterList",
-          "documentation":"<p>An ISO8601-formatted timestamp that indicates when the security-findings provider most recently observed the potential security issue that a finding captured.</p>"
+          "documentation":"<p>An ISO8601-formatted timestamp that indicates when the security-findings provider most recently observed the potential security issue that a finding captured.</p> <p>A correctly formatted example is <code>2020-05-21T20:16:34.724Z</code>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For more information, see <a href=\"https://www.rfc-editor.org/rfc/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>.</p>"
         },
         "CreatedAt":{
           "shape":"DateFilterList",
-          "documentation":"<p>An ISO8601-formatted timestamp that indicates when the security-findings provider captured the potential security issue that a finding captured.</p>"
+          "documentation":"<p>An ISO8601-formatted timestamp that indicates when the security-findings provider captured the potential security issue that a finding captured.</p> <p>A correctly formatted example is <code>2020-05-21T20:16:34.724Z</code>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For more information, see <a href=\"https://www.rfc-editor.org/rfc/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>.</p>"
         },
         "UpdatedAt":{
           "shape":"DateFilterList",
-          "documentation":"<p>An ISO8601-formatted timestamp that indicates when the security-findings provider last updated the finding record. </p>"
+          "documentation":"<p>An ISO8601-formatted timestamp that indicates when the security-findings provider last updated the finding record. </p> <p>A correctly formatted example is <code>2020-05-21T20:16:34.724Z</code>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For more information, see <a href=\"https://www.rfc-editor.org/rfc/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>.</p>"
         },
         "SeverityProduct":{
           "shape":"NumberFilterList",
@@ -11653,11 +11754,11 @@
         },
         "ProcessLaunchedAt":{
           "shape":"DateFilterList",
-          "documentation":"<p>The date/time that the process was launched.</p>"
+          "documentation":"<p>A timestamp that identifies when the process was launched.</p> <p>A correctly formatted example is <code>2020-05-21T20:16:34.724Z</code>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For more information, see <a href=\"https://www.rfc-editor.org/rfc/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>.</p>"
         },
         "ProcessTerminatedAt":{
           "shape":"DateFilterList",
-          "documentation":"<p>The date/time that the process was terminated.</p>"
+          "documentation":"<p>A timestamp that identifies when the process was terminated.</p> <p>A correctly formatted example is <code>2020-05-21T20:16:34.724Z</code>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For more information, see <a href=\"https://www.rfc-editor.org/rfc/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>.</p>"
         },
         "ThreatIntelIndicatorType":{
           "shape":"StringFilterList",
@@ -11673,7 +11774,7 @@
         },
         "ThreatIntelIndicatorLastObservedAt":{
           "shape":"DateFilterList",
-          "documentation":"<p>The date/time of the last observation of a threat intelligence indicator.</p>"
+          "documentation":"<p>A timestamp that identifies the last observation of a threat intelligence indicator.</p>"
         },
         "ThreatIntelIndicatorSource":{
           "shape":"StringFilterList",
@@ -11783,7 +11884,7 @@
         },
         "ResourceContainerLaunchedAt":{
           "shape":"DateFilterList",
-          "documentation":"<p>The date/time that the container was started.</p>"
+          "documentation":"<p>A timestamp that identifies when the container was started.</p> <p>A correctly formatted example is <code>2020-05-21T20:16:34.724Z</code>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For more information, see <a href=\"https://www.rfc-editor.org/rfc/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>.</p>"
         },
         "ResourceDetailsOther":{
           "shape":"MapFilterList",
@@ -11866,6 +11967,14 @@
         "Sample":{
           "shape":"BooleanFilterList",
           "documentation":"<p>Indicates whether or not sample findings are included in the filter results.</p>"
+        },
+        "ComplianceSecurityControlId":{
+          "shape":"StringFilterList",
+          "documentation":"<p> The unique identifier of a control across standards. Values for this field typically consist of an Amazon Web Service and a number, such as APIGateway.5. </p>"
+        },
+        "ComplianceAssociatedStandardsId":{
+          "shape":"StringFilterList",
+          "documentation":"<p> The unique identifier of a standard in which a control is enabled. This field consists of the resource portion of the Amazon Resource Name (ARN) returned for a standard in the <a href=\"https://docs.aws.amazon.com/securityhub/1.0/APIReference/API_DescribeStandards.html\">DescribeStandards</a> API response. </p>"
         }
       },
       "documentation":"<p>A collection of attributes that are applied to all active Security Hub-aggregated findings and that result in a subset of findings that are included in this insight.</p> <p>You can filter by up to 10 finding attributes. For each attribute, you can provide up to 20 filter values.</p>"
@@ -12694,7 +12803,7 @@
           "documentation":"<p> Defines and enables Amazon CloudWatch metrics and web request sample collection. </p>"
         }
       },
-      "documentation":"<p> Provides details about rules in a rule group. A rule identifies web requests that you want to allow, block, or count. Each rule includes one top-level Statement that AWS WAF uses to identify matching web requests, and parameters that govern how AWS WAF handles them. </p>"
+      "documentation":"<p> Provides details about rules in a rule group. A rule identifies web requests that you want to allow, block, or count. Each rule includes one top-level Statement that WAF uses to identify matching web requests, and parameters that govern how WAF handles them. </p>"
     },
     "AwsWafv2RulesList":{
       "type":"list",
@@ -12854,6 +12963,54 @@
         }
       }
     },
+    "BatchGetSecurityControlsRequest":{
+      "type":"structure",
+      "required":["SecurityControlIds"],
+      "members":{
+        "SecurityControlIds":{
+          "shape":"StringList",
+          "documentation":"<p> A list of security controls (identified with <code>SecurityControlId</code>, <code>SecurityControlArn</code>, or a mix of both parameters). The security control ID or Amazon Resource Name (ARN) is the same across standards. </p>"
+        }
+      }
+    },
+    "BatchGetSecurityControlsResponse":{
+      "type":"structure",
+      "required":["SecurityControls"],
+      "members":{
+        "SecurityControls":{
+          "shape":"SecurityControls",
+          "documentation":"<p> An array that returns the identifier, Amazon Resource Name (ARN), and other details about a security control. The same information is returned whether the request includes <code>SecurityControlId</code> or <code>SecurityControlArn</code>. </p>"
+        },
+        "UnprocessedIds":{
+          "shape":"UnprocessedSecurityControls",
+          "documentation":"<p> A security control (identified with <code>SecurityControlId</code>, <code>SecurityControlArn</code>, or a mix of both parameters) for which details cannot be returned. </p>"
+        }
+      }
+    },
+    "BatchGetStandardsControlAssociationsRequest":{
+      "type":"structure",
+      "required":["StandardsControlAssociationIds"],
+      "members":{
+        "StandardsControlAssociationIds":{
+          "shape":"StandardsControlAssociationIds",
+          "documentation":"<p> An array with one or more objects that includes a security control (identified with <code>SecurityControlId</code>, <code>SecurityControlArn</code>, or a mix of both parameters) and the Amazon Resource Name (ARN) of a standard. This field is used to query the enablement status of a control in a specified standard. The security control ID or ARN is the same across standards. </p>"
+        }
+      }
+    },
+    "BatchGetStandardsControlAssociationsResponse":{
+      "type":"structure",
+      "required":["StandardsControlAssociationDetails"],
+      "members":{
+        "StandardsControlAssociationDetails":{
+          "shape":"StandardsControlAssociationDetails",
+          "documentation":"<p>Provides the enablement status of a security control in a specified standard and other details for the control in relation to the specified standard. </p>"
+        },
+        "UnprocessedAssociations":{
+          "shape":"UnprocessedStandardsControlAssociations",
+          "documentation":"<p> A security control (identified with <code>SecurityControlId</code>, <code>SecurityControlArn</code>, or a mix of both parameters) whose enablement status in a specified standard cannot be returned. </p>"
+        }
+      }
+    },
     "BatchImportFindingsRequest":{
       "type":"structure",
       "required":["Findings"],
@@ -12977,6 +13134,25 @@
     "BatchUpdateFindingsUnprocessedFindingsList":{
       "type":"list",
       "member":{"shape":"BatchUpdateFindingsUnprocessedFinding"}
+    },
+    "BatchUpdateStandardsControlAssociationsRequest":{
+      "type":"structure",
+      "required":["StandardsControlAssociationUpdates"],
+      "members":{
+        "StandardsControlAssociationUpdates":{
+          "shape":"StandardsControlAssociationUpdates",
+          "documentation":"<p> Updates the enablement status of a security control in a specified standard. </p>"
+        }
+      }
+    },
+    "BatchUpdateStandardsControlAssociationsResponse":{
+      "type":"structure",
+      "members":{
+        "UnprocessedAssociationUpdates":{
+          "shape":"UnprocessedStandardsControlAssociationUpdates",
+          "documentation":"<p> A security control (identified with <code>SecurityControlId</code>, <code>SecurityControlArn</code>, or a mix of both parameters) whose enablement status in a specified standard couldn't be updated. </p>"
+        }
+      }
     },
     "Boolean":{"type":"boolean"},
     "BooleanFilter":{
@@ -13113,6 +13289,14 @@
         "StatusReasons":{
           "shape":"StatusReasonsList",
           "documentation":"<p>For findings generated from controls, a list of reasons behind the value of <code>Status</code>. For the list of status reason codes and their meanings, see <a href=\"https://docs.aws.amazon.com/securityhub/latest/userguide/securityhub-standards-results.html#securityhub-standards-results-asff\">Standards-related information in the ASFF</a> in the <i>Security Hub User Guide</i>. </p>"
+        },
+        "SecurityControlId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The unique identifier of a control across standards. Values for this field typically consist of an Amazon Web Service and a number, such as APIGateway.5. </p>"
+        },
+        "AssociatedStandards":{
+          "shape":"AssociatedStandardsList",
+          "documentation":"<p>The enabled security standards in which a security control is currently enabled. </p>"
         }
       },
       "documentation":"<p>Contains finding details that are specific to control-based findings. Only returned for findings generated from controls.</p>"
@@ -13147,7 +13331,7 @@
         },
         "LaunchedAt":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when the container started.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the container started.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "VolumeMounts":{
           "shape":"VolumeMountList",
@@ -13159,6 +13343,13 @@
         }
       },
       "documentation":"<p>Container details related to a finding.</p>"
+    },
+    "ControlFindingGenerator":{
+      "type":"string",
+      "enum":[
+        "STANDARD_CONTROL",
+        "SECURITY_CONTROL"
+      ]
     },
     "ControlStatus":{
       "type":"string",
@@ -13209,7 +13400,7 @@
       "members":{
         "ActionTargetArn":{
           "shape":"NonEmptyString",
-          "documentation":"<p>The ARN for the custom action target.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) for the custom action target.</p>"
         }
       }
     },
@@ -13393,11 +13584,11 @@
       "members":{
         "Start":{
           "shape":"NonEmptyString",
-          "documentation":"<p>A start date for the date filter.</p>"
+          "documentation":"<p>A timestamp that provides the start date for the date filter.</p> <p>A correctly formatted example is <code>2020-05-21T20:16:34.724Z</code>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For more information, see <a href=\"https://www.rfc-editor.org/rfc/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>.</p>"
         },
         "End":{
           "shape":"NonEmptyString",
-          "documentation":"<p>An end date for the date filter.</p>"
+          "documentation":"<p>A timestamp that provides the end date for the date filter.</p> <p>A correctly formatted example is <code>2020-05-21T20:16:34.724Z</code>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For more information, see <a href=\"https://www.rfc-editor.org/rfc/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>.</p>"
         },
         "DateRange":{
           "shape":"DateRange",
@@ -13453,7 +13644,7 @@
       "members":{
         "ActionTargetArn":{
           "shape":"NonEmptyString",
-          "documentation":"<p>The ARN of the custom action target to delete.</p>",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the custom action target to delete.</p>",
           "location":"uri",
           "locationName":"ActionTargetArn"
         }
@@ -13602,6 +13793,10 @@
         "AutoEnableControls":{
           "shape":"Boolean",
           "documentation":"<p>Whether to automatically enable new controls when they are added to standards that are enabled.</p> <p>If set to <code>true</code>, then new controls for enabled standards are enabled automatically. If set to <code>false</code>, then new controls are not enabled.</p>"
+        },
+        "ControlFindingGenerator":{
+          "shape":"ControlFindingGenerator",
+          "documentation":"<p>Specifies whether the calling account has consolidated control findings turned on. If the value for this field is set to <code>SECURITY_CONTROL</code>, Security Hub generates a single finding for a control check even when the check applies to multiple enabled standards.</p> <p>If the value for this field is set to <code>STANDARD_CONTROL</code>, Security Hub generates separate findings for a control check when the check applies to multiple enabled standards.</p> <p>The value for this field in a member account matches the value in the administrator account. For accounts that aren't part of an organization, the default value of this field is <code>SECURITY_CONTROL</code> if you enabled Security Hub on or after February 9, 2023.</p>"
         }
       }
     },
@@ -13871,6 +14066,10 @@
         "EnableDefaultStandards":{
           "shape":"Boolean",
           "documentation":"<p>Whether to enable the security standards that Security Hub has designated as automatically enabled. If you do not provide a value for <code>EnableDefaultStandards</code>, it is set to <code>true</code>. To not enable the automatically enabled standards, set <code>EnableDefaultStandards</code> to <code>false</code>.</p>"
+        },
+        "ControlFindingGenerator":{
+          "shape":"ControlFindingGenerator",
+          "documentation":"<p>This field, used when enabling Security Hub, specifies whether the calling account has consolidated control findings turned on. If the value for this field is set to <code>SECURITY_CONTROL</code>, Security Hub generates a single finding for a control check even when the check applies to multiple enabled standards.</p> <p>If the value for this field is set to <code>STANDARD_CONTROL</code>, Security Hub generates separate findings for a control check when the check applies to multiple enabled standards.</p> <p>The value for this field in a member account matches the value in the administrator account. For accounts that aren't part of an organization, the default value of this field is <code>SECURITY_CONTROL</code> if you enabled Security Hub on or after February 9, 2023.</p>"
         }
       }
     },
@@ -14715,6 +14914,81 @@
         }
       }
     },
+    "ListSecurityControlDefinitionsRequest":{
+      "type":"structure",
+      "members":{
+        "StandardsArn":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The Amazon Resource Name (ARN) of the standard that you want to view controls for. </p>",
+          "location":"querystring",
+          "locationName":"StandardsArn"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p> Optional pagination parameter. </p>",
+          "location":"querystring",
+          "locationName":"NextToken"
+        },
+        "MaxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p> An optional parameter that limits the total results of the API response to the specified number. If this parameter isn't provided in the request, the results include the first 25 security controls that apply to the specified standard. The results also include a <code>NextToken</code> parameter that you can use in a subsequent API call to get the next 25 controls. This repeats until all controls for the standard are returned. </p>",
+          "location":"querystring",
+          "locationName":"MaxResults"
+        }
+      }
+    },
+    "ListSecurityControlDefinitionsResponse":{
+      "type":"structure",
+      "required":["SecurityControlDefinitions"],
+      "members":{
+        "SecurityControlDefinitions":{
+          "shape":"SecurityControlDefinitions",
+          "documentation":"<p> An array of controls that apply to the specified standard. </p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p> A pagination parameter that's included in the response only if it was included in the request. </p>"
+        }
+      }
+    },
+    "ListStandardsControlAssociationsRequest":{
+      "type":"structure",
+      "required":["SecurityControlId"],
+      "members":{
+        "SecurityControlId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The identifier of the control (identified with <code>SecurityControlId</code>, <code>SecurityControlArn</code>, or a mix of both parameters) that you want to determine the enablement status of in each enabled standard. </p>",
+          "location":"querystring",
+          "locationName":"SecurityControlId"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p> Optional pagination parameter. </p>",
+          "location":"querystring",
+          "locationName":"NextToken"
+        },
+        "MaxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p> An optional parameter that limits the total results of the API response to the specified number. If this parameter isn't provided in the request, the results include the first 25 standard and control associations. The results also include a <code>NextToken</code> parameter that you can use in a subsequent API call to get the next 25 associations. This repeats until all associations for the specified control are returned. The number of results is limited by the number of supported Security Hub standards that you've enabled in the calling account. </p>",
+          "location":"querystring",
+          "locationName":"MaxResults"
+        }
+      }
+    },
+    "ListStandardsControlAssociationsResponse":{
+      "type":"structure",
+      "required":["StandardsControlAssociationSummaries"],
+      "members":{
+        "StandardsControlAssociationSummaries":{
+          "shape":"StandardsControlAssociationSummaries",
+          "documentation":"<p> An array that provides the enablement status and other details for each security control that applies to each enabled standard. </p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p> A pagination parameter that's included in the response only if it was included in the request. </p>"
+        }
+      }
+    },
     "ListTagsForResourceRequest":{
       "type":"structure",
       "required":["ResourceArn"],
@@ -14863,7 +15137,7 @@
         },
         "MemberStatus":{
           "shape":"NonEmptyString",
-          "documentation":"<p>The status of the relationship between the member account and its administrator account. </p> <p>The status can have one of the following values:</p> <ul> <li> <p> <code>CREATED</code> - Indicates that the administrator account added the member account, but has not yet invited the member account.</p> </li> <li> <p> <code>INVITED</code> - Indicates that the administrator account invited the member account. The member account has not yet responded to the invitation.</p> </li> <li> <p> <code>ENABLED</code> - Indicates that the member account is currently active. For manually invited member accounts, indicates that the member account accepted the invitation.</p> </li> <li> <p> <code>REMOVED</code> - Indicates that the administrator account disassociated the member account.</p> </li> <li> <p> <code>RESIGNED</code> - Indicates that the member account disassociated themselves from the administrator account.</p> </li> <li> <p> <code>DELETED</code> - Indicates that the administrator account deleted the member account.</p> </li> <li> <p> <code>ACCOUNT_SUSPENDED</code> - Indicates that an organization account was suspended from Amazon Web Services at the same time that the administrator account tried to enable the organization account as a member account.</p> </li> </ul>"
+          "documentation":"<p>The status of the relationship between the member account and its administrator account. </p> <p>The status can have one of the following values:</p> <ul> <li> <p> <code>Created</code> - Indicates that the administrator account added the member account, but has not yet invited the member account.</p> </li> <li> <p> <code>Invited</code> - Indicates that the administrator account invited the member account. The member account has not yet responded to the invitation.</p> </li> <li> <p> <code>Enabled</code> - Indicates that the member account is currently active. For manually invited member accounts, indicates that the member account accepted the invitation.</p> </li> <li> <p> <code>Removed</code> - Indicates that the administrator account disassociated the member account.</p> </li> <li> <p> <code>Resigned</code> - Indicates that the member account disassociated themselves from the administrator account.</p> </li> <li> <p> <code>Deleted</code> - Indicates that the administrator account deleted the member account.</p> </li> <li> <p> <code>AccountSuspended</code> - Indicates that an organization account was suspended from Amazon Web Services at the same time that the administrator account tried to enable the organization account as a member account.</p> </li> </ul>"
         },
         "InvitedAt":{
           "shape":"Timestamp",
@@ -15056,7 +15330,7 @@
         },
         "UpdatedAt":{
           "shape":"NonEmptyString",
-          "documentation":"<p>The timestamp of when the note was updated.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>The timestamp of when the note was updated.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         }
       },
       "documentation":"<p>A user-defined note added to a finding.</p>"
@@ -15191,11 +15465,11 @@
         },
         "OperationStartTime":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when the operation started.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the operation started.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "OperationEndTime":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when the operation completed.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the operation completed.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "RebootOption":{
           "shape":"NonEmptyString",
@@ -15297,11 +15571,11 @@
         },
         "LaunchedAt":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when the process was launched.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the process was launched.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "TerminatedAt":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when the process was terminated.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the process was terminated.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         }
       },
       "documentation":"<p>The details of process-related information about a finding.</p>"
@@ -15422,6 +15696,13 @@
     "Records":{
       "type":"list",
       "member":{"shape":"Record"}
+    },
+    "RegionAvailabilityStatus":{
+      "type":"string",
+      "enum":[
+        "AVAILABLE",
+        "UNAVAILABLE"
+      ]
     },
     "RelatedFinding":{
       "type":"structure",
@@ -16215,6 +16496,95 @@
       },
       "documentation":"<p>A list of port ranges.</p>"
     },
+    "SecurityControl":{
+      "type":"structure",
+      "required":[
+        "SecurityControlId",
+        "SecurityControlArn",
+        "Title",
+        "Description",
+        "RemediationUrl",
+        "SeverityRating",
+        "SecurityControlStatus"
+      ],
+      "members":{
+        "SecurityControlId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The unique identifier of a security control across standards. Values for this field typically consist of an Amazon Web Service name and a number, such as APIGateway.3. </p>"
+        },
+        "SecurityControlArn":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The Amazon Resource Name (ARN) for a security control across standards, such as <code>arn:aws:securityhub:eu-central-1:123456789012:security-control/S3.1</code>. This parameter doesn't mention a specific standard. </p>"
+        },
+        "Title":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The title of a security control. </p>"
+        },
+        "Description":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The description of a security control across standards. This typically summarizes how Security Hub evaluates the control and the conditions under which it produces a failed finding. This parameter doesn't reference a specific standard. </p>"
+        },
+        "RemediationUrl":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> A link to Security Hub documentation that explains how to remediate a failed finding for a security control. </p>"
+        },
+        "SeverityRating":{
+          "shape":"SeverityRating",
+          "documentation":"<p> The severity of a security control. For more information about how Security Hub determines control severity, see <a href=\"https://docs.aws.amazon.com/securityhub/latest/userguide/controls-findings-create-update.html#control-findings-severity\">Assigning severity to control findings</a> in the <i>Security Hub User Guide</i>. </p>"
+        },
+        "SecurityControlStatus":{
+          "shape":"ControlStatus",
+          "documentation":"<p> The status of a security control based on the compliance status of its findings. For more information about how control status is determined, see <a href=\"https://docs.aws.amazon.com/securityhub/latest/userguide/controls-overall-status.html\">Determining the overall status of a control from its findings</a> in the <i>Security Hub User Guide</i>. </p>"
+        }
+      },
+      "documentation":"<p> A security control in Security Hub describes a security best practice related to a specific resource. </p>"
+    },
+    "SecurityControlDefinition":{
+      "type":"structure",
+      "required":[
+        "SecurityControlId",
+        "Title",
+        "Description",
+        "RemediationUrl",
+        "SeverityRating",
+        "CurrentRegionAvailability"
+      ],
+      "members":{
+        "SecurityControlId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The unique identifier of a security control across standards. Values for this field typically consist of an Amazon Web Service name and a number (for example, APIGateway.3). This parameter differs from <code>SecurityControlArn</code>, which is a unique Amazon Resource Name (ARN) assigned to a control. The ARN references the security control ID (for example, arn:aws:securityhub:eu-central-1:123456789012:security-control/APIGateway.3). </p>"
+        },
+        "Title":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The title of a security control. </p>"
+        },
+        "Description":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The description of a security control across standards. This typically summarizes how Security Hub evaluates the control and the conditions under which it produces a failed finding. This parameter doesn't reference a specific standard. </p>"
+        },
+        "RemediationUrl":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> A link to Security Hub documentation that explains how to remediate a failed finding for a security control. </p>"
+        },
+        "SeverityRating":{
+          "shape":"SeverityRating",
+          "documentation":"<p> The severity of a security control. For more information about how Security Hub determines control severity, see <a href=\"https://docs.aws.amazon.com/securityhub/latest/userguide/controls-findings-create-update.html#control-findings-severity\">Assigning severity to control findings</a> in the <i>Security Hub User Guide</i>. </p>"
+        },
+        "CurrentRegionAvailability":{
+          "shape":"RegionAvailabilityStatus",
+          "documentation":"<p> Specifies whether a security control is available in the current Amazon Web Services Region. </p>"
+        }
+      },
+      "documentation":"<p> Provides metadata for a security control, including its unique standard-agnostic identifier, title, description, severity, availability in Amazon Web Services Regions, and a link to remediation steps. </p>"
+    },
+    "SecurityControlDefinitions":{
+      "type":"list",
+      "member":{"shape":"SecurityControlDefinition"}
+    },
+    "SecurityControls":{
+      "type":"list",
+      "member":{"shape":"SecurityControl"}
+    },
     "SecurityGroups":{
       "type":"list",
       "member":{"shape":"NonEmptyString"}
@@ -16283,7 +16653,7 @@
           "documentation":"<p>The native severity from the finding product that generated the finding.</p>"
         }
       },
-      "documentation":"<p>The severity of the finding.</p> <p>The finding provider can provide the initial severity. The finding provider can only update the severity if it has not been updated using <code>BatchUpdateFindings</code>.</p> <p>The finding must have either <code>Label</code> or <code>Normalized</code> populated. If only one of these attributes is populated, then Security Hub automatically populates the other one. If neither attribute is populated, then the finding is invalid. <code>Label</code> is the preferred attribute.</p>"
+      "documentation":"<p>The severity of the finding.</p> <p>The finding provider can provide the initial severity. The finding provider can only update the severity if it hasn't been updated using <code>BatchUpdateFindings</code>.</p> <p>The finding must have either <code>Label</code> or <code>Normalized</code> populated. If only one of these attributes is populated, then Security Hub automatically populates the other one. If neither attribute is populated, then the finding is invalid. <code>Label</code> is the preferred attribute.</p>"
     },
     "SeverityLabel":{
       "type":"string",
@@ -16477,6 +16847,171 @@
         }
       },
       "documentation":"<p>Details for an individual security standard control.</p>"
+    },
+    "StandardsControlArnList":{
+      "type":"list",
+      "member":{"shape":"NonEmptyString"}
+    },
+    "StandardsControlAssociationDetail":{
+      "type":"structure",
+      "required":[
+        "StandardsArn",
+        "SecurityControlId",
+        "SecurityControlArn",
+        "AssociationStatus"
+      ],
+      "members":{
+        "StandardsArn":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The Amazon Resource Name (ARN) of a security standard. </p>"
+        },
+        "SecurityControlId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The unique identifier of a security control across standards. Values for this field typically consist of an Amazon Web Service name and a number, such as APIGateway.3. </p>"
+        },
+        "SecurityControlArn":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The ARN of a security control across standards, such as <code>arn:aws:securityhub:eu-central-1:123456789012:security-control/S3.1</code>. This parameter doesn't mention a specific standard. </p>"
+        },
+        "AssociationStatus":{
+          "shape":"AssociationStatus",
+          "documentation":"<p> Specifies whether a control is enabled or disabled in a specified standard. </p>"
+        },
+        "RelatedRequirements":{
+          "shape":"RelatedRequirementsList",
+          "documentation":"<p> The requirement that underlies a control in the compliance framework related to the standard. </p>"
+        },
+        "UpdatedAt":{
+          "shape":"Timestamp",
+          "documentation":"<p> The time at which the enablement status of the control in the specified standard was last updated. </p>"
+        },
+        "UpdatedReason":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The reason for updating the enablement status of a control in a specified standard. </p>"
+        },
+        "StandardsControlTitle":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The title of a control. This field may reference a specific standard. </p>"
+        },
+        "StandardsControlDescription":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The description of a control. This typically summarizes how Security Hub evaluates the control and the conditions under which it produces a failed finding. This parameter may reference a specific standard. </p>"
+        },
+        "StandardsControlArns":{
+          "shape":"StandardsControlArnList",
+          "documentation":"<p> Provides the input parameter that Security Hub uses to call the <a href=\"https://docs.aws.amazon.com/securityhub/1.0/APIReference/API_UpdateStandardsControl.html\">UpdateStandardsControl</a> API. This API can be used to enable or disable a control in a specified standard. </p>"
+        }
+      },
+      "documentation":"<p> Provides details about a control's enablement status in a specified standard. </p>"
+    },
+    "StandardsControlAssociationDetails":{
+      "type":"list",
+      "member":{"shape":"StandardsControlAssociationDetail"}
+    },
+    "StandardsControlAssociationId":{
+      "type":"structure",
+      "required":[
+        "SecurityControlId",
+        "StandardsArn"
+      ],
+      "members":{
+        "SecurityControlId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The unique identifier (identified with <code>SecurityControlId</code>, <code>SecurityControlArn</code>, or a mix of both parameters) of a security control across standards. </p>"
+        },
+        "StandardsArn":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The ARN of a standard. </p>"
+        }
+      },
+      "documentation":"<p> An array with one or more objects that includes a security control (identified with <code>SecurityControlId</code>, <code>SecurityControlArn</code>, or a mix of both parameters) and the Amazon Resource Name (ARN) of a standard. The security control ID or ARN is the same across standards. </p>"
+    },
+    "StandardsControlAssociationIds":{
+      "type":"list",
+      "member":{"shape":"StandardsControlAssociationId"}
+    },
+    "StandardsControlAssociationSummaries":{
+      "type":"list",
+      "member":{"shape":"StandardsControlAssociationSummary"}
+    },
+    "StandardsControlAssociationSummary":{
+      "type":"structure",
+      "required":[
+        "StandardsArn",
+        "SecurityControlId",
+        "SecurityControlArn",
+        "AssociationStatus"
+      ],
+      "members":{
+        "StandardsArn":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The Amazon Resource Name (ARN) of a standard. </p>"
+        },
+        "SecurityControlId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> A unique standard-agnostic identifier for a control. Values for this field typically consist of an Amazon Web Service and a number, such as APIGateway.5. This field doesn't reference a specific standard. </p>"
+        },
+        "SecurityControlArn":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The ARN of a control, such as <code>arn:aws:securityhub:eu-central-1:123456789012:security-control/S3.1</code>. This parameter doesn't mention a specific standard. </p>"
+        },
+        "AssociationStatus":{
+          "shape":"AssociationStatus",
+          "documentation":"<p> The enablement status of a control in a specific standard. </p>"
+        },
+        "RelatedRequirements":{
+          "shape":"RelatedRequirementsList",
+          "documentation":"<p> The requirement that underlies this control in the compliance framework related to the standard. </p>"
+        },
+        "UpdatedAt":{
+          "shape":"Timestamp",
+          "documentation":"<p> The last time that a control's enablement status in a specified standard was updated. </p>"
+        },
+        "UpdatedReason":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The reason for updating the control's enablement status in a specified standard. </p>"
+        },
+        "StandardsControlTitle":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The title of a control. </p>"
+        },
+        "StandardsControlDescription":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The description of a control. This typically summarizes how Security Hub evaluates the control and the conditions under which it produces a failed finding. The parameter may reference a specific standard. </p>"
+        }
+      },
+      "documentation":"<p> An array that provides the enablement status and other details for each control that applies to each enabled standard. </p>"
+    },
+    "StandardsControlAssociationUpdate":{
+      "type":"structure",
+      "required":[
+        "StandardsArn",
+        "SecurityControlId",
+        "AssociationStatus"
+      ],
+      "members":{
+        "StandardsArn":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the standard in which you want to update the control's enablement status.</p>"
+        },
+        "SecurityControlId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The unique identifier for the security control whose enablement status you want to update.</p>"
+        },
+        "AssociationStatus":{
+          "shape":"AssociationStatus",
+          "documentation":"<p>The desired enablement status of the control in the standard.</p>"
+        },
+        "UpdatedReason":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The reason for updating the control's enablement status in the standard.</p>"
+        }
+      },
+      "documentation":"<p>An array of requested updates to the enablement status of controls in specified standards. The objects in the array include a security control ID, the Amazon Resource Name (ARN) of the standard, the requested enablement status, and the reason for updating the enablement status.</p>"
+    },
+    "StandardsControlAssociationUpdates":{
+      "type":"list",
+      "member":{"shape":"StandardsControlAssociationUpdate"}
     },
     "StandardsControls":{
       "type":"list",
@@ -16762,7 +17297,7 @@
         },
         "LastObservedAt":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when the most recent instance of a threat intelligence indicator was observed.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the most recent instance of a threat intelligence indicator was observed.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "Source":{
           "shape":"NonEmptyString",
@@ -16817,6 +17352,93 @@
     "TypeList":{
       "type":"list",
       "member":{"shape":"NonEmptyString"}
+    },
+    "UnprocessedErrorCode":{
+      "type":"string",
+      "enum":[
+        "INVALID_INPUT",
+        "ACCESS_DENIED",
+        "NOT_FOUND",
+        "LIMIT_EXCEEDED"
+      ]
+    },
+    "UnprocessedSecurityControl":{
+      "type":"structure",
+      "required":[
+        "SecurityControlId",
+        "ErrorCode"
+      ],
+      "members":{
+        "SecurityControlId":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The control (identified with <code>SecurityControlId</code>, <code>SecurityControlArn</code>, or a mix of both parameters) for which a response couldn't be returned. </p>"
+        },
+        "ErrorCode":{
+          "shape":"UnprocessedErrorCode",
+          "documentation":"<p> The error code for the unprocessed security control. </p>"
+        },
+        "ErrorReason":{
+          "shape":"NonEmptyString",
+          "documentation":"<p> The reason why the security control was unprocessed. </p>"
+        }
+      },
+      "documentation":"<p> Provides details about a security control for which a response couldn't be returned. </p>"
+    },
+    "UnprocessedSecurityControls":{
+      "type":"list",
+      "member":{"shape":"UnprocessedSecurityControl"}
+    },
+    "UnprocessedStandardsControlAssociation":{
+      "type":"structure",
+      "required":[
+        "StandardsControlAssociationId",
+        "ErrorCode"
+      ],
+      "members":{
+        "StandardsControlAssociationId":{
+          "shape":"StandardsControlAssociationId",
+          "documentation":"<p> An array with one or more objects that includes a security control (identified with <code>SecurityControlId</code>, <code>SecurityControlArn</code>, or a mix of both parameters) and the Amazon Resource Name (ARN) of a standard. This parameter shows the specific controls for which the enablement status couldn't be retrieved in specified standards when calling <a href=\"https://docs.aws.amazon.com/securityhub/1.0/APIReference/API_BatchUpdateStandardsControlAssociations.html\">BatchUpdateStandardsControlAssociations</a>. </p>"
+        },
+        "ErrorCode":{
+          "shape":"UnprocessedErrorCode",
+          "documentation":"<p>The error code for the unprocessed standard and control association. </p>"
+        },
+        "ErrorReason":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The reason why the standard and control association was unprocessed. </p>"
+        }
+      },
+      "documentation":"<p> Provides details about which control's enablement status couldn't be retrieved in a specified standard when calling <a href=\"https://docs.aws.amazon.com/securityhub/1.0/APIReference/API_BatchUpdateStandardsControlAssociations.html\">BatchUpdateStandardsControlAssociations</a>. This parameter also provides details about why the request was unprocessed. </p>"
+    },
+    "UnprocessedStandardsControlAssociationUpdate":{
+      "type":"structure",
+      "required":[
+        "StandardsControlAssociationUpdate",
+        "ErrorCode"
+      ],
+      "members":{
+        "StandardsControlAssociationUpdate":{
+          "shape":"StandardsControlAssociationUpdate",
+          "documentation":"<p>An array of control and standard associations for which an update failed when calling <a href=\"https://docs.aws.amazon.com/securityhub/1.0/APIReference/API_BatchUpdateStandardsControlAssociations.html\">BatchUpdateStandardsControlAssociations</a>. </p>"
+        },
+        "ErrorCode":{
+          "shape":"UnprocessedErrorCode",
+          "documentation":"<p>The error code for the unprocessed update of the control's enablement status in the specified standard.</p>"
+        },
+        "ErrorReason":{
+          "shape":"NonEmptyString",
+          "documentation":"<p>The reason why a control's enablement status in the specified standard couldn't be updated. </p>"
+        }
+      },
+      "documentation":"<p>Provides details about which control's enablement status could not be updated in a specified standard when calling the <a href=\"https://docs.aws.amazon.com/securityhub/1.0/APIReference/API_BatchUpdateStandardsControlAssociations.html\">BatchUpdateStandardsControlAssociations</a> API. This parameter also provides details about why the request was unprocessed. </p>"
+    },
+    "UnprocessedStandardsControlAssociationUpdates":{
+      "type":"list",
+      "member":{"shape":"UnprocessedStandardsControlAssociationUpdate"}
+    },
+    "UnprocessedStandardsControlAssociations":{
+      "type":"list",
+      "member":{"shape":"UnprocessedStandardsControlAssociation"}
     },
     "UntagResourceRequest":{
       "type":"structure",
@@ -16988,6 +17610,10 @@
         "AutoEnableControls":{
           "shape":"Boolean",
           "documentation":"<p>Whether to automatically enable new controls when they are added to standards that are enabled.</p> <p>By default, this is set to <code>true</code>, and new controls are enabled automatically. To not automatically enable new controls, set this to <code>false</code>. </p>"
+        },
+        "ControlFindingGenerator":{
+          "shape":"ControlFindingGenerator",
+          "documentation":"<p>Updates whether the calling account has consolidated control findings turned on. If the value for this field is set to <code>SECURITY_CONTROL</code>, Security Hub generates a single finding for a control check even when the check applies to multiple enabled standards.</p> <p>If the value for this field is set to <code>STANDARD_CONTROL</code>, Security Hub generates separate findings for a control check when the check applies to multiple enabled standards.</p> <p>For accounts that are part of an organization, this value can only be updated in the administrator account.</p>"
         }
       }
     },
@@ -17159,11 +17785,11 @@
         },
         "VendorCreatedAt":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when the vulnerability advisory was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the vulnerability advisory was created.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         },
         "VendorUpdatedAt":{
           "shape":"NonEmptyString",
-          "documentation":"<p>Indicates when the vulnerability advisory was last updated.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
+          "documentation":"<p>Indicates when the vulnerability advisory was last updated.</p> <p>Uses the <code>date-time</code> format specified in <a href=\"https://tools.ietf.org/html/rfc3339#section-5.6\">RFC 3339 section 5.6, Internet Date/Time Format</a>. The value cannot contain spaces, and date and time should be separated by <code>T</code>. For example, <code>2020-03-22T13:22:13.933Z</code>.</p>"
         }
       },
       "documentation":"<p>A vendor that generates a vulnerability report.</p>"
@@ -17244,5 +17870,5 @@
       "documentation":"<p>Used to update information about the investigation into the finding.</p>"
     }
   },
-  "documentation":"<p>Security Hub provides you with a comprehensive view of the security state of your Amazon Web Services environment and resources. It also provides you with the readiness status of your environment based on controls from supported security standards. Security Hub collects security data from Amazon Web Services accounts, services, and integrated third-party products and helps you analyze security trends in your environment to identify the highest priority security issues. For more information about Security Hub, see the <a href=\"https://docs.aws.amazon.com/securityhub/latest/userguide/what-is-securityhub.html\"> <i>Security HubUser Guide</i> </a>.</p> <p>When you use operations in the Security Hub API, the requests are executed only in the Amazon Web Services Region that is currently active or in the specific Amazon Web Services Region that you specify in your request. Any configuration or settings change that results from the operation is applied only to that Region. To make the same change in other Regions, execute the same command for each Region to apply the change to.</p> <p>For example, if your Region is set to <code>us-west-2</code>, when you use <code>CreateMembers</code> to add a member account to Security Hub, the association of the member account with the administrator account is created only in the <code>us-west-2</code> Region. Security Hub must be enabled for the member account in the same Region that the invitation was sent from.</p> <p>The following throttling limits apply to using Security Hub API operations.</p> <ul> <li> <p> <code>BatchEnableStandards</code> - <code>RateLimit</code> of 1 request per second, <code>BurstLimit</code> of 1 request per second.</p> </li> <li> <p> <code>GetFindings</code> - <code>RateLimit</code> of 3 requests per second. <code>BurstLimit</code> of 6 requests per second.</p> </li> <li> <p> <code>BatchImportFindings</code> - <code>RateLimit</code> of 10 requests per second. <code>BurstLimit</code> of 30 requests per second.</p> </li> <li> <p> <code>BatchUpdateFindings</code> - <code>RateLimit</code> of 10 requests per second. <code>BurstLimit</code> of 30 requests per second.</p> </li> <li> <p> <code>UpdateStandardsControl</code> - <code>RateLimit</code> of 1 request per second, <code>BurstLimit</code> of 5 requests per second.</p> </li> <li> <p>All other operations - <code>RateLimit</code> of 10 requests per second. <code>BurstLimit</code> of 30 requests per second.</p> </li> </ul>"
+  "documentation":"<p>Security Hub provides you with a comprehensive view of the security state of your Amazon Web Services environment and resources. It also provides you with the readiness status of your environment based on controls from supported security standards. Security Hub collects security data from Amazon Web Services accounts, services, and integrated third-party products and helps you analyze security trends in your environment to identify the highest priority security issues. For more information about Security Hub, see the <a href=\"https://docs.aws.amazon.com/securityhub/latest/userguide/what-is-securityhub.html\">Security HubUser Guide</a>.</p> <p>When you use operations in the Security Hub API, the requests are executed only in the Amazon Web Services Region that is currently active or in the specific Amazon Web Services Region that you specify in your request. Any configuration or settings change that results from the operation is applied only to that Region. To make the same change in other Regions, run the same command for each Region in which you want to apply the change.</p> <p>For example, if your Region is set to <code>us-west-2</code>, when you use <code>CreateMembers</code> to add a member account to Security Hub, the association of the member account with the administrator account is created only in the <code>us-west-2</code> Region. Security Hub must be enabled for the member account in the same Region that the invitation was sent from.</p> <p>The following throttling limits apply to using Security Hub API operations.</p> <ul> <li> <p> <code>BatchEnableStandards</code> - <code>RateLimit</code> of 1 request per second. <code>BurstLimit</code> of 1 request per second.</p> </li> <li> <p> <code>GetFindings</code> - <code>RateLimit</code> of 3 requests per second. <code>BurstLimit</code> of 6 requests per second.</p> </li> <li> <p> <code>BatchImportFindings</code> - <code>RateLimit</code> of 10 requests per second. <code>BurstLimit</code> of 30 requests per second.</p> </li> <li> <p> <code>BatchUpdateFindings</code> - <code>RateLimit</code> of 10 requests per second. <code>BurstLimit</code> of 30 requests per second.</p> </li> <li> <p> <code>UpdateStandardsControl</code> - <code>RateLimit</code> of 1 request per second. <code>BurstLimit</code> of 5 requests per second.</p> </li> <li> <p>All other operations - <code>RateLimit</code> of 10 requests per second. <code>BurstLimit</code> of 30 requests per second.</p> </li> </ul>"
 }

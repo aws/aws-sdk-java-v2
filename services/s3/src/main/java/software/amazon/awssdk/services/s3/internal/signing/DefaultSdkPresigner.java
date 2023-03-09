@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.s3.internal.signing;
 
 import java.net.URI;
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
@@ -30,14 +31,14 @@ import software.amazon.awssdk.utils.IoUtils;
 
 /**
  * The base class implementing the {@link SdkPresigner} interface.
- * <p/>
+ * <p>
  * TODO: This should get moved to aws-core (or split and moved to sdk-core and aws-core) when we support presigning from
  * multiple services.
  * TODO: After moving, this should get marked as an @SdkProtectedApi.
  */
 @SdkInternalApi
 public abstract class DefaultSdkPresigner implements SdkPresigner {
-    private final ProfileFile profileFile;
+    private final Supplier<ProfileFile> profileFile;
     private final String profileName;
     private final Region region;
     private final URI endpointOverride;
@@ -46,10 +47,10 @@ public abstract class DefaultSdkPresigner implements SdkPresigner {
     private final boolean fipsEnabled;
 
     protected DefaultSdkPresigner(Builder<?> b) {
-        this.profileFile = ProfileFile.defaultProfileFile();
+        this.profileFile = ProfileFile::defaultProfileFile;
         this.profileName = ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow();
         this.region = b.region != null ? b.region : DefaultAwsRegionProviderChain.builder()
-                                                                                 .profileFile(() -> profileFile)
+                                                                                 .profileFile(profileFile)
                                                                                  .profileName(profileName)
                                                                                  .build()
                                                                                  .getRegion();
@@ -61,21 +62,21 @@ public abstract class DefaultSdkPresigner implements SdkPresigner {
         this.endpointOverride = b.endpointOverride;
         this.dualstackEnabled = b.dualstackEnabled != null ? b.dualstackEnabled
                                                            : DualstackEnabledProvider.builder()
-                                                                                     .profileFile(() -> profileFile)
+                                                                                     .profileFile(profileFile)
                                                                                      .profileName(profileName)
                                                                                      .build()
                                                                                      .isDualstackEnabled()
                                                                                      .orElse(null);
         this.fipsEnabled = b.fipsEnabled != null ? b.fipsEnabled
                                                  : FipsEnabledProvider.builder()
-                                                                      .profileFile(() -> profileFile)
+                                                                      .profileFile(profileFile)
                                                                       .profileName(profileName)
                                                                       .build()
                                                                       .isFipsEnabled()
                                                                       .orElse(false);
     }
 
-    protected ProfileFile profileFile() {
+    protected Supplier<ProfileFile> profileFileSupplier() {
         return profileFile;
     }
 

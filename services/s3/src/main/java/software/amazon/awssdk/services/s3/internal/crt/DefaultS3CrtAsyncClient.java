@@ -18,6 +18,7 @@ package software.amazon.awssdk.services.s3.internal.crt;
 import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.SDK_HTTP_EXECUTION_ATTRIBUTES;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.HTTP_CHECKSUM;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.OPERATION_NAME;
+import static software.amazon.awssdk.services.s3.internal.crt.S3NativeClientConfiguration.DEFAULT_PART_SIZE_IN_BYTES;
 
 import java.net.URI;
 import java.util.concurrent.CompletableFuture;
@@ -38,10 +39,10 @@ import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.DelegatingS3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder;
-import software.amazon.awssdk.services.s3.internal.DelegatingS3AsyncClient;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -52,12 +53,13 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient implements S3CrtAsyncClient {
     private static final String CRT_CLIENT_CLASSPATH = "software.amazon.awssdk.crt.s3.S3Client";
-    private static S3NativeClientConfiguration s3NativeClientConfiguration;
     private final CopyObjectHelper copyObjectHelper;
 
     private DefaultS3CrtAsyncClient(DefaultS3CrtClientBuilder builder) {
         super(initializeS3AsyncClient(builder));
-        this.copyObjectHelper = new CopyObjectHelper(delegate, s3NativeClientConfiguration);
+        long partSizeInBytes = builder.minimalPartSizeInBytes == null ? DEFAULT_PART_SIZE_IN_BYTES :
+                               builder.minimalPartSizeInBytes;
+        this.copyObjectHelper = new CopyObjectHelper((S3AsyncClient) delegate(),  partSizeInBytes);
     }
 
     @Override
@@ -93,7 +95,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         Validate.isPositiveOrNull(builder.targetThroughputInGbps, "targetThroughputInGbps");
         Validate.isPositiveOrNull(builder.minimalPartSizeInBytes, "minimalPartSizeInBytes");
 
-        s3NativeClientConfiguration =
+        S3NativeClientConfiguration s3NativeClientConfiguration =
             S3NativeClientConfiguration.builder()
                                        .checksumValidationEnabled(builder.checksumValidationEnabled)
                                        .targetThroughputInGbps(builder.targetThroughputInGbps)
@@ -104,13 +106,9 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                                        .credentialsProvider(builder.credentialsProvider)
                                        .readBufferSizeInBytes(builder.readBufferSizeInBytes)
                                        .build();
+
         return S3CrtAsyncHttpClient.builder()
                                    .s3ClientConfiguration(s3NativeClientConfiguration);
-    }
-
-    @Override
-    public String serviceName() {
-        return SERVICE_NAME;
     }
 
     public static final class DefaultS3CrtClientBuilder implements S3CrtAsyncClientBuilder {

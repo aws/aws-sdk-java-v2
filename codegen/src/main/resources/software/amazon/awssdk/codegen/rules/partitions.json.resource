@@ -40,6 +40,9 @@
       "ap-southeast-3" : {
         "description" : "Asia Pacific (Jakarta)"
       },
+      "ap-southeast-4" : {
+        "description" : "Asia Pacific (Melbourne)"
+      },
       "aws-global" : {
         "description" : "AWS Standard global region"
       },
@@ -77,7 +80,7 @@
         "description" : "Middle East (Bahrain)"
       },
       "sa-east-1" : {
-        "description" : "South America (São Paulo)"
+        "description" : "South America (Sao Paulo)"
       },
       "us-east-1" : {
         "description" : "US East (N. Virginia)"

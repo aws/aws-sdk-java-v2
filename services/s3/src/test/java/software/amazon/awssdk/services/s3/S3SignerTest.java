@@ -103,6 +103,28 @@ public class S3SignerTest {
     }
 
     @Test
+    public void payloadSigningWithChecksumWithContentEncodingSuppliedByUser() {
+
+        S3Client s3Client = getS3Client(true, true, URI.create(getEndpoint()));
+        stubFor(any(urlMatching(".*"))
+                    .willReturn(response()));
+        s3Client.putObject(PutObjectRequest.builder()
+                                           .checksumAlgorithm(ChecksumAlgorithm.CRC32).contentEncoding("deflate")
+                                           .bucket("test").key("test").build(), RequestBody.fromBytes("abc".getBytes()));
+        verify(putRequestedFor(anyUrl()).withHeader(CONTENT_TYPE, equalTo(Mimetype.MIMETYPE_OCTET_STREAM)));
+        verify(putRequestedFor(anyUrl()).withHeader(CONTENT_LENGTH, equalTo("296")));
+        verify(putRequestedFor(anyUrl()).withHeader("x-amz-trailer", equalTo(CRC32_TRAILER.headerName())));
+        verify(putRequestedFor(anyUrl()).withHeader("x-amz-decoded-content-length", equalTo("3")));
+        verify(putRequestedFor(anyUrl()).withHeader("x-amz-content-sha256", equalTo("STREAMING-AWS4-HMAC-SHA256-PAYLOAD-TRAILER"
+        )));
+        verify(putRequestedFor(anyUrl()).withHeader("Content-Encoding", equalTo("aws-chunked")));
+        verify(putRequestedFor(anyUrl()).withHeader("Content-Encoding", equalTo("deflate")));
+        verify(putRequestedFor(anyUrl()).withRequestBody(containing("x-amz-checksum-crc32:NSRBwg=="))
+                                        .withRequestBody(containing("x-amz-trailer-signature:"))
+                                        .withRequestBody(containing("0;")));
+    }
+
+    @Test
     public void payloadSigningWithNoChecksum() {
 
         S3Client s3Client = getS3Client(true, true, URI.create(getEndpoint()));

@@ -24,23 +24,23 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 
-public class DisableMultiRegionProviderChainTest {
+class DisableMultiRegionProviderChainTest {
     private final EnvironmentVariableHelper helper = new EnvironmentVariableHelper();
 
     @AfterEach
-    public void clearSystemProperty() {
+    void clearSystemProperty() {
         System.clearProperty(AWS_S3_DISABLE_MULTIREGION_ACCESS_POINTS.property());
         System.clearProperty(AWS_CONFIG_FILE.property());
         helper.reset();
     }
 
     @Test
-    public void notSpecified_shouldReturnEmptyOptional() {
+    void notSpecified_shouldReturnEmptyOptional() {
         assertThat(DisableMultiRegionProviderChain.create().resolve()).isEqualTo(Optional.empty());
     }
 
     @Test
-    public void specifiedInBothProviders_systemPropertiesShouldTakePrecedence() {
+    void specifiedInBothProviders_systemPropertiesShouldTakePrecedence() {
         System.setProperty(AWS_S3_DISABLE_MULTIREGION_ACCESS_POINTS.property(), "false");
         String configFile = getClass().getResource("ProfileFile_true").getFile();
         System.setProperty(AWS_CONFIG_FILE.property(), configFile);
@@ -49,7 +49,7 @@ public class DisableMultiRegionProviderChainTest {
     }
 
     @Test
-    public void systemPropertiesThrowException_shouldUseConfigFile() {
+    void systemPropertiesThrowException_shouldUseConfigFile() {
         System.setProperty(AWS_S3_DISABLE_MULTIREGION_ACCESS_POINTS.property(), "foobar");
         String configFile = getClass().getResource("ProfileFile_true").getFile();
         System.setProperty(AWS_CONFIG_FILE.property(), configFile);
@@ -58,7 +58,7 @@ public class DisableMultiRegionProviderChainTest {
     }
 
     @Test
-    public void systemPropertiesNotSpecified_shouldUseConfigFile() {
+    void systemPropertiesNotSpecified_shouldUseConfigFile() {
         String configFile = getClass().getResource("ProfileFile_true").getFile();
         System.setProperty(AWS_CONFIG_FILE.property(), configFile);
 
@@ -66,7 +66,21 @@ public class DisableMultiRegionProviderChainTest {
     }
 
     @Test
-    public void bothProvidersThrowException_shouldReturnEmpty() {
+    void resolve_systemPropertiesNotSpecified_shouldResolveOncePerCall() {
+        String trueConfigFile = getClass().getResource("ProfileFile_true").getFile();
+        System.setProperty(AWS_CONFIG_FILE.property(), trueConfigFile);
+
+        assertThat(DisableMultiRegionProviderChain.create().resolve()).isEqualTo(Optional.of(Boolean.TRUE));
+
+        System.clearProperty(AWS_CONFIG_FILE.property());
+        String falseConfigFile = getClass().getResource("ProfileFile_false").getFile();
+        System.setProperty(AWS_CONFIG_FILE.property(), falseConfigFile);
+
+        assertThat(DisableMultiRegionProviderChain.create().resolve()).isEqualTo(Optional.of(Boolean.FALSE));
+    }
+
+    @Test
+    void bothProvidersThrowException_shouldReturnEmpty() {
         System.setProperty(AWS_S3_DISABLE_MULTIREGION_ACCESS_POINTS.property(), "foobar");
         String configFile = getClass().getResource("ProfileFile_unsupportedValue").getFile();
         System.setProperty(AWS_CONFIG_FILE.property(), configFile);

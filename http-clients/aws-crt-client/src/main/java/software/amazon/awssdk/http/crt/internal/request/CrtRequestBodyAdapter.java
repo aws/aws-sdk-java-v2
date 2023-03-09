@@ -27,7 +27,7 @@ final class CrtRequestBodyAdapter implements HttpRequestBodyStream {
     private final SdkHttpContentPublisher requestPublisher;
     private final ByteBufferStoringSubscriber requestBodySubscriber;
 
-    CrtRequestBodyAdapter(SdkHttpContentPublisher requestPublisher, int readLimit) {
+    CrtRequestBodyAdapter(SdkHttpContentPublisher requestPublisher, long readLimit) {
         this.requestPublisher = requestPublisher;
         this.requestBodySubscriber = new ByteBufferStoringSubscriber(readLimit);
         requestPublisher.subscribe(requestBodySubscriber);

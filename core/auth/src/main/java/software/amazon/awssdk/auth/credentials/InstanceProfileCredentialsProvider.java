@@ -26,6 +26,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.auth.credentials.internal.Ec2MetadataConfigProvider;
@@ -36,6 +38,7 @@ import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.profiles.ProfileFileSupplier;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.regions.util.HttpResourcesUtils;
 import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
@@ -77,7 +80,7 @@ public final class InstanceProfileCredentialsProvider
 
     private final String asyncThreadName;
 
-    private final ProfileFile profileFile;
+    private final Supplier<ProfileFile> profileFile;
 
     private final String profileName;
 
@@ -95,8 +98,8 @@ public final class InstanceProfileCredentialsProvider
         this.httpCredentialsLoader = HttpCredentialsLoader.create();
         this.configProvider =
             Ec2MetadataConfigProvider.builder()
-                                     .profileFile(builder.profileFile == null ? null : () -> builder.profileFile)
-                                     .profileName(builder.profileName == null ? null : builder.profileName)
+                                     .profileFile(builder.profileFile)
+                                     .profileName(builder.profileName)
                                      .build();
 
         if (Boolean.TRUE.equals(builder.asyncCredentialUpdateEnabled)) {
@@ -279,8 +282,18 @@ public final class InstanceProfileCredentialsProvider
          * Configure the profile file used for loading IMDS-related configuration, like the endpoint mode (IPv4 vs IPv6).
          *
          * <p>By default, {@link ProfileFile#defaultProfileFile()} is used.
+         * 
+         * @see #profileFile(Supplier)
          */
         Builder profileFile(ProfileFile profileFile);
+
+        /**
+         * Define the mechanism for loading profile files.
+         *
+         * @param profileFileSupplier Supplier interface for generating a ProfileFile instance.
+         * @see #profileFile(ProfileFile)
+         */
+        Builder profileFile(Supplier<ProfileFile> profileFileSupplier);
 
         /**
          * Configure the profile name used for loading IMDS-related configuration, like the endpoint mode (IPv4 vs IPv6).
@@ -292,6 +305,7 @@ public final class InstanceProfileCredentialsProvider
         /**
          * Build a {@link InstanceProfileCredentialsProvider} from the provided configuration.
          */
+        @Override
         InstanceProfileCredentialsProvider build();
     }
 
@@ -301,7 +315,7 @@ public final class InstanceProfileCredentialsProvider
         private String endpoint;
         private Boolean asyncCredentialUpdateEnabled;
         private String asyncThreadName;
-        private ProfileFile profileFile;
+        private Supplier<ProfileFile> profileFile;
         private String profileName;
 
         private BuilderImpl() {
@@ -354,12 +368,23 @@ public final class InstanceProfileCredentialsProvider
 
         @Override
         public Builder profileFile(ProfileFile profileFile) {
-            this.profileFile = profileFile;
-            return this;
+            return profileFile(Optional.ofNullable(profileFile)
+                                       .map(ProfileFileSupplier::fixedProfileFile)
+                                       .orElse(null));
         }
 
         public void setProfileFile(ProfileFile profileFile) {
             profileFile(profileFile);
+        }
+
+        @Override
+        public Builder profileFile(Supplier<ProfileFile> profileFileSupplier) {
+            this.profileFile = profileFileSupplier;
+            return this;
+        }
+
+        public void setProfileFile(Supplier<ProfileFile> profileFileSupplier) {
+            profileFile(profileFileSupplier);
         }
 
         @Override
