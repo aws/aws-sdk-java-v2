@@ -56,43 +56,6 @@ public final class AwsCrtConfigurationUtils {
         return clientSocketOptions;
     }
 
-    public static HttpProxyOptions buildProxyOptions(ProxyConfiguration proxyConfiguration, TlsContext tlsContext) {
-        if (proxyConfiguration == null) {
-            return null;
-        }
-
-        HttpProxyOptions clientProxyOptions = new HttpProxyOptions();
-
-        clientProxyOptions.setHost(proxyConfiguration.host());
-        clientProxyOptions.setPort(proxyConfiguration.port());
-
-        if ("https".equalsIgnoreCase(proxyConfiguration.scheme())) {
-            clientProxyOptions.setTlsContext(tlsContext);
-        }
-
-        if (proxyConfiguration.username() != null && proxyConfiguration.password() != null) {
-            clientProxyOptions.setAuthorizationUsername(proxyConfiguration.username());
-            clientProxyOptions.setAuthorizationPassword(proxyConfiguration.password());
-            clientProxyOptions.setAuthorizationType(HttpProxyOptions.HttpProxyAuthorizationType.Basic);
-        } else {
-            clientProxyOptions.setAuthorizationType(HttpProxyOptions.HttpProxyAuthorizationType.None);
-        }
-
-        return clientProxyOptions;
-    }
-
-    public static HttpMonitoringOptions resolveHttpMonitoringOptions(ConnectionHealthConfiguration config) {
-        if (config == null) {
-            return null;
-        }
-
-        HttpMonitoringOptions httpMonitoringOptions = new HttpMonitoringOptions();
-        httpMonitoringOptions.setMinThroughputBytesPerSecond(config.minimumThroughputInBps());
-        int seconds = (int) config.minimumThroughputTimeout().getSeconds();
-        httpMonitoringOptions.setAllowableThroughputFailureIntervalSeconds(seconds);
-        return httpMonitoringOptions;
-    }
-
     public static TlsCipherPreference resolveCipherPreference(Boolean postQuantumTlsEnabled) {
         TlsCipherPreference defaultTls = TlsCipherPreference.TLS_CIPHER_SYSTEM_DEFAULT;
         if (postQuantumTlsEnabled == null || !postQuantumTlsEnabled) {

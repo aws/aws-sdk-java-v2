@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CRT-based S3 client",
+    "contributor": "",
+    "description": "Exposes `S3CrtHttpConfiguration` to allow users to configure HTTP settings such as proxy and connection timeout on AWS CRT-based S3 client. [#3262](https://github.com/aws/aws-sdk-java-v2/issues/3262)"
+}
