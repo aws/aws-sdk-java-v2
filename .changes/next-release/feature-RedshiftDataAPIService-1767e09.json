@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Redshift Data API Service",
-    "contributor": "",
-    "description": "Added support for Redshift Serverless workgroup-arn wherever the WorkgroupName parameter is available."
-}

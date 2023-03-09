@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon QuickSight",
-    "contributor": "",
-    "description": "This release has two changes: add state persistence feature for embedded dashboard and console in GenerateEmbedUrlForRegisteredUser API; add properties for hidden collapsed row dimensions in PivotTableOptions."
-}

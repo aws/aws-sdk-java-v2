@@ -1,3 +1,44 @@
+# __2.20.21__ __2023-03-09__
+## __AWS Cloud Map__
+  - ### Features
+    - Updated all AWS Cloud Map APIs to provide consistent throttling exception (RequestLimitExceeded)
+
+## __AWS Network Manager__
+  - ### Features
+    - This update provides example usage for TransitGatewayRouteTableArn.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon CloudWatch Evidently__
+  - ### Features
+    - Updated entity override documentation
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds a new API, GetMetricDataV2, which returns metric data for Amazon Connect.
+
+## __Amazon QuickSight__
+  - ### Features
+    - This release has two changes: add state persistence feature for embedded dashboard and console in GenerateEmbedUrlForRegisteredUser API; add properties for hidden collapsed row dimensions in PivotTableOptions.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker Inference now allows SSM access to customer's model container by setting the "EnableSSMAccess" parameter for a ProductionVariant in CreateEndpointConfig API.
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - This release introduces a new recommendation in Virtual Deliverability Manager Advisor, which detects missing or misconfigured Brand Indicator for Message Identification (BIMI) DNS records for customer sending identities.
+
+## __CodeArtifact__
+  - ### Features
+    - This release introduces the generic package format, a mechanism for storing arbitrary binary assets. It also adds a new API, PublishPackageVersion, to allow for publishing generic packages.
+
+## __Redshift Data API Service__
+  - ### Features
+    - Added support for Redshift Serverless workgroup-arn wherever the WorkgroupName parameter is available.
+
 # __2.20.20__ __2023-03-08__
 ## __AWS Elemental MediaPackage__
   - ### Features
