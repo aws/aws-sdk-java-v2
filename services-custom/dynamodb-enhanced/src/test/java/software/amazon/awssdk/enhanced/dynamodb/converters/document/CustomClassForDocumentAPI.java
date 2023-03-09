@@ -19,40 +19,14 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import software.amazon.awssdk.core.SdkBytes;
 
 public class CustomClassForDocumentAPI {
-    public String string() {
-        return string;
-    }
-
-    public Set<String> stringSet() {
-        return stringSet;
-    }
-
-    public SdkBytes binary() {
-        return binary;
-    }
-
-    public Set<byte[]> binarySet() {
-        return binarySet;
-    }
 
     public boolean aBoolean() {
         return aBoolean;
-    }
-
-    public Set<Boolean> booleanSet() {
-        return booleanSet;
-    }
-
-    public Long longNumber() {
-        return longNumber;
-    }
-
-    public Set<Long> longSet() {
-        return longSet;
     }
 
     public BigDecimal bigDecimal() {
@@ -63,8 +37,36 @@ public class CustomClassForDocumentAPI {
         return bigDecimalSet;
     }
 
+    public SdkBytes binary() {
+        return binary;
+    }
+
+    public Set<byte[]> binarySet() {
+        return binarySet;
+    }
+
+
+    public Set<Boolean> booleanSet() {
+        return booleanSet;
+    }
+
     public List<CustomClassForDocumentAPI> customClassList() {
         return customClassForDocumentAPIList;
+    }
+
+    public Long longNumber() {
+        return longNumber;
+    }
+
+    public Set<Long> longSet() {
+        return longSet;
+    }
+    public String string() {
+        return string;
+    }
+
+    public Set<String> stringSet() {
+        return stringSet;
     }
 
     public List<Instant> instantList() {
@@ -79,7 +81,6 @@ public class CustomClassForDocumentAPI {
         return innerCustomClassForDocumentAPI;
     }
 
-    private final String string;
     private final Set<String> stringSet;
     private final SdkBytes binary;
     private final Set<byte[]> binarySet;
@@ -93,6 +94,9 @@ public class CustomClassForDocumentAPI {
     private final List<Instant> instantList;
     private final Map<String, CustomClassForDocumentAPI> customClassMap;
     private final CustomClassForDocumentAPI innerCustomClassForDocumentAPI;
+
+    private final String string;
+
 
     public static Builder builder(){
         return new Builder();
@@ -210,5 +214,41 @@ public class CustomClassForDocumentAPI {
         }
     }
 
+    @Override
+    public String toString() {
+        return "CustomClassForDocumentAPI{" +
+               "aBoolean=" + aBoolean +
+               ", bigDecimal=" + bigDecimal +
+               ", bigDecimalSet=" + bigDecimalSet +
+               ", binary=" + binary +
+               ", binarySet=" + binarySet +
+               ", booleanSet=" + booleanSet +
+               ", customClassForDocumentAPIList=" + customClassForDocumentAPIList +
+               ", customClassMap=" + customClassMap +
+               ", innerCustomClassForDocumentAPI=" + innerCustomClassForDocumentAPI +
+               ", instantList=" + instantList +
+               ", longNumber=" + longNumber +
+               ", longSet=" + longSet +
+               ", string='" + string + '\'' +
+               ", stringSet=" + stringSet +
+               '}';
+    }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        CustomClassForDocumentAPI that = (CustomClassForDocumentAPI) o;
+        return aBoolean == that.aBoolean && Objects.equals(string, that.string) && Objects.equals(stringSet, that.stringSet) && Objects.equals(binary, that.binary) && Objects.equals(binarySet, that.binarySet) && Objects.equals(booleanSet, that.booleanSet) && Objects.equals(longNumber, that.longNumber) && Objects.equals(longSet, that.longSet) && (bigDecimal == null ? that.bigDecimal == null : bigDecimal.compareTo(that.bigDecimal) == 0) && Objects.equals(bigDecimalSet, that.bigDecimalSet) && Objects.equals(customClassForDocumentAPIList, that.customClassForDocumentAPIList) && Objects.equals(instantList, that.instantList) && Objects.equals(customClassMap, that.customClassMap) && Objects.equals(innerCustomClassForDocumentAPI, that.innerCustomClassForDocumentAPI);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(string, stringSet, binary, binarySet, aBoolean, booleanSet, longNumber, longSet, bigDecimal,
+                            bigDecimalSet, customClassForDocumentAPIList, instantList, customClassMap, innerCustomClassForDocumentAPI);
+    }
 }

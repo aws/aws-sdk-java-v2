@@ -73,6 +73,9 @@ public final class JsonItemAttributeConverter implements AttributeConverter<Json
 
     @Override
     public JsonNode transformTo(AttributeValue input) {
+        if (AttributeValue.fromNul(true).equals(input)) {
+            return NullJsonNode.instance();
+        }
         return EnhancedAttributeValue.fromAttributeValue(input).convert(VISITOR);
     }
 
@@ -132,7 +135,7 @@ public final class JsonItemAttributeConverter implements AttributeConverter<Json
             if (value == null) {
                 return null;
             }
-            return new ArrayJsonNode(value.stream().map(s -> new StringJsonNode(s)).collect(Collectors.toList()));
+            return new ArrayJsonNode(value.stream().map(StringJsonNode::new).collect(Collectors.toList()));
         }
 
         @Override
@@ -140,7 +143,7 @@ public final class JsonItemAttributeConverter implements AttributeConverter<Json
             if (value == null) {
                 return null;
             }
-            return new ArrayJsonNode(value.stream().map(s -> new NumberJsonNode(s)).collect(Collectors.toList()));
+            return new ArrayJsonNode(value.stream().map(NumberJsonNode::new).collect(Collectors.toList()));
         }
 
         @Override

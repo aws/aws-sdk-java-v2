@@ -15,13 +15,10 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.mapper;
 
-import static software.amazon.awssdk.enhanced.dynamodb.TableMetadata.primaryIndexName;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -58,8 +55,8 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * .build();
  *}
  * <p> DocumentTableSchema can also be created without specifying primaryKey and sortKey in which cases the
- * {@link TableMetadata} of DocumentTableSchema will error if we try to access attributes from metaData.
- * Also if attributeConverterProviders are not provided then {@link DefaultAttributeConverterProvider} will be used
+ * {@link TableMetadata} of DocumentTableSchema will error if we try to access attributes from metaData. Also if
+ * attributeConverterProviders are not provided then {@link DefaultAttributeConverterProvider} will be used
  * {@snippet :
  * DocumentTableSchema documentTableSchema = DocumentTableSchema.builder().build();
  *}
@@ -87,9 +84,10 @@ public final class DocumentTableSchema implements TableSchema<EnhancedDocument> 
         if (attributeMap == null) {
             return null;
         }
-        DefaultEnhancedDocument.DefaultBuilder builder = DefaultEnhancedDocument.builder();
-        return builder.attributeValueMap(attributeMap)
-                      .attributeConverterProviders(attributeConverterProviders)
+        DefaultEnhancedDocument.DefaultBuilder builder =
+            (DefaultEnhancedDocument.DefaultBuilder) DefaultEnhancedDocument.builder();
+        attributeMap.forEach(builder::putObject);
+        return builder.attributeConverterProviders(attributeConverterProviders)
                       .build();
     }
 
@@ -103,24 +101,46 @@ public final class DocumentTableSchema implements TableSchema<EnhancedDocument> 
      */
     @Override
     public Map<String, AttributeValue> itemToMap(EnhancedDocument item, boolean ignoreNulls) {
-        return item != null ? item.toAttributeValueMap() : null;
+        if (item == null) {
+            return null;
+        }
+        List<AttributeConverterProvider> providers = mergeAttributeConverterProviders(item);
+        return item.toBuilder().attributeConverterProviders(providers).build().toMap();
+    }
+
+    private List<AttributeConverterProvider> mergeAttributeConverterProviders(EnhancedDocument item) {
+        List<AttributeConverterProvider> providers = new ArrayList<>();
+        if (item.attributeConverterProviders() != null) {
+            providers.addAll(item.attributeConverterProviders());
+        }
+        providers.addAll(attributeConverterProviders);
+        return providers;
     }
 
     @Override
     public Map<String, AttributeValue> itemToMap(EnhancedDocument item, Collection<String> attributes) {
-        Map<String, AttributeValue> result = new HashMap<>();
-        attributes.forEach(attribute ->
-                               result.put(attribute,  item.toAttributeValueMap().get(attribute)));
-        return result;
+        if (item.toMap() == null) {
+            return null;
+        }
 
+        List<AttributeConverterProvider> providers = mergeAttributeConverterProviders(item);
+        return item.toBuilder().attributeConverterProviders(providers).build().toMap().entrySet()
+                   .stream()
+                   .filter(entry -> attributes.contains(entry.getKey()))
+                   .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     @Override
     public AttributeValue attributeValue(EnhancedDocument item, String attributeName) {
-        if (item == null || item.toAttributeValueMap() == null) {
+        if (item == null || item.toMap() == null) {
             return null;
         }
-        return item.toAttributeValueMap().get(attributeName);
+        List<AttributeConverterProvider> providers = mergeAttributeConverterProviders(item);
+        return item.toBuilder()
+                   .attributeConverterProviders(providers)
+                   .build()
+                   .toMap()
+                   .get(attributeName);
     }
 
     @Override
@@ -135,7 +155,7 @@ public final class DocumentTableSchema implements TableSchema<EnhancedDocument> 
 
     @Override
     public List<String> attributeNames() {
-        return tableMetadata.primaryKeys().stream().collect(Collectors.toList());
+        return tableMetadata.keyAttributes().stream().map(key -> key.name()).collect(Collectors.toList());
     }
 
     @Override
@@ -157,22 +177,26 @@ public final class DocumentTableSchema implements TableSchema<EnhancedDocument> 
         /**
          * Adds information about a partition key associated with a specific index.
          *
+         * @param indexName          the name of the index to associate the partition key with
          * @param attributeName      the name of the attribute that represents the partition key
          * @param attributeValueType the {@link AttributeValueType} of the partition key
+         * @throws IllegalArgumentException if a partition key has already been defined for this index
          */
-        public Builder primaryKey(String attributeName, AttributeValueType attributeValueType) {
-            staticTableMetaDataBuilder.addIndexPartitionKey(primaryIndexName(), attributeName, attributeValueType);
+        public Builder addIndexPartitionKey(String indexName, String attributeName, AttributeValueType attributeValueType) {
+            staticTableMetaDataBuilder.addIndexPartitionKey(indexName, attributeName, attributeValueType);
             return this;
         }
 
         /**
          * Adds information about a sort key associated with a specific index.
          *
+         * @param indexName          the name of the index to associate the sort key with
          * @param attributeName      the name of the attribute that represents the sort key
          * @param attributeValueType the {@link AttributeValueType} of the sort key
+         * @throws IllegalArgumentException if a sort key has already been defined for this index
          */
-        public Builder sortKey(String attributeName, AttributeValueType attributeValueType) {
-            staticTableMetaDataBuilder.addIndexSortKey(primaryIndexName(), attributeName, attributeValueType);
+        public Builder addIndexSortKey(String indexName, String attributeName, AttributeValueType attributeValueType) {
+            staticTableMetaDataBuilder.addIndexSortKey(indexName, attributeName, attributeValueType);
             return this;
         }
 
@@ -181,15 +205,14 @@ public final class DocumentTableSchema implements TableSchema<EnhancedDocument> 
          * providers must provide {@link AttributeConverter}s for Custom types. The attribute converter providers will be loaded
          * in the strict order they are supplied here.
          * <p>
-         *     By default, {@link DefaultAttributeConverterProvider} will be used,
-         *     and it will provide standard converters for most primitive and common Java types.
-         *     Configuring this will override the default behavior, so it is recommended to
-         *     always append `DefaultAttributeConverterProvider` when you configure the
-         *     custom attribute converter providers.
+         * By default, {@link DefaultAttributeConverterProvider} will be used, and it will provide standard converters for most
+         * primitive and common Java types. Configuring this will override the default behavior, so it is recommended to always
+         * append `DefaultAttributeConverterProvider` when you configure the custom attribute converter providers.
          * <p>
          * {@snippet :
          *     builder.attributeConverterProviders(customAttributeConverter, AttributeConverterProvider.defaultProvider());
-         * }
+         *}
+         *
          * @param attributeConverterProviders a list of attribute converter providers to use with the table schema
          */
         public Builder attributeConverterProviders(AttributeConverterProvider... attributeConverterProviders) {
@@ -210,7 +233,8 @@ public final class DocumentTableSchema implements TableSchema<EnhancedDocument> 
          *     List<AttributeConverterProvider> providers = new ArrayList<>( customAttributeConverter,
          *     AttributeConverterProvider.defaultProvider());
          *     builder.attributeConverterProviders(providers);
-         * }
+         *}
+         *
          * @param attributeConverterProviders a list of attribute converter providers to use with the table schema
          */
         public Builder attributeConverterProviders(List<AttributeConverterProvider> attributeConverterProviders) {

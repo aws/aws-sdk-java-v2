@@ -15,18 +15,22 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.converters.document;
 
+import java.time.Instant;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
+import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.BigDecimalAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.BooleanAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.ByteArrayAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.EnhancedAttributeValue;
+import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.InstantAsStringAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.ListAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.LongAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.SetAttributeConverter;
@@ -43,32 +47,33 @@ public class CustomClassForDocumentAttributeConverter implements AttributeConver
         if(input == null){
             return null;
         }
-        Map<String, AttributeValue> attributeValueMap = new HashMap<>();
-
-        if(input.string() != null){
-            attributeValueMap.put("foo", AttributeValue.fromS(input.string()));
-        }
-
-        if(input.stringSet() != null){
-            attributeValueMap.put("stringSet", AttributeValue.fromSs(input.stringSet().stream().collect(Collectors.toList())));
-        }
-
+        Map<String, AttributeValue> attributeValueMap = new LinkedHashMap<>();
+        // Maintain the Alphabetical Order ,so that expected json matches
         if(input.booleanSet() != null){
             attributeValueMap.put("booleanSet",
                                   AttributeValue.fromL(input.booleanSet().stream().map(b -> AttributeValue.fromBool(b)).collect(Collectors.toList())));
         }
-
-        if(input.bigDecimalSet() != null){
-            attributeValueMap.put("stringSet",
-                                  AttributeValue.fromNs(input.bigDecimalSet().stream().map(b -> b.toString()).collect(Collectors.toList())));
-        }
-
         if(input.customClassList() != null){
             attributeValueMap.put("customClassList", convertCustomList(input.customClassList()));
         }
-
         if (input.innerCustomClass() != null){
             attributeValueMap.put("innerCustomClass", transformFrom(input.innerCustomClass()));
+        }
+        if(input.instantList() != null){
+            attributeValueMap.put("instantList", convertInstantList(input.instantList()));
+        }
+        if(input.longNumber() != null){
+            attributeValueMap.put("longNumber", AttributeValue.fromN(input.longNumber().toString()));
+        }
+        if(input.string() != null){
+            attributeValueMap.put("string", AttributeValue.fromS(input.string()));
+        }
+        if(input.stringSet() != null){
+            attributeValueMap.put("stringSet", AttributeValue.fromSs(input.stringSet().stream().collect(Collectors.toList())));
+        }
+        if(input.bigDecimalSet() != null){
+            attributeValueMap.put("stringSet",
+                                  AttributeValue.fromNs(input.bigDecimalSet().stream().map(b -> b.toString()).collect(Collectors.toList())));
         }
         return EnhancedAttributeValue.fromMap(attributeValueMap).toAttributeValue();
     }
@@ -81,31 +86,60 @@ public class CustomClassForDocumentAttributeConverter implements AttributeConver
 
     }
 
+    private static AttributeValue convertInstantList(List<Instant> customClassForDocumentAPIList){
+        return ListAttributeConverter.create(InstantAsStringAttributeConverter.create()).transformFrom(customClassForDocumentAPIList);
+    }
+
     @Override
     public CustomClassForDocumentAPI transformTo(AttributeValue input) {
 
         Map<String, AttributeValue> customAttr = input.m();
 
         CustomClassForDocumentAPI.Builder builder = CustomClassForDocumentAPI.builder();
-        builder.string(StringAttributeConverter.create().transformTo(customAttr.get("foo")));
-        builder.stringSet(SetAttributeConverter.setConverter(StringAttributeConverter.create()).transformTo(customAttr.get("stringSet")));
-        builder.binary(SdkBytes.fromByteArray(ByteArrayAttributeConverter.create().transformTo(customAttr.get("binary"))));
 
-        builder.binarySet(SetAttributeConverter.setConverter(ByteArrayAttributeConverter.create()).transformTo(customAttr.get("binarySet")));
-
-        builder.aBoolean(BooleanAttributeConverter.create().transformTo(customAttr.get("aBoolean")));
-        builder.booleanSet(SetAttributeConverter.setConverter(BooleanAttributeConverter.create()).transformTo(customAttr.get(
-            "booleanSet")));
-
-        builder.longNumber(LongAttributeConverter.create().transformTo(customAttr.get("longNumber")));
-        builder.longSet(SetAttributeConverter.setConverter(LongAttributeConverter.create()).transformTo(customAttr.get("longSet")));
-
-        builder.bigDecimal(BigDecimalAttributeConverter.create().transformTo(customAttr.get("bigDecimal")));
-        builder.bigDecimalSet(SetAttributeConverter.setConverter(BigDecimalAttributeConverter.create()).transformTo(customAttr.get("bigDecimalSet")));
-
-        builder.customClassList(ListAttributeConverter.create(create()).transformTo(customAttr.get("customClassList")));
-        builder.innerCustomClass(create().transformTo(customAttr.get("innerCustomClass")));
-
+        if (customAttr.get("aBoolean") != null) {
+            builder.aBoolean(BooleanAttributeConverter.create().transformTo(customAttr.get("aBoolean")));
+        }
+        if (customAttr.get("bigDecimal") != null) {
+            builder.bigDecimal(BigDecimalAttributeConverter.create().transformTo(customAttr.get("bigDecimal")));
+        }
+        if (customAttr.get("bigDecimalSet") != null) {
+            builder.bigDecimalSet(SetAttributeConverter.setConverter(BigDecimalAttributeConverter.create()).transformTo(customAttr.get("bigDecimalSet")));
+        }
+        if (customAttr.get("binarySet") != null) {
+            builder.binarySet(SetAttributeConverter.setConverter(ByteArrayAttributeConverter.create()).transformTo(customAttr.get("binarySet")));
+        }
+        if (customAttr.get("binary") != null) {
+            builder.binary(SdkBytes.fromByteArray(ByteArrayAttributeConverter.create().transformTo(customAttr.get("binary"))));
+        }
+        if (customAttr.get("booleanSet") != null) {
+            builder.booleanSet(SetAttributeConverter.setConverter(BooleanAttributeConverter.create()).transformTo(customAttr.get(
+                "booleanSet")));
+        }
+        if (customAttr.get("customClassList") != null) {
+            builder.customClassList(ListAttributeConverter.create(create()).transformTo(customAttr.get("customClassList")));
+        }
+        if (customAttr.get("instantList") != null) {
+            builder.instantList(ListAttributeConverter.create(AttributeConverterProvider.defaultProvider().converterFor(EnhancedType.of(Instant.class))).transformTo(customAttr.get(
+                "instantList")));
+        }
+        if (customAttr.get("innerCustomClass") != null) {
+            builder.innerCustomClass(create().transformTo(customAttr.get("innerCustomClass")));
+        }
+        if (customAttr.get("longNumber") != null) {
+            builder.longNumber(LongAttributeConverter.create().transformTo(customAttr.get("longNumber")));
+        }
+        if (customAttr.get("longSet") != null) {
+            builder.longSet(SetAttributeConverter.setConverter(LongAttributeConverter.create()).transformTo(customAttr.get(
+                "longSet")));
+        }
+        if (customAttr.get("string") != null) {
+            builder.string(StringAttributeConverter.create().transformTo(customAttr.get("string")));
+        }
+        if (customAttr.get("stringSet") != null) {
+            builder.stringSet(SetAttributeConverter.setConverter(StringAttributeConverter.create()).transformTo(customAttr.get(
+                "stringSet")));
+        }
         return builder.build();
     }
 

@@ -38,10 +38,10 @@ import software.amazon.awssdk.protocols.jsoncore.internal.ObjectJsonNode;
 import software.amazon.awssdk.protocols.jsoncore.internal.StringJsonNode;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
-public class JsonItemAttributeConverterTest {
+class JsonItemAttributeConverterTest {
 
     @Test
-    public void jsonAttributeConverterWithString() {
+    void jsonAttributeConverterWithString() {
         JsonItemAttributeConverter converter = JsonItemAttributeConverter.create();
         StringJsonNode stringJsonNode = new StringJsonNode("testString");
         assertThat(transformFrom(converter, stringJsonNode).s()).isEqualTo("testString");
@@ -49,16 +49,16 @@ public class JsonItemAttributeConverterTest {
     }
 
     @Test
-    public void jsonAttributeConverterWithBoolean() {
+    void jsonAttributeConverterWithBoolean() {
         JsonItemAttributeConverter converter = JsonItemAttributeConverter.create();
         BooleanJsonNode booleanJsonNode = new BooleanJsonNode(true);
-        assertThat(transformFrom(converter, booleanJsonNode).bool()).isEqualTo(true);
+        assertThat(transformFrom(converter, booleanJsonNode).bool()).isTrue();
         assertThat(transformFrom(converter, booleanJsonNode).s()).isNull();
         assertThat(transformTo(converter, AttributeValue.fromBool(true))).isEqualTo(booleanJsonNode);
     }
 
     @Test
-    public void jsonAttributeConverterWithNumber() {
+    void jsonAttributeConverterWithNumber() {
         JsonItemAttributeConverter converter = JsonItemAttributeConverter.create();
         NumberJsonNode numberJsonNode = new NumberJsonNode("20");
         assertThat(transformFrom(converter, numberJsonNode).n()).isEqualTo("20");
@@ -67,7 +67,7 @@ public class JsonItemAttributeConverterTest {
     }
 
     @Test
-    public void jsonAttributeConverterWithSdkBytes() {
+    void jsonAttributeConverterWithSdkBytes() {
         JsonItemAttributeConverter converter = JsonItemAttributeConverter.create();
         StringJsonNode sdkByteJsonNode = new StringJsonNode(SdkBytes.fromUtf8String("a").asUtf8String());
 
@@ -77,7 +77,7 @@ public class JsonItemAttributeConverterTest {
     }
 
     @Test
-    public void jsonAttributeConverterWithSet() {
+    void jsonAttributeConverterWithSet() {
         JsonItemAttributeConverter converter = JsonItemAttributeConverter.create();
         ArrayJsonNode arrayJsonNode =
             new ArrayJsonNode(Stream.of(new NumberJsonNode("10"), new NumberJsonNode("20")).collect(Collectors.toList()));
@@ -88,7 +88,7 @@ public class JsonItemAttributeConverterTest {
     }
 
     @Test
-    public void jsonAttributeWithMap(){
+    void jsonAttributeWithMap(){
 
         Map<String, JsonNode> jsonNodeMap  = new LinkedHashMap<>();
         jsonNodeMap.put("key", new StringJsonNode("value"));
