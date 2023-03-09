@@ -66,14 +66,13 @@ public final class ResolveIdentityRequest {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-
         ResolveIdentityRequest that = (ResolveIdentityRequest) o;
-        return Objects.equals(properties, that.properties);
+        return properties.equals(that.properties);
     }
 
     @Override
     public int hashCode() {
-        return 31 + Objects.hashCode(properties);
+        return Objects.hashCode(properties);
     }
 
     public static final class Builder implements SdkBuilder<Builder, ResolveIdentityRequest> {
