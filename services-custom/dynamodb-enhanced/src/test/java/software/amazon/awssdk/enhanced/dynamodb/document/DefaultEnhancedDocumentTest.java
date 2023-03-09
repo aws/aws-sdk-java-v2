@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.enhanced.dynamodb.internal.document.DefaultEnhancedDocument;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
-public class DefaultEnhancedDocumentTest {
+class DefaultEnhancedDocumentTest {
 
     @Test
     void copyCreatedFromToBuilder() {
@@ -34,8 +34,8 @@ public class DefaultEnhancedDocumentTest {
         DefaultEnhancedDocument copyAndAlter =
             (DefaultEnhancedDocument) originalDoc.toBuilder().putString("keyOne", "valueOne").build();
         assertThat(originalDoc.toMap()).isEqualTo(copiedDoc.toMap());
-        assertThat(originalDoc.toMap().keySet().size()).isEqualTo(1);
-        assertThat(copyAndAlter.toMap().keySet().size()).isEqualTo(2);
+        assertThat(originalDoc.toMap().keySet()).hasSize(1);
+        assertThat(copyAndAlter.toMap().keySet()).hasSize(2);
         assertThat(copyAndAlter.getString("stringKey")).isEqualTo("stringValue");
         assertThat(copyAndAlter.getString("keyOne")).isEqualTo("valueOne");
         assertThat(originalDoc.toMap()).isEqualTo(copiedDoc.toMap());
@@ -51,7 +51,8 @@ public class DefaultEnhancedDocumentTest {
                                                                                                 .build();
         assertThat(nullDocument.isNull("nullDocument")).isTrue();
         assertThat(nullDocument.isNull("nonNull")).isFalse();
-        assertThat(nullDocument.toMap().get("nullDocument")).isEqualTo(AttributeValue.fromNul(true));
+        assertThat(nullDocument.toMap()).containsEntry("nullDocument", AttributeValue.fromNul(true));
+
     }
 
     @Test
@@ -60,9 +61,6 @@ public class DefaultEnhancedDocumentTest {
             (DefaultEnhancedDocument.DefaultBuilder) DefaultEnhancedDocument.builder().attributeConverterProviders(defaultProvider());
         builder.putObject("nullAttribute", AttributeValue.fromNul(true));
         DefaultEnhancedDocument document = (DefaultEnhancedDocument) builder.build();
-        System.out.println("document " + document.toJson());
-
         assertThat(document.isNull("nullAttribute")).isTrue();
     }
-
 }

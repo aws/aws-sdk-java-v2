@@ -89,7 +89,7 @@ import software.amazon.awssdk.utils.Validate;
 @ThreadSafe
 @Immutable
 public final class DefaultAttributeConverterProvider implements AttributeConverterProvider {
-    private static DefaultAttributeConverterProvider INSTANCE = getDefaultBuilder().build();
+    private static final DefaultAttributeConverterProvider INSTANCE = getDefaultBuilder().build();
 
     private static final Logger log = Logger.loggerFor(DefaultAttributeConverterProvider.class);
 

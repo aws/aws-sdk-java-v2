@@ -40,7 +40,7 @@ import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.converters.document.CustomAttributeForDocumentConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.converters.document.CustomClassForDocumentAPI;
 
-public class EnhancedDocumentTest{
+class EnhancedDocumentTest{
 
     @Test
     void enhancedDocumentGetters() {
@@ -171,10 +171,10 @@ public class EnhancedDocumentTest{
                                                               .attributeConverterProviders(CustomAttributeForDocumentConverterProvider.create())
                                                               .build();
 
+        EnhancedType getType = EnhancedType.of(EnhancedDocumentTestData.class);
         assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> enhancedDocument.get(
-            "stringKey",
-            EnhancedType.of(
-                EnhancedDocumentTestData.class))).withMessage(
+            "stringKey",getType
+        )).withMessage(
             "AttributeConverter not found for class EnhancedType(java.lang.String). Please add an AttributeConverterProvider for this type. "
             + "If it is a default type, add the DefaultAttributeConverterProvider to the builder.");
     }
@@ -198,11 +198,12 @@ public class EnhancedDocumentTest{
                                                                           .dataForScenario("ElementsOfCustomType")
                                                                           .getJson());
 
+        EnhancedType enhancedType = EnhancedType.of(
+            CustomClassForDocumentAPI.class);
+
         assertThatExceptionOfType(IllegalStateException.class).isThrownBy(
             () -> enhancedDocument.get(
-                "customMapValue",
-                EnhancedType.of(
-                    CustomClassForDocumentAPI.class))).withMessage("Converter not found for "
+                "customMapValue",enhancedType)).withMessage("Converter not found for "
                                                                    + "EnhancedType(software.amazon.awssdk.enhanced.dynamodb.converters"
                                                                    + ".document.CustomClassForDocumentAPI)");
         EnhancedDocument docWithCustomProvider =

@@ -32,8 +32,7 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.Lis
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.MapAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.string.DefaultStringConverterProvider;
 
-public class ParameterizedDocumentTest {
-
+class ParameterizedDocumentTest {
 
     @ParameterizedTest
     @ArgumentsSource(EnhancedDocumentTestData.class)

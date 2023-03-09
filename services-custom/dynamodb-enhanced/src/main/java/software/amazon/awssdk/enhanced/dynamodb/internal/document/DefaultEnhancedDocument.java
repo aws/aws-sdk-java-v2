@@ -63,8 +63,6 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
 
     public static final IllegalStateException NULL_SET_ERROR = new IllegalStateException("Set must not have null values.");
     private static final JsonItemAttributeConverter JSON_ATTRIBUTE_CONVERTER = JsonItemAttributeConverter.create();
-    private static final JsonItemAttributeConverter JSON_ITEM_ATTRIBUTE_CONVERTER = JsonItemAttributeConverter.create();
-
     private final Map<String, Object> nonAttributeValueMap;
     private final Map<String, EnhancedType> enhancedTypeMap;
     private final List<AttributeConverterProvider> attributeConverterProviders;
@@ -82,13 +80,15 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
         return new DefaultBuilder();
     }
 
-    public static <T> AttributeConverter converterForClass(EnhancedType<T> type, ChainConverterProvider chainConverterProvider) {
+    public static <T> AttributeConverter<T> converterForClass(EnhancedType<T> type,
+                                                              ChainConverterProvider chainConverterProvider) {
 
         if (type.rawClass().isAssignableFrom(List.class)) {
-            return ListAttributeConverter.create(converterForClass(type.rawClassParameters().get(0), chainConverterProvider));
+            return (AttributeConverter<T>) ListAttributeConverter
+                .create(converterForClass(type.rawClassParameters().get(0), chainConverterProvider));
         }
         if (type.rawClass().isAssignableFrom(Map.class)) {
-            return MapAttributeConverter.mapConverter(
+            return (AttributeConverter<T>) MapAttributeConverter.mapConverter(
                 StringConverterProvider.defaultProvider().converterFor(type.rawClassParameters().get(0)),
                 converterForClass(type.rawClassParameters().get(1), chainConverterProvider));
         }
@@ -97,21 +97,6 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
                            "AttributeConverter not found for class " + type
                            + ". Please add an AttributeConverterProvider for this type. If it is a default type, add the "
                            + "DefaultAttributeConverterProvider to the builder."));
-    }
-
-    private static AttributeValue getAttributeValueFromJson(String json) {
-        JsonNodeParser build = JsonNodeParser.builder().build();
-        JsonNode jsonNode = build.parse(json);
-        if (jsonNode == null) {
-            throw new IllegalArgumentException("Could not parse argument json " + json);
-        }
-        AttributeValue attributeValue = JSON_ITEM_ATTRIBUTE_CONVERTER.transformFrom(jsonNode);
-        return attributeValue;
-    }
-
-    private static void checkInvalidAttribute(String attributeName, Object value) {
-        Validate.paramNotNull(attributeName, "attributeName");
-        Validate.notNull(value, "%s must not be null. Use putNull API to insert a Null value", value);
     }
 
     @Override
@@ -195,7 +180,8 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
         if (attributeValue == null) {
             return null;
         }
-        return JSON_ATTRIBUTE_CONVERTER.transformTo(attributeValue).toString(); // TODO: Does toString return valid JSON?
+        return JSON_ATTRIBUTE_CONVERTER.transformTo(attributeValue).toString();
+        // TODO: Does toString return valid JSON? will remove this after comparing V1 side by side.
     }
 
     @Override
@@ -205,14 +191,24 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
 
     @Override
     public List<AttributeValue> getUnknownTypeList(String attributeName) {
-        return attributeValueMap.getValue().get(attributeName).l();
+        AttributeValue attributeValue = attributeValueMap.getValue().get(attributeName);
+        if (attributeValue == null) {
+            return null;
+        }
+        if (!attributeValue.hasL()) {
+            throw new IllegalStateException("Cannot get a List from attribute value of Type " + attributeValue.type());
+        }
+        return attributeValue.l();
     }
 
     @Override
     public Map<String, AttributeValue> getUnknownTypeMap(String attributeName) {
         AttributeValue attributeValue = attributeValueMap.getValue().get(attributeName);
-        if (attributeValue == null || !attributeValue.hasM()) {
+        if (attributeValue == null) {
             return null;
+        }
+        if (!attributeValue.hasM()) {
+            throw new IllegalStateException("Cannot get a Map from attribute value of Type " + attributeValue.type());
         }
         return attributeValue.m();
     }
@@ -324,7 +320,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
         @Override
         public Builder putStringSet(String attributeName, Set<String> values) {
             checkInvalidAttribute(attributeName, values);
-            if (values.stream().filter(Objects::isNull).findAny().isPresent()) {
+            if (values.stream().anyMatch(Objects::isNull)) {
                 throw NULL_SET_ERROR;
             }
             return putWithType(attributeName, values, EnhancedType.setOf(String.class));
@@ -346,7 +342,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
         @Override
         public Builder putBytesSet(String attributeName, Set<SdkBytes> values) {
             checkInvalidAttribute(attributeName, values);
-            if (values.stream().filter(Objects::isNull).findAny().isPresent()) {
+            if (values.stream().anyMatch(Objects::isNull)) {
                 throw NULL_SET_ERROR;
             }
             return putWithType(attributeName, values, EnhancedType.setOf(SdkBytes.class));
@@ -387,12 +383,14 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
 
         @Override
         public Builder addAttributeConverterProvider(AttributeConverterProvider attributeConverterProvider) {
+            Validate.paramNotNull(attributeConverterProvider, "attributeConverterProvider");
             attributeConverterProviders.add(attributeConverterProvider);
             return this;
         }
 
         @Override
         public Builder attributeConverterProviders(List<AttributeConverterProvider> attributeConverterProviders) {
+            Validate.paramNotNull(attributeConverterProviders, "attributeConverterProviders");
             this.attributeConverterProviders.clear();
             this.attributeConverterProviders.addAll(attributeConverterProviders);
             return this;
@@ -415,15 +413,29 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
         }
 
         public Builder attributeValueMap(Map<String, AttributeValue> attributeValueMap) {
-            Validate.paramNotNull(attributeConverterProviders, "attributeConverterProviders");
+            Validate.paramNotNull(attributeConverterProviders, "attributeValueMap");
             nonAttributeValueMap.clear();
-            attributeValueMap.forEach((k, v) -> putObject(k, v));
+            attributeValueMap.forEach(this::putObject);
             return this;
         }
 
         @Override
         public EnhancedDocument build() {
             return new DefaultEnhancedDocument(this);
+        }
+
+        private static AttributeValue getAttributeValueFromJson(String json) {
+            JsonNodeParser build = JsonNodeParser.builder().build();
+            JsonNode jsonNode = build.parse(json);
+            if (jsonNode == null) {
+                throw new IllegalArgumentException("Could not parse argument json " + json);
+            }
+            return JSON_ATTRIBUTE_CONVERTER.transformFrom(jsonNode);
+        }
+
+        private static void checkInvalidAttribute(String attributeName, Object value) {
+            Validate.paramNotNull(attributeName, "attributeName");
+            Validate.notNull(value, "%s must not be null. Use putNull API to insert a Null value", value);
         }
     }
 

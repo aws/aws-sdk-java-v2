@@ -39,7 +39,7 @@ import software.amazon.awssdk.enhanced.dynamodb.document.TestData;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.ChainConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.StaticKeyAttributeMetadata;
 
-public class DocumentTableSchemaTest {
+class DocumentTableSchemaTest {
 
     String NO_PRIMARY_KEYS_IN_METADATA = "Attempt to execute an operation that requires a primary index without defining "
                                          + "any primary key attributes in the table metadata.";
@@ -182,7 +182,6 @@ public class DocumentTableSchemaTest {
                                                                      .build();
         TestData simpleStringData = testDataInstance().dataForScenario("customList");
         EnhancedDocument enhancedDocument = documentTableSchema.mapToItem(simpleStringData.getDdbItemMap(), false);
-        assertThat(enhancedDocument.getList("customClassForDocumentAPI", EnhancedType.of(CustomClassForDocumentAPI.class)).size())
-            .isEqualTo(2);
+        assertThat(enhancedDocument.getList("customClassForDocumentAPI", EnhancedType.of(CustomClassForDocumentAPI.class)).size()).isEqualTo(2);
     }
 }

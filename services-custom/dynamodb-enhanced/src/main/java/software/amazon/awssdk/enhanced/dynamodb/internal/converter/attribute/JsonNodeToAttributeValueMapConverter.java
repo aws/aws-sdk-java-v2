@@ -68,7 +68,7 @@ public class JsonNodeToAttributeValueMapConverter implements JsonNodeVisitor<Att
     public AttributeValue visitObject(Map<String, JsonNode> object) {
         return AttributeValue.builder().m(object.entrySet().stream()
                                                 .collect(Collectors.toMap(
-                                                    entry -> entry.getKey(),
+                                                    Map.Entry::getKey,
                                                     entry -> entry.getValue().visit(this),
                                                     (left, right) -> left, LinkedHashMap::new)))
                              .build();
