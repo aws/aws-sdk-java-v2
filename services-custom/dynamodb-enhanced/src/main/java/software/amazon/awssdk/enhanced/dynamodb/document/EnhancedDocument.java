@@ -73,7 +73,7 @@ public interface EnhancedDocument {
      * then use {@link Builder#attributeConverterProviders(AttributeConverterProvider...)} to provide the custom
      * ConverterProvider.
      * {@snippet :
-     * {@code EnhancedDocument documentFromJson = EnhancedDocument.fromJson("{\"key\": \"Value\"}");}
+     * EnhancedDocument documentFromJson = EnhancedDocument.fromJson("{\"key\": \"Value\"}");
      *}
      * @param json The JSON string representation of a DynamoDB Item.
      * @return A new instance of EnhancedDocument.
