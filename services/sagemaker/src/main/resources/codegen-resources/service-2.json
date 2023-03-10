@@ -557,7 +557,7 @@
         {"shape":"ResourceLimitExceeded"},
         {"shape":"ResourceInUse"}
       ],
-      "documentation":"<p>Creates a schedule that regularly starts Amazon SageMaker Processing Jobs to monitor the data captured for an Amazon SageMaker Endoint.</p>"
+      "documentation":"<p>Creates a schedule that regularly starts Amazon SageMaker Processing Jobs to monitor the data captured for an Amazon SageMaker Endpoint.</p>"
     },
     "CreateNotebookInstance":{
       "name":"CreateNotebookInstance",
@@ -2105,7 +2105,7 @@
       },
       "input":{"shape":"GetSearchSuggestionsRequest"},
       "output":{"shape":"GetSearchSuggestionsResponse"},
-      "documentation":"<p>An auto-complete API for the search functionality in the Amazon SageMaker console. It returns suggestions of possible matches for the property name to use in <code>Search</code> queries. Provides suggestions for <code>HyperParameters</code>, <code>Tags</code>, and <code>Metrics</code>.</p>"
+      "documentation":"<p>An auto-complete API for the search functionality in the SageMaker console. It returns suggestions of possible matches for the property name to use in <code>Search</code> queries. Provides suggestions for <code>HyperParameters</code>, <code>Tags</code>, and <code>Metrics</code>.</p>"
     },
     "ImportHubContent":{
       "name":"ImportHubContent",
@@ -2966,7 +2966,7 @@
       },
       "input":{"shape":"SearchRequest"},
       "output":{"shape":"SearchResponse"},
-      "documentation":"<p>Finds Amazon SageMaker resources that match a search query. Matching resources are returned as a list of <code>SearchRecord</code> objects in the response. You can sort the search results by any resource property in a ascending or descending order.</p> <p>You can query against the following value types: numeric, text, Boolean, and timestamp.</p>"
+      "documentation":"<p>Finds SageMaker resources that match a search query. Matching resources are returned as a list of <code>SearchRecord</code> objects in the response. You can sort the search results by any resource property in a ascending or descending order.</p> <p>You can query against the following value types: numeric, text, Boolean, and timestamp.</p> <note> <p>The Search API may provide access to otherwise restricted data. See <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/api-permissions-reference.html\">Amazon SageMaker API Permissions: Actions, Permissions, and Resources Reference</a> for more information.</p> </note>"
     },
     "SendPipelineExecutionStepFailure":{
       "name":"SendPipelineExecutionStepFailure",
@@ -3637,7 +3637,7 @@
       "errors":[
         {"shape":"ConflictException"}
       ],
-      "documentation":"<p>Use this operation to update your workforce. You can use this operation to require that workers use specific IP addresses to work on tasks and to update your OpenID Connect (OIDC) Identity Provider (IdP) workforce configuration.</p> <p>The worker portal is now supported in VPC and public internet.</p> <p> Use <code>SourceIpConfig</code> to restrict worker access to tasks to a specific range of IP addresses. You specify allowed IP addresses by creating a list of up to ten <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Subnets.html\">CIDRs</a>. By default, a workforce isn't restricted to specific IP addresses. If you specify a range of IP addresses, workers who attempt to access tasks using any IP address outside the specified range are denied and get a <code>Not Found</code> error message on the worker portal.</p> <p>To restrict access to all the workers in public internet, add the <code>SourceIpConfig</code> CIDR value as \"0.0.0.0/0\".</p> <important> <p>Amazon SageMaker does not support Source Ip restriction for worker portals in VPC.</p> </important> <p>Use <code>OidcConfig</code> to update the configuration of a workforce created using your own OIDC IdP. </p> <important> <p>You can only update your OIDC IdP configuration when there are no work teams associated with your workforce. You can delete work teams using the operation.</p> </important> <p>After restricting access to a range of IP addresses or updating your OIDC IdP configuration with this operation, you can view details about your update workforce using the operation.</p> <important> <p>This operation only applies to private workforces.</p> </important>"
+      "documentation":"<p>Use this operation to update your workforce. You can use this operation to require that workers use specific IP addresses to work on tasks and to update your OpenID Connect (OIDC) Identity Provider (IdP) workforce configuration.</p> <p>The worker portal is now supported in VPC and public internet.</p> <p> Use <code>SourceIpConfig</code> to restrict worker access to tasks to a specific range of IP addresses. You specify allowed IP addresses by creating a list of up to ten <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Subnets.html\">CIDRs</a>. By default, a workforce isn't restricted to specific IP addresses. If you specify a range of IP addresses, workers who attempt to access tasks using any IP address outside the specified range are denied and get a <code>Not Found</code> error message on the worker portal.</p> <p>To restrict access to all the workers in public internet, add the <code>SourceIpConfig</code> CIDR value as \"10.0.0.0/16\".</p> <important> <p>Amazon SageMaker does not support Source Ip restriction for worker portals in VPC.</p> </important> <p>Use <code>OidcConfig</code> to update the configuration of a workforce created using your own OIDC IdP. </p> <important> <p>You can only update your OIDC IdP configuration when there are no work teams associated with your workforce. You can delete work teams using the operation.</p> </important> <p>After restricting access to a range of IP addresses or updating your OIDC IdP configuration with this operation, you can view details about your update workforce using the operation.</p> <important> <p>This operation only applies to private workforces.</p> </important>"
     },
     "UpdateWorkteam":{
       "name":"UpdateWorkteam",
@@ -8354,7 +8354,7 @@
         },
         "SamplePayloadUrl":{
           "shape":"S3Uri",
-          "documentation":"<p>The Amazon Simple Storage Service (Amazon S3) path where the sample payload are stored. This path must point to a single gzip compressed tar archive (.tar.gz suffix).</p>"
+          "documentation":"<p>The Amazon Simple Storage Service (Amazon S3) path where the sample payload is stored. This path must point to a single gzip compressed tar archive (.tar.gz suffix). This archive can hold multiple files that are all equally used in the load test. Each file in the archive must satisfy the size constraints of the <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_runtime_InvokeEndpoint.html#API_runtime_InvokeEndpoint_RequestSyntax\">InvokeEndpoint</a> call.</p>"
         },
         "AdditionalInferenceSpecifications":{
           "shape":"AdditionalInferenceSpecifications",
@@ -16282,7 +16282,7 @@
           "documentation":"<p>A value used with <code>Name</code> and <code>Operator</code> to determine which resources satisfy the filter's condition. For numerical properties, <code>Value</code> must be an integer or floating-point decimal. For timestamp properties, <code>Value</code> must be an ISO 8601 date-time string of the following format: <code>YYYY-mm-dd'T'HH:MM:SS</code>.</p>"
         }
       },
-      "documentation":"<p>A conditional statement for a search expression that includes a resource property, a Boolean operator, and a value. Resources that match the statement are returned in the results from the <a>Search</a> API.</p> <p>If you specify a <code>Value</code>, but not an <code>Operator</code>, Amazon SageMaker uses the equals operator.</p> <p>In search, there are several property types:</p> <dl> <dt>Metrics</dt> <dd> <p>To define a metric filter, enter a value using the form <code>\"Metrics.&lt;name&gt;\"</code>, where <code>&lt;name&gt;</code> is a metric name. For example, the following filter searches for training jobs with an <code>\"accuracy\"</code> metric greater than <code>\"0.9\"</code>:</p> <p> <code>{</code> </p> <p> <code>\"Name\": \"Metrics.accuracy\",</code> </p> <p> <code>\"Operator\": \"GreaterThan\",</code> </p> <p> <code>\"Value\": \"0.9\"</code> </p> <p> <code>}</code> </p> </dd> <dt>HyperParameters</dt> <dd> <p>To define a hyperparameter filter, enter a value with the form <code>\"HyperParameters.&lt;name&gt;\"</code>. Decimal hyperparameter values are treated as a decimal in a comparison if the specified <code>Value</code> is also a decimal value. If the specified <code>Value</code> is an integer, the decimal hyperparameter values are treated as integers. For example, the following filter is satisfied by training jobs with a <code>\"learning_rate\"</code> hyperparameter that is less than <code>\"0.5\"</code>:</p> <p> <code> {</code> </p> <p> <code> \"Name\": \"HyperParameters.learning_rate\",</code> </p> <p> <code> \"Operator\": \"LessThan\",</code> </p> <p> <code> \"Value\": \"0.5\"</code> </p> <p> <code> }</code> </p> </dd> <dt>Tags</dt> <dd> <p>To define a tag filter, enter a value with the form <code>Tags.&lt;key&gt;</code>.</p> </dd> </dl>"
+      "documentation":"<p>A conditional statement for a search expression that includes a resource property, a Boolean operator, and a value. Resources that match the statement are returned in the results from the <a>Search</a> API.</p> <p>If you specify a <code>Value</code>, but not an <code>Operator</code>, SageMaker uses the equals operator.</p> <p>In search, there are several property types:</p> <dl> <dt>Metrics</dt> <dd> <p>To define a metric filter, enter a value using the form <code>\"Metrics.&lt;name&gt;\"</code>, where <code>&lt;name&gt;</code> is a metric name. For example, the following filter searches for training jobs with an <code>\"accuracy\"</code> metric greater than <code>\"0.9\"</code>:</p> <p> <code>{</code> </p> <p> <code>\"Name\": \"Metrics.accuracy\",</code> </p> <p> <code>\"Operator\": \"GreaterThan\",</code> </p> <p> <code>\"Value\": \"0.9\"</code> </p> <p> <code>}</code> </p> </dd> <dt>HyperParameters</dt> <dd> <p>To define a hyperparameter filter, enter a value with the form <code>\"HyperParameters.&lt;name&gt;\"</code>. Decimal hyperparameter values are treated as a decimal in a comparison if the specified <code>Value</code> is also a decimal value. If the specified <code>Value</code> is an integer, the decimal hyperparameter values are treated as integers. For example, the following filter is satisfied by training jobs with a <code>\"learning_rate\"</code> hyperparameter that is less than <code>\"0.5\"</code>:</p> <p> <code> {</code> </p> <p> <code> \"Name\": \"HyperParameters.learning_rate\",</code> </p> <p> <code> \"Operator\": \"LessThan\",</code> </p> <p> <code> \"Value\": \"0.5\"</code> </p> <p> <code> }</code> </p> </dd> <dt>Tags</dt> <dd> <p>To define a tag filter, enter a value with the form <code>Tags.&lt;key&gt;</code>.</p> </dd> </dl>"
     },
     "FilterList":{
       "type":"list",
@@ -16331,18 +16331,18 @@
       "members":{
         "Type":{
           "shape":"HyperParameterTuningJobObjectiveType",
-          "documentation":"<p>Whether to minimize or maximize the objective metric. Valid values are Minimize and Maximize.</p>"
+          "documentation":"<p>Select if you want to minimize or maximize the objective metric during hyperparameter tuning. </p>"
         },
         "MetricName":{
           "shape":"MetricName",
-          "documentation":"<p>The name of the objective metric.</p>"
+          "documentation":"<p>The name of the objective metric. For SageMaker built-in algorithms, metrics are defined per algorithm. See the <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/xgboost-tuning.html\">metrics for XGBoost</a> as an example. You can also use a custom algorithm for training and define your own metrics. For more information, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/automatic-model-tuning-define-metrics-variables.html\">Define metrics and environment variables</a>.</p>"
         },
         "Value":{
           "shape":"MetricValue",
           "documentation":"<p>The value of the objective metric.</p>"
         }
       },
-      "documentation":"<p>Shows the final value for the objective metric for a training job that was launched by a hyperparameter tuning job. You define the objective metric in the <code>HyperParameterTuningJobObjective</code> parameter of <a>HyperParameterTuningJobConfig</a>.</p>"
+      "documentation":"<p>Shows the latest objective metric emitted by a training job that was launched by a hyperparameter tuning job. You define the objective metric in the <code>HyperParameterTuningJobObjective</code> parameter of <a>HyperParameterTuningJobConfig</a>.</p>"
     },
     "FinalMetricDataList":{
       "type":"list",
@@ -16596,7 +16596,7 @@
       "members":{
         "Resource":{
           "shape":"ResourceType",
-          "documentation":"<p>The name of the Amazon SageMaker resource to search for.</p>"
+          "documentation":"<p>The name of the SageMaker resource to search for.</p>"
         },
         "SuggestionQuery":{
           "shape":"SuggestionQuery",
@@ -17746,6 +17746,24 @@
       "type":"integer",
       "min":1
     },
+    "IamIdentity":{
+      "type":"structure",
+      "members":{
+        "Arn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the IAM identity.</p>"
+        },
+        "PrincipalId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the principal that assumes the IAM identity.</p>"
+        },
+        "SourceIdentity":{
+          "shape":"String",
+          "documentation":"<p>The person or application which assumes the IAM identity.</p>"
+        }
+      },
+      "documentation":"<p>The IAM Identity details associated with the user. These details are associated with model package groups, model packages and project entities only.</p>"
+    },
     "IdempotencyToken":{
       "type":"string",
       "max":128,
@@ -18341,7 +18359,7 @@
           "documentation":"<p>The details for a specific benchmark.</p>"
         }
       },
-      "documentation":"<p>A returned array object for the <code>Steps</code> response field in the <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_InferenceRecommendationsJobStep.html\">ListInferenceRecommendationsJobSteps</a> API command.</p>"
+      "documentation":"<p>A returned array object for the <code>Steps</code> response field in the <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_ListInferenceRecommendationsJobSteps.html\">ListInferenceRecommendationsJobSteps</a> API command.</p>"
     },
     "InferenceRecommendationsJobSteps":{
       "type":"list",
@@ -25900,7 +25918,7 @@
       "members":{
         "KmsKeyId":{
           "shape":"KmsKeyId",
-          "documentation":"<p>The ID of the Amazon Web Services Key Management Service (Amazon Web Services KMS) key that SageMaker Feature Store uses to encrypt the Amazon S3 objects at rest using Amazon S3 server-side encryption.</p> <p>The caller (either IAM user or IAM role) of <code>CreateFeatureGroup</code> must have below permissions to the <code>OnlineStore</code> <code>KmsKeyId</code>:</p> <ul> <li> <p> <code>\"kms:Encrypt\"</code> </p> </li> <li> <p> <code>\"kms:Decrypt\"</code> </p> </li> <li> <p> <code>\"kms:DescribeKey\"</code> </p> </li> <li> <p> <code>\"kms:CreateGrant\"</code> </p> </li> <li> <p> <code>\"kms:RetireGrant\"</code> </p> </li> <li> <p> <code>\"kms:ReEncryptFrom\"</code> </p> </li> <li> <p> <code>\"kms:ReEncryptTo\"</code> </p> </li> <li> <p> <code>\"kms:GenerateDataKey\"</code> </p> </li> <li> <p> <code>\"kms:ListAliases\"</code> </p> </li> <li> <p> <code>\"kms:ListGrants\"</code> </p> </li> <li> <p> <code>\"kms:RevokeGrant\"</code> </p> </li> </ul> <p>The caller (either user or IAM role) to all DataPlane operations (<code>PutRecord</code>, <code>GetRecord</code>, <code>DeleteRecord</code>) must have the following permissions to the <code>KmsKeyId</code>:</p> <ul> <li> <p> <code>\"kms:Decrypt\"</code> </p> </li> </ul>"
+          "documentation":"<p>The Amazon Web Services Key Management Service (KMS) key ARN that SageMaker Feature Store uses to encrypt the Amazon S3 objects at rest using Amazon S3 server-side encryption.</p> <p>The caller (either IAM user or IAM role) of <code>CreateFeatureGroup</code> must have below permissions to the <code>OnlineStore</code> <code>KmsKeyId</code>:</p> <ul> <li> <p> <code>\"kms:Encrypt\"</code> </p> </li> <li> <p> <code>\"kms:Decrypt\"</code> </p> </li> <li> <p> <code>\"kms:DescribeKey\"</code> </p> </li> <li> <p> <code>\"kms:CreateGrant\"</code> </p> </li> <li> <p> <code>\"kms:RetireGrant\"</code> </p> </li> <li> <p> <code>\"kms:ReEncryptFrom\"</code> </p> </li> <li> <p> <code>\"kms:ReEncryptTo\"</code> </p> </li> <li> <p> <code>\"kms:GenerateDataKey\"</code> </p> </li> <li> <p> <code>\"kms:ListAliases\"</code> </p> </li> <li> <p> <code>\"kms:ListGrants\"</code> </p> </li> <li> <p> <code>\"kms:RevokeGrant\"</code> </p> </li> </ul> <p>The caller (either user or IAM role) to all DataPlane operations (<code>PutRecord</code>, <code>GetRecord</code>, <code>DeleteRecord</code>) must have the following permissions to the <code>KmsKeyId</code>:</p> <ul> <li> <p> <code>\"kms:Decrypt\"</code> </p> </li> </ul>"
         }
       },
       "documentation":"<p>The security configuration for <code>OnlineStore</code>.</p>"
@@ -27200,9 +27218,13 @@
         "ContainerStartupHealthCheckTimeoutInSeconds":{
           "shape":"ProductionVariantContainerStartupHealthCheckTimeoutInSeconds",
           "documentation":"<p>The timeout value, in seconds, for your inference container to pass health check by SageMaker Hosting. For more information about health check, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/your-algorithms-inference-code.html#your-algorithms-inference-algo-ping-requests\">How Your Container Should Respond to Health Check (Ping) Requests</a>.</p>"
+        },
+        "EnableSSMAccess":{
+          "shape":"ProductionVariantSSMAccess",
+          "documentation":"<p> You can use this parameter to turn on native Amazon Web Services Systems Manager (SSM) access for a production variant behind an endpoint. By default, SSM access is disabled for all production variants behind an endpoints. You can turn on or turn off SSM access for a production variant behind an existing endpoint by creating a new endpoint configuration and calling <code>UpdateEndpoint</code>. </p>"
         }
       },
-      "documentation":"<p>Identifies a model that you want to host and the resources chosen to deploy for hosting it. If you are deploying multiple models, tell SageMaker how to distribute traffic among the models by specifying variant weights. </p>"
+      "documentation":"<p> Identifies a model that you want to host and the resources chosen to deploy for hosting it. If you are deploying multiple models, tell SageMaker how to distribute traffic among the models by specifying variant weights. For more information on production variants, check <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/model-ab-testing.html\"> Production variants</a>. </p>"
     },
     "ProductionVariantAcceleratorType":{
       "type":"string",
@@ -27392,6 +27414,7 @@
       "max":3600,
       "min":60
     },
+    "ProductionVariantSSMAccess":{"type":"boolean"},
     "ProductionVariantServerlessConfig":{
       "type":"structure",
       "required":[
@@ -27784,7 +27807,7 @@
       "members":{
         "PropertyName":{
           "shape":"ResourcePropertyName",
-          "documentation":"<p>A suggested property name based on what you entered in the search textbox in the Amazon SageMaker console.</p>"
+          "documentation":"<p>A suggested property name based on what you entered in the search textbox in the SageMaker console.</p>"
         }
       },
       "documentation":"<p>A property name returned from a <code>GetSearchSuggestions</code> call that specifies a value in the <code>PropertyNameQuery</code> field.</p>"
@@ -28208,7 +28231,8 @@
         "FailureReason":{
           "shape":"RecommendationFailureReason",
           "documentation":"<p>The reason why a benchmark failed.</p>"
-        }
+        },
+        "EndpointMetrics":{"shape":"InferenceMetrics"}
       },
       "documentation":"<p>The details for a specific benchmark from an Inference Recommender job.</p>"
     },
@@ -28747,7 +28771,7 @@
         },
         "MaxRuntimeInSeconds":{
           "shape":"HyperParameterTuningMaxRuntimeInSeconds",
-          "documentation":"<p>The maximum time in seconds that a training job launched by a hyperparameter tuning job can run.</p>"
+          "documentation":"<p>The maximum time in seconds that a hyperparameter tuning job can run.</p>"
         }
       },
       "documentation":"<p>Specifies the maximum number of training jobs and parallel training jobs that a hyperparameter tuning job can launch.</p>"
@@ -28982,7 +29006,7 @@
         },
         "KmsKeyId":{
           "shape":"KmsKeyId",
-          "documentation":"<p>The Amazon Web Services Key Management Service (KMS) key ID of the key used to encrypt any objects written into the <code>OfflineStore</code> S3 location.</p> <p>The IAM <code>roleARN</code> that is passed as a parameter to <code>CreateFeatureGroup</code> must have below permissions to the <code>KmsKeyId</code>:</p> <ul> <li> <p> <code>\"kms:GenerateDataKey\"</code> </p> </li> </ul>"
+          "documentation":"<p>The Amazon Web Services Key Management Service (KMS) key ARN of the key used to encrypt any objects written into the <code>OfflineStore</code> S3 location.</p> <p>The IAM <code>roleARN</code> that is passed as a parameter to <code>CreateFeatureGroup</code> must have below permissions to the <code>KmsKeyId</code>:</p> <ul> <li> <p> <code>\"kms:GenerateDataKey\"</code> </p> </li> </ul>"
         },
         "ResolvedOutputS3Uri":{
           "shape":"S3Uri",
@@ -29122,7 +29146,7 @@
       "members":{
         "Resource":{
           "shape":"ResourceType",
-          "documentation":"<p>The name of the Amazon SageMaker resource to search for.</p>"
+          "documentation":"<p>The name of the SageMaker resource to search for.</p>"
         },
         "SearchExpression":{
           "shape":"SearchExpression",
@@ -32824,7 +32848,7 @@
         },
         "Parameters":{
           "shape":"TrialComponentParameters",
-          "documentation":"<p>Replaces all of the component's hyperparameters with the specified hyperparameters.</p>"
+          "documentation":"<p>Replaces all of the component's hyperparameters with the specified hyperparameters or add new hyperparameters. Existing hyperparameters are replaced if the trial component is updated with an identical hyperparameter key.</p>"
         },
         "ParametersToRemove":{
           "shape":"ListTrialComponentKey256",
@@ -32832,7 +32856,7 @@
         },
         "InputArtifacts":{
           "shape":"TrialComponentArtifacts",
-          "documentation":"<p>Replaces all of the component's input artifacts with the specified artifacts.</p>"
+          "documentation":"<p>Replaces all of the component's input artifacts with the specified artifacts or adds new input artifacts. Existing input artifacts are replaced if the trial component is updated with an identical input artifact key.</p>"
         },
         "InputArtifactsToRemove":{
           "shape":"ListTrialComponentKey256",
@@ -32840,7 +32864,7 @@
         },
         "OutputArtifacts":{
           "shape":"TrialComponentArtifacts",
-          "documentation":"<p>Replaces all of the component's output artifacts with the specified artifacts.</p>"
+          "documentation":"<p>Replaces all of the component's output artifacts with the specified artifacts or adds new output artifacts. Existing output artifacts are replaced if the trial component is updated with an identical output artifact key.</p>"
         },
         "OutputArtifactsToRemove":{
           "shape":"ListTrialComponentKey256",
@@ -32993,6 +33017,10 @@
         "DomainId":{
           "shape":"String",
           "documentation":"<p>The domain associated with the user.</p>"
+        },
+        "IamIdentity":{
+          "shape":"IamIdentity",
+          "documentation":"<p>The IAM Identity details associated with the user. These details are associated with model package groups, model packages, and project entities only.</p>"
         }
       },
       "documentation":"<p>Information about the user who created or modified an experiment, trial, trial component, lineage group, project, or model card.</p>"

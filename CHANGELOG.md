@@ -1,3 +1,371 @@
+# __2.20.22__ __2023-03-10__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Secrets Manager__
+  - ### Features
+    - The type definitions of SecretString and SecretBinary now have a minimum length of 1 in the model to match the exception thrown when you pass in empty values.
+
+## __Amazon Interactive Video Service Chat__
+  - ### Features
+    - This release adds a new exception returned when calling AWS IVS chat UpdateLoggingConfiguration. Now UpdateLoggingConfiguration can return ConflictException when invalid updates are made in sequence to Logging Configurations.
+
+# __2.20.21__ __2023-03-09__
+## __AWS Cloud Map__
+  - ### Features
+    - Updated all AWS Cloud Map APIs to provide consistent throttling exception (RequestLimitExceeded)
+
+## __AWS Network Manager__
+  - ### Features
+    - This update provides example usage for TransitGatewayRouteTableArn.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon CloudWatch Evidently__
+  - ### Features
+    - Updated entity override documentation
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds a new API, GetMetricDataV2, which returns metric data for Amazon Connect.
+
+## __Amazon QuickSight__
+  - ### Features
+    - This release has two changes: add state persistence feature for embedded dashboard and console in GenerateEmbedUrlForRegisteredUser API; add properties for hidden collapsed row dimensions in PivotTableOptions.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker Inference now allows SSM access to customer's model container by setting the "EnableSSMAccess" parameter for a ProductionVariant in CreateEndpointConfig API.
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - This release introduces a new recommendation in Virtual Deliverability Manager Advisor, which detects missing or misconfigured Brand Indicator for Message Identification (BIMI) DNS records for customer sending identities.
+
+## __CodeArtifact__
+  - ### Features
+    - This release introduces the generic package format, a mechanism for storing arbitrary binary assets. It also adds a new API, PublishPackageVersion, to allow for publishing generic packages.
+
+## __Redshift Data API Service__
+  - ### Features
+    - Added support for Redshift Serverless workgroup-arn wherever the WorkgroupName parameter is available.
+
+# __2.20.20__ __2023-03-08__
+## __AWS Elemental MediaPackage__
+  - ### Features
+    - This release provides the date and time live resources were created.
+
+## __AWS Elemental MediaPackage VOD__
+  - ### Features
+    - This release provides the date and time VOD resources were created.
+
+## __AWS Lake Formation__
+  - ### Features
+    - This release adds two new API support "GetDataCellsFiler" and "UpdateDataCellsFilter", and also updates the corresponding documentation.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Athena__
+  - ### Features
+    - A new field SubstatementType is added to GetQueryExecution API, so customers have an error free way to detect the query type and interpret the result.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Adds deletion protection support to DynamoDB tables. Tables with deletion protection enabled cannot be deleted. Deletion protection is disabled by default, can be enabled via the CreateTable or UpdateTable APIs, and is visible in TableDescription. This setting is not replicated for Global Tables.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Introducing Amazon EC2 C7g, M7g and R7g instances, powered by the latest generation AWS Graviton3 processors and deliver up to 25% better performance over Graviton2-based instances.
+
+## __Amazon Route 53 Resolver__
+  - ### Features
+    - Add dual-stack and IPv6 support for Route 53 Resolver Endpoint,Add IPv6 target IP in Route 53 Resolver Forwarding Rule
+
+## __Amazon S3__
+  - ### Features
+    - Adding PartType field to UploadPartRequest to indicate whether the part is the last part or not.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - There needs to be a user identity to specify the SageMaker user who perform each action regarding the entity. However, these is a not a unified concept of user identity across SageMaker service that could be used today.
+
+# __2.20.19__ __2023-03-07__
+## __AWS Database Migration Service__
+  - ### Features
+    - This release adds DMS Fleet Advisor Target Recommendation APIs and exposes functionality for DMS Fleet Advisor. It adds functionality to start Target Recommendation calculation.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Location Service__
+  - ### Features
+    - Documentation update for the release of 3 additional map styles for use with Open Data Maps: Open Data Standard Dark, Open Data Visualization Light & Open Data Visualization Dark.
+
+# __2.20.18__ __2023-03-06__
+## __AWS Account__
+  - ### Features
+    - AWS Account alternate contact email addresses can now have a length of 254 characters and contain the character "|".
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - Updated text description in DeleteChannel, Stream, and StreamSummary.
+
+# __2.20.17__ __2023-03-03__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - The AWS Elemental MediaConvert SDK has improved handling for different input and output color space combinations.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental MediaLive adds support for Nielsen watermark timezones.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Documentation updates for DynamoDB.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for a new boot mode for EC2 instances called 'UEFI Preferred'.
+
+## __Amazon Macie 2__
+  - ### Features
+    - Documentation updates for Amazon Macie
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - Amazon Transcribe now supports role access for these API operations: CreateVocabulary, UpdateVocabulary, CreateVocabularyFilter, and UpdateVocabularyFilter.
+
+# __2.20.16__ __2023-03-02__
+## __AWS IoT__
+  - ### Features
+    - A recurring maintenance window is an optional configuration used for rolling out the job document to all devices in the target group observing a predetermined start time, duration, and frequency that the maintenance window occurs.
+
+## __AWS Organizations__
+  - ### Features
+    - This release introduces a new reason code, ACCOUNT_CREATION_NOT_COMPLETE, to ConstraintViolationException in CreateOrganization API.
+
+## __AWS Performance Insights__
+  - ### Features
+    - This release adds a new field PeriodAlignment to allow the customer specifying the returned timestamp of time periods to be either the start or end time.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon EventBridge Pipes__
+  - ### Features
+    - This release fixes some input parameter range and patterns.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Add a new field "EndpointMetrics" in SageMaker Inference Recommender "ListInferenceRecommendationsJobSteps" API response.
+
+## __Migration Hub Strategy Recommendations__
+  - ### Features
+    - This release updates the File Import API to allow importing servers already discovered by customers with reduced pre-requisites.
+
+# __2.20.15__ __2023-03-01__
+## __AWS Price List Service__
+  - ### Features
+    - This release adds 2 new APIs - ListPriceLists which returns a list of applicable price lists, and GetPriceListFileUrl which outputs a URL to retrieve your price lists from the generated file from ListPriceLists
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon CodeCatalyst__
+  - ### Features
+    - Published Dev Environments StopDevEnvironmentSession API
+
+## __Amazon S3 on Outposts__
+  - ### Features
+    - S3 on Outposts introduces a new API ListOutpostsWithS3, with this API you can list all your Outposts with S3 capacity.
+
+# __2.20.14__ __2023-02-28__
+## __AWS Key Management Service__
+  - ### Features
+    - AWS KMS is deprecating the RSAES_PKCS1_V1_5 wrapping algorithm option in the GetParametersForImport API that is used in the AWS KMS Import Key Material feature. AWS KMS will end support for this wrapping algorithm by October 1, 2023.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Add commons-codec to bom-internal to fix dependency convergence issue. See [#3787](https://github.com/aws/aws-sdk-java-v2/issues/3787)
+
+## __Amazon Comprehend__
+  - ### Features
+    - Amazon Comprehend now supports flywheels to help you train and manage new model versions for custom models.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release allows IMDS support to be set to v2-only on an existing AMI, so that all future instances launched from that AMI will use IMDSv2 by default.
+
+## __Amazon Lightsail__
+  - ### Features
+    - This release adds Lightsail for Research feature support, such as GUI session access, cost estimates, stop instance on idle, and disk auto mount.
+
+## __Amazon Managed Blockchain__
+  - ### Features
+    - This release adds support for tagging to the accessor resource in Amazon Managed Blockchain
+
+## __Amazon Omics__
+  - ### Features
+    - Minor model changes to accomodate batch imports feature
+
+# __2.20.13__ __2023-02-27__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - The AWS Elemental MediaConvert SDK has added support for HDR10 to SDR tone mapping, and animated GIF video input sources.
+
+## __AWS Lambda__
+  - ### Features
+    - This release adds the ability to create ESMs with Document DB change streams as event source. For more information see https://docs.aws.amazon.com/lambda/latest/dg/with-documentdb.html.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fix race in FlatteningSubscriber where onClose called before items passed to onNext. See [#3734](https://github.com/aws/aws-sdk-java-v2/issues/3734)
+        - Contributed by: [@stevenshan](https://github.com/stevenshan)
+
+## __Amazon CloudWatch Internet Monitor__
+  - ### Features
+    - CloudWatch Internet Monitor is a a new service within CloudWatch that will help application developers and network engineers continuously monitor internet performance metrics such as availability and performance between their AWS-hosted applications and end-users of these applications
+
+## __Amazon DevOps Guru__
+  - ### Features
+    - This release adds the description field on ListAnomaliesForInsight and DescribeAnomaly API responses for proactive anomalies.
+
+## __Amazon Timestream Write__
+  - ### Features
+    - This release adds the ability to ingest batched historical data or migrate data in bulk from S3 into Timestream using CSV files.
+
+## __Elastic Disaster Recovery Service__
+  - ### Features
+    - New fields were added to reflect availability zone data in source server and recovery instance description commands responses, as well as source server launch status.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@stevenshan](https://github.com/stevenshan)
+# __2.20.12__ __2023-02-24__
+## __AWS SecurityHub__
+  - ### Features
+    - New Security Hub APIs and updates to existing APIs that help you consolidate control findings and enable and disable controls across all supported standards
+
+## __AWS Service Catalog__
+  - ### Features
+    - Documentation updates for Service Catalog
+
+## __Amazon Connect Cases__
+  - ### Features
+    - This release adds the ability to delete domains through the DeleteDomain API. For more information see https://docs.aws.amazon.com/cases/latest/APIReference/Welcome.html
+
+## __Amazon Connect Service__
+  - ### Features
+    - StartTaskContact API now supports linked task creation with a new optional RelatedContactId parameter
+
+## __Amazon Redshift__
+  - ### Features
+    - Documentation updates for Redshift API bringing it in line with IAM best practices.
+
+# __2.20.11__ __2023-02-23__
+## __AWS IoT Wireless__
+  - ### Features
+    - In this release, we add additional capabilities for the FUOTA which allows user to configure the fragment size, the sending interval and the redundancy ratio of the FUOTA tasks
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS WAFV2__
+  - ### Features
+    - You can now associate an AWS WAF v2 web ACL with an AWS App Runner service.
+
+## __Amazon Appflow__
+  - ### Features
+    - This release enables the customers to choose whether to use Private Link for Metadata and Authorization call when using a private Salesforce connections
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release supports deleting Amazon ECS task definitions that are in the INACTIVE state.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Updated API and data types descriptions for CreateFilter, UpdateFilter, and TriggerDetails.
+
+## __Amazon Location Service__
+  - ### Features
+    - This release adds support for using Maps APIs with an API Key in addition to AWS Cognito. This includes support for adding, listing, updating and deleting API Keys.
+
+## __Amazon Macie 2__
+  - ### Features
+    - This release adds support for a new finding type, Policy:IAMUser/S3BucketSharedWithCloudFront, and S3 bucket metadata that indicates if a bucket is shared with an Amazon CloudFront OAI or OAC.
+
+## __Amazon Managed Grafana__
+  - ### Features
+    - Doc-only update. Updated information on attached role policies for customer provided roles
+
+# __2.20.10__ __2023-02-22__
+## __AWS DataSync__
+  - ### Features
+    - AWS DataSync has relaxed the minimum length constraint of AccessKey for Object Storage locations to 1.
+
+## __Amazon Chime SDK Voice__
+  - ### Features
+    - This release introduces support for Voice Connector media metrics in the Amazon Chime SDK Voice namespace
+
+## __Amazon CloudFront__
+  - ### Features
+    - CloudFront now supports block lists in origin request policies so that you can forward all headers, cookies, or query string from viewer requests to the origin *except* for those specified in the block list.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - This release lets customers configure Off-peak window and software update related properties for a new/existing domain. It enhances the capabilities of StartServiceSoftwareUpdate API; adds 2 new APIs - ListScheduledActions & UpdateScheduledAction; and allows Auto-tune to make use of Off-peak window.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Document only update for Feb 2023
+
+## __CloudWatch RUM__
+  - ### Features
+    - CloudWatch RUM now supports CloudWatch Custom Metrics
+
+# __2.20.9__ __2023-02-21__
+## __AWS Resilience Hub__
+  - ### Features
+    - In this release we improved resilience hub application creation and maintenance by introducing new resource and app component crud APIs, improving visibility and maintenance of application input sources and added support for additional information attributes to be provided by customers.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fix race condition that could cause a NullPointerException to be raised from ProfileCredentialsProvider.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Documentation updates for AWS Security Hub
+
+## __AWS Telco Network Builder__
+  - ### Features
+    - This is the initial SDK release for AWS Telco Network Builder (TNB). AWS Telco Network Builder is a network automation service that helps you deploy and manage telecom networks.
+
+## __Amazon QuickSight__
+  - ### Features
+    - S3 data sources now accept a custom IAM role.
+
 # __2.20.8__ __2023-02-20__
 ## __AWS Audit Manager__
   - ### Features
