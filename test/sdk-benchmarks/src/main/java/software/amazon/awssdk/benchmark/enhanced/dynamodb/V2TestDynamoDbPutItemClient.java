@@ -16,6 +16,7 @@
 package software.amazon.awssdk.benchmark.enhanced.dynamodb;
 
 import org.openjdk.jmh.infra.Blackhole;
+import software.amazon.awssdk.core.ServiceClientConfiguration;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.PutItemResponse;
 
@@ -30,5 +31,10 @@ public final class V2TestDynamoDbPutItemClient extends V2TestDynamoDbBaseClient 
     public PutItemResponse putItem(PutItemRequest putItemRequest) {
         bh.consume(putItemRequest);
         return PUT_ITEM_RESPONSE;
+    }
+
+    @Override
+    public ServiceClientConfiguration serviceClientConfiguration() {
+        return null;
     }
 }

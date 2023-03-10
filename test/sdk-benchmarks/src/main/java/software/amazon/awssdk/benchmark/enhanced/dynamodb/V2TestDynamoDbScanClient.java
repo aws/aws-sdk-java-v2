@@ -16,6 +16,7 @@
 package software.amazon.awssdk.benchmark.enhanced.dynamodb;
 
 import org.openjdk.jmh.infra.Blackhole;
+import software.amazon.awssdk.core.ServiceClientConfiguration;
 import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
 import software.amazon.awssdk.services.dynamodb.model.ScanResponse;
 import software.amazon.awssdk.services.dynamodb.paginators.ScanIterable;
@@ -37,5 +38,10 @@ public final class V2TestDynamoDbScanClient extends V2TestDynamoDbBaseClient {
     @Override
     public ScanIterable scanPaginator(ScanRequest scanRequest) {
         return new ScanIterable(this, scanRequest);
+    }
+
+    @Override
+    public ServiceClientConfiguration serviceClientConfiguration() {
+        return null;
     }
 }
