@@ -11,6 +11,8 @@ import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
+import software.amazon.awssdk.core.ServiceClientConfiguration;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
@@ -36,6 +38,7 @@ import software.amazon.awssdk.services.query.model.APostOperationWithOutputReque
 import software.amazon.awssdk.services.query.model.APostOperationWithOutputResponse;
 import software.amazon.awssdk.services.query.model.BearerAuthOperationRequest;
 import software.amazon.awssdk.services.query.model.BearerAuthOperationResponse;
+import software.amazon.awssdk.services.query.model.DefaultServiceClientConfiguration;
 import software.amazon.awssdk.services.query.model.GetOperationWithChecksumRequest;
 import software.amazon.awssdk.services.query.model.GetOperationWithChecksumResponse;
 import software.amazon.awssdk.services.query.model.InvalidInputException;
@@ -85,9 +88,13 @@ final class DefaultQueryClient implements QueryClient {
 
     private final SdkClientConfiguration clientConfiguration;
 
-    protected DefaultQueryClient(SdkClientConfiguration clientConfiguration) {
+    private final ServiceClientConfiguration serviceClientConfiguration;
+
+    protected DefaultQueryClient(SdkClientConfiguration clientConfiguration,
+                                 ClientOverrideConfiguration clientOverrideConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
+        this.serviceClientConfiguration = new DefaultServiceClientConfiguration(clientConfiguration, clientOverrideConfiguration);
         this.protocolFactory = init();
     }
 
@@ -682,6 +689,11 @@ final class DefaultQueryClient implements QueryClient {
     @Override
     public final String serviceName() {
         return SERVICE_NAME;
+    }
+
+    @Override
+    public final ServiceClientConfiguration serviceClientConfiguration() {
+        return this.serviceClientConfiguration;
     }
 
     private static List<MetricPublisher> resolveMetricPublishers(SdkClientConfiguration clientConfiguration,

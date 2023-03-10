@@ -38,6 +38,7 @@ import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.utils.PaginatorUtils;
 import software.amazon.awssdk.core.SdkClient;
+import software.amazon.awssdk.core.ServiceClientConfiguration;
 import software.amazon.awssdk.utils.Validate;
 
 public class DelegatingAsyncClientClass extends AsyncClientInterface {
@@ -95,6 +96,7 @@ public class DelegatingAsyncClientClass extends AsyncClientInterface {
                                         .build();
 
         type.addMethod(nameMethod())
+            .addMethod(clientConfigMethod())
             .addMethod(delegate);
     }
 
@@ -104,6 +106,15 @@ public class DelegatingAsyncClientClass extends AsyncClientInterface {
                          .addModifiers(PUBLIC, FINAL)
                          .returns(String.class)
                          .addStatement("return delegate.serviceName()")
+                         .build();
+    }
+
+    private MethodSpec clientConfigMethod() {
+        return MethodSpec.methodBuilder("serviceClientConfiguration")
+                         .addAnnotation(Override.class)
+                         .addModifiers(PUBLIC, FINAL)
+                         .returns(ServiceClientConfiguration.class)
+                         .addStatement("return delegate.serviceClientConfiguration()")
                          .build();
     }
 

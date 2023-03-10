@@ -5,6 +5,7 @@ import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkClient;
+import software.amazon.awssdk.core.ServiceClientConfiguration;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.json.model.APostOperationRequest;
@@ -655,6 +656,11 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
     @Override
     public final String serviceName() {
         return delegate.serviceName();
+    }
+
+    @Override
+    public final ServiceClientConfiguration serviceClientConfiguration() {
+        return delegate.serviceClientConfiguration();
     }
 
     public SdkClient delegate() {

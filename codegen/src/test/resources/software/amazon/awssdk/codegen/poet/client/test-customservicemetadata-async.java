@@ -12,6 +12,8 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
+import software.amazon.awssdk.core.ServiceClientConfiguration;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.AsyncClientHandler;
@@ -25,6 +27,7 @@ import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
+import software.amazon.awssdk.services.protocolrestjsonwithcustomcontenttype.model.DefaultServiceClientConfiguration;
 import software.amazon.awssdk.services.protocolrestjsonwithcustomcontenttype.model.OneOperationRequest;
 import software.amazon.awssdk.services.protocolrestjsonwithcustomcontenttype.model.OneOperationResponse;
 import software.amazon.awssdk.services.protocolrestjsonwithcustomcontenttype.model.ProtocolRestJsonWithCustomContentTypeException;
@@ -47,9 +50,13 @@ final class DefaultProtocolRestJsonWithCustomContentTypeAsyncClient implements P
 
     private final SdkClientConfiguration clientConfiguration;
 
-    protected DefaultProtocolRestJsonWithCustomContentTypeAsyncClient(SdkClientConfiguration clientConfiguration) {
+    private final ServiceClientConfiguration serviceClientConfiguration;
+
+    protected DefaultProtocolRestJsonWithCustomContentTypeAsyncClient(SdkClientConfiguration clientConfiguration,
+                                                                      ClientOverrideConfiguration clientOverrideConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
+        this.serviceClientConfiguration = new DefaultServiceClientConfiguration(clientConfiguration, clientOverrideConfiguration);
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
     }
 
@@ -109,6 +116,11 @@ final class DefaultProtocolRestJsonWithCustomContentTypeAsyncClient implements P
     @Override
     public final String serviceName() {
         return SERVICE_NAME;
+    }
+
+    @Override
+    public final ServiceClientConfiguration serviceClientConfiguration() {
+        return this.serviceClientConfiguration;
     }
 
     private <T extends BaseAwsJsonProtocolFactory.Builder<T>> T init(T builder) {

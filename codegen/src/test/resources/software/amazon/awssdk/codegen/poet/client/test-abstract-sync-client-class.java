@@ -7,6 +7,7 @@ import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.SdkClient;
+import software.amazon.awssdk.core.ServiceClientConfiguration;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
@@ -857,6 +858,11 @@ public abstract class DelegatingJsonClient implements JsonClient {
     @Override
     public final String serviceName() {
         return delegate.serviceName();
+    }
+
+    @Override
+    public final ServiceClientConfiguration serviceClientConfiguration() {
+        return delegate.serviceClientConfiguration();
     }
 
     public SdkClient delegate() {

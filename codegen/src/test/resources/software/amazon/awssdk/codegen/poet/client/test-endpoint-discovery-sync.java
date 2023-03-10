@@ -10,6 +10,8 @@ import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
+import software.amazon.awssdk.core.ServiceClientConfiguration;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
@@ -26,6 +28,7 @@ import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
+import software.amazon.awssdk.services.endpointdiscoverytest.model.DefaultServiceClientConfiguration;
 import software.amazon.awssdk.services.endpointdiscoverytest.model.DescribeEndpointsRequest;
 import software.amazon.awssdk.services.endpointdiscoverytest.model.DescribeEndpointsResponse;
 import software.amazon.awssdk.services.endpointdiscoverytest.model.EndpointDiscoveryTestException;
@@ -57,11 +60,15 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
 
     private final SdkClientConfiguration clientConfiguration;
 
+    private final ServiceClientConfiguration serviceClientConfiguration;
+
     private EndpointDiscoveryRefreshCache endpointDiscoveryCache;
 
-    protected DefaultEndpointDiscoveryTestClient(SdkClientConfiguration clientConfiguration) {
+    protected DefaultEndpointDiscoveryTestClient(SdkClientConfiguration clientConfiguration,
+                                                 ClientOverrideConfiguration clientOverrideConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
+        this.serviceClientConfiguration = new DefaultServiceClientConfiguration(clientConfiguration, clientOverrideConfiguration);
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
         if (clientConfiguration.option(SdkClientOption.ENDPOINT_DISCOVERY_ENABLED)) {
             this.endpointDiscoveryCache = EndpointDiscoveryRefreshCache.create(EndpointDiscoveryTestEndpointDiscoveryCacheLoader
@@ -301,6 +308,11 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
     @Override
     public final String serviceName() {
         return SERVICE_NAME;
+    }
+
+    @Override
+    public final ServiceClientConfiguration serviceClientConfiguration() {
+        return this.serviceClientConfiguration;
     }
 
     private static List<MetricPublisher> resolveMetricPublishers(SdkClientConfiguration clientConfiguration,

@@ -30,10 +30,12 @@ import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkPojoBuilder;
 import software.amazon.awssdk.core.SdkResponse;
+import software.amazon.awssdk.core.ServiceClientConfiguration;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.AsyncResponseTransformerUtils;
 import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -63,6 +65,7 @@ import software.amazon.awssdk.services.json.model.APostOperationWithOutputReques
 import software.amazon.awssdk.services.json.model.APostOperationWithOutputResponse;
 import software.amazon.awssdk.services.json.model.BearerAuthOperationRequest;
 import software.amazon.awssdk.services.json.model.BearerAuthOperationResponse;
+import software.amazon.awssdk.services.json.model.DefaultServiceClientConfiguration;
 import software.amazon.awssdk.services.json.model.EventStream;
 import software.amazon.awssdk.services.json.model.EventStreamOperationRequest;
 import software.amazon.awssdk.services.json.model.EventStreamOperationResponse;
@@ -137,11 +140,15 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
     private final SdkClientConfiguration clientConfiguration;
 
+    private final ServiceClientConfiguration serviceClientConfiguration;
+
     private final Executor executor;
 
-    protected DefaultJsonAsyncClient(SdkClientConfiguration clientConfiguration) {
+    protected DefaultJsonAsyncClient(SdkClientConfiguration clientConfiguration,
+                                     ClientOverrideConfiguration clientOverrideConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
+        this.serviceClientConfiguration = new DefaultServiceClientConfiguration(clientConfiguration, clientOverrideConfiguration);
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
         this.executor = clientConfiguration.option(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR);
     }
@@ -1359,6 +1366,11 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
     @Override
     public final String serviceName() {
         return SERVICE_NAME;
+    }
+
+    @Override
+    public final ServiceClientConfiguration serviceClientConfiguration() {
+        return this.serviceClientConfiguration;
     }
 
     private <T extends BaseAwsJsonProtocolFactory.Builder<T>> T init(T builder) {

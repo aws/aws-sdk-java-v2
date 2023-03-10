@@ -52,6 +52,8 @@ import software.amazon.awssdk.codegen.poet.client.specs.QueryProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.XmlProtocolSpec;
 import software.amazon.awssdk.codegen.utils.PaginatorUtils;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
+import software.amazon.awssdk.core.ServiceClientConfiguration;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
@@ -105,7 +107,8 @@ public class SyncClientClass extends SyncClientInterface {
         type.addField(logger())
             .addField(SyncClientHandler.class, "clientHandler", PRIVATE, FINAL)
             .addField(protocolSpec.protocolFactory(model))
-            .addField(SdkClientConfiguration.class, "clientConfiguration", PRIVATE, FINAL);
+            .addField(SdkClientConfiguration.class, "clientConfiguration", PRIVATE, FINAL)
+            .addField(ServiceClientConfiguration.class, "serviceClientConfiguration", PRIVATE, FINAL);
     }
 
     @Override
@@ -124,6 +127,7 @@ public class SyncClientClass extends SyncClientInterface {
 
         type.addMethod(constructor())
             .addMethod(nameMethod())
+            .addMethod(clientConfigMethod())
             .addMethods(protocolSpec.additionalMethods())
             .addMethod(resolveMetricPublishersMethod());
 
@@ -147,6 +151,15 @@ public class SyncClientClass extends SyncClientInterface {
                          .build();
     }
 
+    private MethodSpec clientConfigMethod() {
+        return MethodSpec.methodBuilder("serviceClientConfiguration")
+                         .addAnnotation(Override.class)
+                         .addModifiers(PUBLIC, FINAL)
+                         .returns(ServiceClientConfiguration.class)
+                         .addStatement("return this.serviceClientConfiguration")
+                         .build();
+    }
+
     @Override
     public ClassName className() {
         return className;
@@ -156,9 +169,16 @@ public class SyncClientClass extends SyncClientInterface {
         MethodSpec.Builder builder = MethodSpec.constructorBuilder()
                                                .addModifiers(PROTECTED)
                                                .addParameter(SdkClientConfiguration.class, "clientConfiguration")
+                                               .addParameter(ClientOverrideConfiguration.class,
+                                                             "clientOverrideConfiguration")
                                                .addStatement("this.clientHandler = new $T(clientConfiguration)",
                                                              protocolSpec.getClientHandlerClass())
-                                               .addStatement("this.clientConfiguration = clientConfiguration");
+                                               .addStatement("this.clientConfiguration = clientConfiguration")
+                                               .addStatement("this.serviceClientConfiguration = new $T(clientConfiguration, "
+                                                             + "clientOverrideConfiguration)",
+                                                             PoetUtils.classNameFromFqcn(model.getMetadata()
+                                                                                              .getFullModelPackageName()
+                                                                                         + ".DefaultServiceClientConfiguration"));
         FieldSpec protocolFactoryField = protocolSpec.protocolFactory(model);
         if (model.getMetadata().isJsonProtocol()) {
             builder.addStatement("this.$N = init($T.builder()).build()", protocolFactoryField.name,

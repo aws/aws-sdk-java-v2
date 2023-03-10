@@ -31,6 +31,6 @@ final class DefaultJsonAsyncClientBuilder extends DefaultJsonBaseClientBuilder<J
     protected final JsonAsyncClient buildClient() {
         SdkClientConfiguration clientConfiguration = super.asyncClientConfiguration();
         this.validateClientOptions(clientConfiguration);
-        return new DefaultJsonAsyncClient(clientConfiguration);
+        return new DefaultJsonAsyncClient(clientConfiguration, overrideConfiguration());
     }
 }
