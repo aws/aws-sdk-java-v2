@@ -36,6 +36,7 @@ import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncApiCallTim
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncBeforeTransmissionExecutionInterceptorsStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncExecutionFailureExceptionReportingStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncRetryableStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncServiceEndpointMetricCollectionStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncSigningStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeAsyncHttpRequestStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeRequestImmutableStage;
@@ -180,7 +181,8 @@ public final class AmazonAsyncHttpClient implements SdkAutoCloseable {
                                         .then(async(() -> new AfterExecutionInterceptorsStage<>()))
                                         .wrappedWith(AsyncExecutionFailureExceptionReportingStage::new)
                                         .wrappedWith(AsyncApiCallTimeoutTrackingStage::new)
-                                        .wrappedWith(AsyncApiCallMetricCollectionStage::new)::build)::build)
+                                        .wrappedWith(AsyncApiCallMetricCollectionStage::new)
+                                        .wrappedWith(AsyncServiceEndpointMetricCollectionStage::new)::build)::build)
                         .build(httpClientDependencies)
                         .execute(request, createRequestExecutionDependencies());
             } catch (RuntimeException e) {

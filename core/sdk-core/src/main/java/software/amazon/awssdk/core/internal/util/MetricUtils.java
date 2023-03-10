@@ -66,7 +66,7 @@ public final class MetricUtils {
         return Pair.of(result, d);
     }
 
-    public static void collectHttpRequestMetrics(MetricCollector metricCollector, SdkHttpFullRequest httpRequest) {
+    public static void collectServiceEndpointMetrics(MetricCollector metricCollector, SdkHttpFullRequest httpRequest) {
         if (metricCollector != null && !(metricCollector instanceof NoOpMetricCollector) && httpRequest != null) {
             metricCollector.reportMetric(CoreMetric.SERVICE_ENDPOINT, httpRequest.getUri());
         }
