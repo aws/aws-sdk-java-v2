@@ -614,11 +614,12 @@ public interface S3TransferManager extends SdkAutoCloseable {
     /**
      * Creates a copy of an object that is already stored in S3 in the same region.
      * <p>
-     * Under the hood, {@link S3TransferManager} will intelligently use plain {@link CopyObjectRequest}s for smaller objects, or
-     * multiple parallel {@link UploadPartCopyRequest}s for larger objects. This behavior can be configured via
-     * {@link S3CrtAsyncClientBuilder#minimumPartSizeInBytes(Long)}. Note that for multipart copy request, existing metadata
-     * stored in the source object is NOT copied to the destination object; if required, you can retrieve the metadata
-     * from the source object and set it explicitly in the {@link CopyObjectRequest.Builder#metadata(Map)}.
+     * Depending on the underlying S3Client, {@link S3TransferManager} may intelligently use plain {@link CopyObjectRequest}s
+     * for smaller objects, and multiple parallel {@link UploadPartCopyRequest}s for larger objects. This behavior can be
+     * configured via {@link S3CrtAsyncClientBuilder#minimumPartSizeInBytes(Long)}. Note that for S3Clients that support
+     * multipart copy, existing metadata of the copy request stored in the source object is NOT copied to the destination
+     * object; if required, you can retrieve the metadata from the source object and set it explicitly in the
+     * {@link CopyObjectRequest.Builder#metadata(Map)}.
      *
      * <p>
      * While this API supports {@link TransferListener}s, they will not receive {@code bytesTransferred} callback-updates due to
