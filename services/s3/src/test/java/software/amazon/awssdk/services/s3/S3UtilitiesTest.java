@@ -70,12 +70,6 @@ public class S3UtilitiesTest {
     }
 
     @Test
-    public void over() {
-        System.out.println(defaultClient.serviceClientConfiguration().overrideConfiguration().toString());
-        System.out.println(asyncClient.serviceClientConfiguration().overrideConfiguration().retryPolicy());
-    }
-
-    @Test
     public void test_utilities_createdThroughS3Client() throws MalformedURLException {
         assertThat(defaultUtilities.getUrl(requestWithoutSpaces())
                                    .toExternalForm())
