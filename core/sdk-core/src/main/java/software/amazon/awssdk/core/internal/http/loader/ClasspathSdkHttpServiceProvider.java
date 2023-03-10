@@ -62,7 +62,7 @@ final class ClasspathSdkHttpServiceProvider<T> implements SdkHttpServiceProvider
             String implText =
                 impls.stream()
                      .map(clazz -> clazz.getClass().getName())
-                     .collect(Collectors.joining(",","[","]"));
+                     .collect(Collectors.joining(",", "[", "]"));
 
             throw SdkClientException.builder().message(
                     String.format(
