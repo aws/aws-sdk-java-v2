@@ -16,7 +16,6 @@
 package software.amazon.awssdk.benchmark.enhanced.dynamodb;
 
 import org.openjdk.jmh.infra.Blackhole;
-import software.amazon.awssdk.core.ServiceClientConfiguration;
 import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.UpdateItemResponse;
 
@@ -32,10 +31,5 @@ public final class V2TestDynamoDbUpdateItemClient extends V2TestDynamoDbBaseClie
     public UpdateItemResponse updateItem(UpdateItemRequest updateItemRequest) {
         bh.consume(updateItemRequest);
         return this.updateItemResponse;
-    }
-
-    @Override
-    public ServiceClientConfiguration serviceClientConfiguration() {
-        return null;
     }
 }

@@ -16,7 +16,6 @@
 package software.amazon.awssdk.benchmark.enhanced.dynamodb;
 
 import org.openjdk.jmh.infra.Blackhole;
-import software.amazon.awssdk.core.ServiceClientConfiguration;
 import software.amazon.awssdk.services.dynamodb.model.DeleteItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.DeleteItemResponse;
 
@@ -31,10 +30,5 @@ public final class V2TestDynamoDbDeleteItemClient extends V2TestDynamoDbBaseClie
     public DeleteItemResponse deleteItem(DeleteItemRequest deleteItemRequest) {
         bh.consume(deleteItemRequest);
         return DELETE_ITEM_RESPONSE;
-    }
-
-    @Override
-    public ServiceClientConfiguration serviceClientConfiguration() {
-        return null;
     }
 }

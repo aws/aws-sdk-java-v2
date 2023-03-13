@@ -16,7 +16,6 @@
 package software.amazon.awssdk.benchmark.enhanced.dynamodb;
 
 import org.openjdk.jmh.infra.Blackhole;
-import software.amazon.awssdk.core.ServiceClientConfiguration;
 import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
 
@@ -32,10 +31,5 @@ public final class V2TestDynamoDbGetItemClient extends V2TestDynamoDbBaseClient 
     public GetItemResponse getItem(GetItemRequest getItemRequest) {
         bh.consume(getItemRequest);
         return getItemResponse;
-    }
-
-    @Override
-    public ServiceClientConfiguration serviceClientConfiguration() {
-        return null;
     }
 }

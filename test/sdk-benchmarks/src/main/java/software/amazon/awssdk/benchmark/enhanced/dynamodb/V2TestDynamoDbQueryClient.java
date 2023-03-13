@@ -16,7 +16,6 @@
 package software.amazon.awssdk.benchmark.enhanced.dynamodb;
 
 import org.openjdk.jmh.infra.Blackhole;
-import software.amazon.awssdk.core.ServiceClientConfiguration;
 import software.amazon.awssdk.services.dynamodb.model.QueryRequest;
 import software.amazon.awssdk.services.dynamodb.model.QueryResponse;
 import software.amazon.awssdk.services.dynamodb.paginators.QueryIterable;
@@ -38,10 +37,5 @@ public final class V2TestDynamoDbQueryClient extends V2TestDynamoDbBaseClient {
     @Override
     public QueryIterable queryPaginator(QueryRequest queryRequest) {
         return new QueryIterable(this, queryRequest);
-    }
-
-    @Override
-    public ServiceClientConfiguration serviceClientConfiguration() {
-        return null;
     }
 }
