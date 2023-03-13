@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS S3 Control",
-    "contributor": "",
-    "description": "Added support for cross-account Multi-Region Access Points. Added support for S3 Replication for S3 on Outposts."
-}
