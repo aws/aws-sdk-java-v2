@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Telco Network Builder",
+    "contributor": "",
+    "description": "This release adds tagging support to the following Network Instance APIs : Instantiate, Update, Terminate."
+}
