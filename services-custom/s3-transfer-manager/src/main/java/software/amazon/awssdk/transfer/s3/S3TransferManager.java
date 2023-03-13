@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.transfer.s3;
 
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
