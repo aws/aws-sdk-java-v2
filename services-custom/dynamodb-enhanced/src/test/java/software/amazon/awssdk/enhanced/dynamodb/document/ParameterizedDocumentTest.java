@@ -125,10 +125,11 @@ class ParameterizedDocumentTest {
                         break;
                     case L:
                         EnhancedType enhancedType = enhancedTypeMap.get(key).get(0);
-                        ListAttributeConverter converter = ListAttributeConverter.create(
-                            Optional.ofNullable(chainConverterProvider.converterFor(enhancedType))
-                                    .orElseThrow(() -> new IllegalStateException("Converter not found for " + enhancedType))
-                        );
+                        ListAttributeConverter converter = ListAttributeConverter
+                            .create(chainConverterProvider.converterFor(enhancedType));
+                        if(converter == null){
+                            throw new IllegalStateException("Converter not found for " + enhancedType);
+                        }
                         assertThat(converter.transformTo(value)).isEqualTo(enhancedDocument.getList(key, enhancedType));
                         assertThat(enhancedDocument.getUnknownTypeList(key)).isEqualTo(value.l());
                         break;
@@ -148,7 +149,4 @@ class ParameterizedDocumentTest {
                 }
             });
         }
-
-
-
 }

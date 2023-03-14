@@ -29,6 +29,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkBytes;
@@ -46,7 +47,6 @@ import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.utils.Lazy;
-import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -181,7 +181,6 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
             return null;
         }
         return JSON_ATTRIBUTE_CONVERTER.transformTo(attributeValue).toString();
-        // TODO: Does toString return valid JSON? will remove this after comparing V1 side by side.
     }
 
     @Override
@@ -215,22 +214,16 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
 
     @Override
     public String toJson() {
-        StringBuilder output = new StringBuilder();
-        output.append('{');
-        boolean isFirst = true;
-        for (Map.Entry<String, AttributeValue> entry : attributeValueMap.getValue().entrySet()) {
-            if (!isFirst) {
-                output.append(", ");
-            } else {
-                isFirst = false;
-            }
-            output.append('"')
-                  .append(StringUtils.replace(entry.getKey(), "\"", "\\"))
-                  .append("\": ")
-                  .append(JSON_ATTRIBUTE_CONVERTER.transformTo(entry.getValue()));
+        if (nonAttributeValueMap.isEmpty()) {
+            return "{}";
         }
-        output.append('}');
-        return output.toString();
+
+        return attributeValueMap.getValue().entrySet().stream()
+                                .map(entry -> "\""
+                                              + addEscapeCharacters(entry.getKey())
+                                              + "\":"
+                                              + stringValue(JSON_ATTRIBUTE_CONVERTER.transformTo(entry.getValue())))
+                                .collect(Collectors.joining(",", "{", "}"));
     }
 
     @Override
@@ -286,6 +279,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
 
         public Builder putObject(String attributeName, Object value) {
             Validate.paramNotNull(attributeName, "attributeName");
+            Validate.paramNotBlank(attributeName.trim(), "attributeName");
             enhancedTypeMap.remove(attributeName);
             nonAttributeValueMap.remove(attributeName);
             nonAttributeValueMap.put(attributeName, value);
@@ -435,6 +429,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
 
         private static void checkInvalidAttribute(String attributeName, Object value) {
             Validate.paramNotNull(attributeName, "attributeName");
+            Validate.paramNotBlank(attributeName.trim(), "attributeName");
             Validate.notNull(value, "%s must not be null. Use putNull API to insert a Null value", value);
         }
     }
@@ -461,4 +456,68 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
         return result;
     }
 
+    private static String stringValue(JsonNode jsonNode) {
+        if (jsonNode.isArray()) {
+            return StreamSupport.stream(jsonNode.asArray().spliterator(), false)
+                                .map(DefaultEnhancedDocument::stringValue)
+                                .collect(Collectors.joining(",", "[", "]"));
+        }
+        if (jsonNode.isObject()) {
+            return mapToString(jsonNode);
+        }
+
+        return jsonNode.isString() ? "\"" + addEscapeCharacters(jsonNode.text()) + "\"" : jsonNode.toString();
+    }
+
+    private static String addEscapeCharacters(String input) {
+        StringBuilder output = new StringBuilder();
+
+        for (int i = 0; i < input.length(); i++) {
+            char ch = input.charAt(i);
+
+            switch (ch) {
+                case '\\':
+                    output.append("\\\\"); // escape backslash with a backslash
+                    break;
+                case '\n':
+                    output.append("\\n"); // newline character
+                    break;
+                case '\r':
+                    output.append("\\r"); // carriage return character
+                    break;
+                case '\t':
+                    output.append("\\t"); // tab character
+                    break;
+                case '\f':
+                    output.append("\\f"); // form feed
+                    break;
+                case '\"':
+                    output.append("\\\""); // double-quote character
+                    break;
+                case '\'':
+                    output.append("\\'"); // single-quote character
+                    break;
+                default:
+                    output.append(ch);
+                    break;
+            }
+        }
+
+        return output.toString();
+    }
+
+    private static String mapToString(JsonNode jsonNode) {
+        Map<String, JsonNode> value = jsonNode.asObject();
+
+        if (value.isEmpty()) {
+            return "{}";
+        }
+
+        StringBuilder output = new StringBuilder();
+        output.append("{");
+        value.forEach((k, v) -> output.append("\"").append(k).append("\":")
+                                      .append(stringValue(v)).append(","));
+        output.setCharAt(output.length() - 1, '}');
+        return output.toString();
+    }
 }
