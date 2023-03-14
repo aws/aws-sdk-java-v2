@@ -37,7 +37,7 @@ public class DefaultServiceClientConfigurationClass implements ClassSpec {
     private final ClassName defaultClientMetadataClassName;
 
     public DefaultServiceClientConfigurationClass(IntermediateModel model) {
-        String basePackage = model.getMetadata().getFullModelPackageName();
+        String basePackage = model.getMetadata().getFullInternalPackageName();
         this.defaultClientMetadataClassName = ClassName.get(basePackage, "DefaultServiceClientConfiguration");
     }
 

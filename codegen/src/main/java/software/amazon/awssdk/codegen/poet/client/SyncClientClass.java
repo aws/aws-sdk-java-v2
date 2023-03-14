@@ -177,7 +177,7 @@ public class SyncClientClass extends SyncClientInterface {
                                                .addStatement("this.serviceClientConfiguration = new $T(clientConfiguration, "
                                                              + "clientOverrideConfiguration)",
                                                              PoetUtils.classNameFromFqcn(model.getMetadata()
-                                                                                              .getFullModelPackageName()
+                                                                                              .getFullInternalPackageName()
                                                                                          + ".DefaultServiceClientConfiguration"));
         FieldSpec protocolFactoryField = protocolSpec.protocolFactory(model);
         if (model.getMetadata().isJsonProtocol()) {

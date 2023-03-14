@@ -34,7 +34,7 @@ public interface SdkClient extends SdkAutoCloseable {
     String serviceName();
 
     /**
-     * Service client configuration that contains region and ClientOverrideConfiguration
+     * The service client configuration exposes client settings to the user, e.g., region, ClientOverrideConfiguration
      *
      * @return ServiceClientConfiguration
      */

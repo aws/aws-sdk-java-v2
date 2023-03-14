@@ -121,7 +121,7 @@ public class AsyncClientBuilderClass implements ClassSpec {
                          .returns(clientInterfaceName)
                          .addStatement("$T clientConfiguration = super.asyncClientConfiguration()", SdkClientConfiguration.class)
                          .addStatement("this.validateClientOptions(clientConfiguration)")
-                         .addCode("return new $T(clientConfiguration, overrideConfiguration());", clientClassName)
+                         .addStatement("return new $T(clientConfiguration, overrideConfiguration())", clientClassName)
                          .build();
     }
 

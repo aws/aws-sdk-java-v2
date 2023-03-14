@@ -122,7 +122,7 @@ public class SyncClientBuilderClass implements ClassSpec {
                              .addStatement("$T clientConfiguration = super.syncClientConfiguration()",
                                            SdkClientConfiguration.class)
                              .addStatement("this.validateClientOptions(clientConfiguration)")
-                             .addCode("return new $T(clientConfiguration, overrideConfiguration());", clientClassName)
+                             .addStatement("return new $T(clientConfiguration, overrideConfiguration())", clientClassName)
                              .build();
     }
 

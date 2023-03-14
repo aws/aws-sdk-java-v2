@@ -1,0 +1,6 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "contributor": "", 
+    "type": "feature", 
+    "description": "Adds ServiceClientConfiguration to SdkClient which exposes client settings to the user"
+}

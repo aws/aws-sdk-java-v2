@@ -18,6 +18,9 @@ package software.amazon.awssdk.core;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 
+/**
+ * Interface to expose service client settings to the user, e.g., region, ClientOverrideConfiguration
+ */
 @SdkPublicApi
 public interface ServiceClientConfiguration {
 
