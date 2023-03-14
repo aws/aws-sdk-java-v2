@@ -4,10 +4,10 @@ import java.nio.file.Path;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
-import software.amazon.awssdk.core.AwsClient;
 import software.amazon.awssdk.core.AwsServiceClientConfiguration;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -871,7 +871,7 @@ public abstract class DelegatingJsonClient implements JsonClient {
         return delegate.awsServiceClientConfiguration();
     }
 
-    public AwsClient delegate() {
+    public SdkClient delegate() {
         return this.delegate;
     }
 

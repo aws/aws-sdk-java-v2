@@ -4,8 +4,8 @@ import java.util.concurrent.CompletableFuture;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.core.AwsClient;
 import software.amazon.awssdk.core.AwsServiceClientConfiguration;
+import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
@@ -669,7 +669,7 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
         return delegate.awsServiceClientConfiguration();
     }
 
-    public AwsClient delegate() {
+    public SdkClient delegate() {
         return this.delegate;
     }
 

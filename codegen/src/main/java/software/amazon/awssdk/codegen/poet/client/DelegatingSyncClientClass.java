@@ -34,8 +34,8 @@ import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.utils.PaginatorUtils;
-import software.amazon.awssdk.core.AwsClient;
 import software.amazon.awssdk.core.AwsServiceClientConfiguration;
+import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.utils.Validate;
 
@@ -94,7 +94,7 @@ public class DelegatingSyncClientClass extends SyncClientInterface {
         MethodSpec delegate = MethodSpec.methodBuilder("delegate")
                                         .addModifiers(PUBLIC)
                                         .addStatement("return this.delegate")
-                                        .returns(AwsClient.class)
+                                        .returns(SdkClient.class)
                                         .build();
 
         type.addMethod(nameMethod())
