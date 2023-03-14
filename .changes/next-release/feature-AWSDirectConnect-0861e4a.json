@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Direct Connect",
-    "contributor": "",
-    "description": "describe-direct-connect-gateway-associations includes a new status, updating, indicating that the association is currently in-process of updating."
-}
