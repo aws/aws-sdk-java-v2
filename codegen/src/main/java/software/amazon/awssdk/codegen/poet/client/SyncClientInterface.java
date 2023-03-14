@@ -55,9 +55,9 @@ import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.model.DeprecationUtils;
 import software.amazon.awssdk.codegen.utils.PaginatorUtils;
+import software.amazon.awssdk.core.AwsClient;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
-import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
@@ -99,7 +99,7 @@ public class SyncClientInterface implements ClassSpec {
     }
 
     protected void addInterfaceClass(TypeSpec.Builder type) {
-        type.addSuperinterface(SdkClient.class);
+        type.addSuperinterface(AwsClient.class);
     }
 
     protected TypeSpec.Builder createTypeSpec() {

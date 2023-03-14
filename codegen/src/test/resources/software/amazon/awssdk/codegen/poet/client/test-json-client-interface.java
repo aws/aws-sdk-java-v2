@@ -6,9 +6,9 @@ import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.AwsClient;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
-import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
@@ -50,7 +50,7 @@ import software.amazon.awssdk.services.json.paginators.PaginatedOperationWithout
 @Generated("software.amazon.awssdk:codegen")
 @SdkPublicApi
 @ThreadSafe
-public interface JsonClient extends SdkClient {
+public interface JsonClient extends AwsClient {
     String SERVICE_NAME = "json-service";
 
     /**

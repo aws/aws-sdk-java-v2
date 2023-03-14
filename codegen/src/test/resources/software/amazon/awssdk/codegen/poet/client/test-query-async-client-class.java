@@ -16,9 +16,10 @@ import software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.AwsServiceClientConfiguration;
 import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
-import software.amazon.awssdk.core.ServiceClientConfiguration;
+import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.AsyncResponseTransformerUtils;
@@ -39,7 +40,8 @@ import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 import software.amazon.awssdk.protocols.query.AwsQueryProtocolFactory;
-import software.amazon.awssdk.services.query.internal.DefaultServiceClientConfiguration;
+import software.amazon.awssdk.services.query.internal.DefaultAwsServiceClientConfiguration;
+import software.amazon.awssdk.services.query.internal.DefaultSdkServiceClientConfiguration;
 import software.amazon.awssdk.services.query.model.APostOperationRequest;
 import software.amazon.awssdk.services.query.model.APostOperationResponse;
 import software.amazon.awssdk.services.query.model.APostOperationWithOutputRequest;
@@ -96,7 +98,9 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
 
     private final SdkClientConfiguration clientConfiguration;
 
-    private final ServiceClientConfiguration serviceClientConfiguration;
+    private final SdkServiceClientConfiguration sdkServiceClientConfiguration;
+
+    private final AwsServiceClientConfiguration awsServiceClientConfiguration;
 
     private final ScheduledExecutorService executorService;
 
@@ -104,7 +108,8 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
                                       ClientOverrideConfiguration clientOverrideConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
-        this.serviceClientConfiguration = new DefaultServiceClientConfiguration(clientConfiguration, clientOverrideConfiguration);
+        this.sdkServiceClientConfiguration = new DefaultSdkServiceClientConfiguration(clientOverrideConfiguration);
+        this.awsServiceClientConfiguration = new DefaultAwsServiceClientConfiguration(clientConfiguration);
         this.protocolFactory = init();
         this.executorService = clientConfiguration.option(SdkClientOption.SCHEDULED_EXECUTOR_SERVICE);
     }
@@ -796,8 +801,13 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
     }
 
     @Override
-    public final ServiceClientConfiguration serviceClientConfiguration() {
-        return this.serviceClientConfiguration;
+    public final SdkServiceClientConfiguration sdkServiceClientConfiguration() {
+        return this.sdkServiceClientConfiguration;
+    }
+
+    @Override
+    public final AwsServiceClientConfiguration awsServiceClientConfiguration() {
+        return this.awsServiceClientConfiguration;
     }
 
     private AwsQueryProtocolFactory init() {

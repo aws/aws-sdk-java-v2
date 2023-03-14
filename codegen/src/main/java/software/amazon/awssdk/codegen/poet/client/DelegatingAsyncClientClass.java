@@ -37,8 +37,9 @@ import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.utils.PaginatorUtils;
-import software.amazon.awssdk.core.SdkClient;
-import software.amazon.awssdk.core.ServiceClientConfiguration;
+import software.amazon.awssdk.core.AwsClient;
+import software.amazon.awssdk.core.AwsServiceClientConfiguration;
+import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.utils.Validate;
 
 public class DelegatingAsyncClientClass extends AsyncClientInterface {
@@ -92,11 +93,12 @@ public class DelegatingAsyncClientClass extends AsyncClientInterface {
         MethodSpec delegate = MethodSpec.methodBuilder("delegate")
                                         .addModifiers(PUBLIC)
                                         .addStatement("return this.delegate")
-                                        .returns(SdkClient.class)
+                                        .returns(AwsClient.class)
                                         .build();
 
         type.addMethod(nameMethod())
-            .addMethod(clientConfigMethod())
+            .addMethod(sdkClientConfigMethod())
+            .addMethod(awsClientConfigMethod())
             .addMethod(delegate);
     }
 
@@ -109,12 +111,21 @@ public class DelegatingAsyncClientClass extends AsyncClientInterface {
                          .build();
     }
 
-    private MethodSpec clientConfigMethod() {
-        return MethodSpec.methodBuilder("serviceClientConfiguration")
+    private MethodSpec sdkClientConfigMethod() {
+        return MethodSpec.methodBuilder("sdkServiceClientConfiguration")
                          .addAnnotation(Override.class)
                          .addModifiers(PUBLIC, FINAL)
-                         .returns(ServiceClientConfiguration.class)
-                         .addStatement("return delegate.serviceClientConfiguration()")
+                         .returns(SdkServiceClientConfiguration.class)
+                         .addStatement("return delegate.sdkServiceClientConfiguration()")
+                         .build();
+    }
+
+    private MethodSpec awsClientConfigMethod() {
+        return MethodSpec.methodBuilder("awsServiceClientConfiguration")
+                         .addAnnotation(Override.class)
+                         .addModifiers(PUBLIC, FINAL)
+                         .returns(AwsServiceClientConfiguration.class)
+                         .addStatement("return delegate.awsServiceClientConfiguration()")
                          .build();
     }
 

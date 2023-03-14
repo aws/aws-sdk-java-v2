@@ -7,7 +7,7 @@ import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.core.SdkClient;
+import software.amazon.awssdk.core.AwsClient;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.builder.Builder;
@@ -58,7 +58,7 @@ import software.amazon.awssdk.services.json.paginators.PaginatedOperationWithout
 @Generated("software.amazon.awssdk:codegen")
 @SdkPublicApi
 @ThreadSafe
-public interface JsonAsyncClient extends SdkClient {
+public interface JsonAsyncClient extends AwsClient {
     String SERVICE_NAME = "json-service";
 
     /**

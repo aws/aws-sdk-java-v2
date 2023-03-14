@@ -22,7 +22,8 @@ import software.amazon.awssdk.codegen.emitters.GeneratorTask;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.poet.builder.BaseClientBuilderClass;
 import software.amazon.awssdk.codegen.poet.builder.BaseClientBuilderInterface;
-import software.amazon.awssdk.codegen.poet.model.DefaultServiceClientConfigurationClass;
+import software.amazon.awssdk.codegen.poet.model.DefaultAwsServiceClientConfigurationClass;
+import software.amazon.awssdk.codegen.poet.model.DefaultSdkServiceClientConfigurationClass;
 
 /**
  * Task for classes shared by {@link AsyncClientGeneratorTasks} and {@link SyncClientGeneratorTasks}.
@@ -36,7 +37,8 @@ public class CommonClientGeneratorTasks extends BaseGeneratorTasks {
     protected List<GeneratorTask> createTasks() throws Exception {
         return Arrays.asList(createBaseBuilderTask(),
                              createBaseBuilderInterfaceTask(),
-                             createDefaultServiceClientConfigurationTask());
+                             createDefaultSdkServiceClientConfigurationTask(),
+                             createDefaultAwsServiceClientConfigurationTask());
     }
 
     private GeneratorTask createBaseBuilderTask() throws IOException {
@@ -47,7 +49,11 @@ public class CommonClientGeneratorTasks extends BaseGeneratorTasks {
         return createPoetGeneratorTask(new BaseClientBuilderInterface(model));
     }
 
-    private GeneratorTask createDefaultServiceClientConfigurationTask() throws IOException {
-        return createPoetGeneratorTask(new DefaultServiceClientConfigurationClass(model));
+    private GeneratorTask createDefaultSdkServiceClientConfigurationTask() throws IOException {
+        return createPoetGeneratorTask(new DefaultSdkServiceClientConfigurationClass(model));
+    }
+
+    private GeneratorTask createDefaultAwsServiceClientConfigurationTask() throws IOException {
+        return createPoetGeneratorTask(new DefaultAwsServiceClientConfigurationClass(model));
     }
 }

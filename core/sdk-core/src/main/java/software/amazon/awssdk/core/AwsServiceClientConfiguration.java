@@ -16,27 +16,16 @@
 package software.amazon.awssdk.core;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**
- * All SDK service client interfaces should extend this interface.
+ * Interface to expose AWS service client settings to the user, e.g., region
  */
 @SdkPublicApi
-@ThreadSafe
-public interface SdkClient extends SdkAutoCloseable {
+public interface AwsServiceClientConfiguration {
 
     /**
-     * The name of the service.
      *
-     * @return name for this service.
+     * @return The configured region of the AwsClient
      */
-    String serviceName();
-
-    /**
-     * The SDK service client configuration exposes client settings to the user, e.g., ClientOverrideConfiguration
-     *
-     * @return SdkServiceClientConfiguration
-     */
-    SdkServiceClientConfiguration sdkServiceClientConfiguration();
+    String region();
 }

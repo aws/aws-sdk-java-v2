@@ -16,24 +16,17 @@
 package software.amazon.awssdk.core;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.annotations.ThreadSafe;
 
-/**
- * Interface to expose service client settings to the user, e.g., region, ClientOverrideConfiguration
- */
 @SdkPublicApi
-public interface ServiceClientConfiguration {
+@ThreadSafe
+public interface AwsClient extends SdkClient {
 
     /**
+     * The AWS service client configuration exposes client settings to the user, e.g., region
      *
-     * @return The configured region of the SdkClient
+     * @return AwsServiceClientConfiguration
      */
-    String region();
+    AwsServiceClientConfiguration awsServiceClientConfiguration();
 
-    /**
-     *
-     * @return The ClientOverrideConfiguration of the SdkClient. If this is not set, an ClientOverrideConfiguration object will
-     * still be returned, with empty fields
-     */
-    ClientOverrideConfiguration overrideConfiguration();
 }

@@ -16,27 +16,18 @@
 package software.amazon.awssdk.core;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.utils.SdkAutoCloseable;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 
 /**
- * All SDK service client interfaces should extend this interface.
+ * Interface to expose SDK service client settings to the user, e.g., ClientOverrideConfiguration
  */
 @SdkPublicApi
-@ThreadSafe
-public interface SdkClient extends SdkAutoCloseable {
+public interface SdkServiceClientConfiguration {
 
     /**
-     * The name of the service.
      *
-     * @return name for this service.
+     * @return The ClientOverrideConfiguration of the SdkClient. If this is not set, an ClientOverrideConfiguration object will
+     * still be returned, with empty fields
      */
-    String serviceName();
-
-    /**
-     * The SDK service client configuration exposes client settings to the user, e.g., ClientOverrideConfiguration
-     *
-     * @return SdkServiceClientConfiguration
-     */
-    SdkServiceClientConfiguration sdkServiceClientConfiguration();
+    ClientOverrideConfiguration overrideConfiguration();
 }

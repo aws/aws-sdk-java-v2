@@ -16,7 +16,8 @@
 package software.amazon.awssdk.benchmark.enhanced.dynamodb;
 
 import org.openjdk.jmh.infra.Blackhole;
-import software.amazon.awssdk.core.ServiceClientConfiguration;
+import software.amazon.awssdk.core.AwsServiceClientConfiguration;
+import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 abstract class V2TestDynamoDbBaseClient implements DynamoDbClient {
@@ -36,7 +37,12 @@ abstract class V2TestDynamoDbBaseClient implements DynamoDbClient {
     }
 
     @Override
-    public ServiceClientConfiguration serviceClientConfiguration() {
+    public SdkServiceClientConfiguration sdkServiceClientConfiguration() {
+        return null;
+    }
+
+    @Override
+    public AwsServiceClientConfiguration awsServiceClientConfiguration() {
         return null;
     }
 }

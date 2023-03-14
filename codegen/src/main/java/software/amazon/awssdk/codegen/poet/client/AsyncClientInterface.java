@@ -55,7 +55,7 @@ import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
 import software.amazon.awssdk.codegen.poet.model.DeprecationUtils;
 import software.amazon.awssdk.codegen.utils.PaginatorUtils;
-import software.amazon.awssdk.core.SdkClient;
+import software.amazon.awssdk.core.AwsClient;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.regions.ServiceMetadataProvider;
@@ -106,7 +106,7 @@ public class AsyncClientInterface implements ClassSpec {
     }
 
     protected void addInterfaceClass(TypeSpec.Builder type) {
-        type.addSuperinterface(SdkClient.class);
+        type.addSuperinterface(AwsClient.class);
     }
 
     protected void addAnnotations(TypeSpec.Builder type) {
