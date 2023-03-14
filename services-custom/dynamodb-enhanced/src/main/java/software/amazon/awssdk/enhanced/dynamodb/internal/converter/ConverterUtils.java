@@ -53,8 +53,8 @@ public class ConverterUtils {
     }
 
     public static String padLeft(int paddingAmount, int valueToPad) {
-        final String result;
-        final String value = Integer.toString(valueToPad);
+        String result;
+        String value = Integer.toString(valueToPad);
         if (value.length() == paddingAmount) {
             result = value;
         } else {
