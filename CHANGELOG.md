@@ -1,3 +1,32 @@
+# __2.20.24__ __2023-03-14__
+## __AWS Data Exchange__
+  - ### Features
+    - This release enables data providers to license direct access to S3 objects encrypted with Customer Managed Keys (CMK) in AWS KMS through AWS Data Exchange. Subscribers can use these keys to decrypt, then use the encrypted S3 objects shared with them, without creating or managing copies.
+
+## __AWS Direct Connect__
+  - ### Features
+    - describe-direct-connect-gateway-associations includes a new status, updating, indicating that the association is currently in-process of updating.
+
+## __AWS Identity and Access Management__
+  - ### Features
+    - Documentation only updates to correct customer-reported issues
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds a new DnsOptions key (PrivateDnsOnlyForInboundResolverEndpoint) to CreateVpcEndpoint and ModifyVpcEndpoint APIs.
+
+## __Amazon Keyspaces__
+  - ### Features
+    - Adding support for client-side timestamps
+
+## __Application Auto Scaling__
+  - ### Features
+    - Application Auto Scaling customers can now use mathematical functions to customize the metric used with Target Tracking policies within the policy configuration itself, saving the cost and effort of publishing the customizations as a separate metric.
+
 # __2.20.23__ __2023-03-13__
 ## __AWS Lake Formation__
   - ### Features
