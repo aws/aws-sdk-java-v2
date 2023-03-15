@@ -17,6 +17,8 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.document;
 
 import static java.util.Collections.unmodifiableList;
 import static java.util.Collections.unmodifiableMap;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.document.JsonStringFormatHelper.addEscapeCharacters;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.document.JsonStringFormatHelper.stringValue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -46,7 +48,6 @@ import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.utils.Lazy;
-import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -181,7 +182,6 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
             return null;
         }
         return JSON_ATTRIBUTE_CONVERTER.transformTo(attributeValue).toString();
-        // TODO: Does toString return valid JSON? will remove this after comparing V1 side by side.
     }
 
     @Override
@@ -215,22 +215,15 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
 
     @Override
     public String toJson() {
-        StringBuilder output = new StringBuilder();
-        output.append('{');
-        boolean isFirst = true;
-        for (Map.Entry<String, AttributeValue> entry : attributeValueMap.getValue().entrySet()) {
-            if (!isFirst) {
-                output.append(", ");
-            } else {
-                isFirst = false;
-            }
-            output.append('"')
-                  .append(StringUtils.replace(entry.getKey(), "\"", "\\"))
-                  .append("\": ")
-                  .append(JSON_ATTRIBUTE_CONVERTER.transformTo(entry.getValue()));
+        if (nonAttributeValueMap.isEmpty()) {
+            return "{}";
         }
-        output.append('}');
-        return output.toString();
+        return attributeValueMap.getValue().entrySet().stream()
+                                .map(entry -> "\""
+                                              + addEscapeCharacters(entry.getKey())
+                                              + "\":"
+                                              + stringValue(JSON_ATTRIBUTE_CONVERTER.transformTo(entry.getValue())))
+                                .collect(Collectors.joining(",", "{", "}"));
     }
 
     @Override
@@ -286,6 +279,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
 
         public Builder putObject(String attributeName, Object value) {
             Validate.paramNotNull(attributeName, "attributeName");
+            Validate.paramNotBlank(attributeName.trim(), "attributeName");
             enhancedTypeMap.remove(attributeName);
             nonAttributeValueMap.remove(attributeName);
             nonAttributeValueMap.put(attributeName, value);
@@ -435,6 +429,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
 
         private static void checkInvalidAttribute(String attributeName, Object value) {
             Validate.paramNotNull(attributeName, "attributeName");
+            Validate.paramNotBlank(attributeName.trim(), "attributeName");
             Validate.notNull(value, "%s must not be null. Use putNull API to insert a Null value", value);
         }
     }
@@ -460,5 +455,6 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
         result = 31 * result + (attributeConverterProviders != null ? attributeConverterProviders.hashCode() : 0);
         return result;
     }
+
 
 }

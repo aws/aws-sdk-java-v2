@@ -92,7 +92,7 @@ public final class EnhancedDocumentTestData implements ArgumentsProvider {
                                       .enhancedDocument(defaultDocBuilder()
                                                             .putNull("nullKey")
                                                             .build())
-                                      .json("{\"nullKey\": null}")
+                                      .json("{\"nullKey\":null}")
                                       .attributeConverterProvider(defaultProvider())
                                       .build());
 
@@ -104,7 +104,7 @@ public final class EnhancedDocumentTestData implements ArgumentsProvider {
                                               DefaultEnhancedDocument.builder()).putObject("stringKey", "stringValue")
                                                                  .addAttributeConverterProvider(defaultProvider()).build())
                                       .attributeConverterProvider(defaultProvider())
-                                      .json("{\"stringKey\": \"stringValue\"}")
+                                      .json("{\"stringKey\":\"stringValue\"}")
 
                                       .build());
 
@@ -127,8 +127,8 @@ public final class EnhancedDocumentTestData implements ArgumentsProvider {
 
 
                                       .attributeConverterProvider(defaultProvider())
-                                      .json("{\"id\": \"id-value\", \"sort\": \"sort-value\", \"attribute\": "
-                                            + "\"one\", \"attribute2\": \"two\", \"attribute3\": \"three\"}")
+                                      .json("{\"id\":\"id-value\",\"sort\":\"sort-value\",\"attribute\":\"one\","
+                                            + "\"attribute2\":\"two\",\"attribute3\":\"three\"}")
 
                                       .build());
 
@@ -143,7 +143,7 @@ public final class EnhancedDocumentTestData implements ArgumentsProvider {
                                               .putNumber("bigDecimalNumberKey", new BigDecimal(10))
                                               .build())
                                       .attributeConverterProvider(defaultProvider())
-                                      .json("{" + "\"numberKey\": 10, " + "\"bigDecimalNumberKey\": 10" + "}")
+                                      .json("{" + "\"numberKey\":10," + "\"bigDecimalNumberKey\":10" + "}")
 
                                       .build());
 
@@ -172,8 +172,9 @@ public final class EnhancedDocumentTestData implements ArgumentsProvider {
                                                                                               .collect(Collectors.toSet()))
                                                             .putStringSet("stringSet", Stream.of("a", "b", "c").collect(Collectors.toSet()))
                                                             .build())
-                                      .json("{\"stringKey\": \"stringValue\", \"numberKey\": 10, \"boolKey\": true, \"nullKey\": null, \"numberSet\": [1,"
-                                            + " 2, 3], \"sdkBytesSet\": [\"a\", \"b\", \"c\"], \"stringSet\": [\"a\", \"b\", \"c\"]}")
+                                      .json("{\"stringKey\":\"stringValue\",\"numberKey\":10,\"boolKey\":true,\"nullKey\":null,"
+                                            + "\"numberSet\":[1,2,3],\"sdkBytesSet\":[\"a\",\"b\",\"c\"],\"stringSet\":[\"a\","
+                                            + "\"b\",\"c\"]}")
                              .attributeConverterProvider(defaultProvider())
                                       .build());
 
@@ -191,7 +192,7 @@ public final class EnhancedDocumentTestData implements ArgumentsProvider {
                                                             .putNumberSet("bigDecimal", Stream.of(BigDecimal.valueOf(1000.002), BigDecimal.valueOf(2000.003) ).collect(Collectors.toCollection(LinkedHashSet::new)))
                                                             .putNumberSet("sdkNumberSet", Stream.of(SdkNumber.fromInteger(1), SdkNumber.fromInteger(2), SdkNumber.fromInteger(3) ).collect(Collectors.toSet()))
                                                             .build())
-                                      .json("{\"floatSet\": [2.0, 3.0], \"integerSet\": [-1, 0, 1], \"bigDecimal\": [1000.002, 2000.003], \"sdkNumberSet\": [1, 2, 3]}")
+                                      .json("{\"floatSet\": [2.0, 3.0],\"integerSet\": [-1, 0, 1],\"bigDecimal\": [1000.002, 2000.003],\"sdkNumberSet\": [1,2, 3]}")
                              .attributeConverterProvider(defaultProvider())
                                       .build());
 
@@ -216,7 +217,7 @@ public final class EnhancedDocumentTestData implements ArgumentsProvider {
                                           .addAttribute("numberList", EnhancedType.of(Integer.class))
                                           .addAttribute("stringList", EnhancedType.of(String.class)))
                                       .attributeConverterProvider(defaultProvider())
-                                      .json("{\"numberList\": [1, 2], \"stringList\": [\"one\", \"two\"]}")
+                                      .json("{\"numberList\":[1,2],\"stringList\":[\"one\",\"two\"]}")
                                       .build());
 
         testDataList.add(dataBuilder().scenario("customList")
@@ -241,19 +242,12 @@ public final class EnhancedDocumentTestData implements ArgumentsProvider {
                                           .addAttribute("customClassForDocumentAPI", EnhancedType.of(CustomClassForDocumentAPI.class)))
                                       .attributeConverterProvider(ChainConverterProvider.create(CustomAttributeForDocumentConverterProvider.create(),
                                                                                                 defaultProvider()))
-                                      .json("{\"customClassForDocumentAPI\": [{"
-                                            + "\"instantList\": [\"2023-03-01T17:14:05.049Z\", \"2023-03-01T17:14:05.049Z\", \"2023-03-01T17:14:05.049Z\"],"
-                                            + "\"longNumber\": 11,"
-                                            + "\"string\": \"11\","
-                                            + "\"stringSet\": [\"12\", \"13\", \"14\"]"
-                                            + "}, "
-                                            + "{"
-                                            + "\"instantList\": [\"2023-03-01T17:14:05.240Z\", \"2023-03-01T17:14:05.240Z\", "
-                                            + "\"2023-03-01T17:14:05.240Z\"],"
-                                            + "\"longNumber\": 202,"
-                                            + "\"string\": \"202\","
-                                            + "\"stringSet\": [\"203\", \"204\", \"205\"]"
-                                            + "}]}")
+                                      .json("{\"customClassForDocumentAPI\":[{\"instantList\":[\"2023-03-01T17:14:05.049Z\","
+                                            + "\"2023-03-01T17:14:05.049Z\",\"2023-03-01T17:14:05.049Z\"],\"longNumber\":11,"
+                                            + "\"string\":\"11\",\"stringSet\":[\"12\",\"13\",\"14\"]},"
+                                            + "{\"instantList\":[\"2023-03-01T17:14:05.240Z\",\"2023-03-01T17:14:05.240Z\","
+                                            + "\"2023-03-01T17:14:05.240Z\"],\"longNumber\":202,\"string\":\"202\","
+                                            + "\"stringSet\":[\"203\",\"204\",\"205\"]}]}")
 
                                       .build());
 
@@ -293,8 +287,8 @@ public final class EnhancedDocumentTestData implements ArgumentsProvider {
                                               .build()
                                       )
                                       .attributeConverterProvider(defaultProvider())
-                                      .json("{\"threeLevelList\": [[[\"l1_0\", \"l1_1\"], [\"l2_0\", \"l2_1\"]], [[\"l3_0\", "
-                                            + "\"l3_1\"], [\"l4_0\", \"l4_1\"]]]}")
+                                      .json("{\"threeLevelList\":[[[\"l1_0\",\"l1_1\"],[\"l2_0\",\"l2_1\"]],[[\"l3_0\","
+                                            + "\"l3_1\"],[\"l4_0\",\"l4_1\"]]]}")
                                       .typeMap(typeMap()
                                                    .addAttribute("threeLevelList", new EnhancedType<List<List<String>>>() {
                                                    }))
@@ -324,8 +318,7 @@ public final class EnhancedDocumentTestData implements ArgumentsProvider {
                                               )
                                               .build()
                                       )
-                                      .json("{\"listOfListOfMaps\": [{\"key_a_1\": [1, 2],\"key_a_2\": [1, 2]}, {\"key_b_1\": "
-                                            + "[1]}]}")
+                                      .json("{\"listOfListOfMaps\":[{\"key_a_1\":[1,2],\"key_a_2\":[1,2]},{\"key_b_1\":[1]}]}")
                                       .attributeConverterProvider(defaultProvider())
                                       .typeMap(typeMap()
                                                    .addAttribute("listOfListOfMaps", new EnhancedType<Map<String, List<Integer>>>() {
@@ -348,9 +341,9 @@ public final class EnhancedDocumentTestData implements ArgumentsProvider {
                                       .typeMap(typeMap()
                                                    .addAttribute("simpleMap", EnhancedType.of(CharSequence.class),
                                                                  EnhancedType.of(String.class)))
-                                      .json("{\"simpleMap\": {\"key_suffix_1\": \"1\",\"key_suffix_2\": \"2\",\"key_suffix_3\":"
-                                            + " \"3\",\"key_suffix_4\": "
-                                            + "\"4\",\"key_suffix_5\": \"5\",\"key_suffix_6\": \"6\",\"key_suffix_7\": \"7\"}}")
+                                      .json("{\"simpleMap\":{\"key_suffix_1\":\"1\",\"key_suffix_2\":\"2\","
+                                            + "\"key_suffix_3\":\"3\",\"key_suffix_4\":\"4\",\"key_suffix_5\":\"5\","
+                                            + "\"key_suffix_6\":\"6\",\"key_suffix_7\":\"7\"}}")
 
                                       .build());
 
@@ -376,12 +369,9 @@ public final class EnhancedDocumentTestData implements ArgumentsProvider {
                                                             EnhancedType.of(CustomClassForDocumentAPI.class))
                                               .build()
                                       )
-                                      .json("{\"customMapValue\": {\"entryOne\": {"
-                                            + "\"instantList\": [\"2023-03-01T17:14:05.050Z\", \"2023-03-01T17:14:05.050Z\", \"2023-03-01T17:14:05.050Z\"],"
-                                            + "\"longNumber\": 12,"
-                                            + "\"string\": \"12\","
-                                            + "\"stringSet\": [\"13\", \"14\", \"15\"]"
-                                            + "}}}")
+                                      .json("{\"customMapValue\":{\"entryOne\":{\"instantList\":[\"2023-03-01T17:14:05.050Z\","
+                                            + "\"2023-03-01T17:14:05.050Z\",\"2023-03-01T17:14:05.050Z\"],\"longNumber\":12,"
+                                            + "\"string\":\"12\",\"stringSet\":[\"13\",\"14\",\"15\"]}}}")
                                       .typeMap(typeMap()
                                                    .addAttribute("customMapValue", EnhancedType.of(CharSequence.class),
                                                                  EnhancedType.of(CustomClassForDocumentAPI.class)))
@@ -419,14 +409,14 @@ public final class EnhancedDocumentTestData implements ArgumentsProvider {
                                               .build()
 
                                       )
-                                      .json("{\"nullKey\": null, \"numberKey\": 1, \"stringKey\": \"stringValue\", "
-                                            + "\"simpleDate\": \"-999999999-01-01\", \"stringSet\": "
-                                            + "[\"one\", \"two\"], \"sdkByteKey\": \"a\", \"sdkByteSet\": [\"a\", \"b\"], "
-                                            + "\"numberSetSet\": [1, 2], "
+                                      .json("{\"nullKey\": null, \"numberKey\": 1, \"stringKey\":\"stringValue\", "
+                                            + "\"simpleDate\":\"-999999999-01-01\",\"stringSet\": "
+                                            + "[\"one\",\"two\"],\"sdkByteKey\":\"a\",\"sdkByteSet\":[\"a\",\"b\"], "
+                                            + "\"numberSetSet\": [1,2], "
                                             + "\"numberList\": [4, 5, 6], "
                                             + "\"simpleMap\": {\"78b3522c-2ab3-4162-8c5d-f093fa76e68c\": 3,"
-                                            + "\"4ae1f694-52ce-4cf6-8211-232ccf780da8\": 9}, \"mapKey\": {\"1\": [\"a\", \"b\","
-                                            + " \"c\"],\"2\": [\"1\"]}}")
+                                            + "\"4ae1f694-52ce-4cf6-8211-232ccf780da8\": 9}, \"mapKey\": {\"1\":[\"a\",\"b\","
+                                            + " \"c\"],\"2\":[\"1\"]}}")
                                       .attributeConverterProvider(defaultProvider())
                              .isGeneric(false)
                                       .build());
@@ -455,12 +445,9 @@ public final class EnhancedDocumentTestData implements ArgumentsProvider {
                                                        + "}")
                                               .build()
                                       )
-                                      .json("{\"customMapValue\": {\"entryOne\": {"
-                                            + "\"instantList\": [\"2023-03-01T17:14:05.050Z\", \"2023-03-01T17:14:05.050Z\", "
-                                            + "\"2023-03-01T17:14:05.050Z\"],"
-                                            + "\"longNumber\": 12,"
-                                            + "\"string\": \"12\""
-                                            + "}}}")
+                                      .json("{\"customMapValue\":{\"entryOne\":{\"instantList\":[\"2023-03-01T17:14:05.050Z\","
+                                            + "\"2023-03-01T17:14:05.050Z\",\"2023-03-01T17:14:05.050Z\"],\"longNumber\":12,"
+                                            + "\"string\":\"12\"}}}")
                                       .typeMap(typeMap()
                                                    .addAttribute("customMapValue", EnhancedType.of(CharSequence.class),
                                                                  EnhancedType.of(CustomClassForDocumentAPI.class)))
@@ -478,18 +465,18 @@ public final class EnhancedDocumentTestData implements ArgumentsProvider {
                                       .enhancedDocument(
                                           defaultDocBuilder()
                                               .putJson("simpleMap",
-                                                       "{\"key_suffix_1\": \"1\",\"key_suffix_2\": \"2\",\"key_suffix_3\":"
+                                                       "{\"key_suffix_1\":\"1\",\"key_suffix_2\":\"2\",\"key_suffix_3\":"
                                                        + " \"3\",\"key_suffix_4\": "
-                                                       + "\"4\",\"key_suffix_5\": \"5\",\"key_suffix_6\": \"6\",\"key_suffix_7\": \"7\"}" )
+                                                       + "\"4\",\"key_suffix_5\":\"5\",\"key_suffix_6\":\"6\",\"key_suffix_7\":\"7\"}" )
                                               .build()
                                       )
                                       .attributeConverterProvider(defaultProvider())
                                       .typeMap(typeMap()
                                                    .addAttribute("simpleMap", EnhancedType.of(String.class),
                                                                  EnhancedType.of(String.class)))
-                                      .json("{\"simpleMap\": {\"key_suffix_1\": \"1\",\"key_suffix_2\": \"2\",\"key_suffix_3\":"
-                                            + " \"3\",\"key_suffix_4\": "
-                                            + "\"4\",\"key_suffix_5\": \"5\",\"key_suffix_6\": \"6\",\"key_suffix_7\": \"7\"}}")
+                                      .json("{\"simpleMap\":{\"key_suffix_1\":\"1\",\"key_suffix_2\":\"2\","
+                                            + "\"key_suffix_3\":\"3\",\"key_suffix_4\":\"4\",\"key_suffix_5\":\"5\","
+                                            + "\"key_suffix_6\":\"6\",\"key_suffix_7\":\"7\"}}")
 
                                       .build());
 
@@ -545,9 +532,9 @@ public final class EnhancedDocumentTestData implements ArgumentsProvider {
 
                                               .build()
                                       )
-                                      .json("{\"bytes\": \"HelloWorld\", \"setOfBytes\": [\"one\", \"two\", \"three\"], "
-                                            + "\"listOfBytes\": [\"i1\", \"i2\", \"i3\"], \"mapOfBytes\": {\"k1\": \"v1\","
-                                            + "\"k2\": \"v2\"}}")
+                                      .json("{\"bytes\":\"HelloWorld\",\"setOfBytes\":[\"one\",\"two\",\"three\"], "
+                                            + "\"listOfBytes\":[\"i1\",\"i2\",\"i3\"],\"mapOfBytes\": {\"k1\":\"v1\","
+                                            + "\"k2\":\"v2\"}}")
                              .attributeConverterProvider(defaultProvider())
                              .typeMap(typeMap()
                                           .addAttribute("listOfBytes", EnhancedType.of(SdkBytes.class))
@@ -653,9 +640,9 @@ public final class EnhancedDocumentTestData implements ArgumentsProvider {
     /**
      * getStringListObjectMap("lvl_1", 3, 2)
      * {
-     *  key_lvl_1_1=[1, 2],
-     *  key_lvl_1_2=[1, 2],
-     *  key_lvl_1_3=[1, 2]
+     *  key_lvl_1_1=[1,2],
+     *  key_lvl_1_2=[1,2],
+     *  key_lvl_1_3=[1,2]
      * }
      */
     private static Map<String, List<Integer>> getStringListObjectMap(String suffixKey, int numberOfKeys ,

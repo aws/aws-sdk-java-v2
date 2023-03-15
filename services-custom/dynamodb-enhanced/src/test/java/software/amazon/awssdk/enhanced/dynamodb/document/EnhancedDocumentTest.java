@@ -16,6 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb.document;
 
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 import static software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider.defaultProvider;
@@ -34,6 +35,10 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkNumber;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
@@ -75,6 +80,7 @@ class EnhancedDocumentTest{
         assertThat(document.getMap("simpleMap", EnhancedType.of(UUID.class), EnhancedType.of(BigDecimal.class)))
             .containsExactlyEntriesOf(expectedUuidBigDecimalMap);
     }
+
     @Test
     void testNullArgsInStaticConstructor() {
         assertThatNullPointerException()
@@ -114,8 +120,7 @@ class EnhancedDocumentTest{
                                                                 .putString("simpleKeyNew", "simpleValueNew")
                                                                 .build();
 
-            assertThat(enhancedDocument.toJson()).isEqualTo("{\"stringKey\": \"stringValue\", \"simpleKeyNew\": "
-                                                            + "\"simpleValueNew\"}");
+            assertThat(enhancedDocument.toJson()).isEqualTo("{\"stringKey\":\"stringValue\",\"simpleKeyNew\":\"simpleValueNew\"}");
             assertThat(enhancedDocument.getString("simpleKeyOriginal")).isNull();
 
         }
@@ -227,8 +232,8 @@ class EnhancedDocumentTest{
                                                                              EnhancedType.of(CustomClassForDocumentAPI.class))
                                                                 .build();
 
-            assertThat(afterCustomClass.toJson()).isEqualTo("{\"direct_attr\": \"sample_value\", \"customObject\": "
-                                                            + "{\"longNumber\": 26,\"string\": \"str_one\"}}");
+            assertThat(afterCustomClass.toJson()).isEqualTo("{\"direct_attr\":\"sample_value\",\"customObject\":{\"longNumber\":26,"
+                                                            + "\"string\":\"str_one\"}}");
 
             EnhancedDocument enhancedDocument = EnhancedDocument.builder()
                                                      .putString("direct_attr", "sample_value")
@@ -242,4 +247,40 @@ class EnhancedDocumentTest{
             ).withMessage("Converter not found for "
                           + "EnhancedType(software.amazon.awssdk.enhanced.dynamodb.converters.document.CustomClassForDocumentAPI)");
         }
+
+    private static Stream<Arguments> escapeDocumentStrings() {
+        char c = 0x0a;
+        return Stream.of(
+            Arguments.of(String.valueOf(c),"{\"key\":\"\\n\"}")
+            , Arguments.of("","{\"key\":\"\"}")
+            , Arguments.of(" ","{\"key\":\" \"}")
+            , Arguments.of("\t","{\"key\":\"\\t\"}")
+            , Arguments.of("\n","{\"key\":\"\\n\"}")
+            , Arguments.of("\r","{\"key\":\"\\r\"}")
+            , Arguments.of("\f", "{\"key\":\"\\f\"}")
+            );
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", " " , "\t", "  ", "\n", "\r", "\f"})
+    void invalidKeyNames(String escapingString){
+        assertThatIllegalArgumentException().isThrownBy(() ->
+                                                            EnhancedDocument.builder()
+                                                                            .attributeConverterProviders(defaultProvider())
+                                                                            .putString(escapingString, "sample")
+                                                                            .build())
+                                            .withMessageContaining("attributeName must not be blank or empty.");
+
+    }
+
+    @ParameterizedTest
+    @MethodSource("escapeDocumentStrings")
+    void escapingTheValues(String escapingString, String expectedJson) {
+
+        EnhancedDocument document = EnhancedDocument.builder()
+                                                    .attributeConverterProviders(defaultProvider())
+                                                    .putString("key", escapingString)
+                                                    .build();
+        assertThat(document.toJson()).isEqualTo(expectedJson);
+    }
 }
