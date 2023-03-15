@@ -17,6 +17,8 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.document;
 
 import static java.util.Collections.unmodifiableList;
 import static java.util.Collections.unmodifiableMap;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.document.JsonStringFormatHelper.addEscapeCharacters;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.document.JsonStringFormatHelper.stringValue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,7 +31,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkBytes;
@@ -217,7 +218,6 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
         if (nonAttributeValueMap.isEmpty()) {
             return "{}";
         }
-
         return attributeValueMap.getValue().entrySet().stream()
                                 .map(entry -> "\""
                                               + addEscapeCharacters(entry.getKey())
@@ -456,68 +456,5 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
         return result;
     }
 
-    private static String stringValue(JsonNode jsonNode) {
-        if (jsonNode.isArray()) {
-            return StreamSupport.stream(jsonNode.asArray().spliterator(), false)
-                                .map(DefaultEnhancedDocument::stringValue)
-                                .collect(Collectors.joining(",", "[", "]"));
-        }
-        if (jsonNode.isObject()) {
-            return mapToString(jsonNode);
-        }
 
-        return jsonNode.isString() ? "\"" + addEscapeCharacters(jsonNode.text()) + "\"" : jsonNode.toString();
-    }
-
-    private static String addEscapeCharacters(String input) {
-        StringBuilder output = new StringBuilder();
-
-        for (int i = 0; i < input.length(); i++) {
-            char ch = input.charAt(i);
-
-            switch (ch) {
-                case '\\':
-                    output.append("\\\\"); // escape backslash with a backslash
-                    break;
-                case '\n':
-                    output.append("\\n"); // newline character
-                    break;
-                case '\r':
-                    output.append("\\r"); // carriage return character
-                    break;
-                case '\t':
-                    output.append("\\t"); // tab character
-                    break;
-                case '\f':
-                    output.append("\\f"); // form feed
-                    break;
-                case '\"':
-                    output.append("\\\""); // double-quote character
-                    break;
-                case '\'':
-                    output.append("\\'"); // single-quote character
-                    break;
-                default:
-                    output.append(ch);
-                    break;
-            }
-        }
-
-        return output.toString();
-    }
-
-    private static String mapToString(JsonNode jsonNode) {
-        Map<String, JsonNode> value = jsonNode.asObject();
-
-        if (value.isEmpty()) {
-            return "{}";
-        }
-
-        StringBuilder output = new StringBuilder();
-        output.append("{");
-        value.forEach((k, v) -> output.append("\"").append(k).append("\":")
-                                      .append(stringValue(v)).append(","));
-        output.setCharAt(output.length() - 1, '}');
-        return output.toString();
-    }
 }
