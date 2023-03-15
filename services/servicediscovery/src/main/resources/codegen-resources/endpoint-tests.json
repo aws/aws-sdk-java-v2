@@ -1,232 +1,223 @@
 {
     "testCases": [
         {
-            "documentation": "For region us-gov-east-1 with FIPS enabled and DualStack enabled",
+            "documentation": "For region af-south-1 with FIPS disabled and DualStack disabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://servicediscovery-fips.us-gov-east-1.api.aws"
+                    "url": "https://servicediscovery.af-south-1.amazonaws.com"
                 }
             },
             "params": {
-                "UseDualStack": true,
-                "Region": "us-gov-east-1",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region us-gov-east-1 with FIPS enabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://servicediscovery-fips.us-gov-east-1.amazonaws.com"
-                }
-            },
-            "params": {
+                "Region": "af-south-1",
                 "UseDualStack": false,
-                "Region": "us-gov-east-1",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region us-gov-east-1 with FIPS disabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://servicediscovery.us-gov-east-1.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "us-gov-east-1",
                 "UseFIPS": false
             }
         },
         {
-            "documentation": "For region us-gov-east-1 with FIPS disabled and DualStack disabled",
+            "documentation": "For region ap-east-1 with FIPS disabled and DualStack disabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://servicediscovery.us-gov-east-1.amazonaws.com"
+                    "url": "https://servicediscovery.ap-east-1.amazonaws.com"
                 }
             },
             "params": {
+                "Region": "ap-east-1",
                 "UseDualStack": false,
-                "Region": "us-gov-east-1",
                 "UseFIPS": false
             }
         },
         {
-            "documentation": "For region us-iso-west-1 with FIPS enabled and DualStack enabled",
-            "expect": {
-                "error": "FIPS and DualStack are enabled, but this partition does not support one or both"
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "us-iso-west-1",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region us-iso-west-1 with FIPS enabled and DualStack disabled",
+            "documentation": "For region ap-northeast-1 with FIPS disabled and DualStack disabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://servicediscovery-fips.us-iso-west-1.c2s.ic.gov"
+                    "url": "https://servicediscovery.ap-northeast-1.amazonaws.com"
                 }
             },
             "params": {
+                "Region": "ap-northeast-1",
                 "UseDualStack": false,
-                "Region": "us-iso-west-1",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region us-iso-west-1 with FIPS disabled and DualStack enabled",
-            "expect": {
-                "error": "DualStack is enabled but this partition does not support DualStack"
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "us-iso-west-1",
                 "UseFIPS": false
             }
         },
         {
-            "documentation": "For region us-iso-west-1 with FIPS disabled and DualStack disabled",
+            "documentation": "For region ap-northeast-2 with FIPS disabled and DualStack disabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://servicediscovery.us-iso-west-1.c2s.ic.gov"
+                    "url": "https://servicediscovery.ap-northeast-2.amazonaws.com"
                 }
             },
             "params": {
+                "Region": "ap-northeast-2",
                 "UseDualStack": false,
-                "Region": "us-iso-west-1",
                 "UseFIPS": false
             }
         },
         {
-            "documentation": "For region cn-north-1 with FIPS enabled and DualStack enabled",
+            "documentation": "For region ap-south-1 with FIPS disabled and DualStack disabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://servicediscovery-fips.cn-north-1.api.amazonwebservices.com.cn"
+                    "url": "https://servicediscovery.ap-south-1.amazonaws.com"
                 }
             },
             "params": {
-                "UseDualStack": true,
-                "Region": "cn-north-1",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region cn-north-1 with FIPS enabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://servicediscovery-fips.cn-north-1.amazonaws.com.cn"
-                }
-            },
-            "params": {
+                "Region": "ap-south-1",
                 "UseDualStack": false,
-                "Region": "cn-north-1",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region cn-north-1 with FIPS disabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://servicediscovery.cn-north-1.api.amazonwebservices.com.cn"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "cn-north-1",
                 "UseFIPS": false
             }
         },
         {
-            "documentation": "For region cn-north-1 with FIPS disabled and DualStack disabled",
+            "documentation": "For region ap-southeast-1 with FIPS disabled and DualStack disabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://servicediscovery.cn-north-1.amazonaws.com.cn"
+                    "url": "https://servicediscovery.ap-southeast-1.amazonaws.com"
                 }
             },
             "params": {
+                "Region": "ap-southeast-1",
                 "UseDualStack": false,
-                "Region": "cn-north-1",
                 "UseFIPS": false
             }
         },
         {
-            "documentation": "For region us-gov-west-1 with FIPS enabled and DualStack enabled",
+            "documentation": "For region ap-southeast-2 with FIPS disabled and DualStack disabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://servicediscovery-fips.us-gov-west-1.api.aws"
+                    "url": "https://servicediscovery.ap-southeast-2.amazonaws.com"
                 }
             },
             "params": {
-                "UseDualStack": true,
-                "Region": "us-gov-west-1",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region us-gov-west-1 with FIPS enabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://servicediscovery-fips.us-gov-west-1.amazonaws.com"
-                }
-            },
-            "params": {
+                "Region": "ap-southeast-2",
                 "UseDualStack": false,
-                "Region": "us-gov-west-1",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region us-gov-west-1 with FIPS disabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://servicediscovery.us-gov-west-1.api.aws"
-                }
-            },
-            "params": {
-                "UseDualStack": true,
-                "Region": "us-gov-west-1",
                 "UseFIPS": false
             }
         },
         {
-            "documentation": "For region us-gov-west-1 with FIPS disabled and DualStack disabled",
+            "documentation": "For region ca-central-1 with FIPS disabled and DualStack disabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://servicediscovery.us-gov-west-1.amazonaws.com"
+                    "url": "https://servicediscovery.ca-central-1.amazonaws.com"
                 }
             },
             "params": {
+                "Region": "ca-central-1",
                 "UseDualStack": false,
-                "Region": "us-gov-west-1",
                 "UseFIPS": false
             }
         },
         {
-            "documentation": "For region us-east-1 with FIPS enabled and DualStack enabled",
+            "documentation": "For region ca-central-1 with FIPS enabled and DualStack disabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://servicediscovery-fips.us-east-1.api.aws"
+                    "url": "https://servicediscovery-fips.ca-central-1.amazonaws.com"
                 }
             },
             "params": {
-                "UseDualStack": true,
-                "Region": "us-east-1",
+                "Region": "ca-central-1",
+                "UseDualStack": false,
                 "UseFIPS": true
             }
         },
         {
-            "documentation": "For region us-east-1 with FIPS disabled and DualStack enabled",
+            "documentation": "For region eu-central-1 with FIPS disabled and DualStack disabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://servicediscovery.us-east-1.api.aws"
+                    "url": "https://servicediscovery.eu-central-1.amazonaws.com"
                 }
             },
             "params": {
-                "UseDualStack": true,
-                "Region": "us-east-1",
+                "Region": "eu-central-1",
+                "UseDualStack": false,
+                "UseFIPS": false
+            }
+        },
+        {
+            "documentation": "For region eu-north-1 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://servicediscovery.eu-north-1.amazonaws.com"
+                }
+            },
+            "params": {
+                "Region": "eu-north-1",
+                "UseDualStack": false,
+                "UseFIPS": false
+            }
+        },
+        {
+            "documentation": "For region eu-south-1 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://servicediscovery.eu-south-1.amazonaws.com"
+                }
+            },
+            "params": {
+                "Region": "eu-south-1",
+                "UseDualStack": false,
+                "UseFIPS": false
+            }
+        },
+        {
+            "documentation": "For region eu-west-1 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://servicediscovery.eu-west-1.amazonaws.com"
+                }
+            },
+            "params": {
+                "Region": "eu-west-1",
+                "UseDualStack": false,
+                "UseFIPS": false
+            }
+        },
+        {
+            "documentation": "For region eu-west-2 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://servicediscovery.eu-west-2.amazonaws.com"
+                }
+            },
+            "params": {
+                "Region": "eu-west-2",
+                "UseDualStack": false,
+                "UseFIPS": false
+            }
+        },
+        {
+            "documentation": "For region eu-west-3 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://servicediscovery.eu-west-3.amazonaws.com"
+                }
+            },
+            "params": {
+                "Region": "eu-west-3",
+                "UseDualStack": false,
+                "UseFIPS": false
+            }
+        },
+        {
+            "documentation": "For region me-south-1 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://servicediscovery.me-south-1.amazonaws.com"
+                }
+            },
+            "params": {
+                "Region": "me-south-1",
+                "UseDualStack": false,
+                "UseFIPS": false
+            }
+        },
+        {
+            "documentation": "For region sa-east-1 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://servicediscovery.sa-east-1.amazonaws.com"
+                }
+            },
+            "params": {
+                "Region": "sa-east-1",
+                "UseDualStack": false,
                 "UseFIPS": false
             }
         },
@@ -238,47 +229,138 @@
                 }
             },
             "params": {
-                "UseDualStack": false,
                 "Region": "us-east-1",
+                "UseDualStack": false,
                 "UseFIPS": false
             }
         },
         {
-            "documentation": "For region cn-northwest-1 with FIPS enabled and DualStack enabled",
+            "documentation": "For region us-east-1 with FIPS enabled and DualStack disabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://servicediscovery-fips.cn-northwest-1.api.amazonwebservices.com.cn"
+                    "url": "https://servicediscovery-fips.us-east-1.amazonaws.com"
                 }
             },
             "params": {
-                "UseDualStack": true,
-                "Region": "cn-northwest-1",
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region cn-northwest-1 with FIPS enabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://servicediscovery-fips.cn-northwest-1.amazonaws.com.cn"
-                }
-            },
-            "params": {
+                "Region": "us-east-1",
                 "UseDualStack": false,
-                "Region": "cn-northwest-1",
                 "UseFIPS": true
             }
         },
         {
-            "documentation": "For region cn-northwest-1 with FIPS disabled and DualStack enabled",
+            "documentation": "For region us-east-2 with FIPS disabled and DualStack disabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://servicediscovery.cn-northwest-1.api.amazonwebservices.com.cn"
+                    "url": "https://servicediscovery.us-east-2.amazonaws.com"
                 }
             },
             "params": {
+                "Region": "us-east-2",
+                "UseDualStack": false,
+                "UseFIPS": false
+            }
+        },
+        {
+            "documentation": "For region us-east-2 with FIPS enabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://servicediscovery-fips.us-east-2.amazonaws.com"
+                }
+            },
+            "params": {
+                "Region": "us-east-2",
+                "UseDualStack": false,
+                "UseFIPS": true
+            }
+        },
+        {
+            "documentation": "For region us-west-1 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://servicediscovery.us-west-1.amazonaws.com"
+                }
+            },
+            "params": {
+                "Region": "us-west-1",
+                "UseDualStack": false,
+                "UseFIPS": false
+            }
+        },
+        {
+            "documentation": "For region us-west-1 with FIPS enabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://servicediscovery-fips.us-west-1.amazonaws.com"
+                }
+            },
+            "params": {
+                "Region": "us-west-1",
+                "UseDualStack": false,
+                "UseFIPS": true
+            }
+        },
+        {
+            "documentation": "For region us-west-2 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://servicediscovery.us-west-2.amazonaws.com"
+                }
+            },
+            "params": {
+                "Region": "us-west-2",
+                "UseDualStack": false,
+                "UseFIPS": false
+            }
+        },
+        {
+            "documentation": "For region us-west-2 with FIPS enabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://servicediscovery-fips.us-west-2.amazonaws.com"
+                }
+            },
+            "params": {
+                "Region": "us-west-2",
+                "UseDualStack": false,
+                "UseFIPS": true
+            }
+        },
+        {
+            "documentation": "For region us-east-1 with FIPS enabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://servicediscovery-fips.us-east-1.api.aws"
+                }
+            },
+            "params": {
+                "Region": "us-east-1",
                 "UseDualStack": true,
-                "Region": "cn-northwest-1",
+                "UseFIPS": true
+            }
+        },
+        {
+            "documentation": "For region us-east-1 with FIPS disabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://servicediscovery.us-east-1.api.aws"
+                }
+            },
+            "params": {
+                "Region": "us-east-1",
+                "UseDualStack": true,
+                "UseFIPS": false
+            }
+        },
+        {
+            "documentation": "For region cn-north-1 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://servicediscovery.cn-north-1.amazonaws.com.cn"
+                }
+            },
+            "params": {
+                "Region": "cn-north-1",
+                "UseDualStack": false,
                 "UseFIPS": false
             }
         },
@@ -290,13 +372,196 @@
                 }
             },
             "params": {
-                "UseDualStack": false,
                 "Region": "cn-northwest-1",
+                "UseDualStack": false,
                 "UseFIPS": false
             }
         },
         {
-            "documentation": "For custom endpoint with fips disabled and dualstack disabled",
+            "documentation": "For region cn-north-1 with FIPS enabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://servicediscovery-fips.cn-north-1.api.amazonwebservices.com.cn"
+                }
+            },
+            "params": {
+                "Region": "cn-north-1",
+                "UseDualStack": true,
+                "UseFIPS": true
+            }
+        },
+        {
+            "documentation": "For region cn-north-1 with FIPS enabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://servicediscovery-fips.cn-north-1.amazonaws.com.cn"
+                }
+            },
+            "params": {
+                "Region": "cn-north-1",
+                "UseDualStack": false,
+                "UseFIPS": true
+            }
+        },
+        {
+            "documentation": "For region cn-north-1 with FIPS disabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://servicediscovery.cn-north-1.api.amazonwebservices.com.cn"
+                }
+            },
+            "params": {
+                "Region": "cn-north-1",
+                "UseDualStack": true,
+                "UseFIPS": false
+            }
+        },
+        {
+            "documentation": "For region us-gov-east-1 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://servicediscovery.us-gov-east-1.amazonaws.com"
+                }
+            },
+            "params": {
+                "Region": "us-gov-east-1",
+                "UseDualStack": false,
+                "UseFIPS": false
+            }
+        },
+        {
+            "documentation": "For region us-gov-east-1 with FIPS enabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://servicediscovery-fips.us-gov-east-1.amazonaws.com"
+                }
+            },
+            "params": {
+                "Region": "us-gov-east-1",
+                "UseDualStack": false,
+                "UseFIPS": true
+            }
+        },
+        {
+            "documentation": "For region us-gov-west-1 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://servicediscovery.us-gov-west-1.amazonaws.com"
+                }
+            },
+            "params": {
+                "Region": "us-gov-west-1",
+                "UseDualStack": false,
+                "UseFIPS": false
+            }
+        },
+        {
+            "documentation": "For region us-gov-west-1 with FIPS enabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://servicediscovery-fips.us-gov-west-1.amazonaws.com"
+                }
+            },
+            "params": {
+                "Region": "us-gov-west-1",
+                "UseDualStack": false,
+                "UseFIPS": true
+            }
+        },
+        {
+            "documentation": "For region us-gov-east-1 with FIPS enabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://servicediscovery-fips.us-gov-east-1.api.aws"
+                }
+            },
+            "params": {
+                "Region": "us-gov-east-1",
+                "UseDualStack": true,
+                "UseFIPS": true
+            }
+        },
+        {
+            "documentation": "For region us-gov-east-1 with FIPS disabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://servicediscovery.us-gov-east-1.api.aws"
+                }
+            },
+            "params": {
+                "Region": "us-gov-east-1",
+                "UseDualStack": true,
+                "UseFIPS": false
+            }
+        },
+        {
+            "documentation": "For region us-iso-east-1 with FIPS enabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://servicediscovery-fips.us-iso-east-1.c2s.ic.gov"
+                }
+            },
+            "params": {
+                "Region": "us-iso-east-1",
+                "UseDualStack": false,
+                "UseFIPS": true
+            }
+        },
+        {
+            "documentation": "For region us-iso-east-1 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://servicediscovery.us-iso-east-1.c2s.ic.gov"
+                }
+            },
+            "params": {
+                "Region": "us-iso-east-1",
+                "UseDualStack": false,
+                "UseFIPS": false
+            }
+        },
+        {
+            "documentation": "For region us-isob-east-1 with FIPS enabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://servicediscovery-fips.us-isob-east-1.sc2s.sgov.gov"
+                }
+            },
+            "params": {
+                "Region": "us-isob-east-1",
+                "UseDualStack": false,
+                "UseFIPS": true
+            }
+        },
+        {
+            "documentation": "For region us-isob-east-1 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://servicediscovery.us-isob-east-1.sc2s.sgov.gov"
+                }
+            },
+            "params": {
+                "Region": "us-isob-east-1",
+                "UseDualStack": false,
+                "UseFIPS": false
+            }
+        },
+        {
+            "documentation": "For custom endpoint with region set and fips disabled and dualstack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://example.com"
+                }
+            },
+            "params": {
+                "Region": "us-east-1",
+                "UseDualStack": false,
+                "UseFIPS": false,
+                "Endpoint": "https://example.com"
+            }
+        },
+        {
+            "documentation": "For custom endpoint with region not set and fips disabled and dualstack disabled",
             "expect": {
                 "endpoint": {
                     "url": "https://example.com"
@@ -304,7 +569,6 @@
             },
             "params": {
                 "UseDualStack": false,
-                "Region": "us-east-1",
                 "UseFIPS": false,
                 "Endpoint": "https://example.com"
             }
@@ -315,8 +579,8 @@
                 "error": "Invalid Configuration: FIPS and custom endpoint are not supported"
             },
             "params": {
-                "UseDualStack": false,
                 "Region": "us-east-1",
+                "UseDualStack": false,
                 "UseFIPS": true,
                 "Endpoint": "https://example.com"
             }
@@ -327,8 +591,8 @@
                 "error": "Invalid Configuration: Dualstack and custom endpoint are not supported"
             },
             "params": {
-                "UseDualStack": true,
                 "Region": "us-east-1",
+                "UseDualStack": true,
                 "UseFIPS": false,
                 "Endpoint": "https://example.com"
             }
