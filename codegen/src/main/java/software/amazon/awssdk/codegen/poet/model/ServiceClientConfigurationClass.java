@@ -15,40 +15,38 @@
 
 package software.amazon.awssdk.codegen.poet.model;
 
-import static javax.lang.model.element.Modifier.FINAL;
-import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.lang.model.element.Modifier.PUBLIC;
 
 import com.squareup.javapoet.ClassName;
-import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.awscore.AwsServiceClientConfiguration;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
-import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 
-public class DefaultSdkServiceClientConfigurationClass implements ClassSpec {
-
+public class ServiceClientConfigurationClass implements ClassSpec {
     private final ClassName defaultClientMetadataClassName;
 
-    public DefaultSdkServiceClientConfigurationClass(IntermediateModel model) {
+    public ServiceClientConfigurationClass(IntermediateModel model) {
         String basePackage = model.getMetadata().getFullInternalPackageName();
-        this.defaultClientMetadataClassName = ClassName.get(basePackage, "DefaultSdkServiceClientConfiguration");
+        String serviceId = model.getMetadata().getServiceId();
+        this.defaultClientMetadataClassName = ClassName.get(basePackage,
+                                                            serviceId.replaceAll("[-\\s]+", "")
+                                                            + "ServiceClientConfiguration");
     }
 
     @Override
     public TypeSpec poetSpec() {
         return PoetUtils.createClassBuilder(defaultClientMetadataClassName)
-                        .addSuperinterface(SdkServiceClientConfiguration.class)
-            .addMethod(constructor())
-            .addMethod(clientOverrideConfigMethod())
-            .addModifiers(PUBLIC)
-            .addAnnotation(SdkInternalApi.class)
-            .addField(clientOverrideConfigField())
-            .build();
+                        .superclass(AwsServiceClientConfiguration.class)
+                        .addMethod(constructor())
+                        .addModifiers(PUBLIC)
+                        .addAnnotation(SdkInternalApi.class)
+                        .build();
     }
 
     @Override
@@ -59,22 +57,9 @@ public class DefaultSdkServiceClientConfigurationClass implements ClassSpec {
     public MethodSpec constructor() {
         return MethodSpec.constructorBuilder()
                          .addModifiers(PUBLIC)
+                         .addParameter(SdkClientConfiguration.class, "clientConfiguration")
                          .addParameter(ClientOverrideConfiguration.class, "clientOverrideConfiguration")
-                         .addStatement("this.overrideConfiguration = clientOverrideConfiguration")
+                         .addStatement("super(clientConfiguration, clientOverrideConfiguration)")
                          .build();
-    }
-
-    public MethodSpec clientOverrideConfigMethod() {
-        return MethodSpec.methodBuilder("overrideConfiguration")
-            .addModifiers(PUBLIC)
-            .returns(ClientOverrideConfiguration.class)
-            .addStatement("return this.overrideConfiguration")
-                         .build();
-    }
-
-    public FieldSpec clientOverrideConfigField() {
-        return FieldSpec.builder(ClassName.get(ClientOverrideConfiguration.class), "overrideConfiguration")
-                        .addModifiers(PRIVATE, FINAL)
-                        .build();
     }
 }

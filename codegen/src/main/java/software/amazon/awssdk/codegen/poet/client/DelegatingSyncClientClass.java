@@ -27,6 +27,7 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.awscore.AwsServiceClientConfiguration;
 import software.amazon.awssdk.codegen.docs.SimpleMethodOverload;
 import software.amazon.awssdk.codegen.model.config.customization.UtilitiesMethod;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -34,9 +35,7 @@ import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.utils.PaginatorUtils;
-import software.amazon.awssdk.core.AwsServiceClientConfiguration;
 import software.amazon.awssdk.core.SdkClient;
-import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.utils.Validate;
 
 public class DelegatingSyncClientClass extends SyncClientInterface {
@@ -98,8 +97,7 @@ public class DelegatingSyncClientClass extends SyncClientInterface {
                                         .build();
 
         type.addMethod(nameMethod())
-            .addMethod(sdkClientConfigMethod())
-            .addMethod(awsClientConfigMethod())
+            .addMethod(serviceClientConfigMethod())
             .addMethod(delegate);
     }
 
@@ -171,21 +169,12 @@ public class DelegatingSyncClientClass extends SyncClientInterface {
                          .build();
     }
 
-    private MethodSpec sdkClientConfigMethod() {
-        return MethodSpec.methodBuilder("sdkServiceClientConfiguration")
-                         .addAnnotation(Override.class)
-                         .addModifiers(PUBLIC, FINAL)
-                         .returns(SdkServiceClientConfiguration.class)
-                         .addStatement("return delegate.sdkServiceClientConfiguration()")
-                         .build();
-    }
-
-    private MethodSpec awsClientConfigMethod() {
-        return MethodSpec.methodBuilder("awsServiceClientConfiguration")
+    private MethodSpec serviceClientConfigMethod() {
+        return MethodSpec.methodBuilder("serviceClientConfiguration")
                          .addAnnotation(Override.class)
                          .addModifiers(PUBLIC, FINAL)
                          .returns(AwsServiceClientConfiguration.class)
-                         .addStatement("return delegate.awsServiceClientConfiguration()")
+                         .addStatement("return delegate.serviceClientConfiguration()")
                          .build();
     }
 }

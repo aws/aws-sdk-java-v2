@@ -19,15 +19,23 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 
 /**
- * Interface to expose SDK service client settings to the user, e.g., ClientOverrideConfiguration
+ * Class to expose SDK service client settings to the user, e.g., ClientOverrideConfiguration
  */
 @SdkPublicApi
-public interface SdkServiceClientConfiguration {
+public class SdkServiceClientConfiguration {
+
+    private final ClientOverrideConfiguration overrideConfiguration;
+
+    public SdkServiceClientConfiguration(ClientOverrideConfiguration clientOverrideConfiguration) {
+        this.overrideConfiguration = clientOverrideConfiguration;
+    }
 
     /**
      *
      * @return The ClientOverrideConfiguration of the SdkClient. If this is not set, an ClientOverrideConfiguration object will
      * still be returned, with empty fields
      */
-    ClientOverrideConfiguration overrideConfiguration();
+    public ClientOverrideConfiguration overrideConfiguration() {
+        return this.overrideConfiguration;
+    }
 }

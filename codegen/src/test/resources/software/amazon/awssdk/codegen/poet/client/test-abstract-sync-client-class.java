@@ -3,12 +3,11 @@ package software.amazon.awssdk.services.json;
 import java.nio.file.Path;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.awscore.AwsServiceClientConfiguration;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
-import software.amazon.awssdk.core.AwsServiceClientConfiguration;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.SdkClient;
-import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
@@ -862,13 +861,8 @@ public abstract class DelegatingJsonClient implements JsonClient {
     }
 
     @Override
-    public final SdkServiceClientConfiguration sdkServiceClientConfiguration() {
-        return delegate.sdkServiceClientConfiguration();
-    }
-
-    @Override
-    public final AwsServiceClientConfiguration awsServiceClientConfiguration() {
-        return delegate.awsServiceClientConfiguration();
+    public final AwsServiceClientConfiguration serviceClientConfiguration() {
+        return delegate.serviceClientConfiguration();
     }
 
     public SdkClient delegate() {

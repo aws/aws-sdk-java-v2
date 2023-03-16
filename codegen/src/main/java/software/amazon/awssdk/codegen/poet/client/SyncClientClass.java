@@ -51,9 +51,7 @@ import software.amazon.awssdk.codegen.poet.client.specs.ProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.QueryProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.XmlProtocolSpec;
 import software.amazon.awssdk.codegen.utils.PaginatorUtils;
-import software.amazon.awssdk.core.AwsServiceClientConfiguration;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
-import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -72,6 +70,8 @@ public class SyncClientClass extends SyncClientInterface {
     private final PoetExtension poetExtensions;
     private final ClassName className;
     private final ProtocolSpec protocolSpec;
+    private final String serviceClientConfigurationName;
+    private final ClassName serviceClientConfigurationClassName;
 
     public SyncClientClass(GeneratorTaskParams taskParams) {
         super(taskParams.getModel());
@@ -79,6 +79,10 @@ public class SyncClientClass extends SyncClientInterface {
         this.poetExtensions = taskParams.getPoetExtensions();
         this.className = poetExtensions.getClientClass(model.getMetadata().getSyncClient());
         this.protocolSpec = getProtocolSpecs(poetExtensions, model);
+        this.serviceClientConfigurationName = model.getMetadata().getServiceId().replaceAll("[-\\s]+", "")
+                                              + "ServiceClientConfiguration";
+        this.serviceClientConfigurationClassName = PoetUtils.classNameFromFqcn(model.getMetadata().getFullInternalPackageName()
+                                                                               + "." + serviceClientConfigurationName);
     }
 
     @Override
@@ -109,8 +113,7 @@ public class SyncClientClass extends SyncClientInterface {
             .addField(SyncClientHandler.class, "clientHandler", PRIVATE, FINAL)
             .addField(protocolSpec.protocolFactory(model))
             .addField(SdkClientConfiguration.class, "clientConfiguration", PRIVATE, FINAL)
-            .addField(SdkServiceClientConfiguration.class, "sdkServiceClientConfiguration", PRIVATE, FINAL)
-            .addField(AwsServiceClientConfiguration.class, "awsServiceClientConfiguration", PRIVATE, FINAL);
+            .addField(serviceClientConfigurationClassName, "serviceClientConfiguration", PRIVATE, FINAL);
     }
 
     @Override
@@ -129,8 +132,7 @@ public class SyncClientClass extends SyncClientInterface {
 
         type.addMethod(constructor())
             .addMethod(nameMethod())
-            .addMethod(sdkClientConfigMethod())
-            .addMethod(awsClientConfigMethod())
+            .addMethod(serviceClientConfigMethod())
             .addMethods(protocolSpec.additionalMethods())
             .addMethod(resolveMetricPublishersMethod());
 
@@ -154,21 +156,12 @@ public class SyncClientClass extends SyncClientInterface {
                          .build();
     }
 
-    private MethodSpec sdkClientConfigMethod() {
-        return MethodSpec.methodBuilder("sdkServiceClientConfiguration")
+    private MethodSpec serviceClientConfigMethod() {
+        return MethodSpec.methodBuilder("serviceClientConfiguration")
                          .addAnnotation(Override.class)
                          .addModifiers(PUBLIC, FINAL)
-                         .returns(SdkServiceClientConfiguration.class)
-                         .addStatement("return this.sdkServiceClientConfiguration")
-                         .build();
-    }
-
-    private MethodSpec awsClientConfigMethod() {
-        return MethodSpec.methodBuilder("awsServiceClientConfiguration")
-                         .addAnnotation(Override.class)
-                         .addModifiers(PUBLIC, FINAL)
-                         .returns(AwsServiceClientConfiguration.class)
-                         .addStatement("return this.awsServiceClientConfiguration")
+                         .returns(serviceClientConfigurationClassName)
+                         .addStatement("return this.serviceClientConfiguration")
                          .build();
     }
 
@@ -185,12 +178,9 @@ public class SyncClientClass extends SyncClientInterface {
                         .addParameter(ClientOverrideConfiguration.class, "clientOverrideConfiguration")
                         .addStatement("this.clientHandler = new $T(clientConfiguration)", protocolSpec.getClientHandlerClass())
                         .addStatement("this.clientConfiguration = clientConfiguration")
-                        .addStatement("this.sdkServiceClientConfiguration = new $T(clientOverrideConfiguration)",
-                                      PoetUtils.classNameFromFqcn(model.getMetadata().getFullInternalPackageName()
-                                                                  + ".DefaultSdkServiceClientConfiguration"))
-                        .addStatement("this.awsServiceClientConfiguration = new $T(clientConfiguration)",
-                                      PoetUtils.classNameFromFqcn(model.getMetadata().getFullInternalPackageName()
-                                                                  + ".DefaultAwsServiceClientConfiguration"));
+                        .addStatement("this.serviceClientConfiguration "
+                                      + "= new $T(clientConfiguration, clientOverrideConfiguration)",
+                                      serviceClientConfigurationClassName);
         FieldSpec protocolFactoryField = protocolSpec.protocolFactory(model);
         if (model.getMetadata().isJsonProtocol()) {
             builder.addStatement("this.$N = init($T.builder()).build()", protocolFactoryField.name,

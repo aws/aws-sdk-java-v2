@@ -20,10 +20,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestxml.ProtocolRestXmlAsyncClient;
 import software.amazon.awssdk.services.protocolrestxml.ProtocolRestXmlClient;
 
-public class SdkServiceClientConfigurationTest {
+public class ServiceClientConfigurationTest {
+
+    @Test
+    public void syncClient_serviceClientConfiguration_shouldReturnCorrectRegion() {
+        ProtocolRestXmlClient client = ProtocolRestXmlClient.builder()
+                                                            .region(Region.ME_SOUTH_1)
+                                                            .build();
+
+        Region region = client.serviceClientConfiguration().region();
+        assertThat(region).isEqualTo(Region.ME_SOUTH_1);
+    }
 
     @Test
     public void syncClient_serviceClientConfiguration_shouldReturnCorrectClientOverrideConfigurationFields() {
@@ -38,11 +49,11 @@ public class SdkServiceClientConfigurationTest {
                                                             .build();
 
 
-        assertThat(client.sdkServiceClientConfiguration().overrideConfiguration().apiCallAttemptTimeout().get()).isEqualTo(Duration.ofSeconds(30));
-        assertThat(client.sdkServiceClientConfiguration().overrideConfiguration().apiCallTimeout().get()).isEqualTo(Duration.ofSeconds(90));
-        assertThat(client.sdkServiceClientConfiguration().overrideConfiguration().retryPolicy().get().numRetries()).isEqualTo(4);
-        assertThat(client.sdkServiceClientConfiguration().overrideConfiguration().defaultProfileFile()).isNotPresent();
-        assertThat(client.sdkServiceClientConfiguration().overrideConfiguration().metricPublishers()).isEmpty();
+        assertThat(client.serviceClientConfiguration().overrideConfiguration().apiCallAttemptTimeout().get()).isEqualTo(Duration.ofSeconds(30));
+        assertThat(client.serviceClientConfiguration().overrideConfiguration().apiCallTimeout().get()).isEqualTo(Duration.ofSeconds(90));
+        assertThat(client.serviceClientConfiguration().overrideConfiguration().retryPolicy().get().numRetries()).isEqualTo(4);
+        assertThat(client.serviceClientConfiguration().overrideConfiguration().defaultProfileFile()).isNotPresent();
+        assertThat(client.serviceClientConfiguration().overrideConfiguration().metricPublishers()).isEmpty();
     }
 
     @Test
@@ -50,13 +61,23 @@ public class SdkServiceClientConfigurationTest {
         ProtocolRestXmlClient client = ProtocolRestXmlClient.builder()
                                                             .build();
 
-        assertThat(client.sdkServiceClientConfiguration().overrideConfiguration().toString()).isEqualTo(
+        assertThat(client.serviceClientConfiguration().overrideConfiguration().toString()).isEqualTo(
             "ClientOverrideConfiguration(headers={}, executionInterceptors=[], advancedOptions={})");
-        assertThat(client.sdkServiceClientConfiguration().overrideConfiguration().apiCallAttemptTimeout()).isNotPresent();
-        assertThat(client.sdkServiceClientConfiguration().overrideConfiguration().apiCallTimeout()).isNotPresent();
-        assertThat(client.sdkServiceClientConfiguration().overrideConfiguration().retryPolicy()).isNotPresent();
-        assertThat(client.sdkServiceClientConfiguration().overrideConfiguration().defaultProfileFile()).isNotPresent();
-        assertThat(client.sdkServiceClientConfiguration().overrideConfiguration().metricPublishers()).isEmpty();
+        assertThat(client.serviceClientConfiguration().overrideConfiguration().apiCallAttemptTimeout()).isNotPresent();
+        assertThat(client.serviceClientConfiguration().overrideConfiguration().apiCallTimeout()).isNotPresent();
+        assertThat(client.serviceClientConfiguration().overrideConfiguration().retryPolicy()).isNotPresent();
+        assertThat(client.serviceClientConfiguration().overrideConfiguration().defaultProfileFile()).isNotPresent();
+        assertThat(client.serviceClientConfiguration().overrideConfiguration().metricPublishers()).isEmpty();
+    }
+
+    @Test
+    public void asyncClient_serviceClientConfiguration_shouldReturnCorrectRegion() {
+        ProtocolRestXmlAsyncClient client = ProtocolRestXmlAsyncClient.builder()
+                                                                      .region(Region.ME_SOUTH_1)
+                                                                      .build();
+
+        Region region = client.serviceClientConfiguration().region();
+        assertThat(region).isEqualTo(Region.ME_SOUTH_1);
     }
 
     @Test
@@ -72,11 +93,11 @@ public class SdkServiceClientConfigurationTest {
                                                                       .build();
 
 
-        assertThat(client.sdkServiceClientConfiguration().overrideConfiguration().apiCallAttemptTimeout().get()).isEqualTo(Duration.ofSeconds(30));
-        assertThat(client.sdkServiceClientConfiguration().overrideConfiguration().apiCallTimeout().get()).isEqualTo(Duration.ofSeconds(90));
-        assertThat(client.sdkServiceClientConfiguration().overrideConfiguration().retryPolicy().get().numRetries()).isEqualTo(4);
-        assertThat(client.sdkServiceClientConfiguration().overrideConfiguration().defaultProfileFile()).isNotPresent();
-        assertThat(client.sdkServiceClientConfiguration().overrideConfiguration().metricPublishers()).isEmpty();
+        assertThat(client.serviceClientConfiguration().overrideConfiguration().apiCallAttemptTimeout().get()).isEqualTo(Duration.ofSeconds(30));
+        assertThat(client.serviceClientConfiguration().overrideConfiguration().apiCallTimeout().get()).isEqualTo(Duration.ofSeconds(90));
+        assertThat(client.serviceClientConfiguration().overrideConfiguration().retryPolicy().get().numRetries()).isEqualTo(4);
+        assertThat(client.serviceClientConfiguration().overrideConfiguration().defaultProfileFile()).isNotPresent();
+        assertThat(client.serviceClientConfiguration().overrideConfiguration().metricPublishers()).isEmpty();
     }
 
     @Test
@@ -84,13 +105,13 @@ public class SdkServiceClientConfigurationTest {
         ProtocolRestXmlAsyncClient client = ProtocolRestXmlAsyncClient.builder()
                                                                       .build();
 
-        assertThat(client.sdkServiceClientConfiguration().overrideConfiguration().toString()).isEqualTo(
+        assertThat(client.serviceClientConfiguration().overrideConfiguration().toString()).isEqualTo(
             "ClientOverrideConfiguration(headers={}, executionInterceptors=[], advancedOptions={})");
-        assertThat(client.sdkServiceClientConfiguration().overrideConfiguration().apiCallAttemptTimeout()).isNotPresent();
-        assertThat(client.sdkServiceClientConfiguration().overrideConfiguration().apiCallTimeout()).isNotPresent();
-        assertThat(client.sdkServiceClientConfiguration().overrideConfiguration().retryPolicy()).isNotPresent();
-        assertThat(client.sdkServiceClientConfiguration().overrideConfiguration().defaultProfileFile()).isNotPresent();
-        assertThat(client.sdkServiceClientConfiguration().overrideConfiguration().metricPublishers()).isEmpty();
+        assertThat(client.serviceClientConfiguration().overrideConfiguration().apiCallAttemptTimeout()).isNotPresent();
+        assertThat(client.serviceClientConfiguration().overrideConfiguration().apiCallTimeout()).isNotPresent();
+        assertThat(client.serviceClientConfiguration().overrideConfiguration().retryPolicy()).isNotPresent();
+        assertThat(client.serviceClientConfiguration().overrideConfiguration().defaultProfileFile()).isNotPresent();
+        assertThat(client.serviceClientConfiguration().overrideConfiguration().metricPublishers()).isEmpty();
     }
 
 }

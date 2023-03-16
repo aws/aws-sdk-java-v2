@@ -11,10 +11,8 @@ import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.ApiName;
-import software.amazon.awssdk.core.AwsServiceClientConfiguration;
 import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
-import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -39,8 +37,7 @@ import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
-import software.amazon.awssdk.services.json.internal.DefaultAwsServiceClientConfiguration;
-import software.amazon.awssdk.services.json.internal.DefaultSdkServiceClientConfiguration;
+import software.amazon.awssdk.services.json.internal.JsonServiceServiceClientConfiguration;
 import software.amazon.awssdk.services.json.model.APostOperationRequest;
 import software.amazon.awssdk.services.json.model.APostOperationResponse;
 import software.amazon.awssdk.services.json.model.APostOperationWithOutputRequest;
@@ -101,16 +98,14 @@ final class DefaultJsonClient implements JsonClient {
 
     private final SdkClientConfiguration clientConfiguration;
 
-    private final SdkServiceClientConfiguration sdkServiceClientConfiguration;
-
-    private final AwsServiceClientConfiguration awsServiceClientConfiguration;
+    private final JsonServiceServiceClientConfiguration serviceClientConfiguration;
 
     protected DefaultJsonClient(SdkClientConfiguration clientConfiguration,
                                 ClientOverrideConfiguration clientOverrideConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
-        this.sdkServiceClientConfiguration = new DefaultSdkServiceClientConfiguration(clientOverrideConfiguration);
-        this.awsServiceClientConfiguration = new DefaultAwsServiceClientConfiguration(clientConfiguration);
+        this.serviceClientConfiguration = new JsonServiceServiceClientConfiguration(clientConfiguration,
+                                                                                    clientOverrideConfiguration);
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
     }
 
@@ -983,13 +978,8 @@ final class DefaultJsonClient implements JsonClient {
     }
 
     @Override
-    public final SdkServiceClientConfiguration sdkServiceClientConfiguration() {
-        return this.sdkServiceClientConfiguration;
-    }
-
-    @Override
-    public final AwsServiceClientConfiguration awsServiceClientConfiguration() {
-        return this.awsServiceClientConfiguration;
+    public final JsonServiceServiceClientConfiguration serviceClientConfiguration() {
+        return this.serviceClientConfiguration;
     }
 
     private static List<MetricPublisher> resolveMetricPublishers(SdkClientConfiguration clientConfiguration,

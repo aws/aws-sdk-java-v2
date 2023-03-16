@@ -9,11 +9,9 @@ import software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
-import software.amazon.awssdk.core.AwsServiceClientConfiguration;
 import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.Response;
-import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -35,8 +33,7 @@ import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 import software.amazon.awssdk.protocols.xml.AwsXmlProtocolFactory;
 import software.amazon.awssdk.protocols.xml.XmlOperationMetadata;
-import software.amazon.awssdk.services.xml.internal.DefaultAwsServiceClientConfiguration;
-import software.amazon.awssdk.services.xml.internal.DefaultSdkServiceClientConfiguration;
+import software.amazon.awssdk.services.xml.internal.XmlServiceServiceClientConfiguration;
 import software.amazon.awssdk.services.xml.model.APostOperationRequest;
 import software.amazon.awssdk.services.xml.model.APostOperationResponse;
 import software.amazon.awssdk.services.xml.model.APostOperationWithOutputRequest;
@@ -85,15 +82,13 @@ final class DefaultXmlClient implements XmlClient {
 
     private final SdkClientConfiguration clientConfiguration;
 
-    private final SdkServiceClientConfiguration sdkServiceClientConfiguration;
-
-    private final AwsServiceClientConfiguration awsServiceClientConfiguration;
+    private final XmlServiceServiceClientConfiguration serviceClientConfiguration;
 
     protected DefaultXmlClient(SdkClientConfiguration clientConfiguration, ClientOverrideConfiguration clientOverrideConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
-        this.sdkServiceClientConfiguration = new DefaultSdkServiceClientConfiguration(clientOverrideConfiguration);
-        this.awsServiceClientConfiguration = new DefaultAwsServiceClientConfiguration(clientConfiguration);
+        this.serviceClientConfiguration = new XmlServiceServiceClientConfiguration(clientConfiguration,
+                                                                                   clientOverrideConfiguration);
         this.protocolFactory = init();
     }
 
@@ -576,13 +571,8 @@ final class DefaultXmlClient implements XmlClient {
     }
 
     @Override
-    public final SdkServiceClientConfiguration sdkServiceClientConfiguration() {
-        return this.sdkServiceClientConfiguration;
-    }
-
-    @Override
-    public final AwsServiceClientConfiguration awsServiceClientConfiguration() {
-        return this.awsServiceClientConfiguration;
+    public final XmlServiceServiceClientConfiguration serviceClientConfiguration() {
+        return this.serviceClientConfiguration;
     }
 
     private static List<MetricPublisher> resolveMetricPublishers(SdkClientConfiguration clientConfiguration,

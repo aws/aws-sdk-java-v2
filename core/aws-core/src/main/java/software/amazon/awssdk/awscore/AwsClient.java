@@ -13,20 +13,19 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core;
+package software.amazon.awssdk.awscore;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.core.SdkClient;
 
+/**
+ * Interface for an AWS Client that extends SdkClient. All AWS service client interfaces should extend this interface.
+ */
 @SdkPublicApi
 @ThreadSafe
 public interface AwsClient extends SdkClient {
 
-    /**
-     * The AWS service client configuration exposes client settings to the user, e.g., region
-     *
-     * @return AwsServiceClientConfiguration
-     */
-    AwsServiceClientConfiguration awsServiceClientConfiguration();
-
+    @Override
+    AwsServiceClientConfiguration serviceClientConfiguration();
 }

@@ -9,10 +9,8 @@ import software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
-import software.amazon.awssdk.core.AwsServiceClientConfiguration;
 import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
-import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -33,8 +31,7 @@ import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 import software.amazon.awssdk.protocols.query.AwsQueryProtocolFactory;
-import software.amazon.awssdk.services.query.internal.DefaultAwsServiceClientConfiguration;
-import software.amazon.awssdk.services.query.internal.DefaultSdkServiceClientConfiguration;
+import software.amazon.awssdk.services.query.internal.QueryServiceServiceClientConfiguration;
 import software.amazon.awssdk.services.query.model.APostOperationRequest;
 import software.amazon.awssdk.services.query.model.APostOperationResponse;
 import software.amazon.awssdk.services.query.model.APostOperationWithOutputRequest;
@@ -90,16 +87,14 @@ final class DefaultQueryClient implements QueryClient {
 
     private final SdkClientConfiguration clientConfiguration;
 
-    private final SdkServiceClientConfiguration sdkServiceClientConfiguration;
-
-    private final AwsServiceClientConfiguration awsServiceClientConfiguration;
+    private final QueryServiceServiceClientConfiguration serviceClientConfiguration;
 
     protected DefaultQueryClient(SdkClientConfiguration clientConfiguration,
                                  ClientOverrideConfiguration clientOverrideConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
-        this.sdkServiceClientConfiguration = new DefaultSdkServiceClientConfiguration(clientOverrideConfiguration);
-        this.awsServiceClientConfiguration = new DefaultAwsServiceClientConfiguration(clientConfiguration);
+        this.serviceClientConfiguration = new QueryServiceServiceClientConfiguration(clientConfiguration,
+                                                                                     clientOverrideConfiguration);
         this.protocolFactory = init();
     }
 
@@ -697,13 +692,8 @@ final class DefaultQueryClient implements QueryClient {
     }
 
     @Override
-    public final SdkServiceClientConfiguration sdkServiceClientConfiguration() {
-        return this.sdkServiceClientConfiguration;
-    }
-
-    @Override
-    public final AwsServiceClientConfiguration awsServiceClientConfiguration() {
-        return this.awsServiceClientConfiguration;
+    public final QueryServiceServiceClientConfiguration serviceClientConfiguration() {
+        return this.serviceClientConfiguration;
     }
 
     private static List<MetricPublisher> resolveMetricPublishers(SdkClientConfiguration clientConfiguration,

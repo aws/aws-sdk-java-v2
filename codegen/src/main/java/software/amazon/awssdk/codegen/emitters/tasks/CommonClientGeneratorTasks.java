@@ -22,8 +22,7 @@ import software.amazon.awssdk.codegen.emitters.GeneratorTask;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.poet.builder.BaseClientBuilderClass;
 import software.amazon.awssdk.codegen.poet.builder.BaseClientBuilderInterface;
-import software.amazon.awssdk.codegen.poet.model.DefaultAwsServiceClientConfigurationClass;
-import software.amazon.awssdk.codegen.poet.model.DefaultSdkServiceClientConfigurationClass;
+import software.amazon.awssdk.codegen.poet.model.ServiceClientConfigurationClass;
 
 /**
  * Task for classes shared by {@link AsyncClientGeneratorTasks} and {@link SyncClientGeneratorTasks}.
@@ -37,8 +36,7 @@ public class CommonClientGeneratorTasks extends BaseGeneratorTasks {
     protected List<GeneratorTask> createTasks() throws Exception {
         return Arrays.asList(createBaseBuilderTask(),
                              createBaseBuilderInterfaceTask(),
-                             createDefaultSdkServiceClientConfigurationTask(),
-                             createDefaultAwsServiceClientConfigurationTask());
+                             createServiceClientConfigurationTask());
     }
 
     private GeneratorTask createBaseBuilderTask() throws IOException {
@@ -49,11 +47,7 @@ public class CommonClientGeneratorTasks extends BaseGeneratorTasks {
         return createPoetGeneratorTask(new BaseClientBuilderInterface(model));
     }
 
-    private GeneratorTask createDefaultSdkServiceClientConfigurationTask() throws IOException {
-        return createPoetGeneratorTask(new DefaultSdkServiceClientConfigurationClass(model));
-    }
-
-    private GeneratorTask createDefaultAwsServiceClientConfigurationTask() throws IOException {
-        return createPoetGeneratorTask(new DefaultAwsServiceClientConfigurationClass(model));
+    private GeneratorTask createServiceClientConfigurationTask() throws IOException {
+        return createPoetGeneratorTask(new ServiceClientConfigurationClass(model));
     }
 }

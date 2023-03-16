@@ -38,5 +38,5 @@ public interface SdkClient extends SdkAutoCloseable {
      *
      * @return SdkServiceClientConfiguration
      */
-    SdkServiceClientConfiguration sdkServiceClientConfiguration();
+    SdkServiceClientConfiguration serviceClientConfiguration();
 }
