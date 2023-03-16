@@ -23,6 +23,7 @@ import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpE
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.net.URI;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -79,8 +80,9 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
 
         Optional.ofNullable(s3NativeClientConfiguration.proxyOptions()).ifPresent(s3ClientOptions::withProxyOptions);
         Optional.ofNullable(s3NativeClientConfiguration.connectionTimeout())
-                .ifPresent(connectTimeoutMs -> s3ClientOptions.withConnectTimeoutMs(
-                    NumericUtils.saturatedCast(connectTimeoutMs.toMillis())));
+                .map(Duration::toMillis)
+                .map(NumericUtils::saturatedCast)
+                .ifPresent(s3ClientOptions::withConnectTimeoutMs);
         Optional.ofNullable(s3NativeClientConfiguration.httpMonitoringOptions())
                 .ifPresent(s3ClientOptions::withHttpMonitoringOptions);
 

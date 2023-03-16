@@ -89,8 +89,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
 
         if (builder.httpConfiguration != null) {
             this.proxyOptions = resolveProxy(builder.httpConfiguration.proxyConfiguration(), tlsContext).orElse(null);
-            this.connectionTimeout = builder.httpConfiguration.connectionTimeout() == null ? null :
-                                     builder.httpConfiguration.connectionTimeout();
+            this.connectionTimeout = builder.httpConfiguration.connectionTimeout();
             this.httpMonitoringOptions =
                 resolveHttpMonitoringOptions(builder.httpConfiguration.healthConfiguration()).orElse(null);
         } else {

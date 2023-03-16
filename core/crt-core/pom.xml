@@ -25,6 +25,10 @@
     </parent>
 
     <artifactId>crt-core</artifactId>
+    <name>AWS Java SDK :: AWS CRT Core</name>
+    <description>The AWS SDK for Java - AWS CRT Core holds common types that are built on the AWS Common Runtime
+    </description>
+    <url>https://aws.amazon.com/sdkforjava</url>
     <dependencies>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
