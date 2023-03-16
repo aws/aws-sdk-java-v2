@@ -29,7 +29,8 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * @see AwsCrtAsyncHttpClient.Builder#proxyConfiguration(ProxyConfiguration)
  */
 @SdkPublicApi
-public final class ProxyConfiguration extends CrtProxyConfiguration implements ToCopyableBuilder<ProxyConfiguration.Builder, ProxyConfiguration>  {
+public final class ProxyConfiguration extends CrtProxyConfiguration
+    implements ToCopyableBuilder<ProxyConfiguration.Builder, ProxyConfiguration>  {
 
     private ProxyConfiguration(DefaultBuilder builder) {
         super(builder);

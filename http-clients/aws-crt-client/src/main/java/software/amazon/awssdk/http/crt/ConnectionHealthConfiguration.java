@@ -27,7 +27,8 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  *
  */
 @SdkPublicApi
-public final class ConnectionHealthConfiguration extends CrtConnectionHealthConfiguration implements ToCopyableBuilder<ConnectionHealthConfiguration.Builder, ConnectionHealthConfiguration> {
+public final class ConnectionHealthConfiguration extends CrtConnectionHealthConfiguration
+    implements ToCopyableBuilder<ConnectionHealthConfiguration.Builder, ConnectionHealthConfiguration> {
 
     private ConnectionHealthConfiguration(DefaultBuilder builder) {
         super(builder);
@@ -47,7 +48,8 @@ public final class ConnectionHealthConfiguration extends CrtConnectionHealthConf
      *
      * <p>All implementations of this interface are mutable and not thread safe.</p>
      */
-    public interface Builder extends CrtConnectionHealthConfiguration.Builder, CopyableBuilder<Builder, ConnectionHealthConfiguration> {
+    public interface Builder extends CrtConnectionHealthConfiguration.Builder,
+                                     CopyableBuilder<Builder, ConnectionHealthConfiguration> {
 
         @Override
         Builder minimumThroughputInBps(Long minimumThroughputInBps);
@@ -62,7 +64,8 @@ public final class ConnectionHealthConfiguration extends CrtConnectionHealthConf
     /**
      * An SDK-internal implementation of {@link Builder}.
      */
-    private static final class DefaultBuilder extends CrtConnectionHealthConfiguration.DefaultBuilder<DefaultBuilder> implements Builder {
+    private static final class DefaultBuilder extends
+                                              CrtConnectionHealthConfiguration.DefaultBuilder<DefaultBuilder> implements Builder {
 
         private DefaultBuilder() {
         }
