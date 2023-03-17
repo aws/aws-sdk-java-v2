@@ -20,7 +20,6 @@ import static java.util.Collections.unmodifiableMap;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.document.JsonStringFormatHelper.addEscapeCharacters;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.document.JsonStringFormatHelper.stringValue;
 
-import com.amazonaws.util.StringUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -49,7 +48,9 @@ import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.utils.Lazy;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
+
 
 /**
  * Default implementation of {@link EnhancedDocument} used by the SDK to create Enhanced Documents. Attributes are initially saved
@@ -399,7 +400,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
 
         @Override
         public Builder remove(String attributeName) {
-            Validate.isTrue(!StringUtils.isNullOrEmpty(attributeName), "Attribute name must not be null or empty");
+            Validate.isTrue(!StringUtils.isEmpty(attributeName), "Attribute name must not be null or empty");
             nonAttributeValueMap.remove(attributeName);
             return this;
         }
