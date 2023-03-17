@@ -281,15 +281,18 @@ public interface EnhancedDocument {
     String getJson(String attributeName);
 
     /**
-     * Gets the boolean value for the specified attribute.
+     * Gets the {@link Boolean} value for the specified attribute.
      *
      * @param attributeName Name of the attribute.
-     * @return value of the specified attribute in the current document as a non-null Boolean.
+     * @return value of the specified attribute in the current document as a Boolean representation; or null if the attribute
+     * either doesn't exist or the attribute value is null.
      * @throws RuntimeException
-     *             if either the attribute doesn't exist or if the attribute
-     *             value cannot be converted into a boolean value.
+     *             if the attribute value cannot be converted to a Boolean representation.
+     *             Note that the Boolean representation of 0 and 1 in Numbers and "0" and "1" in Strings is false and true,
+     *             respectively.
+     *
      */
-    boolean getBoolean(String attributeName);
+    Boolean getBoolean(String attributeName);
 
 
     /**

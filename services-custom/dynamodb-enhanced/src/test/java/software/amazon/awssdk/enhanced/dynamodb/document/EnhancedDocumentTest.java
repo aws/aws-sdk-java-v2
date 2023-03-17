@@ -407,9 +407,7 @@ class EnhancedDocumentTest {
 
         Assertions.assertNull(enhancedDocument.getString(NULL_KEY));
         Assertions.assertNull(enhancedDocument.getList(NULL_KEY, EnhancedType.of(String.class)));
-        assertThatIllegalStateException().isThrownBy(() -> enhancedDocument.getBoolean(NULL_KEY))
-                                         .withMessage("Value of attribute nullKey of type null cannot be converted into a "
-                                                      + "boolean value");
+        assertThat(enhancedDocument.getBoolean(NULL_KEY)).isNull();
 
     }
 

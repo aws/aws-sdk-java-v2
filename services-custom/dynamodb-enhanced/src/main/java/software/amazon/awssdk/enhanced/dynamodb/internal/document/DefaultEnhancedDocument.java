@@ -189,11 +189,10 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
     }
 
     @Override
-    public boolean getBoolean(String attributeName) {
+    public Boolean getBoolean(String attributeName) {
         Boolean value = get(attributeName, Boolean.class);
         if (value == null) {
-            throw new IllegalStateException("Value of " + "attribute " + attributeName + " of type null cannot be converted"
-                                            + " into a boolean value");
+            return null;
         }
         return value.booleanValue();
     }
