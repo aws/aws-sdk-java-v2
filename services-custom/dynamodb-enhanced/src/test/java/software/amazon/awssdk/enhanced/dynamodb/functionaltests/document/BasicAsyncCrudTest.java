@@ -232,7 +232,7 @@ public class BasicAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
 
         Map<String, AttributeValue> key = simpleKey();
 
-        docMappedtable.putItem(r -> r.item(enhancedDocument));
+        docMappedtable.putItem(r -> r.item(enhancedDocument)).join();
         GetItemResponse lowLevelGetBeforeDelete = lowLevelClient.getItem(r -> r.key(key).tableName(tableName)).join();
 
 
@@ -261,7 +261,7 @@ public class BasicAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
                                                                      .putString("attribute3", "three")
                                                                      .build();
 
-        docMappedtable.putItem(enhancedDocument);
+        docMappedtable.putItem(enhancedDocument).join();
         EnhancedDocument beforeDeleteResult =
             docMappedtable.deleteItem(enhancedDocument).join();
         EnhancedDocument afterDeleteResult =
@@ -394,7 +394,7 @@ public class BasicAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
                                                                      .putString(ATTRIBUTE_NAME_WITH_SPECIAL_CHARACTERS, "three")
                                                                      .build();
 
-        docMappedtable.putItem(enhancedDocument);
+        docMappedtable.putItem(enhancedDocument).join();
         // Updating new Items other than the one present in testData
         EnhancedDocument.Builder updateDocBuilder = EnhancedDocument.builder()
                                                                     .attributeConverterProviders(defaultProvider())

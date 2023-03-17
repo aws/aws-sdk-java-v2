@@ -112,12 +112,13 @@ public final class DocumentTableSchema implements TableSchema<EnhancedDocument> 
     }
 
     private List<AttributeConverterProvider> mergeAttributeConverterProviders(EnhancedDocument item) {
-        Set<AttributeConverterProvider> providers = new LinkedHashSet<>();
-        if (item.attributeConverterProviders() != null) {
+        if (item.attributeConverterProviders() != null && !item.attributeConverterProviders().isEmpty()) {
+            Set<AttributeConverterProvider> providers = new LinkedHashSet<>();
             providers.addAll(item.attributeConverterProviders());
+            providers.addAll(attributeConverterProviders);
+            return providers.stream().collect(Collectors.toList());
         }
-        providers.addAll(attributeConverterProviders);
-        return providers.stream().collect(Collectors.toList());
+        return attributeConverterProviders;
     }
 
     @Override

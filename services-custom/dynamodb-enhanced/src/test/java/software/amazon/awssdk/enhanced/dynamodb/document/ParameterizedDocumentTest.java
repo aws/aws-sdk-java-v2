@@ -105,9 +105,10 @@ class ParameterizedDocumentTest {
                         break;
                     case N:
                         assertThat(enhancedAttributeValue.asNumber()).isEqualTo(enhancedDocument.getNumber(key).stringValue());
-                        assertThat(enhancedAttributeValue.asNumber()).isEqualTo(enhancedDocument.get(key, SdkNumber.class));
-                        assertThat(enhancedAttributeValue.asNumber()).isEqualTo(enhancedDocument.get(key, EnhancedType.of(SdkNumber.class)));
-
+                        assertThat(enhancedAttributeValue.asNumber()).isEqualTo(String.valueOf(enhancedDocument.get(key,
+                                                                                                            SdkNumber.class)));
+                        assertThat(enhancedAttributeValue.asNumber()).isEqualTo(enhancedDocument.get(key,
+                                                                                                     EnhancedType.of(SdkNumber.class)).toString());
                         break;
                     case B:
                         assertThat(enhancedAttributeValue.asBytes()).isEqualTo(enhancedDocument.getBytes(key));
@@ -139,7 +140,7 @@ class ParameterizedDocumentTest {
                             throw new IllegalStateException("Converter not found for " + enhancedType);
                         }
                         assertThat(converter.transformTo(value)).isEqualTo(enhancedDocument.getList(key, enhancedType));
-                        assertThat(enhancedDocument.getListOfUnknownList(key)).isEqualTo(value.l());
+                        assertThat(enhancedDocument.getListOfUnknownType(key)).isEqualTo(value.l());
                         break;
                     case M:
                         EnhancedType keyType = enhancedTypeMap.get(key).get(0);

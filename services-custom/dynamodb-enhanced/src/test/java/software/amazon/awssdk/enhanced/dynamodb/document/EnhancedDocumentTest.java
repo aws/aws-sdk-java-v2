@@ -365,6 +365,15 @@ class EnhancedDocumentTest {
         assertThat(removedAttributesDoc.isNull("nullKey")).isFalse();
         assertThat(removedAttributesDoc.isPresent("numberKey")).isFalse();
         assertThat(removedAttributesDoc.getString("stringKey")).isEqualTo("stringValue");
+
+        assertThatIllegalArgumentException().isThrownBy(
+                                                () -> removedAttributesDoc.toBuilder().remove(""))
+                                            .withMessage("Attribute name must not be null or empty");
+
+
+        assertThatIllegalArgumentException().isThrownBy(
+                                                () -> removedAttributesDoc.toBuilder().remove(null))
+                                            .withMessage("Attribute name must not be null or empty");
     }
 
     @Test

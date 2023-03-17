@@ -143,7 +143,7 @@ public interface EnhancedDocument {
      * <p>
      * <b>Retrieving String Type for a document</b>
      * {@snippet :
-     * Custom resultCustom = document.get("key", EnhancedType.of(String.class));
+     * String resultCustom = document.get("key", EnhancedType.of(String.class));
      * }
      * <b>Retrieving Custom Type for which Convertor Provider was defined while creating the document</b>
      * {@snippet :
@@ -172,7 +172,7 @@ public interface EnhancedDocument {
      * <p>
      * <b>Retrieving String Type for a document</b>
      * {@snippet :
-     * Custom resultCustom = document.get("key", String.class);
+     * String resultCustom = document.get("key", String.class);
      * }
      * <b>Retrieving Custom Type for which Convertor Provider was defined while creating the document</b>
      * {@snippet :
@@ -238,7 +238,7 @@ public interface EnhancedDocument {
      * Gets the Set of String values of the given attribute in the current document.
      * @param attributeName Name of the attribute.
      * @return value of the specified attribute in the current document as a set of SdkBytes;
-     * or null if the attribute either doesn't exist.
+     * or null if the attribute doesn't exist.
      */
     Set<SdkBytes> getBytesSet(String attributeName);
 
@@ -301,7 +301,7 @@ public interface EnhancedDocument {
      * @param attributeName Name of the attribute.
      * @return value of the specified attribute in the current document as a List of {@link AttributeValue}
      */
-    List<AttributeValue> getListOfUnknownList(String attributeName);
+    List<AttributeValue> getListOfUnknownType(String attributeName);
 
     /**
      * Retrieves a Map with String keys and corresponding AttributeValue objects as values for a specified attribute in a

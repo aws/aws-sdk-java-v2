@@ -199,7 +199,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
     }
 
     @Override
-    public List<AttributeValue> getListOfUnknownList(String attributeName) {
+    public List<AttributeValue> getListOfUnknownType(String attributeName) {
         AttributeValue attributeValue = attributeValueMap.getValue().get(attributeName);
         if (attributeValue == null) {
             return null;
@@ -403,6 +403,8 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
 
         @Override
         public Builder remove(String attributeName) {
+            Validate.isTrue(!(attributeName == null || attributeName.trim().length() == 0),
+                            "Attribute name must not be null or empty");
             nonAttributeValueMap.remove(attributeName);
             return this;
         }
@@ -492,9 +494,9 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
     private static void checkAndValidateClass(Class<?> type, boolean isPut) {
         Validate.paramNotNull(type, "type");
         Validate.isTrue(!type.isAssignableFrom(List.class),
-                        String.format(VALIDATE_TYPE_ERROR, List.class.getSimpleName(), isPut ? "put" : "get", "List"));
+                        String.format(VALIDATE_TYPE_ERROR, "List", isPut ? "put" : "get", "List"));
         Validate.isTrue(!type.isAssignableFrom(Map.class),
-                        String.format(VALIDATE_TYPE_ERROR, Map.class.getSimpleName(), isPut ? "put" : "get", "Map"));
+                        String.format(VALIDATE_TYPE_ERROR, "Map", isPut ? "put" : "get", "Map"));
 
     }
 }
