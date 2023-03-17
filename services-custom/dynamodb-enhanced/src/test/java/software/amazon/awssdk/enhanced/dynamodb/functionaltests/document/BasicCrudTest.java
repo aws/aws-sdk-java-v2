@@ -82,10 +82,7 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
                                                          .attributeConverterProviders(defaultProvider())
                                                          .build());
         docMappedtable.createTable();
-        
-        
-        
-    } 
+    }
 
     public BasicCrudTest(TestData testData) {
         this.testData = testData;
@@ -117,7 +114,6 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
         result.put("sort", AttributeValue.fromS("sort-value"));
         return result;
     }
-
 
     @After
     public void deleteTable() {
@@ -161,13 +157,11 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
 
     @Test
     public void updateOverwriteCompleteItem_usingShortcutForm() {
-
         EnhancedDocument enhancedDocument = appendKeysToDoc(testData).toBuilder()
                                                                      .putString("attribute", "one")
                                                                      .putString("attribute2", "two")
                                                                      .putString("attribute3", "three")
                                                                      .build();
-
         docMappedtable.putItem(enhancedDocument);
 
         // Updating new Items other than the one present in testData
@@ -201,7 +195,6 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
                                                                      .putString("attribute2", "two")
                                                                      .putString("attribute3", "three")
                                                                      .build();
-
         docMappedtable.putItem(enhancedDocument);
 
         // Updating new Items other than the one present in testData
@@ -216,7 +209,6 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
         docMappedtable.putItem(r -> r.item(updateDocument));
         Map<String, AttributeValue> key = simpleKey();
         GetItemResponse lowLevelGet = lowLevelClient.getItem(r -> r.key(key).tableName(tableName));
-
         // All the items are overwritten
         Assertions.assertThat(lowLevelGet.item()).isEqualTo(updateDocument.toMap());
 
@@ -233,9 +225,7 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
                                                                      .putString("attribute2", "two")
                                                                      .putString("attribute3", "three")
                                                                      .build();
-
         Map<String, AttributeValue> key = simpleKey();
-
         docMappedtable.putItem(r -> r.item(enhancedDocument));
         GetItemResponse lowLevelGetBeforeDelete = lowLevelClient.getItem(r -> r.key(key).tableName(tableName));
 
@@ -248,8 +238,6 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
             docMappedtable.getItem(Key.builder().partitionValue("id-value").sortValue("sort-value").build());
 
         GetItemResponse lowLevelGetAfterDelete = lowLevelClient.getItem(r -> r.key(key).tableName(tableName));
-
-
         assertThat(enhancedDocument.toMap(), is(EnhancedDocument.fromAttributeValueMap(lowLevelGetBeforeDelete.item()).toMap()));
         assertThat(beforeDeleteResult.toMap(), is(enhancedDocument.toMap()));
         assertThat(beforeDeleteResult.toMap(), is(lowLevelGetBeforeDelete.item()));
@@ -265,7 +253,6 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
                                                                      .putString("attribute2", "two")
                                                                      .putString("attribute3", "three")
                                                                      .build();
-
         docMappedtable.putItem(enhancedDocument);
         EnhancedDocument beforeDeleteResult =
             docMappedtable.deleteItem(enhancedDocument);
@@ -282,13 +269,11 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
 
     @Test
     public void putWithConditionThatSucceeds() {
-
         EnhancedDocument enhancedDocument = appendKeysToDoc(testData).toBuilder()
                                                                      .putString("attribute", "one")
                                                                      .putString("attribute2", "two")
                                                                      .putString("attribute3", "three")
                                                                      .build();
-
         docMappedtable.putItem(r -> r.item(enhancedDocument));
 
 
@@ -307,8 +292,6 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
 
         EnhancedDocument result = docMappedtable.getItem(r -> r.key(k -> k.partitionValue("id-value").sortValue("sort-value")));
         assertThat(result.toMap(), is(newDoc.toMap()));
-
-
     }
 
     @Test
@@ -319,7 +302,6 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
                                                                      .putString("attribute2", "two")
                                                                      .putString("attribute3", "three")
                                                                      .build();
-
         docMappedtable.putItem(r -> r.item(enhancedDocument));
 
 
@@ -363,7 +345,6 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
 
         Key key = docMappedtable.keyFrom(enhancedDocument);
         docMappedtable.deleteItem(DeleteItemEnhancedRequest.builder().key(key).conditionExpression(conditionExpression).build());
-
         EnhancedDocument result = docMappedtable.getItem(r -> r.key(key));
         assertThat(result, is(nullValue()));
     }
@@ -398,7 +379,6 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
                                                                      .putString("attribute2", "two")
                                                                      .putString(ATTRIBUTE_NAME_WITH_SPECIAL_CHARACTERS, "three")
                                                                      .build();
-
         docMappedtable.putItem(enhancedDocument);
         // Updating new Items other than the one present in testData
         EnhancedDocument.Builder updateDocBuilder = EnhancedDocument.builder()
@@ -410,8 +390,6 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
                                                                     .putString(ATTRIBUTE_NAME_WITH_SPECIAL_CHARACTERS, "six");
 
         EnhancedDocument expectedDocument = updateDocBuilder.build();
-
-
         // Explicitly Nullify each of the previous members
         testData.getEnhancedDocument().toMap().keySet().forEach(r -> {
             updateDocBuilder.putNull(r);
@@ -471,8 +449,6 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
                                                                      .putString("attribute2", "two")
                                                                      .putString(ATTRIBUTE_NAME_WITH_SPECIAL_CHARACTERS, "three")
                                                                      .build();
-
-
         docMappedtable.putItem(r -> r.item(enhancedDocument));
 
         EnhancedDocument updateDocument = EnhancedDocument.builder().attributeConverterProviders(defaultProvider())
@@ -483,8 +459,6 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
                                                           .putNull(ATTRIBUTE_NAME_WITH_SPECIAL_CHARACTERS).build();
 
         EnhancedDocument result = docMappedtable.updateItem(r -> r.item(updateDocument));
-
-
         assertThat(result.isPresent("attribute2"), is(false));
         assertThat(result.isPresent(ATTRIBUTE_NAME_WITH_SPECIAL_CHARACTERS), is(false));
         assertThat(result.getString("attribute"), is("four"));
@@ -505,7 +479,6 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
                                                                      .putString("attribute2", "two")
                                                                      .putString(ATTRIBUTE_NAME_WITH_SPECIAL_CHARACTERS, "three")
                                                                      .build();
-
         docMappedtable.putItem(r -> r.item(enhancedDocument));
 
         EnhancedDocument updateDocument = EnhancedDocument.builder()
@@ -514,13 +487,10 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
                                                           .putNull("attribute")
                                                           .putNull(ATTRIBUTE_NAME_WITH_SPECIAL_CHARACTERS)
                                                           .build();
-
-
         EnhancedDocument result = docMappedtable.updateItem(UpdateItemEnhancedRequest.builder(EnhancedDocument.class)
                                                                                      .item(updateDocument)
                                                                                      .ignoreNulls(true)
                                                                                      .build());
-
         EnhancedDocument expectedResult = appendKeysToDoc(testData).toBuilder()
                                                                    .putString("attribute2", "two")
                                                                    .build();
@@ -579,7 +549,6 @@ public class BasicCrudTest extends LocalDynamoDbSyncTestBase {
 
     @Test
     public void updateWithConditionThatFails() {
-
         EnhancedDocument enhancedDocument = appendKeysToDoc(testData).toBuilder()
                                                                      .putString("attribute", "one")
                                                                      .putString("attribute2", "two")

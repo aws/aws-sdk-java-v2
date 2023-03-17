@@ -21,7 +21,6 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider.defaultProvider;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
-
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -38,8 +37,6 @@ import org.junit.runners.Parameterized;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedAsyncClient;
-import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
-import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
@@ -48,23 +45,21 @@ import software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocument;
 import software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocumentTestData;
 import software.amazon.awssdk.enhanced.dynamodb.document.TestData;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.LocalDynamoDbAsyncTestBase;
-import software.amazon.awssdk.enhanced.dynamodb.functionaltests.LocalDynamoDbSyncTestBase;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
-import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedException;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
-
 
 @RunWith(Parameterized.class)
 public class BasicAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
 
     private static final String ATTRIBUTE_NAME_WITH_SPECIAL_CHARACTERS = "a*t:t.r-i#bute+3/4(&?5=@)<6>!ch$ar%";
     private final TestData testData;
+
     @Rule
     public ExpectedException exception = ExpectedException.none();
     private DynamoDbEnhancedAsyncClient enhancedClient;
@@ -72,7 +67,6 @@ public class BasicAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
     private DynamoDbAsyncClient lowLevelClient;
 
     private DynamoDbAsyncTable<EnhancedDocument> docMappedtable ;
-
 
     @Before
     public void setUp(){
@@ -89,9 +83,6 @@ public class BasicAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
                                                          .attributeConverterProviders(defaultProvider())
                                                          .build());
         docMappedtable.createTable().join();
-
-
-
     }
 
     public BasicAsyncCrudTest(TestData testData) {
@@ -124,7 +115,6 @@ public class BasicAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
         result.put("sort", AttributeValue.fromS("sort-value"));
         return result;
     }
-
 
     @After
     public void deleteTable() {
@@ -174,7 +164,6 @@ public class BasicAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
                                                                      .putString("attribute2", "two")
                                                                      .putString("attribute3", "three")
                                                                      .build();
-
         docMappedtable.putItem(enhancedDocument).join();
 
         // Updating new Items other than the one present in testData
@@ -256,7 +245,6 @@ public class BasicAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
 
         GetItemResponse lowLevelGetAfterDelete = lowLevelClient.getItem(r -> r.key(key).tableName(tableName)).join();
 
-
         assertThat(enhancedDocument.toMap(), is(EnhancedDocument.fromAttributeValueMap(lowLevelGetBeforeDelete.item()).toMap()));
         assertThat(beforeDeleteResult.toMap(), is(enhancedDocument.toMap()));
         assertThat(beforeDeleteResult.toMap(), is(lowLevelGetBeforeDelete.item()));
@@ -314,8 +302,6 @@ public class BasicAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
 
         EnhancedDocument result = docMappedtable.getItem(r -> r.key(k -> k.partitionValue("id-value").sortValue("sort-value"))).join();
         assertThat(result.toMap(), is(newDoc.toMap()));
-
-
     }
 
     @Test
@@ -419,8 +405,6 @@ public class BasicAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
                                                                     .putString(ATTRIBUTE_NAME_WITH_SPECIAL_CHARACTERS, "six");
 
         EnhancedDocument expectedDocument = updateDocBuilder.build();
-
-
         // Explicitly Nullify each of the previous members
         testData.getEnhancedDocument().toMap().keySet().forEach(r -> {
             updateDocBuilder.putNull(r);
@@ -479,8 +463,6 @@ public class BasicAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
                                                                      .putString("attribute2", "two")
                                                                      .putString(ATTRIBUTE_NAME_WITH_SPECIAL_CHARACTERS, "three")
                                                                      .build();
-
-
         docMappedtable.putItem(r -> r.item(enhancedDocument)).join();
 
         EnhancedDocument updateDocument = EnhancedDocument.builder().attributeConverterProviders(defaultProvider())
@@ -522,17 +504,13 @@ public class BasicAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
                                                           .putNull("attribute")
                                                           .putNull(ATTRIBUTE_NAME_WITH_SPECIAL_CHARACTERS)
                                                           .build();
-
-
         EnhancedDocument result = docMappedtable.updateItem(UpdateItemEnhancedRequest.builder(EnhancedDocument.class)
                                                                                      .item(updateDocument)
                                                                                      .ignoreNulls(true)
                                                                                      .build()).join();
-
         EnhancedDocument expectedResult = appendKeysToDoc(testData).toBuilder()
                                                                    .putString("attribute2", "two")
                                                                    .build();
-
         assertThat(result.toMap(), is(expectedResult.toMap()));
     }
 
@@ -552,8 +530,6 @@ public class BasicAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
 
     @Test
     public void updateWithConditionThatSucceeds() {
-
-
         EnhancedDocument enhancedDocument = appendKeysToDoc(testData).toBuilder()
                                                                      .putString("attribute", "one")
                                                                      .putString("attribute2", "two")
@@ -594,7 +570,6 @@ public class BasicAsyncCrudTest extends LocalDynamoDbAsyncTestBase {
                                                                      .putString("attribute2", "two")
                                                                      .putString(ATTRIBUTE_NAME_WITH_SPECIAL_CHARACTERS, "three")
                                                                      .build();
-
         docMappedtable.putItem(r -> r.item(enhancedDocument)).join();
 
         EnhancedDocument newDoc = EnhancedDocument.builder()

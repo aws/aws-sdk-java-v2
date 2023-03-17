@@ -22,17 +22,12 @@ import static org.hamcrest.Matchers.nullValue;
 import static software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider.defaultProvider;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.numberValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primarySortKey;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.secondaryPartitionKey;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.secondarySortKey;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.junit.After;
@@ -49,7 +44,6 @@ import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocument;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.LocalDynamoDbSyncTestBase;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.CreateTableEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.EnhancedGlobalSecondaryIndex;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
@@ -60,8 +54,6 @@ import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.ProjectionType;
 
 public class IndexScanTest extends LocalDynamoDbSyncTestBase {
-
-
 
     private DynamoDbClient lowLevelClient;
 
@@ -75,8 +67,6 @@ public class IndexScanTest extends LocalDynamoDbSyncTestBase {
 
     @Before
     public void createTable() {
-
-
         lowLevelClient = getDynamoDbClient();
         enhancedClient = DynamoDbEnhancedClient.builder()
                                                .dynamoDbClient(lowLevelClient)
@@ -192,9 +182,6 @@ public class IndexScanTest extends LocalDynamoDbSyncTestBase {
         assertThat(results.hasNext(), is(true));
         Page<EnhancedDocument> page3 = results.next();
         assertThat(results.hasNext(), is(false));
-
-
-
         assertThat(page1.items().stream().map(i -> i.toMap()).collect(Collectors.toList()),
                    is(KEYS_ONLY_DOCUMENTS.subList(0, 5).stream().map(i -> i.toMap()).collect(Collectors.toList())));
         assertThat(page1.lastEvaluatedKey(), is(getKeyMap(4)));

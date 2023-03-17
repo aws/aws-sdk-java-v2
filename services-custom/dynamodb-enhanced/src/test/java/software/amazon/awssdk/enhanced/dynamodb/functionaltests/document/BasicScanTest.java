@@ -24,8 +24,6 @@ import static org.hamcrest.Matchers.nullValue;
 import static software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider.defaultProvider;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.numberValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primarySortKey;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,7 +32,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.junit.After;
@@ -56,7 +53,6 @@ import software.amazon.awssdk.enhanced.dynamodb.functionaltests.LocalDynamoDbSyn
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.InnerAttribConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.InnerAttributeRecord;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.NestedTestRecord;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -85,14 +81,6 @@ public class BasicScanTest extends LocalDynamoDbSyncTestBase {
                                                .dynamoDbClient(lowLevelClient)
                                                .build();
 
-        mappedTable = enhancedClient.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
-
-        mappedNestedTable = enhancedClient.table(getConcreteTableName("nested-table-name"),
-                                                                                         TableSchema.fromClass(NestedTestRecord.class));
-
-        mappedTable.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput()));
-        mappedNestedTable.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput()));
-
         docMappedtable = enhancedClient.table(tableName,
                                               TableSchema.documentSchemaBuilder()
                                                          .attributeConverterProviders(defaultProvider())
@@ -119,95 +107,6 @@ public class BasicScanTest extends LocalDynamoDbSyncTestBase {
         neseteddocMappedtable.createTable();
 
     }
-
-
-    private static class Record {
-        private String id;
-        private Integer sort;
-
-        private String getId() {
-            return id;
-        }
-
-        private Record setId(String id) {
-            this.id = id;
-            return this;
-        }
-
-        private Integer getSort() {
-            return sort;
-        }
-
-        private Record setSort(Integer sort) {
-            this.sort = sort;
-            return this;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            Record record = (Record) o;
-            return Objects.equals(id, record.id) &&
-                   Objects.equals(sort, record.sort);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(id, sort);
-        }
-    }
-
-    private static final TableSchema<Record> TABLE_SCHEMA =
-        StaticTableSchema.builder(Record.class)
-                         .newItemSupplier(Record::new)
-                         .addAttribute(String.class, a -> a.name("id")
-                                                           .getter(Record::getId)
-                                                           .setter(Record::setId)
-                                                           .tags(primaryPartitionKey()))
-                         .addAttribute(Integer.class, a -> a.name("sort")
-                                                            .getter(Record::getSort)
-                                                            .setter(Record::setSort)
-                                                            .tags(primarySortKey()))
-                         .build();
-
-    private static final List<Record> RECORDS =
-        IntStream.range(0, 10)
-                 .mapToObj(i -> new Record().setId("id-value").setSort(i))
-                 .collect(Collectors.toList());
-
-    private static final List<NestedTestRecord> NESTED_TEST_RECORDS =
-            IntStream.range(0, 10)
-                    .mapToObj(i -> {
-                        final NestedTestRecord nestedTestRecord = new NestedTestRecord();
-                        nestedTestRecord.setOuterAttribOne("id-value-" + i);
-                        nestedTestRecord.setSort(i);
-                        final InnerAttributeRecord innerAttributeRecord = new InnerAttributeRecord();
-                        innerAttributeRecord.setAttribOne("attribOne-"+i);
-                        innerAttributeRecord.setAttribTwo(i);
-                        nestedTestRecord.setInnerAttributeRecord(innerAttributeRecord);
-                        nestedTestRecord.setDotVariable("v"+i);
-                        return nestedTestRecord;
-                    })
-                    .collect(Collectors.toList());
-
-
-    private DynamoDbTable<Record> mappedTable;
-
-    private DynamoDbTable<NestedTestRecord> mappedNestedTable;
-
-
-    private void insertRecords() {
-        RECORDS.forEach(record -> mappedTable.putItem(r -> r.item(record)));
-    }
-
-    private void insertNestedRecords() {
-        NESTED_TEST_RECORDS.forEach(nestedTestRecord -> mappedNestedTable.putItem(r -> r.item(nestedTestRecord)));
-    }
-
-
-
-
     private static final List<EnhancedDocument> DOCUMENTS =
         IntStream.range(0, 10)
                  .mapToObj(i -> EnhancedDocument.builder()
@@ -268,8 +167,6 @@ public class BasicScanTest extends LocalDynamoDbSyncTestBase {
                                                           .build());
     }
 
-
-
     @Test
     public void scanAllRecordsDefaultSettings() {
         insertDocuments();
@@ -288,7 +185,6 @@ public class BasicScanTest extends LocalDynamoDbSyncTestBase {
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
     }
 
-
     @Test
     public void queryAllRecordsDefaultSettings_withProjection() {
         insertDocuments();
@@ -300,14 +196,12 @@ public class BasicScanTest extends LocalDynamoDbSyncTestBase {
         Page<EnhancedDocument> page = results.next();
         assertThat(results.hasNext(), is(false));
 
-        assertThat(page.items().size(), is(RECORDS.size()));
+        assertThat(page.items().size(), is(DOCUMENTS.size()));
 
         EnhancedDocument firstRecord = page.items().get(0);
         assertThat(firstRecord.getString("id"), is(nullValue()));
         assertThat(firstRecord.getNumber("sort").intValue(), is(0));
     }
-
-
 
     @Test
     public void scanAllRecordsDefaultSettings_viaItems() {
@@ -316,14 +210,6 @@ public class BasicScanTest extends LocalDynamoDbSyncTestBase {
         assertThat(items.stream().map(i->i.toJson()).collect(Collectors.toList()),
                    is(DOCUMENTS_WITH_PROVIDERS.stream().map(i -> i.toJson()).collect(Collectors.toList())));
     }
-
-
-
-
-
-
-
-
 
     @Test
     public void scanAllRecordsWithFilter() {
@@ -405,7 +291,6 @@ public class BasicScanTest extends LocalDynamoDbSyncTestBase {
         assertThat(page3.lastEvaluatedKey(), is(nullValue()));
     }
 
-
     @Test
     public void scanLimit_viaItems() {
         insertDocuments();
@@ -445,7 +330,6 @@ public class BasicScanTest extends LocalDynamoDbSyncTestBase {
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
     }
 
-
     @Test
     public void scanExclusiveStartKey_viaItems() {
         insertDocuments();
@@ -461,6 +345,7 @@ public class BasicScanTest extends LocalDynamoDbSyncTestBase {
         result.put("sort", numberValue(sort));
         return Collections.unmodifiableMap(result);
     }
+
     @Test
     public void scanAllRecordsWithFilterAndNestedProjectionSingleAttribute() {
         insertNestedDocuments();
@@ -592,7 +477,6 @@ public class BasicScanTest extends LocalDynamoDbSyncTestBase {
                 .expressionValues(expressionValues)
                 .putExpressionName("#sort", "sort")
                 .build();
-
 
         Iterator<Page<EnhancedDocument>> results =
                 neseteddocMappedtable.scan(

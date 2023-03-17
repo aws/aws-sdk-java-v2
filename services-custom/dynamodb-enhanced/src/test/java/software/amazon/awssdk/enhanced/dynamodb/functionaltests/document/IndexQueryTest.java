@@ -22,17 +22,12 @@ import static org.hamcrest.Matchers.nullValue;
 import static software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider.defaultProvider;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.numberValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primarySortKey;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.secondaryPartitionKey;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.secondarySortKey;
 import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.keyEqualTo;
 
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.junit.After;
@@ -49,8 +44,6 @@ import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocument;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.LocalDynamoDbSyncTestBase;
-import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.InnerAttribConverterProvider;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.CreateTableEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.EnhancedGlobalSecondaryIndex;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
@@ -62,8 +55,6 @@ import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.ProjectionType;
 
 public class IndexQueryTest extends LocalDynamoDbSyncTestBase {
-
-
 
     private DynamoDbClient lowLevelClient;
 
@@ -146,10 +137,7 @@ public class IndexQueryTest extends LocalDynamoDbSyncTestBase {
         getDynamoDbClient().deleteTable(DeleteTableRequest.builder()
                                                           .tableName(tableName)
                                                           .build());
-
-
     }
-
 
     @Test
     public void queryAllRecordsDefaultSettings_usingShortcutForm() {
@@ -184,7 +172,6 @@ public class IndexQueryTest extends LocalDynamoDbSyncTestBase {
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
     }
 
-
     @Test
     public void queryLimit() {
         insertDocuments();
@@ -194,7 +181,6 @@ public class IndexQueryTest extends LocalDynamoDbSyncTestBase {
                                                           .limit(5)
                                                           .build())
                                .iterator();
-
         assertThat(results.hasNext(), is(true));
         Page<EnhancedDocument> page1 = results.next();
         assertThat(results.hasNext(), is(true));
@@ -222,7 +208,6 @@ public class IndexQueryTest extends LocalDynamoDbSyncTestBase {
         assertThat(page3.items().stream().map(i -> i.toMap()).collect(Collectors.toList()), is(empty()));
         assertThat(page3.lastEvaluatedKey(), is(nullValue()));
     }
-
 
     @Test
     public void queryEmpty() {
@@ -256,6 +241,4 @@ public class IndexQueryTest extends LocalDynamoDbSyncTestBase {
                    is(KEYS_ONLY_DOCUMENTS.subList(8, 10).stream().map(i -> i.toMap()).collect(Collectors.toList())));
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
     }
-
-
 }

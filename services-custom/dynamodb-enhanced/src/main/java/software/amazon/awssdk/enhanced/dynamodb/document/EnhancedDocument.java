@@ -52,7 +52,7 @@ import software.amazon.awssdk.utils.Validate;
  * // CustomAttributeConverterProvider.create() is an example for some Custom converter provider
  * EnhancedDocument enhancedDocumentWithCustomConverter = EnhancedDocument.builder().attributeConverterProviders
  * (CustomAttributeConverterProvider.create(), AttributeConverterProvide.defaultProvider()
- * .putWithTypethType("customObject", customObject, EnhancedType.of(CustomClass.class))
+ * .put("customObject", customObject, EnhancedType.of(CustomClass.class))
  * .build();
  *}
  * <p>Enhanced Document can be created with Json as input using Static factory method.In this case it used
