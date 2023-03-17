@@ -1,3 +1,20 @@
+# __2.20.27__ __2023-03-17__
+## __AWS Config__
+  - ### Features
+    - This release adds resourceType enums for types released from October 2022 through February 2023.
+
+## __AWS Database Migration Service__
+  - ### Features
+    - S3 setting to create AWS Glue Data Catalog. Oracle setting to control conversion of timestamp column. Support for Kafka SASL Plain authentication. Setting to map boolean from PostgreSQL to Redshift. SQL Server settings to force lob lookup on inline LOBs and to control access of database logs.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWSBillingConductor__
+  - ### Features
+    - This release adds a new filter to ListAccountAssociations API and a new filter to ListBillingGroups API.
+
 # __2.20.26__ __2023-03-16__
 ## __AWS Resource Explorer__
   - ### Features
