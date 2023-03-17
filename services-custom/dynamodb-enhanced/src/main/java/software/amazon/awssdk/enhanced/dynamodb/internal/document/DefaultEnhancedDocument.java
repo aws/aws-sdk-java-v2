@@ -20,6 +20,7 @@ import static java.util.Collections.unmodifiableMap;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.document.JsonStringFormatHelper.addEscapeCharacters;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.document.JsonStringFormatHelper.stringValue;
 
+import com.amazonaws.util.StringUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -190,11 +191,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
 
     @Override
     public Boolean getBoolean(String attributeName) {
-        Boolean value = get(attributeName, Boolean.class);
-        if (value == null) {
-            return null;
-        }
-        return value.booleanValue();
+        return get(attributeName, Boolean.class);
     }
 
     @Override
@@ -402,8 +399,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
 
         @Override
         public Builder remove(String attributeName) {
-            Validate.isTrue(!(attributeName == null || attributeName.trim().length() == 0),
-                            "Attribute name must not be null or empty");
+            Validate.isTrue(!StringUtils.isNullOrEmpty(attributeName), "Attribute name must not be null or empty");
             nonAttributeValueMap.remove(attributeName);
             return this;
         }
