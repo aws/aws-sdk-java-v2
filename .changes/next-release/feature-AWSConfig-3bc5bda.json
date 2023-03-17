@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Config",
-    "contributor": "",
-    "description": "This release adds resourceType enums for types released from October 2022 through February 2023."
-}
