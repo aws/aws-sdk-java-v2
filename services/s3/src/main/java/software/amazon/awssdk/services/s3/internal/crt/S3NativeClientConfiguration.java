@@ -57,12 +57,13 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
     private final HttpProxyOptions proxyOptions;
     private final Duration connectionTimeout;
     private final HttpMonitoringOptions httpMonitoringOptions;
+    private final TlsContextOptions clientTlsContextOptions;
 
     public S3NativeClientConfiguration(Builder builder) {
         this.signingRegion = builder.signingRegion == null ? DefaultAwsRegionProviderChain.builder().build().getRegion().id() :
                              builder.signingRegion;
         this.clientBootstrap = new ClientBootstrap(null, null);
-        TlsContextOptions clientTlsContextOptions =
+        this.clientTlsContextOptions =
             TlsContextOptions.createDefaultClient()
                              .withCipherPreference(TlsCipherPreference.TLS_CIPHER_SYSTEM_DEFAULT);
         this.tlsContext = new TlsContext(clientTlsContextOptions);
@@ -155,6 +156,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
     @Override
     public void close() {
         clientBootstrap.close();
+        clientTlsContextOptions.close();
         tlsContext.close();
         credentialProviderAdapter.close();
     }
