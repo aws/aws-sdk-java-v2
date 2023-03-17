@@ -19,8 +19,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -67,6 +69,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 @SdkPublicApi
 public final class DocumentTableSchema implements TableSchema<EnhancedDocument> {
 
+    private static final AttributeValue NULL_ATTRIBUTE_VALUE = AttributeValue.fromNul(true);
     private final TableMetadata tableMetadata;
     private final List<AttributeConverterProvider> attributeConverterProviders;
 
@@ -109,12 +112,12 @@ public final class DocumentTableSchema implements TableSchema<EnhancedDocument> 
     }
 
     private List<AttributeConverterProvider> mergeAttributeConverterProviders(EnhancedDocument item) {
-        List<AttributeConverterProvider> providers = new ArrayList<>();
+        Set<AttributeConverterProvider> providers = new LinkedHashSet<>();
         if (item.attributeConverterProviders() != null) {
             providers.addAll(item.attributeConverterProviders());
         }
         providers.addAll(attributeConverterProviders);
-        return providers;
+        return providers.stream().collect(Collectors.toList());
     }
 
     @Override

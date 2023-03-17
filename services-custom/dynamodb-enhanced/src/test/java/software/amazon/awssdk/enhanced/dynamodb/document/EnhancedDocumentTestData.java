@@ -26,7 +26,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -110,25 +109,25 @@ public final class EnhancedDocumentTestData implements ArgumentsProvider {
 
         testDataList.add(dataBuilder().scenario("record")
 
-                                      .ddbItemMap(map().withKeyValue("id", AttributeValue.fromS("id-value"))
-                                                      .withKeyValue("sort",AttributeValue.fromS("sort-value"))
-                                                      .withKeyValue("attribute", AttributeValue.fromS("one"))
-                                                      .withKeyValue("attribute2", AttributeValue.fromS("two"))
-                                                      .withKeyValue("attribute3", AttributeValue.fromS("three")).get())
+                                      .ddbItemMap(map().withKeyValue("uniqueId", AttributeValue.fromS("id-value"))
+                                                      .withKeyValue("sortKey",AttributeValue.fromS("sort-value"))
+                                                      .withKeyValue("attributeKey", AttributeValue.fromS("one"))
+                                                      .withKeyValue("attributeKey2", AttributeValue.fromS("two"))
+                                                      .withKeyValue("attributeKey3", AttributeValue.fromS("three")).get())
                                       .enhancedDocument(
                                             defaultDocBuilder()
-                                                .putString("id","id-value")
-                                                .putString("sort","sort-value")
-                                                .putString("attribute","one")
-                                                .putString("attribute2","two")
-                                                .putString("attribute3","three")
+                                                .putString("uniqueId","id-value")
+                                                .putString("sortKey","sort-value")
+                                                .putString("attributeKey","one")
+                                                .putString("attributeKey2","two")
+                                                .putString("attributeKey3","three")
                                                 .build()
                                       )
 
 
                                       .attributeConverterProvider(defaultProvider())
-                                      .json("{\"id\":\"id-value\",\"sort\":\"sort-value\",\"attribute\":\"one\","
-                                            + "\"attribute2\":\"two\",\"attribute3\":\"three\"}")
+                                      .json("{\"uniqueId\":\"id-value\",\"sortKey\":\"sort-value\",\"attributeKey\":\"one\","
+                                            + "\"attributeKey2\":\"two\",\"attributeKey3\":\"three\"}")
 
                                       .build());
 
@@ -333,8 +332,8 @@ public final class EnhancedDocumentTestData implements ArgumentsProvider {
                                               .get())
                                       .enhancedDocument(
                                           defaultDocBuilder()
-                                              .putMapOfType("simpleMap", getStringSimpleMap("suffix", 7, CharSequenceStringConverter.create()),
-                                                            EnhancedType.of(CharSequence.class), EnhancedType.of(String.class))
+                                              .putMap("simpleMap", getStringSimpleMap("suffix", 7, CharSequenceStringConverter.create()),
+                                                      EnhancedType.of(CharSequence.class), EnhancedType.of(String.class))
                                               .build()
                                       )
                                       .attributeConverterProvider(defaultProvider())
@@ -360,13 +359,13 @@ public final class EnhancedDocumentTestData implements ArgumentsProvider {
                                           defaultDocBuilder()
                                               .attributeConverterProviders(CustomAttributeForDocumentConverterProvider.create()
                                                   , defaultProvider())
-                                              .putMapOfType("customMapValue",
-                                                            Stream.of(Pair.of("entryOne", customValueWithBaseAndOffset(2, 10)))
+                                              .putMap("customMapValue",
+                                                      Stream.of(Pair.of("entryOne", customValueWithBaseAndOffset(2, 10)))
                                                                   .collect(Collectors.toMap(p -> CharSequenceStringConverter.create().fromString(p.left()), p -> p.right(),
                                                                                             (oldValue, newValue) -> oldValue,
                                                                                             LinkedHashMap::new))
                                                   , EnhancedType.of(CharSequence.class),
-                                                            EnhancedType.of(CustomClassForDocumentAPI.class))
+                                                      EnhancedType.of(CustomClassForDocumentAPI.class))
                                               .build()
                                       )
                                       .json("{\"customMapValue\":{\"entryOne\":{\"instantList\":[\"2023-03-01T17:14:05.050Z\","
@@ -384,11 +383,11 @@ public final class EnhancedDocumentTestData implements ArgumentsProvider {
                                       .ddbItemMap(map().withKeyValue("nullKey",AttributeValue.fromNul(true)).get())
                                       .enhancedDocument(
                                           defaultDocBuilder()
-                                              .putString("nullKey", null)
+                                              .putNull("nullKey")
                                               .putNumber("numberKey", 1)
                                               .putString("stringKey", "stringValue")
                                               .putList("numberList", Arrays.asList(1, 2, 3), EnhancedType.of(Integer.class))
-                                              .putWithType("simpleDate", LocalDate.MIN, EnhancedType.of(LocalDate.class))
+                                              .put("simpleDate", LocalDate.MIN, EnhancedType.of(LocalDate.class))
                                               .putStringSet("stringSet", Stream.of("one", "two").collect(Collectors.toSet()))
                                               .putBytes("sdkByteKey", SdkBytes.fromUtf8String("a"))
                                               .putBytesSet("sdkByteSet",
@@ -396,16 +395,16 @@ public final class EnhancedDocumentTestData implements ArgumentsProvider {
                                                                      SdkBytes.fromUtf8String("b")).collect(Collectors.toSet()))
                                               .putNumberSet("numberSetSet", Stream.of(1, 2).collect(Collectors.toSet()))
                                               .putList("numberList", Arrays.asList(4, 5, 6), EnhancedType.of(Integer.class))
-                                              .putMapOfType("simpleMap",
-                                                            mapFromSimpleKeyValue(Pair.of("78b3522c-2ab3-4162-8c5d"
+                                              .putMap("simpleMap",
+                                                      mapFromSimpleKeyValue(Pair.of("78b3522c-2ab3-4162-8c5d"
                                                                                                        + "-f093fa76e68c", 3),
                                                                                                Pair.of("4ae1f694-52ce-4cf6-8211"
                                                                                                        + "-232ccf780da8", 9)),
-                                                            EnhancedType.of(String.class), EnhancedType.of(Integer.class))
-                                              .putMapOfType("mapKey", mapFromSimpleKeyValue(Pair.of("1", Arrays.asList("a", "b"
+                                                      EnhancedType.of(String.class), EnhancedType.of(Integer.class))
+                                              .putMap("mapKey", mapFromSimpleKeyValue(Pair.of("1", Arrays.asList("a", "b"
                                                                 , "c")), Pair.of("2",
                                                                                  Collections.singletonList("1"))),
-                                                            EnhancedType.of(String.class), EnhancedType.listOf(String.class))
+                                                      EnhancedType.of(String.class), EnhancedType.listOf(String.class))
                                               .build()
 
                                       )
@@ -520,7 +519,7 @@ public final class EnhancedDocumentTestData implements ArgumentsProvider {
                                                                  SdkBytes.fromUtf8String("i3"))
                                                        ,EnhancedType.of(SdkBytes.class)
                                               )
-                                              .putMapOfType("mapOfBytes"
+                                              .putMap("mapOfBytes"
                                                   , Stream.of(Pair.of("k1", SdkBytes.fromUtf8String("v1"))
                                                             ,Pair.of("k2", SdkBytes.fromUtf8String("v2")))
                                                                 .collect(Collectors.toMap(k->k.left(),
