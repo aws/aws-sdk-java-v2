@@ -48,7 +48,9 @@ import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.utils.Lazy;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
+
 
 /**
  * Default implementation of {@link EnhancedDocument} used by the SDK to create Enhanced Documents. Attributes are initially saved
@@ -62,8 +64,10 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 public class DefaultEnhancedDocument implements EnhancedDocument {
 
-    public static final IllegalStateException NULL_SET_ERROR = new IllegalStateException("Set must not have null values.");
+    private static final IllegalStateException NULL_SET_ERROR = new IllegalStateException("Set must not have null values.");
     private static final JsonItemAttributeConverter JSON_ATTRIBUTE_CONVERTER = JsonItemAttributeConverter.create();
+    private static final String VALIDATE_TYPE_ERROR = "Values of type %s are not supported by this API, please use the "
+                                                     + "%s%s API instead";
     private final Map<String, Object> nonAttributeValueMap;
     private final Map<String, EnhancedType> enhancedTypeMap;
     private final List<AttributeConverterProvider> attributeConverterProviders;
@@ -140,7 +144,9 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
         return get(attributeName, SdkNumber.class);
     }
 
-    private <T> T get(String attributeName, Class<T> clazz) {
+    @Override
+    public <T> T get(String attributeName, Class<T> clazz) {
+        checkAndValidateClass(clazz, false);
         return get(attributeName, EnhancedType.of(clazz));
     }
 
@@ -181,7 +187,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
         if (attributeValue == null) {
             return null;
         }
-        return JSON_ATTRIBUTE_CONVERTER.transformTo(attributeValue).toString();
+        return stringValue(JSON_ATTRIBUTE_CONVERTER.transformTo(attributeValue));
     }
 
     @Override
@@ -190,7 +196,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
     }
 
     @Override
-    public List<AttributeValue> getUnknownTypeList(String attributeName) {
+    public List<AttributeValue> getListOfUnknownType(String attributeName) {
         AttributeValue attributeValue = attributeValueMap.getValue().get(attributeName);
         if (attributeValue == null) {
             return null;
@@ -202,7 +208,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
     }
 
     @Override
-    public Map<String, AttributeValue> getUnknownTypeMap(String attributeName) {
+    public Map<String, AttributeValue> getMapOfUnknownType(String attributeName) {
         AttributeValue attributeValue = attributeValueMap.getValue().get(attributeName);
         if (attributeValue == null) {
             return null;
@@ -257,7 +263,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
         if (type.rawClass().equals(AttributeValue.class)) {
             return (T) attributeValue;
         }
-        return (T) converterForClass(type, attributeConverterChain).transformTo(attributeValue);
+        return converterForClass(type, attributeConverterChain).transformTo(attributeValue);
     }
 
     public static class DefaultBuilder implements EnhancedDocument.Builder {
@@ -278,8 +284,18 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
         }
 
         public Builder putObject(String attributeName, Object value) {
-            Validate.paramNotNull(attributeName, "attributeName");
-            Validate.paramNotBlank(attributeName.trim(), "attributeName");
+            putObject(attributeName, value, false);
+            return this;
+        }
+
+        private Builder putObject(String attributeName, Object value, boolean ignoreNullValue) {
+
+            if (!ignoreNullValue) {
+                checkInvalidAttribute(attributeName, value);
+            } else {
+                Validate.paramNotNull(attributeName, "attributeName");
+                Validate.paramNotBlank(attributeName.trim(), "attributeName");
+            }
             enhancedTypeMap.remove(attributeName);
             nonAttributeValueMap.remove(attributeName);
             nonAttributeValueMap.put(attributeName, value);
@@ -302,13 +318,13 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
         }
 
         @Override
-        public Builder putBoolean(String attributeName, Boolean value) {
-            return putObject(attributeName, value);
+        public Builder putBoolean(String attributeName, boolean value) {
+            return putObject(attributeName, Boolean.valueOf(value));
         }
 
         @Override
         public Builder putNull(String attributeName) {
-            return putObject(attributeName, null);
+            return putObject(attributeName, null, true);
         }
 
         @Override
@@ -317,7 +333,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
             if (values.stream().anyMatch(Objects::isNull)) {
                 throw NULL_SET_ERROR;
             }
-            return putWithType(attributeName, values, EnhancedType.setOf(String.class));
+            return put(attributeName, values, EnhancedType.setOf(String.class));
         }
 
         @Override
@@ -330,7 +346,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
                     }
                     return SdkNumber.fromString(number.toString());
                 }).collect(Collectors.toCollection(LinkedHashSet::new));
-            return putWithType(attributeName, sdkNumberSet, EnhancedType.setOf(SdkNumber.class));
+            return put(attributeName, sdkNumberSet, EnhancedType.setOf(SdkNumber.class));
         }
 
         @Override
@@ -339,18 +355,18 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
             if (values.stream().anyMatch(Objects::isNull)) {
                 throw NULL_SET_ERROR;
             }
-            return putWithType(attributeName, values, EnhancedType.setOf(SdkBytes.class));
+            return put(attributeName, values, EnhancedType.setOf(SdkBytes.class));
         }
 
         @Override
         public <T> Builder putList(String attributeName, List<T> value, EnhancedType<T> type) {
             checkInvalidAttribute(attributeName, value);
             Validate.paramNotNull(type, "type");
-            return putWithType(attributeName, value, EnhancedType.listOf(type));
+            return put(attributeName, value, EnhancedType.listOf(type));
         }
 
         @Override
-        public <T> Builder putWithType(String attributeName, T value, EnhancedType<T> type) {
+        public <T> Builder put(String attributeName, T value, EnhancedType<T> type) {
             checkInvalidAttribute(attributeName, value);
             Validate.notNull(attributeName, "attributeName cannot be null.");
             enhancedTypeMap.put(attributeName, type);
@@ -360,19 +376,33 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
         }
 
         @Override
-        public <K, V> Builder putMapOfType(String attributeName, Map<K, V> value, EnhancedType<K> keyType,
-                                           EnhancedType<V> valueType) {
+        public <T> Builder put(String attributeName, T value, Class<T> type) {
+            checkAndValidateClass(type, true);
+            put(attributeName, value, EnhancedType.of(type));
+            return this;
+        }
+
+        @Override
+        public <K, V> Builder putMap(String attributeName, Map<K, V> value, EnhancedType<K> keyType,
+                                     EnhancedType<V> valueType) {
             checkInvalidAttribute(attributeName, value);
             Validate.notNull(attributeName, "attributeName cannot be null.");
             Validate.paramNotNull(keyType, "keyType");
             Validate.paramNotNull(valueType, "valueType");
-            return putWithType(attributeName, value, EnhancedType.mapOf(keyType, valueType));
+            return put(attributeName, value, EnhancedType.mapOf(keyType, valueType));
         }
 
         @Override
         public Builder putJson(String attributeName, String json) {
             checkInvalidAttribute(attributeName, json);
             return putObject(attributeName, getAttributeValueFromJson(json));
+        }
+
+        @Override
+        public Builder remove(String attributeName) {
+            Validate.isTrue(!StringUtils.isEmpty(attributeName), "Attribute name must not be null or empty");
+            nonAttributeValueMap.remove(attributeName);
+            return this;
         }
 
         @Override
@@ -430,8 +460,9 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
         private static void checkInvalidAttribute(String attributeName, Object value) {
             Validate.paramNotNull(attributeName, "attributeName");
             Validate.paramNotBlank(attributeName.trim(), "attributeName");
-            Validate.notNull(value, "%s must not be null. Use putNull API to insert a Null value", value);
+            Validate.notNull(value, "Value for %s must not be null. Use putNull API to insert a Null value", attributeName);
         }
+
     }
 
     @Override
@@ -456,5 +487,12 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
         return result;
     }
 
+    private static void checkAndValidateClass(Class<?> type, boolean isPut) {
+        Validate.paramNotNull(type, "type");
+        Validate.isTrue(!type.isAssignableFrom(List.class),
+                        String.format(VALIDATE_TYPE_ERROR, "List", isPut ? "put" : "get", "List"));
+        Validate.isTrue(!type.isAssignableFrom(Map.class),
+                        String.format(VALIDATE_TYPE_ERROR, "Map", isPut ? "put" : "get", "Map"));
 
+    }
 }

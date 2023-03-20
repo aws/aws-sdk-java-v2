@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ArgumentsSource;
@@ -101,15 +100,25 @@ class ParameterizedDocumentTest {
                         break;
                     case S:
                         assertThat(enhancedAttributeValue.asString()).isEqualTo(enhancedDocument.getString(key));
+                        assertThat(enhancedAttributeValue.asString()).isEqualTo(enhancedDocument.get(key, String.class));
+                        assertThat(enhancedAttributeValue.asString()).isEqualTo(enhancedDocument.get(key, EnhancedType.of(String.class)));
                         break;
                     case N:
                         assertThat(enhancedAttributeValue.asNumber()).isEqualTo(enhancedDocument.getNumber(key).stringValue());
+                        assertThat(enhancedAttributeValue.asNumber()).isEqualTo(String.valueOf(enhancedDocument.get(key,
+                                                                                                            SdkNumber.class)));
+                        assertThat(enhancedAttributeValue.asNumber()).isEqualTo(enhancedDocument.get(key,
+                                                                                                     EnhancedType.of(SdkNumber.class)).toString());
                         break;
                     case B:
                         assertThat(enhancedAttributeValue.asBytes()).isEqualTo(enhancedDocument.getBytes(key));
+                        assertThat(enhancedAttributeValue.asBytes()).isEqualTo(enhancedDocument.get(key, SdkBytes.class));
+                        assertThat(enhancedAttributeValue.asBytes()).isEqualTo(enhancedDocument.get(key, EnhancedType.of(SdkBytes.class)));
                         break;
                     case BOOL:
                         assertThat(enhancedAttributeValue.asBoolean()).isEqualTo(enhancedDocument.getBoolean(key));
+                        assertThat(enhancedAttributeValue.asBoolean()).isEqualTo(enhancedDocument.get(key, Boolean.class));
+                        assertThat(enhancedAttributeValue.asBoolean()).isEqualTo(enhancedDocument.get(key, EnhancedType.of(Boolean.class)));
                         break;
                     case NS:
                         Set<SdkNumber> expectedNumber = chainConverterProvider.converterFor(EnhancedType.setOf(SdkNumber.class)).transformTo(value);
@@ -131,7 +140,7 @@ class ParameterizedDocumentTest {
                             throw new IllegalStateException("Converter not found for " + enhancedType);
                         }
                         assertThat(converter.transformTo(value)).isEqualTo(enhancedDocument.getList(key, enhancedType));
-                        assertThat(enhancedDocument.getUnknownTypeList(key)).isEqualTo(value.l());
+                        assertThat(enhancedDocument.getListOfUnknownType(key)).isEqualTo(value.l());
                         break;
                     case M:
                         EnhancedType keyType = enhancedTypeMap.get(key).get(0);
@@ -142,7 +151,7 @@ class ParameterizedDocumentTest {
                         );
                         assertThat(mapAttributeConverter.transformTo(value))
                             .isEqualTo(enhancedDocument.getMap(key, keyType, valueType));
-                        assertThat(enhancedDocument.getUnknownTypeMap(key)).isEqualTo(value.m());
+                        assertThat(enhancedDocument.getMapOfUnknownType(key)).isEqualTo(value.m());
                         break;
                     default:
                         throw new IllegalStateException("EnhancedAttributeValue type not found: " + enhancedAttributeValue.type());

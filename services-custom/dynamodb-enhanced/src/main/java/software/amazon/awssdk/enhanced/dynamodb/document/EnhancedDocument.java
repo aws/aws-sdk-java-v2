@@ -51,8 +51,8 @@ import software.amazon.awssdk.utils.Validate;
  * {@snippet :
  * // CustomAttributeConverterProvider.create() is an example for some Custom converter provider
  * EnhancedDocument enhancedDocumentWithCustomConverter = EnhancedDocument.builder().attributeConverterProviders
- * (CustomAttributeConverterProvider.create(), AttributeConverterProvide.defaultProvider())
- * .putWithType("customObject", customObject, EnhancedType.of(CustomClass.class))
+ * (CustomAttributeConverterProvider.create(), AttributeConverterProvide.defaultProvider()
+ * .put("customObject", customObject, EnhancedType.of(CustomClass.class))
  * .build();
  *}
  * <p>Enhanced Document can be created with Json as input using Static factory method.In this case it used
@@ -143,7 +143,7 @@ public interface EnhancedDocument {
      * <p>
      * <b>Retrieving String Type for a document</b>
      * {@snippet :
-     * Custom resultCustom = document.get("key", EnhancedType.of(Custom.class));
+     * String resultCustom = document.get("key", EnhancedType.of(String.class));
      * }
      * <b>Retrieving Custom Type for which Convertor Provider was defined while creating the document</b>
      * {@snippet :
@@ -165,6 +165,31 @@ public interface EnhancedDocument {
      * }
      */
     <T> T get(String attributeName, EnhancedType<T> type);
+
+    /**
+     * Returns the value of the specified attribute in the current document as a specified class type; or null if the
+     * attribute either doesn't exist or the attribute value is null.
+     * <p>
+     * <b>Retrieving String Type for a document</b>
+     * {@snippet :
+     * String resultCustom = document.get("key", String.class);
+     * }
+     * <b>Retrieving Custom Type for which Convertor Provider was defined while creating the document</b>
+     * {@snippet :
+     * Custom resultCustom = document.get("key", Custom.class);
+     * }
+     * <p>
+     * Note :
+     * This API should not be used to retrieve values of List and Map types.
+     * Instead, getList and getMap APIs should be used to retrieve attributes of type List and Map, respectively.
+     * </p>
+     * @param attributeName Name of the attribute.
+     * @param clazz         Class type of value.
+     * @param <T>           The type of the attribute value.
+     * @return Attribute value of type T
+     * }
+     */
+    <T> T get(String attributeName, Class<T> clazz);
 
     /**
      * Gets the String value of specified attribute in the document.
@@ -212,8 +237,8 @@ public interface EnhancedDocument {
     /**
      * Gets the Set of String values of the given attribute in the current document.
      * @param attributeName Name of the attribute.
-     * @return value of the specified attribute in the current document as a set of SdkBytes; or null if the attribute either
-     * doesn't exist or the attribute value is null.
+     * @return value of the specified attribute in the current document as a set of SdkBytes;
+     * or null if the attribute doesn't exist.
      */
     Set<SdkBytes> getBytesSet(String attributeName);
 
@@ -223,8 +248,8 @@ public interface EnhancedDocument {
      * @param attributeName Name of the attribute.
      * @param type          {@link EnhancedType} of Type T.         
      * @param <T>           Type T of List elements
-     * @return value of the specified attribute in the current document as a list of type T; or null if the
-     * attribute either doesn't exist or the attribute value is null.
+     * @return value of the specified attribute in the current document as a list of type T,
+     * or null if the attribute does not exist.
      */
 
     <T> List<T> getList(String attributeName, EnhancedType<T> type);
@@ -259,10 +284,13 @@ public interface EnhancedDocument {
      * Gets the {@link Boolean} value for the specified attribute.
      *
      * @param attributeName Name of the attribute.
-     * @return value of the specified attribute in the current document as a non-null Boolean.
+     * @return value of the specified attribute in the current document as a Boolean representation; or null if the attribute
+     * either doesn't exist or the attribute value is null.
      * @throws RuntimeException
-     *             if either the attribute doesn't exist or if the attribute
-     *             value cannot be converted into a boolean value.
+     *             if the attribute value cannot be converted to a Boolean representation.
+     *             Note that the Boolean representation of 0 and 1 in Numbers and "0" and "1" in Strings is false and true,
+     *             respectively.
+     *
      */
     Boolean getBoolean(String attributeName);
 
@@ -276,7 +304,7 @@ public interface EnhancedDocument {
      * @param attributeName Name of the attribute.
      * @return value of the specified attribute in the current document as a List of {@link AttributeValue}
      */
-    List<AttributeValue> getUnknownTypeList(String attributeName);
+    List<AttributeValue> getListOfUnknownType(String attributeName);
 
     /**
      * Retrieves a Map with String keys and corresponding AttributeValue objects as values for a specified attribute in a
@@ -287,7 +315,7 @@ public interface EnhancedDocument {
      * @param attributeName Name of the attribute.
      * @return value of the specified attribute in the current document as a {@link AttributeValue}
      */
-    Map<String, AttributeValue> getUnknownTypeMap(String attributeName);
+    Map<String, AttributeValue> getMapOfUnknownType(String attributeName);
 
     /**
      *
@@ -350,7 +378,7 @@ public interface EnhancedDocument {
          * @param value         The boolean value that needs to be set.
          * @return Builder instance to construct a {@link EnhancedDocument}
          */
-        Builder putBoolean(String attributeName, Boolean value);
+        Builder putBoolean(String attributeName, boolean value);
 
         /**
          * Appends an attribute of name attributeName with a null value.
@@ -414,11 +442,33 @@ public interface EnhancedDocument {
          * provider.
          * Example:
          {@snippet :
-             EnhancedDocument.builder().putWithType("customKey", customValue, EnhancedType.of(CustomClass.class));
-         * }
+          * EnhancedDocument.builder().put("customKey", customValue, EnhancedType.of(CustomClass.class));
+          *}
          * Use {@link #putString(String, String)} or {@link #putNumber(String, Number)} for inserting simple value types of
          * attributes.
-         * Use {@link #putList(String, List, EnhancedType)} or {@link #putMapOfType(String, Map, EnhancedType, EnhancedType)} for
+         * Use {@link #putList(String, List, EnhancedType)} or {@link #putMap(String, Map, EnhancedType, EnhancedType)} for
+         * inserting collections of attribute values.
+         * Note that the attribute converter provider added to the DocumentBuilder must provide the converter for the class T
+         * that is to be inserted.
+         @param attributeName the name of the attribute to be added to the document.
+         @param value the value to set.
+         @param type the Enhanced type of the value to set.
+         @return a builder instance to construct a {@link EnhancedDocument}.
+         @param <T> the type of the value to set.
+         */
+        <T> Builder put(String attributeName, T value, EnhancedType<T> type);
+
+        /**
+         * Appends an attribute named {@code attributeName} with a value of Class type T.
+         * Use this method to insert attribute values of custom types that have attribute converters defined in a converter
+         * provider.
+         * Example:
+         {@snippet :
+          * EnhancedDocument.builder().put("customKey", customValue, CustomClass.class);
+          *}
+         * Use {@link #putString(String, String)} or {@link #putNumber(String, Number)} for inserting simple value types of
+         * attributes.
+         * Use {@link #putList(String, List, EnhancedType)} or {@link #putMap(String, Map, EnhancedType, EnhancedType)} for
          * inserting collections of attribute values.
          * Note that the attribute converter provider added to the DocumentBuilder must provide the converter for the class T
          * that is to be inserted.
@@ -428,7 +478,7 @@ public interface EnhancedDocument {
          @return a builder instance to construct a {@link EnhancedDocument}.
          @param <T> the type of the value to set.
          */
-        <T> Builder putWithType(String attributeName, T value, EnhancedType<T> type);
+        <T> Builder put(String attributeName, T value, Class<T> type);
 
         /**
          * Appends an attribute with the specified name and a Map containing keys and values of {@link EnhancedType} K
@@ -437,14 +487,14 @@ public interface EnhancedDocument {
          * values.
          * <p>For example, to insert a map with String keys and Long values:
          * {@snippet :
-         * EnhancedDocument.builder().putMapOfType("stringMap", mapWithStringKeyNumberValue, EnhancedType.of(String.class),
+         * EnhancedDocument.builder().putMap("stringMap", mapWithStringKeyNumberValue, EnhancedType.of(String.class),
          * EnhancedType.of(String.class), EnhancedType.of(Long.class))
-         * }
+         *}
          * <p>For example, to insert a map of String Key and Custom Values:
          * {@snippet :
-         * EnhancedDocument.builder().putMapOfType("customMap", mapWithStringKeyCustomValue, EnhancedType.of(String.class),
+         * EnhancedDocument.builder().putMap("customMap", mapWithStringKeyCustomValue, EnhancedType.of(String.class),
          * EnhancedType.of(String.class), EnhancedType.of(Custom.class))
-         * }
+         *}
          * Note that the AttributeConverterProvider added to the DocumentBuilder should provide the converter for the classes
          * K and V that
          * are to be inserted.
@@ -454,7 +504,7 @@ public interface EnhancedDocument {
          * @param valueType     Enhanced type of Value class.
          * @return Builder instance to construct a {@link EnhancedDocument}
          */
-        <K, V> Builder putMapOfType(String attributeName, Map<K, V> value, EnhancedType<K> keyType, EnhancedType<V> valueType);
+        <K, V> Builder putMap(String attributeName, Map<K, V> value, EnhancedType<K> keyType, EnhancedType<V> valueType);
 
         /**
          Appends an attribute to the document builder with the specified name and value of a JSON document in string format.
@@ -463,6 +513,15 @@ public interface EnhancedDocument {
          * @return Builder instance to construct a {@link EnhancedDocument}
          */
         Builder putJson(String attributeName, String json);
+
+
+        /**
+         * Removes a previously appended attribute.
+         * This can be used where a previously added attribute to the Builder is no longer needed.
+         * @param attributeName The attribute that needs to be removed.
+         * @return Builder instance to construct a {@link EnhancedDocument}
+         */
+        Builder remove(String attributeName);
 
         /**
          * Appends collection of attributeConverterProvider to the document builder. These
