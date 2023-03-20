@@ -98,7 +98,7 @@ class EnhancedDocumentTest {
     }
 
     @Test
-    public void enhancedDocWithNestedListAndMaps() {
+    void enhancedDocWithNestedListAndMaps() {
         /**
          * No attributeConverters supplied, in this case it uses the {@link DefaultAttributeConverterProvider} and does not error
          */
@@ -130,8 +130,8 @@ class EnhancedDocumentTest {
         assertThat(simpleDoc.getString("HashKey")).isEqualTo("abcdefg123");
         assertThat(simpleDoc.isNull("nullKey")).isTrue();
 
-        assertThat(simpleDoc.getNumber("numberKey")).isNotEqualTo(2.0);
-        assertThat(simpleDoc.getNumber("numberKey").doubleValue()).isEqualTo(2.0);
+        assertThat(simpleDoc.getNumber("numberKey")).isEqualTo(SdkNumber.fromDouble(2.0));
+        assertThat(simpleDoc.getNumber("numberKey").bigDecimalValue().compareTo(BigDecimal.valueOf(2.0))).isEqualTo(0);
 
         assertThat(simpleDoc.getBytes("sdkByte")).isEqualTo(SdkBytes.fromUtf8String("a"));
         assertThat(simpleDoc.getBoolean("booleanKey")).isTrue();

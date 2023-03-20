@@ -263,7 +263,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
         if (type.rawClass().equals(AttributeValue.class)) {
             return (T) attributeValue;
         }
-        return (T) converterForClass(type, attributeConverterChain).transformTo(attributeValue);
+        return converterForClass(type, attributeConverterChain).transformTo(attributeValue);
     }
 
     public static class DefaultBuilder implements EnhancedDocument.Builder {

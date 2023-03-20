@@ -68,8 +68,6 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  */
 @SdkPublicApi
 public final class DocumentTableSchema implements TableSchema<EnhancedDocument> {
-
-    private static final AttributeValue NULL_ATTRIBUTE_VALUE = AttributeValue.fromNul(true);
     private final TableMetadata tableMetadata;
     private final List<AttributeConverterProvider> attributeConverterProviders;
 
