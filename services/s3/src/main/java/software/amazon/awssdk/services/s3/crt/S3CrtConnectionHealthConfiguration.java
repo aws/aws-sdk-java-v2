@@ -13,24 +13,27 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.crt;
+package software.amazon.awssdk.services.s3.crt;
 
 import java.time.Duration;
+import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.crtcore.CrtConnectionHealthConfiguration;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * Configuration that defines health checks for all connections established by
- * the {@link ConnectionHealthConfiguration}.
+ * the AWS CRT-based S3 client
  *
  */
 @SdkPublicApi
-public final class ConnectionHealthConfiguration extends CrtConnectionHealthConfiguration
-    implements ToCopyableBuilder<ConnectionHealthConfiguration.Builder, ConnectionHealthConfiguration> {
-
-    private ConnectionHealthConfiguration(DefaultBuilder builder) {
+@Immutable
+@ThreadSafe
+public final class S3CrtConnectionHealthConfiguration extends CrtConnectionHealthConfiguration
+    implements ToCopyableBuilder<S3CrtConnectionHealthConfiguration.Builder, S3CrtConnectionHealthConfiguration> {
+    private S3CrtConnectionHealthConfiguration(DefaultBuilder builder) {
         super(builder);
     }
 
@@ -43,13 +46,23 @@ public final class ConnectionHealthConfiguration extends CrtConnectionHealthConf
         return new DefaultBuilder(this);
     }
 
+    @Override
+    public boolean equals(Object o) {
+        return super.equals(o);
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode();
+    }
+
     /**
-     * A builder for {@link ConnectionHealthConfiguration}.
+     * A builder for {@link S3CrtConnectionHealthConfiguration}.
      *
      * <p>All implementations of this interface are mutable and not thread safe.</p>
      */
     public interface Builder extends CrtConnectionHealthConfiguration.Builder,
-                                     CopyableBuilder<Builder, ConnectionHealthConfiguration> {
+                                     CopyableBuilder<Builder, S3CrtConnectionHealthConfiguration> {
 
         @Override
         Builder minimumThroughputInBps(Long minimumThroughputInBps);
@@ -58,25 +71,22 @@ public final class ConnectionHealthConfiguration extends CrtConnectionHealthConf
         Builder minimumThroughputTimeout(Duration minimumThroughputTimeout);
 
         @Override
-        ConnectionHealthConfiguration build();
+        S3CrtConnectionHealthConfiguration build();
     }
 
-    /**
-     * An SDK-internal implementation of {@link Builder}.
-     */
-    private static final class DefaultBuilder extends
-                                              CrtConnectionHealthConfiguration.DefaultBuilder<DefaultBuilder> implements Builder {
+    private static final class DefaultBuilder
+        extends CrtConnectionHealthConfiguration.DefaultBuilder<DefaultBuilder> implements Builder {
 
         private DefaultBuilder() {
         }
 
-        private DefaultBuilder(ConnectionHealthConfiguration configuration) {
+        private DefaultBuilder(S3CrtConnectionHealthConfiguration configuration) {
             super(configuration);
         }
 
         @Override
-        public ConnectionHealthConfiguration build() {
-            return new ConnectionHealthConfiguration(this);
+        public S3CrtConnectionHealthConfiguration build() {
+            return new S3CrtConnectionHealthConfiguration(this);
         }
     }
 }

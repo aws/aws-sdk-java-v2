@@ -46,6 +46,7 @@
         <module>json-utils</module>
         <module>endpoints-spi</module>
         <module>imds</module>
+        <module>crt-core</module>
     </modules>
 
     <dependencyManagement>

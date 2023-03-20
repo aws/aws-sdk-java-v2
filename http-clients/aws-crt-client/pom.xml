@@ -76,6 +76,11 @@
             <artifactId>utils</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>crt-core</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
 
         <!--Test Dependencies-->
         <dependency>
