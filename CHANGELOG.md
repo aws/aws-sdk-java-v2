@@ -1,3 +1,28 @@
+# __2.20.28__ __2023-03-20__
+## __AWS CRT-based S3 client__
+  - ### Features
+    - Exposes `S3CrtHttpConfiguration` to allow users to configure HTTP settings such as proxy and connection timeout on AWS CRT-based S3 client. [#3262](https://github.com/aws/aws-sdk-java-v2/issues/3262)
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Neptune__
+  - ### Features
+    - This release makes following few changes. db-cluster-identifier is now a required parameter of create-db-instance. describe-db-cluster will now return PendingModifiedValues and GlobalClusterIdentifier fields in the response.
+
+## __Amazon S3 on Outposts__
+  - ### Features
+    - S3 On Outposts added support for endpoint status, and a failed endpoint reason, if any
+
+## __Amazon WorkDocs__
+  - ### Features
+    - This release adds a new API, SearchResources, which enable users to search through metadata and content of folders, documents, document versions and comments in a WorkDocs site.
+
+## __Application Auto Scaling__
+  - ### Features
+    - With this release customers can now tag their Application Auto Scaling registered targets with key-value pairs and manage IAM permissions for all the tagged resources centrally.
+
 # __2.20.27__ __2023-03-17__
 ## __AWS Config__
   - ### Features

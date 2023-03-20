@@ -17,7 +17,9 @@ package software.amazon.awssdk.http.crt;
 
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.crtcore.CrtConnectionHealthConfiguration;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * Configuration that defines health checks for all connections established by
@@ -25,33 +27,20 @@ import software.amazon.awssdk.utils.Validate;
  *
  */
 @SdkPublicApi
-public final class ConnectionHealthConfiguration {
-    private final long minimumThroughputInBps;
-    private final Duration minimumThroughputTimeout;
+public final class ConnectionHealthConfiguration extends CrtConnectionHealthConfiguration
+    implements ToCopyableBuilder<ConnectionHealthConfiguration.Builder, ConnectionHealthConfiguration> {
 
-    private ConnectionHealthConfiguration(DefaultConnectionHealthConfigurationBuilder builder) {
-        this.minimumThroughputInBps = Validate.paramNotNull(builder.minimumThroughputInBps,
-                                                            "minimumThroughputInBps");
-        this.minimumThroughputTimeout = Validate.isPositive(builder.minimumThroughputTimeout,
-                                                            "minimumThroughputTimeout");
-    }
-
-    /**
-     * @return the minimum amount of throughput, in bytes per second, for a connection to be considered healthy.
-     */
-    public long minimumThroughputInBps() {
-        return minimumThroughputInBps;
-    }
-
-    /**
-     * @return How long a connection is allowed to be unhealthy before getting shut down.
-     */
-    public Duration minimumThroughputTimeout() {
-        return minimumThroughputTimeout;
+    private ConnectionHealthConfiguration(DefaultBuilder builder) {
+        super(builder);
     }
 
     public static Builder builder() {
-        return new DefaultConnectionHealthConfigurationBuilder();
+        return new DefaultBuilder();
+    }
+
+    @Override
+    public Builder toBuilder() {
+        return new DefaultBuilder(this);
     }
 
     /**
@@ -59,52 +48,30 @@ public final class ConnectionHealthConfiguration {
      *
      * <p>All implementations of this interface are mutable and not thread safe.</p>
      */
-    public interface Builder {
+    public interface Builder extends CrtConnectionHealthConfiguration.Builder,
+                                     CopyableBuilder<Builder, ConnectionHealthConfiguration> {
 
-        /**
-         * Sets a throughput threshold for connections. Throughput below this value will be considered unhealthy.
-         *
-         * @param minimumThroughputInBps minimum amount of throughput, in bytes per second, for a connection to be
-         * considered healthy.
-         * @return Builder
-         */
+        @Override
         Builder minimumThroughputInBps(Long minimumThroughputInBps);
 
-        /**
-         * Sets how long a connection is allowed to be unhealthy before getting shut down.
-         *
-         * <p>
-         * It only supports seconds precision
-         *
-         * @param minimumThroughputTimeout How long a connection is allowed to be unhealthy
-         * before getting shut down.
-         * @return Builder
-         */
+        @Override
         Builder minimumThroughputTimeout(Duration minimumThroughputTimeout);
 
+        @Override
         ConnectionHealthConfiguration build();
     }
 
     /**
      * An SDK-internal implementation of {@link Builder}.
      */
-    private static final class DefaultConnectionHealthConfigurationBuilder implements Builder {
-        private Long minimumThroughputInBps;
-        private Duration minimumThroughputTimeout;
+    private static final class DefaultBuilder extends
+                                              CrtConnectionHealthConfiguration.DefaultBuilder<DefaultBuilder> implements Builder {
 
-        private DefaultConnectionHealthConfigurationBuilder() {
+        private DefaultBuilder() {
         }
 
-        @Override
-        public Builder minimumThroughputInBps(Long minimumThroughputInBps) {
-            this.minimumThroughputInBps = minimumThroughputInBps;
-            return this;
-        }
-
-        @Override
-        public Builder minimumThroughputTimeout(Duration minimumThroughputTimeout) {
-            this.minimumThroughputTimeout = minimumThroughputTimeout;
-            return this;
+        private DefaultBuilder(ConnectionHealthConfiguration configuration) {
+            super(configuration);
         }
 
         @Override
