@@ -15,13 +15,23 @@
 
 package software.amazon.awssdk.services.s3.internal.crt;
 
+import static software.amazon.awssdk.crtcore.CrtConfigurationUtils.resolveHttpMonitoringOptions;
+import static software.amazon.awssdk.crtcore.CrtConfigurationUtils.resolveProxy;
+
 import java.net.URI;
+import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.crt.auth.credentials.CredentialsProvider;
+import software.amazon.awssdk.crt.http.HttpMonitoringOptions;
+import software.amazon.awssdk.crt.http.HttpProxyOptions;
 import software.amazon.awssdk.crt.io.ClientBootstrap;
+import software.amazon.awssdk.crt.io.TlsCipherPreference;
+import software.amazon.awssdk.crt.io.TlsContext;
+import software.amazon.awssdk.crt.io.TlsContextOptions;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
+import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**
@@ -43,11 +53,19 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
     private final boolean checksumValidationEnabled;
     private final Long readBufferSizeInBytes;
 
+    private final TlsContext tlsContext;
+    private final HttpProxyOptions proxyOptions;
+    private final Duration connectionTimeout;
+    private final HttpMonitoringOptions httpMonitoringOptions;
+
     public S3NativeClientConfiguration(Builder builder) {
         this.signingRegion = builder.signingRegion == null ? DefaultAwsRegionProviderChain.builder().build().getRegion().id() :
                              builder.signingRegion;
         this.clientBootstrap = new ClientBootstrap(null, null);
-
+        TlsContextOptions clientTlsContextOptions =
+            TlsContextOptions.createDefaultClient()
+                             .withCipherPreference(TlsCipherPreference.TLS_CIPHER_SYSTEM_DEFAULT);
+        this.tlsContext = new TlsContext(clientTlsContextOptions);
         this.credentialProviderAdapter =
             builder.credentialsProvider == null ?
             new CrtCredentialsProviderAdapter(DefaultCredentialsProvider.create()) :
@@ -68,7 +86,31 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         this.checksumValidationEnabled = builder.checksumValidationEnabled == null || builder.checksumValidationEnabled;
         this.readBufferSizeInBytes = builder.readBufferSizeInBytes == null ?
                                      partSizeInBytes * 10 : builder.readBufferSizeInBytes;
+
+        if (builder.httpConfiguration != null) {
+            this.proxyOptions = resolveProxy(builder.httpConfiguration.proxyConfiguration(), tlsContext).orElse(null);
+            this.connectionTimeout = builder.httpConfiguration.connectionTimeout();
+            this.httpMonitoringOptions =
+                resolveHttpMonitoringOptions(builder.httpConfiguration.healthConfiguration()).orElse(null);
+        } else {
+            this.proxyOptions = null;
+            this.connectionTimeout = null;
+            this.httpMonitoringOptions = null;
+        }
     }
+
+    public HttpMonitoringOptions httpMonitoringOptions() {
+        return httpMonitoringOptions;
+    }
+
+    public HttpProxyOptions proxyOptions() {
+        return proxyOptions;
+    }
+
+    public Duration connectionTimeout() {
+        return connectionTimeout;
+    }
+
 
     public static Builder builder() {
         return new Builder();
@@ -113,6 +155,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
     @Override
     public void close() {
         clientBootstrap.close();
+        tlsContext.close();
         credentialProviderAdapter.close();
     }
 
@@ -125,6 +168,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         private Integer maxConcurrency;
         private URI endpointOverride;
         private Boolean checksumValidationEnabled;
+        private S3CrtHttpConfiguration httpConfiguration;
 
         private Builder() {
         }
@@ -173,6 +217,11 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
 
         public Builder readBufferSizeInBytes(Long readBufferSizeInBytes) {
             this.readBufferSizeInBytes = readBufferSizeInBytes;
+            return this;
+        }
+
+        public Builder httpConfiguration(S3CrtHttpConfiguration httpConfiguration) {
+            this.httpConfiguration = httpConfiguration;
             return this;
         }
     }

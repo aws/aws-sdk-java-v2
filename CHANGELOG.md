@@ -1,3 +1,54 @@
+# __2.20.27__ __2023-03-17__
+## __AWS Config__
+  - ### Features
+    - This release adds resourceType enums for types released from October 2022 through February 2023.
+
+## __AWS Database Migration Service__
+  - ### Features
+    - S3 setting to create AWS Glue Data Catalog. Oracle setting to control conversion of timestamp column. Support for Kafka SASL Plain authentication. Setting to map boolean from PostgreSQL to Redshift. SQL Server settings to force lob lookup on inline LOBs and to control access of database logs.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWSBillingConductor__
+  - ### Features
+    - This release adds a new filter to ListAccountAssociations API and a new filter to ListBillingGroups API.
+
+# __2.20.26__ __2023-03-16__
+## __AWS Resource Explorer__
+  - ### Features
+    - Documentation updates for APIs.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Updated 9 APIs for feature enablement to reflect expansion of GuardDuty to features. Added new APIs and updated existing APIs to support RDS Protection GA.
+
+## __Amazon SageMaker Runtime__
+  - ### Features
+    - Documentation updates for SageMaker Runtime
+
+# __2.20.25__ __2023-03-15__
+## __AWS S3 Control__
+  - ### Features
+    - Added support for S3 Object Lambda aliases.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Security Lake__
+  - ### Features
+    - Make Create/Get/ListSubscribers APIs return resource share ARN and name so they can be used to validate the RAM resource share to accept. GetDatalake can be used to track status of UpdateDatalake and DeleteDatalake requests.
+
+## __Migration Hub Strategy Recommendations__
+  - ### Features
+    - This release adds the binary analysis that analyzes IIS application DLLs on Windows and Java applications on Linux to provide anti-pattern report without configuring access to the source code.
+
 # __2.20.24__ __2023-03-14__
 ## __AWS Data Exchange__
   - ### Features
