@@ -52,7 +52,6 @@ import software.amazon.awssdk.codegen.poet.client.specs.QueryProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.XmlProtocolSpec;
 import software.amazon.awssdk.codegen.utils.PaginatorUtils;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
-import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
@@ -70,7 +69,6 @@ public class SyncClientClass extends SyncClientInterface {
     private final PoetExtension poetExtensions;
     private final ClassName className;
     private final ProtocolSpec protocolSpec;
-    private final String serviceClientConfigurationName;
     private final ClassName serviceClientConfigurationClassName;
 
     public SyncClientClass(GeneratorTaskParams taskParams) {
@@ -79,10 +77,9 @@ public class SyncClientClass extends SyncClientInterface {
         this.poetExtensions = taskParams.getPoetExtensions();
         this.className = poetExtensions.getClientClass(model.getMetadata().getSyncClient());
         this.protocolSpec = getProtocolSpecs(poetExtensions, model);
-        this.serviceClientConfigurationName = model.getMetadata().getServiceId().replaceAll("[-\\s]+", "")
-                                              + "ServiceClientConfiguration";
         this.serviceClientConfigurationClassName = PoetUtils.classNameFromFqcn(model.getMetadata().getFullInternalPackageName()
-                                                                               + "." + serviceClientConfigurationName);
+                                                                               + "." + model.getMetadata().getServiceName()
+                                                                               + "ServiceClientConfiguration");
     }
 
     @Override
@@ -174,13 +171,11 @@ public class SyncClientClass extends SyncClientInterface {
         MethodSpec.Builder builder
             = MethodSpec.constructorBuilder()
                         .addModifiers(PROTECTED)
+                        .addParameter(serviceClientConfigurationClassName, "serviceClientConfiguration")
                         .addParameter(SdkClientConfiguration.class, "clientConfiguration")
-                        .addParameter(ClientOverrideConfiguration.class, "clientOverrideConfiguration")
                         .addStatement("this.clientHandler = new $T(clientConfiguration)", protocolSpec.getClientHandlerClass())
                         .addStatement("this.clientConfiguration = clientConfiguration")
-                        .addStatement("this.serviceClientConfiguration "
-                                      + "= new $T(clientConfiguration, clientOverrideConfiguration)",
-                                      serviceClientConfigurationClassName);
+                        .addStatement("this.serviceClientConfiguration = serviceClientConfiguration");
         FieldSpec protocolFactoryField = protocolSpec.protocolFactory(model);
         if (model.getMetadata().isJsonProtocol()) {
             builder.addStatement("this.$N = init($T.builder()).build()", protocolFactoryField.name,

@@ -73,7 +73,6 @@ import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.AsyncResponseTransformerUtils;
 import software.amazon.awssdk.core.async.SdkPublisher;
-import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -94,7 +93,6 @@ public final class AsyncClientClass extends AsyncClientInterface {
     private final PoetExtension poetExtensions;
     private final ClassName className;
     private final ProtocolSpec protocolSpec;
-    private final String serviceClientConfigurationName;
     private final ClassName serviceClientConfigurationClassName;
 
     public AsyncClientClass(GeneratorTaskParams dependencies) {
@@ -103,10 +101,9 @@ public final class AsyncClientClass extends AsyncClientInterface {
         this.poetExtensions = dependencies.getPoetExtensions();
         this.className = poetExtensions.getClientClass(model.getMetadata().getAsyncClient());
         this.protocolSpec = getProtocolSpecs(poetExtensions, model);
-        this.serviceClientConfigurationName = model.getMetadata().getServiceId().replaceAll("[-\\s]+", "")
-                                              + "ServiceClientConfiguration";
         this.serviceClientConfigurationClassName = PoetUtils.classNameFromFqcn(model.getMetadata().getFullInternalPackageName()
-                                                                               + "." + serviceClientConfigurationName);
+                                                                               + "." + model.getMetadata().getServiceName()
+                                                                               + "ServiceClientConfiguration");
     }
 
     @Override
@@ -212,13 +209,11 @@ public final class AsyncClientClass extends AsyncClientInterface {
         MethodSpec.Builder builder
             = MethodSpec.constructorBuilder()
                         .addModifiers(PROTECTED)
+                        .addParameter(serviceClientConfigurationClassName, "serviceClientConfiguration")
                         .addParameter(SdkClientConfiguration.class, "clientConfiguration")
-                        .addParameter(ClientOverrideConfiguration.class, "clientOverrideConfiguration")
                         .addStatement("this.clientHandler = new $T(clientConfiguration)", AwsAsyncClientHandler.class)
                         .addStatement("this.clientConfiguration = clientConfiguration")
-                        .addStatement("this.serviceClientConfiguration "
-                                      + "= new $T(clientConfiguration, clientOverrideConfiguration)",
-                                      serviceClientConfigurationClassName);
+                        .addStatement("this.serviceClientConfiguration = serviceClientConfiguration");
         FieldSpec protocolFactoryField = protocolSpec.protocolFactory(model);
         if (model.getMetadata().isJsonProtocol()) {
             builder.addStatement("this.$N = init($T.builder()).build()", protocolFactoryField.name,

@@ -37,6 +37,7 @@ public interface SdkClient extends SdkAutoCloseable {
      * The SDK service client configuration exposes client settings to the user, e.g., ClientOverrideConfiguration
      *
      * @return SdkServiceClientConfiguration
+     * @throws UnsupportedOperationException
      */
-    SdkServiceClientConfiguration serviceClientConfiguration();
+    SdkServiceClientConfiguration serviceClientConfiguration() throws UnsupportedOperationException;
 }

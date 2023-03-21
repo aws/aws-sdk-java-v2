@@ -7,6 +7,7 @@ import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.services.json.endpoints.JsonEndpointProvider;
+import software.amazon.awssdk.services.json.internal.JsonServiceClientConfiguration;
 
 /**
  * Internal implementation of {@link JsonClientBuilder}.
@@ -31,6 +32,9 @@ final class DefaultJsonClientBuilder extends DefaultJsonBaseClientBuilder<JsonCl
     protected final JsonClient buildClient() {
         SdkClientConfiguration clientConfiguration = super.syncClientConfiguration();
         this.validateClientOptions(clientConfiguration);
-        return new DefaultJsonClient(clientConfiguration, overrideConfiguration());
+        JsonServiceClientConfiguration serviceClientConfiguration = JsonServiceClientConfiguration.builder()
+                                                                                                  .overrideConfiguration(overrideConfiguration()).region(clientConfiguration.option(AwsClientOption.AWS_REGION))
+                                                                                                  .build();
+        return new DefaultJsonClient(serviceClientConfiguration, clientConfiguration);
     }
 }

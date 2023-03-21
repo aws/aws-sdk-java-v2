@@ -13,7 +13,6 @@ import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.ApiName;
 import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
-import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
@@ -37,7 +36,7 @@ import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
-import software.amazon.awssdk.services.json.internal.JsonServiceServiceClientConfiguration;
+import software.amazon.awssdk.services.json.internal.JsonServiceClientConfiguration;
 import software.amazon.awssdk.services.json.model.APostOperationRequest;
 import software.amazon.awssdk.services.json.model.APostOperationResponse;
 import software.amazon.awssdk.services.json.model.APostOperationWithOutputRequest;
@@ -98,14 +97,13 @@ final class DefaultJsonClient implements JsonClient {
 
     private final SdkClientConfiguration clientConfiguration;
 
-    private final JsonServiceServiceClientConfiguration serviceClientConfiguration;
+    private final JsonServiceClientConfiguration serviceClientConfiguration;
 
-    protected DefaultJsonClient(SdkClientConfiguration clientConfiguration,
-                                ClientOverrideConfiguration clientOverrideConfiguration) {
+    protected DefaultJsonClient(JsonServiceClientConfiguration serviceClientConfiguration,
+                                SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
-        this.serviceClientConfiguration = new JsonServiceServiceClientConfiguration(clientConfiguration,
-                                                                                    clientOverrideConfiguration);
+        this.serviceClientConfiguration = serviceClientConfiguration;
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
     }
 
@@ -978,7 +976,7 @@ final class DefaultJsonClient implements JsonClient {
     }
 
     @Override
-    public final JsonServiceServiceClientConfiguration serviceClientConfiguration() {
+    public final JsonServiceClientConfiguration serviceClientConfiguration() {
         return this.serviceClientConfiguration;
     }
 

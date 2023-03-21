@@ -22,12 +22,12 @@ import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
  * Class to expose SDK service client settings to the user, e.g., ClientOverrideConfiguration
  */
 @SdkPublicApi
-public class SdkServiceClientConfiguration {
+public abstract class SdkServiceClientConfiguration {
 
     private final ClientOverrideConfiguration overrideConfiguration;
 
-    public SdkServiceClientConfiguration(ClientOverrideConfiguration clientOverrideConfiguration) {
-        this.overrideConfiguration = clientOverrideConfiguration;
+    protected SdkServiceClientConfiguration(Builder builder) {
+        this.overrideConfiguration = builder.overrideConfiguration();
     }
 
     /**
@@ -37,5 +37,13 @@ public class SdkServiceClientConfiguration {
      */
     public ClientOverrideConfiguration overrideConfiguration() {
         return this.overrideConfiguration;
+    }
+
+    public interface Builder {
+        ClientOverrideConfiguration overrideConfiguration();
+
+        Builder overrideConfiguration(ClientOverrideConfiguration clientOverrideConfiguration);
+
+        SdkServiceClientConfiguration build();
     }
 }

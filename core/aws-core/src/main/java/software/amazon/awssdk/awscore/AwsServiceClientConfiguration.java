@@ -16,24 +16,21 @@
 package software.amazon.awssdk.awscore;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.regions.Region;
 
 /**
  * Class to expose AWS service client settings to the user, e.g., region
  */
 @SdkPublicApi
-public class AwsServiceClientConfiguration extends SdkServiceClientConfiguration {
+public abstract class AwsServiceClientConfiguration extends SdkServiceClientConfiguration {
 
     private final Region region;
 
-    public AwsServiceClientConfiguration(SdkClientConfiguration clientConfiguration,
-                                         ClientOverrideConfiguration clientOverrideConfiguration) {
-        super(clientOverrideConfiguration);
-        this.region = clientConfiguration.option(AwsClientOption.AWS_REGION);
+    protected AwsServiceClientConfiguration(Builder builder) {
+        super(builder);
+        this.region = builder.region();
     }
 
     /**
@@ -43,4 +40,41 @@ public class AwsServiceClientConfiguration extends SdkServiceClientConfiguration
     public Region region() {
         return this.region;
     }
+
+    public interface Builder extends SdkServiceClientConfiguration.Builder {
+        Region region();
+
+        Builder region(Region region);
+
+        @Override
+        AwsServiceClientConfiguration build();
+    }
+
+    protected abstract static class BuilderImpl implements Builder {
+        protected ClientOverrideConfiguration overrideConfiguration;
+        protected Region region;
+
+        @Override
+        public Builder overrideConfiguration(ClientOverrideConfiguration clientOverrideConfiguration) {
+            this.overrideConfiguration = clientOverrideConfiguration;
+            return this;
+        }
+
+        @Override
+        public Builder region(Region region) {
+            this.region = region;
+            return this;
+        }
+
+        @Override
+        public final ClientOverrideConfiguration overrideConfiguration() {
+            return overrideConfiguration;
+        }
+
+        @Override
+        public final Region region() {
+            return region;
+        }
+    }
+
 }

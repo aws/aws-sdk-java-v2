@@ -26,7 +26,6 @@ import software.amazon.awssdk.core.SdkPojoBuilder;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.AsyncResponseTransformerUtils;
-import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -45,7 +44,7 @@ import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 import software.amazon.awssdk.protocols.xml.AwsXmlProtocolFactory;
 import software.amazon.awssdk.protocols.xml.XmlOperationMetadata;
-import software.amazon.awssdk.services.xml.internal.XmlServiceServiceClientConfiguration;
+import software.amazon.awssdk.services.xml.internal.XmlServiceClientConfiguration;
 import software.amazon.awssdk.services.xml.model.APostOperationRequest;
 import software.amazon.awssdk.services.xml.model.APostOperationResponse;
 import software.amazon.awssdk.services.xml.model.APostOperationWithOutputRequest;
@@ -100,16 +99,15 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
 
     private final SdkClientConfiguration clientConfiguration;
 
-    private final XmlServiceServiceClientConfiguration serviceClientConfiguration;
+    private final XmlServiceClientConfiguration serviceClientConfiguration;
 
     private final Executor executor;
 
-    protected DefaultXmlAsyncClient(SdkClientConfiguration clientConfiguration,
-                                    ClientOverrideConfiguration clientOverrideConfiguration) {
+    protected DefaultXmlAsyncClient(XmlServiceClientConfiguration serviceClientConfiguration,
+                                    SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
-        this.serviceClientConfiguration = new XmlServiceServiceClientConfiguration(clientConfiguration,
-                                                                                   clientOverrideConfiguration);
+        this.serviceClientConfiguration = serviceClientConfiguration;
         this.protocolFactory = init();
         this.executor = clientConfiguration.option(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR);
     }
@@ -763,7 +761,7 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
     }
 
     @Override
-    public final XmlServiceServiceClientConfiguration serviceClientConfiguration() {
+    public final XmlServiceClientConfiguration serviceClientConfiguration() {
         return this.serviceClientConfiguration;
     }
 

@@ -12,7 +12,6 @@ import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.Response;
-import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
@@ -33,7 +32,7 @@ import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 import software.amazon.awssdk.protocols.xml.AwsXmlProtocolFactory;
 import software.amazon.awssdk.protocols.xml.XmlOperationMetadata;
-import software.amazon.awssdk.services.xml.internal.XmlServiceServiceClientConfiguration;
+import software.amazon.awssdk.services.xml.internal.XmlServiceClientConfiguration;
 import software.amazon.awssdk.services.xml.model.APostOperationRequest;
 import software.amazon.awssdk.services.xml.model.APostOperationResponse;
 import software.amazon.awssdk.services.xml.model.APostOperationWithOutputRequest;
@@ -82,13 +81,13 @@ final class DefaultXmlClient implements XmlClient {
 
     private final SdkClientConfiguration clientConfiguration;
 
-    private final XmlServiceServiceClientConfiguration serviceClientConfiguration;
+    private final XmlServiceClientConfiguration serviceClientConfiguration;
 
-    protected DefaultXmlClient(SdkClientConfiguration clientConfiguration, ClientOverrideConfiguration clientOverrideConfiguration) {
+    protected DefaultXmlClient(XmlServiceClientConfiguration serviceClientConfiguration,
+                               SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
-        this.serviceClientConfiguration = new XmlServiceServiceClientConfiguration(clientConfiguration,
-                                                                                   clientOverrideConfiguration);
+        this.serviceClientConfiguration = serviceClientConfiguration;
         this.protocolFactory = init();
     }
 
@@ -571,7 +570,7 @@ final class DefaultXmlClient implements XmlClient {
     }
 
     @Override
-    public final XmlServiceServiceClientConfiguration serviceClientConfiguration() {
+    public final XmlServiceClientConfiguration serviceClientConfiguration() {
         return this.serviceClientConfiguration;
     }
 

@@ -34,7 +34,6 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.AsyncResponseTransformerUtils;
 import software.amazon.awssdk.core.async.SdkPublisher;
-import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -58,7 +57,7 @@ import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
-import software.amazon.awssdk.services.json.internal.JsonServiceServiceClientConfiguration;
+import software.amazon.awssdk.services.json.internal.JsonServiceClientConfiguration;
 import software.amazon.awssdk.services.json.model.APostOperationRequest;
 import software.amazon.awssdk.services.json.model.APostOperationResponse;
 import software.amazon.awssdk.services.json.model.APostOperationWithOutputRequest;
@@ -139,16 +138,15 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
     private final SdkClientConfiguration clientConfiguration;
 
-    private final JsonServiceServiceClientConfiguration serviceClientConfiguration;
+    private final JsonServiceClientConfiguration serviceClientConfiguration;
 
     private final Executor executor;
 
-    protected DefaultJsonAsyncClient(SdkClientConfiguration clientConfiguration,
-                                     ClientOverrideConfiguration clientOverrideConfiguration) {
+    protected DefaultJsonAsyncClient(JsonServiceClientConfiguration serviceClientConfiguration,
+                                     SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
-        this.serviceClientConfiguration = new JsonServiceServiceClientConfiguration(clientConfiguration,
-                                                                                    clientOverrideConfiguration);
+        this.serviceClientConfiguration = serviceClientConfiguration;
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
         this.executor = clientConfiguration.option(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR);
     }
@@ -1369,7 +1367,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
     }
 
     @Override
-    public final JsonServiceServiceClientConfiguration serviceClientConfiguration() {
+    public final JsonServiceClientConfiguration serviceClientConfiguration() {
         return this.serviceClientConfiguration;
     }
 

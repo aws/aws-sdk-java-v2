@@ -11,7 +11,6 @@ import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
-import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
@@ -31,7 +30,7 @@ import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 import software.amazon.awssdk.protocols.query.AwsQueryProtocolFactory;
-import software.amazon.awssdk.services.query.internal.QueryServiceServiceClientConfiguration;
+import software.amazon.awssdk.services.query.internal.QueryServiceClientConfiguration;
 import software.amazon.awssdk.services.query.model.APostOperationRequest;
 import software.amazon.awssdk.services.query.model.APostOperationResponse;
 import software.amazon.awssdk.services.query.model.APostOperationWithOutputRequest;
@@ -87,14 +86,13 @@ final class DefaultQueryClient implements QueryClient {
 
     private final SdkClientConfiguration clientConfiguration;
 
-    private final QueryServiceServiceClientConfiguration serviceClientConfiguration;
+    private final QueryServiceClientConfiguration serviceClientConfiguration;
 
-    protected DefaultQueryClient(SdkClientConfiguration clientConfiguration,
-                                 ClientOverrideConfiguration clientOverrideConfiguration) {
+    protected DefaultQueryClient(QueryServiceClientConfiguration serviceClientConfiguration,
+                                 SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
-        this.serviceClientConfiguration = new QueryServiceServiceClientConfiguration(clientConfiguration,
-                                                                                     clientOverrideConfiguration);
+        this.serviceClientConfiguration = serviceClientConfiguration;
         this.protocolFactory = init();
     }
 
@@ -692,7 +690,7 @@ final class DefaultQueryClient implements QueryClient {
     }
 
     @Override
-    public final QueryServiceServiceClientConfiguration serviceClientConfiguration() {
+    public final QueryServiceClientConfiguration serviceClientConfiguration() {
         return this.serviceClientConfiguration;
     }
 
