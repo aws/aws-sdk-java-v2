@@ -2,52 +2,53 @@
 
 ## Problem
 
-In DynamoDB, an [item](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/WorkingWithItems.html) is a 
-collection of attributes, each of which has a name and a value. Aws-sdk-java 1.x  provided Document API to access these 
-items. The user could access these items without actually knowing the complete schema of the entire item. This feature 
-did not exist in Aws-sdk-java 2.x. This document proposes mechanism by which user will be able to access the DDB items 
-as documents using enhanced dynamodb client.
+DynamoDB is a NoSQL database that stores data in the form of [items](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/WorkingWithItems.html), which are collections of attributes. While the 
+previous version of the AWS SDK for Java (1.x) provided a Document API to access these items, this feature was not 
+included in the current version (2.x). This document proposes a mechanism to enable users to access DynamoDB items as 
+documents using the enhanced DynamoDB client.
 
 ### Requested features
-Aws-sdk-java 2.x should provide Document API similar to that of aws-sdk-java 1.x with following APIs
-
-1. APIs to access DynamoDB for complicated data models without having to use DynamoDB Mapper. 
-   For example, APIs for converting from JSON to DynamoDb items & vice versa.
-2. APIs to manipulate semi structured data for each of the attribute values.  
-   For example, APIs to access the AttributeValue as string sets, number sets,  string list, number list etc.
-3. Allow direct read and write of dynamoDB elements as Documents.
+Aws-sdk-java 2.x should provide Document API similar to that of aws-sdk-java 1.x with following APIs 
+1. APIs to access DynamoDB for complex data models without having to use the DynamoDB Mapper. 
+ This could include APIs to convert between JSON and DynamoDB items, and vice versa.
+2. APIs to manipulate semi-structured data for each attribute value, such as APIs to access AttributeValue as 
+ string sets, number sets, string lists, number lists, etc. 
+3. Direct read and write of DynamoDB elements as documents.
 
 Example Github issue: https://github.com/aws/aws-sdk-java-v2/issues/36
 
 ## Current functionality
-Aws-sdk-java 2.x currently supports Mid-level DynamoDB mapper/abstraction for Java by providing Mapper Clients.
-While using these mappers the user needs to define the complete Table schema at the time of mapped table creation.
+The current version of the AWS SDK for Java (2.x) provides mid-level DynamoDB mapper/abstraction for Java by providing 
+Mapper Clients. However, when using these mappers, the user must define the complete table schema at the time of mapped 
+table creation.
 
 ## Naming conventions
-Please note that the names of classes and api mentioned in this design document  are not final and might get changed
-based on future reviews
+Please note that the names of classes and APIs mentioned in this design document are not final and are subject 
+to change based on future reviews.
 
 ## Proposed Solution
 
-Add a new DocumentSchema in existing enhanced client. This schema just needs the primary key and sort key to be defined
-at the time of mapped table creation. This will retrieve the dynamo db table items as Documents.
-User can then access the attribute values from these documents by getters.
-Similarly , user can create a new Document and insert it to the mapped table by using the builder apis of Document.
+The proposed solution is to add a new DocumentSchema to the existing enhanced client. 
+This schema only requires the primary key and sort key to be defined at the time of mapped table creation. 
+This will allow the user to retrieve DynamoDB table items as Documents. 
+The user can then access the attribute values from these documents using getters. 
+Similarly, the user can create a new Document and insert it into the mapped table using the builder APIs of Document.
 
 ### Enhanced Client Table Schema creation API
-The DocumentSchema is created by supplying partitionKey, sortKey and optional attributeConverterProviders in the builder.
-If AttributeConverterProvider are not supplied in TableSchema the Document Table schema will use the default converter
+The DocumentSchema is created by providing the partition key, sort key, and optional attribute converter providers in the builder. 
+If no AttributeConverterProviders are supplied in the TableSchema, the Document Table schema will use the default converter providers.
 providers.
+
 ~~~java
  // Existing way of creating enhanced client
  DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder().build();
 
 // New API in TableSchema to create a DocumentTableSchema 
 DocumentTableSchema documentTableSchema =
-    TableSchema.fromDocumentSchemaBuilder()
+    TableSchema.documentSchemaBuilder()
                .addIndexPartitionKey(primaryIndexName(), "sample_hash_name", AttributeValueType.S)
-               .addIndexSortKey("gsi_index", "sample_sort_name", AttributeValueType.N)
-               .addAttributeConverterProviders(cutomAttributeConverters)
+               .addIndexSortKey(primaryIndexName(), "sample_sort_name", AttributeValueType.N)
+               .addAttributeConverterProviders(cutomAttributeConverters, AttributeConverterProvider.defaultProvider())
                .build();
                        
  // Existing API to access DynamoDB table.    
@@ -63,7 +64,7 @@ The EnhancedDocument can then be used to retrieve attribute values.
 ~~~java
 // Creating a document which defined primary key of the item needs to be retrieved
 EnhancedDocument hashKeyDocument = EnhancedDocument.builder()
-                                                    .addString("sample_hash_name", "sample_value")
+                                                    .putString("sample_hash_name", "sample_value")
                                                     .build();
 // Retrieving from existing Get operation.
 EnhancedDocument retrievedDocument = documentTable.getItem(hashKeyDocument);
@@ -71,20 +72,38 @@ EnhancedDocument retrievedDocument = documentTable.getItem(hashKeyDocument);
 // Retrieving from existing Get operation
 EnhancedDocument documentTableItem = documentTable.getItem(
                                         EnhancedDocument.builder()
-                                                        .addString("sample_hash_name", "sample_value")
+                                                        .putString("sample_hash_name", "sample_value")
                                                         .build());
 
 // Accessing an attribute from document using generic getter.
-Number sampleSortvalue = documentTableItem.get("sample_sort_name", EnhancedType.of(Number.class));
+Integer sampleSortvalue = documentTableItem.get("sample_sort_name", EnhancedType.of(Integer.class));
 
 // Accessing an attribute from document using specific getters.
-sampleSortvalue = documentTableItem.getSdkNumber("sample_sort_name"); 
+SdkNumber sampleSortvalue = documentTableItem.getNumber("sample_sort_name"); 
 
 // Accessing an attribute of custom class using custom converters.
-CustomClass customClass = documentTableItem.get("custom_nested_map", new CustomAttributeConverter()));
+CustomClass customClass = documentTableItem.get("custom_nested_map", EnhancedType.of(CustomClass.class));
 
-// Accessing Nested set 
-Set<List<String>> stringSet = documentTableItem.get("string_set", new EnhancedType<Set<List<<String>>>(){}));
+// Accessing Simple List 
+List<String> simpleLists = documentTableItem.getList("string_set", EnhancedType.of(String));
+
+// Accessing Nested List 
+List<List<String>> nestedLists = documentTableItem.get("string_set", new EnhancedType<List<List<<String>>>(){}));
+
+// Accessing Nested List 
+List<List<String>> nestedLists = documentTableItem.getList("string_set", new EnhancedType<List<<String>>>(){}));
+
+// Accessing Simple Map 
+Map<String, Integer> simpleMap = documentTableItem.getMapOfType("map_key", EnhancedType.of(String.class), EnhancedType.of(Integer.class));
+
+// Accessing a unknown type attribute value list .
+List<AttributeValue> unknownAttribute = enhancedDocument.getUnknownTypeList("sampleAttribute");
+
+// Accessing a unknown type attribute value list .
+Map<String, AttributeValue> unknownAttribute = enhancedDocument.getUnknownTypeMap("sampleAttribute");
+
+// Convert Document to Map .
+Map<String, AttributeValue> unknownAttribute = enhancedDocument.tonknownTypeMap();
 ~~~
 
 
@@ -100,9 +119,10 @@ documentTable.putItem(documentFromJson);
 
 // Creating a document from EnhanceDocumentBuilders    
 EnhancedDocument documentFromBuilder = EnhancedDocument.builder()
-                                                       .addString("sample_hash_name", "sample_value_2")
-                                                       .addNumber("sample_sort_name", 111)
-                                                       .addNumberList("sample_names", 1 ,2 ,3, 4)
+                                                       .putString("sample_hash_name", "sample_value_2")
+                                                       .putNumber("sample_sort_name", 111)
+                                                       .putOfType("customElement", EnhancedType.of(Custom.class))
+                                                       .putNumberSet("sample_names", Stream.of(1 ,2 ,3, 4).collect(Collectors.toSet()))
                                                        .build();
     
 // put to dynamo db table
@@ -111,41 +131,43 @@ documentTable.documentFromBuilder(documentFromBuilder);
 // retrieving a document from dynamo db and updating some attributes
 EnhancedDocument documentTableItem = documentTable.getItem(hashKeyDocument);
 // using toBuilder to make a copy of the retrieved item and then modifying the key attribute
-EnhancedDocument changedValue = documentTableItem.toBuilder().addString("key-to-change", "changedValue").build();
+EnhancedDocument changedValue = documentTableItem.toBuilder().putString("key-to-change", "changedValue").build();
 // put to dynamo db table
 documentTable.putItem(changedValue);
 ~~~
 
-
 #### Attribute converter providers for EnhancedDocument
 
-A builder method would be provided to add Attribute converters for an EnhancedDocument.
-The default value of attribute converter field would be null for EnhancedDocument.
+A builder method will be provided to add Attribute converters for an EnhancedDocument. 
+By default, the attribute converter field will be null for EnhancedDocument.
+User should supply the Attribute converters for the EnhancedDocument.
 
-Q: What converter providers will be used for EnhancedDocument retrieved from Dynamo db?<br>
-A: For the EnhancedDocuments retrieved from the SDK get/scan/query operations the DefaultAttributeConverterProviders would
-be assigned by default. If the user has provided attribute converter providers at the time of table creation then these
-converters will be used.
+Q: What converter providers will be used for EnhancedDocuments retrieved from DynamoDB using the SDK's get/scan/query operations?<br>
+A: The DefaultAttributeConverterProviders will be assigned by default.
 
-Q: What converter providers  would be used for EnhancedDocument created by the user ?<br>
-A: The converter providers supplied by the user in the EnhancedDocument builders. If no converter providers are provided
-then user will get error while trying to get the attribute values. Thus, user should always supply defaultConverterProviders 
-while creating the EnhancedDocuments for which user wants to access the attriute values latter.
+Q: What converter providers will be used for EnhancedDocuments created by the user?<br>
+A: The converter providers supplied by the user in the EnhancedDocument builders. If no converter providers are provided,
+the user will get an error while trying to access the attribute values. 
+Therefore, the user should always supply defaultConverterProviders while creating EnhancedDocuments for which they want 
+to access the attribute values later.
 
 
 #### Getters and Setters for EnhancedDocuments
 
-Q: What kind of getter API would be available for EnhancedDocument?<br>
-A: Following getter API would be available in EnhancedDocument
- 1. Class specific getters like getString(), getNumber, getMap() same as V1.
- 2. Generic getter API for any EnhancedType.
- 3. Getters with ConverterProviders in ares
+Q: What kind of getter and setter API would be available for EnhancedDocument?<br>
+1. There are class-specific getters/setters, such as getString(), getNumber(), and getStringSet(), among others.
+2. There is a generic getter API that can be used for any EnhancedType, where users will need to pass the EnhancedType in the API arguments.
 
-Q: What kind of setter API would be available for EnhancedDocument?<br>
-A: Following builder API would be available in EnhancedDocument
-1. Class specific builder like addString(), addNumber, addMap() same as V1.
-2. Generic builder API for any EnhancedType like add(value, EnhancedType).
-3. Builders for custom classes with Custom converter providers/
+Q: How can user access Attributes of Unknown Types?<br>
+A: Unlike 1.x where we had APIs like [get](https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/dynamodbv2/document/Item.html#get-java.lang.String-) ,
+[getRawMap](https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/dynamodbv2/document/Item.html#getRawMap-java.lang.String-)
+will not be available in version 2.x. I
+Instead, users can pass EnhancedType as AttributeValue.class to retrieve the values as AttributeValue.
+```java
+AttributeValue unknownTypeAttribute = document.get("sample_key", EnhancedType.of(AttributeValue.class));
+Map<String,AttributeValue> unknownTypeAttributeMap = document.getMap("sample_key", EnhancedType.of(String.class), EnhancedType.of(AttributeValue.class))
+
+```
 
 ## Appendix B: Alternative solutions
 
