@@ -1,3 +1,28 @@
+# __2.20.29__ __2023-03-21__
+## __AWS Clean Rooms Service__
+  - ### Features
+    - GA Release of AWS Clean Rooms, Added Tagging Functionality
+
+## __AWS IoT SiteWise__
+  - ### Features
+    - Provide support for tagging of data streams and enabling tag based authorization for property alias
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Chime SDK Messaging__
+  - ### Features
+    - Amazon Chime SDK messaging customers can now manage streaming configuration for messaging data for archival and analysis.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for AWS Network Firewall, AWS PrivateLink, and Gateway Load Balancers to Amazon VPC Reachability Analyzer, and it makes the path destination optional as long as a destination address in the filter at source is provided.
+
+## __Application Migration Service__
+  - ### Features
+    - This release introduces the Import and export feature and expansion of the post-launch actions
+
 # __2.20.28__ __2023-03-20__
 ## __AWS CRT-based S3 client__
   - ### Features

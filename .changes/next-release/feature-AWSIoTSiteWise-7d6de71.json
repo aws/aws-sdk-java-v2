@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS IoT SiteWise",
-    "contributor": "",
-    "description": "Provide support for tagging of data streams and enabling tag based authorization for property alias"
-}
