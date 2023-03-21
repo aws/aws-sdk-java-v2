@@ -126,7 +126,7 @@ public class AsyncClientBuilderClass implements ClassSpec {
                          .addStatement("$T clientConfiguration = super.asyncClientConfiguration()", SdkClientConfiguration.class)
                          .addStatement("this.validateClientOptions(clientConfiguration)")
                          .addStatement("$T serviceClientConfiguration = $T.builder()"
-                                       + ".overrideConfiguration(overrideConfiguration())"
+                                       + ".overrideConfiguration(overrideConfiguration().toBuilder().build())"
                                        + ".region(clientConfiguration.option($T.AWS_REGION)).build()",
                                        serviceConfigClassName, serviceConfigClassName, AwsClientOption.class)
                          .addStatement("return new $T(serviceClientConfiguration, clientConfiguration)", clientClassName)
