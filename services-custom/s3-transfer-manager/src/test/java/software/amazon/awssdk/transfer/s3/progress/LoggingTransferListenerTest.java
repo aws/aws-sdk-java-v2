@@ -19,10 +19,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.util.List;
-import nl.altindag.log.LogCaptor;
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.LogEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.testutils.LogCaptor;
 
 import software.amazon.awssdk.transfer.s3.model.CompletedObjectTransfer;
 import software.amazon.awssdk.transfer.s3.model.TransferObjectRequest;
@@ -54,48 +55,52 @@ public class LoggingTransferListenerTest {
 
     @Test
     public void test_defaultListener_successfulTransfer() {
-        LogCaptor logCaptor = LogCaptor.forClass(LoggingTransferListener.class);
-        invokeSuccessfulLifecycle();
-        List<String> infoLogs = logCaptor.getInfoLogs();
-        assertThat(infoLogs).contains("Transfer initiated...");
-        assertThat(infoLogs).contains("|                    | 0.0%");
-        assertThat(infoLogs).contains("|=                   | 5.0%");
-        assertThat(infoLogs).contains("|==                  | 10.0%");
-        assertThat(infoLogs).contains("|===                 | 15.0%");
-        assertThat(infoLogs).contains("|====                | 20.0%");
-        assertThat(infoLogs).contains("|=====               | 25.0%");
-        assertThat(infoLogs).contains("|======              | 30.0%");
-        assertThat(infoLogs).contains("|=======             | 35.0%");
-        assertThat(infoLogs).contains("|========            | 40.0%");
-        assertThat(infoLogs).contains("|=========           | 45.0%");
-        assertThat(infoLogs).contains("|==========          | 50.0%");
-        assertThat(infoLogs).contains("|===========         | 55.0%");
-        assertThat(infoLogs).contains("|============        | 60.0%");
-        assertThat(infoLogs).contains("|=============       | 65.0%");
-        assertThat(infoLogs).contains("|==============      | 70.0%");
-        assertThat(infoLogs).contains("|===============     | 75.0%");
-        assertThat(infoLogs).contains("|================    | 80.0%");
-        assertThat(infoLogs).contains("|=================   | 85.0%");
-        assertThat(infoLogs).contains("|==================  | 90.0%");
-        assertThat(infoLogs).contains("|=================== | 95.0%");
-        assertThat(infoLogs).contains("|====================| 100.0%");
-        assertThat(infoLogs).contains("Transfer complete!");
+        try (LogCaptor logCaptor = LogCaptor.create()) {
+            invokeSuccessfulLifecycle();
+            List<LogEvent> events = logCaptor.loggedEvents();
+            assertLogged(events, Level.INFO, "Transfer initiated...");
+            assertLogged(events, Level.INFO, "|                    | 0.0%");
+            assertLogged(events, Level.INFO, "|=                   | 5.0%");
+            assertLogged(events, Level.INFO, "|==                  | 10.0%");
+            assertLogged(events, Level.INFO, "|===                 | 15.0%");
+            assertLogged(events, Level.INFO, "|====                | 20.0%");
+            assertLogged(events, Level.INFO, "|=====               | 25.0%");
+            assertLogged(events, Level.INFO, "|======              | 30.0%");
+            assertLogged(events, Level.INFO, "|=======             | 35.0%");
+            assertLogged(events, Level.INFO, "|========            | 40.0%");
+            assertLogged(events, Level.INFO, "|=========           | 45.0%");
+            assertLogged(events, Level.INFO, "|==========          | 50.0%");
+            assertLogged(events, Level.INFO, "|===========         | 55.0%");
+            assertLogged(events, Level.INFO, "|============        | 60.0%");
+            assertLogged(events, Level.INFO, "|=============       | 65.0%");
+            assertLogged(events, Level.INFO, "|==============      | 70.0%");
+            assertLogged(events, Level.INFO, "|===============     | 75.0%");
+            assertLogged(events, Level.INFO, "|================    | 80.0%");
+            assertLogged(events, Level.INFO, "|=================   | 85.0%");
+            assertLogged(events, Level.INFO, "|==================  | 90.0%");
+            assertLogged(events, Level.INFO, "|=================== | 95.0%");
+            assertLogged(events, Level.INFO, "|====================| 100.0%");
+            assertLogged(events, Level.INFO, "Transfer complete!");
+            assertThat(events).isEmpty();
+        }
     }
 
     @Test
     public void test_customTicksListener_successfulTransfer() {
-        LogCaptor logCaptor = LogCaptor.forClass(LoggingTransferListener.class);
-        listener = LoggingTransferListener.create(5);
-        invokeSuccessfulLifecycle();
-        List<String> infoLogs = logCaptor.getInfoLogs();
-        assertThat(infoLogs).contains("Transfer initiated...");
-        assertThat(infoLogs).contains("|     | 0.0%");
-        assertThat(infoLogs).contains("|=    | 20.0%");
-        assertThat(infoLogs).contains("|==   | 40.0%");
-        assertThat(infoLogs).contains("|===  | 60.0%");
-        assertThat(infoLogs).contains("|==== | 80.0%");
-        assertThat(infoLogs).contains("|=====| 100.0%");
-        assertThat(infoLogs).contains("Transfer complete!");
+        try (LogCaptor logCaptor = LogCaptor.create()) {
+            listener = LoggingTransferListener.create(5);
+            invokeSuccessfulLifecycle();
+            List<LogEvent> events = logCaptor.loggedEvents();
+            assertLogged(events, Level.INFO, "Transfer initiated...");
+            assertLogged(events, Level.INFO, "|     | 0.0%");
+            assertLogged(events, Level.INFO, "|=    | 20.0%");
+            assertLogged(events, Level.INFO, "|==   | 40.0%");
+            assertLogged(events, Level.INFO, "|===  | 60.0%");
+            assertLogged(events, Level.INFO, "|==== | 80.0%");
+            assertLogged(events, Level.INFO, "|=====| 100.0%");
+            assertLogged(events, Level.INFO, "Transfer complete!");
+            assertThat(events).isEmpty();
+        }
     }
 
     private void invokeSuccessfulLifecycle() {
