@@ -116,6 +116,7 @@ public class AsyncBufferingSubscriber<T> implements Subscriber<T> {
         log.debug(() -> "Delivering next item, numRequestInFlight=" + numberOfRequestInFlight);
 
         consumer.apply(item).whenComplete((r, t) -> {
+            log.trace(() -> "Finished delivering, decrementing numRequestsInFlight, numRequestsInFlight=" + numberOfRequestInFlight);
             numRequestsInFlight.decrementAndGet();
             if (!isStreamingDone) {
                 subscription.request(1);
@@ -145,9 +146,9 @@ public class AsyncBufferingSubscriber<T> implements Subscriber<T> {
 
     @Override
     public void onComplete() {
+        log.debug(() -> "Received onComplete");
         isStreamingDone = true;
         storingSubscriber.onComplete();
-        flushBufferIfNeeded();
     }
 
     /**

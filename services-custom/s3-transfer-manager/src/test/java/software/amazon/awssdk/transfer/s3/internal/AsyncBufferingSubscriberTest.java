@@ -45,6 +45,7 @@ class AsyncBufferingSubscriberTest {
     private CompletableFuture<Void> returnFuture;
     private final List<CompletableFuture<Void>> futures = new ArrayList<>();
     private static ScheduledExecutorService scheduledExecutorService;
+    private static final int MAX_NUM = 123;
 
     @BeforeAll
     public static void setUp() {
@@ -54,7 +55,7 @@ class AsyncBufferingSubscriberTest {
     @BeforeEach
     public void setUpPerTest() {
         returnFuture = new CompletableFuture<>();
-        for (int i = 0; i < 101; i++) {
+        for (int i = 0; i < MAX_NUM + 1; i++) {
             futures.add(new CompletableFuture<>());
         }
         Iterator<CompletableFuture<Void>> iterator = futures.iterator();
@@ -76,16 +77,16 @@ class AsyncBufferingSubscriberTest {
     }
 
     @ParameterizedTest
-    @ValueSource(ints = {1, 4, 11, 20, 100})
+    @ValueSource(ints = {1, 4, 11, 20, 100, MAX_NUM})
     void differentNumberOfStrings_shouldCompleteSuccessfully(int numberOfStrings) throws Exception {
         Flowable.fromArray(IntStream.range(0, numberOfStrings).mapToObj(String::valueOf).toArray(String[]::new)).subscribe(subscriber);
-
 
         List<Integer> numRequestsInFlightSampling = new ArrayList<>();
 
         Disposable disposable = Observable.interval(100, TimeUnit.MILLISECONDS, Schedulers.newThread())
-                                         .map(time -> subscriber.numRequestsInFlight())
-                                         .subscribe(numRequestsInFlightSampling::add, t -> {});
+                                          .map(time -> subscriber.numRequestsInFlight())
+                                          .subscribe(numRequestsInFlightSampling::add, t -> {
+                                          });
 
         returnFuture.get(1000, TimeUnit.SECONDS);
         assertThat(returnFuture).isCompleted().isNotCompletedExceptionally();
