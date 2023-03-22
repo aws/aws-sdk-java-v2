@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Network Manager",
+    "contributor": "",
+    "description": "This release includes an update to create-transit-gateway-route-table-attachment, showing example usage for TransitGatewayRouteTableArn."
+}
