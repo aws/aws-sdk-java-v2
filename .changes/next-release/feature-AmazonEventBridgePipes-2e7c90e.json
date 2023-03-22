@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon EventBridge Pipes",
-    "contributor": "",
-    "description": "This release improves validation on the ARNs in the API model"
-}

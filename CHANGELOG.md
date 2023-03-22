@@ -1,3 +1,32 @@
+# __2.20.30__ __2023-03-22__
+## __AWS Identity and Access Management__
+  - ### Features
+    - Documentation updates for AWS Identity and Access Management (IAM).
+
+## __AWS IoT TwinMaker__
+  - ### Features
+    - This release adds support of adding metadata when creating a new scene or updating an existing scene.
+
+## __AWS Network Manager__
+  - ### Features
+    - This release includes an update to create-transit-gateway-route-table-attachment, showing example usage for TransitGatewayRouteTableArn.
+
+## __AWS Resilience Hub__
+  - ### Features
+    - This release provides customers with the ability to import resources from within an EKS cluster and assess the resiliency of EKS cluster workloads.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon EventBridge Pipes__
+  - ### Features
+    - This release improves validation on the ARNs in the API model
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - This Patch Manager release supports creating, updating, and deleting Patch Baselines for AmazonLinux2023, AlmaLinux.
+
 # __2.20.29__ __2023-03-21__
 ## __AWS Clean Rooms Service__
   - ### Features
