@@ -100,10 +100,10 @@ public interface EnhancedDocument {
      */
     static EnhancedDocument fromAttributeValueMap(Map<String, AttributeValue> attributeValueMap) {
         Validate.paramNotNull(attributeValueMap, "attributeValueMap");
-        return ((DefaultEnhancedDocument.DefaultBuilder) DefaultEnhancedDocument.builder())
-            .attributeValueMap(attributeValueMap)
-            .attributeConverterProviders(defaultProvider())
-            .build();
+        return DefaultEnhancedDocument.builder()
+                                      .attributeValueMap(attributeValueMap)
+                                      .attributeConverterProviders(defaultProvider())
+                                      .build();
     }
 
     /**
@@ -559,6 +559,15 @@ public interface EnhancedDocument {
          * @throws NullPointerException if the json parameter is null
          */
         Builder json(String json);
+
+        /**
+         * Sets the attributes of the document builder to those specified in the provided from a AttributeValue Map, and
+         * completely replaces any previously set attributes.
+         *
+         * @param attributeValueMap - Map with Attributes as String keys and AttributeValue as Value.
+         * @return Builder instance to construct a {@link EnhancedDocument}
+         */
+        Builder attributeValueMap(Map<String, AttributeValue> attributeValueMap);
 
         /**
          * Builds an instance of {@link EnhancedDocument}.

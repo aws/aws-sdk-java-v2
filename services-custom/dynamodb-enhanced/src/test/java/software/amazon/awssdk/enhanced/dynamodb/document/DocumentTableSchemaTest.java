@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.enhanced.dynamodb.mapper;
+package software.amazon.awssdk.enhanced.dynamodb.document;
 
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -23,6 +23,8 @@ import static software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocument
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -33,11 +35,13 @@ import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.converters.document.CustomAttributeForDocumentConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.converters.document.CustomClassForDocumentAPI;
+import software.amazon.awssdk.enhanced.dynamodb.document.DocumentTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocument;
 import software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocumentTestData;
 import software.amazon.awssdk.enhanced.dynamodb.document.TestData;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.ChainConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.StaticKeyAttributeMetadata;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 class DocumentTableSchemaTest {
 
@@ -183,5 +187,53 @@ class DocumentTableSchemaTest {
         TestData simpleStringData = testDataInstance().dataForScenario("customList");
         EnhancedDocument enhancedDocument = documentTableSchema.mapToItem(simpleStringData.getDdbItemMap(), false);
         assertThat(enhancedDocument.getList("customClassForDocumentAPI", EnhancedType.of(CustomClassForDocumentAPI.class)).size()).isEqualTo(2);
+    }
+
+
+    @ParameterizedTest
+    @ArgumentsSource(EnhancedDocumentTestData.class)
+    void validate_DocumentTableSchemaItemToMapWithFilter(TestData testData) {
+        EnhancedDocument filterDocument = testData.getEnhancedDocument().toBuilder()
+                                         .putString("filterOne", "str")
+                                         .putBoolean("filterTwo", false)
+                                         .putNumber("filterThree", 3L)
+                                         .putNumber("noFilter", 10)
+                                         .putNull("filterNull")
+                                         .build();
+
+        Map<String, AttributeValue> filteredAttributeValueMap = new LinkedHashMap<>();
+        filteredAttributeValueMap.put("filterOne", AttributeValue.fromS("str"));
+        filteredAttributeValueMap.put("filterTwo", AttributeValue.fromBool(false));
+        filteredAttributeValueMap.put("filterThree", AttributeValue.fromN("3"));
+        filteredAttributeValueMap.put("filterNull", AttributeValue.fromNul(true));
+
+        DocumentTableSchema documentTableSchema = DocumentTableSchema.builder().build();
+
+        Assertions.assertThat(
+            documentTableSchema.itemToMap(filterDocument,
+                                          Arrays.asList("filterOne", "filterTwo", "filterThree","filterNull")
+                                          )).isEqualTo(filteredAttributeValueMap);
+    }
+
+    @Test
+    void validate_DocumentTableSchema_WithCustomIntegerAttributeProvider() {
+        EnhancedDocument numberDocument = EnhancedDocument.builder()
+                                                          .putNumber("integerOne", 1)
+                                                          .putNumber("integerTen", 10)
+                                                          .putNull("null")
+                                                          .build();
+
+        Map<String, AttributeValue> resultMap = new LinkedHashMap<>();
+        resultMap.put("integerOne", AttributeValue.fromN("11"));
+        resultMap.put("integerTen", AttributeValue.fromN("20"));
+        resultMap.put("null", AttributeValue.fromNul(true));
+
+        DocumentTableSchema documentTableSchema = DocumentTableSchema.builder()
+                                                                     .attributeConverterProviders(
+                                                                         Collections.singletonList(
+                                                                             CustomAttributeForDocumentConverterProvider.create()))
+                                                                     .build();
+        Assertions.assertThat(
+            documentTableSchema.itemToMap(numberDocument, true)).isEqualTo(resultMap);
     }
 }

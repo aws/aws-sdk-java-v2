@@ -51,15 +51,12 @@ import software.amazon.awssdk.utils.Pair;
 
 public final class EnhancedDocumentTestData implements ArgumentsProvider {
 
-
     private static long FIXED_INSTANT_TIME = 1677690845038L;
-
 
     public static final AttributeValue NUMBER_STRING_ARRAY_ATTRIBUTES_LISTS =
         AttributeValue.fromL(Arrays.asList(AttributeValue.fromN("1"),
                                            AttributeValue.fromN("2"),
                                            AttributeValue.fromN("3")));
-
 
     private static final EnhancedDocumentTestData INSTANCE = new EnhancedDocumentTestData();
 
@@ -247,7 +244,6 @@ public final class EnhancedDocumentTestData implements ArgumentsProvider {
                                             + "{\"instantList\":[\"2023-03-01T17:14:05.240Z\",\"2023-03-01T17:14:05.240Z\","
                                             + "\"2023-03-01T17:14:05.240Z\"],\"longNumber\":202,\"string\":\"202\","
                                             + "\"stringSet\":[\"203\",\"204\",\"205\"]}]}")
-
                                       .build());
 
         testDataList.add(dataBuilder().scenario("ThreeLevelNestedList")
@@ -343,7 +339,6 @@ public final class EnhancedDocumentTestData implements ArgumentsProvider {
                                       .json("{\"simpleMap\":{\"key_suffix_1\":\"1\",\"key_suffix_2\":\"2\","
                                             + "\"key_suffix_3\":\"3\",\"key_suffix_4\":\"4\",\"key_suffix_5\":\"5\","
                                             + "\"key_suffix_6\":\"6\",\"key_suffix_7\":\"7\"}}")
-
                                       .build());
 
         testDataList.add(dataBuilder().scenario("ElementsOfCustomType")
@@ -378,7 +373,6 @@ public final class EnhancedDocumentTestData implements ArgumentsProvider {
                                                                                                 defaultProvider()))
                                       .build());
 
-
         testDataList.add(dataBuilder().scenario("complexDocWithSdkBytesAndMapArrays_And_PutOverWritten")
                                       .ddbItemMap(map().withKeyValue("nullKey",AttributeValue.fromNul(true)).get())
                                       .enhancedDocument(
@@ -406,7 +400,6 @@ public final class EnhancedDocumentTestData implements ArgumentsProvider {
                                                                                  Collections.singletonList("1"))),
                                                       EnhancedType.of(String.class), EnhancedType.listOf(String.class))
                                               .build()
-
                                       )
                                       .json("{\"nullKey\": null, \"numberKey\": 1, \"stringKey\":\"stringValue\", "
                                             + "\"simpleDate\":\"-999999999-01-01\",\"stringSet\": "
@@ -453,7 +446,6 @@ public final class EnhancedDocumentTestData implements ArgumentsProvider {
                                       .attributeConverterProvider(ChainConverterProvider.create(CustomAttributeForDocumentConverterProvider.create(),
                                                                                                 defaultProvider()))
                                       .build());
-
 
         testDataList.add(dataBuilder().scenario("putJsonWithSimpleMapOfStrings")
                                       .ddbItemMap(
@@ -597,7 +589,6 @@ public final class EnhancedDocumentTestData implements ArgumentsProvider {
                     AttributeValue.fromSs(Stream.of(1 + base + offset,2 + base +offset, 3 + base +offset).map(r -> String.valueOf(r)).collect(Collectors.toList())));
 
         }
-
         return map;
     }
 
@@ -633,7 +624,6 @@ public final class EnhancedDocumentTestData implements ArgumentsProvider {
                                                                     AttributeValue.fromL(IntStream.range(1, nestedListLength+1).mapToObj(numb -> AttributeValue.fromN(String.valueOf(numb))).collect(Collectors.toList())))
         );
         return result;
-
     }
 
     /**
@@ -653,7 +643,6 @@ public final class EnhancedDocumentTestData implements ArgumentsProvider {
         );
         return result;
     }
-
 
     @Override
     public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {

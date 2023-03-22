@@ -199,42 +199,42 @@ class EnhancedDocumentTest {
 
     @Test
     void builder_with_NullKeys() {
-        String EMPTY_OR_NULL_ERROR = "attributeName must not be null.";
-        assertThatNullPointerException()
+        String EMPTY_OR_NULL_ERROR = "Attribute name must not be null or empty.";
+        assertThatIllegalArgumentException()
             .isThrownBy(() -> EnhancedDocument.builder().putString(null, "Sample"))
             .withMessage(EMPTY_OR_NULL_ERROR);
 
-        assertThatNullPointerException()
+        assertThatIllegalArgumentException()
             .isThrownBy(() -> EnhancedDocument.builder().putNull(null))
             .withMessage(EMPTY_OR_NULL_ERROR);
 
-        assertThatNullPointerException()
+        assertThatIllegalArgumentException()
             .isThrownBy(() -> EnhancedDocument.builder().putNumber(null, 3))
             .withMessage(EMPTY_OR_NULL_ERROR);
 
-        assertThatNullPointerException()
+        assertThatIllegalArgumentException()
             .isThrownBy(() -> EnhancedDocument.builder().putList(null, Arrays.asList(), EnhancedType.of(String.class)))
             .withMessage(EMPTY_OR_NULL_ERROR);
 
-        assertThatNullPointerException()
+        assertThatIllegalArgumentException()
             .isThrownBy(() -> EnhancedDocument.builder().putBytes(null, SdkBytes.fromUtf8String("a")))
             .withMessage(EMPTY_OR_NULL_ERROR);
 
-        assertThatNullPointerException()
+        assertThatIllegalArgumentException()
             .isThrownBy(() -> EnhancedDocument.builder().putMap(null, new HashMap<>(), null, null))
             .withMessage(EMPTY_OR_NULL_ERROR);
 
-        assertThatNullPointerException()
+        assertThatIllegalArgumentException()
             .isThrownBy(() -> EnhancedDocument.builder().putStringSet(null, Stream.of("a").collect(Collectors.toSet())))
             .withMessage(EMPTY_OR_NULL_ERROR);
 
-        assertThatNullPointerException()
+        assertThatIllegalArgumentException()
             .isThrownBy(() -> EnhancedDocument.builder().putNumberSet(null, Stream.of(1).collect(Collectors.toSet())))
             .withMessage(EMPTY_OR_NULL_ERROR);
-        assertThatNullPointerException()
+        assertThatIllegalArgumentException()
             .isThrownBy(() -> EnhancedDocument.builder().putStringSet(null, Stream.of("a").collect(Collectors.toSet())))
             .withMessage(EMPTY_OR_NULL_ERROR);
-        assertThatNullPointerException()
+        assertThatIllegalArgumentException()
             .isThrownBy(() -> EnhancedDocument.builder().putBytesSet(null, Stream.of(SdkBytes.fromUtf8String("a"))
                                                                                  .collect(Collectors.toSet())))
             .withMessage(EMPTY_OR_NULL_ERROR);
@@ -332,8 +332,7 @@ class EnhancedDocumentTest {
                                                                             .attributeConverterProviders(defaultProvider())
                                                                             .putString(escapingString, "sample")
                                                                             .build())
-                                            .withMessageContaining("attributeName must not be blank or empty.");
-
+                                            .withMessageContaining("Attribute name must not be null or empty.");
     }
 
     @ParameterizedTest
@@ -346,7 +345,6 @@ class EnhancedDocumentTest {
                                                     .build();
         assertThat(document.toJson()).isEqualTo(expectedJson);
     }
-
 
     @Test
     void removeParameterFromDocument() {
@@ -398,7 +396,6 @@ class EnhancedDocumentTest {
         assertThatNullPointerException().isThrownBy(() -> builder.putList(SAMPLE_KEY, null, EnhancedType.of(String.class))).withMessage(expectedNullMessage);
     }
 
-
     @Test
     void accessingNulAttributeValue() {
         String NULL_KEY = "nullKey";
@@ -408,7 +405,6 @@ class EnhancedDocumentTest {
         Assertions.assertNull(enhancedDocument.getString(NULL_KEY));
         Assertions.assertNull(enhancedDocument.getList(NULL_KEY, EnhancedType.of(String.class)));
         assertThat(enhancedDocument.getBoolean(NULL_KEY)).isNull();
-
     }
 
     @Test
@@ -418,8 +414,6 @@ class EnhancedDocumentTest {
         assertThat(builder.putString("boolean", "true").build().getBoolean("boolean")).isTrue();
         assertThat(builder.putNumber("boolean", 1).build().getBoolean("boolean")).isTrue();
     }
-
-
 
     @Test
     void putAndGetOfCustomTypes_with_EnhancedTypeApi() {
@@ -456,7 +450,6 @@ class EnhancedDocumentTest {
         assertThat(enhancedDocument.get("customObject", CustomClassForDocumentAPI.class)).isEqualTo(customObject);
     }
 
-
     @Test
     void error_when_usingClassGetPut_for_CollectionValues(){
 
@@ -476,7 +469,5 @@ class EnhancedDocumentTest {
         assertThatIllegalArgumentException().isThrownBy(
                                                 () -> EnhancedDocument.builder().build().get("listKey" , List.class))
                                             .withMessage("Values of type List are not supported by this API, please use the getList API instead");
-
-
     }
 }

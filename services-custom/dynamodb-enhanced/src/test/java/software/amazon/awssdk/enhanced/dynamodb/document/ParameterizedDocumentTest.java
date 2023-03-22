@@ -51,9 +51,6 @@ class ParameterizedDocumentTest {
          * The builder method internally creates a AttributeValueMap which is saved to the ddb, if this matches then
          * the document is as expected
          */
-
-        System.out.println("testData.getEnhancedDocument().toJson() " +testData.getEnhancedDocument().toJson());
-        System.out.println("testData.getEnhancedDocument().toJson() " +testData.getEnhancedDocument().toMap());
         assertThat(testData.getEnhancedDocument().toJson()).isEqualTo(testData.getJson());
     }
 
@@ -79,8 +76,6 @@ class ParameterizedDocumentTest {
         assertThat(EnhancedDocument.fromAttributeValueMap(testData.getDdbItemMap()).toMap())
             .isEqualTo(testData.getDdbItemMap());
     }
-
-
 
         @ParameterizedTest
         @ArgumentsSource(EnhancedDocumentTestData.class)

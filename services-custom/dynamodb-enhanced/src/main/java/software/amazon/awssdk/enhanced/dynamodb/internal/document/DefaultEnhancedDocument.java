@@ -64,10 +64,13 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 public class DefaultEnhancedDocument implements EnhancedDocument {
 
-    private static final IllegalStateException NULL_SET_ERROR = new IllegalStateException("Set must not have null values.");
+    private static final Lazy<IllegalStateException> NULL_SET_ERROR = new Lazy<>(
+        () -> new IllegalStateException("Set must not have null values."));
+
     private static final JsonItemAttributeConverter JSON_ATTRIBUTE_CONVERTER = JsonItemAttributeConverter.create();
     private static final String VALIDATE_TYPE_ERROR = "Values of type %s are not supported by this API, please use the "
                                                      + "%s%s API instead";
+    private static final AttributeValue NULL_ATTRIBUTE_VALUE = AttributeValue.fromNul(true);
     private final Map<String, Object> nonAttributeValueMap;
     private final Map<String, EnhancedType> enhancedTypeMap;
     private final List<AttributeConverterProvider> attributeConverterProviders;
@@ -116,8 +119,11 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
 
     @Override
     public boolean isNull(String attributeName) {
-        return isPresent(attributeName) && (nonAttributeValueMap.get(attributeName) == null
-               || AttributeValue.fromNul(true).equals(nonAttributeValueMap.get(attributeName)));
+        if (!isPresent(attributeName)) {
+            return false;
+        }
+        Object attributeValue = nonAttributeValueMap.get(attributeName);
+        return attributeValue == null || NULL_ATTRIBUTE_VALUE.equals(attributeValue);
     }
 
     @Override
@@ -242,7 +248,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
         Validate.notEmpty(this.attributeConverterProviders, "attributeConverterProviders");
         this.nonAttributeValueMap.forEach((k, v) -> {
             if (v == null) {
-                result.put(k, AttributeValue.fromNul(true));
+                result.put(k, NULL_ATTRIBUTE_VALUE);
             } else {
 
                 result.put(k, toAttributeValue(v, enhancedTypeMap.getOrDefault(k, EnhancedType.of(v.getClass()))));
@@ -289,12 +295,10 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
         }
 
         private Builder putObject(String attributeName, Object value, boolean ignoreNullValue) {
-
             if (!ignoreNullValue) {
                 checkInvalidAttribute(attributeName, value);
             } else {
-                Validate.paramNotNull(attributeName, "attributeName");
-                Validate.paramNotBlank(attributeName.trim(), "attributeName");
+                validateAttributeName(attributeName);
             }
             enhancedTypeMap.remove(attributeName);
             nonAttributeValueMap.remove(attributeName);
@@ -331,7 +335,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
         public Builder putStringSet(String attributeName, Set<String> values) {
             checkInvalidAttribute(attributeName, values);
             if (values.stream().anyMatch(Objects::isNull)) {
-                throw NULL_SET_ERROR;
+                throw NULL_SET_ERROR.getValue();
             }
             return put(attributeName, values, EnhancedType.setOf(String.class));
         }
@@ -342,7 +346,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
             Set<SdkNumber> sdkNumberSet =
                 values.stream().map(number -> {
                     if (number == null) {
-                        throw NULL_SET_ERROR;
+                        throw NULL_SET_ERROR.getValue();
                     }
                     return SdkNumber.fromString(number.toString());
                 }).collect(Collectors.toCollection(LinkedHashSet::new));
@@ -353,7 +357,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
         public Builder putBytesSet(String attributeName, Set<SdkBytes> values) {
             checkInvalidAttribute(attributeName, values);
             if (values.stream().anyMatch(Objects::isNull)) {
-                throw NULL_SET_ERROR;
+                throw NULL_SET_ERROR.getValue();
             }
             return put(attributeName, values, EnhancedType.setOf(SdkBytes.class));
         }
@@ -436,6 +440,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
             return this;
         }
 
+        @Override
         public Builder attributeValueMap(Map<String, AttributeValue> attributeValueMap) {
             Validate.paramNotNull(attributeConverterProviders, "attributeValueMap");
             nonAttributeValueMap.clear();
@@ -458,9 +463,13 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
         }
 
         private static void checkInvalidAttribute(String attributeName, Object value) {
-            Validate.paramNotNull(attributeName, "attributeName");
-            Validate.paramNotBlank(attributeName.trim(), "attributeName");
+            validateAttributeName(attributeName);
             Validate.notNull(value, "Value for %s must not be null. Use putNull API to insert a Null value", attributeName);
+        }
+
+        private static void validateAttributeName(String attributeName) {
+            Validate.isTrue(attributeName != null && !attributeName.trim().isEmpty(),
+                            "Attribute name must not be null or empty.");
         }
 
     }

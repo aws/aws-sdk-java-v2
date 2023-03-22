@@ -24,7 +24,6 @@ import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 public class TestData {
-
     private EnhancedDocument enhancedDocument;
     private String scenario;
     private Map<String, AttributeValue> ddbItemMap;
@@ -35,11 +34,8 @@ public class TestData {
         return scenario;
     }
 
-
-
     private String json;
     private boolean isGeneric;
-
 
     public static Builder dataBuilder(){
         return new Builder();
@@ -134,7 +130,6 @@ public class TestData {
         }
 
     }
-
 
     public  static class TypeMap {
         private TypeMap() {

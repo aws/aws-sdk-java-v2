@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.enhanced.dynamodb.mapper;
+package software.amazon.awssdk.enhanced.dynamodb.document;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,9 +34,10 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocument;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.ConverterProviderResolver;
 import software.amazon.awssdk.enhanced.dynamodb.internal.document.DefaultEnhancedDocument;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticImmutableTableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableMetadata;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 
@@ -53,7 +54,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * DocumentTableSchema documentTableSchema = DocumentTableSchema.builder()
  * .primaryKey("sampleHashKey", AttributeValueType.S)
  * .sortKey("sampleSortKey", AttributeValueType.S)
- * .attributeConverterProviders(customAttributeConveter, AttributeConverterProvider.defaultProvider())
+ * .attributeConverterProviders(customAttributeConverter, AttributeConverterProvider.defaultProvider())
  * .build();
  *}
  * <p> DocumentTableSchema can also be created without specifying primaryKey and sortKey in which cases the
@@ -80,6 +81,9 @@ public final class DocumentTableSchema implements TableSchema<EnhancedDocument> 
         return new Builder();
     }
 
+    /**
+     * {@inheritdoc}
+     */
     @Override
     public EnhancedDocument mapToItem(Map<String, AttributeValue> attributeMap) {
         if (attributeMap == null) {
@@ -93,12 +97,14 @@ public final class DocumentTableSchema implements TableSchema<EnhancedDocument> 
     }
 
     /**
-     * @param item        The modelled Java object to convert into a map of attributes.
-     * @param ignoreNulls This flag is of no use for Document API, unlike Java objects where default value of undefined Object is
-     *                    null , and  since Enhanced client knows the Schemas this flag is used to decide whether to send Null
-     *                    Attribute Value or not send the attribute at all, However, in case of Document API the Enhanced client
-     *                    is not aware of the Schema, thus any fields which are not set explicitly will always be ignored.
-     * @return
+     * {@inheritDoc}
+     *
+     * This flag does not have significance for the Document API, unlike Java objects where the default value of an undefined
+     * Object is null.In contrast to mapped classes, where a schema is present, the DocumentSchema is unaware of the entire
+     * schema.Therefore, if an attribute is not present, it signifies that it is null, and there is no need to handle it in a
+     * separate way.However, if the user explicitly wants to nullify certain attributes, then the user needs to set those
+     * attributes as null in the Document that needs to be updated.
+     *
      */
     @Override
     public Map<String, AttributeValue> itemToMap(EnhancedDocument item, boolean ignoreNulls) {
@@ -119,6 +125,9 @@ public final class DocumentTableSchema implements TableSchema<EnhancedDocument> 
         return attributeConverterProviders;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Map<String, AttributeValue> itemToMap(EnhancedDocument item, Collection<String> attributes) {
         if (item.toMap() == null) {
@@ -132,6 +141,9 @@ public final class DocumentTableSchema implements TableSchema<EnhancedDocument> 
                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
+    /**
+     * {@inheritdoc}
+     */
     @Override
     public AttributeValue attributeValue(EnhancedDocument item, String attributeName) {
         if (item == null || item.toMap() == null) {
@@ -145,21 +157,33 @@ public final class DocumentTableSchema implements TableSchema<EnhancedDocument> 
                    .get(attributeName);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     @Override
     public TableMetadata tableMetadata() {
         return tableMetadata;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     @Override
     public EnhancedType<EnhancedDocument> itemType() {
         return EnhancedType.of(EnhancedDocument.class);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     @Override
     public List<String> attributeNames() {
         return tableMetadata.keyAttributes().stream().map(key -> key.name()).collect(Collectors.toList());
     }
 
+    /**
+     * {@inheritdoc}
+     */
     @Override
     public boolean isAbstract() {
         return false;
