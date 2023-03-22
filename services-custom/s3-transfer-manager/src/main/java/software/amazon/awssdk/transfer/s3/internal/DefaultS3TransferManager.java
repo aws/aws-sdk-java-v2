@@ -120,12 +120,15 @@ public final class DefaultS3TransferManager implements S3TransferManager {
 
         if (s3AsyncClient instanceof S3CrtAsyncClient) {
             s3ClientType = S3ClientType.CRT_BASED;
-        } else {
+        } else if (s3AsyncClient.getClass().getName().equals("software.amazon.awssdk.services.s3.DefaultS3AsyncClient")) {
             s3ClientType = S3ClientType.JAVA_BASED;
-            log.warn(() -> "The provided S3AsyncClient is not an instance of S3CrtAsyncClient, and thus multipart"
+            log.warn(() -> "The provided DefaultS3AsyncClient is not an instance of S3CrtAsyncClient, and thus multipart"
                            + " upload/download feature is not enabled and resumable file upload is not supported. To benefit "
-                           + "from maximum throughput,"
-                           + " consider using S3AsyncClient.crtBuilder().build() instead.");
+                           + "from maximum throughput, consider using S3AsyncClient.crtBuilder().build() instead.");
+        } else {
+            s3ClientType = S3ClientType.OTHER;
+            log.debug(() -> "The provided S3AsyncClient is not an instance of S3CrtAsyncClient, and thus multipart"
+                            + " upload/download feature may not be enabled and resumable file upload may not be supported.");
         }
     }
 
