@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core;
 
+import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 
@@ -24,7 +25,7 @@ import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 @SdkPublicApi
 public abstract class SdkServiceClientConfiguration {
 
-    private final ClientOverrideConfiguration overrideConfiguration;
+    protected final ClientOverrideConfiguration overrideConfiguration;
 
     protected SdkServiceClientConfiguration(Builder builder) {
         this.overrideConfiguration = builder.overrideConfiguration();
@@ -39,11 +40,41 @@ public abstract class SdkServiceClientConfiguration {
         return this.overrideConfiguration;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        SdkServiceClientConfiguration serviceClientConfiguration = (SdkServiceClientConfiguration) o;
+        return Objects.equals(overrideConfiguration, serviceClientConfiguration.overrideConfiguration());
+    }
+
+    @Override
+    public int hashCode() {
+        return overrideConfiguration != null ? overrideConfiguration.hashCode() : 0;
+    }
+
+    /**
+     * The base interface for all SDK service client configurations
+     */
     public interface Builder {
+        /**
+         * Return the client override configuration
+         */
         ClientOverrideConfiguration overrideConfiguration();
 
+        /**
+         * Configure the client override configuration
+         */
         Builder overrideConfiguration(ClientOverrideConfiguration clientOverrideConfiguration);
 
+        /**
+         * Build the service client configuration using the configuration on this builder
+         */
         SdkServiceClientConfiguration build();
     }
 }

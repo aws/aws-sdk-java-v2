@@ -110,10 +110,13 @@ public class DelegatingAsyncClientClass extends AsyncClientInterface {
     }
 
     private MethodSpec serviceClientConfigMethod() {
+        ClassName serviceConfigClassName = PoetUtils.classNameFromFqcn(model.getMetadata().getFullInternalPackageName()
+                                                                       + "." + model.getMetadata().getServiceName()
+                                                                       + "ServiceClientConfiguration");
         return MethodSpec.methodBuilder("serviceClientConfiguration")
                          .addAnnotation(Override.class)
                          .addModifiers(PUBLIC, FINAL)
-                         .returns(AwsServiceClientConfiguration.class)
+                         .returns(serviceConfigClassName)
                          .addStatement("return delegate.serviceClientConfiguration()")
                          .build();
     }

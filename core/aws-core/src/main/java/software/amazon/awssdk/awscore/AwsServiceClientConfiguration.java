@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.awscore;
 
+import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
@@ -41,16 +42,46 @@ public abstract class AwsServiceClientConfiguration extends SdkServiceClientConf
         return this.region;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        AwsServiceClientConfiguration serviceClientConfiguration = (AwsServiceClientConfiguration) o;
+        return Objects.equals(region, serviceClientConfiguration.region)
+               && Objects.equals(overrideConfiguration, serviceClientConfiguration.overrideConfiguration());
+    }
+
+    @Override
+    public int hashCode() {
+        int result = region != null ? region.hashCode() : 0;
+        result = 31 * result + (overrideConfiguration != null ? overrideConfiguration.hashCode() : 0);;
+        return result;
+    }
+
+    /**
+     * The base interface for all AWS service client configurations
+     */
     public interface Builder extends SdkServiceClientConfiguration.Builder {
+        /**
+         * Return the region
+         */
         Region region();
 
+        /**
+         * Configure the region
+         */
         Builder region(Region region);
 
         @Override
         AwsServiceClientConfiguration build();
     }
 
-    protected abstract static class BuilderImpl implements Builder {
+    private abstract static class BuilderImpl implements Builder {
         protected ClientOverrideConfiguration overrideConfiguration;
         protected Region region;
 
