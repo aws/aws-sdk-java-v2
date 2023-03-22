@@ -61,6 +61,8 @@ public class MemberModel extends DocumentationModel {
 
     private boolean required;
 
+    private boolean synthetic;
+
     private ListModel listModel;
 
     private MapModel mapModel;
@@ -124,6 +126,14 @@ public class MemberModel extends DocumentationModel {
     public MemberModel withName(String name) {
         setName(name);
         return this;
+    }
+
+    public boolean isSynthetic() {
+        return synthetic;
+    }
+
+    public void setSynthetic(boolean synthetic) {
+        this.synthetic = synthetic;
     }
 
     public String getC2jName() {

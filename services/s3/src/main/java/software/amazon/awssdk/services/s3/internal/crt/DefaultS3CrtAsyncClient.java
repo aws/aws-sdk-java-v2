@@ -43,6 +43,7 @@ import software.amazon.awssdk.services.s3.DelegatingS3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder;
+import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -105,6 +106,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                                        .endpointOverride(builder.endpointOverride)
                                        .credentialsProvider(builder.credentialsProvider)
                                        .readBufferSizeInBytes(builder.readBufferSizeInBytes)
+                                       .httpConfiguration(builder.httpConfiguration)
                                        .build();
 
         return S3CrtAsyncHttpClient.builder()
@@ -120,6 +122,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         private Integer maxConcurrency;
         private URI endpointOverride;
         private Boolean checksumValidationEnabled;
+        private S3CrtHttpConfiguration httpConfiguration;
 
         public AwsCredentialsProvider credentialsProvider() {
             return credentialsProvider;
@@ -194,6 +197,12 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         @Override
         public S3CrtAsyncClientBuilder initialReadBufferSizeInBytes(Long readBufferSizeInBytes) {
             this.readBufferSizeInBytes = readBufferSizeInBytes;
+            return this;
+        }
+
+        @Override
+        public S3CrtAsyncClientBuilder httpConfiguration(S3CrtHttpConfiguration configuration) {
+            this.httpConfiguration = configuration;
             return this;
         }
 
