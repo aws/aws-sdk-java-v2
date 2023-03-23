@@ -689,11 +689,6 @@ final class DefaultQueryClient implements QueryClient {
         return SERVICE_NAME;
     }
 
-    @Override
-    public final QueryServiceClientConfiguration serviceClientConfiguration() {
-        return this.serviceClientConfiguration;
-    }
-
     private static List<MetricPublisher> resolveMetricPublishers(SdkClientConfiguration clientConfiguration,
                                                                  RequestOverrideConfiguration requestOverrideConfiguration) {
         List<MetricPublisher> publishers = null;
@@ -716,6 +711,11 @@ final class DefaultQueryClient implements QueryClient {
                 ExceptionMetadata.builder().errorCode("InvalidInput")
                                  .exceptionBuilderSupplier(InvalidInputException::builder).httpStatusCode(400).build())
             .clientConfiguration(clientConfiguration).defaultServiceExceptionSupplier(QueryException::builder).build();
+    }
+
+    @Override
+    public final QueryServiceClientConfiguration serviceClientConfiguration() {
+        return this.serviceClientConfiguration;
     }
 
     @Override

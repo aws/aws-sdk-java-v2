@@ -17,6 +17,7 @@ package software.amazon.awssdk.codegen.poet.client;
 
 import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
+import static javax.lang.model.element.Modifier.ABSTRACT;
 import static javax.lang.model.element.Modifier.DEFAULT;
 import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PUBLIC;
@@ -94,6 +95,7 @@ public class SyncClientInterface implements ClassSpec {
             result.addMethod(waiterMethod());
         }
         addAdditionalMethods(result);
+        result.addMethod(serviceClientConfigMethod());
         addCloseMethod(result);
         return result.build();
     }
@@ -527,6 +529,14 @@ public class SyncClientInterface implements ClassSpec {
                                                            + "configuration set on this client.", returnType);
 
         return utilitiesOperationBody(builder).build();
+    }
+
+    protected MethodSpec serviceClientConfigMethod() {
+        return MethodSpec.methodBuilder("serviceClientConfiguration")
+                         .addAnnotation(Override.class)
+                         .addModifiers(PUBLIC, ABSTRACT)
+                         .returns(new PoetExtension(model).getServiceConfigClass())
+                         .build();
     }
 
     protected MethodSpec.Builder utilitiesOperationBody(MethodSpec.Builder builder) {

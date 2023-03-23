@@ -308,11 +308,6 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
         return SERVICE_NAME;
     }
 
-    @Override
-    public final EndpointDiscoveryTestServiceClientConfiguration serviceClientConfiguration() {
-        return this.serviceClientConfiguration;
-    }
-
     private static List<MetricPublisher> resolveMetricPublishers(SdkClientConfiguration clientConfiguration,
                                                                  RequestOverrideConfiguration requestOverrideConfiguration) {
         List<MetricPublisher> publishers = null;
@@ -337,6 +332,11 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
         return builder.clientConfiguration(clientConfiguration)
                       .defaultServiceExceptionSupplier(EndpointDiscoveryTestException::builder).protocol(AwsJsonProtocol.AWS_JSON)
                       .protocolVersion("1.1");
+    }
+
+    @Override
+    public final EndpointDiscoveryTestServiceClientConfiguration serviceClientConfiguration() {
+        return this.serviceClientConfiguration;
     }
 
     @Override

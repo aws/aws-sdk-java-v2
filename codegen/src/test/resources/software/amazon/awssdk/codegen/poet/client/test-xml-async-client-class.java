@@ -756,13 +756,13 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
     }
 
     @Override
-    public final String serviceName() {
-        return SERVICE_NAME;
+    public final XmlServiceClientConfiguration serviceClientConfiguration() {
+        return this.serviceClientConfiguration;
     }
 
     @Override
-    public final XmlServiceClientConfiguration serviceClientConfiguration() {
-        return this.serviceClientConfiguration;
+    public final String serviceName() {
+        return SERVICE_NAME;
     }
 
     private AwsXmlProtocolFactory init() {

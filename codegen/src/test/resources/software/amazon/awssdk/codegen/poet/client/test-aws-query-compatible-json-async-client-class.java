@@ -130,13 +130,13 @@ final class DefaultQueryToJsonCompatibleAsyncClient implements QueryToJsonCompat
     }
 
     @Override
-    public final String serviceName() {
-        return SERVICE_NAME;
+    public final QueryToJsonCompatibleServiceClientConfiguration serviceClientConfiguration() {
+        return this.serviceClientConfiguration;
     }
 
     @Override
-    public final QueryToJsonCompatibleServiceClientConfiguration serviceClientConfiguration() {
-        return this.serviceClientConfiguration;
+    public final String serviceName() {
+        return SERVICE_NAME;
     }
 
     private <T extends BaseAwsJsonProtocolFactory.Builder<T>> T init(T builder) {

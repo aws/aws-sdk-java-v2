@@ -860,13 +860,13 @@ public abstract class DelegatingJsonClient implements JsonClient {
         return delegate.serviceName();
     }
 
+    public SdkClient delegate() {
+        return this.delegate;
+    }
+
     @Override
     public final JsonServiceClientConfiguration serviceClientConfiguration() {
         return delegate.serviceClientConfiguration();
-    }
-
-    public SdkClient delegate() {
-        return this.delegate;
     }
 
     @Override

@@ -1182,13 +1182,13 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
     }
 
     @Override
-    public final String serviceName() {
-        return SERVICE_NAME;
+    public final JsonServiceClientConfiguration serviceClientConfiguration() {
+        return this.serviceClientConfiguration;
     }
 
     @Override
-    public final JsonServiceClientConfiguration serviceClientConfiguration() {
-        return this.serviceClientConfiguration;
+    public final String serviceName() {
+        return SERVICE_NAME;
     }
 
     private <T extends BaseAwsJsonProtocolFactory.Builder<T>> T init(T builder) {

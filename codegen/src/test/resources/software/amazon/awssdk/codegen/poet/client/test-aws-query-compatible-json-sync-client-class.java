@@ -129,11 +129,6 @@ final class DefaultQueryToJsonCompatibleClient implements QueryToJsonCompatibleC
         return SERVICE_NAME;
     }
 
-    @Override
-    public final QueryToJsonCompatibleServiceClientConfiguration serviceClientConfiguration() {
-        return this.serviceClientConfiguration;
-    }
-
     private static List<MetricPublisher> resolveMetricPublishers(SdkClientConfiguration clientConfiguration,
                                                                  RequestOverrideConfiguration requestOverrideConfiguration) {
         List<MetricPublisher> publishers = null;
@@ -164,6 +159,11 @@ final class DefaultQueryToJsonCompatibleClient implements QueryToJsonCompatibleC
             .registerModeledException(
                 ExceptionMetadata.builder().errorCode("InvalidInput")
                                  .exceptionBuilderSupplier(InvalidInputException::builder).httpStatusCode(400).build());
+    }
+
+    @Override
+    public final QueryToJsonCompatibleServiceClientConfiguration serviceClientConfiguration() {
+        return this.serviceClientConfiguration;
     }
 
     @Override

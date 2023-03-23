@@ -77,9 +77,7 @@ public class SyncClientClass extends SyncClientInterface {
         this.poetExtensions = taskParams.getPoetExtensions();
         this.className = poetExtensions.getClientClass(model.getMetadata().getSyncClient());
         this.protocolSpec = getProtocolSpecs(poetExtensions, model);
-        this.serviceClientConfigurationClassName = PoetUtils.classNameFromFqcn(model.getMetadata().getFullInternalPackageName()
-                                                                               + "." + model.getMetadata().getServiceName()
-                                                                               + "ServiceClientConfiguration");
+        this.serviceClientConfigurationClassName = new PoetExtension(model).getServiceConfigClass();
     }
 
     @Override
@@ -129,7 +127,6 @@ public class SyncClientClass extends SyncClientInterface {
 
         type.addMethod(constructor())
             .addMethod(nameMethod())
-            .addMethod(serviceClientConfigMethod())
             .addMethods(protocolSpec.additionalMethods())
             .addMethod(resolveMetricPublishersMethod());
 
@@ -153,7 +150,8 @@ public class SyncClientClass extends SyncClientInterface {
                          .build();
     }
 
-    private MethodSpec serviceClientConfigMethod() {
+    @Override
+    protected MethodSpec serviceClientConfigMethod() {
         return MethodSpec.methodBuilder("serviceClientConfiguration")
                          .addAnnotation(Override.class)
                          .addModifiers(PUBLIC, FINAL)

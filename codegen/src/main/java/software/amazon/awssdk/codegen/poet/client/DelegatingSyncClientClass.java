@@ -27,7 +27,6 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.awscore.AwsServiceClientConfiguration;
 import software.amazon.awssdk.codegen.docs.SimpleMethodOverload;
 import software.amazon.awssdk.codegen.model.config.customization.UtilitiesMethod;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -97,7 +96,6 @@ public class DelegatingSyncClientClass extends SyncClientInterface {
                                         .build();
 
         type.addMethod(nameMethod())
-            .addMethod(serviceClientConfigMethod())
             .addMethod(delegate);
     }
 
@@ -169,7 +167,8 @@ public class DelegatingSyncClientClass extends SyncClientInterface {
                          .build();
     }
 
-    private MethodSpec serviceClientConfigMethod() {
+    @Override
+    protected MethodSpec serviceClientConfigMethod() {
         ClassName serviceConfigClassName = PoetUtils.classNameFromFqcn(model.getMetadata().getFullInternalPackageName()
                                                                        + "." + model.getMetadata().getServiceName()
                                                                        + "ServiceClientConfiguration");

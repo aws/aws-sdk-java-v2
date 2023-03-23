@@ -13,6 +13,7 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.regions.ServiceMetadata;
+import software.amazon.awssdk.services.json.internal.JsonServiceClientConfiguration;
 import software.amazon.awssdk.services.json.model.APostOperationRequest;
 import software.amazon.awssdk.services.json.model.APostOperationResponse;
 import software.amazon.awssdk.services.json.model.APostOperationWithOutputRequest;
@@ -1682,4 +1683,7 @@ public interface JsonClient extends AwsClient {
     static ServiceMetadata serviceMetadata() {
         return ServiceMetadata.of(SERVICE_METADATA_ID);
     }
+
+    @Override
+    JsonServiceClientConfiguration serviceClientConfiguration();
 }

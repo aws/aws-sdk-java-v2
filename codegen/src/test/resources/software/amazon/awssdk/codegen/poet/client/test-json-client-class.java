@@ -975,11 +975,6 @@ final class DefaultJsonClient implements JsonClient {
         return SERVICE_NAME;
     }
 
-    @Override
-    public final JsonServiceClientConfiguration serviceClientConfiguration() {
-        return this.serviceClientConfiguration;
-    }
-
     private static List<MetricPublisher> resolveMetricPublishers(SdkClientConfiguration clientConfiguration,
                                                                  RequestOverrideConfiguration requestOverrideConfiguration) {
         List<MetricPublisher> publishers = null;
@@ -1009,6 +1004,11 @@ final class DefaultJsonClient implements JsonClient {
             .registerModeledException(
                 ExceptionMetadata.builder().errorCode("InvalidInput")
                                  .exceptionBuilderSupplier(InvalidInputException::builder).httpStatusCode(400).build());
+    }
+
+    @Override
+    public final JsonServiceClientConfiguration serviceClientConfiguration() {
+        return this.serviceClientConfiguration;
     }
 
     @Override

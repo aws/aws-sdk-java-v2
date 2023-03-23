@@ -101,9 +101,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
         this.poetExtensions = dependencies.getPoetExtensions();
         this.className = poetExtensions.getClientClass(model.getMetadata().getAsyncClient());
         this.protocolSpec = getProtocolSpecs(poetExtensions, model);
-        this.serviceClientConfigurationClassName = PoetUtils.classNameFromFqcn(model.getMetadata().getFullInternalPackageName()
-                                                                               + "." + model.getMetadata().getServiceName()
-                                                                               + "ServiceClientConfiguration");
+        this.serviceClientConfigurationClassName = new PoetExtension(model).getServiceConfigClass();
     }
 
     @Override
@@ -153,7 +151,6 @@ public final class AsyncClientClass extends AsyncClientInterface {
     protected void addAdditionalMethods(TypeSpec.Builder type) {
         type.addMethod(constructor(type))
             .addMethod(nameMethod())
-            .addMethod(serviceClientConfigMethod())
             .addMethods(protocolSpec.additionalMethods())
             .addMethod(protocolSpec.initProtocolFactory(model))
             .addMethod(resolveMetricPublishersMethod());
@@ -272,7 +269,8 @@ public final class AsyncClientClass extends AsyncClientInterface {
                          .build();
     }
 
-    private MethodSpec serviceClientConfigMethod() {
+    @Override
+    protected MethodSpec serviceClientConfigMethod() {
         return MethodSpec.methodBuilder("serviceClientConfiguration")
                          .addAnnotation(Override.class)
                          .addModifiers(PUBLIC, FINAL)

@@ -25,7 +25,7 @@ import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 @SdkPublicApi
 public abstract class SdkServiceClientConfiguration {
 
-    protected final ClientOverrideConfiguration overrideConfiguration;
+    private final ClientOverrideConfiguration overrideConfiguration;
 
     protected SdkServiceClientConfiguration(Builder builder) {
         this.overrideConfiguration = builder.overrideConfiguration();

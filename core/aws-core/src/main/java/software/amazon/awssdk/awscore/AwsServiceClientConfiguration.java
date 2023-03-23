@@ -44,22 +44,19 @@ public abstract class AwsServiceClientConfiguration extends SdkServiceClientConf
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
+        if (!super.equals(o)) {
             return false;
         }
 
         AwsServiceClientConfiguration serviceClientConfiguration = (AwsServiceClientConfiguration) o;
-        return Objects.equals(region, serviceClientConfiguration.region)
-               && Objects.equals(overrideConfiguration, serviceClientConfiguration.overrideConfiguration());
+        return Objects.equals(region, serviceClientConfiguration.region);
     }
 
     @Override
     public int hashCode() {
-        int result = region != null ? region.hashCode() : 0;
-        result = 31 * result + (overrideConfiguration != null ? overrideConfiguration.hashCode() : 0);;
+        int result = 1;
+        result = 31 * result + super.hashCode();
+        result = 31 * result + (region != null ? region.hashCode() : 0);
         return result;
     }
 
@@ -81,7 +78,7 @@ public abstract class AwsServiceClientConfiguration extends SdkServiceClientConf
         AwsServiceClientConfiguration build();
     }
 
-    private abstract static class BuilderImpl implements Builder {
+    protected abstract static class BuilderImpl implements Builder {
         protected ClientOverrideConfiguration overrideConfiguration;
         protected Region region;
 

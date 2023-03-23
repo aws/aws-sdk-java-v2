@@ -789,13 +789,13 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
     }
 
     @Override
-    public final String serviceName() {
-        return SERVICE_NAME;
+    public final QueryServiceClientConfiguration serviceClientConfiguration() {
+        return this.serviceClientConfiguration;
     }
 
     @Override
-    public final QueryServiceClientConfiguration serviceClientConfiguration() {
-        return this.serviceClientConfiguration;
+    public final String serviceName() {
+        return SERVICE_NAME;
     }
 
     private AwsQueryProtocolFactory init() {

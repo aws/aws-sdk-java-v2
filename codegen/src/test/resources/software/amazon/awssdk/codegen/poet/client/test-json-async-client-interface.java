@@ -14,6 +14,7 @@ import software.amazon.awssdk.services.builder.Builder;
 import software.amazon.awssdk.services.builder.CustomBuilder;
 import software.amazon.awssdk.services.builder.DefaultBuilder;
 import software.amazon.awssdk.services.builder.DefaultBuilderTwo;
+import software.amazon.awssdk.services.json.internal.JsonServiceClientConfiguration;
 import software.amazon.awssdk.services.json.model.APostOperationRequest;
 import software.amazon.awssdk.services.json.model.APostOperationResponse;
 import software.amazon.awssdk.services.json.model.APostOperationWithOutputRequest;
@@ -1741,6 +1742,9 @@ public interface JsonAsyncClient extends AwsClient {
         return streamingOutputOperation(StreamingOutputOperationRequest.builder().applyMutation(streamingOutputOperationRequest)
                                                                        .build(), destinationPath);
     }
+
+    @Override
+    JsonServiceClientConfiguration serviceClientConfiguration();
 
     /**
      * Create a {@link JsonAsyncClient} with the region loaded from the

@@ -113,13 +113,13 @@ final class DefaultProtocolRestJsonWithCustomContentTypeAsyncClient implements P
     }
 
     @Override
-    public final String serviceName() {
-        return SERVICE_NAME;
+    public final ProtocolRestJsonWithCustomContentTypeServiceClientConfiguration serviceClientConfiguration() {
+        return this.serviceClientConfiguration;
     }
 
     @Override
-    public final ProtocolRestJsonWithCustomContentTypeServiceClientConfiguration serviceClientConfiguration() {
-        return this.serviceClientConfiguration;
+    public final String serviceName() {
+        return SERVICE_NAME;
     }
 
     private <T extends BaseAwsJsonProtocolFactory.Builder<T>> T init(T builder) {

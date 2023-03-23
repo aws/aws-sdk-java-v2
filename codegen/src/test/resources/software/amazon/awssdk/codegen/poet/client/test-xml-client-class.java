@@ -569,11 +569,6 @@ final class DefaultXmlClient implements XmlClient {
         return SERVICE_NAME;
     }
 
-    @Override
-    public final XmlServiceClientConfiguration serviceClientConfiguration() {
-        return this.serviceClientConfiguration;
-    }
-
     private static List<MetricPublisher> resolveMetricPublishers(SdkClientConfiguration clientConfiguration,
                                                                  RequestOverrideConfiguration requestOverrideConfiguration) {
         List<MetricPublisher> publishers = null;
@@ -596,6 +591,11 @@ final class DefaultXmlClient implements XmlClient {
                 ExceptionMetadata.builder().errorCode("InvalidInput")
                                  .exceptionBuilderSupplier(InvalidInputException::builder).httpStatusCode(400).build())
             .clientConfiguration(clientConfiguration).defaultServiceExceptionSupplier(XmlException::builder).build();
+    }
+
+    @Override
+    public final XmlServiceClientConfiguration serviceClientConfiguration() {
+        return this.serviceClientConfiguration;
     }
 
     @Override

@@ -31,7 +31,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.awscore.AwsServiceClientConfiguration;
 import software.amazon.awssdk.codegen.model.config.customization.UtilitiesMethod;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
@@ -96,7 +95,6 @@ public class DelegatingAsyncClientClass extends AsyncClientInterface {
                                         .build();
 
         type.addMethod(nameMethod())
-            .addMethod(serviceClientConfigMethod())
             .addMethod(delegate);
     }
 
@@ -109,14 +107,12 @@ public class DelegatingAsyncClientClass extends AsyncClientInterface {
                          .build();
     }
 
-    private MethodSpec serviceClientConfigMethod() {
-        ClassName serviceConfigClassName = PoetUtils.classNameFromFqcn(model.getMetadata().getFullInternalPackageName()
-                                                                       + "." + model.getMetadata().getServiceName()
-                                                                       + "ServiceClientConfiguration");
+    @Override
+    protected MethodSpec serviceClientConfigMethod() {
         return MethodSpec.methodBuilder("serviceClientConfiguration")
                          .addAnnotation(Override.class)
                          .addModifiers(PUBLIC, FINAL)
-                         .returns(serviceConfigClassName)
+                         .returns(new PoetExtension(model).getServiceConfigClass())
                          .addStatement("return delegate.serviceClientConfiguration()")
                          .build();
     }

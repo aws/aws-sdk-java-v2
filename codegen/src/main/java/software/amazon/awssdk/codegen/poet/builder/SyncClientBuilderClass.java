@@ -25,6 +25,7 @@ import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
+import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.codegen.utils.AuthUtils;
@@ -50,9 +51,7 @@ public class SyncClientBuilderClass implements ClassSpec {
         this.builderClassName = ClassName.get(basePackage, model.getMetadata().getSyncBuilder());
         this.builderBaseClassName = ClassName.get(basePackage, model.getMetadata().getBaseBuilder());
         this.endpointRulesSpecUtils = new EndpointRulesSpecUtils(model);
-        this.serviceConfigClassName = PoetUtils.classNameFromFqcn(model.getMetadata().getFullInternalPackageName()
-                                                                  + "." + model.getMetadata().getServiceName()
-                                                                  + "ServiceClientConfiguration");
+        this.serviceConfigClassName = new PoetExtension(model).getServiceConfigClass();
     }
 
     @Override
@@ -126,7 +125,7 @@ public class SyncClientBuilderClass implements ClassSpec {
                          .addStatement("$T clientConfiguration = super.syncClientConfiguration()", SdkClientConfiguration.class)
                          .addStatement("this.validateClientOptions(clientConfiguration)")
                          .addStatement("$T serviceClientConfiguration = $T.builder()"
-                                       + ".overrideConfiguration(overrideConfiguration().toBuilder().build())"
+                                       + ".overrideConfiguration(overrideConfiguration())"
                                        + ".region(clientConfiguration.option($T.AWS_REGION)).build()",
                                        serviceConfigClassName, serviceConfigClassName, AwsClientOption.class)
                          .addStatement("return new $T(serviceClientConfiguration, clientConfiguration)", clientClassName)
