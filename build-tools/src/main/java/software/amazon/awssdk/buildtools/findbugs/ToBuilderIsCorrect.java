@@ -376,7 +376,7 @@ public class ToBuilderIsCorrect extends OpcodeStackDetector {
         }
 
         // Find which fields we modified in those constructors
-        Set<String> builderFieldsForBuilder = new HashSet<>(builderFields.get(builder));
+        Set<String> builderFieldsForBuilder = new HashSet<>(builderFields.getOrDefault(builder, new ArrayList<>()));
         Map<String, List<String>> allConstructors = builderConstructorModifiedFields.get(builder);
 
         allInvokedConstructors.forEach(constructorSignature -> {

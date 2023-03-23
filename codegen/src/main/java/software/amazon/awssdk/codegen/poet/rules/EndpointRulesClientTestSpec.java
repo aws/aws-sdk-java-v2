@@ -86,6 +86,7 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
         tests.put("For region us-isob-east-1 with FIPS disabled and DualStack enabled", "Client builder does the validation");
         tests.put("For region us-isob-west-1 with FIPS enabled and DualStack enabled", "Client builder does the validation");
         tests.put("For region us-isob-west-1 with FIPS disabled and DualStack enabled", "Client builder does the validation");
+        tests.put("Missing region", "Client does validation");
         GLOBAL_SKIP_ENDPOINT_TESTS = Collections.unmodifiableMap(tests);
 
     }
