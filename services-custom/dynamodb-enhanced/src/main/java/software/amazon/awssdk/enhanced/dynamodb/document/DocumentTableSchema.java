@@ -81,9 +81,6 @@ public final class DocumentTableSchema implements TableSchema<EnhancedDocument> 
         return new Builder();
     }
 
-    /**
-     * {@inheritdoc}
-     */
     @Override
     public EnhancedDocument mapToItem(Map<String, AttributeValue> attributeMap) {
         if (attributeMap == null) {
@@ -125,9 +122,6 @@ public final class DocumentTableSchema implements TableSchema<EnhancedDocument> 
         return attributeConverterProviders;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public Map<String, AttributeValue> itemToMap(EnhancedDocument item, Collection<String> attributes) {
         if (item.toMap() == null) {
@@ -141,9 +135,6 @@ public final class DocumentTableSchema implements TableSchema<EnhancedDocument> 
                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
-    /**
-     * {@inheritdoc}
-     */
     @Override
     public AttributeValue attributeValue(EnhancedDocument item, String attributeName) {
         if (item == null || item.toMap() == null) {
@@ -157,33 +148,21 @@ public final class DocumentTableSchema implements TableSchema<EnhancedDocument> 
                    .get(attributeName);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     @Override
     public TableMetadata tableMetadata() {
         return tableMetadata;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     @Override
     public EnhancedType<EnhancedDocument> itemType() {
         return EnhancedType.of(EnhancedDocument.class);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     @Override
     public List<String> attributeNames() {
         return tableMetadata.keyAttributes().stream().map(key -> key.name()).collect(Collectors.toList());
     }
 
-    /**
-     * {@inheritdoc}
-     */
     @Override
     public boolean isAbstract() {
         return false;
