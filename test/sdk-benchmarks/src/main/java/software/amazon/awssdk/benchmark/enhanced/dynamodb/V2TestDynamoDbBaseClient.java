@@ -17,7 +17,7 @@ package software.amazon.awssdk.benchmark.enhanced.dynamodb;
 
 import org.openjdk.jmh.infra.Blackhole;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
-import software.amazon.awssdk.services.dynamodb.internal.DynamoDbServiceClientConfiguration;
+import software.amazon.awssdk.services.dynamodb.DynamoDbServiceClientConfiguration;
 
 abstract class V2TestDynamoDbBaseClient implements DynamoDbClient {
     protected final Blackhole bh;
