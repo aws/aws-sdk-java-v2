@@ -1,3 +1,82 @@
+# __2.20.30__ __2023-03-22__
+## __AWS Identity and Access Management__
+  - ### Features
+    - Documentation updates for AWS Identity and Access Management (IAM).
+
+## __AWS IoT TwinMaker__
+  - ### Features
+    - This release adds support of adding metadata when creating a new scene or updating an existing scene.
+
+## __AWS Network Manager__
+  - ### Features
+    - This release includes an update to create-transit-gateway-route-table-attachment, showing example usage for TransitGatewayRouteTableArn.
+
+## __AWS Resilience Hub__
+  - ### Features
+    - This release provides customers with the ability to import resources from within an EKS cluster and assess the resiliency of EKS cluster workloads.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon EventBridge Pipes__
+  - ### Features
+    - This release improves validation on the ARNs in the API model
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - This Patch Manager release supports creating, updating, and deleting Patch Baselines for AmazonLinux2023, AlmaLinux.
+
+# __2.20.29__ __2023-03-21__
+## __AWS Clean Rooms Service__
+  - ### Features
+    - GA Release of AWS Clean Rooms, Added Tagging Functionality
+
+## __AWS IoT SiteWise__
+  - ### Features
+    - Provide support for tagging of data streams and enabling tag based authorization for property alias
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Chime SDK Messaging__
+  - ### Features
+    - Amazon Chime SDK messaging customers can now manage streaming configuration for messaging data for archival and analysis.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for AWS Network Firewall, AWS PrivateLink, and Gateway Load Balancers to Amazon VPC Reachability Analyzer, and it makes the path destination optional as long as a destination address in the filter at source is provided.
+
+## __Application Migration Service__
+  - ### Features
+    - This release introduces the Import and export feature and expansion of the post-launch actions
+
+# __2.20.28__ __2023-03-20__
+## __AWS CRT-based S3 client__
+  - ### Features
+    - Exposes `S3CrtHttpConfiguration` to allow users to configure HTTP settings such as proxy and connection timeout on AWS CRT-based S3 client. [#3262](https://github.com/aws/aws-sdk-java-v2/issues/3262)
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Neptune__
+  - ### Features
+    - This release makes following few changes. db-cluster-identifier is now a required parameter of create-db-instance. describe-db-cluster will now return PendingModifiedValues and GlobalClusterIdentifier fields in the response.
+
+## __Amazon S3 on Outposts__
+  - ### Features
+    - S3 On Outposts added support for endpoint status, and a failed endpoint reason, if any
+
+## __Amazon WorkDocs__
+  - ### Features
+    - This release adds a new API, SearchResources, which enable users to search through metadata and content of folders, documents, document versions and comments in a WorkDocs site.
+
+## __Application Auto Scaling__
+  - ### Features
+    - With this release customers can now tag their Application Auto Scaling registered targets with key-value pairs and manage IAM permissions for all the tagged resources centrally.
+
 # __2.20.27__ __2023-03-17__
 ## __AWS Config__
   - ### Features
