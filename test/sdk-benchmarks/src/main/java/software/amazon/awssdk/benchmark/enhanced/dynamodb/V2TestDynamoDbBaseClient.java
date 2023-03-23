@@ -16,7 +16,6 @@
 package software.amazon.awssdk.benchmark.enhanced.dynamodb;
 
 import org.openjdk.jmh.infra.Blackhole;
-import software.amazon.awssdk.awscore.AwsServiceClientConfiguration;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.internal.DynamoDbServiceClientConfiguration;
 
