@@ -69,7 +69,7 @@ public class PoetExtension {
      * @return A Poet {@link ClassName} for the generated service client configuration.
      */
     public ClassName getServiceConfigClass() {
-        return PoetUtils.classNameFromFqcn(model.getMetadata().getFullInternalPackageName() + "."
+        return PoetUtils.classNameFromFqcn(model.getMetadata().getFullClientPackageName() + "."
                                            + model.getMetadata().getServiceName() + "ServiceClientConfiguration");
     }
 

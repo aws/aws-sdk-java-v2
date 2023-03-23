@@ -61,7 +61,7 @@ public abstract class AwsServiceClientConfiguration extends SdkServiceClientConf
     }
 
     /**
-     * The base interface for all AWS service client configurations
+     * The base interface for all AWS service client configuration builders
      */
     public interface Builder extends SdkServiceClientConfiguration.Builder {
         /**

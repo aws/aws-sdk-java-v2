@@ -17,14 +17,14 @@ package software.amazon.awssdk.codegen.poet.model;
 
 import static javax.lang.model.element.Modifier.ABSTRACT;
 import static javax.lang.model.element.Modifier.FINAL;
-import static javax.lang.model.element.Modifier.PROTECTED;
+import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.lang.model.element.Modifier.PUBLIC;
 import static javax.lang.model.element.Modifier.STATIC;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.awscore.AwsServiceClientConfiguration;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
@@ -36,7 +36,7 @@ public class ServiceClientConfigurationClass implements ClassSpec {
     private final ClassName defaultClientMetadataClassName;
 
     public ServiceClientConfigurationClass(IntermediateModel model) {
-        String basePackage = model.getMetadata().getFullInternalPackageName();
+        String basePackage = model.getMetadata().getFullClientPackageName();
         String serviceId = model.getMetadata().getServiceName();
         this.defaultClientMetadataClassName = ClassName.get(basePackage, serviceId + "ServiceClientConfiguration");
     }
@@ -45,10 +45,12 @@ public class ServiceClientConfigurationClass implements ClassSpec {
     public TypeSpec poetSpec() {
         return PoetUtils.createClassBuilder(defaultClientMetadataClassName)
                         .superclass(AwsServiceClientConfiguration.class)
+                        .addJavadoc("Class to expose the service client settings to the user. Implementation of {@link $T}",
+                                    AwsServiceClientConfiguration.class)
                         .addMethod(constructor())
                         .addMethod(builderMethod())
                         .addModifiers(PUBLIC, FINAL)
-                        .addAnnotation(SdkInternalApi.class)
+                        .addAnnotation(SdkPublicApi.class)
                         .addType(builderInterfaceSpec())
                         .addType(builderImplSpec())
                         .build();
@@ -61,7 +63,7 @@ public class ServiceClientConfigurationClass implements ClassSpec {
 
     public MethodSpec constructor() {
         return MethodSpec.constructorBuilder()
-                         .addModifiers(PROTECTED)
+                         .addModifiers(PRIVATE)
                          .addParameter(className().nestedClass("Builder"), "builder")
                          .addStatement("super(builder)")
                          .build();
@@ -72,6 +74,7 @@ public class ServiceClientConfigurationClass implements ClassSpec {
                          .addModifiers(PUBLIC, STATIC)
                          .addStatement("return new BuilderImpl()")
                          .returns(className().nestedClass("Builder"))
+                         .addJavadoc("")
                          .build();
     }
 
@@ -79,6 +82,7 @@ public class ServiceClientConfigurationClass implements ClassSpec {
         return TypeSpec.interfaceBuilder("Builder")
                        .addModifiers(PUBLIC)
                        .addSuperinterface(ClassName.get(AwsServiceClientConfiguration.class).nestedClass("Builder"))
+                       .addJavadoc("A builder for creating a {@link $T}", className())
                        .addMethod(MethodSpec.methodBuilder("build")
                                             .addAnnotation(Override.class)
                                             .addModifiers(PUBLIC, ABSTRACT)
@@ -88,25 +92,27 @@ public class ServiceClientConfigurationClass implements ClassSpec {
                                             .addModifiers(PUBLIC, ABSTRACT)
                                             .addParameter(Region.class, "region")
                                             .returns(className().nestedClass("Builder"))
+                                            .addJavadoc("Configure the region")
                                             .build())
                        .addMethod(MethodSpec.methodBuilder("overrideConfiguration")
                                             .addModifiers(PUBLIC, ABSTRACT)
                                             .addParameter(ClientOverrideConfiguration.class, "clientOverrideConfiguration")
                                             .returns(className().nestedClass("Builder"))
+                                            .addJavadoc("Configure the client override configuration")
                                             .build())
                        .build();
     }
 
     private TypeSpec builderImplSpec() {
         return TypeSpec.classBuilder("BuilderImpl")
-                       .addModifiers(STATIC, FINAL)
+                       .addModifiers(PRIVATE, STATIC, FINAL)
                        .addSuperinterface(className().nestedClass("Builder"))
                        .superclass(ClassName.get(AwsServiceClientConfiguration.class).nestedClass("BuilderImpl"))
                        .addMethod(MethodSpec.constructorBuilder()
-                                            .addModifiers(PUBLIC)
+                                            .addModifiers(PRIVATE)
                                             .build())
                        .addMethod(MethodSpec.constructorBuilder()
-                                            .addModifiers(PUBLIC)
+                                            .addModifiers(PRIVATE)
                                             .addParameter(className(), "serviceClientConfiguration")
                                             .addStatement("super(serviceClientConfiguration)")
                                             .build())

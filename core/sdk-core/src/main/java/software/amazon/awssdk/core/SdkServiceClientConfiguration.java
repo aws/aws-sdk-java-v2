@@ -59,7 +59,7 @@ public abstract class SdkServiceClientConfiguration {
     }
 
     /**
-     * The base interface for all SDK service client configurations
+     * The base interface for all SDK service client configuration builders
      */
     public interface Builder {
         /**
