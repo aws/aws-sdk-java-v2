@@ -169,13 +169,10 @@ public class DelegatingSyncClientClass extends SyncClientInterface {
 
     @Override
     protected MethodSpec serviceClientConfigMethod() {
-        ClassName serviceConfigClassName = PoetUtils.classNameFromFqcn(model.getMetadata().getFullInternalPackageName()
-                                                                       + "." + model.getMetadata().getServiceName()
-                                                                       + "ServiceClientConfiguration");
         return MethodSpec.methodBuilder("serviceClientConfiguration")
                          .addAnnotation(Override.class)
                          .addModifiers(PUBLIC, FINAL)
-                         .returns(serviceConfigClassName)
+                         .returns(new PoetExtension(model).getServiceConfigClass())
                          .addStatement("return delegate.serviceClientConfiguration()")
                          .build();
     }
