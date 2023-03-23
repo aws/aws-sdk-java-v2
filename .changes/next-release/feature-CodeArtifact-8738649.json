@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "CodeArtifact",
-    "contributor": "",
-    "description": "Repository CreationTime is added to the CreateRepository and ListRepositories API responses."
-}

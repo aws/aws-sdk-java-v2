@@ -1,3 +1,56 @@
+# __2.20.31__ __2023-03-23__
+## __AWS Batch__
+  - ### Features
+    - This feature allows Batch to support configuration of ephemeral storage size for jobs running on FARGATE
+
+## __AWS Cloud Map__
+  - ### Features
+    - Reverted the throttling exception RequestLimitExceeded for AWS Cloud Map APIs introduced in SDK version 1.12.424 2023-03-09 to previous exception specified in the ErrorCode.
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - AWS Elemental MediaConvert SDK now supports passthrough of ID3v2 tags for audio inputs to audio-only HLS outputs.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Chime SDK Identity__
+  - ### Features
+    - AppInstanceBots can be used to add a bot powered by Amazon Lex to chat channels. ExpirationSettings provides automatic resource deletion for AppInstanceUsers.
+
+## __Amazon Chime SDK Media Pipelines__
+  - ### Features
+    - This release adds Amazon Chime SDK call analytics. Call analytics include voice analytics, which provides speaker search and voice tone analysis. These capabilities can be used with Amazon Transcribe and Transcribe Call Analytics to generate machine-learning-powered insights from real-time audio.
+
+## __Amazon Chime SDK Messaging__
+  - ### Features
+    - ExpirationSettings provides automatic resource deletion for Channels.
+
+## __Amazon Chime SDK Voice__
+  - ### Features
+    - This release adds Amazon Chime SDK call analytics. Call analytics include voice analytics, which provides speaker search and voice tone analysis. These capabilities can be used with Amazon Transcribe and Transcribe Call Analytics to generate machine-learning-powered insights from real-time audio.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Adds AutoEnableOrganizationMembers attribute to DescribeOrganizationConfiguration and UpdateOrganizationConfiguration APIs.
+
+## __Amazon Interactive Video Service RealTime__
+  - ### Features
+    - Initial release of the Amazon Interactive Video Service RealTime API.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker Autopilot adds two new APIs - CreateAutoMLJobV2 and DescribeAutoMLJobV2. Amazon SageMaker Notebook Instances now supports the ml.geospatial.interactive instance type.
+
+## __Amazon Textract__
+  - ### Features
+    - The AnalyzeDocument - Tables feature adds support for new elements in the API: table titles, footers, section titles, summary cells/tables, and table type.
+
+## __CodeArtifact__
+  - ### Features
+    - Repository CreationTime is added to the CreateRepository and ListRepositories API responses.
+
 # __2.20.30__ __2023-03-22__
 ## __AWS Identity and Access Management__
   - ### Features

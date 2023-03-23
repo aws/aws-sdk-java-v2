@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Chime SDK Identity",
-    "contributor": "",
-    "description": "AppInstanceBots can be used to add a bot powered by Amazon Lex to chat channels. ExpirationSettings provides automatic resource deletion for AppInstanceUsers."
-}

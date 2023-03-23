@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Chime SDK Messaging",
-    "contributor": "",
-    "description": "ExpirationSettings provides automatic resource deletion for Channels."
-}
