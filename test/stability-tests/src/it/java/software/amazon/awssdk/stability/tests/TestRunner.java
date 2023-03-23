@@ -16,22 +16,29 @@
 package software.amazon.awssdk.stability.tests;
 
 
+import java.nio.file.Paths;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.transfer.s3.S3TransferManager;
+import software.amazon.awssdk.transfer.s3.model.CompletedDirectoryDownload;
+
 /**
- * The main method will be invoked when you execute the test jar generated from
- * "mvn package -P test-jar"
- *
- * You can add the tests in the main method.
- * eg:
- *        try {
- *            S3AsyncStabilityTest s3AsyncStabilityTest = new S3AsyncStabilityTest();
- *            S3AsyncStabilityTest.setup();
- *            s3AsyncStabilityTest.putObject_getObject();
- *        } finally {
- *            S3AsyncStabilityTest.cleanup();
- *        }
+ * The main method will be invoked when you execute the test jar generated from "mvn package -P test-jar"
+ * <p>
+ * You can add the tests in the main method. eg: try { S3AsyncStabilityTest s3AsyncStabilityTest = new S3AsyncStabilityTest();
+ * S3AsyncStabilityTest.setup(); s3AsyncStabilityTest.putObject_getObject(); } finally { S3AsyncStabilityTest.cleanup(); }
  */
 public class TestRunner {
 
     public static void main(String... args) {
+        S3TransferManager transferManager = S3TransferManager.builder()
+            .s3Client(S3AsyncClient.crtBuilder().region(Region.EU_WEST_1).build()).build();
+
+
+            transferManager.downloadDirectory(b -> b.bucket("bucket")
+                                                    .destination(Paths.get("/tmp/test"))
+                               .listObjectsV2RequestTransformer(l -> l.prefix("5G/")))
+                           .completionFuture().join();
     }
 }
+
