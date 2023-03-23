@@ -78,6 +78,12 @@
             "type": "feature",
             "category": "AWS SDK for Java v2",
             "contributor": "",
+            "description": "Introducing Enhanced Document API: A Higher-Level API for Working with Amazon DynamoDB Items"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
             "description": "Updated endpoint and partition metadata."
         }
     ]

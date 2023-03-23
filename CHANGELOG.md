@@ -13,6 +13,7 @@
 
 ## __AWS SDK for Java v2__
   - ### Features
+    - Introducing Enhanced Document API: A Higher-Level API for Working with Amazon DynamoDB Items.
     - Updated endpoint and partition metadata.
 
 ## __Amazon Chime SDK Identity__
