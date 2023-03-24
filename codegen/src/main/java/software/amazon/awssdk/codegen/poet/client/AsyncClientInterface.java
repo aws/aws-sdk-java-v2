@@ -16,6 +16,7 @@
 package software.amazon.awssdk.codegen.poet.client;
 
 import static java.util.stream.Collectors.toList;
+import static javax.lang.model.element.Modifier.ABSTRACT;
 import static javax.lang.model.element.Modifier.DEFAULT;
 import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PUBLIC;
@@ -41,6 +42,7 @@ import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.awscore.AwsClient;
 import software.amazon.awssdk.codegen.docs.ClientType;
 import software.amazon.awssdk.codegen.docs.DocConfiguration;
 import software.amazon.awssdk.codegen.docs.SimpleMethodOverload;
@@ -55,7 +57,6 @@ import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
 import software.amazon.awssdk.codegen.poet.model.DeprecationUtils;
 import software.amazon.awssdk.codegen.utils.PaginatorUtils;
-import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.regions.ServiceMetadataProvider;
@@ -96,6 +97,7 @@ public class AsyncClientInterface implements ClassSpec {
         if (model.hasWaiters()) {
             addWaiterMethod(result);
         }
+        result.addMethod(serviceClientConfigMethod());
         addAdditionalMethods(result);
         addCloseMethod(result);
         return result.build();
@@ -106,7 +108,7 @@ public class AsyncClientInterface implements ClassSpec {
     }
 
     protected void addInterfaceClass(TypeSpec.Builder type) {
-        type.addSuperinterface(SdkClient.class);
+        type.addSuperinterface(AwsClient.class);
     }
 
     protected void addAnnotations(TypeSpec.Builder type) {
@@ -488,6 +490,14 @@ public class AsyncClientInterface implements ClassSpec {
                                                .addJavadoc("Creates an instance of {@link $T} object with the "
                                                            + "configuration set on this client.", returnType);
         return utilitiesOperationBody(builder).build();
+    }
+
+    protected MethodSpec serviceClientConfigMethod() {
+        return MethodSpec.methodBuilder("serviceClientConfiguration")
+                         .addAnnotation(Override.class)
+                         .addModifiers(PUBLIC, ABSTRACT)
+                         .returns(new PoetExtension(model).getServiceConfigClass())
+                         .build();
     }
 
     private MethodSpec additionalBuilders(AdditionalBuilderMethod additionalMethod) {

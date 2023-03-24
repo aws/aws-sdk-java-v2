@@ -1,3 +1,25 @@
+# __2.20.32__ __2023-03-24__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Adds ServiceClientConfiguration to SdkClient which exposes client settings to the user
+    - Updated endpoint and partition metadata.
+
+## __Amazon CloudWatch__
+  - ### Features
+    - Doc-only update to correct alarm actions list
+
+## __Amazon Comprehend__
+  - ### Features
+    - This release adds a new field (FlywheelArn) to the EntitiesDetectionJobProperties object. The FlywheelArn field is returned in the DescribeEntitiesDetectionJob and ListEntitiesDetectionJobs responses when the EntitiesDetection job is started with a FlywheelArn instead of an EntityRecognizerArn .
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Added error code CreateCustomDBEngineVersionFault for when the create custom engine version for Custom engines fails.
+
+## __Netty NIO HTTP Client__
+  - ### Bugfixes
+    - Fix a bug where, if validation of of the amount of expected data to be received (HTTP `Content-Length`) fails, the connection would be left dangling, consuming a connection from the pool until the client is shut down.
+
 # __2.20.31__ __2023-03-23__
 ## __AWS Batch__
   - ### Features
@@ -13,6 +35,7 @@
 
 ## __AWS SDK for Java v2__
   - ### Features
+    - Introducing Enhanced Document API: A Higher-Level API for Working with Amazon DynamoDB Items
     - Updated endpoint and partition metadata.
 
 ## __Amazon Chime SDK Identity__

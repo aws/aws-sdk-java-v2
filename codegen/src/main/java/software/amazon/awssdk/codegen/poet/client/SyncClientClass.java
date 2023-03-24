@@ -69,6 +69,7 @@ public class SyncClientClass extends SyncClientInterface {
     private final PoetExtension poetExtensions;
     private final ClassName className;
     private final ProtocolSpec protocolSpec;
+    private final ClassName serviceClientConfigurationClassName;
 
     public SyncClientClass(GeneratorTaskParams taskParams) {
         super(taskParams.getModel());
@@ -76,6 +77,7 @@ public class SyncClientClass extends SyncClientInterface {
         this.poetExtensions = taskParams.getPoetExtensions();
         this.className = poetExtensions.getClientClass(model.getMetadata().getSyncClient());
         this.protocolSpec = getProtocolSpecs(poetExtensions, model);
+        this.serviceClientConfigurationClassName = new PoetExtension(model).getServiceConfigClass();
     }
 
     @Override
@@ -105,7 +107,8 @@ public class SyncClientClass extends SyncClientInterface {
         type.addField(logger())
             .addField(SyncClientHandler.class, "clientHandler", PRIVATE, FINAL)
             .addField(protocolSpec.protocolFactory(model))
-            .addField(SdkClientConfiguration.class, "clientConfiguration", PRIVATE, FINAL);
+            .addField(SdkClientConfiguration.class, "clientConfiguration", PRIVATE, FINAL)
+            .addField(serviceClientConfigurationClassName, "serviceClientConfiguration", PRIVATE, FINAL);
     }
 
     @Override
@@ -148,17 +151,29 @@ public class SyncClientClass extends SyncClientInterface {
     }
 
     @Override
+    protected MethodSpec serviceClientConfigMethod() {
+        return MethodSpec.methodBuilder("serviceClientConfiguration")
+                         .addAnnotation(Override.class)
+                         .addModifiers(PUBLIC, FINAL)
+                         .returns(serviceClientConfigurationClassName)
+                         .addStatement("return this.serviceClientConfiguration")
+                         .build();
+    }
+
+    @Override
     public ClassName className() {
         return className;
     }
 
     private MethodSpec constructor() {
-        MethodSpec.Builder builder = MethodSpec.constructorBuilder()
-                                               .addModifiers(PROTECTED)
-                                               .addParameter(SdkClientConfiguration.class, "clientConfiguration")
-                                               .addStatement("this.clientHandler = new $T(clientConfiguration)",
-                                                             protocolSpec.getClientHandlerClass())
-                                               .addStatement("this.clientConfiguration = clientConfiguration");
+        MethodSpec.Builder builder
+            = MethodSpec.constructorBuilder()
+                        .addModifiers(PROTECTED)
+                        .addParameter(serviceClientConfigurationClassName, "serviceClientConfiguration")
+                        .addParameter(SdkClientConfiguration.class, "clientConfiguration")
+                        .addStatement("this.clientHandler = new $T(clientConfiguration)", protocolSpec.getClientHandlerClass())
+                        .addStatement("this.clientConfiguration = clientConfiguration")
+                        .addStatement("this.serviceClientConfiguration = serviceClientConfiguration");
         FieldSpec protocolFactoryField = protocolSpec.protocolFactory(model);
         if (model.getMetadata().isJsonProtocol()) {
             builder.addStatement("this.$N = init($T.builder()).build()", protocolFactoryField.name,

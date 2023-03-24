@@ -61,11 +61,15 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
 
     private final SdkClientConfiguration clientConfiguration;
 
+    private final EndpointDiscoveryTestServiceClientConfiguration serviceClientConfiguration;
+
     private EndpointDiscoveryRefreshCache endpointDiscoveryCache;
 
-    protected DefaultEndpointDiscoveryTestAsyncClient(SdkClientConfiguration clientConfiguration) {
+    protected DefaultEndpointDiscoveryTestAsyncClient(EndpointDiscoveryTestServiceClientConfiguration serviceClientConfiguration,
+                                                      SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
+        this.serviceClientConfiguration = serviceClientConfiguration;
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
         if (clientConfiguration.option(SdkClientOption.ENDPOINT_DISCOVERY_ENABLED)) {
             this.endpointDiscoveryCache = EndpointDiscoveryRefreshCache
@@ -342,6 +346,11 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
+    }
+
+    @Override
+    public final EndpointDiscoveryTestServiceClientConfiguration serviceClientConfiguration() {
+        return this.serviceClientConfiguration;
     }
 
     @Override
