@@ -65,8 +65,11 @@ public final class AuthorizationStrategyFactory {
 
     private AwsCredentialsAuthorizationStrategy awsCredentialsAuthorizationStrategy() {
         Signer defaultSigner = clientConfiguration.option(SdkAdvancedClientOption.SIGNER);
+        // Older generated clients may still be using CREDENTIALS_PROVIDER, so fall back to that.
         IdentityProvider<? extends AwsCredentialsIdentity> defaultCredentialsProvider =
-            clientConfiguration.option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER);
+            clientConfiguration.option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER) != null
+                ? clientConfiguration.option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER)
+                : clientConfiguration.option(AwsClientOption.CREDENTIALS_PROVIDER);
         return AwsCredentialsAuthorizationStrategy.builder()
                                                   .request(request)
                                                   .defaultSigner(defaultSigner)

@@ -39,7 +39,6 @@ public final class AwsClientOptionValidation extends SdkClientOptionValidation {
     }
 
     private static void validateClientOptions(SdkClientConfiguration c) {
-        // TODO: where does the field name come from? Should it be "credentialsIdentityProvider"?
         require("credentialsProvider", c.option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER));
         require("overrideConfiguration.advancedOption[AWS_REGION]", c.option(AwsClientOption.AWS_REGION));
         require("overrideConfiguration.advancedOption[SIGNING_REGION]", c.option(AwsClientOption.SIGNING_REGION));

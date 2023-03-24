@@ -30,11 +30,11 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
  */
 @SdkPublicApi
 public final class AwsRequestOverrideConfiguration extends RequestOverrideConfiguration {
-    private final AwsCredentialsProvider credentialsProvider;
+    private final IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider;
 
     private AwsRequestOverrideConfiguration(Builder builder) {
         super(builder);
-        this.credentialsProvider = builder.credentialsProvider();
+        this.credentialsProvider = builder.credentialsIdentityProvider();
     }
 
     /**
@@ -61,15 +61,10 @@ public final class AwsRequestOverrideConfiguration extends RequestOverrideConfig
      *
      * @return The optional {@link AwsCredentialsProvider}.
      */
-    // TODO: Note, this method is called from generated public classes, when endpoint discover is involved.
     public Optional<AwsCredentialsProvider> credentialsProvider() {
-        return Optional.ofNullable(credentialsProvider);
+        return Optional.ofNullable(CredentialUtils.toCredentialsProvider(credentialsProvider));
     }
 
-    // TODO: Cannot change the return type of {@link #credentialsProvider()} so creating another method returning the same
-    //       object but of new super type.
-    // TODO: As mentioned below, another option is to save reference of IdentityProvider<? extends AwsCredentialsProvider> and
-    //       convert in above method. Either ways, need 2 methods to return the 2 different types.
     /**
      * The optional {@link IdentityProvider<? extends AwsCredentialsIdentity>} that will provide credentials to be used to
      * authenticate this request.
@@ -132,6 +127,7 @@ public final class AwsRequestOverrideConfiguration extends RequestOverrideConfig
          * @param credentialsProvider The {@link IdentityProvider<? extends AwsCredentialsIdentity>}.
          * @return This object for chaining.
          */
+        // review TODO: Should this be named credentialsIdentityProvider for symmetry with the "get" method
         default Builder credentialsProvider(IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider) {
             throw new UnsupportedOperationException();
         }
@@ -144,14 +140,21 @@ public final class AwsRequestOverrideConfiguration extends RequestOverrideConfig
          */
         AwsCredentialsProvider credentialsProvider();
 
+        /**
+         * Return the optional {@link IdentityProvider<? extends AwsCredentialsIdentity>} that will provide credentials to be
+         * used to authenticate this request.
+         *
+         * @return The optional {@link IdentityProvider<? extends AwsCredentialsIdentity>}.
+         */
+        IdentityProvider<? extends AwsCredentialsIdentity> credentialsIdentityProvider();
+
         @Override
         AwsRequestOverrideConfiguration build();
     }
 
     private static final class BuilderImpl extends RequestOverrideConfiguration.BuilderImpl<Builder> implements Builder {
 
-        private AwsCredentialsProvider awsCredentialsProvider;
-
+        private IdentityProvider<? extends AwsCredentialsIdentity> awsCredentialsProvider;
 
         private BuilderImpl() {
         }
@@ -165,24 +168,25 @@ public final class AwsRequestOverrideConfiguration extends RequestOverrideConfig
             this.awsCredentialsProvider = awsRequestOverrideConfig.credentialsProvider;
         }
 
+        // review TODO: remove this since it is the same as the default interface implementation
+        // @Override
+        // public Builder credentialsProvider(AwsCredentialsProvider credentialsProvider) {
+        //     return credentialsProvider((IdentityProvider<? extends AwsCredentialsIdentity>) credentialsProvider);
+        // }
+
         @Override
-        public Builder credentialsProvider(AwsCredentialsProvider credentialsProvider) {
-            // TODO: Another option:
-            //       credentialsProvider((IdentityProvider<? extends AwsCredentialsIdentity>) credentialsProvider);
-            //       But that would lead to potentially converting a AwsCredentialsProvider to another AwsCredentialsProvider
-            //       to fulfil AwsRequestOverrideConfiguration.credentialsProvider() to return AwsCredentialsProvider type.
+        public Builder credentialsProvider(IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider) {
             this.awsCredentialsProvider = credentialsProvider;
             return this;
         }
 
         @Override
-        public Builder credentialsProvider(IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider) {
-            this.awsCredentialsProvider = CredentialUtils.toCredentialsProvider(credentialsProvider);
-            return this;
+        public AwsCredentialsProvider credentialsProvider() {
+            return CredentialUtils.toCredentialsProvider(awsCredentialsProvider);
         }
 
         @Override
-        public AwsCredentialsProvider credentialsProvider() {
+        public IdentityProvider<? extends AwsCredentialsIdentity> credentialsIdentityProvider() {
             return awsCredentialsProvider;
         }
 

@@ -30,6 +30,14 @@ public final class CredentialUtils {
      * Determine whether the provided credentials are anonymous credentials, indicating that the customer is not attempting to
      * authenticate themselves.
      */
+    public static boolean isAnonymous(AwsCredentials credentials) {
+        return isAnonymous((AwsCredentialsIdentity) credentials);
+    }
+
+    /**
+     * Determine whether the provided credentials are anonymous credentials, indicating that the customer is not attempting to
+     * authenticate themselves.
+     */
     public static boolean isAnonymous(AwsCredentialsIdentity credentials) {
         return credentials.secretAccessKey() == null && credentials.accessKeyId() == null;
     }
@@ -52,9 +60,6 @@ public final class CredentialUtils {
      * @return The corresponding {@link AwsCredentials}
      */
     public static AwsCredentials toCredentials(AwsCredentialsIdentity awsCredentialsIdentity) {
-        // TODO: Is below safe? What if customer defines there own sub-type of AwsCredentialsIdentity?! Valid use case?
-        //       If sub-type defines new properties, this conversion would be lossy. But does it matter, if no other code in
-        //       `core` module care about types other than these 2?
         // identity-spi defines 2 known types - AwsCredentialsIdentity and a sub-type AwsSessionCredentialsIdentity
         if (awsCredentialsIdentity instanceof AwsSessionCredentialsIdentity) {
             AwsSessionCredentialsIdentity awsSessionCredentialsIdentity = (AwsSessionCredentialsIdentity) awsCredentialsIdentity;

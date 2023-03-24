@@ -49,8 +49,6 @@ public class AwsCredentialsAuthorizationStrategyTest {
     @Before
     public void setUp() throws Exception {
         when(sdkRequest.overrideConfiguration()).thenReturn(Optional.empty());
-        // TODO: The below with using @Mock for credentialsProvider and credentials was giving a compile error, so not using mock
-        // when(credentialsProvider.resolveIdentity()).thenReturn(CompletableFuture.completedFuture(credentials));
         credentials = AwsBasicCredentials.create("foo", "bar");
         credentialsProvider = StaticCredentialsProvider.create(credentials);
     }

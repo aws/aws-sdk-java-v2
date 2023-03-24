@@ -36,7 +36,6 @@ public final class AwsSignerExecutionAttribute extends SdkExecutionAttribute {
     /**
      * The key under which the request credentials are set.
      */
-    // TODO: Can the type be changed to IdentityProvider? This class is @SdkProtectedApi
     public static final ExecutionAttribute<AwsCredentials> AWS_CREDENTIALS = new ExecutionAttribute<>("AwsCredentials");
 
     /**

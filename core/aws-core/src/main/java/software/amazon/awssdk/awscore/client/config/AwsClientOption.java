@@ -27,14 +27,14 @@ import software.amazon.awssdk.regions.Region;
 
 @SdkProtectedApi
 public final class AwsClientOption<T> extends ClientOption<T> {
-    // TODO: Should the existing option be removed?
-    //       Or replaced with same name (CREDENTIALS_PROVIDER) but new type below?
-    //       This class is SdkProtectedApi, and it seems customer cannot create an option with this directly (we do it in
-    //       AwsDefaultClientBuilder). Is there risk of old generated code when there are mixed versions of modules?
-    // If it is kept, should it be marked @Deprecated?
     /**
+     // * This option is deprecated in favor of {@link #CREDENTIALS_IDENTITY_PROVIDER}.
      * @see AwsClientBuilder#credentialsProvider(AwsCredentialsProvider)
      */
+    @Deprecated
+    // smithy codegen TODO: This could be removed when doing a minor version bump where we told customers we'll be breaking
+    //  protected APIs. Postpone this to when we do Smithy code generator migration, where we'll likely have to start
+    //  breaking a lot of protected things.
     public static final AwsClientOption<AwsCredentialsProvider> CREDENTIALS_PROVIDER =
             new AwsClientOption<>(AwsCredentialsProvider.class);
 

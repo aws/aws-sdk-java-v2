@@ -37,7 +37,7 @@ public final class GenerateAuthenticationTokenRequest implements
     private final int port;
     private final String username;
     private final Region region;
-    private final AwsCredentialsProvider credentialsProvider;
+    private final IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider;
 
     private GenerateAuthenticationTokenRequest(BuilderImpl builder) {
         this.hostname = Validate.notEmpty(builder.hostname, "hostname");
@@ -78,11 +78,17 @@ public final class GenerateAuthenticationTokenRequest implements
 
     /**
      * @return The credentials provider to sign the IAM auth request with. If specified, takes precedence over the value
+     * specified in {@link RdsUtilities.Builder#credentialsProvider}}
+     */
+    public AwsCredentialsProvider credentialsProvider() {
+        return CredentialUtils.toCredentialsProvider(credentialsProvider);
+    }
+
+    /**
+     * @return The credentials provider to sign the IAM auth request with. If specified, takes precedence over the value
      * specified in {@link RdsUtilities.Builder#credentialsProvider(AwsCredentialsProvider)}}
      */
-    // TODO: should another method returning IdentityProvider<? extends AwsCredentialsIdentity> be added and used in
-    //       DefaultRdsUtilities?
-    public AwsCredentialsProvider credentialsProvider() {
+    public IdentityProvider<? extends AwsCredentialsIdentity> credentialsIdentityProvider() {
         return credentialsProvider;
     }
 
@@ -135,8 +141,7 @@ public final class GenerateAuthenticationTokenRequest implements
 
         /**
          * The credentials provider to sign the IAM auth request with. If specified, takes precedence over the value
-         * specified in {@link RdsUtilities.Builder#credentialsProvider(AwsCredentialsProvider)}}
-         * TODO: should it link to both overloaded methods? Or just #credentialsProvider()? Or just RdsUtilities.Builder?
+         * specified in {@link RdsUtilities.Builder#credentialsProvider)}}
          *
          * @return This object for method chaining
          */
@@ -146,7 +151,7 @@ public final class GenerateAuthenticationTokenRequest implements
 
         /**
          * The credentials provider to sign the IAM auth request with. If specified, takes precedence over the value
-         * specified in {@link RdsUtilities.Builder#credentialsProvider(IdentityProvider)}}
+         * specified in {@link RdsUtilities.Builder#credentialsProvider}}
          *
          * @return This object for method chaining
          */
@@ -163,7 +168,7 @@ public final class GenerateAuthenticationTokenRequest implements
         private int port;
         private String username;
         private Region region;
-        private AwsCredentialsProvider credentialsProvider;
+        private IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider;
 
         private BuilderImpl() {
         }
@@ -201,14 +206,8 @@ public final class GenerateAuthenticationTokenRequest implements
         }
 
         @Override
-        public Builder credentialsProvider(AwsCredentialsProvider credentialsProvider) {
-            this.credentialsProvider = credentialsProvider;
-            return this;
-        }
-
-        @Override
         public Builder credentialsProvider(IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider) {
-            this.credentialsProvider = CredentialUtils.toCredentialsProvider(credentialsProvider);
+            this.credentialsProvider = credentialsProvider;
             return this;
         }
 

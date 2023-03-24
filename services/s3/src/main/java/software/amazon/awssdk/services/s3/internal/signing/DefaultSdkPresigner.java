@@ -90,8 +90,6 @@ public abstract class DefaultSdkPresigner implements SdkPresigner {
         return region;
     }
 
-    // TODO: only called in DefaultS3Presigner.invokeInterceptorsAndCreateExecutionContext to build the
-    //       AwsCredentialsAuthorizationStrategy which now accepts IdentityProvider
     protected IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider() {
         return credentialsProvider;
     }

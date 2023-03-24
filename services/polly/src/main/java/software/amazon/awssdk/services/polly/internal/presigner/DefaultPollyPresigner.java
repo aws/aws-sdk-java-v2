@@ -28,7 +28,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.CredentialUtils;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
@@ -111,19 +110,8 @@ public final class DefaultPollyPresigner implements PollyPresigner {
                                                                             .orElse(false);
     }
 
-    public Region region() {
-        return region;
-    }
-
-    // TODO: Why are these 3 getters public? And why methods instead of accessing the members directly - used only inside this
-    //       class. And this class is @SdkInternalApi
-    //       Maybe package scope for unit test
-    public IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider() {
+    IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider() {
         return credentialsProvider;
-    }
-
-    public URI endpointOverride() {
-        return endpointOverride;
     }
 
     @Override
@@ -204,14 +192,14 @@ public final class DefaultPollyPresigner implements PollyPresigner {
 
     private ExecutionAttributes createExecutionAttributes(PresignRequest presignRequest, PollyRequest requestToPresign) {
         Instant signatureExpiration = Instant.now().plus(presignRequest.signatureDuration());
-        AwsCredentials credentials = resolveCredentials(resolveCredentialsProvider(requestToPresign));
+        AwsCredentialsIdentity credentials = resolveCredentials(resolveCredentialsProvider(requestToPresign));
         Validate.validState(credentials != null, "Credential providers must never return null.");
 
         return new ExecutionAttributes()
-                .putAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS, credentials)
+                .putAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS, CredentialUtils.toCredentials(credentials))
                 .putAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME, SIGNING_NAME)
-                .putAttribute(AwsExecutionAttribute.AWS_REGION, region())
-                .putAttribute(AwsSignerExecutionAttribute.SIGNING_REGION, region())
+                .putAttribute(AwsExecutionAttribute.AWS_REGION, region)
+                .putAttribute(AwsSignerExecutionAttribute.SIGNING_REGION, region)
                 .putAttribute(SdkInternalExecutionAttribute.IS_FULL_DUPLEX, false)
                 .putAttribute(SdkExecutionAttribute.CLIENT_TYPE, ClientType.SYNC)
                 .putAttribute(SdkExecutionAttribute.SERVICE_NAME, SERVICE_NAME)
@@ -220,12 +208,11 @@ public final class DefaultPollyPresigner implements PollyPresigner {
 
     private IdentityProvider<? extends AwsCredentialsIdentity> resolveCredentialsProvider(PollyRequest request) {
         return request.overrideConfiguration().flatMap(AwsRequestOverrideConfiguration::credentialsIdentityProvider)
-                .orElse(credentialsProvider());
+                .orElse(credentialsProvider);
     }
 
-    private AwsCredentials resolveCredentials(IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider) {
-        AwsCredentialsIdentity credentials = credentialsProvider.resolveIdentity().join();
-        return CredentialUtils.toCredentials(credentials);
+    private AwsCredentialsIdentity resolveCredentials(IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider) {
+        return credentialsProvider.resolveIdentity().join();
     }
 
     private Presigner resolvePresigner(PollyRequest request) {
@@ -251,12 +238,12 @@ public final class DefaultPollyPresigner implements PollyPresigner {
     }
 
     private URI resolveEndpoint() {
-        if (endpointOverride() != null) {
-            return endpointOverride();
+        if (endpointOverride != null) {
+            return endpointOverride;
         }
 
         return new DefaultServiceEndpointBuilder(SERVICE_NAME, "https")
-                .withRegion(region())
+                .withRegion(region)
                 .withProfileFile(profileFile)
                 .withProfileName(profileName)
                 .withDualstackEnabled(dualstackEnabled)

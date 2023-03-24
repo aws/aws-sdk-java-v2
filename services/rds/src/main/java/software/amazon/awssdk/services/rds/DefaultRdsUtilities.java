@@ -108,9 +108,10 @@ final class DefaultRdsUtilities implements RdsUtilities {
                 "or RdsUtilities object");
     }
 
+    // TODO: update this to use AwsCredentialsIdentity when we migrate Signers to accept the new type.
     private AwsCredentials resolveCredentials(GenerateAuthenticationTokenRequest request) {
-        if (request.credentialsProvider() != null) {
-            return request.credentialsProvider().resolveCredentials();
+        if (request.credentialsIdentityProvider() != null) {
+            return CredentialUtils.toCredentials(request.credentialsIdentityProvider().resolveIdentity().join());
         }
 
         if (this.credentialsProvider != null) {
@@ -130,7 +131,6 @@ final class DefaultRdsUtilities implements RdsUtilities {
         }
 
         Builder clientConfiguration(SdkClientConfiguration clientConfiguration) {
-            // TODO: update
             this.credentialsProvider = clientConfiguration.option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER);
             this.region = clientConfiguration.option(AwsClientOption.AWS_REGION);
 
@@ -143,7 +143,6 @@ final class DefaultRdsUtilities implements RdsUtilities {
             return this;
         }
 
-        // TODO: {@link #credentialsProvider(AwsCredentialsProvider)} uses the default implementation which call this
         @Override
         public Builder credentialsProvider(IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider) {
             this.credentialsProvider = credentialsProvider;

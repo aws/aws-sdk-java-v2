@@ -77,12 +77,7 @@ public final class AwsCredentialsAuthorizationStrategy implements AuthorizationS
     public void addCredentialsToExecutionAttributes(ExecutionAttributes executionAttributes) {
         IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider =
             resolveCredentialsProvider(request, defaultCredentialsProvider);
-        // TODO: Other option is casting:
-        //       AwsCredentials credentials = (AwsCredentials) resolveCredentials(credentialsProvider, metricCollector);
-        //       This may be unsafe if there is a sub-type of AwsCredentialsIdentity that is not AwsCredentials.
-        //       Like if customer creates an OdinAwsCredentialsIdentity which directly is-a AwsCredentialsIdentity.
         AwsCredentials credentials = CredentialUtils.toCredentials(resolveCredentials(credentialsProvider, metricCollector));
-
         // TODO: Should the signer be changed to use AwsCredentialsIdentity? Maybe with Signer SRA work, not now.
         executionAttributes.putAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS, credentials);
     }
