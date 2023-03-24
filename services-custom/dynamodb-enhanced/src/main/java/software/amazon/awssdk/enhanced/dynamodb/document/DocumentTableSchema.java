@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -127,17 +128,17 @@ public final class DocumentTableSchema implements TableSchema<EnhancedDocument> 
         if (item.toMap() == null) {
             return null;
         }
-
         List<AttributeConverterProvider> providers = mergeAttributeConverterProviders(item);
         return item.toBuilder().attributeConverterProviders(providers).build().toMap().entrySet()
                    .stream()
                    .filter(entry -> attributes.contains(entry.getKey()))
-                   .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                   .collect(Collectors.toMap(entry -> entry.getKey(), entry -> entry.getValue(),
+                                             (left, right) -> left, LinkedHashMap::new));
     }
 
     @Override
     public AttributeValue attributeValue(EnhancedDocument item, String attributeName) {
-        if (item == null || item.toMap() == null) {
+        if (item == null) {
             return null;
         }
         List<AttributeConverterProvider> providers = mergeAttributeConverterProviders(item);
