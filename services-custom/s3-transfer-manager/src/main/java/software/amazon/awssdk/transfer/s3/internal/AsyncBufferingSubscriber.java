@@ -80,10 +80,14 @@ public class AsyncBufferingSubscriber<T> implements Subscriber<T> {
         if (isDelivering.compareAndSet(false, true)) {
             try {
                 Optional<StoringSubscriber.Event<T>> next = storingSubscriber.peek();
-                //int numOfRounds = 0;
+                int numOfRounds = 0;
                 while (numRequestsInFlight.get() < maxConcurrentExecutions) {
                     if (!next.isPresent()) {
                         subscription.request(1);
+                        break;
+                    }
+
+                    if (numOfRounds == 5) {
                         break;
                     }
 
@@ -101,7 +105,7 @@ public class AsyncBufferingSubscriber<T> implements Subscriber<T> {
                             handleError(new IllegalStateException("Unknown stored type: " + next.get().type()));
                             break;
                     }
-                    //numOfRounds++;
+                    numOfRounds++;
                     next = storingSubscriber.peek();
                 }
             } finally {
