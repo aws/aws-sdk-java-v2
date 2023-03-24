@@ -17,6 +17,7 @@ package software.amazon.awssdk.stability.tests;
 
 
 import java.nio.file.Paths;
+import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
@@ -31,14 +32,27 @@ import software.amazon.awssdk.transfer.s3.model.CompletedDirectoryDownload;
 public class TestRunner {
 
     public static void main(String... args) {
+        String bucket = "bucket";
         S3TransferManager transferManager = S3TransferManager.builder()
-            .s3Client(S3AsyncClient.crtBuilder().region(Region.EU_WEST_1).build()).build();
+                                                             .s3Client(S3AsyncClient.crtBuilder().region(Region.EU_WEST_1).build()).build();
 
 
-            transferManager.downloadDirectory(b -> b.bucket("bucket")
-                                                    .destination(Paths.get("/tmp/test"))
-                               .listObjectsV2RequestTransformer(l -> l.prefix("5G/")))
-                           .completionFuture().join();
+        CompletableFuture<CompletedDirectoryDownload> future = transferManager.downloadDirectory(b -> b.bucket(bucket)
+                                                                                                       .destination(Paths.get(
+                                                                                                           "/tmp/test/1"))
+                                                                                                       .listObjectsV2RequestTransformer(l -> l.prefix("16M_dir/")))
+                                                                              .completionFuture();
+
+
+        CompletableFuture<CompletedDirectoryDownload> future2 = transferManager.downloadDirectory(b -> b.bucket(bucket)
+                                                                                                       .destination(Paths.get(
+                                                                                                           "/tmp/test/2"))
+                                                                                                       .listObjectsV2RequestTransformer(l -> l.prefix("16M_dir/")
+                                                                                                           ))
+                                                                              .completionFuture();
+
+        future.join().failedTransfers().forEach(i -> System.out.println("failed " + i));
+        future2.join().failedTransfers().forEach(i -> System.out.println("failed " + i));
     }
 }
 
