@@ -13,32 +13,19 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core;
+package software.amazon.awssdk.awscore;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.utils.SdkAutoCloseable;
+import software.amazon.awssdk.core.SdkClient;
 
 /**
- * All SDK service client interfaces should extend this interface.
+ * Interface for an AWS Client that extends SdkClient. All AWS service client interfaces should extend this interface.
  */
 @SdkPublicApi
 @ThreadSafe
-public interface SdkClient extends SdkAutoCloseable {
+public interface AwsClient extends SdkClient {
 
-    /**
-     * The name of the service.
-     *
-     * @return name for this service.
-     */
-    String serviceName();
-
-    /**
-     * The SDK service client configuration exposes client settings to the user, e.g., ClientOverrideConfiguration
-     *
-     * @return SdkServiceClientConfiguration
-     */
-    default SdkServiceClientConfiguration serviceClientConfiguration() {
-        throw new UnsupportedOperationException();
-    }
+    @Override
+    AwsServiceClientConfiguration serviceClientConfiguration();
 }

@@ -137,11 +137,15 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
     private final SdkClientConfiguration clientConfiguration;
 
+    private final JsonServiceClientConfiguration serviceClientConfiguration;
+
     private final Executor executor;
 
-    protected DefaultJsonAsyncClient(SdkClientConfiguration clientConfiguration) {
+    protected DefaultJsonAsyncClient(JsonServiceClientConfiguration serviceClientConfiguration,
+                                     SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
+        this.serviceClientConfiguration = serviceClientConfiguration;
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
         this.executor = clientConfiguration.option(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR);
     }
@@ -1354,6 +1358,11 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
+    }
+
+    @Override
+    public final JsonServiceClientConfiguration serviceClientConfiguration() {
+        return this.serviceClientConfiguration;
     }
 
     @Override
