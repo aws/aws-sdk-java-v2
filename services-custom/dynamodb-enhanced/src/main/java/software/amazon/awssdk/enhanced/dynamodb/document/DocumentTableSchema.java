@@ -132,7 +132,7 @@ public final class DocumentTableSchema implements TableSchema<EnhancedDocument> 
         return item.toBuilder().attributeConverterProviders(providers).build().toMap().entrySet()
                    .stream()
                    .filter(entry -> attributes.contains(entry.getKey()))
-                   .collect(Collectors.toMap(entry -> entry.getKey(), entry -> entry.getValue(),
+                   .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
                                              (left, right) -> left, LinkedHashMap::new));
     }
 
