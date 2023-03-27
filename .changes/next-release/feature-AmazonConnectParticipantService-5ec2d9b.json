@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Connect Participant Service",
-    "contributor": "",
-    "description": "This release provides an update to the SendMessage API to handle interactive message response content-types."
-}
