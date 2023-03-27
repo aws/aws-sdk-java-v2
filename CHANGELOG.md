@@ -1,3 +1,44 @@
+# __2.20.33__ __2023-03-27__
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental MediaLive now supports ID3 tag insertion for audio only HLS output groups. AWS Elemental Link devices now support tagging.
+
+## __AWS IoT Wireless__
+  - ### Features
+    - Introducing new APIs that enable Sidewalk devices to communicate with AWS IoT Core through Sidewalk gateways. This will empower AWS customers to connect Sidewalk devices with other AWS IoT Services, creating possibilities for seamless integration and advanced device management.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Added new resource detail objects to ASFF, including resources for AwsEksCluster, AWSS3Bucket, AwsEc2RouteTable and AwsEC2Instance.
+
+## __AWS Service Catalog App Registry__
+  - ### Features
+    - In this release, we started supporting ARN in applicationSpecifier and attributeGroupSpecifier. GetAttributeGroup, ListAttributeGroups and ListAttributeGroupsForApplication APIs will now have CreatedBy field in the response.
+
+## __Amazon Athena__
+  - ### Features
+    - Enforces a minimal level of encryption for the workgroup for query and calculation results that are written to Amazon S3. When enabled, workgroup users can set encryption only to the minimum level set by the administrator or higher when they submit queries.
+
+## __Amazon Chime SDK Voice__
+  - ### Features
+    - Documentation updates for Amazon Chime SDK Voice.
+
+## __Amazon Connect Participant Service__
+  - ### Features
+    - This release provides an update to the SendMessage API to handle interactive message response content-types.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release introduces support for RelatedContactId in the StartChatContact API. Interactive message and interactive message response have been added to the list of supported message content types for this API as well.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Fixed some improperly rendered links in SDK documentation.
+
+## __Amazon Voice ID__
+  - ### Features
+    - Amazon Connect Voice ID now supports multiple fraudster watchlists. Every domain has a default watchlist where all existing fraudsters are placed by default. Custom watchlists may now be created, managed, and evaluated against for known fraudster detection.
+
 # __2.20.32__ __2023-03-24__
 ## __AWS SDK for Java v2__
   - ### Features
