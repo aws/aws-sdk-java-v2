@@ -2,5 +2,5 @@
     "type": "bugfix",
     "category": "AWS SDK for Java v2",
     "contributor": "",
-    "description": "Bytes in a toJSon of EnhancedDoucment  should be represented in a hexadecimal encoded format for their binary representation."
+    "description": "A binary attribute value must be encoded in base64 format for its String representation in EnhancedDocument.toJson() API"
 }
