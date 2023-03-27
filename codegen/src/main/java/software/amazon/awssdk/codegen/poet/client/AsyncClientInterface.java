@@ -495,7 +495,8 @@ public class AsyncClientInterface implements ClassSpec {
     protected MethodSpec serviceClientConfigMethod() {
         return MethodSpec.methodBuilder("serviceClientConfiguration")
                          .addAnnotation(Override.class)
-                         .addModifiers(PUBLIC, ABSTRACT)
+                         .addModifiers(PUBLIC, DEFAULT)
+                         .addStatement("throw new $T()", UnsupportedOperationException.class)
                          .returns(new PoetExtension(model).getServiceConfigClass())
                          .build();
     }
