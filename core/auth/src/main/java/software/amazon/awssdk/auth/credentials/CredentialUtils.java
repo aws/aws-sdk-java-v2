@@ -60,6 +60,9 @@ public final class CredentialUtils {
      * @return The corresponding {@link AwsCredentials}
      */
     public static AwsCredentials toCredentials(AwsCredentialsIdentity awsCredentialsIdentity) {
+        if (awsCredentialsIdentity == null) {
+            return null;
+        }
         // identity-spi defines 2 known types - AwsCredentialsIdentity and a sub-type AwsSessionCredentialsIdentity
         if (awsCredentialsIdentity instanceof AwsSessionCredentialsIdentity) {
             AwsSessionCredentialsIdentity awsSessionCredentialsIdentity = (AwsSessionCredentialsIdentity) awsCredentialsIdentity;
@@ -87,6 +90,9 @@ public final class CredentialUtils {
      */
     public static AwsCredentialsProvider toCredentialsProvider(
             IdentityProvider<? extends AwsCredentialsIdentity> identityProvider) {
+        if (identityProvider == null) {
+            return null;
+        }
         return () -> {
             // TODO: Exception handling for CompletionException thrown from join?
             AwsCredentialsIdentity awsCredentialsIdentity = identityProvider.resolveIdentity().join();
