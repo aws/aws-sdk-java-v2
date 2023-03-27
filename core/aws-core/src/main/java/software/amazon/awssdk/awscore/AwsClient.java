@@ -26,6 +26,4 @@ import software.amazon.awssdk.core.SdkClient;
 @ThreadSafe
 public interface AwsClient extends SdkClient {
 
-    @Override
-    AwsServiceClientConfiguration serviceClientConfiguration();
 }
