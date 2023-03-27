@@ -66,6 +66,14 @@ public class PoetExtension {
     }
 
     /**
+     * @return A Poet {@link ClassName} for the generated service client configuration.
+     */
+    public ClassName getServiceConfigClass() {
+        return PoetUtils.classNameFromFqcn(model.getMetadata().getFullClientPackageName() + "."
+                                           + model.getMetadata().getServiceName() + "ServiceClientConfiguration");
+    }
+
+    /**
      * @param operationName Name of the operation
      * @return A Poet {@link ClassName} for the response type of a paginated operation in the base service package.
      *

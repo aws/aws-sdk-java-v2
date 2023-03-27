@@ -30,6 +30,7 @@
         "url-connection-client": { "packageName": "AwsJavaSdk-HttpClient-UrlConnectionClient" },
         "utils": { "packageName": "AwsJavaSdk-Core-Utils" },
         "imds": { "packageName": "AwsJavaSdk-Imds" },
+        "crt-core": { "packageName": "AwsJavaSdk-Core-CrtCore" },
 
         "dynamodb": { "packageName": "AwsJavaSdk-DynamoDb" },
         "waf": { "packageName": "AwsJavaSdk-Waf" },

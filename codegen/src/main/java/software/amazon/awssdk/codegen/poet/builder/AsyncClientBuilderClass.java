@@ -25,6 +25,7 @@ import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
+import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.codegen.utils.AuthUtils;
@@ -38,6 +39,7 @@ public class AsyncClientBuilderClass implements ClassSpec {
     private final ClassName builderInterfaceName;
     private final ClassName builderClassName;
     private final ClassName builderBaseClassName;
+    private final ClassName serviceConfigClassName;
     private final EndpointRulesSpecUtils endpointRulesSpecUtils;
 
     public AsyncClientBuilderClass(IntermediateModel model) {
@@ -49,6 +51,7 @@ public class AsyncClientBuilderClass implements ClassSpec {
         this.builderClassName = ClassName.get(basePackage, model.getMetadata().getAsyncBuilder());
         this.builderBaseClassName = ClassName.get(basePackage, model.getMetadata().getBaseBuilder());
         this.endpointRulesSpecUtils = new EndpointRulesSpecUtils(model);
+        this.serviceConfigClassName = new PoetExtension(model).getServiceConfigClass();
     }
 
     @Override
@@ -121,7 +124,11 @@ public class AsyncClientBuilderClass implements ClassSpec {
                          .returns(clientInterfaceName)
                          .addStatement("$T clientConfiguration = super.asyncClientConfiguration()", SdkClientConfiguration.class)
                          .addStatement("this.validateClientOptions(clientConfiguration)")
-                         .addCode("return new $T(clientConfiguration);", clientClassName)
+                         .addStatement("$T serviceClientConfiguration = $T.builder()"
+                                       + ".overrideConfiguration(overrideConfiguration())"
+                                       + ".region(clientConfiguration.option($T.AWS_REGION)).build()",
+                                       serviceConfigClassName, serviceConfigClassName, AwsClientOption.class)
+                         .addStatement("return new $T(serviceClientConfiguration, clientConfiguration)", clientClassName)
                          .build();
     }
 
