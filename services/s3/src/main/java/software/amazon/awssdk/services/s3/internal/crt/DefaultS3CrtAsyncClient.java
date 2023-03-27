@@ -253,7 +253,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                 }
 
                 // TODO: support request-level credential override
-                if (overrideConfiguration.credentialsProvider().isPresent()) {
+                if (overrideConfiguration.credentialsIdentityProvider().isPresent()) {
                     throw new UnsupportedOperationException("Request-level credentials override is not supported");
                 }
 
