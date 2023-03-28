@@ -22,7 +22,6 @@ import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpE
 import java.net.URI;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
@@ -37,6 +36,8 @@ import software.amazon.awssdk.core.internal.util.ClassLoaderHelper;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.DelegatingS3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -110,7 +111,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
 
     public static final class DefaultS3CrtClientBuilder implements S3CrtAsyncClientBuilder {
         private Long readBufferSizeInBytes;
-        private AwsCredentialsProvider credentialsProvider;
+        private IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider;
         private Region region;
         private Long minimalPartSizeInBytes;
         private Double targetThroughputInGbps;
@@ -118,36 +119,9 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         private URI endpointOverride;
         private Boolean checksumValidationEnabled;
 
-        public AwsCredentialsProvider credentialsProvider() {
-            return credentialsProvider;
-        }
-
-        public Region region() {
-            return region;
-        }
-
-        public Long minimumPartSizeInBytes() {
-            return minimalPartSizeInBytes;
-        }
-
-        public Double targetThroughputInGbps() {
-            return targetThroughputInGbps;
-        }
-
-        public Integer maxConcurrency() {
-            return maxConcurrency;
-        }
-
-        public URI endpointOverride() {
-            return endpointOverride;
-        }
-
-        public Long readBufferSizeInBytes() {
-            return readBufferSizeInBytes;
-        }
-
         @Override
-        public S3CrtAsyncClientBuilder credentialsProvider(AwsCredentialsProvider credentialsProvider) {
+        public S3CrtAsyncClientBuilder credentialsProvider(
+                IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider) {
             this.credentialsProvider = credentialsProvider;
             return this;
         }
