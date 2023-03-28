@@ -17,7 +17,6 @@ package software.amazon.awssdk.codegen.poet.client;
 
 import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
-import static javax.lang.model.element.Modifier.ABSTRACT;
 import static javax.lang.model.element.Modifier.DEFAULT;
 import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PUBLIC;
@@ -534,7 +533,8 @@ public class SyncClientInterface implements ClassSpec {
     protected MethodSpec serviceClientConfigMethod() {
         return MethodSpec.methodBuilder("serviceClientConfiguration")
                          .addAnnotation(Override.class)
-                         .addModifiers(PUBLIC, ABSTRACT)
+                         .addModifiers(PUBLIC, DEFAULT)
+                         .addStatement("throw new $T()", UnsupportedOperationException.class)
                          .returns(new PoetExtension(model).getServiceConfigClass())
                          .build();
     }
