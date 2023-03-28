@@ -29,5 +29,5 @@ public interface AwsClient extends SdkClient {
     @Override
     default AwsServiceClientConfiguration serviceClientConfiguration() {
         throw new UnsupportedOperationException();
-    };
+    }
 }
