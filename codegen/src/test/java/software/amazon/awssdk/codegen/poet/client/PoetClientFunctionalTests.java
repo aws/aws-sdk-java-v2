@@ -15,17 +15,17 @@
 
 package software.amazon.awssdk.codegen.poet.client;
 
-/*import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static software.amazon.awssdk.codegen.poet.PoetMatchers.generatesTo;
 
 import org.junit.Test;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
-import software.amazon.awssdk.codegen.poet.ClientTestModels;*/
+import software.amazon.awssdk.codegen.poet.ClientTestModels;
 
 public class PoetClientFunctionalTests {
-    /*@Test
+    @Test
     public void asyncClientClassRestJson() throws Exception {
         AsyncClientClass asyncClientClass = createAsyncClientClass(ClientTestModels.restJsonServiceModels());
         assertThat(asyncClientClass, generatesTo("test-json-async-client-class.java"));
@@ -144,5 +144,5 @@ public class PoetClientFunctionalTests {
     public void syncClientCustomServiceMetaData() throws Exception {
         ClassSpec syncClientCustomServiceMetaData = createSyncClientClass(ClientTestModels.customContentTypeModels());
         assertThat(syncClientCustomServiceMetaData, generatesTo("test-customservicemetadata-sync.java"));
-    }*/
+    }
 }

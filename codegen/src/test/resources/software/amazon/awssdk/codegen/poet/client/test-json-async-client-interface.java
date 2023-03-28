@@ -1743,7 +1743,9 @@ public interface JsonAsyncClient extends AwsClient {
     }
 
     @Override
-    JsonServiceClientConfiguration serviceClientConfiguration();
+    default JsonServiceClientConfiguration serviceClientConfiguration() {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * Create a {@link JsonAsyncClient} with the region loaded from the
