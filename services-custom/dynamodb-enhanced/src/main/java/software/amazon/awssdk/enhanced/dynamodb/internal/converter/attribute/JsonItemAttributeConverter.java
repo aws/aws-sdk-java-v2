@@ -35,6 +35,7 @@ import software.amazon.awssdk.protocols.jsoncore.internal.NumberJsonNode;
 import software.amazon.awssdk.protocols.jsoncore.internal.ObjectJsonNode;
 import software.amazon.awssdk.protocols.jsoncore.internal.StringJsonNode;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.utils.BinaryUtils;
 
 /**
  * An Internal converter between JsonNode and {@link AttributeValue}.
@@ -119,7 +120,7 @@ public final class JsonItemAttributeConverter implements AttributeConverter<Json
             if (value == null) {
                 return null;
             }
-            return new StringJsonNode(value.asUtf8String());
+            return new StringJsonNode(BinaryUtils.toBase64(value.asByteArray()));
         }
 
         @Override
@@ -151,8 +152,8 @@ public final class JsonItemAttributeConverter implements AttributeConverter<Json
             if (value == null) {
                 return null;
             }
-            return new ArrayJsonNode(value.stream().map(sdkByte ->
-                                                            new StringJsonNode(sdkByte.asUtf8String())
+            return new ArrayJsonNode(value.stream().map(
+                sdkByte -> new StringJsonNode(BinaryUtils.toBase64(sdkByte.asByteArray()))
             ).collect(Collectors.toList()));
         }
 

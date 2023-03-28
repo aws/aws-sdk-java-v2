@@ -169,7 +169,7 @@ public final class EnhancedDocumentTestData implements ArgumentsProvider {
                                                             .putStringSet("stringSet", Stream.of("a", "b", "c").collect(Collectors.toSet()))
                                                             .build())
                                       .json("{\"stringKey\":\"stringValue\",\"numberKey\":10,\"boolKey\":true,\"nullKey\":null,"
-                                            + "\"numberSet\":[1,2,3],\"sdkBytesSet\":[\"a\",\"b\",\"c\"],\"stringSet\":[\"a\","
+                                            + "\"numberSet\":[1,2,3],\"sdkBytesSet\":[\"YQ==\",\"Yg==\",\"Yw==\"],\"stringSet\":[\"a\","
                                             + "\"b\",\"c\"]}")
                              .attributeConverterProvider(defaultProvider())
                                       .build());
