@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS IoT Data Plane",
-    "contributor": "",
-    "description": "Add endpoint ruleset support for cn-north-1."
-}
