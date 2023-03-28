@@ -1,3 +1,149 @@
+# __2.20.33__ __2023-03-27__
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental MediaLive now supports ID3 tag insertion for audio only HLS output groups. AWS Elemental Link devices now support tagging.
+
+## __AWS IoT Wireless__
+  - ### Features
+    - Introducing new APIs that enable Sidewalk devices to communicate with AWS IoT Core through Sidewalk gateways. This will empower AWS customers to connect Sidewalk devices with other AWS IoT Services, creating possibilities for seamless integration and advanced device management.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Added new resource detail objects to ASFF, including resources for AwsEksCluster, AWSS3Bucket, AwsEc2RouteTable and AwsEC2Instance.
+
+## __AWS Service Catalog App Registry__
+  - ### Features
+    - In this release, we started supporting ARN in applicationSpecifier and attributeGroupSpecifier. GetAttributeGroup, ListAttributeGroups and ListAttributeGroupsForApplication APIs will now have CreatedBy field in the response.
+
+## __Amazon Athena__
+  - ### Features
+    - Enforces a minimal level of encryption for the workgroup for query and calculation results that are written to Amazon S3. When enabled, workgroup users can set encryption only to the minimum level set by the administrator or higher when they submit queries.
+
+## __Amazon Chime SDK Voice__
+  - ### Features
+    - Documentation updates for Amazon Chime SDK Voice.
+
+## __Amazon Connect Participant Service__
+  - ### Features
+    - This release provides an update to the SendMessage API to handle interactive message response content-types.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release introduces support for RelatedContactId in the StartChatContact API. Interactive message and interactive message response have been added to the list of supported message content types for this API as well.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Fixed some improperly rendered links in SDK documentation.
+
+## __Amazon Voice ID__
+  - ### Features
+    - Amazon Connect Voice ID now supports multiple fraudster watchlists. Every domain has a default watchlist where all existing fraudsters are placed by default. Custom watchlists may now be created, managed, and evaluated against for known fraudster detection.
+
+# __2.20.32__ __2023-03-24__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Adds ServiceClientConfiguration to SdkClient which exposes client settings to the user
+    - Updated endpoint and partition metadata.
+
+## __Amazon CloudWatch__
+  - ### Features
+    - Doc-only update to correct alarm actions list
+
+## __Amazon Comprehend__
+  - ### Features
+    - This release adds a new field (FlywheelArn) to the EntitiesDetectionJobProperties object. The FlywheelArn field is returned in the DescribeEntitiesDetectionJob and ListEntitiesDetectionJobs responses when the EntitiesDetection job is started with a FlywheelArn instead of an EntityRecognizerArn .
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Added error code CreateCustomDBEngineVersionFault for when the create custom engine version for Custom engines fails.
+
+## __Netty NIO HTTP Client__
+  - ### Bugfixes
+    - Fix a bug where, if validation of of the amount of expected data to be received (HTTP `Content-Length`) fails, the connection would be left dangling, consuming a connection from the pool until the client is shut down.
+
+# __2.20.31__ __2023-03-23__
+## __AWS Batch__
+  - ### Features
+    - This feature allows Batch to support configuration of ephemeral storage size for jobs running on FARGATE
+
+## __AWS Cloud Map__
+  - ### Features
+    - Reverted the throttling exception RequestLimitExceeded for AWS Cloud Map APIs introduced in SDK version 1.12.424 2023-03-09 to previous exception specified in the ErrorCode.
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - AWS Elemental MediaConvert SDK now supports passthrough of ID3v2 tags for audio inputs to audio-only HLS outputs.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Introducing Enhanced Document API: A Higher-Level API for Working with Amazon DynamoDB Items
+    - Updated endpoint and partition metadata.
+
+## __Amazon Chime SDK Identity__
+  - ### Features
+    - AppInstanceBots can be used to add a bot powered by Amazon Lex to chat channels. ExpirationSettings provides automatic resource deletion for AppInstanceUsers.
+
+## __Amazon Chime SDK Media Pipelines__
+  - ### Features
+    - This release adds Amazon Chime SDK call analytics. Call analytics include voice analytics, which provides speaker search and voice tone analysis. These capabilities can be used with Amazon Transcribe and Transcribe Call Analytics to generate machine-learning-powered insights from real-time audio.
+
+## __Amazon Chime SDK Messaging__
+  - ### Features
+    - ExpirationSettings provides automatic resource deletion for Channels.
+
+## __Amazon Chime SDK Voice__
+  - ### Features
+    - This release adds Amazon Chime SDK call analytics. Call analytics include voice analytics, which provides speaker search and voice tone analysis. These capabilities can be used with Amazon Transcribe and Transcribe Call Analytics to generate machine-learning-powered insights from real-time audio.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Adds AutoEnableOrganizationMembers attribute to DescribeOrganizationConfiguration and UpdateOrganizationConfiguration APIs.
+
+## __Amazon Interactive Video Service RealTime__
+  - ### Features
+    - Initial release of the Amazon Interactive Video Service RealTime API.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker Autopilot adds two new APIs - CreateAutoMLJobV2 and DescribeAutoMLJobV2. Amazon SageMaker Notebook Instances now supports the ml.geospatial.interactive instance type.
+
+## __Amazon Textract__
+  - ### Features
+    - The AnalyzeDocument - Tables feature adds support for new elements in the API: table titles, footers, section titles, summary cells/tables, and table type.
+
+## __CodeArtifact__
+  - ### Features
+    - Repository CreationTime is added to the CreateRepository and ListRepositories API responses.
+
+# __2.20.30__ __2023-03-22__
+## __AWS Identity and Access Management__
+  - ### Features
+    - Documentation updates for AWS Identity and Access Management (IAM).
+
+## __AWS IoT TwinMaker__
+  - ### Features
+    - This release adds support of adding metadata when creating a new scene or updating an existing scene.
+
+## __AWS Network Manager__
+  - ### Features
+    - This release includes an update to create-transit-gateway-route-table-attachment, showing example usage for TransitGatewayRouteTableArn.
+
+## __AWS Resilience Hub__
+  - ### Features
+    - This release provides customers with the ability to import resources from within an EKS cluster and assess the resiliency of EKS cluster workloads.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon EventBridge Pipes__
+  - ### Features
+    - This release improves validation on the ARNs in the API model
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - This Patch Manager release supports creating, updating, and deleting Patch Baselines for AmazonLinux2023, AlmaLinux.
+
 # __2.20.29__ __2023-03-21__
 ## __AWS Clean Rooms Service__
   - ### Features

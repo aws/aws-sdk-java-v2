@@ -31,6 +31,9 @@ final class DefaultJsonClientBuilder extends DefaultJsonBaseClientBuilder<JsonCl
     protected final JsonClient buildClient() {
         SdkClientConfiguration clientConfiguration = super.syncClientConfiguration();
         this.validateClientOptions(clientConfiguration);
-        return new DefaultJsonClient(clientConfiguration);
+        JsonServiceClientConfiguration serviceClientConfiguration = JsonServiceClientConfiguration.builder()
+                                                                                                  .overrideConfiguration(overrideConfiguration()).region(clientConfiguration.option(AwsClientOption.AWS_REGION))
+                                                                                                  .build();
+        return new DefaultJsonClient(serviceClientConfiguration, clientConfiguration);
     }
 }

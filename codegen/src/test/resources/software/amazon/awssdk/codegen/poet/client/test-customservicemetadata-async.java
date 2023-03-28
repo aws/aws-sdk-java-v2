@@ -47,9 +47,14 @@ final class DefaultProtocolRestJsonWithCustomContentTypeAsyncClient implements P
 
     private final SdkClientConfiguration clientConfiguration;
 
-    protected DefaultProtocolRestJsonWithCustomContentTypeAsyncClient(SdkClientConfiguration clientConfiguration) {
+    private final ProtocolRestJsonWithCustomContentTypeServiceClientConfiguration serviceClientConfiguration;
+
+    protected DefaultProtocolRestJsonWithCustomContentTypeAsyncClient(
+        ProtocolRestJsonWithCustomContentTypeServiceClientConfiguration serviceClientConfiguration,
+        SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
+        this.serviceClientConfiguration = serviceClientConfiguration;
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
     }
 
@@ -104,6 +109,11 @@ final class DefaultProtocolRestJsonWithCustomContentTypeAsyncClient implements P
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
+    }
+
+    @Override
+    public final ProtocolRestJsonWithCustomContentTypeServiceClientConfiguration serviceClientConfiguration() {
+        return this.serviceClientConfiguration;
     }
 
     @Override
