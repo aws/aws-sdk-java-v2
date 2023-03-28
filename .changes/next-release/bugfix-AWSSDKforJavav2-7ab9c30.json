@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "A binary attribute value must be encoded in base64 format for its String representation in EnhancedDocument.toJson() API"
+}

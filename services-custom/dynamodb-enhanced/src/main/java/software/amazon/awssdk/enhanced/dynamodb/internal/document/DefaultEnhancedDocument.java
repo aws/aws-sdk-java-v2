@@ -245,7 +245,6 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
 
     private Map<String, AttributeValue> initializeAttributeValueMap() {
         Map<String, AttributeValue> result = new LinkedHashMap<>(this.nonAttributeValueMap.size());
-        Validate.notEmpty(this.attributeConverterProviders, "attributeConverterProviders");
         this.nonAttributeValueMap.forEach((k, v) -> {
             if (v == null) {
                 result.put(k, NULL_ATTRIBUTE_VALUE);
