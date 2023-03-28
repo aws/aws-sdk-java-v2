@@ -86,18 +86,24 @@ public class AsyncBufferingSubscriber<T> implements Subscriber<T> {
                         break;
                     }
 
-                    switch (next.get().type()) {
+                    StoringSubscriber.Event<T> event = next.get();
+
+                    if (shouldStopPolling(event)) {
+                        break;
+                    }
+
+                    switch (event.type()) {
                         case ON_COMPLETE:
                             handleCompleteEvent();
                             break;
                         case ON_ERROR:
-                            handleError(next.get().runtimeError());
+                            handleError(event.runtimeError());
                             break;
                         case ON_NEXT:
-                            handleOnNext(next.get().value());
+                            handleOnNext(event.value());
                             break;
                         default:
-                            handleError(new IllegalStateException("Unknown stored type: " + next.get().type()));
+                            handleError(new IllegalStateException("Unknown stored type: " + event.type()));
                             break;
                     }
 
@@ -107,6 +113,15 @@ public class AsyncBufferingSubscriber<T> implements Subscriber<T> {
                 isDelivering.set(false);
             }
         }
+    }
+
+    /**
+     * If the last event in queue is ON_COMPLETE and there are still in-flight requests,
+     * we should stop polling.
+     */
+    private boolean shouldStopPolling(StoringSubscriber.Event<T> event) {
+        return numRequestsInFlight.get() != 0 &&
+               event.type() == StoringSubscriber.EventType.ON_COMPLETE;
     }
 
     private void handleOnNext(T item) {
