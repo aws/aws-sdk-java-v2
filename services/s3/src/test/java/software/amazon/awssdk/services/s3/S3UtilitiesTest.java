@@ -16,18 +16,20 @@
 package software.amazon.awssdk.services.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URL;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.model.GetUrlRequest;
+import software.amazon.awssdk.services.s3.parsing.S3Uri;
 
 public class S3UtilitiesTest {
 
@@ -67,6 +69,290 @@ public class S3UtilitiesTest {
     public static void cleanup() {
         defaultClient.close();
         asyncClient.close();
+    }
+
+    @Test
+    public void parseS3Uri_pathStyleWithRoot_shouldParseCorrectly() {
+        String uriString = "https://s3.amazonaws.com/";
+        URI uri = URI.create(uriString);
+
+        S3Uri s3Uri = defaultUtilities.parseS3Uri(uri);
+        assertThat(s3Uri.uri()).isEqualTo(uri);
+        assertThat(s3Uri.bucket()).isNull();
+        assertThat(s3Uri.key()).isNull();
+        assertThat(s3Uri.region()).isNull();
+        assertThat(s3Uri.isPathStyle()).isTrue();
+        assertThat(s3Uri.queryParams()).isEmpty();
+    }
+
+    @Test
+    public void parseS3Uri_pathStyleWithRootNoTrailingSlash_shouldParseCorrectly() {
+        String uriString = "https://s3.amazonaws.com";
+        URI uri = URI.create(uriString);
+
+        S3Uri s3Uri = defaultUtilities.parseS3Uri(uri);
+        assertThat(s3Uri.uri()).isEqualTo(uri);
+        assertThat(s3Uri.bucket()).isNull();
+        assertThat(s3Uri.key()).isNull();
+        assertThat(s3Uri.region()).isNull();
+        assertThat(s3Uri.isPathStyle()).isTrue();
+        assertThat(s3Uri.queryParams()).isEmpty();
+    }
+
+    @Test
+    public void parseS3Uri_pathStyleGlobalEndpoint_shouldParseCorrectly() {
+        String uriString = "https://s3.amazonaws.com/myBucket/resources/image1.png";
+        URI uri = URI.create(uriString);
+
+        S3Uri s3Uri = defaultUtilities.parseS3Uri(uri);
+        assertThat(s3Uri.uri()).isEqualTo(uri);
+        assertThat(s3Uri.bucket()).isEqualTo("myBucket");
+        assertThat(s3Uri.key()).isEqualTo("resources/image1.png");
+        assertThat(s3Uri.region()).isNull();
+        assertThat(s3Uri.isPathStyle()).isTrue();
+        assertThat(s3Uri.queryParams()).isEmpty();
+    }
+
+    @Test
+    public void parseS3Uri_virtualStyleGlobalEndpoint_shouldParseCorrectly() {
+        String uriString = "https://myBucket.s3.amazonaws.com/resources/image1.png";
+        URI uri = URI.create(uriString);
+
+        S3Uri s3Uri = defaultUtilities.parseS3Uri(uri);
+        assertThat(s3Uri.uri()).isEqualTo(uri);
+        assertThat(s3Uri.bucket()).isEqualTo("myBucket");
+        assertThat(s3Uri.key()).isEqualTo("resources/image1.png");
+        assertThat(s3Uri.region()).isNull();
+        assertThat(s3Uri.isPathStyle()).isFalse();
+        assertThat(s3Uri.queryParams()).isEmpty();
+    }
+
+    @Test
+    public void parseS3Uri_pathStyleWithDot_shouldParseCorrectly() {
+        String uriString = "https://s3.eu-west-2.amazonaws.com/myBucket/resources/image1.png";
+        URI uri = URI.create(uriString);
+
+        S3Uri s3Uri = defaultUtilities.parseS3Uri(uri);
+        assertThat(s3Uri.uri()).isEqualTo(uri);
+        assertThat(s3Uri.bucket()).isEqualTo("myBucket");
+        assertThat(s3Uri.key()).isEqualTo("resources/image1.png");
+        assertThat(s3Uri.region()).isEqualTo("eu-west-2");
+        assertThat(s3Uri.isPathStyle()).isTrue();
+        assertThat(s3Uri.queryParams()).isEmpty();
+    }
+
+    @Test
+    public void parseS3Uri_pathStyleWithDash_shouldParseCorrectly() {
+        String uriString = "https://s3-eu-west-2.amazonaws.com/myBucket/resources/image1.png";
+        URI uri = URI.create(uriString);
+
+        S3Uri s3Uri = defaultUtilities.parseS3Uri(uri);
+        assertThat(s3Uri.uri()).isEqualTo(uri);
+        assertThat(s3Uri.bucket()).isEqualTo("myBucket");
+        assertThat(s3Uri.key()).isEqualTo("resources/image1.png");
+        assertThat(s3Uri.region()).isEqualTo("eu-west-2");
+        assertThat(s3Uri.isPathStyle()).isTrue();
+        assertThat(s3Uri.queryParams()).isEmpty();
+    }
+
+    @Test
+    public void parseS3Uri_virtualHostedStyleWithDot_shouldParseCorrectly() {
+        String uriString = "https://my-bucket.s3.us-east-2.amazonaws.com/image.png";
+        URI uri = URI.create(uriString);
+
+        S3Uri s3Uri = defaultUtilities.parseS3Uri(uri);
+        assertThat(s3Uri.uri()).isEqualTo(uri);
+        assertThat(s3Uri.bucket()).isEqualTo("my-bucket");
+        assertThat(s3Uri.key()).isEqualTo("image.png");
+        assertThat(s3Uri.region()).isEqualTo("us-east-2");
+        assertThat(s3Uri.isPathStyle()).isFalse();
+        assertThat(s3Uri.queryParams()).isEmpty();
+    }
+
+    @Test
+    public void parseS3Uri_virtualHostedStyleWithDash_shouldParseCorrectly() {
+        String uriString = "https://my-bucket.s3-us-east-2.amazonaws.com/image.png";
+        URI uri = URI.create(uriString);
+
+        S3Uri s3Uri = defaultUtilities.parseS3Uri(uri);
+        assertThat(s3Uri.uri()).isEqualTo(uri);
+        assertThat(s3Uri.bucket()).isEqualTo("my-bucket");
+        assertThat(s3Uri.key()).isEqualTo("image.png");
+        assertThat(s3Uri.region()).isEqualTo("us-east-2");
+        assertThat(s3Uri.isPathStyle()).isFalse();
+        assertThat(s3Uri.queryParams()).isEmpty();
+    }
+
+    @Test
+    public void parses3Uri_pathStyleWithQuery_shouldParseCorrectly() {
+        String uriString = "https://s3.us-west-1.amazonaws.com/bucket/key?versionId=abc123";
+        URI uri = URI.create(uriString);
+
+        S3Uri s3Uri = defaultUtilities.parseS3Uri(uri);
+        assertThat(s3Uri.uri()).isEqualTo(uri);
+        assertThat(s3Uri.bucket()).isEqualTo("bucket");
+        assertThat(s3Uri.key()).isEqualTo("key");
+        assertThat(s3Uri.region()).isEqualTo("us-west-1");
+        assertThat(s3Uri.isPathStyle()).isTrue();
+        assertThat(s3Uri.queryParams()).containsEntry("versionId", "abc123");
+    }
+
+    @Test
+    public void parses3Uri_pathStyleWithEncodedQuery_shouldParseCorrectly() {
+        String uriString = "https://s3.us-west-1.amazonaws.com/bucket/key?versionId=%61%62%63%31%32%33";
+        URI uri = URI.create(uriString);
+
+        S3Uri s3Uri = defaultUtilities.parseS3Uri(uri);
+        assertThat(s3Uri.uri()).isEqualTo(uri);
+        assertThat(s3Uri.bucket()).isEqualTo("bucket");
+        assertThat(s3Uri.key()).isEqualTo("key");
+        assertThat(s3Uri.region()).isEqualTo("us-west-1");
+        assertThat(s3Uri.isPathStyle()).isTrue();
+        assertThat(s3Uri.queryParams()).containsEntry("versionId", "abc123");
+    }
+
+    @Test
+    public void parses3Uri_pathStyleWithMultipleQueries_shouldParseCorrectly() {
+        String uriString = "https://s3.us-west-1.amazonaws.com/bucket/key?versionId=abc123&partNumber=77";
+        URI uri = URI.create(uriString);
+
+        S3Uri s3Uri = defaultUtilities.parseS3Uri(uri);
+        assertThat(s3Uri.uri()).isEqualTo(uri);
+        assertThat(s3Uri.bucket()).isEqualTo("bucket");
+        assertThat(s3Uri.key()).isEqualTo("key");
+        assertThat(s3Uri.region()).isEqualTo("us-west-1");
+        assertThat(s3Uri.isPathStyle()).isTrue();
+        assertThat(s3Uri.queryParams()).containsEntry("versionId", "abc123");
+        assertThat(s3Uri.queryParams()).containsEntry("partNumber", "77");
+    }
+
+    @Test
+    public void parses3Uri_virtualStyleWithQuery_shouldParseCorrectly() {
+        String uriString = "https://bucket.s3.us-west-1.amazonaws.com/key?versionId=abc123";
+        URI uri = URI.create(uriString);
+
+        S3Uri s3Uri = defaultUtilities.parseS3Uri(uri);
+        assertThat(s3Uri.uri()).isEqualTo(uri);
+        assertThat(s3Uri.bucket()).isEqualTo("bucket");
+        assertThat(s3Uri.key()).isEqualTo("key");
+        assertThat(s3Uri.region()).isEqualTo("us-west-1");
+        assertThat(s3Uri.isPathStyle()).isFalse();
+        assertThat(s3Uri.queryParams()).containsEntry("versionId", "abc123");
+    }
+
+    @Test
+    public void parses3Uri_virtualStyleWithEncodedQuery_shouldParseCorrectly() {
+        String uriString = "https://bucket.s3.us-west-1.amazonaws.com/key?versionId=%61%62%63%31%32%33";
+        URI uri = URI.create(uriString);
+
+        S3Uri s3Uri = defaultUtilities.parseS3Uri(uri);
+        assertThat(s3Uri.uri()).isEqualTo(uri);
+        assertThat(s3Uri.bucket()).isEqualTo("bucket");
+        assertThat(s3Uri.key()).isEqualTo("key");
+        assertThat(s3Uri.region()).isEqualTo("us-west-1");
+        assertThat(s3Uri.isPathStyle()).isFalse();
+        assertThat(s3Uri.queryParams()).containsEntry("versionId", "abc123");
+    }
+
+    @Test
+    public void parses3Uri_virtualStyleWithMultipleQueries_shouldParseCorrectly() {
+        String uriString = "https://bucket.s3.us-west-1.amazonaws.com/key?versionId=abc123&partNumber=77";
+        URI uri = URI.create(uriString);
+
+        S3Uri s3Uri = defaultUtilities.parseS3Uri(uri);
+        assertThat(s3Uri.uri()).isEqualTo(uri);
+        assertThat(s3Uri.bucket()).isEqualTo("bucket");
+        assertThat(s3Uri.key()).isEqualTo("key");
+        assertThat(s3Uri.region()).isEqualTo("us-west-1");
+        assertThat(s3Uri.isPathStyle()).isFalse();
+        assertThat(s3Uri.queryParams()).containsEntry("versionId", "abc123");
+        assertThat(s3Uri.queryParams()).containsEntry("partNumber", "77");
+    }
+
+    @Test
+    public void parses3Uri_virtualStyleS3SchemeWithoutKey_shouldParseCorrectly() {
+        String uriString = "s3://myBucket";
+        URI uri = URI.create(uriString);
+
+        S3Uri s3Uri = defaultUtilities.parseS3Uri(uri);
+        assertThat(s3Uri.uri()).isEqualTo(uri);
+        assertThat(s3Uri.bucket()).isEqualTo("myBucket");
+        assertThat(s3Uri.key()).isNull();
+        assertThat(s3Uri.region()).isNull();
+        assertThat(s3Uri.isPathStyle()).isFalse();
+    }
+
+    @Test
+    public void parses3Uri_virtualStyleS3SchemeWithKey_shouldParseCorrectly() {
+        String uriString = "s3://myBucket/resources/key";
+        URI uri = URI.create(uriString);
+
+        S3Uri s3Uri = defaultUtilities.parseS3Uri(uri);
+        assertThat(s3Uri.uri()).isEqualTo(uri);
+        assertThat(s3Uri.bucket()).isEqualTo("myBucket");
+        assertThat(s3Uri.key()).isEqualTo("resources/key");
+        assertThat(s3Uri.region()).isNull();
+        assertThat(s3Uri.isPathStyle()).isFalse();
+    }
+
+    @Test
+    public void parseS3Uri_accessPointUri_shouldThrowProperErrorMessage() {
+        String accessPointUriString = "myendpoint-123456789012.s3-accesspoint.us-east-1.amazonaws.com";
+        URI accessPointUri = URI.create(accessPointUriString);
+
+        Exception exception = assertThrows(SdkClientException.class, () -> {
+            defaultUtilities.parseS3Uri(accessPointUri);
+        });
+
+        assertThat(exception.getMessage()).isEqualTo("AccessPoints URI parsing is not supported");
+    }
+
+    @Test
+    public void parseS3Uri_accessPointUriWithFipsDualstack_shouldThrowProperErrorMessage() {
+        String accessPointUriString = "myendpoint-123456789012.s3-accesspoint-fips.dualstack.us-gov-east-1.amazonaws.com";
+        URI accessPointUri = URI.create(accessPointUriString);
+
+        Exception exception = assertThrows(SdkClientException.class, () -> {
+            defaultUtilities.parseS3Uri(accessPointUri);
+        });
+
+        assertThat(exception.getMessage()).isEqualTo("AccessPoints URI parsing is not supported");
+    }
+
+    @Test
+    public void parseS3Uri_accessPointsUriWithChinaPartition_shouldThrowProperErrorMessage() {
+        String outpostsUriString = "myendpoint-123456789012.s3-accesspoint.cn-northwest-1.amazonaws.com.cn";
+        URI outpostsUri = URI.create(outpostsUriString);
+
+        Exception exception = assertThrows(SdkClientException.class, () -> {
+            defaultUtilities.parseS3Uri(outpostsUri);
+        });
+
+        assertThat(exception.getMessage()).isEqualTo("AccessPoints URI parsing is not supported");
+    }
+
+    @Test
+    public void parseS3Uri_outpostsUri_shouldThrowProperErrorMessage() {
+        String outpostsUriString = "myaccesspoint-123456789012.op-01234567890123456.s3-outposts.us-west-2.amazonaws.com";
+        URI outpostsUri = URI.create(outpostsUriString);
+
+        Exception exception = assertThrows(SdkClientException.class, () -> {
+            defaultUtilities.parseS3Uri(outpostsUri);
+        });
+
+        assertThat(exception.getMessage()).isEqualTo("Outposts URI parsing is not supported");
+    }
+
+    @Test
+    public void parseS3Uri_outpostsUriWithChinaPartition_shouldThrowProperErrorMessage() {
+        String outpostsUriString = "myaccesspoint-123456789012.op-01234567890123456.s3-outposts.cn-north-1.amazonaws.com.cn";
+        URI outpostsUri = URI.create(outpostsUriString);
+
+        Exception exception = assertThrows(SdkClientException.class, () -> {
+            defaultUtilities.parseS3Uri(outpostsUri);
+        });
+
+        assertThat(exception.getMessage()).isEqualTo("Outposts URI parsing is not supported");
     }
 
     @Test
