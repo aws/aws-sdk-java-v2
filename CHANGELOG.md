@@ -1,3 +1,16 @@
+# __2.20.35__ __2023-03-29__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Add support for creating a read replica DB instance from a Multi-AZ DB cluster.
+
+## __OpenSearch Service Serverless__
+  - ### Features
+    - This release includes two new exception types "ServiceQuotaExceededException" and "OcuLimitExceededException".
+
 # __2.20.34__ __2023-03-28__
 ## __AWS IoT Data Plane__
   - ### Features
