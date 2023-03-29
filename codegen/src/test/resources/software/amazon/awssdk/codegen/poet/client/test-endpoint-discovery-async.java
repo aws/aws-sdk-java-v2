@@ -176,7 +176,6 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
                 String key = testDiscoveryIdentifiersRequiredRequest.overrideConfiguration()
                                                                     .flatMap(AwsRequestOverrideConfiguration::credentialsIdentityProvider)
                                                                     .orElseGet(() -> clientConfiguration.option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER))
-                                                                    // TODO: avoid join inside async
                                                                     .resolveIdentity().join().accessKeyId();
                 EndpointDiscoveryRequest endpointDiscoveryRequest = EndpointDiscoveryRequest.builder().required(true)
                                                                                             .defaultEndpoint(clientConfiguration.option(SdkClientOption.ENDPOINT))

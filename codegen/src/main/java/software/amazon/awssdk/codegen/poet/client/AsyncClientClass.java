@@ -366,6 +366,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
                    .addCode("    .flatMap($T::credentialsIdentityProvider)", AwsRequestOverrideConfiguration.class)
                    .addCode("    .orElseGet(() -> clientConfiguration.option($T.CREDENTIALS_IDENTITY_PROVIDER))",
                             AwsClientOption.class)
+                   // TODO: avoid join inside async
                    .addCode("    .resolveIdentity().join().accessKeyId();");
 
             builder.addCode("$1T endpointDiscoveryRequest = $1T.builder()", EndpointDiscoveryRequest.class)

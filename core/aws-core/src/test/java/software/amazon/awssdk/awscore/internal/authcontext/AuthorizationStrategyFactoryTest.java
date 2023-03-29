@@ -16,18 +16,34 @@
 package software.amazon.awssdk.awscore.internal.authcontext;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
-import org.junit.jupiter.api.Test;
+import java.util.Optional;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
+import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.metrics.MetricCollector;
 
+@RunWith(MockitoJUnitRunner.class)
 public class AuthorizationStrategyFactoryTest {
 
     @Mock SdkRequest sdkRequest;
     @Mock MetricCollector metricCollector;
+
+    @Before
+    public void setUp() throws Exception {
+        when(sdkRequest.overrideConfiguration()).thenReturn(Optional.empty());
+    }
 
     @Test
     public void credentialTypeBearerToken_returnsTokenStrategy() {
@@ -39,10 +55,33 @@ public class AuthorizationStrategyFactoryTest {
 
     @Test
     public void credentialTypeAwsCredentials_returnsCredentialsStrategy() {
-        AuthorizationStrategyFactory factory = new AuthorizationStrategyFactory(sdkRequest, metricCollector,
-                                                                                SdkClientConfiguration.builder().build());
+        SdkClientConfiguration configuration = SdkClientConfiguration
+            .builder()
+            .option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER, StaticCredentialsProvider.create(AwsBasicCredentials.create(
+                "akid", "skid")))
+            .build();
+        AuthorizationStrategyFactory factory = new AuthorizationStrategyFactory(sdkRequest, metricCollector, configuration);
         AuthorizationStrategy authorizationStrategy = factory.strategyFor(CredentialType.of("AWS"));
         assertThat(authorizationStrategy).isExactlyInstanceOf(AwsCredentialsAuthorizationStrategy.class);
+        ExecutionAttributes attributes = new ExecutionAttributes();
+        authorizationStrategy.addCredentialsToExecutionAttributes(attributes);
+        assertThat(attributes.getAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS).accessKeyId()).isEqualTo("akid");
+        assertThat(attributes.getAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS).secretAccessKey()).isEqualTo("skid");
     }
 
+    @Test
+    public void credentialTypeAwsCredentials_withOldClientOption_returnsCredentialsStrategy() {
+        SdkClientConfiguration configuration = SdkClientConfiguration
+            .builder()
+            .option(AwsClientOption.CREDENTIALS_PROVIDER, StaticCredentialsProvider.create(AwsBasicCredentials.create(
+                "akid", "skid")))
+            .build();
+        AuthorizationStrategyFactory factory = new AuthorizationStrategyFactory(sdkRequest, metricCollector, configuration);
+        AuthorizationStrategy authorizationStrategy = factory.strategyFor(CredentialType.of("AWS"));
+        assertThat(authorizationStrategy).isExactlyInstanceOf(AwsCredentialsAuthorizationStrategy.class);
+        ExecutionAttributes attributes = new ExecutionAttributes();
+        authorizationStrategy.addCredentialsToExecutionAttributes(attributes);
+        assertThat(attributes.getAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS).accessKeyId()).isEqualTo("akid");
+        assertThat(attributes.getAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS).secretAccessKey()).isEqualTo("skid");
+    }
 }

@@ -444,7 +444,7 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
         return thisBuilder();
     }
 
-    public void setCredentialsProvider(IdentityProvider<? extends AwsCredentialsIdentity> identityProvider) {
+    public final void setCredentialsProvider(IdentityProvider<? extends AwsCredentialsIdentity> identityProvider) {
         credentialsProvider(identityProvider);
     }
 

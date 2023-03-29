@@ -132,6 +132,9 @@ public final class AwsRequestOverrideConfiguration extends RequestOverrideConfig
             throw new UnsupportedOperationException();
         }
 
+        // review TODO: Not sure why the builder should have a public getter. Currently it was called from constructor of
+        //  AwsRequestOverrideConfiguration. But it is private and should probably take BuilderImpl. Still can't remove this
+        //  method, but maybe can avoid adding credentialsIdentityProvider() to Builder.
         /**
          * Return the optional {@link AwsCredentialsProvider} that will provide credentials to be used to authenticate this
          * request.
@@ -167,12 +170,6 @@ public final class AwsRequestOverrideConfiguration extends RequestOverrideConfig
             super(awsRequestOverrideConfig);
             this.awsCredentialsProvider = awsRequestOverrideConfig.credentialsProvider;
         }
-
-        // review TODO: remove this since it is the same as the default interface implementation
-        // @Override
-        // public Builder credentialsProvider(AwsCredentialsProvider credentialsProvider) {
-        //     return credentialsProvider((IdentityProvider<? extends AwsCredentialsIdentity>) credentialsProvider);
-        // }
 
         @Override
         public Builder credentialsProvider(IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider) {
