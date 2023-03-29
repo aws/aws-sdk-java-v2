@@ -64,32 +64,35 @@ public class AsyncBufferingSubscriber<T> implements Subscriber<T> {
     @Override
     public void onNext(T item) {
         numRequestsInFlight.incrementAndGet();
-        consumer.apply(item).whenComplete((r, t) -> {
-            numRequestsInFlight.decrementAndGet();
-            checkForCompletion();
-        });
+        consumer.apply(item)
+                .whenComplete((r, t) ->
+                                  checkForCompletion(numRequestsInFlight.decrementAndGet()));
     }
 
     @Override
     public void onError(Throwable t) {
-        upstreamDone = true;
+        // Need to complete future exceptionally first to prevent
+        // accidental successful completion by a concurrent checkForCompletion.
         returnFuture.completeExceptionally(t);
+        upstreamDone = true;
     }
 
     @Override
     public void onComplete() {
         upstreamDone = true;
-        checkForCompletion();
+        checkForCompletion(numRequestsInFlight.get());
     }
 
-    private void checkForCompletion() {
-        if (!upstreamDone) {
-            subscription.request(1);
+    private void checkForCompletion(int requestsInFlight) {
+        if (upstreamDone && requestsInFlight == 0) {
+            // This could get invoked multiple times, but it doesn't matter
+            // because future.complete is idempotent.
+            returnFuture.complete(null);
             return;
         }
 
-        if (upstreamDone && numRequestsInFlight.get() == 0) {
-            returnFuture.complete(null);
+        synchronized (this) {
+            subscription.request(1);
         }
     }
 
