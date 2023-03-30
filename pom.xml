@@ -86,7 +86,7 @@
         <module>test/ruleset-testing-core</module>
     </modules>
     <scm>
-        <url>https://github.com/aws/aws-sdk-java-v2.git</url>
+        <url>${scm.github.url}</url>
     </scm>
     <properties>
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
@@ -173,6 +173,7 @@
         <skip.unit.tests>${skipTests}</skip.unit.tests>
         <integTestSourceDirectory>${project.basedir}/src/it/java</integTestSourceDirectory>
         <javadoc.resourcesDir>${session.executionRootDirectory}</javadoc.resourcesDir>
+        <scm.github.url>https://github.com/aws/aws-sdk-java-v2.git</scm.github.url>
     </properties>
 
     <dependencyManagement>
@@ -691,6 +692,9 @@
 
         <profile>
             <id>publishing</id>
+            <properties>
+                <scm.github.url>https://github.com/aws/aws-sdk-java-v2/tree/master</scm.github.url>
+            </properties>
             <build>
                 <plugins>
                     <plugin>
