@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Interactive Video Service",
+    "contributor": "",
+    "description": "Amazon Interactive Video Service (IVS) now offers customers the ability to configure IVS channels to allow insecure RTMP ingest."
+}
