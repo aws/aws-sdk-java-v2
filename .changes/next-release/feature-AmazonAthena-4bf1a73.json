@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Athena",
-    "contributor": "",
-    "description": "Make DefaultExecutorDpuSize and CoordinatorDpuSize fields optional in StartSession"
-}
