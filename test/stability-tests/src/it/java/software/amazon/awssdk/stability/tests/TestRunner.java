@@ -16,22 +16,33 @@
 package software.amazon.awssdk.stability.tests;
 
 
+import java.nio.file.Paths;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.transfer.s3.S3TransferManager;
+import software.amazon.awssdk.transfer.s3.model.CompletedDirectoryUpload;
+
 /**
- * The main method will be invoked when you execute the test jar generated from
- * "mvn package -P test-jar"
- *
- * You can add the tests in the main method.
- * eg:
- *        try {
- *            S3AsyncStabilityTest s3AsyncStabilityTest = new S3AsyncStabilityTest();
- *            S3AsyncStabilityTest.setup();
- *            s3AsyncStabilityTest.putObject_getObject();
- *        } finally {
- *            S3AsyncStabilityTest.cleanup();
- *        }
+ * The main method will be invoked when you execute the test jar generated from "mvn package -P test-jar"
+ * <p>
+ * You can add the tests in the main method. eg: try { S3AsyncStabilityTest s3AsyncStabilityTest = new S3AsyncStabilityTest();
+ * S3AsyncStabilityTest.setup(); s3AsyncStabilityTest.putObject_getObject(); } finally { S3AsyncStabilityTest.cleanup(); }
  */
 public class TestRunner {
 
     public static void main(String... args) {
+        S3AsyncClient s3AsyncClient = S3AsyncClient.crtBuilder()
+                                                   .region(Region.US_WEST_2)
+                                                   .build();
+
+        S3TransferManager transferManager = S3TransferManager.builder()
+                                                             .s3Client(s3AsyncClient)
+                                                             .build();
+
+        CompletedDirectoryUpload completedDirectoryUpload =
+            transferManager.uploadDirectory(b -> b.bucket("do-not-delete-crt-s3")
+                                                  .source(Paths.get("/dev/shm/test")))
+                           .completionFuture().join();
+        completedDirectoryUpload.failedTransfers().forEach(f -> System.out.println(f));
     }
 }
