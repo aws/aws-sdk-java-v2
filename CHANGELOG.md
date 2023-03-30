@@ -1,3 +1,105 @@
+# __2.20.36__ __2023-03-30__
+## __AWS Batch__
+  - ### Features
+    - This feature allows Batch on EKS to support configuration of Pod Labels through Metadata for Batch on EKS Jobs.
+
+## __AWS Compute Optimizer__
+  - ### Features
+    - This release adds support for HDD EBS volume types and io2 Block Express. We are also adding support for 61 new instance types and instances that have non consecutive runtime.
+
+## __AWS Glue__
+  - ### Features
+    - This release adds support for AWS Glue Data Quality, which helps you evaluate and monitor the quality of your data and includes the API for creating, deleting, or updating data quality rulesets, runs and evaluations.
+
+## __AWS Network Firewall__
+  - ### Features
+    - AWS Network Firewall added TLS inspection configurations to allow TLS traffic inspection.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Well-Architected Tool__
+  - ### Features
+    - AWS Well-Architected SDK now supports getting consolidated report metrics and generating a consolidated report PDF.
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - AWS Kendra now supports featured results for a query.
+
+## __Amazon Athena__
+  - ### Features
+    - Make DefaultExecutorDpuSize and CoordinatorDpuSize fields optional in StartSession
+
+## __Amazon EMR__
+  - ### Features
+    - Updated DescribeCluster and ListClusters API responses to include ErrorDetail that specifies error code, programmatically accessible error data,and an error message. ErrorDetail provides the underlying reason for cluster failure and recommends actions to simplify troubleshooting of EMR clusters.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for Tunnel Endpoint Lifecycle control, a new feature that provides Site-to-Site VPN customers with better visibility and control of their VPN tunnel maintenance updates.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Added EKS Runtime Monitoring feature support to existing detector, finding APIs and introducing new Coverage APIs
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - Amazon Interactive Video Service (IVS) now offers customers the ability to configure IVS channels to allow insecure RTMP ingest.
+
+## __Amazon SageMaker geospatial capabilities__
+  - ### Features
+    - Amazon SageMaker geospatial capabilities now supports server-side encryption with customer managed KMS key and SageMaker notebooks with a SageMaker geospatial image in a Amazon SageMaker Domain with VPC only mode.
+
+## __Amazon VPC Lattice__
+  - ### Features
+    - General Availability (GA) release of Amazon VPC Lattice
+
+## __Auto Scaling__
+  - ### Features
+    - Amazon EC2 Auto Scaling now supports Elastic Load Balancing traffic sources with the AttachTrafficSources, DetachTrafficSources, and DescribeTrafficSources APIs. This release also introduces a new activity status, "WaitingForConnectionDraining", for VPC Lattice to the DescribeScalingActivities API.
+
+## __EC2 Image Builder__
+  - ### Features
+    - Adds support for new image workflow details and image vulnerability detection.
+
+## __Elastic Disaster Recovery Service__
+  - ### Features
+    - Adding a field to the replication configuration APIs to support the auto replicate new disks feature. We also deprecated RetryDataReplication.
+
+# __2.20.35__ __2023-03-29__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Add support for creating a read replica DB instance from a Multi-AZ DB cluster.
+
+## __OpenSearch Service Serverless__
+  - ### Features
+    - This release includes two new exception types "ServiceQuotaExceededException" and "OcuLimitExceededException".
+
+# __2.20.34__ __2023-03-28__
+## __AWS IoT Data Plane__
+  - ### Features
+    - Add endpoint ruleset support for cn-north-1.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - A binary attribute value must be encoded in base64 format for its String representation in EnhancedDocument.toJson() API
+
+## __AWS Systems Manager Incident Manager__
+  - ### Features
+    - Increased maximum length of "TriggerDetails.rawData" to 10K characters and "IncidentSummary" to 8K characters.
+
+## __AWS Systems Manager Incident Manager Contacts__
+  - ### Features
+    - This release adds 12 new APIs as part of Oncall Schedule feature release, adds support for a new contact type: ONCALL_SCHEDULE. Check public documentation for AWS ssm-contacts for more information
+
 # __2.20.33__ __2023-03-27__
 ## __AWS Elemental MediaLive__
   - ### Features
