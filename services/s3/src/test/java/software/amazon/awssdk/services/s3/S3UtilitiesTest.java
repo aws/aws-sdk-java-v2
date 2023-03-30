@@ -20,8 +20,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
