@@ -73,7 +73,7 @@ class JsonItemAttributeConverterTest {
 
         assertThat(transformFrom(converter, sdkByteJsonNode).s()).isEqualTo(SdkBytes.fromUtf8String("a").asUtf8String());
         assertThat(transformFrom(converter, sdkByteJsonNode).b()).isNull();
-        assertThat(transformTo(converter, AttributeValue.fromB(SdkBytes.fromUtf8String("a")))).isEqualTo(sdkByteJsonNode);
+        assertThat(transformTo(converter, AttributeValue.fromB(SdkBytes.fromUtf8String("a")))).isEqualTo(new StringJsonNode("YQ=="));
     }
 
     @Test

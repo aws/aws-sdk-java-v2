@@ -1684,5 +1684,7 @@ public interface JsonClient extends AwsClient {
     }
 
     @Override
-    JsonServiceClientConfiguration serviceClientConfiguration();
+    default JsonServiceClientConfiguration serviceClientConfiguration() {
+        throw new UnsupportedOperationException();
+    }
 }

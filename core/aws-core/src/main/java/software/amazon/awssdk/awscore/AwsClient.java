@@ -27,5 +27,7 @@ import software.amazon.awssdk.core.SdkClient;
 public interface AwsClient extends SdkClient {
 
     @Override
-    AwsServiceClientConfiguration serviceClientConfiguration();
+    default AwsServiceClientConfiguration serviceClientConfiguration() {
+        throw new UnsupportedOperationException();
+    }
 }

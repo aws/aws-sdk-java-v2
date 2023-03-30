@@ -119,9 +119,9 @@ class EnhancedDocumentTest {
                                                      .build();
 
         assertThat(simpleDoc.toJson()).isEqualTo("{\"HashKey\":\"abcdefg123\",\"nullKey\":null,\"numberKey\":2.0,"
-                                                 + "\"sdkByte\":\"a\",\"booleanKey\":true,\"jsonKey\":{\"1\":[\"a\",\"b\","
+                                                 + "\"sdkByte\":\"YQ==\",\"booleanKey\":true,\"jsonKey\":{\"1\":[\"a\",\"b\","
                                                  + "\"c\"],\"2\":1},\"stingSet\":[\"a\",\"b\",\"c\"],\"numberSet\":[1,2,3,4],"
-                                                 + "\"sdkByteSet\":[\"a\"]}");
+                                                 + "\"sdkByteSet\":[\"YQ==\"]}");
 
 
         assertThat(simpleDoc.isPresent("HashKey")).isTrue();
