@@ -64,9 +64,12 @@ public class AsyncBufferingSubscriber<T> implements Subscriber<T> {
     @Override
     public void onNext(T item) {
         numRequestsInFlight.incrementAndGet();
-        consumer.apply(item)
-                .whenComplete((r, t) ->
-                                  checkForCompletion(numRequestsInFlight.decrementAndGet()));
+        consumer.apply(item).whenComplete((r, t) -> {
+            checkForCompletion(numRequestsInFlight.decrementAndGet());
+            synchronized (this) {
+                subscription.request(1);
+            }
+        });
     }
 
     @Override
@@ -88,11 +91,6 @@ public class AsyncBufferingSubscriber<T> implements Subscriber<T> {
             // This could get invoked multiple times, but it doesn't matter
             // because future.complete is idempotent.
             returnFuture.complete(null);
-            return;
-        }
-
-        synchronized (this) {
-            subscription.request(1);
         }
     }
 
