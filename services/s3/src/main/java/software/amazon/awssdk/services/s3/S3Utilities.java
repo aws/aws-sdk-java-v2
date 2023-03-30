@@ -259,6 +259,101 @@ public final class S3Utilities {
         }
     }
 
+    /**
+     * Returns a parsed {@link S3Uri} with which a user can easily retrieve the the bucket, key, region, style, and query
+     * parameters of the URI. Only basic bucket endpoints are supported, i.e., path-style and virtual-hosted-style URLs.
+     * Encoded buckets, keys, and query parameters will be returned decoded.
+     *
+     * @param uri The URI to be parsed
+     * @return Parsed {@link S3Uri}
+     */
+    public S3Uri parseS3Uri(URI uri) {
+        if (uri == null) {
+            throw SdkClientException.create("URI must not be null");
+        }
+
+        Pattern accessPointPattern = Pattern.compile("^([a-zA-Z0-9\\-]+)\\.s3-accesspoint(-fips)?(\\.dualstack)?"
+                                                     + "\\.([a-zA-Z0-9\\-]+)\\.amazonaws\\.com(.cn)?$");
+        if (accessPointPattern.matcher(uri.toString()).find()) {
+            throw SdkClientException.create("AccessPoints URI parsing is not supported");
+        }
+
+        Pattern outpostPattern = Pattern.compile("^([a-zA-Z0-9\\-]+)\\.op\\-[0-9]+\\.s3-outposts\\.([a-zA-Z0-9\\-]+)"
+                                                 + "\\.amazonaws\\.com(.cn)?$");
+        if (outpostPattern.matcher(uri.toString()).find()) {
+            throw SdkClientException.create("Outposts URI parsing is not supported");
+        }
+
+        String bucket = null;
+        String key = null;
+        String region = null;
+        boolean isPathStyle = false;
+        Map<String, String> queryParams = new HashMap<>();
+        String path = uri.getPath();
+
+        if ("s3".equalsIgnoreCase(uri.getScheme())) {
+            if (uri.getAuthority() == null) {
+                throw SdkClientException.create("Invalid S3 URI: bucket not included");
+            }
+            bucket = uri.getAuthority();
+            if (path.length() > 1) {
+                key = path.substring(1);
+            }
+
+        } else {
+            if (uri.getHost() == null) {
+                throw SdkClientException.create("Invalid S3 URI: hostname not included");
+            }
+
+            Pattern endpointPattern = Pattern.compile("^(.+\\.)?s3[.-]([a-z0-9-]+)\\.");
+            Matcher matcher = endpointPattern.matcher(uri.getHost());
+            if (!matcher.find()) {
+                throw SdkClientException.create("Invalid S3 URI: hostname does not appear to be a valid S3 endpoint");
+            }
+
+            String prefix = matcher.group(1);
+            if (prefix == null || prefix.isEmpty()) {
+                isPathStyle = true;
+
+                if (!path.isEmpty() && !"/".equals(path)) {
+                    int index = path.indexOf('/', 1);
+
+                    if (index == -1) {
+                        bucket = path.substring(1);
+                    } else if (index == (path.length() - 1)) {
+                        bucket = path.substring(1, index);
+                    } else {
+                        bucket = path.substring(1, index);
+                        key = path.substring(index + 1);
+                    }
+                }
+            } else {
+                bucket = prefix.substring(0, prefix.length() - 1);
+                if (path != null && !path.isEmpty() && !"/".equals(path)) {
+                    key = path.substring(1);
+                }
+            }
+
+            if (!"amazonaws".equals(matcher.group(2))) {
+                region = matcher.group(2);
+            }
+        }
+
+        String queryPart = uri.getQuery();
+        if (queryPart != null) {
+            parseQuery(queryParams, queryPart);
+        }
+
+        return S3Uri.builder()
+                    .uri(uri)
+                    .bucket(bucket)
+                    .key(key)
+                    .region(region)
+                    .isPathStyle(isPathStyle)
+                    .queryParams(queryParams)
+                    .build();
+    }
+
     private Region resolveRegionForGetUrl(GetUrlRequest getUrlRequest) {
         if (getUrlRequest.region() == null && this.region == null) {
             throw new IllegalArgumentException("Region should be provided either in GetUrlRequest object or S3Utilities object");
@@ -374,6 +469,18 @@ public final class S3Utilities {
                                   .build();
 
         return new UseGlobalEndpointResolver(config);
+    }
+
+    private void parseQuery(Map<String, String> queryParams, String queryPart) {
+        String[] params = queryPart.split("&");
+        for (String param: params) {
+            String[] keyValuePair = param.split("=", 2);
+            String key = keyValuePair[0];
+            if (key.isEmpty()) {
+                continue;
+            }
+            queryParams.put(key, keyValuePair[1]);
+        }
     }
 
     /**
@@ -502,226 +609,4 @@ public final class S3Utilities {
             return new S3Utilities(this);
         }
     }
-
-    public S3Uri parseS3Uri(URI uri) {
-        return parseS3Uri(uri, true);
-    }
-
-    public S3Uri parseS3Uri(URI uri, boolean urlEncode) {
-        if (uri == null) {
-            throw SdkClientException.create("URI must not be null");
-        }
-
-        Pattern accessPointPattern = Pattern.compile("^([a-zA-Z0-9\\-]+)\\.s3-accesspoint(-fips)?(\\.dualstack)?"
-                                                     + "\\.([a-zA-Z0-9\\-]+)\\.amazonaws\\.com(.cn)?$");
-        if (accessPointPattern.matcher(uri.toString()).find()) {
-            throw SdkClientException.create("AccessPoints URI parsing is not supported");
-        }
-
-        Pattern outpostPattern = Pattern.compile("^([a-zA-Z0-9\\-]+)\\.op\\-[0-9]+\\.s3-outposts\\.([a-zA-Z0-9\\-]+)"
-                                                 + "\\.amazonaws\\.com(.cn)?$");
-        if (outpostPattern.matcher(uri.toString()).find()) {
-            throw SdkClientException.create("Outposts URI parsing is not supported");
-        }
-
-        String bucket = null;
-        String key = null;
-        String region = null;
-        boolean isPathStyle = false;
-        Map<String, String> queryParams = new HashMap<>();
-
-        if ("s3".equalsIgnoreCase(uri.getScheme())) {
-            if (uri.getAuthority() == null) {
-                throw SdkClientException.create("Invalid S3 URI: bucket not included");
-            }
-            bucket = uri.getAuthority();
-
-            String path = uri.getPath();
-            if (path.length() > 1) {
-                key = uri.getPath().substring(1);
-            }
-
-        } else {
-            if (uri.getHost() == null) {
-                throw SdkClientException.create("Invalid S3 URI: hostname not included");
-            }
-
-            Pattern endpointPattern = Pattern.compile("^(.+\\.)?s3[.-]([a-z0-9-]+)\\.");
-            Matcher matcher = endpointPattern.matcher(uri.getHost());
-            if (!matcher.find()) {
-                throw SdkClientException.create("Invalid S3 URI: hostname does not appear to be a valid S3 endpoint");
-            }
-
-            String prefix = matcher.group(1);
-            if (prefix == null || prefix.isEmpty()) {
-                isPathStyle = true;
-                String path = urlEncode ? uri.getPath() : uri.getRawPath();
-
-                if (!"".equals(path) && !"/".equals(path)) {
-                    int index = path.indexOf('/', 1);
-
-                    if (index == -1) {
-                        bucket = decode(path.substring(1));
-                    } else if (index == (path.length() - 1)) {
-                        bucket = decode(path.substring(1, index));
-                    } else {
-                        bucket = decode(path.substring(1, index));
-                        key = decode(path.substring(index + 1));
-                    }
-                }
-            } else {
-                bucket = prefix.substring(0, prefix.length() - 1);
-                String path = uri.getPath();
-                if (path != null && !path.isEmpty() && !"/".equals(uri.getPath())) {
-                    key = uri.getPath().substring(1);
-                }
-            }
-
-            if (!"amazonaws".equals(matcher.group(2))) {
-                region = matcher.group(2);
-            }
-        }
-
-        String queryPart = uri.getRawQuery();
-        if (queryPart != null) {
-            parseQuery(queryParams, queryPart);
-        }
-
-        return S3Uri.builder()
-                .uri(uri)
-                .bucket(bucket)
-                .key(key)
-                .region(region)
-                .isPathStyle(isPathStyle)
-                .queryParams(queryParams)
-                .build();
-    }
-
-    private void parseQuery(Map<String, String> queryParams, String queryPart) {
-        String[] params = queryPart.split("&");
-        for (String param: params) {
-            try {
-                String[] keyValuePair = param.split("=", 2);
-                String key = URLDecoder.decode(keyValuePair[0], "UTF-8");
-                if (key.isEmpty()) {
-                    continue;
-                }
-                String value = URLDecoder.decode(keyValuePair[1], "UTF-8");
-                queryParams.put(key, value);
-            } catch (UnsupportedEncodingException e) {
-                // Param could not be decoded
-            }
-
-        }
-    }
-
-    /**
-     * Percent-decodes the given string, with a fast path for strings that
-     * are not percent-encoded.
-     *
-     * @param str the string to decode
-     * @return the decoded string
-     */
-    private static String decode(final String str) {
-        if (str == null) {
-            return null;
-        }
-
-        for (int i = 0; i < str.length(); ++i) {
-            if (str.charAt(i) == '%') {
-                return decode(str, i);
-            }
-        }
-
-        return str;
-    }
-
-    /**
-     * Percent-decodes the given string.
-     *
-     * @param str the string to decode
-     * @param firstPercent the index of the first '%' character in the string
-     * @return the decoded string
-     */
-    private static String decode(final String str, final int firstPercent) {
-        StringBuilder builder = new StringBuilder();
-        builder.append(str.substring(0, firstPercent));
-
-        appendDecoded(builder, str, firstPercent);
-
-        for (int i = firstPercent + 3; i < str.length(); ++i) {
-            if (str.charAt(i) == '%') {
-                appendDecoded(builder, str, i);
-                i += 2;
-            } else {
-                builder.append(str.charAt(i));
-            }
-        }
-
-        return builder.toString();
-    }
-
-    /**
-     * Decodes the percent-encoded character at the given index in the string
-     * and appends the decoded value to the given {@code StringBuilder}.
-     *
-     * @param builder the string builder to append to
-     * @param str the string being decoded
-     * @param index the index of the '%' character in the string
-     */
-    private static void appendDecoded(final StringBuilder builder,
-                                      final String str,
-                                      final int index) {
-
-        if (index > str.length() - 3) {
-            throw new IllegalStateException("Invalid percent-encoded string:"
-                                            + "\"" + str + "\".");
-        }
-
-        char first = str.charAt(index + 1);
-        char second = str.charAt(index + 2);
-
-        char decoded = (char) ((fromHex(first) << 4) | fromHex(second));
-        builder.append(decoded);
-    }
-
-    /**
-     * Converts a hex character (0-9A-Fa-f) into its corresponding quad value.
-     *
-     * @param c the hex character
-     * @return the quad value
-     */
-    private static int fromHex(final char c) {
-        if (c < '0') {
-            throw new IllegalStateException(
-                "Invalid percent-encoded string: bad character '" + c + "' in "
-                + "escape sequence.");
-        }
-        if (c <= '9') {
-            return (c - '0');
-        }
-
-        if (c < 'A') {
-            throw new IllegalStateException(
-                "Invalid percent-encoded string: bad character '" + c + "' in "
-                + "escape sequence.");
-        }
-        if (c <= 'F') {
-            return (c - 'A') + 10;
-        }
-
-        if (c < 'a') {
-            throw new IllegalStateException(
-                "Invalid percent-encoded string: bad character '" + c + "' in "
-                + "escape sequence.");
-        }
-        if (c <= 'f') {
-            return (c - 'a') + 10;
-        }
-
-        throw new IllegalStateException(
-            "Invalid percent-encoded string: bad character '" + c + "' in "
-            + "escape sequence.");
-    }
-
 }

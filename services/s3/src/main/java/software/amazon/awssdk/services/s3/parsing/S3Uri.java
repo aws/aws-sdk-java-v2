@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.s3.parsing;
 
 import java.net.URI;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import software.amazon.awssdk.annotations.Immutable;
@@ -25,11 +26,12 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * Object that represents a parsed S3 URI. Can be used to easily retrieve the bucket, key, region, style, and query parameters
- * of the URI. Only basic buket endpoints are supported, i.e., path-style and virtual-hosted-style URIs.
+ * of the URI. Only basic bucket endpoints are supported, i.e., path-style and virtual-hosted style URLs. Encoded buckets, keys,
+ * and query parameters will be returned decoded.
  */
 @Immutable
 @SdkPublicApi
-public class S3Uri implements ToCopyableBuilder<S3Uri.Builder, S3Uri> {
+public final class S3Uri implements ToCopyableBuilder<S3Uri.Builder, S3Uri> {
 
     private final URI uri;
     private final String bucket;
@@ -78,14 +80,14 @@ public class S3Uri implements ToCopyableBuilder<S3Uri.Builder, S3Uri> {
     }
 
     /**
-     * Returns the region specified in the URI. Returns null if no region is specified, i.e., is a global endpoint.
+     * Returns the region specified in the URI. Returns null if no region is specified, i.e., global endpoint.
      */
     public String region() {
         return region;
     }
 
     /**
-     * Returns true if the URI is path-style, false if the URI is virtual-hosted-style.
+     * Returns true if the URI is path-style, false if the URI is virtual-hosted style.
      */
     public boolean isPathStyle() {
         return isPathStyle;
@@ -95,7 +97,7 @@ public class S3Uri implements ToCopyableBuilder<S3Uri.Builder, S3Uri> {
      * Returns a map of the query parameters specified in the URI. Returns an empty map if no queries are specified.
      */
     public Map<String, String> queryParams() {
-        return queryParams;
+        return Collections.unmodifiableMap(queryParams);
     }
 
     @Override
