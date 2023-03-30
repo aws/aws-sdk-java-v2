@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Elastic Disaster Recovery Service",
+    "contributor": "",
+    "description": "Adding a field to the replication configuration APIs to support the auto replicate new disks feature. We also deprecated RetryDataReplication."
+}
