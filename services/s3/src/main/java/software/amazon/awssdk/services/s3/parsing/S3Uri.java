@@ -59,7 +59,7 @@ public final class S3Uri implements ToCopyableBuilder<S3Uri.Builder, S3Uri> {
     }
 
     /**
-     * Returns the original URI that was used to instantiate the S3Uri
+     * Returns the original URI that was used to instantiate the {@link S3Uri}
      */
     public URI uri() {
         return uri;

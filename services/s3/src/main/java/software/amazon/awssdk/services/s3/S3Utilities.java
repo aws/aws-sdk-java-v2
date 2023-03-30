@@ -318,11 +318,11 @@ public final class S3Utilities {
 
                     if (index == -1) {
                         bucket = path.substring(1);
-                    } else if (index == (path.length() - 1)) {
-                        bucket = path.substring(1, index);
                     } else {
                         bucket = path.substring(1, index);
-                        key = path.substring(index + 1);
+                        if (index != path.length() - 1) {
+                            key = path.substring(index + 1);
+                        }
                     }
                 }
             } else {
