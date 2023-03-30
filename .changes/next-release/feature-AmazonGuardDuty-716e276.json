@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon GuardDuty",
+    "contributor": "",
+    "description": "Added EKS Runtime Monitoring feature support to existing detector, finding APIs and introducing new Coverage APIs"
+}
