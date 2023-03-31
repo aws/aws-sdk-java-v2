@@ -1,3 +1,37 @@
+# __2.20.37__ __2023-03-31__
+## __AWS CRT-based S3 client__
+  - ### Bugfixes
+    - Fixed the issue where AWS CRT-based S3 client was eagerly buffering data before the underlying CRT component was able to handle it. See [#3726](https://github.com/aws/aws-sdk-java-v2/issues/3726)
+    - Reduced the buffer used to upload object from 16MB to 1MB.
+
+## __AWS Resilience Hub__
+  - ### Features
+    - Adding EKS related documentation for appTemplateBody
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Server Migration Service__
+  - ### Features
+    - Deprecating AWS Server Migration Service.
+
+## __Amazon CloudWatch Internet Monitor__
+  - ### Features
+    - This release adds a new feature for Amazon CloudWatch Internet Monitor that enables customers to deliver internet measurements to Amazon S3 buckets as well as CloudWatch Logs.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for EC2 On Demand Capacity Reservations
+
+## __Amazon SageMaker Feature Store Runtime__
+  - ### Features
+    - In this release, you can now chose between soft delete and hard delete when calling the DeleteRecord API, so you have more flexibility when it comes to managing online store data.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Documentation updates for Amazon S3
+
 # __2.20.36__ __2023-03-30__
 ## __AWS Batch__
   - ### Features
