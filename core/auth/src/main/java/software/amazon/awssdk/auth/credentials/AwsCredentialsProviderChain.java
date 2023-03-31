@@ -45,7 +45,6 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * <p>This chain implements {@link AutoCloseable}. When closed, it will call the {@link AutoCloseable#close()} on any credential
  * providers in the chain that need to be closed.</p>
  */
-// TODO: deprecate with new IdentityProvider chain in identity-spi
 @SdkPublicApi
 public final class AwsCredentialsProviderChain
     implements AwsCredentialsProvider,

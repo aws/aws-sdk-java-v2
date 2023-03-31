@@ -28,7 +28,7 @@ import software.amazon.awssdk.regions.Region;
 @SdkProtectedApi
 public final class AwsClientOption<T> extends ClientOption<T> {
     /**
-     // * This option is deprecated in favor of {@link #CREDENTIALS_IDENTITY_PROVIDER}.
+     * This option is deprecated in favor of {@link #CREDENTIALS_IDENTITY_PROVIDER}.
      * @see AwsClientBuilder#credentialsProvider(AwsCredentialsProvider)
      */
     @Deprecated

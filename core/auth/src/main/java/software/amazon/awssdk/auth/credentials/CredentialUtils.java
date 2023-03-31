@@ -63,6 +63,10 @@ public final class CredentialUtils {
         if (awsCredentialsIdentity == null) {
             return null;
         }
+        if (awsCredentialsIdentity instanceof AwsCredentials) {
+            return (AwsCredentials) awsCredentialsIdentity;
+        }
+
         // identity-spi defines 2 known types - AwsCredentialsIdentity and a sub-type AwsSessionCredentialsIdentity
         if (awsCredentialsIdentity instanceof AwsSessionCredentialsIdentity) {
             AwsSessionCredentialsIdentity awsSessionCredentialsIdentity = (AwsSessionCredentialsIdentity) awsCredentialsIdentity;

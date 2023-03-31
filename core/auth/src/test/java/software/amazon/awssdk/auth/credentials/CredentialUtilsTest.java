@@ -48,6 +48,14 @@ public class CredentialUtilsTest {
         assertThat(CredentialUtils.toCredentials(null)).isNull();
     }
 
+
+    @Test
+    public void toCredentials_AwsSessionCredentials_doesNotCreateNewObject() {
+        AwsSessionCredentialsIdentity input = AwsSessionCredentials.create("ak", "sk", "session");
+        AwsCredentials output = CredentialUtils.toCredentials(input);
+        assertThat(output).isSameAs(input);
+    }
+
     @Test
     public void toCredentials_AwsSessionCredentialsIdentity_returnsAwsSessionCredentials() {
         AwsCredentials awsCredentials = CredentialUtils.toCredentials(new AwsSessionCredentialsIdentity() {
@@ -75,6 +83,13 @@ public class CredentialUtilsTest {
     }
 
     @Test
+    public void toCredentials_AwsCredentials_doesNotCreateNewObject() {
+        AwsCredentialsIdentity input = AwsBasicCredentials.create("ak", "sk");
+        AwsCredentials output = CredentialUtils.toCredentials(input);
+        assertThat(output).isSameAs(input);
+    }
+
+    @Test
     public void toCredentials_AwsCredentialsIdentity_returnsAwsCredentials() {
         AwsCredentials awsCredentials = CredentialUtils.toCredentials(new AwsCredentialsIdentity() {
             @Override
@@ -94,7 +109,18 @@ public class CredentialUtilsTest {
 
     @Test
     public void toCredentials_Anonymous_returnsAnonymous() {
-        AwsCredentials awsCredentials = CredentialUtils.toCredentials(AwsBasicCredentials.ANONYMOUS_CREDENTIALS);
+        AwsCredentials awsCredentials = CredentialUtils.toCredentials(new AwsCredentialsIdentity() {
+            @Override
+            public String accessKeyId() {
+                return null;
+            }
+
+            @Override
+            public String secretAccessKey() {
+                return null;
+            }
+        });
+
         assertThat(awsCredentials.accessKeyId()).isNull();
         assertThat(awsCredentials.secretAccessKey()).isNull();
     }
