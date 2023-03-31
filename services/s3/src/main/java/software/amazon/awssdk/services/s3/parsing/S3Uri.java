@@ -16,11 +16,15 @@
 package software.amazon.awssdk.services.s3.parsing;
 
 import java.net.URI;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -36,9 +40,9 @@ public final class S3Uri implements ToCopyableBuilder<S3Uri.Builder, S3Uri> {
     private final URI uri;
     private final String bucket;
     private final String key;
-    private final String region;
+    private final Region region;
     private final boolean isPathStyle;
-    private final Map<String, String> queryParams;
+    private final Map<String, List<String>> queryParams;
 
     private S3Uri(Builder builder) {
         this.uri = builder.uri;
@@ -82,7 +86,7 @@ public final class S3Uri implements ToCopyableBuilder<S3Uri.Builder, S3Uri> {
     /**
      * Returns the region specified in the URI. Returns null if no region is specified, i.e., global endpoint.
      */
-    public String region() {
+    public Region region() {
         return region;
     }
 
@@ -96,8 +100,33 @@ public final class S3Uri implements ToCopyableBuilder<S3Uri.Builder, S3Uri> {
     /**
      * Returns a map of the query parameters specified in the URI. Returns an empty map if no queries are specified.
      */
-    public Map<String, String> queryParams() {
+    public Map<String, List<String>> queryParams() {
         return Collections.unmodifiableMap(queryParams);
+    }
+
+    /**
+     * Returns the list of values for a specified query parameter. A {@link SdkClientException} is thrown if the URI does not
+     * contain the specified query parameter.
+     */
+    public List<String> queryParamValues(String key) {
+        List<String> queryValues = queryParams.get(key);
+        if (queryValues == null) {
+            throw SdkClientException.create("The URI does not contain the specified query parameter.");
+        }
+        List<String> queryValuesCopy = Arrays.asList(new String[queryValues.size()]);
+        Collections.copy(queryValuesCopy, queryValues);
+        return queryValuesCopy;
+    }
+
+    /**
+     * Returns the value for the specified query parameter. If there are multiple values for the query parameter, the first
+     * value is returned. A {@link SdkClientException} is thrown if the URI does not contain the specified query parameter.
+     */
+    public String queryParamValue(String key) {
+        if (queryParams().get(key) == null) {
+            throw SdkClientException.create("The URI does not contain the specified query parameter.");
+        }
+        return queryParams.get(key).get(0);
     }
 
     @Override
@@ -139,9 +168,9 @@ public final class S3Uri implements ToCopyableBuilder<S3Uri.Builder, S3Uri> {
         private URI uri;
         private String bucket;
         private String key;
-        private String region;
+        private Region region;
         private boolean isPathStyle;
-        private Map<String, String> queryParams;
+        private Map<String, List<String>> queryParams;
 
         private Builder() {
         }
@@ -182,7 +211,7 @@ public final class S3Uri implements ToCopyableBuilder<S3Uri.Builder, S3Uri> {
         /**
          * Configure the region
          */
-        public Builder region(String region) {
+        public Builder region(Region region) {
             this.region = region;
             return this;
         }
@@ -198,7 +227,7 @@ public final class S3Uri implements ToCopyableBuilder<S3Uri.Builder, S3Uri> {
         /**
          * Configure the map of query parameters
          */
-        public Builder queryParams(Map<String, String> queryParams) {
+        public Builder queryParams(Map<String, List<String>> queryParams) {
             this.queryParams = queryParams;
             return this;
         }

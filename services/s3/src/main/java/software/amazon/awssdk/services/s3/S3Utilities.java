@@ -20,6 +20,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -265,7 +266,7 @@ public final class S3Utilities {
      * @param uri The URI to be parsed
      * @return Parsed {@link S3Uri}
      */
-    public S3Uri parseS3Uri(URI uri) {
+    public S3Uri parseUri(URI uri) {
         if (uri == null) {
             throw SdkClientException.create("URI must not be null");
         }
@@ -286,7 +287,7 @@ public final class S3Utilities {
         String key = null;
         String region = null;
         boolean isPathStyle = false;
-        Map<String, String> queryParams = new HashMap<>();
+        Map<String, List<String>> queryParams = new HashMap<>();
         String path = uri.getPath();
 
         if ("s3".equalsIgnoreCase(uri.getScheme())) {
@@ -342,11 +343,13 @@ public final class S3Utilities {
             parseQuery(queryParams, queryPart);
         }
 
+        Region uriRegion = region != null ? Region.of(region) : null;
+
         return S3Uri.builder()
                     .uri(uri)
                     .bucket(bucket)
                     .key(key)
-                    .region(region)
+                    .region(uriRegion)
                     .isPathStyle(isPathStyle)
                     .queryParams(queryParams)
                     .build();
@@ -469,7 +472,7 @@ public final class S3Utilities {
         return new UseGlobalEndpointResolver(config);
     }
 
-    private void parseQuery(Map<String, String> queryParams, String queryPart) {
+    private void parseQuery(Map<String, List<String>> queryParams, String queryPart) {
         String[] params = queryPart.split("&");
         for (String param: params) {
             String[] keyValuePair = param.split("=", 2);
@@ -477,7 +480,10 @@ public final class S3Utilities {
             if (key.isEmpty()) {
                 continue;
             }
-            queryParams.put(key, keyValuePair[1]);
+            List<String> paramValues = queryParams.containsKey(key) ? queryParams.get(key) : new ArrayList<>();
+            String[] valuesPart = keyValuePair[1].split(",");
+            Collections.addAll(paramValues, valuesPart);
+            queryParams.put(key, paramValues);
         }
     }
 
