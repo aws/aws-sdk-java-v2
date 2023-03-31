@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS CRT-based S3 client",
+    "contributor": "",
+    "description": "Reduced the buffer used to upload object from 16MB to 1MB."
+}
