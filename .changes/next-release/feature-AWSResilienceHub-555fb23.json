@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Resilience Hub",
+    "contributor": "",
+    "description": "Adding EKS related documentation for appTemplateBody"
+}
