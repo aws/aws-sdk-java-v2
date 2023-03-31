@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>aws-sdk-java-pom</artifactId>
-    <version>2.20.31-SNAPSHOT</version>
+    <version>2.20.38-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Parent</name>
     <description>The Amazon Web Services SDK for Java provides Java APIs
@@ -86,11 +86,11 @@
         <module>test/ruleset-testing-core</module>
     </modules>
     <scm>
-        <url>https://github.com/aws/aws-sdk-java-v2.git</url>
+        <url>${scm.github.url}</url>
     </scm>
     <properties>
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
-        <awsjavasdk.previous.version>2.20.30</awsjavasdk.previous.version>
+        <awsjavasdk.previous.version>2.20.37</awsjavasdk.previous.version>
         <jackson.version>2.13.2</jackson.version>
         <jackson.databind.version>2.13.4.2</jackson.databind.version>
         <jacksonjr.version>2.13.2</jacksonjr.version>
@@ -173,6 +173,7 @@
         <skip.unit.tests>${skipTests}</skip.unit.tests>
         <integTestSourceDirectory>${project.basedir}/src/it/java</integTestSourceDirectory>
         <javadoc.resourcesDir>${session.executionRootDirectory}</javadoc.resourcesDir>
+        <scm.github.url>https://github.com/aws/aws-sdk-java-v2.git</scm.github.url>
     </properties>
 
     <dependencyManagement>
@@ -691,6 +692,9 @@
 
         <profile>
             <id>publishing</id>
+            <properties>
+                <scm.github.url>https://github.com/aws/aws-sdk-java-v2/tree/release</scm.github.url>
+            </properties>
             <build>
                 <plugins>
                     <plugin>

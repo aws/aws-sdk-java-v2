@@ -5,10 +5,10 @@ import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.awscore.AwsClient;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
-import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
@@ -50,7 +50,7 @@ import software.amazon.awssdk.services.json.paginators.PaginatedOperationWithout
 @Generated("software.amazon.awssdk:codegen")
 @SdkPublicApi
 @ThreadSafe
-public interface JsonClient extends SdkClient {
+public interface JsonClient extends AwsClient {
     String SERVICE_NAME = "json-service";
 
     /**
@@ -1681,5 +1681,10 @@ public interface JsonClient extends SdkClient {
 
     static ServiceMetadata serviceMetadata() {
         return ServiceMetadata.of(SERVICE_METADATA_ID);
+    }
+
+    @Override
+    default JsonServiceClientConfiguration serviceClientConfiguration() {
+        throw new UnsupportedOperationException();
     }
 }
