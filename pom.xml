@@ -693,7 +693,7 @@
         <profile>
             <id>publishing</id>
             <properties>
-                <scm.github.url>https://github.com/aws/aws-sdk-java-v2/tree/master</scm.github.url>
+                <scm.github.url>https://github.com/aws/aws-sdk-java-v2/tree/release</scm.github.url>
             </properties>
             <build>
                 <plugins>
