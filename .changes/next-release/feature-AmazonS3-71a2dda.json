@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon S3",
+    "contributor": "",
+    "description": "Add support for the following in the CRT S3 client:\n\n - Enabling/disabling accelerate endpoints\n - Disabling multi region accesspoints\n - Using pathstyle addressing\n - Enabling using the region in an accesspoint ARN"
+}
