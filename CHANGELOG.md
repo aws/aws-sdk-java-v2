@@ -1,3 +1,38 @@
+# __2.20.38__ __2023-04-03__
+## __AWS Glue__
+  - ### Features
+    - Add support for database-level federation
+
+## __AWS Lake Formation__
+  - ### Features
+    - Add support for database-level federation
+
+## __AWS License Manager__
+  - ### Features
+    - This release adds grant override options to the CreateGrantVersion API. These options can be used to specify grant replacement behavior during grant activation.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Added option of using an explicit `ExecutorService` in `FileAsyncResponseTransformer`
+        - Contributed by: [@mpdn](https://github.com/mpdn)
+    - Updated endpoint and partition metadata.
+
+## __AWS Service Catalog__
+  - ### Features
+    - This release introduces Service Catalog support for Terraform open source. It enables 1. The notify* APIs to Service Catalog. These APIs are used by the terraform engine to notify the result of the provisioning engine execution. 2. Adds a new TERRAFORM_OPEN_SOURCE product type in CreateProduct API.
+
+## __AWS WAFV2__
+  - ### Features
+    - For web ACLs that protect CloudFront protections, the default request body inspection size is now 16 KB, and you can use the new association configuration to increase the inspection size further, up to 64 KB. Sizes over 16 KB can incur additional costs.
+
+## __AmazonMWAA__
+  - ### Features
+    - This Amazon MWAA release adds the ability to customize the Apache Airflow environment by launching a shell script at startup. This shell script is hosted in your environment's Amazon S3 bucket. Amazon MWAA runs the script before installing requirements and initializing the Apache Airflow process.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@mpdn](https://github.com/mpdn)
 # __2.20.37__ __2023-03-31__
 ## __AWS CRT-based S3 client__
   - ### Bugfixes
