@@ -21,13 +21,17 @@ import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpE
 import static software.amazon.awssdk.services.s3.internal.crt.S3NativeClientConfiguration.DEFAULT_PART_SIZE_IN_BYTES;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.checksums.ChecksumValidation;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -69,22 +73,33 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
     }
 
     private static S3AsyncClient initializeS3AsyncClient(DefaultS3CrtClientBuilder builder) {
+        ClientOverrideConfiguration.Builder overrideConfigurationBuilder =
+            ClientOverrideConfiguration.builder()
+                                       // Disable checksum, retry policy and signer because they are handled in crt
+                                       .putAdvancedOption(SdkAdvancedClientOption.SIGNER, new NoOpSigner())
+                                       .putExecutionAttribute(SdkExecutionAttribute.HTTP_RESPONSE_CHECKSUM_VALIDATION,
+                                                              ChecksumValidation.FORCE_SKIP)
+                                       .retryPolicy(RetryPolicy.none())
+                                       .addExecutionInterceptor(new ValidateRequestInterceptor())
+                                       .addExecutionInterceptor(new AttachHttpAttributesExecutionInterceptor());
+
+        if (builder.executionInterceptors != null) {
+            builder.executionInterceptors.forEach(overrideConfigurationBuilder::addExecutionInterceptor);
+        }
+
         return S3AsyncClient.builder()
-                            // Disable checksum, retry policy and signer because they are handled in crt
+                            // Disable checksum, it is handled in CRT
                             .serviceConfiguration(S3Configuration.builder()
                                                                  .checksumValidationEnabled(false)
                                                                  .build())
                             .region(builder.region)
                             .endpointOverride(builder.endpointOverride)
                             .credentialsProvider(builder.credentialsProvider)
-                            .overrideConfiguration(o -> o.putAdvancedOption(SdkAdvancedClientOption.SIGNER,
-                                                                            new NoOpSigner())
-                                                         .putExecutionAttribute(
-                                                             SdkExecutionAttribute.HTTP_RESPONSE_CHECKSUM_VALIDATION,
-                                                             ChecksumValidation.FORCE_SKIP)
-                                                         .retryPolicy(RetryPolicy.none())
-                                                         .addExecutionInterceptor(new ValidateRequestInterceptor())
-                                                         .addExecutionInterceptor(new AttachHttpAttributesExecutionInterceptor()))
+                            .overrideConfiguration(overrideConfigurationBuilder.build())
+                            .accelerate(builder.accelerate)
+                            .disableMultiRegionAccessPoints(builder.disableMultiRegionAccessPoints)
+                            .forcePathStyle(builder.forcePathStyle)
+                            .useArnRegion(builder.useArnRegion)
                             .httpClientBuilder(initializeS3CrtAsyncHttpClient(builder))
                             .build();
     }
@@ -123,6 +138,12 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         private URI endpointOverride;
         private Boolean checksumValidationEnabled;
         private S3CrtHttpConfiguration httpConfiguration;
+        private Boolean accelerate;
+        private Boolean disableMultiRegionAccessPoints;
+        private Boolean forcePathStyle;
+        private Boolean useArnRegion;
+
+        private List<ExecutionInterceptor> executionInterceptors;
 
         public AwsCredentialsProvider credentialsProvider() {
             return credentialsProvider;
@@ -203,6 +224,39 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         @Override
         public S3CrtAsyncClientBuilder httpConfiguration(S3CrtHttpConfiguration configuration) {
             this.httpConfiguration = configuration;
+            return this;
+        }
+
+        @Override
+        public S3CrtAsyncClientBuilder accelerate(Boolean accelerate) {
+            this.accelerate = accelerate;
+            return this;
+        }
+
+        @Override
+        public S3CrtAsyncClientBuilder disableMultiRegionAccessPoints(Boolean disableMultiRegionAccessPoints) {
+            this.disableMultiRegionAccessPoints = disableMultiRegionAccessPoints;
+            return this;
+        }
+
+        @Override
+        public S3CrtAsyncClientBuilder forcePathStyle(Boolean forcePathStyle) {
+            this.forcePathStyle = forcePathStyle;
+            return this;
+        }
+
+        @Override
+        public S3CrtAsyncClientBuilder useArnRegion(Boolean useArnRegion) {
+            this.useArnRegion = useArnRegion;
+            return this;
+        }
+
+        @SdkTestInternalApi
+        S3CrtAsyncClientBuilder addExecutionInterceptor(ExecutionInterceptor executionInterceptor) {
+            if (executionInterceptors == null) {
+                this.executionInterceptors = new ArrayList<>();
+            }
+            executionInterceptors.add(executionInterceptor);
             return this;
         }
 

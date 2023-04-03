@@ -176,6 +176,27 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
                                                        .build());
     }
 
+    // S3 client context params, copied from S3BaseClientBuilder.
+    /**
+     * Enables this client to use S3 Transfer Acceleration endpoints.
+     */
+    S3CrtAsyncClientBuilder accelerate(Boolean accelerate);
+
+    /**
+     * Disables this client's usage of Multi-Region Access Points.
+     */
+    S3CrtAsyncClientBuilder disableMultiRegionAccessPoints(Boolean disableMultiRegionAccessPoints);
+
+    /**
+     * Forces this client to use path-style addressing for buckets.
+     */
+    S3CrtAsyncClientBuilder forcePathStyle(Boolean forcePathStyle);
+
+    /**
+     * Enables this client to use an ARN's region when constructing an endpoint instead of the client's configured
+     * region.
+     */
+    S3CrtAsyncClientBuilder useArnRegion(Boolean useArnRegion);
 
     @Override
     S3AsyncClient build();
