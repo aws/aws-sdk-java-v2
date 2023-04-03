@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SDK for Java v2",
-    "contributor": "mpdn",
-    "description": "Added option of using an explicit `ExecutorService` in `FileAsyncResponseTransformer`"
-}
