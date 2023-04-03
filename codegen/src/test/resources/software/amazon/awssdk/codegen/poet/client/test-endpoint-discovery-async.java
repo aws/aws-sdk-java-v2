@@ -174,9 +174,9 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
             URI cachedEndpoint = null;
             if (endpointDiscoveryEnabled) {
                 String key = testDiscoveryIdentifiersRequiredRequest.overrideConfiguration()
-                                                                    .flatMap(AwsRequestOverrideConfiguration::credentialsProvider)
-                                                                    .orElseGet(() -> clientConfiguration.option(AwsClientOption.CREDENTIALS_PROVIDER)).resolveCredentials()
-                                                                    .accessKeyId();
+                                                                    .flatMap(AwsRequestOverrideConfiguration::credentialsIdentityProvider)
+                                                                    .orElseGet(() -> clientConfiguration.option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER))
+                                                                    .resolveIdentity().join().accessKeyId();
                 EndpointDiscoveryRequest endpointDiscoveryRequest = EndpointDiscoveryRequest.builder().required(true)
                                                                                             .defaultEndpoint(clientConfiguration.option(SdkClientOption.ENDPOINT))
                                                                                             .overrideConfiguration(testDiscoveryIdentifiersRequiredRequest.overrideConfiguration().orElse(null))
@@ -242,9 +242,9 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
             URI cachedEndpoint = null;
             if (endpointDiscoveryEnabled) {
                 String key = testDiscoveryOptionalRequest.overrideConfiguration()
-                                                         .flatMap(AwsRequestOverrideConfiguration::credentialsProvider)
-                                                         .orElseGet(() -> clientConfiguration.option(AwsClientOption.CREDENTIALS_PROVIDER)).resolveCredentials()
-                                                         .accessKeyId();
+                                                         .flatMap(AwsRequestOverrideConfiguration::credentialsIdentityProvider)
+                                                         .orElseGet(() -> clientConfiguration.option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER))
+                                                         .resolveIdentity().join().accessKeyId();
                 EndpointDiscoveryRequest endpointDiscoveryRequest = EndpointDiscoveryRequest.builder().required(false)
                                                                                             .defaultEndpoint(clientConfiguration.option(SdkClientOption.ENDPOINT))
                                                                                             .overrideConfiguration(testDiscoveryOptionalRequest.overrideConfiguration().orElse(null)).build();
@@ -317,9 +317,9 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
             URI cachedEndpoint = null;
             if (endpointDiscoveryEnabled) {
                 String key = testDiscoveryRequiredRequest.overrideConfiguration()
-                                                         .flatMap(AwsRequestOverrideConfiguration::credentialsProvider)
-                                                         .orElseGet(() -> clientConfiguration.option(AwsClientOption.CREDENTIALS_PROVIDER)).resolveCredentials()
-                                                         .accessKeyId();
+                                                         .flatMap(AwsRequestOverrideConfiguration::credentialsIdentityProvider)
+                                                         .orElseGet(() -> clientConfiguration.option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER))
+                                                         .resolveIdentity().join().accessKeyId();
                 EndpointDiscoveryRequest endpointDiscoveryRequest = EndpointDiscoveryRequest.builder().required(true)
                                                                                             .defaultEndpoint(clientConfiguration.option(SdkClientOption.ENDPOINT))
                                                                                             .overrideConfiguration(testDiscoveryRequiredRequest.overrideConfiguration().orElse(null)).build();

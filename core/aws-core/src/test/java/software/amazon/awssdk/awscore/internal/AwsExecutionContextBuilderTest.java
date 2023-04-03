@@ -209,7 +209,7 @@ public class AwsExecutionContextBuilderTest {
         return SdkClientConfiguration.builder()
                                      .option(SdkClientOption.EXECUTION_INTERCEPTORS, new ArrayList<>())
                                      .option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptorList)
-                                     .option(AwsClientOption.CREDENTIALS_PROVIDER, DefaultCredentialsProvider.create())
+                                     .option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER, DefaultCredentialsProvider.create())
                                      .option(SdkAdvancedClientOption.SIGNER, this.defaultSigner);
     }
 }

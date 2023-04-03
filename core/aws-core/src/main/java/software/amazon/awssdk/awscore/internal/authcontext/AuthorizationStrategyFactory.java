@@ -16,7 +16,6 @@
 package software.amazon.awssdk.awscore.internal.authcontext;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.core.CredentialType;
@@ -24,6 +23,8 @@ import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.metrics.MetricCollector;
 
 /**
@@ -64,7 +65,8 @@ public final class AuthorizationStrategyFactory {
 
     private AwsCredentialsAuthorizationStrategy awsCredentialsAuthorizationStrategy() {
         Signer defaultSigner = clientConfiguration.option(SdkAdvancedClientOption.SIGNER);
-        AwsCredentialsProvider defaultCredentialsProvider = clientConfiguration.option(AwsClientOption.CREDENTIALS_PROVIDER);
+        IdentityProvider<? extends AwsCredentialsIdentity> defaultCredentialsProvider =
+            clientConfiguration.option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER);
         return AwsCredentialsAuthorizationStrategy.builder()
                                                   .request(request)
                                                   .defaultSigner(defaultSigner)

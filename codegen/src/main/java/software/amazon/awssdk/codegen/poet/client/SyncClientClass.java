@@ -244,9 +244,10 @@ public class SyncClientClass extends SyncClientInterface {
             method.beginControlFlow("if (endpointDiscoveryEnabled)");
 
             method.addCode("$T key = $N.overrideConfiguration()", String.class, opModel.getInput().getVariableName())
-                  .addCode("    .flatMap($T::credentialsProvider)", AwsRequestOverrideConfiguration.class)
-                  .addCode("    .orElseGet(() -> clientConfiguration.option($T.CREDENTIALS_PROVIDER))", AwsClientOption.class)
-                  .addCode("    .resolveCredentials().accessKeyId();");
+                  .addCode("    .flatMap($T::credentialsIdentityProvider)", AwsRequestOverrideConfiguration.class)
+                  .addCode("    .orElseGet(() -> clientConfiguration.option($T.CREDENTIALS_IDENTITY_PROVIDER))",
+                           AwsClientOption.class)
+                  .addCode("    .resolveIdentity().join().accessKeyId();");
 
             method.addCode("$1T endpointDiscoveryRequest = $1T.builder()", EndpointDiscoveryRequest.class)
                   .addCode("    .required($L)", opModel.getInputShape().getEndpointDiscovery().isRequired())

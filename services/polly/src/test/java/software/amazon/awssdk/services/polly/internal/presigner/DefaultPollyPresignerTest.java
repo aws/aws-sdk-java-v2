@@ -27,10 +27,11 @@ import java.time.Duration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.polly.model.OutputFormat;
 import software.amazon.awssdk.services.polly.model.SynthesizeSpeechRequest;
@@ -48,7 +49,7 @@ class DefaultPollyPresignerTest {
             .text("Hello presigners!")
             .build();
 
-    private AwsCredentialsProvider credentialsProvider;
+    private IdentityProvider<AwsCredentialsIdentity> credentialsProvider;
 
     @BeforeEach
     public void methodSetup() {
@@ -57,7 +58,9 @@ class DefaultPollyPresignerTest {
 
     @Test
     void presign_requestLevelCredentials_honored() {
-        AwsCredentials requestCredentials = AwsBasicCredentials.create("akid2", "skid2");
+        IdentityProvider<AwsCredentialsIdentity> requestCedentialsProvider = StaticCredentialsProvider.create(
+            AwsBasicCredentials.create("akid2", "skid2")
+        );
 
         PollyPresigner presigner = DefaultPollyPresigner.builder()
                 .region(Region.US_EAST_1)
@@ -66,7 +69,7 @@ class DefaultPollyPresignerTest {
 
         SynthesizeSpeechRequest synthesizeSpeechRequest = BASIC_SYNTHESIZE_SPEECH_REQUEST.toBuilder()
                 .overrideConfiguration(AwsRequestOverrideConfiguration.builder()
-                        .credentialsProvider(StaticCredentialsProvider.create(requestCredentials)).build())
+                        .credentialsProvider(requestCedentialsProvider).build())
                 .build();
 
         SynthesizeSpeechPresignRequest presignRequest = SynthesizeSpeechPresignRequest.builder()
@@ -187,6 +190,24 @@ class DefaultPollyPresignerTest {
     }
 
     @Test
+    void presigner_credentialsProviderSetAsAwsCredentialsProvider_delegatesCorrectly() {
+        AwsCredentialsProvider credentialsProvider = StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid"));
+        DefaultPollyPresigner presigner1 = (DefaultPollyPresigner)
+            DefaultPollyPresigner.builder()
+                                 .region(Region.US_EAST_1)
+                                 .credentialsProvider(credentialsProvider)
+                                 .build();
+
+        DefaultPollyPresigner presigner2 = (DefaultPollyPresigner)
+            DefaultPollyPresigner.builder()
+                                 .region(Region.US_EAST_1)
+                                 .credentialsProvider((IdentityProvider<AwsCredentialsIdentity>) credentialsProvider)
+                                 .build();
+
+        assertThat(presigner1.credentialsProvider()).isSameAs(presigner2.credentialsProvider());
+    }
+
+    @Test
     void presigner_credentialsProviderSetToNullByBuilder_createsDefaultCredentialsProvider() {
         DefaultPollyPresigner presigner = (DefaultPollyPresigner)
             DefaultPollyPresigner.builder()
@@ -195,10 +216,10 @@ class DefaultPollyPresignerTest {
                                  .build();
 
 
-        AwsCredentialsProvider awsCredentialsProvider = presigner.credentialsProvider();
+        IdentityProvider<? extends AwsCredentialsIdentity> awsCredentialsProvider = presigner.credentialsProvider();
         assertThat(awsCredentialsProvider).isNotNull();
     }
 
-    private interface TestCredentialsProvider extends AwsCredentialsProvider, Closeable {
+    private interface TestCredentialsProvider extends IdentityProvider<AwsCredentialsIdentity>, Closeable {
     }
 }

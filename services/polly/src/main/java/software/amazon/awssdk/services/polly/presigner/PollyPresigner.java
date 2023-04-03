@@ -22,6 +22,8 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.awscore.presigner.PresignedRequest;
 import software.amazon.awssdk.awscore.presigner.SdkPresigner;
 import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.polly.internal.presigner.DefaultPollyPresigner;
 import software.amazon.awssdk.services.polly.model.PollyRequest;
@@ -162,6 +164,9 @@ public interface PollyPresigner extends SdkPresigner {
 
         @Override
         Builder credentialsProvider(AwsCredentialsProvider credentialsProvider);
+
+        @Override
+        Builder credentialsProvider(IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider);
 
         @Override
         Builder dualstackEnabled(Boolean dualstackEnabled);

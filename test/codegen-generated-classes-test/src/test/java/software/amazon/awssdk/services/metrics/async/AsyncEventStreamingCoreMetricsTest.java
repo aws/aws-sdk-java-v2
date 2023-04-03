@@ -28,9 +28,10 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.core.async.EmptyPublisher;
 import software.amazon.awssdk.core.signer.NoOpSigner;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;
@@ -46,7 +47,7 @@ public class AsyncEventStreamingCoreMetricsTest extends BaseAsyncCoreMetricsTest
     public WireMockRule wireMock = new WireMockRule(0);
 
     @Mock
-    private AwsCredentialsProvider mockCredentialsProvider;
+    private IdentityProvider<AwsCredentialsIdentity> mockCredentialsProvider;
 
     @Mock
     private MetricPublisher mockPublisher;
@@ -64,13 +65,13 @@ public class AsyncEventStreamingCoreMetricsTest extends BaseAsyncCoreMetricsTest
                                                                          .retryPolicy(b -> b.numRetries(MAX_RETRIES)))
                                             .build();
 
-        when(mockCredentialsProvider.resolveCredentials()).thenAnswer(invocation -> {
+        when(mockCredentialsProvider.resolveIdentity()).thenAnswer(invocation -> {
             try {
                 Thread.sleep(100);
             } catch (InterruptedException ie) {
                 ie.printStackTrace();
             }
-            return AwsBasicCredentials.create("foo", "bar");
+            return CompletableFuture.completedFuture(AwsBasicCredentials.create("foo", "bar"));
         });
     }
 

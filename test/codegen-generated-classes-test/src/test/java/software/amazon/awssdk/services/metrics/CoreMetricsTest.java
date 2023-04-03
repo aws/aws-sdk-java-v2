@@ -26,6 +26,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import org.junit.After;
 import org.junit.Before;
@@ -37,7 +38,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
@@ -46,6 +46,8 @@ import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.HttpMetric;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.regions.Region;
@@ -70,7 +72,7 @@ public class CoreMetricsTest {
     private SdkHttpClient mockHttpClient;
 
     @Mock
-    private AwsCredentialsProvider mockCredentialsProvider;
+    private IdentityProvider<AwsCredentialsIdentity> mockCredentialsProvider;
 
     @Mock
     private MetricPublisher mockPublisher;
@@ -106,13 +108,13 @@ public class CoreMetricsTest {
         when(mockHttpClient.prepareRequest(any(HttpExecuteRequest.class)))
                 .thenReturn(mockExecuteRequest);
 
-        when(mockCredentialsProvider.resolveCredentials()).thenAnswer(invocation -> {
+        when(mockCredentialsProvider.resolveIdentity()).thenAnswer(invocation -> {
             try {
                 Thread.sleep(100);
             } catch (InterruptedException ie) {
                 ie.printStackTrace();
             }
-            return AwsBasicCredentials.create("foo", "bar");
+            return CompletableFuture.completedFuture(AwsBasicCredentials.create("foo", "bar"));
         });
     }
 

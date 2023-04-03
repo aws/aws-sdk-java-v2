@@ -18,6 +18,9 @@ package software.amazon.awssdk.services.rds.model;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.CredentialUtils;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.rds.RdsUtilities;
 import software.amazon.awssdk.utils.Validate;
@@ -34,7 +37,7 @@ public final class GenerateAuthenticationTokenRequest implements
     private final int port;
     private final String username;
     private final Region region;
-    private final AwsCredentialsProvider credentialsProvider;
+    private final IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider;
 
     private GenerateAuthenticationTokenRequest(BuilderImpl builder) {
         this.hostname = Validate.notEmpty(builder.hostname, "hostname");
@@ -75,9 +78,17 @@ public final class GenerateAuthenticationTokenRequest implements
 
     /**
      * @return The credentials provider to sign the IAM auth request with. If specified, takes precedence over the value
-     * specified in {@link RdsUtilities.Builder#credentialsProvider(AwsCredentialsProvider)}}
+     * specified in {@link RdsUtilities.Builder#credentialsProvider}}
      */
     public AwsCredentialsProvider credentialsProvider() {
+        return CredentialUtils.toCredentialsProvider(credentialsProvider);
+    }
+
+    /**
+     * @return The credentials provider to sign the IAM auth request with. If specified, takes precedence over the value
+     * specified in {@link RdsUtilities.Builder#credentialsProvider(AwsCredentialsProvider)}}
+     */
+    public IdentityProvider<? extends AwsCredentialsIdentity> credentialsIdentityProvider() {
         return credentialsProvider;
     }
 
@@ -130,11 +141,23 @@ public final class GenerateAuthenticationTokenRequest implements
 
         /**
          * The credentials provider to sign the IAM auth request with. If specified, takes precedence over the value
-         * specified in {@link RdsUtilities.Builder#credentialsProvider(AwsCredentialsProvider)}}
+         * specified in {@link RdsUtilities.Builder#credentialsProvider)}}
          *
          * @return This object for method chaining
          */
-        Builder credentialsProvider(AwsCredentialsProvider credentialsProvider);
+        default Builder credentialsProvider(AwsCredentialsProvider credentialsProvider) {
+            return credentialsProvider((IdentityProvider<? extends AwsCredentialsIdentity>) credentialsProvider);
+        }
+
+        /**
+         * The credentials provider to sign the IAM auth request with. If specified, takes precedence over the value
+         * specified in {@link RdsUtilities.Builder#credentialsProvider}}
+         *
+         * @return This object for method chaining
+         */
+        default Builder credentialsProvider(IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider) {
+            throw new UnsupportedOperationException();
+        }
 
         @Override
         GenerateAuthenticationTokenRequest build();
@@ -145,7 +168,7 @@ public final class GenerateAuthenticationTokenRequest implements
         private int port;
         private String username;
         private Region region;
-        private AwsCredentialsProvider credentialsProvider;
+        private IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider;
 
         private BuilderImpl() {
         }
@@ -183,7 +206,7 @@ public final class GenerateAuthenticationTokenRequest implements
         }
 
         @Override
-        public Builder credentialsProvider(AwsCredentialsProvider credentialsProvider) {
+        public Builder credentialsProvider(IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider) {
             this.credentialsProvider = credentialsProvider;
             return this;
         }
