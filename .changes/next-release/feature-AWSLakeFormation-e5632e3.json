@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Lake Formation",
+    "contributor": "",
+    "description": "Add support for database-level federation"
+}
