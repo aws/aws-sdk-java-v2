@@ -300,44 +300,9 @@ public final class S3Utilities {
         return parseStandardUri(uri);
     }
 
-    private String[] parsePathStyleUri(URI uri) {
-        String bucket = null;
-        String key = null;
-        String path = uri.getPath();
-
-        if (!StringUtils.isEmpty(path) && !"/".equals(path)) {
-            int index = path.indexOf('/', 1);
-
-            if (index == -1) {
-                // No trailing slash, e.g., "https://s3.amazonaws.com/bucket"
-                bucket = path.substring(1);
-            } else {
-                bucket = path.substring(1, index);
-                if (index != path.length() - 1) {
-                    key = path.substring(index + 1);
-                }
-            }
-        }
-        return new String[]{key, bucket};
-    }
-
-    private String[] parseVirtualHostedStyleUri(URI uri, Matcher matcher) {
-        String bucket = null;
-        String key = null;
-        String path = uri.getPath();
-        String prefix = matcher.group(1);
-
-        bucket = prefix.substring(0, prefix.length() - 1);
-        if (!StringUtils.isEmpty(path) && !"/".equals(path)) {
-            key = path.substring(1);
-        }
-
-        return new String[]{key, bucket};
-    }
-
     private S3Uri parseStandardUri(URI uri) {
-        String bucket = null;
-        String key = null;
+        String bucket;
+        String key;
         String region = null;
         boolean isPathStyle = false;
         Map<String, List<String>> queryParams = new HashMap<>();
@@ -382,6 +347,41 @@ public final class S3Utilities {
                     .queryParams(queryParams)
                     .build();
 
+    }
+
+    private String[] parsePathStyleUri(URI uri) {
+        String bucket = null;
+        String key = null;
+        String path = uri.getPath();
+
+        if (!StringUtils.isEmpty(path) && !"/".equals(path)) {
+            int index = path.indexOf('/', 1);
+
+            if (index == -1) {
+                // No trailing slash, e.g., "https://s3.amazonaws.com/bucket"
+                bucket = path.substring(1);
+            } else {
+                bucket = path.substring(1, index);
+                if (index != path.length() - 1) {
+                    key = path.substring(index + 1);
+                }
+            }
+        }
+        return new String[]{key, bucket};
+    }
+
+    private String[] parseVirtualHostedStyleUri(URI uri, Matcher matcher) {
+        String bucket;
+        String key = null;
+        String path = uri.getPath();
+        String prefix = matcher.group(1);
+
+        bucket = prefix.substring(0, prefix.length() - 1);
+        if (!StringUtils.isEmpty(path) && !"/".equals(path)) {
+            key = path.substring(1);
+        }
+
+        return new String[]{key, bucket};
     }
 
     private S3Uri parseAwsCliStyleUri(URI uri) {
