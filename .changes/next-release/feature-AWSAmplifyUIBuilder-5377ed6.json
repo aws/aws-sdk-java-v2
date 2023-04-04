@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Amplify UI Builder",
-    "contributor": "",
-    "description": "Support StorageField and custom displays for data-bound options in form builder. Support non-string operands for predicates in collections. Support choosing client to get token from."
-}
