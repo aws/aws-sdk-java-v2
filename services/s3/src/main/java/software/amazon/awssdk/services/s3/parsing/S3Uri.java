@@ -19,6 +19,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -26,6 +27,7 @@ import java.util.Optional;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -56,7 +58,7 @@ public final class S3Uri implements ToCopyableBuilder<S3Uri.Builder, S3Uri> {
         this.key = builder.key;
         this.region = builder.region;
         this.isPathStyle = Validate.notNull(builder.isPathStyle, "Path style flag must not be null");
-        this.queryParams = Validate.notNull(builder.queryParams, "Query parameters map must not be null");
+        this.queryParams = builder.queryParams == null ? new HashMap<>() : CollectionUtils.deepCopyMap(builder.queryParams);
     }
 
     public static Builder builder() {
@@ -129,7 +131,7 @@ public final class S3Uri implements ToCopyableBuilder<S3Uri.Builder, S3Uri> {
      * value is returned. An empty optional is returned if the URI does not contain the specified query parameter.
      */
     public Optional<String> firstMatchingRawQueryParameter(String key) {
-        return queryParams.get(key) == null ? Optional.empty() : Optional.of(queryParams.get(key).get(0));
+        return Optional.ofNullable(queryParams.get(key)).map(q -> q.get(0));
     }
 
     @Override
