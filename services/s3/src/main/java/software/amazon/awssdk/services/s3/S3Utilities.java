@@ -43,7 +43,6 @@ import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
-import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -101,7 +100,7 @@ import software.amazon.awssdk.utils.Validate;
 @SdkPublicApi
 public final class S3Utilities {
     private static final String SERVICE_NAME = "s3";
-
+    private static final Pattern ENDPOINT_PATTERN = Pattern.compile("^(.+\\.)?s3[.-]([a-z0-9-]+)\\.");
     private final Region region;
     private final URI endpoint;
     private final S3Configuration s3Configuration;
@@ -259,30 +258,48 @@ public final class S3Utilities {
     }
 
     /**
-     * Returns a parsed {@link S3Uri} with which a user can easily retrieve the the bucket, key, region, style, and query
-     * parameters of the URI. Only basic bucket endpoints are supported, i.e., path-style and virtual-hosted-style URLs.
-     * Encoded buckets, keys, and query parameters will be returned decoded.
+     * Returns a parsed {@link S3Uri} with which a user can easily retrieve the bucket, key, region, style, and query
+     * parameters of the URI. Only path-style and virtual-hosted-style URI parsing is supported, including CLI-style
+     * URIs, e.g., "s3://bucket/key". AccessPoints and Outposts URI parsing is not supported. If you work with object keys
+     * and/or query parameters with special characters, they must be URL-encoded, e.g., replace " " with "%20". If you work with
+     * bucket names that contain a dot, i.e., ".", the dot must not be URL-encoded. Encoded buckets, keys, and query parameters
+     * will be returned decoded.
+     *
+     * <p>
+     * For more information on path-style and virtual-hosted-style URIs, see <a href=
+     * "https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-bucket-intro.html"
+     * >Methods for accessing a bucket</a>.
      *
      * @param uri The URI to be parsed
      * @return Parsed {@link S3Uri}
+     *
+     * <p><b>Example Usage</b>
+     * <p>
+     * {@snippet :
+     *     S3Client s3Client = S3Client.create();
+     *     S3Utilities s3Utilities = s3Client.utilities();
+     *     String uriString = "https://myBucket.s3.us-west-1.amazonaws.com/doc.txt?versionId=abc123";
+     *     URI uri = URI.create(uriString);
+     *     S3Uri s3Uri = s3Utilities.parseUri(uri);
+     *
+     *     String bucket = s3Uri.bucket().get(); // "myBucket"
+     *     String key = s3Uri.key().get(); // "doc.txt"
+     *     Region region = s3Uri.region().get(); // Region.US_WEST_1
+     *     boolean isPathStyle = s3Uri.isPathStyle(); // false
+     *     String versionId = s3Uri.firstMatchingQueryParamValue("versionId").get(); // "abc123"
+     *}
      */
     public S3Uri parseUri(URI uri) {
-        if (uri == null) {
-            throw SdkClientException.create("URI must not be null");
+        validateUri(uri);
+
+        if ("s3".equalsIgnoreCase(uri.getScheme())) {
+            return parseAwsCliStyleUri(uri);
         }
 
-        Pattern accessPointPattern = Pattern.compile("^([a-zA-Z0-9\\-]+)\\.s3-accesspoint(-fips)?(\\.dualstack)?"
-                                                     + "\\.([a-zA-Z0-9\\-]+)\\.amazonaws\\.com(.cn)?$");
-        if (accessPointPattern.matcher(uri.toString()).find()) {
-            throw SdkClientException.create("AccessPoints URI parsing is not supported");
-        }
+        return parseStandardUri(uri);
+    }
 
-        Pattern outpostPattern = Pattern.compile("^([a-zA-Z0-9\\-]+)\\.op\\-[0-9]+\\.s3-outposts\\.([a-zA-Z0-9\\-]+)"
-                                                 + "\\.amazonaws\\.com(.cn)?$");
-        if (outpostPattern.matcher(uri.toString()).find()) {
-            throw SdkClientException.create("Outposts URI parsing is not supported");
-        }
-
+    private S3Uri parseStandardUri(URI uri) {
         String bucket = null;
         String key = null;
         String region = null;
@@ -290,52 +307,41 @@ public final class S3Utilities {
         Map<String, List<String>> queryParams = new HashMap<>();
         String path = uri.getPath();
 
-        if ("s3".equalsIgnoreCase(uri.getScheme())) {
-            if (uri.getAuthority() == null) {
-                throw SdkClientException.create("Invalid S3 URI: bucket not included");
-            }
-            bucket = uri.getAuthority();
-            if (path.length() > 1) {
-                key = path.substring(1);
-            }
+        if (uri.getHost() == null) {
+            throw new IllegalArgumentException("Invalid S3 URI: no hostname: " + uri);
+        }
 
-        } else {
-            if (uri.getHost() == null) {
-                throw SdkClientException.create("Invalid S3 URI: hostname not included");
-            }
+        Matcher matcher = ENDPOINT_PATTERN.matcher(uri.getHost());
+        if (!matcher.find()) {
+            throw new IllegalArgumentException("Invalid S3 URI: hostname does not appear to be a valid S3 endpoint: " + uri);
+        }
 
-            Pattern endpointPattern = Pattern.compile("^(.+\\.)?s3[.-]([a-z0-9-]+)\\.");
-            Matcher matcher = endpointPattern.matcher(uri.getHost());
-            if (!matcher.find()) {
-                throw SdkClientException.create("Invalid S3 URI: hostname does not appear to be a valid S3 endpoint");
-            }
+        String prefix = matcher.group(1);
+        if (prefix == null || prefix.isEmpty()) {
+            isPathStyle = true;
 
-            String prefix = matcher.group(1);
-            if (prefix == null || prefix.isEmpty()) {
-                isPathStyle = true;
+            if (!path.isEmpty() && !"/".equals(path)) {
+                int index = path.indexOf('/', 1);
 
-                if (!path.isEmpty() && !"/".equals(path)) {
-                    int index = path.indexOf('/', 1);
-
-                    if (index == -1) {
-                        bucket = path.substring(1);
-                    } else {
-                        bucket = path.substring(1, index);
-                        if (index != path.length() - 1) {
-                            key = path.substring(index + 1);
-                        }
+                if (index == -1) {
+                    // No trailing slash, e.g., "https://s3.amazonaws.com/bucket"
+                    bucket = path.substring(1);
+                } else {
+                    bucket = path.substring(1, index);
+                    if (index != path.length() - 1) {
+                        key = path.substring(index + 1);
                     }
                 }
-            } else {
-                bucket = prefix.substring(0, prefix.length() - 1);
-                if (path != null && !path.isEmpty() && !"/".equals(path)) {
-                    key = path.substring(1);
-                }
             }
+        } else {
+            bucket = prefix.substring(0, prefix.length() - 1);
+            if (path != null && !path.isEmpty() && !"/".equals(path)) {
+                key = path.substring(1);
+            }
+        }
 
-            if (!"amazonaws".equals(matcher.group(2))) {
-                region = matcher.group(2);
-            }
+        if (!"amazonaws".equals(matcher.group(2))) {
+            region = matcher.group(2);
         }
 
         String queryPart = uri.getQuery();
@@ -353,6 +359,64 @@ public final class S3Utilities {
                     .isPathStyle(isPathStyle)
                     .queryParams(queryParams)
                     .build();
+    }
+
+    private S3Uri parseAwsCliStyleUri(URI uri) {
+        String key = null;
+        String bucket = uri.getAuthority();
+        Region region = null;
+        boolean isPathStyle = false;
+        Map<String, List<String>> queryParams = new HashMap<>();
+        String path = uri.getPath();
+
+        if (bucket == null) {
+            throw new IllegalArgumentException("Invalid S3 URI: bucket not included: " + uri);
+        }
+
+        if (path.length() > 1) {
+            key = path.substring(1);
+        }
+
+        String queryPart = uri.getQuery();
+        if (queryPart != null) {
+            parseQuery(queryParams, queryPart);
+        }
+
+        return S3Uri.builder()
+                    .uri(uri)
+                    .bucket(bucket)
+                    .key(key)
+                    .region(region)
+                    .isPathStyle(isPathStyle)
+                    .queryParams(queryParams)
+                    .build();
+    }
+
+    private void validateUri(URI uri) {
+        Validate.paramNotNull(uri, "uri");
+
+        if (uri.toString().contains(".s3-accesspoint")) {
+            throw new IllegalArgumentException("AccessPoints URI parsing is not supported: " + uri);
+        }
+
+        if (uri.toString().contains(".s3-outposts")) {
+            throw new IllegalArgumentException("Outposts URI parsing is not supported: " + uri);
+        }
+    }
+
+    private void parseQuery(Map<String, List<String>> queryParams, String queryPart) {
+        String[] params = queryPart.split("&");
+        for (String param: params) {
+            String[] keyValuePair = param.split("=", 2);
+            String key = keyValuePair[0];
+            if (key.isEmpty()) {
+                continue;
+            }
+            List<String> paramValues = queryParams.containsKey(key) ? queryParams.get(key) : new ArrayList<>();
+            String[] valuesPart = keyValuePair[1].split(",");
+            Collections.addAll(paramValues, valuesPart);
+            queryParams.put(key, paramValues);
+        }
     }
 
     private Region resolveRegionForGetUrl(GetUrlRequest getUrlRequest) {
@@ -470,21 +534,6 @@ public final class S3Utilities {
                                   .build();
 
         return new UseGlobalEndpointResolver(config);
-    }
-
-    private void parseQuery(Map<String, List<String>> queryParams, String queryPart) {
-        String[] params = queryPart.split("&");
-        for (String param: params) {
-            String[] keyValuePair = param.split("=", 2);
-            String key = keyValuePair[0];
-            if (key.isEmpty()) {
-                continue;
-            }
-            List<String> paramValues = queryParams.containsKey(key) ? queryParams.get(key) : new ArrayList<>();
-            String[] valuesPart = keyValuePair[1].split(",");
-            Collections.addAll(paramValues, valuesPart);
-            queryParams.put(key, paramValues);
-        }
     }
 
     /**

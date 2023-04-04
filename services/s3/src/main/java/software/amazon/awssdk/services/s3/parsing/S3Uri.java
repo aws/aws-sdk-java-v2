@@ -16,22 +16,28 @@
 package software.amazon.awssdk.services.s3.parsing;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.utils.ToString;
+import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * Object that represents a parsed S3 URI. Can be used to easily retrieve the bucket, key, region, style, and query parameters
- * of the URI. Only basic bucket endpoints are supported, i.e., path-style and virtual-hosted style URLs. Encoded buckets, keys,
- * and query parameters will be returned decoded.
+ * of the URI. Only path-style and virtual-hosted-style URI parsing is supported, including CLI-style URIs, e.g.,
+ * "s3://bucket/key". AccessPoints and Outposts URI parsing is not supported. If you work with object keys and/or query
+ * parameters with special characters, they must be URL-encoded, e.g., replace " " with "%20". If you work with bucket names
+ * that contain a dot, i.e., ".", the dot must not be URL-encoded. Encoded buckets, keys, and query parameters will be returned
+ * decoded.
  */
 @Immutable
 @SdkPublicApi
@@ -45,12 +51,12 @@ public final class S3Uri implements ToCopyableBuilder<S3Uri.Builder, S3Uri> {
     private final Map<String, List<String>> queryParams;
 
     private S3Uri(Builder builder) {
-        this.uri = builder.uri;
+        this.uri = Validate.notNull(builder.uri, "URI must not be null");
         this.bucket = builder.bucket;
         this.key = builder.key;
         this.region = builder.region;
-        this.isPathStyle = builder.isPathStyle;
-        this.queryParams = builder.queryParams;
+        this.isPathStyle = Validate.notNull(builder.isPathStyle, "Path style flag must not be null");
+        this.queryParams = Validate.notNull(builder.queryParams, "Query parameters map must not be null");
     }
 
     public static Builder builder() {
@@ -70,24 +76,24 @@ public final class S3Uri implements ToCopyableBuilder<S3Uri.Builder, S3Uri> {
     }
 
     /**
-     * Returns the bucket specified in the URI. Returns null if no bucket is specified.
+     * Returns the bucket specified in the URI. Returns an empty optional if no bucket is specified.
      */
-    public String bucket() {
-        return bucket;
+    public Optional<String> bucket() {
+        return Optional.ofNullable(bucket);
     }
 
     /**
-     * Returns the key specified in the URI. Returns null if no key is specified.
+     * Returns the key specified in the URI. Returns an empty optional if no key is specified.
      */
-    public String key() {
-        return key;
+    public Optional<String> key() {
+        return Optional.ofNullable(key);
     }
 
     /**
-     * Returns the region specified in the URI. Returns null if no region is specified, i.e., global endpoint.
+     * Returns the region specified in the URI. Returns an empty optional if no region is specified, i.e., global endpoint.
      */
-    public Region region() {
-        return region;
+    public Optional<Region> region() {
+        return Optional.ofNullable(region);
     }
 
     /**
@@ -105,13 +111,13 @@ public final class S3Uri implements ToCopyableBuilder<S3Uri.Builder, S3Uri> {
     }
 
     /**
-     * Returns the list of values for a specified query parameter. A {@link SdkClientException} is thrown if the URI does not
-     * contain the specified query parameter.
+     * Returns the list of values for a specified query parameter. A empty list is returned if the URI does not contain the
+     * specified query parameter.
      */
     public List<String> queryParamValues(String key) {
         List<String> queryValues = queryParams.get(key);
         if (queryValues == null) {
-            throw SdkClientException.create("The URI does not contain the specified query parameter.");
+            return new ArrayList<>();
         }
         List<String> queryValuesCopy = Arrays.asList(new String[queryValues.size()]);
         Collections.copy(queryValuesCopy, queryValues);
@@ -120,18 +126,22 @@ public final class S3Uri implements ToCopyableBuilder<S3Uri.Builder, S3Uri> {
 
     /**
      * Returns the value for the specified query parameter. If there are multiple values for the query parameter, the first
-     * value is returned. A {@link SdkClientException} is thrown if the URI does not contain the specified query parameter.
+     * value is returned. An empty optional is returned if the URI does not contain the specified query parameter.
      */
-    public String queryParamValue(String key) {
-        if (queryParams().get(key) == null) {
-            throw SdkClientException.create("The URI does not contain the specified query parameter.");
-        }
-        return queryParams.get(key).get(0);
+    public Optional<String> firstMatchingQueryParamValue(String key) {
+        return queryParams.get(key) == null ? Optional.empty() : Optional.of(queryParams.get(key).get(0));
     }
 
     @Override
     public String toString() {
-        return uri.toString();
+        return ToString.builder("S3Uri")
+                       .add("uri", uri)
+                       .add("bucket", bucket)
+                       .add("key", key)
+                       .add("region", region)
+                       .add("isPathStyle", isPathStyle)
+                       .add("queryParams", queryParams)
+                       .build();
     }
 
     @Override
@@ -148,6 +158,7 @@ public final class S3Uri implements ToCopyableBuilder<S3Uri.Builder, S3Uri> {
                && Objects.equals(bucket, s3Uri.bucket)
                && Objects.equals(key, s3Uri.key)
                && Objects.equals(region, s3Uri.region)
+               && Objects.equals(isPathStyle, s3Uri.isPathStyle)
                && Objects.equals(queryParams, s3Uri.queryParams);
     }
 
@@ -157,6 +168,7 @@ public final class S3Uri implements ToCopyableBuilder<S3Uri.Builder, S3Uri> {
         result = 31 * result + (bucket != null ? bucket.hashCode() : 0);
         result = 31 * result + (key != null ? key.hashCode() : 0);
         result = 31 * result + (region != null ? region.hashCode() : 0);
+        result = 31 * result +  Boolean.hashCode(isPathStyle);
         result = 31 * result + (queryParams != null ? queryParams.hashCode() : 0);
         return result;
     }
