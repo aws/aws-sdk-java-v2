@@ -97,6 +97,9 @@ public final class CredentialUtils {
         if (identityProvider == null) {
             return null;
         }
+        if (identityProvider instanceof AwsCredentialsProvider) {
+            return (AwsCredentialsProvider) identityProvider;
+        }
         return () -> {
             // TODO: Exception handling for CompletionException thrown from join?
             AwsCredentialsIdentity awsCredentialsIdentity = identityProvider.resolveIdentity().join();

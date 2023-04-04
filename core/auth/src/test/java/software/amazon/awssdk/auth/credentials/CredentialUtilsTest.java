@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.AwsSessionCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
 
 public class CredentialUtilsTest {
 
@@ -83,7 +84,7 @@ public class CredentialUtilsTest {
     }
 
     @Test
-    public void toCredentials_AwsCredentials_doesNotCreateNewObject() {
+    public void toCredentials_AwsCredentials_returnsAsIs() {
         AwsCredentialsIdentity input = AwsBasicCredentials.create("ak", "sk");
         AwsCredentials output = CredentialUtils.toCredentials(input);
         assertThat(output).isSameAs(input);
@@ -128,6 +129,14 @@ public class CredentialUtilsTest {
     @Test
     public void toCredentialsProvider_null_returnsNull() {
         assertThat(CredentialUtils.toCredentialsProvider(null)).isNull();
+    }
+
+    @Test
+    public void toCredentialsProvider_AwsCredentialsProvider_returnsAsIs() {
+        IdentityProvider<AwsCredentialsIdentity> input =
+            StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid"));
+        AwsCredentialsProvider output = CredentialUtils.toCredentialsProvider(input);
+        assertThat(output).isSameAs(input);
     }
 
     @Test
