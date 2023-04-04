@@ -51,7 +51,7 @@ public abstract class BaseGeneratorTasks extends GeneratorTask {
         return true;
     }
 
-    protected final GeneratorTask createPoetGeneratorTask(ClassSpec classSpec) throws IOException {
+    protected final GeneratorTask createPoetGeneratorTask(ClassSpec classSpec) {
         String targetDirectory = baseDirectory + '/' + Utils.packageToDirectory(classSpec.className().packageName());
         return new PoetGeneratorTask(targetDirectory, model.getFileHeader(), classSpec);
     }

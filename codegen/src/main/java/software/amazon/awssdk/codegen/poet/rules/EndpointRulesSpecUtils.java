@@ -20,6 +20,7 @@ import com.fasterxml.jackson.jr.stree.JrsBoolean;
 import com.fasterxml.jackson.jr.stree.JrsString;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
+import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import java.io.IOException;
@@ -32,11 +33,14 @@ import java.util.concurrent.CompletableFuture;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
+import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.rules.endpoints.BuiltInParameter;
 import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
+import software.amazon.awssdk.codegen.model.service.ClientContextParam;
+import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.Validate;
@@ -120,6 +124,20 @@ public class EndpointRulesSpecUtils {
         return intermediateModel.getNamingStrategy().getEnumValueName(paramName);
     }
 
+    public MethodSpec clientContextParamSetterMethodDeclaration(String name, ClientContextParam param, TypeName returnType) {
+        String setterName = Utils.unCapitalize(CodegenNamingUtils.pascalCase(name));
+        TypeName type = toJavaType(param.getType());
+
+        MethodSpec.Builder b = MethodSpec.methodBuilder(setterName)
+                                         .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                                         .addParameter(type, setterName)
+                                         .returns(returnType);
+
+        PoetUtils.addJavadoc(b::addJavadoc, param.getDocumentation());
+
+        return b.build();
+    }
+
     public TypeName toJavaType(String type) {
         switch (type.toLowerCase(Locale.ENGLISH)) {
             case "boolean":
@@ -177,7 +195,6 @@ public class EndpointRulesSpecUtils {
         }
         return b.build();
     }
-
 
     public boolean isS3() {
         return "S3".equals(intermediateModel.getMetadata().getServiceName());

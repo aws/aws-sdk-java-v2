@@ -231,6 +231,8 @@ public class CustomizationConfig {
      */
     private boolean requiredTraitValidationEnabled = false;
 
+    private Map<String, AdditionalClientBuilder> additionalClientBuilders;
+
     private CustomizationConfig() {
     }
 
@@ -607,5 +609,13 @@ public class CustomizationConfig {
 
     public void setRequiredTraitValidationEnabled(boolean requiredTraitValidationEnabled) {
         this.requiredTraitValidationEnabled = requiredTraitValidationEnabled;
+    }
+
+    public Map<String, AdditionalClientBuilder> getAdditionalClientBuilders() {
+        return additionalClientBuilders;
+    }
+
+    public void setAdditionalClientBuilders(Map<String, AdditionalClientBuilder> additionalClientBuilders) {
+        this.additionalClientBuilders = additionalClientBuilders;
     }
 }

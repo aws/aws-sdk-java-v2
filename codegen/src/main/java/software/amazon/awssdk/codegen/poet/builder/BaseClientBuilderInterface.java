@@ -28,15 +28,12 @@ import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.auth.token.credentials.aws.DefaultAwsTokenProvider;
 import software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
-import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
-import software.amazon.awssdk.codegen.model.service.ClientContextParam;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.codegen.utils.AuthUtils;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
-import software.amazon.awssdk.utils.internal.CodegenNamingUtils;
 
 public class BaseClientBuilderInterface implements ClassSpec {
     private final IntermediateModel model;
@@ -76,7 +73,8 @@ public class BaseClientBuilderInterface implements ClassSpec {
 
         if (hasClientContextParams()) {
             model.getClientContextParams().forEach((n, m) -> {
-                builder.addMethod(clientContextParamSetter(n, m));
+                builder.addMethod(endpointRulesSpecUtils.clientContextParamSetterMethodDeclaration(
+                    n, m, TypeVariableName.get("B")));
             });
         }
 
@@ -146,20 +144,6 @@ public class BaseClientBuilderInterface implements ClassSpec {
                          .returns(TypeVariableName.get("B"))
                          .addStatement("throw new $T()", UnsupportedOperationException.class)
                          .build();
-    }
-
-    private MethodSpec clientContextParamSetter(String name, ClientContextParam param) {
-        String setterName = Utils.unCapitalize(CodegenNamingUtils.pascalCase(name));
-        TypeName type = endpointRulesSpecUtils.toJavaType(param.getType());
-
-        MethodSpec.Builder b = MethodSpec.methodBuilder(setterName)
-            .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
-            .addParameter(type, setterName)
-            .returns(TypeVariableName.get("B"));
-
-        PoetUtils.addJavadoc(b::addJavadoc, param.getDocumentation());
-
-        return b.build();
     }
 
     private boolean generateTokenProviderMethod() {
