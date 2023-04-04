@@ -15,19 +15,19 @@
 
 package software.amazon.awssdk.auth.credentials;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import org.junit.Rule;
+import java.util.Arrays;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.utils.StringInputStream;
 
 public class AwsCredentialsProviderChainTest {
-
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
 
     /**
      * Tests that, by default, the chain remembers which provider was able to
@@ -114,13 +114,57 @@ public class AwsCredentialsProviderChainTest {
                                                                        .credentialsProviders(provider1, provider2)
                                                                        .build();
 
-        thrown.expect(SdkClientException.class);
-        thrown.expectMessage(provider1.exceptionMessage);
-        thrown.expectMessage(provider2.exceptionMessage);
-
-        chain.resolveCredentials();
+        SdkClientException e = assertThrows(SdkClientException.class, () -> chain.resolveCredentials());
+        assertThat(e.getMessage()).contains(provider1.exceptionMessage);
+        assertThat(e.getMessage()).contains(provider2.exceptionMessage);
     }
 
+    @Test
+    public void testEmptyChain() {
+        assertThrows(IllegalArgumentException.class, () -> AwsCredentialsProviderChain.of());
+
+        assertThrows(IllegalArgumentException.class, () -> AwsCredentialsProviderChain
+            .builder()
+            .credentialsProviders()
+            .build());
+
+        assertThrows(IllegalArgumentException.class, () -> AwsCredentialsProviderChain
+            .builder()
+            .credentialsProviders(Arrays.asList())
+            .build());
+    }
+
+    /**
+     * Tests that the chain is setup correctly with the overloaded methods that accept the AwsCredentialsProvider type.
+     */
+    @Test
+    public void testAwsCredentialsProvider() {
+        AwsCredentialsProvider provider = StaticCredentialsProvider.create(AwsBasicCredentials.create(
+            "accessKey", "secretKey"));
+        testChainResolves(AwsCredentialsProviderChain.of(provider));
+        testChainResolves(AwsCredentialsProviderChain.builder().credentialsProviders(provider).build());
+        testChainResolves(AwsCredentialsProviderChain.builder().credentialsProviders(Arrays.asList(provider)).build());
+        testChainResolves(AwsCredentialsProviderChain.builder().addCredentialsProvider(provider).build());
+    }
+
+    /**
+     * Tests that the chain is setup correctly with the overloaded methods that accept the IdentityProvider type.
+     */
+    @Test
+    public void testIdentityProvider() {
+        IdentityProvider<AwsCredentialsIdentity> provider = StaticCredentialsProvider.create(AwsBasicCredentials.create(
+            "accessKey", "secretKey"));
+        testChainResolves(AwsCredentialsProviderChain.of(provider));
+        testChainResolves(AwsCredentialsProviderChain.builder().credentialsProviders(provider).build());
+        testChainResolves(AwsCredentialsProviderChain.builder().credentialsIdentityProviders(Arrays.asList(provider)).build());
+        testChainResolves(AwsCredentialsProviderChain.builder().addCredentialsProvider(provider).build());
+    }
+
+    private static void testChainResolves(AwsCredentialsProviderChain chain) {
+        AwsCredentials credentials = chain.resolveCredentials();
+        assertThat(credentials.accessKeyId()).isEqualTo("accessKey");
+        assertThat(credentials.secretAccessKey()).isEqualTo("secretKey");
+    }
 
     private static final class MockCredentialsProvider implements AwsCredentialsProvider {
         private final StaticCredentialsProvider staticCredentialsProvider;
