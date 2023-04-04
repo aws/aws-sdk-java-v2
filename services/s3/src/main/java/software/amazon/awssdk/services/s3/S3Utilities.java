@@ -20,7 +20,6 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,7 +68,9 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetUrlRequest;
 import software.amazon.awssdk.services.s3.parsing.S3Uri;
 import software.amazon.awssdk.utils.AttributeMap;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
  * Utilities for working with Amazon S3 objects. An instance of this class can be created by:
@@ -262,8 +263,8 @@ public final class S3Utilities {
      * parameters of the URI. Only path-style and virtual-hosted-style URI parsing is supported, including CLI-style
      * URIs, e.g., "s3://bucket/key". AccessPoints and Outposts URI parsing is not supported. If you work with object keys
      * and/or query parameters with special characters, they must be URL-encoded, e.g., replace " " with "%20". If you work with
-     * bucket names that contain a dot, i.e., ".", the dot must not be URL-encoded. Encoded buckets, keys, and query parameters
-     * will be returned decoded.
+     * virtual-hosted-style URIs with bucket names that contain a dot, i.e., ".", the dot must not be URL-encoded. Encoded
+     * buckets, keys, and query parameters will be returned decoded.
      *
      * <p>
      * For more information on path-style and virtual-hosted-style URIs, see <a href=
@@ -282,11 +283,11 @@ public final class S3Utilities {
      *     URI uri = URI.create(uriString);
      *     S3Uri s3Uri = s3Utilities.parseUri(uri);
      *
-     *     String bucket = s3Uri.bucket().get(); // "myBucket"
-     *     String key = s3Uri.key().get(); // "doc.txt"
-     *     Region region = s3Uri.region().get(); // Region.US_WEST_1
+     *     String bucket = s3Uri.bucket().orElse(null); // "myBucket"
+     *     String key = s3Uri.key().orElse(null); // "doc.txt"
+     *     Region region = s3Uri.region().orElse(null); // Region.US_WEST_1
      *     boolean isPathStyle = s3Uri.isPathStyle(); // false
-     *     String versionId = s3Uri.firstMatchingQueryParamValue("versionId").get(); // "abc123"
+     *     String versionId = s3Uri.firstMatchingRawQueryParameter("versionId").orElse(null); // "abc123"
      *}
      */
     public S3Uri parseUri(URI uri) {
@@ -299,13 +300,47 @@ public final class S3Utilities {
         return parseStandardUri(uri);
     }
 
+    private String[] parsePathStyleUri(URI uri) {
+        String bucket = null;
+        String key = null;
+        String path = uri.getPath();
+
+        if (!StringUtils.isEmpty(path) && !"/".equals(path)) {
+            int index = path.indexOf('/', 1);
+
+            if (index == -1) {
+                // No trailing slash, e.g., "https://s3.amazonaws.com/bucket"
+                bucket = path.substring(1);
+            } else {
+                bucket = path.substring(1, index);
+                if (index != path.length() - 1) {
+                    key = path.substring(index + 1);
+                }
+            }
+        }
+        return new String[]{key, bucket};
+    }
+
+    private String[] parseVirtualHostedStyleUri(URI uri, Matcher matcher) {
+        String bucket = null;
+        String key = null;
+        String path = uri.getPath();
+        String prefix = matcher.group(1);
+
+        bucket = prefix.substring(0, prefix.length() - 1);
+        if (!StringUtils.isEmpty(path) && !"/".equals(path)) {
+            key = path.substring(1);
+        }
+
+        return new String[]{key, bucket};
+    }
+
     private S3Uri parseStandardUri(URI uri) {
         String bucket = null;
         String key = null;
         String region = null;
         boolean isPathStyle = false;
         Map<String, List<String>> queryParams = new HashMap<>();
-        String path = uri.getPath();
 
         if (uri.getHost() == null) {
             throw new IllegalArgumentException("Invalid S3 URI: no hostname: " + uri);
@@ -316,29 +351,16 @@ public final class S3Utilities {
             throw new IllegalArgumentException("Invalid S3 URI: hostname does not appear to be a valid S3 endpoint: " + uri);
         }
 
+        String[] parsed;
         String prefix = matcher.group(1);
         if (prefix == null || prefix.isEmpty()) {
             isPathStyle = true;
-
-            if (!path.isEmpty() && !"/".equals(path)) {
-                int index = path.indexOf('/', 1);
-
-                if (index == -1) {
-                    // No trailing slash, e.g., "https://s3.amazonaws.com/bucket"
-                    bucket = path.substring(1);
-                } else {
-                    bucket = path.substring(1, index);
-                    if (index != path.length() - 1) {
-                        key = path.substring(index + 1);
-                    }
-                }
-            }
+            parsed = parsePathStyleUri(uri);
         } else {
-            bucket = prefix.substring(0, prefix.length() - 1);
-            if (path != null && !path.isEmpty() && !"/".equals(path)) {
-                key = path.substring(1);
-            }
+            parsed = parseVirtualHostedStyleUri(uri, matcher);
         }
+        key = parsed[0];
+        bucket = parsed[1];
 
         if (!"amazonaws".equals(matcher.group(2))) {
             region = matcher.group(2);
@@ -346,7 +368,7 @@ public final class S3Utilities {
 
         String queryPart = uri.getQuery();
         if (queryPart != null) {
-            parseQuery(queryParams, queryPart);
+            queryParams = SdkHttpUtils.uriParams(uri);
         }
 
         Region uriRegion = region != null ? Region.of(region) : null;
@@ -359,6 +381,7 @@ public final class S3Utilities {
                     .isPathStyle(isPathStyle)
                     .queryParams(queryParams)
                     .build();
+
     }
 
     private S3Uri parseAwsCliStyleUri(URI uri) {
@@ -375,11 +398,6 @@ public final class S3Utilities {
 
         if (path.length() > 1) {
             key = path.substring(1);
-        }
-
-        String queryPart = uri.getQuery();
-        if (queryPart != null) {
-            parseQuery(queryParams, queryPart);
         }
 
         return S3Uri.builder()
@@ -401,21 +419,6 @@ public final class S3Utilities {
 
         if (uri.toString().contains(".s3-outposts")) {
             throw new IllegalArgumentException("Outposts URI parsing is not supported: " + uri);
-        }
-    }
-
-    private void parseQuery(Map<String, List<String>> queryParams, String queryPart) {
-        String[] params = queryPart.split("&");
-        for (String param: params) {
-            String[] keyValuePair = param.split("=", 2);
-            String key = keyValuePair[0];
-            if (key.isEmpty()) {
-                continue;
-            }
-            List<String> paramValues = queryParams.containsKey(key) ? queryParams.get(key) : new ArrayList<>();
-            String[] valuesPart = keyValuePair[1].split(",");
-            Collections.addAll(paramValues, valuesPart);
-            queryParams.put(key, paramValues);
         }
     }
 

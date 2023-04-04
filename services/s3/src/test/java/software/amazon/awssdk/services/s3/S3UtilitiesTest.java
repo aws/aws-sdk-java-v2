@@ -229,7 +229,7 @@ public class S3UtilitiesTest {
         assertThat(s3Uri.key()).isEmpty();
         assertThat(s3Uri.region()).isEmpty();
         assertThat(s3Uri.isPathStyle()).isTrue();
-        assertThat(s3Uri.queryParams()).isEmpty();
+        assertThat(s3Uri.rawQueryParameters()).isEmpty();
     }
 
     @Test
@@ -243,7 +243,7 @@ public class S3UtilitiesTest {
         assertThat(s3Uri.key()).isEmpty();
         assertThat(s3Uri.region()).isEmpty();
         assertThat(s3Uri.isPathStyle()).isTrue();
-        assertThat(s3Uri.queryParams()).isEmpty();
+        assertThat(s3Uri.rawQueryParameters()).isEmpty();
     }
 
     @Test
@@ -257,7 +257,7 @@ public class S3UtilitiesTest {
         assertThat(s3Uri.key()).isEmpty();
         assertThat(s3Uri.region()).contains(Region.US_EAST_1);
         assertThat(s3Uri.isPathStyle()).isTrue();
-        assertThat(s3Uri.queryParams()).isEmpty();
+        assertThat(s3Uri.rawQueryParameters()).isEmpty();
     }
 
     @Test
@@ -271,7 +271,7 @@ public class S3UtilitiesTest {
         assertThat(s3Uri.key()).contains("resources/image1.png");
         assertThat(s3Uri.region()).isEmpty();
         assertThat(s3Uri.isPathStyle()).isTrue();
-        assertThat(s3Uri.queryParams()).isEmpty();
+        assertThat(s3Uri.rawQueryParameters()).isEmpty();
     }
 
     @Test
@@ -285,7 +285,7 @@ public class S3UtilitiesTest {
         assertThat(s3Uri.key()).contains("resources/image1.png");
         assertThat(s3Uri.region()).isEmpty();
         assertThat(s3Uri.isPathStyle()).isFalse();
-        assertThat(s3Uri.queryParams()).isEmpty();
+        assertThat(s3Uri.rawQueryParameters()).isEmpty();
     }
 
     @Test
@@ -299,7 +299,7 @@ public class S3UtilitiesTest {
         assertThat(s3Uri.key()).contains("resources/image1.png");
         assertThat(s3Uri.region()).contains(Region.EU_WEST_2);
         assertThat(s3Uri.isPathStyle()).isTrue();
-        assertThat(s3Uri.queryParams()).isEmpty();
+        assertThat(s3Uri.rawQueryParameters()).isEmpty();
     }
 
     @Test
@@ -313,7 +313,7 @@ public class S3UtilitiesTest {
         assertThat(s3Uri.key()).contains("resources/image1.png");
         assertThat(s3Uri.region()).contains(Region.EU_WEST_2);
         assertThat(s3Uri.isPathStyle()).isTrue();
-        assertThat(s3Uri.queryParams()).isEmpty();
+        assertThat(s3Uri.rawQueryParameters()).isEmpty();
     }
 
     @Test
@@ -327,7 +327,7 @@ public class S3UtilitiesTest {
         assertThat(s3Uri.key()).contains("image.png");
         assertThat(s3Uri.region()).contains(Region.US_EAST_2);
         assertThat(s3Uri.isPathStyle()).isFalse();
-        assertThat(s3Uri.queryParams()).isEmpty();
+        assertThat(s3Uri.rawQueryParameters()).isEmpty();
     }
 
     @Test
@@ -341,7 +341,7 @@ public class S3UtilitiesTest {
         assertThat(s3Uri.key()).contains("image.png");
         assertThat(s3Uri.region()).contains(Region.US_EAST_2);
         assertThat(s3Uri.isPathStyle()).isFalse();
-        assertThat(s3Uri.queryParams()).isEmpty();
+        assertThat(s3Uri.rawQueryParameters()).isEmpty();
     }
 
     @Test
@@ -355,11 +355,11 @@ public class S3UtilitiesTest {
         assertThat(s3Uri.key()).contains("doc.txt");
         assertThat(s3Uri.region()).contains(Region.US_WEST_1);
         assertThat(s3Uri.isPathStyle()).isTrue();
-        assertThat(s3Uri.firstMatchingQueryParamValue("versionId")).contains("abc123");
+        assertThat(s3Uri.firstMatchingRawQueryParameter("versionId")).contains("abc123");
     }
 
     @Test
-    public void parseS3Uri_pathStyleWithQueryMultipleValuesAmpersand_shouldParseCorrectly() {
+    public void parseS3Uri_pathStyleWithQueryMultipleValues_shouldParseCorrectly() {
         String uriString = "https://s3.us-west-1.amazonaws.com/myBucket/doc.txt?versionId=abc123&versionId=def456";
         URI uri = URI.create(uriString);
 
@@ -369,24 +369,8 @@ public class S3UtilitiesTest {
         assertThat(s3Uri.key()).contains("doc.txt");
         assertThat(s3Uri.region()).contains(Region.US_WEST_1);
         assertThat(s3Uri.isPathStyle()).isTrue();
-        assertThat(s3Uri.firstMatchingQueryParamValue("versionId")).contains("abc123");
-        assertThat(s3Uri.queryParamValues("versionId")).contains("def456");
-    }
-
-    @Test
-    public void parseS3Uri_pathStyleWithQueryMultipleValuesCommas_shouldParseCorrectly() {
-        String uriString = "https://s3.us-west-1.amazonaws.com/myBucket/doc.txt?versionId=abc123,def456,ghi789";
-        URI uri = URI.create(uriString);
-
-        S3Uri s3Uri = defaultUtilities.parseUri(uri);
-        assertThat(s3Uri.uri()).isEqualTo(uri);
-        assertThat(s3Uri.bucket()).contains("myBucket");
-        assertThat(s3Uri.key()).contains("doc.txt");
-        assertThat(s3Uri.region()).contains(Region.US_WEST_1);
-        assertThat(s3Uri.isPathStyle()).isTrue();
-        assertThat(s3Uri.firstMatchingQueryParamValue("versionId")).contains("abc123");
-        assertThat(s3Uri.queryParamValues("versionId")).contains("def456");
-        assertThat(s3Uri.queryParamValues("versionId")).contains("ghi789");
+        assertThat(s3Uri.firstMatchingRawQueryParameter("versionId")).contains("abc123");
+        assertThat(s3Uri.firstMatchingRawQueryParameters("versionId")).contains("def456");
     }
 
     @Test
@@ -400,13 +384,13 @@ public class S3UtilitiesTest {
         assertThat(s3Uri.key()).contains("doc.txt");
         assertThat(s3Uri.region()).contains(Region.US_WEST_1);
         assertThat(s3Uri.isPathStyle()).isTrue();
-        assertThat(s3Uri.firstMatchingQueryParamValue("versionId")).contains("abc123");
-        assertThat(s3Uri.firstMatchingQueryParamValue("partNumber")).contains("77");
+        assertThat(s3Uri.firstMatchingRawQueryParameter("versionId")).contains("abc123");
+        assertThat(s3Uri.firstMatchingRawQueryParameter("partNumber")).contains("77");
     }
 
     @Test
     public void parseS3Uri_pathStyleWithEncoding_shouldParseCorrectly() {
-        String uriString = "https://s3.us-west-1.amazonaws.com/my%40Bucket/object%20key?versionId%3D%61%62%63%31%32%33";
+        String uriString = "https://s3.us-west-1.amazonaws.com/my%40Bucket/object%20key?versionId=%61%62%63%31%32%33";
         URI uri = URI.create(uriString);
 
         S3Uri s3Uri = defaultUtilities.parseUri(uri);
@@ -415,7 +399,7 @@ public class S3UtilitiesTest {
         assertThat(s3Uri.key()).contains("object key");
         assertThat(s3Uri.region()).contains(Region.US_WEST_1);
         assertThat(s3Uri.isPathStyle()).isTrue();
-        assertThat(s3Uri.firstMatchingQueryParamValue("versionId")).contains("abc123");
+        assertThat(s3Uri.firstMatchingRawQueryParameter("versionId")).contains("abc123");
     }
 
     @Test
@@ -429,10 +413,10 @@ public class S3UtilitiesTest {
         assertThat(s3Uri.key()).contains("doc.txt");
         assertThat(s3Uri.region()).contains(Region.US_WEST_1);
         assertThat(s3Uri.isPathStyle()).isFalse();
-        assertThat(s3Uri.firstMatchingQueryParamValue("versionId")).contains("abc123");
+        assertThat(s3Uri.firstMatchingRawQueryParameter("versionId")).contains("abc123");
     }
     @Test
-    public void parseS3Uri_virtualStyleWithQueryMultipleValuesAmpersand_shouldParseCorrectly() {
+    public void parseS3Uri_virtualStyleWithQueryMultipleValues_shouldParseCorrectly() {
         String uriString = "https://myBucket.s3.us-west-1.amazonaws.com/doc.txt?versionId=abc123&versionId=def456";
         URI uri = URI.create(uriString);
 
@@ -442,24 +426,8 @@ public class S3UtilitiesTest {
         assertThat(s3Uri.key()).contains("doc.txt");
         assertThat(s3Uri.region()).contains(Region.US_WEST_1);
         assertThat(s3Uri.isPathStyle()).isFalse();
-        assertThat(s3Uri.firstMatchingQueryParamValue("versionId")).contains("abc123");
-        assertThat(s3Uri.queryParamValues("versionId")).contains("def456");
-    }
-
-    @Test
-    public void parseS3Uri_virtualStyleWithQueryMultipleValuesCommas_shouldParseCorrectly() {
-        String uriString = "https://myBucket.s3.us-west-1.amazonaws.com/doc.txt?versionId=abc123,def456,ghi789";
-        URI uri = URI.create(uriString);
-
-        S3Uri s3Uri = defaultUtilities.parseUri(uri);
-        assertThat(s3Uri.uri()).isEqualTo(uri);
-        assertThat(s3Uri.bucket()).contains("myBucket");
-        assertThat(s3Uri.key()).contains("doc.txt");
-        assertThat(s3Uri.region()).contains(Region.US_WEST_1);
-        assertThat(s3Uri.isPathStyle()).isFalse();
-        assertThat(s3Uri.firstMatchingQueryParamValue("versionId")).contains("abc123");
-        assertThat(s3Uri.queryParamValues("versionId")).contains("def456");
-        assertThat(s3Uri.queryParamValues("versionId")).contains("ghi789");
+        assertThat(s3Uri.firstMatchingRawQueryParameter("versionId")).contains("abc123");
+        assertThat(s3Uri.firstMatchingRawQueryParameters("versionId")).contains("def456");
     }
 
     @Test
@@ -473,13 +441,13 @@ public class S3UtilitiesTest {
         assertThat(s3Uri.key()).contains("doc.txt");
         assertThat(s3Uri.region()).contains(Region.US_WEST_1);
         assertThat(s3Uri.isPathStyle()).isFalse();
-        assertThat(s3Uri.firstMatchingQueryParamValue("versionId")).contains("abc123");
-        assertThat(s3Uri.firstMatchingQueryParamValue("partNumber")).contains("77");
+        assertThat(s3Uri.firstMatchingRawQueryParameter("versionId")).contains("abc123");
+        assertThat(s3Uri.firstMatchingRawQueryParameter("partNumber")).contains("77");
     }
 
     @Test
     public void parseS3Uri_virtualStyleWithEncoding_shouldParseCorrectly() {
-        String uriString = "https://myBucket.s3.us-west-1.amazonaws.com/object%20key?versionId%3D%61%62%63%31%32%33";
+        String uriString = "https://myBucket.s3.us-west-1.amazonaws.com/object%20key?versionId=%61%62%63%31%32%33";
         URI uri = URI.create(uriString);
 
         S3Uri s3Uri = defaultUtilities.parseUri(uri);
@@ -488,7 +456,7 @@ public class S3UtilitiesTest {
         assertThat(s3Uri.key()).contains("object key");
         assertThat(s3Uri.region()).contains(Region.US_WEST_1);
         assertThat(s3Uri.isPathStyle()).isFalse();
-        assertThat(s3Uri.firstMatchingQueryParamValue("versionId")).contains("abc123");
+        assertThat(s3Uri.firstMatchingRawQueryParameter("versionId")).contains("abc123");
     }
 
     @Test

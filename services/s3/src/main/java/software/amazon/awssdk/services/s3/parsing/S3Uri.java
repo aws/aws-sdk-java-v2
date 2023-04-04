@@ -35,9 +35,9 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * Object that represents a parsed S3 URI. Can be used to easily retrieve the bucket, key, region, style, and query parameters
  * of the URI. Only path-style and virtual-hosted-style URI parsing is supported, including CLI-style URIs, e.g.,
  * "s3://bucket/key". AccessPoints and Outposts URI parsing is not supported. If you work with object keys and/or query
- * parameters with special characters, they must be URL-encoded, e.g., replace " " with "%20". If you work with bucket names
- * that contain a dot, i.e., ".", the dot must not be URL-encoded. Encoded buckets, keys, and query parameters will be returned
- * decoded.
+ * parameters with special characters, they must be URL-encoded, e.g., replace " " with "%20". If you work with
+ * virtual-hosted-style URIs with bucket names that contain a dot, i.e., ".", the dot must not be URL-encoded. Encoded buckets,
+ * keys, and query parameters will be returned decoded.
  */
 @Immutable
 @SdkPublicApi
@@ -106,7 +106,7 @@ public final class S3Uri implements ToCopyableBuilder<S3Uri.Builder, S3Uri> {
     /**
      * Returns a map of the query parameters specified in the URI. Returns an empty map if no queries are specified.
      */
-    public Map<String, List<String>> queryParams() {
+    public Map<String, List<String>> rawQueryParameters() {
         return Collections.unmodifiableMap(queryParams);
     }
 
@@ -114,7 +114,7 @@ public final class S3Uri implements ToCopyableBuilder<S3Uri.Builder, S3Uri> {
      * Returns the list of values for a specified query parameter. A empty list is returned if the URI does not contain the
      * specified query parameter.
      */
-    public List<String> queryParamValues(String key) {
+    public List<String> firstMatchingRawQueryParameters(String key) {
         List<String> queryValues = queryParams.get(key);
         if (queryValues == null) {
             return new ArrayList<>();
@@ -128,7 +128,7 @@ public final class S3Uri implements ToCopyableBuilder<S3Uri.Builder, S3Uri> {
      * Returns the value for the specified query parameter. If there are multiple values for the query parameter, the first
      * value is returned. An empty optional is returned if the URI does not contain the specified query parameter.
      */
-    public Optional<String> firstMatchingQueryParamValue(String key) {
+    public Optional<String> firstMatchingRawQueryParameter(String key) {
         return queryParams.get(key) == null ? Optional.empty() : Optional.of(queryParams.get(key).get(0));
     }
 
