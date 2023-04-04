@@ -119,34 +119,6 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         private URI endpointOverride;
         private Boolean checksumValidationEnabled;
 
-        public IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider() {
-            return credentialsProvider;
-        }
-
-        public Region region() {
-            return region;
-        }
-
-        public Long minimumPartSizeInBytes() {
-            return minimalPartSizeInBytes;
-        }
-
-        public Double targetThroughputInGbps() {
-            return targetThroughputInGbps;
-        }
-
-        public Integer maxConcurrency() {
-            return maxConcurrency;
-        }
-
-        public URI endpointOverride() {
-            return endpointOverride;
-        }
-
-        public Long readBufferSizeInBytes() {
-            return readBufferSizeInBytes;
-        }
-
         @Override
         public S3CrtAsyncClientBuilder credentialsProvider(
                 IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider) {
