@@ -246,6 +246,13 @@ public final class S3Uri implements ToCopyableBuilder<S3Uri.Builder, S3Uri> {
             return this;
         }
 
+        /**
+         * Return the configured URI
+         */
+        public URI uri() {
+            return this.uri;
+        }
+
         @Override
         public S3Uri build() {
             return new S3Uri(this);

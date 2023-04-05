@@ -301,11 +301,6 @@ public final class S3Utilities {
     }
 
     private S3Uri parseStandardUri(URI uri) {
-        String bucket;
-        String key;
-        String region = null;
-        boolean isPathStyle = false;
-        Map<String, List<String>> queryParams = new HashMap<>();
 
         if (uri.getHost() == null) {
             throw new IllegalArgumentException("Invalid S3 URI: no hostname: " + uri);
@@ -316,43 +311,35 @@ public final class S3Utilities {
             throw new IllegalArgumentException("Invalid S3 URI: hostname does not appear to be a valid S3 endpoint: " + uri);
         }
 
-        String[] parsed;
+        S3Uri.Builder builder = S3Uri.builder().uri(uri);
+        addRegionIfNeeded(builder, matcher.group(2));
+        addQueryParamsIfNeeded(builder);
+
         String prefix = matcher.group(1);
-        if (prefix == null || prefix.isEmpty()) {
-            isPathStyle = true;
-            parsed = parsePathStyleUri(uri);
-        } else {
-            parsed = parseVirtualHostedStyleUri(uri, matcher);
+        if (StringUtils.isEmpty(prefix)) {
+            return parsePathStyleUri(builder);
         }
-        key = parsed[0];
-        bucket = parsed[1];
-
-        if (!"amazonaws".equals(matcher.group(2))) {
-            region = matcher.group(2);
-        }
-
-        String queryPart = uri.getQuery();
-        if (queryPart != null) {
-            queryParams = SdkHttpUtils.uriParams(uri);
-        }
-
-        Region uriRegion = region != null ? Region.of(region) : null;
-
-        return S3Uri.builder()
-                    .uri(uri)
-                    .bucket(bucket)
-                    .key(key)
-                    .region(uriRegion)
-                    .isPathStyle(isPathStyle)
-                    .queryParams(queryParams)
-                    .build();
-
+        return parseVirtualHostedStyleUri(builder, matcher);
     }
 
-    private String[] parsePathStyleUri(URI uri) {
+    private S3Uri.Builder addRegionIfNeeded(S3Uri.Builder builder, String region) {
+        if (!"amazonaws".equals(region)) {
+            return builder.region(Region.of(region));
+        }
+        return builder;
+    }
+
+    private S3Uri.Builder addQueryParamsIfNeeded(S3Uri.Builder builder) {
+        if (builder.uri().getQuery() != null) {
+            return builder.queryParams(SdkHttpUtils.uriParams(builder.uri()));
+        }
+        return builder;
+    }
+
+    private S3Uri parsePathStyleUri(S3Uri.Builder builder) {
         String bucket = null;
         String key = null;
-        String path = uri.getPath();
+        String path = builder.uri().getPath();
 
         if (!StringUtils.isEmpty(path) && !"/".equals(path)) {
             int index = path.indexOf('/', 1);
@@ -367,13 +354,16 @@ public final class S3Utilities {
                 }
             }
         }
-        return new String[]{key, bucket};
+        return builder.key(key)
+                      .bucket(bucket)
+                      .isPathStyle(true)
+                      .build();
     }
 
-    private String[] parseVirtualHostedStyleUri(URI uri, Matcher matcher) {
+    private S3Uri parseVirtualHostedStyleUri(S3Uri.Builder builder, Matcher matcher) {
         String bucket;
         String key = null;
-        String path = uri.getPath();
+        String path = builder.uri().getPath();
         String prefix = matcher.group(1);
 
         bucket = prefix.substring(0, prefix.length() - 1);
@@ -381,7 +371,9 @@ public final class S3Utilities {
             key = path.substring(1);
         }
 
-        return new String[]{key, bucket};
+        return builder.key(key)
+                      .bucket(bucket)
+                      .build();
     }
 
     private S3Uri parseAwsCliStyleUri(URI uri) {
