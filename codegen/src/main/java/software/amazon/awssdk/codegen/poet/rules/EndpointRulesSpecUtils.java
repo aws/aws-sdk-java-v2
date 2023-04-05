@@ -124,12 +124,14 @@ public class EndpointRulesSpecUtils {
         return intermediateModel.getNamingStrategy().getEnumValueName(paramName);
     }
 
-    public MethodSpec clientContextParamSetterMethodDeclaration(String name, ClientContextParam param, TypeName returnType) {
+    public MethodSpec clientContextParamSetterMethodDeclaration(String name, ClientContextParam param, TypeName returnType,
+                                                                List<Modifier> modifiers) {
         String setterName = Utils.unCapitalize(CodegenNamingUtils.pascalCase(name));
         TypeName type = toJavaType(param.getType());
 
         MethodSpec.Builder b = MethodSpec.methodBuilder(setterName)
-                                         .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                                         .addModifiers(Modifier.PUBLIC)
+                                         .addModifiers(modifiers)
                                          .addParameter(type, setterName)
                                          .returns(returnType);
 

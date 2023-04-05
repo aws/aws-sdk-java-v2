@@ -22,6 +22,7 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
+import java.util.Collections;
 import java.util.function.Consumer;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
@@ -74,7 +75,7 @@ public class BaseClientBuilderInterface implements ClassSpec {
         if (hasClientContextParams()) {
             model.getClientContextParams().forEach((n, m) -> {
                 builder.addMethod(endpointRulesSpecUtils.clientContextParamSetterMethodDeclaration(
-                    n, m, TypeVariableName.get("B")));
+                    n, m, TypeVariableName.get("B"), Collections.singletonList(Modifier.ABSTRACT)));
             });
         }
 

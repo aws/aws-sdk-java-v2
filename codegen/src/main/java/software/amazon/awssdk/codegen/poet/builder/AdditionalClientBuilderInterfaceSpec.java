@@ -20,6 +20,7 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -29,6 +30,7 @@ import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.config.customization.AdditionalClientBuilder;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.service.ClientContextParam;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
@@ -130,9 +132,17 @@ public final class AdditionalClientBuilderInterfaceSpec implements ClassSpec {
         return model.getClientContextParams()
                     .entrySet()
                     .stream()
-                    .map(e -> endpointRulesSpecUtils.clientContextParamSetterMethodDeclaration(e.getKey(), e.getValue(),
-                                                                                               className()))
+                    .map(e -> contextParamSetterMethod(e.getKey(), e.getValue()))
                     .collect(Collectors.toList());
+    }
+
+    private MethodSpec contextParamSetterMethod(String name, ClientContextParam param) {
+        MethodSpec.Builder builder = endpointRulesSpecUtils.clientContextParamSetterMethodDeclaration(
+            name, param, className(), Collections.singletonList(Modifier.DEFAULT)).toBuilder();
+
+        builder.addStatement("throw new $T()", UnsupportedOperationException.class);
+
+        return builder.build();
     }
 
     private MethodSpec buildMethod() {
