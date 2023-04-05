@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Interactive Video Service RealTime",
-    "contributor": "",
-    "description": "Fix ParticipantToken ExpirationTime format"
-}

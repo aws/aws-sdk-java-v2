@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon VPC Lattice",
-    "contributor": "",
-    "description": "This release removes the entities in the API doc model package for auth policies."
-}
