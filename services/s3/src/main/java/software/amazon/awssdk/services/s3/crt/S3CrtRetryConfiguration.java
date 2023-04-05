@@ -37,7 +37,7 @@ public final class S3CrtRetryConfiguration implements ToCopyableBuilder<S3CrtRet
     private final Integer numRetries;
 
     private S3CrtRetryConfiguration(DefaultBuilder builder) {
-        Validate.isPositiveOrNull(builder.numRetries, "numRetries");
+        Validate.notNull(builder.numRetries, "numRetries");
         this.numRetries = builder.numRetries;
     }
 
@@ -49,7 +49,7 @@ public final class S3CrtRetryConfiguration implements ToCopyableBuilder<S3CrtRet
     }
 
     /**
-     * Return the amount of time to wait when initially establishing a connection before giving up and timing out.
+     * Retrieve the {@link S3CrtRetryConfiguration.Builder#numRetries(Integer)} configured on the builder.
      */
     public Integer numRetries() {
         return numRetries;

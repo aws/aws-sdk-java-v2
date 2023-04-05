@@ -105,9 +105,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                                        .targetThroughputInGbps(builder.targetThroughputInGbps)
                                        .partSizeInBytes(builder.minimalPartSizeInBytes)
                                        .maxConcurrency(builder.maxConcurrency)
-                                       .signingRegion(builder.region == null ? null
-                                                                             :
-                                                      builder.region.id())
+                                       .signingRegion(builder.region == null ? null : builder.region.id())
                                        .endpointOverride(builder.endpointOverride)
                                        .credentialsProvider(builder.credentialsProvider)
                                        .readBufferSizeInBytes(builder.readBufferSizeInBytes)

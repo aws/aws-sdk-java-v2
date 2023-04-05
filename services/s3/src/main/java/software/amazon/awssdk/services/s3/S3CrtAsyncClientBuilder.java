@@ -195,7 +195,7 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
      * @see #retryConfiguration(S3CrtRetryConfiguration)
      */
     default S3CrtAsyncClientBuilder retryConfiguration(Consumer<S3CrtRetryConfiguration.Builder> retryConfigurationBuilder) {
-        Validate.paramNotNull(retryConfigurationBuilder, "configurationBuilder");
+        Validate.paramNotNull(retryConfigurationBuilder, "retryConfigurationBuilder");
         return retryConfiguration(S3CrtRetryConfiguration.builder()
                                                          .applyMutation(retryConfigurationBuilder)
                                                          .build());
