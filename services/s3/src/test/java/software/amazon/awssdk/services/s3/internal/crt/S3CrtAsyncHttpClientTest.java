@@ -37,6 +37,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.crt.http.HttpRequest;
+import software.amazon.awssdk.crt.io.ExponentialBackoffRetryOptions;
+import software.amazon.awssdk.crt.io.StandardRetryOptions;
 import software.amazon.awssdk.crt.s3.ChecksumAlgorithm;
 import software.amazon.awssdk.crt.s3.S3Client;
 import software.amazon.awssdk.crt.s3.S3ClientOptions;
@@ -314,6 +316,9 @@ public class S3CrtAsyncHttpClientTest {
             S3NativeClientConfiguration.builder()
                                        .maxConcurrency(100)
                                        .signingRegion("us-west-2")
+                .standardRetryOptions(
+                    new StandardRetryOptions()
+                        .withBackoffRetryOptions(new ExponentialBackoffRetryOptions().withMaxRetries(7)))
                                        .httpConfiguration(S3CrtHttpConfiguration.builder()
                                                                                 .connectionTimeout(Duration.ofSeconds(1))
                                                                                 .connectionHealthConfiguration(c -> c.minimumThroughputInBps(1024L)
@@ -325,6 +330,7 @@ public class S3CrtAsyncHttpClientTest {
             (S3CrtAsyncHttpClient) S3CrtAsyncHttpClient.builder().s3ClientConfiguration(configuration).build();
         S3ClientOptions clientOptions = client.s3ClientOptions();
         assertThat(clientOptions.getConnectTimeoutMs()).isEqualTo(1000);
+        assertThat(clientOptions.getStandardRetryOptions().getBackoffRetryOptions().getMaxRetries()).isEqualTo(7);
         assertThat(clientOptions.getMaxConnections()).isEqualTo(100);
         assertThat(clientOptions.getMonitoringOptions()).satisfies(options -> {
             assertThat(options.getMinThroughputBytesPerSecond()).isEqualTo(1024);
