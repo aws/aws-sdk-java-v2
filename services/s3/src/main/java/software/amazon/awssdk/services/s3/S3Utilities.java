@@ -66,7 +66,6 @@ import software.amazon.awssdk.services.s3.endpoints.internal.S3ResolveEndpointIn
 import software.amazon.awssdk.services.s3.internal.endpoints.UseGlobalEndpointResolver;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetUrlRequest;
-import software.amazon.awssdk.services.s3.parsing.S3Uri;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;

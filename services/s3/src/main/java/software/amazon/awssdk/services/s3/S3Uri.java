@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.parsing;
+package software.amazon.awssdk.services.s3;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -109,7 +109,7 @@ public final class S3Uri implements ToCopyableBuilder<S3Uri.Builder, S3Uri> {
      * Returns a map of the query parameters specified in the URI. Returns an empty map if no queries are specified.
      */
     public Map<String, List<String>> rawQueryParameters() {
-        return Collections.unmodifiableMap(queryParams);
+        return queryParams;
     }
 
     /**
