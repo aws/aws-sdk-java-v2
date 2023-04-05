@@ -28,6 +28,8 @@ import software.amazon.awssdk.utils.Validate;
  * <p>For more details on AWS access keys, see:
  * <a href="https://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html#access-keys-and-secret-access-keys">
  * https://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html#access-keys-and-secret-access-keys</a></p>
+ *
+ * @see AwsSessionCredentialsIdentity
  */
 @SdkPublicApi
 @ThreadSafe
