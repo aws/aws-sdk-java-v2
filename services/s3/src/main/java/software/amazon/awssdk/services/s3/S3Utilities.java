@@ -313,13 +313,13 @@ public final class S3Utilities {
 
         S3Uri.Builder builder = S3Uri.builder().uri(uri);
         addRegionIfNeeded(builder, matcher.group(2));
-        addQueryParamsIfNeeded(builder);
+        addQueryParamsIfNeeded(builder, uri);
 
         String prefix = matcher.group(1);
         if (StringUtils.isEmpty(prefix)) {
-            return parsePathStyleUri(builder);
+            return parsePathStyleUri(builder, uri);
         }
-        return parseVirtualHostedStyleUri(builder, matcher);
+        return parseVirtualHostedStyleUri(builder, uri, matcher);
     }
 
     private S3Uri.Builder addRegionIfNeeded(S3Uri.Builder builder, String region) {
@@ -329,17 +329,17 @@ public final class S3Utilities {
         return builder;
     }
 
-    private S3Uri.Builder addQueryParamsIfNeeded(S3Uri.Builder builder) {
-        if (builder.uri().getQuery() != null) {
-            return builder.queryParams(SdkHttpUtils.uriParams(builder.uri()));
+    private S3Uri.Builder addQueryParamsIfNeeded(S3Uri.Builder builder, URI uri) {
+        if (uri.getQuery() != null) {
+            return builder.queryParams(SdkHttpUtils.uriParams(uri));
         }
         return builder;
     }
 
-    private S3Uri parsePathStyleUri(S3Uri.Builder builder) {
+    private S3Uri parsePathStyleUri(S3Uri.Builder builder, URI uri) {
         String bucket = null;
         String key = null;
-        String path = builder.uri().getPath();
+        String path = uri.getPath();
 
         if (!StringUtils.isEmpty(path) && !"/".equals(path)) {
             int index = path.indexOf('/', 1);
@@ -360,10 +360,10 @@ public final class S3Utilities {
                       .build();
     }
 
-    private S3Uri parseVirtualHostedStyleUri(S3Uri.Builder builder, Matcher matcher) {
+    private S3Uri parseVirtualHostedStyleUri(S3Uri.Builder builder, URI uri, Matcher matcher) {
         String bucket;
         String key = null;
-        String path = builder.uri().getPath();
+        String path = uri.getPath();
         String prefix = matcher.group(1);
 
         bucket = prefix.substring(0, prefix.length() - 1);
