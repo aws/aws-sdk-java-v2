@@ -1,3 +1,28 @@
+# __2.20.41__ __2023-04-06__
+## __AWS CloudFormation__
+  - ### Features
+    - Including UPDATE_COMPLETE as a failed status for DeleteStack waiter.
+
+## __AWS IoT Greengrass V2__
+  - ### Features
+    - Add support for SUCCEEDED value in coreDeviceExecutionStatus field. Documentation updates for Greengrass V2.
+
+## __AWS Proton__
+  - ### Features
+    - This release adds support for the AWS Proton service sync feature. Service sync enables managing an AWS Proton service (creating and updating instances) and all of it's corresponding service instances from a Git repository.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Adds and updates the SDK examples
+
+## __Amazon S3__
+  - ### Features
+    - Adding feature for parsing S3 URIs
+
 # __2.20.40__ __2023-04-05__
 ## __AWS App Runner__
   - ### Features
