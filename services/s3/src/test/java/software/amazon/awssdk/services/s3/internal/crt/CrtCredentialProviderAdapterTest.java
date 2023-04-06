@@ -69,17 +69,7 @@ public class CrtCredentialProviderAdapterTest {
     @Test
     void crtCredentials_provideAwsCredentials_shouldInvokeResolveAndClose() {
         IdentityProvider<? extends AwsCredentialsIdentity> awsCredentialsProvider = Mockito.mock(HttpCredentialsProvider.class);
-        AwsCredentialsIdentity credentials = new AwsCredentialsIdentity() {
-            @Override
-            public String accessKeyId() {
-                return "foo";
-            }
-
-            @Override
-            public String secretAccessKey() {
-                return "bar";
-            }
-        };
+        AwsCredentialsIdentity credentials = AwsCredentialsIdentity.create("foo", "bar");
         when(awsCredentialsProvider.resolveIdentity()).thenAnswer(invocation -> CompletableFuture.completedFuture(credentials));
 
         CrtCredentialsProviderAdapter adapter = new CrtCredentialsProviderAdapter(awsCredentialsProvider);

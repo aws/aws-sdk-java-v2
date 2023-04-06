@@ -41,7 +41,7 @@ public class CredentialUtilsTest {
 
     @Test
     public void isAnonymous_AwsCredentialsIdentity_false() {
-        assertThat(CredentialUtils.isAnonymous((AwsCredentialsIdentity) AwsBasicCredentials.create("akid", "skid"))).isFalse();
+        assertThat(CredentialUtils.isAnonymous(AwsCredentialsIdentity.create("akid", "skid"))).isFalse();
     }
 
     @Test
@@ -59,22 +59,8 @@ public class CredentialUtilsTest {
 
     @Test
     public void toCredentials_AwsSessionCredentialsIdentity_returnsAwsSessionCredentials() {
-        AwsCredentials awsCredentials = CredentialUtils.toCredentials(new AwsSessionCredentialsIdentity() {
-            @Override
-            public String accessKeyId() {
-                return "akid";
-            }
-
-            @Override
-            public String secretAccessKey() {
-                return "skid";
-            }
-
-            @Override
-            public String sessionToken() {
-                return "session";
-            }
-        });
+        AwsCredentials awsCredentials = CredentialUtils.toCredentials(AwsSessionCredentialsIdentity.create(
+            "akid", "skid", "session"));
 
         assertThat(awsCredentials).isInstanceOf(AwsSessionCredentials.class);
         AwsSessionCredentials awsSessionCredentials = (AwsSessionCredentials) awsCredentials;
@@ -92,17 +78,7 @@ public class CredentialUtilsTest {
 
     @Test
     public void toCredentials_AwsCredentialsIdentity_returnsAwsCredentials() {
-        AwsCredentials awsCredentials = CredentialUtils.toCredentials(new AwsCredentialsIdentity() {
-            @Override
-            public String accessKeyId() {
-                return "akid";
-            }
-
-            @Override
-            public String secretAccessKey() {
-                return "skid";
-            }
-        });
+        AwsCredentials awsCredentials = CredentialUtils.toCredentials(AwsCredentialsIdentity.create("akid", "skid"));
 
         assertThat(awsCredentials.accessKeyId()).isEqualTo("akid");
         assertThat(awsCredentials.secretAccessKey()).isEqualTo("skid");
