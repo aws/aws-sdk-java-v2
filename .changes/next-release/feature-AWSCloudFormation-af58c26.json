@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CloudFormation",
+    "contributor": "",
+    "description": "Including UPDATE_COMPLETE as a failed status for DeleteStack waiter."
+}
