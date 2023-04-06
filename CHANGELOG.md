@@ -1,3 +1,137 @@
+# __2.20.41__ __2023-04-06__
+## __AWS CloudFormation__
+  - ### Features
+    - Including UPDATE_COMPLETE as a failed status for DeleteStack waiter.
+
+## __AWS IoT Greengrass V2__
+  - ### Features
+    - Add support for SUCCEEDED value in coreDeviceExecutionStatus field. Documentation updates for Greengrass V2.
+
+## __AWS Proton__
+  - ### Features
+    - This release adds support for the AWS Proton service sync feature. Service sync enables managing an AWS Proton service (creating and updating instances) and all of it's corresponding service instances from a Git repository.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Adds and updates the SDK examples
+
+## __Amazon S3__
+  - ### Features
+    - Adding feature for parsing S3 URIs
+
+# __2.20.40__ __2023-04-05__
+## __AWS App Runner__
+  - ### Features
+    - App Runner adds support for seven new vCPU and memory configurations.
+
+## __AWS Config__
+  - ### Features
+    - This release adds resourceType enums for types released in March 2023.
+
+## __AWS Network Firewall__
+  - ### Features
+    - AWS Network Firewall now supports IPv6-only subnets.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SSO Identity Store__
+  - ### Features
+    - Documentation updates for Identity Store CLI command reference.
+
+## __AWS Service Catalog__
+  - ### Features
+    - removed incorrect product type value
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This is a document only updated to add information about Amazon Elastic Inference (EI).
+
+## __Amazon Interactive Video Service RealTime__
+  - ### Features
+    - Fix ParticipantToken ExpirationTime format
+
+## __Amazon VPC Lattice__
+  - ### Features
+    - This release removes the entities in the API doc model package for auth policies.
+
+# __2.20.39__ __2023-04-04__
+## __AWS Amplify UI Builder__
+  - ### Features
+    - Support StorageField and custom displays for data-bound options in form builder. Support non-string operands for predicates in collections. Support choosing client to get token from.
+
+## __AWS Data Exchange__
+  - ### Features
+    - This release updates the value of MaxResults.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS WAFV2__
+  - ### Features
+    - This release rolls back association config feature for webACLs that protect CloudFront protections.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - C6in, M6in, M6idn, R6in and R6idn bare metal instances are powered by 3rd Generation Intel Xeon Scalable processors and offer up to 200 Gbps of network bandwidth.
+
+## __Amazon Elastic Inference__
+  - ### Features
+    - Updated public documentation for the Describe and Tagging APIs.
+
+## __Amazon SageMaker Runtime__
+  - ### Features
+    - Amazon SageMaker Asynchronous Inference now provides customers a FailureLocation as a response parameter in InvokeEndpointAsync API to capture the model failure responses.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker Asynchronous Inference now allows customer's to receive failure model responses in S3 and receive success/failure model responses in SNS notifications.
+
+## __Auto Scaling__
+  - ### Features
+    - Documentation updates for Amazon EC2 Auto Scaling
+
+# __2.20.38__ __2023-04-03__
+## __AWS Glue__
+  - ### Features
+    - Add support for database-level federation
+
+## __AWS Lake Formation__
+  - ### Features
+    - Add support for database-level federation
+
+## __AWS License Manager__
+  - ### Features
+    - This release adds grant override options to the CreateGrantVersion API. These options can be used to specify grant replacement behavior during grant activation.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Added option of using an explicit `ExecutorService` in `FileAsyncResponseTransformer`
+        - Contributed by: [@mpdn](https://github.com/mpdn)
+    - Updated endpoint and partition metadata.
+
+## __AWS Service Catalog__
+  - ### Features
+    - This release introduces Service Catalog support for Terraform open source. It enables 1. The notify* APIs to Service Catalog. These APIs are used by the terraform engine to notify the result of the provisioning engine execution. 2. Adds a new TERRAFORM_OPEN_SOURCE product type in CreateProduct API.
+
+## __AWS WAFV2__
+  - ### Features
+    - For web ACLs that protect CloudFront protections, the default request body inspection size is now 16 KB, and you can use the new association configuration to increase the inspection size further, up to 64 KB. Sizes over 16 KB can incur additional costs.
+
+## __AmazonMWAA__
+  - ### Features
+    - This Amazon MWAA release adds the ability to customize the Apache Airflow environment by launching a shell script at startup. This shell script is hosted in your environment's Amazon S3 bucket. Amazon MWAA runs the script before installing requirements and initializing the Apache Airflow process.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@mpdn](https://github.com/mpdn)
 # __2.20.37__ __2023-03-31__
 ## __AWS CRT-based S3 client__
   - ### Bugfixes
