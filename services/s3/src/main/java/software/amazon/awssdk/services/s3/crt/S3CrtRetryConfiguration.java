@@ -80,8 +80,12 @@ public final class S3CrtRetryConfiguration implements ToCopyableBuilder<S3CrtRet
     public interface Builder extends CopyableBuilder<S3CrtRetryConfiguration.Builder, S3CrtRetryConfiguration> {
 
         /**
-         * Configure the maximum number of times that a single request should be retried.
-         * @param numRetries
+         * Sets the maximum number of retries for a single HTTP request.
+         * <p> For example, if an upload operation is split into 4 HTTP service requests ( One for initiate,  Three for
+         * uploadPart and one for completeUpload), then numRetries specifies the maximum number of retries for each failed
+         * request, not for the entire uploadObject operation.
+         *
+         * @param numRetries The maximum number of retries for a single HTTP request.
          * @return The builder of the method chaining.
          */
         Builder numRetries(Integer numRetries);
