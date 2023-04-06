@@ -81,7 +81,7 @@ public final class S3CrtRetryConfiguration implements ToCopyableBuilder<S3CrtRet
 
         /**
          * Sets the maximum number of retries for a single HTTP request.
-         * <p> For example, if an upload operation is split into 4 HTTP service requests ( One for initiate,  Three for
+         * <p> For example, if an upload operation is split into 5 HTTP service requests ( One for initiate, Three for
          * uploadPart and one for completeUpload), then numRetries specifies the maximum number of retries for each failed
          * request, not for the entire uploadObject operation.
          *

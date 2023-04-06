@@ -17,11 +17,9 @@ package software.amazon.awssdk.services.s3.crt;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 
-
-public class S3CrtRetryConfigurationTest {
+class S3CrtRetryConfigurationTest {
 
     @Test
     void equalsHashcode() {
