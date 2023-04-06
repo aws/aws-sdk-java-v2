@@ -1,3 +1,77 @@
+# __2.20.40__ __2023-04-05__
+## __AWS App Runner__
+  - ### Features
+    - App Runner adds support for seven new vCPU and memory configurations.
+
+## __AWS Config__
+  - ### Features
+    - This release adds resourceType enums for types released in March 2023.
+
+## __AWS Network Firewall__
+  - ### Features
+    - AWS Network Firewall now supports IPv6-only subnets.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SSO Identity Store__
+  - ### Features
+    - Documentation updates for Identity Store CLI command reference.
+
+## __AWS Service Catalog__
+  - ### Features
+    - removed incorrect product type value
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This is a document only updated to add information about Amazon Elastic Inference (EI).
+
+## __Amazon Interactive Video Service RealTime__
+  - ### Features
+    - Fix ParticipantToken ExpirationTime format
+
+## __Amazon VPC Lattice__
+  - ### Features
+    - This release removes the entities in the API doc model package for auth policies.
+
+# __2.20.39__ __2023-04-04__
+## __AWS Amplify UI Builder__
+  - ### Features
+    - Support StorageField and custom displays for data-bound options in form builder. Support non-string operands for predicates in collections. Support choosing client to get token from.
+
+## __AWS Data Exchange__
+  - ### Features
+    - This release updates the value of MaxResults.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS WAFV2__
+  - ### Features
+    - This release rolls back association config feature for webACLs that protect CloudFront protections.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - C6in, M6in, M6idn, R6in and R6idn bare metal instances are powered by 3rd Generation Intel Xeon Scalable processors and offer up to 200 Gbps of network bandwidth.
+
+## __Amazon Elastic Inference__
+  - ### Features
+    - Updated public documentation for the Describe and Tagging APIs.
+
+## __Amazon SageMaker Runtime__
+  - ### Features
+    - Amazon SageMaker Asynchronous Inference now provides customers a FailureLocation as a response parameter in InvokeEndpointAsync API to capture the model failure responses.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker Asynchronous Inference now allows customer's to receive failure model responses in S3 and receive success/failure model responses in SNS notifications.
+
+## __Auto Scaling__
+  - ### Features
+    - Documentation updates for Amazon EC2 Auto Scaling
+
 # __2.20.38__ __2023-04-03__
 ## __AWS Glue__
   - ### Features
