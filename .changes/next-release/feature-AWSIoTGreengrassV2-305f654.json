@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS IoT Greengrass V2",
-    "contributor": "",
-    "description": "Add support for SUCCEEDED value in coreDeviceExecutionStatus field. Documentation updates for Greengrass V2."
-}
