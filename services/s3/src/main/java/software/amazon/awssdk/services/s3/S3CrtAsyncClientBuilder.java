@@ -185,6 +185,17 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
                                                        .build());
     }
 
+    // S3 client context params, copied from S3BaseClientBuilder. Note we only have accelerate and path style because they're
+    // the only ones we can support in the CRT client (does not affect signing).
+    /**
+     * Enables this client to use S3 Transfer Acceleration endpoints.
+     */
+    S3CrtAsyncClientBuilder accelerate(Boolean accelerate);
+
+    /**
+     * Forces this client to use path-style addressing for buckets.
+     */
+    S3CrtAsyncClientBuilder forcePathStyle(Boolean forcePathStyle);
 
     /**
      * A convenience method that creates an instance of the {@link S3CrtRetryConfiguration} builder, avoiding the
