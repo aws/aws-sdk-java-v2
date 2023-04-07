@@ -78,6 +78,9 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
                                  .withInitialReadWindowSize(initialWindowSize)
                                  .withReadBackpressureEnabled(true);
 
+        if (s3NativeClientConfiguration.standardRetryOptions() != null) {
+            this.s3ClientOptions.withStandardRetryOptions(s3NativeClientConfiguration.standardRetryOptions());
+        }
         Optional.ofNullable(s3NativeClientConfiguration.proxyOptions()).ifPresent(s3ClientOptions::withProxyOptions);
         Optional.ofNullable(s3NativeClientConfiguration.connectionTimeout())
                 .map(Duration::toMillis)

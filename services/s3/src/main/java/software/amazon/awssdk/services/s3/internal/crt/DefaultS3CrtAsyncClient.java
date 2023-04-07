@@ -41,6 +41,8 @@ import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.util.ClassLoaderHelper;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.signer.NoOpSigner;
+import software.amazon.awssdk.crt.io.ExponentialBackoffRetryOptions;
+import software.amazon.awssdk.crt.io.StandardRetryOptions;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.DelegatingS3AsyncClient;
@@ -48,6 +50,7 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder;
 import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
+import software.amazon.awssdk.services.s3.crt.S3CrtRetryConfiguration;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -109,7 +112,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         Validate.isPositiveOrNull(builder.targetThroughputInGbps, "targetThroughputInGbps");
         Validate.isPositiveOrNull(builder.minimalPartSizeInBytes, "minimalPartSizeInBytes");
 
-        S3NativeClientConfiguration s3NativeClientConfiguration =
+        S3NativeClientConfiguration.Builder nativeClientBuilder =
             S3NativeClientConfiguration.builder()
                                        .checksumValidationEnabled(builder.checksumValidationEnabled)
                                        .targetThroughputInGbps(builder.targetThroughputInGbps)
@@ -119,11 +122,16 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                                        .endpointOverride(builder.endpointOverride)
                                        .credentialsProvider(builder.credentialsProvider)
                                        .readBufferSizeInBytes(builder.readBufferSizeInBytes)
-                                       .httpConfiguration(builder.httpConfiguration)
-                                       .build();
+                                       .httpConfiguration(builder.httpConfiguration);
 
+        if (builder.retryConfiguration != null) {
+            nativeClientBuilder.standardRetryOptions(
+                new StandardRetryOptions()
+                    .withBackoffRetryOptions(new ExponentialBackoffRetryOptions()
+                                                 .withMaxRetries(builder.retryConfiguration.numRetries())));
+        }
         return S3CrtAsyncHttpClient.builder()
-                                   .s3ClientConfiguration(s3NativeClientConfiguration);
+                                   .s3ClientConfiguration(nativeClientBuilder.build());
     }
 
     public static final class DefaultS3CrtClientBuilder implements S3CrtAsyncClientBuilder {
@@ -140,6 +148,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         private Boolean forcePathStyle;
 
         private List<ExecutionInterceptor> executionInterceptors;
+        private S3CrtRetryConfiguration retryConfiguration;
 
         public AwsCredentialsProvider credentialsProvider() {
             return credentialsProvider;
@@ -241,6 +250,12 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                 this.executionInterceptors = new ArrayList<>();
             }
             executionInterceptors.add(executionInterceptor);
+            return this;
+        }
+
+        @Override
+        public S3CrtAsyncClientBuilder retryConfiguration(S3CrtRetryConfiguration retryConfiguration) {
+            this.retryConfiguration = retryConfiguration;
             return this;
         }
 
