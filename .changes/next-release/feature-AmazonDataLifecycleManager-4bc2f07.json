@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Data Lifecycle Manager",
+    "contributor": "",
+    "description": "Updated timestamp format for GetLifecyclePolicy API"
+}
