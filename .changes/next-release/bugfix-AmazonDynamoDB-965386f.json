@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "Amazon DynamoDB Enhanced Client",
-    "contributor": "akiesler",
-    "description": "Include flattened mappers in attribute converter resolution"
-}

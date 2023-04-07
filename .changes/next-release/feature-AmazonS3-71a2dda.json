@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon S3",
-    "contributor": "",
-    "description": "Add support for the following in the CRT S3 client:\n\n - Enabling/disabling accelerate endpoints\n - Using pathstyle addressing"
-}
