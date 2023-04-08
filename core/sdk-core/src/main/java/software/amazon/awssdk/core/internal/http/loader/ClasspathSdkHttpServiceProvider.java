@@ -71,7 +71,7 @@ final class ClasspathSdkHttpServiceProvider<T> implements SdkHttpServiceProvider
                             "system property with the FQCN of the HTTP service to use as the default, or remove all but one " +
                             "HTTP implementation from the classpath.  The multiple implementations found were: %s",
                             implSystemProperty.property(), implText))
-                                             .build();
+                    .build();
         }
 
         return impls.stream().findFirst();
