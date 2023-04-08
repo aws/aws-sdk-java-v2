@@ -23,7 +23,7 @@ import java.util.stream.StreamSupport;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.SdkSystemSetting;
-import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.exception.HttpImplementationException;
 import software.amazon.awssdk.http.SdkHttpService;
 import software.amazon.awssdk.http.async.SdkAsyncHttpService;
 import software.amazon.awssdk.utils.SystemSetting;
@@ -64,14 +64,14 @@ final class ClasspathSdkHttpServiceProvider<T> implements SdkHttpServiceProvider
                      .map(clazz -> clazz.getClass().getName())
                      .collect(Collectors.joining(",", "[", "]"));
 
-            throw SdkClientException.builder().message(
+            throw HttpImplementationException.builder().message(
                     String.format(
                             "Multiple HTTP implementations were found on the classpath. To avoid non-deterministic loading " +
                             "implementations, please explicitly provide an HTTP client via the client builders, set the %s " +
                             "system property with the FQCN of the HTTP service to use as the default, or remove all but one " +
                             "HTTP implementation from the classpath.  The multiple implementations found were: %s",
                             implSystemProperty.property(), implText))
-                    .build();
+                                             .build();
         }
 
         return impls.stream().findFirst();

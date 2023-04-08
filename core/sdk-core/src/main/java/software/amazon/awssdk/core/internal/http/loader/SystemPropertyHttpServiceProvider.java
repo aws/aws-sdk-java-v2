@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.internal.http.loader;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkSystemSetting;
+import software.amazon.awssdk.core.exception.HttpImplementationException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.http.SdkHttpService;
 import software.amazon.awssdk.http.async.SdkAsyncHttpService;
@@ -53,13 +54,13 @@ final class SystemPropertyHttpServiceProvider<T> implements SdkHttpServiceProvid
         try {
             return serviceClass.cast(Class.forName(httpImplFqcn).newInstance());
         } catch (Exception e) {
-            throw SdkClientException.builder()
-                                    .message(String.format("Unable to load the HTTP factory implementation from the "
+            throw HttpImplementationException.builder()
+                                             .message(String.format("Unable to load the HTTP factory implementation from the "
                                              + "%s system property. Ensure the class '%s' is present on the classpath" +
                                              "and has a no-arg constructor",
                                              SdkSystemSetting.SYNC_HTTP_SERVICE_IMPL.property(), httpImplFqcn))
-                                    .cause(e)
-                                    .build();
+                                             .cause(e)
+                                             .build();
         }
     }
 

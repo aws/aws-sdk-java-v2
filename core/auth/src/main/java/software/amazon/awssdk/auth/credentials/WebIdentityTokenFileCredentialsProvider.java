@@ -20,9 +20,11 @@ import static software.amazon.awssdk.utils.StringUtils.trim;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.ToBuilderIgnoreField;
 import software.amazon.awssdk.auth.credentials.internal.WebIdentityCredentialsUtils;
 import software.amazon.awssdk.auth.credentials.internal.WebIdentityTokenCredentialProperties;
 import software.amazon.awssdk.core.SdkSystemSetting;
+import software.amazon.awssdk.core.exception.HttpImplementationException;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.ToString;
@@ -72,7 +74,7 @@ public class WebIdentityTokenFileCredentialsProvider
                                                                           .getStringValueOrThrow()));
 
             roleArn = builder.roleArn != null ? builder.roleArn
-                                                   : trim(SdkSystemSetting.AWS_ROLE_ARN.getStringValueOrThrow());
+                                              : trim(SdkSystemSetting.AWS_ROLE_ARN.getStringValueOrThrow());
 
             roleSessionName =
                 builder.roleSessionName != null ? builder.roleSessionName
@@ -85,7 +87,17 @@ public class WebIdentityTokenFileCredentialsProvider
                                                     .webIdentityTokenFile(webIdentityTokenFile)
                                                     .build();
 
-            credentialsProvider = WebIdentityCredentialsUtils.factory().create(credentialProperties);
+            // should always be null, except for testing
+            if (builder.factory == null) {
+                credentialsProvider = WebIdentityCredentialsUtils.factory().create(credentialProperties);
+            } else {
+                credentialsProvider = builder.factory.create(credentialProperties);
+            }
+        } catch (HttpImplementationException e) {
+            // If we couldn't create credentialsProvider due to multiple http implementations or unload-able http factory
+            // we should fail fast so that provider chain doesn't silently continue onto next provider chain and pickup
+            // unexpected credentials
+            throw e;
         } catch (RuntimeException e) {
             // If we couldn't load the credentials provider for some reason, save an exception describing why. This exception
             // will only be raised on calls to getCredentials. We don't want to raise an exception here because it may be
@@ -122,6 +134,7 @@ public class WebIdentityTokenFileCredentialsProvider
         return ToString.create("WebIdentityTokenCredentialsProvider");
     }
 
+    @ToBuilderIgnoreField("factory")
     @Override
     public Builder toBuilder() {
         return new BuilderImpl(this);
@@ -162,6 +175,7 @@ public class WebIdentityTokenFileCredentialsProvider
         private String roleArn;
         private String roleSessionName;
         private Path webIdentityTokenFile;
+        private WebIdentityTokenCredentialsProviderFactory factory;
 
         BuilderImpl() {
         }
@@ -200,6 +214,12 @@ public class WebIdentityTokenFileCredentialsProvider
 
         public void setWebIdentityTokenFile(Path webIdentityTokenFile) {
             webIdentityTokenFile(webIdentityTokenFile);
+        }
+
+        // Package private for testing
+        Builder setFactory(WebIdentityTokenCredentialsProviderFactory factory) {
+            this.factory = factory;
+            return this;
         }
 
         @Override
