@@ -50,7 +50,7 @@ public interface AwsCredentialsIdentity extends Identity {
      *
      * @param accessKeyId The AWS access key, used to identify the user interacting with services.
      * @param secretAccessKey The AWS secret access key, used to authenticate the user interacting with services.
-     * */
+     */
     static AwsCredentialsIdentity create(String accessKeyId, String secretAccessKey) {
         Validate.paramNotNull(accessKeyId, "accessKeyId");
         Validate.paramNotNull(secretAccessKey, "secretAccessKey");

@@ -19,9 +19,9 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
+import com.squareup.javapoet.WildcardTypeName;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
@@ -30,6 +30,8 @@ import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.codegen.utils.AuthUtils;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.identity.spi.TokenIdentity;
 
 public class SyncClientBuilderClass implements ClassSpec {
     private final IntermediateModel model;
@@ -127,11 +129,13 @@ public class SyncClientBuilderClass implements ClassSpec {
     }
 
     private MethodSpec tokenProviderMethodImpl() {
+        ParameterizedTypeName tokenProviderTypeName = ParameterizedTypeName.get(ClassName.get(IdentityProvider.class),
+                                                                                WildcardTypeName.subtypeOf(TokenIdentity.class));
         return MethodSpec.methodBuilder("tokenProvider").addModifiers(Modifier.PUBLIC)
                          .addAnnotation(Override.class)
-                         .addParameter(SdkTokenProvider.class, "tokenProvider")
+                         .addParameter(tokenProviderTypeName, "tokenProvider")
                          .returns(builderClassName)
-                         .addStatement("clientConfiguration.option($T.TOKEN_PROVIDER, tokenProvider)",
+                         .addStatement("clientConfiguration.option($T.TOKEN_IDENTITY_PROVIDER, tokenProvider)",
                                        AwsClientOption.class)
                          .addStatement("return this")
                          .build();

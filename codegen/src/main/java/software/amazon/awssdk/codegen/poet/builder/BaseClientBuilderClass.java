@@ -27,6 +27,7 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
+import com.squareup.javapoet.WildcardTypeName;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -35,7 +36,6 @@ import java.util.Optional;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
-import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.auth.token.credentials.aws.DefaultAwsTokenProvider;
 import software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
@@ -59,6 +59,8 @@ import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.protocols.query.interceptor.QueryParametersToBodyInterceptor;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
@@ -205,7 +207,7 @@ public class BaseClientBuilderClass implements ClassSpec {
         }
 
         if (AuthUtils.usesBearerAuth(model)) {
-            builder.addCode(".option($T.TOKEN_PROVIDER, defaultTokenProvider())\n", AwsClientOption.class);
+            builder.addCode(".option($T.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider())\n", AwsClientOption.class);
             builder.addCode(".option($T.TOKEN_SIGNER, defaultTokenSigner())", SdkAdvancedClientOption.class);
         }
 
@@ -595,7 +597,8 @@ public class BaseClientBuilderClass implements ClassSpec {
 
     private MethodSpec defaultBearerTokenProviderMethod() {
         return MethodSpec.methodBuilder("defaultTokenProvider")
-                         .returns(SdkTokenProvider.class)
+                         .returns(ParameterizedTypeName.get(ClassName.get(IdentityProvider.class),
+                                                            WildcardTypeName.subtypeOf(TokenIdentity.class)))
                          .addModifiers(PRIVATE)
                          .addStatement("return $T.create()", DefaultAwsTokenProvider.class)
                          .build();
@@ -638,11 +641,10 @@ public class BaseClientBuilderClass implements ClassSpec {
                                  SdkAdvancedClientOption.class,
                                  "The 'overrideConfiguration.advancedOption[TOKEN_SIGNER]' "
                                  + "must be configured in the client builder.");
-            builder.addStatement("$T.notNull(c.option($T.TOKEN_PROVIDER), $S)",
+            builder.addStatement("$T.notNull(c.option($T.TOKEN_IDENTITY_PROVIDER), $S)",
                                  Validate.class,
                                  AwsClientOption.class,
-                                 "The 'overrideConfiguration.advancedOption[TOKEN_PROVIDER]' "
-                                 + "must be configured in the client builder.");
+                                 "The 'tokenProvider' must be configured in the client builder.");
         }
 
         return builder.build();

@@ -15,8 +15,11 @@
 
 package software.amazon.awssdk.identity.spi;
 
+import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.utils.ToString;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Provides token which is used to securely authorize requests to services that use token based auth, e.g., OAuth.
@@ -33,4 +36,44 @@ public interface TokenIdentity extends Identity {
      * Retrieves string field representing the literal token string.
      */
     String token();
+
+    /**
+     * Constructs a new token object, which can be used to authorize requests to services that use token based auth
+     *
+     * @param token The token used to authorize requests.
+     */
+    static TokenIdentity create(String token) {
+        Validate.paramNotNull(token, "token");
+
+        return new TokenIdentity() {
+            @Override
+            public String token() {
+                return token;
+            }
+
+            @Override
+            public String toString() {
+                return ToString.builder("TokenIdentity")
+                               .add("token", token)
+                               .build();
+            }
+
+            @Override
+            public boolean equals(Object o) {
+                if (this == o) {
+                    return true;
+                }
+                if (o == null || getClass() != o.getClass()) {
+                    return false;
+                }
+                TokenIdentity that = (TokenIdentity) o;
+                return Objects.equals(token, that.token());
+            }
+
+            @Override
+            public int hashCode() {
+                return Objects.hashCode(token());
+            }
+        };
+    }
 }
