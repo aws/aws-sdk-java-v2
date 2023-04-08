@@ -17,7 +17,6 @@ package software.amazon.awssdk.core.internal.http.loader;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.HttpImplementationException;
-import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpService;
@@ -44,11 +43,11 @@ public final class DefaultSdkAsyncHttpClientBuilder implements SdkAsyncHttpClien
                 .map(f -> f.buildWithDefaults(serviceDefaults))
                 .orElseThrow(
                     () -> HttpImplementationException.builder()
-                                                     .message("Unable to load an HTTP implementation from any provider in the " +
+                                            .message("Unable to load an HTTP implementation from any provider in the " +
                                                     "chain. You must declare a dependency on an appropriate HTTP " +
                                                     "implementation or pass in an SdkHttpClient explicitly to the " +
                                                     "client builder.")
-                                                     .build());
+                                            .build());
     }
 
 }
