@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java V2",
+    "contributor": "abmo-x",
+    "description": "- created a HttpImplementationException which will be thrown Http implementations cannot be determined\n- WebIdentityTokenFileCredentialsProvider.init fails fast and throws HttpImplementationException"
+}
