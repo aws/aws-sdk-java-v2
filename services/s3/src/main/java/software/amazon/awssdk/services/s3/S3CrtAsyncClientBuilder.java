@@ -22,6 +22,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
+import software.amazon.awssdk.services.s3.crt.S3CrtRetryConfiguration;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.utils.Validate;
@@ -162,6 +163,14 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
     S3CrtAsyncClientBuilder httpConfiguration(S3CrtHttpConfiguration configuration);
 
     /**
+     * Sets the Retry configuration to use for this client.
+     *
+     * @param retryConfiguration The retry configurations to be used.
+     * @return The builder of the method chaining.
+     */
+    S3CrtAsyncClientBuilder retryConfiguration(S3CrtRetryConfiguration retryConfiguration);
+
+    /**
      * A convenience method that creates an instance of the {@link S3CrtHttpConfiguration} builder, avoiding the
      * need to create one manually via {@link S3CrtHttpConfiguration#builder()}.
      *
@@ -187,6 +196,25 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
      * Forces this client to use path-style addressing for buckets.
      */
     S3CrtAsyncClientBuilder forcePathStyle(Boolean forcePathStyle);
+
+    /**
+     * A convenience method that creates an instance of the {@link S3CrtRetryConfiguration} builder, avoiding the
+     * need to create one manually via {@link S3CrtRetryConfiguration#builder()}.
+     *
+     * @param retryConfigurationBuilder The retry config builder to use
+     * @return The builder of the method chaining.
+     * @see #retryConfiguration(S3CrtRetryConfiguration)
+     */
+    default S3CrtAsyncClientBuilder retryConfiguration(Consumer<S3CrtRetryConfiguration.Builder> retryConfigurationBuilder) {
+        Validate.paramNotNull(retryConfigurationBuilder, "retryConfigurationBuilder");
+        return retryConfiguration(S3CrtRetryConfiguration.builder()
+                                                         .applyMutation(retryConfigurationBuilder)
+                                                         .build());
+    }
+
+
+
+
 
     @Override
     S3AsyncClient build();

@@ -27,6 +27,7 @@ import software.amazon.awssdk.crt.auth.credentials.CredentialsProvider;
 import software.amazon.awssdk.crt.http.HttpMonitoringOptions;
 import software.amazon.awssdk.crt.http.HttpProxyOptions;
 import software.amazon.awssdk.crt.io.ClientBootstrap;
+import software.amazon.awssdk.crt.io.StandardRetryOptions;
 import software.amazon.awssdk.crt.io.TlsCipherPreference;
 import software.amazon.awssdk.crt.io.TlsContext;
 import software.amazon.awssdk.crt.io.TlsContextOptions;
@@ -43,6 +44,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
     private static final long DEFAULT_TARGET_THROUGHPUT_IN_GBPS = 10;
 
     private final String signingRegion;
+    private final StandardRetryOptions standardRetryOptions;
     private final ClientBootstrap clientBootstrap;
     private final CrtCredentialsProviderAdapter credentialProviderAdapter;
     private final CredentialsProvider credentialsProvider;
@@ -97,6 +99,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
             this.connectionTimeout = null;
             this.httpMonitoringOptions = null;
         }
+        this.standardRetryOptions = builder.standardRetryOptions;
     }
 
     public HttpMonitoringOptions httpMonitoringOptions() {
@@ -140,6 +143,10 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         return maxConcurrency;
     }
 
+    public StandardRetryOptions standardRetryOptions() {
+        return standardRetryOptions;
+    }
+
     public URI endpointOverride() {
         return endpointOverride;
     }
@@ -169,6 +176,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         private URI endpointOverride;
         private Boolean checksumValidationEnabled;
         private S3CrtHttpConfiguration httpConfiguration;
+        private StandardRetryOptions standardRetryOptions;
 
         private Builder() {
         }
@@ -222,6 +230,11 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
 
         public Builder httpConfiguration(S3CrtHttpConfiguration httpConfiguration) {
             this.httpConfiguration = httpConfiguration;
+            return this;
+        }
+
+        public Builder standardRetryOptions(StandardRetryOptions standardRetryOptions) {
+            this.standardRetryOptions = standardRetryOptions;
             return this;
         }
     }

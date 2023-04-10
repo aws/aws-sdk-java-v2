@@ -1,3 +1,33 @@
+# __2.20.43__ __2023-04-10__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - AWS Elemental MediaConvert SDK now supports conversion of 608 paint-on captions to pop-on captions for SCC sources.
+
+## __AWS Marketplace Catalog Service__
+  - ### Features
+    - Added three new APIs to support resource sharing: GetResourcePolicy, PutResourcePolicy, and DeleteResourcePolicy. Added new OwnershipType field to ListEntities request to let users filter on entities that are shared with them. Increased max page size of ListEntities response from 20 to 50 results.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Expose StandardRetryOptions of S3ClientOptions in the S3CrtClient Interface
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds the ability to configure an agent's routing profile to receive contacts from multiple channels at the same time via extending the UpdateRoutingProfileConcurrency, CreateRoutingProfile and DescribeRoutingProfile APIs.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release adds support for enabling FIPS compliance on Amazon ECS Fargate tasks
+
+## __Amazon Omics__
+  - ### Features
+    - Remove unexpected API changes.
+
+## __Amazon Rekognition__
+  - ### Features
+    - This release adds support for Face Liveness APIs in Amazon Rekognition. Updates UpdateStreamProcessor to return ResourceInUseException Exception. Minor updates to API documentation.
+
 # __2.20.42__ __2023-04-07__
 ## __AWS Lambda__
   - ### Features
