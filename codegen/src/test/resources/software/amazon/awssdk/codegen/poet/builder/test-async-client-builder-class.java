@@ -29,12 +29,12 @@ final class DefaultJsonAsyncClientBuilder extends DefaultJsonBaseClientBuilder<J
     }
 
     @Override
-    protected JsonAsyncClient buildClient() {
+    protected final JsonAsyncClient buildClient() {
         SdkClientConfiguration clientConfiguration = super.asyncClientConfiguration();
         this.validateClientOptions(clientConfiguration);
         URI endpointOverride = null;
         if (clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN) != null
-            && clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN)) {
+            && clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN) == Boolean.TRUE) {
             endpointOverride = clientConfiguration.option(SdkClientOption.ENDPOINT);
         }
         JsonServiceClientConfiguration serviceClientConfiguration = JsonServiceClientConfiguration.builder()
