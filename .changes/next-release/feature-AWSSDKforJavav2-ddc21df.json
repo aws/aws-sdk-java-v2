@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "Expose StandardRetryOptions of S3ClientOptions in the S3CrtClient Interface"
-}
