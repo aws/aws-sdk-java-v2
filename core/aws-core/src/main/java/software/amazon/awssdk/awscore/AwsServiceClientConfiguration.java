@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.awscore;
 
+import java.net.URI;
 import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkServiceClientConfiguration;
@@ -81,6 +82,7 @@ public abstract class AwsServiceClientConfiguration extends SdkServiceClientConf
     protected abstract static class BuilderImpl implements Builder {
         protected ClientOverrideConfiguration overrideConfiguration;
         protected Region region;
+        protected URI endpointOverride;
 
         protected BuilderImpl() {
         }
@@ -88,19 +90,6 @@ public abstract class AwsServiceClientConfiguration extends SdkServiceClientConf
         protected BuilderImpl(AwsServiceClientConfiguration awsServiceClientConfiguration) {
             this.overrideConfiguration = awsServiceClientConfiguration.overrideConfiguration();
             this.region = awsServiceClientConfiguration.region();
-        }
-
-
-        @Override
-        public Builder overrideConfiguration(ClientOverrideConfiguration clientOverrideConfiguration) {
-            this.overrideConfiguration = clientOverrideConfiguration;
-            return this;
-        }
-
-        @Override
-        public Builder region(Region region) {
-            this.region = region;
-            return this;
         }
 
         @Override
@@ -111,6 +100,11 @@ public abstract class AwsServiceClientConfiguration extends SdkServiceClientConf
         @Override
         public final Region region() {
             return region;
+        }
+
+        @Override
+        public final URI endpointOverride() {
+            return endpointOverride;
         }
     }
 

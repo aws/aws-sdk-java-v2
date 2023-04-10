@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.serviceclientconfiguration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.net.URI;
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
@@ -34,6 +35,26 @@ public class ServiceClientConfigurationTest {
 
         Region region = client.serviceClientConfiguration().region();
         assertThat(region).isEqualTo(Region.ME_SOUTH_1);
+    }
+
+    @Test
+    public void syncClientWithEndpointOverride_serviceClientConfiguration_shouldReturnCorrectEndpointOverride() {
+        URI uri = URI.create("https://www.amazon.com/");
+        ProtocolRestXmlClient client = ProtocolRestXmlClient.builder()
+                                                            .endpointOverride(uri)
+                                                            .build();
+
+        URI endpointOverride = client.serviceClientConfiguration().endpointOverride().orElse(null);
+        assertThat(endpointOverride).isEqualTo(uri);
+    }
+
+    @Test
+    public void syncClientWithoutEndpointOverride_serviceClientConfiguration_shouldReturnEmptyOptional() {
+        ProtocolRestXmlClient client = ProtocolRestXmlClient.builder()
+                                                            .build();
+
+        URI endpointOverride = client.serviceClientConfiguration().endpointOverride().orElse(null);
+        assertThat(endpointOverride).isNull();
     }
 
     @Test
@@ -78,6 +99,26 @@ public class ServiceClientConfigurationTest {
 
         Region region = client.serviceClientConfiguration().region();
         assertThat(region).isEqualTo(Region.ME_SOUTH_1);
+    }
+
+    @Test
+    public void asyncClientWithEndpointOverride_serviceClientConfiguration_shouldReturnCorrectEndpointOverride() {
+        URI uri = URI.create("https://www.amazon.com/");
+        ProtocolRestXmlAsyncClient client = ProtocolRestXmlAsyncClient.builder()
+                                                                      .endpointOverride(uri)
+                                                                      .build();
+
+        URI endpointOverride = client.serviceClientConfiguration().endpointOverride().orElse(null);
+        assertThat(endpointOverride).isEqualTo(uri);
+    }
+
+    @Test
+    public void asyncClientWithoutEndpointOverride_serviceClientConfiguration_shouldReturnEmptyOptional() {
+        ProtocolRestXmlAsyncClient client = ProtocolRestXmlAsyncClient.builder()
+                                                                      .build();
+
+        URI endpointOverride = client.serviceClientConfiguration().endpointOverride().orElse(null);
+        assertThat(endpointOverride).isNull();
     }
 
     @Test

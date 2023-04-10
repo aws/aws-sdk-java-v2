@@ -19,6 +19,7 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
+import java.net.URI;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
@@ -120,13 +121,21 @@ public class AsyncClientBuilderClass implements ClassSpec {
     private MethodSpec buildClientMethod() {
         return MethodSpec.methodBuilder("buildClient")
                          .addAnnotation(Override.class)
-                         .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
+                         .addModifiers(Modifier.PROTECTED)
                          .returns(clientInterfaceName)
                          .addStatement("$T clientConfiguration = super.asyncClientConfiguration()", SdkClientConfiguration.class)
                          .addStatement("this.validateClientOptions(clientConfiguration)")
+                         .addStatement("$T endpointOverride = null", URI.class)
+                         .addCode("if (clientConfiguration.option($T.ENDPOINT_OVERRIDDEN) != null"
+                                  + "&& clientConfiguration.option($T.ENDPOINT_OVERRIDDEN)) {"
+                                  + "endpointOverride = clientConfiguration.option($T.ENDPOINT);"
+                                  + "}",
+                                  SdkClientOption.class, SdkClientOption.class, SdkClientOption.class)
                          .addStatement("$T serviceClientConfiguration = $T.builder()"
                                        + ".overrideConfiguration(overrideConfiguration())"
-                                       + ".region(clientConfiguration.option($T.AWS_REGION)).build()",
+                                       + ".region(clientConfiguration.option($T.AWS_REGION))"
+                                       + ".endpointOverride(endpointOverride)"
+                                       + ".build()",
                                        serviceConfigClassName, serviceConfigClassName, AwsClientOption.class)
                          .addStatement("return new $T(serviceClientConfiguration, clientConfiguration)", clientClassName)
                          .build();
