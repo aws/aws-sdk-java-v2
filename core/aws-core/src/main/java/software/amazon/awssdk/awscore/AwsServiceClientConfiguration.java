@@ -96,6 +96,7 @@ public abstract class AwsServiceClientConfiguration extends SdkServiceClientConf
         protected BuilderImpl(AwsServiceClientConfiguration awsServiceClientConfiguration) {
             this.overrideConfiguration = awsServiceClientConfiguration.overrideConfiguration();
             this.region = awsServiceClientConfiguration.region();
+            this.endpointOverride = awsServiceClientConfiguration.endpointOverride().orElse(null);
         }
 
         @Override
