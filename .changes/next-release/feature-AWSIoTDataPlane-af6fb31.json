@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS IoT Data Plane",
+    "contributor": "",
+    "description": "This release adds support for MQTT5 user properties when calling the AWS IoT GetRetainedMessage API"
+}
