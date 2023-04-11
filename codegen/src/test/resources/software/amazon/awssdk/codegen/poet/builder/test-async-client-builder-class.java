@@ -34,7 +34,7 @@ final class DefaultJsonAsyncClientBuilder extends DefaultJsonBaseClientBuilder<J
         this.validateClientOptions(clientConfiguration);
         URI endpointOverride = null;
         if (clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN) != null
-            && clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN) == Boolean.TRUE) {
+            && Boolean.TRUE.equals(clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN))) {
             endpointOverride = clientConfiguration.option(SdkClientOption.ENDPOINT);
         }
         JsonServiceClientConfiguration serviceClientConfiguration = JsonServiceClientConfiguration.builder()

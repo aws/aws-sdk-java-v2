@@ -127,10 +127,10 @@ public class AsyncClientBuilderClass implements ClassSpec {
                          .addStatement("this.validateClientOptions(clientConfiguration)")
                          .addStatement("$T endpointOverride = null", URI.class)
                          .addCode("if (clientConfiguration.option($T.ENDPOINT_OVERRIDDEN) != null"
-                                  + "&& clientConfiguration.option($T.ENDPOINT_OVERRIDDEN) == $T.TRUE) {"
+                                  + "&& $T.TRUE.equals(clientConfiguration.option($T.ENDPOINT_OVERRIDDEN))) {"
                                   + "endpointOverride = clientConfiguration.option($T.ENDPOINT);"
                                   + "}",
-                                  SdkClientOption.class, SdkClientOption.class, Boolean.class, SdkClientOption.class)
+                                  SdkClientOption.class, Boolean.class, SdkClientOption.class, SdkClientOption.class)
                          .addStatement("$T serviceClientConfiguration = $T.builder()"
                                        + ".overrideConfiguration(overrideConfiguration())"
                                        + ".region(clientConfiguration.option($T.AWS_REGION))"
