@@ -1,3 +1,33 @@
+# __2.20.44__ __2023-04-11__
+## __AWS IoT__
+  - ### Features
+    - Re-release to remove unexpected API changes
+
+## __AWS IoT Data Plane__
+  - ### Features
+    - This release adds support for MQTT5 user properties when calling the AWS IoT GetRetainedMessage API
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Exposes endpointOverride in SdkClient through ServiceClientConfiguration
+    - Updated endpoint and partition metadata.
+
+## __AWS WAFV2__
+  - ### Features
+    - For web ACLs that protect CloudFront protections, the default request body inspection size is now 16 KB, and you can use the new association configuration to increase the inspection size further, up to 64 KB. Sizes over 16 KB can incur additional costs.
+
+## __Amazon Elastic Container Registry Public__
+  - ### Features
+    - This release will allow using registry alias as registryId in BatchDeleteImage request.
+
+## __Amazon EventBridge__
+  - ### Features
+    - EventBridge PutTarget support for multiple SQL arguments on RedshiftDataParameters
+
+## __EMR Serverless__
+  - ### Features
+    - This release extends GetJobRun API to return job run timeout (executionTimeoutMinutes) specified during StartJobRun call (or default timeout of 720 minutes if none was specified).
+
 # __2.20.43__ __2023-04-10__
 ## __AWS Elemental MediaConvert__
   - ### Features

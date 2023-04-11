@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS IoT",
-    "contributor": "",
-    "description": "Re-release to remove unexpected API changes"
-}

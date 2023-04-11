@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Container Registry Public",
-    "contributor": "",
-    "description": "This release will allow using registry alias as registryId in BatchDeleteImage request."
-}
