@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon EventBridge",
+    "contributor": "",
+    "description": "EventBridge PutTarget support for multiple SQL arguments on RedshiftDataParameters"
+}
