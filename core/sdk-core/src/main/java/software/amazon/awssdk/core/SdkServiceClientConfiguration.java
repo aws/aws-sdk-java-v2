@@ -63,12 +63,15 @@ public abstract class SdkServiceClientConfiguration {
         }
 
         SdkServiceClientConfiguration serviceClientConfiguration = (SdkServiceClientConfiguration) o;
-        return Objects.equals(overrideConfiguration, serviceClientConfiguration.overrideConfiguration());
+        return Objects.equals(overrideConfiguration, serviceClientConfiguration.overrideConfiguration())
+               && Objects.equals(endpointOverride, serviceClientConfiguration.endpointOverride().orElse(null));
     }
 
     @Override
     public int hashCode() {
-        return overrideConfiguration != null ? overrideConfiguration.hashCode() : 0;
+        int result = overrideConfiguration != null ? overrideConfiguration.hashCode() : 0;
+        result = 31 * result + (endpointOverride != null ? endpointOverride.hashCode() : 0);
+        return result;
     }
 
     /**
