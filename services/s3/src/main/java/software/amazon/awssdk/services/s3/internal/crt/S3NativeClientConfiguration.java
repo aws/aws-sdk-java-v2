@@ -67,6 +67,11 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         TlsContextOptions clientTlsContextOptions =
             TlsContextOptions.createDefaultClient()
                              .withCipherPreference(TlsCipherPreference.TLS_CIPHER_SYSTEM_DEFAULT);
+
+        if (builder.httpConfiguration != null
+            && builder.httpConfiguration.shouldTrustAllCertificates() != null) {
+            clientTlsContextOptions.withVerifyPeer(!builder.httpConfiguration.shouldTrustAllCertificates());
+        }
         this.tlsContext = new TlsContext(clientTlsContextOptions);
         this.credentialProviderAdapter =
             builder.credentialsProvider == null ?
@@ -175,6 +180,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         private Integer maxConcurrency;
         private URI endpointOverride;
         private Boolean checksumValidationEnabled;
+
         private S3CrtHttpConfiguration httpConfiguration;
         private StandardRetryOptions standardRetryOptions;
 

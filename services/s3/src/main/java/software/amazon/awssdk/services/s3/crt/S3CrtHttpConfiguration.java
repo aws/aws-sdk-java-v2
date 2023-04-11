@@ -38,11 +38,13 @@ public final class S3CrtHttpConfiguration implements ToCopyableBuilder<S3CrtHttp
     private final Duration connectionTimeout;
     private final S3CrtProxyConfiguration proxyConfiguration;
     private final S3CrtConnectionHealthConfiguration healthConfiguration;
+    private final Boolean shouldTrustAllCertificates;
 
     private S3CrtHttpConfiguration(DefaultBuilder builder) {
         this.connectionTimeout = builder.connectionTimeout;
         this.proxyConfiguration = builder.proxyConfiguration;
         this.healthConfiguration = builder.healthConfiguration;
+        this.shouldTrustAllCertificates = builder.shouldTrustAllCertificates;
     }
 
     /**
@@ -73,6 +75,13 @@ public final class S3CrtHttpConfiguration implements ToCopyableBuilder<S3CrtHttp
         return healthConfiguration;
     }
 
+    /**
+     * Return the configured {@link Builder#shouldTrustAllCertificates}.
+     */
+    public Boolean shouldTrustAllCertificates() {
+        return shouldTrustAllCertificates;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -90,7 +99,10 @@ public final class S3CrtHttpConfiguration implements ToCopyableBuilder<S3CrtHttp
         if (!Objects.equals(proxyConfiguration, that.proxyConfiguration)) {
             return false;
         }
-        return Objects.equals(healthConfiguration, that.healthConfiguration);
+        if (!Objects.equals(healthConfiguration, that.healthConfiguration)) {
+            return false;
+        }
+        return Objects.equals(shouldTrustAllCertificates, that.shouldTrustAllCertificates);
     }
 
     @Override
@@ -98,6 +110,7 @@ public final class S3CrtHttpConfiguration implements ToCopyableBuilder<S3CrtHttp
         int result = connectionTimeout != null ? connectionTimeout.hashCode() : 0;
         result = 31 * result + (proxyConfiguration != null ? proxyConfiguration.hashCode() : 0);
         result = 31 * result + (healthConfiguration != null ? healthConfiguration.hashCode() : 0);
+        result = 31 * result + (shouldTrustAllCertificates != null ? shouldTrustAllCertificates.hashCode() : 0);
         return result;
     }
 
@@ -114,6 +127,19 @@ public final class S3CrtHttpConfiguration implements ToCopyableBuilder<S3CrtHttp
          * @return The builder of the method chaining.
          */
         Builder connectionTimeout(Duration connectionTimeout);
+
+
+        /**
+         * <p>
+         *     Option to disable SSL cert validation and SSL host name verification.
+         *     This turns off x.509 validation.
+         *     By default, this option is off.
+         *     Only enable this option for testing purposes.
+         * </p>
+         * @param shouldTrustAllCertificates True if SSL cert validation is disabled.
+         * @return The builder of the method chaining.
+         */
+        Builder shouldTrustAllCertificates(Boolean shouldTrustAllCertificates);
 
         /**
          * Sets the http proxy configuration to use for this client.
@@ -165,6 +191,7 @@ public final class S3CrtHttpConfiguration implements ToCopyableBuilder<S3CrtHttp
     private static final class DefaultBuilder implements Builder {
         private S3CrtConnectionHealthConfiguration healthConfiguration;
         private Duration connectionTimeout;
+        private Boolean shouldTrustAllCertificates;
         private S3CrtProxyConfiguration proxyConfiguration;
 
         private DefaultBuilder() {
@@ -174,11 +201,18 @@ public final class S3CrtHttpConfiguration implements ToCopyableBuilder<S3CrtHttp
             this.healthConfiguration = httpConfiguration.healthConfiguration;
             this.connectionTimeout = httpConfiguration.connectionTimeout;
             this.proxyConfiguration = httpConfiguration.proxyConfiguration;
+            this.shouldTrustAllCertificates = httpConfiguration.shouldTrustAllCertificates;
         }
 
         @Override
         public Builder connectionTimeout(Duration connectionTimeout) {
             this.connectionTimeout = connectionTimeout;
+            return this;
+        }
+
+        @Override
+        public Builder shouldTrustAllCertificates(Boolean shouldTrustAllCertificates) {
+            this.shouldTrustAllCertificates = shouldTrustAllCertificates;
             return this;
         }
 
