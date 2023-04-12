@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Managed Blockchain",
+    "contributor": "",
+    "description": "Removal of the Ropsten network. The Ethereum foundation ceased support of Ropsten on December 31st, 2022.."
+}
