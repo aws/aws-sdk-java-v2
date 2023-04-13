@@ -1,3 +1,16 @@
+# __2.20.46__ __2023-04-13__
+## __AWS MediaConnect__
+  - ### Features
+    - Gateway is a new feature of AWS Elemental MediaConnect. Gateway allows the deployment of on-premises resources for the purpose of transporting live video to and from the AWS Cloud.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Chime SDK Voice__
+  - ### Features
+    - This release adds tagging support for Voice Connectors and SIP Media Applications
+
 # __2.20.45__ __2023-04-12__
 ## __AWS Ground Station__
   - ### Features
