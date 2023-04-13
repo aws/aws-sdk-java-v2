@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Chime SDK Voice",
+    "contributor": "",
+    "description": "This release adds tagging support for Voice Connectors and SIP Media Applications"
+}
