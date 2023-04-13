@@ -11,7 +11,10 @@ from os.path import isdir, exists, join
 from re import split
 
 sdks = {}
-clientClass = {}
+clientClassPrefix = {}
+
+# Eventstreaming operations are only available on the async clients
+asyncOnlyOperations = {}
 
 def generateDocsMap(apiDefinitionsPath, apiDefinitionsRelativeFilePath):
 
@@ -25,9 +28,47 @@ def generateDocsMap(apiDefinitionsPath, apiDefinitionsRelativeFilePath):
             apiContent = json.loads(apiDefinition.read())
             if "uid" in apiContent["metadata"].keys():
                 sdks[apiContent["metadata"]["uid"]] = getServiceName
-            clientClass[apiContent["metadata"]["uid"]] = getClientClassNameFromMetadata(apiContent["metadata"])
+            clientClassPrefix[apiContent["metadata"]["uid"]] = getClientClassNameFromMetadata(apiContent["metadata"])
+            asyncOnlyOps = generateAsyncOnlyOps(apiContent)
+            if len(asyncOnlyOps.keys()) > 0:
+                asyncOnlyOperations[apiContent["metadata"]["uid"]] = asyncOnlyOps
 
     return sdks
+
+def generateAsyncOnlyOps(apiContent):
+    asyncOnlyOps = {}
+    for op in apiContent['operations'].keys():
+        eventStreamInOut = hasEventStreamInputOutput(apiContent, op)
+        if len(eventStreamInOut.keys()) > 0:
+            asyncOnlyOps[op] = eventStreamInOut
+    return asyncOnlyOps
+
+def hasEventStreamInputOutput(serviceModel, operationName):
+    inOut = {}
+    opModel = serviceModel['operations'][operationName]
+    if 'input' in opModel.keys():
+        inputShapeName = opModel['input']['shape']
+        if hasEventStreamMember(serviceModel, inputShapeName):
+            inOut['input'] = True
+    if 'output' in opModel.keys():
+        outputShapeName = opModel['output']['shape']
+        if hasEventStreamMember(serviceModel, outputShapeName):
+            inOut['output'] = True
+    return inOut
+
+
+def hasEventStreamMember(serviceModel, shapeName):
+    shapeModel = serviceModel['shapes'][shapeName]
+    if 'members' in shapeModel.keys():
+        for name,memberModel in shapeModel['members'].items():
+            if isEventStream(serviceModel,memberModel['shape']):
+                return True
+    return False
+
+def isEventStream(serviceModel, shapeName):
+    shapeModel = serviceModel['shapes'][shapeName]
+    return 'eventstream' in shapeModel and shapeModel['eventstream']
+
 
 def splitOnWordBoundaries(toSplit) :
     result = toSplit
@@ -65,11 +106,10 @@ def getClientClassNameFromMetadata(metadataNode):
     if "serviceId" in metadataNode.keys():
         toSanitize = metadataNode["serviceId"]
     clientName = pascalCase(toSanitize)
-    clientName =  removeLeading(clientName , "Amazon")
+    clientName =  removeLeading(clientName, "Amazon")
     clientName =  removeLeading(clientName, "Aws")
     clientName = removeTrailing(clientName, "Service" )
-    return   clientName + "Client"
-
+    return clientName
 
 def removeLeading(str, toRemove) :
     if(str is None) :
@@ -91,7 +131,8 @@ def insertDocsMapToRedirect(apiDefinitionsBasePath, apiDefinitionsRelativeFilePa
     with codecs.open(templateFilePath, 'rb', 'utf-8') as redirect_template:
         current_template = redirect_template.read();
         output = current_template.replace("${UID_SERVICE_MAPPING}", json.dumps(sdks, ensure_ascii=False))
-        output = output.replace("${UID_CLIENT_CLASS_MAPPING}", json.dumps(clientClass, ensure_ascii=False))
+        output = output.replace("${UID_CLIENT_CLASS_MAPPING}", json.dumps(clientClassPrefix, ensure_ascii=False))
+        output = output.replace("${SERVICE_NAME_TO_ASYNC_ONLY_OPERATION_MAPPING}", json.dumps(asyncOnlyOperations, ensure_ascii=False))
     with open(outputFilePath, 'w') as redirect_output:
         redirect_output.write(output)
 
