@@ -411,6 +411,56 @@ class ProfileFileSupplierTest {
     }
 
     @Test
+    void aggregate_duplicateOptionsGivenFixedProfileFirst_preservesPrecedence() {
+        ProfileFile configFile1 = configFile("profile default", Pair.of("aws_access_key_id", "config-key"));
+        Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
+
+        ProfileFileSupplier supplier = ProfileFileSupplier.aggregate(
+            ProfileFileSupplier.fixedProfileFile(configFile1),
+            ProfileFileSupplier.reloadWhenModified(credentialsFilePath, ProfileFile.Type.CREDENTIALS));
+
+        ProfileFile profileFile = supplier.get();
+        String accessKeyId = profileFile.profile("default").get().property("aws_access_key_id").get();
+
+        assertThat(accessKeyId).isEqualTo("config-key");
+
+        generateTestCredentialsFile("defaultAccessKey2", "defaultSecretAccessKey2");
+
+        profileFile = supplier.get();
+        accessKeyId = profileFile.profile("default").get().property("aws_access_key_id").get();
+
+        assertThat(accessKeyId).isEqualTo("config-key");
+    }
+
+    @Test
+    void aggregate_duplicateOptionsGivenReloadingProfileFirst_preservesPrecedence() {
+        AdjustableClock clock = new AdjustableClock();
+
+        ProfileFile configFile1 = configFile("profile default", Pair.of("aws_access_key_id", "config-key"));
+        Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
+
+        ProfileFileSupplier supplier = ProfileFileSupplier.aggregate(
+            builderWithClock(clock)
+                .reloadWhenModified(credentialsFilePath, ProfileFile.Type.CREDENTIALS)
+                .build(),
+            ProfileFileSupplier.fixedProfileFile(configFile1));
+
+        ProfileFile profileFile = supplier.get();
+        String accessKeyId = profileFile.profile("default").get().property("aws_access_key_id").get();
+
+        assertThat(accessKeyId).isEqualTo("defaultAccessKey");
+
+        generateTestCredentialsFile("defaultAccessKey2", "defaultSecretAccessKey2");
+
+        clock.tickForward(Duration.ofMillis(1_000));
+
+        profileFile = supplier.get();
+        accessKeyId = profileFile.profile("default").get().property("aws_access_key_id").get();
+
+        assertThat(accessKeyId).isEqualTo("defaultAccessKey2");
+    }
+
+    @Test
     void fixedProfileFile_nullProfileFile_returnsNonNullSupplier() {
         ProfileFile file = null;
         ProfileFileSupplier supplier = ProfileFileSupplier.fixedProfileFile(file);

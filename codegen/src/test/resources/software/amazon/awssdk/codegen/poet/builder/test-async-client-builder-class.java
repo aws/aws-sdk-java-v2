@@ -1,5 +1,6 @@
 package software.amazon.awssdk.services.json;
 
+import java.net.URI;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
@@ -31,6 +32,14 @@ final class DefaultJsonAsyncClientBuilder extends DefaultJsonBaseClientBuilder<J
     protected final JsonAsyncClient buildClient() {
         SdkClientConfiguration clientConfiguration = super.asyncClientConfiguration();
         this.validateClientOptions(clientConfiguration);
-        return new DefaultJsonAsyncClient(clientConfiguration);
+        URI endpointOverride = null;
+        if (clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN) != null
+            && Boolean.TRUE.equals(clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN))) {
+            endpointOverride = clientConfiguration.option(SdkClientOption.ENDPOINT);
+        }
+        JsonServiceClientConfiguration serviceClientConfiguration = JsonServiceClientConfiguration.builder()
+                                                                                                  .overrideConfiguration(overrideConfiguration()).region(clientConfiguration.option(AwsClientOption.AWS_REGION))
+                                                                                                  .endpointOverride(endpointOverride).build();
+        return new DefaultJsonAsyncClient(serviceClientConfiguration, clientConfiguration);
     }
 }

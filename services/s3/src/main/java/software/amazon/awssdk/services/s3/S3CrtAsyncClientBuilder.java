@@ -17,13 +17,17 @@ package software.amazon.awssdk.services.s3;
 
 import java.net.URI;
 import java.nio.file.Path;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
+import software.amazon.awssdk.services.s3.crt.S3CrtRetryConfiguration;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
@@ -61,8 +65,8 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
      *
      * <p>The default provider will attempt to identify the credentials automatically using the following checks:
      * <ol>
-     *   <li>Java System Properties - <code>aws.accessKeyId</code> and <code>aws.secretKey</code></li>
-     *   <li>Environment Variables - <code>AWS_ACCESS_KEY_ID</code> and <code>AWS_SECRET_ACCESS_KEY</code></li>
+     *   <li>Java System Properties - {@code aws.accessKeyId} and {@code aws.secretKey}</li>
+     *   <li>Environment Variables - {@code AWS_ACCESS_KEY_ID} and {@code AWS_SECRET_ACCESS_KEY}</li>
      *   <li>Credential profiles file at the default location (~/.aws/credentials) shared by all AWS SDKs and the AWS CLI</li>
      *   <li>Credentials delivered through the Amazon EC2 container service if AWS_CONTAINER_CREDENTIALS_RELATIVE_URI
      *   environment variable is set and security manager has permission to access the variable.</li>
@@ -155,13 +159,11 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
     S3CrtAsyncClientBuilder endpointOverride(URI endpointOverride);
 
     /**
-     * Option to disable checksum validation for streaming operations such as
-     * {@link S3AsyncClient#getObject(GetObjectRequest, Path)}
-     * and {@link S3AsyncClient#putObject(PutObjectRequest, Path)}
+     * Option to disable checksum validation for {@link S3AsyncClient#getObject(GetObjectRequest, Path)} and
+     * {@link S3AsyncClient#putObject(PutObjectRequest, Path)}.
      *
      * <p>
      * Checksum validation using CRC32 is enabled by default.
-     *
      */
     S3CrtAsyncClientBuilder checksumValidationEnabled(Boolean checksumValidationEnabled);
 
@@ -177,6 +179,69 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
      * @return this builder for method chaining.
      */
     S3CrtAsyncClientBuilder initialReadBufferSizeInBytes(Long initialReadBufferSizeInBytes);
+
+
+    /**
+     * Sets the HTTP configuration to use for this client.
+     *
+     * @param configuration The http proxy configuration to use
+     * @return The builder of the method chaining.
+     */
+    S3CrtAsyncClientBuilder httpConfiguration(S3CrtHttpConfiguration configuration);
+
+    /**
+     * Sets the Retry configuration to use for this client.
+     *
+     * @param retryConfiguration The retry configurations to be used.
+     * @return The builder of the method chaining.
+     */
+    S3CrtAsyncClientBuilder retryConfiguration(S3CrtRetryConfiguration retryConfiguration);
+
+    /**
+     * A convenience method that creates an instance of the {@link S3CrtHttpConfiguration} builder, avoiding the
+     * need to create one manually via {@link S3CrtHttpConfiguration#builder()}.
+     *
+     * @param configurationBuilder The health checks config builder to use
+     * @return The builder of the method chaining.
+     * @see #httpConfiguration(S3CrtHttpConfiguration)
+     */
+    default S3CrtAsyncClientBuilder httpConfiguration(Consumer<S3CrtHttpConfiguration.Builder> configurationBuilder) {
+        Validate.paramNotNull(configurationBuilder, "configurationBuilder");
+        return httpConfiguration(S3CrtHttpConfiguration.builder()
+                                                       .applyMutation(configurationBuilder)
+                                                       .build());
+    }
+
+    // S3 client context params, copied from S3BaseClientBuilder. Note we only have accelerate and path style because they're
+    // the only ones we can support in the CRT client (does not affect signing).
+    /**
+     * Enables this client to use S3 Transfer Acceleration endpoints.
+     */
+    S3CrtAsyncClientBuilder accelerate(Boolean accelerate);
+
+    /**
+     * Forces this client to use path-style addressing for buckets.
+     */
+    S3CrtAsyncClientBuilder forcePathStyle(Boolean forcePathStyle);
+
+    /**
+     * A convenience method that creates an instance of the {@link S3CrtRetryConfiguration} builder, avoiding the
+     * need to create one manually via {@link S3CrtRetryConfiguration#builder()}.
+     *
+     * @param retryConfigurationBuilder The retry config builder to use
+     * @return The builder of the method chaining.
+     * @see #retryConfiguration(S3CrtRetryConfiguration)
+     */
+    default S3CrtAsyncClientBuilder retryConfiguration(Consumer<S3CrtRetryConfiguration.Builder> retryConfigurationBuilder) {
+        Validate.paramNotNull(retryConfigurationBuilder, "retryConfigurationBuilder");
+        return retryConfiguration(S3CrtRetryConfiguration.builder()
+                                                         .applyMutation(retryConfigurationBuilder)
+                                                         .build());
+    }
+
+
+
+
 
     @Override
     S3AsyncClient build();

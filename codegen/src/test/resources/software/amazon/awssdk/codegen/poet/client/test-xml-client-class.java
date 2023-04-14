@@ -80,9 +80,13 @@ final class DefaultXmlClient implements XmlClient {
 
     private final SdkClientConfiguration clientConfiguration;
 
-    protected DefaultXmlClient(SdkClientConfiguration clientConfiguration) {
+    private final XmlServiceClientConfiguration serviceClientConfiguration;
+
+    protected DefaultXmlClient(XmlServiceClientConfiguration serviceClientConfiguration,
+                               SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
+        this.serviceClientConfiguration = serviceClientConfiguration;
         this.protocolFactory = init();
     }
 
@@ -586,6 +590,11 @@ final class DefaultXmlClient implements XmlClient {
                 ExceptionMetadata.builder().errorCode("InvalidInput")
                                  .exceptionBuilderSupplier(InvalidInputException::builder).httpStatusCode(400).build())
             .clientConfiguration(clientConfiguration).defaultServiceExceptionSupplier(XmlException::builder).build();
+    }
+
+    @Override
+    public final XmlServiceClientConfiguration serviceClientConfiguration() {
+        return this.serviceClientConfiguration;
     }
 
     @Override

@@ -57,11 +57,15 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
 
     private final SdkClientConfiguration clientConfiguration;
 
+    private final EndpointDiscoveryTestServiceClientConfiguration serviceClientConfiguration;
+
     private EndpointDiscoveryRefreshCache endpointDiscoveryCache;
 
-    protected DefaultEndpointDiscoveryTestClient(SdkClientConfiguration clientConfiguration) {
+    protected DefaultEndpointDiscoveryTestClient(EndpointDiscoveryTestServiceClientConfiguration serviceClientConfiguration,
+                                                 SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
+        this.serviceClientConfiguration = serviceClientConfiguration;
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
         if (clientConfiguration.option(SdkClientOption.ENDPOINT_DISCOVERY_ENABLED)) {
             this.endpointDiscoveryCache = EndpointDiscoveryRefreshCache.create(EndpointDiscoveryTestEndpointDiscoveryCacheLoader
@@ -327,6 +331,11 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
         return builder.clientConfiguration(clientConfiguration)
                       .defaultServiceExceptionSupplier(EndpointDiscoveryTestException::builder).protocol(AwsJsonProtocol.AWS_JSON)
                       .protocolVersion("1.1");
+    }
+
+    @Override
+    public final EndpointDiscoveryTestServiceClientConfiguration serviceClientConfiguration() {
+        return this.serviceClientConfiguration;
     }
 
     @Override

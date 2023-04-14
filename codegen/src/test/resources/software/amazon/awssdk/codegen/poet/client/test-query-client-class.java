@@ -85,9 +85,13 @@ final class DefaultQueryClient implements QueryClient {
 
     private final SdkClientConfiguration clientConfiguration;
 
-    protected DefaultQueryClient(SdkClientConfiguration clientConfiguration) {
+    private final QueryServiceClientConfiguration serviceClientConfiguration;
+
+    protected DefaultQueryClient(QueryServiceClientConfiguration serviceClientConfiguration,
+                                 SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
+        this.serviceClientConfiguration = serviceClientConfiguration;
         this.protocolFactory = init();
     }
 
@@ -706,6 +710,11 @@ final class DefaultQueryClient implements QueryClient {
                 ExceptionMetadata.builder().errorCode("InvalidInput")
                                  .exceptionBuilderSupplier(InvalidInputException::builder).httpStatusCode(400).build())
             .clientConfiguration(clientConfiguration).defaultServiceExceptionSupplier(QueryException::builder).build();
+    }
+
+    @Override
+    public final QueryServiceClientConfiguration serviceClientConfiguration() {
+        return this.serviceClientConfiguration;
     }
 
     @Override

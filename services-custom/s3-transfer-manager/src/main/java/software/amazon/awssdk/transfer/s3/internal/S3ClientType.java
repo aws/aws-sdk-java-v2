@@ -25,5 +25,6 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 @SdkInternalApi
 public enum S3ClientType {
     CRT_BASED,
-    JAVA_BASED
+    JAVA_BASED,
+    OTHER
 }

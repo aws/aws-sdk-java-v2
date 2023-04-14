@@ -43,9 +43,14 @@ final class DefaultProtocolRestJsonWithCustomContentTypeClient implements Protoc
 
     private final SdkClientConfiguration clientConfiguration;
 
-    protected DefaultProtocolRestJsonWithCustomContentTypeClient(SdkClientConfiguration clientConfiguration) {
+    private final ProtocolRestJsonWithCustomContentTypeServiceClientConfiguration serviceClientConfiguration;
+
+    protected DefaultProtocolRestJsonWithCustomContentTypeClient(
+        ProtocolRestJsonWithCustomContentTypeServiceClientConfiguration serviceClientConfiguration,
+        SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
+        this.serviceClientConfiguration = serviceClientConfiguration;
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
     }
 
@@ -123,6 +128,11 @@ final class DefaultProtocolRestJsonWithCustomContentTypeClient implements Protoc
         return builder.clientConfiguration(clientConfiguration)
                       .defaultServiceExceptionSupplier(ProtocolRestJsonWithCustomContentTypeException::builder)
                       .protocol(AwsJsonProtocol.REST_JSON).protocolVersion("1.1").contentType("application/json");
+    }
+
+    @Override
+    public final ProtocolRestJsonWithCustomContentTypeServiceClientConfiguration serviceClientConfiguration() {
+        return this.serviceClientConfiguration;
     }
 
     @Override
