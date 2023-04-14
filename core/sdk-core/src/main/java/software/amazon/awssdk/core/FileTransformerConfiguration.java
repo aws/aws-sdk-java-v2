@@ -15,8 +15,12 @@
 
 package software.amazon.awssdk.core;
 
+import java.nio.channels.AsynchronousChannelGroup;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Path;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.ExecutorService;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.utils.Validate;
@@ -36,10 +40,12 @@ public final class FileTransformerConfiguration implements ToCopyableBuilder<Fil
     FileTransformerConfiguration> {
     private final FileWriteOption fileWriteOption;
     private final FailureBehavior failureBehavior;
+    private final ExecutorService executorService;
 
     private FileTransformerConfiguration(DefaultBuilder builder) {
         this.fileWriteOption = Validate.paramNotNull(builder.fileWriteOption, "fileWriteOption");
         this.failureBehavior = Validate.paramNotNull(builder.failureBehavior, "failureBehavior");
+        this.executorService = builder.executorService;
     }
 
     /**
@@ -54,6 +60,16 @@ public final class FileTransformerConfiguration implements ToCopyableBuilder<Fil
      */
     public FailureBehavior failureBehavior() {
         return failureBehavior;
+    }
+
+    /**
+     * The configured {@link ExecutorService} the writes should be executed on.
+     * <p>
+     * If not set, the default thread pool defined by the underlying {@link java.nio.file.spi.FileSystemProvider} will be used.
+     * This will typically be the thread pool defined by the {@link AsynchronousChannelGroup}.
+     */
+    public Optional<ExecutorService> executorService() {
+        return Optional.ofNullable(executorService);
     }
 
     /**
@@ -118,13 +134,17 @@ public final class FileTransformerConfiguration implements ToCopyableBuilder<Fil
         if (fileWriteOption != that.fileWriteOption) {
             return false;
         }
-        return failureBehavior == that.failureBehavior;
+        if (failureBehavior != that.failureBehavior) {
+            return false;
+        }
+        return Objects.equals(executorService, that.executorService);
     }
 
     @Override
     public int hashCode() {
         int result = fileWriteOption != null ? fileWriteOption.hashCode() : 0;
         result = 31 * result + (failureBehavior != null ? failureBehavior.hashCode() : 0);
+        result = 31 * result + (executorService != null ? executorService.hashCode() : 0);
         return result;
     }
 
@@ -181,11 +201,20 @@ public final class FileTransformerConfiguration implements ToCopyableBuilder<Fil
          * @return This object for method chaining.
          */
         Builder failureBehavior(FailureBehavior failureBehavior);
+
+        /**
+         * Configures the {@link ExecutorService} the writes should be executed on.
+         *
+         * @param executorService the executor service to use, or null if using the default thread pool.
+         * @return This object for method chaining.
+         */
+        Builder executorService(ExecutorService executorService);
     }
 
-    private static class DefaultBuilder implements Builder {
+    private static final class DefaultBuilder implements Builder {
         private FileWriteOption fileWriteOption;
         private FailureBehavior failureBehavior;
+        private ExecutorService executorService;
 
         private DefaultBuilder() {
         }
@@ -193,6 +222,7 @@ public final class FileTransformerConfiguration implements ToCopyableBuilder<Fil
         private DefaultBuilder(FileTransformerConfiguration fileTransformerConfiguration) {
             this.fileWriteOption = fileTransformerConfiguration.fileWriteOption;
             this.failureBehavior = fileTransformerConfiguration.failureBehavior;
+            this.executorService = fileTransformerConfiguration.executorService;
         }
 
         @Override
@@ -204,6 +234,12 @@ public final class FileTransformerConfiguration implements ToCopyableBuilder<Fil
         @Override
         public Builder failureBehavior(FailureBehavior failureBehavior) {
             this.failureBehavior = failureBehavior;
+            return this;
+        }
+
+        @Override
+        public Builder executorService(ExecutorService executorService) {
+            this.executorService = executorService;
             return this;
         }
 

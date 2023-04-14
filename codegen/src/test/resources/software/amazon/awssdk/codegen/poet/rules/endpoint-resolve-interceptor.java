@@ -52,12 +52,12 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
 
     private static QueryEndpointParams ruleParams(Context.ModifyRequest context, ExecutionAttributes executionAttributes) {
         QueryEndpointParams.Builder builder = QueryEndpointParams.builder();
-        setStaticContextParams(builder, executionAttributes.getAttribute(AwsExecutionAttribute.OPERATION_NAME));
-        setContextParams(builder, executionAttributes.getAttribute(AwsExecutionAttribute.OPERATION_NAME), context.request());
-        setClientContextParams(builder, executionAttributes);
         builder.region(AwsEndpointProviderUtils.regionBuiltIn(executionAttributes));
         builder.useDualStackEndpoint(AwsEndpointProviderUtils.dualStackEnabledBuiltIn(executionAttributes));
         builder.useFipsEndpoint(AwsEndpointProviderUtils.fipsEnabledBuiltIn(executionAttributes));
+        setClientContextParams(builder, executionAttributes);
+        setContextParams(builder, executionAttributes.getAttribute(AwsExecutionAttribute.OPERATION_NAME), context.request());
+        setStaticContextParams(builder, executionAttributes.getAttribute(AwsExecutionAttribute.OPERATION_NAME));
         return builder.build();
     }
 

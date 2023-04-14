@@ -21,6 +21,7 @@ import static org.mockito.Mockito.verify;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -111,6 +112,37 @@ public class LruCacheTest {
         verify(simpleValueSupplier, times(1)).apply(simpleTestKeys.get(2));
         verify(simpleValueSupplier, times(1)).apply(simpleTestKeys.get(3));
         verify(simpleValueSupplier, times(1)).apply(simpleTestKeys.get(4));
+    }
+
+    @Test
+    void when_closeableValuesAreEvicted_CloseMethodIsCalled() {
+        int cacheSize = 3;
+        int evictNum = 2;
+        LruCache<Integer, CloseableClass> cache = LruCache.builder(CloseableClass::new)
+                                                          .maxSize(cacheSize)
+                                                          .build();
+        CloseableClass.reset();
+        for (int i = 0; i < cacheSize + evictNum; i++) {
+            cache.get(i);
+        }
+        assertThat(CloseableClass.evictedItems()).isNotEmpty();
+        assertThat(CloseableClass.evictedItems()).hasSize(evictNum);
+        assertThat(CloseableClass.evictedItems().get(0)).isEqualTo(0);
+        assertThat(CloseableClass.evictedItems().get(1)).isEqualTo(1);
+    }
+
+    @Test
+    void when_closeableValuesAreEvicted_NoExceptionsAreThrownIfCloseFails() {
+        int cacheSize = 3;
+        int evictNum = 2;
+        LruCache<Integer, FaultyCloseableClass> cache = LruCache.builder(FaultyCloseableClass::new)
+                                                                .maxSize(cacheSize)
+                                                                .build();
+        CloseableClass.reset();
+        for (int i = 0; i < cacheSize + evictNum; i++) {
+            cache.get(i);
+        }
+        assertThat(CloseableClass.evictedItems()).isEmpty();
     }
 
     @Test
@@ -255,6 +287,44 @@ public class LruCacheTest {
 
             }
             return value;
+        }
+    }
+
+    private static class CloseableClass implements AutoCloseable {
+
+        private static List<Integer> evictedList = new ArrayList<>();
+
+        private final Integer key;
+        CloseableClass(Integer key) {
+            this.key = key;
+        }
+        public Integer get() throws Exception {
+            return key;
+        }
+
+        public static void reset() {
+            evictedList = new ArrayList<>();
+        }
+
+        public static List<Integer> evictedItems() {
+            return Collections.unmodifiableList(evictedList);
+        }
+
+        @Override
+        public void close() {
+            evictedList.add(key);
+        }
+    }
+
+    private static class FaultyCloseableClass extends CloseableClass {
+
+        FaultyCloseableClass(Integer key) {
+            super(key);
+        }
+
+        @Override
+        public void close() {
+            throw new RuntimeException("Could not close resources!");
         }
     }
 }
