@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Lambda",
-    "contributor": "",
-    "description": "This release adds SnapStart related exceptions to InvokeWithResponseStream API. IAM access related documentation is also added for this API."
-}
