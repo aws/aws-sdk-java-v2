@@ -1,3 +1,36 @@
+# __2.20.48__ __2023-04-17__
+## __AWS IoT Wireless__
+  - ### Features
+    - Supports the new feature of LoRaWAN roaming, allows to configure MaxEirp for LoRaWAN gateway, and allows to configure PingSlotPeriod for LoRaWAN multicast group
+
+## __AWS Lambda__
+  - ### Features
+    - Add Python 3.10 (python3.10) support to AWS Lambda
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Appflow__
+  - ### Features
+    - This release adds a Client Token parameter to the following AppFlow APIs: Create/Update Connector Profile, Create/Update Flow, Start Flow, Register Connector, Update Connector Registration. The Client Token parameter allows idempotent operations for these APIs.
+
+## __Amazon CloudWatch Internet Monitor__
+  - ### Features
+    - This release includes a new configurable value, TrafficPercentageToMonitor, which allows users to adjust the amount of traffic monitored by percentage
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Documentation updates for DynamoDB API
+
+## __EMR Serverless__
+  - ### Features
+    - The GetJobRun API has been updated to include the job's billed resource utilization. This utilization shows the aggregate vCPU, memory and storage that AWS has billed for the job run. The billed resources include a 1-minute minimum usage for workers, plus additional storage over 20 GB per worker.
+
+## __Elastic Disaster Recovery Service__
+  - ### Features
+    - Changed existing APIs and added new APIs to support using an account-level launch configuration template with AWS Elastic Disaster Recovery.
+
 # __2.20.47__ __2023-04-14__
 ## __AWS Lambda__
   - ### Features
