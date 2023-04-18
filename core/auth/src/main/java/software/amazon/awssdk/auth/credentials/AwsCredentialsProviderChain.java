@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.exception.HttpImplementationException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
@@ -102,7 +103,11 @@ public final class AwsCredentialsProviderChain
             } catch (RuntimeException e) {
                 // Ignore any exceptions and move onto the next provider
                 String message = provider + ": " + e.getMessage();
-                log.debug(() -> "Unable to load credentials from " + message , e);
+                if (e instanceof HttpImplementationException) {
+                    log.warn(() -> "Unable to load credentials from " + message , e);
+                }else {
+                    log.debug(() -> "Unable to load credentials from " + message , e);
+                }
 
                 if (exceptionMessages == null) {
                     exceptionMessages = new ArrayList<>();

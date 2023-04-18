@@ -93,11 +93,6 @@ public class WebIdentityTokenFileCredentialsProvider
             } else {
                 credentialsProvider = builder.factory.create(credentialProperties);
             }
-        } catch (HttpImplementationException e) {
-            // If we couldn't create credentialsProvider due to multiple http implementations or unload-able http factory
-            // we should fail fast so that provider chain doesn't silently continue onto next provider chain and pickup
-            // unexpected credentials
-            throw e;
         } catch (RuntimeException e) {
             // If we couldn't load the credentials provider for some reason, save an exception describing why. This exception
             // will only be raised on calls to getCredentials. We don't want to raise an exception here because it may be
