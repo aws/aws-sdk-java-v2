@@ -15,7 +15,9 @@
 
 package software.amazon.awssdk.core;
 
+import java.net.URI;
 import java.util.Objects;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 
@@ -26,9 +28,11 @@ import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 public abstract class SdkServiceClientConfiguration {
 
     private final ClientOverrideConfiguration overrideConfiguration;
+    private final URI endpointOverride;
 
     protected SdkServiceClientConfiguration(Builder builder) {
         this.overrideConfiguration = builder.overrideConfiguration();
+        this.endpointOverride = builder.endpointOverride();
     }
 
     /**
@@ -38,6 +42,15 @@ public abstract class SdkServiceClientConfiguration {
      */
     public ClientOverrideConfiguration overrideConfiguration() {
         return this.overrideConfiguration;
+    }
+
+    /**
+     *
+     * @return The configured endpoint override of the SdkClient. If the endpoint was not overridden, an empty Optional will be
+     * returned
+     */
+    public Optional<URI> endpointOverride() {
+        return Optional.ofNullable(this.endpointOverride);
     }
 
     @Override
@@ -50,12 +63,15 @@ public abstract class SdkServiceClientConfiguration {
         }
 
         SdkServiceClientConfiguration serviceClientConfiguration = (SdkServiceClientConfiguration) o;
-        return Objects.equals(overrideConfiguration, serviceClientConfiguration.overrideConfiguration());
+        return Objects.equals(overrideConfiguration, serviceClientConfiguration.overrideConfiguration())
+               && Objects.equals(endpointOverride, serviceClientConfiguration.endpointOverride().orElse(null));
     }
 
     @Override
     public int hashCode() {
-        return overrideConfiguration != null ? overrideConfiguration.hashCode() : 0;
+        int result = overrideConfiguration != null ? overrideConfiguration.hashCode() : 0;
+        result = 31 * result + (endpointOverride != null ? endpointOverride.hashCode() : 0);
+        return result;
     }
 
     /**
@@ -68,9 +84,19 @@ public abstract class SdkServiceClientConfiguration {
         ClientOverrideConfiguration overrideConfiguration();
 
         /**
+         * Return the endpoint override
+         */
+        URI endpointOverride();
+
+        /**
          * Configure the client override configuration
          */
         Builder overrideConfiguration(ClientOverrideConfiguration clientOverrideConfiguration);
+
+        /**
+         * Configure the endpoint override
+         */
+        Builder endpointOverride(URI endpointOverride);
 
         /**
          * Build the service client configuration using the configuration on this builder

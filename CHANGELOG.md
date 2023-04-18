@@ -1,3 +1,143 @@
+# __2.20.48__ __2023-04-17__
+## __AWS IoT Wireless__
+  - ### Features
+    - Supports the new feature of LoRaWAN roaming, allows to configure MaxEirp for LoRaWAN gateway, and allows to configure PingSlotPeriod for LoRaWAN multicast group
+
+## __AWS Lambda__
+  - ### Features
+    - Add Python 3.10 (python3.10) support to AWS Lambda
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Appflow__
+  - ### Features
+    - This release adds a Client Token parameter to the following AppFlow APIs: Create/Update Connector Profile, Create/Update Flow, Start Flow, Register Connector, Update Connector Registration. The Client Token parameter allows idempotent operations for these APIs.
+
+## __Amazon CloudWatch Internet Monitor__
+  - ### Features
+    - This release includes a new configurable value, TrafficPercentageToMonitor, which allows users to adjust the amount of traffic monitored by percentage
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Documentation updates for DynamoDB API
+
+## __EMR Serverless__
+  - ### Features
+    - The GetJobRun API has been updated to include the job's billed resource utilization. This utilization shows the aggregate vCPU, memory and storage that AWS has billed for the job run. The billed resources include a 1-minute minimum usage for workers, plus additional storage over 20 GB per worker.
+
+## __Elastic Disaster Recovery Service__
+  - ### Features
+    - Changed existing APIs and added new APIs to support using an account-level launch configuration template with AWS Elastic Disaster Recovery.
+
+# __2.20.47__ __2023-04-14__
+## __AWS Lambda__
+  - ### Features
+    - This release adds SnapStart related exceptions to InvokeWithResponseStream API. IAM access related documentation is also added for this API.
+
+## __AWS Migration Hub Refactor Spaces__
+  - ### Features
+    - Doc only update for Refactor Spaces environments without network bridge feature.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release supports ephemeral storage for AWS Fargate Windows containers.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds support of modifying the engine mode of database clusters.
+
+# __2.20.46__ __2023-04-13__
+## __AWS MediaConnect__
+  - ### Features
+    - Gateway is a new feature of AWS Elemental MediaConnect. Gateway allows the deployment of on-premises resources for the purpose of transporting live video to and from the AWS Cloud.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Chime SDK Voice__
+  - ### Features
+    - This release adds tagging support for Voice Connectors and SIP Media Applications
+
+# __2.20.45__ __2023-04-12__
+## __AWS Ground Station__
+  - ### Features
+    - AWS Ground Station Wideband DigIF GA Release
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Managed Blockchain__
+  - ### Features
+    - Removal of the Ropsten network. The Ethereum foundation ceased support of Ropsten on December 31st, 2022..
+
+# __2.20.44__ __2023-04-11__
+## __AWS IoT__
+  - ### Features
+    - Re-release to remove unexpected API changes
+
+## __AWS IoT Data Plane__
+  - ### Features
+    - This release adds support for MQTT5 user properties when calling the AWS IoT GetRetainedMessage API
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Exposes endpointOverride in SdkClient through ServiceClientConfiguration
+    - Updated endpoint and partition metadata.
+
+## __AWS WAFV2__
+  - ### Features
+    - For web ACLs that protect CloudFront protections, the default request body inspection size is now 16 KB, and you can use the new association configuration to increase the inspection size further, up to 64 KB. Sizes over 16 KB can incur additional costs.
+
+## __Amazon Elastic Container Registry Public__
+  - ### Features
+    - This release will allow using registry alias as registryId in BatchDeleteImage request.
+
+## __Amazon EventBridge__
+  - ### Features
+    - EventBridge PutTarget support for multiple SQL arguments on RedshiftDataParameters
+
+## __EMR Serverless__
+  - ### Features
+    - This release extends GetJobRun API to return job run timeout (executionTimeoutMinutes) specified during StartJobRun call (or default timeout of 720 minutes if none was specified).
+
+# __2.20.43__ __2023-04-10__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - AWS Elemental MediaConvert SDK now supports conversion of 608 paint-on captions to pop-on captions for SCC sources.
+
+## __AWS Marketplace Catalog Service__
+  - ### Features
+    - Added three new APIs to support resource sharing: GetResourcePolicy, PutResourcePolicy, and DeleteResourcePolicy. Added new OwnershipType field to ListEntities request to let users filter on entities that are shared with them. Increased max page size of ListEntities response from 20 to 50 results.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Expose StandardRetryOptions of S3ClientOptions in the S3CrtClient Interface
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds the ability to configure an agent's routing profile to receive contacts from multiple channels at the same time via extending the UpdateRoutingProfileConcurrency, CreateRoutingProfile and DescribeRoutingProfile APIs.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release adds support for enabling FIPS compliance on Amazon ECS Fargate tasks
+
+## __Amazon Omics__
+  - ### Features
+    - Remove unexpected API changes.
+
+## __Amazon Rekognition__
+  - ### Features
+    - This release adds support for Face Liveness APIs in Amazon Rekognition. Updates UpdateStreamProcessor to return ResourceInUseException Exception. Minor updates to API documentation.
+
 # __2.20.42__ __2023-04-07__
 ## __AWS Lambda__
   - ### Features

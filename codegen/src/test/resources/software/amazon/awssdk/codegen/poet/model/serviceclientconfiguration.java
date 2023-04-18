@@ -1,5 +1,6 @@
 package software.amazon.awssdk.services.jsonprotocoltests;
 
+import java.net.URI;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.awscore.AwsServiceClientConfiguration;
@@ -30,11 +31,19 @@ public final class JsonProtocolTestsServiceClientConfiguration extends AwsServic
         /**
          * Configure the region
          */
+        @Override
         Builder region(Region region);
+
+        /**
+         * Configure the endpointOverride
+         */
+        @Override
+        Builder endpointOverride(URI endpointOverride);
 
         /**
          * Configure the client override configuration
          */
+        @Override
         Builder overrideConfiguration(ClientOverrideConfiguration clientOverrideConfiguration);
     }
 
@@ -55,6 +64,12 @@ public final class JsonProtocolTestsServiceClientConfiguration extends AwsServic
         @Override
         public Builder overrideConfiguration(ClientOverrideConfiguration clientOverrideConfiguration) {
             this.overrideConfiguration = clientOverrideConfiguration;
+            return this;
+        }
+
+        @Override
+        public Builder endpointOverride(URI endpointOverride) {
+            this.endpointOverride = endpointOverride;
             return this;
         }
 

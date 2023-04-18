@@ -24,6 +24,7 @@ import static javax.lang.model.element.Modifier.STATIC;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
+import java.net.URI;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.awscore.AwsServiceClientConfiguration;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -89,12 +90,21 @@ public class ServiceClientConfigurationClass implements ClassSpec {
                                             .returns(className())
                                             .build())
                        .addMethod(MethodSpec.methodBuilder("region")
+                                            .addAnnotation(Override.class)
                                             .addModifiers(PUBLIC, ABSTRACT)
                                             .addParameter(Region.class, "region")
                                             .returns(className().nestedClass("Builder"))
                                             .addJavadoc("Configure the region")
                                             .build())
+                       .addMethod(MethodSpec.methodBuilder("endpointOverride")
+                                            .addAnnotation(Override.class)
+                                            .addModifiers(PUBLIC, ABSTRACT)
+                                            .addParameter(URI.class, "endpointOverride")
+                                            .returns(className().nestedClass("Builder"))
+                                            .addJavadoc("Configure the endpointOverride")
+                                            .build())
                        .addMethod(MethodSpec.methodBuilder("overrideConfiguration")
+                                            .addAnnotation(Override.class)
                                             .addModifiers(PUBLIC, ABSTRACT)
                                             .addParameter(ClientOverrideConfiguration.class, "clientOverrideConfiguration")
                                             .returns(className().nestedClass("Builder"))
@@ -130,6 +140,14 @@ public class ServiceClientConfigurationClass implements ClassSpec {
                                             .addParameter(ClientOverrideConfiguration.class, "clientOverrideConfiguration")
                                             .returns(className().nestedClass("Builder"))
                                             .addStatement("this.overrideConfiguration = clientOverrideConfiguration")
+                                            .addStatement("return this")
+                                            .build())
+                       .addMethod(MethodSpec.methodBuilder("endpointOverride")
+                                            .addAnnotation(Override.class)
+                                            .addModifiers(PUBLIC)
+                                            .addParameter(URI.class, "endpointOverride")
+                                            .returns(className().nestedClass("Builder"))
+                                            .addStatement("this.endpointOverride = endpointOverride")
                                             .addStatement("return this")
                                             .build())
                        .addMethod(MethodSpec.methodBuilder("build")
