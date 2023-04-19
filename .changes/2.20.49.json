@@ -1,0 +1,66 @@
+{
+    "version": "2.20.49",
+    "date": "2023-04-19",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Resource Access Manager",
+            "contributor": "",
+            "description": "This release adds support for customer managed permissions. Customer managed permissions enable customers to author and manage tailored permissions for resources shared using RAM."
+        },
+        {
+            "type": "feature",
+            "category": "AWS S3 Control",
+            "contributor": "",
+            "description": "Provides support for overriding endpoint when region is \"snow\". This will enable bucket APIs for Amazon S3 Compatible storage on Snow Family devices."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "API to Add TrustAllCertificates in CRT S3 Client options for test purposes"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Secrets Manager",
+            "contributor": "",
+            "description": "Documentation updates for Secrets Manager"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SecurityHub",
+            "contributor": "",
+            "description": "Update that adds SDK code examples for Security Hub"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Comprehend",
+            "contributor": "",
+            "description": "This release supports native document models for custom classification, in addition to plain-text models. You train native document models using documents (PDF, Word, images) in their native format."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "contributor": "",
+            "description": "This release supports the Account Setting \"TagResourceAuthorization\" that allows for enhanced Tagging security controls."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "Adds support for the ImageId parameter of CreateCustomDBEngineVersion to RDS Custom for Oracle"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Storage Service",
+            "contributor": "",
+            "description": "Provides support for \"Snow\" Storage class."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}
