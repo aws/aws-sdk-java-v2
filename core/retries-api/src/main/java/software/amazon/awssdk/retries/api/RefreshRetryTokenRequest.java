@@ -19,6 +19,9 @@ import java.time.Duration;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.retries.api.internal.RefreshRetryTokenRequestImpl;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * Request that the calling code makes to the {@link RetryStrategy} using
@@ -27,7 +30,7 @@ import software.amazon.awssdk.annotations.ThreadSafe;
  */
 @SdkPublicApi
 @ThreadSafe
-public interface RefreshRetryTokenRequest {
+public interface RefreshRetryTokenRequest extends ToCopyableBuilder<RefreshRetryTokenRequest.Builder, RefreshRetryTokenRequest> {
     /**
      * A {@link RetryToken} acquired a previous {@link RetryStrategy#acquireInitialToken} or
      * {@link RetryStrategy#refreshRetryToken} call.
@@ -44,4 +47,33 @@ public interface RefreshRetryTokenRequest {
      * The cause of the last attempt failure.
      */
     Throwable failure();
+
+    /**
+     * Returns a new builder to configure the {@link RefreshRetryTokenRequest} instance.
+     */
+    static Builder builder() {
+        return RefreshRetryTokenRequestImpl.builder();
+    }
+
+    interface Builder extends CopyableBuilder<Builder, RefreshRetryTokenRequest> {
+        /**
+         * Configures the {@link RetryToken} to be refreshed.
+         */
+        Builder token(RetryToken token);
+
+        /**
+         * Configures the suggested delay to used when refreshing the token.
+         */
+        Builder suggestedDelay(Duration duration);
+
+        /**
+         * Configures the latest caught exception.
+         */
+        Builder failure(Throwable throwable);
+
+        /**
+         * Builds and returns a new instance of {@linke RefreshRetryTokenRequest}.
+         */
+        RefreshRetryTokenRequest build();
+    }
 }

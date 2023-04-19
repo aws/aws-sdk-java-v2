@@ -47,6 +47,7 @@
         <module>endpoints-spi</module>
         <module>imds</module>
         <module>retries-api</module>
+        <module>retries</module>
     </modules>
 
     <dependencyManagement>

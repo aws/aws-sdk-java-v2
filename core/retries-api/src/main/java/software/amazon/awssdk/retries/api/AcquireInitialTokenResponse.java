@@ -18,6 +18,7 @@ package software.amazon.awssdk.retries.api;
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.retries.api.internal.AcquireInitialTokenResponseImpl;
 
 /**
  * Encapsulates the response from the {@link RetryStrategy} to the request to start the attempts to be executed.
@@ -35,4 +36,11 @@ public interface AcquireInitialTokenResponse {
      * The amount of time to wait before performing the first attempt.
      */
     Duration delay();
+
+    /**
+     * Creates a new {@link AcquireInitialTokenRequest} instance with the given scope.
+     */
+    static AcquireInitialTokenResponse create(RetryToken token, Duration delay) {
+        return AcquireInitialTokenResponseImpl.create(token, delay);
+    }
 }

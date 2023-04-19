@@ -41,7 +41,10 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @ThreadSafe
 @SdkPublicApi
-public interface RetryStrategy extends ToCopyableBuilder<RetryStrategy.Builder, RetryStrategy> {
+public interface RetryStrategy<
+    B extends CopyableBuilder<B, T> & RetryStrategy.Builder<B, T>,
+    T extends ToCopyableBuilder<B, T> & RetryStrategy<B, T>>
+    extends ToCopyableBuilder<B, T> {
     /**
      * Invoked before the first request attempt.
      *
@@ -86,21 +89,24 @@ public interface RetryStrategy extends ToCopyableBuilder<RetryStrategy.Builder, 
      * <p>This is useful for modifying the strategy's behavior, like conditions or max retries.
      */
     @Override
-    Builder toBuilder();
+    B toBuilder();
 
     /**
      * Builder to create immutable instances of {@link RetryStrategy}.
      */
-    interface Builder extends CopyableBuilder<Builder, RetryStrategy> {
+    interface Builder<
+        B extends Builder<B, T> & CopyableBuilder<B, T>,
+        T extends ToCopyableBuilder<B, T> & RetryStrategy<B, T>>
+        extends CopyableBuilder<B, T> {
         /**
          * Configure the strategy to retry when the provided predicate returns true, given a failure exception.
          */
-        Builder retryOnException(Predicate<Throwable> shouldRetry);
+        B retryOnException(Predicate<Throwable> shouldRetry);
 
         /**
          * Configure the strategy to retry when a failure exception class is equal to the provided class.
          */
-        default Builder retryOnException(Class<? extends Throwable> throwable) {
+        default B retryOnException(Class<? extends Throwable> throwable) {
             return retryOnException(t -> t.getClass() == throwable);
         }
 
@@ -108,14 +114,14 @@ public interface RetryStrategy extends ToCopyableBuilder<RetryStrategy.Builder, 
          * Configure the strategy to retry when a failure exception class is an instance of the provided class (includes
          * subtypes).
          */
-        default Builder retryOnExceptionInstanceOf(Class<? extends Throwable> throwable) {
+        default B retryOnExceptionInstanceOf(Class<? extends Throwable> throwable) {
             return retryOnException(t -> throwable.isAssignableFrom(t.getClass()));
         }
 
         /**
          * Configure the strategy to retry when a failure exception or one of its cause classes is equal to the provided class.
          */
-        default Builder retryOnExceptionOrCause(Class<? extends Throwable> throwable) {
+        default B retryOnExceptionOrCause(Class<? extends Throwable> throwable) {
             return retryOnException(t -> {
                 if (t.getClass() == throwable) {
                     return true;
@@ -135,7 +141,7 @@ public interface RetryStrategy extends ToCopyableBuilder<RetryStrategy.Builder, 
          * Configure the strategy to retry when a failure exception or one of its cause classes is an instance of the provided
          * class (includes subtypes).
          */
-        default Builder retryOnExceptionOrCauseInstanceOf(Class<? extends Throwable> throwable) {
+        default B retryOnExceptionOrCauseInstanceOf(Class<? extends Throwable> throwable) {
             return retryOnException(t -> {
                 if (throwable.isAssignableFrom(t.getClass())) {
                     return true;
@@ -155,7 +161,7 @@ public interface RetryStrategy extends ToCopyableBuilder<RetryStrategy.Builder, 
          * Configure the strategy to retry the root cause of a failure (the final cause) a failure exception is equal to the
          * provided class.
          */
-        default Builder retryOnRootCause(Class<? extends Throwable> throwable) {
+        default B retryOnRootCause(Class<? extends Throwable> throwable) {
             return retryOnException(t -> {
                 boolean shouldRetry = false;
                 Throwable cause = t.getCause();
@@ -171,7 +177,7 @@ public interface RetryStrategy extends ToCopyableBuilder<RetryStrategy.Builder, 
          * Configure the strategy to retry the root cause of a failure (the final cause) a failure exception is an instance of to
          * the provided class (includes subtypes).
          */
-        default Builder retryOnRootCauseInstanceOf(Class<? extends Throwable> throwable) {
+        default B retryOnRootCauseInstanceOf(Class<? extends Throwable> throwable) {
             return retryOnException(t -> {
                 boolean shouldRetry = false;
                 Throwable cause = t.getCause();
@@ -191,17 +197,12 @@ public interface RetryStrategy extends ToCopyableBuilder<RetryStrategy.Builder, 
          *
          * <p>The default value for the standard and adaptive retry strategies is 3.
          */
-        Builder maxAttempts(int maxAttempts);
-
-        /**
-         * Configure the predicate to allow the strategy categorize a Throwable as throttling exception.
-         */
-        Builder treatAsThrottling(Predicate<Throwable> treatAsThrottling);
+        B maxAttempts(int maxAttempts);
 
         /**
          * Build a new {@link RetryStrategy} with the current configuration on this builder.
          */
         @Override
-        RetryStrategy build();
+        T build();
     }
 }
