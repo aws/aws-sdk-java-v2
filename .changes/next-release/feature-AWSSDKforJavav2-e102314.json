@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "API to Add TrustAllCertificates in CRT S3 Client options for test purposes"
+}
