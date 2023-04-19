@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.retries.backoff;
+package software.amazon.awssdk.retries.api.internal.backoff;
 
 
 import static org.hamcrest.MatcherAssert.assertThat;

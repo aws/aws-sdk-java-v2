@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.retries.backoff;
+package software.amazon.awssdk.retries.api.internal.backoff;
 
 import java.time.Duration;
 import java.util.Random;
@@ -28,11 +28,11 @@ import software.amazon.awssdk.utils.Validate;
  * Strategy that waits for a random period of time between 0ms and the provided delay.
  */
 @SdkInternalApi
-final class FixedDelayWithJitter implements BackoffStrategy {
+public final class FixedDelayWithJitter implements BackoffStrategy {
     private final Supplier<Random> randomSupplier;
     private final Duration delay;
 
-    FixedDelayWithJitter(Supplier<Random> randomSupplier, Duration delay) {
+    public FixedDelayWithJitter(Supplier<Random> randomSupplier, Duration delay) {
         this.randomSupplier = Validate.paramNotNull(randomSupplier, "random");
         this.delay = NumericUtils.min(Validate.isPositive(delay, "delay"), BackoffStrategiesConstants.BASE_DELAY_CEILING);
     }

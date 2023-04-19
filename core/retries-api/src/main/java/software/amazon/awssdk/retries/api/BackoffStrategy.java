@@ -16,8 +16,14 @@
 package software.amazon.awssdk.retries.api;
 
 import java.time.Duration;
+import java.util.concurrent.ThreadLocalRandom;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.retries.api.internal.backoff.ExponentialDelayWithJitter;
+import software.amazon.awssdk.retries.api.internal.backoff.ExponentialDelayWithoutJitter;
+import software.amazon.awssdk.retries.api.internal.backoff.FixedDelayWithJitter;
+import software.amazon.awssdk.retries.api.internal.backoff.FixedDelayWithoutJitter;
+import software.amazon.awssdk.retries.api.internal.backoff.Immediately;
 
 /**
  * Determines how long to wait before each execution attempt.
@@ -33,4 +39,47 @@ public interface BackoffStrategy {
      * @throws IllegalArgumentException If the given attempt is less or equal to zero.
      */
     Duration computeDelay(int attempt);
+
+    /**
+     * Do not back off: retry immediately.
+     */
+    static BackoffStrategy retryImmediately() {
+        return new Immediately();
+    }
+
+    /**
+     * Wait for a random period of time between 0ms and the provided delay.
+     */
+    static BackoffStrategy fixedDelay(Duration delay) {
+        return new FixedDelayWithJitter(ThreadLocalRandom::current, delay);
+    }
+
+    /**
+     * Wait for a period of time equal to the provided delay.
+     */
+    static BackoffStrategy fixedDelayWithoutJitter(Duration delay) {
+        return new FixedDelayWithoutJitter(delay);
+    }
+
+    /**
+     * Wait for a random period of time between 0ms and an exponentially increasing amount of time between each subsequent attempt
+     * of the same call.
+     *
+     * <p>Specifically, the first attempt waits 0ms, and each subsequent attempt waits between
+     * 0ms and {@code min(maxDelay, baseDelay * (1 << (attempt - 2)))}.
+     */
+    static BackoffStrategy exponentialDelay(Duration baseDelay, Duration maxDelay) {
+        return new ExponentialDelayWithJitter(ThreadLocalRandom::current, baseDelay, maxDelay);
+    }
+
+    /**
+     * Wait for an exponentially increasing amount of time between each subsequent attempt of the same call.
+     *
+     * <p>Specifically, the first attempt waits 0ms, and each subsequent attempt waits for
+     * {@code min(maxDelay, baseDelay * (1 << (attempt - 2)))}.
+     */
+    static BackoffStrategy exponentialDelayWithoutJitter(Duration baseDelay, Duration maxDelay) {
+        return new ExponentialDelayWithoutJitter(baseDelay, maxDelay);
+    }
+
 }

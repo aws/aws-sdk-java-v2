@@ -13,35 +13,26 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.retries.backoff;
+package software.amazon.awssdk.retries.api.internal.backoff;
 
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.retries.api.BackoffStrategy;
-import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * Strategy that waits for a period of time equal to the provided delay.
+ * Strategy that do not back off: retry immediately.
  */
 @SdkInternalApi
-final class FixedDelayWithoutJitter implements BackoffStrategy {
-    private final Duration delay;
-
-    FixedDelayWithoutJitter(Duration delay) {
-        this.delay = Validate.isPositive(delay, "delay");
-    }
-
+public final class Immediately implements BackoffStrategy {
     @Override
     public Duration computeDelay(int attempt) {
         Validate.isPositive(attempt, "attempt");
-        return delay;
+        return Duration.ZERO;
     }
 
     @Override
     public String toString() {
-        return ToString.builder("FixedDelayWithoutJitter")
-                       .add("delay", delay)
-                       .build();
+        return "(Immediately)";
     }
 }

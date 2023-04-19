@@ -13,9 +13,9 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.retries.backoff;
+package software.amazon.awssdk.retries.api.internal.backoff;
 
-import static software.amazon.awssdk.retries.backoff.BackoffStrategiesConstants.calculateExponentialDelay;
+import static software.amazon.awssdk.retries.api.internal.backoff.BackoffStrategiesConstants.calculateExponentialDelay;
 
 import java.time.Duration;
 import java.util.Random;
@@ -34,12 +34,12 @@ import software.amazon.awssdk.utils.Validate;
  * 0ms and {@code min(maxDelay, baseDelay * (1 << (attempt - 2)))}.
  */
 @SdkInternalApi
-final class ExponentialDelayWithJitter implements BackoffStrategy {
+public final class ExponentialDelayWithJitter implements BackoffStrategy {
     private final Supplier<Random> randomSupplier;
     private final Duration baseDelay;
     private final Duration maxDelay;
 
-    ExponentialDelayWithJitter(Supplier<Random> randomSupplier, Duration baseDelay, Duration maxDelay) {
+    public ExponentialDelayWithJitter(Supplier<Random> randomSupplier, Duration baseDelay, Duration maxDelay) {
         this.randomSupplier = Validate.paramNotNull(randomSupplier, "random");
         this.baseDelay = NumericUtils.min(Validate.isPositive(baseDelay, "baseDelay"),
                                           BackoffStrategiesConstants.BASE_DELAY_CEILING);
