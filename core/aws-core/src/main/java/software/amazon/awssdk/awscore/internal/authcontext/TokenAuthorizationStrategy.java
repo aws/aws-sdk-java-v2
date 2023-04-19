@@ -18,7 +18,7 @@ package software.amazon.awssdk.awscore.internal.authcontext;
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.token.credentials.SdkToken;
-import software.amazon.awssdk.auth.token.credentials.TokenUtils;
+import software.amazon.awssdk.auth.token.credentials.internal.TokenUtils;
 import software.amazon.awssdk.auth.token.signer.SdkTokenExecutionAttribute;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;

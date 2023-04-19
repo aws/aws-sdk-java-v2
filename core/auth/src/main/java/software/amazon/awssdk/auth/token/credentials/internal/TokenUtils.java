@@ -13,11 +13,14 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.token.credentials;
+package software.amazon.awssdk.auth.token.credentials.internal;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.auth.token.credentials.SdkToken;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
 
+// TODO: Delete this once more SRA work is done where signers are using the new Identity types and this conversion is not
+//  necessary.
 @SdkInternalApi
 public class TokenUtils {
 

@@ -13,12 +13,13 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.token.credentials;
+package software.amazon.awssdk.auth.token.credentials.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.token.TestBearerToken;
+import software.amazon.awssdk.auth.token.credentials.SdkToken;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
 
 public class TokenUtilsTest {
