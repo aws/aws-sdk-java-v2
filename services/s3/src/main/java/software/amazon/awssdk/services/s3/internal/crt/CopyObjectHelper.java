@@ -56,11 +56,11 @@ public final class CopyObjectHelper {
     private static final long MAX_UPLOAD_PARTS = 10_000;
 
     private final S3AsyncClient s3AsyncClient;
-    private final S3NativeClientConfiguration s3NativeClientConfiguration;
+    private final long partSizeInBytes;
 
-    public CopyObjectHelper(S3AsyncClient s3AsyncClient, S3NativeClientConfiguration s3NativeClientConfiguration) {
+    public CopyObjectHelper(S3AsyncClient s3AsyncClient, long partSizeInBytes) {
         this.s3AsyncClient = s3AsyncClient;
-        this.s3NativeClientConfiguration = s3NativeClientConfiguration;
+        this.partSizeInBytes = partSizeInBytes;
     }
 
     public CompletableFuture<CopyObjectResponse> copyObject(CopyObjectRequest copyObjectRequest) {
@@ -92,9 +92,7 @@ public final class CopyObjectHelper {
                               HeadObjectResponse headObjectResponse) {
         Long contentLength = headObjectResponse.contentLength();
 
-        long partSize = s3NativeClientConfiguration.partSizeBytes();
-
-        if (contentLength <= partSize) {
+        if (contentLength <= partSizeInBytes) {
             log.debug(() -> "Starting the copy as a single copy part request");
             copyInOneChunk(copyObjectRequest, returnFuture);
         } else {
@@ -132,7 +130,7 @@ public final class CopyObjectHelper {
                                Long contentLength,
                                CompletableFuture<CopyObjectResponse> returnFuture,
                                String uploadId) {
-        long optimalPartSize = calculateOptimalPartSizeForCopy(s3NativeClientConfiguration.partSizeBytes());
+        long optimalPartSize = calculateOptimalPartSizeForCopy(partSizeInBytes);
 
         int partCount = determinePartCount(contentLength, optimalPartSize);
 
@@ -281,8 +279,7 @@ public final class CopyObjectHelper {
         double optimalPartSize = contentLengthOfSource / (double) MAX_UPLOAD_PARTS;
 
         optimalPartSize = Math.ceil(optimalPartSize);
-        return (long) Math.max(optimalPartSize,
-                               s3NativeClientConfiguration.partSizeBytes());
+        return (long) Math.max(optimalPartSize, partSizeInBytes);
     }
 
     private void copyInOneChunk(CopyObjectRequest copyObjectRequest,

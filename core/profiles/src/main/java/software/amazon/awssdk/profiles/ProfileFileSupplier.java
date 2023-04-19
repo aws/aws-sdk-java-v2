@@ -16,9 +16,11 @@
 package software.amazon.awssdk.profiles;
 
 import java.nio.file.Path;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -119,7 +121,8 @@ public interface ProfileFileSupplier extends Supplier<ProfileFile> {
         return new ProfileFileSupplier() {
 
             final AtomicReference<ProfileFile> currentAggregateProfileFile = new AtomicReference<>();
-            final ConcurrentHashMap<Supplier<ProfileFile>, ProfileFile> currentValuesBySupplier = new ConcurrentHashMap<>();
+            final Map<Supplier<ProfileFile>, ProfileFile> currentValuesBySupplier
+                = Collections.synchronizedMap(new LinkedHashMap<>());
 
             @Override
             public ProfileFile get() {

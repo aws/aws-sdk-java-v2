@@ -751,6 +751,33 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "stevenshan",
+      "name": "Steven Shan",
+      "avatar_url": "https://avatars.githubusercontent.com/u/3723174?v=4",
+      "profile": "https://github.com/stevenshan",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "barryoneill",
+      "name": "Barry O'Neill",
+      "avatar_url": "https://avatars.githubusercontent.com/u/885049?v=4",
+      "profile": "https://github.com/barryoneill",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "akiesler",
+      "name": "Andy Kiesler",
+      "avatar_url": "https://avatars.githubusercontent.com/u/4186292?v=4",
+      "profile": "https://github.com/akiesler",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

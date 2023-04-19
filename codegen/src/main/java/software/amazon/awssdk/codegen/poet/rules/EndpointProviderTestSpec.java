@@ -121,7 +121,7 @@ public class EndpointProviderTestSpec implements ClassSpec {
 
         if (test.getParams() != null) {
             test.getParams().forEach((n, v) -> {
-                if (!isDeclaredParam(n)) {
+                if (!endpointRulesSpecUtils.isDeclaredParam(n)) {
                     return;
                 }
 
@@ -143,10 +143,5 @@ public class EndpointProviderTestSpec implements ClassSpec {
         Map<String, ParameterModel> parameters = model.getEndpointRuleSetModel().getParameters();
         ParameterModel param = parameters.get(paramName);
         return param.getBuiltInEnum() == BuiltInParameter.AWS_REGION;
-    }
-
-    private boolean isDeclaredParam(String paramName) {
-        Map<String, ParameterModel> parameters = model.getEndpointRuleSetModel().getParameters();
-        return parameters.containsKey(paramName);
     }
 }
