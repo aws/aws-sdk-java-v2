@@ -15,8 +15,7 @@
 
 package software.amazon.awssdk.retries.api;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -107,7 +106,7 @@ public class RetryStrategyBuilderTest {
     @ParameterizedTest
     @MethodSource("parameters")
     public void testCase(TestCase testCase) {
-        assertThat(testCase.run(), equalTo(testCase.expected()));
+        assertThat(testCase.run()).isEqualTo(testCase.expected());
     }
 
     static class TestCase {
