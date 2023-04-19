@@ -24,25 +24,30 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>retries-api</artifactId>
-    <name>AWS Java SDK :: Retries API</name>
+    <artifactId>retries</artifactId>
+    <name>AWS Java SDK :: Retries</name>
     <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <configuration>
-                    <archive>
-                        <manifestEntries>
-                            <Automatic-Module-Name>software.amazon.awssdk.retries.api</Automatic-Module-Name>
-                        </manifestEntries>
-                    </archive>
-                </configuration>
-            </plugin>
-        </plugins>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-jar-plugin</artifactId>
+          <configuration>
+            <archive>
+              <manifestEntries>
+                <Automatic-Module-Name>software.amazon.awssdk.retries</Automatic-Module-Name>
+              </manifestEntries>
+            </archive>
+          </configuration>
+        </plugin>
+      </plugins>
     </build>
 
     <dependencies>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>retries-api</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>annotations</artifactId>
