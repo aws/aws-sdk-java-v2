@@ -3,10 +3,11 @@ package software.amazon.awssdk.services.json;
 import java.net.URI;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.services.json.endpoints.JsonEndpointProvider;
 
 /**
@@ -23,8 +24,8 @@ final class DefaultJsonClientBuilder extends DefaultJsonBaseClientBuilder<JsonCl
     }
 
     @Override
-    public DefaultJsonClientBuilder tokenProvider(SdkTokenProvider tokenProvider) {
-        clientConfiguration.option(AwsClientOption.TOKEN_PROVIDER, tokenProvider);
+    public DefaultJsonClientBuilder tokenProvider(IdentityProvider<? extends TokenIdentity> tokenProvider) {
+        clientConfiguration.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER, tokenProvider);
         return this;
     }
 

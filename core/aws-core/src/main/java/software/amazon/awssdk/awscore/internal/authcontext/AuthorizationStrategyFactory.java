@@ -16,7 +16,6 @@
 package software.amazon.awssdk.awscore.internal.authcontext;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.SdkRequest;
@@ -25,6 +24,7 @@ import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.metrics.MetricCollector;
 
 /**
@@ -54,7 +54,11 @@ public final class AuthorizationStrategyFactory {
 
     private TokenAuthorizationStrategy tokenAuthorizationStrategy() {
         Signer defaultSigner = clientConfiguration.option(SdkAdvancedClientOption.TOKEN_SIGNER);
-        SdkTokenProvider defaultTokenProvider = clientConfiguration.option(AwsClientOption.TOKEN_PROVIDER);
+        // Older generated clients may be setting TOKEN_PROVIDER, hence fallback.
+        IdentityProvider<? extends TokenIdentity> defaultTokenProvider =
+            clientConfiguration.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER) == null
+            ? clientConfiguration.option(AwsClientOption.TOKEN_PROVIDER)
+            : clientConfiguration.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER);
         return TokenAuthorizationStrategy.builder()
                                          .request(request)
                                          .defaultSigner(defaultSigner)

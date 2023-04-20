@@ -23,6 +23,7 @@ import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.core.client.config.ClientOption;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.regions.Region;
 
 @SdkProtectedApi
@@ -92,8 +93,16 @@ public final class AwsClientOption<T> extends ClientOption<T> {
 
     /**
      * Option to specific the {@link SdkTokenProvider} to use for bearer token authorization.
+     * This option is deprecated in favor or {@link #TOKEN_IDENTITY_PROVIDER}
      */
+    @Deprecated
     public static final AwsClientOption<SdkTokenProvider> TOKEN_PROVIDER = new AwsClientOption<>(SdkTokenProvider.class);
+
+    /**
+     * Option to specific the {@link SdkTokenProvider} to use for bearer token authorization.
+     */
+    public static final AwsClientOption<IdentityProvider<? extends TokenIdentity>> TOKEN_IDENTITY_PROVIDER =
+        new AwsClientOption<>(new UnsafeValueType(IdentityProvider.class));
 
     private AwsClientOption(Class<T> valueClass) {
         super(valueClass);
