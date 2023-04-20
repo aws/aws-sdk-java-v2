@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS IoT",
-    "contributor": "",
-    "description": "Support additional OTA states in GetOTAUpdate API"
-}

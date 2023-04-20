@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Chime SDK Media Pipelines",
-    "contributor": "",
-    "description": "This release adds support for specifying the recording file format in an S3 recording sink configuration."
-}
