@@ -15,7 +15,6 @@ The SDK 2.x will support this feature in the S3 sync client, S3 async client and
 #### Example 1: enabling cross-region access in the S3 sync client
 
 ```
-// Create a default cross-region async client
 S3ClientBuilder s3ClientBuilder = S3Client.builder()
                                           .crossRegionAcccessEnabled(true)
                                           .build();
@@ -24,11 +23,12 @@ S3ClientBuilder s3ClientBuilder = S3Client.builder()
 #### Example 2: enabling cross-region access in the S3 async client
 
 ```
+// Java S3 async client
 S3AsyncClient s3Client = S3AsyncClient.builder()
                                       .crossRegionAcccessEnabled(true)
                                       .build();
 
-// Pass a CRT based builder
+// AWS CRT-based S3 async client
 S3AsyncClient s3CrtClient = S3AsyncClient.crtBuilder()
                                          .crossRegionAcccessEnabled(true)
                                          .build();
