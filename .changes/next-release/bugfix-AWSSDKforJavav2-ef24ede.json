@@ -1,0 +1,6 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "contributor": "sugmanue", 
+    "type": "bugfix", 
+    "description": "Exclude static fields from the required fields validation done by the ToBuilderIsCorrect class"
+}
