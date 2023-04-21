@@ -1,43 +1,60 @@
+# __2.20.51__ __2023-04-21__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds a new API CreateParticipant. For Amazon Connect Chat, you can use this new API to customize chat flow experiences.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Documentation update to address various Amazon ECS tickets.
+
+## __Firewall Management Service__
+  - ### Features
+    - AWS Firewall Manager adds support for multiple administrators. You can now delegate more than one administrator per organization.
+
 # __2.20.50__ __2023-04-20__
 ## __AWS IoT__
-- ### Features
+  - ### Features
     - Support additional OTA states in GetOTAUpdate API
 
 ## __AWS SDK for Java v2__
-- ### Features
+  - ### Features
     - API to Add TrustAllCertificates in CRT S3 Client options for test purposes
     - Updated endpoint and partition metadata.
 
 ## __AWS WAFV2__
-- ### Features
+  - ### Features
     - You can now create encrypted API keys to use in a client application integration of the JavaScript CAPTCHA API . You can also retrieve a list of your API keys and the JavaScript application integration URL.
 
 ## __Amazon Chime__
-- ### Features
+  - ### Features
     - Adds support for Hindi and Thai languages and additional Amazon Transcribe parameters to the StartMeetingTranscription API.
 
 ## __Amazon Chime SDK Media Pipelines__
-- ### Features
+  - ### Features
     - This release adds support for specifying the recording file format in an S3 recording sink configuration.
 
 ## __Amazon Chime SDK Meetings__
-- ### Features
+  - ### Features
     - Adds support for Hindi and Thai languages and additional Amazon Transcribe parameters to the StartMeetingTranscription API.
 
 ## __Amazon GameLift__
-- ### Features
+  - ### Features
     - Amazon GameLift supports creating Builds for Windows 2016 operating system.
 
 ## __Amazon GuardDuty__
-- ### Features
+  - ### Features
     - This release adds support for the new Lambda Protection feature.
 
 ## __Amazon Import/Export Snowball__
-- ### Features
+  - ### Features
     - Adds support for Amazon S3 compatible storage. AWS Snow Family customers can now use Amazon S3 compatible storage on Snowball Edge devices. Also adds support for V3_5S. This is a refreshed AWS Snowball Edge Storage Optimized device type with 210TB SSD (customer usable).
 
 ## __Amazon SageMaker Service__
-- ### Features
+  - ### Features
     - Amazon SageMaker Canvas adds ModelRegisterSettings support for CanvasAppSettings.
 
 # __2.20.49__ __2023-04-19__
