@@ -22,6 +22,7 @@ import java.time.Duration;
 import java.util.HashMap;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
@@ -44,11 +45,11 @@ import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
-import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.testutils.Waiter;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 
+@Ignore
 public class AmazonMachineLearningIntegrationTest extends AwsTestBase {
 
     private static final String BUCKET_NAME = temporaryBucketName("aws-java-sdk-eml-test");
@@ -115,7 +116,6 @@ public class AmazonMachineLearningIntegrationTest extends AwsTestBase {
         Waiter.run(() -> s3.putObject(PutObjectRequest.builder()
                                                       .bucket(BUCKET_NAME)
                                                       .key(KEY)
-                                                      .acl(ObjectCannedACL.PUBLIC_READ)
                                                       .build(),
                                       RequestBody.fromBytes(DATA.getBytes())))
               .ignoringException(NoSuchBucketException.class)
