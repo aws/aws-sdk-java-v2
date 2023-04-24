@@ -61,21 +61,20 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
 
     private final SdkClientConfiguration clientConfiguration;
 
+    private final EndpointDiscoveryTestServiceClientConfiguration serviceClientConfiguration;
+
     private EndpointDiscoveryRefreshCache endpointDiscoveryCache;
 
-    protected DefaultEndpointDiscoveryTestAsyncClient(SdkClientConfiguration clientConfiguration) {
+    protected DefaultEndpointDiscoveryTestAsyncClient(EndpointDiscoveryTestServiceClientConfiguration serviceClientConfiguration,
+                                                      SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
+        this.serviceClientConfiguration = serviceClientConfiguration;
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
         if (clientConfiguration.option(SdkClientOption.ENDPOINT_DISCOVERY_ENABLED)) {
             this.endpointDiscoveryCache = EndpointDiscoveryRefreshCache
                 .create(EndpointDiscoveryTestAsyncEndpointDiscoveryCacheLoader.create(this));
         }
-    }
-
-    @Override
-    public final String serviceName() {
-        return SERVICE_NAME;
     }
 
     /**
@@ -350,8 +349,13 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
     }
 
     @Override
-    public void close() {
-        clientHandler.close();
+    public final EndpointDiscoveryTestServiceClientConfiguration serviceClientConfiguration() {
+        return this.serviceClientConfiguration;
+    }
+
+    @Override
+    public final String serviceName() {
+        return SERVICE_NAME;
     }
 
     private <T extends BaseAwsJsonProtocolFactory.Builder<T>> T init(T builder) {
@@ -378,5 +382,10 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
     private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,
                                                                                 JsonOperationMetadata operationMetadata) {
         return protocolFactory.createErrorResponseHandler(operationMetadata);
+    }
+
+    @Override
+    public void close() {
+        clientHandler.close();
     }
 }

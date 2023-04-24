@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,6 +49,7 @@ import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.core.internal.util.HttpChecksumUtils;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.profiles.ProfileFile;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AwsExecutionContextBuilderTest {
@@ -177,6 +179,22 @@ public class AwsExecutionContextBuilderTest {
 
         assertThat(checksumSpecs1).isNotSameAs(checksumSpecs2);
         assertThat(checksumSpecs2).isSameAs(checksumSpecs3);
+    }
+
+    @Test
+    public void invokeInterceptorsAndCreateExecutionContext_profileFileSupplier_storesValueInExecutionAttributes() {
+        ClientExecutionParams<SdkRequest, SdkResponse> executionParams = clientExecutionParams();
+        Supplier<ProfileFile> profileFileSupplier = () -> null;
+        SdkClientConfiguration clientConfig = testClientConfiguration()
+            .option(SdkClientOption.PROFILE_FILE_SUPPLIER, profileFileSupplier)
+            .build();
+
+        ExecutionContext executionContext =
+            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(executionParams, clientConfig);
+
+        ExecutionAttributes executionAttributes = executionContext.executionAttributes();
+
+        assertThat(profileFileSupplier).isSameAs(executionAttributes.getAttribute(SdkExecutionAttribute.PROFILE_FILE_SUPPLIER));
     }
     
     private ClientExecutionParams<SdkRequest, SdkResponse> clientExecutionParams() {

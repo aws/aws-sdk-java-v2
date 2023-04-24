@@ -33,6 +33,25 @@
       ],
       "documentation":"<p>Create an extended source server in the target Account based on the source server in staging account.</p>"
     },
+    "CreateLaunchConfigurationTemplate":{
+      "name":"CreateLaunchConfigurationTemplate",
+      "http":{
+        "method":"POST",
+        "requestUri":"/CreateLaunchConfigurationTemplate",
+        "responseCode":201
+      },
+      "input":{"shape":"CreateLaunchConfigurationTemplateRequest"},
+      "output":{"shape":"CreateLaunchConfigurationTemplateResponse"},
+      "errors":[
+        {"shape":"InternalServerException"},
+        {"shape":"ServiceQuotaExceededException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ValidationException"},
+        {"shape":"UninitializedAccountException"}
+      ],
+      "documentation":"<p>Creates a new Launch Configuration Template.</p>"
+    },
     "CreateReplicationConfigurationTemplate":{
       "name":"CreateReplicationConfigurationTemplate",
       "http":{
@@ -69,6 +88,25 @@
         {"shape":"UninitializedAccountException"}
       ],
       "documentation":"<p>Deletes a single Job by ID.</p>",
+      "idempotent":true
+    },
+    "DeleteLaunchConfigurationTemplate":{
+      "name":"DeleteLaunchConfigurationTemplate",
+      "http":{
+        "method":"POST",
+        "requestUri":"/DeleteLaunchConfigurationTemplate",
+        "responseCode":204
+      },
+      "input":{"shape":"DeleteLaunchConfigurationTemplateRequest"},
+      "output":{"shape":"DeleteLaunchConfigurationTemplateResponse"},
+      "errors":[
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InternalServerException"},
+        {"shape":"ConflictException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"UninitializedAccountException"}
+      ],
+      "documentation":"<p>Deletes a single Launch Configuration Template by ID.</p>",
       "idempotent":true
     },
     "DeleteRecoveryInstance":{
@@ -159,6 +197,24 @@
         {"shape":"UninitializedAccountException"}
       ],
       "documentation":"<p>Returns a list of Jobs. Use the JobsID and fromDate and toDate filters to limit which jobs are returned. The response is sorted by creationDataTime - latest date first. Jobs are created by the StartRecovery, TerminateRecoveryInstances and StartFailbackLaunch APIs. Jobs are also created by DiagnosticLaunch and TerminateDiagnosticInstances, which are APIs available only to *Support* and only used in response to relevant support tickets.</p>"
+    },
+    "DescribeLaunchConfigurationTemplates":{
+      "name":"DescribeLaunchConfigurationTemplates",
+      "http":{
+        "method":"POST",
+        "requestUri":"/DescribeLaunchConfigurationTemplates",
+        "responseCode":200
+      },
+      "input":{"shape":"DescribeLaunchConfigurationTemplatesRequest"},
+      "output":{"shape":"DescribeLaunchConfigurationTemplatesResponse"},
+      "errors":[
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InternalServerException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ValidationException"},
+        {"shape":"UninitializedAccountException"}
+      ],
+      "documentation":"<p>Lists all Launch Configuration Templates, filtered by Launch Configuration Template IDs</p>"
     },
     "DescribeRecoveryInstances":{
       "name":"DescribeRecoveryInstances",
@@ -405,7 +461,9 @@
         {"shape":"ValidationException"},
         {"shape":"UninitializedAccountException"}
       ],
-      "documentation":"<p>Causes the data replication initiation sequence to begin immediately upon next Handshake for the specified Source Server ID, regardless of when the previous initiation started. This command will work only if the Source Server is stalled or is in a DISCONNECTED or STOPPED state.</p>"
+      "documentation":"<p>WARNING: RetryDataReplication is deprecated. Causes the data replication initiation sequence to begin immediately upon next Handshake for the specified Source Server ID, regardless of when the previous initiation started. This command will work only if the Source Server is stalled or is in a DISCONNECTED or STOPPED state. </p>",
+      "deprecated":true,
+      "deprecatedMessage":"WARNING: RetryDataReplication is deprecated"
     },
     "ReverseReplication":{
       "name":"ReverseReplication",
@@ -607,6 +665,25 @@
       "documentation":"<p>Updates a LaunchConfiguration by Source Server ID.</p>",
       "idempotent":true
     },
+    "UpdateLaunchConfigurationTemplate":{
+      "name":"UpdateLaunchConfigurationTemplate",
+      "http":{
+        "method":"POST",
+        "requestUri":"/UpdateLaunchConfigurationTemplate",
+        "responseCode":200
+      },
+      "input":{"shape":"UpdateLaunchConfigurationTemplateRequest"},
+      "output":{"shape":"UpdateLaunchConfigurationTemplateResponse"},
+      "errors":[
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InternalServerException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ValidationException"},
+        {"shape":"UninitializedAccountException"}
+      ],
+      "documentation":"<p>Updates an existing Launch Configuration Template by ID.</p>"
+    },
     "UpdateReplicationConfiguration":{
       "name":"UpdateReplicationConfiguration",
       "http":{
@@ -754,8 +831,8 @@
     },
     "ConversionMap":{
       "type":"map",
-      "key":{"shape":"ebsSnapshot"},
-      "value":{"shape":"ebsSnapshot"}
+      "key":{"shape":"EbsSnapshot"},
+      "value":{"shape":"EbsSnapshot"}
     },
     "ConversionProperties":{
       "type":"structure",
@@ -812,6 +889,44 @@
         }
       }
     },
+    "CreateLaunchConfigurationTemplateRequest":{
+      "type":"structure",
+      "members":{
+        "copyPrivateIp":{
+          "shape":"Boolean",
+          "documentation":"<p>Copy private IP.</p>"
+        },
+        "copyTags":{
+          "shape":"Boolean",
+          "documentation":"<p>Copy tags.</p>"
+        },
+        "launchDisposition":{
+          "shape":"LaunchDisposition",
+          "documentation":"<p>Launch disposition.</p>"
+        },
+        "licensing":{
+          "shape":"Licensing",
+          "documentation":"<p>Licensing.</p>"
+        },
+        "tags":{
+          "shape":"TagsMap",
+          "documentation":"<p>Request to associate tags during creation of a Launch Configuration Template.</p>"
+        },
+        "targetInstanceTypeRightSizingMethod":{
+          "shape":"TargetInstanceTypeRightSizingMethod",
+          "documentation":"<p>Target instance type right-sizing method.</p>"
+        }
+      }
+    },
+    "CreateLaunchConfigurationTemplateResponse":{
+      "type":"structure",
+      "members":{
+        "launchConfigurationTemplate":{
+          "shape":"LaunchConfigurationTemplate",
+          "documentation":"<p>Created Launch Configuration Template.</p>"
+        }
+      }
+    },
     "CreateReplicationConfigurationTemplateRequest":{
       "type":"structure",
       "required":[
@@ -832,6 +947,10 @@
         "associateDefaultSecurityGroup":{
           "shape":"Boolean",
           "documentation":"<p>Whether to associate the default Elastic Disaster Recovery Security group with the Replication Configuration Template.</p>"
+        },
+        "autoReplicateNewDisks":{
+          "shape":"Boolean",
+          "documentation":"<p>Whether to allow the AWS replication agent to automatically replicate newly added disks.</p>"
         },
         "bandwidthThrottling":{
           "shape":"PositiveInteger",
@@ -946,6 +1065,10 @@
         "replicatedDisks":{
           "shape":"DataReplicationInfoReplicatedDisks",
           "documentation":"<p>The disks that should be replicated.</p>"
+        },
+        "stagingAvailabilityZone":{
+          "shape":"AwsAvailabilityZone",
+          "documentation":"<p>AWS Availability zone into which data is being replicated.</p>"
         }
       },
       "documentation":"<p>Information about Data Replication</p>"
@@ -1074,6 +1197,21 @@
       "members":{
       }
     },
+    "DeleteLaunchConfigurationTemplateRequest":{
+      "type":"structure",
+      "required":["launchConfigurationTemplateID"],
+      "members":{
+        "launchConfigurationTemplateID":{
+          "shape":"LaunchConfigurationTemplateID",
+          "documentation":"<p>The ID of the Launch Configuration Template to be deleted.</p>"
+        }
+      }
+    },
+    "DeleteLaunchConfigurationTemplateResponse":{
+      "type":"structure",
+      "members":{
+      }
+    },
     "DeleteRecoveryInstanceRequest":{
       "type":"structure",
       "required":["recoveryInstanceID"],
@@ -1196,6 +1334,36 @@
         "nextToken":{
           "shape":"PaginationToken",
           "documentation":"<p>The token of the next Job to retrieve.</p>"
+        }
+      }
+    },
+    "DescribeLaunchConfigurationTemplatesRequest":{
+      "type":"structure",
+      "members":{
+        "launchConfigurationTemplateIDs":{
+          "shape":"LaunchConfigurationTemplateIDs",
+          "documentation":"<p>Request to filter Launch Configuration Templates list by Launch Configuration Template ID.</p>"
+        },
+        "maxResults":{
+          "shape":"MaxResultsType",
+          "documentation":"<p>Maximum results to be returned in DescribeLaunchConfigurationTemplates.</p>"
+        },
+        "nextToken":{
+          "shape":"PaginationToken",
+          "documentation":"<p>The token of the next Launch Configuration Template to retrieve.</p>"
+        }
+      }
+    },
+    "DescribeLaunchConfigurationTemplatesResponse":{
+      "type":"structure",
+      "members":{
+        "items":{
+          "shape":"LaunchConfigurationTemplates",
+          "documentation":"<p>List of items returned by DescribeLaunchConfigurationTemplates.</p>"
+        },
+        "nextToken":{
+          "shape":"PaginationToken",
+          "documentation":"<p>The token of the next Launch Configuration Template to retrieve.</p>"
         }
       }
     },
@@ -1447,9 +1615,13 @@
       "max":255,
       "min":0
     },
+    "EbsSnapshot":{
+      "type":"string",
+      "pattern":"^snap-[0-9a-zA-Z]{17}$"
+    },
     "EbsSnapshotsList":{
       "type":"list",
-      "member":{"shape":"ebsSnapshot"}
+      "member":{"shape":"EbsSnapshot"}
     },
     "EbsVolumeID":{
       "type":"string",
@@ -1834,6 +2006,62 @@
         }
       }
     },
+    "LaunchConfigurationTemplate":{
+      "type":"structure",
+      "members":{
+        "arn":{
+          "shape":"ARN",
+          "documentation":"<p>ARN of the Launch Configuration Template.</p>"
+        },
+        "copyPrivateIp":{
+          "shape":"Boolean",
+          "documentation":"<p>Copy private IP.</p>"
+        },
+        "copyTags":{
+          "shape":"Boolean",
+          "documentation":"<p>Copy tags.</p>"
+        },
+        "launchConfigurationTemplateID":{
+          "shape":"LaunchConfigurationTemplateID",
+          "documentation":"<p>ID of the Launch Configuration Template.</p>"
+        },
+        "launchDisposition":{
+          "shape":"LaunchDisposition",
+          "documentation":"<p>Launch disposition.</p>"
+        },
+        "licensing":{
+          "shape":"Licensing",
+          "documentation":"<p>Licensing.</p>"
+        },
+        "tags":{
+          "shape":"TagsMap",
+          "documentation":"<p>Tags of the Launch Configuration Template.</p>"
+        },
+        "targetInstanceTypeRightSizingMethod":{
+          "shape":"TargetInstanceTypeRightSizingMethod",
+          "documentation":"<p>Target instance type right-sizing method.</p>"
+        }
+      },
+      "documentation":"<p>Account level Launch Configuration Template.</p>"
+    },
+    "LaunchConfigurationTemplateID":{
+      "type":"string",
+      "max":21,
+      "min":21,
+      "pattern":"^lct-[0-9a-zA-Z]{17}$"
+    },
+    "LaunchConfigurationTemplateIDs":{
+      "type":"list",
+      "member":{"shape":"LaunchConfigurationTemplateID"},
+      "max":1,
+      "min":0
+    },
+    "LaunchConfigurationTemplates":{
+      "type":"list",
+      "member":{"shape":"LaunchConfigurationTemplate"},
+      "max":200,
+      "min":0
+    },
     "LaunchDisposition":{
       "type":"string",
       "enum":[
@@ -1893,6 +2121,10 @@
         "initiated":{
           "shape":"LifeCycleLastLaunchInitiated",
           "documentation":"<p>An object containing information regarding the initiation of the last launch of a Source Server.</p>"
+        },
+        "status":{
+          "shape":"LaunchStatus",
+          "documentation":"<p>Status of Source Server's last launch.</p>"
         }
       },
       "documentation":"<p>An object containing information regarding the last launch of a Source Server.</p>"
@@ -2006,6 +2238,11 @@
     "MaxResultsReplicatingSourceServers":{
       "type":"integer",
       "max":300,
+      "min":1
+    },
+    "MaxResultsType":{
+      "type":"integer",
+      "max":1000,
       "min":1
     },
     "NetworkInterface":{
@@ -2156,9 +2393,13 @@
           "shape":"JobID",
           "documentation":"<p>The ID of the Job that created the Recovery Instance.</p>"
         },
+        "originAvailabilityZone":{
+          "shape":"AwsAvailabilityZone",
+          "documentation":"<p>AWS availability zone associated with the recovery instance.</p>"
+        },
         "originEnvironment":{
           "shape":"OriginEnvironment",
-          "documentation":"<p>Environment (On Premises / AWS) of the instance that the recovery instance originated from. </p>"
+          "documentation":"<p>Environment (On Premises / AWS) of the instance that the recovery instance originated from.</p>"
         },
         "pointInTimeSnapshotDateTime":{
           "shape":"ISO8601DatetimeString",
@@ -2223,6 +2464,10 @@
         "replicatedDisks":{
           "shape":"RecoveryInstanceDataReplicationInfoReplicatedDisks",
           "documentation":"<p>The disks that should be replicated.</p>"
+        },
+        "stagingAvailabilityZone":{
+          "shape":"AwsAvailabilityZone",
+          "documentation":"<p>AWS Availability zone into which data is being replicated.</p>"
         }
       },
       "documentation":"<p>Information about Data Replication</p>"
@@ -2518,6 +2763,10 @@
           "shape":"Boolean",
           "documentation":"<p>Whether to associate the default Elastic Disaster Recovery Security group with the Replication Configuration.</p>"
         },
+        "autoReplicateNewDisks":{
+          "shape":"Boolean",
+          "documentation":"<p>Whether to allow the AWS replication agent to automatically replicate newly added disks.</p>"
+        },
         "bandwidthThrottling":{
           "shape":"PositiveInteger",
           "documentation":"<p>Configure bandwidth throttling for the outbound data transfer rate of the Source Server in Mbps.</p>"
@@ -2620,7 +2869,7 @@
         },
         "optimizedStagingDiskType":{
           "shape":"ReplicationConfigurationReplicatedDiskStagingDiskType",
-          "documentation":"<p>When <code>stagingDiskType</code> is set to Auto, this field shows the current staging disk EBS volume type as it is constantly updated by the service. This is a read-only field.</p>"
+          "documentation":"<p>The Staging Disk EBS volume type to be used during replication when <code>stagingDiskType</code> is set to Auto. This is a read-only field.</p>"
         },
         "stagingDiskType":{
           "shape":"ReplicationConfigurationReplicatedDiskStagingDiskType",
@@ -2662,6 +2911,10 @@
         "associateDefaultSecurityGroup":{
           "shape":"Boolean",
           "documentation":"<p>Whether to associate the default Elastic Disaster Recovery Security group with the Replication Configuration Template.</p>"
+        },
+        "autoReplicateNewDisks":{
+          "shape":"Boolean",
+          "documentation":"<p>Whether to allow the AWS replication agent to automatically replicate newly added disks.</p>"
         },
         "bandwidthThrottling":{
           "shape":"PositiveInteger",
@@ -2780,7 +3033,9 @@
           "shape":"SourceServerID",
           "documentation":"<p>The ID of the Source Server whose data replication should be retried.</p>"
         }
-      }
+      },
+      "deprecated":true,
+      "deprecatedMessage":"WARNING: RetryDataReplication is deprecated"
     },
     "ReverseReplicationRequest":{
       "type":"structure",
@@ -2893,6 +3148,10 @@
         "recommendedInstanceType":{
           "shape":"EC2InstanceType",
           "documentation":"<p>The recommended EC2 instance type that will be used when recovering the Source Server.</p>"
+        },
+        "supportsNitroInstances":{
+          "shape":"Boolean",
+          "documentation":"<p>Are EC2 nitro instance types supported when recovering the Source Server.</p>"
         }
       },
       "documentation":"<p>Properties of the Source Server machine.</p>"
@@ -3332,6 +3591,45 @@
         }
       }
     },
+    "UpdateLaunchConfigurationTemplateRequest":{
+      "type":"structure",
+      "required":["launchConfigurationTemplateID"],
+      "members":{
+        "copyPrivateIp":{
+          "shape":"Boolean",
+          "documentation":"<p>Copy private IP.</p>"
+        },
+        "copyTags":{
+          "shape":"Boolean",
+          "documentation":"<p>Copy tags.</p>"
+        },
+        "launchConfigurationTemplateID":{
+          "shape":"LaunchConfigurationTemplateID",
+          "documentation":"<p>Launch Configuration Template ID.</p>"
+        },
+        "launchDisposition":{
+          "shape":"LaunchDisposition",
+          "documentation":"<p>Launch disposition.</p>"
+        },
+        "licensing":{
+          "shape":"Licensing",
+          "documentation":"<p>Licensing.</p>"
+        },
+        "targetInstanceTypeRightSizingMethod":{
+          "shape":"TargetInstanceTypeRightSizingMethod",
+          "documentation":"<p>Target instance type right-sizing method.</p>"
+        }
+      }
+    },
+    "UpdateLaunchConfigurationTemplateResponse":{
+      "type":"structure",
+      "members":{
+        "launchConfigurationTemplate":{
+          "shape":"LaunchConfigurationTemplate",
+          "documentation":"<p>Updated Launch Configuration Template.</p>"
+        }
+      }
+    },
     "UpdateReplicationConfigurationRequest":{
       "type":"structure",
       "required":["sourceServerID"],
@@ -3339,6 +3637,10 @@
         "associateDefaultSecurityGroup":{
           "shape":"Boolean",
           "documentation":"<p>Whether to associate the default Elastic Disaster Recovery Security group with the Replication Configuration.</p>"
+        },
+        "autoReplicateNewDisks":{
+          "shape":"Boolean",
+          "documentation":"<p>Whether to allow the AWS replication agent to automatically replicate newly added disks.</p>"
         },
         "bandwidthThrottling":{
           "shape":"PositiveInteger",
@@ -3413,6 +3715,10 @@
         "associateDefaultSecurityGroup":{
           "shape":"Boolean",
           "documentation":"<p>Whether to associate the default Elastic Disaster Recovery Security group with the Replication Configuration Template.</p>"
+        },
+        "autoReplicateNewDisks":{
+          "shape":"Boolean",
+          "documentation":"<p>Whether to allow the AWS replication agent to automatically replicate newly added disks.</p>"
         },
         "bandwidthThrottling":{
           "shape":"PositiveInteger",
@@ -3525,10 +3831,6 @@
       "type":"map",
       "key":{"shape":"LargeBoundedString"},
       "value":{"shape":"PositiveInteger"}
-    },
-    "ebsSnapshot":{
-      "type":"string",
-      "pattern":"^snap-[0-9a-zA-Z]{17}$"
     }
   },
   "documentation":"<p>AWS Elastic Disaster Recovery Service.</p>"

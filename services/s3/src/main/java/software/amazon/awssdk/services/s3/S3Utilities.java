@@ -20,9 +20,14 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -48,6 +53,7 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.profiles.ProfileFileSupplier;
 import software.amazon.awssdk.protocols.core.OperationInfo;
 import software.amazon.awssdk.protocols.core.PathMarshaller;
 import software.amazon.awssdk.protocols.core.ProtocolUtils;
@@ -61,8 +67,9 @@ import software.amazon.awssdk.services.s3.internal.endpoints.UseGlobalEndpointRe
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetUrlRequest;
 import software.amazon.awssdk.utils.AttributeMap;
-import software.amazon.awssdk.utils.Lazy;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
  * Utilities for working with Amazon S3 objects. An instance of this class can be created by:
@@ -75,7 +82,6 @@ import software.amazon.awssdk.utils.Validate;
  * GetUrlRequest request = GetUrlRequest.builder().bucket("foo-bucket").key("key-without-spaces").build();
  * URL url = utilities.getUrl(request);
  * </pre>
- * </p>
  *
  * <p>
  * 2) Using the low-level client {@link S3Client#utilities()} method. This is recommended as SDK will use the same
@@ -87,7 +93,6 @@ import software.amazon.awssdk.utils.Validate;
  * GetUrlRequest request = GetUrlRequest.builder().bucket("foo-bucket").key("key-without-spaces").build();
  * URL url = utilities.getUrl(request);
  * </pre>
- * </p>
  *
  * Note: This class does not make network calls.
  */
@@ -95,7 +100,7 @@ import software.amazon.awssdk.utils.Validate;
 @SdkPublicApi
 public final class S3Utilities {
     private static final String SERVICE_NAME = "s3";
-
+    private static final Pattern ENDPOINT_PATTERN = Pattern.compile("^(.+\\.)?s3[.-]([a-z0-9-]+)\\.");
     private final Region region;
     private final URI endpoint;
     private final S3Configuration s3Configuration;
@@ -112,8 +117,8 @@ public final class S3Utilities {
     private S3Utilities(Builder builder) {
         this.region = Validate.paramNotNull(builder.region, "Region");
         this.endpoint = builder.endpoint;
-        this.profileFile = builder.profileFile != null ? () -> builder.profileFile
-                                                       : new Lazy<>(ProfileFile::defaultProfileFile)::getValue;
+        this.profileFile = Optional.ofNullable(builder.profileFile)
+                                   .orElse(ProfileFile::defaultProfileFile);
         this.profileName = builder.profileName;
 
         if (builder.s3Configuration == null) {
@@ -172,7 +177,7 @@ public final class S3Utilities {
         S3Utilities.Builder builder = builder()
                           .region(clientConfiguration.option(AwsClientOption.AWS_REGION))
                           .s3Configuration((S3Configuration) clientConfiguration.option(SdkClientOption.SERVICE_CONFIGURATION))
-                          .profileFile(clientConfiguration.option(SdkClientOption.PROFILE_FILE))
+                          .profileFile(clientConfiguration.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
                           .profileName(clientConfiguration.option(SdkClientOption.PROFILE_NAME));
 
         if (Boolean.TRUE.equals(clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN))) {
@@ -249,6 +254,162 @@ public final class S3Utilities {
         } catch (MalformedURLException exception) {
             throw SdkException.create("Generated URI is malformed: " + modifiedRequest.getUri(),
                                       exception);
+        }
+    }
+
+    /**
+     * Returns a parsed {@link S3Uri} with which a user can easily retrieve the bucket, key, region, style, and query
+     * parameters of the URI. Only path-style and virtual-hosted-style URI parsing is supported, including CLI-style
+     * URIs, e.g., "s3://bucket/key". AccessPoints and Outposts URI parsing is not supported. If you work with object keys
+     * and/or query parameters with special characters, they must be URL-encoded, e.g., replace " " with "%20". If you work with
+     * virtual-hosted-style URIs with bucket names that contain a dot, i.e., ".", the dot must not be URL-encoded. Encoded
+     * buckets, keys, and query parameters will be returned decoded.
+     *
+     * <p>
+     * For more information on path-style and virtual-hosted-style URIs, see <a href=
+     * "https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-bucket-intro.html"
+     * >Methods for accessing a bucket</a>.
+     *
+     * @param uri The URI to be parsed
+     * @return Parsed {@link S3Uri}
+     *
+     * <p><b>Example Usage</b>
+     * <p>
+     * {@snippet :
+     *     S3Client s3Client = S3Client.create();
+     *     S3Utilities s3Utilities = s3Client.utilities();
+     *     String uriString = "https://myBucket.s3.us-west-1.amazonaws.com/doc.txt?versionId=abc123";
+     *     URI uri = URI.create(uriString);
+     *     S3Uri s3Uri = s3Utilities.parseUri(uri);
+     *
+     *     String bucket = s3Uri.bucket().orElse(null); // "myBucket"
+     *     String key = s3Uri.key().orElse(null); // "doc.txt"
+     *     Region region = s3Uri.region().orElse(null); // Region.US_WEST_1
+     *     boolean isPathStyle = s3Uri.isPathStyle(); // false
+     *     String versionId = s3Uri.firstMatchingRawQueryParameter("versionId").orElse(null); // "abc123"
+     *}
+     */
+    public S3Uri parseUri(URI uri) {
+        validateUri(uri);
+
+        if ("s3".equalsIgnoreCase(uri.getScheme())) {
+            return parseAwsCliStyleUri(uri);
+        }
+
+        return parseStandardUri(uri);
+    }
+
+    private S3Uri parseStandardUri(URI uri) {
+
+        if (uri.getHost() == null) {
+            throw new IllegalArgumentException("Invalid S3 URI: no hostname: " + uri);
+        }
+
+        Matcher matcher = ENDPOINT_PATTERN.matcher(uri.getHost());
+        if (!matcher.find()) {
+            throw new IllegalArgumentException("Invalid S3 URI: hostname does not appear to be a valid S3 endpoint: " + uri);
+        }
+
+        S3Uri.Builder builder = S3Uri.builder().uri(uri);
+        addRegionIfNeeded(builder, matcher.group(2));
+        addQueryParamsIfNeeded(builder, uri);
+
+        String prefix = matcher.group(1);
+        if (StringUtils.isEmpty(prefix)) {
+            return parsePathStyleUri(builder, uri);
+        }
+        return parseVirtualHostedStyleUri(builder, uri, matcher);
+    }
+
+    private S3Uri.Builder addRegionIfNeeded(S3Uri.Builder builder, String region) {
+        if (!"amazonaws".equals(region)) {
+            return builder.region(Region.of(region));
+        }
+        return builder;
+    }
+
+    private S3Uri.Builder addQueryParamsIfNeeded(S3Uri.Builder builder, URI uri) {
+        if (uri.getQuery() != null) {
+            return builder.queryParams(SdkHttpUtils.uriParams(uri));
+        }
+        return builder;
+    }
+
+    private S3Uri parsePathStyleUri(S3Uri.Builder builder, URI uri) {
+        String bucket = null;
+        String key = null;
+        String path = uri.getPath();
+
+        if (!StringUtils.isEmpty(path) && !"/".equals(path)) {
+            int index = path.indexOf('/', 1);
+
+            if (index == -1) {
+                // No trailing slash, e.g., "https://s3.amazonaws.com/bucket"
+                bucket = path.substring(1);
+            } else {
+                bucket = path.substring(1, index);
+                if (index != path.length() - 1) {
+                    key = path.substring(index + 1);
+                }
+            }
+        }
+        return builder.key(key)
+                      .bucket(bucket)
+                      .isPathStyle(true)
+                      .build();
+    }
+
+    private S3Uri parseVirtualHostedStyleUri(S3Uri.Builder builder, URI uri, Matcher matcher) {
+        String bucket;
+        String key = null;
+        String path = uri.getPath();
+        String prefix = matcher.group(1);
+
+        bucket = prefix.substring(0, prefix.length() - 1);
+        if (!StringUtils.isEmpty(path) && !"/".equals(path)) {
+            key = path.substring(1);
+        }
+
+        return builder.key(key)
+                      .bucket(bucket)
+                      .build();
+    }
+
+    private S3Uri parseAwsCliStyleUri(URI uri) {
+        String key = null;
+        String bucket = uri.getAuthority();
+        Region region = null;
+        boolean isPathStyle = false;
+        Map<String, List<String>> queryParams = new HashMap<>();
+        String path = uri.getPath();
+
+        if (bucket == null) {
+            throw new IllegalArgumentException("Invalid S3 URI: bucket not included: " + uri);
+        }
+
+        if (path.length() > 1) {
+            key = path.substring(1);
+        }
+
+        return S3Uri.builder()
+                    .uri(uri)
+                    .bucket(bucket)
+                    .key(key)
+                    .region(region)
+                    .isPathStyle(isPathStyle)
+                    .queryParams(queryParams)
+                    .build();
+    }
+
+    private void validateUri(URI uri) {
+        Validate.paramNotNull(uri, "uri");
+
+        if (uri.toString().contains(".s3-accesspoint")) {
+            throw new IllegalArgumentException("AccessPoints URI parsing is not supported: " + uri);
+        }
+
+        if (uri.toString().contains(".s3-outposts")) {
+            throw new IllegalArgumentException("Outposts URI parsing is not supported: " + uri);
         }
     }
 
@@ -362,7 +523,7 @@ public final class S3Utilities {
         SdkClientConfiguration config =
             SdkClientConfiguration.builder()
                                   .option(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT, standardOption)
-                                  .option(SdkClientOption.PROFILE_FILE, profileFile.get())
+                                  .option(SdkClientOption.PROFILE_FILE_SUPPLIER, profileFile)
                                   .option(SdkClientOption.PROFILE_NAME, profileName)
                                   .build();
 
@@ -377,7 +538,7 @@ public final class S3Utilities {
         private URI endpoint;
 
         private S3Configuration s3Configuration;
-        private ProfileFile profileFile;
+        private Supplier<ProfileFile> profileFile;
         private String profileName;
         private Boolean dualstackEnabled;
         private Boolean fipsEnabled;
@@ -468,7 +629,13 @@ public final class S3Utilities {
          * confusing to support the full {@link ClientOverrideConfiguration} object in the future.
          */
         private Builder profileFile(ProfileFile profileFile) {
-            this.profileFile = profileFile;
+            return profileFile(Optional.ofNullable(profileFile)
+                                       .map(ProfileFileSupplier::fixedProfileFile)
+                                       .orElse(null));
+        }
+
+        private Builder profileFile(Supplier<ProfileFile> profileFileSupplier) {
+            this.profileFile = profileFileSupplier;
             return this;
         }
 

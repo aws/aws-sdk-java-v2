@@ -106,6 +106,7 @@ public class AsyncRequestBodyFlexibleChecksumInTrailerTest {
                                              AsyncResponseTransformer.toBytes()).join();
         //payload would in json form as  "{"StringMember":"foo"}x-amz-checksum-crc32:tcUDMQ==[\r][\n]"
         verifyHeadersForPutRequest("44", "3", "x-amz-checksum-crc32");
+        verify(putRequestedFor(anyUrl()).withHeader("Content-Encoding", equalTo("aws-chunked")));
 
         verify(putRequestedFor(anyUrl()).withRequestBody(
             containing(
@@ -113,6 +114,25 @@ public class AsyncRequestBodyFlexibleChecksumInTrailerTest {
                 + "0" + CRLF
                 + "x-amz-checksum-crc32:NSRBwg==" + CRLF + CRLF)));
     }
+    @Test
+    public void asyncStreaming_NoSigner_shouldContainChecksum_fromInterceptors_withContentEncoding() {
+        stubResponseWithHeaders();
+        asyncClient.putOperationWithChecksum(b -> b.checksumAlgorithm(ChecksumAlgorithm.CRC32).contentEncoding("deflate"),
+                                             AsyncRequestBody.fromString(
+                                                 "abc"),
+                                             AsyncResponseTransformer.toBytes()).join();
+        //payload would in json form as  "{"StringMember":"foo"}x-amz-checksum-crc32:tcUDMQ==[\r][\n]"
+        verifyHeadersForPutRequest("44", "3", "x-amz-checksum-crc32");
+        verify(putRequestedFor(anyUrl()).withHeader("Content-Encoding", equalTo("aws-chunked")));
+        verify(putRequestedFor(anyUrl()).withHeader("Content-Encoding", equalTo("deflate")));
+
+        verify(putRequestedFor(anyUrl()).withRequestBody(
+            containing(
+                "3" + CRLF + "abc" + CRLF
+                + "0" + CRLF
+                + "x-amz-checksum-crc32:NSRBwg==" + CRLF + CRLF)));
+    }
+
 
     @Test
     public void asyncStreaming_withRetry_NoSigner_shouldContainChecksum_fromInterceptors() {

@@ -55,15 +55,14 @@ final class DefaultQueryToJsonCompatibleAsyncClient implements QueryToJsonCompat
 
     private final SdkClientConfiguration clientConfiguration;
 
-    protected DefaultQueryToJsonCompatibleAsyncClient(SdkClientConfiguration clientConfiguration) {
+    private final QueryToJsonCompatibleServiceClientConfiguration serviceClientConfiguration;
+
+    protected DefaultQueryToJsonCompatibleAsyncClient(QueryToJsonCompatibleServiceClientConfiguration serviceClientConfiguration,
+                                                      SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
+        this.serviceClientConfiguration = serviceClientConfiguration;
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
-    }
-
-    @Override
-    public final String serviceName() {
-        return SERVICE_NAME;
     }
 
     /**
@@ -92,14 +91,14 @@ final class DefaultQueryToJsonCompatibleAsyncClient implements QueryToJsonCompat
     @Override
     public CompletableFuture<APostOperationResponse> aPostOperation(APostOperationRequest aPostOperationRequest) {
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, aPostOperationRequest
-                .overrideConfiguration().orElse(null));
+            .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-                .create("ApiCall");
+            .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "QueryToJsonCompatibleService");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "APostOperation");
             JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                    .isPayloadJson(true).build();
+                                                                           .isPayloadJson(true).build();
 
             HttpResponseHandler<APostOperationResponse> responseHandler = protocolFactory.createResponseHandler(
                 operationMetadata, APostOperationResponse::builder);
@@ -112,7 +111,7 @@ final class DefaultQueryToJsonCompatibleAsyncClient implements QueryToJsonCompat
             String resolvedHostExpression = String.format("%s-foo.", aPostOperationRequest.stringMember());
 
             CompletableFuture<APostOperationResponse> executeFuture = clientHandler
-                    .execute(new ClientExecutionParams<APostOperationRequest, APostOperationResponse>()
+                .execute(new ClientExecutionParams<APostOperationRequest, APostOperationResponse>()
                              .withOperationName("APostOperation")
                              .withMarshaller(new APostOperationRequestMarshaller(protocolFactory))
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
@@ -130,8 +129,13 @@ final class DefaultQueryToJsonCompatibleAsyncClient implements QueryToJsonCompat
     }
 
     @Override
-    public void close() {
-        clientHandler.close();
+    public final QueryToJsonCompatibleServiceClientConfiguration serviceClientConfiguration() {
+        return this.serviceClientConfiguration;
+    }
+
+    @Override
+    public final String serviceName() {
+        return SERVICE_NAME;
     }
 
     private <T extends BaseAwsJsonProtocolFactory.Builder<T>> T init(T builder) {
@@ -147,7 +151,7 @@ final class DefaultQueryToJsonCompatibleAsyncClient implements QueryToJsonCompat
     }
 
     private static List<MetricPublisher> resolveMetricPublishers(SdkClientConfiguration clientConfiguration,
-            RequestOverrideConfiguration requestOverrideConfiguration) {
+                                                                 RequestOverrideConfiguration requestOverrideConfiguration) {
         List<MetricPublisher> publishers = null;
         if (requestOverrideConfiguration != null) {
             publishers = requestOverrideConfiguration.metricPublishers();
@@ -171,7 +175,12 @@ final class DefaultQueryToJsonCompatibleAsyncClient implements QueryToJsonCompat
     }
 
     private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,
-            JsonOperationMetadata operationMetadata) {
+                                                                                JsonOperationMetadata operationMetadata) {
         return protocolFactory.createErrorResponseHandler(operationMetadata);
+    }
+
+    @Override
+    public void close() {
+        clientHandler.close();
     }
 }

@@ -186,6 +186,13 @@ public class StaticImmutableTableSchemaFlattenTest {
         assertThat(result).containsExactlyInAnyOrder(ITEM_MAP.keySet().toArray(new String[]{}));
     }
 
+    @Test
+    public void converterForAttribute() {
+        ITEM_MAP.forEach((key, attributeValue) -> {
+            assertThat(immutableTableSchema.converterForAttribute(key)).isNotNull();
+        });
+    }
+
     public static class ImmutableRecord {
         private final String id;
         private final String attribute1;

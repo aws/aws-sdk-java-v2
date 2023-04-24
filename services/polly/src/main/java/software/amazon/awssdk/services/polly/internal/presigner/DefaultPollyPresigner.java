@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
@@ -68,7 +69,7 @@ public final class DefaultPollyPresigner implements PollyPresigner {
     private static final String SERVICE_NAME = "polly";
     private static final Aws4Signer DEFAULT_SIGNER = Aws4Signer.create();
 
-    private final ProfileFile profileFile;
+    private final Supplier<ProfileFile> profileFile;
     private final String profileName;
     private final Region region;
     private final AwsCredentialsProvider credentialsProvider;
@@ -77,11 +78,11 @@ public final class DefaultPollyPresigner implements PollyPresigner {
     private final Boolean fipsEnabled;
 
     private DefaultPollyPresigner(BuilderImpl builder) {
-        this.profileFile = ProfileFile.defaultProfileFile();
+        this.profileFile = ProfileFile::defaultProfileFile;
         this.profileName = ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow();
         this.region = builder.region != null ? builder.region
                                              : DefaultAwsRegionProviderChain.builder()
-                                                                            .profileFile(() -> profileFile)
+                                                                            .profileFile(profileFile)
                                                                             .profileName(profileName)
                                                                             .build()
                                                                             .getRegion();
@@ -93,14 +94,14 @@ public final class DefaultPollyPresigner implements PollyPresigner {
         this.endpointOverride = builder.endpointOverride;
         this.dualstackEnabled = builder.dualstackEnabled != null ? builder.dualstackEnabled
                                                                  : DualstackEnabledProvider.builder()
-                                                                                           .profileFile(() -> profileFile)
+                                                                                           .profileFile(profileFile)
                                                                                            .profileName(profileName)
                                                                                            .build()
                                                                                            .isDualstackEnabled()
                                                                                            .orElse(false);
         this.fipsEnabled = builder.fipsEnabled != null ? builder.fipsEnabled
                                                        : FipsEnabledProvider.builder()
-                                                                            .profileFile(() -> profileFile)
+                                                                            .profileFile(profileFile)
                                                                             .profileName(profileName)
                                                                             .build()
                                                                             .isFipsEnabled()
@@ -245,7 +246,7 @@ public final class DefaultPollyPresigner implements PollyPresigner {
 
         return new DefaultServiceEndpointBuilder(SERVICE_NAME, "https")
                 .withRegion(region())
-                .withProfileFile(() -> profileFile)
+                .withProfileFile(profileFile)
                 .withProfileName(profileName)
                 .withDualstackEnabled(dualstackEnabled)
                 .withFipsEnabled(fipsEnabled)

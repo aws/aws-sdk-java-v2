@@ -20,6 +20,7 @@ import static software.amazon.awssdk.http.HttpMetric.CONCURRENCY_ACQUIRE_DURATIO
 import static software.amazon.awssdk.http.HttpMetric.LEASED_CONCURRENCY;
 import static software.amazon.awssdk.http.HttpMetric.MAX_CONCURRENCY;
 import static software.amazon.awssdk.http.HttpMetric.PENDING_CONCURRENCY_ACQUIRES;
+import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -71,36 +72,38 @@ public final class CrtRequestExecutor {
         httpClientConnectionCompletableFuture.whenComplete((crtConn, throwable) -> {
             AsyncExecuteRequest asyncRequest = executionContext.sdkRequest();
 
+            if (shouldPublishMetrics) {
+                reportMetrics(executionContext, metricCollector, finalAcquireStartTime);
+            }
+
             // If we didn't get a connection for some reason, fail the request
             if (throwable != null) {
-                reportFailure(new IOException("An exception occurred when acquiring a connection", throwable),
+                reportFailure(crtConn,
+                              new IOException("An exception occurred when acquiring a connection", throwable),
                               requestFuture,
                               asyncRequest.responseHandler());
                 return;
             }
 
-            if (shouldPublishMetrics) {
-                long acquireCompletionTime = System.nanoTime();
-                Duration acquireTimeTaken = Duration.ofNanos(acquireCompletionTime - finalAcquireStartTime);
-                metricCollector.reportMetric(CONCURRENCY_ACQUIRE_DURATION, acquireTimeTaken);
-            }
-
             executeRequest(executionContext, requestFuture, crtConn, asyncRequest);
         });
 
-        requestFuture.whenComplete((obj, err) -> {
-            if (shouldPublishMetrics) {
-                HttpClientConnectionManager connManager = executionContext.crtConnPool();
-                HttpManagerMetrics managerMetrics = connManager.getManagerMetrics();
-                // currently this executor only handles HTTP 1.1. Until H2 is added, the max concurrency settings are 1:1 with TCP
-                // connections. When H2 is added, this code needs to be updated to handle stream multiplexing
-                metricCollector.reportMetric(MAX_CONCURRENCY, connManager.getMaxConnections());
-                metricCollector.reportMetric(AVAILABLE_CONCURRENCY, (int) managerMetrics.getAvailableConcurrency());
-                metricCollector.reportMetric(LEASED_CONCURRENCY, (int) managerMetrics.getLeasedConcurrency());
-                metricCollector.reportMetric(PENDING_CONCURRENCY_ACQUIRES, (int) managerMetrics.getPendingConcurrencyAcquires());
-            }
-        });
         return requestFuture;
+    }
+
+    private static void reportMetrics(CrtRequestContext executionContext, MetricCollector metricCollector,
+                                  long acquireStartTime) {
+        long acquireCompletionTime = System.nanoTime();
+        Duration acquireTimeTaken = Duration.ofNanos(acquireCompletionTime - acquireStartTime);
+        metricCollector.reportMetric(CONCURRENCY_ACQUIRE_DURATION, acquireTimeTaken);
+        HttpClientConnectionManager connManager = executionContext.crtConnPool();
+        HttpManagerMetrics managerMetrics = connManager.getManagerMetrics();
+        // currently this executor only handles HTTP 1.1. Until H2 is added, the max concurrency settings are 1:1 with TCP
+        // connections. When H2 is added, this code needs to be updated to handle stream multiplexing
+        metricCollector.reportMetric(MAX_CONCURRENCY, connManager.getMaxConnections());
+        metricCollector.reportMetric(AVAILABLE_CONCURRENCY, saturatedCast(managerMetrics.getAvailableConcurrency()));
+        metricCollector.reportMetric(LEASED_CONCURRENCY, saturatedCast(managerMetrics.getLeasedConcurrency()));
+        metricCollector.reportMetric(PENDING_CONCURRENCY_ACQUIRES, saturatedCast(managerMetrics.getPendingConcurrencyAcquires()));
     }
 
     private void executeRequest(CrtRequestContext executionContext,
@@ -121,12 +124,13 @@ public final class CrtRequestExecutor {
                 // it's semantically an IOException anyway.
                 toThrow = new IOException(e);
             }
-            reportFailure(toThrow,
+            reportFailure(crtConn,
+                          toThrow,
                           requestFuture,
                           asyncRequest.responseHandler());
         } catch (IllegalStateException | CrtRuntimeException e) {
             // CRT throws IllegalStateException if the connection is closed
-            reportFailure(new IOException("An exception occurred when making the request", e),
+            reportFailure(crtConn, new IOException("An exception occurred when making the request", e),
                           requestFuture,
                           asyncRequest.responseHandler());
         }
@@ -156,9 +160,14 @@ public final class CrtRequestExecutor {
     /**
      * Notify the provided response handler and future of the failure.
      */
-    private void reportFailure(Throwable cause,
+    private void reportFailure(HttpClientConnection crtConn,
+                               Throwable cause,
                                CompletableFuture<Void> executeFuture,
                                SdkAsyncHttpResponseHandler responseHandler) {
+        if (crtConn != null) {
+            crtConn.close();
+        }
+
         try {
             responseHandler.onError(cause);
         } catch (Exception e) {

@@ -7281,7 +7281,8 @@
         "INTELLIGENT_TIERING",
         "DEEP_ARCHIVE",
         "OUTPOSTS",
-        "GLACIER_IR"
+        "GLACIER_IR",
+        "SNOW"
       ]
     },
     "ObjectVersion":{
@@ -9960,7 +9961,8 @@
         "GLACIER",
         "DEEP_ARCHIVE",
         "OUTPOSTS",
-        "GLACIER_IR"
+        "GLACIER_IR",
+        "SNOW"
       ]
     },
     "StorageClassAnalysis":{

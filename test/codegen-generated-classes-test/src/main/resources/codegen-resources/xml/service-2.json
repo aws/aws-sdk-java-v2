@@ -765,6 +765,11 @@
           "documentation":"<p>Object data.</p>",
           "streaming":true
         },
+        "ContentEncoding":{
+          "shape":"String",
+          "location":"header",
+          "locationName":"Content-Encoding"
+        },
         "ChecksumMode":{
           "shape":"ChecksumMode",
           "location":"header",
@@ -787,6 +792,11 @@
           "shape":"ChecksumMode",
           "location":"header",
           "locationName":"x-amz-checksum-mode"
+        },
+        "ContentEncoding":{
+          "shape":"String",
+          "location":"header",
+          "locationName":"Content-Encoding"
         },
         "ChecksumAlgorithm":{
           "shape":"ChecksumAlgorithm",

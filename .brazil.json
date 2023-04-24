@@ -29,6 +29,8 @@
         "sdk-core": { "packageName": "AwsJavaSdk-Core" },
         "url-connection-client": { "packageName": "AwsJavaSdk-HttpClient-UrlConnectionClient" },
         "utils": { "packageName": "AwsJavaSdk-Core-Utils" },
+        "imds": { "packageName": "AwsJavaSdk-Imds" },
+        "crt-core": { "packageName": "AwsJavaSdk-Core-CrtCore" },
 
         "dynamodb": { "packageName": "AwsJavaSdk-DynamoDb" },
         "waf": { "packageName": "AwsJavaSdk-Waf" },
@@ -36,12 +38,14 @@
         "third-party-jackson-core": {
             "packageName": "AwsJavaSdk-ThirdParty-JacksonCore",
             "artifactType": "JAR",
-            "includes": ["target/aws-sdk-java-third-party-jackson-core-*.jar"]
+            "includes": ["target/aws-sdk-java-third-party-jackson-core-*.jar"],
+            "excludes": ["aws-sdk-java-third-party-jackson-core-*-javadoc.jar"]
         },
         "third-party-jackson-dataformat-cbor": {
             "packageName": "AwsJavaSdk-ThirdParty-JacksonDataformatCbor",
             "artifactType": "JAR",
-            "includes": ["target/aws-sdk-java-third-party-jackson-dataformat-cbor-*.jar"]
+            "includes": ["target/aws-sdk-java-third-party-jackson-dataformat-cbor-*.jar"],
+            "excludes": ["aws-sdk-java-third-party-jackson-dataformat-cbor-*-javadoc.jar"]
         },
         "ruleset-testing-core": {
             "packageName": "AwsJavaSdk-Test-RuleSetTestingCore"
@@ -94,7 +98,7 @@
         "com.fasterxml.jackson.jr:jackson-jr-objects": { "packageName": "Maven-com-fasterxml-jackson-jr_jackson-jr-objects", "packageVersion": "2.11.x" },
         "com.fasterxml.jackson.jr:jackson-jr-stree": { "packageName": "Maven-com-fasterxml-jackson-jr_jackson-jr-stree", "packageVersion": "2.11.x" },
         "com.jayway.jsonpath:json-path": { "packageName": "JMESPathJava", "packageVersion": "1.0" },
-        "com.squareup:javapoet": { "packageName": "Maven-com-squareup_javapoet", "packageVersion": "1.11.x" },
+        "com.squareup:javapoet": { "packageName": "Maven-com-squareup_javapoet", "packageVersion": "1.13.x" },
         "com.typesafe.netty:netty-reactive-streams": { "packageName": "Netty4", "packageVersion": "4.1" },
         "com.typesafe.netty:netty-reactive-streams-http": { "packageName": "Maven-com-typesafe-netty_netty-reactive-streams-http", "packageVersion": "2.x" },
         "commons-codec:commons-codec": { "packageName": "JakartaCommons-codec", "packageVersion": "1.x" },

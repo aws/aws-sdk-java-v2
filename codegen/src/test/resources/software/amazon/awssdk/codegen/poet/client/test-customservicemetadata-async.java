@@ -47,15 +47,15 @@ final class DefaultProtocolRestJsonWithCustomContentTypeAsyncClient implements P
 
     private final SdkClientConfiguration clientConfiguration;
 
-    protected DefaultProtocolRestJsonWithCustomContentTypeAsyncClient(SdkClientConfiguration clientConfiguration) {
+    private final ProtocolRestJsonWithCustomContentTypeServiceClientConfiguration serviceClientConfiguration;
+
+    protected DefaultProtocolRestJsonWithCustomContentTypeAsyncClient(
+        ProtocolRestJsonWithCustomContentTypeServiceClientConfiguration serviceClientConfiguration,
+        SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
+        this.serviceClientConfiguration = serviceClientConfiguration;
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
-    }
-
-    @Override
-    public final String serviceName() {
-        return SERVICE_NAME;
     }
 
     /**
@@ -80,26 +80,26 @@ final class DefaultProtocolRestJsonWithCustomContentTypeAsyncClient implements P
     @Override
     public CompletableFuture<OneOperationResponse> oneOperation(OneOperationRequest oneOperationRequest) {
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, oneOperationRequest
-                .overrideConfiguration().orElse(null));
+            .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-                .create("ApiCall");
+            .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "AmazonProtocolRestJsonWithCustomContentType");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "OneOperation");
             JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                    .isPayloadJson(true).build();
+                                                                           .isPayloadJson(true).build();
 
             HttpResponseHandler<OneOperationResponse> responseHandler = protocolFactory.createResponseHandler(operationMetadata,
-                    OneOperationResponse::builder);
+                                                                                                              OneOperationResponse::builder);
 
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                    operationMetadata);
+                                                                                                       operationMetadata);
 
             CompletableFuture<OneOperationResponse> executeFuture = clientHandler
-                    .execute(new ClientExecutionParams<OneOperationRequest, OneOperationResponse>()
-                            .withOperationName("OneOperation").withMarshaller(new OneOperationRequestMarshaller(protocolFactory))
-                            .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                            .withMetricCollector(apiCallMetricCollector).withInput(oneOperationRequest));
+                .execute(new ClientExecutionParams<OneOperationRequest, OneOperationResponse>()
+                             .withOperationName("OneOperation").withMarshaller(new OneOperationRequestMarshaller(protocolFactory))
+                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                             .withMetricCollector(apiCallMetricCollector).withInput(oneOperationRequest));
             CompletableFuture<OneOperationResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
@@ -112,18 +112,23 @@ final class DefaultProtocolRestJsonWithCustomContentTypeAsyncClient implements P
     }
 
     @Override
-    public void close() {
-        clientHandler.close();
+    public final ProtocolRestJsonWithCustomContentTypeServiceClientConfiguration serviceClientConfiguration() {
+        return this.serviceClientConfiguration;
+    }
+
+    @Override
+    public final String serviceName() {
+        return SERVICE_NAME;
     }
 
     private <T extends BaseAwsJsonProtocolFactory.Builder<T>> T init(T builder) {
         return builder.clientConfiguration(clientConfiguration)
-                .defaultServiceExceptionSupplier(ProtocolRestJsonWithCustomContentTypeException::builder)
-                .protocol(AwsJsonProtocol.REST_JSON).protocolVersion("1.1").contentType("application/json");
+                      .defaultServiceExceptionSupplier(ProtocolRestJsonWithCustomContentTypeException::builder)
+                      .protocol(AwsJsonProtocol.REST_JSON).protocolVersion("1.1").contentType("application/json");
     }
 
     private static List<MetricPublisher> resolveMetricPublishers(SdkClientConfiguration clientConfiguration,
-            RequestOverrideConfiguration requestOverrideConfiguration) {
+                                                                 RequestOverrideConfiguration requestOverrideConfiguration) {
         List<MetricPublisher> publishers = null;
         if (requestOverrideConfiguration != null) {
             publishers = requestOverrideConfiguration.metricPublishers();
@@ -138,7 +143,12 @@ final class DefaultProtocolRestJsonWithCustomContentTypeAsyncClient implements P
     }
 
     private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,
-            JsonOperationMetadata operationMetadata) {
+                                                                                JsonOperationMetadata operationMetadata) {
         return protocolFactory.createErrorResponseHandler(operationMetadata);
+    }
+
+    @Override
+    public void close() {
+        clientHandler.close();
     }
 }

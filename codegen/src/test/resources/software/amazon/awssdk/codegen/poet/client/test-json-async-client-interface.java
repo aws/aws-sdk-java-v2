@@ -7,7 +7,7 @@ import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.core.SdkClient;
+import software.amazon.awssdk.awscore.AwsClient;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.builder.Builder;
@@ -58,7 +58,7 @@ import software.amazon.awssdk.services.json.paginators.PaginatedOperationWithout
 @Generated("software.amazon.awssdk:codegen")
 @SdkPublicApi
 @ThreadSafe
-public interface JsonAsyncClient extends SdkClient {
+public interface JsonAsyncClient extends AwsClient {
     String SERVICE_NAME = "json-service";
 
     /**
@@ -68,19 +68,10 @@ public interface JsonAsyncClient extends SdkClient {
     String SERVICE_METADATA_ID = "json-service-endpoint";
 
     /**
-     * Create a {@link JsonAsyncClient} with the region loaded from the
-     * {@link software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain} and credentials loaded from the
-     * {@link software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider}.
+     * Creates an instance of {@link JsonUtilities} object with the configuration set on this client.
      */
-    static JsonAsyncClient create() {
-        return builder().build();
-    }
-
-    /**
-     * Create a builder that can be used to configure and create a {@link JsonAsyncClient}.
-     */
-    static JsonAsyncClientBuilder builder() {
-        return new DefaultJsonAsyncClientBuilder();
+    default JsonUtilities utilities() {
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -1751,11 +1742,25 @@ public interface JsonAsyncClient extends SdkClient {
                                                                        .build(), destinationPath);
     }
 
-    /**
-     * Creates an instance of {@link JsonUtilities} object with the configuration set on this client.
-     */
-    default JsonUtilities utilities() {
+    @Override
+    default JsonServiceClientConfiguration serviceClientConfiguration() {
         throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Create a {@link JsonAsyncClient} with the region loaded from the
+     * {@link software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain} and credentials loaded from the
+     * {@link software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider}.
+     */
+    static JsonAsyncClient create() {
+        return builder().build();
+    }
+
+    /**
+     * Create a builder that can be used to configure and create a {@link JsonAsyncClient}.
+     */
+    static JsonAsyncClientBuilder builder() {
+        return new DefaultJsonAsyncClientBuilder();
     }
 
     /**

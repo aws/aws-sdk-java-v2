@@ -88,7 +88,7 @@
         {"shape":"LimitExceededException"},
         {"shape":"InternalFailureException"}
       ],
-      "documentation":"<p>Creates an analysis in Amazon QuickSight.</p>"
+      "documentation":"<p>Creates an analysis in Amazon QuickSight. Analyses can be created either from a template or from an <code>AnalysisDefinition</code>.</p>"
     },
     "CreateDashboard":{
       "name":"CreateDashboard",
@@ -108,7 +108,7 @@
         {"shape":"LimitExceededException"},
         {"shape":"InternalFailureException"}
       ],
-      "documentation":"<p>Creates a dashboard from a template. To first create a template, see the <code> <a href=\"https://docs.aws.amazon.com/quicksight/latest/APIReference/API_CreateTemplate.html\">CreateTemplate</a> </code> API operation.</p> <p>A dashboard is an entity in Amazon QuickSight that identifies Amazon QuickSight reports, created from analyses. You can share Amazon QuickSight dashboards. With the right permissions, you can create scheduled email reports from them. If you have the correct permissions, you can create a dashboard from a template that exists in a different Amazon Web Services account.</p>"
+      "documentation":"<p>Creates a dashboard from either a template or directly with a <code>DashboardDefinition</code>. To first create a template, see the <code> <a href=\"https://docs.aws.amazon.com/quicksight/latest/APIReference/API_CreateTemplate.html\">CreateTemplate</a> </code> API operation.</p> <p>A dashboard is an entity in Amazon QuickSight that identifies Amazon QuickSight reports, created from analyses. You can share Amazon QuickSight dashboards. With the right permissions, you can create scheduled email reports from them. If you have the correct permissions, you can create a dashboard from a template that exists in a different Amazon Web Services account.</p>"
     },
     "CreateDataSet":{
       "name":"CreateDataSet",
@@ -292,6 +292,26 @@
       ],
       "documentation":"<p>(Enterprise edition only) Creates a new namespace for you to use with Amazon QuickSight.</p> <p>A namespace allows you to isolate the Amazon QuickSight users and groups that are registered for that namespace. Users that access the namespace can share assets only with other users or groups in the same namespace. They can't see users and groups in other namespaces. You can create a namespace after your Amazon Web Services account is subscribed to Amazon QuickSight. The namespace must be unique within the Amazon Web Services account. By default, there is a limit of 100 namespaces per Amazon Web Services account. To increase your limit, create a ticket with Amazon Web Services Support. </p>"
     },
+    "CreateRefreshSchedule":{
+      "name":"CreateRefreshSchedule",
+      "http":{
+        "method":"POST",
+        "requestUri":"/accounts/{AwsAccountId}/data-sets/{DataSetId}/refresh-schedules"
+      },
+      "input":{"shape":"CreateRefreshScheduleRequest"},
+      "output":{"shape":"CreateRefreshScheduleResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"ResourceExistsException"},
+        {"shape":"PreconditionNotMetException"},
+        {"shape":"InternalFailureException"}
+      ],
+      "documentation":"<p>Creates a refresh schedule for a dataset. You can create up to 5 different schedules for a single dataset.</p>"
+    },
     "CreateTemplate":{
       "name":"CreateTemplate",
       "http":{
@@ -311,7 +331,7 @@
         {"shape":"ConflictException"},
         {"shape":"InternalFailureException"}
       ],
-      "documentation":"<p>Creates a template from an existing Amazon QuickSight analysis or template. You can use the resulting template to create a dashboard.</p> <p>A <i>template</i> is an entity in Amazon QuickSight that encapsulates the metadata required to create an analysis and that you can use to create s dashboard. A template adds a layer of abstraction by using placeholders to replace the dataset associated with the analysis. You can use templates to create dashboards by replacing dataset placeholders with datasets that follow the same schema that was used to create the source analysis and template.</p>"
+      "documentation":"<p>Creates a template either from a <code>TemplateDefinition</code> or from an existing Amazon QuickSight analysis or template. You can use the resulting template to create additional dashboards, templates, or analyses.</p> <p>A <i>template</i> is an entity in Amazon QuickSight that encapsulates the metadata required to create an analysis and that you can use to create s dashboard. A template adds a layer of abstraction by using placeholders to replace the dataset associated with the analysis. You can use templates to create dashboards by replacing dataset placeholders with datasets that follow the same schema that was used to create the source analysis and template.</p>"
     },
     "CreateTemplateAlias":{
       "name":"CreateTemplateAlias",
@@ -464,6 +484,25 @@
       ],
       "documentation":"<p>Deletes a dataset.</p>"
     },
+    "DeleteDataSetRefreshProperties":{
+      "name":"DeleteDataSetRefreshProperties",
+      "http":{
+        "method":"DELETE",
+        "requestUri":"/accounts/{AwsAccountId}/data-sets/{DataSetId}/refresh-properties"
+      },
+      "input":{"shape":"DeleteDataSetRefreshPropertiesRequest"},
+      "output":{"shape":"DeleteDataSetRefreshPropertiesResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"ConflictException"},
+        {"shape":"InternalFailureException"}
+      ],
+      "documentation":"<p>Deletes the dataset refresh properties of the dataset.</p>"
+    },
     "DeleteDataSource":{
       "name":"DeleteDataSource",
       "http":{
@@ -595,6 +634,24 @@
       ],
       "documentation":"<p>Deletes a namespace and the users and groups that are associated with the namespace. This is an asynchronous process. Assets including dashboards, analyses, datasets and data sources are not deleted. To delete these assets, you use the API operations for the relevant asset. </p>"
     },
+    "DeleteRefreshSchedule":{
+      "name":"DeleteRefreshSchedule",
+      "http":{
+        "method":"DELETE",
+        "requestUri":"/accounts/{AwsAccountId}/data-sets/{DataSetId}/refresh-schedules/{ScheduleId}"
+      },
+      "input":{"shape":"DeleteRefreshScheduleRequest"},
+      "output":{"shape":"DeleteRefreshScheduleResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"InternalFailureException"}
+      ],
+      "documentation":"<p>Deletes a refresh schedule from a dataset.</p>"
+    },
     "DeleteTemplate":{
       "name":"DeleteTemplate",
       "http":{
@@ -685,7 +742,7 @@
         {"shape":"InternalFailureException"},
         {"shape":"ResourceUnavailableException"}
       ],
-      "documentation":"<p>Deletes the Amazon QuickSight user that is associated with the identity of the Identity and Access Management (IAM) user or role that's making the call. The IAM user isn't deleted as a result of this call. </p>"
+      "documentation":"<p>Deletes the Amazon QuickSight user that is associated with the identity of the IAM user or role that's making the call. The IAM user isn't deleted as a result of this call. </p>"
     },
     "DeleteUserByPrincipalId":{
       "name":"DeleteUserByPrincipalId",
@@ -904,6 +961,25 @@
       ],
       "documentation":"<p>Describes the permissions on a dataset.</p> <p>The permissions resource is <code>arn:aws:quicksight:region:aws-account-id:dataset/data-set-id</code>.</p>"
     },
+    "DescribeDataSetRefreshProperties":{
+      "name":"DescribeDataSetRefreshProperties",
+      "http":{
+        "method":"GET",
+        "requestUri":"/accounts/{AwsAccountId}/data-sets/{DataSetId}/refresh-properties"
+      },
+      "input":{"shape":"DescribeDataSetRefreshPropertiesRequest"},
+      "output":{"shape":"DescribeDataSetRefreshPropertiesResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"PreconditionNotMetException"},
+        {"shape":"InternalFailureException"}
+      ],
+      "documentation":"<p>Describes the refresh properties of a dataset.</p>"
+    },
     "DescribeDataSource":{
       "name":"DescribeDataSource",
       "http":{
@@ -1100,6 +1176,24 @@
         {"shape":"ResourceUnavailableException"}
       ],
       "documentation":"<p>Describes the current namespace.</p>"
+    },
+    "DescribeRefreshSchedule":{
+      "name":"DescribeRefreshSchedule",
+      "http":{
+        "method":"GET",
+        "requestUri":"/accounts/{AwsAccountId}/data-sets/{DataSetId}/refresh-schedules/{ScheduleId}"
+      },
+      "input":{"shape":"DescribeRefreshScheduleRequest"},
+      "output":{"shape":"DescribeRefreshScheduleResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"InternalFailureException"}
+      ],
+      "documentation":"<p>Provides a summary of a refresh schedule.</p>"
     },
     "DescribeTemplate":{
       "name":"DescribeTemplate",
@@ -1573,6 +1667,24 @@
       ],
       "documentation":"<p>Lists the namespaces for the specified Amazon Web Services account. This operation doesn't list deleted namespaces.</p>"
     },
+    "ListRefreshSchedules":{
+      "name":"ListRefreshSchedules",
+      "http":{
+        "method":"GET",
+        "requestUri":"/accounts/{AwsAccountId}/data-sets/{DataSetId}/refresh-schedules"
+      },
+      "input":{"shape":"ListRefreshSchedulesRequest"},
+      "output":{"shape":"ListRefreshSchedulesResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"InternalFailureException"}
+      ],
+      "documentation":"<p>Lists the refresh schedules of a dataset. Each dataset can have up to 5 schedules. </p>"
+    },
     "ListTagsForResource":{
       "name":"ListTagsForResource",
       "http":{
@@ -1739,6 +1851,26 @@
       ],
       "documentation":"<p>Returns a list of all of the Amazon QuickSight users belonging to this account. </p>"
     },
+    "PutDataSetRefreshProperties":{
+      "name":"PutDataSetRefreshProperties",
+      "http":{
+        "method":"PUT",
+        "requestUri":"/accounts/{AwsAccountId}/data-sets/{DataSetId}/refresh-properties"
+      },
+      "input":{"shape":"PutDataSetRefreshPropertiesRequest"},
+      "output":{"shape":"PutDataSetRefreshPropertiesResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"PreconditionNotMetException"},
+        {"shape":"ConflictException"},
+        {"shape":"InternalFailureException"}
+      ],
+      "documentation":"<p>Creates or updates the dataset refresh properties for the dataset.</p>"
+    },
     "RegisterUser":{
       "name":"RegisterUser",
       "http":{
@@ -1758,7 +1890,7 @@
         {"shape":"InternalFailureException"},
         {"shape":"ResourceUnavailableException"}
       ],
-      "documentation":"<p>Creates an Amazon QuickSight user, whose identity is associated with the Identity and Access Management (IAM) identity or role specified in the request. </p>"
+      "documentation":"<p>Creates an Amazon QuickSight user whose identity is associated with the Identity and Access Management (IAM) identity or role specified in the request. When you register a new user from the Amazon QuickSight API, Amazon QuickSight generates a registration URL. The user accesses this registration URL to create their account. Amazon QuickSight doesn't send a registration email to users who are registered from the Amazon QuickSight API. If you want new users to receive a registration email, then add those users in the Amazon QuickSight console. For more information on registering a new user in the Amazon QuickSight console, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/managing-users.html#inviting-users\"> Inviting users to access Amazon QuickSight</a>.</p>"
     },
     "RestoreAnalysis":{
       "name":"RestoreAnalysis",
@@ -2243,6 +2375,25 @@
       ],
       "documentation":"<p>Use the <code>UpdatePublicSharingSettings</code> operation to turn on or turn off the public sharing settings of an Amazon QuickSight dashboard.</p> <p>To use this operation, turn on session capacity pricing for your Amazon QuickSight account.</p> <p>Before you can turn on public sharing on your account, make sure to give public sharing permissions to an administrative user in the Identity and Access Management (IAM) console. For more information on using IAM with Amazon QuickSight, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/security_iam_service-with-iam.html\">Using Amazon QuickSight with IAM</a> in the <i>Amazon QuickSight User Guide</i>.</p>"
     },
+    "UpdateRefreshSchedule":{
+      "name":"UpdateRefreshSchedule",
+      "http":{
+        "method":"PUT",
+        "requestUri":"/accounts/{AwsAccountId}/data-sets/{DataSetId}/refresh-schedules"
+      },
+      "input":{"shape":"UpdateRefreshScheduleRequest"},
+      "output":{"shape":"UpdateRefreshScheduleResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"PreconditionNotMetException"},
+        {"shape":"InternalFailureException"}
+      ],
+      "documentation":"<p>Updates a refresh schedule for a dataset.</p>"
+    },
     "UpdateTemplate":{
       "name":"UpdateTemplate",
       "http":{
@@ -2388,7 +2539,7 @@
           "documentation":"<p>The Amazon Web Services request ID for this request.</p>"
         }
       },
-      "documentation":"<p>You don't have access to this item. The provided credentials couldn't be validated. You might not be authorized to carry out the request. Make sure that your account is authorized to use the Amazon QuickSight service, that your policies have the correct permissions, and that you are using the correct access keys.</p>",
+      "documentation":"<p>You don't have access to this item. The provided credentials couldn't be validated. You might not be authorized to carry out the request. Make sure that your account is authorized to use the Amazon QuickSight service, that your policies have the correct permissions, and that you are using the correct credentials.</p>",
       "error":{"httpStatusCode":401},
       "exception":true
     },
@@ -2678,7 +2829,7 @@
         },
         "ViolatedEntities":{
           "shape":"EntityList",
-          "documentation":"<p/>"
+          "documentation":"<p>Lists the violated entities that caused the analysis error</p>"
         }
       },
       "documentation":"<p>Analysis error.</p>"
@@ -3938,7 +4089,8 @@
       "type":"structure",
       "required":[
         "FilterId",
-        "Column"
+        "Column",
+        "Configuration"
       ],
       "members":{
         "FilterId":{
@@ -4998,7 +5150,7 @@
         },
         "SourceEntity":{
           "shape":"AnalysisSourceEntity",
-          "documentation":"<p>A source entity to use for the analysis that you're creating. This metadata structure contains details that describe a source template and one or more datasets.</p>"
+          "documentation":"<p>A source entity to use for the analysis that you're creating. This metadata structure contains details that describe a source template and one or more datasets.</p> <p>Either a <code>SourceEntity</code> or a <code>Definition</code> must be provided in order for the request to be valid.</p>"
         },
         "ThemeArn":{
           "shape":"Arn",
@@ -5010,7 +5162,7 @@
         },
         "Definition":{
           "shape":"AnalysisDefinition",
-          "documentation":"<p>The definition of an analysis.</p> <p>A definition is the data model of all features in a Dashboard, Template, or Analysis.</p>"
+          "documentation":"<p>The definition of an analysis.</p> <p>A definition is the data model of all features in a Dashboard, Template, or Analysis.</p> <p>Either a <code>SourceEntity</code> or a <code>Definition</code> must be provided in order for the request to be valid.</p>"
         }
       }
     },
@@ -5085,7 +5237,7 @@
         },
         "SourceEntity":{
           "shape":"DashboardSourceEntity",
-          "documentation":"<p>The entity that you are using as a source when you create the dashboard. In <code>SourceEntity</code>, you specify the type of object you're using as source. You can only create a dashboard from a template, so you use a <code>SourceTemplate</code> entity. If you need to create a dashboard from an analysis, first convert the analysis to a template by using the <code> <a href=\"https://docs.aws.amazon.com/quicksight/latest/APIReference/API_CreateTemplate.html\">CreateTemplate</a> </code> API operation. For <code>SourceTemplate</code>, specify the Amazon Resource Name (ARN) of the source template. The <code>SourceTemplate</code>ARN can contain any Amazon Web Services account and any Amazon QuickSight-supported Amazon Web Services Region. </p> <p>Use the <code>DataSetReferences</code> entity within <code>SourceTemplate</code> to list the replacement datasets for the placeholders listed in the original. The schema in each dataset must match its placeholder. </p>"
+          "documentation":"<p>The entity that you are using as a source when you create the dashboard. In <code>SourceEntity</code>, you specify the type of object you're using as source. You can only create a dashboard from a template, so you use a <code>SourceTemplate</code> entity. If you need to create a dashboard from an analysis, first convert the analysis to a template by using the <code> <a href=\"https://docs.aws.amazon.com/quicksight/latest/APIReference/API_CreateTemplate.html\">CreateTemplate</a> </code> API operation. For <code>SourceTemplate</code>, specify the Amazon Resource Name (ARN) of the source template. The <code>SourceTemplate</code>ARN can contain any Amazon Web Services account and any Amazon QuickSight-supported Amazon Web Services Region. </p> <p>Use the <code>DataSetReferences</code> entity within <code>SourceTemplate</code> to list the replacement datasets for the placeholders listed in the original. The schema in each dataset must match its placeholder. </p> <p>Either a <code>SourceEntity</code> or a <code>Definition</code> must be provided in order for the request to be valid.</p>"
         },
         "Tags":{
           "shape":"TagList",
@@ -5105,7 +5257,7 @@
         },
         "Definition":{
           "shape":"DashboardVersionDefinition",
-          "documentation":"<p>The definition of a dashboard.</p> <p>A definition is the data model of all features in a Dashboard, Template, or Analysis.</p>"
+          "documentation":"<p>The definition of a dashboard.</p> <p>A definition is the data model of all features in a Dashboard, Template, or Analysis.</p> <p>Either a <code>SourceEntity</code> or a <code>Definition</code> must be provided in order for the request to be valid.</p>"
         }
       }
     },
@@ -5726,6 +5878,54 @@
         }
       }
     },
+    "CreateRefreshScheduleRequest":{
+      "type":"structure",
+      "required":[
+        "DataSetId",
+        "AwsAccountId",
+        "Schedule"
+      ],
+      "members":{
+        "DataSetId":{
+          "shape":"ResourceId",
+          "documentation":"<p>The ID of the dataset.</p>",
+          "location":"uri",
+          "locationName":"DataSetId"
+        },
+        "AwsAccountId":{
+          "shape":"AwsAccountId",
+          "documentation":"<p>The Amazon Web Services account ID.</p>",
+          "location":"uri",
+          "locationName":"AwsAccountId"
+        },
+        "Schedule":{
+          "shape":"RefreshSchedule",
+          "documentation":"<p>The refresh schedule.</p>"
+        }
+      }
+    },
+    "CreateRefreshScheduleResponse":{
+      "type":"structure",
+      "members":{
+        "Status":{
+          "shape":"StatusCode",
+          "documentation":"<p>The HTTP status of the request.</p>",
+          "location":"statusCode"
+        },
+        "RequestId":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Web Services request ID for this operation.</p>"
+        },
+        "ScheduleId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the refresh schedule.</p>"
+        },
+        "Arn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) for the refresh schedule.</p>"
+        }
+      }
+    },
     "CreateTemplateAliasRequest":{
       "type":"structure",
       "required":[
@@ -5806,7 +6006,7 @@
         },
         "SourceEntity":{
           "shape":"TemplateSourceEntity",
-          "documentation":"<p>The entity that you are using as a source when you create the template. In <code>SourceEntity</code>, you specify the type of object you're using as source: <code>SourceTemplate</code> for a template or <code>SourceAnalysis</code> for an analysis. Both of these require an Amazon Resource Name (ARN). For <code>SourceTemplate</code>, specify the ARN of the source template. For <code>SourceAnalysis</code>, specify the ARN of the source analysis. The <code>SourceTemplate</code> ARN can contain any Amazon Web Services account and any Amazon QuickSight-supported Amazon Web Services Region. </p> <p>Use the <code>DataSetReferences</code> entity within <code>SourceTemplate</code> or <code>SourceAnalysis</code> to list the replacement datasets for the placeholders listed in the original. The schema in each dataset must match its placeholder. </p>"
+          "documentation":"<p>The entity that you are using as a source when you create the template. In <code>SourceEntity</code>, you specify the type of object you're using as source: <code>SourceTemplate</code> for a template or <code>SourceAnalysis</code> for an analysis. Both of these require an Amazon Resource Name (ARN). For <code>SourceTemplate</code>, specify the ARN of the source template. For <code>SourceAnalysis</code>, specify the ARN of the source analysis. The <code>SourceTemplate</code> ARN can contain any Amazon Web Services account and any Amazon QuickSight-supported Amazon Web Services Region. </p> <p>Use the <code>DataSetReferences</code> entity within <code>SourceTemplate</code> or <code>SourceAnalysis</code> to list the replacement datasets for the placeholders listed in the original. The schema in each dataset must match its placeholder. </p> <p>Either a <code>SourceEntity</code> or a <code>Definition</code> must be provided in order for the request to be valid.</p>"
         },
         "Tags":{
           "shape":"TagList",
@@ -5818,7 +6018,7 @@
         },
         "Definition":{
           "shape":"TemplateVersionDefinition",
-          "documentation":"<p>The definition of a template.</p> <p>A definition is the data model of all features in a Dashboard, Template, or Analysis.</p>"
+          "documentation":"<p>The definition of a template.</p> <p>A definition is the data model of all features in a Dashboard, Template, or Analysis.</p> <p>Either a <code>SourceEntity</code> or a <code>Definition</code> must be provided in order for the request to be valid.</p>"
         }
       }
     },
@@ -6369,7 +6569,7 @@
         },
         "ViolatedEntities":{
           "shape":"EntityList",
-          "documentation":"<p/>"
+          "documentation":"<p>Lists the violated entities that caused the dashboard error.</p>"
         }
       },
       "documentation":"<p>Dashboard error.</p>"
@@ -6428,7 +6628,37 @@
         },
         "VisualPublishOptions":{
           "shape":"DashboardVisualPublishOptions",
-          "documentation":"<p/>"
+          "documentation":"<p>The visual publish options of a visual in a dashboard.</p>",
+          "deprecated":true,
+          "deprecatedMessage":"VisualPublishOptions property will reach its end of standard support in a future release. To perform this action, use ExportWithHiddenFields."
+        },
+        "SheetLayoutElementMaximizationOption":{
+          "shape":"SheetLayoutElementMaximizationOption",
+          "documentation":"<p>The sheet layout maximization options of a dashbaord.</p>"
+        },
+        "VisualMenuOption":{
+          "shape":"VisualMenuOption",
+          "documentation":"<p>The menu options of a visual in a dashboard.</p>"
+        },
+        "VisualAxisSortOption":{
+          "shape":"VisualAxisSortOption",
+          "documentation":"<p>The axis sort options of a dashboard.</p>"
+        },
+        "ExportWithHiddenFieldsOption":{
+          "shape":"ExportWithHiddenFieldsOption",
+          "documentation":"<p>Determines if hidden fields are exported with a dashboard.</p>"
+        },
+        "DataPointDrillUpDownOption":{
+          "shape":"DataPointDrillUpDownOption",
+          "documentation":"<p>The drill-down options of data points in a dashboard.</p>"
+        },
+        "DataPointMenuLabelOption":{
+          "shape":"DataPointMenuLabelOption",
+          "documentation":"<p>The data point menu label options of a dashboard.</p>"
+        },
+        "DataPointTooltipOption":{
+          "shape":"DataPointTooltipOption",
+          "documentation":"<p>The data point tool tip options of a dashboard.</p>"
         }
       },
       "documentation":"<p>Dashboard publish options.</p>"
@@ -6673,10 +6903,29 @@
       "members":{
         "ExportHiddenFieldsOption":{
           "shape":"ExportHiddenFieldsOption",
-          "documentation":"<p/>"
+          "documentation":"<p>Determines if hidden fields are included in an exported dashboard.</p>"
         }
       },
-      "documentation":"<p/>"
+      "documentation":"<p>The visual publish options of a visual in a dashboard</p>"
+    },
+    "DataBarsOptions":{
+      "type":"structure",
+      "required":["FieldId"],
+      "members":{
+        "FieldId":{
+          "shape":"FieldId",
+          "documentation":"<p>The field ID for the data bars options.</p>"
+        },
+        "PositiveColor":{
+          "shape":"HexColor",
+          "documentation":"<p>The color of the positive data bar.</p>"
+        },
+        "NegativeColor":{
+          "shape":"HexColor",
+          "documentation":"<p>The color of the negative data bar.</p>"
+        }
+      },
+      "documentation":"<p>The options for data bars.</p>"
     },
     "DataColor":{
       "type":"structure",
@@ -6922,6 +7171,36 @@
       "member":{"shape":"DataPathValue"},
       "max":20
     },
+    "DataPointDrillUpDownOption":{
+      "type":"structure",
+      "members":{
+        "AvailabilityStatus":{
+          "shape":"DashboardBehavior",
+          "documentation":"<p>The status of the drill down options of data points.</p>"
+        }
+      },
+      "documentation":"<p>The drill down options for data points in a dashbaord.</p>"
+    },
+    "DataPointMenuLabelOption":{
+      "type":"structure",
+      "members":{
+        "AvailabilityStatus":{
+          "shape":"DashboardBehavior",
+          "documentation":"<p>The status of the data point menu options.</p>"
+        }
+      },
+      "documentation":"<p>The data point menu options of a dashboard.</p>"
+    },
+    "DataPointTooltipOption":{
+      "type":"structure",
+      "members":{
+        "AvailabilityStatus":{
+          "shape":"DashboardBehavior",
+          "documentation":"<p>The status of the data point tool tip options.</p>"
+        }
+      },
+      "documentation":"<p>The data point tooltip options.</p>"
+    },
     "DataSet":{
       "type":"structure",
       "members":{
@@ -7094,6 +7373,17 @@
       "type":"list",
       "member":{"shape":"DataSetReference"},
       "min":1
+    },
+    "DataSetRefreshProperties":{
+      "type":"structure",
+      "required":["RefreshConfiguration"],
+      "members":{
+        "RefreshConfiguration":{
+          "shape":"RefreshConfiguration",
+          "documentation":"<p>The refresh configuration for a dataset.</p>"
+        }
+      },
+      "documentation":"<p>The refresh properties of a dataset.</p>"
     },
     "DataSetSchema":{
       "type":"structure",
@@ -7747,6 +8037,24 @@
       },
       "documentation":"<p>The configuration that defines the default value of a <code>DateTime</code> parameter when a value has not been set.</p>"
     },
+    "DayOfMonth":{
+      "type":"string",
+      "max":17,
+      "min":1,
+      "pattern":"^(?:LAST_DAY_OF_MONTH|1[0-9]|2[0-8]|[12]|[3-9])$"
+    },
+    "DayOfWeek":{
+      "type":"string",
+      "enum":[
+        "SUNDAY",
+        "MONDAY",
+        "TUESDAY",
+        "WEDNESDAY",
+        "THURSDAY",
+        "FRIDAY",
+        "SATURDAY"
+      ]
+    },
     "DecimalDefaultValueList":{
       "type":"list",
       "member":{"shape":"SensitiveDoubleObject"},
@@ -8084,6 +8392,41 @@
         "RequestId":{
           "shape":"String",
           "documentation":"<p>The Amazon Web Services request ID for this operation.</p>"
+        }
+      }
+    },
+    "DeleteDataSetRefreshPropertiesRequest":{
+      "type":"structure",
+      "required":[
+        "AwsAccountId",
+        "DataSetId"
+      ],
+      "members":{
+        "AwsAccountId":{
+          "shape":"AwsAccountId",
+          "documentation":"<p>The Amazon Web Services account ID.</p>",
+          "location":"uri",
+          "locationName":"AwsAccountId"
+        },
+        "DataSetId":{
+          "shape":"ResourceId",
+          "documentation":"<p>The ID of the dataset.</p>",
+          "location":"uri",
+          "locationName":"DataSetId"
+        }
+      }
+    },
+    "DeleteDataSetRefreshPropertiesResponse":{
+      "type":"structure",
+      "members":{
+        "RequestId":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Web Services request ID for this operation.</p>"
+        },
+        "Status":{
+          "shape":"StatusCode",
+          "documentation":"<p>The HTTP status of the request.</p>",
+          "location":"statusCode"
         }
       }
     },
@@ -8433,6 +8776,56 @@
           "shape":"StatusCode",
           "documentation":"<p>The HTTP status of the request.</p>",
           "location":"statusCode"
+        }
+      }
+    },
+    "DeleteRefreshScheduleRequest":{
+      "type":"structure",
+      "required":[
+        "DataSetId",
+        "AwsAccountId",
+        "ScheduleId"
+      ],
+      "members":{
+        "DataSetId":{
+          "shape":"ResourceId",
+          "documentation":"<p>The ID of the dataset.</p>",
+          "location":"uri",
+          "locationName":"DataSetId"
+        },
+        "AwsAccountId":{
+          "shape":"AwsAccountId",
+          "documentation":"<p>The Amazon Web Services account ID.</p>",
+          "location":"uri",
+          "locationName":"AwsAccountId"
+        },
+        "ScheduleId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the refresh schedule.</p>",
+          "location":"uri",
+          "locationName":"ScheduleId"
+        }
+      }
+    },
+    "DeleteRefreshScheduleResponse":{
+      "type":"structure",
+      "members":{
+        "Status":{
+          "shape":"StatusCode",
+          "documentation":"<p>The HTTP status of the request.</p>",
+          "location":"statusCode"
+        },
+        "RequestId":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Web Services request ID for this operation.</p>"
+        },
+        "ScheduleId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the refresh schedule.</p>"
+        },
+        "Arn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) for the refresh schedule.</p>"
         }
       }
     },
@@ -9059,6 +9452,10 @@
         "RequestId":{
           "shape":"String",
           "documentation":"<p>The Amazon Web Services request ID for this operation.</p>"
+        },
+        "DashboardPublishOptions":{
+          "shape":"DashboardPublishOptions",
+          "documentation":"<p>Options for publishing the dashboard:</p> <ul> <li> <p> <code>AvailabilityStatus</code> for <code>AdHocFilteringOption</code> - This status can be either <code>ENABLED</code> or <code>DISABLED</code>. When this is set to <code>DISABLED</code>, Amazon QuickSight disables the left filter pane on the published dashboard, which can be used for ad hoc (one-time) filtering. This option is <code>ENABLED</code> by default. </p> </li> <li> <p> <code>AvailabilityStatus</code> for <code>ExportToCSVOption</code> - This status can be either <code>ENABLED</code> or <code>DISABLED</code>. The visual option to export data to .CSV format isn't enabled when this is set to <code>DISABLED</code>. This option is <code>ENABLED</code> by default. </p> </li> <li> <p> <code>VisibilityState</code> for <code>SheetControlsOption</code> - This visibility state can be either <code>COLLAPSED</code> or <code>EXPANDED</code>. This option is <code>COLLAPSED</code> by default. </p> </li> </ul>"
         }
       }
     },
@@ -9208,6 +9605,45 @@
           "shape":"StatusCode",
           "documentation":"<p>The HTTP status of the request.</p>",
           "location":"statusCode"
+        }
+      }
+    },
+    "DescribeDataSetRefreshPropertiesRequest":{
+      "type":"structure",
+      "required":[
+        "AwsAccountId",
+        "DataSetId"
+      ],
+      "members":{
+        "AwsAccountId":{
+          "shape":"AwsAccountId",
+          "documentation":"<p>The Amazon Web Services account ID.</p>",
+          "location":"uri",
+          "locationName":"AwsAccountId"
+        },
+        "DataSetId":{
+          "shape":"ResourceId",
+          "documentation":"<p>The ID of the dataset.</p>",
+          "location":"uri",
+          "locationName":"DataSetId"
+        }
+      }
+    },
+    "DescribeDataSetRefreshPropertiesResponse":{
+      "type":"structure",
+      "members":{
+        "RequestId":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Web Services request ID for this operation.</p>"
+        },
+        "Status":{
+          "shape":"StatusCode",
+          "documentation":"<p>The HTTP status of the request.</p>",
+          "location":"statusCode"
+        },
+        "DataSetRefreshProperties":{
+          "shape":"DataSetRefreshProperties",
+          "documentation":"<p>The dataset refresh properties.</p>"
         }
       }
     },
@@ -9731,6 +10167,56 @@
           "shape":"StatusCode",
           "documentation":"<p>The HTTP status of the request.</p>",
           "location":"statusCode"
+        }
+      }
+    },
+    "DescribeRefreshScheduleRequest":{
+      "type":"structure",
+      "required":[
+        "AwsAccountId",
+        "DataSetId",
+        "ScheduleId"
+      ],
+      "members":{
+        "AwsAccountId":{
+          "shape":"AwsAccountId",
+          "documentation":"<p>The Amazon Web Services account ID.</p>",
+          "location":"uri",
+          "locationName":"AwsAccountId"
+        },
+        "DataSetId":{
+          "shape":"ResourceId",
+          "documentation":"<p>The ID of the dataset.</p>",
+          "location":"uri",
+          "locationName":"DataSetId"
+        },
+        "ScheduleId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the refresh schedule.</p>",
+          "location":"uri",
+          "locationName":"ScheduleId"
+        }
+      }
+    },
+    "DescribeRefreshScheduleResponse":{
+      "type":"structure",
+      "members":{
+        "RefreshSchedule":{
+          "shape":"RefreshSchedule",
+          "documentation":"<p>The refresh schedule.</p>"
+        },
+        "Status":{
+          "shape":"StatusCode",
+          "documentation":"<p>The HTTP status of the request.</p>",
+          "location":"statusCode"
+        },
+        "RequestId":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Web Services request ID for this operation.</p>"
+        },
+        "Arn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) for the refresh schedule.</p>"
         }
       }
     },
@@ -10452,10 +10938,10 @@
       "members":{
         "AvailabilityStatus":{
           "shape":"DashboardBehavior",
-          "documentation":"<p/>"
+          "documentation":"<p>The status of the export hidden fields options of a dashbaord.</p>"
         }
       },
-      "documentation":"<p/>"
+      "documentation":"<p>Determines if hidden fields are included in an exported dashboard.</p>"
     },
     "ExportToCSVOption":{
       "type":"structure",
@@ -10466,6 +10952,16 @@
         }
       },
       "documentation":"<p>Export to .csv option.</p>"
+    },
+    "ExportWithHiddenFieldsOption":{
+      "type":"structure",
+      "members":{
+        "AvailabilityStatus":{
+          "shape":"DashboardBehavior",
+          "documentation":"<p>The status of the export with hidden fields options.</p>"
+        }
+      },
+      "documentation":"<p>Determines whether or not hidden fields are visible on exported dashbaords.</p>"
     },
     "Expression":{
       "type":"string",
@@ -12468,7 +12964,7 @@
         },
         "UserArn":{
           "shape":"Arn",
-          "documentation":"<p>The Amazon QuickSight user's Amazon Resource Name (ARN), for use with <code>QUICKSIGHT</code> identity type. You can use this for any type of Amazon QuickSight users in your account (readers, authors, or admins). They need to be authenticated as one of the following:</p> <ol> <li> <p>Active Directory (AD) users or group members</p> </li> <li> <p>Invited nonfederated users</p> </li> <li> <p>Identity and Access Management (IAM) users and IAM role-based sessions authenticated through Federated Single Sign-On using SAML, OpenID Connect, or IAM federation</p> </li> </ol> <p>Omit this parameter for users in the third group, IAM users and IAM role-based sessions.</p>",
+          "documentation":"<p>The Amazon QuickSight user's Amazon Resource Name (ARN), for use with <code>QUICKSIGHT</code> identity type. You can use this for any type of Amazon QuickSight users in your account (readers, authors, or admins). They need to be authenticated as one of the following:</p> <ol> <li> <p>Active Directory (AD) users or group members</p> </li> <li> <p>Invited nonfederated users</p> </li> <li> <p>IAM users and IAM role-based sessions authenticated through Federated Single Sign-On using SAML, OpenID Connect, or IAM federation</p> </li> </ol> <p>Omit this parameter for users in the third group, IAM users and IAM role-based sessions.</p>",
           "location":"querystring",
           "locationName":"user-arn"
         }
@@ -13212,6 +13708,17 @@
       "error":{"httpStatusCode":403},
       "exception":true
     },
+    "IncrementalRefresh":{
+      "type":"structure",
+      "required":["LookbackWindow"],
+      "members":{
+        "LookbackWindow":{
+          "shape":"LookbackWindow",
+          "documentation":"<p>The lookback window setup for an incremental refresh configuration.</p>"
+        }
+      },
+      "documentation":"<p>The incremental refresh configuration for a dataset.</p>"
+    },
     "Ingestion":{
       "type":"structure",
       "required":[
@@ -13309,7 +13816,8 @@
         "REFRESH_SUPPRESSED_BY_EDIT",
         "PERMISSION_NOT_FOUND",
         "ELASTICSEARCH_CURSOR_NOT_ENABLED",
-        "CURSOR_NOT_ENABLED"
+        "CURSOR_NOT_ENABLED",
+        "DUPLICATE_COLUMN_NAMES_FOUND"
       ]
     },
     "IngestionId":{
@@ -15007,6 +15515,45 @@
         }
       }
     },
+    "ListRefreshSchedulesRequest":{
+      "type":"structure",
+      "required":[
+        "AwsAccountId",
+        "DataSetId"
+      ],
+      "members":{
+        "AwsAccountId":{
+          "shape":"AwsAccountId",
+          "documentation":"<p>The Amazon Web Services account ID.</p>",
+          "location":"uri",
+          "locationName":"AwsAccountId"
+        },
+        "DataSetId":{
+          "shape":"ResourceId",
+          "documentation":"<p>The ID of the dataset.</p>",
+          "location":"uri",
+          "locationName":"DataSetId"
+        }
+      }
+    },
+    "ListRefreshSchedulesResponse":{
+      "type":"structure",
+      "members":{
+        "RefreshSchedules":{
+          "shape":"RefreshSchedules",
+          "documentation":"<p>The list of refresh schedules for the dataset.</p>"
+        },
+        "Status":{
+          "shape":"StatusCode",
+          "documentation":"<p>The HTTP status of the request.</p>",
+          "location":"statusCode"
+        },
+        "RequestId":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Web Services request ID for this operation.</p>"
+        }
+      }
+    },
     "ListTagsForResourceRequest":{
       "type":"structure",
       "required":["ResourceArn"],
@@ -15514,7 +16061,7 @@
         },
         "DataTransforms":{
           "shape":"TransformOperationList",
-          "documentation":"<p>Transform operations that act on this logical table.</p>"
+          "documentation":"<p>Transform operations that act on this logical table. For this structure to be valid, only one of the attributes can be non-null. </p>"
         },
         "Source":{
           "shape":"LogicalTableSource",
@@ -15588,6 +16135,37 @@
       "type":"double",
       "max":1800,
       "min":-1800
+    },
+    "LookbackWindow":{
+      "type":"structure",
+      "required":[
+        "ColumnName",
+        "Size",
+        "SizeUnit"
+      ],
+      "members":{
+        "ColumnName":{
+          "shape":"String",
+          "documentation":"<p>The name of the lookback window column.</p>"
+        },
+        "Size":{
+          "shape":"PositiveLong",
+          "documentation":"<p>The lookback window column size.</p>"
+        },
+        "SizeUnit":{
+          "shape":"LookbackWindowSizeUnit",
+          "documentation":"<p>The size unit that is used for the lookback window column. Valid values for this structure are <code>HOUR</code>, <code>DAY</code>, and <code>WEEK</code>.</p>"
+        }
+      },
+      "documentation":"<p>The lookback window setup of an incremental refresh configuration.</p>"
+    },
+    "LookbackWindowSizeUnit":{
+      "type":"string",
+      "enum":[
+        "HOUR",
+        "DAY",
+        "WEEK"
+      ]
     },
     "ManifestFileLocation":{
       "type":"structure",
@@ -17092,7 +17670,7 @@
     "PivotMeasureFieldList":{
       "type":"list",
       "member":{"shape":"MeasureField"},
-      "max":20
+      "max":40
     },
     "PivotTableAggregatedFieldWells":{
       "type":"structure",
@@ -17227,7 +17805,7 @@
     "PivotTableDimensionList":{
       "type":"list",
       "member":{"shape":"DimensionField"},
-      "max":20
+      "max":40
     },
     "PivotTableFieldOption":{
       "type":"structure",
@@ -17337,6 +17915,10 @@
         "RowAlternateColorOptions":{
           "shape":"RowAlternateColorOptions",
           "documentation":"<p>The row alternate color options (widget status, row alternate colors).</p>"
+        },
+        "CollapsedRowDimensionsVisibility":{
+          "shape":"Visibility",
+          "documentation":"<p>The visibility setting of a pivot table's collapsed row dimension fields. If the value of this structure is <code>HIDDEN</code>, all collapsed columns in a pivot table are automatically hidden. The default value is <code>VISIBLE</code>.</p>"
         }
       },
       "documentation":"<p>The table options for a pivot table visual.</p>"
@@ -17491,6 +18073,10 @@
       "type":"integer",
       "min":1
     },
+    "PositiveLong":{
+      "type":"long",
+      "min":1
+    },
     "PostgreSqlParameters":{
       "type":"structure",
       "required":[
@@ -17635,6 +18221,46 @@
       "max":2000,
       "min":1
     },
+    "PutDataSetRefreshPropertiesRequest":{
+      "type":"structure",
+      "required":[
+        "AwsAccountId",
+        "DataSetId",
+        "DataSetRefreshProperties"
+      ],
+      "members":{
+        "AwsAccountId":{
+          "shape":"AwsAccountId",
+          "documentation":"<p>The Amazon Web Services account ID.</p>",
+          "location":"uri",
+          "locationName":"AwsAccountId"
+        },
+        "DataSetId":{
+          "shape":"ResourceId",
+          "documentation":"<p>The ID of the dataset.</p>",
+          "location":"uri",
+          "locationName":"DataSetId"
+        },
+        "DataSetRefreshProperties":{
+          "shape":"DataSetRefreshProperties",
+          "documentation":"<p>The dataset refresh properties.</p>"
+        }
+      }
+    },
+    "PutDataSetRefreshPropertiesResponse":{
+      "type":"structure",
+      "members":{
+        "RequestId":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Web Services request ID for this operation.</p>"
+        },
+        "Status":{
+          "shape":"StatusCode",
+          "documentation":"<p>The HTTP status of the request.</p>",
+          "location":"statusCode"
+        }
+      }
+    },
     "Query":{
       "type":"string",
       "max":256,
@@ -17670,6 +18296,196 @@
       "documentation":"<p>The user with the provided name isn't found. This error can happen in any operation that requires finding a user based on a provided user name, such as <code>DeleteUser</code>, <code>DescribeUser</code>, and so on.</p>",
       "error":{"httpStatusCode":404},
       "exception":true
+    },
+    "RadarChartAggregatedFieldWells":{
+      "type":"structure",
+      "members":{
+        "Category":{
+          "shape":"RadarChartCategoryFieldList",
+          "documentation":"<p>The aggregated field well categories of a radar chart.</p>"
+        },
+        "Color":{
+          "shape":"RadarChartColorFieldList",
+          "documentation":"<p>The color that are assigned to the aggregated field wells of a radar chart.</p>"
+        },
+        "Values":{
+          "shape":"RadarChartValuesFieldList",
+          "documentation":"<p>The values that are assigned to the aggregated field wells of a radar chart.</p>"
+        }
+      },
+      "documentation":"<p>The aggregated field well configuration of a <code>RadarChartVisual</code>.</p>"
+    },
+    "RadarChartAreaStyleSettings":{
+      "type":"structure",
+      "members":{
+        "Visibility":{
+          "shape":"Visibility",
+          "documentation":"<p>The visibility settings of a radar chart.</p>"
+        }
+      },
+      "documentation":"<p>The configured style settings of a radar chart.</p>"
+    },
+    "RadarChartCategoryFieldList":{
+      "type":"list",
+      "member":{"shape":"DimensionField"},
+      "max":1
+    },
+    "RadarChartColorFieldList":{
+      "type":"list",
+      "member":{"shape":"DimensionField"},
+      "max":1
+    },
+    "RadarChartConfiguration":{
+      "type":"structure",
+      "members":{
+        "FieldWells":{
+          "shape":"RadarChartFieldWells",
+          "documentation":"<p>The field well configuration of a <code>RadarChartVisual</code>.</p>"
+        },
+        "SortConfiguration":{
+          "shape":"RadarChartSortConfiguration",
+          "documentation":"<p>The sort configuration of a <code>RadarChartVisual</code>.</p>"
+        },
+        "Shape":{
+          "shape":"RadarChartShape",
+          "documentation":"<p>The shape of the radar chart.</p>"
+        },
+        "BaseSeriesSettings":{
+          "shape":"RadarChartSeriesSettings",
+          "documentation":"<p>The base sreies settings of a radar chart.</p>"
+        },
+        "StartAngle":{
+          "shape":"RadarChartStartAngle",
+          "documentation":"<p>The start angle of a radar chart's axis.</p>"
+        },
+        "VisualPalette":{
+          "shape":"VisualPalette",
+          "documentation":"<p>The palette (chart color) display setup of the visual.</p>"
+        },
+        "AlternateBandColorsVisibility":{
+          "shape":"Visibility",
+          "documentation":"<p>Determines the visibility of the colors of alternatign bands in a radar chart.</p>"
+        },
+        "AlternateBandEvenColor":{
+          "shape":"HexColor",
+          "documentation":"<p>The color of the even-numbered alternate bands of a radar chart.</p>"
+        },
+        "AlternateBandOddColor":{
+          "shape":"HexColor",
+          "documentation":"<p>The color of the odd-numbered alternate bands of a radar chart.</p>"
+        },
+        "CategoryAxis":{
+          "shape":"AxisDisplayOptions",
+          "documentation":"<p>The category axis of a radar chart.</p>"
+        },
+        "CategoryLabelOptions":{
+          "shape":"ChartAxisLabelOptions",
+          "documentation":"<p>The category label options of a radar chart.</p>"
+        },
+        "ColorAxis":{
+          "shape":"AxisDisplayOptions",
+          "documentation":"<p>The color axis of a radar chart.</p>"
+        },
+        "ColorLabelOptions":{
+          "shape":"ChartAxisLabelOptions",
+          "documentation":"<p>The color label options of a radar chart.</p>"
+        },
+        "Legend":{
+          "shape":"LegendOptions",
+          "documentation":"<p>The legend display setup of the visual.</p>"
+        }
+      },
+      "documentation":"<p>The configuration of a <code>RadarChartVisual</code>.</p>"
+    },
+    "RadarChartFieldWells":{
+      "type":"structure",
+      "members":{
+        "RadarChartAggregatedFieldWells":{
+          "shape":"RadarChartAggregatedFieldWells",
+          "documentation":"<p>The aggregated field wells of a radar chart visual.</p>"
+        }
+      },
+      "documentation":"<p>The field wells of a radar chart visual.</p>"
+    },
+    "RadarChartSeriesSettings":{
+      "type":"structure",
+      "members":{
+        "AreaStyleSettings":{
+          "shape":"RadarChartAreaStyleSettings",
+          "documentation":"<p>The area style settings of a radar chart.</p>"
+        }
+      },
+      "documentation":"<p>The series settings of a radar chart.</p>"
+    },
+    "RadarChartShape":{
+      "type":"string",
+      "enum":[
+        "CIRCLE",
+        "POLYGON"
+      ]
+    },
+    "RadarChartSortConfiguration":{
+      "type":"structure",
+      "members":{
+        "CategorySort":{
+          "shape":"FieldSortOptionsList",
+          "documentation":"<p>The category sort options of a radar chart.</p>"
+        },
+        "CategoryItemsLimit":{
+          "shape":"ItemsLimitConfiguration",
+          "documentation":"<p>The category items limit for a radar chart.</p>"
+        },
+        "ColorSort":{
+          "shape":"FieldSortOptionsList",
+          "documentation":"<p>The color sort configuration of a radar chart.</p>"
+        },
+        "ColorItemsLimit":{
+          "shape":"ItemsLimitConfiguration",
+          "documentation":"<p>The color items limit of a radar chart.</p>"
+        }
+      },
+      "documentation":"<p>The sort configuration of a <code>RadarChartVisual</code>.</p>"
+    },
+    "RadarChartStartAngle":{
+      "type":"double",
+      "max":360,
+      "min":-360
+    },
+    "RadarChartValuesFieldList":{
+      "type":"list",
+      "member":{"shape":"MeasureField"},
+      "max":20
+    },
+    "RadarChartVisual":{
+      "type":"structure",
+      "required":["VisualId"],
+      "members":{
+        "VisualId":{
+          "shape":"ShortRestrictiveResourceId",
+          "documentation":"<p>The unique identifier of a visual. This identifier must be unique within the context of a dashboard, template, or analysis. Two dashboards, analyses, or templates can have visuals with the same identifiers.</p>"
+        },
+        "Title":{
+          "shape":"VisualTitleLabelOptions",
+          "documentation":"<p>The title that is displayed on the visual.</p>"
+        },
+        "Subtitle":{
+          "shape":"VisualSubtitleLabelOptions",
+          "documentation":"<p>The subtitle that is displayed on the visual.</p>"
+        },
+        "ChartConfiguration":{
+          "shape":"RadarChartConfiguration",
+          "documentation":"<p>The configuration settings of the visual.</p>"
+        },
+        "Actions":{
+          "shape":"VisualCustomActionList",
+          "documentation":"<p>The list of custom actions that are configured for a visual.</p>"
+        },
+        "ColumnHierarchies":{
+          "shape":"ColumnHierarchyList",
+          "documentation":"<p>The column hierarchy that is used during drill-downs and drill-ups.</p>"
+        }
+      },
+      "documentation":"<p>A radar chart visual.</p>"
     },
     "RangeEndsLabelType":{
       "type":"structure",
@@ -17906,6 +18722,89 @@
         "AFTER_CUSTOM_LABEL"
       ]
     },
+    "RefreshConfiguration":{
+      "type":"structure",
+      "required":["IncrementalRefresh"],
+      "members":{
+        "IncrementalRefresh":{
+          "shape":"IncrementalRefresh",
+          "documentation":"<p>The incremental refresh for the dataset.</p>"
+        }
+      },
+      "documentation":"<p>The refresh configuration of a dataset.</p>"
+    },
+    "RefreshFrequency":{
+      "type":"structure",
+      "required":["Interval"],
+      "members":{
+        "Interval":{
+          "shape":"RefreshInterval",
+          "documentation":"<p>The interval between scheduled refreshes. Valid values are as follows:</p> <ul> <li> <p> <code>MINUTE15</code>: The dataset refreshes every 15 minutes. This value is only supported for incremental refreshes. This interval can only be used for one schedule per dataset.</p> </li> <li> <p> <code>MINUTE30</code>:The dataset refreshes every 30 minutes. This value is only supported for incremental refreshes. This interval can only be used for one schedule per dataset.</p> </li> <li> <p> <code>HOURLY</code>: The dataset refreshes every hour. This interval can only be used for one schedule per dataset.</p> </li> <li> <p> <code>DAILY</code>: The dataset refreshes every day.</p> </li> <li> <p> <code>WEEKLY</code>: The dataset refreshes every week.</p> </li> <li> <p> <code>MONTHLY</code>: The dataset refreshes every month.</p> </li> </ul>"
+        },
+        "RefreshOnDay":{
+          "shape":"ScheduleRefreshOnEntity",
+          "documentation":"<p>The day of the week that you want to schedule the refresh on. This value is required for weekly and monthly refresh intervals.</p>"
+        },
+        "Timezone":{
+          "shape":"String",
+          "documentation":"<p>The timezone that you want the refresh schedule to use. The timezone ID must match a corresponding ID found on <code>java.util.time.getAvailableIDs()</code>.</p>"
+        },
+        "TimeOfTheDay":{
+          "shape":"String",
+          "documentation":"<p>The time of day that you want the datset to refresh. This value is expressed in HH:MM format. This field is not required for schedules that refresh hourly.</p>"
+        }
+      },
+      "documentation":"<p>Specifies the interval between each scheduled refresh of a dataset.</p>"
+    },
+    "RefreshInterval":{
+      "type":"string",
+      "enum":[
+        "MINUTE15",
+        "MINUTE30",
+        "HOURLY",
+        "DAILY",
+        "WEEKLY",
+        "MONTHLY"
+      ]
+    },
+    "RefreshSchedule":{
+      "type":"structure",
+      "required":[
+        "ScheduleId",
+        "ScheduleFrequency",
+        "RefreshType"
+      ],
+      "members":{
+        "ScheduleId":{
+          "shape":"String",
+          "documentation":"<p>An identifier for the refresh schedule.</p>"
+        },
+        "ScheduleFrequency":{
+          "shape":"RefreshFrequency",
+          "documentation":"<p>The frequency for the refresh schedule.</p>"
+        },
+        "StartAfterDateTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>Time after which the refresh schedule can be started, expressed in <code>YYYY-MM-DDTHH:MM:SS</code> format.</p>"
+        },
+        "RefreshType":{
+          "shape":"IngestionType",
+          "documentation":"<p>The type of refresh that a datset undergoes. Valid values are as follows:</p> <ul> <li> <p> <code>FULL_REFRESH</code>: A complete refresh of a dataset.</p> </li> <li> <p> <code>INCREMENTAL_REFRESH</code>: A partial refresh of some rows of a dataset, based on the time window specified.</p> </li> </ul> <p>For more information on full and incremental refreshes, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/refreshing-imported-data.html\">Refreshing SPICE data</a> in the <i>Amazon QuickSight User Guide</i>.</p>"
+        },
+        "Arn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) for the refresh schedule.</p>"
+        }
+      },
+      "documentation":"<p>The refresh schedule of a dataset.</p>"
+    },
+    "RefreshSchedules":{
+      "type":"list",
+      "member":{
+        "shape":"RefreshSchedule",
+        "documentation":"<p>A list of <code>RefreshSchedule</code> objects.</p>"
+      }
+    },
     "RegisterUserRequest":{
       "type":"structure",
       "required":[
@@ -17992,6 +18891,16 @@
         }
       }
     },
+    "RegisteredUserConsoleFeatureConfigurations":{
+      "type":"structure",
+      "members":{
+        "StatePersistence":{
+          "shape":"StatePersistenceConfigurations",
+          "documentation":"<p>The state persistence configurations of an embedded Amazon QuickSight console.</p>"
+        }
+      },
+      "documentation":"<p>The feature configurations of an embedded Amazon QuickSight console.</p>"
+    },
     "RegisteredUserDashboardEmbeddingConfiguration":{
       "type":"structure",
       "required":["InitialDashboardId"],
@@ -17999,9 +18908,23 @@
         "InitialDashboardId":{
           "shape":"ShortRestrictiveResourceId",
           "documentation":"<p>The dashboard ID for the dashboard that you want the user to see first. This ID is included in the output URL. When the URL in response is accessed, Amazon QuickSight renders this dashboard if the user has permissions to view it.</p> <p>If the user does not have permission to view this dashboard, they see a permissions error message.</p>"
+        },
+        "FeatureConfigurations":{
+          "shape":"RegisteredUserDashboardFeatureConfigurations",
+          "documentation":"<p>The feature configurations of an embbedded Amazon QuickSight dashboard.</p>"
         }
       },
       "documentation":"<p>Information about the dashboard you want to embed.</p>"
+    },
+    "RegisteredUserDashboardFeatureConfigurations":{
+      "type":"structure",
+      "members":{
+        "StatePersistence":{
+          "shape":"StatePersistenceConfigurations",
+          "documentation":"<p>The state persistence settings of an embedded dashboard.</p>"
+        }
+      },
+      "documentation":"<p>The feature configuration for an embedded dashboard.</p>"
     },
     "RegisteredUserDashboardVisualEmbeddingConfiguration":{
       "type":"structure",
@@ -18052,6 +18975,10 @@
         "InitialPath":{
           "shape":"EntryPath",
           "documentation":"<p>The initial URL path for the Amazon QuickSight console. <code>InitialPath</code> is required.</p> <p>The entry point URL is constrained to the following paths:</p> <ul> <li> <p> <code>/start</code> </p> </li> <li> <p> <code>/start/analyses</code> </p> </li> <li> <p> <code>/start/dashboards</code> </p> </li> <li> <p> <code>/start/favorites</code> </p> </li> <li> <p> <code>/dashboards/DashboardId</code>. <i>DashboardId</i> is the actual ID key from the Amazon QuickSight console URL of the dashboard.</p> </li> <li> <p> <code>/analyses/AnalysisId</code>. <i>AnalysisId</i> is the actual ID key from the Amazon QuickSight console URL of the analysis.</p> </li> </ul>"
+        },
+        "FeatureConfigurations":{
+          "shape":"RegisteredUserConsoleFeatureConfigurations",
+          "documentation":"<p>The embedding configuration of an embedded Amazon QuickSight console.</p>"
         }
       },
       "documentation":"<p>Information about the Amazon QuickSight console that you want to embed.</p>"
@@ -18483,6 +19410,10 @@
         "TagRules":{
           "shape":"RowLevelPermissionTagRuleList",
           "documentation":"<p>A set of rules associated with row-level security, such as the tag names and columns that they are assigned to.</p>"
+        },
+        "TagRuleConfigurations":{
+          "shape":"RowLevelPermissionTagRuleConfigurationList",
+          "documentation":"<p>A list of tag configuration rules to apply to a dataset. All tag configurations have the OR condition. Tags within each tile will be joined (AND). At least one rule in this structure must have all tag values assigned to it to apply Row-level security (RLS) to the dataset.</p>"
         }
       },
       "documentation":"<p>The configuration of tags on a dataset to set row-level security. </p>"
@@ -18517,6 +19448,18 @@
       },
       "documentation":"<p>A set of rules associated with a tag.</p>"
     },
+    "RowLevelPermissionTagRuleConfiguration":{
+      "type":"list",
+      "member":{"shape":"SessionTagKey"},
+      "max":50,
+      "min":1
+    },
+    "RowLevelPermissionTagRuleConfigurationList":{
+      "type":"list",
+      "member":{"shape":"RowLevelPermissionTagRuleConfiguration"},
+      "max":50,
+      "min":1
+    },
     "RowLevelPermissionTagRuleList":{
       "type":"list",
       "member":{"shape":"RowLevelPermissionTagRule"},
@@ -18545,6 +19488,10 @@
         "ManifestFileLocation":{
           "shape":"ManifestFileLocation",
           "documentation":"<p>Location of the Amazon S3 manifest file. This is NULL if the manifest file was uploaded into Amazon QuickSight.</p>"
+        },
+        "RoleArn":{
+          "shape":"RoleArn",
+          "documentation":"<p>Use the <code>RoleArn</code> structure to override an account-wide role for a specific S3 data source. For example, say an account administrator has turned off all S3 access with an account-wide role. The administrator can then use <code>RoleArn</code> to bypass the account-wide role and allow S3 access for the single S3 data source that is specified in the structure, even if the account-wide role forbidding S3 access is still active.</p>"
         }
       },
       "documentation":"<p>The parameters for S3.</p>"
@@ -18802,6 +19749,20 @@
         }
       },
       "documentation":"<p>A scatter plot.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/scatter-plot.html\">Using scatter plots</a> in the <i>Amazon QuickSight User Guide</i>.</p>"
+    },
+    "ScheduleRefreshOnEntity":{
+      "type":"structure",
+      "members":{
+        "DayOfWeek":{
+          "shape":"DayOfWeek",
+          "documentation":"<p>The day of the week that you want to schedule a refresh on.</p>"
+        },
+        "DayOfMonth":{
+          "shape":"DayOfMonth",
+          "documentation":"<p>The day of the month that you want to schedule refresh on.</p>"
+        }
+      },
+      "documentation":"<p>The refresh on entity for weekly or monthly schedules.</p>"
     },
     "ScrollBarOptions":{
       "type":"structure",
@@ -19625,6 +20586,16 @@
       "member":{"shape":"SheetElementRenderingRule"},
       "max":10000
     },
+    "SheetLayoutElementMaximizationOption":{
+      "type":"structure",
+      "members":{
+        "AvailabilityStatus":{
+          "shape":"DashboardBehavior",
+          "documentation":"<p>The status of the sheet layout maximization options of a dashbaord.</p>"
+        }
+      },
+      "documentation":"<p>The sheet layout maximization options of a dashbaord.</p>"
+    },
     "SheetList":{
       "type":"list",
       "member":{"shape":"Sheet"},
@@ -19934,6 +20905,17 @@
         }
       },
       "documentation":"<p>Secure Socket Layer (SSL) properties that apply when Amazon QuickSight connects to your underlying data source.</p>"
+    },
+    "StatePersistenceConfigurations":{
+      "type":"structure",
+      "required":["Enabled"],
+      "members":{
+        "Enabled":{
+          "shape":"Boolean",
+          "documentation":"<p>Determines if a Amazon QuickSight dashboard's state persistence settings are turned on or off.</p>"
+        }
+      },
+      "documentation":"<p>The state perssitence configuration of an embedded dashboard.</p>"
     },
     "Status":{
       "type":"string",
@@ -20254,6 +21236,10 @@
         "PaginatedReportOptions":{
           "shape":"TablePaginatedReportOptions",
           "documentation":"<p>The paginated report options for a table visual.</p>"
+        },
+        "TableInlineVisualizations":{
+          "shape":"TableInlineVisualizationList",
+          "documentation":"<p>A collection of inline visualizations to display within a chart.</p>"
         }
       },
       "documentation":"<p>The configuration for a <code>TableVisual</code>.</p>"
@@ -20407,6 +21393,21 @@
         }
       },
       "documentation":"<p>The field wells for a table visual.</p> <p>This is a union type structure. For this structure to be valid, only one of the attributes can be defined.</p>"
+    },
+    "TableInlineVisualization":{
+      "type":"structure",
+      "members":{
+        "DataBars":{
+          "shape":"DataBarsOptions",
+          "documentation":"<p>The configuration of the inline visualization of the data bars within a chart.</p>"
+        }
+      },
+      "documentation":"<p>The inline visualization of a specific type to display within a chart.</p>"
+    },
+    "TableInlineVisualizationList":{
+      "type":"list",
+      "member":{"shape":"TableInlineVisualization"},
+      "max":200
     },
     "TableOptions":{
       "type":"structure",
@@ -20731,7 +21732,7 @@
         },
         "ViolatedEntities":{
           "shape":"EntityList",
-          "documentation":"<p/>"
+          "documentation":"<p>An error path that shows which entities caused the template error.</p>"
         }
       },
       "documentation":"<p>List of errors that occurred when the template version creation failed.</p>"
@@ -20850,7 +21851,7 @@
         },
         "Status":{
           "shape":"ResourceStatus",
-          "documentation":"<p>The HTTP status of the request.</p>"
+          "documentation":"<p>The status that is associated with the template.</p> <ul> <li> <p> <code>CREATION_IN_PROGRESS</code> </p> </li> <li> <p> <code>CREATION_SUCCESSFUL</code> </p> </li> <li> <p> <code>CREATION_FAILED</code> </p> </li> <li> <p> <code>UPDATE_IN_PROGRESS</code> </p> </li> <li> <p> <code>UPDATE_SUCCESSFUL</code> </p> </li> <li> <p> <code>UPDATE_FAILED</code> </p> </li> <li> <p> <code>DELETED</code> </p> </li> </ul>"
         },
         "DataSetConfigurations":{
           "shape":"DataSetConfigurationList",
@@ -22200,7 +23201,7 @@
         },
         "DefaultNamespace":{
           "shape":"Namespace",
-          "documentation":"<p>The default namespace for this Amazon Web Services account. Currently, the default is <code>default</code>. Identity and Access Management (IAM) users that register for the first time with Amazon QuickSight provide an email address that becomes associated with the default namespace. </p>"
+          "documentation":"<p>The default namespace for this Amazon Web Services account. Currently, the default is <code>default</code>. IAM users that register for the first time with Amazon QuickSight provide an email address that becomes associated with the default namespace. </p>"
         },
         "NotificationEmail":{
           "shape":"String",
@@ -23105,6 +24106,54 @@
         }
       }
     },
+    "UpdateRefreshScheduleRequest":{
+      "type":"structure",
+      "required":[
+        "DataSetId",
+        "AwsAccountId",
+        "Schedule"
+      ],
+      "members":{
+        "DataSetId":{
+          "shape":"ResourceId",
+          "documentation":"<p>The ID of the dataset.</p>",
+          "location":"uri",
+          "locationName":"DataSetId"
+        },
+        "AwsAccountId":{
+          "shape":"AwsAccountId",
+          "documentation":"<p>The Amazon Web Services account ID.</p>",
+          "location":"uri",
+          "locationName":"AwsAccountId"
+        },
+        "Schedule":{
+          "shape":"RefreshSchedule",
+          "documentation":"<p>The refresh schedule.</p>"
+        }
+      }
+    },
+    "UpdateRefreshScheduleResponse":{
+      "type":"structure",
+      "members":{
+        "Status":{
+          "shape":"StatusCode",
+          "documentation":"<p>The HTTP status of the request.</p>",
+          "location":"statusCode"
+        },
+        "RequestId":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Web Services request ID for this operation.</p>"
+        },
+        "ScheduleId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the refresh schedule.</p>"
+        },
+        "Arn":{
+          "shape":"Arn",
+          "documentation":"<p>The Amazon Resource Name (ARN) for the refresh schedule.</p>"
+        }
+      }
+    },
     "UpdateResourcePermissionList":{
       "type":"list",
       "member":{"shape":"ResourcePermission"},
@@ -23586,7 +24635,7 @@
         },
         "Active":{
           "shape":"Boolean",
-          "documentation":"<p>The active status of user. When you create an Amazon QuickSight user that’s not an IAM user or an Active Directory user, that user is inactive until they sign in and provide a password.</p>"
+          "documentation":"<p>The active status of user. When you create an Amazon QuickSight user that's not an IAM user or an Active Directory user, that user is inactive until they sign in and provide a password.</p>"
         },
         "PrincipalId":{
           "shape":"String",
@@ -23776,9 +24825,23 @@
         "EmptyVisual":{
           "shape":"EmptyVisual",
           "documentation":"<p>An empty visual.</p>"
+        },
+        "RadarChartVisual":{
+          "shape":"RadarChartVisual",
+          "documentation":"<p>A radar chart visual.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/radar-chart.html\">Using radar charts</a> in the <i>Amazon QuickSight User Guide</i>.</p>"
         }
       },
       "documentation":"<p>A visual displayed on a sheet in an analysis, dashboard, or template.</p> <p>This is a union type structure. For this structure to be valid, only one of the attributes can be defined.</p>"
+    },
+    "VisualAxisSortOption":{
+      "type":"structure",
+      "members":{
+        "AvailabilityStatus":{
+          "shape":"DashboardBehavior",
+          "documentation":"<p>The availaiblity status of a visual's axis sort options.</p>"
+        }
+      },
+      "documentation":"<p>The axis sort options for a visual.</p>"
     },
     "VisualCustomAction":{
       "type":"structure",
@@ -23861,6 +24924,16 @@
       "type":"list",
       "member":{"shape":"Visual"},
       "max":30
+    },
+    "VisualMenuOption":{
+      "type":"structure",
+      "members":{
+        "AvailabilityStatus":{
+          "shape":"DashboardBehavior",
+          "documentation":"<p>The availaiblity status of a visual's menu options.</p>"
+        }
+      },
+      "documentation":"<p>The menu options for a visual.</p>"
     },
     "VisualPalette":{
       "type":"structure",

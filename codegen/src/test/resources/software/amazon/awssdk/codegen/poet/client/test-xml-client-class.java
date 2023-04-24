@@ -80,15 +80,14 @@ final class DefaultXmlClient implements XmlClient {
 
     private final SdkClientConfiguration clientConfiguration;
 
-    protected DefaultXmlClient(SdkClientConfiguration clientConfiguration) {
+    private final XmlServiceClientConfiguration serviceClientConfiguration;
+
+    protected DefaultXmlClient(XmlServiceClientConfiguration serviceClientConfiguration,
+                               SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
+        this.serviceClientConfiguration = serviceClientConfiguration;
         this.protocolFactory = init();
-    }
-
-    @Override
-    public final String serviceName() {
-        return SERVICE_NAME;
     }
 
     /**
@@ -216,8 +215,7 @@ final class DefaultXmlClient implements XmlClient {
 
             return clientHandler.execute(new ClientExecutionParams<BearerAuthOperationRequest, BearerAuthOperationResponse>()
                                              .withOperationName("BearerAuthOperation").withCombinedResponseHandler(responseHandler)
-                                             .withMetricCollector(apiCallMetricCollector)
-                                             .credentialType(CredentialType.TOKEN)
+                                             .withMetricCollector(apiCallMetricCollector).credentialType(CredentialType.TOKEN)
                                              .withInput(bearerAuthOperationRequest)
                                              .withMarshaller(new BearerAuthOperationRequestMarshaller(protocolFactory)));
         } finally {
@@ -554,6 +552,22 @@ final class DefaultXmlClient implements XmlClient {
         }
     }
 
+    private <T extends XmlRequest> T applySignerOverride(T request, Signer signer) {
+        if (request.overrideConfiguration().flatMap(c -> c.signer()).isPresent()) {
+            return request;
+        }
+        Consumer<AwsRequestOverrideConfiguration.Builder> signerOverride = b -> b.signer(signer).build();
+        AwsRequestOverrideConfiguration overrideConfiguration = request.overrideConfiguration()
+                                                                       .map(c -> c.toBuilder().applyMutation(signerOverride).build())
+                                                                       .orElse((AwsRequestOverrideConfiguration.builder().applyMutation(signerOverride).build()));
+        return (T) request.toBuilder().overrideConfiguration(overrideConfiguration).build();
+    }
+
+    @Override
+    public final String serviceName() {
+        return SERVICE_NAME;
+    }
+
     private static List<MetricPublisher> resolveMetricPublishers(SdkClientConfiguration clientConfiguration,
                                                                  RequestOverrideConfiguration requestOverrideConfiguration) {
         List<MetricPublisher> publishers = null;
@@ -579,18 +593,12 @@ final class DefaultXmlClient implements XmlClient {
     }
 
     @Override
-    public void close() {
-        clientHandler.close();
+    public final XmlServiceClientConfiguration serviceClientConfiguration() {
+        return this.serviceClientConfiguration;
     }
 
-    private <T extends XmlRequest> T applySignerOverride(T request, Signer signer) {
-        if (request.overrideConfiguration().flatMap(c -> c.signer()).isPresent()) {
-            return request;
-        }
-        Consumer<AwsRequestOverrideConfiguration.Builder> signerOverride = b -> b.signer(signer).build();
-        AwsRequestOverrideConfiguration overrideConfiguration = request.overrideConfiguration()
-                                                                       .map(c -> c.toBuilder().applyMutation(signerOverride).build())
-                                                                       .orElse((AwsRequestOverrideConfiguration.builder().applyMutation(signerOverride).build()));
-        return (T) request.toBuilder().overrideConfiguration(overrideConfiguration).build();
+    @Override
+    public void close() {
+        clientHandler.close();
     }
 }

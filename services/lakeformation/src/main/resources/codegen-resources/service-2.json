@@ -270,6 +270,23 @@
       ],
       "documentation":"<p>Indicates to the service that the specified transaction is still active and should not be treated as idle and aborted.</p> <p>Write transactions that remain idle for a long period are automatically aborted unless explicitly extended.</p>"
     },
+    "GetDataCellsFilter":{
+      "name":"GetDataCellsFilter",
+      "http":{
+        "method":"POST",
+        "requestUri":"/GetDataCellsFilter"
+      },
+      "input":{"shape":"GetDataCellsFilterRequest"},
+      "output":{"shape":"GetDataCellsFilterResponse"},
+      "errors":[
+        {"shape":"EntityNotFoundException"},
+        {"shape":"InvalidInputException"},
+        {"shape":"OperationTimeoutException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"AccessDeniedException"}
+      ],
+      "documentation":"<p>Returns a data cells filter.</p>"
+    },
     "GetDataLakeSettings":{
       "name":"GetDataLakeSettings",
       "http":{
@@ -479,7 +496,7 @@
         {"shape":"EntityNotFoundException"},
         {"shape":"InvalidInputException"}
       ],
-      "documentation":"<p>Grants permissions to the principal to access metadata in the Data Catalog and data organized in underlying data storage such as Amazon S3.</p> <p>For information about permissions, see <a href=\"https://docs-aws.amazon.com/lake-formation/latest/dg/security-data-access.html\">Security and Access Control to Metadata and Data</a>.</p>"
+      "documentation":"<p>Grants permissions to the principal to access metadata in the Data Catalog and data organized in underlying data storage such as Amazon S3.</p> <p>For information about permissions, see <a href=\"https://docs.aws.amazon.com/lake-formation/latest/dg/security-data-access.html\">Security and Access Control to Metadata and Data</a>.</p>"
     },
     "ListDataCellsFilter":{
       "name":"ListDataCellsFilter",
@@ -709,6 +726,24 @@
         {"shape":"OperationTimeoutException"}
       ],
       "documentation":"<p>Starts a new transaction and returns its transaction ID. Transaction IDs are opaque objects that you can use to identify a transaction.</p>"
+    },
+    "UpdateDataCellsFilter":{
+      "name":"UpdateDataCellsFilter",
+      "http":{
+        "method":"POST",
+        "requestUri":"/UpdateDataCellsFilter"
+      },
+      "input":{"shape":"UpdateDataCellsFilterRequest"},
+      "output":{"shape":"UpdateDataCellsFilterResponse"},
+      "errors":[
+        {"shape":"ConcurrentModificationException"},
+        {"shape":"InvalidInputException"},
+        {"shape":"EntityNotFoundException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"OperationTimeoutException"},
+        {"shape":"AccessDeniedException"}
+      ],
+      "documentation":"<p>Updates a data cell filter.</p>"
     },
     "UpdateLFTag":{
       "name":"UpdateLFTag",
@@ -1224,6 +1259,10 @@
         "ColumnWildcard":{
           "shape":"ColumnWildcard",
           "documentation":"<p>A wildcard with exclusions.</p> <p>You must specify either a <code>ColumnNames</code> list or the <code>ColumnWildCard</code>. </p>"
+        },
+        "VersionId":{
+          "shape":"VersionString",
+          "documentation":"<p>The ID of the data cells filter version.</p>"
         }
       },
       "documentation":"<p>A structure that describes certain columns on certain rows.</p>"
@@ -1547,7 +1586,7 @@
           "documentation":"<p>A message describing the problem.</p>"
         }
       },
-      "documentation":"<p>A specified entity does not exist</p>",
+      "documentation":"<p>A specified entity does not exist.</p>",
       "exception":true
     },
     "ErrorDetail":{
@@ -1601,9 +1640,7 @@
     },
     "Expression":{
       "type":"list",
-      "member":{"shape":"LFTag"},
-      "max":5,
-      "min":1
+      "member":{"shape":"LFTag"}
     },
     "ExtendTransactionRequest":{
       "type":"structure",
@@ -1650,6 +1687,42 @@
       "member":{"shape":"FilterCondition"},
       "max":20,
       "min":1
+    },
+    "GetDataCellsFilterRequest":{
+      "type":"structure",
+      "required":[
+        "TableCatalogId",
+        "DatabaseName",
+        "TableName",
+        "Name"
+      ],
+      "members":{
+        "TableCatalogId":{
+          "shape":"CatalogIdString",
+          "documentation":"<p>The ID of the catalog to which the table belongs.</p>"
+        },
+        "DatabaseName":{
+          "shape":"NameString",
+          "documentation":"<p>A database in the Glue Data Catalog.</p>"
+        },
+        "TableName":{
+          "shape":"NameString",
+          "documentation":"<p>A table in the database.</p>"
+        },
+        "Name":{
+          "shape":"NameString",
+          "documentation":"<p>The name given by the user to the data filter cell.</p>"
+        }
+      }
+    },
+    "GetDataCellsFilterResponse":{
+      "type":"structure",
+      "members":{
+        "DataCellsFilter":{
+          "shape":"DataCellsFilter",
+          "documentation":"<p>A structure that describes certain columns on certain rows.</p>"
+        }
+      }
     },
     "GetDataLakeSettingsRequest":{
       "type":"structure",
@@ -2808,6 +2881,10 @@
         "RoleArn":{
           "shape":"IAMRoleArn",
           "documentation":"<p>The identifier for the role that registers the resource.</p>"
+        },
+        "WithFederation":{
+          "shape":"NullableBoolean",
+          "documentation":"<p>Whether or not the resource is a federated resource.</p>"
         }
       }
     },
@@ -2899,6 +2976,10 @@
         "LastModified":{
           "shape":"LastModifiedTimestamp",
           "documentation":"<p>The date and time the resource was last modified.</p>"
+        },
+        "WithFederation":{
+          "shape":"NullableBoolean",
+          "documentation":"<p>Whether or not the resource is a federated resource.</p>"
         }
       },
       "documentation":"<p>A structure containing information about an Lake Formation resource.</p>"
@@ -2975,7 +3056,7 @@
         },
         "Permissions":{
           "shape":"PermissionList",
-          "documentation":"<p>The permissions revoked to the principal on the resource. For information about permissions, see <a href=\"https://docs-aws.amazon.com/lake-formation/latest/dg/security-data-access.html\">Security and Access Control to Metadata and Data</a>.</p>"
+          "documentation":"<p>The permissions revoked to the principal on the resource. For information about permissions, see <a href=\"https://docs.aws.amazon.com/lake-formation/latest/dg/security-data-access.html\">Security and Access Control to Metadata and Data</a>.</p>"
         },
         "PermissionsWithGrantOption":{
           "shape":"PermissionList",
@@ -3463,6 +3544,21 @@
       "min":1,
       "pattern":"[\\u0020-\\uD7FF\\uE000-\\uFFFD\\uD800\\uDC00-\\uDBFF\\uDFFF\\r\\n\\t]*"
     },
+    "UpdateDataCellsFilterRequest":{
+      "type":"structure",
+      "required":["TableData"],
+      "members":{
+        "TableData":{
+          "shape":"DataCellsFilter",
+          "documentation":"<p>A <code>DataCellsFilter</code> structure containing information about the data cells filter.</p>"
+        }
+      }
+    },
+    "UpdateDataCellsFilterResponse":{
+      "type":"structure",
+      "members":{
+      }
+    },
     "UpdateLFTagRequest":{
       "type":"structure",
       "required":["TagKey"],
@@ -3504,6 +3600,10 @@
         "ResourceArn":{
           "shape":"ResourceArnString",
           "documentation":"<p>The resource ARN.</p>"
+        },
+        "WithFederation":{
+          "shape":"NullableBoolean",
+          "documentation":"<p>Whether or not the resource is a federated resource.</p>"
         }
       }
     },
@@ -3587,6 +3687,12 @@
       "type":"list",
       "member":{"shape":"ValueString"},
       "min":1
+    },
+    "VersionString":{
+      "type":"string",
+      "max":255,
+      "min":1,
+      "pattern":"[\\u0020-\\uD7FF\\uE000-\\uFFFD\\uD800\\uDC00-\\uDBFF\\uDFFF\\t]*"
     },
     "VirtualObject":{
       "type":"structure",

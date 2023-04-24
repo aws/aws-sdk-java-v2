@@ -277,6 +277,7 @@
       "input":{"shape":"UpdateLoggingConfigurationRequest"},
       "output":{"shape":"UpdateLoggingConfigurationResponse"},
       "errors":[
+        {"shape":"ConflictException"},
         {"shape":"AccessDeniedException"},
         {"shape":"ResourceNotFoundException"},
         {"shape":"PendingVerification"},
@@ -1111,7 +1112,7 @@
     },
     "RoomMaxMessageRatePerSecond":{
       "type":"integer",
-      "max":10,
+      "max":100,
       "min":1
     },
     "RoomName":{

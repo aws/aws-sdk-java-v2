@@ -16,6 +16,10 @@
 package software.amazon.awssdk.codegen.poet.client;
 
 import static java.util.stream.Collectors.toList;
+import static javax.lang.model.element.Modifier.DEFAULT;
+import static javax.lang.model.element.Modifier.FINAL;
+import static javax.lang.model.element.Modifier.PUBLIC;
+import static javax.lang.model.element.Modifier.STATIC;
 import static software.amazon.awssdk.codegen.internal.Constant.ASYNC_STREAMING_INPUT_PARAM;
 import static software.amazon.awssdk.codegen.internal.Constant.EVENT_PUBLISHER_PARAM_NAME;
 import static software.amazon.awssdk.codegen.internal.Constant.EVENT_RESPONSE_HANDLER_PARAM_NAME;
@@ -33,11 +37,11 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
-import javax.lang.model.element.Modifier;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.awscore.AwsClient;
 import software.amazon.awssdk.codegen.docs.ClientType;
 import software.amazon.awssdk.codegen.docs.DocConfiguration;
 import software.amazon.awssdk.codegen.docs.SimpleMethodOverload;
@@ -52,7 +56,6 @@ import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
 import software.amazon.awssdk.codegen.poet.model.DeprecationUtils;
 import software.amazon.awssdk.codegen.utils.PaginatorUtils;
-import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.regions.ServiceMetadataProvider;
@@ -80,47 +83,83 @@ public class AsyncClientInterface implements ClassSpec {
 
     @Override
     public TypeSpec poetSpec() {
-        TypeSpec.Builder result = PoetUtils.createInterfaceBuilder(className);
+        TypeSpec.Builder result = createTypeSpec();
 
-        result.addSuperinterface(SdkClient.class)
-              .addAnnotation(SdkPublicApi.class)
-              .addAnnotation(ThreadSafe.class)
-              .addField(FieldSpec.builder(String.class, "SERVICE_NAME")
-                                 .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
-                                 .initializer("$S", model.getMetadata().getSigningName())
-                                 .build())
-              .addField(FieldSpec.builder(String.class, "SERVICE_METADATA_ID")
-                                 .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
-                                 .initializer("$S", model.getMetadata().getEndpointPrefix())
-                                 .addJavadoc("Value for looking up the service's metadata from the {@link $T}.",
-                                             ServiceMetadataProvider.class)
-                                 .build());
-
-        PoetUtils.addJavadoc(result::addJavadoc, getJavadoc());
-
-        if (!model.getCustomizationConfig().isExcludeClientCreateMethod()) {
-            result.addMethod(create());
-        }
-
-        result.addMethod(builder())
-              .addMethods(operationsAndSimpleMethods());
-
+        addInterfaceClass(result);
+        addAnnotations(result);
+        addModifiers(result);
+        addFields(result);
         if (model.getCustomizationConfig().getUtilitiesMethod() != null) {
             result.addMethod(utilitiesMethod());
         }
+        result.addMethods(operations());
+        if (model.hasWaiters()) {
+            addWaiterMethod(result);
+        }
+        result.addMethod(serviceClientConfigMethod());
+        addAdditionalMethods(result);
+        addCloseMethod(result);
+        return result.build();
+    }
+
+    protected TypeSpec.Builder createTypeSpec() {
+        return PoetUtils.createInterfaceBuilder(className);
+    }
+
+    protected void addInterfaceClass(TypeSpec.Builder type) {
+        type.addSuperinterface(AwsClient.class);
+    }
+
+    protected void addAnnotations(TypeSpec.Builder type) {
+        type.addAnnotation(SdkPublicApi.class)
+            .addAnnotation(ThreadSafe.class);
+    }
+
+    protected void addModifiers(TypeSpec.Builder type) {
+    }
+
+    protected void addCloseMethod(TypeSpec.Builder type) {
+    }
+
+    protected void addFields(TypeSpec.Builder type) {
+        type.addField(FieldSpec.builder(String.class, "SERVICE_NAME")
+                               .addModifiers(PUBLIC, STATIC, FINAL)
+                               .initializer("$S", model.getMetadata().getSigningName())
+                               .build())
+            .addField(FieldSpec.builder(String.class, "SERVICE_METADATA_ID")
+                               .addModifiers(PUBLIC, STATIC, FINAL)
+                               .initializer("$S", model.getMetadata().getEndpointPrefix())
+                               .addJavadoc("Value for looking up the service's metadata from the {@link $T}.",
+                                           ServiceMetadataProvider.class)
+                               .build());
+    }
+
+    protected void addAdditionalMethods(TypeSpec.Builder type) {
+
+        if (!model.getCustomizationConfig().isExcludeClientCreateMethod()) {
+            type.addMethod(create());
+        }
+
+        type.addMethod(builder());
 
         List<AdditionalBuilderMethod> additionaBuilders = model.getCustomizationConfig().getAdditionalBuilderMethods();
         if (additionaBuilders != null && !additionaBuilders.isEmpty()) {
             additionaBuilders.stream()
                              .filter(builder -> software.amazon.awssdk.core.ClientType.ASYNC.equals(builder.getClientTypeEnum()))
-                             .forEach(builders -> result.addMethod(additionalBuilders(builders)));
+                             .forEach(builders -> type.addMethod(additionalBuilders(builders)));
         }
 
-        if (model.hasWaiters()) {
-            result.addMethod(waiterMethod());
-        }
+        PoetUtils.addJavadoc(type::addJavadoc, getJavadoc());
+    }
 
-        return result.build();
+    protected void addWaiterMethod(TypeSpec.Builder type) {
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("waiter")
+                                               .addModifiers(PUBLIC)
+                                               .returns(poetExtensions.getAsyncWaiterInterface())
+                                               .addJavadoc(WaiterDocs.waiterMethodInClient(
+                                                   poetExtensions.getAsyncWaiterInterface()));
+        
+        type.addMethod(waiterOperationBody(builder).build());
     }
 
     @Override
@@ -136,7 +175,7 @@ public class AsyncClientInterface implements ClassSpec {
     private MethodSpec create() {
         return MethodSpec.methodBuilder("create")
                          .returns(className)
-                         .addModifiers(Modifier.STATIC, Modifier.PUBLIC)
+                         .addModifiers(STATIC, PUBLIC)
                          .addJavadoc("Create a {@link $T} with the region loaded from the {@link $T} and credentials loaded "
                                      + "from the {@link $T}.",
                                      className,
@@ -151,35 +190,16 @@ public class AsyncClientInterface implements ClassSpec {
         ClassName builderInterface = ClassName.get(clientPackageName, model.getMetadata().getAsyncBuilderInterface());
         return MethodSpec.methodBuilder("builder")
                          .returns(builderInterface)
-                         .addModifiers(Modifier.STATIC, Modifier.PUBLIC)
+                         .addModifiers(STATIC, PUBLIC)
                          .addJavadoc("Create a builder that can be used to configure and create a {@link $T}.", className)
                          .addStatement("return new $T()", builderClass)
                          .build();
     }
 
     /**
-     * @return List generated of traditional (request/response) methods for all operations.
-     */
-    protected final List<MethodSpec> operations() {
-        return model.getOperations().values().stream()
-                    .flatMap(this::operations)
-                    .sorted(Comparator.comparing(m -> m.name))
-                    .collect(toList());
-    }
-
-    private Stream<MethodSpec> operations(OperationModel opModel) {
-        List<MethodSpec> methods = new ArrayList<>();
-        methods.add(traditionalMethod(opModel));
-        if (opModel.isPaginated()) {
-            methods.add(paginatedTraditionalMethod(opModel));
-        }
-        return methods.stream();
-    }
-
-    /**
      * @return List generated of methods for all operations.
      */
-    private Iterable<MethodSpec> operationsAndSimpleMethods() {
+    protected Iterable<MethodSpec> operations() {
         return model.getOperations().values().stream()
                     .flatMap(this::operationsAndSimpleMethods)
                     .sorted(Comparator.comparing(m -> m.name))
@@ -214,7 +234,7 @@ public class AsyncClientInterface implements ClassSpec {
         return methods;
     }
 
-    private MethodSpec paginatedTraditionalMethod(OperationModel opModel) {
+    protected MethodSpec paginatedTraditionalMethod(OperationModel opModel) {
         String methodName = PaginatorUtils.getPaginatedMethodName(opModel.getMethodName());
         ClassName requestType = ClassName.get(modelPackage, opModel.getInput().getVariableType());
         ClassName responsePojoType = poetExtensions.getResponseClassForPaginatedAsyncOperation(opModel.getOperationName());
@@ -230,7 +250,7 @@ public class AsyncClientInterface implements ClassSpec {
     }
 
     protected MethodSpec.Builder paginatedMethodBody(MethodSpec.Builder builder, OperationModel operationModel) {
-        return builder.addModifiers(Modifier.DEFAULT, Modifier.PUBLIC)
+        return builder.addModifiers(DEFAULT, PUBLIC)
                       .addStatement("throw new $T()", UnsupportedOperationException.class);
     }
 
@@ -240,7 +260,7 @@ public class AsyncClientInterface implements ClassSpec {
         ClassName responsePojoType = poetExtensions.getResponseClassForPaginatedAsyncOperation(opModel.getOperationName());
 
         MethodSpec.Builder builder = MethodSpec.methodBuilder(methodName)
-                                               .addModifiers(Modifier.DEFAULT, Modifier.PUBLIC)
+                                               .addModifiers(DEFAULT, PUBLIC)
                                                .returns(responsePojoType)
                                                .addStatement("return $L($T.builder().build())", methodName, requestType)
                                                .addJavadoc(opModel.getDocs(model,
@@ -288,7 +308,7 @@ public class AsyncClientInterface implements ClassSpec {
      * @return Builder with method body added.
      */
     protected MethodSpec.Builder operationBody(MethodSpec.Builder builder, OperationModel operationModel) {
-        return builder.addModifiers(Modifier.DEFAULT, Modifier.PUBLIC)
+        return builder.addModifiers(DEFAULT, PUBLIC)
                       .addStatement("throw new $T()", UnsupportedOperationException.class);
     }
 
@@ -306,7 +326,7 @@ public class AsyncClientInterface implements ClassSpec {
         return methods;
     }
 
-    private MethodSpec traditionalMethod(OperationModel opModel) {
+    protected MethodSpec traditionalMethod(OperationModel opModel) {
         ClassName responsePojoType = getPojoResponseType(opModel);
         ClassName requestType = ClassName.get(modelPackage, opModel.getInput().getVariableType());
 
@@ -420,7 +440,7 @@ public class AsyncClientInterface implements ClassSpec {
      */
     private MethodSpec.Builder interfaceMethodSignature(OperationModel opModel) {
         return methodSignatureWithReturnType(opModel)
-            .addModifiers(Modifier.PUBLIC, Modifier.DEFAULT);
+            .addModifiers(PUBLIC, DEFAULT);
     }
 
     /**
@@ -465,10 +485,19 @@ public class AsyncClientInterface implements ClassSpec {
 
         MethodSpec.Builder builder = MethodSpec.methodBuilder(UtilitiesMethod.METHOD_NAME)
                                                .returns(returnType)
-                                               .addModifiers(Modifier.PUBLIC)
+                                               .addModifiers(PUBLIC)
                                                .addJavadoc("Creates an instance of {@link $T} object with the "
                                                            + "configuration set on this client.", returnType);
         return utilitiesOperationBody(builder).build();
+    }
+
+    protected MethodSpec serviceClientConfigMethod() {
+        return MethodSpec.methodBuilder("serviceClientConfiguration")
+                         .addAnnotation(Override.class)
+                         .addModifiers(PUBLIC, DEFAULT)
+                         .addStatement("throw new $T()", UnsupportedOperationException.class)
+                         .returns(new PoetExtension(model).getServiceConfigClass())
+                         .build();
     }
 
     private MethodSpec additionalBuilders(AdditionalBuilderMethod additionalMethod) {
@@ -481,7 +510,7 @@ public class AsyncClientInterface implements ClassSpec {
 
         MethodSpec.Builder builder = MethodSpec.methodBuilder(methodName)
                                                .returns(returnType)
-                                               .addModifiers(Modifier.STATIC, Modifier.PUBLIC)
+                                               .addModifiers(STATIC, PUBLIC)
                                                .addJavadoc(additionalMethod.getJavaDoc())
                                                .addStatement("return $T.$L", instanceType, additionalMethod.getStatement());
 
@@ -489,21 +518,11 @@ public class AsyncClientInterface implements ClassSpec {
     }
 
     protected MethodSpec.Builder utilitiesOperationBody(MethodSpec.Builder builder) {
-        return builder.addModifiers(Modifier.DEFAULT).addStatement("throw new $T()", UnsupportedOperationException.class);
-    }
-
-    protected MethodSpec waiterMethod() {
-        MethodSpec.Builder builder = MethodSpec.methodBuilder("waiter")
-                                              .addModifiers(Modifier.PUBLIC)
-                                              .returns(poetExtensions.getAsyncWaiterInterface())
-                                              .addJavadoc(WaiterDocs.waiterMethodInClient(
-                                                  poetExtensions.getAsyncWaiterInterface()));
-
-        return waiterOperationBody(builder).build();
+        return builder.addModifiers(DEFAULT).addStatement("throw new $T()", UnsupportedOperationException.class);
     }
 
     protected MethodSpec.Builder waiterOperationBody(MethodSpec.Builder builder) {
-        return builder.addModifiers(Modifier.DEFAULT, Modifier.PUBLIC)
+        return builder.addModifiers(DEFAULT, PUBLIC)
                       .addStatement("throw new $T()", UnsupportedOperationException.class);
     }
 }

@@ -55,6 +55,7 @@ public class CustomizationConfig {
      */
     private Map<String, OperationModifier> operationModifiers;
     private Map<String, ShapeSubstitution> shapeSubstitutions;
+    private CustomSdkShapes customSdkShapes;
     private Map<String, ShapeModifier> shapeModifiers;
     /**
      * Sets the custom field name that identifies the type of modeled exception for JSON protocols.
@@ -207,6 +208,11 @@ public class CustomizationConfig {
     private boolean delegateAsyncClientClass;
 
     /**
+     * Whether to generate an abstract decorator class that delegates to the sync service client
+     */
+    private boolean delegateSyncClientClass;
+
+    /**
      * Whether to skip generating endpoint tests from endpoint-tests.json
      */
     private boolean skipEndpointTestGeneration;
@@ -246,6 +252,14 @@ public class CustomizationConfig {
 
     public void setRenameShapes(Map<String, String> renameShapes) {
         this.renameShapes = renameShapes;
+    }
+
+    public CustomSdkShapes getCustomSdkShapes() {
+        return customSdkShapes;
+    }
+
+    public void setCustomSdkShapes(CustomSdkShapes customSdkShapes) {
+        this.customSdkShapes = customSdkShapes;
     }
 
     public Map<String, ShapeSubstitution> getShapeSubstitutions() {
@@ -545,6 +559,14 @@ public class CustomizationConfig {
 
     public void setDelegateAsyncClientClass(boolean delegateAsyncClientClass) {
         this.delegateAsyncClientClass = delegateAsyncClientClass;
+    }
+
+    public boolean isDelegateSyncClientClass() {
+        return delegateSyncClientClass;
+    }
+
+    public void setDelegateSyncClientClass(boolean delegateSyncClientClass) {
+        this.delegateSyncClientClass = delegateSyncClientClass;
     }
 
     public boolean isSkipEndpointTestGeneration() {

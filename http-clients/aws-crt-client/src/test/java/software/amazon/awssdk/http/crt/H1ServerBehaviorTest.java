@@ -17,6 +17,10 @@ package software.amazon.awssdk.http.crt;
 
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES;
 
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import software.amazon.awssdk.crt.CrtResource;
+import software.amazon.awssdk.crt.Log;
 import software.amazon.awssdk.http.SdkAsyncHttpClientH1TestSuite;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -26,10 +30,20 @@ import software.amazon.awssdk.utils.AttributeMap;
  */
 public class H1ServerBehaviorTest extends SdkAsyncHttpClientH1TestSuite {
 
+    @BeforeAll
+    public static void beforeAll() {
+        System.setProperty("aws.crt.debugnative", "true");
+        Log.initLoggingToStdout(Log.LogLevel.Warn);
+    }
+
+    @AfterAll
+    public static void afterAll() {
+        CrtResource.waitForNoResources();
+    }
+
     @Override
     protected SdkAsyncHttpClient setupClient() {
         return AwsCrtAsyncHttpClient.builder()
                                     .buildWithDefaults(AttributeMap.builder().put(TRUST_ALL_CERTIFICATES, true).build());
     }
-
 }

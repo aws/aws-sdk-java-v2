@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>aws-sdk-java-pom</artifactId>
-    <version>2.19.12-SNAPSHOT</version>
+    <version>2.20.52-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Parent</name>
     <description>The Amazon Web Services SDK for Java provides Java APIs
@@ -86,11 +86,11 @@
         <module>test/ruleset-testing-core</module>
     </modules>
     <scm>
-        <url>https://github.com/aws/aws-sdk-java-v2.git</url>
+        <url>${scm.github.url}</url>
     </scm>
     <properties>
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
-        <awsjavasdk.previous.version>2.19.11</awsjavasdk.previous.version>
+        <awsjavasdk.previous.version>2.20.51</awsjavasdk.previous.version>
         <jackson.version>2.13.2</jackson.version>
         <jackson.databind.version>2.13.4.2</jackson.databind.version>
         <jacksonjr.version>2.13.2</jacksonjr.version>
@@ -112,9 +112,9 @@
         <org.eclipse.jdt.version>3.10.0</org.eclipse.jdt.version>
         <org.eclipse.text.version>3.5.101</org.eclipse.text.version>
         <rxjava.version>2.2.21</rxjava.version>
-        <commons-codec.verion>1.10</commons-codec.verion>
+        <commons-codec.verion>1.15</commons-codec.verion>
         <jmh.version>1.29</jmh.version>
-        <awscrt.version>0.20.3</awscrt.version>
+        <awscrt.version>0.21.12</awscrt.version>
 
         <!--Test dependencies -->
         <junit5.version>5.8.1</junit5.version>
@@ -172,6 +172,8 @@
 
         <skip.unit.tests>${skipTests}</skip.unit.tests>
         <integTestSourceDirectory>${project.basedir}/src/it/java</integTestSourceDirectory>
+        <javadoc.resourcesDir>${session.executionRootDirectory}</javadoc.resourcesDir>
+        <scm.github.url>https://github.com/aws/aws-sdk-java-v2.git</scm.github.url>
     </properties>
 
     <dependencyManagement>
@@ -501,6 +503,7 @@
                         <ignoredUsedUndeclaredDependency>org.slf4j:slf4j-api</ignoredUsedUndeclaredDependency>
                     </ignoredUsedUndeclaredDependencies>
                     <ignoredUnusedDeclaredDependencies>
+                        <ignoredUnusedDeclaredDependency>commons-codec:commons-codec</ignoredUnusedDeclaredDependency>
                         <ignoredUnusedDeclaredDependency>org.junit.jupiter:*</ignoredUnusedDeclaredDependency>
                         <ignoredUnusedDeclaredDependency>org.mockito:*</ignoredUnusedDeclaredDependency>
                         <ignoredUnusedDeclaredDependency>org.junit.vintage:*</ignoredUnusedDeclaredDependency>
@@ -609,6 +612,7 @@
                             <includeModule>url-connection-client</includeModule>
                             <includeModule>cloudwatch-metric-publisher</includeModule>
                             <includeModule>utils</includeModule>
+                            <includeModule>imds</includeModule>
 
                             <!-- High level libraries -->
                             <includeModule>dynamodb-enhanced</includeModule>
@@ -688,6 +692,9 @@
 
         <profile>
             <id>publishing</id>
+            <properties>
+                <scm.github.url>https://github.com/aws/aws-sdk-java-v2/tree/release</scm.github.url>
+            </properties>
             <build>
                 <plugins>
                     <plugin>
@@ -1014,6 +1021,11 @@
                             <doctitle>AWS SDK for Java API Reference - ${awsjavasdk.version}</doctitle>
                             <packagesheader>AWS SDK for Java</packagesheader>
                             <excludePackageNames>:*.codegen:software.amazon.awssdk.services.protocol*</excludePackageNames>
+                            <docfilessubdirs>true</docfilessubdirs>
+                            <javadocDirectory>${javadoc.resourcesDir}/javadoc-resources</javadocDirectory>
+                            <addStylesheets>
+                                <addStylesheet>aws-sdk-java-v2-javadoc.css</addStylesheet>
+                            </addStylesheets>
                             <groups>
                                 <group>
                                     <title>Greengrass</title>

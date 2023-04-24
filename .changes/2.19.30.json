@@ -1,0 +1,66 @@
+{
+    "version": "2.19.30",
+    "date": "2023-02-02",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS CRT HTTP Client",
+            "contributor": "",
+            "description": "Allow users to enable Post Quantum TLS via `AwsCrtAsyncHttpClient.builder().postQuantumTlsEnabled(true).build()`."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Single Sign-On Admin",
+            "contributor": "",
+            "description": "Enabled FIPS endpoints for GovCloud (US) regions in SDK."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon AppConfig",
+            "contributor": "",
+            "description": "AWS AppConfig introduces KMS customer-managed key (CMK) encryption of configuration data, along with AWS Secrets Manager as a new configuration data source. S3 objects using SSE-KMS encryption and SSM Parameter Store SecureStrings are also now supported."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "Enabled FIPS endpoints for GovCloud (US) regions in SDK."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Documentation updates for EC2."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Keyspaces",
+            "contributor": "",
+            "description": "Enabled FIPS endpoints for GovCloud (US) regions in SDK."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "contributor": "",
+            "description": "QuickSight support for Radar Chart and Dashboard Publish Options"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Redshift",
+            "contributor": "",
+            "description": "Enabled FIPS endpoints for GovCloud (US) regions in SDK."
+        },
+        {
+            "type": "feature",
+            "category": "Elastic Load Balancing",
+            "contributor": "",
+            "description": "The GWLB Flex Health Check project updates the default values of healthy-threshold-count from 3 to 5 and unhealthy-threshold-count from 3 to 2"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

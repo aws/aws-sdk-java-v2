@@ -17,6 +17,8 @@ package software.amazon.awssdk.codegen.poet.client;
 
 import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PRIVATE;
+import static javax.lang.model.element.Modifier.PROTECTED;
+import static javax.lang.model.element.Modifier.PUBLIC;
 import static javax.lang.model.element.Modifier.STATIC;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.addS3ArnableFieldCode;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applyPaginatorUserAgentMethod;
@@ -27,13 +29,11 @@ import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
-import com.squareup.javapoet.TypeSpec.Builder;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
@@ -43,7 +43,6 @@ import software.amazon.awssdk.codegen.model.config.customization.UtilitiesMethod
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.Protocol;
-import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.client.specs.Ec2ProtocolSpec;
@@ -64,67 +63,76 @@ import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.utils.Logger;
 
-//TODO Make SyncClientClass extend SyncClientInterface (similar to what we do in AsyncClientClass)
-public class SyncClientClass implements ClassSpec {
+public class SyncClientClass extends SyncClientInterface {
 
     private final IntermediateModel model;
     private final PoetExtension poetExtensions;
     private final ClassName className;
     private final ProtocolSpec protocolSpec;
+    private final ClassName serviceClientConfigurationClassName;
 
     public SyncClientClass(GeneratorTaskParams taskParams) {
+        super(taskParams.getModel());
         this.model = taskParams.getModel();
         this.poetExtensions = taskParams.getPoetExtensions();
         this.className = poetExtensions.getClientClass(model.getMetadata().getSyncClient());
         this.protocolSpec = getProtocolSpecs(poetExtensions, model);
+        this.serviceClientConfigurationClassName = new PoetExtension(model).getServiceConfigClass();
     }
 
     @Override
-    public TypeSpec poetSpec() {
+    protected void addInterfaceClass(TypeSpec.Builder type) {
         ClassName interfaceClass = poetExtensions.getClientClass(model.getMetadata().getSyncInterface());
+        type.addSuperinterface(interfaceClass)
+            .addJavadoc("Internal implementation of {@link $1T}.\n\n@see $1T#builder()", interfaceClass);
+    }
 
-        Builder classBuilder = PoetUtils.createClassBuilder(className)
-                                        .addAnnotation(SdkInternalApi.class)
-                                        .addModifiers(FINAL)
-                                        .addSuperinterface(interfaceClass)
-                                        .addJavadoc("Internal implementation of {@link $1T}.\n\n@see $1T#builder()",
-                                                    interfaceClass)
-                                        .addField(logger())
-                                        .addField(SyncClientHandler.class, "clientHandler", PRIVATE, FINAL)
-                                        .addField(protocolSpec.protocolFactory(model))
-                                        .addField(SdkClientConfiguration.class, "clientConfiguration", PRIVATE, FINAL)
-                                        .addMethod(constructor())
-                                        .addMethod(nameMethod())
-                                        .addMethods(protocolSpec.additionalMethods())
-                                        .addMethods(operations())
-                                        .addMethod(resolveMetricPublishersMethod());
+    @Override
+    protected TypeSpec.Builder createTypeSpec() {
+        return PoetUtils.createClassBuilder(className);
+    }
 
-        protocolSpec.createErrorResponseHandler().ifPresent(classBuilder::addMethod);
+    @Override
+    protected void addAnnotations(TypeSpec.Builder type) {
+        type.addAnnotation(SdkInternalApi.class);
+    }
 
-        classBuilder.addMethod(protocolSpec.initProtocolFactory(model));
+    @Override
+    protected void addModifiers(TypeSpec.Builder type) {
+        type.addModifiers(FINAL);
+    }
 
-        classBuilder.addMethod(closeMethod());
+    @Override
+    protected void addFields(TypeSpec.Builder type) {
+        type.addField(logger())
+            .addField(SyncClientHandler.class, "clientHandler", PRIVATE, FINAL)
+            .addField(protocolSpec.protocolFactory(model))
+            .addField(SdkClientConfiguration.class, "clientConfiguration", PRIVATE, FINAL)
+            .addField(serviceClientConfigurationClassName, "serviceClientConfiguration", PRIVATE, FINAL);
+    }
+
+    @Override
+    protected void addAdditionalMethods(TypeSpec.Builder type) {
 
         if (model.hasPaginators()) {
-            classBuilder.addMethod(applyPaginatorUserAgentMethod(poetExtensions, model));
+            type.addMethod(applyPaginatorUserAgentMethod(poetExtensions, model));
         }
 
         if (model.containsRequestSigners()) {
-            classBuilder.addMethod(applySignerOverrideMethod(poetExtensions, model));
-        }
-
-        if (model.getCustomizationConfig().getUtilitiesMethod() != null) {
-            classBuilder.addMethod(utilitiesMethod());
+            type.addMethod(applySignerOverrideMethod(poetExtensions, model));
         }
 
         model.getEndpointOperation().ifPresent(
-            o -> classBuilder.addField(EndpointDiscoveryRefreshCache.class, "endpointDiscoveryCache", PRIVATE));
+            o -> type.addField(EndpointDiscoveryRefreshCache.class, "endpointDiscoveryCache", PRIVATE));
 
-        if (model.hasWaiters()) {
-            classBuilder.addMethod(waiterMethod());
-        }
+        type.addMethod(constructor())
+            .addMethod(nameMethod())
+            .addMethods(protocolSpec.additionalMethods())
+            .addMethod(resolveMetricPublishersMethod());
 
-        return classBuilder.build();
+        protocolSpec.createErrorResponseHandler().ifPresent(type::addMethod);
+
+        type.addMethod(protocolSpec.initProtocolFactory(model));
     }
 
     private FieldSpec logger() {
@@ -136,9 +144,19 @@ public class SyncClientClass implements ClassSpec {
     private MethodSpec nameMethod() {
         return MethodSpec.methodBuilder("serviceName")
                          .addAnnotation(Override.class)
-                         .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+                         .addModifiers(PUBLIC, FINAL)
                          .returns(String.class)
                          .addStatement("return SERVICE_NAME")
+                         .build();
+    }
+
+    @Override
+    protected MethodSpec serviceClientConfigMethod() {
+        return MethodSpec.methodBuilder("serviceClientConfiguration")
+                         .addAnnotation(Override.class)
+                         .addModifiers(PUBLIC, FINAL)
+                         .returns(serviceClientConfigurationClassName)
+                         .addStatement("return this.serviceClientConfiguration")
                          .build();
     }
 
@@ -148,12 +166,14 @@ public class SyncClientClass implements ClassSpec {
     }
 
     private MethodSpec constructor() {
-        MethodSpec.Builder builder = MethodSpec.constructorBuilder()
-                                               .addModifiers(Modifier.PROTECTED)
-                                               .addParameter(SdkClientConfiguration.class, "clientConfiguration")
-                                               .addStatement("this.clientHandler = new $T(clientConfiguration)",
-                                                             protocolSpec.getClientHandlerClass())
-                                               .addStatement("this.clientConfiguration = clientConfiguration");
+        MethodSpec.Builder builder
+            = MethodSpec.constructorBuilder()
+                        .addModifiers(PROTECTED)
+                        .addParameter(serviceClientConfigurationClassName, "serviceClientConfiguration")
+                        .addParameter(SdkClientConfiguration.class, "clientConfiguration")
+                        .addStatement("this.clientHandler = new $T(clientConfiguration)", protocolSpec.getClientHandlerClass())
+                        .addStatement("this.clientConfiguration = clientConfiguration")
+                        .addStatement("this.serviceClientConfiguration = serviceClientConfiguration");
         FieldSpec protocolFactoryField = protocolSpec.protocolFactory(model);
         if (model.getMetadata().isJsonProtocol()) {
             builder.addStatement("this.$N = init($T.builder()).build()", protocolFactoryField.name,
@@ -185,7 +205,8 @@ public class SyncClientClass implements ClassSpec {
         return builder.build();
     }
 
-    private List<MethodSpec> operations() {
+    @Override
+    protected List<MethodSpec> operations() {
         return model.getOperations().values().stream()
                     .filter(o -> !o.hasEventStreamInput())
                     .filter(o -> !o.hasEventStreamOutput())
@@ -283,7 +304,8 @@ public class SyncClientClass implements ClassSpec {
         return methods;
     }
 
-    private List<MethodSpec> paginatedMethods(OperationModel opModel) {
+    @Override
+    protected List<MethodSpec> paginatedMethods(OperationModel opModel) {
         List<MethodSpec> paginatedMethodSpecs = new ArrayList<>();
 
         if (opModel.isPaginated()) {
@@ -305,32 +327,29 @@ public class SyncClientClass implements ClassSpec {
         return paginatedMethodSpecs;
     }
 
-    private MethodSpec closeMethod() {
-        return MethodSpec.methodBuilder("close")
-                         .addAnnotation(Override.class)
-                         .addStatement("clientHandler.close()")
-                         .addModifiers(Modifier.PUBLIC)
-                         .build();
+    @Override
+    protected void addCloseMethod(TypeSpec.Builder type) {
+        MethodSpec method = MethodSpec.methodBuilder("close")
+                                      .addAnnotation(Override.class)
+                                      .addModifiers(PUBLIC)
+                                      .addStatement("$N.close()", "clientHandler")
+                                      .build();
+
+        type.addMethod(method);
     }
 
-    private MethodSpec utilitiesMethod() {
+    @Override
+    protected MethodSpec.Builder utilitiesOperationBody(MethodSpec.Builder builder) {
         UtilitiesMethod config = model.getCustomizationConfig().getUtilitiesMethod();
-        ClassName returnType = PoetUtils.classNameFromFqcn(config.getReturnType());
         String instanceClass = config.getInstanceType();
         if (instanceClass == null) {
             instanceClass = config.getReturnType();
         }
-
         ClassName instanceType = PoetUtils.classNameFromFqcn(instanceClass);
 
-        return MethodSpec.methodBuilder(UtilitiesMethod.METHOD_NAME)
-                         .returns(returnType)
-                         .addModifiers(Modifier.PUBLIC)
-                         .addAnnotation(Override.class)
-                         .addStatement("return $T.create($L)",
-                                       instanceType,
-                                       String.join(",", config.getCreateMethodParams()))
-                         .build();
+        return builder.addAnnotation(Override.class)
+                      .addStatement("return $T.create($L)", instanceType,
+                                    String.join(",", config.getCreateMethodParams()));
     }
 
     static ProtocolSpec getProtocolSpecs(PoetExtension poetExtensions, IntermediateModel model) {
@@ -386,13 +405,10 @@ public class SyncClientClass implements ClassSpec {
         return methodBuilder.build();
     }
 
-    private MethodSpec waiterMethod() {
-        return MethodSpec.methodBuilder("waiter")
-                         .addModifiers(Modifier.PUBLIC)
-                         .addAnnotation(Override.class)
-                         .addStatement("return $T.builder().client(this).build()",
-                                       poetExtensions.getSyncWaiterInterface())
-                         .returns(poetExtensions.getSyncWaiterInterface())
-                         .build();
+    @Override
+    protected MethodSpec.Builder waiterOperationBody(MethodSpec.Builder builder) {
+        return builder.addAnnotation(Override.class)
+                      .addStatement("return $T.builder().client(this).build()",
+                                    poetExtensions.getSyncWaiterInterface());
     }
 }

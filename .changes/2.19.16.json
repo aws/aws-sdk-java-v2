@@ -1,0 +1,42 @@
+{
+    "version": "2.19.16",
+    "date": "2023-01-12",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Clean Rooms Service",
+            "contributor": "",
+            "description": "Initial release of AWS Clean Rooms"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaConvert",
+            "contributor": "",
+            "description": "The AWS Elemental MediaConvert SDK has added support for compact DASH manifest generation, audio normalization using TruePeak measurements, and the ability to clip the sample range in the color corrector."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Lambda",
+            "contributor": "",
+            "description": "Add support for MaximumConcurrency parameter for SQS event source. Customers can now limit the maximum concurrent invocations for their SQS Event Source Mapping."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Secrets Manager",
+            "contributor": "",
+            "description": "Update documentation for new ListSecrets and DescribeSecret parameters"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Logs",
+            "contributor": "",
+            "description": "Bug fix: logGroupName is now not a required field in GetLogEvents, FilterLogEvents, GetLogGroupFields, and DescribeLogStreams APIs as logGroupIdentifier can be provided instead"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

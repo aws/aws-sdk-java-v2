@@ -5,10 +5,10 @@ import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.awscore.AwsClient;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
-import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
@@ -50,7 +50,7 @@ import software.amazon.awssdk.services.json.paginators.PaginatedOperationWithout
 @Generated("software.amazon.awssdk:codegen")
 @SdkPublicApi
 @ThreadSafe
-public interface JsonClient extends SdkClient {
+public interface JsonClient extends AwsClient {
     String SERVICE_NAME = "json-service";
 
     /**
@@ -58,22 +58,6 @@ public interface JsonClient extends SdkClient {
      * {@link software.amazon.awssdk.regions.ServiceMetadataProvider}.
      */
     String SERVICE_METADATA_ID = "json-service-endpoint";
-
-    /**
-     * Create a {@link JsonClient} with the region loaded from the
-     * {@link software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain} and credentials loaded from the
-     * {@link software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider}.
-     */
-    static JsonClient create() {
-        return builder().build();
-    }
-
-    /**
-     * Create a builder that can be used to configure and create a {@link JsonClient}.
-     */
-    static JsonClientBuilder builder() {
-        return new DefaultJsonClientBuilder();
-    }
 
     /**
      * <p>
@@ -1672,14 +1656,35 @@ public interface JsonClient extends SdkClient {
                                                                               .applyMutation(streamingOutputOperationRequest).build());
     }
 
-    static ServiceMetadata serviceMetadata() {
-        return ServiceMetadata.of(SERVICE_METADATA_ID);
-    }
-
     /**
      * Creates an instance of {@link JsonUtilities} object with the configuration set on this client.
      */
     default JsonUtilities utilities() {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Create a {@link JsonClient} with the region loaded from the
+     * {@link software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain} and credentials loaded from the
+     * {@link software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider}.
+     */
+    static JsonClient create() {
+        return builder().build();
+    }
+
+    /**
+     * Create a builder that can be used to configure and create a {@link JsonClient}.
+     */
+    static JsonClientBuilder builder() {
+        return new DefaultJsonClientBuilder();
+    }
+
+    static ServiceMetadata serviceMetadata() {
+        return ServiceMetadata.of(SERVICE_METADATA_ID);
+    }
+
+    @Override
+    default JsonServiceClientConfiguration serviceClientConfiguration() {
         throw new UnsupportedOperationException();
     }
 }
