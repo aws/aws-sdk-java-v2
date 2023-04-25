@@ -1,0 +1,42 @@
+{
+    "version": "2.20.53",
+    "date": "2023-04-25",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS DataSync",
+            "contributor": "",
+            "description": "This release adds 13 new APIs to support AWS DataSync Discovery GA."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Directory Service",
+            "contributor": "",
+            "description": "New field added in AWS Managed Microsoft AD DescribeSettings response and regex pattern update for UpdateSettings value. Added length validation to RemoteDomainName."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Chime SDK Messaging",
+            "contributor": "",
+            "description": "Remove non actionable field from UpdateChannelReadMarker and DeleteChannelRequest. Add precise exceptions to DeleteChannel and DeleteStreamingConfigurations error cases."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "Amazon Connect, Contact Lens Evaluation API release including ability to manage forms and to submit contact evaluations."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Pinpoint",
+            "contributor": "",
+            "description": "Adds support for journey runs and querying journey execution metrics based on journey runs. Adds execution metrics to campaign activities. Updates docs for Advanced Quiet Time."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

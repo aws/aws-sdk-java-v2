@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS CRT HTTP Client",
-    "contributor": "",
-    "description": "Fixed an issue where connection pool metrics were not reported in the AWS CRT HTTP client."
-}
