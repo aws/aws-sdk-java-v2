@@ -35,6 +35,7 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
+import com.squareup.javapoet.WildcardTypeName;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -80,6 +81,7 @@ import software.amazon.awssdk.core.client.handler.AsyncClientHandler;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRefreshCache;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRequest;
 import software.amazon.awssdk.core.metrics.CoreMetric;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
@@ -374,24 +376,29 @@ public final class AsyncClientClass extends AsyncClientInterface {
                 }
             }
 
-            builder.addStatement("$T cachedEndpoint = null", URI.class);
+            builder.addStatement("$T<$T> endpointFuture = $T.completedFuture(null)",
+                                 CompletableFuture.class, URI.class, CompletableFuture.class);
             builder.beginControlFlow("if (endpointDiscoveryEnabled)");
 
-            builder.addCode("$T key = $N.overrideConfiguration()", String.class, opModel.getInput().getVariableName())
+            ParameterizedTypeName identityFutureTypeName = ParameterizedTypeName.get(ClassName.get(CompletableFuture.class),
+                                                             WildcardTypeName.subtypeOf(AwsCredentialsIdentity.class));
+            builder.addCode("$T identityFuture = $N.overrideConfiguration()", identityFutureTypeName,
+                            opModel.getInput().getVariableName())
                    .addCode("    .flatMap($T::credentialsIdentityProvider)", AwsRequestOverrideConfiguration.class)
                    .addCode("    .orElseGet(() -> clientConfiguration.option($T.CREDENTIALS_IDENTITY_PROVIDER))",
                             AwsClientOption.class)
-                   // TODO: avoid join inside async
-                   .addCode("    .resolveIdentity().join().accessKeyId();");
+                   .addCode("    .resolveIdentity();");
 
-            builder.addCode("$1T endpointDiscoveryRequest = $1T.builder()", EndpointDiscoveryRequest.class)
-                   .addCode("    .required($L)", opModel.getInputShape().getEndpointDiscovery().isRequired())
-                   .addCode("    .defaultEndpoint(clientConfiguration.option($T.ENDPOINT))", SdkClientOption.class)
-                   .addCode("    .overrideConfiguration($N.overrideConfiguration().orElse(null))",
+            builder.addCode("endpointFuture = identityFuture.thenApply(credentials -> {")
+                   .addCode("    $1T endpointDiscoveryRequest = $1T.builder()", EndpointDiscoveryRequest.class)
+                   .addCode("        .required($L)", opModel.getInputShape().getEndpointDiscovery().isRequired())
+                   .addCode("        .defaultEndpoint(clientConfiguration.option($T.ENDPOINT))", SdkClientOption.class)
+                   .addCode("        .overrideConfiguration($N.overrideConfiguration().orElse(null))",
                             opModel.getInput().getVariableName())
-                   .addCode("    .build();");
+                   .addCode("        .build();")
+                   .addCode("    return endpointDiscoveryCache.get(credentials.accessKeyId(), endpointDiscoveryRequest);")
+                   .addCode("});");
 
-            builder.addStatement("cachedEndpoint = endpointDiscoveryCache.get(key, endpointDiscoveryRequest)");
             builder.endControlFlow();
         }
 

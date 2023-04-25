@@ -240,8 +240,9 @@ public class JsonProtocolSpec implements ProtocolSpec {
                                                                               : pojoResponseType;
         TypeName executeFutureValueType = executeFutureValueType(opModel, poetExtensions);
 
-        builder.add("\n\n$T<$T> executeFuture = clientHandler.execute(new $T<$T, $T>()\n",
-                    CompletableFuture.class, executeFutureValueType, ClientExecutionParams.class, requestType, responseType)
+        builder.add("\n\n$T<$T> executeFuture = ", CompletableFuture.class, executeFutureValueType)
+               .add(opModel.getEndpointDiscovery() != null ? "endpointFuture.thenCompose(cachedEndpoint -> " : "")
+               .add("clientHandler.execute(new $T<$T, $T>()\n", ClientExecutionParams.class, requestType, responseType)
                .add(".withOperationName(\"$N\")\n", opModel.getOperationName())
                .add(".withMarshaller($L)\n", asyncMarshaller(model, opModel, marshaller, protocolFactory))
                .add(asyncRequestBody(opModel))
@@ -257,8 +258,9 @@ public class JsonProtocolSpec implements ProtocolSpec {
                .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
                .add(HttpChecksumTrait.create(opModel))
                .add(NoneAuthTypeRequestTrait.create(opModel))
-               .add(".withInput($L)$L);",
-                    opModel.getInput().getVariableName(), asyncResponseTransformerVariable(isStreaming, isRestJson, opModel));
+               .add(".withInput($L)$L)",
+                    opModel.getInput().getVariableName(), asyncResponseTransformerVariable(isStreaming, isRestJson, opModel))
+               .add(opModel.getEndpointDiscovery() != null ? ");" : ";");
 
         if (opModel.hasStreamingOutput()) {
             builder.addStatement("$T<$T, ReturnT> finalAsyncResponseTransformer = asyncResponseTransformer",
