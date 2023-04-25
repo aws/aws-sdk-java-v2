@@ -52,6 +52,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
@@ -371,7 +372,19 @@ public class DefaultClientBuilderTest {
                 assertThat(property.getWriteMethod()).as(propertyName + " setter").isNotNull();
             });
         });
+    }
 
+
+    @Test
+    public void defaultProfileFileSupplier_isStaticOrHasIdentityCaching() {
+        SdkClientConfiguration config =
+            testClientBuilder().build().clientConfiguration;
+
+        Supplier<ProfileFile> defaultProfileFileSupplier = config.option(PROFILE_FILE_SUPPLIER);
+        ProfileFile firstGet = defaultProfileFileSupplier.get();
+        ProfileFile secondGet = defaultProfileFileSupplier.get();
+
+        assertThat(secondGet).isSameAs(firstGet);
     }
 
     private SdkDefaultClientBuilder<TestClientBuilder, TestClient> testClientBuilder() {

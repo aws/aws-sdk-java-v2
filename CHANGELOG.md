@@ -1,3 +1,28 @@
+# __2.20.53__ __2023-04-25__
+## __AWS DataSync__
+  - ### Features
+    - This release adds 13 new APIs to support AWS DataSync Discovery GA.
+
+## __AWS Directory Service__
+  - ### Features
+    - New field added in AWS Managed Microsoft AD DescribeSettings response and regex pattern update for UpdateSettings value. Added length validation to RemoteDomainName.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Chime SDK Messaging__
+  - ### Features
+    - Remove non actionable field from UpdateChannelReadMarker and DeleteChannelRequest. Add precise exceptions to DeleteChannel and DeleteStreamingConfigurations error cases.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect, Contact Lens Evaluation API release including ability to manage forms and to submit contact evaluations.
+
+## __Amazon Pinpoint__
+  - ### Features
+    - Adds support for journey runs and querying journey execution metrics based on journey runs. Adds execution metrics to campaign activities. Updates docs for Advanced Quiet Time.
+
 # __2.20.52__ __2023-04-24__
 ## __AWS CRT HTTP Client__
   - ### Bugfixes

@@ -1,0 +1,6 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "contributor": "", 
+    "type": "bugfix", 
+    "description": "Fixed bug where using profile-based credentials could cause the SDK to read the profile file with each request."
+}
