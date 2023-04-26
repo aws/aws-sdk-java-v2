@@ -59,6 +59,7 @@ import software.amazon.awssdk.services.polly.model.PollyRequest;
 import software.amazon.awssdk.services.polly.presigner.PollyPresigner;
 import software.amazon.awssdk.services.polly.presigner.model.PresignedSynthesizeSpeechRequest;
 import software.amazon.awssdk.services.polly.presigner.model.SynthesizeSpeechPresignRequest;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Validate;
 
@@ -212,7 +213,7 @@ public final class DefaultPollyPresigner implements PollyPresigner {
     }
 
     private AwsCredentialsIdentity resolveCredentials(IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider) {
-        return credentialsProvider.resolveIdentity().join();
+        return CompletableFutureUtils.joinLikeSync(credentialsProvider.resolveIdentity());
     }
 
     private Presigner resolvePresigner(PollyRequest request) {

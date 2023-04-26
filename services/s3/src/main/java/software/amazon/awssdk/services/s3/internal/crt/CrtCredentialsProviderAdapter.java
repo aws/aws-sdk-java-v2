@@ -26,6 +26,7 @@ import software.amazon.awssdk.crt.auth.credentials.DelegateCredentialsProvider;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.AwsSessionCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**
@@ -45,8 +46,8 @@ public final class CrtCredentialsProviderAdapter implements SdkAutoCloseable {
                     return Credentials.createAnonymousCredentials();
                 }
 
-                // TODO: Exception handling for join?
-                AwsCredentialsIdentity sdkCredentials = credentialsProvider.resolveIdentity().join();
+                AwsCredentialsIdentity sdkCredentials =
+                    CompletableFutureUtils.joinLikeSync(credentialsProvider.resolveIdentity());
                 byte[] accessKey = sdkCredentials.accessKeyId().getBytes(StandardCharsets.UTF_8);
                 byte[] secreteKey = sdkCredentials.secretAccessKey().getBytes(StandardCharsets.UTF_8);
 

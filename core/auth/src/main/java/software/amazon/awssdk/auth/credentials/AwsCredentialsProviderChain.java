@@ -24,6 +24,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
@@ -99,15 +100,13 @@ public final class AwsCredentialsProviderChain
     @Override
     public AwsCredentials resolveCredentials() {
         if (reuseLastProviderEnabled && lastUsedProvider != null) {
-            // TODO: Exception handling for join?
-            return CredentialUtils.toCredentials(lastUsedProvider.resolveIdentity().join());
+            return CredentialUtils.toCredentials(CompletableFutureUtils.joinLikeSync(lastUsedProvider.resolveIdentity()));
         }
 
         List<String> exceptionMessages = null;
         for (IdentityProvider<? extends AwsCredentialsIdentity> provider : credentialsProviders) {
             try {
-                // TODO: Exception handling for join?
-                AwsCredentialsIdentity credentials = provider.resolveIdentity().join();
+                AwsCredentialsIdentity credentials = CompletableFutureUtils.joinLikeSync(provider.resolveIdentity());
 
                 log.debug(() -> "Loading credentials from " + provider);
 

@@ -29,10 +29,12 @@ import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
+import com.squareup.javapoet.WildcardTypeName;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
@@ -58,9 +60,11 @@ import software.amazon.awssdk.core.client.handler.SyncClientHandler;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRefreshCache;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRequest;
 import software.amazon.awssdk.core.metrics.CoreMetric;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
 
 public class SyncClientClass extends SyncClientInterface {
@@ -258,11 +262,18 @@ public class SyncClientClass extends SyncClientInterface {
             method.addStatement("$T cachedEndpoint = null", URI.class);
             method.beginControlFlow("if (endpointDiscoveryEnabled)");
 
-            method.addCode("$T key = $N.overrideConfiguration()", String.class, opModel.getInput().getVariableName())
+            ParameterizedTypeName identityFutureTypeName =
+                ParameterizedTypeName.get(ClassName.get(CompletableFuture.class),
+                                          WildcardTypeName.subtypeOf(AwsCredentialsIdentity.class));
+            method.addCode("$T identityFuture = $N.overrideConfiguration()",
+                           identityFutureTypeName,
+                           opModel.getInput().getVariableName())
                   .addCode("    .flatMap($T::credentialsIdentityProvider)", AwsRequestOverrideConfiguration.class)
                   .addCode("    .orElseGet(() -> clientConfiguration.option($T.CREDENTIALS_IDENTITY_PROVIDER))",
                            AwsClientOption.class)
-                  .addCode("    .resolveIdentity().join().accessKeyId();");
+                  .addCode("    .resolveIdentity();");
+
+            method.addCode("$T key = $T.joinLikeSync(identityFuture).accessKeyId();", String.class, CompletableFutureUtils.class);
 
             method.addCode("$1T endpointDiscoveryRequest = $1T.builder()", EndpointDiscoveryRequest.class)
                   .addCode("    .required($L)", opModel.getInputShape().getEndpointDiscovery().isRequired())
