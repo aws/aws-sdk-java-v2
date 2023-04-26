@@ -239,4 +239,22 @@ public final class CompletableFutureUtils {
             // Ignore
         }
     }
+
+    /**
+     * Joins (interruptibly) on the future, and re-throws any RuntimeExceptions or Errors just like the async task would have
+     * thrown if it was executed synchronously.
+     */
+    public static <T> T joinLikeSync(CompletableFuture<T> future) {
+        try {
+            return joinInterruptibly(future);
+        } catch (CompletionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof RuntimeException) {
+                // Make sure we don't lose the context of where the join is in the stack...
+                cause.addSuppressed(new RuntimeException("Task failed."));
+                throw (RuntimeException) cause;
+            }
+            throw e;
+        }
+    }
 }

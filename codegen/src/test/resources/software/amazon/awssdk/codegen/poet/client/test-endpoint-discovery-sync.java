@@ -3,6 +3,7 @@ package software.amazon.awssdk.services.endpointdiscoverytest;
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
@@ -19,6 +20,7 @@ import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRequest;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.metrics.CoreMetric;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
@@ -39,6 +41,7 @@ import software.amazon.awssdk.services.endpointdiscoverytest.transform.DescribeE
 import software.amazon.awssdk.services.endpointdiscoverytest.transform.TestDiscoveryIdentifiersRequiredRequestMarshaller;
 import software.amazon.awssdk.services.endpointdiscoverytest.transform.TestDiscoveryOptionalRequestMarshaller;
 import software.amazon.awssdk.services.endpointdiscoverytest.transform.TestDiscoveryRequiredRequestMarshaller;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
 
 /**
@@ -154,10 +157,12 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
         }
         URI cachedEndpoint = null;
         if (endpointDiscoveryEnabled) {
-            String key = testDiscoveryIdentifiersRequiredRequest.overrideConfiguration()
-                                                                .flatMap(AwsRequestOverrideConfiguration::credentialsIdentityProvider)
-                                                                .orElseGet(() -> clientConfiguration.option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER))
-                                                                .resolveIdentity().join().accessKeyId();
+            CompletableFuture<? extends AwsCredentialsIdentity> identityFuture =
+                testDiscoveryIdentifiersRequiredRequest.overrideConfiguration()
+                                            .flatMap(AwsRequestOverrideConfiguration::credentialsIdentityProvider)
+                                            .orElseGet(() -> clientConfiguration.option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER))
+                                            .resolveIdentity();
+            String key = CompletableFutureUtils.joinLikeSync(identityFuture).accessKeyId();
             EndpointDiscoveryRequest endpointDiscoveryRequest = EndpointDiscoveryRequest.builder().required(true)
                                                                                         .defaultEndpoint(clientConfiguration.option(SdkClientOption.ENDPOINT))
                                                                                         .overrideConfiguration(testDiscoveryIdentifiersRequiredRequest.overrideConfiguration().orElse(null)).build();
@@ -211,10 +216,12 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
         boolean endpointOverridden = clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN) == Boolean.TRUE;
         URI cachedEndpoint = null;
         if (endpointDiscoveryEnabled) {
-            String key = testDiscoveryOptionalRequest.overrideConfiguration()
-                                                     .flatMap(AwsRequestOverrideConfiguration::credentialsIdentityProvider)
-                                                     .orElseGet(() -> clientConfiguration.option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER))
-                                                     .resolveIdentity().join().accessKeyId();
+            CompletableFuture<? extends AwsCredentialsIdentity> identityFuture =
+                testDiscoveryOptionalRequest.overrideConfiguration()
+                                            .flatMap(AwsRequestOverrideConfiguration::credentialsIdentityProvider)
+                                            .orElseGet(() -> clientConfiguration.option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER))
+                                            .resolveIdentity();
+            String key = CompletableFutureUtils.joinLikeSync(identityFuture).accessKeyId();
             EndpointDiscoveryRequest endpointDiscoveryRequest = EndpointDiscoveryRequest.builder().required(false)
                                                                                         .defaultEndpoint(clientConfiguration.option(SdkClientOption.ENDPOINT))
                                                                                         .overrideConfiguration(testDiscoveryOptionalRequest.overrideConfiguration().orElse(null)).build();
@@ -275,10 +282,12 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
         }
         URI cachedEndpoint = null;
         if (endpointDiscoveryEnabled) {
-            String key = testDiscoveryRequiredRequest.overrideConfiguration()
-                                                     .flatMap(AwsRequestOverrideConfiguration::credentialsIdentityProvider)
-                                                     .orElseGet(() -> clientConfiguration.option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER))
-                                                     .resolveIdentity().join().accessKeyId();
+            CompletableFuture<? extends AwsCredentialsIdentity> identityFuture =
+                testDiscoveryRequiredRequest.overrideConfiguration()
+                                            .flatMap(AwsRequestOverrideConfiguration::credentialsIdentityProvider)
+                                            .orElseGet(() -> clientConfiguration.option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER))
+                                            .resolveIdentity();
+            String key = CompletableFutureUtils.joinLikeSync(identityFuture).accessKeyId();
             EndpointDiscoveryRequest endpointDiscoveryRequest = EndpointDiscoveryRequest.builder().required(true)
                                                                                         .defaultEndpoint(clientConfiguration.option(SdkClientOption.ENDPOINT))
                                                                                         .overrideConfiguration(testDiscoveryRequiredRequest.overrideConfiguration().orElse(null)).build();

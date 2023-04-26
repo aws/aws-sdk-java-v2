@@ -19,6 +19,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.AwsSessionCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 @SdkProtectedApi
 public final class CredentialUtils {
@@ -101,8 +102,8 @@ public final class CredentialUtils {
             return (AwsCredentialsProvider) identityProvider;
         }
         return () -> {
-            // TODO: Exception handling for CompletionException thrown from join?
-            AwsCredentialsIdentity awsCredentialsIdentity = identityProvider.resolveIdentity().join();
+            AwsCredentialsIdentity awsCredentialsIdentity =
+                CompletableFutureUtils.joinLikeSync(identityProvider.resolveIdentity());
             return toCredentials(awsCredentialsIdentity);
         };
     }

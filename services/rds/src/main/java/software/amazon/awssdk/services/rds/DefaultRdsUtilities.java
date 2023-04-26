@@ -32,6 +32,7 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.rds.model.GenerateAuthenticationTokenRequest;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.StringUtils;
 
 @Immutable
@@ -111,11 +112,12 @@ final class DefaultRdsUtilities implements RdsUtilities {
     // TODO: update this to use AwsCredentialsIdentity when we migrate Signers to accept the new type.
     private AwsCredentials resolveCredentials(GenerateAuthenticationTokenRequest request) {
         if (request.credentialsIdentityProvider() != null) {
-            return CredentialUtils.toCredentials(request.credentialsIdentityProvider().resolveIdentity().join());
+            return CredentialUtils.toCredentials(
+                CompletableFutureUtils.joinLikeSync(request.credentialsIdentityProvider().resolveIdentity()));
         }
 
         if (this.credentialsProvider != null) {
-            return CredentialUtils.toCredentials(this.credentialsProvider.resolveIdentity().join());
+            return CredentialUtils.toCredentials(CompletableFutureUtils.joinLikeSync(this.credentialsProvider.resolveIdentity()));
         }
 
         throw new IllegalArgumentException("CredentialProvider should be provided either in GenerateAuthenticationTokenRequest " +

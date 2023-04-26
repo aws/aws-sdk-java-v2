@@ -25,6 +25,7 @@ import software.amazon.awssdk.auth.token.credentials.internal.TokenUtils;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
@@ -95,15 +96,13 @@ public final class SdkTokenProviderChain implements SdkTokenProvider, SdkAutoClo
     @Override
     public SdkToken resolveToken() {
         if (reuseLastProviderEnabled && lastUsedProvider != null) {
-            // TODO: Exception handling for join?
-            return TokenUtils.toSdkToken(lastUsedProvider.resolveIdentity().join());
+            return TokenUtils.toSdkToken(CompletableFutureUtils.joinLikeSync(lastUsedProvider.resolveIdentity()));
         }
 
         List<String> exceptionMessages = null;
         for (IdentityProvider<? extends TokenIdentity> provider : sdkTokenProviders) {
             try {
-                // TODO: Exception handling for join?
-                TokenIdentity token = provider.resolveIdentity().join();
+                TokenIdentity token = CompletableFutureUtils.joinLikeSync(provider.resolveIdentity());
 
                 log.debug(() -> "Loading token from " + provider);
 
