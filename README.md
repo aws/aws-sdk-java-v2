@@ -52,7 +52,7 @@ To automatically manage module versions (currently all modules have the same ver
     <dependency>
       <groupId>software.amazon.awssdk</groupId>
       <artifactId>bom</artifactId>
-      <version>2.20.53</version>
+      <version>2.20.54</version>
       <type>pom</type>
       <scope>import</scope>
     </dependency>
@@ -86,12 +86,12 @@ Alternatively you can add dependencies for the specific services you use only:
 <dependency>
   <groupId>software.amazon.awssdk</groupId>
   <artifactId>ec2</artifactId>
-  <version>2.20.53</version>
+  <version>2.20.54</version>
 </dependency>
 <dependency>
   <groupId>software.amazon.awssdk</groupId>
   <artifactId>s3</artifactId>
-  <version>2.20.53</version>
+  <version>2.20.54</version>
 </dependency>
 ```
 
@@ -103,7 +103,7 @@ You can import the whole SDK into your project (includes *ALL* services). Please
 <dependency>
   <groupId>software.amazon.awssdk</groupId>
   <artifactId>aws-sdk-java</artifactId>
-  <version>2.20.53</version>
+  <version>2.20.54</version>
 </dependency>
 ```
 
@@ -157,8 +157,6 @@ We need your help in making this SDK great. Please participate in the community 
 
 * Submit [issues][sdk-issues] - this is the **preferred** channel to interact with our team
 * Articulate your feature request or upvote existing ones on our [Issues][features] page
-* Send feedback directly to the team at aws-java-sdk-v2-feedback@amazon.com
-* Come join the AWS Java community chat on [Gitter][gitter]
 
 [aws-iam-credentials]: http://docs.aws.amazon.com/sdk-for-java/v2/developer-guide/java-dg-roles.html
 [aws]: http://aws.amazon.com/

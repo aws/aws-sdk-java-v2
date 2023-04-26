@@ -1,3 +1,21 @@
+# __2.20.54__ __2023-04-26__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Exclude static fields from the required fields validation done by the ToBuilderIsCorrect class
+        - Contributed by: [@sugmanue](https://github.com/sugmanue)
+    - Fixed bug where using profile-based credentials could cause the SDK to read the profile file with each request.
+
+## __Amazon OpenSearch Ingestion__
+  - ### Features
+    - Initial release for OpenSearch Ingestion
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@sugmanue](https://github.com/sugmanue)
 # __2.20.53__ __2023-04-25__
 ## __AWS DataSync__
   - ### Features
