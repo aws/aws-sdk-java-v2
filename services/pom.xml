@@ -17,7 +17,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.20.54-SNAPSHOT</version>
+        <version>2.20.55-SNAPSHOT</version>
     </parent>
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
@@ -363,6 +363,7 @@
         <module>internetmonitor</module>
         <module>ivsrealtime</module>
         <module>vpclattice</module>
+        <module>osis</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
