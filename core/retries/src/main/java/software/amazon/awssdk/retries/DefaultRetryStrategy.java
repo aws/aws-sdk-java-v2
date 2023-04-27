@@ -44,13 +44,33 @@ public final class DefaultRetryStrategy {
     public static StandardRetryStrategy.Builder standardStrategyBuilder() {
         return StandardRetryStrategy.builder()
                                     .maxAttempts(Standard.MAX_ATTEMPTS)
-                                    .backoffStrategy(BackoffStrategy.exponentialDelay(Standard.BASE_DELAY, Standard.MAX_BACKOFF))
-                                    .circuitBreakerEnabled(true);
+                                    .backoffStrategy(BackoffStrategy.exponentialDelay(Standard.BASE_DELAY, Standard.MAX_BACKOFF));
+    }
+
+    /**
+     * Create a new builder for a {@code AdaptiveRetryStrategy}.
+     *
+     * <p>Example Usage
+     * <pre>
+     * AdaptiveRetryStrategy retryStrategy =
+     *     RetryStrategies.adaptiveStrategyBuilder()
+     *                    .retryOnExceptionInstanceOf(IllegalArgumentException.class)
+     *                    .retryOnExceptionInstanceOf(IllegalStateException.class)
+     *                    .build();
+     * </pre>
+     */
+    public static AdaptiveRetryStrategy.Builder adaptiveRetryStrategyBuilder() {
+        return AdaptiveRetryStrategy.builder()
+                                    .maxAttempts(Adaptive.MAX_ATTEMPTS);
     }
 
     static final class Standard {
         static final int MAX_ATTEMPTS = 3;
         static final Duration BASE_DELAY = Duration.ofSeconds(1);
         static final Duration MAX_BACKOFF = Duration.ofSeconds(20);
+    }
+
+    static final class Adaptive {
+        static final int MAX_ATTEMPTS = 3;
     }
 }
