@@ -16,7 +16,7 @@
 package software.amazon.awssdk.retries.api.internal;
 
 import java.time.Duration;
-import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.retries.api.AcquireInitialTokenResponse;
 import software.amazon.awssdk.retries.api.RetryToken;
 import software.amazon.awssdk.utils.Validate;
@@ -24,7 +24,7 @@ import software.amazon.awssdk.utils.Validate;
 /**
  * Implementation of the {@link AcquireInitialTokenResponse} interface.
  */
-@SdkPublicApi
+@SdkInternalApi
 public final class AcquireInitialTokenResponseImpl implements AcquireInitialTokenResponse {
     private final RetryToken token;
     private final Duration delay;
