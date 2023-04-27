@@ -18,6 +18,7 @@ package software.amazon.awssdk.retries.api;
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.retries.api.internal.RefreshRetryTokenResponseImpl;
 
 /**
  * Response from the {@link RetryStrategy} after calling {@link RetryStrategy#refreshRetryToken(RefreshRetryTokenRequest)}.
@@ -35,4 +36,11 @@ public interface RefreshRetryTokenResponse {
      * The amount of time to wait before performing the next attempt.
      */
     Duration delay();
+
+    /**
+     * Creates a new {@link RefreshRetryTokenResponse} with the given token and delay.
+     */
+    static RefreshRetryTokenResponse create(RetryToken token, Duration delay) {
+        return RefreshRetryTokenResponseImpl.create(token, delay);
+    }
 }

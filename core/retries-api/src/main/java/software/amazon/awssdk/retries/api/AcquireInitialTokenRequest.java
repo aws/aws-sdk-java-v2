@@ -17,6 +17,7 @@ package software.amazon.awssdk.retries.api;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.retries.api.internal.AcquireInitialTokenRequestImpl;
 
 /**
  * Encapsulates the abstract scope to start the attempts about to be executed using a retry strategy.
@@ -33,4 +34,11 @@ public interface AcquireInitialTokenRequest {
      * requests against one resource do not result in throttling for requests against other, unrelated resources.
      */
     String scope();
+
+    /**
+     * Creates a new {@link AcquireInitialTokenRequest} instance with the given scope.
+     */
+    static AcquireInitialTokenRequest create(String scope) {
+        return AcquireInitialTokenRequestImpl.create(scope);
+    }
 }

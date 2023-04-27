@@ -114,7 +114,7 @@ public class RetryStrategyBuilderTest {
         private Throwable testThrowable;
         private boolean expectedTestResult;
 
-        TestCase configure(Function<RetryStrategy.Builder, RetryStrategy.Builder> configure) {
+        TestCase configure(Function<BuilderToTestDefaults, BuilderToTestDefaults> configure) {
             configure.apply(builder);
             return this;
         }
@@ -143,7 +143,7 @@ public class RetryStrategyBuilderTest {
         }
     }
 
-    static class BuilderToTestDefaults implements RetryStrategy.Builder {
+    static class BuilderToTestDefaults implements RetryStrategy.Builder<BuilderToTestDefaults, DummyRetryStrategy> {
         Predicate<Throwable> shouldRetryCapture = null;
 
         Predicate<Throwable> shouldRetryCapture() {
@@ -151,24 +151,43 @@ public class RetryStrategyBuilderTest {
         }
 
         @Override
-        public RetryStrategy.Builder retryOnException(Predicate<Throwable> shouldRetry) {
+        public BuilderToTestDefaults retryOnException(Predicate<Throwable> shouldRetry) {
             shouldRetryCapture = shouldRetry;
             return this;
         }
 
         @Override
-        public RetryStrategy.Builder maxAttempts(int maxAttempts) {
+        public BuilderToTestDefaults maxAttempts(int maxAttempts) {
             return this;
         }
 
         @Override
-        public RetryStrategy.Builder treatAsThrottling(Predicate<Throwable> treatAsThrottling) {
-            return this;
-        }
-
-        @Override
-        public RetryStrategy build() {
+        public DummyRetryStrategy build() {
             return null;
         }
     }
+
+    static class DummyRetryStrategy implements RetryStrategy<BuilderToTestDefaults, DummyRetryStrategy> {
+
+        @Override
+        public AcquireInitialTokenResponse acquireInitialToken(AcquireInitialTokenRequest request) {
+            return null;
+        }
+
+        @Override
+        public RefreshRetryTokenResponse refreshRetryToken(RefreshRetryTokenRequest request) {
+            return null;
+        }
+
+        @Override
+        public RecordSuccessResponse recordSuccess(RecordSuccessRequest request) {
+            return null;
+        }
+
+        @Override
+        public BuilderToTestDefaults toBuilder() {
+            return null;
+        }
+    }
+
 }

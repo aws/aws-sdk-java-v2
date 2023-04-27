@@ -17,6 +17,7 @@ package software.amazon.awssdk.retries.api;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.retries.api.internal.RecordSuccessRequestImpl;
 
 /**
  * Request that the calling code makes to the {@link RetryStrategy} using
@@ -30,4 +31,12 @@ public interface RecordSuccessRequest {
      * {@link RetryStrategy#refreshRetryToken} call.
      */
     RetryToken token();
+
+    /**
+     * Creates a new {@link RecordSuccessRequest} instance with the given token.
+     */
+    static RecordSuccessRequest create(RetryToken token) {
+        return RecordSuccessRequestImpl.create(token);
+    }
+
 }
