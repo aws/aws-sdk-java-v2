@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Marketplace Catalog Service",
-    "contributor": "",
-    "description": "Enabled Pagination for List Entities and List Change Sets operations"
-}

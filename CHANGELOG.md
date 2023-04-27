@@ -1,3 +1,52 @@
+# __2.20.55__ __2023-04-27__
+## __AWS IoT Core Device Advisor__
+  - ### Features
+    - AWS IoT Core Device Advisor now supports MQTT over WebSocket. With this update, customers can run all three test suites of AWS IoT Core Device Advisor - qualification, custom, and long duration tests - using Signature Version 4 for MQTT over WebSocket.
+
+## __AWS Lambda__
+  - ### Features
+    - Add Java 17 (java17) support to AWS Lambda
+
+## __AWS Marketplace Catalog Service__
+  - ### Features
+    - Enabled Pagination for List Entities and List Change Sets operations
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS X-Ray__
+  - ### Features
+    - Updated X-Ray documentation with Resource Policy API descriptions.
+
+## __Amazon EMR Containers__
+  - ### Features
+    - This release adds GetManagedEndpointSessionCredentials, a new API that allows customers to generate an auth token to connect to a managed endpoint, enabling features such as self-hosted Jupyter notebooks for EMR on EKS.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for AMD SEV-SNP on EC2 instances.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Added API support to initiate on-demand malware scan on specific resources.
+
+## __Amazon OpenSearch Ingestion__
+  - ### Features
+    - Documentation updates for OpenSearch Ingestion
+
+## __Amazon QLDB__
+  - ### Features
+    - Documentation updates for Amazon QLDB
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Added ml.p4d.24xlarge and ml.p4de.24xlarge as supported instances for SageMaker Studio
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Amazon MSK has added new APIs that allows multi-VPC private connectivity and cluster policy support for Amazon MSK clusters that simplify connectivity and access between your Apache Kafka clients hosted in different VPCs and AWS accounts and your Amazon MSK clusters.
+
 # __2.20.54__ __2023-04-26__
 ## __AWS SDK for Java v2__
   - ### Features
