@@ -22,12 +22,16 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 public final class RateLimiterAcquireResponse {
     private final Duration waitTime;
 
-    public RateLimiterAcquireResponse(Duration waitTime) {
+    private RateLimiterAcquireResponse(Duration waitTime) {
         this.waitTime = waitTime;
     }
 
     public Duration delay() {
         return waitTime;
+    }
+
+    public static RateLimiterAcquireResponse create(Duration waitTime) {
+        return new RateLimiterAcquireResponse(waitTime);
     }
 
 }

@@ -22,7 +22,7 @@ public class RateLimiterUpdateResponse {
     private double measuredTxRate;
     private double fillRate;
 
-    public RateLimiterUpdateResponse(double measuredTxRate, double fillRate) {
+    private RateLimiterUpdateResponse(double measuredTxRate, double fillRate) {
         this.measuredTxRate = measuredTxRate;
         this.fillRate = fillRate;
     }
@@ -33,5 +33,9 @@ public class RateLimiterUpdateResponse {
 
     public double fillRate() {
         return fillRate;
+    }
+
+    public static RateLimiterUpdateResponse create(double measuredTxRate, double fillRate) {
+        return new RateLimiterUpdateResponse(measuredTxRate, fillRate);
     }
 }

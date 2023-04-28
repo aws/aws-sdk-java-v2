@@ -46,7 +46,7 @@ public class RateLimiterTokenBucket {
      */
     public RateLimiterAcquireResponse tryAcquire() {
         StateUpdate<Duration> update = updateState(ts -> ts.tokenBucketAcquire(clock, 1.0));
-        return new RateLimiterAcquireResponse(update.result);
+        return RateLimiterAcquireResponse.create(update.result);
     }
 
     /**
@@ -54,7 +54,7 @@ public class RateLimiterTokenBucket {
      */
     public RateLimiterUpdateResponse updateRateAfterThrottling() {
         StateUpdate<Void> update = consumeState(ts -> ts.updateClientSendingRate(clock, true));
-        return new RateLimiterUpdateResponse(update.newState.measuredTxRate(), update.newState.fillRate());
+        return RateLimiterUpdateResponse.create(update.newState.measuredTxRate(), update.newState.fillRate());
     }
 
     /**
@@ -62,7 +62,7 @@ public class RateLimiterTokenBucket {
      */
     public RateLimiterUpdateResponse updateRateAfterSuccess() {
         StateUpdate<Void> update = consumeState(ts -> ts.updateClientSendingRate(clock, false));
-        return new RateLimiterUpdateResponse(update.newState.measuredTxRate(), update.newState.fillRate());
+        return RateLimiterUpdateResponse.create(update.newState.measuredTxRate(), update.newState.fillRate());
     }
 
     private StateUpdate<Void> consumeState(Consumer<TransientState> mutator) {

@@ -49,7 +49,7 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 public final class AdaptiveRetryStrategyImpl implements AdaptiveRetryStrategy {
     private static final Logger LOG = Logger.loggerFor(AdaptiveRetryStrategyImpl.class);
-    private final List<Predicate<Throwable>> predicates;
+    private final List<Predicate<Throwable>> retryPredicates;
     private final int maxAttempts;
     private final boolean circuitBreakerEnabled;
     private final BackoffStrategy backoffStrategy;
@@ -60,7 +60,7 @@ public final class AdaptiveRetryStrategyImpl implements AdaptiveRetryStrategy {
     private final RateLimiterTokenBucketStore rateLimiterTokenBucketStore;
 
     private AdaptiveRetryStrategyImpl(Builder builder) {
-        this.predicates = Collections.unmodifiableList(Validate.paramNotNull(builder.predicates, "predicates"));
+        this.retryPredicates = Collections.unmodifiableList(Validate.paramNotNull(builder.retryPredicates, "predicates"));
         this.maxAttempts = Validate.isPositive(builder.maxAttempts, "maxAttempts");
         this.circuitBreakerEnabled = builder.circuitBreakerEnabled;
         this.backoffStrategy = Validate.paramNotNull(builder.backoffStrategy, "backoffStrategy");
@@ -68,7 +68,8 @@ public final class AdaptiveRetryStrategyImpl implements AdaptiveRetryStrategy {
         this.tokenBucketMaxCapacity = builder.tokenBucketMaxCapacity;
         this.treatAsThrottling = Validate.paramNotNull(builder.treatAsThrottling, "treatAsThrottling");
         this.tokenBucketStore = Validate.paramNotNull(builder.tokenBucketStore, "tokenBucketStore");
-        this.rateLimiterTokenBucketStore = Validate.paramNotNull(builder.rateLimiterTokenBucketStore, "adaptiveTokenBucketStore");
+        this.rateLimiterTokenBucketStore = Validate.paramNotNull(builder.rateLimiterTokenBucketStore,
+                                                                 "rateLimiterTokenBucketStore");
     }
 
     @Override
@@ -275,7 +276,12 @@ public final class AdaptiveRetryStrategyImpl implements AdaptiveRetryStrategy {
 
     private boolean isNonRetryableException(RefreshRetryTokenRequest request) {
         Throwable failure = request.failure();
-        return predicates.stream().noneMatch(predicate -> predicate.test(failure));
+        for (Predicate<Throwable> retryPredicate : retryPredicates) {
+            if (retryPredicate.test(failure)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     static DefaultRetryToken asStandardRetryToken(RetryToken token) {
@@ -302,7 +308,7 @@ public final class AdaptiveRetryStrategyImpl implements AdaptiveRetryStrategy {
     }
 
     public static class Builder implements AdaptiveRetryStrategy.Builder {
-        private List<Predicate<Throwable>> predicates;
+        private List<Predicate<Throwable>> retryPredicates;
         private int maxAttempts;
         private boolean circuitBreakerEnabled;
         private int tokenBucketMaxCapacity;
@@ -313,11 +319,11 @@ public final class AdaptiveRetryStrategyImpl implements AdaptiveRetryStrategy {
         private RateLimiterTokenBucketStore rateLimiterTokenBucketStore;
 
         Builder() {
-            predicates = new ArrayList<>();
+            retryPredicates = new ArrayList<>();
         }
 
         Builder(AdaptiveRetryStrategyImpl strategy) {
-            this.predicates = new ArrayList<>(strategy.predicates);
+            this.retryPredicates = new ArrayList<>(strategy.retryPredicates);
             this.maxAttempts = strategy.maxAttempts;
             this.circuitBreakerEnabled = strategy.circuitBreakerEnabled;
             this.tokenBucketMaxCapacity = strategy.tokenBucketMaxCapacity;
@@ -330,7 +336,7 @@ public final class AdaptiveRetryStrategyImpl implements AdaptiveRetryStrategy {
 
         @Override
         public Builder retryOnException(Predicate<Throwable> shouldRetry) {
-            this.predicates.add(shouldRetry);
+            this.retryPredicates.add(shouldRetry);
             return this;
         }
 
