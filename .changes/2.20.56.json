@@ -1,0 +1,78 @@
+{
+    "version": "2.20.56",
+    "date": "2023-04-28",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "Netty NIO HTTP Client",
+            "contributor": "martinKindall",
+            "description": "The fix involves implementing a null-pointer check in the NettyUtils#isConnectionResetException() method, in case the\n    throwable of the original cause has no message."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Direct Connect",
+            "contributor": "",
+            "description": "This release corrects the jumbo frames MTU from 9100 to 8500."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT",
+            "contributor": "",
+            "description": "This release allows AWS IoT Core users to specify a TLS security policy when creating and updating AWS IoT Domain Configurations."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SimSpace Weaver",
+            "contributor": "",
+            "description": "Added a new CreateSnapshot API. For the StartSimulation API, SchemaS3Location is now optional, added a new SnapshotS3Location parameter. For the DescribeSimulation API, added SNAPSHOT_IN_PROGRESS simulation state, deprecated SchemaError, added new fields: StartError and SnapshotS3Location."
+        },
+        {
+            "type": "feature",
+            "category": "AWS WAFV2",
+            "contributor": "",
+            "description": "You can now associate a web ACL with a Verified Access instance."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Appflow",
+            "contributor": "",
+            "description": "Adds Jwt Support for Salesforce Credentials."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Athena",
+            "contributor": "",
+            "description": "You can now use capacity reservations on Amazon Athena to run SQL queries on fully-managed compute capacity."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic File System",
+            "contributor": "",
+            "description": "This release adds PAUSED and PAUSING state as a returned value for DescribeReplicationConfigurations response."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Managed Grafana",
+            "contributor": "",
+            "description": "This release adds support for the grafanaVersion parameter in CreateWorkspace."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Rekognition",
+            "contributor": "",
+            "description": "Added support for aggregating moderation labels by video segment timestamps for Stored Video Content Moderation APIs and added additional information about the job to all Stored Video Get API responses."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkSpaces",
+            "contributor": "",
+            "description": "Added Windows 11 to support Microsoft_Office_2019"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

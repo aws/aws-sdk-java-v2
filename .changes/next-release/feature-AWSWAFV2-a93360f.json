@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS WAFV2",
-    "contributor": "",
-    "description": "You can now associate a web ACL with a Verified Access instance."
-}

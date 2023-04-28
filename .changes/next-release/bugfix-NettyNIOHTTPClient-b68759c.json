@@ -1,6 +1,0 @@
-{
-    "category": "Netty NIO HTTP Client", 
-    "contributor": "martinKindall", 
-    "type": "bugfix", 
-    "description": "The fix involves implementing a null-pointer check in the NettyUtils#isConnectionResetException() method, in case the\n    throwable of the original cause has no message."
-}
