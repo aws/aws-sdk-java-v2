@@ -29,6 +29,7 @@ import software.amazon.awssdk.core.client.handler.AsyncClientHandler;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.client.handler.SdkAsyncClientHandler;
 import software.amazon.awssdk.core.http.ExecutionContext;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 /**
  * Async client handler for AWS SDK clients.
@@ -59,9 +60,19 @@ public final class AwsAsyncClientHandler extends SdkAsyncClientHandler implement
         return super.execute(executionParams, asyncResponseTransformer);
     }
 
+    // This method is not really used, but it is there for backwards compatibility, since this class is @SdkProtectedApi.
+    // The execute() methods in AwsAsyncClientHandler (inherited from BaseAsyncClientHandler) call the
+    // invokeInterceptorsAndCreateExecutionContextAsync below.
     @Override
     protected <InputT extends SdkRequest, OutputT extends SdkResponse> ExecutionContext
         invokeInterceptorsAndCreateExecutionContext(ClientExecutionParams<InputT, OutputT> executionParams) {
+        return CompletableFutureUtils.joinLikeSync(
+            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(executionParams, clientConfiguration));
+    }
+
+    @Override
+    protected <InputT extends SdkRequest, OutputT extends SdkResponse> CompletableFuture<ExecutionContext>
+        invokeInterceptorsAndCreateExecutionContextAsync(ClientExecutionParams<InputT, OutputT> executionParams) {
         return AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(executionParams, clientConfiguration);
     }
 }

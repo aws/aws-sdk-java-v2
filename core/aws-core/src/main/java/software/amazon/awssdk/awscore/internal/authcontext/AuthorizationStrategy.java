@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.awscore.internal.authcontext;
 
+import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.signer.Signer;
@@ -28,5 +29,5 @@ public interface AuthorizationStrategy {
 
     Signer resolveSigner();
 
-    void addCredentialsToExecutionAttributes(ExecutionAttributes executionAttributes);
+    CompletableFuture<Void> addCredentialsToExecutionAttributes(ExecutionAttributes executionAttributes);
 }

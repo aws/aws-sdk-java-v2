@@ -96,7 +96,8 @@ public class AwsExecutionContextBuilderTest {
             .build();
 
         ExecutionContext executionContext =
-            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(clientExecutionParams(), testClientConfiguration);
+            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(clientExecutionParams(),
+                                                                                   testClientConfiguration).join();
 
         assertThat(executionContext.executionAttributes().getAttribute(SdkExecutionAttribute.SERVICE_NAME)).isEqualTo("DoNotOverrideService");
     }
@@ -105,7 +106,7 @@ public class AwsExecutionContextBuilderTest {
     public void signing_ifNoOverrides_assignDefaultSigner() {
         ExecutionContext executionContext =
             AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(clientExecutionParams(),
-                                                                                   testClientConfiguration().build());
+                                                                                   testClientConfiguration().build()).join();
 
         assertThat(executionContext.signer()).isEqualTo(defaultSigner);
     }
@@ -119,7 +120,7 @@ public class AwsExecutionContextBuilderTest {
 
         ExecutionContext executionContext =
             AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(clientExecutionParams(),
-                                                                                   testClientConfiguration().build());
+                                                                                   testClientConfiguration().build()).join();
 
         assertThat(executionContext.signer()).isEqualTo(clientOverrideSigner);
     }
@@ -128,7 +129,7 @@ public class AwsExecutionContextBuilderTest {
     public void invokeInterceptorsAndCreateExecutionContext_noHttpChecksumTrait_resolvesChecksumSpecs() {
         ExecutionContext executionContext =
             AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(clientExecutionParams(),
-                                                                                   testClientConfiguration().build());
+                                                                                   testClientConfiguration().build()).join();
 
         ExecutionAttributes executionAttributes = executionContext.executionAttributes();
         Optional<ChecksumSpecs> checksumSpecs1 = HttpChecksumUtils.checksumSpecWithRequestAlgorithm(executionAttributes);
@@ -148,7 +149,7 @@ public class AwsExecutionContextBuilderTest {
 
         ExecutionContext executionContext =
             AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(executionParams,
-                                                                                   testClientConfiguration().build());
+                                                                                   testClientConfiguration().build()).join();
 
         ExecutionAttributes executionAttributes = executionContext.executionAttributes();
         ChecksumSpecs checksumSpecs1 = HttpChecksumUtils.checksumSpecWithRequestAlgorithm(executionAttributes).get();
@@ -166,13 +167,13 @@ public class AwsExecutionContextBuilderTest {
 
         ExecutionContext executionContext1 =
             AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(executionParams,
-                                                                                   clientConfig);
+                                                                                   clientConfig).join();
         ExecutionAttributes executionAttributes1 = executionContext1.executionAttributes();
         ChecksumSpecs checksumSpecs1 = HttpChecksumUtils.checksumSpecWithRequestAlgorithm(executionAttributes1).get();
 
         ExecutionContext executionContext2 =
             AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(executionParams,
-                                                                                   clientConfig);
+                                                                                   clientConfig).join();
         ExecutionAttributes executionAttributes2 = executionContext2.executionAttributes();
         ChecksumSpecs checksumSpecs2 = HttpChecksumUtils.checksumSpecWithRequestAlgorithm(executionAttributes2).get();
         ChecksumSpecs checksumSpecs3 = HttpChecksumUtils.checksumSpecWithRequestAlgorithm(executionAttributes2).get();
@@ -190,7 +191,7 @@ public class AwsExecutionContextBuilderTest {
             .build();
 
         ExecutionContext executionContext =
-            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(executionParams, clientConfig);
+            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(executionParams, clientConfig).join();
 
         ExecutionAttributes executionAttributes = executionContext.executionAttributes();
 

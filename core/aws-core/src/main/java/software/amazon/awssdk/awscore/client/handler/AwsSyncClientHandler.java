@@ -32,6 +32,7 @@ import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 /**
  * Client handler for AWS SDK clients.
@@ -66,7 +67,8 @@ public final class AwsSyncClientHandler extends SdkSyncClientHandler implements 
     @Override
     protected <InputT extends SdkRequest, OutputT extends SdkResponse> ExecutionContext
         invokeInterceptorsAndCreateExecutionContext(ClientExecutionParams<InputT, OutputT> executionParams) {
-        return AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(executionParams, clientConfiguration);
+        return CompletableFutureUtils.joinLikeSync(
+            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(executionParams, clientConfiguration));
     }
 
     private <InputT extends SdkRequest, OutputT> ClientExecutionParams<InputT, OutputT> addCrc32Validation(

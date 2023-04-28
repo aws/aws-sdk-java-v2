@@ -16,21 +16,19 @@
 package software.amazon.awssdk.awscore.internal.authcontext;
 
 import java.time.Duration;
+import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.CredentialUtils;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.metrics.MetricCollector;
-import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -72,14 +70,24 @@ public final class AwsCredentialsAuthorizationStrategy implements AuthorizationS
 
     /**
      * Add credentials to be used by the signer in later stages.
+     *
+     * @return
      */
     @Override
-    public void addCredentialsToExecutionAttributes(ExecutionAttributes executionAttributes) {
+    public CompletableFuture<Void> addCredentialsToExecutionAttributes(ExecutionAttributes executionAttributes) {
         IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider =
             resolveCredentialsProvider(request, defaultCredentialsProvider);
-        AwsCredentials credentials = CredentialUtils.toCredentials(resolveCredentials(credentialsProvider, metricCollector));
-        // TODO: Should the signer be changed to use AwsCredentialsIdentity? Maybe with Signer SRA work, not now.
-        executionAttributes.putAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS, credentials);
+        Validate.notNull(credentialsProvider, "No credentials provider exists to resolve credentials from.");
+
+        long start = System.nanoTime();
+        return credentialsProvider.resolveIdentity().thenAccept(credentialsIdentity -> {
+            metricCollector.reportMetric(CoreMetric.CREDENTIALS_FETCH_DURATION, Duration.ofNanos(System.nanoTime() - start));
+
+            Validate.validState(credentialsIdentity != null, "Credential providers must never return null.");
+            // TODO: Should the signer be changed to use AwsCredentialsIdentity? Maybe with Signer SRA work, not now.
+            executionAttributes.putAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS,
+                                             CredentialUtils.toCredentials(credentialsIdentity));
+        });
     }
 
     /**
@@ -96,22 +104,6 @@ public final class AwsCredentialsAuthorizationStrategy implements AuthorizationS
                               .map(c -> (AwsRequestOverrideConfiguration) c)
                               .flatMap(AwsRequestOverrideConfiguration::credentialsIdentityProvider)
                               .orElse(defaultProvider);
-    }
-
-    private static AwsCredentialsIdentity resolveCredentials(
-            IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider,
-            MetricCollector metricCollector) {
-        Validate.notNull(credentialsProvider, "No credentials provider exists to resolve credentials from.");
-
-        // TODO: Exception handling for join()?
-        Pair<? extends AwsCredentialsIdentity, Duration> measured =
-            MetricUtils.measureDuration(() -> credentialsProvider.resolveIdentity().join());
-
-        metricCollector.reportMetric(CoreMetric.CREDENTIALS_FETCH_DURATION, measured.right());
-        AwsCredentialsIdentity credentials = measured.left();
-
-        Validate.validState(credentials != null, "Credential providers must never return null.");
-        return credentials;
     }
 
     public static final class Builder {

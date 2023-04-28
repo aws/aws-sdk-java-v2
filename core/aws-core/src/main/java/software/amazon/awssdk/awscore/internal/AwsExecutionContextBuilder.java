@@ -18,6 +18,7 @@ package software.amazon.awssdk.awscore.internal;
 import static software.amazon.awssdk.auth.signer.internal.util.SignerMethodResolver.resolveSigningMethodUsed;
 import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS;
 
+import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
@@ -52,7 +53,7 @@ public final class AwsExecutionContextBuilder {
     /**
      * Used by both sync and async clients to create the execution context, and run initial interceptors.
      */
-    public static <InputT extends SdkRequest, OutputT extends SdkResponse> ExecutionContext
+    public static <InputT extends SdkRequest, OutputT extends SdkResponse> CompletableFuture<ExecutionContext>
         invokeInterceptorsAndCreateExecutionContext(ClientExecutionParams<InputT, OutputT> executionParams,
                                                     SdkClientConfiguration clientConfig) {
         // Note: This is currently copied to DefaultS3Presigner and other presigners.
@@ -109,30 +110,42 @@ public final class AwsExecutionContextBuilder {
                                                      .asyncRequestBody(executionParams.getAsyncRequestBody())
                                                      .requestBody(executionParams.getRequestBody())
                                                      .build();
-        interceptorContext = runInitialInterceptors(interceptorContext, executionAttributes, executionInterceptorChain);
+        // shorter variable name - newInterceptorContext?
+        InterceptorContext interceptorContextPostInterceptors = runInitialInterceptors(interceptorContext, executionAttributes,
+                                                                       executionInterceptorChain);
 
-        Signer signer = null;
+        Signer signer;
+        CompletableFuture<Void> identityFuture;
         if (isAuthenticatedRequest(executionAttributes)) {
             AuthorizationStrategyFactory authorizationStrategyFactory =
-                new AuthorizationStrategyFactory(interceptorContext.request(), metricCollector, clientConfig);
+                new AuthorizationStrategyFactory(interceptorContextPostInterceptors.request(), metricCollector, clientConfig);
             AuthorizationStrategy authorizationStrategy =
                 authorizationStrategyFactory.strategyFor(executionParams.credentialType());
-            authorizationStrategy.addCredentialsToExecutionAttributes(executionAttributes);
             signer = authorizationStrategy.resolveSigner();
+            identityFuture =
+                authorizationStrategy.addCredentialsToExecutionAttributes(executionAttributes);
+        } else {
+            // Can't assign to null before if and reassign in if, since that makes it not effectively final and thus not usable
+            // inside thenApply below.
+            // TODO: Could make a NoOpAuthorizationStrategry that returns null signer.
+            signer = null;
+            identityFuture = CompletableFuture.completedFuture(null);
         }
 
-        executionAttributes.putAttribute(HttpChecksumConstant.SIGNING_METHOD,
-                                         resolveSigningMethodUsed(
-                                             signer, executionAttributes, executionAttributes.getOptionalAttribute(
-                                                 AwsSignerExecutionAttribute.AWS_CREDENTIALS).orElse(null)));
+        return identityFuture.thenApply(o -> {
+            executionAttributes.putAttribute(HttpChecksumConstant.SIGNING_METHOD,
+                                             resolveSigningMethodUsed(
+                                                 signer, executionAttributes, executionAttributes.getOptionalAttribute(
+                                                     AwsSignerExecutionAttribute.AWS_CREDENTIALS).orElse(null)));
 
-        return ExecutionContext.builder()
-                               .interceptorChain(executionInterceptorChain)
-                               .interceptorContext(interceptorContext)
-                               .executionAttributes(executionAttributes)
-                               .signer(signer)
-                               .metricCollector(metricCollector)
-                               .build();
+            return ExecutionContext.builder()
+                                   .interceptorChain(executionInterceptorChain)
+                                   .interceptorContext(interceptorContextPostInterceptors)
+                                   .executionAttributes(executionAttributes)
+                                   .signer(signer)
+                                   .metricCollector(metricCollector)
+                                   .build();
+        });
     }
 
     /**

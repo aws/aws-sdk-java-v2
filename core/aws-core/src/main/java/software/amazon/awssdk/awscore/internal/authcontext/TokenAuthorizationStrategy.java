@@ -16,20 +16,18 @@
 package software.amazon.awssdk.awscore.internal.authcontext;
 
 import java.time.Duration;
+import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.token.credentials.SdkToken;
 import software.amazon.awssdk.auth.token.credentials.internal.TokenUtils;
 import software.amazon.awssdk.auth.token.signer.SdkTokenExecutionAttribute;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.metrics.MetricCollector;
-import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -70,25 +68,23 @@ public final class TokenAuthorizationStrategy implements AuthorizationStrategy {
 
     /**
      * Add credentials to be used by the signer in later stages.
+     *
+     * @return
      */
     @Override
-    public void addCredentialsToExecutionAttributes(ExecutionAttributes executionAttributes) {
-        SdkToken token = TokenUtils.toSdkToken(resolveToken(defaultTokenProvider, metricCollector));
-        // TODO: Should the signer be changed to use TokenIdentity? Maybe with Signer SRA work, not now.
-        executionAttributes.putAttribute(SdkTokenExecutionAttribute.SDK_TOKEN, token);
-    }
+    public CompletableFuture<Void> addCredentialsToExecutionAttributes(ExecutionAttributes executionAttributes) {
+        // TODO: can this fail earlier?
+        Validate.notNull(defaultTokenProvider, "No token provider exists to resolve a token from.");
 
-    private static TokenIdentity resolveToken(IdentityProvider<? extends TokenIdentity> tokenProvider,
-                                              MetricCollector metricCollector) {
-        Validate.notNull(tokenProvider, "No token provider exists to resolve a token from.");
+        long start = System.nanoTime();
+        return defaultTokenProvider.resolveIdentity().thenAccept(token -> {
+            metricCollector.reportMetric(CoreMetric.TOKEN_FETCH_DURATION, Duration.ofNanos(System.nanoTime() - start));
 
-        // TODO: Exception handling for join()?
-        Pair<TokenIdentity, Duration> measured = MetricUtils.measureDuration(() -> tokenProvider.resolveIdentity().join());
-        metricCollector.reportMetric(CoreMetric.TOKEN_FETCH_DURATION, measured.right());
-        TokenIdentity token = measured.left();
-
-        Validate.validState(token != null, "Token providers must never return null.");
-        return token;
+            Validate.validState(token != null, "Token providers must never return null.");
+            // TODO: Should the signer be changed to use AwsCredentialsIdentity? Maybe with Signer SRA work, not now.
+            // TODO: Should the signer be changed to use TokenIdentity? Maybe with Signer SRA work, not now.
+            executionAttributes.putAttribute(SdkTokenExecutionAttribute.SDK_TOKEN, TokenUtils.toSdkToken(token));
+        });
     }
 
     public static final class Builder {

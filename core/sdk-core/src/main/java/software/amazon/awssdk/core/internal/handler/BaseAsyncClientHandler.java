@@ -74,12 +74,12 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
 
         return measureApiCallSuccess(executionParams, () -> {
             // Running beforeExecution interceptors and modifyRequest interceptors.
-            ExecutionContext executionContext = invokeInterceptorsAndCreateExecutionContext(executionParams);
+            return invokeInterceptorsAndCreateExecutionContextAsync(executionParams).thenCompose(executionContext -> {
+                TransformingAsyncResponseHandler<Response<OutputT>> combinedResponseHandler =
+                    createCombinedResponseHandler(executionParams, executionContext);
 
-            TransformingAsyncResponseHandler<Response<OutputT>> combinedResponseHandler =
-                createCombinedResponseHandler(executionParams, executionContext);
-
-            return doExecute(executionParams, executionContext, combinedResponseHandler);
+                return doExecute(executionParams, executionContext, combinedResponseHandler);
+            });
         });
     }
 
@@ -115,21 +115,31 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
             wrappedAsyncStreamingResponseHandler.prepare();
 
             // Running beforeExecution interceptors and modifyRequest interceptors.
-            ExecutionContext context = invokeInterceptorsAndCreateExecutionContext(executionParams);
+            return invokeInterceptorsAndCreateExecutionContextAsync(executionParams).thenCompose(context -> {
+                HttpResponseHandler<OutputT> decoratedResponseHandlers =
+                    decorateResponseHandlers(executionParams.getResponseHandler(), context);
 
-            HttpResponseHandler<OutputT> decoratedResponseHandlers =
-                decorateResponseHandlers(executionParams.getResponseHandler(), context);
+                asyncStreamingResponseHandler.responseHandler(decoratedResponseHandlers);
 
-            asyncStreamingResponseHandler.responseHandler(decoratedResponseHandlers);
+                TransformingAsyncResponseHandler<? extends SdkException> errorHandler =
+                    resolveErrorResponseHandler(executionParams.getErrorResponseHandler(), context, crc32Validator);
 
-            TransformingAsyncResponseHandler<? extends SdkException> errorHandler =
-                resolveErrorResponseHandler(executionParams.getErrorResponseHandler(), context, crc32Validator);
+                TransformingAsyncResponseHandler<Response<ReturnT>> combinedResponseHandler =
+                    new CombinedResponseAsyncHttpResponseHandler<>(wrappedAsyncStreamingResponseHandler, errorHandler);
 
-            TransformingAsyncResponseHandler<Response<ReturnT>> combinedResponseHandler =
-                new CombinedResponseAsyncHttpResponseHandler<>(wrappedAsyncStreamingResponseHandler, errorHandler);
-
-            return doExecute(executionParams, context, combinedResponseHandler);
+                return doExecute(executionParams, context, combinedResponseHandler);
+            });
         });
+    }
+
+    // AwsAsyncClientHandler overrides this and actually does async task (related to async resolveIdentity()), but this method
+    // is defined here, since execute() methods which are defined in this class, need to call it.
+    // Not adding this method to BaseClientHandler where invokeInterceptorsAndCreateExecutionContext is defined to avoid making
+    // this async method available to BaseSyncClientHandler.
+    // This method would be used when using SdkAsyncClientHandler.
+    protected <InputT extends SdkRequest, OutputT extends SdkResponse> CompletableFuture<ExecutionContext>
+        invokeInterceptorsAndCreateExecutionContextAsync(ClientExecutionParams<InputT, OutputT> executionParams) {
+        return CompletableFuture.completedFuture(invokeInterceptorsAndCreateExecutionContext(executionParams));
     }
 
     private <InputT extends SdkRequest, OutputT extends SdkResponse> TransformingAsyncResponseHandler<Response<OutputT>>
