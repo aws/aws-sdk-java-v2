@@ -1,3 +1,16 @@
+# __2.20.57__ __2023-05-01__
+## __AWS Compute Optimizer__
+  - ### Features
+    - support for tag filtering within compute optimizer. ability to filter recommendation results by tag and tag key value pairs. ability to filter by inferred workload type added.
+
+## __AWS Key Management Service__
+  - ### Features
+    - This release makes the NitroEnclave request parameter Recipient and the response field for CiphertextForRecipient available in AWS SDKs. It also adds the regex pattern for CloudHsmClusterId validation.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
 # __2.20.56__ __2023-04-28__
 ## __AWS Direct Connect__
   - ### Features
