@@ -1,0 +1,48 @@
+{
+    "version": "2.20.58",
+    "date": "2023-05-02",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWSKendraFrontendService",
+            "contributor": "",
+            "description": "AWS Kendra now supports configuring document fields/attributes via the GetQuerySuggestions API. You can now base query suggestions on the contents of document fields."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Resilience Hub",
+            "contributor": "",
+            "description": "This release will improve resource level transparency in applications by discovering previously hidden resources."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Appflow",
+            "contributor": "",
+            "description": "This release adds new API to cancel flow executions."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "Amazon Connect Service Rules API update: Added OnContactEvaluationSubmit event source to support user configuring evaluation form rules."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "contributor": "",
+            "description": "Documentation only update to address Amazon ECS tickets."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Amazon Sagemaker Autopilot supports training models with sample weights and additional objective metrics."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}
