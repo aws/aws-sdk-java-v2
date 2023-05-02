@@ -1,3 +1,32 @@
+# __2.20.58__ __2023-05-02__
+## __AWS Resilience Hub__
+  - ### Features
+    - This release will improve resource level transparency in applications by discovering previously hidden resources.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - AWS Kendra now supports configuring document fields/attributes via the GetQuerySuggestions API. You can now base query suggestions on the contents of document fields.
+
+## __Amazon Appflow__
+  - ### Features
+    - This release adds new API to cancel flow executions.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect Service Rules API update: Added OnContactEvaluationSubmit event source to support user configuring evaluation form rules.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Documentation only update to address Amazon ECS tickets.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon Sagemaker Autopilot supports training models with sample weights and additional objective metrics.
+
 # __2.20.57__ __2023-05-01__
 ## __AWS Compute Optimizer__
   - ### Features
