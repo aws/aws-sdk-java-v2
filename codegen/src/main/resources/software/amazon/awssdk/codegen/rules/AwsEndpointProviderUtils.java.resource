@@ -150,19 +150,38 @@ public final class AwsEndpointProviderUtils {
         String clientEndpointPath = clientEndpoint.getRawPath();
 
         // [client endpoint path]/[request path]
-        String requestPath = request.getUri().getRawPath();
+        String requestPath = request.encodedPath();
 
         // [client endpoint path]/[additional path added by resolver]
         String resolvedUriPath = resolvedUri.getRawPath();
 
-        // our goal is to construct [client endpoint path]/[additional path added by resolver]/[request path], so we
-        // just need to strip the client endpoint path from the marshalled request path to isolate just the part added
-        // by the marshaller
-        String requestPathWithClientPathRemoved = StringUtils.replaceOnce(requestPath, clientEndpointPath, "");
-        String finalPath = SdkHttpUtils.appendUri(resolvedUriPath, requestPathWithClientPathRemoved);
+        String finalPath = requestPath;
+
+        // If there is an additional path added by resolver, i.e., [additional path added by resolver] not null,
+        // we need to combine the path
+        if (!resolvedUriPath.equals(clientEndpointPath)) {
+            finalPath = combinePath(clientEndpointPath, requestPath, resolvedUriPath);
+        }
 
         return request.toBuilder().protocol(resolvedUri.getScheme()).host(resolvedUri.getHost()).port(resolvedUri.getPort())
-                .encodedPath(finalPath).build();
+                      .encodedPath(finalPath).build();
+    }
+
+    /**
+     * Our goal is to construct [client endpoint path]/[additional path added by resolver]/[request path], so we just need to
+     * strip the client endpoint path from the marshalled request path to isolate just the part added by the marshaller. Trailing
+     * slash is removed from client endpoint path before stripping because it could cause the leading slash to be removed from the
+     * request path: e.g., StringUtils.replaceOnce("/", "//test", "") generates "/test" and the expected result is "//test"
+     */
+    private static String combinePath(String clientEndpointPath, String requestPath, String resolvedUriPath) {
+        String clientEndpointPathWithoutTrailingSlash =
+            clientEndpointPath.endsWith("/") ?
+            clientEndpointPath.substring(0, clientEndpointPath.length() - 1) :
+            clientEndpointPath;
+
+        String requestPathWithClientPathRemoved = StringUtils.replaceOnce(requestPath, clientEndpointPathWithoutTrailingSlash, "");
+        String finalPath = SdkHttpUtils.appendUri(resolvedUriPath, requestPathWithClientPathRemoved);
+        return finalPath;
     }
 
     public static AwsRequest addHeaders(AwsRequest request, Map<String, List<String>> headers) {
