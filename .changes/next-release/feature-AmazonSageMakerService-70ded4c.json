@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon SageMaker Service",
+    "contributor": "",
+    "description": "Amazon Sagemaker Autopilot supports training models with sample weights and additional objective metrics."
+}
