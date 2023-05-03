@@ -357,7 +357,7 @@ public final class AdaptiveRetryStrategyImpl implements AdaptiveRetryStrategy {
             return this;
         }
 
-        public Builder adaptiveTokenBucketStore(RateLimiterTokenBucketStore rateLimiterTokenBucketStore) {
+        public Builder rateLimiterTokenBucketStore(RateLimiterTokenBucketStore rateLimiterTokenBucketStore) {
             this.rateLimiterTokenBucketStore = rateLimiterTokenBucketStore;
             return this;
         }

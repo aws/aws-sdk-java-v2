@@ -17,9 +17,9 @@ package software.amazon.awssdk.retries.internal.circuitbreaker;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.cache.lru.LruCache;
 
 /**
  * A store to keep token buckets per scope.
@@ -29,12 +29,14 @@ public final class TokenBucketStore {
     private static final int DEFAULT_MAX_TOKENS = 500;
     private static final int MAX_ENTRIES = 128;
     private final int tokenBucketMaxCapacity;
-    private final Map<String, TokenBucket> scopeToTokenBucket;
+    private final LruCache<String, TokenBucket> scopeToTokenBucket;
 
     @SuppressWarnings("serial")
     private TokenBucketStore(Builder builder) {
         this.tokenBucketMaxCapacity = builder.tokenBucketMaxCapacity;
-        this.scopeToTokenBucket = new ConcurrentHashMap<>(new LruMap<>());
+        this.scopeToTokenBucket = LruCache.<String, TokenBucket>builder(x -> new TokenBucket(tokenBucketMaxCapacity))
+                                          .maxSize(MAX_ENTRIES)
+                                          .build();
     }
 
     /**
@@ -42,8 +44,7 @@ public final class TokenBucketStore {
      */
     public TokenBucket tokenBucketForScope(String scope) {
         Validate.paramNotNull(scope, "scope");
-        return scopeToTokenBucket.computeIfAbsent(scope,
-                                                  key -> new TokenBucket(tokenBucketMaxCapacity));
+        return scopeToTokenBucket.get(scope);
     }
 
     /**
@@ -76,10 +77,6 @@ public final class TokenBucketStore {
 
         Builder() {
             tokenBucketMaxCapacity = DEFAULT_MAX_TOKENS;
-        }
-
-        Builder(TokenBucketStore store) {
-            this.tokenBucketMaxCapacity = store.tokenBucketMaxCapacity;
         }
 
         public Builder tokenBucketMaxCapacity(int tokenBucketMaxCapacity) {

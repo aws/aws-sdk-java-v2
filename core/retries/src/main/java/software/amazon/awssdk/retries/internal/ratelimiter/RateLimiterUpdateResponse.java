@@ -16,15 +16,16 @@
 package software.amazon.awssdk.retries.internal.ratelimiter;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public class RateLimiterUpdateResponse {
     private double measuredTxRate;
     private double fillRate;
 
-    private RateLimiterUpdateResponse(double measuredTxRate, double fillRate) {
-        this.measuredTxRate = measuredTxRate;
-        this.fillRate = fillRate;
+    private RateLimiterUpdateResponse(Builder builder) {
+        this.measuredTxRate = Validate.paramNotNull(builder.measuredTxRate, "measuredTxRate");
+        this.fillRate = Validate.paramNotNull(builder.fillRate, "fillRate");
     }
 
     public double measuredTxRate() {
@@ -35,7 +36,29 @@ public class RateLimiterUpdateResponse {
         return fillRate;
     }
 
-    public static RateLimiterUpdateResponse create(double measuredTxRate, double fillRate) {
-        return new RateLimiterUpdateResponse(measuredTxRate, fillRate);
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    static class Builder {
+        private Double measuredTxRate;
+        private Double fillRate;
+
+        Builder() {
+        }
+
+        public Builder measuredTxRate(double measuredTxRate) {
+            this.measuredTxRate = measuredTxRate;
+            return this;
+        }
+
+        public Builder fillRate(double fillRate) {
+            this.fillRate = fillRate;
+            return this;
+        }
+
+        public RateLimiterUpdateResponse build() {
+            return new RateLimiterUpdateResponse(this);
+        }
     }
 }

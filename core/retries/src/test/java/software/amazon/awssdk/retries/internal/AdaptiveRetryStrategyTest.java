@@ -183,7 +183,7 @@ public class AdaptiveRetryStrategyTest {
                                                    .builder()
                                                    .tokenBucketMaxCapacity(TEST_BUCKET_CAPACITY)
                                                    .build())
-                             .adaptiveTokenBucketStore(RateLimiterTokenBucketStore
+                             .rateLimiterTokenBucketStore(RateLimiterTokenBucketStore
                                                            .builder()
                                                            .build());
         }

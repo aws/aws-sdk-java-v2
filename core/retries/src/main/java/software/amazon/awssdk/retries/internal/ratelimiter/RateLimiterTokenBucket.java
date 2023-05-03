@@ -33,9 +33,9 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 @SdkInternalApi
 public class RateLimiterTokenBucket {
     private final AtomicReference<PersistentState> stateReference;
-    private final RateLimiterTokenBucketStore.Clock clock;
+    private final RateLimiterClock clock;
 
-    RateLimiterTokenBucket(RateLimiterTokenBucketStore.Clock clock) {
+    RateLimiterTokenBucket(RateLimiterClock clock) {
         this.clock = clock;
         this.stateReference = new AtomicReference<>(new PersistentState());
     }
@@ -54,7 +54,10 @@ public class RateLimiterTokenBucket {
      */
     public RateLimiterUpdateResponse updateRateAfterThrottling() {
         StateUpdate<Void> update = consumeState(ts -> ts.updateClientSendingRate(clock, true));
-        return RateLimiterUpdateResponse.create(update.newState.measuredTxRate(), update.newState.fillRate());
+        return RateLimiterUpdateResponse.builder()
+            .measuredTxRate(update.newState.measuredTxRate())
+            .fillRate(update.newState.fillRate())
+            .build();
     }
 
     /**
@@ -62,7 +65,10 @@ public class RateLimiterTokenBucket {
      */
     public RateLimiterUpdateResponse updateRateAfterSuccess() {
         StateUpdate<Void> update = consumeState(ts -> ts.updateClientSendingRate(clock, false));
-        return RateLimiterUpdateResponse.create(update.newState.measuredTxRate(), update.newState.fillRate());
+        return RateLimiterUpdateResponse.builder()
+                                        .measuredTxRate(update.newState.measuredTxRate())
+                                        .fillRate(update.newState.fillRate())
+                                        .build();
     }
 
     private StateUpdate<Void> consumeState(Consumer<TransientState> mutator) {
@@ -136,7 +142,7 @@ public class RateLimiterTokenBucket {
             return new PersistentState(this);
         }
 
-        Duration tokenBucketAcquire(RateLimiterTokenBucketStore.Clock clock, double amount) {
+        Duration tokenBucketAcquire(RateLimiterClock clock, double amount) {
             if (!this.enabled) {
                 return Duration.ZERO;
             }
@@ -149,7 +155,7 @@ public class RateLimiterTokenBucket {
             return Duration.ofNanos((long) (waitTime * 1_000_000_000.0));
         }
 
-        void updateClientSendingRate(RateLimiterTokenBucketStore.Clock clock, boolean throttlingResponse) {
+        void updateClientSendingRate(RateLimiterClock clock, boolean throttlingResponse) {
             updateMeasuredRate(clock);
             double calculatedRate;
             if (throttlingResponse) {
@@ -174,7 +180,7 @@ public class RateLimiterTokenBucket {
             updateRate(clock, newRate);
         }
 
-        void refill(RateLimiterTokenBucketStore.Clock clock) {
+        void refill(RateLimiterClock clock) {
             double timestamp = clock.time();
             if (this.lastTimestampIsSet) {
                 double fillAmount = (timestamp - this.lastTimestamp) * this.fillRate;
@@ -184,7 +190,7 @@ public class RateLimiterTokenBucket {
             this.lastTimestampIsSet = true;
         }
 
-        void updateRate(RateLimiterTokenBucketStore.Clock clock, double newRps) {
+        void updateRate(RateLimiterClock clock, double newRps) {
             refill(clock);
             this.fillRate = Math.max(newRps, MIN_FILL_RATE);
             this.maxCapacity = Math.max(newRps, MIN_CAPACITY);
@@ -192,7 +198,7 @@ public class RateLimiterTokenBucket {
             this.newTokenBucketRate = newRps;
         }
 
-        void updateMeasuredRate(RateLimiterTokenBucketStore.Clock clock) {
+        void updateMeasuredRate(RateLimiterClock clock) {
             double time = clock.time();
             this.requestCount += 1;
             double timeBucket = Math.floor(time * 2) / 2;

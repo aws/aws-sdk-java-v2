@@ -68,6 +68,8 @@ public final class DefaultRetryStrategy {
         static final int MAX_ATTEMPTS = 3;
         static final Duration BASE_DELAY = Duration.ofSeconds(1);
         static final Duration MAX_BACKOFF = Duration.ofSeconds(20);
+        static final int TOKEN_BUCKET_SIZE = 500;
+        static final int DEFAULT_EXCEPTION_TOKEN_COST = 5;
     }
 
     static final class Adaptive {

@@ -176,7 +176,7 @@ public class RateLimiterTokenBucketTest {
 
     }
 
-    static class MutableClock implements RateLimiterTokenBucketStore.Clock {
+    static class MutableClock implements RateLimiterClock {
         private double current;
 
         @Override
