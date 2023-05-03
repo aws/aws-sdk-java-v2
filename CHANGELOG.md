@@ -1,3 +1,32 @@
+# __2.20.59__ __2023-05-03__
+## __AWS AppSync__
+  - ### Features
+    - Private API support for AWS AppSync. With Private APIs, you can now create GraphQL APIs that can only be accessed from your Amazon Virtual Private Cloud ("VPC").
+
+## __AWS IoT TwinMaker__
+  - ### Features
+    - This release adds a field for GetScene API to return error code and message from dependency services.
+
+## __AWS Network Firewall__
+  - ### Features
+    - AWS Network Firewall now supports policy level HOME_NET variable overrides.
+
+## __AWS Well-Architected Tool__
+  - ### Features
+    - This release deepens integration with AWS Service Catalog AppRegistry to improve workload resource discovery.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds an SDK paginator for GetNetworkInsightsAccessScopeAnalysisFindings
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - Amazon OpenSearch Service adds the option to deploy a domain across multiple Availability Zones, with each AZ containing a complete copy of data and with nodes in one AZ acting as a standby. This option provides 99.99% availability and consistent performance in the event of infrastructure failure.
+
+## __Inspector2__
+  - ### Features
+    - This feature provides deep inspection for linux based instance
+
 # __2.20.58__ __2023-05-02__
 ## __AWS Resilience Hub__
   - ### Features
