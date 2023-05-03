@@ -77,11 +77,11 @@ public final class TokenAuthorizationStrategy implements AuthorizationStrategy {
         Validate.notNull(defaultTokenProvider, "No token provider exists to resolve a token from.");
 
         long start = System.nanoTime();
+        // TODO: CompletableFutureUtils.forwardExceptionTo() here too?
         return defaultTokenProvider.resolveIdentity().thenAccept(token -> {
             metricCollector.reportMetric(CoreMetric.TOKEN_FETCH_DURATION, Duration.ofNanos(System.nanoTime() - start));
 
             Validate.validState(token != null, "Token providers must never return null.");
-            // TODO: Should the signer be changed to use AwsCredentialsIdentity? Maybe with Signer SRA work, not now.
             // TODO: Should the signer be changed to use TokenIdentity? Maybe with Signer SRA work, not now.
             executionAttributes.putAttribute(SdkTokenExecutionAttribute.SDK_TOKEN, TokenUtils.toSdkToken(token));
         });

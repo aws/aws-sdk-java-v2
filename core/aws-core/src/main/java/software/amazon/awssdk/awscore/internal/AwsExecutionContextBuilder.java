@@ -110,15 +110,14 @@ public final class AwsExecutionContextBuilder {
                                                      .asyncRequestBody(executionParams.getAsyncRequestBody())
                                                      .requestBody(executionParams.getRequestBody())
                                                      .build();
-        // shorter variable name - newInterceptorContext?
-        InterceptorContext interceptorContextPostInterceptors = runInitialInterceptors(interceptorContext, executionAttributes,
+        InterceptorContext newInterceptorContext = runInitialInterceptors(interceptorContext, executionAttributes,
                                                                        executionInterceptorChain);
 
         Signer signer;
         CompletableFuture<Void> identityFuture;
         if (isAuthenticatedRequest(executionAttributes)) {
             AuthorizationStrategyFactory authorizationStrategyFactory =
-                new AuthorizationStrategyFactory(interceptorContextPostInterceptors.request(), metricCollector, clientConfig);
+                new AuthorizationStrategyFactory(newInterceptorContext.request(), metricCollector, clientConfig);
             AuthorizationStrategy authorizationStrategy =
                 authorizationStrategyFactory.strategyFor(executionParams.credentialType());
             signer = authorizationStrategy.resolveSigner();
@@ -132,6 +131,7 @@ public final class AwsExecutionContextBuilder {
             identityFuture = CompletableFuture.completedFuture(null);
         }
 
+        // TODO: CompletableFutureUtils.forwardExceptionTo() here too?
         return identityFuture.thenApply(o -> {
             executionAttributes.putAttribute(HttpChecksumConstant.SIGNING_METHOD,
                                              resolveSigningMethodUsed(
@@ -140,7 +140,7 @@ public final class AwsExecutionContextBuilder {
 
             return ExecutionContext.builder()
                                    .interceptorChain(executionInterceptorChain)
-                                   .interceptorContext(interceptorContextPostInterceptors)
+                                   .interceptorContext(newInterceptorContext)
                                    .executionAttributes(executionAttributes)
                                    .signer(signer)
                                    .metricCollector(metricCollector)

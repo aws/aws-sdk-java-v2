@@ -80,6 +80,7 @@ public final class AwsCredentialsAuthorizationStrategy implements AuthorizationS
         Validate.notNull(credentialsProvider, "No credentials provider exists to resolve credentials from.");
 
         long start = System.nanoTime();
+        // TODO: CompletableFutureUtils.forwardExceptionTo() here too?
         return credentialsProvider.resolveIdentity().thenAccept(credentialsIdentity -> {
             metricCollector.reportMetric(CoreMetric.CREDENTIALS_FETCH_DURATION, Duration.ofNanos(System.nanoTime() - start));
 

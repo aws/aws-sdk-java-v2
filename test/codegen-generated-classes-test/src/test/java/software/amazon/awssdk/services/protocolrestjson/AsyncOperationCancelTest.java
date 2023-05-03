@@ -15,18 +15,23 @@
 
 package software.amazon.awssdk.services.protocolrestjson;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
+import java.util.concurrent.CompletableFuture;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.model.AllTypesResponse;
 import software.amazon.awssdk.services.protocolrestjson.model.EventStream;
@@ -34,12 +39,6 @@ import software.amazon.awssdk.services.protocolrestjson.model.EventStreamOperati
 import software.amazon.awssdk.services.protocolrestjson.model.EventStreamOperationResponseHandler;
 import software.amazon.awssdk.services.protocolrestjson.model.StreamingInputOperationResponse;
 import software.amazon.awssdk.services.protocolrestjson.model.StreamingOutputOperationResponse;
-
-import java.util.concurrent.CompletableFuture;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 
 /**
  * Test to ensure that cancelling the future returned for an async operation will cancel the future returned by the async HTTP client.
@@ -49,21 +48,28 @@ public class AsyncOperationCancelTest {
     @Mock
     private SdkAsyncHttpClient mockHttpClient;
 
+    @Mock
+    private IdentityProvider<AwsCredentialsIdentity> mockCredentialsProvider;
+
     private ProtocolRestJsonAsyncClient client;
 
     private CompletableFuture executeFuture;
+
+    private CompletableFuture credentialsFuture;
 
     @Before
     public void setUp() {
         client = ProtocolRestJsonAsyncClient.builder()
                 .region(Region.US_EAST_1)
-                .credentialsProvider(StaticCredentialsProvider.create(
-                        AwsBasicCredentials.create("foo", "bar")))
+                .credentialsProvider(mockCredentialsProvider)
                 .httpClient(mockHttpClient)
                 .build();
 
         executeFuture = new CompletableFuture();
         when(mockHttpClient.execute(any())).thenReturn(executeFuture);
+        credentialsFuture = new CompletableFuture();
+        credentialsFuture.complete(AwsCredentialsIdentity.create("foo", "bar")); // TODO: make test work without this?
+        when(mockCredentialsProvider.resolveIdentity()).thenReturn(credentialsFuture);
     }
 
     @Test
@@ -72,6 +78,10 @@ public class AsyncOperationCancelTest {
         responseFuture.cancel(true);
         assertThat(executeFuture.isCompletedExceptionally()).isTrue();
         assertThat(executeFuture.isCancelled()).isTrue();
+
+        // TODO: Do we want this behavior too, when credentialsFuture is not completed in setUp? May need more forwardExceptionTo
+        // assertThat(credentialsFuture.isCompletedExceptionally()).isTrue();
+        // assertThat(credentialsFuture.isCancelled()).isTrue();
     }
 
     @Test

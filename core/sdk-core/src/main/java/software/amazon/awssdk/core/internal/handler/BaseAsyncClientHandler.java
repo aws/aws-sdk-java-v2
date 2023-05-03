@@ -74,12 +74,31 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
 
         return measureApiCallSuccess(executionParams, () -> {
             // Running beforeExecution interceptors and modifyRequest interceptors.
-            return invokeInterceptorsAndCreateExecutionContextAsync(executionParams).thenCompose(executionContext -> {
+
+            CompletableFuture<OutputT> toReturn = new CompletableFuture<>();
+            invokeInterceptorsAndCreateExecutionContextAsync(executionParams).thenAccept(executionContext -> {
                 TransformingAsyncResponseHandler<Response<OutputT>> combinedResponseHandler =
                     createCombinedResponseHandler(executionParams, executionContext);
+                try {
+                    CompletableFuture<OutputT> executeFuture = doExecute(executionParams, executionContext,
+                                                                         combinedResponseHandler);
 
-                return doExecute(executionParams, executionContext, combinedResponseHandler);
+                    executeFuture.whenComplete((r, t) -> {
+                        if (t != null) {
+                            toReturn.completeExceptionally(t);
+                        } else {
+                            toReturn.complete(r);
+                        }
+                    });
+
+                    CompletableFutureUtils.forwardExceptionTo(toReturn, executeFuture);
+                } catch (Throwable t) {
+                    toReturn.completeExceptionally(t);
+                }
             });
+            // TODO: Should CompletableFutureUtils.forwardExceptionTo() to return of
+            //  invokeInterceptorsAndCreateExecutionContextAsync too?
+            return toReturn;
         });
     }
 
@@ -115,7 +134,9 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
             wrappedAsyncStreamingResponseHandler.prepare();
 
             // Running beforeExecution interceptors and modifyRequest interceptors.
-            return invokeInterceptorsAndCreateExecutionContextAsync(executionParams).thenCompose(context -> {
+
+            CompletableFuture<ReturnT> toReturn = new CompletableFuture<>();
+            invokeInterceptorsAndCreateExecutionContextAsync(executionParams).thenAccept(context -> {
                 HttpResponseHandler<OutputT> decoratedResponseHandlers =
                     decorateResponseHandlers(executionParams.getResponseHandler(), context);
 
@@ -127,8 +148,22 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
                 TransformingAsyncResponseHandler<Response<ReturnT>> combinedResponseHandler =
                     new CombinedResponseAsyncHttpResponseHandler<>(wrappedAsyncStreamingResponseHandler, errorHandler);
 
-                return doExecute(executionParams, context, combinedResponseHandler);
+                try {
+                    CompletableFuture<ReturnT> executeFuture = doExecute(executionParams, context, combinedResponseHandler);
+                    executeFuture.whenComplete((r, t) -> {
+                        if (t != null) {
+                            toReturn.completeExceptionally(t);
+                        } else {
+                            toReturn.complete(r);
+                        }
+                    });
+
+                    CompletableFutureUtils.forwardExceptionTo(toReturn, executeFuture);
+                } catch (Throwable t) {
+                    toReturn.completeExceptionally(t);
+                }
             });
+            return toReturn;
         });
     }
 
