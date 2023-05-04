@@ -778,6 +778,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "martinKindall",
+      "name": "Martin",
+      "avatar_url": "https://avatars.githubusercontent.com/u/21063181?v=4",
+      "profile": "https://www.youtube.com/CodigoMorsa",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
