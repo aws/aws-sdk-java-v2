@@ -1,0 +1,6 @@
+{
+    "category": "Amazon DynamoDB", 
+    "contributor": "martinKindall",
+    "type": "bugfix", 
+    "description": "Created static method EnumAttributeConverter::createWithNameAsKeys which creates a converter based on the Enum::name method to identify enums, rather than Enum::toString. This is preferable because Enum::name is final and cannot be overwritten, as opposed to Enum::toString. EnumAttributeConverter::create is kept as it is, for backward compatibility."
+}
