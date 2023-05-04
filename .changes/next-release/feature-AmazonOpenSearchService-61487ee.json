@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon OpenSearch Service",
+    "contributor": "",
+    "description": "DescribeDomainNodes: A new API that provides configuration information for nodes part of the domain"
+}
