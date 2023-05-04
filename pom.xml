@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>aws-sdk-java-pom</artifactId>
-    <version>2.20.60-SNAPSHOT</version>
+    <version>2.20.60</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Parent</name>
     <description>The Amazon Web Services SDK for Java provides Java APIs
@@ -620,7 +620,8 @@
                             <!-- Service modules that are heavily customized should be included -->
                             <includeModule>s3</includeModule>
                             <includeModule>s3-control</includeModule>
-                            <includeModule>sqs</includeModule>
+                            <!-- remove SQS temporarily TODO: re-enable -->
+                            <!-- <includeModule>sqs</includeModule>-->
                             <includeModule>rds</includeModule>
                             <includeModule>apigateway</includeModule>
                             <includeModule>polly</includeModule>

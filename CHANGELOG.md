@@ -1,3 +1,64 @@
+# __2.20.60__ __2023-05-04__
+## __AWS Config__
+  - ### Features
+    - Updated ResourceType enum with new resource types onboarded by AWS Config in April 2023.
+
+## __AWS Network Firewall__
+  - ### Features
+    - This release adds support for the Suricata REJECT option in midstream exception configurations.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Avoids NullPointerException when config and credentials files were not found for profiles. Now it returns an empty map, as it used to.
+        - Contributed by: [@martinKindall](https://github.com/martinKindall)
+
+## __AWS SecurityHub__
+  - ### Features
+    - Add support for Finding History.
+
+## __Amazon CloudWatch__
+  - ### Features
+    - Adds support for filtering by metric names in CloudWatch Metric Streams.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Remove unused InvalidParameterException from CreateParticipant API
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Documentation update for new error type NamespaceNotFoundException for CreateCluster and UpdateCluster
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - DescribeDomainNodes: A new API that provides configuration information for nodes part of the domain
+
+## __Amazon QuickSight__
+  - ### Features
+    - Add support for Topic, Dataset parameters and VPC
+
+## __Amazon Rekognition__
+  - ### Features
+    - This release adds a new attribute FaceOccluded. Additionally, you can now select attributes individually (e.g. ["DEFAULT", "FACE_OCCLUDED", "AGE_RANGE"] instead of ["ALL"]), which can reduce response time.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - We added support for ml.inf2 and ml.trn1 family of instances on Amazon SageMaker for deploying machine learning (ML) models for Real-time and Asynchronous inference. You can use these instances to achieve high performance at a low cost for generative artificial intelligence (AI) models.
+
+## __Amazon Simple Queue Service__
+  - ### Features
+    - This release enables customers to call SQS using AWS JSON-1.0 protocol.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Documentation updates for Amazon S3
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@martinKindall](https://github.com/martinKindall)
 # __2.20.59__ __2023-05-03__
 ## __AWS AppSync__
   - ### Features
