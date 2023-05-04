@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Connect Service",
-    "contributor": "",
-    "description": "Remove unused InvalidParameterException from CreateParticipant API"
-}

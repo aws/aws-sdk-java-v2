@@ -1,6 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "contributor": "martinKindall", 
-    "type": "bugfix", 
-    "description": "Avoids NullPointerException when config and credentials files were not found for profiles. Now it returns an empty map, as it used to."
-}
