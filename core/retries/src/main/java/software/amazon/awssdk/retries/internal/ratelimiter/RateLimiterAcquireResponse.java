@@ -20,14 +20,14 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 
 @SdkInternalApi
 public final class RateLimiterAcquireResponse {
-    private final Duration waitTime;
+    private final Duration delay;
 
-    private RateLimiterAcquireResponse(Duration waitTime) {
-        this.waitTime = waitTime;
+    private RateLimiterAcquireResponse(Duration delay) {
+        this.delay = delay;
     }
 
     public Duration delay() {
-        return waitTime;
+        return delay;
     }
 
     public static RateLimiterAcquireResponse create(Duration waitTime) {

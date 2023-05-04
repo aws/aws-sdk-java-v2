@@ -60,7 +60,7 @@ public final class AdaptiveRetryStrategyImpl implements AdaptiveRetryStrategy {
     private final RateLimiterTokenBucketStore rateLimiterTokenBucketStore;
 
     private AdaptiveRetryStrategyImpl(Builder builder) {
-        this.retryPredicates = Collections.unmodifiableList(Validate.paramNotNull(builder.retryPredicates, "predicates"));
+        this.retryPredicates = Collections.unmodifiableList(Validate.paramNotNull(builder.retryPredicates, "retryPredicates"));
         this.maxAttempts = Validate.isPositive(builder.maxAttempts, "maxAttempts");
         this.circuitBreakerEnabled = builder.circuitBreakerEnabled;
         this.backoffStrategy = Validate.paramNotNull(builder.backoffStrategy, "backoffStrategy");

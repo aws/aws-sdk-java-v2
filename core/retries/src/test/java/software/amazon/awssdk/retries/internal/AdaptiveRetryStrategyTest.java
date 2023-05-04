@@ -159,7 +159,6 @@ public class AdaptiveRetryStrategyTest {
         );
     }
 
-
     static class TestCase {
         final String name;
         int attempts = 0;

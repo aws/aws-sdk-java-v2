@@ -27,6 +27,10 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  * internal state by calling {@link #updateRateAfterThrottling()} when getting a throttling response or
  * {@link #updateRateAfterSuccess()} when getting successful response.
  *
+ * <p>This class is thread-safe, its internal current state is kept in the inner class {@link PersistentState} which is stored
+ * using an {@link AtomicReference}. This class is converted to {@link TransientState} when the state needs to be mutated and
+ * converted back to a {@link PersistentState} and stored using {@link AtomicReference#compareAndSet(Object, Object)}.
+ *
  * <p>The algorithm used is adapted from the network congestion avoidance algorithm
  * <a href="https://en.wikipedia.org/wiki/CUBIC_TCP">CUBIC</a>.
  */
@@ -41,8 +45,9 @@ public class RateLimiterTokenBucket {
     }
 
     /**
-     * Acquires one token from the rate limiter and returns a response with a delay value (possibly zero). Callers are expected to
-     * wait for at least this amount of time before retrying the request. See {@link RateLimiterAcquireResponse#delay()}.
+     * Acquire tokens from the bucket. If the bucket contains enough capacity to satisfy the request, this method will return in
+     * {@link RateLimiterAcquireResponse#delay()} a {@link Duration#ZERO} value, otherwise it will return the amount of time the
+     * callers need to wait until enough tokens are refilled.
      */
     public RateLimiterAcquireResponse tryAcquire() {
         StateUpdate<Duration> update = updateState(ts -> ts.tokenBucketAcquire(clock, 1.0));
@@ -55,9 +60,9 @@ public class RateLimiterTokenBucket {
     public RateLimiterUpdateResponse updateRateAfterThrottling() {
         StateUpdate<Void> update = consumeState(ts -> ts.updateClientSendingRate(clock, true));
         return RateLimiterUpdateResponse.builder()
-            .measuredTxRate(update.newState.measuredTxRate())
-            .fillRate(update.newState.fillRate())
-            .build();
+                                        .measuredTxRate(update.newState.measuredTxRate())
+                                        .fillRate(update.newState.fillRate())
+                                        .build();
     }
 
     /**
@@ -71,6 +76,10 @@ public class RateLimiterTokenBucket {
                                         .build();
     }
 
+    /**
+     * Similar to {@link #updateState} but used when the caller only cares about the side effects of the {@link Consumer} but not
+     * for the value returned.
+     */
     private StateUpdate<Void> consumeState(Consumer<TransientState> mutator) {
         return updateState(ts -> {
             mutator.accept(ts);
@@ -78,6 +87,13 @@ public class RateLimiterTokenBucket {
         });
     }
 
+    /**
+     * Converts the stored persistent state into a transient one and transforms it using the provided function. The provided
+     * function is expected to update the transient state in-place and return a value that will be returned to the caller in the
+     * {@link StateUpdate#result} field. The mutated transient value is converted back to a persistent one and stored in the
+     * atomic reference if no changes were made in-between. If another thread changes the value in-between, the operation is
+     * retried until succeeded.
+     */
     private <T> StateUpdate<T> updateState(Function<TransientState, T> mutator) {
         PersistentState current;
         PersistentState updated;
@@ -102,7 +118,7 @@ public class RateLimiterTokenBucket {
         }
     }
 
-    private static class TransientState {
+    static final class TransientState {
         private static final double MIN_FILL_RATE = 0.5;
         private static final double MIN_CAPACITY = 1.0;
         private static final double SMOOTH = 0.8;
@@ -142,6 +158,11 @@ public class RateLimiterTokenBucket {
             return new PersistentState(this);
         }
 
+        /**
+         * Acquire tokens from the bucket. If the bucket contains enough capacity to satisfy the request, this method will return
+         * a {@link Duration#ZERO} value, otherwise it will return the amount of time the callers need to wait until enough tokens
+         * are refilled.
+         */
         Duration tokenBucketAcquire(RateLimiterClock clock, double amount) {
             if (!this.enabled) {
                 return Duration.ZERO;
@@ -155,6 +176,10 @@ public class RateLimiterTokenBucket {
             return Duration.ofNanos((long) (waitTime * 1_000_000_000.0));
         }
 
+        /**
+         * Updates the sending rate depending on whether the response was successful or
+         * we got a throttling response.
+         */
         void updateClientSendingRate(RateLimiterClock clock, boolean throttlingResponse) {
             updateMeasuredRate(clock);
             double calculatedRate;
@@ -224,7 +249,7 @@ public class RateLimiterTokenBucket {
         }
     }
 
-    static class PersistentState {
+    static final class PersistentState {
         private final double fillRate;
         private final double maxCapacity;
         private final double currentCapacity;
@@ -282,6 +307,5 @@ public class RateLimiterTokenBucket {
         public double measuredTxRate() {
             return measuredTxRate;
         }
-
     }
 }

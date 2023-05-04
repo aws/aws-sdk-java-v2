@@ -20,7 +20,11 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 @SdkInternalApi
 public interface RateLimiterClock {
     /**
-     * Returns the current time in seconds, and should include sub second resolution.
+     * Returns the current time in seconds, and should include sub second resolution. This class needs not to be related to the
+     * actual wall clock-time or system as it's only used to measure elapsed time.
+     *
+     * <p>For instance, it the current time is <pre>PT2M8.067S</pre>, i.e., 2 minutes with 8 seconds and 67 milliseconds, this
+     * method will return <pre>128.067</pre>.
      *
      * @return the current time in seconds, and should include sub second resolution
      */
