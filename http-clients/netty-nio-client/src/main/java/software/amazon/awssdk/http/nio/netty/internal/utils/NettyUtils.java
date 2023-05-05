@@ -81,7 +81,10 @@ public final class NettyUtils {
     }
 
     private static boolean isConnectionResetException(Throwable originalCause) {
-        return originalCause instanceof IOException && originalCause.getMessage().contains("Connection reset by peer");
+        String message = originalCause.getMessage();
+        return originalCause instanceof IOException &&
+               message != null &&
+               message.contains("Connection reset by peer");
     }
 
     private static boolean isAcquireTimeoutException(Throwable originalCause) {
@@ -95,7 +98,7 @@ public final class NettyUtils {
         String message = originalCause.getMessage();
         return originalCause instanceof IllegalStateException &&
                message != null &&
-               originalCause.getMessage().contains("Too many outstanding acquire operations");
+               message.contains("Too many outstanding acquire operations");
     }
 
     private static String getMessageForAcquireTimeoutException() {
