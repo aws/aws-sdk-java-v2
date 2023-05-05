@@ -1,3 +1,20 @@
+# __2.20.61__ __2023-05-05__
+## __AWS MediaTailor__
+  - ### Features
+    - This release adds support for AFTER_LIVE_EDGE mode configuration for avail suppression, and adding a fill-policy setting that sets the avail suppression to PARTIAL_AVAIL or FULL_AVAIL_ONLY when AFTER_LIVE_EDGE is enabled.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support the inf2 and trn1n instances. inf2 instances are purpose built for deep learning inference while trn1n instances are powered by AWS Trainium accelerators and they build on the capabilities of Trainium-powered trn1 instances.
+
+## __Amazon Simple Queue Service__
+  - ### Features
+    - Revert previous SQS protocol change.
+
+## __Inspector2__
+  - ### Features
+    - Amazon Inspector now allows customers to search its vulnerability intelligence database if any of the Inspector scanning types are activated.
+
 # __2.20.60__ __2023-05-04__
 ## __AWS Config__
   - ### Features

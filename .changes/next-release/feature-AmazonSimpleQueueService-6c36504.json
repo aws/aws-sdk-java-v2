@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Simple Queue Service",
-    "contributor": "",
-    "description": "Revert previous SQS protocol change."
-}
