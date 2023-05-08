@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SDK for Java v2, AWS STS",
-    "contributor": "paulolieuthier",
-    "description": "Respect async credentials update flag from DefaultCredentialsProvider for WebIdentityTokenFileCredentialProvider, potentially avoiding latency spikes on credentials expiration"
-}
