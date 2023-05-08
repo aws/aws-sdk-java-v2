@@ -21,9 +21,11 @@ import java.net.URI;
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestxml.ProtocolRestXmlAsyncClient;
 import software.amazon.awssdk.services.protocolrestxml.ProtocolRestXmlClient;
+import software.amazon.awssdk.services.protocolrestxml.endpoints.ProtocolRestXmlEndpointProvider;
 
 public class ServiceClientConfigurationTest {
 
@@ -92,6 +94,26 @@ public class ServiceClientConfigurationTest {
     }
 
     @Test
+    public void syncClientWithEndpointProvide_serviceClientConfiguration_shouldReturnCorrectEndpointProvider() {
+        ProtocolRestXmlEndpointProvider clientEndpointProvider = ProtocolRestXmlEndpointProvider.defaultProvider();
+        ProtocolRestXmlClient client = ProtocolRestXmlClient.builder()
+                                                            .endpointProvider(clientEndpointProvider)
+                                                            .build();
+
+        EndpointProvider endpointProvider = client.serviceClientConfiguration().endpointProvider().orElse(null);
+        assertThat(endpointProvider).isEqualTo(clientEndpointProvider);
+    }
+
+    @Test
+    public void syncClientWithoutEndpointProvider_serviceClientConfiguration_shouldReturnDefaultEndpointProvider() {
+        ProtocolRestXmlClient client = ProtocolRestXmlClient.builder()
+                                                            .build();
+
+        EndpointProvider endpointOverride = client.serviceClientConfiguration().endpointProvider().orElse(null);
+        assertThat(endpointOverride instanceof ProtocolRestXmlEndpointProvider).isTrue();
+    }
+
+    @Test
     public void asyncClient_serviceClientConfiguration_shouldReturnCorrectRegion() {
         ProtocolRestXmlAsyncClient client = ProtocolRestXmlAsyncClient.builder()
                                                                       .region(Region.ME_SOUTH_1)
@@ -153,6 +175,27 @@ public class ServiceClientConfigurationTest {
         assertThat(client.serviceClientConfiguration().overrideConfiguration().retryPolicy()).isNotPresent();
         assertThat(client.serviceClientConfiguration().overrideConfiguration().defaultProfileFile()).isNotPresent();
         assertThat(client.serviceClientConfiguration().overrideConfiguration().metricPublishers()).isEmpty();
+    }
+
+
+    @Test
+    public void asyncClientWithEndpointProvider_serviceClientConfiguration_shouldReturnCorrectEndpointProvider() {
+        ProtocolRestXmlEndpointProvider clientEndpointProvider = ProtocolRestXmlEndpointProvider.defaultProvider();
+        ProtocolRestXmlAsyncClient client = ProtocolRestXmlAsyncClient.builder()
+                                                                      .endpointProvider(clientEndpointProvider)
+                                                                      .build();
+
+        EndpointProvider endpointProvider = client.serviceClientConfiguration().endpointProvider().orElse(null);
+        assertThat(endpointProvider).isEqualTo(clientEndpointProvider);
+    }
+
+    @Test
+    public void asyncClientWithoutEndpointProvider_serviceClientConfiguration_shouldReturnDefault() {
+        ProtocolRestXmlAsyncClient client = ProtocolRestXmlAsyncClient.builder()
+                                                                      .build();
+
+        EndpointProvider endpointProvider = client.serviceClientConfiguration().endpointProvider().orElse(null);
+        assertThat(endpointProvider instanceof ProtocolRestXmlEndpointProvider).isTrue();
     }
 
 }

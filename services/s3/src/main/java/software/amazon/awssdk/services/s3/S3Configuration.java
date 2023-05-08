@@ -64,11 +64,16 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
      */
     private static final boolean DEFAULT_CHUNKED_ENCODING_ENABLED = true;
 
+    private static final boolean DEFAULT_CROSS_REGION_ACCESS_ENABLED = false;
+
+
     private final FieldWithDefault<Boolean> pathStyleAccessEnabled;
     private final FieldWithDefault<Boolean> accelerateModeEnabled;
     private final FieldWithDefault<Boolean> dualstackEnabled;
     private final FieldWithDefault<Boolean> checksumValidationEnabled;
     private final FieldWithDefault<Boolean> chunkedEncodingEnabled;
+    private final FieldWithDefault<Boolean> crossRegionBucketAccessEnabled;
+
     private final Boolean useArnRegionEnabled;
     private final Boolean multiRegionEnabled;
     private final FieldWithDefault<Supplier<ProfileFile>> profileFile;
@@ -90,6 +95,9 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
         if (accelerateModeEnabled() && pathStyleAccessEnabled()) {
             throw new IllegalArgumentException("Accelerate mode cannot be used with path style addressing");
         }
+        this.crossRegionBucketAccessEnabled = FieldWithDefault.create(builder.crossRegionBucketAccessEnabled,
+                                                                DEFAULT_CROSS_REGION_ACCESS_ENABLED);
+
     }
 
     private boolean resolveUseArnRegionEnabled() {
@@ -206,6 +214,18 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
                        .orElseGet(this::resolveMultiRegionEnabled);
     }
 
+
+
+    /**
+     * Returns whether the client is allowed to make cross-region calls based on bucket names.
+     * <p>
+     * @return True if cross Region Bucket Access Enabled
+     */
+    public boolean crossRegionBucketAccessEnabled() {
+        return crossRegionBucketAccessEnabled.value();
+    }
+
+
     @Override
     public Builder toBuilder() {
         return builder()
@@ -217,7 +237,8 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
                 .chunkedEncodingEnabled(chunkedEncodingEnabled.valueOrNullIfDefault())
                 .useArnRegionEnabled(useArnRegionEnabled)
                 .profileFile(profileFile.valueOrNullIfDefault())
-                .profileName(profileName.valueOrNullIfDefault());
+                .profileName(profileName.valueOrNullIfDefault())
+                .crossRegionBucketAccessEnabled(crossRegionBucketAccessEnabled.valueOrNullIfDefault());
     }
 
     @NotThreadSafe
@@ -271,6 +292,21 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
         Builder pathStyleAccessEnabled(Boolean pathStyleAccessEnabled);
 
         Boolean checksumValidationEnabled();
+
+        Boolean crossRegionBucketAccessEnabled();
+
+        /**
+         * Option to enable using cross region bucket Access.
+         * With this option client can access bucket of any region.
+         *
+         * <p>
+         * Cross region bucket access Enabled is disabled by default.
+         * </p>
+         *
+         * @see S3Configuration#crossRegionBucketAccessEnabled().
+         */
+        Builder crossRegionBucketAccessEnabled(Boolean crossRegionBucketAccessEnabled);
+
 
         /**
          * Option to disable doing a validation of the checksum of an object stored in S3.
@@ -367,6 +403,8 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
         private Boolean multiRegionEnabled;
         private Supplier<ProfileFile> profileFile;
         private String profileName;
+
+        private Boolean crossRegionBucketAccessEnabled;
 
         @Override
         public Boolean dualstackEnabled() {
@@ -503,6 +541,22 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
 
         public void setUseArnRegionEnabled(Boolean useArnRegionEnabled) {
             useArnRegionEnabled(useArnRegionEnabled);
+        }
+
+
+        @Override
+        public Boolean crossRegionBucketAccessEnabled() {
+            return crossRegionBucketAccessEnabled;
+        }
+
+        @Override
+        public Builder crossRegionBucketAccessEnabled(Boolean crossRegionBucketAccessEnabled) {
+            this.crossRegionBucketAccessEnabled = crossRegionBucketAccessEnabled;
+            return this;
+        }
+
+        public void setCrossRegionAccessEnabled(Boolean crossRegionBucketAccessEnabled) {
+            crossRegionBucketAccessEnabled(crossRegionBucketAccessEnabled);
         }
 
         @Override

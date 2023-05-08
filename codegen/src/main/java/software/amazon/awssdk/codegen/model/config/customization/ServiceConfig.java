@@ -47,6 +47,8 @@ public class ServiceConfig {
 
     private boolean hasAccelerateModeEnabledProperty = false;
 
+    private boolean hasCrossRegionBucketAccessEnabledProperty = false;
+
     public String getClassName() {
         return className;
     }
@@ -93,6 +95,14 @@ public class ServiceConfig {
 
     public void setHasPathStyleAccessEnabledProperty(boolean hasPathStyleAccessEnabledProperty) {
         this.hasPathStyleAccessEnabledProperty = hasPathStyleAccessEnabledProperty;
+    }
+
+    public boolean hasCrossRegionAccessEnabledProperty() {
+        return hasCrossRegionBucketAccessEnabledProperty;
+    }
+
+    public void setHasCrossRegionBucketAccessEnabledProperty(boolean hasCrossRegionBucketAccessEnabledProperty) {
+        this.hasCrossRegionBucketAccessEnabledProperty = hasCrossRegionBucketAccessEnabledProperty;
     }
 
     public boolean hasAccelerateModeEnabledProperty() {
