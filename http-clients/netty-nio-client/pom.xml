@@ -85,6 +85,15 @@
             <groupId>io.netty</groupId>
             <artifactId>netty-transport-classes-epoll</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-resolver</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-resolver-dns</artifactId>
+            <optional>true</optional>
+        </dependency>
 
         <!--Reactive Dependencies-->
         <dependency>

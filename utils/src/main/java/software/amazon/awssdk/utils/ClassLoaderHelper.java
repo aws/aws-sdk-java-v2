@@ -13,11 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.util;
+package software.amazon.awssdk.utils;
 
-import software.amazon.awssdk.annotations.SdkInternalApi;
 
-@SdkInternalApi
+import software.amazon.awssdk.annotations.SdkProtectedApi;
+
+@SdkProtectedApi
 public final class ClassLoaderHelper {
 
     private ClassLoaderHelper() {
