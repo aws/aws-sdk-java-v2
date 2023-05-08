@@ -1,3 +1,33 @@
+# __2.20.62__ __2023-05-08__
+## __AWS Glue__
+  - ### Features
+    - We don't do release notes https://w.amazon.com/bin/view/AWSDocs/common-tasks/release-notes
+
+## __AWS IoT SiteWise__
+  - ### Features
+    - Provide support for 20,000 max results for GetAssetPropertyValueHistory/BatchGetAssetPropertyValueHistory and 15 minute aggregate resolution for GetAssetPropertyAggregates/BatchGetAssetPropertyAggregates
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SDK for Java v2, AWS STS__
+  - ### Features
+    - Respect async credentials update flag from DefaultCredentialsProvider for WebIdentityTokenFileCredentialProvider, potentially avoiding latency spikes on credentials expiration
+        - Contributed by: [@paulolieuthier](https://github.com/paulolieuthier)
+
+## __AWS Security Token Service__
+  - ### Features
+    - Documentation updates for AWS Security Token Service.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Add AccessDeniedException 403 Error message code to support 3 Tagging related APIs
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@paulolieuthier](https://github.com/paulolieuthier)
 # __2.20.61__ __2023-05-05__
 ## __AWS MediaTailor__
   - ### Features

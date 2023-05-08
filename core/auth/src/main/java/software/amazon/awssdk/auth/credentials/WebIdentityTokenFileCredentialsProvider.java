@@ -58,12 +58,15 @@ public class WebIdentityTokenFileCredentialsProvider
 
     private final Path webIdentityTokenFile;
 
+    private final Boolean asyncCredentialUpdateEnabled;
+
     private WebIdentityTokenFileCredentialsProvider(BuilderImpl builder) {
         AwsCredentialsProvider credentialsProvider = null;
         RuntimeException loadException = null;
         String roleArn = null;
         String roleSessionName = null;
         Path webIdentityTokenFile = null;
+        Boolean asyncCredentialUpdateEnabled = null;
 
         try {
             webIdentityTokenFile =
@@ -78,11 +81,15 @@ public class WebIdentityTokenFileCredentialsProvider
                 builder.roleSessionName != null ? builder.roleSessionName
                                                 : SdkSystemSetting.AWS_ROLE_SESSION_NAME.getStringValue().orElse(null);
 
+            asyncCredentialUpdateEnabled =
+                builder.asyncCredentialUpdateEnabled != null ? builder.asyncCredentialUpdateEnabled : false;
+
             WebIdentityTokenCredentialProperties credentialProperties =
                 WebIdentityTokenCredentialProperties.builder()
                                                     .roleArn(roleArn)
                                                     .roleSessionName(roleSessionName)
                                                     .webIdentityTokenFile(webIdentityTokenFile)
+                                                    .asyncCredentialUpdateEnabled(asyncCredentialUpdateEnabled)
                                                     .build();
 
             credentialsProvider = WebIdentityCredentialsUtils.factory().create(credentialProperties);
@@ -98,6 +105,7 @@ public class WebIdentityTokenFileCredentialsProvider
         this.roleArn = roleArn;
         this.roleSessionName = roleSessionName;
         this.webIdentityTokenFile = webIdentityTokenFile;
+        this.asyncCredentialUpdateEnabled = asyncCredentialUpdateEnabled;
     }
 
     public static WebIdentityTokenFileCredentialsProvider create() {
@@ -153,6 +161,12 @@ public class WebIdentityTokenFileCredentialsProvider
         Builder webIdentityTokenFile(Path webIdentityTokenFile);
 
         /**
+         * Define whether the provider should fetch credentials asynchronously in the background.
+         */
+
+        Builder asyncCredentialUpdateEnabled(Boolean asyncCredentialUpdateEnabled);
+
+        /**
          * Create a {@link WebIdentityTokenFileCredentialsProvider} using the configuration applied to this builder.
          */
         WebIdentityTokenFileCredentialsProvider build();
@@ -162,6 +176,7 @@ public class WebIdentityTokenFileCredentialsProvider
         private String roleArn;
         private String roleSessionName;
         private Path webIdentityTokenFile;
+        private Boolean asyncCredentialUpdateEnabled;
 
         BuilderImpl() {
         }
@@ -170,6 +185,7 @@ public class WebIdentityTokenFileCredentialsProvider
             this.roleArn = provider.roleArn;
             this.roleSessionName = provider.roleSessionName;
             this.webIdentityTokenFile = provider.webIdentityTokenFile;
+            this.asyncCredentialUpdateEnabled = provider.asyncCredentialUpdateEnabled;
         }
 
         @Override
@@ -200,6 +216,16 @@ public class WebIdentityTokenFileCredentialsProvider
 
         public void setWebIdentityTokenFile(Path webIdentityTokenFile) {
             webIdentityTokenFile(webIdentityTokenFile);
+        }
+
+        @Override
+        public Builder asyncCredentialUpdateEnabled(Boolean asyncCredentialUpdateEnabled) {
+            this.asyncCredentialUpdateEnabled = asyncCredentialUpdateEnabled;
+            return this;
+        }
+
+        public void setAsyncCredentialUpdateEnabled(Boolean asyncCredentialUpdateEnabled) {
+            asyncCredentialUpdateEnabled(asyncCredentialUpdateEnabled);
         }
 
         @Override

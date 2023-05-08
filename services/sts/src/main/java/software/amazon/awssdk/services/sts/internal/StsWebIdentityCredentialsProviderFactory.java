@@ -59,6 +59,8 @@ public final class StsWebIdentityCredentialsProviderFactory implements WebIdenti
         private StsWebIdentityCredentialsProvider(WebIdentityTokenCredentialProperties credentialProperties) {
             String roleSessionName = credentialProperties.roleSessionName();
             String sessionName = roleSessionName != null ? roleSessionName : "aws-sdk-java-" + System.currentTimeMillis();
+            Boolean asyncCredentialUpdateEnabled = credentialProperties.asyncCredentialUpdateEnabled() != null ?
+                                                   credentialProperties.asyncCredentialUpdateEnabled() : false;
 
             OrRetryCondition retryCondition =
                 OrRetryCondition.create(context -> context.exception() instanceof IdpCommunicationErrorException,
@@ -83,6 +85,7 @@ public final class StsWebIdentityCredentialsProviderFactory implements WebIdenti
 
             this.credentialsProvider =
                 StsAssumeRoleWithWebIdentityCredentialsProvider.builder()
+                                                               .asyncCredentialUpdateEnabled(asyncCredentialUpdateEnabled)
                                                                .stsClient(stsClient)
                                                                .refreshRequest(supplier)
                                                                .build();
