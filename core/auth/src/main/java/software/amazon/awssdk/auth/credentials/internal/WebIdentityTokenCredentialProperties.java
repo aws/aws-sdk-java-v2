@@ -27,11 +27,13 @@ public class WebIdentityTokenCredentialProperties {
     private final String roleArn;
     private final String roleSessionName;
     private final Path webIdentityTokenFile;
+    private final Boolean asyncCredentialUpdateEnabled;
 
     private WebIdentityTokenCredentialProperties(Builder builder) {
         this.roleArn = builder.roleArn;
         this.roleSessionName = builder.roleSessionName;
         this.webIdentityTokenFile = builder.webIdentityTokenFile;
+        this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
     }
 
     public String roleArn() {
@@ -46,6 +48,10 @@ public class WebIdentityTokenCredentialProperties {
         return webIdentityTokenFile;
     }
 
+    public Boolean asyncCredentialUpdateEnabled() {
+        return asyncCredentialUpdateEnabled;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -54,6 +60,7 @@ public class WebIdentityTokenCredentialProperties {
         private String roleArn;
         private String roleSessionName;
         private Path webIdentityTokenFile;
+        private Boolean asyncCredentialUpdateEnabled;
 
         public Builder roleArn(String roleArn) {
             this.roleArn = roleArn;
@@ -67,6 +74,11 @@ public class WebIdentityTokenCredentialProperties {
 
         public Builder webIdentityTokenFile(Path webIdentityTokenFile) {
             this.webIdentityTokenFile = webIdentityTokenFile;
+            return this;
+        }
+
+        public Builder asyncCredentialUpdateEnabled(Boolean asyncCredentialUpdateEnabled) {
+            this.asyncCredentialUpdateEnabled = asyncCredentialUpdateEnabled;
             return this;
         }
 
