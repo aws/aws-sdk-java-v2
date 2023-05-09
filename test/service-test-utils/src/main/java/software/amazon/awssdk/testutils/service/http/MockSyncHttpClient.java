@@ -28,13 +28,13 @@ import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Pair;
 
 /**
  * Mockable implementation of {@link SdkHttpClient}.
  */
 public final class MockSyncHttpClient implements SdkHttpClient, MockHttpClient {
+    private static final Duration DEFAULT_DURATION = Duration.ofMillis(50);
     private final List<SdkHttpRequest> capturedRequests = new ArrayList<>();
     private final List<Pair<HttpExecuteResponse, Duration>> responses = new LinkedList<>();
     private final AtomicInteger responseIndex = new AtomicInteger(0);
@@ -85,7 +85,7 @@ public final class MockSyncHttpClient implements SdkHttpClient, MockHttpClient {
     @Override
     public void stubNextResponse(HttpExecuteResponse nextResponse) {
         this.responses.clear();
-        this.responses.add(Pair.of(nextResponse, Duration.ofMillis(50)));
+        this.responses.add(Pair.of(nextResponse, DEFAULT_DURATION));
         this.responseIndex.set(0);
     }
 
@@ -105,7 +105,7 @@ public final class MockSyncHttpClient implements SdkHttpClient, MockHttpClient {
     @Override
     public void stubResponses(HttpExecuteResponse... responses) {
         this.responses.clear();
-        this.responses.addAll(Arrays.stream(responses).map(r -> Pair.of(r, Duration.ofMillis(50))).collect(Collectors.toList()));
+        this.responses.addAll(Arrays.stream(responses).map(r -> Pair.of(r, DEFAULT_DURATION)).collect(Collectors.toList()));
         this.responseIndex.set(0);
     }
 

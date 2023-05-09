@@ -44,13 +44,12 @@ import software.amazon.awssdk.utils.Pair;
  * Mock implementation of {@link SdkAsyncHttpClient}.
  */
 public final class MockAsyncHttpClient implements SdkAsyncHttpClient, MockHttpClient {
+
+    private static final Duration DEFAULT_DURATION = Duration.ofMillis(50);
     private final List<SdkHttpRequest> capturedRequests = new ArrayList<>();
     private final List<Pair<HttpExecuteResponse, Duration>> responses = new LinkedList<>();
     private final AtomicInteger responseIndex = new AtomicInteger(0);
-
-    private static final Duration DEFAULT_DURATION = Duration.ofMillis(50);
-
-    private ExecutorService executor;
+    private final ExecutorService executor;
 
     public MockAsyncHttpClient() {
         this.executor = Executors.newFixedThreadPool(3);
