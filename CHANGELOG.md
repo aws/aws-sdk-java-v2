@@ -1,7 +1,7 @@
 # __2.20.62__ __2023-05-08__
 ## __AWS Glue__
   - ### Features
-    - We don't do release notes https://w.amazon.com/bin/view/AWSDocs/common-tasks/release-notes
+    - Support large worker types G.4x and G.8x for Glue Spark.
 
 ## __AWS IoT SiteWise__
   - ### Features
