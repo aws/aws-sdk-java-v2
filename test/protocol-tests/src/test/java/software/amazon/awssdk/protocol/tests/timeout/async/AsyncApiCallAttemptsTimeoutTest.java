@@ -24,9 +24,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import org.assertj.core.api.ThrowableAssert;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
@@ -51,7 +51,7 @@ public class AsyncApiCallAttemptsTimeoutTest extends BaseApiCallAttemptTimeoutTe
     private ProtocolRestJsonAsyncClient clientWithRetry;
     private MockAsyncHttpClient mockClient;
 
-    @Before
+    @BeforeEach
     public void setup() {
         mockClient = new MockAsyncHttpClient();
         client = ProtocolRestJsonAsyncClient.builder()
@@ -80,7 +80,7 @@ public class AsyncApiCallAttemptsTimeoutTest extends BaseApiCallAttemptTimeoutTe
         return mockClient;
     }
 
-    @After
+    @AfterEach
     public void cleanUp() {
         mockClient.reset();
     }

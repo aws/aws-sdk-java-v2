@@ -20,8 +20,8 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static software.amazon.awssdk.protocol.tests.timeout.BaseTimeoutTest.mockResponse;
 
 import java.time.Duration;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.protocol.tests.timeout.BaseTimeoutTest;
@@ -37,7 +37,7 @@ public abstract class BaseSyncStreamingTimeoutTest {
     protected static final Duration DELAY_BEFORE_TIMEOUT = Duration.ofMillis(100);
     private MockSyncHttpClient mockSyncHttpClient;
 
-    @Before
+    @BeforeEach
     public void setup() {
         mockSyncHttpClient = new MockSyncHttpClient();
         client = ProtocolRestJsonClient.builder()

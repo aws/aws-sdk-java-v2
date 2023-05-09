@@ -118,7 +118,7 @@ public final class MockAsyncHttpClient implements SdkAsyncHttpClient, MockHttpCl
     @Override
     public void stubResponses(HttpExecuteResponse... responses) {
         this.responses.clear();
-        this.responses.addAll(Arrays.stream(responses).map(r -> Pair.of(r, Duration.ofMillis(50))).collect(Collectors.toList()));
+        this.responses.addAll(Arrays.stream(responses).map(r -> Pair.of(r, DEFAULT_DURATION)).collect(Collectors.toList()));
         this.responseIndex.set(0);
     }
 

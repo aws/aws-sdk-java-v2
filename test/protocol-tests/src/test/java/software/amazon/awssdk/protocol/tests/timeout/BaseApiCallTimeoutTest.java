@@ -18,7 +18,7 @@ package software.amazon.awssdk.protocol.tests.timeout;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import java.time.Duration;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.utils.Pair;
 
 /**
