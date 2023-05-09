@@ -87,7 +87,10 @@ public class AtomicCounterExtensionTest {
                                                                               .operationName(OperationName.UPDATE_ITEM)
                                                                               .operationContext(PRIMARY_CONTEXT).build());
 
-        assertThat(result.transformedItem()).isNull();
+        Map<String, AttributeValue> transformedItem = result.transformedItem();
+        assertThat(transformedItem).isNotNull().hasSize(1);
+        assertThat(transformedItem).containsEntry("id", AttributeValue.fromS(RECORD_ID));
+
         assertThat(result.updateExpression()).isNotNull();
 
         List<SetAction> setActions = result.updateExpression().setActions();
@@ -112,9 +115,37 @@ public class AtomicCounterExtensionTest {
                                                                               .tableMetadata(SIMPLE_ITEM_MAPPER.tableMetadata())
                                                                               .operationName(OperationName.UPDATE_ITEM)
                                                                               .operationContext(PRIMARY_CONTEXT).build());
-
         assertThat(result.transformedItem()).isNull();
         assertThat(result.updateExpression()).isNull();
+    }
+
+    @Test
+    public void beforeWrite_updateItemOperation_hasCountersInItem_createsUpdateExpressionAndFilters() {
+        AtomicCounterItem atomicCounterItem = new AtomicCounterItem();
+        atomicCounterItem.setId(RECORD_ID);
+        atomicCounterItem.setCustomCounter(255L);
+
+        Map<String, AttributeValue> items = ITEM_MAPPER.itemToMap(atomicCounterItem, true);
+        assertThat(items).hasSize(2);
+
+        WriteModification result =
+            atomicCounterExtension.beforeWrite(DefaultDynamoDbExtensionContext.builder()
+                                                                              .items(items)
+                                                                              .tableMetadata(ITEM_MAPPER.tableMetadata())
+                                                                              .operationName(OperationName.UPDATE_ITEM)
+                                                                              .operationContext(PRIMARY_CONTEXT).build());
+
+        Map<String, AttributeValue> transformedItem = result.transformedItem();
+        assertThat(transformedItem).isNotNull().hasSize(1);
+        assertThat(transformedItem).containsEntry("id", AttributeValue.fromS(RECORD_ID));
+
+        assertThat(result.updateExpression()).isNotNull();
+
+        List<SetAction> setActions = result.updateExpression().setActions();
+        assertThat(setActions).hasSize(2);
+
+        verifyAction(setActions, "customCounter", "5", "5");
+        verifyAction(setActions, "defaultCounter", "-1", "1");
     }
 
     @Test
