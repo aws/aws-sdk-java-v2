@@ -15,26 +15,30 @@
 
 package software.amazon.awssdk.testutils.service.http;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Pair;
 
 /**
  * Mockable implementation of {@link SdkHttpClient}.
  */
 public final class MockSyncHttpClient implements SdkHttpClient, MockHttpClient {
-
     private final List<SdkHttpRequest> capturedRequests = new ArrayList<>();
-    private final List<HttpExecuteResponse> responses = new LinkedList<>();
+    private final List<Pair<HttpExecuteResponse, Duration>> responses = new LinkedList<>();
     private final AtomicInteger responseIndex = new AtomicInteger(0);
+    private boolean isClosed;
 
     @Override
     public ExecutableHttpRequest prepareRequest(HttpExecuteRequest request) {
@@ -42,7 +46,17 @@ public final class MockSyncHttpClient implements SdkHttpClient, MockHttpClient {
         return new ExecutableHttpRequest() {
             @Override
             public HttpExecuteResponse call() {
-                HttpExecuteResponse response = responses.get(responseIndex.getAndIncrement() % responses.size());
+                Pair<HttpExecuteResponse, Duration> responseDurationPair =
+                    responses.get(responseIndex.getAndIncrement() % responses.size());
+                HttpExecuteResponse response = responseDurationPair.left();
+                Duration duration = responseDurationPair.right();
+
+                try {
+                    Thread.sleep(duration.toMillis());
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+
                 if (response == null) {
                     throw new IllegalStateException("No responses remain.");
                 }
@@ -58,6 +72,7 @@ public final class MockSyncHttpClient implements SdkHttpClient, MockHttpClient {
 
     @Override
     public void close() {
+        isClosed = true;
     }
 
     @Override
@@ -70,14 +85,27 @@ public final class MockSyncHttpClient implements SdkHttpClient, MockHttpClient {
     @Override
     public void stubNextResponse(HttpExecuteResponse nextResponse) {
         this.responses.clear();
-        this.responses.add(nextResponse);
+        this.responses.add(Pair.of(nextResponse, Duration.ofMillis(50)));
+        this.responseIndex.set(0);
+    }
+
+    @Override
+    public void stubNextResponse(HttpExecuteResponse nextResponse, Duration delay) {
+        this.responses.add(Pair.of(nextResponse, delay));
+        this.responseIndex.set(0);
+    }
+
+    @Override
+    public void stubResponses(Pair<HttpExecuteResponse, Duration>... responses) {
+        this.responses.clear();
+        this.responses.addAll(Arrays.asList(responses));
         this.responseIndex.set(0);
     }
 
     @Override
     public void stubResponses(HttpExecuteResponse... responses) {
         this.responses.clear();
-        this.responses.addAll(Arrays.asList(responses));
+        this.responses.addAll(Arrays.stream(responses).map(r -> Pair.of(r, Duration.ofMillis(50))).collect(Collectors.toList()));
         this.responseIndex.set(0);
     }
 
@@ -92,5 +120,9 @@ public final class MockSyncHttpClient implements SdkHttpClient, MockHttpClient {
             throw new IllegalStateException("No requests were captured by the mock");
         }
         return capturedRequests.get(capturedRequests.size() - 1);
+    }
+
+    public boolean isClosed() {
+        return isClosed;
     }
 }

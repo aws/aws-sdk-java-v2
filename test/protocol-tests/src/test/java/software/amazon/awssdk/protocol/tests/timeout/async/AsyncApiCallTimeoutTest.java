@@ -18,57 +18,63 @@ package software.amazon.awssdk.protocol.tests.timeout.async;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import java.net.URI;
 import java.time.Duration;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import org.assertj.core.api.ThrowableAssert;
+import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.exception.ApiCallTimeoutException;
 import software.amazon.awssdk.core.retry.RetryPolicy;
-import software.amazon.awssdk.http.HttpExecuteResponse;
-import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
 import software.amazon.awssdk.protocol.tests.timeout.BaseApiCallTimeoutTest;
-import software.amazon.awssdk.protocol.tests.util.MockAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;
 import software.amazon.awssdk.services.protocolrestjson.model.AllTypesResponse;
 import software.amazon.awssdk.services.protocolrestjson.model.ProtocolRestJsonException;
+import software.amazon.awssdk.testutils.service.http.MockAsyncHttpClient;
+import software.amazon.awssdk.testutils.service.http.MockHttpClient;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
  * Test apiCallTimeout feature for asynchronous operations.
  */
 public class AsyncApiCallTimeoutTest extends BaseApiCallTimeoutTest {
-    @Rule
-    public WireMockRule wireMock = new WireMockRule(0);
 
     private ProtocolRestJsonAsyncClient client;
     private ProtocolRestJsonAsyncClient clientWithRetry;
+    private MockAsyncHttpClient mockClient;
 
     @Before
     public void setup() {
+        mockClient = new MockAsyncHttpClient();
         client = ProtocolRestJsonAsyncClient.builder()
                                             .region(Region.US_WEST_1)
-                                            .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
+                                            .httpClient(mockClient)
                                             .credentialsProvider(() -> AwsBasicCredentials.create("akid", "skid"))
-                                            .overrideConfiguration(b -> b.apiCallTimeout(Duration.ofMillis(TIMEOUT))
+                                            .overrideConfiguration(b -> b.apiCallTimeout(TIMEOUT)
                                                                          .retryPolicy(RetryPolicy.none()))
                                             .build();
 
         clientWithRetry = ProtocolRestJsonAsyncClient.builder()
                                                      .region(Region.US_WEST_1)
-                                                     .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
                                                      .credentialsProvider(() -> AwsBasicCredentials.create("akid", "skid"))
-                                                     .overrideConfiguration(b -> b.apiCallTimeout(Duration.ofMillis(TIMEOUT))
-                                                                                  .retryPolicy(RetryPolicy.builder().numRetries(1).build()))
+                                                     .overrideConfiguration(b -> b.apiCallTimeout(TIMEOUT)
+                                                                                  .retryPolicy(RetryPolicy.builder()
+                                                                                                          .backoffStrategy(BackoffStrategy.none())
+                                                                                                          .numRetries(1)
+                                                                                                          .build()))
+                                                     .httpClient(mockClient)
                                                      .build();
+    }
+
+    @After
+    public void cleanUp() {
+        mockClient.reset();
     }
 
     @Override
@@ -97,19 +103,28 @@ public class AsyncApiCallTimeoutTest extends BaseApiCallTimeoutTest {
     }
 
     @Override
-    protected WireMockRule wireMock() {
-        return wireMock;
+    protected void stubSuccessResponse(Duration delay) {
+        mockClient.stubNextResponse(mockResponse(200), delay);
+    }
+
+    @Override
+    protected void stubErrorResponse(Duration delay) {
+        mockClient.stubNextResponse(mockResponse(500), delay);
+    }
+
+    @Override
+    public MockHttpClient mockHttpClient() {
+        return mockClient;
     }
 
     @Test
     public void increaseTimeoutInRequestOverrideConfig_shouldTakePrecedence() {
-        MockAsyncHttpClient mockClient = new MockAsyncHttpClient();
+
         ProtocolRestJsonAsyncClient asyncClient = createClientWithMockClient(mockClient);
-        mockClient.stubNextResponse(mockResponse(200));
-        mockClient.withFixedDelay(DELAY_AFTER_TIMEOUT);
+        mockClient.stubNextResponse(mockResponse(200), DELAY_AFTER_TIMEOUT);
 
         CompletableFuture<AllTypesResponse> allTypesResponseCompletableFuture =
-            asyncClient.allTypes(b -> b.overrideConfiguration(c -> c.apiCallTimeout(Duration.ofMillis(DELAY_AFTER_TIMEOUT + 1000))));
+            asyncClient.allTypes(b -> b.overrideConfiguration(c -> c.apiCallTimeout(DELAY_AFTER_TIMEOUT.plus(Duration.ofSeconds(1)))));
 
         AllTypesResponse response = allTypesResponseCompletableFuture.join();
         assertThat(response).isNotNull();
@@ -120,17 +135,9 @@ public class AsyncApiCallTimeoutTest extends BaseApiCallTimeoutTest {
                                           .region(Region.US_WEST_1)
                                           .httpClient(mockClient)
                                           .credentialsProvider(() -> AwsBasicCredentials.create("akid", "skid"))
-                                          .overrideConfiguration(b -> b.apiCallTimeout(Duration.ofMillis(TIMEOUT))
+                                          .overrideConfiguration(b -> b.apiCallTimeout(TIMEOUT)
                                                                        .retryPolicy(RetryPolicy.none()))
                                           .build();
-    }
-
-    private HttpExecuteResponse mockResponse(int statusCode) {
-        return HttpExecuteResponse.builder()
-                                  .response(SdkHttpResponse.builder()
-                                                           .statusCode(statusCode)
-                                                           .build())
-                                  .build();
     }
 
 }

@@ -15,17 +15,12 @@
 
 package software.amazon.awssdk.protocol.tests.timeout.sync;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static software.amazon.awssdk.protocol.tests.timeout.BaseTimeoutTest.mockResponse;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import java.net.URI;
+import java.time.Duration;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
@@ -33,21 +28,21 @@ import software.amazon.awssdk.protocol.tests.timeout.BaseTimeoutTest;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
 import software.amazon.awssdk.services.protocolrestjson.model.StreamingOutputOperationRequest;
+import software.amazon.awssdk.testutils.service.http.MockSyncHttpClient;
 
 public abstract class BaseSyncStreamingTimeoutTest {
 
-    @Rule
-    public WireMockRule wireMock = new WireMockRule(0);
-
     private ProtocolRestJsonClient client;
     protected static final int TIMEOUT = 1000;
-    protected static final int DELAY_BEFORE_TIMEOUT = 100;
+    protected static final Duration DELAY_BEFORE_TIMEOUT = Duration.ofMillis(100);
+    private MockSyncHttpClient mockSyncHttpClient;
 
     @Before
     public void setup() {
+        mockSyncHttpClient = new MockSyncHttpClient();
         client = ProtocolRestJsonClient.builder()
                                        .region(Region.US_WEST_1)
-                                       .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
+                                       .httpClient(mockSyncHttpClient)
                                        .credentialsProvider(() -> AwsBasicCredentials.create("akid", "skid"))
                                        .overrideConfiguration(clientOverrideConfiguration())
                                        .build();
@@ -55,9 +50,7 @@ public abstract class BaseSyncStreamingTimeoutTest {
 
     @Test
     public void slowFileTransformer_shouldThrowTimeoutException() {
-        stubFor(post(anyUrl())
-                    .willReturn(aResponse()
-                                    .withStatus(200).withFixedDelay(DELAY_BEFORE_TIMEOUT)));
+        stubSuccessResponse(DELAY_BEFORE_TIMEOUT);
 
         assertThatThrownBy(() -> client
             .streamingOutputOperation(
@@ -68,10 +61,7 @@ public abstract class BaseSyncStreamingTimeoutTest {
 
     @Test
     public void slowBytesTransformer_shouldThrowTimeoutException() {
-        stubFor(post(anyUrl())
-                    .willReturn(aResponse()
-                                    .withStatus(200).withFixedDelay(DELAY_BEFORE_TIMEOUT)));
-
+        stubSuccessResponse(DELAY_BEFORE_TIMEOUT);
         assertThatThrownBy(() -> client
             .streamingOutputOperation(
                 StreamingOutputOperationRequest.builder().build(), new BaseTimeoutTest.SlowBytesResponseTransformer<>()))
@@ -81,9 +71,7 @@ public abstract class BaseSyncStreamingTimeoutTest {
 
     @Test
     public void slowInputTransformer_shouldThrowTimeoutException() {
-        stubFor(post(anyUrl())
-                    .willReturn(aResponse()
-                                    .withStatus(200).withFixedDelay(DELAY_BEFORE_TIMEOUT)));
+        stubSuccessResponse(DELAY_BEFORE_TIMEOUT);
 
         assertThatThrownBy(() -> client
             .streamingOutputOperation(
@@ -94,9 +82,7 @@ public abstract class BaseSyncStreamingTimeoutTest {
 
     @Test
     public void slowCustomResponseTransformer_shouldThrowTimeoutException() {
-        stubFor(post(anyUrl())
-                    .willReturn(aResponse()
-                                    .withStatus(200).withFixedDelay(DELAY_BEFORE_TIMEOUT)));
+        stubSuccessResponse(DELAY_BEFORE_TIMEOUT);
 
         assertThatThrownBy(() -> client
             .streamingOutputOperation(
@@ -113,4 +99,7 @@ public abstract class BaseSyncStreamingTimeoutTest {
         assertThat(Thread.currentThread().isInterrupted()).isFalse();
     }
 
+    private void stubSuccessResponse(Duration delay) {
+        mockSyncHttpClient.stubNextResponse(mockResponse(200), delay);
+    }
 }

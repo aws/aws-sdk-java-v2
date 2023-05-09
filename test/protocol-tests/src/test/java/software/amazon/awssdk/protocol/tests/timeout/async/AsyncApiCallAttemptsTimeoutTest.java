@@ -15,14 +15,8 @@
 
 package software.amazon.awssdk.protocol.tests.timeout.async;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import java.net.URI;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.concurrent.Callable;
@@ -30,8 +24,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import org.assertj.core.api.ThrowableAssert;
+import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.core.ResponseBytes;
@@ -45,36 +39,34 @@ import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncCli
 import software.amazon.awssdk.services.protocolrestjson.model.ProtocolRestJsonException;
 import software.amazon.awssdk.services.protocolrestjson.model.StreamingOutputOperationRequest;
 import software.amazon.awssdk.services.protocolrestjson.model.StreamingOutputOperationResponse;
+import software.amazon.awssdk.testutils.service.http.MockAsyncHttpClient;
+import software.amazon.awssdk.testutils.service.http.MockHttpClient;
 
 /**
  * Test apiCallAttemptTimeout feature for asynchronous operations.
  */
 public class AsyncApiCallAttemptsTimeoutTest extends BaseApiCallAttemptTimeoutTest {
-    @Rule
-    public WireMockRule wireMock = new WireMockRule(0);
 
-    private static final String STREAMING_OUTPUT_PATH = "/2016-03-11/streamingOutputOperation";
     private ProtocolRestJsonAsyncClient client;
     private ProtocolRestJsonAsyncClient clientWithRetry;
-    private static final int API_CALL_ATTEMPT_TIMEOUT = 800;
-    private static final int DELAY_BEFORE_API_CALL_ATTEMPT_TIMEOUT = 100;
-    private static final int DELAY_AFTER_API_CALL_ATTEMPT_TIMEOUT = 1000;
+    private MockAsyncHttpClient mockClient;
 
     @Before
     public void setup() {
+        mockClient = new MockAsyncHttpClient();
         client = ProtocolRestJsonAsyncClient.builder()
                                             .region(Region.US_WEST_1)
-                                            .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
+                                            .httpClient(mockClient)
                                             .credentialsProvider(() -> AwsBasicCredentials.create("akid", "skid"))
-                                            .overrideConfiguration(b -> b.apiCallAttemptTimeout(Duration.ofMillis(API_CALL_ATTEMPT_TIMEOUT))
+                                            .overrideConfiguration(b -> b.apiCallAttemptTimeout(API_CALL_ATTEMPT_TIMEOUT)
                                                                          .retryPolicy(RetryPolicy.none()))
                                             .build();
 
         clientWithRetry = ProtocolRestJsonAsyncClient.builder()
                                                      .region(Region.US_WEST_1)
-                                                     .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
+                                                     .httpClient(mockClient)
                                                      .credentialsProvider(() -> AwsBasicCredentials.create("akid", "skid"))
-                                                     .overrideConfiguration(b -> b.apiCallAttemptTimeout(Duration.ofMillis(API_CALL_ATTEMPT_TIMEOUT))
+                                                     .overrideConfiguration(b -> b.apiCallAttemptTimeout(API_CALL_ATTEMPT_TIMEOUT)
                                                                                   .retryPolicy(RetryPolicy.builder()
                                                                                                           .numRetries(1)
                                                                                                           .build()))
@@ -82,12 +74,20 @@ public class AsyncApiCallAttemptsTimeoutTest extends BaseApiCallAttemptTimeoutTe
 
     }
 
+
+    @Override
+    public MockHttpClient mockHttpClient() {
+        return mockClient;
+    }
+
+    @After
+    public void cleanUp() {
+        mockClient.reset();
+    }
+
     @Test
     public void streamingOperation_slowTransformer_shouldThrowApiCallAttemptTimeoutException() {
-        stubFor(post(anyUrl())
-                    .willReturn(aResponse()
-                                    .withStatus(200).withFixedDelay(DELAY_BEFORE_API_CALL_ATTEMPT_TIMEOUT)));
-
+        stubSuccessResponse(DELAY_BEFORE_API_CALL_ATTEMPT_TIMEOUT);
         CompletableFuture<ResponseBytes<StreamingOutputOperationResponse>> future = client
             .streamingOutputOperation(
                 StreamingOutputOperationRequest.builder().build(), new SlowResponseTransformer<>());
@@ -123,11 +123,16 @@ public class AsyncApiCallAttemptsTimeoutTest extends BaseApiCallAttemptTimeoutTe
     }
 
     @Override
-    protected WireMockRule wireMock() {
-        return wireMock;
+    protected void stubSuccessResponse(Duration delay) {
+        mockClient.stubNextResponse(mockResponse(200), delay);
     }
 
-    private static class SlowResponseTransformer<ResponseT>
+    @Override
+    protected void stubErrorResponse(Duration delay) {
+        mockClient.stubNextResponse(mockResponse(500), delay);
+    }
+
+    private static final class SlowResponseTransformer<ResponseT>
         implements AsyncResponseTransformer<ResponseT, ResponseBytes<ResponseT>> {
 
         private final AtomicInteger callCount = new AtomicInteger(0);
@@ -142,7 +147,7 @@ public class AsyncApiCallAttemptsTimeoutTest extends BaseApiCallAttemptTimeoutTe
             return delegate.prepare()
                            .thenApply(r -> {
                                try {
-                                   Thread.sleep(1_000);
+                                   Thread.sleep(DELAY_AFTER_API_CALL_ATTEMPT_TIMEOUT.toMillis());
                                } catch (InterruptedException e) {
                                    e.printStackTrace();
                                }

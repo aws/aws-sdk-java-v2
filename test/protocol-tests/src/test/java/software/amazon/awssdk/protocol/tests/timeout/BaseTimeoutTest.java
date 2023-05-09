@@ -18,9 +18,9 @@ package software.amazon.awssdk.protocol.tests.timeout;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.File;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import org.assertj.core.api.ThrowableAssert;
@@ -28,6 +28,9 @@ import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.http.AbortableInputStream;
+import software.amazon.awssdk.http.HttpExecuteResponse;
+import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.testutils.service.http.MockHttpClient;
 
 public abstract class BaseTimeoutTest {
 
@@ -44,7 +47,9 @@ public abstract class BaseTimeoutTest {
 
     protected abstract Callable streamingCallable();
 
-    protected abstract WireMockRule wireMock();
+    protected abstract void stubSuccessResponse(Duration delayAfterTimeout);
+
+    protected abstract void stubErrorResponse(Duration delayAfterTimeout);
 
     protected void verifySuccessResponseNotTimedOut() throws Exception {
         assertThat(callable().call()).isNotNull();
@@ -128,5 +133,19 @@ public abstract class BaseTimeoutTest {
 
     public static void wastingTimeInterruptibly() throws InterruptedException {
         Thread.sleep(1200);
+    }
+
+    public abstract MockHttpClient mockHttpClient();
+
+    public static HttpExecuteResponse mockResponse(int statusCode) {
+        return HttpExecuteResponse.builder()
+                                  .response(SdkHttpResponse.builder()
+                                                           .statusCode(statusCode)
+                                                           .build())
+                                  .build();
+    }
+
+    public void verifyRequestCount(int requestCount) {
+        assertThat(mockHttpClient().getRequests().size()).isEqualTo(requestCount);
     }
 }

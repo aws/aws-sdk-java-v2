@@ -18,6 +18,7 @@ package software.amazon.awssdk.testutils.service.http;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -25,7 +26,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.http.HttpExecuteResponse;
@@ -34,32 +38,41 @@ import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.Pair;
 
 /**
  * Mock implementation of {@link SdkAsyncHttpClient}.
  */
 public final class MockAsyncHttpClient implements SdkAsyncHttpClient, MockHttpClient {
-
     private final List<SdkHttpRequest> capturedRequests = new ArrayList<>();
-    private final List<HttpExecuteResponse> responses = new LinkedList<>();
+    private final List<Pair<HttpExecuteResponse, Duration>> responses = new LinkedList<>();
     private final AtomicInteger responseIndex = new AtomicInteger(0);
 
+    private static final Duration DEFAULT_DURATION = Duration.ofMillis(50);
+
+    private ExecutorService executor;
+
+    public MockAsyncHttpClient() {
+        this.executor = Executors.newFixedThreadPool(3);
+    }
 
     @Override
     public CompletableFuture<Void> execute(AsyncExecuteRequest request) {
         capturedRequests.add(request.request());
 
-        HttpExecuteResponse nextResponse = responses.get(responseIndex.getAndIncrement() % responses.size());
+        int index = responseIndex.getAndIncrement() % responses.size();
+        HttpExecuteResponse nextResponse = responses.get(index).left();
         byte[] content = nextResponse.responseBody().map(p -> invokeSafely(() -> IoUtils.toByteArray(p)))
                                      .orElseGet(() -> new byte[0]);
 
         request.responseHandler().onHeaders(nextResponse.httpResponse());
-        request.responseHandler().onStream(new ResponsePublisher(content));
+        CompletableFuture.runAsync(() -> request.responseHandler().onStream(new ResponsePublisher(content, index)), executor);
         return CompletableFuture.completedFuture(null);
     }
 
     @Override
     public void close() {
+        executor.shutdown();
     }
 
     @Override
@@ -85,22 +98,38 @@ public final class MockAsyncHttpClient implements SdkAsyncHttpClient, MockHttpCl
     @Override
     public void stubNextResponse(HttpExecuteResponse nextResponse) {
         this.responses.clear();
-        this.responses.add(nextResponse);
+        this.responses.add(Pair.of(nextResponse, DEFAULT_DURATION));
+        this.responseIndex.set(0);
+    }
+
+    @Override
+    public void stubNextResponse(HttpExecuteResponse nextResponse, Duration delay) {
+        this.responses.clear();
+        this.responses.add(Pair.of(nextResponse, delay));
+        this.responseIndex.set(0);
+    }
+
+    @Override
+    public void stubResponses(Pair<HttpExecuteResponse, Duration>... responses) {
+        this.responses.clear();
+        this.responses.addAll(Arrays.asList(responses));
         this.responseIndex.set(0);
     }
 
     @Override
     public void stubResponses(HttpExecuteResponse... responses) {
         this.responses.clear();
-        this.responses.addAll(Arrays.asList(responses));
+        this.responses.addAll(Arrays.stream(responses).map(r -> Pair.of(r, Duration.ofMillis(50))).collect(Collectors.toList()));
         this.responseIndex.set(0);
     }
 
-    private static class ResponsePublisher implements SdkHttpContentPublisher {
+    private class ResponsePublisher implements SdkHttpContentPublisher {
         private final byte[] content;
+        private final int index;
 
-        private ResponsePublisher(byte[] content) {
+        private ResponsePublisher(byte[] content, int index) {
             this.content = content;
+            this.index = index;
         }
 
         @Override
@@ -121,6 +150,11 @@ public final class MockAsyncHttpClient implements SdkAsyncHttpClient, MockHttpCl
                     } else if (running) {
                         running = false;
                         s.onNext(ByteBuffer.wrap(content));
+                        try {
+                            Thread.sleep(responses.get(index).right().toMillis());
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                        }
                         s.onComplete();
                     }
                 }
