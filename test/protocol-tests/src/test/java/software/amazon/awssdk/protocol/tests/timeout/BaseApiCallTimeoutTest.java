@@ -15,110 +15,73 @@
 
 package software.amazon.awssdk.protocol.tests.timeout;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static software.amazon.awssdk.protocol.wiremock.WireMockUtils.verifyRequestCount;
 
-import com.github.tomakehurst.wiremock.stubbing.Scenario;
-import org.junit.Test;
+import java.time.Duration;
+import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.utils.Pair;
 
 /**
  * Contains common scenarios to test timeout feature.
  */
 public abstract class BaseApiCallTimeoutTest extends BaseTimeoutTest {
 
-    protected static final int TIMEOUT = 1000;
-    protected static final int DELAY_BEFORE_TIMEOUT = 100;
-    protected static final int DELAY_AFTER_TIMEOUT = 1200;
+    protected static final Duration TIMEOUT = Duration.ofMillis(300);
+
+    protected static final Duration DELAY_BEFORE_TIMEOUT = Duration.ofMillis(10);
+    protected static final Duration DELAY_AFTER_TIMEOUT = Duration.ofMillis(500);
 
     @Test
     public void nonstreamingOperation_finishedWithinTime_shouldNotTimeout() throws Exception {
-        stubFor(post(anyUrl())
-                    .willReturn(aResponse().withStatus(200).withBody("{}").withFixedDelay(DELAY_BEFORE_TIMEOUT)));
+        stubSuccessResponse(DELAY_BEFORE_TIMEOUT);
         verifySuccessResponseNotTimedOut();
     }
 
     @Test
     public void nonstreamingOperation_notFinishedWithinTime_shouldTimeout() {
-        stubFor(post(anyUrl())
-                    .willReturn(aResponse().withStatus(200).withBody("{}").withFixedDelay(DELAY_AFTER_TIMEOUT)));
+        stubSuccessResponse(DELAY_AFTER_TIMEOUT);
         verifyTimedOut();
     }
 
     @Test
     public void nonstreamingOperation500_notFinishedWithinTime_shouldTimeout() {
-        stubFor(post(anyUrl())
-                    .willReturn(aResponse().withStatus(500).withFixedDelay(DELAY_AFTER_TIMEOUT)));
+        stubErrorResponse(DELAY_AFTER_TIMEOUT);
         verifyTimedOut();
     }
 
     @Test
     public void nonstreamingOperation500_finishedWithinTime_shouldNotTimeout() throws Exception {
-        stubFor(post(anyUrl())
-                    .willReturn(aResponse().withStatus(500).withFixedDelay(DELAY_BEFORE_TIMEOUT)));
+        stubErrorResponse(DELAY_BEFORE_TIMEOUT);
         verifyFailedResponseNotTimedOut();
     }
 
     @Test
-    public void nonstreamingOperation_retrySucceeded_FinishedWithinTime_shouldNotTimeout() throws Exception {
-
-        stubFor(post(anyUrl())
-                    .inScenario("retry at 500")
-                    .whenScenarioStateIs(Scenario.STARTED)
-                    .willSetStateTo("first attempt")
-                    .willReturn(aResponse()
-                                    .withStatus(500).withFixedDelay(DELAY_BEFORE_TIMEOUT)));
-
-        stubFor(post(anyUrl())
-                    .inScenario("retry at 500")
-                    .whenScenarioStateIs("first attempt")
-                    .willSetStateTo("second attempt")
-                    .willReturn(aResponse()
-                                    .withStatus(200)
-                                    .withBody("{}").withFixedDelay(DELAY_BEFORE_TIMEOUT)));
-
-        assertThat(retryableCallable().call()).isNotNull();
-    }
-
-    @Test
-    public void nonstreamingOperation_retryWouldSucceed_notFinishedWithinTime_shouldTimeout() {
-
-        stubFor(post(anyUrl())
-                    .inScenario("retry at 500")
-                    .whenScenarioStateIs(Scenario.STARTED)
-                    .willSetStateTo("first attempt")
-                    .willReturn(aResponse()
-                                    .withStatus(500).withFixedDelay(DELAY_BEFORE_TIMEOUT)));
-
-        stubFor(post(anyUrl())
-                    .inScenario("retry at 500")
-                    .whenScenarioStateIs("first attempt")
-                    .willSetStateTo("second attempt")
-                    .willReturn(aResponse()
-                                    .withStatus(200)
-                                    .withBody("{}").withFixedDelay(DELAY_AFTER_TIMEOUT)));
-
-
-        verifyRetryableTimeout();
-        verifyRequestCount(2, wireMock());
-    }
-
-    @Test
     public void streamingOperation_finishedWithinTime_shouldNotTimeout() throws Exception {
-        stubFor(post(anyUrl())
-                    .willReturn(aResponse().withStatus(200).withBody("{}").withFixedDelay(DELAY_BEFORE_TIMEOUT)));
-
+        stubSuccessResponse(DELAY_BEFORE_TIMEOUT);
         verifySuccessResponseNotTimedOut();
     }
 
     @Test
     public void streamingOperation_notFinishedWithinTime_shouldTimeout() {
-        stubFor(post(anyUrl())
-                    .willReturn(aResponse().withStatus(200).withBody("{}").withFixedDelay(DELAY_AFTER_TIMEOUT)));
-
+        stubSuccessResponse(DELAY_AFTER_TIMEOUT);
         verifyTimedOut();
+    }
+
+    @Test
+    public void nonstreamingOperation_retrySucceeded_FinishedWithinTime_shouldNotTimeout() throws Exception {
+        mockHttpClient().stubResponses(Pair.of(mockResponse(500), DELAY_BEFORE_TIMEOUT),
+                                       Pair.of(mockResponse(200), DELAY_BEFORE_TIMEOUT));
+
+        assertThat(retryableCallable().call()).isNotNull();
+        verifyRequestCount(2);
+    }
+
+    @Test
+    public void nonstreamingOperation_retryWouldSucceed_notFinishedWithinTime_shouldTimeout() {
+        mockHttpClient().stubResponses(Pair.of(mockResponse(500), DELAY_BEFORE_TIMEOUT),
+                                       Pair.of(mockResponse(200), DELAY_AFTER_TIMEOUT));
+
+        verifyRetryableTimeout();
+        verifyRequestCount(2);
     }
 }

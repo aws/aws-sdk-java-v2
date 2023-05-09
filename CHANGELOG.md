@@ -1,3 +1,20 @@
+# __2.20.63__ __2023-05-09__
+## __AWS Glue__
+  - ### Features
+    - This release adds AmazonRedshift Source and Target nodes in addition to DynamicTransform OutputSchemas
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release includes support for (1) Provisioned Concurrency for Amazon SageMaker Serverless Inference and (2) UpdateEndpointWeightsAndCapacities API for Serverless endpoints.
+
+## __Application Auto Scaling__
+  - ### Features
+    - With this release, Amazon SageMaker Serverless Inference customers can use Application Auto Scaling to auto scale the provisioned concurrency of their serverless endpoints.
+
 # __2.20.62__ __2023-05-08__
 ## __AWS Glue__
   - ### Features
