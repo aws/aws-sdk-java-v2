@@ -86,6 +86,7 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
         tests.put("For region us-isob-east-1 with FIPS disabled and DualStack enabled", "Client builder does the validation");
         tests.put("For region us-isob-west-1 with FIPS enabled and DualStack enabled", "Client builder does the validation");
         tests.put("For region us-isob-west-1 with FIPS disabled and DualStack enabled", "Client builder does the validation");
+        tests.put("Missing region", "Client does validation");
         GLOBAL_SKIP_ENDPOINT_TESTS = Collections.unmodifiableMap(tests);
 
     }
@@ -520,6 +521,11 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
             config.add("$T.builder()", configClass());
 
             params.forEach((n, v) -> {
+
+                if (!endpointRulesSpecUtils.isDeclaredParam(n)) {
+                    return;
+                }
+
                 CodeBlock valueLiteral = endpointRulesSpecUtils.treeNodeToLiteral(v);
                 switch (n) {
                     case "UseDualStack":
@@ -653,9 +659,9 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
 
     private MethodSpec methodSetupMethod() {
         MethodSpec.Builder b = MethodSpec.methodBuilder("methodSetup")
-            .addModifiers(Modifier.PUBLIC)
-            .addAnnotation(BeforeEach.class)
-            .returns(void.class);
+                                         .addModifiers(Modifier.PUBLIC)
+                                         .addAnnotation(BeforeEach.class)
+                                         .returns(void.class);
 
         b.addStatement("super.methodSetup()");
 
@@ -675,9 +681,9 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
 
     private FieldSpec s3RegionEndpointSystemPropertySaveValueField() {
         return FieldSpec.builder(String.class, "regionalEndpointPropertySaveValue")
-            .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
-            .initializer("$T.getProperty($L)", System.class, s3RegionalEndpointSystemPropertyCode())
-            .build();
+                        .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
+                        .initializer("$T.getProperty($L)", System.class, s3RegionalEndpointSystemPropertyCode())
+                        .build();
     }
 
     private MethodSpec teardownMethod() {

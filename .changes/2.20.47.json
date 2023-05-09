@@ -1,0 +1,36 @@
+{
+    "version": "2.20.47",
+    "date": "2023-04-14",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Lambda",
+            "contributor": "",
+            "description": "This release adds SnapStart related exceptions to InvokeWithResponseStream API. IAM access related documentation is also added for this API."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Migration Hub Refactor Spaces",
+            "contributor": "",
+            "description": "Doc only update for Refactor Spaces environments without network bridge feature."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "contributor": "",
+            "description": "This release supports ephemeral storage for AWS Fargate Windows containers."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "This release adds support of modifying the engine mode of database clusters."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

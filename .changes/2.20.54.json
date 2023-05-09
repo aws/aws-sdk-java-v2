@@ -1,0 +1,30 @@
+{
+    "version": "2.20.54",
+    "date": "2023-04-26",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Fixed bug where using profile-based credentials could cause the SDK to read the profile file with each request."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "sugmanue",
+            "description": "Exclude static fields from the required fields validation done by the ToBuilderIsCorrect class"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon OpenSearch Ingestion",
+            "contributor": "",
+            "description": "Initial release for OpenSearch Ingestion"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

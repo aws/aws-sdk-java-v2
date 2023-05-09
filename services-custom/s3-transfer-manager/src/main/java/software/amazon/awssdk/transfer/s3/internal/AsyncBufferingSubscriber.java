@@ -15,9 +15,7 @@
 
 package software.amazon.awssdk.transfer.s3.internal;
 
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import org.reactivestreams.Subscriber;
@@ -25,8 +23,6 @@ import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
-import software.amazon.awssdk.utils.async.DemandIgnoringSubscription;
-import software.amazon.awssdk.utils.async.StoringSubscriber;
 
 /**
  * An implementation of {@link Subscriber} that execute the provided function for every event and limits the number of concurrent
@@ -41,11 +37,8 @@ public class AsyncBufferingSubscriber<T> implements Subscriber<T> {
     private final Function<T, CompletableFuture<?>> consumer;
     private final int maxConcurrentExecutions;
     private final AtomicInteger numRequestsInFlight;
-    private final AtomicBoolean isDelivering = new AtomicBoolean(false);
-    private volatile boolean isStreamingDone;
+    private volatile boolean upstreamDone;
     private Subscription subscription;
-
-    private final StoringSubscriber<T> storingSubscriber;
 
     public AsyncBufferingSubscriber(Function<T, CompletableFuture<?>> consumer,
                                     CompletableFuture<Void> returnFuture,
@@ -54,7 +47,6 @@ public class AsyncBufferingSubscriber<T> implements Subscriber<T> {
         this.consumer = consumer;
         this.maxConcurrentExecutions = maxConcurrentExecutions;
         this.numRequestsInFlight = new AtomicInteger(0);
-        this.storingSubscriber = new StoringSubscriber<>(Integer.MAX_VALUE);
     }
 
     @Override
@@ -65,89 +57,41 @@ public class AsyncBufferingSubscriber<T> implements Subscriber<T> {
             subscription.cancel();
             return;
         }
-        storingSubscriber.onSubscribe(new DemandIgnoringSubscription(subscription));
         this.subscription = subscription;
         subscription.request(maxConcurrentExecutions);
     }
 
     @Override
     public void onNext(T item) {
-        storingSubscriber.onNext(item);
-        flushBufferIfNeeded();
-    }
-
-    private void flushBufferIfNeeded() {
-        if (isDelivering.compareAndSet(false, true)) {
-            try {
-                Optional<StoringSubscriber.Event<T>> next = storingSubscriber.peek();
-                while (numRequestsInFlight.get() < maxConcurrentExecutions) {
-                    if (!next.isPresent()) {
-                        subscription.request(1);
-                        break;
-                    }
-
-                    switch (next.get().type()) {
-                        case ON_COMPLETE:
-                            handleCompleteEvent();
-                            break;
-                        case ON_ERROR:
-                            handleError(next.get().runtimeError());
-                            break;
-                        case ON_NEXT:
-                            handleOnNext(next.get().value());
-                            break;
-                        default:
-                            handleError(new IllegalStateException("Unknown stored type: " + next.get().type()));
-                            break;
-                    }
-
-                    next = storingSubscriber.peek();
-                }
-            } finally {
-                isDelivering.set(false);
-            }
-        }
-    }
-
-    private void handleOnNext(T item) {
-        storingSubscriber.poll();
-
-        int numberOfRequestInFlight = numRequestsInFlight.incrementAndGet();
-        log.debug(() -> "Delivering next item, numRequestInFlight=" + numberOfRequestInFlight);
-
+        numRequestsInFlight.incrementAndGet();
         consumer.apply(item).whenComplete((r, t) -> {
-            numRequestsInFlight.decrementAndGet();
-            if (!isStreamingDone) {
+            checkForCompletion(numRequestsInFlight.decrementAndGet());
+            synchronized (this) {
                 subscription.request(1);
-            } else {
-                flushBufferIfNeeded();
             }
         });
     }
 
-    private void handleCompleteEvent() {
-        if (numRequestsInFlight.get() == 0) {
-            returnFuture.complete(null);
-            storingSubscriber.poll();
-        }
-    }
-
     @Override
     public void onError(Throwable t) {
-        handleError(t);
-        storingSubscriber.onError(t);
-    }
-
-    private void handleError(Throwable t) {
+        // Need to complete future exceptionally first to prevent
+        // accidental successful completion by a concurrent checkForCompletion.
         returnFuture.completeExceptionally(t);
-        storingSubscriber.poll();
+        upstreamDone = true;
     }
 
     @Override
     public void onComplete() {
-        isStreamingDone = true;
-        storingSubscriber.onComplete();
-        flushBufferIfNeeded();
+        upstreamDone = true;
+        checkForCompletion(numRequestsInFlight.get());
+    }
+
+    private void checkForCompletion(int requestsInFlight) {
+        if (upstreamDone && requestsInFlight == 0) {
+            // This could get invoked multiple times, but it doesn't matter
+            // because future.complete is idempotent.
+            returnFuture.complete(null);
+        }
     }
 
     /**
