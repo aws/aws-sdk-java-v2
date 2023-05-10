@@ -82,7 +82,7 @@ public final class AdaptiveRetryStrategyImpl implements AdaptiveRetryStrategy {
     @Override
     public RefreshRetryTokenResponse refreshRetryToken(RefreshRetryTokenRequest request) {
         DefaultRetryToken token = asStandardRetryToken(request.token());
-        AcquireResponse acquireResponse = requestAcquireCapacity(request, token);
+        AcquireResponse acquireResponse = requestAcquireCapacity(token);
 
         // Check if we meet the preconditions needed for retrying. These will throw if the expected condition is not meet.
         // 1) is retryable?
@@ -291,7 +291,7 @@ public final class AdaptiveRetryStrategyImpl implements AdaptiveRetryStrategy {
                                      token.getClass().getName());
     }
 
-    private AcquireResponse requestAcquireCapacity(RefreshRetryTokenRequest request, DefaultRetryToken token) {
+    private AcquireResponse requestAcquireCapacity(DefaultRetryToken token) {
         TokenBucket tokenBucket = tokenBucketStore.tokenBucketForScope(token.scope());
         return tokenBucket.tryAcquire(exceptionCost);
     }

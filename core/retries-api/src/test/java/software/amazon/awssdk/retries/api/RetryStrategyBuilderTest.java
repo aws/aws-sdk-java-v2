@@ -24,9 +24,9 @@ import java.util.function.Predicate;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-public class RetryStrategyBuilderTest {
+class RetryStrategyBuilderTest {
 
-    public static Collection<TestCase> parameters() {
+    static Collection<TestCase> parameters() {
         return Arrays.asList(
             new TestCase()
                 .configure(b -> b.retryOnException(IllegalArgumentException.class))
@@ -105,7 +105,7 @@ public class RetryStrategyBuilderTest {
 
     @ParameterizedTest
     @MethodSource("parameters")
-    public void testCase(TestCase testCase) {
+    void testCase(TestCase testCase) {
         assertThat(testCase.run()).isEqualTo(testCase.expected());
     }
 

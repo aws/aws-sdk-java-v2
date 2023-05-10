@@ -25,13 +25,13 @@ import java.util.function.Function;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-public class FixedDelayWithJitterTest {
+class FixedDelayWithJitterTest {
     static final ComputedNextInt MIN_VALUE_RND = new ComputedNextInt(bound -> 0);
     static final ComputedNextInt MID_VALUE_RND = new ComputedNextInt(bound -> bound / 2);
     static final ComputedNextInt MAX_VALUE_RND = new ComputedNextInt(bound -> bound - 1);
     static final Duration BASE_DELAY = Duration.ofMillis(23);
 
-    public static Collection<TestCase> parameters() {
+    static Collection<TestCase> parameters() {
         return Arrays.asList(
             // --- Using random that returns: bound - 1
             new TestCase()
@@ -126,7 +126,7 @@ public class FixedDelayWithJitterTest {
 
     @ParameterizedTest
     @MethodSource("parameters")
-    public void testCase(TestCase testCase) {
+    void testCase(TestCase testCase) {
         assertThat(testCase.run()).isEqualTo(testCase.expected());
     }
 

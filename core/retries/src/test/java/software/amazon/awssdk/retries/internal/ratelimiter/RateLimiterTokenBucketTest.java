@@ -24,7 +24,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-public class RateLimiterTokenBucketTest {
+class RateLimiterTokenBucketTest {
     private static MutableClock clock = null;
     private static RateLimiterTokenBucket tokenBucket = null;
     private static final double EPSILON = 0.0001;
@@ -37,7 +37,7 @@ public class RateLimiterTokenBucketTest {
 
     @ParameterizedTest
     @MethodSource("parameters")
-    public void testCase(TestCase testCase) {
+    void testCase(TestCase testCase) {
         clock.setCurrent(testCase.givenTimestamp);
         RateLimiterUpdateResponse res;
         tokenBucket.tryAcquire();
@@ -53,7 +53,7 @@ public class RateLimiterTokenBucketTest {
     }
 
 
-    public static Collection<TestCase> parameters() {
+    static Collection<TestCase> parameters() {
         return Arrays.asList(
             new TestCase()
                 .givenSuccessResponse()

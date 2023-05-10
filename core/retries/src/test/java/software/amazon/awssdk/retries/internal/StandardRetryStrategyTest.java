@@ -40,7 +40,7 @@ import software.amazon.awssdk.retries.api.TokenAcquisitionFailedException;
 import software.amazon.awssdk.retries.api.internal.AcquireInitialTokenRequestImpl;
 import software.amazon.awssdk.retries.internal.circuitbreaker.TokenBucketStore;
 
-public class StandardRetryStrategyTest {
+class StandardRetryStrategyTest {
     static final int TEST_BUCKET_CAPACITY = 100;
     static final int TEST_EXCEPTION_COST = 5;
     static final IllegalArgumentException IAE = new IllegalArgumentException();
@@ -48,7 +48,7 @@ public class StandardRetryStrategyTest {
 
     @ParameterizedTest
     @MethodSource("parameters")
-    public void testCase(TestCase testCase) {
+    void testCase(TestCase testCase) {
         testCase.run();
         if (testCase.shouldSucceed) {
             assertThat(testCase.thrown)
@@ -65,7 +65,7 @@ public class StandardRetryStrategyTest {
 
     }
 
-    public static Collection<TestCase> parameters() {
+    static Collection<TestCase> parameters() {
         BackoffStrategy backoff = BackoffStrategy.exponentialDelay(Duration.ofMillis(10), Duration.ofSeconds(25));
         return Arrays.asList(
             new TestCase("Succeeds when no exceptions are thrown")
