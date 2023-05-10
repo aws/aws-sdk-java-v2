@@ -31,12 +31,12 @@ import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.protocol.tests.util.ClosableStringInputStream;
-import software.amazon.awssdk.protocol.tests.util.MockHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
 import software.amazon.awssdk.services.protocolrestjson.model.AllTypesRequest;
 import software.amazon.awssdk.services.protocolrestjson.model.ProtocolRestJsonException;
 import software.amazon.awssdk.services.protocolrestjson.model.StreamingOutputOperationResponse;
+import software.amazon.awssdk.testutils.service.http.MockSyncHttpClient;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
@@ -44,11 +44,11 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
  */
 public class SyncClientConnectionTest {
     private ProtocolRestJsonClient client;
-    private MockHttpClient mockHttpClient;
+    private MockSyncHttpClient mockHttpClient;
 
     @BeforeEach
     public void setupClient() {
-        mockHttpClient = new MockHttpClient();
+        mockHttpClient = new MockSyncHttpClient();
         client = ProtocolRestJsonClient.builder()
                                        .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid",
                                                                                                                        "skid")))

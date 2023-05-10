@@ -15,126 +15,74 @@
 
 package software.amazon.awssdk.protocol.tests.timeout;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static software.amazon.awssdk.protocol.wiremock.WireMockUtils.verifyRequestCount;
 
-import com.github.tomakehurst.wiremock.stubbing.Scenario;
-import org.junit.Test;
+import java.time.Duration;
+import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.utils.Pair;
 
 public abstract class BaseApiCallAttemptTimeoutTest extends BaseTimeoutTest {
 
-    protected static final int API_CALL_ATTEMPT_TIMEOUT = 800;
-    protected static final int DELAY_BEFORE_API_CALL_ATTEMPT_TIMEOUT = 100;
-    protected static final int DELAY_AFTER_API_CALL_ATTEMPT_TIMEOUT = 1000;
+    protected static final Duration API_CALL_ATTEMPT_TIMEOUT = Duration.ofMillis(100);
+    protected static final Duration DELAY_BEFORE_API_CALL_ATTEMPT_TIMEOUT = Duration.ofMillis(50);
+    protected static final Duration DELAY_AFTER_API_CALL_ATTEMPT_TIMEOUT = Duration.ofMillis(150);
 
     @Test
     public void nonstreamingOperation200_finishedWithinTime_shouldSucceed() throws Exception {
-        stubFor(post(anyUrl())
-                    .willReturn(aResponse().withStatus(200).withBody("{}").withFixedDelay(DELAY_BEFORE_API_CALL_ATTEMPT_TIMEOUT)));
+        stubSuccessResponse(DELAY_BEFORE_API_CALL_ATTEMPT_TIMEOUT);
         verifySuccessResponseNotTimedOut();
     }
 
     @Test
     public void nonstreamingOperation200_notFinishedWithinTime_shouldTimeout() {
-        stubFor(post(anyUrl())
-                    .willReturn(aResponse().withStatus(200).withBody("{}").withFixedDelay(DELAY_AFTER_API_CALL_ATTEMPT_TIMEOUT)));
+        stubSuccessResponse(DELAY_AFTER_API_CALL_ATTEMPT_TIMEOUT);
         verifyTimedOut();
     }
 
     @Test
     public void nonstreamingOperation500_finishedWithinTime_shouldNotTimeout() throws Exception {
-        stubFor(post(anyUrl())
-                    .willReturn(aResponse().withStatus(500)
-                                           .withHeader("x-amzn-ErrorType", "EmptyModeledException")
-                                           .withFixedDelay(DELAY_BEFORE_API_CALL_ATTEMPT_TIMEOUT)));
+        stubErrorResponse(DELAY_BEFORE_API_CALL_ATTEMPT_TIMEOUT);
         verifyFailedResponseNotTimedOut();
     }
 
     @Test
     public void nonstreamingOperation500_notFinishedWithinTime_shouldTimeout() {
-        stubFor(post(anyUrl())
-                    .willReturn(aResponse().withStatus(500).withFixedDelay(DELAY_AFTER_API_CALL_ATTEMPT_TIMEOUT)));
+        stubErrorResponse(DELAY_AFTER_API_CALL_ATTEMPT_TIMEOUT);
         verifyTimedOut();
     }
 
     @Test
     public void streamingOperation_finishedWithinTime_shouldSucceed() throws Exception {
-        stubFor(post(anyUrl())
-                    .willReturn(aResponse().withStatus(200).withBody("{}").withFixedDelay(DELAY_BEFORE_API_CALL_ATTEMPT_TIMEOUT)));
-
+        stubSuccessResponse(DELAY_BEFORE_API_CALL_ATTEMPT_TIMEOUT);
         verifySuccessResponseNotTimedOut();
     }
 
     @Test
     public void streamingOperation_notFinishedWithinTime_shouldTimeout() {
-        stubFor(post(anyUrl())
-                    .willReturn(aResponse().withStatus(200).withBody("{}").withFixedDelay(DELAY_AFTER_API_CALL_ATTEMPT_TIMEOUT)));
-
+        stubSuccessResponse(DELAY_AFTER_API_CALL_ATTEMPT_TIMEOUT);
         verifyTimedOut();
     }
 
     @Test
     public void firstAttemptTimeout_retryFinishWithInTime_shouldNotTimeout() throws Exception {
-        stubFor(post(anyUrl())
-                    .inScenario("timed out in the first attempt")
-                    .whenScenarioStateIs(Scenario.STARTED)
-                    .willSetStateTo("first attempt")
-                    .willReturn(aResponse()
-                                    .withStatus(200).withFixedDelay(DELAY_AFTER_API_CALL_ATTEMPT_TIMEOUT)));
-
-        stubFor(post(anyUrl())
-                    .inScenario("timed out in the first attempt")
-                    .whenScenarioStateIs("first attempt")
-                    .willSetStateTo("second attempt")
-                    .willReturn(aResponse()
-                                    .withStatus(200)
-                                    .withBody("{}")
-                                    .withFixedDelay(DELAY_BEFORE_API_CALL_ATTEMPT_TIMEOUT)));
+        mockHttpClient().stubResponses(Pair.of(mockResponse(200), DELAY_AFTER_API_CALL_ATTEMPT_TIMEOUT),
+                                       Pair.of(mockResponse(200), DELAY_BEFORE_API_CALL_ATTEMPT_TIMEOUT));
 
         assertThat(retryableCallable().call()).isNotNull();
-        verifyRequestCount(2, wireMock());
+        verifyRequestCount(2);
     }
 
     @Test
-    public void firstAttemptTimeout_retryFinishWithInTime500_shouldNotTimeout() throws Exception {
-        stubFor(post(anyUrl())
-                    .inScenario("timed out in the first attempt")
-                    .whenScenarioStateIs(Scenario.STARTED)
-                    .willSetStateTo("first attempt")
-                    .willReturn(aResponse()
-                                    .withStatus(200).withFixedDelay(DELAY_AFTER_API_CALL_ATTEMPT_TIMEOUT)));
-
-        stubFor(post(anyUrl())
-                    .inScenario("timed out in the first attempt")
-                    .whenScenarioStateIs("first attempt")
-                    .willSetStateTo("second attempt")
-                    .willReturn(aResponse()
-                                    .withStatus(500)
-                                    .withFixedDelay(DELAY_BEFORE_API_CALL_ATTEMPT_TIMEOUT)));
+    public void firstAttemptTimeout_retryFinishWithInTime500_shouldNotTimeout() {
+        mockHttpClient().stubResponses(Pair.of(mockResponse(200), DELAY_AFTER_API_CALL_ATTEMPT_TIMEOUT),
+                                       Pair.of(mockResponse(500), DELAY_BEFORE_API_CALL_ATTEMPT_TIMEOUT));
         verifyRetraybleFailedResponseNotTimedOut();
+        verifyRequestCount(2);
     }
 
     @Test
-    public void allAttemtsNotFinishedWithinTime_shouldTimeout() {
-        stubFor(post(anyUrl())
-                    .inScenario("timed out in both attempts")
-                    .whenScenarioStateIs(Scenario.STARTED)
-                    .willSetStateTo("first attempt")
-                    .willReturn(aResponse()
-                                    .withStatus(200).withFixedDelay(DELAY_AFTER_API_CALL_ATTEMPT_TIMEOUT)));
-
-        stubFor(post(anyUrl())
-                    .inScenario("timed out in both attempts")
-                    .whenScenarioStateIs("first attempt")
-                    .willSetStateTo("second attempt")
-                    .willReturn(aResponse()
-                                    .withStatus(200)
-                                    .withBody("{}")
-                                    .withFixedDelay(DELAY_AFTER_API_CALL_ATTEMPT_TIMEOUT)));
+    public void allAttemptsNotFinishedWithinTime_shouldTimeout() {
+        stubSuccessResponse(DELAY_AFTER_API_CALL_ATTEMPT_TIMEOUT);
         verifyRetryableTimeout();
     }
 }

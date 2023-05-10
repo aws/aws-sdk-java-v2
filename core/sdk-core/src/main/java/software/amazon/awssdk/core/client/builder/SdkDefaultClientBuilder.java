@@ -264,9 +264,9 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
      */
     private SdkClientConfiguration mergeGlobalDefaults(SdkClientConfiguration configuration) {
         // Don't load the default profile file if the customer already gave us one.
-        Supplier<ProfileFile> configuredProfileFileSupplier = configuration.option(PROFILE_FILE_SUPPLIER);
-        Supplier<ProfileFile> profileFileSupplier = Optional.ofNullable(configuredProfileFileSupplier)
-                                                            .orElseGet(() -> ProfileFile::defaultProfileFile);
+        Supplier<ProfileFile> profileFileSupplier =
+            Optional.ofNullable(configuration.option(PROFILE_FILE_SUPPLIER))
+                    .orElseGet(() -> ProfileFileSupplier.fixedProfileFile(ProfileFile.defaultProfileFile()));
 
         return configuration.merge(c -> c.option(EXECUTION_INTERCEPTORS, new ArrayList<>())
                                          .option(ADDITIONAL_HTTP_HEADERS, new LinkedHashMap<>())

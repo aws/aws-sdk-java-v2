@@ -48,7 +48,6 @@ import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.crt.internal.CrtRequestContext;
 import software.amazon.awssdk.http.crt.internal.CrtRequestExecutor;
-import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.IoUtils;
@@ -200,13 +199,9 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
         paramNotNull(asyncRequest.requestContentPublisher(), "RequestContentPublisher");
         paramNotNull(asyncRequest.responseHandler(), "ResponseHandler");
 
-        if (asyncRequest.metricCollector().isPresent()) {
-            MetricCollector metricCollector = asyncRequest.metricCollector().get();
-
-            if (metricCollector != null && !(metricCollector instanceof NoOpMetricCollector)) {
-                metricCollector.reportMetric(HTTP_CLIENT_NAME, clientName());
-            }
-        }
+        asyncRequest.metricCollector()
+                    .filter(metricCollector -> !(metricCollector instanceof NoOpMetricCollector))
+                    .ifPresent(metricCollector -> metricCollector.reportMetric(HTTP_CLIENT_NAME, clientName()));
 
         /*
          * See the note on getOrCreateConnectionPool()
