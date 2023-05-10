@@ -31,14 +31,14 @@ import software.amazon.awssdk.retries.internal.RetryStrategyCommonTest.TestCase;
  * Tests that the configured circuit breaker for each of the strategies remembers
  * state across requests.
  */
-public class RetryStrategyCircuitBreakerRemembersStateTest {
+class RetryStrategyCircuitBreakerRemembersStateTest {
     static final int TEST_EXCEPTION_COST = 5;
     static final int TEST_MAX = 50;
     static final IllegalArgumentException IAE = new IllegalArgumentException();
 
     @ParameterizedTest
     @MethodSource("parameters")
-    public void circuitBreakerRemembersState(Function<String, TestCase> defaultTestCaseSupplier) {
+    void circuitBreakerRemembersState(Function<String, TestCase> defaultTestCaseSupplier) {
         BackoffStrategy backoff = BackoffStrategy.exponentialDelay(Duration.ofMillis(10), Duration.ofSeconds(25));
         TestCase testCase = defaultTestCaseSupplier.apply("circuit breaker remembers state")
                                                    .configure(b -> b.maxAttempts(3))
@@ -69,7 +69,7 @@ public class RetryStrategyCircuitBreakerRemembersStateTest {
         assertThat(testCase.token.state()).as(name).isEqualTo(DefaultRetryToken.TokenState.TOKEN_ACQUISITION_FAILED);
     }
 
-    public static List<Function<String, TestCase>> parameters() {
+    static List<Function<String, TestCase>> parameters() {
         return Arrays.asList(
             RetryStrategyCommonTest.TestCaseForLegacy::new,
             RetryStrategyCommonTest.TestCaseForStandard::new,

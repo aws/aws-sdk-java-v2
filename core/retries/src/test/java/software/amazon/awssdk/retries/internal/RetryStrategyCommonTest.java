@@ -43,7 +43,7 @@ import software.amazon.awssdk.retries.internal.circuitbreaker.TokenBucketStore;
 /**
  * Test cases common that all retries strategies should satisfy.
  */
-public class RetryStrategyCommonTest {
+class RetryStrategyCommonTest {
 
     static final int TEST_BUCKET_CAPACITY = 100;
     static final int TEST_EXCEPTION_COST = 5;
@@ -52,7 +52,7 @@ public class RetryStrategyCommonTest {
 
     @ParameterizedTest
     @MethodSource("parameters")
-    public void testCase(TestCase testCase) {
+    void testCase(TestCase testCase) {
         testCase.run();
         if (testCase.shouldSucceed) {
             assertThat(testCase.thrown)
@@ -68,14 +68,14 @@ public class RetryStrategyCommonTest {
         assertThat(testCase.token.state()).as(testCase.name).isEqualTo(testCase.expectedState);
     }
 
-    public static Stream<TestCase> parameters() {
+    static Stream<TestCase> parameters() {
         return Stream.concat(
             Stream.concat(buildCases(TestCaseForLegacy::new),
                           buildCases(TestCaseForStandard::new)),
             buildCases(TestCaseForAdaptive::new));
     }
 
-    public static Stream<TestCase> buildCases(Function<String, TestCase> defaultTestCaseSupplier) {
+    static Stream<TestCase> buildCases(Function<String, TestCase> defaultTestCaseSupplier) {
         // Configure with well-known values to be able to assert on these without relaying any configured defaults.
         Function<String, TestCase> testCaseSupplier =
             defaultTestCaseSupplier.andThen(t -> t.configureTokenBucketExceptionCost(TEST_EXCEPTION_COST)
