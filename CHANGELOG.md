@@ -1,3 +1,25 @@
+# __2.20.64__ __2023-05-10__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - STS was being skipped in the default credential provider chain when using native builds in java. Now a proper reflect-config.json file was added to include sts.
+        - Contributed by: [@martinKindall](https://github.com/martinKindall)
+
+## __Amazon EMR__
+  - ### Features
+    - EMR Studio now supports programmatically executing a Notebooks on an EMR on EKS cluster. In addition, notebooks can now be executed by specifying its location in S3.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Amazon Relational Database Service (RDS) updates for the new Aurora I/O-Optimized storage type for Amazon Aurora DB clusters
+
+## __Amazon Simple Workflow Service__
+  - ### Features
+    - This release adds a new API parameter to exclude old history events from decision tasks.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@martinKindall](https://github.com/martinKindall)
 # __2.20.63__ __2023-05-09__
 ## __AWS Glue__
   - ### Features

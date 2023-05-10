@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Simple Workflow Service",
-    "contributor": "",
-    "description": "This release adds a new API parameter to exclude old history events from decision tasks."
-}
