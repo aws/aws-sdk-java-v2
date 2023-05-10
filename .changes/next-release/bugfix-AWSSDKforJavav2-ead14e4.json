@@ -1,0 +1,6 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "contributor": "martinKindall", 
+    "type": "bugfix", 
+    "description": "STS was being skipped in the default credential provider chain when using native builds in java. Now a proper reflect-config.json file was added to include sts."
+}
