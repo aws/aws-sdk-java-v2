@@ -84,7 +84,6 @@ public interface AdaptiveRetryStrategy extends RetryStrategy<AdaptiveRetryStrate
          */
         Builder treatAsThrottling(Predicate<Throwable> treatAsThrottling);
 
-
         @Override
         AdaptiveRetryStrategy build();
     }

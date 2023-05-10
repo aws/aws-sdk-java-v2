@@ -15,70 +15,86 @@
 
 package software.amazon.awssdk.retries;
 
+import java.util.function.Predicate;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.retries.api.BackoffStrategy;
 import software.amazon.awssdk.retries.api.RetryStrategy;
-import software.amazon.awssdk.retries.internal.StandardRetryStrategyImpl;
+import software.amazon.awssdk.retries.internal.LegacyRetryStrategyImpl;
 import software.amazon.awssdk.retries.internal.circuitbreaker.TokenBucketStore;
 
 /**
- * The standard retry strategy is the recommended {@link RetryStrategy} for normal use-cases.
+ * The legacy retry strategy is a {@link RetryStrategy} for normal use-cases.
  * <p>
- * Unlike {@link AdaptiveRetryStrategy}, the standard strategy is generally useful across all retry use-cases.
+ * Like the {@link StandardRetryStrategy}, the legacy strategy is generally useful across all retry use-cases. Unlike the
+ * {@link StandardRetryStrategy} this strategy has special treatment for throttling exceptions by being less sensitive to
+ * triggering the circuit breaking and also by backing off with a higher base delay.
  * <p>
- * The standard retry strategy by default:
+ * Unlike {@link AdaptiveRetryStrategy}, the legacy strategy is generally useful across all retry use-cases.
+ * <p>
+ * The legacy retry strategy by default:
  * <ol>
  *     <li>Retries on the conditions configured in the {@link Builder}.
  *     <li>Retries 2 times (3 total attempts). Adjust with {@link Builder#maxAttempts(int)}
- *     <li>Uses the {@link BackoffStrategy#exponentialDelay} backoff strategy, with a base delay of
- *     1 second and max delay of 20 seconds. Adjust with {@link Builder#backoffStrategy}
+ *     <li>For non-throttling exceptions uses the {@link BackoffStrategy#exponentialDelay} backoff strategy, with a base delay
+ *     of 100 milliseconds and max delay of 20 seconds. Adjust with {@link Builder#backoffStrategy}
+ *     <li>For throttling exceptions uses the {@link BackoffStrategy#exponentialDelay} backoff strategy, with a base delay of
+ *     500 milliseconds  and max delay of 20 seconds. Adjust with {@link LegacyRetryStrategy.Builder#throttlingBackoffStrategy}
  *     <li>Circuit breaking (disabling retries) in the event of high downstream failures across the scope of
  *     the strategy. The circuit breaking will never prevent a successful first attempt. Adjust with
  *     {@link Builder#circuitBreakerEnabled}.
  * </ol>
  *
+ * @see StandardRetryStrategy
  * @see AdaptiveRetryStrategy
  */
 @SdkPublicApi
 @ThreadSafe
-public interface StandardRetryStrategy extends RetryStrategy<StandardRetryStrategy.Builder, StandardRetryStrategy> {
+public interface LegacyRetryStrategy extends RetryStrategy<LegacyRetryStrategy.Builder, LegacyRetryStrategy> {
     /**
-     * Create a new {@link StandardRetryStrategy.Builder}.
+     * Create a new {@link LegacyRetryStrategy.Builder}.
      *
      * <p>Example Usage
      * <pre>
-     * StandardRetryStrategy retryStrategy =
-     *     StandardRetryStrategy.builder()
+     * LegacyRetryStrategy retryStrategy =
+     *     LegacyRetryStrategy.builder()
      *                          .retryOnExceptionInstanceOf(IllegalArgumentException.class)
      *                          .retryOnExceptionInstanceOf(IllegalStateException.class)
      *                          .build();
      * </pre>
      */
     static Builder builder() {
-        return StandardRetryStrategyImpl
+        return LegacyRetryStrategyImpl
             .builder()
-            .maxAttempts(DefaultRetryStrategy.Standard.MAX_ATTEMPTS)
+            .maxAttempts(DefaultRetryStrategy.Legacy.MAX_ATTEMPTS)
             .tokenBucketStore(TokenBucketStore
                                   .builder()
-                                  .tokenBucketMaxCapacity(DefaultRetryStrategy.Standard.TOKEN_BUCKET_SIZE)
+                                  .tokenBucketMaxCapacity(DefaultRetryStrategy.Legacy.TOKEN_BUCKET_SIZE)
                                   .build())
-            .tokenBucketExceptionCost(DefaultRetryStrategy.Standard.DEFAULT_EXCEPTION_TOKEN_COST);
+            .tokenBucketExceptionCost(DefaultRetryStrategy.Legacy.DEFAULT_EXCEPTION_TOKEN_COST)
+            .tokenBucketThrottlingExceptionCost(DefaultRetryStrategy.Legacy.THROTTLE_EXCEPTION_TOKEN_COST);
     }
 
     @Override
     Builder toBuilder();
 
-    interface Builder extends RetryStrategy.Builder<Builder, StandardRetryStrategy> {
+    interface Builder extends RetryStrategy.Builder<Builder, LegacyRetryStrategy> {
         /**
-         * Configure the backoff strategy used by this executor.
+         * Configure the backoff strategy used by this strategy.
          *
          * <p>By default, this uses jittered exponential backoff.
          */
         Builder backoffStrategy(BackoffStrategy backoffStrategy);
 
         /**
-         * Whether circuit breaking is enabled for this executor.
+         * Configure the backoff strategy used for throttling exceptions by this strategy.
+         *
+         * <p>By default, this uses jittered exponential backoff.
+         */
+        Builder throttlingBackoffStrategy(BackoffStrategy throttlingBackoffStrategy);
+
+        /**
+         * Whether circuit breaking is enabled for this strategy.
          *
          * <p>The circuit breaker will prevent attempts (even below the {@link #maxAttempts(int)}) if a large number of
          * failures are observed by this executor.
@@ -92,7 +108,12 @@ public interface StandardRetryStrategy extends RetryStrategy<StandardRetryStrate
          */
         Builder circuitBreakerEnabled(Boolean circuitBreakerEnabled);
 
+        /**
+         * Configure the predicate to allow the strategy categorize a Throwable as throttling exception.
+         */
+        Builder treatAsThrottling(Predicate<Throwable> treatAsThrottling);
+
         @Override
-        StandardRetryStrategy build();
+        LegacyRetryStrategy build();
     }
 }

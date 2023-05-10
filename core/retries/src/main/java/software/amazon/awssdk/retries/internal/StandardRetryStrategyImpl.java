@@ -283,7 +283,6 @@ public final class StandardRetryStrategyImpl implements StandardRetryStrategy {
     }
 
     public static class Builder implements StandardRetryStrategy.Builder {
-        private static final int DEFAULT_EXCEPTION_TOKEN_COST = 5;
         private static final int DEFAULT_TOKEN_BUCKET_SIZE = 500;
         private List<Predicate<Throwable>> predicates;
         private int maxAttempts;
@@ -294,7 +293,6 @@ public final class StandardRetryStrategyImpl implements StandardRetryStrategy {
 
         Builder() {
             predicates = new ArrayList<>();
-            exceptionCost = DEFAULT_EXCEPTION_TOKEN_COST;
             circuitBreakerEnabled = true;
             tokenBucketStore = TokenBucketStore.builder()
                                                .tokenBucketMaxCapacity(DEFAULT_TOKEN_BUCKET_SIZE)

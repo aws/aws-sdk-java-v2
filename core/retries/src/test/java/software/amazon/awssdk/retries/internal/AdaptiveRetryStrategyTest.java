@@ -166,7 +166,7 @@ public class AdaptiveRetryStrategyTest {
         List<Exception> exceptions = new ArrayList<>();
         AdaptiveRetryStrategyImpl.Builder builder =
             (AdaptiveRetryStrategyImpl.Builder)
-                DefaultRetryStrategy.adaptiveRetryStrategyBuilder();
+                DefaultRetryStrategy.adaptiveStrategyBuilder();
         Throwable thrown;
         boolean shouldSucceed = false;
         boolean succeeded;

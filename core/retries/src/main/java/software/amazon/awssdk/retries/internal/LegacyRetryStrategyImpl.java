@@ -21,7 +21,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.retries.AdaptiveRetryStrategy;
+import software.amazon.awssdk.retries.LegacyRetryStrategy;
 import software.amazon.awssdk.retries.api.AcquireInitialTokenRequest;
 import software.amazon.awssdk.retries.api.AcquireInitialTokenResponse;
 import software.amazon.awssdk.retries.api.BackoffStrategy;
@@ -31,51 +31,48 @@ import software.amazon.awssdk.retries.api.RefreshRetryTokenRequest;
 import software.amazon.awssdk.retries.api.RefreshRetryTokenResponse;
 import software.amazon.awssdk.retries.api.RetryToken;
 import software.amazon.awssdk.retries.api.TokenAcquisitionFailedException;
+import software.amazon.awssdk.retries.api.internal.AcquireInitialTokenResponseImpl;
 import software.amazon.awssdk.retries.api.internal.RefreshRetryTokenResponseImpl;
 import software.amazon.awssdk.retries.internal.circuitbreaker.AcquireResponse;
 import software.amazon.awssdk.retries.internal.circuitbreaker.ReleaseResponse;
 import software.amazon.awssdk.retries.internal.circuitbreaker.TokenBucket;
 import software.amazon.awssdk.retries.internal.circuitbreaker.TokenBucketStore;
-import software.amazon.awssdk.retries.internal.ratelimiter.RateLimiterAcquireResponse;
-import software.amazon.awssdk.retries.internal.ratelimiter.RateLimiterTokenBucket;
-import software.amazon.awssdk.retries.internal.ratelimiter.RateLimiterTokenBucketStore;
-import software.amazon.awssdk.retries.internal.ratelimiter.RateLimiterUpdateResponse;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * Implementation of the {@link AdaptiveRetryStrategy} interface.
+ * Implementation of the {@link LegacyRetryStrategy} interface.
  */
 @SdkInternalApi
-public final class AdaptiveRetryStrategyImpl implements AdaptiveRetryStrategy {
-    private static final Logger LOG = Logger.loggerFor(AdaptiveRetryStrategyImpl.class);
-    private final List<Predicate<Throwable>> retryPredicates;
+public final class LegacyRetryStrategyImpl implements LegacyRetryStrategy {
+    private static final Logger LOG = Logger.loggerFor(LegacyRetryStrategyImpl.class);
+
+    private final List<Predicate<Throwable>> predicates;
     private final int maxAttempts;
     private final boolean circuitBreakerEnabled;
     private final BackoffStrategy backoffStrategy;
-    private final int tokenBucketMaxCapacity;
+    private final BackoffStrategy throttlingBackoffStrategy;
     private final int exceptionCost;
+    private final int throttlingExceptionCost;
     private final Predicate<Throwable> treatAsThrottling;
     private final TokenBucketStore tokenBucketStore;
-    private final RateLimiterTokenBucketStore rateLimiterTokenBucketStore;
 
-    private AdaptiveRetryStrategyImpl(Builder builder) {
-        this.retryPredicates = Collections.unmodifiableList(Validate.paramNotNull(builder.retryPredicates, "retryPredicates"));
+    private LegacyRetryStrategyImpl(Builder builder) {
+        this.predicates = Collections.unmodifiableList(Validate.paramNotNull(builder.predicates, "predicates"));
         this.maxAttempts = Validate.isPositive(builder.maxAttempts, "maxAttempts");
         this.circuitBreakerEnabled = builder.circuitBreakerEnabled;
         this.backoffStrategy = Validate.paramNotNull(builder.backoffStrategy, "backoffStrategy");
-        this.exceptionCost = builder.exceptionCost;
-        this.tokenBucketMaxCapacity = builder.tokenBucketMaxCapacity;
+        this.throttlingBackoffStrategy = Validate.paramNotNull(builder.throttlingBackoffStrategy, "throttlingBackoffStrategy");
+        this.exceptionCost = Validate.paramNotNull(builder.exceptionCost, "exceptionCost");
+        this.throttlingExceptionCost = Validate.paramNotNull(builder.throttlingExceptionCost, "throttlingExceptionCost");
         this.treatAsThrottling = Validate.paramNotNull(builder.treatAsThrottling, "treatAsThrottling");
         this.tokenBucketStore = Validate.paramNotNull(builder.tokenBucketStore, "tokenBucketStore");
-        this.rateLimiterTokenBucketStore = Validate.paramNotNull(builder.rateLimiterTokenBucketStore,
-                                                                 "rateLimiterTokenBucketStore");
     }
 
     @Override
     public AcquireInitialTokenResponse acquireInitialToken(AcquireInitialTokenRequest request) {
         logAcquireInitialToken(request);
-        return AcquireInitialTokenResponse.create(
+        return AcquireInitialTokenResponseImpl.create(
             DefaultRetryToken.builder().scope(request.scope()).build(), Duration.ZERO);
     }
 
@@ -92,24 +89,17 @@ public final class AdaptiveRetryStrategyImpl implements AdaptiveRetryStrategy {
         // 3) can we acquire a token?
         throwOnAcquisitionFailure(request, acquireResponse);
 
-        // All the conditions required to retry were meet, update the send rate if the error is categorized as throttling.
-        Throwable failure = request.failure();
-        RateLimiterTokenBucket rateLimiterTokenBucket = rateLimiterTokenBucketStore.tokenBucketForScope(token.scope());
-        if (this.treatAsThrottling.test(failure)) {
-            rateLimiterTokenBucket.updateRateAfterThrottling();
-        }
-
         // Refresh the retry token and compute the backoff delay.
         DefaultRetryToken refreshedToken = refreshToken(request, acquireResponse);
-        Duration backoff = backoffStrategy.computeDelay(refreshedToken.attempt());
-
-        // Acquire capacity from the adaptive token.
-        RateLimiterAcquireResponse rateLimiterAcquireResponse = rateLimiterTokenBucket.tryAcquire();
-
-        // Take the max delay between the suggested delay, the backoff delay and the delay of the adaptive strategy.
-        Duration adaptiveDelay = rateLimiterAcquireResponse.delay();
+        Duration backoff;
+        if (treatAsThrottling.test(request.failure())) {
+            backoff = throttlingBackoffStrategy.computeDelay(refreshedToken.attempt());
+        } else {
+            backoff = backoffStrategy.computeDelay(refreshedToken.attempt());
+        }
+        // Take the max delay between the suggested delay and the backoff delay.
         Duration suggested = request.suggestedDelay().orElse(Duration.ZERO);
-        Duration finalDelay = maxOf(suggested, backoff).plus(adaptiveDelay);
+        Duration finalDelay = maxOf(suggested, backoff);
 
         logRefreshTokenSuccess(refreshedToken, acquireResponse, finalDelay);
         return RefreshRetryTokenResponseImpl.create(refreshedToken, finalDelay);
@@ -118,9 +108,6 @@ public final class AdaptiveRetryStrategyImpl implements AdaptiveRetryStrategy {
     @Override
     public RecordSuccessResponse recordSuccess(RecordSuccessRequest request) {
         DefaultRetryToken token = asStandardRetryToken(request.token());
-
-        // Update the adaptive token bucket.
-        updateAdaptiveTokenBucket(token);
 
         // Update the circuit breaker token bucket.
         ReleaseResponse releaseResponse = updateCircuitBreakerTokenBucket(token);
@@ -139,9 +126,7 @@ public final class AdaptiveRetryStrategyImpl implements AdaptiveRetryStrategy {
     }
 
     /**
-     * Returns a builder to fine-tune this retry strategy.
-     *
-     * @return a builder for this retry strategy.
+     * Returns a builder to update this retry strategy.
      */
     public static Builder builder() {
         return new Builder();
@@ -152,11 +137,6 @@ public final class AdaptiveRetryStrategyImpl implements AdaptiveRetryStrategy {
             return left;
         }
         return right;
-    }
-
-    private RateLimiterUpdateResponse updateAdaptiveTokenBucket(DefaultRetryToken token) {
-        RateLimiterTokenBucket rateLimiterTokenBucket = rateLimiterTokenBucketStore.tokenBucketForScope(token.scope());
-        return rateLimiterTokenBucket.updateRateAfterSuccess();
     }
 
     private ReleaseResponse updateCircuitBreakerTokenBucket(DefaultRetryToken token) {
@@ -276,8 +256,8 @@ public final class AdaptiveRetryStrategyImpl implements AdaptiveRetryStrategy {
 
     private boolean isNonRetryableException(RefreshRetryTokenRequest request) {
         Throwable failure = request.failure();
-        for (Predicate<Throwable> retryPredicate : retryPredicates) {
-            if (retryPredicate.test(failure)) {
+        for (Predicate<Throwable> predicate : predicates) {
+            if (predicate.test(failure)) {
                 return false;
             }
         }
@@ -296,7 +276,11 @@ public final class AdaptiveRetryStrategyImpl implements AdaptiveRetryStrategy {
         if (!circuitBreakerEnabled) {
             return tokenBucket.tryAcquire(0);
         }
-        return tokenBucket.tryAcquire(exceptionCost);
+        int cost = exceptionCost;
+        if (treatAsThrottling.test(request.failure())) {
+            cost = throttlingExceptionCost;
+        }
+        return tokenBucket.tryAcquire(cost);
     }
 
     private DefaultRetryToken refreshToken(RefreshRetryTokenRequest request, AcquireResponse acquireResponse) {
@@ -310,37 +294,37 @@ public final class AdaptiveRetryStrategyImpl implements AdaptiveRetryStrategy {
                     .build();
     }
 
-    public static class Builder implements AdaptiveRetryStrategy.Builder {
-        private List<Predicate<Throwable>> retryPredicates;
+    public static class Builder implements LegacyRetryStrategy.Builder {
+        private List<Predicate<Throwable>> predicates;
         private int maxAttempts;
         private boolean circuitBreakerEnabled;
-        private int tokenBucketMaxCapacity;
-        private int exceptionCost;
+        private Integer exceptionCost;
+        private Integer throttlingExceptionCost;
         private Predicate<Throwable> treatAsThrottling;
         private BackoffStrategy backoffStrategy;
+        private BackoffStrategy throttlingBackoffStrategy;
         private TokenBucketStore tokenBucketStore;
-        private RateLimiterTokenBucketStore rateLimiterTokenBucketStore;
 
         Builder() {
-            retryPredicates = new ArrayList<>();
+            predicates = new ArrayList<>();
             circuitBreakerEnabled = true;
         }
 
-        Builder(AdaptiveRetryStrategyImpl strategy) {
-            this.retryPredicates = new ArrayList<>(strategy.retryPredicates);
+        Builder(LegacyRetryStrategyImpl strategy) {
+            this.predicates = new ArrayList<>(strategy.predicates);
             this.maxAttempts = strategy.maxAttempts;
             this.circuitBreakerEnabled = strategy.circuitBreakerEnabled;
-            this.tokenBucketMaxCapacity = strategy.tokenBucketMaxCapacity;
             this.exceptionCost = strategy.exceptionCost;
+            this.throttlingExceptionCost = strategy.throttlingExceptionCost;
             this.treatAsThrottling = strategy.treatAsThrottling;
             this.backoffStrategy = strategy.backoffStrategy;
+            this.throttlingBackoffStrategy = strategy.throttlingBackoffStrategy;
             this.tokenBucketStore = strategy.tokenBucketStore;
-            this.rateLimiterTokenBucketStore = strategy.rateLimiterTokenBucketStore;
         }
 
         @Override
         public Builder retryOnException(Predicate<Throwable> shouldRetry) {
-            this.retryPredicates.add(shouldRetry);
+            this.predicates.add(shouldRetry);
             return this;
         }
 
@@ -351,31 +335,6 @@ public final class AdaptiveRetryStrategyImpl implements AdaptiveRetryStrategy {
         }
 
         @Override
-        public Builder treatAsThrottling(Predicate<Throwable> treatAsThrottling) {
-            this.treatAsThrottling = treatAsThrottling;
-            return this;
-        }
-
-        public Builder tokenBucketStore(TokenBucketStore tokenBucketStore) {
-            this.tokenBucketStore = tokenBucketStore;
-            return this;
-        }
-
-        public Builder rateLimiterTokenBucketStore(RateLimiterTokenBucketStore rateLimiterTokenBucketStore) {
-            this.rateLimiterTokenBucketStore = rateLimiterTokenBucketStore;
-            return this;
-        }
-
-        public Builder backoffStrategy(BackoffStrategy backoffStrategy) {
-            this.backoffStrategy = backoffStrategy;
-            return this;
-        }
-
-        public Builder tokenBucketExceptionCost(int exceptionCost) {
-            this.exceptionCost = exceptionCost;
-            return this;
-        }
-
         public Builder circuitBreakerEnabled(Boolean circuitBreakerEnabled) {
             if (circuitBreakerEnabled == null) {
                 this.circuitBreakerEnabled = true;
@@ -385,10 +344,42 @@ public final class AdaptiveRetryStrategyImpl implements AdaptiveRetryStrategy {
             return this;
         }
 
+        @Override
+        public Builder backoffStrategy(BackoffStrategy backoffStrategy) {
+            this.backoffStrategy = backoffStrategy;
+            return this;
+        }
 
         @Override
-        public AdaptiveRetryStrategyImpl build() {
-            return new AdaptiveRetryStrategyImpl(this);
+        public Builder treatAsThrottling(Predicate<Throwable> treatAsThrottling) {
+            this.treatAsThrottling = treatAsThrottling;
+            return this;
+        }
+
+        @Override
+        public Builder throttlingBackoffStrategy(BackoffStrategy throttlingBackoffStrategy) {
+            this.throttlingBackoffStrategy = throttlingBackoffStrategy;
+            return this;
+        }
+
+        public Builder tokenBucketExceptionCost(int exceptionCost) {
+            this.exceptionCost = exceptionCost;
+            return this;
+        }
+
+        public Builder tokenBucketThrottlingExceptionCost(int throttlingExceptionCost) {
+            this.throttlingExceptionCost = throttlingExceptionCost;
+            return this;
+        }
+
+        public Builder tokenBucketStore(TokenBucketStore tokenBucketStore) {
+            this.tokenBucketStore = tokenBucketStore;
+            return this;
+        }
+
+        @Override
+        public LegacyRetryStrategyImpl build() {
+            return new LegacyRetryStrategyImpl(this);
         }
     }
 }
