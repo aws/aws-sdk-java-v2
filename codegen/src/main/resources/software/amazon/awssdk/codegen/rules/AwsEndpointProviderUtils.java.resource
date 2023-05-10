@@ -174,12 +174,7 @@ public final class AwsEndpointProviderUtils {
      * request path: e.g., StringUtils.replaceOnce("/", "//test", "") generates "/test" and the expected result is "//test"
      */
     private static String combinePath(String clientEndpointPath, String requestPath, String resolvedUriPath) {
-        String clientEndpointPathWithoutTrailingSlash =
-            clientEndpointPath.endsWith("/") ?
-            clientEndpointPath.substring(0, clientEndpointPath.length() - 1) :
-            clientEndpointPath;
-
-        String requestPathWithClientPathRemoved = StringUtils.replaceOnce(requestPath, clientEndpointPathWithoutTrailingSlash, "");
+        String requestPathWithClientPathRemoved = StringUtils.replaceOnce(requestPath, clientEndpointPath, "");
         String finalPath = SdkHttpUtils.appendUri(resolvedUriPath, requestPathWithClientPathRemoved);
         return finalPath;
     }
