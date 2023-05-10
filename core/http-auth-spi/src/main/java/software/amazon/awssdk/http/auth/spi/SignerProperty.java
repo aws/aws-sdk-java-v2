@@ -17,7 +17,7 @@ package software.amazon.awssdk.http.auth.spi;
 
 import java.util.Objects;
 import software.amazon.awssdk.annotations.Immutable;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
@@ -26,7 +26,7 @@ import software.amazon.awssdk.utils.Validate;
  * A strongly-typed property for input to an {@link HttpSigner}.
  * @param <T> The type of the attribute.
  */
-@SdkProtectedApi
+@SdkPublicApi
 @Immutable
 @ThreadSafe
 public final class SignerProperty<T> {

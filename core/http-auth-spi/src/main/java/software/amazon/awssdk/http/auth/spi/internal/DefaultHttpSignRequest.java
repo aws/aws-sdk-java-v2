@@ -26,18 +26,17 @@ import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
-// public because it is in different (sub) package
 public final class DefaultHttpSignRequest<PayloadT> implements HttpSignRequest<PayloadT> {
 
     private final Class<PayloadT> payloadType;
     private final SdkHttpRequest request;
-    private final Optional<PayloadT> payload;
+    private final PayloadT payload;
     private final HashMap<SignerProperty<?>, Object> properties;
 
     DefaultHttpSignRequest(BuilderImpl<PayloadT>  builder) {
         this.payloadType = Validate.paramNotNull(builder.payloadType, "payloadType");
         this.request = Validate.paramNotNull(builder.request, "request");
-        this.payload = builder.payload == null ? Optional.empty() : Optional.of(builder.payload);
+        this.payload = builder.payload;
         this.properties = new HashMap<>(builder.properties);
     }
 
@@ -53,7 +52,7 @@ public final class DefaultHttpSignRequest<PayloadT> implements HttpSignRequest<P
 
     @Override
     public Optional payload() {
-        return payload;
+        return payload == null ? Optional.empty() : Optional.of(payload);
     }
 
     @Override
@@ -72,7 +71,6 @@ public final class DefaultHttpSignRequest<PayloadT> implements HttpSignRequest<P
     }
 
 
-    // public because it is in different (sub) package
     public static final class BuilderImpl<PayloadT> implements Builder<PayloadT> {
         private final Class<PayloadT> payloadType;
         private SdkHttpRequest request;
