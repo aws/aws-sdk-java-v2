@@ -31,7 +31,7 @@ public final class DefaultHttpSignRequest<PayloadT> implements HttpSignRequest<P
     private final Class<PayloadT> payloadType;
     private final SdkHttpRequest request;
     private final PayloadT payload;
-    private final HashMap<SignerProperty<?>, Object> properties;
+    private final Map<SignerProperty<?>, Object> properties;
 
     DefaultHttpSignRequest(BuilderImpl<PayloadT>  builder) {
         this.payloadType = Validate.paramNotNull(builder.payloadType, "payloadType");
@@ -65,7 +65,6 @@ public final class DefaultHttpSignRequest<PayloadT> implements HttpSignRequest<P
         return ToString.builder("DefaultHttpSignRequest")
                        .add("payloadType", payloadType)
                        .add("request", request)
-                       // .add("payload", payload)
                        .add("properties", properties)
                        .build();
     }
