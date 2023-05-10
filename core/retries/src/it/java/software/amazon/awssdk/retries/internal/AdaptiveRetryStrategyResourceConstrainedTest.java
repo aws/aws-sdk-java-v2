@@ -93,7 +93,7 @@ class AdaptiveRetryStrategyResourceConstrainedTest {
         executor.shutdown();
     }
 
-    public static List<Client> createClients(Server server, AdaptiveRetryStrategy strategy, int amount, int jobsPerClient) {
+    private static List<Client> createClients(Server server, AdaptiveRetryStrategy strategy, int amount, int jobsPerClient) {
         return IntStream.range(0, amount)
                         .mapToObj(idx -> createClient(server, strategy, jobsPerClient))
                         .collect(Collectors.toCollection(() -> new ArrayList<>(amount)));
@@ -103,7 +103,7 @@ class AdaptiveRetryStrategyResourceConstrainedTest {
         return new Client(createJobs(jobs), server, strategy);
     }
 
-    public static List<Job> createJobs(int amount) {
+    private static List<Job> createJobs(int amount) {
         // We use a non-small but fixed size here instead of random ones to have a more predictable workload.
         int rows = 256;
         int cols = 256 + 128;
@@ -142,13 +142,13 @@ class AdaptiveRetryStrategyResourceConstrainedTest {
             this.strategy = strategy;
         }
 
-        public void processAllJobs() {
+        void processAllJobs() {
             for (Job job : jobs) {
                 process(job);
             }
         }
 
-        public void process(Job job) {
+        void process(Job job) {
             // submit job
             AcquireInitialTokenResponse response = strategy.acquireInitialToken(AcquireInitialTokenRequest.create("client"));
             RetryToken token = response.token();
@@ -222,7 +222,7 @@ class AdaptiveRetryStrategyResourceConstrainedTest {
             CompletableFuture.allOf(workers.toArray(new CompletableFuture[0])).join();
         }
 
-        public void accept(Job job) {
+        void accept(Job job) {
             if (!jobQueue.offer(job)) {
                 // No space left in the queue to take this job, throw a ThrottlingException to notify the
                 // client about it and let him retry at a later time.
@@ -238,6 +238,7 @@ class AdaptiveRetryStrategyResourceConstrainedTest {
             this.jobQueue = jobQueue;
         }
 
+        @Override
         public void run() {
             while (true) {
                 try {
