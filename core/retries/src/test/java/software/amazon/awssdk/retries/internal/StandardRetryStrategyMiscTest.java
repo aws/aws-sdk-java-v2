@@ -28,14 +28,14 @@ import software.amazon.awssdk.retries.internal.circuitbreaker.TokenBucketStore;
  * Tests that the circuit breaker remembers its previous state for separated
  * requests.
  */
-public class StandardRetryStrategyMiscTest {
+class StandardRetryStrategyMiscTest {
     static final int TEST_EXCEPTION_COST = 5;
     static final int TEST_MAX = 50;
     static final IllegalArgumentException IAE = new IllegalArgumentException();
     static final RuntimeException RTE = new RuntimeException();
 
     @Test
-    public void circuitBreakerRemembersState() {
+    void circuitBreakerRemembersState() {
         BackoffStrategy backoff = BackoffStrategy.exponentialDelay(Duration.ofMillis(10), Duration.ofSeconds(25));
         TestCase testCase = new TestCase("circuit breaker remembers state")
             .configure(b -> b.maxAttempts(3))

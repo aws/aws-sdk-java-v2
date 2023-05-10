@@ -22,7 +22,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  */
 @SdkPublicApi
 public final class TokenAcquisitionFailedException extends RuntimeException {
-    private final RetryToken token;
+    private final transient RetryToken token;
 
     /**
      * Exception construction accepting message with no root cause.

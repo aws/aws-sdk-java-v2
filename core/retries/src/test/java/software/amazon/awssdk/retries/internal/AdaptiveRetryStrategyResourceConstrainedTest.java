@@ -51,10 +51,10 @@ import software.amazon.awssdk.retries.internal.ratelimiter.RateLimiterTokenBucke
  * are made to a very resource-constrained set of resources, and we expect that the delays created by the rate limiter allows the
  * perceived availability for the clients to be close to 1.0.
  */
-public class AdaptiveRetryStrategyResourceConstrainedTest {
+class AdaptiveRetryStrategyResourceConstrainedTest {
 
     @Test
-    public void seemsToBeCorrectAndThreadSafe() {
+    void seemsToBeCorrectAndThreadSafe() {
         // Arrange the test. We allocate a single thread for each server worker
         // and for each client worker.
         int serverWorkers = 1;

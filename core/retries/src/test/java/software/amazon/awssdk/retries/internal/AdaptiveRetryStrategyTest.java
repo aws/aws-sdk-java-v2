@@ -44,7 +44,7 @@ import software.amazon.awssdk.retries.internal.ratelimiter.RateLimiterTokenBucke
 // The tests here are the same set of test from the StandardRetryStrategy, both should be passing the same battery of tests.
 // Unfortunately It's not possible  to create a single parametrized test on RetryStrategy given the different types required to
 // configure each strategy.
-public class AdaptiveRetryStrategyTest {
+class AdaptiveRetryStrategyTest {
     static final int TEST_BUCKET_CAPACITY = 100;
     static final int TEST_EXCEPTION_COST = 5;
     static final IllegalArgumentException IAE = new IllegalArgumentException();
@@ -52,7 +52,7 @@ public class AdaptiveRetryStrategyTest {
 
     @ParameterizedTest
     @MethodSource("parameters")
-    public void testCase(TestCase testCase) {
+    void testCase(TestCase testCase) {
         testCase.run();
         if (testCase.shouldSucceed) {
             assertThat(testCase.thrown)
@@ -68,7 +68,7 @@ public class AdaptiveRetryStrategyTest {
         assertThat(testCase.token.state()).as(testCase.name).isEqualTo(testCase.expectedState);
     }
 
-    public static Collection<TestCase> parameters() {
+    static Collection<TestCase> parameters() {
         BackoffStrategy backoff = BackoffStrategy.exponentialDelay(Duration.ofMillis(10), Duration.ofSeconds(25));
         return Arrays.asList(
             new TestCase("Succeeds when no exceptions are thrown")
