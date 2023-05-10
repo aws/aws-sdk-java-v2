@@ -37,6 +37,7 @@
         <module>arns</module>
         <module>auth</module>
         <module>identity-spi</module>
+        <module>http-auth-spi</module>
         <module>auth-crt</module>
         <module>sdk-core</module>
         <module>aws-core</module>
