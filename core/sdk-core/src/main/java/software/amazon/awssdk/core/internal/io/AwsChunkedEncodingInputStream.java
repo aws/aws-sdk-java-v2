@@ -32,7 +32,7 @@ import software.amazon.awssdk.utils.Validate;
  * which is added at the head of each chunk.<br>
  * The default chunk size cannot be customized, since we need to calculate
  * the expected encoded stream length before reading the wrapped stream.<br>
- * This class will use the mark() & reset() of the wrapped InputStream if they
+ * This class will use the mark() &amp; reset() of the wrapped InputStream if they
  * are supported, otherwise it will create a buffer for bytes read from
  * the wrapped stream.
  */
