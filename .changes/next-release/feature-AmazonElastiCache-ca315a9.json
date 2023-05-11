@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon ElastiCache",
-    "contributor": "",
-    "description": "Added support to modify the cluster mode configuration for the existing ElastiCache ReplicationGroups. Customers can now modify the configuration from cluster mode disabled to cluster mode enabled."
-}
