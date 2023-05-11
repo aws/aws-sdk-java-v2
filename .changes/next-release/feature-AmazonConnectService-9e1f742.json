@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Connect Service",
+    "contributor": "",
+    "description": "This release updates GetMetricDataV2 API, to support metric data up-to last 35 days"
+}
