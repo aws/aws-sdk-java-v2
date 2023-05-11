@@ -1,6 +1,7 @@
 package software.amazon.awssdk.services.json;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -25,6 +26,7 @@ import software.amazon.awssdk.services.json.model.GetWithoutRequiredMembersReque
 import software.amazon.awssdk.services.json.model.GetWithoutRequiredMembersResponse;
 import software.amazon.awssdk.services.json.model.InputEventStream;
 import software.amazon.awssdk.services.json.model.InputEventStreamTwo;
+import software.amazon.awssdk.services.json.model.JsonRequest;
 import software.amazon.awssdk.services.json.model.OperationWithChecksumRequiredRequest;
 import software.amazon.awssdk.services.json.model.OperationWithChecksumRequiredResponse;
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyRequest;
@@ -86,7 +88,7 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
      */
     @Override
     public CompletableFuture<APostOperationResponse> aPostOperation(APostOperationRequest aPostOperationRequest) {
-        return delegate.aPostOperation(aPostOperationRequest);
+        return invokeOperation(aPostOperationRequest, request -> delegate.aPostOperation(request));
     }
 
     /**
@@ -115,7 +117,7 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
     @Override
     public CompletableFuture<APostOperationWithOutputResponse> aPostOperationWithOutput(
         APostOperationWithOutputRequest aPostOperationWithOutputRequest) {
-        return delegate.aPostOperationWithOutput(aPostOperationWithOutputRequest);
+        return invokeOperation(aPostOperationWithOutputRequest, request -> delegate.aPostOperationWithOutput(request));
     }
 
     /**
@@ -140,7 +142,7 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
     @Override
     public CompletableFuture<BearerAuthOperationResponse> bearerAuthOperation(
         BearerAuthOperationRequest bearerAuthOperationRequest) {
-        return delegate.bearerAuthOperation(bearerAuthOperationRequest);
+        return invokeOperation(bearerAuthOperationRequest, request -> delegate.bearerAuthOperation(request));
     }
 
     /**
@@ -165,7 +167,8 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
     @Override
     public CompletableFuture<Void> eventStreamOperation(EventStreamOperationRequest eventStreamOperationRequest,
                                                         Publisher<InputEventStream> requestStream, EventStreamOperationResponseHandler asyncResponseHandler) {
-        return delegate.eventStreamOperation(eventStreamOperationRequest, requestStream, asyncResponseHandler);
+        return invokeOperation(eventStreamOperationRequest,
+                               request -> delegate.eventStreamOperation(request, requestStream, asyncResponseHandler));
     }
 
     /**
@@ -192,7 +195,8 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
     public CompletableFuture<EventStreamOperationWithOnlyInputResponse> eventStreamOperationWithOnlyInput(
         EventStreamOperationWithOnlyInputRequest eventStreamOperationWithOnlyInputRequest,
         Publisher<InputEventStreamTwo> requestStream) {
-        return delegate.eventStreamOperationWithOnlyInput(eventStreamOperationWithOnlyInputRequest, requestStream);
+        return invokeOperation(eventStreamOperationWithOnlyInputRequest,
+                               request -> delegate.eventStreamOperationWithOnlyInput(request, requestStream));
     }
 
     /**
@@ -219,7 +223,8 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
     public CompletableFuture<Void> eventStreamOperationWithOnlyOutput(
         EventStreamOperationWithOnlyOutputRequest eventStreamOperationWithOnlyOutputRequest,
         EventStreamOperationWithOnlyOutputResponseHandler asyncResponseHandler) {
-        return delegate.eventStreamOperationWithOnlyOutput(eventStreamOperationWithOnlyOutputRequest, asyncResponseHandler);
+        return invokeOperation(eventStreamOperationWithOnlyOutputRequest,
+                               request -> delegate.eventStreamOperationWithOnlyOutput(request, asyncResponseHandler));
     }
 
     /**
@@ -244,7 +249,7 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
     @Override
     public CompletableFuture<GetOperationWithChecksumResponse> getOperationWithChecksum(
         GetOperationWithChecksumRequest getOperationWithChecksumRequest) {
-        return delegate.getOperationWithChecksum(getOperationWithChecksumRequest);
+        return invokeOperation(getOperationWithChecksumRequest, request -> delegate.getOperationWithChecksum(request));
     }
 
     /**
@@ -273,7 +278,7 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
     @Override
     public CompletableFuture<GetWithoutRequiredMembersResponse> getWithoutRequiredMembers(
         GetWithoutRequiredMembersRequest getWithoutRequiredMembersRequest) {
-        return delegate.getWithoutRequiredMembers(getWithoutRequiredMembersRequest);
+        return invokeOperation(getWithoutRequiredMembersRequest, request -> delegate.getWithoutRequiredMembers(request));
     }
 
     /**
@@ -299,7 +304,7 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
     @Override
     public CompletableFuture<OperationWithChecksumRequiredResponse> operationWithChecksumRequired(
         OperationWithChecksumRequiredRequest operationWithChecksumRequiredRequest) {
-        return delegate.operationWithChecksumRequired(operationWithChecksumRequiredRequest);
+        return invokeOperation(operationWithChecksumRequiredRequest, request -> delegate.operationWithChecksumRequired(request));
     }
 
     /**
@@ -325,7 +330,8 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
     @Override
     public CompletableFuture<PaginatedOperationWithResultKeyResponse> paginatedOperationWithResultKey(
         PaginatedOperationWithResultKeyRequest paginatedOperationWithResultKeyRequest) {
-        return delegate.paginatedOperationWithResultKey(paginatedOperationWithResultKeyRequest);
+        return invokeOperation(paginatedOperationWithResultKeyRequest,
+                               request -> delegate.paginatedOperationWithResultKey(request));
     }
 
     /**
@@ -403,7 +409,8 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
     @Override
     public PaginatedOperationWithResultKeyPublisher paginatedOperationWithResultKeyPaginator(
         PaginatedOperationWithResultKeyRequest paginatedOperationWithResultKeyRequest) {
-        return delegate.paginatedOperationWithResultKeyPaginator(paginatedOperationWithResultKeyRequest);
+        return invokeOperation(paginatedOperationWithResultKeyRequest,
+                               request -> delegate.paginatedOperationWithResultKeyPaginator(request));
     }
 
     /**
@@ -429,7 +436,8 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
     @Override
     public CompletableFuture<PaginatedOperationWithoutResultKeyResponse> paginatedOperationWithoutResultKey(
         PaginatedOperationWithoutResultKeyRequest paginatedOperationWithoutResultKeyRequest) {
-        return delegate.paginatedOperationWithoutResultKey(paginatedOperationWithoutResultKeyRequest);
+        return invokeOperation(paginatedOperationWithoutResultKeyRequest,
+                               request -> delegate.paginatedOperationWithoutResultKey(request));
     }
 
     /**
@@ -507,7 +515,8 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
     @Override
     public PaginatedOperationWithoutResultKeyPublisher paginatedOperationWithoutResultKeyPaginator(
         PaginatedOperationWithoutResultKeyRequest paginatedOperationWithoutResultKeyRequest) {
-        return delegate.paginatedOperationWithoutResultKeyPaginator(paginatedOperationWithoutResultKeyRequest);
+        return invokeOperation(paginatedOperationWithoutResultKeyRequest,
+                               request -> delegate.paginatedOperationWithoutResultKeyPaginator(request));
     }
 
     /**
@@ -551,7 +560,8 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
     public <ReturnT> CompletableFuture<ReturnT> putOperationWithChecksum(
         PutOperationWithChecksumRequest putOperationWithChecksumRequest, AsyncRequestBody requestBody,
         AsyncResponseTransformer<PutOperationWithChecksumResponse, ReturnT> asyncResponseTransformer) {
-        return delegate.putOperationWithChecksum(putOperationWithChecksumRequest, requestBody, asyncResponseTransformer);
+        return invokeOperation(putOperationWithChecksumRequest,
+                               request -> delegate.putOperationWithChecksum(request, requestBody, asyncResponseTransformer));
     }
 
     /**
@@ -581,7 +591,7 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
     @Override
     public CompletableFuture<StreamingInputOperationResponse> streamingInputOperation(
         StreamingInputOperationRequest streamingInputOperationRequest, AsyncRequestBody requestBody) {
-        return delegate.streamingInputOperation(streamingInputOperationRequest, requestBody);
+        return invokeOperation(streamingInputOperationRequest, request -> delegate.streamingInputOperation(request, requestBody));
     }
 
     /**
@@ -617,8 +627,8 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
     public <ReturnT> CompletableFuture<ReturnT> streamingInputOutputOperation(
         StreamingInputOutputOperationRequest streamingInputOutputOperationRequest, AsyncRequestBody requestBody,
         AsyncResponseTransformer<StreamingInputOutputOperationResponse, ReturnT> asyncResponseTransformer) {
-        return delegate
-            .streamingInputOutputOperation(streamingInputOutputOperationRequest, requestBody, asyncResponseTransformer);
+        return invokeOperation(streamingInputOutputOperationRequest,
+                        request -> delegate.streamingInputOutputOperation(request, requestBody, asyncResponseTransformer));
     }
 
     /**
@@ -649,7 +659,8 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
     public <ReturnT> CompletableFuture<ReturnT> streamingOutputOperation(
         StreamingOutputOperationRequest streamingOutputOperationRequest,
         AsyncResponseTransformer<StreamingOutputOperationResponse, ReturnT> asyncResponseTransformer) {
-        return delegate.streamingOutputOperation(streamingOutputOperationRequest, asyncResponseTransformer);
+        return invokeOperation(streamingOutputOperationRequest,
+                               request -> delegate.streamingOutputOperation(request, asyncResponseTransformer));
     }
 
     @Override
@@ -664,6 +675,10 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
 
     public SdkClient delegate() {
         return this.delegate;
+    }
+
+    protected <T extends JsonRequest, ReturnT> ReturnT invokeOperation(T request, Function<T, ReturnT> operation) {
+        return operation.apply(request);
     }
 
     @Override
