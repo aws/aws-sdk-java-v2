@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Route 53 Resolver",
+    "contributor": "",
+    "description": "Update FIPS endpoints for GovCloud (US) regions in SDK."
+}
