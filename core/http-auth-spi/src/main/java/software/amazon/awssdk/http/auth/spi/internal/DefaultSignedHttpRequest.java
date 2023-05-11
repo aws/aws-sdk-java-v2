@@ -52,10 +52,9 @@ public final class DefaultSignedHttpRequest<PayloadT> implements SignedHttpReque
 
     @Override
     public String toString() {
-        return ToString.builder("DefaultSignedHttpRequest")
+        return ToString.builder("SignedHttpRequest")
                        .add("payloadType", payloadType)
                        .add("request", request)
-                       // .add("payload", payload)
                        .build();
     }
 
