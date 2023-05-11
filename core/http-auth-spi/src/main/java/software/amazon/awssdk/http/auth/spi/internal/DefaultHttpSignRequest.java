@@ -62,7 +62,7 @@ public final class DefaultHttpSignRequest<PayloadT> implements HttpSignRequest<P
 
     @Override
     public String toString() {
-        return ToString.builder("DefaultHttpSignRequest")
+        return ToString.builder("HttpSignRequest")
                        .add("payloadType", payloadType)
                        .add("request", request)
                        .add("properties", properties)
