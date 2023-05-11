@@ -29,14 +29,14 @@ import software.amazon.awssdk.retries.api.BackoffStrategy;
 import software.amazon.awssdk.retries.internal.RetryStrategyCommonTest.TestCase;
 import software.amazon.awssdk.retries.internal.RetryStrategyCommonTest.TestCaseForLegacy;
 
-public class LegacyRetryStrategyTest {
+class LegacyRetryStrategyTest {
     static final ThrottlingException THROTTLING = new ThrottlingException();
     static final long THROTTLING_BACKOFF_BASE = 17;
     static final long BACKOFF_BASE = 23;
 
     @ParameterizedTest
     @MethodSource("parameters")
-    public void testCase(TestCase testCase) {
+    void testCase(TestCase testCase) {
         testCase.run();
         if (testCase.shouldSucceed) {
             assertThat(testCase.thrown)
@@ -55,7 +55,7 @@ public class LegacyRetryStrategyTest {
         }
     }
 
-    public static List<TestCase> parameters() {
+    static List<TestCase> parameters() {
         return Arrays.asList(
             legacyTestCase("Does not withdraws capacity for throttling exception")
                 .givenExceptions(THROTTLING, THROTTLING, THROTTLING)
@@ -84,7 +84,7 @@ public class LegacyRetryStrategyTest {
         );
     }
 
-    public static TestCaseForLegacy legacyTestCase(String name) {
+    static TestCaseForLegacy legacyTestCase(String name) {
         TestCaseForLegacy testCase = new TestCaseForLegacy(name);
         testCase.configureTreatAsThrottling(t -> t instanceof ThrottlingException)
                 .configureThrottlingBackoffStrategy(ofBaseTimesAttempt(THROTTLING_BACKOFF_BASE))
@@ -97,7 +97,7 @@ public class LegacyRetryStrategyTest {
         return testCase;
     }
 
-    public static BackoffStrategy ofBaseTimesAttempt(long base) {
+    static BackoffStrategy ofBaseTimesAttempt(long base) {
         return attempt -> Duration.ofSeconds(base * attempt);
     }
 
