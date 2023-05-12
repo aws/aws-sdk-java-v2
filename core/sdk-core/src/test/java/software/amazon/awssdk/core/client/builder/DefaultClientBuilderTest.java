@@ -38,6 +38,7 @@ import static software.amazon.awssdk.core.client.config.SdkClientOption.PROFILE_
 import static software.amazon.awssdk.core.client.config.SdkClientOption.PROFILE_FILE_SUPPLIER;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.PROFILE_NAME;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_POLICY;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.SCHEDULED_EXECUTOR_SERVICE;
 import static software.amazon.awssdk.core.internal.SdkInternalTestAdvancedClientOption.ENDPOINT_OVERRIDDEN_OVERRIDE;
 
 import java.beans.BeanInfo;
@@ -52,6 +53,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Supplier;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
@@ -132,6 +135,7 @@ public class DefaultClientBuilderTest {
                                              .type(ProfileFile.Type.CONFIGURATION)
                                              .build();
         String profileName = "name";
+        ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
 
         ClientOverrideConfiguration overrideConfig = ClientOverrideConfiguration.builder()
             .executionInterceptors(interceptors)
@@ -148,6 +152,7 @@ public class DefaultClientBuilderTest {
             .metricPublishers(metricPublishers)
             .executionAttributes(executionAttributes)
             .putAdvancedOption(ENDPOINT_OVERRIDDEN_OVERRIDE, Boolean.TRUE)
+            .scheduledExecutorService(scheduledExecutorService)
             .build();
 
         TestClientBuilder builder = testClientBuilder().overrideConfiguration(overrideConfig);
@@ -166,6 +171,7 @@ public class DefaultClientBuilderTest {
         assertThat(builderOverrideConfig.metricPublishers()).isEqualTo(metricPublishers);
         assertThat(builderOverrideConfig.executionAttributes().getAttributes()).isEqualTo(executionAttributes.getAttributes());
         assertThat(builderOverrideConfig.advancedOption(ENDPOINT_OVERRIDDEN_OVERRIDE)).isEqualTo(Optional.of(Boolean.TRUE));
+        assertThat(builderOverrideConfig.scheduledExecutorService()).isEqualTo(scheduledExecutorService);
     }
 
     @Test
@@ -189,6 +195,7 @@ public class DefaultClientBuilderTest {
         assertThat(builderOverrideConfig.metricPublishers()).isEmpty();
         assertThat(builderOverrideConfig.executionAttributes().getAttributes()).isEmpty();
         assertThat(builderOverrideConfig.advancedOption(ENDPOINT_OVERRIDDEN_OVERRIDE)).isEmpty();
+        assertThat(builderOverrideConfig.scheduledExecutorService()).isEmpty();
     }
 
     @Test
@@ -198,6 +205,7 @@ public class DefaultClientBuilderTest {
         interceptors.add(interceptor);
 
         RetryPolicy retryPolicy = RetryPolicy.builder().build();
+        ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
 
         Map<String, List<String>> headers = new HashMap<>();
         List<String> headerValues = new ArrayList<>();
@@ -247,6 +255,7 @@ public class DefaultClientBuilderTest {
             .metricPublishers(metricPublishers)
             .executionAttributes(executionAttributes)
             .putAdvancedOption(ENDPOINT_OVERRIDDEN_OVERRIDE, Boolean.TRUE)
+            .scheduledExecutorService(scheduledExecutorService)
             .build();
 
         SdkClientConfiguration config =
@@ -267,6 +276,7 @@ public class DefaultClientBuilderTest {
         assertThat(config.option(METRIC_PUBLISHERS)).contains(metricPublisher);
         assertThat(config.option(EXECUTION_ATTRIBUTES).getAttribute(execAttribute)).isEqualTo("value");
         assertThat(config.option(ENDPOINT_OVERRIDDEN)).isEqualTo(Boolean.TRUE);
+        assertThat(config.option(SCHEDULED_EXECUTOR_SERVICE)).isEqualTo(scheduledExecutorService);
     }
 
     @Test
