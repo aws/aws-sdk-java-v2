@@ -36,8 +36,8 @@ public interface HttpSignRequest<PayloadT> {
     /**
      * Get a new builder for creating a {@link HttpSignRequest}.
      */
-    static <T> Builder<T> builder(Class<T> payloadType) {
-        return new DefaultHttpSignRequest.BuilderImpl(payloadType);
+    static <PayloadT> Builder<PayloadT> builder(Class<PayloadT> payloadType) {
+        return new DefaultHttpSignRequest.BuilderImpl<>(payloadType);
     }
 
     /**
@@ -63,21 +63,22 @@ public interface HttpSignRequest<PayloadT> {
     /**
      * A builder for a {@link HttpSignRequest}.
      */
-    interface Builder<PayloadT> extends SdkBuilder<Builder<PayloadT>, HttpSignRequest> {
+    interface Builder<PayloadT> extends SdkBuilder<Builder<PayloadT>,
+            HttpSignRequest<PayloadT>> {
 
         /**
          * Set the HTTP request object, without the request body payload.
          */
-        Builder request(SdkHttpRequest request);
+        Builder<PayloadT> request(SdkHttpRequest request);
 
         /**
          * Set the body payload of the request. A payload is optional. By default, the payload will be empty.
          */
-        Builder payload(PayloadT payload);
+        Builder<PayloadT> payload(PayloadT payload);
 
         /**
          * Set a property that the {@link HttpSigner} can use during signing.
          */
-        <T> Builder putProperty(SignerProperty<T> key, T value);
+        <T> Builder<PayloadT> putProperty(SignerProperty<T> key, T value);
     }
 }

@@ -28,7 +28,7 @@
     <artifactId>http-auth</artifactId>
     <name>AWS Java SDK :: HTTP Auth</name>
     <description>
-        The AWS SDK for Java - HTTP Auth module contains interfaces and implementations for http authentication
+        The AWS SDK for Java - HTTP Auth module contains interfaces and implementations for generic HTTP authentication
     </description>
     <url>https://aws.amazon.com/sdkforjava</url>
 
@@ -41,6 +41,11 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>http-auth-spi</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>identity-spi</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
     </dependencies>

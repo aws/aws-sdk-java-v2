@@ -36,8 +36,8 @@ public interface SignedHttpRequest<PayloadT> {
     /**
      * Get a new builder for creating a {@link SignedHttpRequest}.
      */
-    static <T> Builder<T> builder(Class<T> payloadType) {
-        return new DefaultSignedHttpRequest.BuilderImpl(payloadType);
+    static <PayloadT> Builder<PayloadT> builder(Class<PayloadT> payloadType) {
+        return new DefaultSignedHttpRequest.BuilderImpl<>(payloadType);
     }
 
     /**
@@ -58,16 +58,17 @@ public interface SignedHttpRequest<PayloadT> {
     /**
      * A builder for a {@link SignedHttpRequest}.
      */
-    interface Builder<PayloadT> extends SdkBuilder<Builder<PayloadT>, SignedHttpRequest> {
+    interface Builder<PayloadT> extends SdkBuilder<Builder<PayloadT>,
+            SignedHttpRequest<PayloadT>> {
 
         /**
          * Set the HTTP request object, without the request body payload.
          */
-        Builder request(SdkHttpRequest request);
+        Builder<PayloadT> request(SdkHttpRequest request);
 
         /**
          * Set the body payload of the request. A payload is optional. By default, the payload will be empty.
          */
-        Builder payload(PayloadT payload);
+        Builder<PayloadT> payload(PayloadT payload);
     }
 }

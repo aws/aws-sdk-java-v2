@@ -51,7 +51,7 @@ public final class DefaultHttpSignRequest<PayloadT> implements HttpSignRequest<P
     }
 
     @Override
-    public Optional payload() {
+    public Optional<PayloadT> payload() {
         return payload == null ? Optional.empty() : Optional.of(payload);
     }
 
@@ -81,26 +81,26 @@ public final class DefaultHttpSignRequest<PayloadT> implements HttpSignRequest<P
         }
 
         @Override
-        public Builder request(SdkHttpRequest request) {
+        public Builder<PayloadT> request(SdkHttpRequest request) {
             this.request = request;
             return this;
         }
 
         @Override
-        public Builder payload(PayloadT payload) {
+        public Builder<PayloadT> payload(PayloadT payload) {
             this.payload = payload;
             return this;
         }
 
         @Override
-        public <T> Builder putProperty(SignerProperty<T> key, T value) {
+        public <T> Builder<PayloadT> putProperty(SignerProperty<T> key, T value) {
             this.properties.put(key, value);
             return this;
         }
 
         @Override
-        public HttpSignRequest build() {
-            return new DefaultHttpSignRequest(this);
+        public HttpSignRequest<PayloadT> build() {
+            return new DefaultHttpSignRequest<>(this);
         }
     }
 }
