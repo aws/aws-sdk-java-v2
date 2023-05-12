@@ -41,5 +41,6 @@ public interface HttpSigner {
      * @param request The request to sign, with async payload
      * @return A signed version of the input request
      */
-    SignedHttpRequest<? extends Publisher<? extends ByteBuffer>> signAsync(HttpSignRequest<? extends Publisher<? extends ByteBuffer>> request);
+    SignedHttpRequest<? extends Publisher<? extends ByteBuffer>> signAsync(
+            HttpSignRequest<? extends Publisher<? extends ByteBuffer>> request);
 }
