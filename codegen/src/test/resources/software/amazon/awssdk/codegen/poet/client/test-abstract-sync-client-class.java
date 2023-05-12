@@ -1,6 +1,7 @@
 package software.amazon.awssdk.services.json;
 
 import java.nio.file.Path;
+import java.util.function.Function;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
@@ -22,6 +23,7 @@ import software.amazon.awssdk.services.json.model.GetWithoutRequiredMembersReque
 import software.amazon.awssdk.services.json.model.GetWithoutRequiredMembersResponse;
 import software.amazon.awssdk.services.json.model.InvalidInputException;
 import software.amazon.awssdk.services.json.model.JsonException;
+import software.amazon.awssdk.services.json.model.JsonRequest;
 import software.amazon.awssdk.services.json.model.OperationWithChecksumRequiredRequest;
 import software.amazon.awssdk.services.json.model.OperationWithChecksumRequiredResponse;
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyRequest;
@@ -76,7 +78,7 @@ public abstract class DelegatingJsonClient implements JsonClient {
     @Deprecated
     public APostOperationResponse aPostOperation(APostOperationRequest aPostOperationRequest) throws InvalidInputException,
                                                                                                      AwsServiceException, SdkClientException, JsonException {
-        return delegate.aPostOperation(aPostOperationRequest);
+        return invokeOperation(aPostOperationRequest, request -> delegate.aPostOperation(request));
     }
 
     /**
@@ -103,7 +105,7 @@ public abstract class DelegatingJsonClient implements JsonClient {
     public APostOperationWithOutputResponse aPostOperationWithOutput(
         APostOperationWithOutputRequest aPostOperationWithOutputRequest) throws InvalidInputException, AwsServiceException,
                                                                                 SdkClientException, JsonException {
-        return delegate.aPostOperationWithOutput(aPostOperationWithOutputRequest);
+        return invokeOperation(aPostOperationWithOutputRequest, request -> delegate.aPostOperationWithOutput(request));
     }
 
     /**
@@ -125,7 +127,7 @@ public abstract class DelegatingJsonClient implements JsonClient {
     @Override
     public BearerAuthOperationResponse bearerAuthOperation(BearerAuthOperationRequest bearerAuthOperationRequest)
         throws AwsServiceException, SdkClientException, JsonException {
-        return delegate.bearerAuthOperation(bearerAuthOperationRequest);
+        return invokeOperation(bearerAuthOperationRequest, request -> delegate.bearerAuthOperation(request));
     }
 
     /**
@@ -148,7 +150,7 @@ public abstract class DelegatingJsonClient implements JsonClient {
     public GetOperationWithChecksumResponse getOperationWithChecksum(
         GetOperationWithChecksumRequest getOperationWithChecksumRequest) throws AwsServiceException, SdkClientException,
                                                                                 JsonException {
-        return delegate.getOperationWithChecksum(getOperationWithChecksumRequest);
+        return invokeOperation(getOperationWithChecksumRequest, request -> delegate.getOperationWithChecksum(request));
     }
 
     /**
@@ -175,7 +177,7 @@ public abstract class DelegatingJsonClient implements JsonClient {
     public GetWithoutRequiredMembersResponse getWithoutRequiredMembers(
         GetWithoutRequiredMembersRequest getWithoutRequiredMembersRequest) throws InvalidInputException, AwsServiceException,
                                                                                   SdkClientException, JsonException {
-        return delegate.getWithoutRequiredMembers(getWithoutRequiredMembersRequest);
+        return invokeOperation(getWithoutRequiredMembersRequest, request -> delegate.getWithoutRequiredMembers(request));
     }
 
     /**
@@ -198,7 +200,7 @@ public abstract class DelegatingJsonClient implements JsonClient {
     public OperationWithChecksumRequiredResponse operationWithChecksumRequired(
         OperationWithChecksumRequiredRequest operationWithChecksumRequiredRequest) throws AwsServiceException,
                                                                                           SdkClientException, JsonException {
-        return delegate.operationWithChecksumRequired(operationWithChecksumRequiredRequest);
+        return invokeOperation(operationWithChecksumRequiredRequest, request -> delegate.operationWithChecksumRequired(request));
     }
 
     /**
@@ -243,7 +245,8 @@ public abstract class DelegatingJsonClient implements JsonClient {
     public PaginatedOperationWithResultKeyResponse paginatedOperationWithResultKey(
         PaginatedOperationWithResultKeyRequest paginatedOperationWithResultKeyRequest) throws AwsServiceException,
                                                                                               SdkClientException, JsonException {
-        return delegate.paginatedOperationWithResultKey(paginatedOperationWithResultKeyRequest);
+        return invokeOperation(paginatedOperationWithResultKeyRequest,
+                               request -> delegate.paginatedOperationWithResultKey(request));
     }
 
     /**
@@ -398,7 +401,8 @@ public abstract class DelegatingJsonClient implements JsonClient {
     public PaginatedOperationWithResultKeyIterable paginatedOperationWithResultKeyPaginator(
         PaginatedOperationWithResultKeyRequest paginatedOperationWithResultKeyRequest) throws AwsServiceException,
                                                                                               SdkClientException, JsonException {
-        return delegate.paginatedOperationWithResultKeyPaginator(paginatedOperationWithResultKeyRequest);
+        return invokeOperation(paginatedOperationWithResultKeyRequest,
+                               request -> delegate.paginatedOperationWithResultKeyPaginator(request));
     }
 
     /**
@@ -421,7 +425,8 @@ public abstract class DelegatingJsonClient implements JsonClient {
     public PaginatedOperationWithoutResultKeyResponse paginatedOperationWithoutResultKey(
         PaginatedOperationWithoutResultKeyRequest paginatedOperationWithoutResultKeyRequest) throws AwsServiceException,
                                                                                                     SdkClientException, JsonException {
-        return delegate.paginatedOperationWithoutResultKey(paginatedOperationWithoutResultKeyRequest);
+        return invokeOperation(paginatedOperationWithoutResultKeyRequest,
+                               request -> delegate.paginatedOperationWithoutResultKey(request));
     }
 
     /**
@@ -499,7 +504,8 @@ public abstract class DelegatingJsonClient implements JsonClient {
     public PaginatedOperationWithoutResultKeyIterable paginatedOperationWithoutResultKeyPaginator(
         PaginatedOperationWithoutResultKeyRequest paginatedOperationWithoutResultKeyRequest) throws AwsServiceException,
                                                                                                     SdkClientException, JsonException {
-        return delegate.paginatedOperationWithoutResultKeyPaginator(paginatedOperationWithoutResultKeyRequest);
+        return invokeOperation(paginatedOperationWithoutResultKeyRequest,
+                               request -> delegate.paginatedOperationWithoutResultKeyPaginator(request));
     }
 
     /**
@@ -548,7 +554,8 @@ public abstract class DelegatingJsonClient implements JsonClient {
     public <ReturnT> ReturnT putOperationWithChecksum(PutOperationWithChecksumRequest putOperationWithChecksumRequest,
                                                       RequestBody requestBody, ResponseTransformer<PutOperationWithChecksumResponse, ReturnT> responseTransformer)
         throws AwsServiceException, SdkClientException, JsonException {
-        return delegate.putOperationWithChecksum(putOperationWithChecksumRequest, requestBody, responseTransformer);
+        return invokeOperation(putOperationWithChecksumRequest,
+                               request -> delegate.putOperationWithChecksum(request, requestBody, responseTransformer));
     }
 
     /**
@@ -624,7 +631,7 @@ public abstract class DelegatingJsonClient implements JsonClient {
     @Override
     public StreamingInputOperationResponse streamingInputOperation(StreamingInputOperationRequest streamingInputOperationRequest,
                                                                    RequestBody requestBody) throws AwsServiceException, SdkClientException, JsonException {
-        return delegate.streamingInputOperation(streamingInputOperationRequest, requestBody);
+        return invokeOperation(streamingInputOperationRequest, request -> delegate.streamingInputOperation(request, requestBody));
     }
 
     /**
@@ -694,7 +701,8 @@ public abstract class DelegatingJsonClient implements JsonClient {
         StreamingInputOutputOperationRequest streamingInputOutputOperationRequest, RequestBody requestBody,
         ResponseTransformer<StreamingInputOutputOperationResponse, ReturnT> responseTransformer) throws AwsServiceException,
                                                                                                         SdkClientException, JsonException {
-        return delegate.streamingInputOutputOperation(streamingInputOutputOperationRequest, requestBody, responseTransformer);
+        return invokeOperation(streamingInputOutputOperationRequest,
+                               request -> delegate.streamingInputOutputOperation(request, requestBody, responseTransformer));
     }
 
     /**
@@ -759,7 +767,8 @@ public abstract class DelegatingJsonClient implements JsonClient {
     public <ReturnT> ReturnT streamingOutputOperation(StreamingOutputOperationRequest streamingOutputOperationRequest,
                                                       ResponseTransformer<StreamingOutputOperationResponse, ReturnT> responseTransformer) throws AwsServiceException,
                                                                                                                                                  SdkClientException, JsonException {
-        return delegate.streamingOutputOperation(streamingOutputOperationRequest, responseTransformer);
+        return invokeOperation(streamingOutputOperationRequest,
+                               request -> delegate.streamingOutputOperation(request, responseTransformer));
     }
 
     /**
@@ -861,6 +870,10 @@ public abstract class DelegatingJsonClient implements JsonClient {
 
     public SdkClient delegate() {
         return this.delegate;
+    }
+
+    protected <T extends JsonRequest, ReturnT> ReturnT invokeOperation(T request, Function<T, ReturnT> operation) {
+        return operation.apply(request);
     }
 
     @Override

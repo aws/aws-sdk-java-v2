@@ -19,13 +19,20 @@ import static java.util.stream.Collectors.joining;
 import static javax.lang.model.element.Modifier.ABSTRACT;
 import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PRIVATE;
+import static javax.lang.model.element.Modifier.PROTECTED;
 import static javax.lang.model.element.Modifier.PUBLIC;
+import static software.amazon.awssdk.codegen.poet.client.AsyncClientInterface.STREAMING_TYPE_VARIABLE;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterSpec;
+import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
+import com.squareup.javapoet.TypeVariableName;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.codegen.docs.SimpleMethodOverload;
 import software.amazon.awssdk.codegen.model.config.customization.UtilitiesMethod;
@@ -89,14 +96,9 @@ public class DelegatingSyncClientClass extends SyncClientInterface {
 
     @Override
     protected void addAdditionalMethods(TypeSpec.Builder type) {
-        MethodSpec delegate = MethodSpec.methodBuilder("delegate")
-                                        .addModifiers(PUBLIC)
-                                        .addStatement("return this.delegate")
-                                        .returns(SdkClient.class)
-                                        .build();
-
         type.addMethod(nameMethod())
-            .addMethod(delegate);
+            .addMethod(delegateMethod())
+            .addMethod(invokeMethod());
     }
 
     @Override
@@ -125,9 +127,19 @@ public class DelegatingSyncClientClass extends SyncClientInterface {
         builder.addModifiers(PUBLIC)
                .addAnnotation(Override.class);
 
-        builder.addStatement("return delegate.$N($L)",
+        if (builder.parameters.size() < 1) {
+            throw new IllegalStateException("All client methods must have an argument");
+        }
+
+        List<ParameterSpec> operationParameters = new ArrayList<>(builder.parameters);
+        String requestParameter = operationParameters.remove(0).name;
+        String additionalParameters = String.format(", %s", operationParameters.stream().map(p -> p.name).collect(joining(", ")));
+
+        builder.addStatement("return invokeOperation($N, request -> delegate.$N(request$N))",
+                             requestParameter,
                              opModel.getMethodName(),
-                             builder.parameters.stream().map(p -> p.name).collect(joining(", ")));
+                             operationParameters.isEmpty() ? "" : additionalParameters);
+
         return builder;
     }
 
@@ -136,7 +148,9 @@ public class DelegatingSyncClientClass extends SyncClientInterface {
         String methodName = PaginatorUtils.getPaginatedMethodName(opModel.getMethodName());
         return builder.addModifiers(PUBLIC)
                       .addAnnotation(Override.class)
-                      .addStatement("return delegate.$N($N)", methodName, opModel.getInput().getVariableName());
+                      .addStatement("return invokeOperation($N, request -> delegate.$N(request))",
+                                    opModel.getInput().getVariableName(),
+                                    methodName);
     }
 
     @Override
@@ -164,6 +178,34 @@ public class DelegatingSyncClientClass extends SyncClientInterface {
                          .addModifiers(PUBLIC, FINAL)
                          .returns(String.class)
                          .addStatement("return delegate.serviceName()")
+                         .build();
+    }
+
+    private MethodSpec delegateMethod() {
+        return MethodSpec.methodBuilder("delegate")
+                         .addModifiers(PUBLIC)
+                         .addStatement("return this.delegate")
+                         .returns(SdkClient.class)
+                         .build();
+    }
+
+    private MethodSpec invokeMethod() {
+        TypeVariableName requestTypeVariableName =
+            TypeVariableName.get("T", poetExtensions.getModelClass(model.getSdkRequestBaseClassName()));
+
+        TypeVariableName responseTypeVariableName = STREAMING_TYPE_VARIABLE;
+
+        ParameterizedTypeName functionTypeName = ParameterizedTypeName
+            .get(ClassName.get(Function.class), requestTypeVariableName, responseTypeVariableName);
+
+        return MethodSpec.methodBuilder("invokeOperation")
+                         .addModifiers(PROTECTED)
+                         .addParameter(requestTypeVariableName, "request")
+                         .addParameter(functionTypeName, "operation")
+                         .addTypeVariable(requestTypeVariableName)
+                         .addTypeVariable(responseTypeVariableName)
+                         .returns(responseTypeVariableName)
+                         .addStatement("return operation.apply(request)")
                          .build();
     }
 
