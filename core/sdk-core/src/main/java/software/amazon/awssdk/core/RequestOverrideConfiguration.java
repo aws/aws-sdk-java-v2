@@ -157,6 +157,14 @@ public abstract class RequestOverrideConfiguration {
         return executionAttributes;
     }
 
+    /**
+     * Returns the endpoint provider for resolving the endpoint for this request. This supersedes the
+     * endpoint provider set on the client.
+     */
+    public Optional<EndpointProvider> endpointProvider() {
+        return Optional.ofNullable(endpointProvider);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -417,15 +425,6 @@ public abstract class RequestOverrideConfiguration {
         <T> B putExecutionAttribute(ExecutionAttribute<T> attribute, T value);
 
         ExecutionAttributes executionAttributes();
-
-        /**
-         * Sets the signer to use for signing the request. This signer get priority over the signer set on the client while
-         * signing the requests. If this value is null, then the client level signer is used for signing the request.
-         *
-         * @param signer Signer for signing the request
-         * @return This object for method chaining
-         */
-
 
         /**
          * Sets the endpointProvider to use for resolving the endpoint of the request. This endpointProvider gets priority

@@ -88,6 +88,10 @@ public final class QueryEndpointParams {
         return operationContextParam;
     }
 
+    public Builder toBuilder() {
+        return new BuilderImpl(this);
+    }
+
     public interface Builder {
         Builder region(Region region);
 
@@ -133,6 +137,22 @@ public final class QueryEndpointParams {
         private String stringContextParam;
 
         private String operationContextParam;
+
+        private BuilderImpl() {
+        }
+
+        private BuilderImpl(QueryEndpointParams builder) {
+            this.region = builder.region;
+            this.useDualStackEndpoint = builder.useDualStackEndpoint;
+            this.useFIPSEndpoint = builder.useFIPSEndpoint;
+            this.endpointId = builder.endpointId;
+            this.defaultTrueParam = builder.defaultTrueParam;
+            this.defaultStringParam = builder.defaultStringParam;
+            this.deprecatedParam = builder.deprecatedParam;
+            this.booleanContextParam = builder.booleanContextParam;
+            this.stringContextParam = builder.stringContextParam;
+            this.operationContextParam = builder.operationContextParam;
+        }
 
         @Override
         public Builder region(Region region) {

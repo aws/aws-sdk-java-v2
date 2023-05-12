@@ -47,7 +47,7 @@ public class ServiceConfig {
 
     private boolean hasAccelerateModeEnabledProperty = false;
 
-    private boolean hasCrossRegionBucketAccessEnabledProperty = false;
+    private boolean hasCrossRegionAccessEnabledProperty = false;
 
     public String getClassName() {
         return className;
@@ -98,11 +98,11 @@ public class ServiceConfig {
     }
 
     public boolean hasCrossRegionAccessEnabledProperty() {
-        return hasCrossRegionBucketAccessEnabledProperty;
+        return hasCrossRegionAccessEnabledProperty;
     }
 
-    public void setHasCrossRegionBucketAccessEnabledProperty(boolean hasCrossRegionBucketAccessEnabledProperty) {
-        this.hasCrossRegionBucketAccessEnabledProperty = hasCrossRegionBucketAccessEnabledProperty;
+    public void setHasCrossRegionAccessEnabledProperty(boolean hasCrossRegionAccessEnabledProperty) {
+        this.hasCrossRegionAccessEnabledProperty = hasCrossRegionAccessEnabledProperty;
     }
 
     public boolean hasAccelerateModeEnabledProperty() {

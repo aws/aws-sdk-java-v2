@@ -83,6 +83,9 @@ public abstract class AwsServiceClientConfiguration extends SdkServiceClientConf
         Builder endpointOverride(URI endpointOverride);
 
         @Override
+        Builder endpointProvider(EndpointProvider endpointProvider);
+
+        @Override
         AwsServiceClientConfiguration build();
     }
 
@@ -122,11 +125,6 @@ public abstract class AwsServiceClientConfiguration extends SdkServiceClientConf
             return endpointProvider;
         }
 
-        @Override
-        public Builder endpointProvider(EndpointProvider endpointProvider) {
-            this.endpointProvider = endpointProvider;
-            return this;
-        }
     }
 
 }

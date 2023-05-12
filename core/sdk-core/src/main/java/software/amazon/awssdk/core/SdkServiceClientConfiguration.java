@@ -57,6 +57,11 @@ public abstract class SdkServiceClientConfiguration {
         return Optional.ofNullable(this.endpointOverride);
     }
 
+    /**
+     *
+     * @return The configured endpoint provider of the SdkClient. If the endpoint provider was not configured, an empty
+     * Optional will be returned.
+     */
     public Optional<EndpointProvider> endpointProvider() {
         return Optional.ofNullable(this.endpointProvider);
     }

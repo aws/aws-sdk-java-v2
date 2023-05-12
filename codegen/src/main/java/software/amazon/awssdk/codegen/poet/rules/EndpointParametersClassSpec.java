@@ -60,6 +60,8 @@ public class EndpointParametersClassSpec implements ClassSpec {
             b.addMethod(accessorMethod(name, model));
         });
 
+        b.addMethod(toBuilderMethod());
+
         return b.build();
     }
 
@@ -88,6 +90,11 @@ public class EndpointParametersClassSpec implements ClassSpec {
         TypeSpec.Builder b = TypeSpec.classBuilder(builderClassName())
                                      .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
                                      .addSuperinterface(builderInterfaceName());
+
+        b.addMethod(MethodSpec.constructorBuilder()
+                              .addModifiers(Modifier.PRIVATE)
+                              .build());
+        b.addMethod(toBuilderConstructor().build());
 
         parameters().forEach((name, model) -> {
             b.addField(fieldSpec(name, model).toBuilder().initializer(defaultValueCode(model)).build());
@@ -183,6 +190,14 @@ public class EndpointParametersClassSpec implements ClassSpec {
                          .build();
     }
 
+    private MethodSpec toBuilderMethod() {
+        return MethodSpec.methodBuilder("toBuilder")
+                         .addModifiers(Modifier.PUBLIC)
+                         .returns(builderInterfaceName())
+                         .addStatement("return new $T(this)", builderClassName())
+                         .build();
+    }
+
     private String variableName(String name) {
         return intermediateModel.getNamingStrategy().getVariableName(name);
     }
@@ -223,5 +238,15 @@ public class EndpointParametersClassSpec implements ClassSpec {
             b.addAnnotation(Deprecated.class);
         }
         return b;
+    }
+
+    private MethodSpec.Builder toBuilderConstructor() {
+        MethodSpec.Builder constructorBuilder = MethodSpec.constructorBuilder();
+        constructorBuilder.addModifiers(Modifier.PRIVATE);
+        constructorBuilder.addParameter(className(), "builder");
+        parameters().forEach((name, model) -> {
+            constructorBuilder.addStatement("this.$1N = builder.$1N", variableName(name));
+        });
+        return constructorBuilder;
     }
 }

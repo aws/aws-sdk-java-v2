@@ -94,7 +94,7 @@ public class ServiceClientConfigurationTest {
     }
 
     @Test
-    public void syncClientWithEndpointProvide_serviceClientConfiguration_shouldReturnCorrectEndpointProvider() {
+    public void syncClientWithEndpointProvider_serviceClientConfiguration_shouldReturnCorrectEndpointProvider() {
         ProtocolRestXmlEndpointProvider clientEndpointProvider = ProtocolRestXmlEndpointProvider.defaultProvider();
         ProtocolRestXmlClient client = ProtocolRestXmlClient.builder()
                                                             .endpointProvider(clientEndpointProvider)
@@ -109,8 +109,8 @@ public class ServiceClientConfigurationTest {
         ProtocolRestXmlClient client = ProtocolRestXmlClient.builder()
                                                             .build();
 
-        EndpointProvider endpointOverride = client.serviceClientConfiguration().endpointProvider().orElse(null);
-        assertThat(endpointOverride instanceof ProtocolRestXmlEndpointProvider).isTrue();
+        EndpointProvider endpointProvider = client.serviceClientConfiguration().endpointProvider().orElse(null);
+        assertThat(endpointProvider instanceof ProtocolRestXmlEndpointProvider).isTrue();
     }
 
     @Test
