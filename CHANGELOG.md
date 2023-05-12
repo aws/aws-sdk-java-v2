@@ -1,3 +1,44 @@
+# __2.20.65__ __2023-05-11__
+## __AWS Health APIs and Notifications__
+  - ### Features
+    - Add support for regional endpoints
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Support__
+  - ### Features
+    - This release adds 2 new Support APIs, DescribeCreateCaseOptions and DescribeSupportedLanguages. You can use these new APIs to get available support languages.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release updates GetMetricDataV2 API, to support metric data up-to last 35 days
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Added support to modify the cluster mode configuration for the existing ElastiCache ReplicationGroups. Customers can now modify the configuration from cluster mode disabled to cluster mode enabled.
+
+## __Amazon Elasticsearch Service__
+  - ### Features
+    - This release fixes DescribePackages API error with null filter value parameter.
+
+## __Amazon Interactive Video Service RealTime__
+  - ### Features
+    - Add methods for inspecting and debugging stages: ListStageSessions, GetStageSession, ListParticipants, GetParticipant, and ListParticipantEvents.
+
+## __Amazon Omics__
+  - ### Features
+    - This release provides support for Ready2Run and GPU workflows, an improved read set filter, the direct upload of read sets into Omics Storage, and annotation parsing for analytics stores.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - This release fixes DescribePackages API error with null filter value parameter.
+
+## __Amazon Route 53 Resolver__
+  - ### Features
+    - Update FIPS endpoints for GovCloud (US) regions in SDK.
+
 # __2.20.64__ __2023-05-10__
 ## __AWS SDK for Java v2__
   - ### Bugfixes
