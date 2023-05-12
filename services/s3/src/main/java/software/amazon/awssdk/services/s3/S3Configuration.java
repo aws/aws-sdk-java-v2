@@ -379,13 +379,15 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
 
         /**
          * <p> Configures whether cross-region bucket access is enabled for clients using the configuration.
-         * <p>The following behavior is <i>currently</i> used when this mode is enabled:
+         * <p>The following behavior is used when this mode is enabled:
          * <ol>
          *     <li>This method allows enabling or disabling cross-region bucket access for clients. When cross-region bucket
          *     access is enabled, requests that do not act on an existing bucket (e.g., createBucket API) will be routed to the
          *     region configured on the client</li>
          *     <li>The first time a request is made that references an existing bucket (e.g., putObject API), a request will be
-         *     made to the region configured on that client to determine the region in which the bucket was created.</li>
+         *     made to the client-configured region. If the bucket does not exist in this region, the service will include the
+         *     actual region in the error responses. Subsequently, the API will be called using the correct region obtained
+         *     from the error response. </li>
          *     <li>This location may be cached in the client for subsequent requests to the same bucket.</li>
          * </ol>
          * <p>Enabling this mode has several drawbacks, as it can increase latency if the bucket's location is physically far

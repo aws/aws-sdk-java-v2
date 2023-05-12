@@ -23,6 +23,8 @@ import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
+import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import java.util.Map;
 import javax.lang.model.element.Modifier;
@@ -33,6 +35,8 @@ import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 public class EndpointParametersClassSpec implements ClassSpec {
     private final IntermediateModel intermediateModel;
@@ -53,6 +57,7 @@ public class EndpointParametersClassSpec implements ClassSpec {
                                       .addType(builderInterfaceSpec())
                                       .addType(builderImplSpec())
                                       .addAnnotation(SdkPublicApi.class)
+                                      .addSuperinterface(toCopyableBuilderInterface())
                                       .addModifiers(Modifier.PUBLIC, Modifier.FINAL);
 
         parameters().forEach((name, model) -> {
@@ -72,6 +77,7 @@ public class EndpointParametersClassSpec implements ClassSpec {
 
     private TypeSpec builderInterfaceSpec() {
         TypeSpec.Builder b = TypeSpec.interfaceBuilder(builderInterfaceName())
+            .addSuperinterface(copyableBuilderExtendsInterface())
                                          .addModifiers(Modifier.PUBLIC);
 
         parameters().forEach((name, model) -> {
@@ -248,5 +254,16 @@ public class EndpointParametersClassSpec implements ClassSpec {
             constructorBuilder.addStatement("this.$1N = builder.$1N", variableName(name));
         });
         return constructorBuilder;
+    }
+
+    private TypeName toCopyableBuilderInterface() {
+        return ParameterizedTypeName.get(ClassName.get(ToCopyableBuilder.class),
+                                         className().nestedClass(builderInterfaceName().simpleName()),
+                                         className());
+    }
+
+    private TypeName copyableBuilderExtendsInterface() {
+        return ParameterizedTypeName.get(ClassName.get(CopyableBuilder.class),
+                                         builderInterfaceName(), className());
     }
 }

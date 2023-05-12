@@ -34,13 +34,10 @@ final class DefaultJsonClientBuilder extends DefaultJsonBaseClientBuilder<JsonCl
         SdkClientConfiguration clientConfiguration = super.syncClientConfiguration();
         this.validateClientOptions(clientConfiguration);
         URI endpointOverride = null;
-        EndpointProvider endpointProvider = null;
+        EndpointProvider endpointProvider = clientConfiguration.option(SdkClientOption.ENDPOINT_PROVIDER);
         if (clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN) != null
             && Boolean.TRUE.equals(clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN))) {
             endpointOverride = clientConfiguration.option(SdkClientOption.ENDPOINT);
-        }
-        if (clientConfiguration.option(SdkClientOption.ENDPOINT_PROVIDER) != null) {
-            endpointProvider = clientConfiguration.option(SdkClientOption.ENDPOINT_PROVIDER);
         }
         JsonServiceClientConfiguration serviceClientConfiguration = JsonServiceClientConfiguration.builder()
                                                                                                   .overrideConfiguration(overrideConfiguration()).region(clientConfiguration.option(AwsClientOption.AWS_REGION))

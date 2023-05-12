@@ -127,17 +127,13 @@ public class SyncClientBuilderClass implements ClassSpec {
                          .addStatement("$T clientConfiguration = super.syncClientConfiguration()", SdkClientConfiguration.class)
                          .addStatement("this.validateClientOptions(clientConfiguration)")
                          .addStatement("$T endpointOverride = null", URI.class)
-                         .addStatement("$T endpointProvider = null", EndpointProvider.class)
+                         .addStatement("$T endpointProvider = clientConfiguration.option($T.ENDPOINT_PROVIDER)",
+                                       EndpointProvider.class, SdkClientOption.class)
                          .addCode("if (clientConfiguration.option($T.ENDPOINT_OVERRIDDEN) != null"
                                   + "&& $T.TRUE.equals(clientConfiguration.option($T.ENDPOINT_OVERRIDDEN))) {"
                                   + "endpointOverride = clientConfiguration.option($T.ENDPOINT);"
-
                                   + "}",
                                   SdkClientOption.class, Boolean.class, SdkClientOption.class, SdkClientOption.class)
-                         .addCode("if (clientConfiguration.option($T.ENDPOINT_PROVIDER) != null) {"
-                                  + "endpointProvider = clientConfiguration.option($T.ENDPOINT_PROVIDER);"
-                                  + "}",
-                                  SdkClientOption.class, SdkClientOption.class)
                          .addStatement("$T serviceClientConfiguration = $T.builder()"
                                        + ".overrideConfiguration(overrideConfiguration())"
                                        + ".region(clientConfiguration.option($T.AWS_REGION))"

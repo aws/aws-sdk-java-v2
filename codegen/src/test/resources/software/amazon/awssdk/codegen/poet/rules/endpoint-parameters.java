@@ -3,13 +3,15 @@ package software.amazon.awssdk.services.query.endpoints;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * The parameters object used to resolve an endpoint for the Query service.
  */
 @Generated("software.amazon.awssdk:codegen")
 @SdkPublicApi
-public final class QueryEndpointParams {
+public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpointParams.Builder, QueryEndpointParams> {
     private final Region region;
 
     private final Boolean useDualStackEndpoint;
@@ -92,7 +94,7 @@ public final class QueryEndpointParams {
         return new BuilderImpl(this);
     }
 
-    public interface Builder {
+    public interface Builder extends CopyableBuilder<Builder, QueryEndpointParams> {
         Builder region(Region region);
 
         Builder useDualStackEndpoint(Boolean useDualStackEndpoint);
