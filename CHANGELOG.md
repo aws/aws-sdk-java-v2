@@ -1,3 +1,66 @@
+# __2.20.65__ __2023-05-11__
+## __AWS Health APIs and Notifications__
+  - ### Features
+    - Add support for regional endpoints
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Support__
+  - ### Features
+    - This release adds 2 new Support APIs, DescribeCreateCaseOptions and DescribeSupportedLanguages. You can use these new APIs to get available support languages.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release updates GetMetricDataV2 API, to support metric data up-to last 35 days
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Added support to modify the cluster mode configuration for the existing ElastiCache ReplicationGroups. Customers can now modify the configuration from cluster mode disabled to cluster mode enabled.
+
+## __Amazon Elasticsearch Service__
+  - ### Features
+    - This release fixes DescribePackages API error with null filter value parameter.
+
+## __Amazon Interactive Video Service RealTime__
+  - ### Features
+    - Add methods for inspecting and debugging stages: ListStageSessions, GetStageSession, ListParticipants, GetParticipant, and ListParticipantEvents.
+
+## __Amazon Omics__
+  - ### Features
+    - This release provides support for Ready2Run and GPU workflows, an improved read set filter, the direct upload of read sets into Omics Storage, and annotation parsing for analytics stores.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - This release fixes DescribePackages API error with null filter value parameter.
+
+## __Amazon Route 53 Resolver__
+  - ### Features
+    - Update FIPS endpoints for GovCloud (US) regions in SDK.
+
+# __2.20.64__ __2023-05-10__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - STS was being skipped in the default credential provider chain when using native builds in java. Now a proper reflect-config.json file was added to include sts.
+        - Contributed by: [@martinKindall](https://github.com/martinKindall)
+
+## __Amazon EMR__
+  - ### Features
+    - EMR Studio now supports programmatically executing a Notebooks on an EMR on EKS cluster. In addition, notebooks can now be executed by specifying its location in S3.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Amazon Relational Database Service (RDS) updates for the new Aurora I/O-Optimized storage type for Amazon Aurora DB clusters
+
+## __Amazon Simple Workflow Service__
+  - ### Features
+    - This release adds a new API parameter to exclude old history events from decision tasks.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@martinKindall](https://github.com/martinKindall)
 # __2.20.63__ __2023-05-09__
 ## __AWS Glue__
   - ### Features
