@@ -7,6 +7,7 @@ import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.services.json.endpoints.JsonEndpointProvider;
 
 /**
@@ -33,13 +34,14 @@ final class DefaultJsonClientBuilder extends DefaultJsonBaseClientBuilder<JsonCl
         SdkClientConfiguration clientConfiguration = super.syncClientConfiguration();
         this.validateClientOptions(clientConfiguration);
         URI endpointOverride = null;
+        EndpointProvider endpointProvider = clientConfiguration.option(SdkClientOption.ENDPOINT_PROVIDER);
         if (clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN) != null
             && Boolean.TRUE.equals(clientConfiguration.option(SdkClientOption.ENDPOINT_OVERRIDDEN))) {
             endpointOverride = clientConfiguration.option(SdkClientOption.ENDPOINT);
         }
         JsonServiceClientConfiguration serviceClientConfiguration = JsonServiceClientConfiguration.builder()
                                                                                                   .overrideConfiguration(overrideConfiguration()).region(clientConfiguration.option(AwsClientOption.AWS_REGION))
-                                                                                                  .endpointOverride(endpointOverride).build();
+                                                                                                  .endpointOverride(endpointOverride).endpointProvider(endpointProvider).build();
         return new DefaultJsonClient(serviceClientConfiguration, clientConfiguration);
     }
 }

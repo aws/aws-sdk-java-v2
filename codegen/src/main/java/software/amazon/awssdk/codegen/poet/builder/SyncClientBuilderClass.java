@@ -32,6 +32,7 @@ import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.codegen.utils.AuthUtils;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.endpoints.EndpointProvider;
 
 public class SyncClientBuilderClass implements ClassSpec {
     private final IntermediateModel model;
@@ -126,6 +127,8 @@ public class SyncClientBuilderClass implements ClassSpec {
                          .addStatement("$T clientConfiguration = super.syncClientConfiguration()", SdkClientConfiguration.class)
                          .addStatement("this.validateClientOptions(clientConfiguration)")
                          .addStatement("$T endpointOverride = null", URI.class)
+                         .addStatement("$T endpointProvider = clientConfiguration.option($T.ENDPOINT_PROVIDER)",
+                                       EndpointProvider.class, SdkClientOption.class)
                          .addCode("if (clientConfiguration.option($T.ENDPOINT_OVERRIDDEN) != null"
                                   + "&& $T.TRUE.equals(clientConfiguration.option($T.ENDPOINT_OVERRIDDEN))) {"
                                   + "endpointOverride = clientConfiguration.option($T.ENDPOINT);"
@@ -135,6 +138,7 @@ public class SyncClientBuilderClass implements ClassSpec {
                                        + ".overrideConfiguration(overrideConfiguration())"
                                        + ".region(clientConfiguration.option($T.AWS_REGION))"
                                        + ".endpointOverride(endpointOverride)"
+                                       + ".endpointProvider(endpointProvider)"
                                        + ".build()",
                                        serviceConfigClassName, serviceConfigClassName, AwsClientOption.class)
                          .addStatement("return new $T(serviceClientConfiguration, clientConfiguration)", clientClassName)
