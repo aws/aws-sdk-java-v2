@@ -1,0 +1,6 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "contributor": "martinKindall", 
+    "type": "bugfix", 
+    "description": "Added missing close() handler for the AwsUnsignedChunkedEncodingInputStream class. This fixes a memory leak that occured when creating request bodies from files."
+}

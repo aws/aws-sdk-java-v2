@@ -86,5 +86,36 @@ public class AwsChunkedEncodingInputStreamTest {
             }
         }
         assertThat(sb).hasToString("b" + CRLF + initialString +CRLF + "0" + CRLF
-                + "x-amz-checksum-sha-256:ZOyIygCyaOW6GjVnihtTFtIS9PNmskdyMlNKiuyjfzw=" + CRLF+CRLF);    }
+                + "x-amz-checksum-sha-256:ZOyIygCyaOW6GjVnihtTFtIS9PNmskdyMlNKiuyjfzw=" + CRLF+CRLF);
+    }
+
+    @Test
+    public void closeAwsUnsignedChunkedEncodingInputStream() throws IOException {
+        InputStream targetStream = new InputStream() {
+            private int isClosed = 0;
+
+            @Override
+            public int read() throws IOException {
+                return isClosed;
+            }
+
+            @Override
+            public void close() throws IOException {
+                isClosed = 1;
+            }
+        };
+
+        final AwsChunkedEncodingInputStream checksumCalculatingInputStream =
+            AwsUnsignedChunkedEncodingInputStream.builder()
+                                                 .inputStream(targetStream)
+                                                 .sdkChecksum(SdkChecksum.forAlgorithm(SHA256_ALGORITHM))
+                                                 .checksumHeaderForTrailer(SHA256_HEADER_NAME)
+                                                 .build();
+
+        assertThat(targetStream.read()).isEqualTo(0);
+
+        checksumCalculatingInputStream.close();
+
+        assertThat(targetStream.read()).isEqualTo(1);
+    }
 }

@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.internal.io;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -123,6 +124,16 @@ public class AwsUnsignedChunkedEncodingInputStream extends AwsChunkedEncodingInp
                 .append(BinaryUtils.toBase64(calculatedChecksum))
                 .append(CRLF);
         return chunkHeader.toString().getBytes(StandardCharsets.UTF_8);
+    }
+
+    @Override
+    public void close() throws IOException {
+        super.close();
+
+        InputStream stream = this.getWrappedInputStream();
+        if (stream != null) {
+            stream.close();
+        }
     }
 
     public static final class Builder extends AwsChunkedEncodingInputStream.Builder<Builder> {
