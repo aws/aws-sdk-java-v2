@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.http.auth.spi;
 
-import java.util.function.BiConsumer;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.http.auth.spi.internal.DefaultHttpAuthOption;
 import software.amazon.awssdk.identity.spi.IdentityProperty;
@@ -24,7 +23,7 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
 /**
  * An authentication scheme option, composed of the scheme ID and properties for use when resolving the identity and signing
  * the request.
- *
+ * <p>
  * This is used in the output from the auth scheme resolver. The resolver returns a list of these, in the order the auth scheme
  * resolver wishes to use them.
  *
@@ -58,7 +57,7 @@ public interface HttpAuthOption {
     /**
      * A method to operate on all {@link IdentityProperty} values of this HttpAuthOption.
      */
-    void forEachIdentityProperty(IdentityPropertyConsumer consumer);
+    <T> void forEachIdentityProperty(IdentityPropertyConsumer consumer);
 
     /**
      * A method to operate on all {@link SignerProperty} values of this HttpAuthOption.
@@ -69,7 +68,8 @@ public interface HttpAuthOption {
      * Interface for operating on an {@link IdentityProperty} value.
      */
     @FunctionalInterface
-    interface IdentityPropertyConsumer<T> extends BiConsumer<IdentityProperty<T>, T> {
+    interface IdentityPropertyConsumer {
+        <T> void accept(IdentityProperty<T> propertyKey, T propertyValue);
     }
 
     /**

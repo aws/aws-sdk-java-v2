@@ -22,6 +22,7 @@ import software.amazon.awssdk.http.auth.spi.HttpAuthOption;
 import software.amazon.awssdk.http.auth.spi.SignerProperty;
 import software.amazon.awssdk.identity.spi.IdentityProperty;
 import software.amazon.awssdk.utils.ToString;
+import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public final class DefaultHttpAuthOption implements HttpAuthOption {
@@ -31,7 +32,7 @@ public final class DefaultHttpAuthOption implements HttpAuthOption {
     private final Map<SignerProperty<?>, Object> signerProperties;
 
     DefaultHttpAuthOption(BuilderImpl builder) {
-        this.schemeId = builder.schemeId;
+        this.schemeId = Validate.paramNotNull(builder.schemeId, "schemeId");
         this.identityProperties = new HashMap<>(builder.identityProperties);
         this.signerProperties = new HashMap<>(builder.signerProperties);
     }
@@ -52,8 +53,11 @@ public final class DefaultHttpAuthOption implements HttpAuthOption {
     }
 
     @Override
-    public void forEachIdentityProperty(IdentityPropertyConsumer consumer) {
-        identityProperties.forEach(consumer);
+    public <T> void forEachIdentityProperty(IdentityPropertyConsumer consumer) {
+        for (IdentityProperty<?> p : identityProperties.keySet()) {
+            IdentityProperty<T> property = (IdentityProperty<T>) p;
+            consumer.accept(property, this.identityProperty(property));
+        }
     }
 
     @Override
