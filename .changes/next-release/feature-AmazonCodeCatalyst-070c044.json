@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon CodeCatalyst",
-    "contributor": "",
-    "description": "With this release, the users can list the active sessions connected to their Dev Environment on AWS CodeCatalyst"
-}
