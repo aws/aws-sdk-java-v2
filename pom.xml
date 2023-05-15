@@ -1410,6 +1410,7 @@
                             </header>
                             <bottom><![CDATA[
                               <div style="margin:1.2em;"><h3><a id="fdbk" target="_blank">Provide feedback</a><h3></div>
+                              <div style="margin:1.2em;"><h4><a href="https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/">Java v1 API Reference</a></h4></div>
                               <span id="awsdocs-legal-zone-copyright"></span>
                               <script type="text/javascript">document.addEventListener("DOMContentLoaded",()=>{
                                 var a=document.createElement("meta"),b=document.createElement("meta"),c=document.createElement("script"),
