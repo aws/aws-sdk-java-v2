@@ -1,3 +1,32 @@
+# __2.20.66__ __2023-05-15__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Transfer Family__
+  - ### Features
+    - This release introduces the ability to require both password and SSH key when users authenticate to your Transfer Family servers that use the SFTP protocol.
+
+## __Amazon Athena__
+  - ### Features
+    - You can now define custom spark properties at start of the session for use cases like cluster encryption, table formats, and general Spark tuning.
+
+## __Amazon CodeCatalyst__
+  - ### Features
+    - With this release, the users can list the active sessions connected to their Dev Environment on AWS CodeCatalyst
+
+## __Amazon Rekognition__
+  - ### Features
+    - This release adds a new EyeDirection attribute in Amazon Rekognition DetectFaces and IndexFaces APIs which predicts the yaw and pitch angles of a person's eye gaze direction for each face detected in the image.
+
+## __IAM Roles Anywhere__
+  - ### Features
+    - Adds support for custom notification settings in a trust anchor. Introduces PutNotificationSettings and ResetNotificationSettings API's. Updates DurationSeconds max value to 3600.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Added a fix to make clusterarn a required field in ListClientVpcConnections and RejectClientVpcConnection APIs
+
 # __2.20.65__ __2023-05-11__
 ## __AWS Health APIs and Notifications__
   - ### Features
