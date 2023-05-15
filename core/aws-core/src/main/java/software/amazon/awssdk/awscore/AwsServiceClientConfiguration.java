@@ -77,15 +77,6 @@ public abstract class AwsServiceClientConfiguration extends SdkServiceClientConf
         Builder region(Region region);
 
         @Override
-        Builder overrideConfiguration(ClientOverrideConfiguration clientOverrideConfiguration);
-
-        @Override
-        Builder endpointOverride(URI endpointOverride);
-
-        @Override
-        Builder endpointProvider(EndpointProvider endpointProvider);
-
-        @Override
         AwsServiceClientConfiguration build();
     }
 
