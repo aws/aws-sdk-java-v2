@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "This update fixes  an issue where CompletableFutures are leaked/never completed when the submission to the FUTURE_COMPLETE_EXECUTOR is rejected.\n\nBy default, the SDK uses `2 * number of cores` (with a maximum of 64), and uses bounded queue of size 1000. In cases where the throughput to the client exceeds the executor's ability to keep up, it would reject executions. Before this change this would lead to leaked futures."
+}
