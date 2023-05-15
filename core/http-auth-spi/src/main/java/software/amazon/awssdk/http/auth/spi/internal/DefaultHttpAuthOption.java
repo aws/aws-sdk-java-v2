@@ -32,7 +32,7 @@ public final class DefaultHttpAuthOption implements HttpAuthOption {
     private final Map<SignerProperty<?>, Object> signerProperties;
 
     DefaultHttpAuthOption(BuilderImpl builder) {
-        this.schemeId = Validate.paramNotNull(builder.schemeId, "schemeId");
+        this.schemeId = Validate.paramNotBlank(builder.schemeId, "schemeId");
         this.identityProperties = new HashMap<>(builder.identityProperties);
         this.signerProperties = new HashMap<>(builder.signerProperties);
     }
@@ -78,12 +78,14 @@ public final class DefaultHttpAuthOption implements HttpAuthOption {
 
 
     public static final class BuilderImpl implements Builder {
-        private final String schemeId;
+        private String schemeId;
         private final Map<IdentityProperty<?>, Object> identityProperties = new HashMap<>();
         private final Map<SignerProperty<?>, Object> signerProperties = new HashMap<>();
 
-        public BuilderImpl(String schemeId) {
+        @Override
+        public <T> Builder schemeId(String schemeId) {
             this.schemeId = schemeId;
+            return this;
         }
 
         @Override

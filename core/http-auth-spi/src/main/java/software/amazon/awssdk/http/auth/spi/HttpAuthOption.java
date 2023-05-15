@@ -35,8 +35,8 @@ public interface HttpAuthOption {
     /**
      * Get a new builder for creating a {@link HttpAuthOption}.
      */
-    static Builder builder(String schemeId) {
-        return new DefaultHttpAuthOption.BuilderImpl(schemeId);
+    static Builder builder() {
+        return new DefaultHttpAuthOption.BuilderImpl();
     }
 
     /**
@@ -81,6 +81,8 @@ public interface HttpAuthOption {
     }
 
     interface Builder extends SdkBuilder<Builder, HttpAuthOption> {
+        <T> Builder schemeId(String schemeId);
+
         <T> Builder putIdentityProperty(IdentityProperty<T> key, T value);
 
         <T> Builder putSignerProperty(SignerProperty<T> key, T value);
