@@ -16,6 +16,10 @@
       "type": "boolean",
       "builtIn": "AWS::UseFIPS"
     },
+    "awsAccountId": {
+      "type": "String",
+      "builtIn": "AWS::Auth::AccountId"
+    },
     "endpointId": {
       "type": "string"
     },
