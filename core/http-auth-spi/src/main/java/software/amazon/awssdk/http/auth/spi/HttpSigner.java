@@ -19,13 +19,14 @@ import java.nio.ByteBuffer;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.ContentStreamProvider;
+import software.amazon.awssdk.identity.spi.Identity;
 
 /**
  * Interface for the process of modifying a request destined for a service so that the service can authenticate the SDK
  * customer’s identity.
  */
 @SdkPublicApi
-public interface HttpSigner<IdentityT> {
+public interface HttpSigner<IdentityT extends Identity> {
 
     /**
      * Method that takes in inputs to sign a request with sync payload and returns a signed version of the request.
