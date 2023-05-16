@@ -54,6 +54,9 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
         if (params.useFipsEndpoint() != null) {
             paramsMap.put(Identifier.of("useFIPSEndpoint"), Value.fromBool(params.useFipsEndpoint()));
         }
+        if (params.awsAccountId() != null) {
+            paramsMap.put(Identifier.of("awsAccountId"), Value.fromStr(params.awsAccountId()));
+        }
         if (params.endpointId() != null) {
             paramsMap.put(Identifier.of("endpointId"), Value.fromStr(params.endpointId()));
         }
@@ -339,6 +342,9 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
                                 .addParameter(
                                         Parameter.builder().name("useFIPSEndpoint").type(ParameterType.fromValue("boolean"))
                                                 .required(false).builtIn("AWS::UseFIPS").build())
+                                .addParameter(
+                                    Parameter.builder().name("awsAccountId").type(ParameterType.fromValue("String"))
+                                             .required(false).builtIn("AWS::Auth::AccountId").build())
                                 .addParameter(
                                         Parameter.builder().name("endpointId").type(ParameterType.fromValue("string"))
                                                 .required(false).build())

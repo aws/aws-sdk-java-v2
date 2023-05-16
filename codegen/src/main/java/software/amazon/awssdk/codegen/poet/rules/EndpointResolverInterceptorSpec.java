@@ -287,6 +287,9 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
                 case SDK_ENDPOINT:
                     builtInFn = "endpointBuiltIn";
                     break;
+                case AWS_AUTH_ACCOUNT_ID:
+                    builtInFn = "accountIdBuiltIn";
+                    break;
                 case AWS_S3_USE_GLOBAL_ENDPOINT:
                     builtInFn = "useGlobalEndpointBuiltIn";
                     break;

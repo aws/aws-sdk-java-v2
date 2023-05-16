@@ -27,7 +27,7 @@ import software.amazon.awssdk.regions.Region;
  * AWS-specific attributes attached to the execution. This information is available to {@link ExecutionInterceptor}s.
  */
 @SdkPublicApi
-public final class AwsExecutionAttribute extends SdkExecutionAttribute {
+public final class  AwsExecutionAttribute extends SdkExecutionAttribute {
     /**
      * The AWS {@link Region} the client was configured with. This is not always same as the
      * {@link AwsSignerExecutionAttribute#SIGNING_REGION} for global services like IAM.
@@ -57,6 +57,12 @@ public final class AwsExecutionAttribute extends SdkExecutionAttribute {
      */
     public static final ExecutionAttribute<Boolean> USE_GLOBAL_ENDPOINT =
         new ExecutionAttribute<>("UseGlobalEndpoint");
+
+    /**
+     * The AWS account ID associated with the identity resolved for this request.
+     */
+    public static final ExecutionAttribute<String> AWS_AUTH_ACCOUNT_ID =
+        new ExecutionAttribute<>("AwsAuthAccountId");
 
     private AwsExecutionAttribute() {
     }
