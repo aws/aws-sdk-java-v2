@@ -24,19 +24,21 @@ import software.amazon.awssdk.http.auth.spi.internal.DefaultHttpSignRequest;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
- * Represents a request to be signed by {@link HttpSigner}.
+ * Input parameters to sign a request using {@link HttpSigner}.
  *
- * @param <PayloadT> The type of payload of this request.
+ * @param <PayloadT> The type of payload of the request.
  */
 @SdkPublicApi
 @Immutable
 @ThreadSafe
-public interface HttpSignRequest<PayloadT> {
+// TODO: should be IdentityT extends Identity
+public interface HttpSignRequest<PayloadT, IdentityT> {
 
     /**
      * Get a new builder for creating a {@link HttpSignRequest}.
      */
-    static <T> Builder<T> builder(Class<T> payloadType) {
+    // TODO: Should it take Class<IdentityT> identityType too?
+    static <PayloadT, IdentityT> Builder<PayloadT, IdentityT> builder(Class<PayloadT> payloadType) {
         return new DefaultHttpSignRequest.BuilderImpl<>(payloadType);
     }
 
@@ -55,29 +57,37 @@ public interface HttpSignRequest<PayloadT> {
      */
     Optional<PayloadT> payload();
 
+    IdentityT identity();
+
     /**
-     * Returns the property that the {@link HttpSigner} can use during signing.
+     * Returns the value of a property that the {@link HttpSigner} can use during signing.
      */
     <T> T property(SignerProperty<T> property);
 
     /**
      * A builder for a {@link HttpSignRequest}.
      */
-    interface Builder<PayloadT> extends SdkBuilder<Builder<PayloadT>, HttpSignRequest<PayloadT>> {
+    interface Builder<PayloadT, IdentityT> extends SdkBuilder<Builder<PayloadT, IdentityT>, HttpSignRequest<PayloadT,
+        IdentityT>> {
 
         /**
          * Set the HTTP request object, without the request body payload.
          */
-        Builder<PayloadT> request(SdkHttpRequest request);
+        Builder<PayloadT, IdentityT> request(SdkHttpRequest request);
 
         /**
          * Set the body payload of the request. A payload is optional. By default, the payload will be empty.
          */
-        Builder<PayloadT> payload(PayloadT payload);
+        Builder<PayloadT, IdentityT> payload(PayloadT payload);
+
+        /**
+         * Set the body payload of the request. A payload is optional. By default, the payload will be empty.
+         */
+        Builder<PayloadT, IdentityT> identity(IdentityT identity);
 
         /**
          * Set a property that the {@link HttpSigner} can use during signing.
          */
-        <T> Builder<PayloadT> putProperty(SignerProperty<T> key, T value);
+        <T> Builder<PayloadT, IdentityT> putProperty(SignerProperty<T> key, T value);
     }
 }

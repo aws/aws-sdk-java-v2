@@ -26,7 +26,7 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
 /**
  * Represents a request that has been signed by {@link HttpSigner}.
  *
- * @param <PayloadT> The type of payload of this request.
+ * @param <PayloadT> The type of payload of the request.
  */
 @SdkPublicApi
 @Immutable

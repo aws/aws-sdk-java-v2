@@ -22,24 +22,24 @@ import software.amazon.awssdk.http.ContentStreamProvider;
 
 /**
  * Interface for the process of modifying a request destined for a service so that the service can authenticate the SDK
- * customer’s identity
+ * customer’s identity.
  */
 @SdkPublicApi
-public interface HttpSigner {
+public interface HttpSigner<IdentityT> {
 
     /**
-     * Method that takes in a request and returns a signed version of the request.
+     * Method that takes in inputs to sign a request and returns a signed version of the request.
      *
-     * @param request The request to sign, with sync payload
-     * @return A signed version of the input request
+     * @param request The inputs to sign a request, with sync payload.
+     * @return A signed version of the request.
      */
-    SignedHttpRequest<ContentStreamProvider> sign(HttpSignRequest<ContentStreamProvider> request);
+    SignedHttpRequest<ContentStreamProvider> sign(HttpSignRequest<ContentStreamProvider, IdentityT> request);
 
     /**
-     * Method that takes in a request and returns a signed version of the request.
+     * Method that takes in inputs to sign a request and returns a signed version of the request.
      *
-     * @param request The request to sign, with async payload
-     * @return A signed version of the input request
+     * @param request The inputs to sign a request, with async payload.
+     * @return A signed version of the request.
      */
-    SignedHttpRequest<Publisher<ByteBuffer>> signAsync(HttpSignRequest<Publisher<ByteBuffer>> request);
+    SignedHttpRequest<Publisher<ByteBuffer>> signAsync(HttpSignRequest<Publisher<ByteBuffer>, IdentityT> request);
 }

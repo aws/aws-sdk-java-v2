@@ -26,17 +26,19 @@ import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
-public final class DefaultHttpSignRequest<PayloadT> implements HttpSignRequest<PayloadT> {
+public final class DefaultHttpSignRequest<PayloadT, IdentityT> implements HttpSignRequest<PayloadT, IdentityT> {
 
     private final Class<PayloadT> payloadType;
     private final SdkHttpRequest request;
     private final PayloadT payload;
+    private final IdentityT identity;
     private final Map<SignerProperty<?>, Object> properties;
 
-    DefaultHttpSignRequest(BuilderImpl<PayloadT>  builder) {
+    DefaultHttpSignRequest(BuilderImpl<PayloadT, IdentityT>  builder) {
         this.payloadType = Validate.paramNotNull(builder.payloadType, "payloadType");
         this.request = Validate.paramNotNull(builder.request, "request");
         this.payload = builder.payload;
+        this.identity = Validate.paramNotNull(builder.identity, "identity");
         this.properties = new HashMap<>(builder.properties);
     }
 
@@ -56,6 +58,11 @@ public final class DefaultHttpSignRequest<PayloadT> implements HttpSignRequest<P
     }
 
     @Override
+    public IdentityT identity() {
+        return identity;
+    }
+
+    @Override
     public <T> T property(SignerProperty<T> property) {
         return (T) properties.get(property);
     }
@@ -70,10 +77,11 @@ public final class DefaultHttpSignRequest<PayloadT> implements HttpSignRequest<P
     }
 
 
-    public static final class BuilderImpl<PayloadT> implements Builder<PayloadT> {
+    public static final class BuilderImpl<PayloadT, IdentityT> implements Builder<PayloadT, IdentityT> {
         private final Class<PayloadT> payloadType;
         private SdkHttpRequest request;
         private PayloadT payload;
+        private IdentityT identity;
         private final Map<SignerProperty<?>, Object> properties = new HashMap<>();
 
         public BuilderImpl(Class<PayloadT> payloadType) {
@@ -81,25 +89,31 @@ public final class DefaultHttpSignRequest<PayloadT> implements HttpSignRequest<P
         }
 
         @Override
-        public Builder<PayloadT> request(SdkHttpRequest request) {
+        public Builder<PayloadT, IdentityT> request(SdkHttpRequest request) {
             this.request = request;
             return this;
         }
 
         @Override
-        public Builder<PayloadT> payload(PayloadT payload) {
+        public Builder<PayloadT, IdentityT> payload(PayloadT payload) {
             this.payload = payload;
             return this;
         }
 
         @Override
-        public <T> Builder<PayloadT> putProperty(SignerProperty<T> key, T value) {
+        public Builder<PayloadT, IdentityT> identity(IdentityT identity) {
+            this.identity = identity;
+            return this;
+        }
+
+        @Override
+        public <T> Builder<PayloadT, IdentityT> putProperty(SignerProperty<T> key, T value) {
             this.properties.put(key, value);
             return this;
         }
 
         @Override
-        public HttpSignRequest<PayloadT> build() {
+        public HttpSignRequest<PayloadT, IdentityT> build() {
             return new DefaultHttpSignRequest<>(this);
         }
     }
