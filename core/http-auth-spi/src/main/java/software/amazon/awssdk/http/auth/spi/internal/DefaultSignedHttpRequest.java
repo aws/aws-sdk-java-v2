@@ -46,7 +46,7 @@ public final class DefaultSignedHttpRequest<PayloadT> implements SignedHttpReque
     }
 
     @Override
-    public Optional payload() {
+    public Optional<PayloadT> payload() {
         return payload == null ? Optional.empty() : Optional.of(payload);
     }
 
@@ -68,20 +68,20 @@ public final class DefaultSignedHttpRequest<PayloadT> implements SignedHttpReque
         }
 
         @Override
-        public Builder request(SdkHttpRequest request) {
+        public Builder<PayloadT> request(SdkHttpRequest request) {
             this.request = request;
             return this;
         }
 
         @Override
-        public Builder payload(PayloadT payload) {
+        public Builder<PayloadT> payload(PayloadT payload) {
             this.payload = payload;
             return this;
         }
 
         @Override
-        public SignedHttpRequest build() {
-            return new DefaultSignedHttpRequest(this);
+        public SignedHttpRequest<PayloadT> build() {
+            return new DefaultSignedHttpRequest<>(this);
         }
     }
 }
