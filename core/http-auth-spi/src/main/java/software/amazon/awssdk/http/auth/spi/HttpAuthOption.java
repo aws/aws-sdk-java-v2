@@ -81,7 +81,7 @@ public interface HttpAuthOption {
     }
 
     interface Builder extends SdkBuilder<Builder, HttpAuthOption> {
-        <T> Builder schemeId(String schemeId);
+        Builder schemeId(String schemeId);
 
         <T> Builder putIdentityProperty(IdentityProperty<T> key, T value);
 

@@ -83,7 +83,7 @@ public final class DefaultHttpAuthOption implements HttpAuthOption {
         private final Map<SignerProperty<?>, Object> signerProperties = new HashMap<>();
 
         @Override
-        public <T> Builder schemeId(String schemeId) {
+        public Builder schemeId(String schemeId) {
             this.schemeId = schemeId;
             return this;
         }
