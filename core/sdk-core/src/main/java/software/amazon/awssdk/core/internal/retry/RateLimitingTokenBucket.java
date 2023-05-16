@@ -73,7 +73,7 @@ public class RateLimitingTokenBucket {
      *
      *   _TokenBucketRefill()
      *   # Next see if we have enough capacity for the requested amount.
-     *   if amount <= current_capacity
+     *   if amount &lt;= current_capacity
      *     current_capacity = current_capacity - amount
      *   else
      *     sleep((amount - current_capacity) / fill_rate)
@@ -108,7 +108,7 @@ public class RateLimitingTokenBucket {
      *
      *   _TokenBucketRefill()
      *   # Next see if we have enough capacity for the requested amount.
-     *   if amount <= current_capacity
+     *   if amount &lt;= current_capacity
      *     current_capacity = current_capacity - amount
      *   else
      *     sleep((amount - current_capacity) / fill_rate)
