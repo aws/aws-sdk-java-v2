@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -31,6 +32,8 @@ import static software.amazon.awssdk.core.internal.util.AsyncResponseHandlerTest
 
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -47,6 +50,7 @@ import software.amazon.awssdk.core.http.NoopTestRequest;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
+import software.amazon.awssdk.core.internal.http.TransformingAsyncResponseHandler;
 import software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
 import software.amazon.awssdk.core.internal.util.AsyncResponseHandlerTestUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -150,6 +154,33 @@ public class MakeAsyncHttpRequestStageTest {
             verify(sdkAsyncHttpClient).execute(httpRequestCaptor.capture());
             assertThat(httpRequestCaptor.getValue().metricCollector()).contains(childCollector);
         }
+    }
+
+    @Test
+    public void execute_futureCompletionExecutorRejectsWhenCompleteAsync_futureCompletedSynchronously() {
+        ExecutorService mockExecutor = mock(ExecutorService.class);
+        doThrow(new RejectedExecutionException("Busy")).when(mockExecutor).execute(any(Runnable.class));
+
+        SdkClientConfiguration config =
+            SdkClientConfiguration.builder()
+                .option(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR, mockExecutor)
+                .option(ASYNC_HTTP_CLIENT, sdkAsyncHttpClient)
+                .build();
+        HttpClientDependencies dependencies = HttpClientDependencies.builder().clientConfiguration(config).build();
+
+        TransformingAsyncResponseHandler mockHandler = mock(TransformingAsyncResponseHandler.class);
+        when(mockHandler.prepare()).thenReturn(CompletableFuture.completedFuture(null));
+
+        stage = new MakeAsyncHttpRequestStage<>(mockHandler, dependencies);
+
+        CompletableFuture<SdkHttpFullRequest> requestFuture = CompletableFuture.completedFuture(
+            ValidSdkObjects.sdkHttpFullRequest().build());
+
+        CompletableFuture executeFuture = stage.execute(requestFuture, requestContext());
+
+        long testThreadId = Thread.currentThread().getId();
+        executeFuture.whenComplete((r, t) -> assertThat(Thread.currentThread().getId()).isEqualTo(testThreadId)).join();
+        verify(mockExecutor).execute(any(Runnable.class));
     }
 
     private HttpClientDependencies clientDependencies(Duration timeout) {
