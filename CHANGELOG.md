@@ -1,3 +1,36 @@
+# __2.20.67__ __2023-05-16__
+## __AWS Direct Connect__
+  - ### Features
+    - This release includes an update to the mtu value for CreateTransitVirtualInterface from 9001 mtu to 8500 mtu.
+
+## __AWS Glue__
+  - ### Features
+    - Add Support for Tags for Custom Entity Types
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Documentations
+    - Fix javadoc warnings in the sdk-core package.
+        - Contributed by: [@sugmanue](https://github.com/sugmanue)
+
+## __AWS Secrets Manager__
+  - ### Features
+    - Documentation updates for Secrets Manager
+
+## __AWS WAFV2__
+  - ### Features
+    - My AWS Service (placeholder) - You can now rate limit web requests based on aggregation keys other than IP addresses, and you can aggregate using combinations of keys. You can also rate limit all requests that match a scope-down statement, without further aggregation.
+
+## __Amazon Detective__
+  - ### Features
+    - Added and updated API operations in Detective to support the integration of ASFF Security Hub findings.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@sugmanue](https://github.com/sugmanue)
 # __2.20.66__ __2023-05-15__
 ## __AWS SDK for Java v2__
   - ### Features
