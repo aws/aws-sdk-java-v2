@@ -24,9 +24,9 @@ import software.amazon.awssdk.http.auth.spi.internal.DefaultHttpSignRequest;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
- * Represents a request to be signed by {@link HttpSigner}.
+ * Input parameters to sign a request using {@link HttpSigner}.
  *
- * @param <PayloadT> The type of payload of this request.
+ * @param <PayloadT> The type of payload of the request.
  */
 @SdkPublicApi
 @Immutable
@@ -36,7 +36,7 @@ public interface HttpSignRequest<PayloadT> {
     /**
      * Get a new builder for creating a {@link HttpSignRequest}.
      */
-    static <T> Builder<T> builder(Class<T> payloadType) {
+    static <PayloadT> Builder<PayloadT> builder(Class<PayloadT> payloadType) {
         return new DefaultHttpSignRequest.BuilderImpl<>(payloadType);
     }
 
@@ -56,7 +56,7 @@ public interface HttpSignRequest<PayloadT> {
     Optional<PayloadT> payload();
 
     /**
-     * Returns the property that the {@link HttpSigner} can use during signing.
+     * Returns the value of a property that the {@link HttpSigner} can use during signing.
      */
     <T> T property(SignerProperty<T> property);
 
