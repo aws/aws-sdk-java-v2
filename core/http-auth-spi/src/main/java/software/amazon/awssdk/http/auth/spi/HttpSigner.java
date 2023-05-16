@@ -33,7 +33,7 @@ public interface HttpSigner {
      * @param request The request to sign, with sync payload
      * @return A signed version of the input request
      */
-    SignedHttpRequest<ContentStreamProvider> sign(HttpSignRequest<? extends ContentStreamProvider> request);
+    SignedHttpRequest<ContentStreamProvider> sign(HttpSignRequest<ContentStreamProvider> request);
 
     /**
      * Method that takes in a request and returns a signed version of the request.
@@ -41,5 +41,5 @@ public interface HttpSigner {
      * @param request The request to sign, with async payload
      * @return A signed version of the input request
      */
-    SignedHttpRequest<Publisher<ByteBuffer>> signAsync(HttpSignRequest<? extends Publisher<? extends ByteBuffer>> request);
+    SignedHttpRequest<Publisher<ByteBuffer>> signAsync(HttpSignRequest<Publisher<ByteBuffer>> request);
 }
