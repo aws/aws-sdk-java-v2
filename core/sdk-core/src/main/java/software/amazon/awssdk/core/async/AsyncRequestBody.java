@@ -208,8 +208,8 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      * Creates a {@link BlockingOutputStreamAsyncRequestBody} to use for writing to the downstream service as if it's an output
      * stream. Retries are not supported for this request body.
      *
-     * <p>The caller is responsible for calling {@link OutputStream#close()} on the {@link #outputStream()} when writing is
-     * complete.
+     * <p>The caller is responsible for calling {@link OutputStream#close()} on the
+     * {@link BlockingOutputStreamAsyncRequestBody#outputStream()} when writing is complete.
      *
      * <p><b>Example Usage</b>
      * <p>

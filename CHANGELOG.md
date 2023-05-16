@@ -1,3 +1,65 @@
+# __2.20.67__ __2023-05-16__
+## __AWS Direct Connect__
+  - ### Features
+    - This release includes an update to the mtu value for CreateTransitVirtualInterface from 9001 mtu to 8500 mtu.
+
+## __AWS Glue__
+  - ### Features
+    - Add Support for Tags for Custom Entity Types
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Documentations
+    - Fix javadoc warnings in the sdk-core package.
+        - Contributed by: [@sugmanue](https://github.com/sugmanue)
+
+## __AWS Secrets Manager__
+  - ### Features
+    - Documentation updates for Secrets Manager
+
+## __AWS WAFV2__
+  - ### Features
+    - My AWS Service (placeholder) - You can now rate limit web requests based on aggregation keys other than IP addresses, and you can aggregate using combinations of keys. You can also rate limit all requests that match a scope-down statement, without further aggregation.
+
+## __Amazon Detective__
+  - ### Features
+    - Added and updated API operations in Detective to support the integration of ASFF Security Hub findings.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@sugmanue](https://github.com/sugmanue)
+# __2.20.66__ __2023-05-15__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Transfer Family__
+  - ### Features
+    - This release introduces the ability to require both password and SSH key when users authenticate to your Transfer Family servers that use the SFTP protocol.
+
+## __Amazon Athena__
+  - ### Features
+    - You can now define custom spark properties at start of the session for use cases like cluster encryption, table formats, and general Spark tuning.
+
+## __Amazon CodeCatalyst__
+  - ### Features
+    - With this release, the users can list the active sessions connected to their Dev Environment on AWS CodeCatalyst
+
+## __Amazon Rekognition__
+  - ### Features
+    - This release adds a new EyeDirection attribute in Amazon Rekognition DetectFaces and IndexFaces APIs which predicts the yaw and pitch angles of a person's eye gaze direction for each face detected in the image.
+
+## __IAM Roles Anywhere__
+  - ### Features
+    - Adds support for custom notification settings in a trust anchor. Introduces PutNotificationSettings and ResetNotificationSettings API's. Updates DurationSeconds max value to 3600.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Added a fix to make clusterarn a required field in ListClientVpcConnections and RejectClientVpcConnection APIs
+
 # __2.20.65__ __2023-05-11__
 ## __AWS Health APIs and Notifications__
   - ### Features

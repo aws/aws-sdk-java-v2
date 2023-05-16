@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.traits;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.SdkField;
 
 /**
  * Marker interface for traits that contain additional metadata about {@link SdkField}s.
