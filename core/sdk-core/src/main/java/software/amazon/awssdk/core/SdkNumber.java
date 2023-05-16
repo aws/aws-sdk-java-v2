@@ -27,20 +27,23 @@ import software.amazon.awssdk.utils.Validate;
  * An in-memory representation of Number being given to a service or being returned by a service.
  * This is a SDK representation of a Number. This allows conversion to any desired numeric type by providing constructors
  * as below
- * @see #fromBigDecimal(BigDecimal) to create from a BigDecimal.
- * @see #fromBigInteger(BigInteger) to create from a BigInteger.
- * @see #fromDouble(double) to create from a double
- * @see #fromFloat(float) to create from a float.
- * @see #fromLong(long) to create from a long.
- * @see #fromShort(short) to create from a short.
- * @see #fromInteger(int) to create from an integer.
- * @see #fromString(String)  to create from a Stringl,
- * Thus by doing this, this class is able to preserve arbitrary precison of any given number.
+ * <ul>
+ *   <li>{@link #fromBigDecimal(BigDecimal)} to create from a BigDecimal.</li>
+ *   <li>{@link #fromBigInteger(BigInteger)} to create from a BigInteger.</li>
+ *   <li>{@link #fromDouble(double)} to create from a double</li>
+ *   <li>{@link #fromFloat(float)} to create from a float.</li>
+ *   <li>{@link #fromLong(long)} to create from a long.</li>
+ *   <li>{@link #fromShort(short)} to create from a short.</li>
+ *   <li>{@link #fromInteger(int)} to create from an integer.</li>
+ *   <li>{@link #fromString(String)}  to create from a String</li>
+ * </ul>
  *
+ * Thus, by doing this, this class is able to preserve arbitrary precision of any given number.
+ * <p>
  * If {@link SdkNumber} is expected in a particular number format then its corresponding getter methods can be used.
+ * <p>
  * Example for a {@link SdkNumber} created with {@link BigDecimal} the
- * @see #fromBigDecimal(BigDecimal) can be used.
-
+ * {@link #fromBigDecimal(BigDecimal)} can be used.
  */
 @SdkPublicApi
 @Immutable
