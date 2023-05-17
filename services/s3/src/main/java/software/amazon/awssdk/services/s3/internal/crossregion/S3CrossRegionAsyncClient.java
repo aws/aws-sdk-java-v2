@@ -20,7 +20,6 @@ import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.s3.DelegatingS3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.internal.S3BucketRequestParams;
 import software.amazon.awssdk.services.s3.model.S3Request;
 
 @SdkInternalApi
@@ -32,7 +31,7 @@ public final class S3CrossRegionAsyncClient extends DelegatingS3AsyncClient {
 
     @Override
     protected <T extends S3Request, ReturnT> ReturnT invokeOperation(T request, Function<T, ReturnT> operation) {
-        Optional<String> bucket = S3BucketRequestParams.bucketName(request);
+        Optional<String> bucket = request.getValueForField("bucket", String.class);
 
         if (!bucket.isPresent()) {
             return operation.apply(request);
