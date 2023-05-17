@@ -1,6 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "contributor": "sugmanue", 
-    "type": "documentation", 
-    "description": "Fix javadoc warnings in the sdk-core package."
-}

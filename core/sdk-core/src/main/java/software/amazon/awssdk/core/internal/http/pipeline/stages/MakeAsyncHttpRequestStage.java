@@ -156,15 +156,29 @@ public final class MakeAsyncHttpRequestStage<OutputT>
             }
         });
 
-        // Offload the completion of the future returned from this stage onto
-        // the future completion executor
-        responseHandlerFuture.whenCompleteAsync((r, t) -> {
-            if (t == null) {
-                responseFuture.complete(r);
-            } else {
-                responseFuture.completeExceptionally(t);
+        // Attempt to offload the completion of the future returned from this
+        // stage onto the future completion executor
+        CompletableFuture<Void> asyncComplete =
+            responseHandlerFuture.handleAsync((r, t) -> {
+                completeResponseFuture(responseFuture, r, t);
+                return null;
+            },
+            futureCompletionExecutor);
+
+        // It's possible the async execution above fails. If so, log a warning,
+        // and just complete it synchronously.
+        asyncComplete.whenComplete((ignored, asyncCompleteError) -> {
+            if (asyncCompleteError != null) {
+                log.debug(() -> String.format("Could not complete the service call future on the provided "
+                                              + "FUTURE_COMPLETION_EXECUTOR. The future will be completed synchronously by thread"
+                                              + " %s. This may be an indication that the executor is being overwhelmed by too"
+                                              + " many requests, and it may negatively affect performance. Consider changing "
+                                              + "the configuration of the executor to accommodate the load through the client.",
+                                  Thread.currentThread().getName()),
+                          asyncCompleteError);
+                responseHandlerFuture.whenComplete((r, t) -> completeResponseFuture(responseFuture, r, t));
             }
-        }, futureCompletionExecutor);
+        });
 
         return responseFuture;
     }
@@ -217,6 +231,14 @@ public final class MakeAsyncHttpRequestStage<OutputT>
                                                 timeoutExecutor,
                                                 exceptionSupplier,
                                                 timeoutMillis);
+    }
+
+    private void completeResponseFuture(CompletableFuture<Response<OutputT>> responseFuture, Response<OutputT> r, Throwable t) {
+        if (t == null) {
+            responseFuture.complete(r);
+        } else {
+            responseFuture.completeExceptionally(t);
+        }
     }
 
     /**
