@@ -21,24 +21,25 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.spi.internal.DefaultHttpSignRequest;
+import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
  * Input parameters to sign a request using {@link HttpSigner}.
  *
  * @param <PayloadT> The type of payload of the request.
+ * @param <IdentityT> The type of the identity.
  */
 @SdkPublicApi
 @Immutable
 @ThreadSafe
-// TODO: should be IdentityT extends Identity
-public interface HttpSignRequest<PayloadT, IdentityT> {
+public interface HttpSignRequest<PayloadT, IdentityT extends Identity> {
 
     /**
      * Get a new builder for creating a {@link HttpSignRequest}.
      */
-    // TODO: Should it take Class<IdentityT> identityType too?
-    static <PayloadT, IdentityT> Builder<PayloadT, IdentityT> builder(Class<PayloadT> payloadType) {
+    static <PayloadT, IdentityT extends Identity> Builder<PayloadT, IdentityT> builder(Class<PayloadT> payloadType,
+                                                                                       Class<IdentityT> identityType) {
         return new DefaultHttpSignRequest.BuilderImpl<>(payloadType);
     }
 
@@ -67,8 +68,8 @@ public interface HttpSignRequest<PayloadT, IdentityT> {
     /**
      * A builder for a {@link HttpSignRequest}.
      */
-    interface Builder<PayloadT, IdentityT> extends SdkBuilder<Builder<PayloadT, IdentityT>, HttpSignRequest<PayloadT,
-        IdentityT>> {
+    interface Builder<PayloadT, IdentityT extends Identity>
+        extends SdkBuilder<Builder<PayloadT, IdentityT>, HttpSignRequest<PayloadT, IdentityT>> {
 
         /**
          * Set the HTTP request object, without the request body payload.

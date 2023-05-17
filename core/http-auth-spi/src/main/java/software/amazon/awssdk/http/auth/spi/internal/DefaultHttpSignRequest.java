@@ -22,11 +22,12 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.spi.HttpSignRequest;
 import software.amazon.awssdk.http.auth.spi.SignerProperty;
+import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
-public final class DefaultHttpSignRequest<PayloadT, IdentityT> implements HttpSignRequest<PayloadT, IdentityT> {
+public final class DefaultHttpSignRequest<PayloadT, IdentityT extends Identity> implements HttpSignRequest<PayloadT, IdentityT> {
 
     private final Class<PayloadT> payloadType;
     private final SdkHttpRequest request;
@@ -77,7 +78,7 @@ public final class DefaultHttpSignRequest<PayloadT, IdentityT> implements HttpSi
     }
 
 
-    public static final class BuilderImpl<PayloadT, IdentityT> implements Builder<PayloadT, IdentityT> {
+    public static final class BuilderImpl<PayloadT, IdentityT extends Identity> implements Builder<PayloadT, IdentityT> {
         private final Class<PayloadT> payloadType;
         private SdkHttpRequest request;
         private PayloadT payload;
