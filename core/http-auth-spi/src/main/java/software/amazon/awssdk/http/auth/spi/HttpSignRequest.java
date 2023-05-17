@@ -20,9 +20,7 @@ import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.auth.spi.internal.DefaultHttpSignRequest;
 import software.amazon.awssdk.identity.spi.Identity;
-import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
  * Input parameters to sign a request using {@link HttpSigner}.
@@ -30,18 +28,13 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
  * @param <PayloadT> The type of payload of the request.
  * @param <IdentityT> The type of the identity.
  */
+// TODO: Code Reviewer Note: Seems like this could be package-private/SdkProtectedApi, since there are 2 sub-interfaces that
+//  HttpSigner uses, however for implementation of HttpSigner that don't care about Sync v/s Async, they can share their
+//  implementation by using this type with generic PayloadT. Should this be public but SdkProtectedApi?
 @SdkPublicApi
 @Immutable
 @ThreadSafe
 public interface HttpSignRequest<PayloadT, IdentityT extends Identity> {
-
-    /**
-     * Get a new builder for creating a {@link HttpSignRequest}.
-     */
-    static <PayloadT, IdentityT extends Identity> Builder<PayloadT, IdentityT> builder(Class<PayloadT> payloadType,
-                                                                                       Class<IdentityT> ignoredIdentityType) {
-        return new DefaultHttpSignRequest.BuilderImpl<>(payloadType);
-    }
 
     /**
      * Returns the type of the payload.
@@ -68,8 +61,7 @@ public interface HttpSignRequest<PayloadT, IdentityT extends Identity> {
     /**
      * A builder for a {@link HttpSignRequest}.
      */
-    interface Builder<PayloadT, IdentityT extends Identity>
-        extends SdkBuilder<Builder<PayloadT, IdentityT>, HttpSignRequest<PayloadT, IdentityT>> {
+    interface Builder<PayloadT, IdentityT extends Identity> {
 
         /**
          * Set the HTTP request object, without the request body payload.

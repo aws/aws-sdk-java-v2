@@ -19,33 +19,27 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.auth.spi.HttpSignRequest;
 import software.amazon.awssdk.http.auth.spi.SignerProperty;
+import software.amazon.awssdk.http.auth.spi.SyncHttpSignRequest;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
-public final class DefaultHttpSignRequest<PayloadT, IdentityT extends Identity> implements HttpSignRequest<PayloadT, IdentityT> {
+public final class DefaultSyncHttpSignRequest<IdentityT extends Identity> implements SyncHttpSignRequest<IdentityT> {
 
-    private final Class<PayloadT> payloadType;
     private final SdkHttpRequest request;
-    private final PayloadT payload;
+    private final ContentStreamProvider payload;
     private final IdentityT identity;
     private final Map<SignerProperty<?>, Object> properties;
 
-    DefaultHttpSignRequest(BuilderImpl<PayloadT, IdentityT>  builder) {
-        this.payloadType = Validate.paramNotNull(builder.payloadType, "payloadType");
+    DefaultSyncHttpSignRequest(BuilderImpl<IdentityT>  builder) {
         this.request = Validate.paramNotNull(builder.request, "request");
         this.payload = builder.payload;
         this.identity = Validate.paramNotNull(builder.identity, "identity");
         this.properties = new HashMap<>(builder.properties);
-    }
-
-    @Override
-    public Class<PayloadT> payloadType() {
-        return payloadType;
     }
 
     @Override
@@ -54,7 +48,7 @@ public final class DefaultHttpSignRequest<PayloadT, IdentityT extends Identity> 
     }
 
     @Override
-    public Optional<PayloadT> payload() {
+    public Optional<ContentStreamProvider> payload() {
         return payload == null ? Optional.empty() : Optional.of(payload);
     }
 
@@ -70,47 +64,46 @@ public final class DefaultHttpSignRequest<PayloadT, IdentityT extends Identity> 
 
     @Override
     public String toString() {
-        return ToString.builder("HttpSignRequest")
-                       .add("payloadType", payloadType)
+        return ToString.builder("SyncHttpSignRequest")
                        .add("request", request)
                        .add("properties", properties)
                        .build();
     }
 
-
-    public static final class BuilderImpl<PayloadT, IdentityT extends Identity> implements Builder<PayloadT, IdentityT> {
-        private final Class<PayloadT> payloadType;
+    @SdkInternalApi
+    public static final class BuilderImpl<IdentityT extends Identity> implements Builder<IdentityT> {
         private SdkHttpRequest request;
-        private PayloadT payload;
+        private ContentStreamProvider payload;
         private IdentityT identity;
         private final Map<SignerProperty<?>, Object> properties = new HashMap<>();
 
-        public BuilderImpl(Class<PayloadT> payloadType) {
-            this.payloadType = payloadType;
-        }
-
         @Override
-        public Builder<PayloadT, IdentityT> request(SdkHttpRequest request) {
+        public Builder<IdentityT> request(SdkHttpRequest request) {
             this.request = request;
             return this;
         }
 
         @Override
-        public Builder<PayloadT, IdentityT> payload(PayloadT payload) {
+        public Builder<IdentityT> payload(ContentStreamProvider payload) {
             this.payload = payload;
             return this;
         }
 
         @Override
-        public Builder<PayloadT, IdentityT> identity(IdentityT identity) {
+        public Builder<IdentityT> identity(IdentityT identity) {
             this.identity = identity;
             return this;
         }
 
         @Override
-        public <T> Builder<PayloadT, IdentityT> putProperty(SignerProperty<T> key, T value) {
+        public <T> Builder<IdentityT> putProperty(SignerProperty<T> key, T value) {
             this.properties.put(key, value);
             return this;
+        }
+
+        @Override
+        public SyncHttpSignRequest<IdentityT> build() {
+            return new DefaultSyncHttpSignRequest<>(this);
         }
     }
 }

@@ -45,11 +45,11 @@ public class HttpSignerTest {
     @Test
     public void sign_usingRequest_works() {
         SignedHttpRequest<ContentStreamProvider> signedRequest =
-            signer.sign(HttpSignRequest.builder(ContentStreamProvider.class, TokenIdentity.class)
-                                                 .request(mock(SdkHttpRequest.class))
-                                                 .identity(IDENTITY)
-                                                 .putProperty(KEY, VALUE)
-                                                 .build());
+            signer.sign(SyncHttpSignRequest.builder(TokenIdentity.class)
+                                           .request(mock(SdkHttpRequest.class))
+                                           .identity(IDENTITY)
+                                           .putProperty(KEY, VALUE)
+                                           .build());
         assertNotNull(signedRequest);
     }
 
@@ -63,18 +63,17 @@ public class HttpSignerTest {
         assertNotNull(signedRequest);
     }
 
-    // @Test
+    @Test
     public void signAsync_usingRequest_works() {
         Publisher<ByteBuffer> payload = subscriber -> {};
-        // Don't know how to make this work....
-        // HttpSignRequest.Builder<Publisher<ByteBuffer>, TokenIdentity> builder =
-        //   HttpSignRequest.builder(Publisher.class, TokenIdentity.class);
-        HttpSignRequest.Builder<Publisher<ByteBuffer>, TokenIdentity> builder = null;
-        assertNotNull(signer.signAsync(builder.request(mock(SdkHttpRequest.class))
-                                              .payload(payload)
-                                              .identity(IDENTITY)
-                                              .putProperty(KEY, VALUE)
-                                              .build()));
+        SignedHttpRequest<Publisher<ByteBuffer>> signedRequest =
+            signer.signAsync(AsyncHttpSignRequest.builder(TokenIdentity.class)
+                                                 .request(mock(SdkHttpRequest.class))
+                                                 .payload(payload)
+                                                 .identity(IDENTITY)
+                                                 .putProperty(KEY, VALUE)
+                                                 .build());
+        assertNotNull(signedRequest);
     }
 
     /**
@@ -84,7 +83,7 @@ public class HttpSignerTest {
      */
     private class TestSigner implements HttpSigner<TokenIdentity> {
         @Override
-        public SignedHttpRequest<ContentStreamProvider> sign(HttpSignRequest<ContentStreamProvider, TokenIdentity> request) {
+        public SignedHttpRequest<ContentStreamProvider> sign(SyncHttpSignRequest<TokenIdentity> request) {
             Class<ContentStreamProvider> clazz = request.payloadType();
             assertEquals(ContentStreamProvider.class, clazz);
 
@@ -95,7 +94,7 @@ public class HttpSignerTest {
         }
 
         @Override
-        public SignedHttpRequest<Publisher<ByteBuffer>> signAsync(HttpSignRequest<Publisher<ByteBuffer>, TokenIdentity> request) {
+        public SignedHttpRequest<Publisher<ByteBuffer>> signAsync(AsyncHttpSignRequest<TokenIdentity> request) {
             Class<Publisher<ByteBuffer>> clazz = request.payloadType();
             assertEquals(Publisher.class, clazz);
 
@@ -107,7 +106,10 @@ public class HttpSignerTest {
 
         // no-op
         private <T> SignedHttpRequest<T> doSign(HttpSignRequest<T, TokenIdentity> request) {
-            return SignedHttpRequest.builder(request.payloadType()).request(request.request()).build();
+            return SignedHttpRequest.builder(request.payloadType())
+                                    .request(request.request())
+                                    .payload(request.payload().orElse(null))
+                                    .build();
         }
     }
 }
