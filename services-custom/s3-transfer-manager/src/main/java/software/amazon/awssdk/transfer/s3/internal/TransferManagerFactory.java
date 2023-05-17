@@ -30,10 +30,10 @@ import software.amazon.awssdk.utils.Logger;
  * {@link S3AsyncClient}.
  */
 @SdkInternalApi
-public final class S3TransferManagerFactory {
+public final class TransferManagerFactory {
     private static final Logger log = Logger.loggerFor(S3TransferManager.class);
 
-    private S3TransferManagerFactory() {
+    private TransferManagerFactory() {
     }
 
     public static S3TransferManager createTransferManager(DefaultBuilder tmBuilder) {
