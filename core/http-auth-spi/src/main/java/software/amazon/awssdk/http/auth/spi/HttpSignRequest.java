@@ -39,7 +39,7 @@ public interface HttpSignRequest<PayloadT, IdentityT extends Identity> {
      * Get a new builder for creating a {@link HttpSignRequest}.
      */
     static <PayloadT, IdentityT extends Identity> Builder<PayloadT, IdentityT> builder(Class<PayloadT> payloadType,
-                                                                                       Class<IdentityT> identityType) {
+                                                                                       Class<IdentityT> ignoredIdentityType) {
         return new DefaultHttpSignRequest.BuilderImpl<>(payloadType);
     }
 
