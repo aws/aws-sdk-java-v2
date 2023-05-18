@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Relational Database Service",
-    "contributor": "",
-    "description": "RDS documentation update for the EngineVersion parameter of ModifyDBSnapshot"
-}
