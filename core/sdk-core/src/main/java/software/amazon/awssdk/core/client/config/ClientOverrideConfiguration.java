@@ -148,6 +148,9 @@ public final class ClientOverrideConfiguration
     /**
      * The optional scheduled executor service that should be used for scheduling tasks such as async retry attempts
      * and timeout task.
+     * <p>
+     * <b>The SDK will not automatically close the executor when the client is closed. It is the responsibility of the
+     * user to manually close the executor once all clients utilizing it have been closed.</b>
      */
     public Optional<ScheduledExecutorService> scheduledExecutorService() {
         return Optional.ofNullable(scheduledExecutorService);

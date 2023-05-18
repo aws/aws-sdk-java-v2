@@ -91,6 +91,7 @@ import software.amazon.awssdk.profiles.ProfileFileSupplier;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Either;
+import software.amazon.awssdk.utils.ScheduledExecutorUtils;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 import software.amazon.awssdk.utils.Validate;
 
@@ -417,9 +418,10 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
                 .threadNamePrefix("sdk-ScheduledExecutor").build());
 
             return executor;
-        };            
+        };
 
         return Optional.ofNullable(config.option(SCHEDULED_EXECUTOR_SERVICE))
+            .map(ScheduledExecutorUtils::unmanagedScheduledExecutor)
             .orElseGet(defaultScheduledExecutor);
     }
 

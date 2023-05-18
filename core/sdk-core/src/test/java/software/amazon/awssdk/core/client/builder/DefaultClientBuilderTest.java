@@ -79,6 +79,7 @@ import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.utils.AttributeMap;
+import software.amazon.awssdk.utils.ScheduledExecutorUtils.UnmanagedScheduledExecutorService;
 import software.amazon.awssdk.utils.StringInputStream;
 
 /**
@@ -171,7 +172,7 @@ public class DefaultClientBuilderTest {
         assertThat(builderOverrideConfig.metricPublishers()).isEqualTo(metricPublishers);
         assertThat(builderOverrideConfig.executionAttributes().getAttributes()).isEqualTo(executionAttributes.getAttributes());
         assertThat(builderOverrideConfig.advancedOption(ENDPOINT_OVERRIDDEN_OVERRIDE)).isEqualTo(Optional.of(Boolean.TRUE));
-        assertThat(builderOverrideConfig.scheduledExecutorService()).isEqualTo(scheduledExecutorService);
+        assertThat(builderOverrideConfig.scheduledExecutorService().get()).isEqualTo(scheduledExecutorService);
     }
 
     @Test
@@ -276,7 +277,9 @@ public class DefaultClientBuilderTest {
         assertThat(config.option(METRIC_PUBLISHERS)).contains(metricPublisher);
         assertThat(config.option(EXECUTION_ATTRIBUTES).getAttribute(execAttribute)).isEqualTo("value");
         assertThat(config.option(ENDPOINT_OVERRIDDEN)).isEqualTo(Boolean.TRUE);
-        assertThat(config.option(SCHEDULED_EXECUTOR_SERVICE)).isEqualTo(scheduledExecutorService);
+        UnmanagedScheduledExecutorService customScheduledExecutorService =
+            (UnmanagedScheduledExecutorService) config.option(SCHEDULED_EXECUTOR_SERVICE);
+        assertThat(customScheduledExecutorService.scheduledExecutorService()).isEqualTo(scheduledExecutorService);
     }
 
     @Test
