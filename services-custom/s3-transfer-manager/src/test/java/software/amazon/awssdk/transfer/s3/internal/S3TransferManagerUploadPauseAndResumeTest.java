@@ -65,7 +65,7 @@ class S3TransferManagerUploadPauseAndResumeTest {
         uploadDirectoryHelper = mock(UploadDirectoryHelper.class);
         configuration = mock(TransferManagerConfiguration.class);
         downloadDirectoryHelper = mock(DownloadDirectoryHelper.class);
-        tm = new DefaultS3TransferManager(mockS3Crt, uploadDirectoryHelper, configuration, downloadDirectoryHelper);
+        tm = new CrtS3TransferManager(configuration, mockS3Crt, false);
     }
 
     @AfterEach
