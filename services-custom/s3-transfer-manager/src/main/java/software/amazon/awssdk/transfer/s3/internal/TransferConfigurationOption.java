@@ -20,7 +20,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.AttributeMap;
 
 /**
- * A set of internal options required by the {@link DefaultS3TransferManager} via {@link TransferManagerConfiguration}.
+ * A set of internal options required by the {@link TransferManagerFactory} via {@link TransferManagerConfiguration}.
  * It contains the default settings
  *
  */
