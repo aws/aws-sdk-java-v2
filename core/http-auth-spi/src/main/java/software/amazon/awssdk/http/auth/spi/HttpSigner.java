@@ -44,8 +44,8 @@ public interface HttpSigner<IdentityT extends Identity> {
     /**
      * Method that takes in inputs to sign a request with sync payload and returns a signed version of the request.
      * <p>
-     * Similar to {@link #sign(SyncHttpSignRequest)}, but takes a lambda to configure a new {@link HttpSignRequest.Builder}. This
-     * removes the need to call {@link SyncHttpSignRequest#builder(Class)}} and {@link SyncHttpSignRequest.Builder#build()}.
+     * Similar to {@link #sign(SyncHttpSignRequest)}, but takes a lambda to configure a new {@link SyncHttpSignRequest.Builder}.
+     * This removes the need to call {@link SyncHttpSignRequest#builder(Class)}} and {@link SyncHttpSignRequest.Builder#build()}.
      *
      * @param consumer A {@link Consumer} to which an empty {@link SyncHttpSignRequest.Builder} will be given.
      * @return A signed version of the request.
