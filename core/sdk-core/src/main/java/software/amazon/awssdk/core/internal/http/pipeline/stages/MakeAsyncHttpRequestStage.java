@@ -158,9 +158,12 @@ public final class MakeAsyncHttpRequestStage<OutputT>
 
         // Attempt to offload the completion of the future returned from this
         // stage onto the future completion executor
-        CompletableFuture<Response<OutputT>> asyncComplete =
-            responseHandlerFuture.whenCompleteAsync((r, t) -> completeResponseFuture(responseFuture, r, t),
-                                                    futureCompletionExecutor);
+        CompletableFuture<Void> asyncComplete =
+            responseHandlerFuture.handleAsync((r, t) -> {
+                completeResponseFuture(responseFuture, r, t);
+                return null;
+            },
+            futureCompletionExecutor);
 
         // It's possible the async execution above fails. If so, log a warning,
         // and just complete it synchronously.
