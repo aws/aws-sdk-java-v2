@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon SageMaker geospatial capabilities",
+    "contributor": "",
+    "description": "This release makes ExecutionRoleArn a required field in the StartEarthObservationJob API."
+}
