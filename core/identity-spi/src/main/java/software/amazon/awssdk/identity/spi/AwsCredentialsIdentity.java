@@ -15,11 +15,9 @@
 
 package software.amazon.awssdk.identity.spi;
 
-import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.utils.ToString;
-import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.identity.spi.internal.DefaultAwsCredentialsIdentity;
 
 /**
  * Provides access to the AWS credentials used for accessing services: AWS access key ID and secret access key. These
@@ -45,6 +43,10 @@ public interface AwsCredentialsIdentity extends Identity {
      */
     String secretAccessKey();
 
+    static Builder builder() {
+        return DefaultAwsCredentialsIdentity.builder();
+    }
+
     /**
      * Constructs a new credentials object, with the specified AWS access key and AWS secret key.
      *
@@ -52,47 +54,22 @@ public interface AwsCredentialsIdentity extends Identity {
      * @param secretAccessKey The AWS secret access key, used to authenticate the user interacting with services.
      */
     static AwsCredentialsIdentity create(String accessKeyId, String secretAccessKey) {
-        Validate.paramNotNull(accessKeyId, "accessKeyId");
-        Validate.paramNotNull(secretAccessKey, "secretAccessKey");
+        return builder().accessKeyId(accessKeyId)
+                        .secretAccessKey(secretAccessKey)
+                        .build();
+    }
 
-        return new AwsCredentialsIdentity() {
-            @Override
-            public String accessKeyId() {
-                return accessKeyId;
-            }
+    interface Builder {
+        /**
+         * The AWS access key, used to identify the user interacting with services.
+         */
+        Builder accessKeyId(String accessKeyId);
 
-            @Override
-            public String secretAccessKey() {
-                return secretAccessKey;
-            }
+        /**
+         * The AWS secret access key, used to authenticate the user interacting with services.
+         */
+        Builder secretAccessKey(String secretAccessKey);
 
-            @Override
-            public String toString() {
-                return ToString.builder("AwsCredentialsIdentity")
-                               .add("accessKeyId", accessKeyId)
-                               .build();
-            }
-
-            @Override
-            public boolean equals(Object o) {
-                if (this == o) {
-                    return true;
-                }
-                if (o == null || getClass() != o.getClass()) {
-                    return false;
-                }
-                AwsCredentialsIdentity that = (AwsCredentialsIdentity) o;
-                return Objects.equals(accessKeyId, that.accessKeyId()) &&
-                       Objects.equals(secretAccessKey, that.secretAccessKey());
-            }
-
-            @Override
-            public int hashCode() {
-                int hashCode = 1;
-                hashCode = 31 * hashCode + Objects.hashCode(accessKeyId());
-                hashCode = 31 * hashCode + Objects.hashCode(secretAccessKey());
-                return hashCode;
-            }
-        };
+        AwsCredentialsIdentity build();
     }
 }
