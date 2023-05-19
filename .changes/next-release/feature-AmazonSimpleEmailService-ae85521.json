@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Simple Email Service",
+    "contributor": "",
+    "description": "This release allows customers to update scaling mode property of dedicated IP pools with PutDedicatedIpPoolScalingAttributes call."
+}
