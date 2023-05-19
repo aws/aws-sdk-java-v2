@@ -59,6 +59,7 @@ final class AddMetadata {
                 .withPaginatorsPackageName(namingStrategy.getPaginatorsPackageName(serviceName))
                 .withWaitersPackageName(namingStrategy.getWaitersPackageName(serviceName))
                 .withEndpointRulesPackageName(namingStrategy.getEndpointRulesPackageName(serviceName))
+                .withAuthSchemePackageName(namingStrategy.getAuthSchemePackageName(serviceName))
                 .withServiceAbbreviation(serviceMetadata.getServiceAbbreviation())
                 .withServiceFullName(serviceMetadata.getServiceFullName())
                 .withServiceName(serviceName)

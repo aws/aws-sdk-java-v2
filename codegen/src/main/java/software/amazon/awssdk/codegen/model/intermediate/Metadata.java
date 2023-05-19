@@ -72,6 +72,8 @@ public class Metadata {
 
     private String endpointRulesPackageName;
 
+    private String authSchemePackageName;
+
     private String serviceAbbreviation;
 
     private String serviceFullName;
@@ -721,6 +723,27 @@ public class Metadata {
 
     public String getFullInternalEndpointRulesPackageName() {
         return joinPackageNames(getFullEndpointRulesPackageName(), "internal");
+    }
+
+    public void setAuthSchemePackageName(String authSchemePackageName) {
+        this.authSchemePackageName = authSchemePackageName;
+    }
+
+    public Metadata withAuthSchemePackageName(String authSchemePackageName) {
+        setAuthSchemePackageName(authSchemePackageName);
+        return this;
+    }
+
+    public String getAuthSchemePackageName() {
+        return authSchemePackageName;
+    }
+
+    public String getFullAuthSchemePackageName() {
+        return joinPackageNames(rootPackageName, getAuthSchemePackageName());
+    }
+
+    public String getFullInternalAuthSchemePackageName() {
+        return joinPackageNames(getFullAuthSchemePackageName(), "internal");
     }
 
     public String getFullInternalPackageName() {
