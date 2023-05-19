@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "scrocquesel",
+    "description": "Add client configuration overriding of SCHEDULED_EXECUTOR_SERVICE option"
+}

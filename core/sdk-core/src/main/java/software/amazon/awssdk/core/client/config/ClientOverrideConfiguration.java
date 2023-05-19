@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ToBuilderIgnoreField;
@@ -62,6 +63,7 @@ public final class ClientOverrideConfiguration
     private final String defaultProfileName;
     private final List<MetricPublisher> metricPublishers;
     private final ExecutionAttributes executionAttributes;
+    private final ScheduledExecutorService scheduledExecutorService;
 
     /**
      * Initialize this configuration. Private to require use of {@link #builder()}.
@@ -77,6 +79,7 @@ public final class ClientOverrideConfiguration
         this.defaultProfileName = builder.defaultProfileName();
         this.metricPublishers = Collections.unmodifiableList(new ArrayList<>(builder.metricPublishers()));
         this.executionAttributes = ExecutionAttributes.unmodifiableExecutionAttributes(builder.executionAttributes());
+        this.scheduledExecutorService = builder.scheduledExecutorService();
     }
 
     @Override
@@ -92,7 +95,8 @@ public final class ClientOverrideConfiguration
             .defaultProfileFile(defaultProfileFile)
             .defaultProfileName(defaultProfileName)
             .executionAttributes(executionAttributes)
-            .metricPublishers(metricPublishers);
+            .metricPublishers(metricPublishers)
+            .scheduledExecutorService(scheduledExecutorService);
     }
 
     /**
@@ -139,6 +143,17 @@ public final class ClientOverrideConfiguration
      */
     public List<ExecutionInterceptor> executionInterceptors() {
         return executionInterceptors;
+    }
+
+    /**
+     * The optional scheduled executor service that should be used for scheduling tasks such as async retry attempts
+     * and timeout task.
+     * <p>
+     * <b>The SDK will not automatically close the executor when the client is closed. It is the responsibility of the
+     * user to manually close the executor once all clients utilizing it have been closed.</b>
+     */
+    public Optional<ScheduledExecutorService> scheduledExecutorService() {
+        return Optional.ofNullable(scheduledExecutorService);
     }
 
     /**
@@ -226,6 +241,7 @@ public final class ClientOverrideConfiguration
                 .add("advancedOptions", advancedOptions)
                 .add("profileFile", defaultProfileFile)
                 .add("profileName", defaultProfileName)
+                .add("scheduledExecutorService", scheduledExecutorService)
                 .build();
     }
 
@@ -337,6 +353,20 @@ public final class ClientOverrideConfiguration
         Builder addExecutionInterceptor(ExecutionInterceptor executionInterceptor);
 
         List<ExecutionInterceptor> executionInterceptors();
+
+        /**
+         * Configure the scheduled executor service that should be used for scheduling tasks such as async retry attempts
+         * and timeout task.
+         *
+         * <p>
+         * <b>The SDK will not automatically close the executor when the client is closed. It is the responsibility of the
+         * user to manually close the executor once all clients utilizing it have been closed.</b>
+         *
+         * @see ClientOverrideConfiguration#scheduledExecutorService()
+         */
+        Builder scheduledExecutorService(ScheduledExecutorService scheduledExecutorService);
+
+        ScheduledExecutorService scheduledExecutorService();        
 
         /**
          * Configure an advanced override option. These values are used very rarely, and the majority of SDK customers can ignore
@@ -499,6 +529,7 @@ public final class ClientOverrideConfiguration
         private String defaultProfileName;
         private List<MetricPublisher> metricPublishers = new ArrayList<>();
         private ExecutionAttributes.Builder executionAttributes = ExecutionAttributes.builder();
+        private ScheduledExecutorService scheduledExecutorService;
 
         @Override
         public Builder headers(Map<String, List<String>> headers) {
@@ -559,6 +590,18 @@ public final class ClientOverrideConfiguration
         @Override
         public List<ExecutionInterceptor> executionInterceptors() {
             return Collections.unmodifiableList(executionInterceptors);
+        }
+
+        @Override
+        public ScheduledExecutorService scheduledExecutorService()
+        {
+            return scheduledExecutorService;
+        }
+
+        @Override
+        public Builder scheduledExecutorService(ScheduledExecutorService scheduledExecutorService) {
+            this.scheduledExecutorService = scheduledExecutorService;
+            return this;
         }
 
         @Override
