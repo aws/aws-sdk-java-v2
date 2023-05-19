@@ -358,6 +358,10 @@ public final class ClientOverrideConfiguration
          * Configure the scheduled executor service that should be used for scheduling tasks such as async retry attempts
          * and timeout task.
          *
+         * <p>
+         * <b>The SDK will not automatically close the executor when the client is closed. It is the responsibility of the
+         * user to manually close the executor once all clients utilizing it have been closed.</b>
+         *
          * @see ClientOverrideConfiguration#scheduledExecutorService()
          */
         Builder scheduledExecutorService(ScheduledExecutorService scheduledExecutorService);
