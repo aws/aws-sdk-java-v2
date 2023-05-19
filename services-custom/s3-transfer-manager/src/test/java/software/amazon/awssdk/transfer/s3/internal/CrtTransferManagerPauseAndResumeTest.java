@@ -38,7 +38,6 @@ import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
-import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
@@ -51,7 +50,7 @@ import software.amazon.awssdk.transfer.s3.model.FileDownload;
 import software.amazon.awssdk.transfer.s3.model.ResumableFileDownload;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
-class S3TransferManagerPauseAndResumeTest {
+class CrtTransferManagerPauseAndResumeTest {
     private S3CrtAsyncClient mockS3Crt;
     private S3TransferManager tm;
     private UploadDirectoryHelper uploadDirectoryHelper;
@@ -67,7 +66,7 @@ class S3TransferManagerPauseAndResumeTest {
         uploadDirectoryHelper = mock(UploadDirectoryHelper.class);
         configuration = mock(TransferManagerConfiguration.class);
         downloadDirectoryHelper = mock(DownloadDirectoryHelper.class);
-        tm = new DefaultS3TransferManager(mockS3Crt, uploadDirectoryHelper, configuration, downloadDirectoryHelper);
+        tm = new CrtS3TransferManager(configuration, mockS3Crt, false);
     }
 
     @AfterEach
