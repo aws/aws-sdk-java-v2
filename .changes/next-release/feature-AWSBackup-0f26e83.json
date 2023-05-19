@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Backup",
-    "contributor": "",
-    "description": "Add ResourceArn, ResourceType, and BackupVaultName to ListRecoveryPointsByLegalHold API response."
-}
