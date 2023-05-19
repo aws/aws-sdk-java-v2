@@ -1,3 +1,24 @@
+# __2.20.69__ __2023-05-19__
+## __AWS Backup__
+  - ### Features
+    - Add ResourceArn, ResourceType, and BackupVaultName to ListRecoveryPointsByLegalHold API response.
+
+## __AWS Elemental MediaPackage v2__
+  - ### Features
+    - Adds support for the MediaPackage Live v2 API
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Cases__
+  - ### Features
+    - This release adds the ability to create fields with type Url through the CreateField API. For more information see https://docs.aws.amazon.com/cases/latest/APIReference/Welcome.html
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - This release allows customers to update scaling mode property of dedicated IP pools with PutDedicatedIpPoolScalingAttributes call.
+
 # __2.20.68__ __2023-05-18__
 ## __AWS CloudTrail__
   - ### Features
