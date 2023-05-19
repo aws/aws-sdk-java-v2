@@ -21,33 +21,40 @@ import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.auth.spi.internal.DefaultAsyncHttpSignRequest;
-import software.amazon.awssdk.identity.spi.Identity;
+import software.amazon.awssdk.http.auth.spi.internal.DefaultAsyncSignedHttpRequest;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
+/**
+ * Represents a request that has been signed by {@link HttpSigner}.
+ ** //TODO:
+ */
 @SdkPublicApi
 @Immutable
 @ThreadSafe
-public interface AsyncHttpSignRequest<IdentityT extends Identity> extends HttpSignRequest<Publisher<ByteBuffer>, IdentityT> {
+public interface AsyncSignedHttpRequest extends SignedHttpRequest<Publisher<ByteBuffer>> {
+
     /**
-     * Get a new builder for creating a {@link AsyncHttpSignRequest}.
+     * Get a new builder for creating a {@link SyncSignedHttpRequest}.
      */
-    static <IdentityT extends Identity> Builder<IdentityT> builder(IdentityT identity) {
-        return new DefaultAsyncHttpSignRequest.BuilderImpl<>(identity);
+    static Builder builder() {
+        return new DefaultAsyncSignedHttpRequest.BuilderImpl();
     }
 
-    interface Builder<IdentityT extends Identity> extends HttpSignRequest.Builder<Publisher<ByteBuffer>, IdentityT>,
-                                                          SdkBuilder<Builder<IdentityT>, AsyncHttpSignRequest<IdentityT>> {
-        @Override
-        Builder<IdentityT> request(SdkHttpRequest request);
+    /**
+     * A builder for a {@link SyncSignedHttpRequest}.
+     */
+    interface Builder extends SignedHttpRequest.Builder<Publisher<ByteBuffer>>, SdkBuilder<Builder, AsyncSignedHttpRequest> {
 
+        /**
+         * Set the HTTP request object, without the request body payload.
+         */
         @Override
-        Builder<IdentityT> payload(Publisher<ByteBuffer> payload);
+        Builder request(SdkHttpRequest request);
 
+        /**
+         * Set the body payload of the request. A payload is optional. By default, the payload will be empty.
+         */
         @Override
-        Builder<IdentityT> identity(IdentityT identity);
-
-        @Override
-        <T> Builder<IdentityT> putProperty(SignerProperty<T> key, T value);
+        Builder payload(Publisher<ByteBuffer> payload);
     }
 }

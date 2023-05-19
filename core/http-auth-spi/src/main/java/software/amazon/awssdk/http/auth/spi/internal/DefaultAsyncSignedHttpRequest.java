@@ -18,41 +18,32 @@ package software.amazon.awssdk.http.auth.spi.internal;
 import java.nio.ByteBuffer;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.http.auth.spi.AsyncHttpSignRequest;
-import software.amazon.awssdk.identity.spi.Identity;
+import software.amazon.awssdk.http.auth.spi.AsyncSignedHttpRequest;
 import software.amazon.awssdk.utils.ToString;
 
 @SdkInternalApi
-public final class DefaultAsyncHttpSignRequest<IdentityT extends Identity>
-    extends DefaultHttpSignRequest<Publisher<ByteBuffer>, IdentityT> implements AsyncHttpSignRequest<IdentityT> {
+public final class DefaultAsyncSignedHttpRequest
+    extends DefaultSignedHttpRequest<Publisher<ByteBuffer>> implements AsyncSignedHttpRequest {
 
-    private DefaultAsyncHttpSignRequest(BuilderImpl<IdentityT> builder) {
+    private DefaultAsyncSignedHttpRequest(BuilderImpl builder) {
         super(builder);
     }
 
     @Override
     public String toString() {
-        return ToString.builder("AsyncHttpSignRequest")
+        return ToString.builder("SyncSignedHttpRequest")
                        .add("request", request)
-                       .add("properties", properties)
                        .build();
     }
 
     @SdkInternalApi
-    public static final class BuilderImpl<IdentityT extends Identity>
-        extends DefaultHttpSignRequest.BuilderImpl<BuilderImpl<IdentityT>, Publisher<ByteBuffer>, IdentityT>
-        implements AsyncHttpSignRequest.Builder<IdentityT> {
-
-        public BuilderImpl() {
-        }
-
-        public BuilderImpl(IdentityT identity) {
-            super(identity);
-        }
+    public static final class BuilderImpl
+        extends DefaultSignedHttpRequest.BuilderImpl<BuilderImpl, Publisher<ByteBuffer>>
+        implements AsyncSignedHttpRequest.Builder {
 
         @Override
-        public AsyncHttpSignRequest<IdentityT> build() {
-            return new DefaultAsyncHttpSignRequest<>(this);
+        public AsyncSignedHttpRequest build() {
+            return new DefaultAsyncSignedHttpRequest(this);
         }
     }
 }

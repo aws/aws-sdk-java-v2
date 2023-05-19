@@ -17,41 +17,32 @@ package software.amazon.awssdk.http.auth.spi.internal;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.ContentStreamProvider;
-import software.amazon.awssdk.http.auth.spi.SyncHttpSignRequest;
-import software.amazon.awssdk.identity.spi.Identity;
+import software.amazon.awssdk.http.auth.spi.SyncSignedHttpRequest;
 import software.amazon.awssdk.utils.ToString;
 
 @SdkInternalApi
-public final class DefaultSyncHttpSignRequest<IdentityT extends Identity>
-    extends DefaultHttpSignRequest<ContentStreamProvider, IdentityT> implements SyncHttpSignRequest<IdentityT> {
+public final class DefaultSyncSignedHttpRequest
+    extends DefaultSignedHttpRequest<ContentStreamProvider> implements SyncSignedHttpRequest {
 
-    private DefaultSyncHttpSignRequest(BuilderImpl<IdentityT> builder) {
+    private DefaultSyncSignedHttpRequest(BuilderImpl builder) {
         super(builder);
     }
 
     @Override
     public String toString() {
-        return ToString.builder("SyncHttpSignRequest")
+        return ToString.builder("SyncSignedHttpRequest")
                        .add("request", request)
-                       .add("properties", properties)
                        .build();
     }
 
     @SdkInternalApi
-    public static final class BuilderImpl<IdentityT extends Identity>
-        extends DefaultHttpSignRequest.BuilderImpl<BuilderImpl<IdentityT>, ContentStreamProvider, IdentityT>
-        implements SyncHttpSignRequest.Builder<IdentityT> {
-
-        public BuilderImpl() {
-        }
-
-        public BuilderImpl(IdentityT identity) {
-            super(identity);
-        }
+    public static final class BuilderImpl
+        extends DefaultSignedHttpRequest.BuilderImpl<BuilderImpl, ContentStreamProvider>
+        implements SyncSignedHttpRequest.Builder {
 
         @Override
-        public SyncHttpSignRequest<IdentityT> build() {
-            return new DefaultSyncHttpSignRequest<>(this);
+        public SyncSignedHttpRequest build() {
+            return new DefaultSyncSignedHttpRequest(this);
         }
     }
 }

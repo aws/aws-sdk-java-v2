@@ -15,11 +15,8 @@
 
 package software.amazon.awssdk.http.auth.spi;
 
-import java.nio.ByteBuffer;
 import java.util.function.Consumer;
-import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.auth.spi.internal.DefaultAsyncHttpSignRequest;
 import software.amazon.awssdk.http.auth.spi.internal.DefaultSyncHttpSignRequest;
 import software.amazon.awssdk.identity.spi.Identity;
@@ -39,18 +36,19 @@ public interface HttpSigner<IdentityT extends Identity> {
      * @param request The inputs to sign a request.
      * @return A signed version of the request.
      */
-    SignedHttpRequest<ContentStreamProvider> sign(SyncHttpSignRequest<IdentityT> request);
+    SyncSignedHttpRequest sign(SyncHttpSignRequest<IdentityT> request);
 
     /**
      * Method that takes in inputs to sign a request with sync payload and returns a signed version of the request.
      * <p>
      * Similar to {@link #sign(SyncHttpSignRequest)}, but takes a lambda to configure a new {@link SyncHttpSignRequest.Builder}.
-     * This removes the need to call {@link SyncHttpSignRequest#builder(Class)}} and {@link SyncHttpSignRequest.Builder#build()}.
+     * This removes the need to call {@link SyncHttpSignRequest#builder(IdentityT)}} and
+     * {@link SyncHttpSignRequest.Builder#build()}.
      *
      * @param consumer A {@link Consumer} to which an empty {@link SyncHttpSignRequest.Builder} will be given.
      * @return A signed version of the request.
      */
-    default SignedHttpRequest<ContentStreamProvider> sign(Consumer<SyncHttpSignRequest.Builder<IdentityT>> consumer) {
+    default SyncSignedHttpRequest sign(Consumer<SyncHttpSignRequest.Builder<IdentityT>> consumer) {
         return sign(new DefaultSyncHttpSignRequest.BuilderImpl<IdentityT>().applyMutation(consumer).build());
     }
 
@@ -60,19 +58,19 @@ public interface HttpSigner<IdentityT extends Identity> {
      * @param request The inputs to sign a request.
      * @return A signed version of the request.
      */
-    SignedHttpRequest<Publisher<ByteBuffer>> signAsync(AsyncHttpSignRequest<IdentityT> request);
+    AsyncSignedHttpRequest signAsync(AsyncHttpSignRequest<IdentityT> request);
 
     /**
      * Method that takes in inputs to sign a request with async payload and returns a signed version of the request.
      * <p>
      * Similar to {@link #signAsync(AsyncHttpSignRequest)}, but takes a lambda to configure a new
-     * {@link AsyncHttpSignRequest.Builder}. This removes the need to call {@link AsyncHttpSignRequest#builder(Class)}} and
+     * {@link AsyncHttpSignRequest.Builder}. This removes the need to call {@link AsyncHttpSignRequest#builder(IdentityT)}} and
      * {@link AsyncHttpSignRequest.Builder#build()}.
      *
      * @param consumer A {@link Consumer} to which an empty {@link HttpSignRequest.Builder} will be given.
      * @return A signed version of the request.
      */
-    default SignedHttpRequest<Publisher<ByteBuffer>> signAsync(Consumer<AsyncHttpSignRequest.Builder<IdentityT>> consumer) {
+    default AsyncSignedHttpRequest signAsync(Consumer<AsyncHttpSignRequest.Builder<IdentityT>> consumer) {
         return signAsync(new DefaultAsyncHttpSignRequest.BuilderImpl<IdentityT>().applyMutation(consumer).build());
     }
 }

@@ -37,11 +37,6 @@ import software.amazon.awssdk.identity.spi.Identity;
 public interface HttpSignRequest<PayloadT, IdentityT extends Identity> {
 
     /**
-     * Returns the type of the payload.
-     */
-    Class<PayloadT> payloadType();
-
-    /**
      * Returns the HTTP request object, without the request body payload.
      */
     SdkHttpRequest request();
@@ -51,6 +46,9 @@ public interface HttpSignRequest<PayloadT, IdentityT extends Identity> {
      */
     Optional<PayloadT> payload();
 
+    /**
+     * Returns the identity.
+     */
     IdentityT identity();
 
     /**

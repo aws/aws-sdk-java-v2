@@ -62,11 +62,18 @@ abstract class DefaultHttpSignRequest<PayloadT, IdentityT extends Identity> impl
 
     @SdkInternalApi
     protected static class BuilderImpl<B extends BuilderImpl<B, PayloadT, IdentityT>, PayloadT, IdentityT extends Identity>
-        implements HttpSignRequest.Builder<PayloadT, IdentityT> {
+        implements Builder<PayloadT, IdentityT> {
         private SdkHttpRequest request;
         private PayloadT payload;
         private IdentityT identity;
         private final Map<SignerProperty<?>, Object> properties = new HashMap<>();
+
+        protected BuilderImpl() {
+        }
+
+        protected BuilderImpl(IdentityT identity) {
+            this.identity = identity;
+        }
 
         @Override
         public B request(SdkHttpRequest request) {

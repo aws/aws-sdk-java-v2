@@ -31,13 +31,8 @@ public interface SyncHttpSignRequest<IdentityT extends Identity> extends HttpSig
     /**
      * Get a new builder for creating a {@link SyncHttpSignRequest}.
      */
-    static <IdentityT extends Identity> Builder<IdentityT> builder(Class<IdentityT> ignoredIdentityType) {
-        return new DefaultSyncHttpSignRequest.BuilderImpl<>();
-    }
-
-    @Override
-    default Class<ContentStreamProvider> payloadType() {
-        return ContentStreamProvider.class;
+    static <IdentityT extends Identity> Builder<IdentityT> builder(IdentityT identity) {
+        return new DefaultSyncHttpSignRequest.BuilderImpl<>(identity);
     }
 
     interface Builder<IdentityT extends Identity> extends HttpSignRequest.Builder<ContentStreamProvider, IdentityT>,
@@ -47,9 +42,6 @@ public interface SyncHttpSignRequest<IdentityT extends Identity> extends HttpSig
 
         @Override
         Builder<IdentityT> payload(ContentStreamProvider payload);
-
-        @Override
-        Builder<IdentityT> identity(IdentityT identity);
 
         @Override
         <T> Builder<IdentityT> putProperty(SignerProperty<T> key, T value);

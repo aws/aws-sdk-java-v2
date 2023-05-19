@@ -15,45 +15,45 @@
 
 package software.amazon.awssdk.http.auth.spi;
 
-import java.util.Optional;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.auth.spi.internal.DefaultSyncSignedHttpRequest;
+import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
  * Represents a request that has been signed by {@link HttpSigner}.
- *
- * @param <PayloadT> The type of payload of the request.
+ * //TODO:
  */
 @SdkPublicApi
 @Immutable
 @ThreadSafe
-public interface SignedHttpRequest<PayloadT> {
+public interface SyncSignedHttpRequest extends SignedHttpRequest<ContentStreamProvider> {
 
     /**
-     * Returns the HTTP request object, without the request body payload.
+     * Get a new builder for creating a {@link SyncSignedHttpRequest}.
      */
-    SdkHttpRequest request();
+    static Builder builder() {
+        return new DefaultSyncSignedHttpRequest.BuilderImpl();
+    }
 
     /**
-     * Returns the body payload of the request. A payload is optional. By default, the payload will be empty.
+     * A builder for a {@link SyncSignedHttpRequest}.
      */
-    Optional<PayloadT> payload();
-
-    /**
-     * A builder for a {@link SignedHttpRequest}.
-     */
-    interface Builder<PayloadT> {
+    interface Builder extends SignedHttpRequest.Builder<ContentStreamProvider>, SdkBuilder<Builder, SyncSignedHttpRequest> {
 
         /**
          * Set the HTTP request object, without the request body payload.
          */
-        Builder<PayloadT> request(SdkHttpRequest request);
+        @Override
+        Builder request(SdkHttpRequest request);
 
         /**
          * Set the body payload of the request. A payload is optional. By default, the payload will be empty.
          */
-        Builder<PayloadT> payload(PayloadT payload);
+        @Override
+        Builder payload(ContentStreamProvider payload);
     }
 }
