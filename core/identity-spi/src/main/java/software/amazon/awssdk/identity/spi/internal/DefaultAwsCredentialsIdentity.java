@@ -77,7 +77,7 @@ public final class DefaultAwsCredentialsIdentity implements AwsCredentialsIdenti
         return hashCode;
     }
 
-    static final class Builder implements AwsCredentialsIdentity.Builder {
+    private static final class Builder implements AwsCredentialsIdentity.Builder {
         private String accessKeyId;
         private String secretAccessKey;
 

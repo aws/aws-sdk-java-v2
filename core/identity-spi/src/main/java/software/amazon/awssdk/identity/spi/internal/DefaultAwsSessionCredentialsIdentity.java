@@ -59,7 +59,7 @@ public final class DefaultAwsSessionCredentialsIdentity implements AwsSessionCre
 
     @Override
     public String toString() {
-        return ToString.builder("AwsCredentialsIdentity")
+        return ToString.builder("AwsSessionCredentialsIdentity")
                        .add("accessKeyId", accessKeyId)
                        .build();
     }
@@ -87,7 +87,7 @@ public final class DefaultAwsSessionCredentialsIdentity implements AwsSessionCre
         return hashCode;
     }
 
-    static final class Builder implements AwsSessionCredentialsIdentity.Builder {
+    private static final class Builder implements AwsSessionCredentialsIdentity.Builder {
         private String accessKeyId;
         private String secretAccessKey;
         private String sessionToken;
