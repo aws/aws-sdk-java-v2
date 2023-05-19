@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Elemental MediaPackage v2",
+    "contributor": "",
+    "description": "Adds support for the MediaPackage Live v2 API"
+}
