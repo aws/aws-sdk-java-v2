@@ -19,7 +19,6 @@ import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.http.ContentStreamProvider;
-import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.spi.internal.DefaultSyncHttpSignRequest;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
@@ -43,18 +42,8 @@ public interface SyncHttpSignRequest<IdentityT extends Identity> extends HttpSig
     /**
      * A builder for a {@link SyncHttpSignRequest}.
      */
-    interface Builder<IdentityT extends Identity> extends HttpSignRequest.Builder<ContentStreamProvider, IdentityT>,
-                                                          SdkBuilder<Builder<IdentityT>, SyncHttpSignRequest<IdentityT>> {
-        @Override
-        Builder<IdentityT> request(SdkHttpRequest request);
-
-        @Override
-        Builder<IdentityT> payload(ContentStreamProvider payload);
-
-        @Override
-        Builder<IdentityT> identity(IdentityT identity);
-
-        @Override
-        <T> Builder<IdentityT> putProperty(SignerProperty<T> key, T value);
+    interface Builder<IdentityT extends Identity>
+        extends HttpSignRequest.Builder<Builder<IdentityT>, ContentStreamProvider, IdentityT>,
+                SdkBuilder<Builder<IdentityT>, SyncHttpSignRequest<IdentityT>> {
     }
 }

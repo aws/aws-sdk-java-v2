@@ -59,26 +59,26 @@ public interface HttpSignRequest<PayloadT, IdentityT extends Identity> {
     /**
      * A builder for a {@link HttpSignRequest}.
      */
-    interface Builder<PayloadT, IdentityT extends Identity> {
+    interface Builder<B extends Builder<B, PayloadT, IdentityT>, PayloadT, IdentityT extends Identity> {
 
         /**
          * Set the HTTP request object, without the request body payload.
          */
-        Builder<PayloadT, IdentityT> request(SdkHttpRequest request);
+        B request(SdkHttpRequest request);
 
         /**
          * Set the body payload of the request. A payload is optional. By default, the payload will be empty.
          */
-        Builder<PayloadT, IdentityT> payload(PayloadT payload);
+        B payload(PayloadT payload);
 
         /**
          * Set the identity of the request.
          */
-        Builder<PayloadT, IdentityT> identity(IdentityT identity);
+        B identity(IdentityT identity);
 
         /**
          * Set a property that the {@link HttpSigner} can use during signing.
          */
-        <T> Builder<PayloadT, IdentityT> putProperty(SignerProperty<T> key, T value);
+        <T> B putProperty(SignerProperty<T> key, T value);
     }
 }

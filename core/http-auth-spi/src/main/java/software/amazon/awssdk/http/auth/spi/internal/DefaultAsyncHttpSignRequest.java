@@ -41,7 +41,7 @@ public final class DefaultAsyncHttpSignRequest<IdentityT extends Identity>
 
     @SdkInternalApi
     public static final class BuilderImpl<IdentityT extends Identity>
-        extends DefaultHttpSignRequest.BuilderImpl<BuilderImpl<IdentityT>, Publisher<ByteBuffer>, IdentityT>
+        extends DefaultHttpSignRequest.BuilderImpl<AsyncHttpSignRequest.Builder<IdentityT>, Publisher<ByteBuffer>, IdentityT>
         implements AsyncHttpSignRequest.Builder<IdentityT> {
 
         // Used to enable consumer builder pattern in HttpSigner.signAsync()

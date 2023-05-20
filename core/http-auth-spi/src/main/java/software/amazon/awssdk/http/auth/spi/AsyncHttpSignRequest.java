@@ -20,7 +20,6 @@ import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.spi.internal.DefaultAsyncHttpSignRequest;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
@@ -44,18 +43,8 @@ public interface AsyncHttpSignRequest<IdentityT extends Identity> extends HttpSi
     /**
      * A builder for a {@link AsyncHttpSignRequest}.
      */
-    interface Builder<IdentityT extends Identity> extends HttpSignRequest.Builder<Publisher<ByteBuffer>, IdentityT>,
-                                                          SdkBuilder<Builder<IdentityT>, AsyncHttpSignRequest<IdentityT>> {
-        @Override
-        Builder<IdentityT> request(SdkHttpRequest request);
-
-        @Override
-        Builder<IdentityT> payload(Publisher<ByteBuffer> payload);
-
-        @Override
-        Builder<IdentityT> identity(IdentityT identity);
-
-        @Override
-        <T> Builder<IdentityT> putProperty(SignerProperty<T> key, T value);
+    interface Builder<IdentityT extends Identity>
+        extends HttpSignRequest.Builder<Builder<IdentityT>, Publisher<ByteBuffer>, IdentityT>,
+                SdkBuilder<Builder<IdentityT>, AsyncHttpSignRequest<IdentityT>> {
     }
 }
