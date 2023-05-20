@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.http.auth.spi.internal;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -37,7 +38,7 @@ abstract class DefaultHttpSignRequest<PayloadT, IdentityT extends Identity> impl
         this.request = Validate.paramNotNull(builder.request, "request");
         this.payload = builder.payload;
         this.identity = Validate.paramNotNull(builder.identity, "identity");
-        this.properties = new HashMap<>(builder.properties);
+        this.properties = Collections.unmodifiableMap(builder.properties);
     }
 
     @Override
