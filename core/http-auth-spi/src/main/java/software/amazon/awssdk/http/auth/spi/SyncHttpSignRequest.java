@@ -24,6 +24,11 @@ import software.amazon.awssdk.http.auth.spi.internal.DefaultSyncHttpSignRequest;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
+/**
+ * Input parameters to sign a request with sync payload, using {@link HttpSigner}.
+ *
+ * @param <IdentityT> The type of the identity.
+ */
 @SdkPublicApi
 @Immutable
 @ThreadSafe
@@ -35,6 +40,9 @@ public interface SyncHttpSignRequest<IdentityT extends Identity> extends HttpSig
         return new DefaultSyncHttpSignRequest.BuilderImpl<>(identity);
     }
 
+    /**
+     * A builder for a {@link SyncHttpSignRequest}.
+     */
     interface Builder<IdentityT extends Identity> extends HttpSignRequest.Builder<ContentStreamProvider, IdentityT>,
                                                           SdkBuilder<Builder<IdentityT>, SyncHttpSignRequest<IdentityT>> {
         @Override
@@ -42,6 +50,9 @@ public interface SyncHttpSignRequest<IdentityT extends Identity> extends HttpSig
 
         @Override
         Builder<IdentityT> payload(ContentStreamProvider payload);
+
+        @Override
+        Builder<IdentityT> identity(IdentityT identity);
 
         @Override
         <T> Builder<IdentityT> putProperty(SignerProperty<T> key, T value);

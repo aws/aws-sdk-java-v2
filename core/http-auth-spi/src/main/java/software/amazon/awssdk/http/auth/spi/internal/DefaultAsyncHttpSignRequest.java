@@ -34,6 +34,7 @@ public final class DefaultAsyncHttpSignRequest<IdentityT extends Identity>
     public String toString() {
         return ToString.builder("AsyncHttpSignRequest")
                        .add("request", request)
+                       .add("identity", identity)
                        .add("properties", properties)
                        .build();
     }
@@ -43,9 +44,11 @@ public final class DefaultAsyncHttpSignRequest<IdentityT extends Identity>
         extends DefaultHttpSignRequest.BuilderImpl<BuilderImpl<IdentityT>, Publisher<ByteBuffer>, IdentityT>
         implements AsyncHttpSignRequest.Builder<IdentityT> {
 
+        // Used to enable consumer builder pattern in HttpSigner.signAsync()
         public BuilderImpl() {
         }
 
+        // Used by AsyncHttpSignRequest#builder() where identity is passed as parameter, to avoid having to pass Class<IdentityT>.
         public BuilderImpl(IdentityT identity) {
             super(identity);
         }

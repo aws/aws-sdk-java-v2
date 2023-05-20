@@ -25,6 +25,11 @@ import software.amazon.awssdk.http.auth.spi.internal.DefaultAsyncHttpSignRequest
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
+/**
+ * Input parameters to sign a request with async payload, using {@link HttpSigner}.
+ *
+ * @param <IdentityT> The type of the identity.
+ */
 @SdkPublicApi
 @Immutable
 @ThreadSafe
@@ -36,6 +41,9 @@ public interface AsyncHttpSignRequest<IdentityT extends Identity> extends HttpSi
         return new DefaultAsyncHttpSignRequest.BuilderImpl<>(identity);
     }
 
+    /**
+     * A builder for a {@link AsyncHttpSignRequest}.
+     */
     interface Builder<IdentityT extends Identity> extends HttpSignRequest.Builder<Publisher<ByteBuffer>, IdentityT>,
                                                           SdkBuilder<Builder<IdentityT>, AsyncHttpSignRequest<IdentityT>> {
         @Override

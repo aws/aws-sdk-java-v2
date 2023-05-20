@@ -33,6 +33,7 @@ public final class DefaultSyncHttpSignRequest<IdentityT extends Identity>
     public String toString() {
         return ToString.builder("SyncHttpSignRequest")
                        .add("request", request)
+                       .add("identity", identity)
                        .add("properties", properties)
                        .build();
     }
@@ -42,9 +43,11 @@ public final class DefaultSyncHttpSignRequest<IdentityT extends Identity>
         extends DefaultHttpSignRequest.BuilderImpl<BuilderImpl<IdentityT>, ContentStreamProvider, IdentityT>
         implements SyncHttpSignRequest.Builder<IdentityT> {
 
+        // Used to enable consumer builder pattern in HttpSigner.sign()
         public BuilderImpl() {
         }
 
+        // Used by SyncHttpSignRequest#builder() where identity is passed as parameter, to avoid having to pass Class<IdentityT>.
         public BuilderImpl(IdentityT identity) {
             super(identity);
         }

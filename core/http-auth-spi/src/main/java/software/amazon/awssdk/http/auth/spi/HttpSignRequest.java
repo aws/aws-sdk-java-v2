@@ -72,7 +72,7 @@ public interface HttpSignRequest<PayloadT, IdentityT extends Identity> {
         Builder<PayloadT, IdentityT> payload(PayloadT payload);
 
         /**
-         * Set the body payload of the request. A payload is optional. By default, the payload will be empty.
+         * Set the identity of the request.
          */
         Builder<PayloadT, IdentityT> identity(IdentityT identity);
 

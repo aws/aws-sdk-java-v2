@@ -46,7 +46,7 @@ public class HttpSignerTest {
         SyncSignedHttpRequest signedRequest =
             signer.sign(SyncHttpSignRequest.builder(IDENTITY)
                                            .request(mock(SdkHttpRequest.class))
-                                           //.identity(x) // Note, this is doable
+                                           .identity(IDENTITY) // Note, this is doable
                                            .putProperty(KEY, VALUE)
                                            .build());
         assertNotNull(signedRequest);
@@ -69,16 +69,14 @@ public class HttpSignerTest {
             signer.signAsync(AsyncHttpSignRequest.builder(IDENTITY)
                                                  .request(mock(SdkHttpRequest.class))
                                                  .payload(payload)
-                                                 //.identity(x) // Note, this is doable
+                                                 .identity(IDENTITY) // Note, this is doable
                                                  .putProperty(KEY, VALUE)
                                                  .build());
         assertNotNull(signedRequest);
     }
 
     /**
-     * NoOp Signer that asserts that the HttpSignRequest created via builder or Consumer builder pattern are set up correctly,
-     * e.g., have the correct payloadType, and makes sure that payloadType works with SignedHttpRequest without runtime
-     * exceptions.
+     * NoOp Signer that asserts that the input created via builder or Consumer builder pattern are set up correctly.
      */
     private class TestSigner implements HttpSigner<TokenIdentity> {
         @Override
@@ -87,9 +85,9 @@ public class HttpSignerTest {
             assertEquals(IDENTITY, request.identity());
 
             return SyncSignedHttpRequest.builder()
-                                    .request(request.request())
-                                    .payload(request.payload().orElse(null))
-                                    .build();
+                                        .request(request.request())
+                                        .payload(request.payload().orElse(null))
+                                        .build();
         }
 
         @Override
@@ -98,9 +96,9 @@ public class HttpSignerTest {
             assertEquals(IDENTITY, request.identity());
 
             return AsyncSignedHttpRequest.builder()
-                                    .request(request.request())
-                                    .payload(request.payload().orElse(null))
-                                    .build();
+                                         .request(request.request())
+                                         .payload(request.payload().orElse(null))
+                                         .build();
         }
     }
 }

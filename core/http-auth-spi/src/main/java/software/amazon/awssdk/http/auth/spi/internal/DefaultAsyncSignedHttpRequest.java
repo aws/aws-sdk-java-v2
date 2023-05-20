@@ -31,7 +31,7 @@ public final class DefaultAsyncSignedHttpRequest
 
     @Override
     public String toString() {
-        return ToString.builder("SyncSignedHttpRequest")
+        return ToString.builder("AsyncSignedHttpRequest")
                        .add("request", request)
                        .build();
     }

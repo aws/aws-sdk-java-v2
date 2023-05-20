@@ -25,8 +25,7 @@ import software.amazon.awssdk.http.auth.spi.internal.DefaultAsyncSignedHttpReque
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
- * Represents a request that has been signed by {@link HttpSigner}.
- ** //TODO:
+ * Represents a request with async payload that has been signed by {@link HttpSigner}.
  */
 @SdkPublicApi
 @Immutable
@@ -34,26 +33,20 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
 public interface AsyncSignedHttpRequest extends SignedHttpRequest<Publisher<ByteBuffer>> {
 
     /**
-     * Get a new builder for creating a {@link SyncSignedHttpRequest}.
+     * Get a new builder for creating a {@link AsyncSignedHttpRequest}.
      */
     static Builder builder() {
         return new DefaultAsyncSignedHttpRequest.BuilderImpl();
     }
 
     /**
-     * A builder for a {@link SyncSignedHttpRequest}.
+     * A builder for a {@link AsyncSignedHttpRequest}.
      */
     interface Builder extends SignedHttpRequest.Builder<Publisher<ByteBuffer>>, SdkBuilder<Builder, AsyncSignedHttpRequest> {
 
-        /**
-         * Set the HTTP request object, without the request body payload.
-         */
         @Override
         Builder request(SdkHttpRequest request);
 
-        /**
-         * Set the body payload of the request. A payload is optional. By default, the payload will be empty.
-         */
         @Override
         Builder payload(Publisher<ByteBuffer> payload);
     }

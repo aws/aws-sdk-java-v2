@@ -24,8 +24,7 @@ import software.amazon.awssdk.http.auth.spi.internal.DefaultSyncSignedHttpReques
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
- * Represents a request that has been signed by {@link HttpSigner}.
- * //TODO:
+ * Represents a request with sync payload that has been signed by {@link HttpSigner}.
  */
 @SdkPublicApi
 @Immutable
@@ -44,15 +43,9 @@ public interface SyncSignedHttpRequest extends SignedHttpRequest<ContentStreamPr
      */
     interface Builder extends SignedHttpRequest.Builder<ContentStreamProvider>, SdkBuilder<Builder, SyncSignedHttpRequest> {
 
-        /**
-         * Set the HTTP request object, without the request body payload.
-         */
         @Override
         Builder request(SdkHttpRequest request);
 
-        /**
-         * Set the body payload of the request. A payload is optional. By default, the payload will be empty.
-         */
         @Override
         Builder payload(ContentStreamProvider payload);
     }
