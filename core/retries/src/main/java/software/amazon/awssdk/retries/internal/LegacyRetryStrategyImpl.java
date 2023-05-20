@@ -202,8 +202,7 @@ public final class LegacyRetryStrategyImpl implements LegacyRetryStrategy {
                      .build();
             throw new TokenAcquisitionFailedException(message, refreshedToken, failure);
         }
-        int attempt = token.attempt();
-        LOG.warn(() -> String.format("Request attempt %d encountered retryable failure.", attempt), failure);
+        LOG.error(() -> nonRetryableExceptionMessage(token), failure);
     }
 
     private String nonRetryableExceptionMessage(DefaultRetryToken token) {

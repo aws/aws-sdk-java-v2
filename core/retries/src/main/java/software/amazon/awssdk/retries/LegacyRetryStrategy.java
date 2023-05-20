@@ -26,23 +26,18 @@ import software.amazon.awssdk.retries.internal.circuitbreaker.TokenBucketStore;
 /**
  * The legacy retry strategy is a {@link RetryStrategy} for normal use-cases.
  * <p>
- * Like the {@link StandardRetryStrategy}, the legacy strategy is generally useful across all retry use-cases. Unlike the
- * {@link StandardRetryStrategy} this strategy has special treatment for throttling exceptions by being less sensitive to
- * triggering the circuit breaking and also by backing off with a higher base delay.
- * <p>
- * Unlike {@link AdaptiveRetryStrategy}, the legacy strategy is generally useful across all retry use-cases.
- * <p>
  * The legacy retry strategy by default:
  * <ol>
  *     <li>Retries on the conditions configured in the {@link Builder}.
- *     <li>Retries 2 times (3 total attempts). Adjust with {@link Builder#maxAttempts(int)}
+ *     <li>Retries 3 times (4 total attempts). Adjust with {@link Builder#maxAttempts(int)}
  *     <li>For non-throttling exceptions uses the {@link BackoffStrategy#exponentialDelay} backoff strategy, with a base delay
  *     of 100 milliseconds and max delay of 20 seconds. Adjust with {@link Builder#backoffStrategy}
  *     <li>For throttling exceptions uses the {@link BackoffStrategy#exponentialDelay} backoff strategy, with a base delay of
  *     500 milliseconds  and max delay of 20 seconds. Adjust with {@link LegacyRetryStrategy.Builder#throttlingBackoffStrategy}
  *     <li>Circuit breaking (disabling retries) in the event of high downstream failures across the scope of
  *     the strategy. The circuit breaking will never prevent a successful first attempt. Adjust with
- *     {@link Builder#circuitBreakerEnabled}.
+ *     {@link Builder#circuitBreakerEnabled}
+ *     <li>The state of the circuit breaker is not affected by throttling exceptions
  * </ol>
  *
  * @see StandardRetryStrategy

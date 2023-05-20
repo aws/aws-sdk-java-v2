@@ -30,16 +30,16 @@ public final class DefaultRetryStrategy {
     }
 
     /**
-     * Create a new builder for a {@code StandardRetryStrategy}.
+     * Create a new builder for a {@link StandardRetryStrategy}.
      *
      * <p>Example Usage
-     * <pre>
+     * {@snippet
      * StandardRetryStrategy retryStrategy =
-     *     RetryStrategies.standardStrategyBuilder()
+     *     DefaultRetryStrategy.standardStrategyBuilder()
      *                    .retryOnExceptionInstanceOf(IllegalArgumentException.class)
      *                    .retryOnExceptionInstanceOf(IllegalStateException.class)
      *                    .build();
-     * </pre>
+     * }
      */
     public static StandardRetryStrategy.Builder standardStrategyBuilder() {
         return StandardRetryStrategy.builder()
@@ -48,16 +48,16 @@ public final class DefaultRetryStrategy {
     }
 
     /**
-     * Create a new builder for a {@code LegacyRetryStrategy}.
+     * Create a new builder for a {@link LegacyRetryStrategy}.
      *
      * <p>Example Usage
-     * <pre>
+     * {@snippet
      * LegacyRetryStrategy retryStrategy =
-     *     RetryStrategies.legacyStrategyBuilder()
+     *     DefaultRetryStrategy.legacyStrategyBuilder()
      *                    .retryOnExceptionInstanceOf(IllegalArgumentException.class)
      *                    .retryOnExceptionInstanceOf(IllegalStateException.class)
      *                    .build();
-     * </pre>
+     * }
      */
     public static LegacyRetryStrategy.Builder legacyStrategyBuilder() {
         return LegacyRetryStrategy.builder()
@@ -68,16 +68,16 @@ public final class DefaultRetryStrategy {
     }
 
     /**
-     * Create a new builder for a {@code AdaptiveRetryStrategy}.
+     * Create a new builder for a {@link AdaptiveRetryStrategy}.
      *
      * <p>Example Usage
-     * <pre>
+     * {@snippet
      * AdaptiveRetryStrategy retryStrategy =
-     *     RetryStrategies.adaptiveStrategyBuilder()
+     *     DefaultRetryStrategy.adaptiveStrategyBuilder()
      *                    .retryOnExceptionInstanceOf(IllegalArgumentException.class)
      *                    .retryOnExceptionInstanceOf(IllegalStateException.class)
      *                    .build();
-     * </pre>
+     * }
      */
     public static AdaptiveRetryStrategy.Builder adaptiveStrategyBuilder() {
         return AdaptiveRetryStrategy.builder()
