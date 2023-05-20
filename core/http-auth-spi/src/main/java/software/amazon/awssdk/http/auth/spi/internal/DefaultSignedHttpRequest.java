@@ -42,7 +42,7 @@ abstract class DefaultSignedHttpRequest<PayloadT> implements SignedHttpRequest<P
         return payload == null ? Optional.empty() : Optional.of(payload);
     }
 
-    protected static class BuilderImpl<B extends BuilderImpl<B, PayloadT>, PayloadT> implements Builder<PayloadT> {
+    protected abstract static class BuilderImpl<B extends Builder<B, PayloadT>, PayloadT> implements Builder<B, PayloadT> {
         private SdkHttpRequest request;
         private PayloadT payload;
 

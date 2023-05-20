@@ -37,7 +37,7 @@ public final class DefaultSyncSignedHttpRequest
 
     @SdkInternalApi
     public static final class BuilderImpl
-        extends DefaultSignedHttpRequest.BuilderImpl<BuilderImpl, ContentStreamProvider>
+        extends DefaultSignedHttpRequest.BuilderImpl<SyncSignedHttpRequest.Builder, ContentStreamProvider>
         implements SyncSignedHttpRequest.Builder {
 
         @Override

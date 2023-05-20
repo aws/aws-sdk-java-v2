@@ -20,7 +20,6 @@ import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.spi.internal.DefaultAsyncSignedHttpRequest;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
@@ -42,12 +41,7 @@ public interface AsyncSignedHttpRequest extends SignedHttpRequest<Publisher<Byte
     /**
      * A builder for a {@link AsyncSignedHttpRequest}.
      */
-    interface Builder extends SignedHttpRequest.Builder<Publisher<ByteBuffer>>, SdkBuilder<Builder, AsyncSignedHttpRequest> {
-
-        @Override
-        Builder request(SdkHttpRequest request);
-
-        @Override
-        Builder payload(Publisher<ByteBuffer> payload);
+    interface Builder extends SignedHttpRequest.Builder<Builder, Publisher<ByteBuffer>>,
+                              SdkBuilder<Builder, AsyncSignedHttpRequest> {
     }
 }

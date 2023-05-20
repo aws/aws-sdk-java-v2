@@ -19,7 +19,6 @@ import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.http.ContentStreamProvider;
-import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.spi.internal.DefaultSyncSignedHttpRequest;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
@@ -41,12 +40,7 @@ public interface SyncSignedHttpRequest extends SignedHttpRequest<ContentStreamPr
     /**
      * A builder for a {@link SyncSignedHttpRequest}.
      */
-    interface Builder extends SignedHttpRequest.Builder<ContentStreamProvider>, SdkBuilder<Builder, SyncSignedHttpRequest> {
-
-        @Override
-        Builder request(SdkHttpRequest request);
-
-        @Override
-        Builder payload(ContentStreamProvider payload);
+    interface Builder extends SignedHttpRequest.Builder<Builder, ContentStreamProvider>,
+                              SdkBuilder<Builder, SyncSignedHttpRequest> {
     }
 }

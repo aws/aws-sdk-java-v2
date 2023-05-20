@@ -44,16 +44,16 @@ public interface SignedHttpRequest<PayloadT> {
     /**
      * A builder for a {@link SignedHttpRequest}.
      */
-    interface Builder<PayloadT> {
+    interface Builder<B extends Builder<B, PayloadT>, PayloadT> {
 
         /**
          * Set the HTTP request object, without the request body payload.
          */
-        Builder<PayloadT> request(SdkHttpRequest request);
+        B request(SdkHttpRequest request);
 
         /**
          * Set the body payload of the request. A payload is optional. By default, the payload will be empty.
          */
-        Builder<PayloadT> payload(PayloadT payload);
+        B payload(PayloadT payload);
     }
 }

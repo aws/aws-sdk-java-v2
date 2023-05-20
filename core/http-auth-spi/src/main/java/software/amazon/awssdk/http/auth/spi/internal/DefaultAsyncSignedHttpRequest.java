@@ -38,7 +38,7 @@ public final class DefaultAsyncSignedHttpRequest
 
     @SdkInternalApi
     public static final class BuilderImpl
-        extends DefaultSignedHttpRequest.BuilderImpl<BuilderImpl, Publisher<ByteBuffer>>
+        extends DefaultSignedHttpRequest.BuilderImpl<AsyncSignedHttpRequest.Builder, Publisher<ByteBuffer>>
         implements AsyncSignedHttpRequest.Builder {
 
         @Override
