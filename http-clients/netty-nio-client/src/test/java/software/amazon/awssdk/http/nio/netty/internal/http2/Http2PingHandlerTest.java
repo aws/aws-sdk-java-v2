@@ -18,6 +18,10 @@ package software.amazon.awssdk.http.nio.netty.internal.http2;
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.buffer.Unpooled;
+import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -25,9 +29,13 @@ import io.netty.channel.ChannelOutboundHandlerAdapter;
 import io.netty.channel.ChannelPromise;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.embedded.EmbeddedChannel;
+import io.netty.handler.codec.http2.DefaultHttp2DataFrame;
 import io.netty.handler.codec.http2.DefaultHttp2PingFrame;
+import io.netty.handler.codec.http2.Http2DataFrame;
 import io.netty.handler.codec.http2.Http2PingFrame;
+import io.netty.buffer.EmptyByteBuf;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -270,6 +278,29 @@ public class Http2PingHandlerTest {
 
         assertThat(catcher.caughtExceptions).hasSize(1);
         assertThat(catcher.caughtExceptions.get(0)).isInstanceOf(PingFailedException.class);
+    }
+
+    @Test
+    public void delayedPingAckOnActiveConnectionDoesntTerminateConnection() {
+        Logger.getLogger("").setLevel(Level.ALL);
+
+        PipelineExceptionCatcher catcher = new PipelineExceptionCatcher();
+        PingResponder pingResponder = new PingResponder();
+
+        EmbeddedChannel channel = createHttp2Channel(fastChecker, catcher, pingResponder);
+
+        pingResponder.setCallback(() -> channel.writeInbound(new DefaultHttp2PingFrame(0, true)),
+                                  (long)(FAST_CHECKER_DURATION_MILLIS * 1.5) /* send a late ack after timeout */);
+        // send data at a constant rate
+        channel.eventLoop().scheduleAtFixedRate(() -> channel.writeInbound(new DefaultHttp2DataFrame(Unpooled.buffer())),
+                                                FAST_CHECKER_DURATION_MILLIS / 10,
+                                                FAST_CHECKER_DURATION_MILLIS / 10, TimeUnit.MILLISECONDS);
+
+        Instant runEnd = Instant.now().plus(1, SECONDS);
+        while (Instant.now().isBefore(runEnd)) {
+            channel.runPendingTasks();
+            assertThat(catcher.caughtExceptions).hasSize(0);
+        }
     }
 
     private static final class PingReadCatcher extends SimpleChannelInboundHandler<Http2PingFrame> {

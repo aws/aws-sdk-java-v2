@@ -19,8 +19,8 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelPipeline;
-import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http2.DefaultHttp2PingFrame;
 import io.netty.handler.codec.http2.Http2PingFrame;
 import io.netty.util.concurrent.ScheduledFuture;
@@ -37,7 +37,7 @@ import software.amazon.awssdk.utils.Validate;
  * If a channel is found to be unhealthy, this will invoke {@link ChannelPipeline#fireExceptionCaught(Throwable)}.
  */
 @SdkInternalApi
-public class Http2PingHandler extends SimpleChannelInboundHandler<Http2PingFrame> {
+public class Http2PingHandler extends ChannelInboundHandlerAdapter {
     private static final NettyClientLogger log = NettyClientLogger.getLogger(Http2PingHandler.class);
     private static final Http2PingFrame DEFAULT_PING_FRAME = new DefaultHttp2PingFrame(0);
 
@@ -50,7 +50,7 @@ public class Http2PingHandler extends SimpleChannelInboundHandler<Http2PingFrame
 
     private ScheduledFuture<?> periodicPing;
     private long lastPingSendTime = 0;
-    private long lastPingAckTime = 0;
+    private long lastMsgRcvdTime = 0;
 
     public Http2PingHandler(int pingTimeoutMillis) {
         this.pingTimeoutMillis = pingTimeoutMillis;
@@ -84,17 +84,26 @@ public class Http2PingHandler extends SimpleChannelInboundHandler<Http2PingFrame
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, Http2PingFrame frame) {
-        log.debug(ctx.channel(), () -> "Received PING from channel, ack=" + frame.ack());
-        if (frame.ack()) {
-            lastPingAckTime = System.currentTimeMillis();
+    public void channelRead(ChannelHandlerContext ctx, Object msg) {
+        // if there is any message read on this connection, it also suggests the channel is
+        // active, extend the time of connection inactiveness for ping timeout logic.
+        lastMsgRcvdTime = System.currentTimeMillis();
+        if (msg instanceof Http2PingFrame) {
+            doChannelRead(ctx, (Http2PingFrame) msg);
         } else {
+            ctx.fireChannelRead(msg);
+        }
+    }
+
+    private void doChannelRead(ChannelHandlerContext ctx, Http2PingFrame frame) {
+        log.debug(ctx.channel(), () -> "Received PING from channel, ack=" + frame.ack());
+        if (!frame.ack()) {
             ctx.fireChannelRead(frame);
         }
     }
 
     private void doPeriodicPing(Channel channel) {
-        if (lastPingAckTime <= lastPingSendTime - pingTimeoutMillis) {
+        if (lastMsgRcvdTime <= lastPingSendTime - pingTimeoutMillis) {
             log.warn(channel, () -> "PING timeout occurred");
             long timeSinceLastPingSend = System.currentTimeMillis() - lastPingSendTime;
             channelIsUnhealthy(channel, new PingFailedException("Server did not respond to PING after " +
