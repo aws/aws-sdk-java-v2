@@ -29,7 +29,7 @@ public class HttpSignerTest {
 
     private static final SignerProperty<String> KEY = SignerProperty.create(String.class, "key");
     private static final String VALUE = "value";
-    private TokenIdentity IDENTITY = TokenIdentity.create("token");
+    private static final TokenIdentity IDENTITY = TokenIdentity.create("token");
 
     final HttpSigner<TokenIdentity> signer = new TestSigner();
 
@@ -77,28 +77,35 @@ public class HttpSignerTest {
 
     /**
      * NoOp Signer that asserts that the input created via builder or Consumer builder pattern are set up correctly.
+     * This is similar to what a bearerTokenSigner would look like - which would insert the identity in a Header.
+
      */
-    private class TestSigner implements HttpSigner<TokenIdentity> {
+    private static class TestSigner implements HttpSigner<TokenIdentity> {
         @Override
-        public SyncSignedHttpRequest sign(SyncHttpSignRequest<TokenIdentity> request) {
+        public SyncSignedHttpRequest sign(SyncHttpSignRequest<? extends TokenIdentity> request) {
             assertEquals(VALUE, request.property(KEY));
             assertEquals(IDENTITY, request.identity());
 
             return SyncSignedHttpRequest.builder()
-                                        .request(request.request())
+                                        .request(addTokenHeader(request))
                                         .payload(request.payload().orElse(null))
                                         .build();
         }
 
         @Override
-        public AsyncSignedHttpRequest signAsync(AsyncHttpSignRequest<TokenIdentity> request) {
+        public AsyncSignedHttpRequest signAsync(AsyncHttpSignRequest<? extends TokenIdentity> request) {
             assertEquals(VALUE, request.property(KEY));
             assertEquals(IDENTITY, request.identity());
 
             return AsyncSignedHttpRequest.builder()
-                                         .request(request.request())
+                                         .request(addTokenHeader(request))
                                          .payload(request.payload().orElse(null))
                                          .build();
+        }
+
+        private SdkHttpRequest addTokenHeader(HttpSignRequest<?, ? extends TokenIdentity> input) {
+            // return input.request().copy(b -> b.putHeader("Token-Header", input.identity().token()));
+            return input.request();
         }
     }
 }

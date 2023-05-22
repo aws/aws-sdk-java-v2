@@ -36,7 +36,7 @@ public interface HttpSigner<IdentityT extends Identity> {
      * @param request The inputs to sign a request.
      * @return A signed version of the request.
      */
-    SyncSignedHttpRequest sign(SyncHttpSignRequest<IdentityT> request);
+    SyncSignedHttpRequest sign(SyncHttpSignRequest<? extends IdentityT> request);
 
     /**
      * Method that takes in inputs to sign a request with sync payload and returns a signed version of the request.
@@ -58,7 +58,7 @@ public interface HttpSigner<IdentityT extends Identity> {
      * @param request The inputs to sign a request.
      * @return A signed version of the request.
      */
-    AsyncSignedHttpRequest signAsync(AsyncHttpSignRequest<IdentityT> request);
+    AsyncSignedHttpRequest signAsync(AsyncHttpSignRequest<? extends IdentityT> request);
 
     /**
      * Method that takes in inputs to sign a request with async payload and returns a signed version of the request.
