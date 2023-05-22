@@ -21,8 +21,6 @@ import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.endpoints.Endpoint;
-import software.amazon.awssdk.endpoints.EndpointProvider;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.DelegatingS3Client;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.endpoints.S3EndpointParams;
@@ -63,18 +61,16 @@ public final class S3CrossRegionSyncClient extends DelegatingS3Client {
     }
 
     //TODO: optimize shared sync/async code
-    private AwsRequestOverrideConfiguration getOrCreateConfigWithEndpointProvider(S3Request request,
-                                                                                  String bucket) {
-
-        AwsRequestOverrideConfiguration requestOverrideConfiguration =
+    private AwsRequestOverrideConfiguration getOrCreateConfigWithEndpointProvider(S3Request request, String bucket) {
+        AwsRequestOverrideConfiguration requestOverrideConfig =
             request.overrideConfiguration().orElseGet(() -> AwsRequestOverrideConfiguration.builder().build());
 
-        EndpointProvider delegateEndpointProvider =
-            requestOverrideConfiguration.endpointProvider().orElseGet(() -> serviceClientConfiguration().endpointProvider().get());
+        S3EndpointProvider delegateEndpointProvider = (S3EndpointProvider)
+            requestOverrideConfig.endpointProvider().orElseGet(() -> serviceClientConfiguration().endpointProvider().get());
 
-        return requestOverrideConfiguration.toBuilder()
-                                           .endpointProvider(BucketEndpointProvider.create((S3EndpointProvider) delegateEndpointProvider, bucket))
-                                           .build();
+        return requestOverrideConfig.toBuilder()
+                                    .endpointProvider(BucketEndpointProvider.create(delegateEndpointProvider, bucket))
+                                    .build();
     }
 
     static final class BucketEndpointProvider implements S3EndpointProvider {
