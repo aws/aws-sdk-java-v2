@@ -1,3 +1,33 @@
+# __2.20.70__ __2023-05-22__
+## __AWS Backup__
+  - ### Features
+    - Added support for tags on restore.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add client configuration overriding of SCHEDULED_EXECUTOR_SERVICE option
+        - Contributed by: [@scrocquesel](https://github.com/scrocquesel)
+    - This commit adds a new ErrorType core metric that is recorded for all failed API call attempts. The ErrorType records the general category  of error that ocurred for a failed API call attempt. Those categories are:
+
+       - Throttling errors
+       - Service errors other than throttling
+       - I/O errors
+       - API call or API call attempt timeouts
+
+       The intent of this metric is to help locate possible issues at a glance and help direct further debugging or investigation.
+
+## __Amazon Pinpoint__
+  - ### Features
+    - Amazon Pinpoint is deprecating the tags parameter in the UpdateSegment, UpdateCampaign, UpdateEmailTemplate, UpdateSmsTemplate, UpdatePushTemplate, UpdateInAppTemplate and UpdateVoiceTemplate. Amazon Pinpoint will end support tags parameter by May 22, 2023.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Add support for Asset Bundle, Geospatial Heatmaps.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@scrocquesel](https://github.com/scrocquesel)
 # __2.20.69__ __2023-05-19__
 ## __AWS Backup__
   - ### Features
