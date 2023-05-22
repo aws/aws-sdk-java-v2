@@ -401,8 +401,7 @@ public abstract class DelegatingJsonClient implements JsonClient {
     public PaginatedOperationWithResultKeyIterable paginatedOperationWithResultKeyPaginator(
         PaginatedOperationWithResultKeyRequest paginatedOperationWithResultKeyRequest) throws AwsServiceException,
                                                                                               SdkClientException, JsonException {
-        return invokeOperation(paginatedOperationWithResultKeyRequest,
-                               request -> delegate.paginatedOperationWithResultKeyPaginator(request));
+        return delegate.paginatedOperationWithResultKeyPaginator(paginatedOperationWithResultKeyRequest);
     }
 
     /**
@@ -504,8 +503,7 @@ public abstract class DelegatingJsonClient implements JsonClient {
     public PaginatedOperationWithoutResultKeyIterable paginatedOperationWithoutResultKeyPaginator(
         PaginatedOperationWithoutResultKeyRequest paginatedOperationWithoutResultKeyRequest) throws AwsServiceException,
                                                                                                     SdkClientException, JsonException {
-        return invokeOperation(paginatedOperationWithoutResultKeyRequest,
-                               request -> delegate.paginatedOperationWithoutResultKeyPaginator(request));
+        return delegate.paginatedOperationWithoutResultKeyPaginator(paginatedOperationWithoutResultKeyRequest);
     }
 
     /**

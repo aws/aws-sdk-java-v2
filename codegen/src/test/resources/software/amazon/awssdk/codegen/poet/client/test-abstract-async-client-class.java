@@ -409,8 +409,7 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
     @Override
     public PaginatedOperationWithResultKeyPublisher paginatedOperationWithResultKeyPaginator(
         PaginatedOperationWithResultKeyRequest paginatedOperationWithResultKeyRequest) {
-        return invokeOperation(paginatedOperationWithResultKeyRequest,
-                               request -> delegate.paginatedOperationWithResultKeyPaginator(request));
+        return delegate.paginatedOperationWithResultKeyPaginator(paginatedOperationWithResultKeyRequest);
     }
 
     /**
@@ -515,8 +514,7 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
     @Override
     public PaginatedOperationWithoutResultKeyPublisher paginatedOperationWithoutResultKeyPaginator(
         PaginatedOperationWithoutResultKeyRequest paginatedOperationWithoutResultKeyRequest) {
-        return invokeOperation(paginatedOperationWithoutResultKeyRequest,
-                               request -> delegate.paginatedOperationWithoutResultKeyPaginator(request));
+        return delegate.paginatedOperationWithoutResultKeyPaginator(paginatedOperationWithoutResultKeyRequest);
     }
 
     /**
@@ -677,7 +675,8 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
         return this.delegate;
     }
 
-    protected <T extends JsonRequest, ReturnT> ReturnT invokeOperation(T request, Function<T, ReturnT> operation) {
+    protected <T extends JsonRequest, ReturnT> CompletableFuture<ReturnT> invokeOperation(T request,
+                                                                                          Function<T, CompletableFuture<ReturnT>> operation) {
         return operation.apply(request);
     }
 

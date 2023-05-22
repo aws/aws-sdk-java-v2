@@ -148,9 +148,7 @@ public class DelegatingSyncClientClass extends SyncClientInterface {
         String methodName = PaginatorUtils.getPaginatedMethodName(opModel.getMethodName());
         return builder.addModifiers(PUBLIC)
                       .addAnnotation(Override.class)
-                      .addStatement("return invokeOperation($N, request -> delegate.$N(request))",
-                                    opModel.getInput().getVariableName(),
-                                    methodName);
+                      .addStatement("return delegate.$N($N)", methodName, opModel.getInput().getVariableName());
     }
 
     @Override
