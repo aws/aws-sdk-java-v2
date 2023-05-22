@@ -18,6 +18,7 @@ package software.amazon.awssdk.identity.spi;
 import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.identity.spi.internal.DefaultAwsSessionCredentialsIdentity;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
@@ -36,6 +37,10 @@ public interface AwsSessionCredentialsIdentity extends AwsCredentialsIdentity {
      */
     String sessionToken();
 
+    static AwsSessionCredentialsIdentity.Builder builder() {
+        return DefaultAwsSessionCredentialsIdentity.builder();
+    }
+
     /**
      * Constructs a new session credentials object, with the specified AWS access key, AWS secret key and AWS session token.
      *
@@ -45,56 +50,23 @@ public interface AwsSessionCredentialsIdentity extends AwsCredentialsIdentity {
      * received temporary permission to access some resource.
      */
     static AwsSessionCredentialsIdentity create(String accessKeyId, String secretAccessKey, String sessionToken) {
-        Validate.paramNotNull(accessKeyId, "accessKeyId");
-        Validate.paramNotNull(secretAccessKey, "secretAccessKey");
-        Validate.paramNotNull(sessionToken, "sessionToken");
+        return builder().accessKeyId(accessKeyId)
+                        .secretAccessKey(secretAccessKey)
+                        .sessionToken(sessionToken)
+                        .build();
+    }
 
-        return new AwsSessionCredentialsIdentity() {
-            @Override
-            public String accessKeyId() {
-                return accessKeyId;
-            }
+    interface Builder extends AwsCredentialsIdentity.Builder {
+        @Override
+        Builder accessKeyId(String accessKeyId);
+        @Override
+        Builder secretAccessKey(String secretAccessKey);
+        @Override
+        Builder accountId(String accountId);
 
-            @Override
-            public String secretAccessKey() {
-                return secretAccessKey;
-            }
+        Builder sessionToken(String sessionToken);
 
-            @Override
-            public String sessionToken() {
-                return sessionToken;
-            }
-
-            @Override
-            public String toString() {
-                return ToString.builder("AwsSessionCredentialsIdentity")
-                               .add("accessKeyId", accessKeyId())
-                               .build();
-            }
-
-            @Override
-            public boolean equals(Object o) {
-                if (this == o) {
-                    return true;
-                }
-                if (o == null || getClass() != o.getClass()) {
-                    return false;
-                }
-
-                AwsSessionCredentialsIdentity that = (AwsSessionCredentialsIdentity) o;
-                return Objects.equals(accessKeyId, that.accessKeyId()) &&
-                       Objects.equals(secretAccessKey, that.secretAccessKey()) &&
-                       Objects.equals(sessionToken, that.sessionToken());
-            }
-
-            @Override
-            public int hashCode() {
-                int hashCode = 1;
-                hashCode = 31 * hashCode + Objects.hashCode(accessKeyId());
-                hashCode = 31 * hashCode + Objects.hashCode(secretAccessKey());
-                hashCode = 31 * hashCode + Objects.hashCode(sessionToken());
-                return hashCode;
-            }
-        };
+        @Override
+        AwsSessionCredentialsIdentity build();
     }
 }
