@@ -33,6 +33,7 @@ import com.squareup.javapoet.TypeVariableName;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -121,8 +122,11 @@ public class DelegatingAsyncClientClass extends AsyncClientInterface {
 
         TypeVariableName responseTypeVariableName = STREAMING_TYPE_VARIABLE;
 
+        ParameterizedTypeName responseFutureTypeName = ParameterizedTypeName.get(ClassName.get(CompletableFuture.class),
+                                                                                 responseTypeVariableName);
+
         ParameterizedTypeName functionTypeName = ParameterizedTypeName
-            .get(ClassName.get(Function.class), requestTypeVariableName, responseTypeVariableName);
+            .get(ClassName.get(Function.class), requestTypeVariableName, responseFutureTypeName);
 
         return MethodSpec.methodBuilder("invokeOperation")
                          .addModifiers(PROTECTED)
@@ -130,7 +134,7 @@ public class DelegatingAsyncClientClass extends AsyncClientInterface {
                          .addParameter(functionTypeName, "operation")
                          .addTypeVariable(requestTypeVariableName)
                          .addTypeVariable(responseTypeVariableName)
-                         .returns(responseTypeVariableName)
+                         .returns(responseFutureTypeName)
                          .addStatement("return operation.apply(request)")
                          .build();
     }
@@ -213,11 +217,8 @@ public class DelegatingAsyncClientClass extends AsyncClientInterface {
         String methodName = PaginatorUtils.getPaginatedMethodName(opModel.getMethodName());
         return builder.addModifiers(PUBLIC)
                       .addAnnotation(Override.class)
-                      .addStatement("return invokeOperation($N, request -> delegate.$N(request))",
-                                    opModel.getInput().getVariableName(),
-                                    methodName);
+                      .addStatement("return delegate.$N($N)", methodName, opModel.getInput().getVariableName());
     }
-
 
     @Override
     protected MethodSpec.Builder utilitiesOperationBody(MethodSpec.Builder builder) {
