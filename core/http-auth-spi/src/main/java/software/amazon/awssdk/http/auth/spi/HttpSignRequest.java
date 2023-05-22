@@ -17,7 +17,7 @@ package software.amazon.awssdk.http.auth.spi;
 
 import java.util.Optional;
 import software.amazon.awssdk.annotations.Immutable;
-import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.identity.spi.Identity;
@@ -28,10 +28,7 @@ import software.amazon.awssdk.identity.spi.Identity;
  * @param <PayloadT> The type of payload of the request.
  * @param <IdentityT> The type of the identity.
  */
-// TODO: Code Reviewer Note: Seems like this could be package-private/SdkProtectedApi, since there are 2 sub-interfaces that
-//  HttpSigner uses, however for implementation of HttpSigner that don't care about Sync v/s Async, they can share their
-//  implementation by using this type with generic PayloadT. Should this be public but SdkProtectedApi?
-@SdkPublicApi
+@SdkProtectedApi
 @Immutable
 @ThreadSafe
 public interface HttpSignRequest<PayloadT, IdentityT extends Identity> {
