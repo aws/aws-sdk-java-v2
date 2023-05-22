@@ -25,6 +25,7 @@ import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestToResponsePipeline;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.utils.RetryableStageHelper;
+import software.amazon.awssdk.core.internal.metrics.SdkErrorType;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.metrics.MetricCollector;
@@ -47,11 +48,18 @@ public final class ApiCallAttemptMetricCollectionStage<OutputT> implements Reque
         context.attemptMetricCollector(apiCallAttemptMetrics);
         reportBackoffDelay(context);
 
-        Response<OutputT> response = wrapped.execute(input, context);
+        try {
+            Response<OutputT> response = wrapped.execute(input, context);
+            collectHttpMetrics(apiCallAttemptMetrics, response.httpResponse());
 
-        collectHttpMetrics(apiCallAttemptMetrics, response.httpResponse());
-
-        return response;
+            if (!Boolean.TRUE.equals(response.isSuccess()) && response.exception() != null) {
+                reportErrorType(context, response.exception());
+            }
+            return response;
+        } catch (Exception e) {
+            reportErrorType(context, e);
+            throw e;
+        }
     }
 
     private void reportBackoffDelay(RequestExecutionContext context) {
@@ -59,5 +67,9 @@ public final class ApiCallAttemptMetricCollectionStage<OutputT> implements Reque
         if (lastBackoffDelay != null) {
             context.attemptMetricCollector().reportMetric(CoreMetric.BACKOFF_DELAY_DURATION, lastBackoffDelay);
         }
+    }
+
+    private void reportErrorType(RequestExecutionContext context, Exception e) {
+        context.attemptMetricCollector().reportMetric(CoreMetric.ERROR_TYPE, SdkErrorType.fromException(e).toString());
     }
 }
