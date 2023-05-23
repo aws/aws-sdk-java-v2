@@ -27,6 +27,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.http.auth.spi.AuthSchemeProvider;
 import software.amazon.awssdk.http.auth.spi.HttpAuthOption;
 
 public class AuthSchemeProviderSpec implements ClassSpec {
@@ -46,7 +47,7 @@ public class AuthSchemeProviderSpec implements ClassSpec {
     @Override
     public TypeSpec poetSpec() {
         return PoetUtils.createInterfaceBuilder(className())
-                        // .addSuperinterface(EndpointProvider.class) // TODO: reviewer: do we want a marker interface?
+                        .addSuperinterface(AuthSchemeProvider.class)
                         .addModifiers(Modifier.PUBLIC)
                         .addAnnotation(SdkPublicApi.class)
                         .addJavadoc(interfaceJavadoc())

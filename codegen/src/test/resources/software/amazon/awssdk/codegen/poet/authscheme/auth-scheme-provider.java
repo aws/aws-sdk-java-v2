@@ -4,9 +4,9 @@ import java.util.List;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.http.auth.spi.AuthSchemeProvider;
 import software.amazon.awssdk.http.auth.spi.HttpAuthOption;
 import software.amazon.awssdk.services.query.authscheme.internal.DefaultQueryAuthSchemeProvider;
-
 
 /**
  * An auth scheme provider for Query. The auth scheme provider takes a set of parameters using
@@ -14,7 +14,7 @@ import software.amazon.awssdk.services.query.authscheme.internal.DefaultQueryAut
  */
 @Generated("software.amazon.awssdk:codegen")
 @SdkPublicApi
-public interface QueryAuthSchemeProvider {
+public interface QueryAuthSchemeProvider extends AuthSchemeProvider {
     /**
      * Resolve the auth schemes based on the given set of parameters.
      */
