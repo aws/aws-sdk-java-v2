@@ -198,7 +198,7 @@ public class BaseClientBuilderClass implements ClassSpec {
                                                .addCode("return config.merge(c -> c");
 
         builder.addCode(".option($T.ENDPOINT_PROVIDER, defaultEndpointProvider())", SdkClientOption.class);
-
+        builder.addCode(".option($T.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider())", SdkClientOption.class);
 
         if (defaultAwsAuthSignerMethod().isPresent()) {
             builder.addCode(".option($T.SIGNER, defaultSigner())\n", SdkAdvancedClientOption.class);
