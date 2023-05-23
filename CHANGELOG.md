@@ -1,3 +1,20 @@
+# __2.20.71__ __2023-05-23__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Added ModelNameEquals, ModelPackageVersionArnEquals in request and ModelName, SamplePayloadUrl, ModelPackageVersionArn in response of ListInferenceRecommendationsJobs API. Added Invocation timestamps in response of DescribeInferenceRecommendationsJob API & ListInferenceRecommendationsJobSteps API.
+
+## __Amazon Translate__
+  - ### Features
+    - Added support for calling TranslateDocument API.
+
+## __Firewall Management Service__
+  - ### Features
+    - Fixes issue that could cause calls to GetAdminScope and ListAdminAccountsForOrganization to return a 500 Internal Server error.
+
 # __2.20.70__ __2023-05-22__
 ## __AWS Backup__
   - ### Features
