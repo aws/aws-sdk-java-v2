@@ -63,7 +63,6 @@ final class AuthSchemeSpecUtils {
     }
 
     public boolean usesSigV4() {
-        // TODO: reviewer: Does the below method usage change with sigV4a?
         return AuthUtils.usesAwsAuth(intermediateModel);
     }
 

@@ -9,7 +9,7 @@ import software.amazon.awssdk.http.auth.spi.HttpAuthOption;
 import software.amazon.awssdk.services.query.authscheme.internal.DefaultQueryAuthSchemeProvider;
 
 /**
- * An auth scheme provider for Query. The auth scheme provider takes a set of parameters using
+ * An auth scheme provider for Query service. The auth scheme provider takes a set of parameters using
  * {@link QueryAuthSchemeParams}, and resolves a list of {@link HttpAuthOption} based on the given parameters.
  */
 @Generated("software.amazon.awssdk:codegen")
@@ -29,6 +29,9 @@ public interface QueryAuthSchemeProvider extends AuthSchemeProvider {
         return resolveAuthScheme(builder.build());
     }
 
+    /**
+     * Get the default auth scheme provider.
+     */
     static QueryAuthSchemeProvider defaultProvider() {
         return DefaultQueryAuthSchemeProvider.create();
     }

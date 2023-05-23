@@ -29,7 +29,6 @@ import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 
 // TODO: reviewer: Params v/s Parameters?
-//               : Suffix with Spec?
 public class AuthSchemeParamsSpec implements ClassSpec {
     private final IntermediateModel intermediateModel;
     private final AuthSchemeSpecUtils authSchemeSpecUtils;
@@ -71,18 +70,23 @@ public class AuthSchemeParamsSpec implements ClassSpec {
                          .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                          .returns(authSchemeSpecUtils.parametersInterfaceBuilderInterfaceName())
                          .addStatement("return $T.builder()", authSchemeSpecUtils.parametersDefaultImplName())
+                         .addJavadoc("Get a new builder for creating a {@link $T}.",
+                                   authSchemeSpecUtils.parametersInterfaceName())
                          .build();
     }
 
     private TypeSpec builderInterfaceSpec() {
         TypeSpec.Builder b = TypeSpec.interfaceBuilder(authSchemeSpecUtils.parametersInterfaceBuilderInterfaceName())
-                                     .addModifiers(Modifier.PUBLIC, Modifier.STATIC);
+                                     .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                                     .addJavadoc("A builder for a {@link $T}.", authSchemeSpecUtils.parametersInterfaceName());
 
         addBuilderSetterMethods(b);
 
         b.addMethod(MethodSpec.methodBuilder("build")
                               .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
                               .returns(className())
+                              .addJavadoc("Returns a {@link $T} object that is created from the properties that have been set "
+                                          + "on the builder.", authSchemeSpecUtils.parametersInterfaceName())
                               .build());
 
         return b.build();
@@ -92,6 +96,7 @@ public class AuthSchemeParamsSpec implements ClassSpec {
         b.addMethod(MethodSpec.methodBuilder("operation")
                               .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
                               .returns(String.class)
+                              .addJavadoc("Returns the operation for which to resolve the auth scheme.")
                               .build());
 
         if (authSchemeSpecUtils.usesSigV4()) {
@@ -99,6 +104,8 @@ public class AuthSchemeParamsSpec implements ClassSpec {
                                   .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
                                   // TODO: reviewer: Should region be Regions (Regions.class isn't available here though)
                                   .returns(ParameterizedTypeName.get(Optional.class, String.class))
+                                  .addJavadoc("Returns the region. The region is optional. The region parameter may be used "
+                                              + "with $S auth scheme. By default, the region will be empty.", "aws.auth#sigv4")
                                   .build());
         }
     }
@@ -108,6 +115,7 @@ public class AuthSchemeParamsSpec implements ClassSpec {
                               .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
                               .addParameter(ParameterSpec.builder(String.class, "operation").build())
                               .returns(authSchemeSpecUtils.parametersInterfaceBuilderInterfaceName())
+                              .addJavadoc("Set the operation for which to resolve the auth scheme.")
                               .build());
 
         if (authSchemeSpecUtils.usesSigV4()) {
@@ -115,6 +123,8 @@ public class AuthSchemeParamsSpec implements ClassSpec {
                                   .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
                                   .addParameter(ParameterSpec.builder(String.class, "region").build())
                                   .returns(authSchemeSpecUtils.parametersInterfaceBuilderInterfaceName())
+                                  .addJavadoc("Set the region. The region parameter may be used with  the $S auth scheme.",
+                                              "aws.auth#sigv4") // TODO: Could the known auth schemes be defined somewhere?
                                   .build());
         }
     }

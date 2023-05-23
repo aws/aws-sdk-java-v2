@@ -88,6 +88,7 @@ public class AuthSchemeProviderSpec implements ClassSpec {
         return MethodSpec.methodBuilder("defaultProvider")
             .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
             .returns(className())
+            .addJavadoc("Get the default auth scheme provider.")
             .addStatement("return $T.create()", authSchemeSpecUtils.providerDefaultImplName())
             .build();
     }
@@ -95,7 +96,7 @@ public class AuthSchemeProviderSpec implements ClassSpec {
     private CodeBlock interfaceJavadoc() {
         CodeBlock.Builder b = CodeBlock.builder();
 
-        b.add("An auth scheme provider for $N. The auth scheme provider takes a set of parameters using {@link $T}, and "
+        b.add("An auth scheme provider for $N service. The auth scheme provider takes a set of parameters using {@link $T}, and "
               + "resolves a list of {@link $T} based on the given parameters.",
               intermediateModel.getMetadata().getServiceName(),
               authSchemeSpecUtils.parametersInterfaceName(),
