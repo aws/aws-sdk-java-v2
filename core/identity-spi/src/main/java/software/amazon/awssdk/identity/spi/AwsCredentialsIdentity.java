@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.identity.spi;
 
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.identity.spi.internal.DefaultAwsCredentialsIdentity;
@@ -43,6 +44,13 @@ public interface AwsCredentialsIdentity extends Identity {
      */
     String secretAccessKey();
 
+    /**
+     * Retrieve the AWS account id associated with this credentials identity, if found.
+     */
+    default Optional<String> accountId() {
+        return Optional.empty();
+    }
+
     static Builder builder() {
         return DefaultAwsCredentialsIdentity.builder();
     }
@@ -69,6 +77,11 @@ public interface AwsCredentialsIdentity extends Identity {
          * The AWS secret access key, used to authenticate the user interacting with services.
          */
         Builder secretAccessKey(String secretAccessKey);
+
+        /**
+         * The AWS account id associated with this credentials identity.
+         */
+        Builder accountId(String accountId);
 
         AwsCredentialsIdentity build();
     }
