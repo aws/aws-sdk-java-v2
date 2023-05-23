@@ -57,21 +57,6 @@ public class AuthSchemeParamsSpec implements ClassSpec {
         return b.build();
     }
 
-    private void addAccessorMethods(TypeSpec.Builder b) {
-        b.addMethod(MethodSpec.methodBuilder("operation")
-                              .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
-                              .returns(String.class)
-                              .build());
-
-        if (authSchemeSpecUtils.usesSigV4()) {
-            b.addMethod(MethodSpec.methodBuilder("region")
-                                  .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
-                                  // TODO: reviewer: Should region be Regions (Regions.class isn't available here though)
-                                  .returns(ParameterizedTypeName.get(Optional.class, String.class))
-                                  .build());
-        }
-    }
-
     private CodeBlock interfaceJavadoc() {
         CodeBlock.Builder b = CodeBlock.builder();
 
@@ -103,6 +88,21 @@ public class AuthSchemeParamsSpec implements ClassSpec {
         return b.build();
     }
 
+    private void addAccessorMethods(TypeSpec.Builder b) {
+        b.addMethod(MethodSpec.methodBuilder("operation")
+                              .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                              .returns(String.class)
+                              .build());
+
+        if (authSchemeSpecUtils.usesSigV4()) {
+            b.addMethod(MethodSpec.methodBuilder("region")
+                                  .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                                  // TODO: reviewer: Should region be Regions (Regions.class isn't available here though)
+                                  .returns(ParameterizedTypeName.get(Optional.class, String.class))
+                                  .build());
+        }
+    }
+
     private void addBuilderSetterMethods(TypeSpec.Builder b) {
         b.addMethod(MethodSpec.methodBuilder("operation")
                               .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
@@ -118,5 +118,4 @@ public class AuthSchemeParamsSpec implements ClassSpec {
                                   .build());
         }
     }
-
 }

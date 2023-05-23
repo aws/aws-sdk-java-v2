@@ -21,6 +21,7 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
+import java.lang.reflect.Type;
 import java.util.Optional;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -54,32 +55,6 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
         addFieldsAndAccessors(b);
 
         return b.build();
-    }
-
-    private void addFieldsAndAccessors(TypeSpec.Builder b) {
-        b.addField(FieldSpec.builder(String.class, "operation")
-                            .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
-                            .build());
-
-        b.addMethod(MethodSpec.methodBuilder("operation")
-                              .addModifiers(Modifier.PUBLIC)
-                              .addAnnotation(Override.class)
-                              .returns(String.class)
-                              .addStatement("return operation")
-                              .build());
-
-        if (authSchemeSpecUtils.usesSigV4()) {
-            b.addField(FieldSpec.builder(String.class, "region")
-                                .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
-                                .build());
-
-            b.addMethod(MethodSpec.methodBuilder("region")
-                                  .addModifiers(Modifier.PUBLIC)
-                                  .addAnnotation(Override.class)
-                                  .returns(ParameterizedTypeName.get(Optional.class, String.class))
-                                  .addStatement("return region == null ? Optional.empty() : Optional.of(region)")
-                                  .build());
-        }
     }
 
     private MethodSpec constructor() {
@@ -120,34 +95,55 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
         return b.build();
     }
 
-    private void addBuilderFieldsAndSetter(TypeSpec.Builder b) {
+    private void addFieldsAndAccessors(TypeSpec.Builder b) {
         b.addField(FieldSpec.builder(String.class, "operation")
-                            .addModifiers(Modifier.PRIVATE)
+                            .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
                             .build());
 
         b.addMethod(MethodSpec.methodBuilder("operation")
                               .addModifiers(Modifier.PUBLIC)
                               .addAnnotation(Override.class)
-                              .addParameter(ParameterSpec.builder(String.class, "operation").build())
-                              .returns(builderClassName())
-                              .addStatement("this.operation = operation")
-                              .addStatement("return this")
+                              .returns(String.class)
+                              .addStatement("return operation")
                               .build());
 
         if (authSchemeSpecUtils.usesSigV4()) {
             b.addField(FieldSpec.builder(String.class, "region")
-                                .addModifiers(Modifier.PRIVATE)
+                                .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
                                 .build());
 
             b.addMethod(MethodSpec.methodBuilder("region")
                                   .addModifiers(Modifier.PUBLIC)
                                   .addAnnotation(Override.class)
-                                  .addParameter(ParameterSpec.builder(String.class, "region").build())
-                                  .returns(builderClassName())
-                                  .addStatement("this.region = region")
-                                  .addStatement("return this")
+                                  .returns(ParameterizedTypeName.get(Optional.class, String.class))
+                                  .addStatement("return region == null ? Optional.empty() : Optional.of(region)")
                                   .build());
         }
+    }
+
+    private void addBuilderFieldsAndSetter(TypeSpec.Builder b) {
+        b.addField(FieldSpec.builder(String.class, "operation")
+                            .addModifiers(Modifier.PRIVATE)
+                            .build());
+        b.addMethod(builderSetterMethod("operation", String.class));
+
+        if (authSchemeSpecUtils.usesSigV4()) {
+            b.addField(FieldSpec.builder(String.class, "region")
+                                .addModifiers(Modifier.PRIVATE)
+                                .build());
+            b.addMethod(builderSetterMethod("region", String.class));
+        }
+    }
+
+    private MethodSpec builderSetterMethod(String field, Type type) {
+        return MethodSpec.methodBuilder(field)
+                         .addModifiers(Modifier.PUBLIC)
+                         .addAnnotation(Override.class)
+                         .addParameter(ParameterSpec.builder(type, field).build())
+                         .returns(builderClassName())
+                         .addStatement("this.$L = $L", field, field)
+                         .addStatement("return this")
+                         .build();
     }
 
     private ClassName builderClassName() {
