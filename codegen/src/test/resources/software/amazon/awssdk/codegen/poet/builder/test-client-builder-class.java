@@ -19,6 +19,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
+import software.amazon.awssdk.services.json.auth.scheme.JsonAuthSchemeProvider;
 import software.amazon.awssdk.services.json.endpoints.JsonClientContextParams;
 import software.amazon.awssdk.services.json.endpoints.JsonEndpointProvider;
 import software.amazon.awssdk.services.json.endpoints.internal.JsonEndpointAuthSchemeInterceptor;
@@ -141,6 +142,15 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
 
     private JsonEndpointProvider defaultEndpointProvider() {
         return JsonEndpointProvider.defaultProvider();
+    }
+
+    public B authSchemeProvider(JsonAuthSchemeProvider authSchemeProvider) {
+        clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER, authSchemeProvider);
+        return thisBuilder();
+    }
+
+    private JsonAuthSchemeProvider defaultAuthSchemeProvider() {
+        return JsonAuthSchemeProvider.defaultProvider();
     }
 
     public B serviceConfiguration(ServiceConfiguration serviceConfiguration) {
