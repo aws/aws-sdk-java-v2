@@ -15,18 +15,15 @@
 
 package software.amazon.awssdk.identity.spi;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.utils.ToString;
+import software.amazon.awssdk.identity.spi.internal.DefaultResolveIdentityRequest;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
  * A request to resolve an {@link Identity}.
- *
+ * <p>
  * The Identity may be determined for each request based on properties of the request (e.g. different credentials per bucket
  * for S3).
  *
@@ -35,59 +32,28 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
 @SdkPublicApi
 @Immutable
 @ThreadSafe
-public final class ResolveIdentityRequest {
+public interface ResolveIdentityRequest {
 
-    private final Map<IdentityProperty<?>, Object> properties;
-
-    private ResolveIdentityRequest(Map<IdentityProperty<?>, Object> properties) {
-        this.properties = new HashMap<>(properties);
+    /**
+     * Get a new builder for creating a {@link ResolveIdentityRequest}.
+     */
+    static Builder builder() {
+        return DefaultResolveIdentityRequest.builder();
     }
 
-    public static Builder builder() {
-        return new Builder();
-    }
+    /**
+     * Returns the value of a property that the {@link IdentityProvider} can use while resolving the identity.
+     */
+    <T> T property(IdentityProperty<T> property);
 
-    public <T> T property(IdentityProperty<T> property) {
-        return (T) properties.get(property);
-    }
+    /**
+     * A builder for a {@link ResolveIdentityRequest}.
+     */
+    interface Builder extends SdkBuilder<Builder, ResolveIdentityRequest> {
 
-    @Override
-    public String toString() {
-        return ToString.builder("ResolveIdentityRequest")
-                       .add("properties", properties)
-                       .build();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        ResolveIdentityRequest that = (ResolveIdentityRequest) o;
-        return properties.equals(that.properties);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(properties);
-    }
-
-    public static final class Builder implements SdkBuilder<Builder, ResolveIdentityRequest> {
-        private final Map<IdentityProperty<?>, Object> properties = new HashMap<>();
-
-        private Builder() {
-        }
-
-        public <T> Builder putProperty(IdentityProperty<T> key, T value) {
-            this.properties.put(key, value);
-            return this;
-        }
-
-        public ResolveIdentityRequest build() {
-            return new ResolveIdentityRequest(properties);
-        }
+        /**
+         * Set a property that the {@link IdentityProvider} can use while resolving the identity.
+         */
+        <T> Builder putProperty(IdentityProperty<T> key, T value);
     }
 }

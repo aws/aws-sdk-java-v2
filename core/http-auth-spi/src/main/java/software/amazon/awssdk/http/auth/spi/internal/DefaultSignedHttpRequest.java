@@ -19,25 +19,17 @@ import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.spi.SignedHttpRequest;
-import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
-public final class DefaultSignedHttpRequest<PayloadT> implements SignedHttpRequest<PayloadT> {
+abstract class DefaultSignedHttpRequest<PayloadT> implements SignedHttpRequest<PayloadT> {
 
-    private final Class<PayloadT> payloadType;
-    private final SdkHttpRequest request;
-    private final PayloadT payload;
+    protected final SdkHttpRequest request;
+    protected final PayloadT payload;
 
-    DefaultSignedHttpRequest(BuilderImpl<PayloadT>  builder) {
-        this.payloadType = Validate.paramNotNull(builder.payloadType, "payloadType");
+    protected DefaultSignedHttpRequest(BuilderImpl<?, PayloadT>  builder) {
         this.request = Validate.paramNotNull(builder.request, "request");
         this.payload = builder.payload;
-    }
-
-    @Override
-    public Class<PayloadT> payloadType() {
-        return payloadType;
     }
 
     @Override
@@ -50,38 +42,27 @@ public final class DefaultSignedHttpRequest<PayloadT> implements SignedHttpReque
         return payload == null ? Optional.empty() : Optional.of(payload);
     }
 
-    @Override
-    public String toString() {
-        return ToString.builder("SignedHttpRequest")
-                       .add("payloadType", payloadType)
-                       .add("request", request)
-                       .build();
-    }
-
-    public static final class BuilderImpl<PayloadT> implements Builder<PayloadT> {
-        private final Class<PayloadT> payloadType;
+    protected abstract static class BuilderImpl<B extends Builder<B, PayloadT>, PayloadT> implements Builder<B, PayloadT> {
         private SdkHttpRequest request;
         private PayloadT payload;
 
-        public BuilderImpl(Class<PayloadT> payloadType) {
-            this.payloadType = payloadType;
+        protected BuilderImpl() {
         }
 
         @Override
-        public Builder<PayloadT> request(SdkHttpRequest request) {
+        public B request(SdkHttpRequest request) {
             this.request = request;
-            return this;
+            return thisBuilder();
         }
 
         @Override
-        public Builder<PayloadT> payload(PayloadT payload) {
+        public B payload(PayloadT payload) {
             this.payload = payload;
-            return this;
+            return thisBuilder();
         }
 
-        @Override
-        public SignedHttpRequest<PayloadT> build() {
-            return new DefaultSignedHttpRequest<>(this);
+        private B thisBuilder() {
+            return (B) this;
         }
     }
 }
