@@ -349,7 +349,7 @@ class RetryStrategyCommonTest {
 
         @Override
         public TestCase configureTokenBucketMaxCapacity(int maxCapacity) {
-            ((AdaptiveRetryStrategyImpl.Builder) builder).tokenBucketStore(
+            ((DefaultAdaptiveRetryStrategy.Builder) builder).tokenBucketStore(
                 TokenBucketStore
                     .builder()
                     .tokenBucketMaxCapacity(maxCapacity)
@@ -359,18 +359,18 @@ class RetryStrategyCommonTest {
 
         @Override
         public TestCase configureTokenBucketExceptionCost(int exceptionCost) {
-            ((AdaptiveRetryStrategyImpl.Builder) builder).tokenBucketExceptionCost(exceptionCost);
+            ((DefaultAdaptiveRetryStrategy.Builder) builder).tokenBucketExceptionCost(exceptionCost);
             return this;
         }
 
         @Override
         public TestCase configureCircuitBreakerEnabled(boolean enabled) {
-            ((AdaptiveRetryStrategyImpl.Builder) builder).circuitBreakerEnabled(enabled);
+            ((DefaultAdaptiveRetryStrategy.Builder) builder).circuitBreakerEnabled(enabled);
             return this;
         }
 
         public TestCase configureTreatAsThrottling(Predicate<Throwable> isThrottling) {
-            ((AdaptiveRetryStrategyImpl.Builder) builder).treatAsThrottling(isThrottling);
+            ((DefaultAdaptiveRetryStrategy.Builder) builder).treatAsThrottling(isThrottling);
             return this;
         }
     }

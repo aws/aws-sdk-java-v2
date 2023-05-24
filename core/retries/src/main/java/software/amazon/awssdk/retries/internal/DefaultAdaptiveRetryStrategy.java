@@ -47,8 +47,8 @@ import software.amazon.awssdk.utils.Validate;
  * Implementation of the {@link AdaptiveRetryStrategy} interface.
  */
 @SdkInternalApi
-public final class AdaptiveRetryStrategyImpl implements AdaptiveRetryStrategy {
-    private static final Logger LOG = Logger.loggerFor(AdaptiveRetryStrategyImpl.class);
+public final class DefaultAdaptiveRetryStrategy implements AdaptiveRetryStrategy {
+    private static final Logger LOG = Logger.loggerFor(DefaultAdaptiveRetryStrategy.class);
     private final List<Predicate<Throwable>> retryPredicates;
     private final int maxAttempts;
     private final boolean circuitBreakerEnabled;
@@ -59,10 +59,10 @@ public final class AdaptiveRetryStrategyImpl implements AdaptiveRetryStrategy {
     private final TokenBucketStore tokenBucketStore;
     private final RateLimiterTokenBucketStore rateLimiterTokenBucketStore;
 
-    private AdaptiveRetryStrategyImpl(Builder builder) {
+    private DefaultAdaptiveRetryStrategy(Builder builder) {
         this.retryPredicates = Collections.unmodifiableList(Validate.paramNotNull(builder.retryPredicates, "retryPredicates"));
         this.maxAttempts = Validate.isPositive(builder.maxAttempts, "maxAttempts");
-        this.circuitBreakerEnabled = builder.circuitBreakerEnabled;
+        this.circuitBreakerEnabled = builder.circuitBreakerEnabled == null || builder.circuitBreakerEnabled;
         this.backoffStrategy = Validate.paramNotNull(builder.backoffStrategy, "backoffStrategy");
         this.exceptionCost = builder.exceptionCost;
         this.tokenBucketMaxCapacity = builder.tokenBucketMaxCapacity;
@@ -313,7 +313,7 @@ public final class AdaptiveRetryStrategyImpl implements AdaptiveRetryStrategy {
     public static class Builder implements AdaptiveRetryStrategy.Builder {
         private List<Predicate<Throwable>> retryPredicates;
         private int maxAttempts;
-        private boolean circuitBreakerEnabled;
+        private Boolean circuitBreakerEnabled;
         private int tokenBucketMaxCapacity;
         private int exceptionCost;
         private Predicate<Throwable> treatAsThrottling;
@@ -326,7 +326,7 @@ public final class AdaptiveRetryStrategyImpl implements AdaptiveRetryStrategy {
             circuitBreakerEnabled = true;
         }
 
-        Builder(AdaptiveRetryStrategyImpl strategy) {
+        Builder(DefaultAdaptiveRetryStrategy strategy) {
             this.retryPredicates = new ArrayList<>(strategy.retryPredicates);
             this.maxAttempts = strategy.maxAttempts;
             this.circuitBreakerEnabled = strategy.circuitBreakerEnabled;
@@ -377,18 +377,13 @@ public final class AdaptiveRetryStrategyImpl implements AdaptiveRetryStrategy {
         }
 
         public Builder circuitBreakerEnabled(Boolean circuitBreakerEnabled) {
-            if (circuitBreakerEnabled == null) {
-                this.circuitBreakerEnabled = true;
-            } else {
-                this.circuitBreakerEnabled = circuitBreakerEnabled;
-            }
+            this.circuitBreakerEnabled = circuitBreakerEnabled;
             return this;
         }
 
-
         @Override
-        public AdaptiveRetryStrategyImpl build() {
-            return new AdaptiveRetryStrategyImpl(this);
+        public DefaultAdaptiveRetryStrategy build() {
+            return new DefaultAdaptiveRetryStrategy(this);
         }
     }
 }

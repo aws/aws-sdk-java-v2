@@ -59,8 +59,8 @@ public final class LegacyRetryStrategyImpl implements LegacyRetryStrategy {
 
     private LegacyRetryStrategyImpl(Builder builder) {
         this.predicates = Collections.unmodifiableList(Validate.paramNotNull(builder.predicates, "predicates"));
-        this.maxAttempts = Validate.isPositive(builder.maxAttempts, "maxAttempts");
-        this.circuitBreakerEnabled = builder.circuitBreakerEnabled;
+        this.maxAttempts = Validate.isPositive(Validate.paramNotNull(builder.maxAttempts, "maxAttempts"), "maxAttempts");
+        this.circuitBreakerEnabled = builder.circuitBreakerEnabled == null || builder.circuitBreakerEnabled;
         this.backoffStrategy = Validate.paramNotNull(builder.backoffStrategy, "backoffStrategy");
         this.throttlingBackoffStrategy = Validate.paramNotNull(builder.throttlingBackoffStrategy, "throttlingBackoffStrategy");
         this.exceptionCost = Validate.paramNotNull(builder.exceptionCost, "exceptionCost");
@@ -91,16 +91,7 @@ public final class LegacyRetryStrategyImpl implements LegacyRetryStrategy {
 
         // Refresh the retry token and compute the backoff delay.
         DefaultRetryToken refreshedToken = refreshToken(request, acquireResponse);
-        Duration backoff;
-        if (treatAsThrottling.test(request.failure())) {
-            backoff = throttlingBackoffStrategy.computeDelay(refreshedToken.attempt());
-        } else {
-            backoff = backoffStrategy.computeDelay(refreshedToken.attempt());
-        }
-        // Take the max delay between the suggested delay and the backoff delay.
-        Duration suggested = request.suggestedDelay().orElse(Duration.ZERO);
-        Duration finalDelay = maxOf(suggested, backoff);
-
+        Duration finalDelay = computeBackoff(request, refreshedToken);
         logRefreshTokenSuccess(refreshedToken, acquireResponse, finalDelay);
         return RefreshRetryTokenResponseImpl.create(refreshedToken, finalDelay);
     }
@@ -108,14 +99,8 @@ public final class LegacyRetryStrategyImpl implements LegacyRetryStrategy {
     @Override
     public RecordSuccessResponse recordSuccess(RecordSuccessRequest request) {
         DefaultRetryToken token = asStandardRetryToken(request.token());
-
-        // Update the circuit breaker token bucket.
         ReleaseResponse releaseResponse = updateCircuitBreakerTokenBucket(token);
-
-        // Refresh the retry token and return
         DefaultRetryToken refreshedToken = refreshRetryTokenAfterSuccess(token, releaseResponse);
-
-        // Log success and return.
         logRecordSuccess(token, releaseResponse);
         return RecordSuccessResponse.create(refreshedToken);
     }
@@ -130,6 +115,18 @@ public final class LegacyRetryStrategyImpl implements LegacyRetryStrategy {
      */
     public static Builder builder() {
         return new Builder();
+    }
+
+    private Duration computeBackoff(RefreshRetryTokenRequest request, DefaultRetryToken token) {
+        Duration backoff;
+        if (treatAsThrottling.test(request.failure())) {
+            backoff = throttlingBackoffStrategy.computeDelay(token.attempt());
+        } else {
+            backoff = backoffStrategy.computeDelay(token.attempt());
+        }
+        // Take the max delay between the suggested delay and the backoff delay.
+        Duration suggested = request.suggestedDelay().orElse(Duration.ZERO);
+        return maxOf(suggested, backoff);
     }
 
     private Duration maxOf(Duration left, Duration right) {
@@ -165,7 +162,7 @@ public final class LegacyRetryStrategyImpl implements LegacyRetryStrategy {
                      .addFailure(failure)
                      .build();
             String message = acquisitionFailedMessage(acquireResponse);
-            LOG.error(() -> message, failure);
+            LOG.debug(() -> message, failure);
             throw new TokenAcquisitionFailedException(message, refreshedToken, failure);
         }
     }
@@ -182,7 +179,7 @@ public final class LegacyRetryStrategyImpl implements LegacyRetryStrategy {
                      .addFailure(failure)
                      .build();
             String message = maxAttemptsReachedMessage(refreshedToken);
-            LOG.error(() -> message, failure);
+            LOG.debug(() -> message, failure);
             throw new TokenAcquisitionFailedException(message, refreshedToken, failure);
         }
     }
@@ -202,7 +199,7 @@ public final class LegacyRetryStrategyImpl implements LegacyRetryStrategy {
                      .build();
             throw new TokenAcquisitionFailedException(message, refreshedToken, failure);
         }
-        LOG.error(() -> nonRetryableExceptionMessage(token), failure);
+        LOG.debug(() -> nonRetryableExceptionMessage(token), failure);
     }
 
     private String nonRetryableExceptionMessage(DefaultRetryToken token) {
@@ -272,14 +269,15 @@ public final class LegacyRetryStrategyImpl implements LegacyRetryStrategy {
 
     private AcquireResponse requestAcquireCapacity(RefreshRetryTokenRequest request, DefaultRetryToken token) {
         TokenBucket tokenBucket = tokenBucketStore.tokenBucketForScope(token.scope());
-        if (!circuitBreakerEnabled) {
-            return tokenBucket.tryAcquire(0);
+        int amountToAcquire = 0;
+        if (circuitBreakerEnabled) {
+            if (treatAsThrottling.test(request.failure())) {
+                amountToAcquire = throttlingExceptionCost;
+            } else {
+                amountToAcquire = exceptionCost;
+            }
         }
-        int cost = exceptionCost;
-        if (treatAsThrottling.test(request.failure())) {
-            cost = throttlingExceptionCost;
-        }
-        return tokenBucket.tryAcquire(cost);
+        return tokenBucket.tryAcquire(amountToAcquire);
     }
 
     private DefaultRetryToken refreshToken(RefreshRetryTokenRequest request, AcquireResponse acquireResponse) {
@@ -295,8 +293,8 @@ public final class LegacyRetryStrategyImpl implements LegacyRetryStrategy {
 
     public static class Builder implements LegacyRetryStrategy.Builder {
         private List<Predicate<Throwable>> predicates;
-        private int maxAttempts;
-        private boolean circuitBreakerEnabled;
+        private Integer maxAttempts;
+        private Boolean circuitBreakerEnabled;
         private Integer exceptionCost;
         private Integer throttlingExceptionCost;
         private Predicate<Throwable> treatAsThrottling;
@@ -306,7 +304,6 @@ public final class LegacyRetryStrategyImpl implements LegacyRetryStrategy {
 
         Builder() {
             predicates = new ArrayList<>();
-            circuitBreakerEnabled = true;
         }
 
         Builder(LegacyRetryStrategyImpl strategy) {
@@ -335,11 +332,7 @@ public final class LegacyRetryStrategyImpl implements LegacyRetryStrategy {
 
         @Override
         public Builder circuitBreakerEnabled(Boolean circuitBreakerEnabled) {
-            if (circuitBreakerEnabled == null) {
-                this.circuitBreakerEnabled = true;
-            } else {
-                this.circuitBreakerEnabled = circuitBreakerEnabled;
-            }
+            this.circuitBreakerEnabled = circuitBreakerEnabled;
             return this;
         }
 
