@@ -28,8 +28,8 @@
     <artifactId>http-auth-event-stream</artifactId>
     <name>AWS Java SDK :: HTTP Auth Event Stream</name>
     <description>
-        The AWS SDK for Java - HTTP Auth module contains interfaces and implementations for generic HTTP authentication
-            specific to the event streams.
+        The AWS SDK for Java - HTTP Auth Event Stream module contains interfaces and implementations
+        for authentication of event streams in HTTP services.
     </description>
     <url>https://aws.amazon.com/sdkforjava</url>
 

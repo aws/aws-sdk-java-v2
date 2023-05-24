@@ -28,8 +28,8 @@
     <artifactId>http-auth-aws-crt</artifactId>
     <name>AWS Java SDK :: HTTP Auth AWS CRT</name>
     <description>
-        The AWS SDK for Java - HTTP Auth AWS module contains interfaces and implementations for generic HTTP
-            authentication specific to the AWS CRT.
+        The AWS SDK for Java - HTTP Auth AWS CRT module holds the AWS Common Runtime based implementations
+        that are used for authentication with HTTP services.
     </description>
     <url>https://aws.amazon.com/sdkforjava</url>
 

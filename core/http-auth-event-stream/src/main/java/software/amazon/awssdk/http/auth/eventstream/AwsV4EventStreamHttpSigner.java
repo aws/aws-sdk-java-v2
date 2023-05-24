@@ -13,26 +13,27 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.auth;
+package software.amazon.awssdk.http.auth.eventstream;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.http.auth.internal.DefaultBearerHttpSigner;
+import software.amazon.awssdk.http.auth.eventstream.internal.DefaultAwsV4EventStreamHttpSigner;
 import software.amazon.awssdk.http.auth.spi.HttpSigner;
-import software.amazon.awssdk.identity.spi.TokenIdentity;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 
 /**
- * An {@link HttpSigner} that will sign a request with a
- * bearer-token ({@link TokenIdentity}).
+ * An {@link HttpSigner} that will sign a request
+ * using an AWS credentials ({@link AwsCredentialsIdentity}),
+ * specifically for Event Streams.
  */
 @SdkPublicApi
-public interface BearerHttpSigner extends HttpSigner<TokenIdentity> {
+public interface AwsV4EventStreamHttpSigner extends HttpSigner<AwsCredentialsIdentity> {
 
     /**
-     * Get a default implementation of a {@link BearerHttpSigner}
+     * Get a default implementation of a {@link AwsV4EventStreamHttpSigner}
      *
-     * @return BearerHttpSigner
+     * @return AwsV4EventStreamHttpSigner
      */
-    static BearerHttpSigner create() {
-        return new DefaultBearerHttpSigner();
+    static AwsV4EventStreamHttpSigner create() {
+        return new DefaultAwsV4EventStreamHttpSigner();
     }
 }

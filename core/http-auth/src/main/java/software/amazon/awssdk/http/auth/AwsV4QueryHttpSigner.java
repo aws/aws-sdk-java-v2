@@ -16,9 +16,24 @@
 package software.amazon.awssdk.http.auth;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.http.auth.internal.DefaultAwsV4QueryHttpSigner;
 import software.amazon.awssdk.http.auth.spi.HttpSigner;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 
+/**
+ * An {@link HttpSigner} that will sign a request
+ * using an AWS credentials ({@link AwsCredentialsIdentity}),
+ * specifically for query.
+ */
 @SdkPublicApi
-public interface AwsV4QueryHttpSigner extends HttpSigner {
+public interface AwsV4QueryHttpSigner extends HttpSigner<AwsCredentialsIdentity> {
 
+    /**
+     * Get a default implementation of a {@link AwsV4QueryHttpSigner}
+     *
+     * @return AwsV4QueryHttpSigner
+     */
+    static AwsV4QueryHttpSigner create() {
+        return new DefaultAwsV4QueryHttpSigner();
+    }
 }
