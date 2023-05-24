@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.codegen.poet.auth.scheme;
+package software.amazon.awssdk.services.query.auth.scheme.internal;
 
 import java.util.ArrayList;
 import java.util.List;
