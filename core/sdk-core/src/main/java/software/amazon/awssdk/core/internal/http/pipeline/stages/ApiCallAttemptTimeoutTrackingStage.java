@@ -56,9 +56,8 @@ public final class ApiCallAttemptTimeoutTrackingStage<OutputT> implements Reques
 
     /**
      * Start and end api call attempt timer around the execution of the api call attempt. It's important
-     * that the client execution task is canceled before the InterruptedException is handled by
-     * {@link ApiCallTimeoutTrackingStage#wrapped#execute(SdkHttpFullRequest)} so the interrupt status doesn't leak out to the
-     * callers code.
+     * that the client execution task is canceled before the InterruptedException is handled by the wrapped
+     * {@link RequestPipeline#execute} call so the interrupt status doesn't leak out to the callers code.
      */
     @Override
     public Response<OutputT> execute(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {

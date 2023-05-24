@@ -91,6 +91,7 @@ import software.amazon.awssdk.profiles.ProfileFileSupplier;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Either;
+import software.amazon.awssdk.utils.ScheduledExecutorUtils;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 import software.amazon.awssdk.utils.Validate;
 
@@ -222,6 +223,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
 
         SdkClientConfiguration.Builder builder = configuration.toBuilder();
 
+        builder.option(SCHEDULED_EXECUTOR_SERVICE, clientOverrideConfiguration.scheduledExecutorService().orElse(null));
         builder.option(EXECUTION_INTERCEPTORS, clientOverrideConfiguration.executionInterceptors());
         builder.option(RETRY_POLICY, clientOverrideConfiguration.retryPolicy().orElse(null));
         builder.option(ADDITIONAL_HTTP_HEADERS, clientOverrideConfiguration.headers());
@@ -313,7 +315,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     private SdkClientConfiguration finalizeConfiguration(SdkClientConfiguration config) {
         RetryPolicy retryPolicy = resolveRetryPolicy(config);
         return config.toBuilder()
-                     .option(SCHEDULED_EXECUTOR_SERVICE, resolveScheduledExecutorService())
+                     .option(SCHEDULED_EXECUTOR_SERVICE, resolveScheduledExecutorService(config))
                      .option(EXECUTION_INTERCEPTORS, resolveExecutionInterceptors(config))
                      .option(RETRY_POLICY, retryPolicy)
                      .option(CLIENT_USER_AGENT, resolveClientUserAgent(config, retryPolicy))
@@ -410,9 +412,17 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
      * Finalize the internal SDK scheduled executor service that is used for scheduling tasks such
      * as async retry attempts and timeout task.
      */
-    private ScheduledExecutorService resolveScheduledExecutorService() {
-        return Executors.newScheduledThreadPool(5, new ThreadFactoryBuilder()
-            .threadNamePrefix("sdk-ScheduledExecutor").build());
+    private ScheduledExecutorService resolveScheduledExecutorService(SdkClientConfiguration config) {
+        Supplier<ScheduledExecutorService> defaultScheduledExecutor = () -> {
+            ScheduledExecutorService executor = Executors.newScheduledThreadPool(5, new ThreadFactoryBuilder()
+                .threadNamePrefix("sdk-ScheduledExecutor").build());
+
+            return executor;
+        };
+
+        return Optional.ofNullable(config.option(SCHEDULED_EXECUTOR_SERVICE))
+            .map(ScheduledExecutorUtils::unmanagedScheduledExecutor)
+            .orElseGet(defaultScheduledExecutor);
     }
 
     /**
