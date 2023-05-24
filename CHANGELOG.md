@@ -1,3 +1,24 @@
+# __2.20.72__ __2023-05-24__
+## __AWS AppSync__
+  - ### Features
+    - This release introduces AppSync Merged APIs, which provide the ability to compose multiple source APIs into a single federated/merged API.
+
+## __AWS Cost and Usage Report Service__
+  - ### Features
+    - Add support for split cost allocation data on a report.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect Evaluation Capabilities: validation improvements
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - SageMaker now provides an instantaneous deployment recommendation through the DescribeModel API
+
 # __2.20.71__ __2023-05-23__
 ## __AWS SDK for Java v2__
   - ### Features
