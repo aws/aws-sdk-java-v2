@@ -17,7 +17,7 @@ package software.amazon.awssdk.http.auth.spi;
 
 import java.util.Optional;
 import software.amazon.awssdk.annotations.Immutable;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.identity.spi.Identity;
@@ -28,7 +28,7 @@ import software.amazon.awssdk.identity.spi.Identity;
  * @param <PayloadT> The type of payload of the request.
  * @param <IdentityT> The type of the identity.
  */
-@SdkProtectedApi
+@SdkPublicApi
 @Immutable
 @ThreadSafe
 public interface HttpSignRequest<PayloadT, IdentityT extends Identity> {
