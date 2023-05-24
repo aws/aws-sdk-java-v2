@@ -24,7 +24,7 @@ import software.amazon.awssdk.utils.Validate;
 
 /**
  * A strongly-typed property for input to an {@link HttpSigner}.
- * @param <T> The type of the attribute.
+ * @param <T> The type of the property.
  */
 @SdkPublicApi
 @Immutable

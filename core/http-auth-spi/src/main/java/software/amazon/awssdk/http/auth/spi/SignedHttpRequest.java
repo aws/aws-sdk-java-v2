@@ -20,30 +20,16 @@ import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.auth.spi.internal.DefaultSignedHttpRequest;
-import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
  * Represents a request that has been signed by {@link HttpSigner}.
  *
- * @param <PayloadT> The type of payload of this request.
+ * @param <PayloadT> The type of payload of the request.
  */
 @SdkPublicApi
 @Immutable
 @ThreadSafe
 public interface SignedHttpRequest<PayloadT> {
-
-    /**
-     * Get a new builder for creating a {@link SignedHttpRequest}.
-     */
-    static <T> Builder<T> builder(Class<T> payloadType) {
-        return new DefaultSignedHttpRequest.BuilderImpl(payloadType);
-    }
-
-    /**
-     * Returns the type of the payload.
-     */
-    Class<PayloadT> payloadType();
 
     /**
      * Returns the HTTP request object, without the request body payload.
@@ -58,16 +44,16 @@ public interface SignedHttpRequest<PayloadT> {
     /**
      * A builder for a {@link SignedHttpRequest}.
      */
-    interface Builder<PayloadT> extends SdkBuilder<Builder<PayloadT>, SignedHttpRequest> {
+    interface Builder<B extends Builder<B, PayloadT>, PayloadT> {
 
         /**
          * Set the HTTP request object, without the request body payload.
          */
-        Builder request(SdkHttpRequest request);
+        B request(SdkHttpRequest request);
 
         /**
          * Set the body payload of the request. A payload is optional. By default, the payload will be empty.
          */
-        Builder payload(PayloadT payload);
+        B payload(PayloadT payload);
     }
 }
