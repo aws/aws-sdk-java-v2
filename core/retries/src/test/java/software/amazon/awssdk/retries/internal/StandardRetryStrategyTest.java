@@ -161,8 +161,8 @@ class StandardRetryStrategyTest {
         int attempts = 0;
         String scope = "none";
         List<Exception> exceptions = new ArrayList<>();
-        StandardRetryStrategyImpl.Builder builder =
-            (StandardRetryStrategyImpl.Builder)
+        DefaultStandardRetryStrategy.Builder builder =
+            (DefaultStandardRetryStrategy.Builder)
                 DefaultRetryStrategy.standardStrategyBuilder();
         Throwable thrown;
         boolean shouldSucceed = false;
@@ -180,15 +180,15 @@ class StandardRetryStrategyTest {
                                                    .build());
         }
 
-        public TestCase fineTune(Function<StandardRetryStrategyImpl.Builder,
-            StandardRetryStrategyImpl.Builder> configurator) {
+        public TestCase fineTune(Function<DefaultStandardRetryStrategy.Builder,
+            DefaultStandardRetryStrategy.Builder> configurator) {
             this.builder = configurator.apply(this.builder);
             return this;
         }
 
         public TestCase configure(Function<StandardRetryStrategy.Builder,
             StandardRetryStrategy.Builder> configurator) {
-            this.builder = (StandardRetryStrategyImpl.Builder) configurator.apply(this.builder);
+            this.builder = (DefaultStandardRetryStrategy.Builder) configurator.apply(this.builder);
             return this;
         }
 

@@ -273,7 +273,7 @@ class RetryStrategyCommonTest {
 
         @Override
         public TestCase configureTokenBucketMaxCapacity(int maxCapacity) {
-            ((StandardRetryStrategyImpl.Builder) builder).tokenBucketStore(
+            ((DefaultStandardRetryStrategy.Builder) builder).tokenBucketStore(
                 TokenBucketStore
                     .builder()
                     .tokenBucketMaxCapacity(maxCapacity)
@@ -283,13 +283,13 @@ class RetryStrategyCommonTest {
 
         @Override
         public TestCase configureTokenBucketExceptionCost(int exceptionCost) {
-            ((StandardRetryStrategyImpl.Builder) builder).tokenBucketExceptionCost(exceptionCost);
+            ((DefaultStandardRetryStrategy.Builder) builder).tokenBucketExceptionCost(exceptionCost);
             return this;
         }
 
         @Override
         public TestCase configureCircuitBreakerEnabled(boolean enabled) {
-            ((StandardRetryStrategyImpl.Builder) builder).circuitBreakerEnabled(enabled);
+            ((DefaultStandardRetryStrategy.Builder) builder).circuitBreakerEnabled(enabled);
             return this;
         }
     }
@@ -303,7 +303,7 @@ class RetryStrategyCommonTest {
 
         @Override
         public TestCase configureTokenBucketMaxCapacity(int maxCapacity) {
-            ((LegacyRetryStrategyImpl.Builder) builder).tokenBucketStore(
+            ((DefaultLegacyRetryStrategy.Builder) builder).tokenBucketStore(
                 TokenBucketStore
                     .builder()
                     .tokenBucketMaxCapacity(maxCapacity)
@@ -313,28 +313,28 @@ class RetryStrategyCommonTest {
 
         @Override
         public TestCase configureTokenBucketExceptionCost(int exceptionCost) {
-            ((LegacyRetryStrategyImpl.Builder) builder).tokenBucketExceptionCost(exceptionCost);
+            ((DefaultLegacyRetryStrategy.Builder) builder).tokenBucketExceptionCost(exceptionCost);
             return this;
         }
 
         @Override
         public TestCase configureCircuitBreakerEnabled(boolean enabled) {
-            ((LegacyRetryStrategyImpl.Builder) builder).circuitBreakerEnabled(enabled);
+            ((DefaultLegacyRetryStrategy.Builder) builder).circuitBreakerEnabled(enabled);
             return this;
         }
 
         public TestCaseForLegacy configureTreatAsThrottling(Predicate<Throwable> isThrottling) {
-            ((LegacyRetryStrategyImpl.Builder) builder).treatAsThrottling(isThrottling);
+            ((DefaultLegacyRetryStrategy.Builder) builder).treatAsThrottling(isThrottling);
             return this;
         }
 
         public TestCaseForLegacy configureThrottlingBackoffStrategy(BackoffStrategy backoffStrategy) {
-            ((LegacyRetryStrategyImpl.Builder) builder).throttlingBackoffStrategy(backoffStrategy);
+            ((DefaultLegacyRetryStrategy.Builder) builder).throttlingBackoffStrategy(backoffStrategy);
             return this;
         }
 
         public TestCaseForLegacy configureBackoffStrategy(BackoffStrategy backoffStrategy) {
-            ((LegacyRetryStrategyImpl.Builder) builder).backoffStrategy(backoffStrategy);
+            ((DefaultLegacyRetryStrategy.Builder) builder).backoffStrategy(backoffStrategy);
             return this;
         }
     }
