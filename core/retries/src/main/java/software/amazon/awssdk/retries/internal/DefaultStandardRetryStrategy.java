@@ -58,7 +58,7 @@ public final class DefaultStandardRetryStrategy implements StandardRetryStrategy
     private DefaultStandardRetryStrategy(Builder builder) {
         this.predicates = Collections.unmodifiableList(Validate.paramNotNull(builder.predicates, "predicates"));
         this.maxAttempts = Validate.isPositive(builder.maxAttempts, "maxAttempts");
-        this.circuitBreakerEnabled = builder.circuitBreakerEnabled;
+        this.circuitBreakerEnabled = builder.circuitBreakerEnabled == null || builder.circuitBreakerEnabled;
         this.backoffStrategy = Validate.paramNotNull(builder.backoffStrategy, "backoffStrategy");
         this.exceptionCost = builder.exceptionCost;
         this.tokenBucketStore = Validate.paramNotNull(builder.tokenBucketStore, "tokenBucketStore");
@@ -286,17 +286,13 @@ public final class DefaultStandardRetryStrategy implements StandardRetryStrategy
         private static final int DEFAULT_TOKEN_BUCKET_SIZE = 500;
         private List<Predicate<Throwable>> predicates;
         private int maxAttempts;
-        private boolean circuitBreakerEnabled;
+        private Boolean circuitBreakerEnabled;
         private int exceptionCost;
         private BackoffStrategy backoffStrategy;
         private TokenBucketStore tokenBucketStore;
 
         Builder() {
             predicates = new ArrayList<>();
-            circuitBreakerEnabled = true;
-            tokenBucketStore = TokenBucketStore.builder()
-                                               .tokenBucketMaxCapacity(DEFAULT_TOKEN_BUCKET_SIZE)
-                                               .build();
         }
 
         Builder(DefaultStandardRetryStrategy strategy) {
@@ -322,11 +318,7 @@ public final class DefaultStandardRetryStrategy implements StandardRetryStrategy
 
         @Override
         public Builder circuitBreakerEnabled(Boolean circuitBreakerEnabled) {
-            if (circuitBreakerEnabled == null) {
-                this.circuitBreakerEnabled = true;
-            } else {
-                this.circuitBreakerEnabled = circuitBreakerEnabled;
-            }
+            this.circuitBreakerEnabled = circuitBreakerEnabled;
             return this;
         }
 

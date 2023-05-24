@@ -323,7 +323,6 @@ public final class DefaultAdaptiveRetryStrategy implements AdaptiveRetryStrategy
 
         Builder() {
             retryPredicates = new ArrayList<>();
-            circuitBreakerEnabled = true;
         }
 
         Builder(DefaultAdaptiveRetryStrategy strategy) {
