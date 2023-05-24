@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.codegen.poet.authscheme;
+package software.amazon.awssdk.codegen.poet.auth.scheme;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
@@ -28,7 +28,6 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 
-// TODO: reviewer: Params v/s Parameters?
 public class AuthSchemeParamsSpec implements ClassSpec {
     private final IntermediateModel intermediateModel;
     private final AuthSchemeSpecUtils authSchemeSpecUtils;
@@ -102,7 +101,7 @@ public class AuthSchemeParamsSpec implements ClassSpec {
         if (authSchemeSpecUtils.usesSigV4()) {
             b.addMethod(MethodSpec.methodBuilder("region")
                                   .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
-                                  // TODO: reviewer: Should region be Regions (Regions.class isn't available here though)
+                                  // TODO: Should region be Regions? (Regions.class isn't available here though)
                                   .returns(ParameterizedTypeName.get(Optional.class, String.class))
                                   .addJavadoc("Returns the region. The region is optional. The region parameter may be used "
                                               + "with $S auth scheme. By default, the region will be empty.", "aws.auth#sigv4")
@@ -124,7 +123,7 @@ public class AuthSchemeParamsSpec implements ClassSpec {
                                   .addParameter(ParameterSpec.builder(String.class, "region").build())
                                   .returns(authSchemeSpecUtils.parametersInterfaceBuilderInterfaceName())
                                   .addJavadoc("Set the region. The region parameter may be used with  the $S auth scheme.",
-                                              "aws.auth#sigv4") // TODO: Could the known auth schemes be defined somewhere?
+                                              "aws.auth#sigv4") // TODO: Reference the SigV4 AuthScheme when implemented
                                   .build());
         }
     }

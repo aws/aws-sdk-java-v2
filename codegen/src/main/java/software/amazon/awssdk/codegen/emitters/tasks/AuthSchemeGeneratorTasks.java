@@ -20,10 +20,10 @@ import java.util.List;
 import software.amazon.awssdk.codegen.emitters.GeneratorTask;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.emitters.PoetGeneratorTask;
-import software.amazon.awssdk.codegen.poet.authscheme.AuthSchemeParamsSpec;
-import software.amazon.awssdk.codegen.poet.authscheme.AuthSchemeProviderSpec;
-import software.amazon.awssdk.codegen.poet.authscheme.DefaultAuthSchemeParamsSpec;
-import software.amazon.awssdk.codegen.poet.authscheme.DefaultAuthSchemeProviderSpec;
+import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeParamsSpec;
+import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeProviderSpec;
+import software.amazon.awssdk.codegen.poet.auth.scheme.DefaultAuthSchemeParamsSpec;
+import software.amazon.awssdk.codegen.poet.auth.scheme.DefaultAuthSchemeProviderSpec;
 
 public final class AuthSchemeGeneratorTasks extends BaseGeneratorTasks {
     private final GeneratorTaskParams generatorTaskParams;
