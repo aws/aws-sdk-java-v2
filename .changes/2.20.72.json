@@ -1,0 +1,36 @@
+{
+    "version": "2.20.72",
+    "date": "2023-05-24",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS AppSync",
+            "contributor": "",
+            "description": "This release introduces AppSync Merged APIs, which provide the ability to compose multiple source APIs into a single federated/merged API."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Cost and Usage Report Service",
+            "contributor": "",
+            "description": "Add support for split cost allocation data on a report."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "Amazon Connect Evaluation Capabilities: validation improvements"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "SageMaker now provides an instantaneous deployment recommendation through the DescribeModel API"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}
