@@ -164,9 +164,9 @@ class AdaptiveRetryStrategyTest {
         int attempts = 0;
         String scope = "none";
         List<Exception> exceptions = new ArrayList<>();
-        AdaptiveRetryStrategyImpl.Builder builder =
-            (AdaptiveRetryStrategyImpl.Builder)
-                DefaultRetryStrategy.adaptiveRetryStrategyBuilder();
+        DefaultAdaptiveRetryStrategy.Builder builder =
+            (DefaultAdaptiveRetryStrategy.Builder)
+                DefaultRetryStrategy.adaptiveStrategyBuilder();
         Throwable thrown;
         boolean shouldSucceed = false;
         boolean succeeded;
@@ -189,12 +189,12 @@ class AdaptiveRetryStrategyTest {
 
         public TestCase configure(Function<AdaptiveRetryStrategy.Builder,
             AdaptiveRetryStrategy.Builder> configurator) {
-            this.builder = (AdaptiveRetryStrategyImpl.Builder) configurator.apply(this.builder);
+            this.builder = (DefaultAdaptiveRetryStrategy.Builder) configurator.apply(this.builder);
             return this;
         }
 
-        public TestCase fineTune(Function<AdaptiveRetryStrategyImpl.Builder,
-            AdaptiveRetryStrategyImpl.Builder> configurator) {
+        public TestCase fineTune(Function<DefaultAdaptiveRetryStrategy.Builder,
+            DefaultAdaptiveRetryStrategy.Builder> configurator) {
             this.builder = configurator.apply(this.builder);
             return this;
         }

@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.withinPercentage;
 
 import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -63,7 +62,7 @@ class AdaptiveRetryStrategyResourceConstrainedTest {
         ExecutorService executor = Executors.newFixedThreadPool(parallelism);
         Server server = new Server(serverWorkers, executor);
         RateLimiterTokenBucketStore store = RateLimiterTokenBucketStore.builder().build();
-        AdaptiveRetryStrategy strategy = AdaptiveRetryStrategyImpl
+        AdaptiveRetryStrategy strategy = DefaultAdaptiveRetryStrategy
             .builder()
             // We don't care about how many attempts we allow to, that logic is tested somewhere else.
             // so we give the strategy plenty of room for retries.

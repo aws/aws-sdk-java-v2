@@ -30,16 +30,16 @@ public final class DefaultRetryStrategy {
     }
 
     /**
-     * Create a new builder for a {@code StandardRetryStrategy}.
+     * Create a new builder for a {@link StandardRetryStrategy}.
      *
      * <p>Example Usage
-     * <pre>
+     * {@snippet
      * StandardRetryStrategy retryStrategy =
-     *     RetryStrategies.adaptiveStrategyBuilder()
+     *     DefaultRetryStrategy.standardStrategyBuilder()
      *                    .retryOnExceptionInstanceOf(IllegalArgumentException.class)
      *                    .retryOnExceptionInstanceOf(IllegalStateException.class)
      *                    .build();
-     * </pre>
+     * }
      */
     public static StandardRetryStrategy.Builder standardStrategyBuilder() {
         return StandardRetryStrategy.builder()
@@ -48,18 +48,38 @@ public final class DefaultRetryStrategy {
     }
 
     /**
-     * Create a new builder for a {@code AdaptiveRetryStrategy}.
+     * Create a new builder for a {@link LegacyRetryStrategy}.
      *
      * <p>Example Usage
-     * <pre>
-     * AdaptiveRetryStrategy retryStrategy =
-     *     RetryStrategies.adaptiveStrategyBuilder()
+     * {@snippet
+     * LegacyRetryStrategy retryStrategy =
+     *     DefaultRetryStrategy.legacyStrategyBuilder()
      *                    .retryOnExceptionInstanceOf(IllegalArgumentException.class)
      *                    .retryOnExceptionInstanceOf(IllegalStateException.class)
      *                    .build();
-     * </pre>
+     * }
      */
-    public static AdaptiveRetryStrategy.Builder adaptiveRetryStrategyBuilder() {
+    public static LegacyRetryStrategy.Builder legacyStrategyBuilder() {
+        return LegacyRetryStrategy.builder()
+                                  .maxAttempts(Legacy.MAX_ATTEMPTS)
+                                  .backoffStrategy(BackoffStrategy.exponentialDelay(Legacy.BASE_DELAY, Legacy.MAX_BACKOFF))
+                                  .throttlingBackoffStrategy(BackoffStrategy.exponentialDelay(Legacy.THROTTLED_BASE_DELAY,
+                                                                                              Legacy.MAX_BACKOFF));
+    }
+
+    /**
+     * Create a new builder for a {@link AdaptiveRetryStrategy}.
+     *
+     * <p>Example Usage
+     * {@snippet
+     * AdaptiveRetryStrategy retryStrategy =
+     *     DefaultRetryStrategy.adaptiveStrategyBuilder()
+     *                    .retryOnExceptionInstanceOf(IllegalArgumentException.class)
+     *                    .retryOnExceptionInstanceOf(IllegalStateException.class)
+     *                    .build();
+     * }
+     */
+    public static AdaptiveRetryStrategy.Builder adaptiveStrategyBuilder() {
         return AdaptiveRetryStrategy.builder()
                                     .maxAttempts(Adaptive.MAX_ATTEMPTS);
     }
@@ -70,9 +90,29 @@ public final class DefaultRetryStrategy {
         static final Duration MAX_BACKOFF = Duration.ofSeconds(20);
         static final int TOKEN_BUCKET_SIZE = 500;
         static final int DEFAULT_EXCEPTION_TOKEN_COST = 5;
+
+        private Standard() {
+        }
     }
 
     static final class Adaptive {
         static final int MAX_ATTEMPTS = 3;
+
+        private Adaptive() {
+        }
+    }
+
+    static final class Legacy {
+        static final int MAX_ATTEMPTS = 4;
+        static final Duration BASE_DELAY = Duration.ofMillis(100);
+        static final Duration THROTTLED_BASE_DELAY = Duration.ofMillis(500);
+
+        static final Duration MAX_BACKOFF = Duration.ofSeconds(20);
+        static final int TOKEN_BUCKET_SIZE = 500;
+        static final int DEFAULT_EXCEPTION_TOKEN_COST = 5;
+        static final int THROTTLE_EXCEPTION_TOKEN_COST = 0;
+
+        private Legacy() {
+        }
     }
 }
