@@ -66,6 +66,6 @@ public class DefaultBearerHttpSigner implements BearerHttpSigner {
      * Use a {@link TokenIdentity} to build an authorization header.
      */
     private String buildAuthorizationHeader(TokenIdentity tokenIdentity) {
-        return String.format("%s %s", BEARER_LABEL, tokenIdentity.token());
+        return BEARER_LABEL + " " + tokenIdentity.token();
     }
 }
