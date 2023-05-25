@@ -1,3 +1,32 @@
+# __2.20.73__ __2023-05-25__
+## __AWS CodePipeline__
+  - ### Features
+    - Add PollingDisabledAt time information in PipelineMetadata object of GetPipeline API.
+
+## __AWS Glue__
+  - ### Features
+    - Added ability to create data quality rulesets for shared, cross-account Glue Data Catalog tables. Added support for dataset comparison rules through a new parameter called AdditionalDataSources. Enhanced the data quality results with a map containing profiled metric values.
+
+## __AWS Migration Hub Refactor Spaces__
+  - ### Features
+    - This SDK update allows for path parameter syntax to be passed to the CreateRoute API. Path parameter syntax require parameters to be enclosed in {} characters. This update also includes a new AppendSourcePath field which lets users forward the source path to the Service URL endpoint.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon GameLift__
+  - ### Features
+    - GameLift FleetIQ users can now filter game server claim requests to exclude servers on instances that are draining.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker Automatic Model Tuning now supports enabling Autotune for tuning jobs which can choose tuning job configurations.
+
+## __Application Auto Scaling__
+  - ### Features
+    - With this release, ElastiCache customers will be able to use predefined metricType "ElastiCacheDatabaseCapacityUsageCountedForEvictPercentage" for their ElastiCache instances.
+
 # __2.20.72__ __2023-05-24__
 ## __AWS AppSync__
   - ### Features
