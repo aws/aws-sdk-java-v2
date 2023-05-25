@@ -51,6 +51,7 @@ import software.amazon.awssdk.retries.internal.ratelimiter.RateLimiterTokenBucke
  * perceived availability for the clients to be close to 1.0.
  */
 class AdaptiveRetryStrategyResourceConstrainedTest {
+    static final int DEFAULT_EXCEPTION_TOKEN_COST = 5;
 
     @Test
     void seemsToBeCorrectAndThreadSafe() {
@@ -61,12 +62,12 @@ class AdaptiveRetryStrategyResourceConstrainedTest {
         int parallelism = serverWorkers + clientWorkers;
         ExecutorService executor = Executors.newFixedThreadPool(parallelism);
         Server server = new Server(serverWorkers, executor);
-        RateLimiterTokenBucketStore store = RateLimiterTokenBucketStore.builder().build();
-        AdaptiveRetryStrategy strategy = DefaultAdaptiveRetryStrategy
+        AdaptiveRetryStrategy strategy = DefaultAdaptiveRetryStrategy2
             .builder()
             // We don't care about how many attempts we allow to, that logic is tested somewhere else.
             // so we give the strategy plenty of room for retries.
             .maxAttempts(20)
+            .tokenBucketExceptionCost(DEFAULT_EXCEPTION_TOKEN_COST)
             .tokenBucketStore(TokenBucketStore.builder().tokenBucketMaxCapacity(10_000).build())
             // Just wait for the rate limiter delays.
             .backoffStrategy(BackoffStrategy.retryImmediately())

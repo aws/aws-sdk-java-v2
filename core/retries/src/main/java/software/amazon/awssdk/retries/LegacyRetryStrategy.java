@@ -20,7 +20,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.retries.api.BackoffStrategy;
 import software.amazon.awssdk.retries.api.RetryStrategy;
-import software.amazon.awssdk.retries.internal.DefaultLegacyRetryStrategy;
+import software.amazon.awssdk.retries.internal.DefaultLegacyRetryStrategy2;
 import software.amazon.awssdk.retries.internal.circuitbreaker.TokenBucketStore;
 
 /**
@@ -59,7 +59,7 @@ public interface LegacyRetryStrategy extends RetryStrategy<LegacyRetryStrategy.B
      * </pre>
      */
     static Builder builder() {
-        return DefaultLegacyRetryStrategy
+        return DefaultLegacyRetryStrategy2
             .builder()
             .maxAttempts(DefaultRetryStrategy.Legacy.MAX_ATTEMPTS)
             .tokenBucketStore(TokenBucketStore

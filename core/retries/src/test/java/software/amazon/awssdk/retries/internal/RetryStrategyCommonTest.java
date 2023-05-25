@@ -107,32 +107,32 @@ class RetryStrategyCommonTest {
                               .configure(b -> b.maxAttempts(3))
                               .configure(b -> b.retryOnException(IllegalArgumentException.class))
                               .givenExceptions(IAE, IAE, IAE)
-                              // Acquire (cost * 3) and then return zero
-                              .expectCapacity(TEST_BUCKET_CAPACITY - (TEST_EXCEPTION_COST * 3))
+                              // Acquire (cost * 2)
+                              .expectCapacity(TEST_BUCKET_CAPACITY - (TEST_EXCEPTION_COST * 2))
                               .expectState(DefaultRetryToken.TokenState.MAX_RETRIES_REACHED)
                               .expectThrows()
             , testCaseSupplier.apply("Fails when 4 exceptions are thrown out max of 3")
                               .configure(b -> b.maxAttempts(3))
                               .configure(b -> b.retryOnException(IllegalArgumentException.class))
                               .givenExceptions(IAE, IAE, IAE, IAE)
-                              // Acquire (cost * 3) and then return zero
-                              .expectCapacity(TEST_BUCKET_CAPACITY - (TEST_EXCEPTION_COST * 3))
+                              // Acquire (cost * 2)
+                              .expectCapacity(TEST_BUCKET_CAPACITY - (TEST_EXCEPTION_COST * 2))
                               .expectState(DefaultRetryToken.TokenState.MAX_RETRIES_REACHED)
                               .expectThrows()
             , testCaseSupplier.apply("Fails when non-retryable exception throw in the 1st attempt")
                               .configure(b -> b.maxAttempts(3))
                               .configure(b -> b.retryOnException(IllegalArgumentException.class))
                               .givenExceptions(RTE)
-                              // Acquire (cost * 1) and then return zero
-                              .expectCapacity(TEST_BUCKET_CAPACITY - TEST_EXCEPTION_COST)
+                              // Acquire (cost * 1)
+                              .expectCapacity(TEST_BUCKET_CAPACITY)
                               .expectState(DefaultRetryToken.TokenState.NON_RETRYABLE_EXCEPTION)
                               .expectThrows()
             , testCaseSupplier.apply("Fails when non-retryable exception throw in the 2nd attempt")
                               .configure(b -> b.maxAttempts(3))
                               .configure(b -> b.retryOnException(IllegalArgumentException.class))
                               .givenExceptions(IAE, RTE)
-                              // Acquire (cost * 1) and then return zero
-                              .expectCapacity(TEST_BUCKET_CAPACITY - (TEST_EXCEPTION_COST * 2))
+                              // Acquire (cost * 1)
+                              .expectCapacity(TEST_BUCKET_CAPACITY - TEST_EXCEPTION_COST)
                               .expectState(DefaultRetryToken.TokenState.NON_RETRYABLE_EXCEPTION)
                               .expectThrows()
             , testCaseSupplier.apply("Exhausts the token bucket.")
@@ -273,7 +273,7 @@ class RetryStrategyCommonTest {
 
         @Override
         public TestCase configureTokenBucketMaxCapacity(int maxCapacity) {
-            ((DefaultStandardRetryStrategy.Builder) builder).tokenBucketStore(
+            ((DefaultStandardRetryStrategy2.Builder) builder).tokenBucketStore(
                 TokenBucketStore
                     .builder()
                     .tokenBucketMaxCapacity(maxCapacity)
@@ -283,13 +283,13 @@ class RetryStrategyCommonTest {
 
         @Override
         public TestCase configureTokenBucketExceptionCost(int exceptionCost) {
-            ((DefaultStandardRetryStrategy.Builder) builder).tokenBucketExceptionCost(exceptionCost);
+            ((DefaultStandardRetryStrategy2.Builder) builder).tokenBucketExceptionCost(exceptionCost);
             return this;
         }
 
         @Override
         public TestCase configureCircuitBreakerEnabled(boolean enabled) {
-            ((DefaultStandardRetryStrategy.Builder) builder).circuitBreakerEnabled(enabled);
+            ((DefaultStandardRetryStrategy2.Builder) builder).circuitBreakerEnabled(enabled);
             return this;
         }
     }
@@ -303,7 +303,7 @@ class RetryStrategyCommonTest {
 
         @Override
         public TestCase configureTokenBucketMaxCapacity(int maxCapacity) {
-            ((DefaultLegacyRetryStrategy.Builder) builder).tokenBucketStore(
+            ((DefaultLegacyRetryStrategy2.Builder) builder).tokenBucketStore(
                 TokenBucketStore
                     .builder()
                     .tokenBucketMaxCapacity(maxCapacity)
@@ -313,28 +313,28 @@ class RetryStrategyCommonTest {
 
         @Override
         public TestCase configureTokenBucketExceptionCost(int exceptionCost) {
-            ((DefaultLegacyRetryStrategy.Builder) builder).tokenBucketExceptionCost(exceptionCost);
+            ((DefaultLegacyRetryStrategy2.Builder) builder).tokenBucketExceptionCost(exceptionCost);
             return this;
         }
 
         @Override
         public TestCase configureCircuitBreakerEnabled(boolean enabled) {
-            ((DefaultLegacyRetryStrategy.Builder) builder).circuitBreakerEnabled(enabled);
+            ((DefaultLegacyRetryStrategy2.Builder) builder).circuitBreakerEnabled(enabled);
             return this;
         }
 
         public TestCaseForLegacy configureTreatAsThrottling(Predicate<Throwable> isThrottling) {
-            ((DefaultLegacyRetryStrategy.Builder) builder).treatAsThrottling(isThrottling);
+            ((DefaultLegacyRetryStrategy2.Builder) builder).treatAsThrottling(isThrottling);
             return this;
         }
 
         public TestCaseForLegacy configureThrottlingBackoffStrategy(BackoffStrategy backoffStrategy) {
-            ((DefaultLegacyRetryStrategy.Builder) builder).throttlingBackoffStrategy(backoffStrategy);
+            ((DefaultLegacyRetryStrategy2.Builder) builder).throttlingBackoffStrategy(backoffStrategy);
             return this;
         }
 
         public TestCaseForLegacy configureBackoffStrategy(BackoffStrategy backoffStrategy) {
-            ((DefaultLegacyRetryStrategy.Builder) builder).backoffStrategy(backoffStrategy);
+            ((DefaultLegacyRetryStrategy2.Builder) builder).backoffStrategy(backoffStrategy);
             return this;
         }
     }
@@ -349,7 +349,7 @@ class RetryStrategyCommonTest {
 
         @Override
         public TestCase configureTokenBucketMaxCapacity(int maxCapacity) {
-            ((DefaultAdaptiveRetryStrategy.Builder) builder).tokenBucketStore(
+            ((DefaultAdaptiveRetryStrategy2.Builder) builder).tokenBucketStore(
                 TokenBucketStore
                     .builder()
                     .tokenBucketMaxCapacity(maxCapacity)
@@ -359,18 +359,18 @@ class RetryStrategyCommonTest {
 
         @Override
         public TestCase configureTokenBucketExceptionCost(int exceptionCost) {
-            ((DefaultAdaptiveRetryStrategy.Builder) builder).tokenBucketExceptionCost(exceptionCost);
+            ((DefaultAdaptiveRetryStrategy2.Builder) builder).tokenBucketExceptionCost(exceptionCost);
             return this;
         }
 
         @Override
         public TestCase configureCircuitBreakerEnabled(boolean enabled) {
-            ((DefaultAdaptiveRetryStrategy.Builder) builder).circuitBreakerEnabled(enabled);
+            ((DefaultAdaptiveRetryStrategy2.Builder) builder).circuitBreakerEnabled(enabled);
             return this;
         }
 
         public TestCase configureTreatAsThrottling(Predicate<Throwable> isThrottling) {
-            ((DefaultAdaptiveRetryStrategy.Builder) builder).treatAsThrottling(isThrottling);
+            ((DefaultAdaptiveRetryStrategy2.Builder) builder).treatAsThrottling(isThrottling);
             return this;
         }
     }
