@@ -24,7 +24,7 @@ import software.amazon.awssdk.http.auth.spi.SyncSignedHttpRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 
 /**
- * A default implementation of {@link AwsCrtS3V4aHttpSigner}
+ * A default implementation of {@link AwsCrtS3V4aHttpSigner}.
  */
 @SdkInternalApi
 public class DefaultAwsCrtS3V4aHttpSigner implements AwsCrtS3V4aHttpSigner {

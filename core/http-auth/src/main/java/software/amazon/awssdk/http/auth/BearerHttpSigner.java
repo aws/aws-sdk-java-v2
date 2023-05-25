@@ -21,8 +21,7 @@ import software.amazon.awssdk.http.auth.spi.HttpSigner;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
 
 /**
- * An {@link HttpSigner} that will sign a request with a
- * bearer-token ({@link TokenIdentity}).
+ * An {@link HttpSigner} that will sign a request with a bearer-token ({@link TokenIdentity}).
  */
 @SdkPublicApi
 public interface BearerHttpSigner extends HttpSigner<TokenIdentity> {

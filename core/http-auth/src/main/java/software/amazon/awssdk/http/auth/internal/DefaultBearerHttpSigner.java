@@ -26,7 +26,7 @@ import software.amazon.awssdk.http.auth.spi.SyncSignedHttpRequest;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
 
 /**
- * A default implementation of {@link BearerHttpSigner}
+ * A default implementation of {@link BearerHttpSigner}.
  */
 @SdkInternalApi
 public class DefaultBearerHttpSigner implements BearerHttpSigner {

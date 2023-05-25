@@ -21,8 +21,7 @@ import software.amazon.awssdk.http.auth.spi.HttpSigner;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 
 /**
- * An {@link HttpSigner} that will sign a request
- * using an AWS credentials ({@link AwsCredentialsIdentity}).
+ * An {@link HttpSigner} that will sign a request using an AWS credentials {@link AwsCredentialsIdentity}).
  */
 @SdkPublicApi
 public interface AwsV4HttpSigner extends HttpSigner<AwsCredentialsIdentity> {
