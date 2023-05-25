@@ -32,14 +32,10 @@ public final class DefaultAwsSessionCredentialsIdentity implements AwsSessionCre
 
 
     private DefaultAwsSessionCredentialsIdentity(Builder builder) {
-        this.accessKeyId = builder.accessKeyId;
-        this.secretAccessKey = builder.secretAccessKey;
-        this.sessionToken = builder.sessionToken;
+        this.accessKeyId = Validate.paramNotNull(builder.accessKeyId, "accessKeyId");
+        this.secretAccessKey = Validate.paramNotNull(builder.secretAccessKey, "secretAccessKey");
+        this.sessionToken = Validate.paramNotNull(builder.sessionToken, "sessionToken");
         this.accountId = builder.accountId;
-
-        Validate.paramNotNull(accessKeyId, "accessKeyId");
-        Validate.paramNotNull(secretAccessKey, "secretAccessKey");
-        Validate.paramNotNull(sessionToken, "sessionToken");
     }
 
     public static AwsSessionCredentialsIdentity.Builder builder() {
@@ -86,7 +82,7 @@ public final class DefaultAwsSessionCredentialsIdentity implements AwsSessionCre
         return Objects.equals(accessKeyId, that.accessKeyId()) &&
                Objects.equals(secretAccessKey, that.secretAccessKey()) &&
                Objects.equals(sessionToken, that.sessionToken()) &&
-                Objects.equals(accountId, that.accountId().orElse(null));
+               Objects.equals(accountId, that.accountId().orElse(null));
     }
 
     @Override

@@ -31,11 +31,19 @@ final class SessionCredentialsHolder {
     private final AwsSessionCredentials sessionCredentials;
     private final Date sessionCredentialsExpiration;
 
-    SessionCredentialsHolder(Credentials credentials) {
-        this.sessionCredentials = AwsSessionCredentials.create(credentials.accessKeyId(),
-                                                            credentials.secretAccessKey(),
-                                                            credentials.sessionToken());
+    SessionCredentialsHolder(Builder b) {
+        Credentials credentials = b.credentials;
+        this.sessionCredentials = AwsSessionCredentials.builder()
+                                                       .accessKeyId(credentials.accessKeyId())
+                                                       .secretAccessKey(credentials.secretAccessKey())
+                                                       .sessionToken(credentials.sessionToken())
+                                                       .accountId(b.accountId)
+                                                       .build();
         this.sessionCredentialsExpiration = Date.from(credentials.expiration());
+    }
+
+    public static Builder builder() {
+        return new Builder();
     }
 
     public AwsSessionCredentials getSessionCredentials() {
@@ -44,5 +52,30 @@ final class SessionCredentialsHolder {
 
     public Date getSessionCredentialsExpiration() {
         return sessionCredentialsExpiration;
+    }
+
+    public static class Builder {
+        private Credentials credentials;
+        private Date expiration;
+        private String accountId;
+
+        public Builder credentials(Credentials credentials) {
+            this.credentials = credentials;
+            return this;
+        }
+
+        public Builder expiration(Date expiration) {
+            this.expiration = expiration;
+            return this;
+        }
+
+        public Builder accountId(String accountId) {
+            this.accountId = accountId;
+            return this;
+        }
+
+        public SessionCredentialsHolder build() {
+            return new SessionCredentialsHolder(this);
+        }
     }
 }

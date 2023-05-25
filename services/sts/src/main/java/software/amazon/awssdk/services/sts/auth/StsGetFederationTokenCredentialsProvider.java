@@ -21,8 +21,10 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.services.sts.StsClient;
-import software.amazon.awssdk.services.sts.model.Credentials;
+import software.amazon.awssdk.services.sts.endpoints.internal.Arn;
+import software.amazon.awssdk.services.sts.model.FederatedUser;
 import software.amazon.awssdk.services.sts.model.GetFederationTokenRequest;
+import software.amazon.awssdk.services.sts.model.GetFederationTokenResponse;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -64,11 +66,23 @@ public class StsGetFederationTokenCredentialsProvider
     }
 
     @Override
-    protected Credentials getUpdatedCredentials(StsClient stsClient) {
-        return stsClient.getFederationToken(getFederationTokenRequest).credentials();
+    protected SessionCredentialsHolder getUpdatedCredentials(StsClient stsClient) {
+        GetFederationTokenResponse federationToken = stsClient.getFederationToken(getFederationTokenRequest);
+        return SessionCredentialsHolder.builder()
+                                       .credentials(federationToken.credentials())
+                                       .accountId(accountIdFromArn(federationToken.federatedUser()))
+                                       .build();
     }
 
-    @Override
+    private String accountIdFromArn(FederatedUser federatedUser) {
+        if (federatedUser == null) {
+            return null;
+        }
+        return Arn.parse(federatedUser.arn())
+                  .map(Arn::accountId)
+                  .orElse(null);
+    }
+
     public String toString() {
         return ToString.builder("StsGetFederationTokenCredentialsProvider")
                        .add("refreshRequest", getFederationTokenRequest)

@@ -25,7 +25,8 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.services.sts.StsClient;
-import software.amazon.awssdk.services.sts.model.Credentials;
+import software.amazon.awssdk.services.sts.endpoints.internal.Arn;
+import software.amazon.awssdk.services.sts.model.AssumedRoleUser;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -85,7 +86,7 @@ abstract class StsCredentialsProvider implements AwsCredentialsProvider, SdkAuto
      * are close to expiring.
      */
     private RefreshResult<SessionCredentialsHolder> updateSessionCredentials() {
-        SessionCredentialsHolder credentials = new SessionCredentialsHolder(getUpdatedCredentials(stsClient));
+        SessionCredentialsHolder credentials = getUpdatedCredentials(stsClient);
         Instant actualTokenExpiration = credentials.getSessionCredentialsExpiration().toInstant();
 
         return RefreshResult.builder(credentials)
@@ -123,7 +124,16 @@ abstract class StsCredentialsProvider implements AwsCredentialsProvider, SdkAuto
     /**
      * Implemented by a child class to call STS and get a new set of credentials to be used by this provider.
      */
-    protected abstract Credentials getUpdatedCredentials(StsClient stsClient);
+    protected abstract SessionCredentialsHolder getUpdatedCredentials(StsClient stsClient);
+
+    protected static String accountIdFromArn(AssumedRoleUser assumedRoleUser) {
+        if (assumedRoleUser == null) {
+            return null;
+        }
+        return Arn.parse(assumedRoleUser.arn())
+                  .map(Arn::accountId)
+                  .orElse(null);
+    }
 
     /**
      * Extended by child class's builders to share configuration across credential providers.

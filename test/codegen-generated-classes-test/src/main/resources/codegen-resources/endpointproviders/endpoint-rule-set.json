@@ -27,6 +27,11 @@
             "documentation": "Override the endpoint used to send this request",
             "type": "String"
         },
+        "awsAccountId": {
+            "type": "String",
+            "builtIn": "AWS::Auth::AccountId",
+            "required": false
+        },
         "StaticStringParam": {
             "type": "String",
             "required": false

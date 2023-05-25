@@ -16,6 +16,7 @@
 package software.amazon.awssdk.auth.credentials;
 
 import java.util.Objects;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.identity.spi.AwsSessionCredentialsIdentity;
@@ -34,11 +35,17 @@ public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCr
     private final String accessKeyId;
     private final String secretAccessKey;
     private final String sessionToken;
+    private final String accountId;
 
-    private AwsSessionCredentials(String accessKey, String secretKey, String sessionToken) {
-        this.accessKeyId = Validate.paramNotNull(accessKey, "accessKey");
-        this.secretAccessKey = Validate.paramNotNull(secretKey, "secretKey");
-        this.sessionToken = Validate.paramNotNull(sessionToken, "sessionToken");
+    private AwsSessionCredentials(Builder builder) {
+        this.accessKeyId = Validate.paramNotNull(builder.accessKeyId, "accessKey");
+        this.secretAccessKey = Validate.paramNotNull(builder.secretAccessKey, "secretKey");
+        this.sessionToken = Validate.paramNotNull(builder.sessionToken, "sessionToken");
+        this.accountId = builder.accountId;
+    }
+
+    public static Builder builder() {
+        return new Builder();
     }
 
     /**
@@ -50,7 +57,7 @@ public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCr
      * received temporary permission to access some resource.
      */
     public static AwsSessionCredentials create(String accessKey, String secretKey, String sessionToken) {
-        return new AwsSessionCredentials(accessKey, secretKey, sessionToken);
+        return builder().accessKeyId(accessKey).secretAccessKey(secretKey).sessionToken(sessionToken).build();
     }
 
     @Override
@@ -69,9 +76,15 @@ public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCr
     }
 
     @Override
+    public Optional<String> accountId() {
+        return Optional.ofNullable(accountId);
+    }
+
+    @Override
     public String toString() {
         return ToString.builder("AwsSessionCredentials")
                        .add("accessKeyId", accessKeyId())
+                       .add("accountId", accountId)
                        .build();
     }
 
@@ -87,7 +100,8 @@ public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCr
         AwsSessionCredentials that = (AwsSessionCredentials) o;
         return Objects.equals(accessKeyId, that.accessKeyId) &&
                Objects.equals(secretAccessKey, that.secretAccessKey) &&
-               Objects.equals(sessionToken, that.sessionToken);
+               Objects.equals(sessionToken, that.sessionToken) &&
+               Objects.equals(accountId, that.accountId().orElse(null));
     }
 
     @Override
@@ -96,6 +110,38 @@ public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCr
         hashCode = 31 * hashCode + Objects.hashCode(accessKeyId());
         hashCode = 31 * hashCode + Objects.hashCode(secretAccessKey());
         hashCode = 31 * hashCode + Objects.hashCode(sessionToken());
+        hashCode = 31 * hashCode + Objects.hashCode(accountId);
         return hashCode;
+    }
+
+    public static final class Builder {
+        private String accessKeyId;
+        private String secretAccessKey;
+        private String sessionToken;
+        private String accountId;
+
+        public Builder accessKeyId(String accessKeyId) {
+            this.accessKeyId = accessKeyId;
+            return this;
+        }
+
+        public Builder secretAccessKey(String secretAccessKey) {
+            this.secretAccessKey = secretAccessKey;
+            return this;
+        }
+
+        public Builder sessionToken(String sessionToken) {
+            this.sessionToken = sessionToken;
+            return this;
+        }
+
+        public Builder accountId(String accountId) {
+            this.accountId = accountId;
+            return this;
+        }
+
+        public AwsSessionCredentials build() {
+            return new AwsSessionCredentials(this);
+        }
     }
 }
