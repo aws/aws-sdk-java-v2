@@ -6,6 +6,7 @@ import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
+import software.amazon.awssdk.services.json.auth.scheme.JsonAuthSchemeProvider;
 import software.amazon.awssdk.services.json.endpoints.JsonEndpointProvider;
 
 /**
@@ -25,6 +26,14 @@ public interface JsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C>, C>
      * each request. This is optional; if none is provided a default implementation will be used the SDK.
      */
     default B endpointProvider(JsonEndpointProvider endpointProvider) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Set the {@link JsonAuthSchemeProvider} implementation that will be used by the client to resolve the auth scheme for
+     * each request. This is optional; if none is provided a default implementation will be used the SDK.
+     */
+    default B authSchemeProvider(JsonAuthSchemeProvider authSchemeProvider) {
         throw new UnsupportedOperationException();
     }
 

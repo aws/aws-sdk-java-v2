@@ -19,6 +19,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
+import software.amazon.awssdk.services.json.auth.scheme.JsonAuthSchemeProvider;
 import software.amazon.awssdk.services.json.endpoints.JsonClientContextParams;
 import software.amazon.awssdk.services.json.endpoints.JsonEndpointProvider;
 import software.amazon.awssdk.services.json.endpoints.internal.JsonEndpointAuthSchemeInterceptor;
@@ -47,6 +48,7 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
     @Override
     protected final SdkClientConfiguration mergeServiceDefaults(SdkClientConfiguration config) {
         return config.merge(c -> c.option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
+                                  .option(SdkClientOption.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider())
                                   .option(SdkAdvancedClientOption.SIGNER, defaultSigner())
                                   .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
                                   .option(SdkClientOption.SERVICE_CONFIGURATION, ServiceConfiguration.builder().build())
@@ -141,6 +143,15 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
 
     private JsonEndpointProvider defaultEndpointProvider() {
         return JsonEndpointProvider.defaultProvider();
+    }
+
+    public B authSchemeProvider(JsonAuthSchemeProvider authSchemeProvider) {
+        clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER, authSchemeProvider);
+        return thisBuilder();
+    }
+
+    private JsonAuthSchemeProvider defaultAuthSchemeProvider() {
+        return JsonAuthSchemeProvider.defaultProvider();
     }
 
     public B serviceConfiguration(ServiceConfiguration serviceConfiguration) {

@@ -23,10 +23,10 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.utils.AuthUtils;
 import software.amazon.awssdk.http.auth.spi.HttpAuthOption;
 
-final class AuthSchemeSpecUtils {
+public final class AuthSchemeSpecUtils {
     private final IntermediateModel intermediateModel;
 
-    AuthSchemeSpecUtils(IntermediateModel intermediateModel) {
+    public AuthSchemeSpecUtils(IntermediateModel intermediateModel) {
         this.intermediateModel = intermediateModel;
     }
 
