@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CodePipeline",
+    "contributor": "",
+    "description": "Add PollingDisabledAt time information in PipelineMetadata object of GetPipeline API."
+}
