@@ -89,23 +89,22 @@ public class DelegatingSyncClientTest {
         validateIsDecorated();
     }
 
-    //TODO: handle paginated calls - the paginated publisher calls should also be decorated
     @Test
-    public void paginatedOp_Request_publisherResponse_delegatingClient_DoesNotIntercept() throws Exception {
+    public void paginatedOp_Request_publisherResponse_delegatingClient_SuccessfullyIntercepts() {
         PaginatedOperationWithResultKeyIterable iterable =
             decoratingClient.paginatedOperationWithResultKeyPaginator(PaginatedOperationWithResultKeyRequest.builder()
                                                                                                             .nextToken("token")
                                                                                                             .build());
         iterable.forEach(PaginatedOperationWithResultKeyResponse::items);
-        assertThat(mockSyncHttpClient.getLastRequest().headers().get(INTERCEPTED_HEADER)).isNull();
+        validateIsDecorated();
     }
 
     @Test
-    public void paginatedOp_ConsumerRequest_publisherResponse_delegatingClient_DoesNotIntercept() throws Exception {
+    public void paginatedOp_ConsumerRequest_publisherResponse_delegatingClient_SuccessfullyIntercepts() {
         PaginatedOperationWithResultKeyIterable iterable =
             decoratingClient.paginatedOperationWithResultKeyPaginator(r -> r.nextToken("token").build());
         iterable.forEach(PaginatedOperationWithResultKeyResponse::items);
-        assertThat(mockSyncHttpClient.getLastRequest().headers().get(INTERCEPTED_HEADER)).isNull();
+        validateIsDecorated();
     }
 
     private void validateIsDecorated() {

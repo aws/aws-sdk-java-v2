@@ -42,7 +42,6 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
-import software.amazon.awssdk.codegen.utils.PaginatorUtils;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.utils.Validate;
 
@@ -171,9 +170,6 @@ public class DelegatingAsyncClientClass extends AsyncClientInterface {
     private Stream<MethodSpec> operations(OperationModel opModel) {
         List<MethodSpec> methods = new ArrayList<>();
         methods.add(traditionalMethod(opModel));
-        if (opModel.isPaginated()) {
-            methods.add(paginatedTraditionalMethod(opModel));
-        }
         return methods.stream();
     }
 
@@ -210,14 +206,6 @@ public class DelegatingAsyncClientClass extends AsyncClientInterface {
                              parameters.isEmpty() ? "" : additionalParameters);
 
         return builder;
-    }
-
-    @Override
-    protected MethodSpec.Builder paginatedMethodBody(MethodSpec.Builder builder, OperationModel opModel) {
-        String methodName = PaginatorUtils.getPaginatedMethodName(opModel.getMethodName());
-        return builder.addModifiers(PUBLIC)
-                      .addAnnotation(Override.class)
-                      .addStatement("return delegate.$N($N)", methodName, opModel.getInput().getVariableName());
     }
 
     @Override

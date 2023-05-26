@@ -838,7 +838,7 @@ public interface JsonAsyncClient extends AwsClient {
      */
     default PaginatedOperationWithResultKeyPublisher paginatedOperationWithResultKeyPaginator(
         PaginatedOperationWithResultKeyRequest paginatedOperationWithResultKeyRequest) {
-        throw new UnsupportedOperationException();
+        return new PaginatedOperationWithResultKeyPublisher(this, paginatedOperationWithResultKeyRequest);
     }
 
     /**
@@ -1056,7 +1056,7 @@ public interface JsonAsyncClient extends AwsClient {
      */
     default PaginatedOperationWithoutResultKeyPublisher paginatedOperationWithoutResultKeyPaginator(
         PaginatedOperationWithoutResultKeyRequest paginatedOperationWithoutResultKeyRequest) {
-        throw new UnsupportedOperationException();
+        return new PaginatedOperationWithoutResultKeyPublisher(this, paginatedOperationWithoutResultKeyRequest);
     }
 
     /**
