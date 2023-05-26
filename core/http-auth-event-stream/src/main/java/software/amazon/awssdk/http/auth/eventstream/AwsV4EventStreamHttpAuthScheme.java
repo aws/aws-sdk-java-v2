@@ -51,4 +51,12 @@ public interface AwsV4EventStreamHttpAuthScheme extends HttpAuthScheme<AwsCreden
     default AwsV4EventStreamHttpSigner signer() {
         return AwsV4EventStreamHttpSigner.create();
     }
+
+    /**
+     * Get a default implementation of a {@link AwsV4EventStreamHttpAuthScheme}
+     */
+    static AwsV4EventStreamHttpAuthScheme create() {
+        return new AwsV4EventStreamHttpAuthScheme() {
+        };
+    }
 }

@@ -51,4 +51,12 @@ public interface BearerHttpAuthScheme extends HttpAuthScheme<TokenIdentity> {
     default BearerHttpSigner signer() {
         return BearerHttpSigner.create();
     }
+
+    /**
+     * Get a default implementation of a {@link BearerHttpAuthScheme}
+     */
+    static BearerHttpAuthScheme create() {
+        return new BearerHttpAuthScheme() {
+        };
+    }
 }

@@ -51,4 +51,12 @@ public interface AwsV4QueryHttpAuthScheme extends HttpAuthScheme<AwsCredentialsI
     default AwsV4QueryHttpSigner signer() {
         return AwsV4QueryHttpSigner.create();
     }
+
+    /**
+     * Get a default implementation of a {@link AwsV4QueryHttpAuthScheme}
+     */
+    static AwsV4QueryHttpAuthScheme create() {
+        return new AwsV4QueryHttpAuthScheme() {
+        };
+    }
 }

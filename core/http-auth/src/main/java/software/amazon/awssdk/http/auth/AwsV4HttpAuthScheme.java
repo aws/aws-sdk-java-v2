@@ -51,4 +51,12 @@ public interface AwsV4HttpAuthScheme extends HttpAuthScheme<AwsCredentialsIdenti
     default AwsV4HttpSigner signer() {
         return AwsV4HttpSigner.create();
     }
+
+    /**
+     * Get a default implementation of a {@link AwsV4HttpAuthScheme}
+     */
+    static AwsV4HttpAuthScheme create() {
+        return new AwsV4HttpAuthScheme() {
+        };
+    }
 }
