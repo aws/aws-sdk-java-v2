@@ -16,9 +16,22 @@
 package software.amazon.awssdk.http.auth;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.http.auth.internal.DefaultBearerHttpSigner;
 import software.amazon.awssdk.http.auth.spi.HttpSigner;
+import software.amazon.awssdk.identity.spi.TokenIdentity;
 
+/**
+ * An {@link HttpSigner} that will sign a request with a bearer-token ({@link TokenIdentity}).
+ */
 @SdkPublicApi
-public interface BearerHttpSigner extends HttpSigner {
+public interface BearerHttpSigner extends HttpSigner<TokenIdentity> {
 
+    /**
+     * Get a default implementation of a {@link BearerHttpSigner}
+     *
+     * @return BearerHttpSigner
+     */
+    static BearerHttpSigner create() {
+        return new DefaultBearerHttpSigner();
+    }
 }

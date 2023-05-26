@@ -16,9 +16,23 @@
 package software.amazon.awssdk.http.auth.aws;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.http.auth.aws.internal.DefaultAwsS3V4HttpSigner;
 import software.amazon.awssdk.http.auth.spi.HttpSigner;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 
+/**
+ * An {@link HttpSigner} that will sign a request using an AWS credentials ({@link AwsCredentialsIdentity}),
+ * specifically for S3.
+ */
 @SdkPublicApi
-public interface AwsS3V4HttpSigner extends HttpSigner {
+public interface AwsS3V4HttpSigner extends HttpSigner<AwsCredentialsIdentity> {
 
+    /**
+     * Get a default implementation of a {@link AwsS3V4HttpSigner}
+     *
+     * @return AwsS3V4HttpSigner
+     */
+    static AwsS3V4HttpSigner create() {
+        return new DefaultAwsS3V4HttpSigner();
+    }
 }

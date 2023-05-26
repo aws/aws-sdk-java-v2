@@ -28,8 +28,8 @@
     <artifactId>http-auth-aws</artifactId>
     <name>AWS Java SDK :: HTTP Auth AWS</name>
     <description>
-        The AWS SDK for Java - HTTP Auth AWS module contains interfaces and implementations for http authentication
-            specific to AWS.
+        The AWS SDK for Java - HTTP Auth AWS module contains interfaces and implementations for HTTP
+        authentication specific to AWS.
     </description>
     <url>https://aws.amazon.com/sdkforjava</url>
 
