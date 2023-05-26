@@ -29,7 +29,8 @@ import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
-public final class DefaultAdaptiveRetryStrategy2 extends AbstractRetryStrategy implements AdaptiveRetryStrategy {
+public final class DefaultAdaptiveRetryStrategy2
+    extends BaseRetryStrategy<AdaptiveRetryStrategy.Builder, AdaptiveRetryStrategy> implements AdaptiveRetryStrategy {
 
     private static final Logger LOG = Logger.loggerFor(DefaultAdaptiveRetryStrategy2.class);
     private final Predicate<Throwable> treatAsThrottling;
@@ -79,7 +80,7 @@ public final class DefaultAdaptiveRetryStrategy2 extends AbstractRetryStrategy i
         return new Builder();
     }
 
-    public static class Builder extends AbstractRetryStrategy.Builder implements AdaptiveRetryStrategy.Builder {
+    public static class Builder extends BaseRetryStrategy.Builder implements AdaptiveRetryStrategy.Builder {
         private Predicate<Throwable> treatAsThrottling;
         private RateLimiterTokenBucketStore rateLimiterTokenBucketStore;
 

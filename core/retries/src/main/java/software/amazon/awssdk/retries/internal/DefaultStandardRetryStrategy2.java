@@ -23,7 +23,8 @@ import software.amazon.awssdk.retries.internal.circuitbreaker.TokenBucketStore;
 import software.amazon.awssdk.utils.Logger;
 
 @SdkInternalApi
-public final class DefaultStandardRetryStrategy2 extends AbstractRetryStrategy implements StandardRetryStrategy {
+public final class DefaultStandardRetryStrategy2
+    extends BaseRetryStrategy<StandardRetryStrategy.Builder, StandardRetryStrategy> implements StandardRetryStrategy {
     private static final Logger LOG = Logger.loggerFor(DefaultStandardRetryStrategy2.class);
 
     DefaultStandardRetryStrategy2(Builder builder) {
@@ -39,7 +40,7 @@ public final class DefaultStandardRetryStrategy2 extends AbstractRetryStrategy i
         return new Builder();
     }
 
-    public static class Builder extends AbstractRetryStrategy.Builder implements StandardRetryStrategy.Builder {
+    public static class Builder extends BaseRetryStrategy.Builder implements StandardRetryStrategy.Builder {
 
         Builder() {
         }

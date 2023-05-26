@@ -38,6 +38,8 @@ import software.amazon.awssdk.retries.internal.circuitbreaker.TokenBucket;
 import software.amazon.awssdk.retries.internal.circuitbreaker.TokenBucketStore;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * Generic class that implements that common logic for all the retries
@@ -45,7 +47,10 @@ import software.amazon.awssdk.utils.Validate;
  * the behavior to its needs.
  */
 @SdkInternalApi
-public class AbstractRetryStrategy {
+public abstract class BaseRetryStrategy<
+    B extends CopyableBuilder<B, T> & RetryStrategy.Builder<B, T>,
+    T extends ToCopyableBuilder<B, T> & RetryStrategy<B, T>> implements RetryStrategy<B, T> {
+
     protected final Logger log;
     protected final List<Predicate<Throwable>> retryPredicates;
     protected final int maxAttempts;
@@ -54,7 +59,7 @@ public class AbstractRetryStrategy {
     protected final int exceptionCost;
     protected final TokenBucketStore tokenBucketStore;
 
-    AbstractRetryStrategy(Logger log, Builder builder) {
+    BaseRetryStrategy(Logger log, Builder builder) {
         this.log = log;
         this.retryPredicates = Collections.unmodifiableList(Validate.paramNotNull(builder.retryPredicates, "retryPredicates"));
         this.maxAttempts = Validate.isPositive(builder.maxAttempts, "maxAttempts");
@@ -70,6 +75,7 @@ public class AbstractRetryStrategy {
      *
      * @see RetryStrategy#acquireInitialToken(AcquireInitialTokenRequest)
      */
+    @Override
     public final AcquireInitialTokenResponse acquireInitialToken(AcquireInitialTokenRequest request) {
         logAcquireInitialToken(request);
         DefaultRetryToken token = DefaultRetryToken.builder().scope(request.scope()).build();
@@ -82,6 +88,7 @@ public class AbstractRetryStrategy {
      *
      * @see RetryStrategy#refreshRetryToken(RefreshRetryTokenRequest)
      */
+    @Override
     public final RefreshRetryTokenResponse refreshRetryToken(RefreshRetryTokenRequest request) {
         DefaultRetryToken token = asDefaultRetryToken(request.token());
 
@@ -113,6 +120,7 @@ public class AbstractRetryStrategy {
      *
      * @see RetryStrategy#recordSuccess(RecordSuccessRequest)
      */
+    @Override
     public final RecordSuccessResponse recordSuccess(RecordSuccessRequest request) {
         DefaultRetryToken token = asDefaultRetryToken(request.token());
 
@@ -129,6 +137,10 @@ public class AbstractRetryStrategy {
         logRecordSuccess(token, releaseResponse);
         return RecordSuccessResponse.create(refreshedToken);
     }
+
+    @Override
+    public abstract B toBuilder();
+
 
     /**
      * Computes the backoff before the first attempt, by default
@@ -345,7 +357,7 @@ public class AbstractRetryStrategy {
             retryPredicates = new ArrayList<>();
         }
 
-        Builder(AbstractRetryStrategy strategy) {
+        Builder(BaseRetryStrategy strategy) {
             this.retryPredicates = new ArrayList<>(strategy.retryPredicates);
             this.maxAttempts = strategy.maxAttempts;
             this.circuitBreakerEnabled = strategy.circuitBreakerEnabled;

@@ -25,7 +25,8 @@ import software.amazon.awssdk.retries.internal.circuitbreaker.TokenBucketStore;
 import software.amazon.awssdk.utils.Logger;
 
 @SdkInternalApi
-public final class DefaultLegacyRetryStrategy2 extends AbstractRetryStrategy implements LegacyRetryStrategy {
+public final class DefaultLegacyRetryStrategy2
+    extends BaseRetryStrategy<LegacyRetryStrategy.Builder, LegacyRetryStrategy> implements LegacyRetryStrategy {
     private static final Logger LOG = Logger.loggerFor(DefaultLegacyRetryStrategy2.class);
     private final BackoffStrategy throttlingBackoffStrategy;
     private final int throttlingExceptionCost;
@@ -71,7 +72,7 @@ public final class DefaultLegacyRetryStrategy2 extends AbstractRetryStrategy imp
         return new Builder();
     }
 
-    public static class Builder extends AbstractRetryStrategy.Builder implements LegacyRetryStrategy.Builder {
+    public static class Builder extends BaseRetryStrategy.Builder implements LegacyRetryStrategy.Builder {
         private BackoffStrategy throttlingBackoffStrategy;
         private Integer throttlingExceptionCost;
         private Predicate<Throwable> treatAsThrottling;
