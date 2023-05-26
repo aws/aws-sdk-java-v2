@@ -1,3 +1,20 @@
+# __2.20.74__ __2023-05-26__
+## __AWS IoT Wireless__
+  - ### Features
+    - Add Multicast Group support in Network Analyzer Configuration.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Documentation update for a new Initiation Method value in DescribeContact API
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Added ml.p4d and ml.inf1 as supported instance type families for SageMaker Notebook Instances.
+
 # __2.20.73__ __2023-05-25__
 ## __AWS CodePipeline__
   - ### Features
