@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.sts.auth;
 
+import java.time.Instant;
 import java.util.Date;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
@@ -29,7 +30,7 @@ import software.amazon.awssdk.services.sts.model.Credentials;
 final class SessionCredentialsHolder {
 
     private final AwsSessionCredentials sessionCredentials;
-    private final Date sessionCredentialsExpiration;
+    private final Instant sessionCredentialsExpiration;
 
     SessionCredentialsHolder(Builder b) {
         Credentials credentials = b.credentials;
@@ -39,7 +40,7 @@ final class SessionCredentialsHolder {
                                                        .sessionToken(credentials.sessionToken())
                                                        .accountId(b.accountId)
                                                        .build();
-        this.sessionCredentialsExpiration = Date.from(credentials.expiration());
+        this.sessionCredentialsExpiration = credentials.expiration();
     }
 
     public static Builder builder() {
@@ -50,7 +51,7 @@ final class SessionCredentialsHolder {
         return sessionCredentials;
     }
 
-    public Date getSessionCredentialsExpiration() {
+    public Instant getSessionCredentialsExpiration() {
         return sessionCredentialsExpiration;
     }
 

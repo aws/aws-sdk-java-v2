@@ -147,9 +147,7 @@ public final class StsWebIdentityTokenFileCredentialsProvider
         AssumeRoleWithWebIdentityResponse assumeRoleWithWebIdentityResponse = stsClient.assumeRoleWithWebIdentity(request);
         return SessionCredentialsHolder.builder()
                                        .credentials(assumeRoleWithWebIdentityResponse.credentials())
-                                       .accountId(Arn.parse(assumeRoleWithWebIdentityResponse.assumedRoleUser().arn())
-                                                     .map(Arn::accountId)
-                                                     .orElse(null))
+                                       .accountId(accountIdFromArn(assumeRoleWithWebIdentityResponse.assumedRoleUser()))
                                        .build();
     }
 

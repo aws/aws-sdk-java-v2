@@ -83,6 +83,7 @@ public class StsGetFederationTokenCredentialsProvider
                   .orElse(null);
     }
 
+    @Override
     public String toString() {
         return ToString.builder("StsGetFederationTokenCredentialsProvider")
                        .add("refreshRequest", getFederationTokenRequest)
