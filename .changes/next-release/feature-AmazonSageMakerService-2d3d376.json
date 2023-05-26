@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon SageMaker Service",
+    "contributor": "",
+    "description": "Added ml.p4d and ml.inf1 as supported instance type families for SageMaker Notebook Instances."
+}
