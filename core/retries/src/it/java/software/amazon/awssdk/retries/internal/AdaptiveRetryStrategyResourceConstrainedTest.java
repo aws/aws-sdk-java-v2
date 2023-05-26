@@ -62,7 +62,7 @@ class AdaptiveRetryStrategyResourceConstrainedTest {
         int parallelism = serverWorkers + clientWorkers;
         ExecutorService executor = Executors.newFixedThreadPool(parallelism);
         Server server = new Server(serverWorkers, executor);
-        AdaptiveRetryStrategy strategy = DefaultAdaptiveRetryStrategy2
+        AdaptiveRetryStrategy strategy = DefaultAdaptiveRetryStrategy
             .builder()
             // We don't care about how many attempts we allow to, that logic is tested somewhere else.
             // so we give the strategy plenty of room for retries.
