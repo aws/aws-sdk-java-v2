@@ -65,10 +65,10 @@ public final class UploadPartCopyRequestIterable implements SdkIterable<UploadPa
             long partSize = Math.min(optimalPartSize, remainingBytes);
             String range = range(partSize);
             UploadPartCopyRequest uploadPartCopyRequest =
-                CopyRequestConversionUtils.toUploadPartCopyRequest(copyObjectRequest,
-                                                                   partNumber,
-                                                                   uploadId,
-                                                                   range);
+                RequestConversionUtils.toUploadPartCopyRequest(copyObjectRequest,
+                                                               partNumber,
+                                                               uploadId,
+                                                               range);
             partNumber++;
             offset += partSize;
             remainingBytes -= partSize;
