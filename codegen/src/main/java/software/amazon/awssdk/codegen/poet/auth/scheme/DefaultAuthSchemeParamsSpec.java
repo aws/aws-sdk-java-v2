@@ -20,21 +20,30 @@ import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import java.lang.reflect.Type;
+import java.util.Map;
 import java.util.Optional;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.utils.Validate;
 
 public class DefaultAuthSchemeParamsSpec implements ClassSpec {
+
+    private final IntermediateModel intermediateModel;
     private final AuthSchemeSpecUtils authSchemeSpecUtils;
+    private final EndpointRulesSpecUtils endpointRulesSpecUtils;
 
     public DefaultAuthSchemeParamsSpec(IntermediateModel intermediateModel) {
+        this.intermediateModel = intermediateModel;
         this.authSchemeSpecUtils = new AuthSchemeSpecUtils(intermediateModel);
+        this.endpointRulesSpecUtils = new EndpointRulesSpecUtils(intermediateModel);
     }
 
     @Override
@@ -67,6 +76,14 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
         if (authSchemeSpecUtils.usesSigV4()) {
             b.addStatement("this.region = builder.region");
         }
+
+        parameters().forEach((name, model) -> {
+            String fieldName = endpointRulesSpecUtils.paramMethodName(name);
+            if (!"region".equals(fieldName) || !authSchemeSpecUtils.usesSigV4()) {
+                b.addStatement("this." + fieldName + " = builder." + fieldName);
+            }
+        });
+
         return b.build();
     }
 
@@ -119,23 +136,59 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
                                   .addStatement("return region == null ? Optional.empty() : Optional.of(region)")
                                   .build());
         }
+
+        parameters().forEach((name, model) -> {
+            TypeName typeName = endpointRulesSpecUtils.parameterType(model);
+            String methodName = endpointRulesSpecUtils.paramMethodName(name);
+            if (!"region".equals(methodName) || !authSchemeSpecUtils.usesSigV4()) {
+                b.addField(FieldSpec.builder(typeName, methodName)
+                                    .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
+                                    .build());
+                if (model.isRequired()) {
+                    b.addMethod(MethodSpec.methodBuilder(methodName)
+                                          .addModifiers(Modifier.PUBLIC)
+                                          .addAnnotation(Override.class)
+                                          .returns(typeName)
+                                          .addStatement("return " + methodName)
+                                          .build());
+                } else {
+                    b.addMethod(MethodSpec.methodBuilder(methodName)
+                                          .addModifiers(Modifier.PUBLIC)
+                                          .addAnnotation(Override.class)
+                                          .returns(ParameterizedTypeName.get(ClassName.get(Optional.class), typeName))
+                                          .addStatement("return Optional.ofNullable(" + methodName + ")")
+                                          .build());
+                }
+            }
+        });
     }
 
     private void addBuilderFieldsAndSetter(TypeSpec.Builder b) {
         b.addField(FieldSpec.builder(String.class, "operation")
                             .addModifiers(Modifier.PRIVATE)
                             .build());
-        b.addMethod(builderSetterMethod("operation", String.class));
+        b.addMethod(builderSetterMethod("operation", TypeName.get(String.class)));
 
         if (authSchemeSpecUtils.usesSigV4()) {
             b.addField(FieldSpec.builder(String.class, "region")
                                 .addModifiers(Modifier.PRIVATE)
                                 .build());
-            b.addMethod(builderSetterMethod("region", String.class));
+            b.addMethod(builderSetterMethod("region", TypeName.get(String.class)));
         }
+
+        parameters().forEach((name, model) -> {
+            TypeName typeName = endpointRulesSpecUtils.parameterType(model);
+            String methodName = endpointRulesSpecUtils.paramMethodName(name);
+            if (!"region".equals(methodName) || !authSchemeSpecUtils.usesSigV4()) {
+                b.addField(FieldSpec.builder(typeName, methodName)
+                                    .addModifiers(Modifier.PRIVATE)
+                                    .build());
+                b.addMethod(builderSetterMethod(methodName, typeName));
+            }
+        });
     }
 
-    private MethodSpec builderSetterMethod(String field, Type type) {
+    private MethodSpec builderSetterMethod(String field, TypeName type) {
         return MethodSpec.methodBuilder(field)
                          .addModifiers(Modifier.PUBLIC)
                          .addAnnotation(Override.class)
@@ -148,5 +201,9 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
 
     private ClassName builderClassName() {
         return className().nestedClass("Builder");
+    }
+
+    private Map<String, ParameterModel> parameters() {
+        return intermediateModel.getEndpointRuleSetModel().getParameters();
     }
 }
