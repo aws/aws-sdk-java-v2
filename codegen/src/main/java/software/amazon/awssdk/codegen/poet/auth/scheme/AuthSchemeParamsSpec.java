@@ -17,24 +17,31 @@ package software.amazon.awssdk.codegen.poet.auth.scheme;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
+import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
+import java.util.Map;
 import java.util.Optional;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 
 public class AuthSchemeParamsSpec implements ClassSpec {
     private final IntermediateModel intermediateModel;
     private final AuthSchemeSpecUtils authSchemeSpecUtils;
+    private final EndpointRulesSpecUtils endpointRulesSpecUtils;
 
     public AuthSchemeParamsSpec(IntermediateModel intermediateModel) {
         this.intermediateModel = intermediateModel;
         this.authSchemeSpecUtils = new AuthSchemeSpecUtils(intermediateModel);
+        this.endpointRulesSpecUtils = new EndpointRulesSpecUtils(intermediateModel);
     }
 
     @Override
@@ -107,6 +114,27 @@ public class AuthSchemeParamsSpec implements ClassSpec {
                                               + "with $S auth scheme. By default, the region will be empty.", "aws.auth#sigv4")
                                   .build());
         }
+
+        parameters().forEach((name, model) -> {
+            TypeName typeName = endpointRulesSpecUtils.parameterType(model);
+            String methodName = endpointRulesSpecUtils.paramMethodName(name);
+            if (!"region".equals(methodName) || !authSchemeSpecUtils.usesSigV4()) {
+                if (model.isRequired()) {
+                    b.addMethod(MethodSpec.methodBuilder(methodName)
+                                          .addJavadoc(model.getDocumentation())
+                                          .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                                          .returns(typeName)
+                                          .build());
+                } else {
+                    b.addMethod(MethodSpec.methodBuilder(methodName)
+                                          .addJavadoc(model.getDocumentation())
+                                          .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                                          .returns(ParameterizedTypeName.get(ClassName.get(Optional.class), typeName))
+                                          .build());
+                }
+            }
+        });
+
     }
 
     private void addBuilderSetterMethods(TypeSpec.Builder b) {
@@ -120,11 +148,49 @@ public class AuthSchemeParamsSpec implements ClassSpec {
         if (authSchemeSpecUtils.usesSigV4()) {
             b.addMethod(MethodSpec.methodBuilder("region")
                                   .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                                  // TODO: Use Region.class instead?
                                   .addParameter(ParameterSpec.builder(String.class, "region").build())
                                   .returns(authSchemeSpecUtils.parametersInterfaceBuilderInterfaceName())
                                   .addJavadoc("Set the region. The region parameter may be used with  the $S auth scheme.",
                                               "aws.auth#sigv4") // TODO: Reference the SigV4 AuthScheme when implemented
                                   .build());
         }
+
+        parameters().forEach((name, model) -> {
+            String methodName = endpointRulesSpecUtils.paramMethodName(name);
+            if (!"region".equals(methodName) || !authSchemeSpecUtils.usesSigV4()) {
+                b.addMethod(setterMethodDeclaration(name, model));
+            }
+        });
+    }
+
+    private MethodSpec setterMethodDeclaration(String name, ParameterModel model) {
+        return paramMethodBuilder(name, model)
+            .addJavadoc(model.getDocumentation())
+            .addModifiers(Modifier.ABSTRACT)
+            .addParameter(parameterSpec(name, model))
+            .returns(authSchemeSpecUtils.parametersInterfaceBuilderInterfaceName())
+            .build();
+    }
+
+    private ParameterSpec parameterSpec(String name, ParameterModel model) {
+        return ParameterSpec.builder(endpointRulesSpecUtils.parameterType(model), variableName(name)).build();
+    }
+
+    private String variableName(String name) {
+        return intermediateModel.getNamingStrategy().getVariableName(name);
+    }
+
+    private MethodSpec.Builder paramMethodBuilder(String name, ParameterModel model) {
+        MethodSpec.Builder b = MethodSpec.methodBuilder(endpointRulesSpecUtils.paramMethodName(name));
+        b.addModifiers(Modifier.PUBLIC);
+        if (model.getDeprecated() != null) {
+            b.addAnnotation(Deprecated.class);
+        }
+        return b;
+    }
+
+    private Map<String, ParameterModel> parameters() {
+        return intermediateModel.getEndpointRuleSetModel().getParameters();
     }
 }

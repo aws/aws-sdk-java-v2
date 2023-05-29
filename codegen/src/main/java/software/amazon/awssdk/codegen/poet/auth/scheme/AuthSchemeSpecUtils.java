@@ -19,7 +19,9 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import java.util.List;
+import java.util.Map;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.utils.AuthUtils;
 import software.amazon.awssdk.http.auth.spi.HttpAuthOption;
 
@@ -65,5 +67,4 @@ public final class AuthSchemeSpecUtils {
     public boolean usesSigV4() {
         return AuthUtils.usesAwsAuth(intermediateModel);
     }
-
 }
