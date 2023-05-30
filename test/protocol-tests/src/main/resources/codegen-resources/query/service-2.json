@@ -87,9 +87,7 @@
         "structWithNestedTimestampMember":{"shape":"StructWithTimestamp"},
         "blobArg":{"shape":"BlobType"},
         "blobMap":{"shape":"BlobMapType"},
-        "listOfBlobs":{"shape":"ListOfBlobsType"},
-        "ListOfTimeStamp": {"shape": "ListOfTimeStamp"},
-        "MapOfTimeStamp": {"shape": "MapOfTimeStamp"}
+        "listOfBlobs":{"shape":"ListOfBlobsType"}
       }
     },
     "BlobMapType":{
@@ -214,19 +212,6 @@
       "members":{
         "NestedTimestamp":{"shape":"Timestamp"}
       }
-    },
-    "ListOfTimeStamp":{
-      "type":"list",
-      "member":{"shape":"UnixTimestamp","locationName":"item"}
-    },
-    "MapOfTimeStamp":{
-      "type":"map",
-      "key":{"shape":"String"},
-      "value":{"shape":"UnixTimestamp"}
-    },
-    "UnixTimestamp":{
-      "type":"timestamp",
-      "timestampFormat":"unixTimestamp"
     },
     "ImplicitPayloadException":{
       "type":"structure",

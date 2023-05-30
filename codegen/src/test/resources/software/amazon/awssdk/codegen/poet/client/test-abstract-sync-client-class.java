@@ -864,11 +864,6 @@ public abstract class DelegatingJsonClient implements JsonClient {
     }
 
     @Override
-    public final JsonServiceClientConfiguration serviceClientConfiguration() {
-        return delegate.serviceClientConfiguration();
-    }
-
-    @Override
     public void close() {
         delegate.close();
     }

@@ -70,7 +70,7 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"ConflictException"}
       ],
-      "documentation":"<p>Use this operation to export results of an Earth Observation job and optionally source images used as input to the EOJ to an Amazon S3 location.</p>"
+      "documentation":"<p>Use this operation to export results of an Earth Observation job and optionally source images used as input to the EOJ to an S3 location.</p>"
     },
     "ExportVectorEnrichmentJob":{
       "name":"ExportVectorEnrichmentJob",
@@ -90,7 +90,7 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"ConflictException"}
       ],
-      "documentation":"<p>Use this operation to copy results of a Vector Enrichment job to an Amazon S3 location.</p>"
+      "documentation":"<p>Use this operation to copy results of a Vector Enrichment job to an S3 location.</p>"
     },
     "GetEarthObservationJob":{
       "name":"GetEarthObservationJob",
@@ -434,10 +434,10 @@
       "members":{
         "AreaOfInterestGeometry":{
           "shape":"AreaOfInterestGeometry",
-          "documentation":"<p>A GeoJSON object representing the geographic extent in the coordinate space.</p>"
+          "documentation":"<p/>"
         }
       },
-      "documentation":"<p>The geographic extent of the Earth Observation job.</p>",
+      "documentation":"<p/>",
       "union":true
     },
     "AreaOfInterestGeometry":{
@@ -445,14 +445,14 @@
       "members":{
         "MultiPolygonGeometry":{
           "shape":"MultiPolygonGeometryInput",
-          "documentation":"<p>The structure representing the MultiPolygon Geometry.</p>"
+          "documentation":"<p/>"
         },
         "PolygonGeometry":{
           "shape":"PolygonGeometryInput",
-          "documentation":"<p>The structure representing Polygon Geometry.</p>"
+          "documentation":"<p/>"
         }
       },
-      "documentation":"<p>A GeoJSON object representing the geographic extent in the coordinate space.</p>",
+      "documentation":"<p/>",
       "union":true
     },
     "Arn":{
@@ -465,10 +465,10 @@
       "members":{
         "Href":{
           "shape":"String",
-          "documentation":"<p>Link to the asset object.</p>"
+          "documentation":"<p/>"
         }
       },
-      "documentation":"<p>The structure containing the asset properties.</p>"
+      "documentation":"<p/>"
     },
     "AssetsMap":{
       "type":"map",
@@ -480,14 +480,14 @@
       "members":{
         "CustomIndices":{
           "shape":"CustomIndicesInput",
-          "documentation":"<p>CustomIndices that are computed.</p>"
+          "documentation":"<p/>"
         },
         "PredefinedIndices":{
           "shape":"StringListInput",
-          "documentation":"<p>One or many of the supported predefined indices to compute. Allowed values: <code>NDVI</code>, <code>EVI2</code>, <code>MSAVI</code>, <code>NDWI</code>, <code>NDMI</code>, <code>NDSI</code>, and <code>WDRVI</code>.</p>"
+          "documentation":"<p/>"
         }
       },
-      "documentation":"<p>Input structure for the BandMath operation type. Defines Predefined and CustomIndices to be computed using BandMath.</p>"
+      "documentation":"<p/>"
     },
     "BinaryFile":{
       "type":"blob",
@@ -501,7 +501,7 @@
       "type":"structure",
       "members":{
       },
-      "documentation":"<p>Input structure for CloudMasking operation type.</p>"
+      "documentation":"<p/>"
     },
     "CloudRemovalConfigInput":{
       "type":"structure",
@@ -516,10 +516,10 @@
         },
         "TargetBands":{
           "shape":"StringListInput",
-          "documentation":"<p>TargetBands to be returned in the output of CloudRemoval operation.</p>"
+          "documentation":"<p/>"
         }
       },
-      "documentation":"<p>Input structure for Cloud Removal Operation type</p>"
+      "documentation":"<p/>"
     },
     "ComparisonOperator":{
       "type":"string",
@@ -531,15 +531,18 @@
     },
     "ConflictException":{
       "type":"structure",
-      "required":["Message"],
+      "required":[
+        "Message",
+        "ResourceId"
+      ],
       "members":{
         "Message":{"shape":"String"},
         "ResourceId":{
           "shape":"String",
-          "documentation":"<p>Identifier of the resource affected.</p>"
+          "documentation":"<p/>"
         }
       },
-      "documentation":"<p>Updating or deleting a resource can cause an inconsistent state.</p>",
+      "documentation":"<p/>",
       "error":{
         "httpStatusCode":409,
         "senderFault":true
@@ -551,10 +554,10 @@
       "members":{
         "Operations":{
           "shape":"OperationsListInput",
-          "documentation":"<p>A list of BandMath indices to compute.</p>"
+          "documentation":"<p/>"
         }
       },
-      "documentation":"<p>Input object defining the custom BandMath indices to compute.</p>"
+      "documentation":"<p/>"
     },
     "DataCollectionArn":{
       "type":"string",
@@ -619,11 +622,11 @@
       "members":{
         "Message":{
           "shape":"String",
-          "documentation":"<p>A detailed message describing the error in an Earth Observation job.</p>"
+          "documentation":"<p/>"
         },
         "Type":{
           "shape":"EarthObservationJobErrorType",
-          "documentation":"<p>The type of error in an Earth Observation job.</p>"
+          "documentation":"<p/>"
         }
       },
       "documentation":"<p>The structure representing the errors in an EarthObservationJob.</p>"
@@ -673,31 +676,25 @@
       "members":{
         "LowerBound":{
           "shape":"Float",
-          "documentation":"<p>Lower bound for EoCloudCover.</p>"
+          "documentation":"<p/>"
         },
         "UpperBound":{
           "shape":"Float",
-          "documentation":"<p>Upper bound for EoCloudCover.</p>"
+          "documentation":"<p/>"
         }
       },
-      "documentation":"<p>The structure representing the EoCloudCover filter.</p>"
+      "documentation":"<p/>"
     },
     "EojDataSourceConfigInput":{
       "type":"structure",
       "members":{
         "S3Data":{
           "shape":"S3DataInput",
-          "documentation":"<p>The input structure for S3Data; representing the Amazon S3 location of the input data objects.</p>"
+          "documentation":"<p/>"
         }
       },
-      "documentation":"<p>Union representing different data sources to be used as input for an Earth Observation job.</p>",
+      "documentation":"<p/>",
       "union":true
-    },
-    "ExecutionRoleArn":{
-      "type":"string",
-      "max":2048,
-      "min":20,
-      "pattern":"^arn:(aws[a-z-]*):iam::([0-9]{12}):role/[a-zA-Z0-9+=,.@_/-]+$"
     },
     "ExportEarthObservationJobInput":{
       "type":"structure",
@@ -711,13 +708,8 @@
           "shape":"EarthObservationJobArn",
           "documentation":"<p>The input Amazon Resource Name (ARN) of the Earth Observation job being exported.</p>"
         },
-        "ClientToken":{
-          "shape":"ExportEarthObservationJobInputClientTokenString",
-          "documentation":"<p>A unique token that guarantees that the call to this API is idempotent.</p>",
-          "idempotencyToken":true
-        },
         "ExecutionRoleArn":{
-          "shape":"ExecutionRoleArn",
+          "shape":"String",
           "documentation":"<p>The Amazon Resource Name (ARN) of the IAM role that you specified for the job.</p>"
         },
         "ExportSourceImages":{
@@ -729,11 +721,6 @@
           "documentation":"<p>An object containing information about the output file.</p>"
         }
       }
-    },
-    "ExportEarthObservationJobInputClientTokenString":{
-      "type":"string",
-      "max":64,
-      "min":36
     },
     "ExportEarthObservationJobOutput":{
       "type":"structure",
@@ -750,11 +737,11 @@
           "documentation":"<p>The output Amazon Resource Name (ARN) of the Earth Observation job being exported.</p>"
         },
         "CreationTime":{
-          "shape":"SyntheticTimestamp_date_time",
+          "shape":"Timestamp",
           "documentation":"<p>The creation time.</p>"
         },
         "ExecutionRoleArn":{
-          "shape":"ExecutionRoleArn",
+          "shape":"String",
           "documentation":"<p>The Amazon Resource Name (ARN) of the IAM role that you specified for the job.</p>"
         },
         "ExportSourceImages":{
@@ -776,11 +763,11 @@
       "members":{
         "ExportResults":{
           "shape":"ExportErrorDetailsOutput",
-          "documentation":"<p>The structure for returning the export error details while exporting results of an Earth Observation job.</p>"
+          "documentation":"<p/>"
         },
         "ExportSourceImages":{
           "shape":"ExportErrorDetailsOutput",
-          "documentation":"<p>The structure for returning the export error details while exporting the source images of an Earth Observation job.</p>"
+          "documentation":"<p/>"
         }
       },
       "documentation":"<p>The structure for returning the export error details in a GetEarthObservationJob.</p>"
@@ -790,14 +777,14 @@
       "members":{
         "Message":{
           "shape":"String",
-          "documentation":"<p>A detailed message describing the error in an export EarthObservationJob operation.</p>"
+          "documentation":"<p/>"
         },
         "Type":{
           "shape":"ExportErrorType",
-          "documentation":"<p>The type of error in an export EarthObservationJob operation.</p>"
+          "documentation":"<p/>"
         }
       },
-      "documentation":"<p>The structure representing the errors in an export EarthObservationJob operation.</p>"
+      "documentation":"<p/>"
     },
     "ExportErrorType":{
       "type":"string",
@@ -811,15 +798,15 @@
       "required":["S3Uri"],
       "members":{
         "KmsKeyId":{
-          "shape":"KmsKey",
-          "documentation":"<p>The Key Management Service key ID for server-side encryption.</p>"
+          "shape":"String",
+          "documentation":"<p>The Amazon Key Management Service (KMS) key ID for server-side encryption.</p>"
         },
         "S3Uri":{
-          "shape":"S3Uri",
+          "shape":"String",
           "documentation":"<p>The URL to the Amazon S3 data input.</p>"
         }
       },
-      "documentation":"<p>The structure containing the Amazon S3 path to export the Earth Observation job output.</p>"
+      "documentation":"<p/>"
     },
     "ExportVectorEnrichmentJobInput":{
       "type":"structure",
@@ -833,13 +820,8 @@
           "shape":"VectorEnrichmentJobArn",
           "documentation":"<p>The Amazon Resource Name (ARN) of the Vector Enrichment job.</p>"
         },
-        "ClientToken":{
-          "shape":"ExportVectorEnrichmentJobInputClientTokenString",
-          "documentation":"<p>A unique token that guarantees that the call to this API is idempotent.</p>",
-          "idempotencyToken":true
-        },
         "ExecutionRoleArn":{
-          "shape":"ExecutionRoleArn",
+          "shape":"String",
           "documentation":"<p>The Amazon Resource Name (ARN) of the IAM rolewith permission to upload to the location in OutputConfig.</p>"
         },
         "OutputConfig":{
@@ -847,11 +829,6 @@
           "documentation":"<p>Output location information for exporting Vector Enrichment Job results. </p>"
         }
       }
-    },
-    "ExportVectorEnrichmentJobInputClientTokenString":{
-      "type":"string",
-      "max":64,
-      "min":36
     },
     "ExportVectorEnrichmentJobOutput":{
       "type":"structure",
@@ -868,11 +845,11 @@
           "documentation":"<p>The Amazon Resource Name (ARN) of the Vector Enrichment job being exported.</p>"
         },
         "CreationTime":{
-          "shape":"SyntheticTimestamp_date_time",
+          "shape":"Timestamp",
           "documentation":"<p>The creation time.</p>"
         },
         "ExecutionRoleArn":{
-          "shape":"ExecutionRoleArn",
+          "shape":"String",
           "documentation":"<p>The Amazon Resource Name (ARN) of the IAM role with permission to upload to the location in OutputConfig.</p>"
         },
         "ExportStatus":{
@@ -891,7 +868,7 @@
       "members":{
         "S3Data":{
           "shape":"VectorEnrichmentJobS3Data",
-          "documentation":"<p>The input structure for Amazon S3 data; representing the Amazon S3 location of the input data objects.</p>"
+          "documentation":"<p/>"
         }
       },
       "documentation":"<p>An object containing information about the output file.</p>"
@@ -953,14 +930,14 @@
       "members":{
         "Coordinates":{
           "shape":"LinearRings",
-          "documentation":"<p>The coordinates of the GeoJson Geometry.</p>"
+          "documentation":"<p/>"
         },
         "Type":{
           "shape":"String",
-          "documentation":"<p>GeoJson Geometry types like Polygon and MultiPolygon.</p>"
+          "documentation":"<p/>"
         }
       },
-      "documentation":"<p>The structure representing a Geometry in terms of Type and Coordinates as per GeoJson spec.</p>"
+      "documentation":"<p/>"
     },
     "GetEarthObservationJobInput":{
       "type":"structure",
@@ -991,7 +968,7 @@
           "documentation":"<p>The Amazon Resource Name (ARN) of the Earth Observation job.</p>"
         },
         "CreationTime":{
-          "shape":"SyntheticTimestamp_date_time",
+          "shape":"Timestamp",
           "documentation":"<p>The creation time of the initiated Earth Observation job.</p>"
         },
         "DurationInSeconds":{
@@ -1003,7 +980,7 @@
           "documentation":"<p>Details about the errors generated during the Earth Observation job.</p>"
         },
         "ExecutionRoleArn":{
-          "shape":"ExecutionRoleArn",
+          "shape":"String",
           "documentation":"<p>The Amazon Resource Name (ARN) of the IAM role that you specified for the job.</p>"
         },
         "ExportErrorDetails":{
@@ -1023,8 +1000,8 @@
           "documentation":"<p>An object containing information about the job configuration.</p>"
         },
         "KmsKeyId":{
-          "shape":"KmsKey",
-          "documentation":"<p>The Key Management Service key ID for server-side encryption.</p>"
+          "shape":"String",
+          "documentation":"<p>The Amazon Key Management Service (KMS) key ID for server-side encryption.</p>"
         },
         "Name":{
           "shape":"String",
@@ -1032,7 +1009,7 @@
         },
         "OutputBands":{
           "shape":"EarthObservationJobOutputBands",
-          "documentation":"<p>Bands available in the output of an operation.</p>"
+          "documentation":"<p/>"
         },
         "Status":{
           "shape":"EarthObservationJobStatus",
@@ -1082,7 +1059,7 @@
         },
         "ImageSourceBands":{
           "shape":"ImageSourceBandList",
-          "documentation":"<p>The list of image source bands in the raster data collection.</p>"
+          "documentation":"<p/>"
         },
         "Name":{
           "shape":"String",
@@ -1118,12 +1095,6 @@
           "documentation":"<p>The Amazon Resource Name (ARN) of the tile operation.</p>",
           "location":"querystring",
           "locationName":"Arn"
-        },
-        "ExecutionRoleArn":{
-          "shape":"ExecutionRoleArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the IAM role that you specify.</p>",
-          "location":"querystring",
-          "locationName":"ExecutionRoleArn"
         },
         "ImageAssets":{
           "shape":"StringListInput",
@@ -1228,7 +1199,7 @@
           "documentation":"<p>The Amazon Resource Name (ARN) of the Vector Enrichment job.</p>"
         },
         "CreationTime":{
-          "shape":"SyntheticTimestamp_date_time",
+          "shape":"Timestamp",
           "documentation":"<p>The creation time.</p>"
         },
         "DurationInSeconds":{
@@ -1240,7 +1211,7 @@
           "documentation":"<p>Details about the errors generated during the Vector Enrichment job.</p>"
         },
         "ExecutionRoleArn":{
-          "shape":"ExecutionRoleArn",
+          "shape":"String",
           "documentation":"<p>The Amazon Resource Name (ARN) of the IAM role that you specified for the job.</p>"
         },
         "ExportErrorDetails":{
@@ -1260,8 +1231,8 @@
           "documentation":"<p>An object containing information about the job configuration.</p>"
         },
         "KmsKeyId":{
-          "shape":"KmsKey",
-          "documentation":"<p>The Key Management Service key ID for server-side encryption.</p>"
+          "shape":"String",
+          "documentation":"<p>The Amazon Key Management Service (KMS) key ID for server-side encryption.</p>"
         },
         "Name":{
           "shape":"String",
@@ -1300,12 +1271,12 @@
           "documentation":"<p>The location of the input data.&gt;</p>"
         },
         "PreviousEarthObservationJobArn":{
-          "shape":"EarthObservationJobArn",
+          "shape":"String",
           "documentation":"<p>The Amazon Resource Name (ARN) of the previous Earth Observation job.</p>"
         },
         "RasterDataCollectionQuery":{
           "shape":"RasterDataCollectionQueryInput",
-          "documentation":"<p>The structure representing the RasterDataCollection Query consisting of the Area of Interest, RasterDataCollectionArn,TimeRange and Property Filters.</p>"
+          "documentation":"<p/>"
         }
       },
       "documentation":"<p>Input configuration information.</p>"
@@ -1318,12 +1289,12 @@
           "documentation":"<p>The location of the input data.</p>"
         },
         "PreviousEarthObservationJobArn":{
-          "shape":"EarthObservationJobArn",
+          "shape":"String",
           "documentation":"<p>The Amazon Resource Name (ARN) of the previous Earth Observation job.</p>"
         },
         "RasterDataCollectionQuery":{
           "shape":"RasterDataCollectionQueryOutput",
-          "documentation":"<p>The structure representing the RasterDataCollection Query consisting of the Area of Interest, RasterDataCollectionArn, RasterDataCollectionName, TimeRange, and Property Filters.</p>"
+          "documentation":"<p/>"
         }
       },
       "documentation":"<p>The InputConfig for an EarthObservationJob response.</p>"
@@ -1334,7 +1305,10 @@
     },
     "InternalServerException":{
       "type":"structure",
-      "required":["Message"],
+      "required":[
+        "Message",
+        "ResourceId"
+      ],
       "members":{
         "Message":{"shape":"String"},
         "ResourceId":{
@@ -1357,15 +1331,15 @@
       "members":{
         "Assets":{
           "shape":"AssetsMap",
-          "documentation":"<p>This is a dictionary of Asset Objects data associated with the Item that can be downloaded or streamed, each with a unique key.</p>"
+          "documentation":"<p/>"
         },
         "DateTime":{
           "shape":"Timestamp",
-          "documentation":"<p>The searchable date and time of the item, in UTC.</p>"
+          "documentation":"<p/>"
         },
         "Geometry":{
           "shape":"Geometry",
-          "documentation":"<p>The item Geometry in GeoJson format.</p>"
+          "documentation":"<p/>"
         },
         "Id":{
           "shape":"String",
@@ -1373,10 +1347,10 @@
         },
         "Properties":{
           "shape":"Properties",
-          "documentation":"<p>This field contains additional properties of the item.</p>"
+          "documentation":"<p/>"
         }
       },
-      "documentation":"<p>The structure representing the items in the response for SearchRasterDataCollection.</p>"
+      "documentation":"<p>Structure representing the items in the response for SearchRasterDataCollection.</p>"
     },
     "ItemSourceList":{
       "type":"list",
@@ -1387,7 +1361,7 @@
       "members":{
         "BandMathConfig":{
           "shape":"BandMathConfigInput",
-          "documentation":"<p>An object containing information about the job configuration for BandMath.</p>"
+          "documentation":"<p/>"
         },
         "CloudMaskingConfig":{
           "shape":"CloudMaskingConfigInput",
@@ -1411,7 +1385,7 @@
         },
         "StackConfig":{
           "shape":"StackConfigInput",
-          "documentation":"<p>An object containing information about the job configuration for a Stacking Earth Observation job.</p>"
+          "documentation":"<p/>"
         },
         "TemporalStatisticsConfig":{
           "shape":"TemporalStatisticsConfigInput",
@@ -1425,16 +1399,11 @@
       "documentation":"<p>The input structure for the JobConfig in an EarthObservationJob.</p>",
       "union":true
     },
-    "KmsKey":{
-      "type":"string",
-      "max":2048,
-      "min":0
-    },
     "LandCoverSegmentationConfigInput":{
       "type":"structure",
       "members":{
       },
-      "documentation":"<p>The input structure for Land Cover Operation type.</p>"
+      "documentation":"<p/>"
     },
     "LandsatCloudCoverLandInput":{
       "type":"structure",
@@ -1445,14 +1414,14 @@
       "members":{
         "LowerBound":{
           "shape":"Float",
-          "documentation":"<p>The minimum value for Land Cloud Cover property filter. This will filter items having Land Cloud Cover greater than or equal to this value.</p>"
+          "documentation":"<p/>"
         },
         "UpperBound":{
           "shape":"Float",
-          "documentation":"<p>The maximum value for Land Cloud Cover property filter. This will filter items having Land Cloud Cover less than or equal to this value.</p>"
+          "documentation":"<p/>"
         }
       },
-      "documentation":"<p>The structure representing Land Cloud Cover property for Landsat data collection.</p>"
+      "documentation":"<p/>"
     },
     "LinearRing":{
       "type":"list",
@@ -1529,7 +1498,7 @@
           "documentation":"<p>The Amazon Resource Name (ARN) of the list of the Earth Observation jobs.</p>"
         },
         "CreationTime":{
-          "shape":"SyntheticTimestamp_date_time",
+          "shape":"Timestamp",
           "documentation":"<p>The creation time.</p>"
         },
         "DurationInSeconds":{
@@ -1542,7 +1511,7 @@
         },
         "OperationType":{
           "shape":"String",
-          "documentation":"<p>The operation type for an Earth Observation job.</p>"
+          "documentation":"<p/>"
         },
         "Status":{
           "shape":"EarthObservationJobStatus",
@@ -1674,7 +1643,7 @@
           "documentation":"<p>The Amazon Resource Name (ARN) of the list of the Vector Enrichment jobs.</p>"
         },
         "CreationTime":{
-          "shape":"SyntheticTimestamp_date_time",
+          "shape":"Timestamp",
           "documentation":"<p>The creation time.</p>"
         },
         "DurationInSeconds":{
@@ -1715,7 +1684,7 @@
       "members":{
         "IdAttributeName":{
           "shape":"String",
-          "documentation":"<p>The field name for the data that describes the identifier representing a collection of GPS points belonging to an individual trace.</p>"
+          "documentation":"<p/>"
         },
         "TimestampAttributeName":{
           "shape":"String",
@@ -1730,7 +1699,7 @@
           "documentation":"<p>The name of the Y-attribute</p>"
         }
       },
-      "documentation":"<p>The input structure for Map Matching operation type.</p>"
+      "documentation":"<p/>"
     },
     "MetadataProvider":{
       "type":"string",
@@ -1745,7 +1714,7 @@
           "documentation":"<p>The coordinates of the multipolygon geometry.</p>"
         }
       },
-      "documentation":"<p>The structure representing Polygon Geometry based on the <a href=\"https://www.rfc-editor.org/rfc/rfc7946#section-3.1.6\">GeoJson spec</a>.</p>"
+      "documentation":"<p/>"
     },
     "NextToken":{
       "type":"string",
@@ -1762,7 +1731,7 @@
       "members":{
         "Equation":{
           "shape":"String",
-          "documentation":"<p>Textual representation of the math operation; Equation used to compute the spectral index.</p>"
+          "documentation":"<p/>"
         },
         "Name":{
           "shape":"String",
@@ -1773,7 +1742,7 @@
           "documentation":"<p>The type of the operation.</p>"
         }
       },
-      "documentation":"<p>Represents an arithmetic operation to compute spectral index.</p>"
+      "documentation":"<p/>"
     },
     "OperationsListInput":{
       "type":"list",
@@ -1815,24 +1784,24 @@
       "members":{
         "UserDefined":{
           "shape":"UserDefined",
-          "documentation":"<p>User Defined Resolution for the output of Resampling operation defined by value and unit.</p>"
+          "documentation":"<p/>"
         }
       },
-      "documentation":"<p>OutputResolution Configuration indicating the target resolution for the output of Resampling operation.</p>"
+      "documentation":"<p/>"
     },
     "OutputResolutionStackInput":{
       "type":"structure",
       "members":{
         "Predefined":{
           "shape":"PredefinedResolution",
-          "documentation":"<p>A string value representing Predefined Output Resolution for a stacking operation. Allowed values are <code>HIGHEST</code>, <code>LOWEST</code>, and <code>AVERAGE</code>.</p>"
+          "documentation":"<p/>"
         },
         "UserDefined":{
           "shape":"UserDefined",
-          "documentation":"<p>The structure representing User Output Resolution for a Stacking operation defined as a value and unit.</p>"
+          "documentation":"<p/>"
         }
       },
-      "documentation":"<p>The input structure representing Output Resolution for Stacking Operation.</p>"
+      "documentation":"<p/>"
     },
     "OutputType":{
       "type":"string",
@@ -1850,14 +1819,14 @@
       "members":{
         "ComparisonOperator":{
           "shape":"ComparisonOperator",
-          "documentation":"<p>The ComparisonOperator to use with PlatformInput.</p>"
+          "documentation":"<p/>"
         },
         "Value":{
           "shape":"String",
           "documentation":"<p>The value of the platform.</p>"
         }
       },
-      "documentation":"<p>The input structure for specifying Platform. Platform refers to the unique name of the specific platform the instrument is attached to. For satellites it is the name of the satellite, eg. landsat-8 (Landsat-8), sentinel-2a.</p>"
+      "documentation":"<p/>"
     },
     "PolygonGeometryInput":{
       "type":"structure",
@@ -1865,10 +1834,10 @@
       "members":{
         "Coordinates":{
           "shape":"LinearRings",
-          "documentation":"<p>Coordinates representing a Polygon based on the <a href=\"https://www.rfc-editor.org/rfc/rfc7946#section-3.1.6\">GeoJson spec</a>.</p>"
+          "documentation":"<p/>"
         }
       },
-      "documentation":"<p>The structure representing Polygon Geometry based on the <a href=\"https://www.rfc-editor.org/rfc/rfc7946#section-3.1.6\">GeoJson spec</a>.</p>"
+      "documentation":"<p/>"
     },
     "Position":{
       "type":"list",
@@ -1890,60 +1859,60 @@
       "members":{
         "EoCloudCover":{
           "shape":"Float",
-          "documentation":"<p>Estimate of cloud cover.</p>"
+          "documentation":"<p/>"
         },
         "LandsatCloudCoverLand":{
           "shape":"Float",
-          "documentation":"<p>Land cloud cover for Landsat Data Collection.</p>"
+          "documentation":"<p/>"
         },
         "Platform":{
           "shape":"String",
-          "documentation":"<p>Platform property. Platform refers to the unique name of the specific platform the instrument is attached to. For satellites it is the name of the satellite, eg. landsat-8 (Landsat-8), sentinel-2a.</p>"
+          "documentation":"<p/>"
         },
         "ViewOffNadir":{
           "shape":"Float",
-          "documentation":"<p>The angle from the sensor between nadir (straight down) and the scene center. Measured in degrees (0-90).</p>"
+          "documentation":"<p/>"
         },
         "ViewSunAzimuth":{
           "shape":"Float",
-          "documentation":"<p>The sun azimuth angle. From the scene center point on the ground, this is the angle between truth north and the sun. Measured clockwise in degrees (0-360).</p>"
+          "documentation":"<p/>"
         },
         "ViewSunElevation":{
           "shape":"Float",
-          "documentation":"<p>The sun elevation angle. The angle from the tangent of the scene center point to the sun. Measured from the horizon in degrees (-90-90). Negative values indicate the sun is below the horizon, e.g. sun elevation of -10° means the data was captured during <a href=\"https://www.timeanddate.com/astronomy/different-types-twilight.html\">nautical twilight</a>.</p>"
+          "documentation":"<p/>"
         }
       },
-      "documentation":"<p>Properties associated with the Item.</p>"
+      "documentation":"<p/>"
     },
     "Property":{
       "type":"structure",
       "members":{
         "EoCloudCover":{
           "shape":"EoCloudCoverInput",
-          "documentation":"<p>The structure representing EoCloudCover property filter containing a lower bound and upper bound.</p>"
+          "documentation":"<p/>"
         },
         "LandsatCloudCoverLand":{
           "shape":"LandsatCloudCoverLandInput",
-          "documentation":"<p>The structure representing Land Cloud Cover property filter for Landsat collection containing a lower bound and upper bound.</p>"
+          "documentation":"<p/>"
         },
         "Platform":{
           "shape":"PlatformInput",
-          "documentation":"<p>The structure representing Platform property filter consisting of value and comparison operator.</p>"
+          "documentation":"<p/>"
         },
         "ViewOffNadir":{
           "shape":"ViewOffNadirInput",
-          "documentation":"<p>The structure representing ViewOffNadir property filter containing a lower bound and upper bound.</p>"
+          "documentation":"<p/>"
         },
         "ViewSunAzimuth":{
           "shape":"ViewSunAzimuthInput",
-          "documentation":"<p>The structure representing ViewSunAzimuth property filter containing a lower bound and upper bound.</p>"
+          "documentation":"<p/>"
         },
         "ViewSunElevation":{
           "shape":"ViewSunElevationInput",
-          "documentation":"<p>The structure representing ViewSunElevation property filter containing a lower bound and upper bound.</p>"
+          "documentation":"<p/>"
         }
       },
-      "documentation":"<p>Represents a single searchable property to search on.</p>",
+      "documentation":"<p/>",
       "union":true
     },
     "PropertyFilter":{
@@ -1952,24 +1921,24 @@
       "members":{
         "Property":{
           "shape":"Property",
-          "documentation":"<p>Represents a single property to match with when searching a raster data collection.</p>"
+          "documentation":"<p/>"
         }
       },
-      "documentation":"<p>The structure representing a single PropertyFilter.</p>"
+      "documentation":"<p/>"
     },
     "PropertyFilters":{
       "type":"structure",
       "members":{
         "LogicalOperator":{
           "shape":"LogicalOperator",
-          "documentation":"<p>The Logical Operator used to combine the Property Filters.</p>"
+          "documentation":"<p/>"
         },
         "Properties":{
           "shape":"PropertyFiltersList",
-          "documentation":"<p>A list of Property Filters.</p>"
+          "documentation":"<p/>"
         }
       },
-      "documentation":"<p>A list of PropertyFilter objects.</p>"
+      "documentation":"<p/>"
     },
     "PropertyFiltersList":{
       "type":"list",
@@ -2003,7 +1972,7 @@
         },
         "SupportedFilters":{
           "shape":"FilterList",
-          "documentation":"<p>The list of filters supported by the raster data collection.</p>"
+          "documentation":"<p/>"
         },
         "Tags":{
           "shape":"Tags",
@@ -2029,18 +1998,18 @@
         },
         "PropertyFilters":{
           "shape":"PropertyFilters",
-          "documentation":"<p>The list of Property filters used in the Raster Data Collection Query.</p>"
+          "documentation":"<p/>"
         },
         "RasterDataCollectionArn":{
-          "shape":"DataCollectionArn",
+          "shape":"String",
           "documentation":"<p>The Amazon Resource Name (ARN) of the raster data collection.</p>"
         },
         "TimeRangeFilter":{
           "shape":"TimeRangeFilterInput",
-          "documentation":"<p>The TimeRange Filter used in the RasterDataCollection Query.</p>"
+          "documentation":"<p/>"
         }
       },
-      "documentation":"<p>The input structure for Raster Data Collection Query containing the Area of Interest, TimeRange Filters, and Property Filters.</p>"
+      "documentation":"<p/>"
     },
     "RasterDataCollectionQueryOutput":{
       "type":"structure",
@@ -2052,26 +2021,26 @@
       "members":{
         "AreaOfInterest":{
           "shape":"AreaOfInterest",
-          "documentation":"<p>The Area of Interest used in the search.</p>"
+          "documentation":"<p/>"
         },
         "PropertyFilters":{
           "shape":"PropertyFilters",
-          "documentation":"<p>Property filters used in the search.</p>"
+          "documentation":"<p/>"
         },
         "RasterDataCollectionArn":{
-          "shape":"DataCollectionArn",
-          "documentation":"<p>The ARN of the Raster Data Collection against which the search is done.</p>"
+          "shape":"String",
+          "documentation":"<p/>"
         },
         "RasterDataCollectionName":{
           "shape":"String",
           "documentation":"<p>The name of the raster data collection.</p>"
         },
         "TimeRangeFilter":{
-          "shape":"TimeRangeFilterOutput",
-          "documentation":"<p>The TimeRange filter used in the search.</p>"
+          "shape":"TimeRangeFilterInput",
+          "documentation":"<p/>"
         }
       },
-      "documentation":"<p>The output structure contains the Raster Data Collection Query input along with some additional metadata.</p>"
+      "documentation":"<p/>"
     },
     "RasterDataCollectionQueryWithBandFilterInput":{
       "type":"structure",
@@ -2079,19 +2048,19 @@
       "members":{
         "AreaOfInterest":{
           "shape":"AreaOfInterest",
-          "documentation":"<p>The Area of interest to be used in the search query.</p>"
+          "documentation":"<p/>"
         },
         "BandFilter":{
           "shape":"StringListInput",
-          "documentation":"<p>The list of Bands to be displayed in the result for each item.</p>"
+          "documentation":"<p/>"
         },
         "PropertyFilters":{
           "shape":"PropertyFilters",
-          "documentation":"<p>The Property Filters used in the search query.</p>"
+          "documentation":"<p/>"
         },
         "TimeRangeFilter":{
           "shape":"TimeRangeFilterInput",
-          "documentation":"<p>The TimeRange Filter used in the search query.</p>"
+          "documentation":"<p/>"
         }
       },
       "documentation":"<p>This is a RasterDataCollectionQueryInput containing AreaOfInterest, Time Range filter and Property filters.</p>"
@@ -2106,26 +2075,29 @@
         },
         "OutputResolution":{
           "shape":"OutputResolutionResamplingInput",
-          "documentation":"<p>The structure representing output resolution (in target georeferenced units) of the result of resampling operation.</p>"
+          "documentation":"<p/>"
         },
         "TargetBands":{
           "shape":"StringListInput",
-          "documentation":"<p>Bands used in the operation. If no target bands are specified, it uses all bands available in the input.</p>"
+          "documentation":"<p/>"
         }
       },
-      "documentation":"<p>The structure representing input for resampling operation.</p>"
+      "documentation":"<p/>"
     },
     "ResourceNotFoundException":{
       "type":"structure",
-      "required":["Message"],
+      "required":[
+        "Message",
+        "ResourceId"
+      ],
       "members":{
         "Message":{"shape":"String"},
         "ResourceId":{
           "shape":"String",
-          "documentation":"<p>Identifier of the resource that was not found.</p>"
+          "documentation":"<p/>"
         }
       },
-      "documentation":"<p>The request references a resource which does not exist.</p>",
+      "documentation":"<p/>",
       "error":{
         "httpStatusCode":404,
         "senderFault":true
@@ -2141,14 +2113,14 @@
       "members":{
         "XAttributeName":{
           "shape":"String",
-          "documentation":"<p>The field name for the data that describes x-axis coordinate, eg. longitude of a point.</p>"
+          "documentation":"<p/>"
         },
         "YAttributeName":{
           "shape":"String",
-          "documentation":"<p>The field name for the data that describes y-axis coordinate, eg. latitude of a point.</p>"
+          "documentation":"<p/>"
         }
       },
-      "documentation":"<p>The input structure for Reverse Geocoding operation type.</p>"
+      "documentation":"<p/>"
     },
     "S3DataInput":{
       "type":"structure",
@@ -2158,23 +2130,19 @@
       ],
       "members":{
         "KmsKeyId":{
-          "shape":"KmsKey",
-          "documentation":"<p>The Key Management Service key ID for server-side encryption.</p>"
+          "shape":"String",
+          "documentation":"<p>The Amazon Key Management Service (KMS) key ID for server-side encryption.</p>"
         },
         "MetadataProvider":{
           "shape":"MetadataProvider",
-          "documentation":"<p>Metadata provider from whom the Amazon S3 data has been acquired.</p>"
+          "documentation":"<p/>"
         },
         "S3Uri":{
-          "shape":"S3Uri",
+          "shape":"String",
           "documentation":"<p>The URL to the Amazon S3 input.</p>"
         }
       },
       "documentation":"<p>Path to Amazon S3 storage location for input data.</p>"
-    },
-    "S3Uri":{
-      "type":"string",
-      "pattern":"^s3://([^/]+)/?(.*)$"
     },
     "SearchRasterDataCollectionInput":{
       "type":"structure",
@@ -2193,7 +2161,7 @@
         },
         "RasterDataCollectionQuery":{
           "shape":"RasterDataCollectionQueryWithBandFilterInput",
-          "documentation":"<p>RasterDataCollectionQuery consisting of <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_geospatial_AreaOfInterest.html\">AreaOfInterest(AOI)</a>, <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_geospatial_PropertyFilter.html\">PropertyFilters</a> and <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_geospatial_TimeRangeFilterInput.html\">TimeRangeFilterInput</a> used in <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_geospatial_SearchRasterDataCollection.html\">SearchRasterDataCollection</a>.</p>"
+          "documentation":"<p/>"
         }
       }
     },
@@ -2203,11 +2171,11 @@
       "members":{
         "ApproximateResultCount":{
           "shape":"Integer",
-          "documentation":"<p>Approximate number of results in the response.</p>"
+          "documentation":"<p/>"
         },
         "Items":{
           "shape":"ItemSourceList",
-          "documentation":"<p>List of items matching the Raster DataCollectionQuery.</p>"
+          "documentation":"<p/>"
         },
         "NextToken":{
           "shape":"NextToken",
@@ -2217,12 +2185,15 @@
     },
     "ServiceQuotaExceededException":{
       "type":"structure",
-      "required":["Message"],
+      "required":[
+        "Message",
+        "ResourceId"
+      ],
       "members":{
         "Message":{"shape":"String"},
         "ResourceId":{
           "shape":"String",
-          "documentation":"<p>Identifier of the resource affected.</p>"
+          "documentation":"<p/>"
         }
       },
       "documentation":"<p>You have exceeded the service quota.</p>",
@@ -2244,14 +2215,14 @@
       "members":{
         "OutputResolution":{
           "shape":"OutputResolutionStackInput",
-          "documentation":"<p>The structure representing output resolution (in target georeferenced units) of the result of stacking operation.</p>"
+          "documentation":"<p/>"
         },
         "TargetBands":{
           "shape":"StringListInput",
-          "documentation":"<p>A list of bands to be stacked in the specified order. When the parameter is not provided, all the available bands in the data collection are stacked in the alphabetical order of their asset names.</p>"
+          "documentation":"<p/>"
         }
       },
-      "documentation":"<p>The input structure for Stacking Operation.</p>"
+      "documentation":"<p/>"
     },
     "StartEarthObservationJobInput":{
       "type":"structure",
@@ -2262,12 +2233,12 @@
       ],
       "members":{
         "ClientToken":{
-          "shape":"StartEarthObservationJobInputClientTokenString",
+          "shape":"String",
           "documentation":"<p>A unique token that guarantees that the call to this API is idempotent.</p>",
           "idempotencyToken":true
         },
         "ExecutionRoleArn":{
-          "shape":"ExecutionRoleArn",
+          "shape":"String",
           "documentation":"<p>The Amazon Resource Name (ARN) of the IAM role that you specified for the job.</p>"
         },
         "InputConfig":{
@@ -2279,11 +2250,11 @@
           "documentation":"<p>An object containing information about the job configuration.</p>"
         },
         "KmsKeyId":{
-          "shape":"KmsKey",
-          "documentation":"<p>The Key Management Service key ID for server-side encryption.</p>"
+          "shape":"String",
+          "documentation":"<p>The Amazon Key Management Service (KMS) key ID for server-side encryption.</p>"
         },
         "Name":{
-          "shape":"StartEarthObservationJobInputNameString",
+          "shape":"String",
           "documentation":"<p>The name of the Earth Observation job.</p>"
         },
         "Tags":{
@@ -2291,16 +2262,6 @@
           "documentation":"<p>Each tag consists of a key and a value.</p>"
         }
       }
-    },
-    "StartEarthObservationJobInputClientTokenString":{
-      "type":"string",
-      "max":64,
-      "min":36
-    },
-    "StartEarthObservationJobInputNameString":{
-      "type":"string",
-      "max":200,
-      "min":0
     },
     "StartEarthObservationJobOutput":{
       "type":"structure",
@@ -2318,7 +2279,7 @@
           "documentation":"<p>The Amazon Resource Name (ARN) of the Earth Observation job.</p>"
         },
         "CreationTime":{
-          "shape":"SyntheticTimestamp_date_time",
+          "shape":"Timestamp",
           "documentation":"<p>The creation time.</p>"
         },
         "DurationInSeconds":{
@@ -2326,7 +2287,7 @@
           "documentation":"<p>The duration of the session, in seconds.</p>"
         },
         "ExecutionRoleArn":{
-          "shape":"ExecutionRoleArn",
+          "shape":"String",
           "documentation":"<p>The Amazon Resource Name (ARN) of the IAM role that you specified for the job.</p>"
         },
         "InputConfig":{
@@ -2338,8 +2299,8 @@
           "documentation":"<p>An object containing information about the job configuration.</p>"
         },
         "KmsKeyId":{
-          "shape":"KmsKey",
-          "documentation":"<p>The Key Management Service key ID for server-side encryption.</p>"
+          "shape":"String",
+          "documentation":"<p>The Amazon Key Management Service (KMS) key ID for server-side encryption.</p>"
         },
         "Name":{
           "shape":"String",
@@ -2365,12 +2326,12 @@
       ],
       "members":{
         "ClientToken":{
-          "shape":"StartVectorEnrichmentJobInputClientTokenString",
+          "shape":"String",
           "documentation":"<p>A unique token that guarantees that the call to this API is idempotent.</p>",
           "idempotencyToken":true
         },
         "ExecutionRoleArn":{
-          "shape":"ExecutionRoleArn",
+          "shape":"String",
           "documentation":"<p>The Amazon Resource Name (ARN) of the IAM role that you specified for the job.</p>"
         },
         "InputConfig":{
@@ -2382,11 +2343,11 @@
           "documentation":"<p>An object containing information about the job configuration.</p>"
         },
         "KmsKeyId":{
-          "shape":"KmsKey",
-          "documentation":"<p>The Key Management Service key ID for server-side encryption.</p>"
+          "shape":"String",
+          "documentation":"<p>The Amazon Key Management Service (KMS) key ID for server-side encryption.</p>"
         },
         "Name":{
-          "shape":"StartVectorEnrichmentJobInputNameString",
+          "shape":"String",
           "documentation":"<p>The name of the Vector Enrichment job.</p>"
         },
         "Tags":{
@@ -2394,16 +2355,6 @@
           "documentation":"<p>Each tag consists of a key and a value.</p>"
         }
       }
-    },
-    "StartVectorEnrichmentJobInputClientTokenString":{
-      "type":"string",
-      "max":64,
-      "min":36
-    },
-    "StartVectorEnrichmentJobInputNameString":{
-      "type":"string",
-      "max":200,
-      "min":0
     },
     "StartVectorEnrichmentJobOutput":{
       "type":"structure",
@@ -2424,7 +2375,7 @@
           "documentation":"<p>The Amazon Resource Name (ARN) of the Vector Enrichment job.</p>"
         },
         "CreationTime":{
-          "shape":"SyntheticTimestamp_date_time",
+          "shape":"Timestamp",
           "documentation":"<p>The creation time.</p>"
         },
         "DurationInSeconds":{
@@ -2432,7 +2383,7 @@
           "documentation":"<p>The duration of the Vector Enrichment job, in seconds.</p>"
         },
         "ExecutionRoleArn":{
-          "shape":"ExecutionRoleArn",
+          "shape":"String",
           "documentation":"<p>The Amazon Resource Name (ARN) of the IAM role that you specified for the job.</p>"
         },
         "InputConfig":{
@@ -2444,8 +2395,8 @@
           "documentation":"<p>An object containing information about the job configuration.</p>"
         },
         "KmsKeyId":{
-          "shape":"KmsKey",
-          "documentation":"<p>The Key Management Service key ID for server-side encryption.</p>"
+          "shape":"String",
+          "documentation":"<p>The Amazon Key Management Service (KMS) key ID for server-side encryption.</p>"
         },
         "Name":{
           "shape":"String",
@@ -2500,10 +2451,6 @@
       "type":"list",
       "member":{"shape":"String"},
       "min":1
-    },
-    "SyntheticTimestamp_date_time":{
-      "type":"timestamp",
-      "timestampFormat":"iso8601"
     },
     "TagKeyList":{
       "type":"list",
@@ -2561,18 +2508,18 @@
       "members":{
         "GroupBy":{
           "shape":"GroupBy",
-          "documentation":"<p>The input for the temporal statistics grouping by time frequency option.</p>"
+          "documentation":"<p/>"
         },
         "Statistics":{
           "shape":"TemporalStatisticsListInput",
-          "documentation":"<p>The list of the statistics method options.</p>"
+          "documentation":"<p/>"
         },
         "TargetBands":{
           "shape":"StringListInput",
-          "documentation":"<p>The list of target band names for the temporal statistic to calculate.</p>"
+          "documentation":"<p/>"
         }
       },
-      "documentation":"<p>The structure representing the configuration for Temporal Statistics operation.</p>"
+      "documentation":"<p/>"
     },
     "TemporalStatisticsListInput":{
       "type":"list",
@@ -2581,7 +2528,10 @@
     },
     "ThrottlingException":{
       "type":"structure",
-      "required":["Message"],
+      "required":[
+        "Message",
+        "ResourceId"
+      ],
       "members":{
         "Message":{"shape":"String"},
         "ResourceId":{
@@ -2613,25 +2563,6 @@
         }
       },
       "documentation":"<p>The input for the time-range filter.</p>",
-      "sensitive":true
-    },
-    "TimeRangeFilterOutput":{
-      "type":"structure",
-      "required":[
-        "EndTime",
-        "StartTime"
-      ],
-      "members":{
-        "EndTime":{
-          "shape":"SyntheticTimestamp_date_time",
-          "documentation":"<p>The ending time for the time range filter.</p>"
-        },
-        "StartTime":{
-          "shape":"SyntheticTimestamp_date_time",
-          "documentation":"<p>The starting time for the time range filter.</p>"
-        }
-      },
-      "documentation":"<p>The output structure of the time range filter.</p>",
       "sensitive":true
     },
     "Timestamp":{"type":"timestamp"},
@@ -2674,18 +2605,21 @@
       "members":{
         "Unit":{
           "shape":"Unit",
-          "documentation":"<p>The units for output resolution of the result.</p>"
+          "documentation":"<p/>"
         },
         "Value":{
           "shape":"Float",
-          "documentation":"<p>The value for output resolution of the result.</p>"
+          "documentation":"<p/>"
         }
       },
-      "documentation":"<p>The output resolution (in target georeferenced units) of the result of the operation</p>"
+      "documentation":"<p/>"
     },
     "ValidationException":{
       "type":"structure",
-      "required":["Message"],
+      "required":[
+        "Message",
+        "ResourceId"
+      ],
       "members":{
         "Message":{"shape":"String"},
         "ResourceId":{
@@ -2709,11 +2643,11 @@
       "members":{
         "MapMatchingConfig":{
           "shape":"MapMatchingConfig",
-          "documentation":"<p>The input structure for Map Matching operation type.</p>"
+          "documentation":"<p/>"
         },
         "ReverseGeocodingConfig":{
           "shape":"ReverseGeocodingConfig",
-          "documentation":"<p>The input structure for Reverse Geocoding operation type.</p>"
+          "documentation":"<p/>"
         }
       },
       "documentation":"<p>It contains configs such as ReverseGeocodingConfig and MapMatchingConfig.</p>",
@@ -2724,10 +2658,10 @@
       "members":{
         "S3Data":{
           "shape":"VectorEnrichmentJobS3Data",
-          "documentation":"<p>The input structure for the Amazon S3 data that represents the Amazon S3 location of the input data objects.</p>"
+          "documentation":"<p/>"
         }
       },
-      "documentation":"<p>The input structure for the data source that represents the storage type of the input data objects.</p>",
+      "documentation":"<p/>",
       "union":true
     },
     "VectorEnrichmentJobDocumentType":{
@@ -2764,7 +2698,7 @@
         },
         "Type":{
           "shape":"VectorEnrichmentJobExportErrorType",
-          "documentation":"<p>The output error details for an Export operation on a Vector Enrichment job.</p>"
+          "documentation":"<p/>"
         }
       },
       "documentation":"<p>VectorEnrichmentJob export error details in response from GetVectorEnrichmentJob.</p>"
@@ -2793,11 +2727,11 @@
       "members":{
         "DataSourceConfig":{
           "shape":"VectorEnrichmentJobDataSourceConfigInput",
-          "documentation":"<p>The input structure for the data source that represents the storage type of the input data objects.</p>"
+          "documentation":"<p/>"
         },
         "DocumentType":{
           "shape":"VectorEnrichmentJobDocumentType",
-          "documentation":"<p>The input structure that defines the data source file type.</p>"
+          "documentation":"<p/>"
         }
       },
       "documentation":"<p>The input structure for the InputConfig in a VectorEnrichmentJob.</p>"
@@ -2811,11 +2745,11 @@
       "required":["S3Uri"],
       "members":{
         "KmsKeyId":{
-          "shape":"KmsKey",
-          "documentation":"<p>The Key Management Service key ID for server-side encryption.</p>"
+          "shape":"String",
+          "documentation":"<p>The Amazon Key Management Service (KMS) key ID for server-side encryption.</p>"
         },
         "S3Uri":{
-          "shape":"S3Uri",
+          "shape":"String",
           "documentation":"<p>The URL to the Amazon S3 data for the Vector Enrichment job.</p>"
         }
       },
@@ -2850,14 +2784,14 @@
       "members":{
         "LowerBound":{
           "shape":"Float",
-          "documentation":"<p>The minimum value for ViewOffNadir property filter. This filters items having ViewOffNadir greater than or equal to this value. </p>"
+          "documentation":"<p/>"
         },
         "UpperBound":{
           "shape":"Float",
-          "documentation":"<p>The maximum value for ViewOffNadir property filter. This filters items having ViewOffNadir lesser than or equal to this value.</p>"
+          "documentation":"<p/>"
         }
       },
-      "documentation":"<p>The input structure for specifying ViewOffNadir property filter. ViewOffNadir refers to the angle from the sensor between nadir (straight down) and the scene center. Measured in degrees (0-90).</p>"
+      "documentation":"<p/>"
     },
     "ViewSunAzimuthInput":{
       "type":"structure",
@@ -2868,14 +2802,14 @@
       "members":{
         "LowerBound":{
           "shape":"Float",
-          "documentation":"<p>The minimum value for ViewSunAzimuth property filter. This filters items having ViewSunAzimuth greater than or equal to this value.</p>"
+          "documentation":"<p/>"
         },
         "UpperBound":{
           "shape":"Float",
-          "documentation":"<p>The maximum value for ViewSunAzimuth property filter. This filters items having ViewSunAzimuth lesser than or equal to this value.</p>"
+          "documentation":"<p/>"
         }
       },
-      "documentation":"<p>The input structure for specifying ViewSunAzimuth property filter. ViewSunAzimuth refers to the Sun azimuth angle. From the scene center point on the ground, this is the angle between truth north and the sun. Measured clockwise in degrees (0-360).</p>"
+      "documentation":"<p/>"
     },
     "ViewSunElevationInput":{
       "type":"structure",
@@ -2893,7 +2827,7 @@
           "documentation":"<p>The upper bound to view the sun elevation.</p>"
         }
       },
-      "documentation":"<p>The input structure for specifying ViewSunElevation angle property filter. </p>"
+      "documentation":"<p/>"
     },
     "ZonalStatistics":{
       "type":"string",
@@ -2915,22 +2849,18 @@
       "members":{
         "Statistics":{
           "shape":"ZonalStatisticsListInput",
-          "documentation":"<p>List of zonal statistics to compute.</p>"
+          "documentation":"<p/>"
         },
         "TargetBands":{
           "shape":"StringListInput",
-          "documentation":"<p>Bands used in the operation. If no target bands are specified, it uses all bands available input.</p>"
+          "documentation":"<p/>"
         },
         "ZoneS3Path":{
-          "shape":"S3Uri",
-          "documentation":"<p>The Amazon S3 path pointing to the GeoJSON containing the polygonal zones.</p>"
-        },
-        "ZoneS3PathKmsKeyId":{
-          "shape":"KmsKey",
-          "documentation":"<p>The Amazon Resource Name (ARN) or an ID of a Amazon Web Services Key Management Service (Amazon Web Services KMS) key that Amazon SageMaker uses to decrypt your output artifacts with Amazon S3 server-side encryption. The SageMaker execution role must have <code>kms:GenerateDataKey</code> permission.</p> <p>The <code>KmsKeyId</code> can be any of the following formats:</p> <ul> <li> <p>// KMS Key ID</p> <p> <code>\"1234abcd-12ab-34cd-56ef-1234567890ab\"</code> </p> </li> <li> <p>// Amazon Resource Name (ARN) of a KMS Key</p> <p> <code>\"arn:aws:kms:&lt;region&gt;:&lt;account&gt;:key/&lt;key-id-12ab-34cd-56ef-1234567890ab&gt;\"</code> </p> </li> </ul> <p>For more information about key identifiers, see <a href=\"https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html#key-id-key-id\">Key identifiers (KeyID)</a> in the Amazon Web Services Key Management Service (Amazon Web Services KMS) documentation.</p>"
+          "shape":"String",
+          "documentation":"<p/>"
         }
       },
-      "documentation":"<p>The structure representing input configuration of ZonalStatistics operation.</p>"
+      "documentation":"<p/>"
     },
     "ZonalStatisticsListInput":{
       "type":"list",

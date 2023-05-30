@@ -21,7 +21,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -40,8 +39,6 @@ import software.amazon.awssdk.utils.Validate;
 @SdkProtectedApi
 @ThreadSafe
 public final class LruCache<K, V>  {
-
-    private static final Logger log = Logger.loggerFor(LruCache.class);
 
     private static final int DEFAULT_SIZE = 100;
 
@@ -149,19 +146,8 @@ public final class LruCache<K, V>  {
      */
     private void evict() {
         leastRecentlyUsed.isEvicted(true);
-        closeEvictedResourcesIfPossible(leastRecentlyUsed.value);
         cache.remove(leastRecentlyUsed.key());
         removeFromQueue(leastRecentlyUsed);
-    }
-
-    private void closeEvictedResourcesIfPossible(V value) {
-        if (value instanceof AutoCloseable) {
-            try {
-                ((AutoCloseable) value).close();
-            } catch (Exception e) {
-                log.warn(() -> "Attempted to close instance that was evicted by cache, but got exception: " + e.getMessage());
-            }
-        }
     }
 
     public int size() {

@@ -194,7 +194,6 @@ abstract class AddShapes {
         memberModel.setUnionEnumTypeName(namingStrategy.getUnionEnumTypeName(memberModel));
         memberModel.setContextParam(c2jMemberDefinition.getContextParam());
         memberModel.setRequired(isRequiredMember(c2jMemberName, parentShape));
-        memberModel.setSynthetic(shape.isSynthetic());
 
 
         // Pass the xmlNameSpace from the member reference

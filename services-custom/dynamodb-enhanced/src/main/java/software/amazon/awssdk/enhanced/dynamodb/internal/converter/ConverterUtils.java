@@ -53,19 +53,14 @@ public class ConverterUtils {
     }
 
     public static String padLeft(int paddingAmount, int valueToPad) {
-        String result;
         String value = Integer.toString(valueToPad);
-        if (value.length() == paddingAmount) {
-            result = value;
-        } else {
-            int padding = paddingAmount - value.length();
-            StringBuilder sb = new StringBuilder(paddingAmount);
-            for (int i = 0; i < padding; i++) {
-                sb.append('0');
-            }
-            result = sb.append(value).toString();
+        int padding = paddingAmount - value.length();
+        StringBuilder result = new StringBuilder(paddingAmount);
+        for (int i = 0; i < padding; i++) {
+            result.append('0');
         }
-        return result;
+        result.append(value);
+        return result.toString();
     }
 
     public static String[] splitNumberOnDecimal(String valueToSplit) {

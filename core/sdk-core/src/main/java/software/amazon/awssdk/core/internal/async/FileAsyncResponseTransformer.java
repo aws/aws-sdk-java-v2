@@ -24,14 +24,9 @@ import java.nio.channels.AsynchronousFileChannel;
 import java.nio.channels.CompletionHandler;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
-import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import org.reactivestreams.Subscriber;
@@ -83,24 +78,17 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
     }
 
     private AsynchronousFileChannel createChannel(Path path) throws IOException {
-        Set<OpenOption> options = new HashSet<>();
         switch (configuration.fileWriteOption()) {
             case CREATE_OR_APPEND_TO_EXISTING:
-                Collections.addAll(options, StandardOpenOption.WRITE, StandardOpenOption.CREATE);
-                break;
+                return AsynchronousFileChannel.open(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE);
             case CREATE_OR_REPLACE_EXISTING:
-                Collections.addAll(options, StandardOpenOption.WRITE, StandardOpenOption.CREATE,
-                                   StandardOpenOption.TRUNCATE_EXISTING);
-                break;
+                return AsynchronousFileChannel.open(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE,
+                                                    StandardOpenOption.TRUNCATE_EXISTING);
             case CREATE_NEW:
-                Collections.addAll(options, StandardOpenOption.WRITE, StandardOpenOption.CREATE_NEW);
-                break;
+                return AsynchronousFileChannel.open(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE_NEW);
             default:
                 throw new IllegalArgumentException("Unsupported file write option: " + configuration.fileWriteOption());
         }
-
-        ExecutorService executorService = configuration.executorService().orElse(null);
-        return AsynchronousFileChannel.open(path, options, executorService);
     }
 
     @Override

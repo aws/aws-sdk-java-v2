@@ -15,6 +15,10 @@
 
 package software.amazon.awssdk.protocol.tests.timeout.async;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
@@ -32,10 +36,7 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.exception.ApiCallTimeoutException;
 import software.amazon.awssdk.core.retry.RetryPolicy;
-import software.amazon.awssdk.http.HttpExecuteResponse;
-import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.protocol.tests.timeout.BaseApiCallTimeoutTest;
-import software.amazon.awssdk.protocol.tests.util.MockAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;
 import software.amazon.awssdk.services.protocolrestjson.model.AllTypesResponse;
@@ -103,34 +104,13 @@ public class AsyncApiCallTimeoutTest extends BaseApiCallTimeoutTest {
 
     @Test
     public void increaseTimeoutInRequestOverrideConfig_shouldTakePrecedence() {
-        MockAsyncHttpClient mockClient = new MockAsyncHttpClient();
-        ProtocolRestJsonAsyncClient asyncClient = createClientWithMockClient(mockClient);
-        mockClient.stubNextResponse(mockResponse(200));
-        mockClient.withFixedDelay(DELAY_AFTER_TIMEOUT);
-
+        stubFor(post(anyUrl())
+                    .willReturn(aResponse().withStatus(200).withBody("{}").withFixedDelay(DELAY_AFTER_TIMEOUT)));
         CompletableFuture<AllTypesResponse> allTypesResponseCompletableFuture =
-            asyncClient.allTypes(b -> b.overrideConfiguration(c -> c.apiCallTimeout(Duration.ofMillis(DELAY_AFTER_TIMEOUT + 1000))));
+            client.allTypes(b -> b.overrideConfiguration(c -> c.apiCallTimeout(Duration.ofMillis(DELAY_AFTER_TIMEOUT + 1000))));
 
         AllTypesResponse response = allTypesResponseCompletableFuture.join();
         assertThat(response).isNotNull();
-    }
-
-    public ProtocolRestJsonAsyncClient createClientWithMockClient(MockAsyncHttpClient mockClient) {
-        return ProtocolRestJsonAsyncClient.builder()
-                                          .region(Region.US_WEST_1)
-                                          .httpClient(mockClient)
-                                          .credentialsProvider(() -> AwsBasicCredentials.create("akid", "skid"))
-                                          .overrideConfiguration(b -> b.apiCallTimeout(Duration.ofMillis(TIMEOUT))
-                                                                       .retryPolicy(RetryPolicy.none()))
-                                          .build();
-    }
-
-    private HttpExecuteResponse mockResponse(int statusCode) {
-        return HttpExecuteResponse.builder()
-                                  .response(SdkHttpResponse.builder()
-                                                           .statusCode(statusCode)
-                                                           .build())
-                                  .build();
     }
 
 }

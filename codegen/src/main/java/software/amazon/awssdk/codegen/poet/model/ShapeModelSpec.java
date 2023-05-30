@@ -97,7 +97,6 @@ class ShapeModelSpec {
         shapeModel.getNonStreamingMembers().stream()
                   // Exceptions can be members of event stream shapes, need to filter those out of the models
                   .filter(m -> m.getShape() == null || m.getShape().getShapeType() != ShapeType.Exception)
-                  .filter(m -> !m.isSynthetic())
                   .forEach(m -> {
                       FieldSpec field = typeProvider.asField(m, modifiers);
                       ClassName sdkFieldType = ClassName.get(SdkField.class);

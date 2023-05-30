@@ -55,13 +55,9 @@ final class DefaultQueryToJsonCompatibleAsyncClient implements QueryToJsonCompat
 
     private final SdkClientConfiguration clientConfiguration;
 
-    private final QueryToJsonCompatibleServiceClientConfiguration serviceClientConfiguration;
-
-    protected DefaultQueryToJsonCompatibleAsyncClient(QueryToJsonCompatibleServiceClientConfiguration serviceClientConfiguration,
-                                                      SdkClientConfiguration clientConfiguration) {
+    protected DefaultQueryToJsonCompatibleAsyncClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
-        this.serviceClientConfiguration = serviceClientConfiguration;
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
     }
 
@@ -126,11 +122,6 @@ final class DefaultQueryToJsonCompatibleAsyncClient implements QueryToJsonCompat
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
-    }
-
-    @Override
-    public final QueryToJsonCompatibleServiceClientConfiguration serviceClientConfiguration() {
-        return this.serviceClientConfiguration;
     }
 
     @Override

@@ -27,7 +27,6 @@ import java.io.UncheckedIOException;
 import java.net.URL;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
@@ -201,10 +200,5 @@ public class EndpointRulesSpecUtils {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-    }
-
-    public boolean isDeclaredParam(String paramName) {
-        Map<String, ParameterModel> parameters = intermediateModel.getEndpointRuleSetModel().getParameters();
-        return parameters.containsKey(paramName);
     }
 }

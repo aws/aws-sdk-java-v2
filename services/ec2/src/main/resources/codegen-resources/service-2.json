@@ -120,7 +120,7 @@
       },
       "input":{"shape":"AllocateIpamPoolCidrRequest"},
       "output":{"shape":"AllocateIpamPoolCidrResult"},
-      "documentation":"<p>Allocate a CIDR from an IPAM pool. In IPAM, an allocation is a CIDR assignment from an IPAM pool to another IPAM pool or to a resource. For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/ipam/allocate-cidrs-ipam.html\">Allocate CIDRs</a> in the <i>Amazon VPC IPAM User Guide</i>.</p> <note> <p>This action creates an allocation with strong consistency. The returned CIDR will not overlap with any other allocations from the same pool.</p> </note>"
+      "documentation":"<p>Allocate a CIDR from an IPAM pool. In IPAM, an allocation is a CIDR assignment from an IPAM pool to another IPAM pool or to a resource. For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/ipam/allocate-cidrs-ipam.html\">Allocate CIDRs</a> in the <i>Amazon VPC IPAM User Guide</i>. </p>"
     },
     "ApplySecurityGroupsToClientVpnTargetNetwork":{
       "name":"ApplySecurityGroupsToClientVpnTargetNetwork",
@@ -466,7 +466,7 @@
       },
       "input":{"shape":"CancelImageLaunchPermissionRequest"},
       "output":{"shape":"CancelImageLaunchPermissionResult"},
-      "documentation":"<p>Removes your Amazon Web Services account from the launch permissions for the specified AMI. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/cancel-sharing-an-AMI.html\"> Cancel having an AMI shared with your Amazon Web Services account</a> in the <i>Amazon EC2 User Guide</i>.</p>"
+      "documentation":"<p>Removes your Amazon Web Services account from the launch permissions for the specified AMI. For more information, see <a href=\"https://docs.aws.amazon.com/\">Cancel having an AMI shared with your Amazon Web Services account</a> in the <i>Amazon EC2 User Guide</i>.</p>"
     },
     "CancelImportTask":{
       "name":"CancelImportTask",
@@ -496,7 +496,7 @@
       },
       "input":{"shape":"CancelSpotFleetRequestsRequest"},
       "output":{"shape":"CancelSpotFleetRequestsResponse"},
-      "documentation":"<p>Cancels the specified Spot Fleet requests.</p> <p>After you cancel a Spot Fleet request, the Spot Fleet launches no new instances.</p> <p>You must also specify whether a canceled Spot Fleet request should terminate its instances. If you choose to terminate the instances, the Spot Fleet request enters the <code>cancelled_terminating</code> state. Otherwise, the Spot Fleet request enters the <code>cancelled_running</code> state and the instances continue to run until they are interrupted or you terminate them manually.</p>"
+      "documentation":"<p>Cancels the specified Spot Fleet requests.</p> <p>After you cancel a Spot Fleet request, the Spot Fleet launches no new Spot Instances. You must specify whether the Spot Fleet should also terminate its Spot Instances. If you terminate the instances, the Spot Fleet request enters the <code>cancelled_terminating</code> state. Otherwise, the Spot Fleet request enters the <code>cancelled_running</code> state and the instances continue to run until they are interrupted or you terminate them manually.</p>"
     },
     "CancelSpotInstanceRequests":{
       "name":"CancelSpotInstanceRequests",
@@ -905,7 +905,7 @@
       },
       "input":{"shape":"CreateNetworkInsightsPathRequest"},
       "output":{"shape":"CreateNetworkInsightsPathResult"},
-      "documentation":"<p>Creates a path to analyze for reachability.</p> <p>Reachability Analyzer enables you to analyze and debug network reachability between two resources in your virtual private cloud (VPC). For more information, see the <a href=\"https://docs.aws.amazon.com/vpc/latest/reachability/\">Reachability Analyzer Guide</a>.</p>"
+      "documentation":"<p>Creates a path to analyze for reachability.</p> <p>Reachability Analyzer enables you to analyze and debug network reachability between two resources in your virtual private cloud (VPC). For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/reachability/\">What is Reachability Analyzer</a>.</p>"
     },
     "CreateNetworkInterface":{
       "name":"CreateNetworkInterface",
@@ -1015,7 +1015,7 @@
       },
       "input":{"shape":"CreateSnapshotRequest"},
       "output":{"shape":"Snapshot"},
-      "documentation":"<p>Creates a snapshot of an EBS volume and stores it in Amazon S3. You can use snapshots for backups, to make copies of EBS volumes, and to save data before shutting down an instance.</p> <p>You can create snapshots of volumes in a Region and volumes on an Outpost. If you create a snapshot of a volume in a Region, the snapshot must be stored in the same Region as the volume. If you create a snapshot of a volume on an Outpost, the snapshot can be stored on the same Outpost as the volume, or in the Region for that Outpost.</p> <p>When a snapshot is created, any Amazon Web Services Marketplace product codes that are associated with the source volume are propagated to the snapshot.</p> <p>You can take a snapshot of an attached volume that is in use. However, snapshots only capture data that has been written to your Amazon EBS volume at the time the snapshot command is issued; this might exclude any data that has been cached by any applications or the operating system. If you can pause any file systems on the volume long enough to take a snapshot, your snapshot should be complete. However, if you cannot pause all file writes to the volume, you should unmount the volume from within the instance, issue the snapshot command, and then remount the volume to ensure a consistent and complete snapshot. You may remount and use your volume while the snapshot status is <code>pending</code>.</p> <p>When you create a snapshot for an EBS volume that serves as a root device, we recommend that you stop the instance before taking the snapshot.</p> <p>Snapshots that are taken from encrypted volumes are automatically encrypted. Volumes that are created from encrypted snapshots are also automatically encrypted. Your encrypted volumes and any associated snapshots always remain protected.</p> <p>You can tag your snapshots during creation. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html\">Tag your Amazon EC2 resources</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AmazonEBS.html\">Amazon Elastic Block Store</a> and <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html\">Amazon EBS encryption</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p>"
+      "documentation":"<p>Creates a snapshot of an EBS volume and stores it in Amazon S3. You can use snapshots for backups, to make copies of EBS volumes, and to save data before shutting down an instance.</p> <p>You can create snapshots of volumes in a Region and volumes on an Outpost. If you create a snapshot of a volume in a Region, the snapshot must be stored in the same Region as the volume. If you create a snapshot of a volume on an Outpost, the snapshot can be stored on the same Outpost as the volume, or in the Region for that Outpost.</p> <p>When a snapshot is created, any Amazon Web Services Marketplace product codes that are associated with the source volume are propagated to the snapshot.</p> <p>You can take a snapshot of an attached volume that is in use. However, snapshots only capture data that has been written to your Amazon EBS volume at the time the snapshot command is issued; this might exclude any data that has been cached by any applications or the operating system. If you can pause any file systems on the volume long enough to take a snapshot, your snapshot should be complete. However, if you cannot pause all file writes to the volume, you should unmount the volume from within the instance, issue the snapshot command, and then remount the volume to ensure a consistent and complete snapshot. You may remount and use your volume while the snapshot status is <code>pending</code>.</p> <p>To create a snapshot for Amazon EBS volumes that serve as root devices, you should stop the instance before taking the snapshot.</p> <p>Snapshots that are taken from encrypted volumes are automatically encrypted. Volumes that are created from encrypted snapshots are also automatically encrypted. Your encrypted volumes and any associated snapshots always remain protected.</p> <p>You can tag your snapshots during creation. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html\">Tag your Amazon EC2 resources</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AmazonEBS.html\">Amazon Elastic Block Store</a> and <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html\">Amazon EBS encryption</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p>"
     },
     "CreateSnapshots":{
       "name":"CreateSnapshots",
@@ -1441,7 +1441,7 @@
       },
       "input":{"shape":"DeleteFleetsRequest"},
       "output":{"shape":"DeleteFleetsResult"},
-      "documentation":"<p>Deletes the specified EC2 Fleets.</p> <p>After you delete an EC2 Fleet, it launches no new instances.</p> <p>You must also specify whether a deleted EC2 Fleet should terminate its instances. If you choose to terminate the instances, the EC2 Fleet enters the <code>deleted_terminating</code> state. Otherwise, the EC2 Fleet enters the <code>deleted_running</code> state, and the instances continue to run until they are interrupted or you terminate them manually.</p> <p>For <code>instant</code> fleets, EC2 Fleet must terminate the instances when the fleet is deleted. A deleted <code>instant</code> fleet with running instances is not supported.</p> <p class=\"title\"> <b>Restrictions</b> </p> <ul> <li> <p>You can delete up to 25 <code>instant</code> fleets in a single request. If you exceed this number, no <code>instant</code> fleets are deleted and an error is returned. There is no restriction on the number of fleets of type <code>maintain</code> or <code>request</code> that can be deleted in a single request.</p> </li> <li> <p>Up to 1000 instances can be terminated in a single request to delete <code>instant</code> fleets.</p> </li> </ul> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/manage-ec2-fleet.html#delete-fleet\">Delete an EC2 Fleet</a> in the <i>Amazon EC2 User Guide</i>.</p>"
+      "documentation":"<p>Deletes the specified EC2 Fleet.</p> <p>After you delete an EC2 Fleet, it launches no new instances.</p> <p>You must specify whether a deleted EC2 Fleet should also terminate its instances. If you choose to terminate the instances, the EC2 Fleet enters the <code>deleted_terminating</code> state. Otherwise, the EC2 Fleet enters the <code>deleted_running</code> state, and the instances continue to run until they are interrupted or you terminate them manually.</p> <p>For <code>instant</code> fleets, EC2 Fleet must terminate the instances when the fleet is deleted. A deleted <code>instant</code> fleet with running instances is not supported.</p> <p class=\"title\"> <b>Restrictions</b> </p> <ul> <li> <p>You can delete up to 25 <code>instant</code> fleets in a single request. If you exceed this number, no <code>instant</code> fleets are deleted and an error is returned. There is no restriction on the number of fleets of type <code>maintain</code> or <code>request</code> that can be deleted in a single request.</p> </li> <li> <p>Up to 1000 instances can be terminated in a single request to delete <code>instant</code> fleets.</p> </li> </ul> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/manage-ec2-fleet.html#delete-fleet\">Delete an EC2 Fleet</a> in the <i>Amazon EC2 User Guide</i>.</p>"
     },
     "DeleteFlowLogs":{
       "name":"DeleteFlowLogs",
@@ -3112,7 +3112,7 @@
       },
       "input":{"shape":"DescribeSnapshotsRequest"},
       "output":{"shape":"DescribeSnapshotsResult"},
-      "documentation":"<p>Describes the specified EBS snapshots available to you or all of the EBS snapshots available to you.</p> <p>The snapshots available to you include public snapshots, private snapshots that you own, and private snapshots owned by other Amazon Web Services accounts for which you have explicit create volume permissions.</p> <p>The create volume permissions fall into the following categories:</p> <ul> <li> <p> <i>public</i>: The owner of the snapshot granted create volume permissions for the snapshot to the <code>all</code> group. All Amazon Web Services accounts have create volume permissions for these snapshots.</p> </li> <li> <p> <i>explicit</i>: The owner of the snapshot granted create volume permissions to a specific Amazon Web Services account.</p> </li> <li> <p> <i>implicit</i>: An Amazon Web Services account has implicit create volume permissions for all snapshots it owns.</p> </li> </ul> <p>The list of snapshots returned can be filtered by specifying snapshot IDs, snapshot owners, or Amazon Web Services accounts with create volume permissions. If no options are specified, Amazon EC2 returns all snapshots for which you have create volume permissions.</p> <p>If you specify one or more snapshot IDs, only snapshots that have the specified IDs are returned. If you specify an invalid snapshot ID, an error is returned. If you specify a snapshot ID for which you do not have access, it is not included in the returned results.</p> <p>If you specify one or more snapshot owners using the <code>OwnerIds</code> option, only snapshots from the specified owners and for which you have access are returned. The results can include the Amazon Web Services account IDs of the specified owners, <code>amazon</code> for snapshots owned by Amazon, or <code>self</code> for snapshots that you own.</p> <p>If you specify a list of restorable users, only snapshots with create snapshot permissions for those users are returned. You can specify Amazon Web Services account IDs (if you own the snapshots), <code>self</code> for snapshots for which you own or have explicit permissions, or <code>all</code> for public snapshots.</p> <p>If you are describing a long list of snapshots, we recommend that you paginate the output to make the list more manageable. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p> <p>To get the state of fast snapshot restores for a snapshot, use <a>DescribeFastSnapshotRestores</a>.</p> <p>For more information about EBS snapshots, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSSnapshots.html\">Amazon EBS snapshots</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p>"
+      "documentation":"<p>Describes the specified EBS snapshots available to you or all of the EBS snapshots available to you.</p> <p>The snapshots available to you include public snapshots, private snapshots that you own, and private snapshots owned by other Amazon Web Services accounts for which you have explicit create volume permissions.</p> <p>The create volume permissions fall into the following categories:</p> <ul> <li> <p> <i>public</i>: The owner of the snapshot granted create volume permissions for the snapshot to the <code>all</code> group. All Amazon Web Services accounts have create volume permissions for these snapshots.</p> </li> <li> <p> <i>explicit</i>: The owner of the snapshot granted create volume permissions to a specific Amazon Web Services account.</p> </li> <li> <p> <i>implicit</i>: An Amazon Web Services account has implicit create volume permissions for all snapshots it owns.</p> </li> </ul> <p>The list of snapshots returned can be filtered by specifying snapshot IDs, snapshot owners, or Amazon Web Services accounts with create volume permissions. If no options are specified, Amazon EC2 returns all snapshots for which you have create volume permissions.</p> <p>If you specify one or more snapshot IDs, only snapshots that have the specified IDs are returned. If you specify an invalid snapshot ID, an error is returned. If you specify a snapshot ID for which you do not have access, it is not included in the returned results.</p> <p>If you specify one or more snapshot owners using the <code>OwnerIds</code> option, only snapshots from the specified owners and for which you have access are returned. The results can include the Amazon Web Services account IDs of the specified owners, <code>amazon</code> for snapshots owned by Amazon, or <code>self</code> for snapshots that you own.</p> <p>If you specify a list of restorable users, only snapshots with create snapshot permissions for those users are returned. You can specify Amazon Web Services account IDs (if you own the snapshots), <code>self</code> for snapshots for which you own or have explicit permissions, or <code>all</code> for public snapshots.</p> <p>If you are describing a long list of snapshots, we recommend that you paginate the output to make the list more manageable. The <code>MaxResults</code> parameter sets the maximum number of results returned in a single page. If the list of results exceeds your <code>MaxResults</code> value, then that number of results is returned along with a <code>NextToken</code> value that can be passed to a subsequent <code>DescribeSnapshots</code> request to retrieve the remaining results.</p> <p>To get the state of fast snapshot restores for a snapshot, use <a>DescribeFastSnapshotRestores</a>.</p> <p>For more information about EBS snapshots, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSSnapshots.html\">Amazon EBS snapshots</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p>"
     },
     "DescribeSpotDatafeedSubscription":{
       "name":"DescribeSpotDatafeedSubscription",
@@ -3162,7 +3162,7 @@
       },
       "input":{"shape":"DescribeSpotInstanceRequestsRequest"},
       "output":{"shape":"DescribeSpotInstanceRequestsResult"},
-      "documentation":"<p>Describes the specified Spot Instance requests.</p> <p>You can use <code>DescribeSpotInstanceRequests</code> to find a running Spot Instance by examining the response. If the status of the Spot Instance is <code>fulfilled</code>, the instance ID appears in the response and contains the identifier of the instance. Alternatively, you can use <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeInstances\">DescribeInstances</a> with a filter to look for instances where the instance lifecycle is <code>spot</code>.</p> <p>We recommend that you set <code>MaxResults</code> to a value between 5 and 1000 to limit the number of items returned. This paginates the output, which makes the list more manageable and returns the items faster. If the list of items exceeds your <code>MaxResults</code> value, then that number of items is returned along with a <code>NextToken</code> value that can be passed to a subsequent <code>DescribeSpotInstanceRequests</code> request to retrieve the remaining items.</p> <p>Spot Instance requests are deleted four hours after they are canceled and their instances are terminated.</p>"
+      "documentation":"<p>Describes the specified Spot Instance requests.</p> <p>You can use <code>DescribeSpotInstanceRequests</code> to find a running Spot Instance by examining the response. If the status of the Spot Instance is <code>fulfilled</code>, the instance ID appears in the response and contains the identifier of the instance. Alternatively, you can use <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeInstances\">DescribeInstances</a> with a filter to look for instances where the instance lifecycle is <code>spot</code>.</p> <p>We recommend that you set <code>MaxResults</code> to a value between 5 and 1000 to limit the number of results returned. This paginates the output, which makes the list more manageable and returns the results faster. If the list of results exceeds your <code>MaxResults</code> value, then that number of results is returned along with a <code>NextToken</code> value that can be passed to a subsequent <code>DescribeSpotInstanceRequests</code> request to retrieve the remaining results.</p> <p>Spot Instance requests are deleted four hours after they are canceled and their instances are terminated.</p>"
     },
     "DescribeSpotPriceHistory":{
       "name":"DescribeSpotPriceHistory",
@@ -3432,7 +3432,7 @@
       },
       "input":{"shape":"DescribeVolumesRequest"},
       "output":{"shape":"DescribeVolumesResult"},
-      "documentation":"<p>Describes the specified EBS volumes or all of your EBS volumes.</p> <p>If you are describing a long list of volumes, we recommend that you paginate the output to make the list more manageable. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p> <p>For more information about EBS volumes, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSVolumes.html\">Amazon EBS volumes</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p>"
+      "documentation":"<p>Describes the specified EBS volumes or all of your EBS volumes.</p> <p>If you are describing a long list of volumes, we recommend that you paginate the output to make the list more manageable. The <code>MaxResults</code> parameter sets the maximum number of results returned in a single page. If the list of results exceeds your <code>MaxResults</code> value, then that number of results is returned along with a <code>NextToken</code> value that can be passed to a subsequent <code>DescribeVolumes</code> request to retrieve the remaining results.</p> <p>For more information about EBS volumes, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSVolumes.html\">Amazon EBS volumes</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p>"
     },
     "DescribeVolumesModifications":{
       "name":"DescribeVolumesModifications",
@@ -4254,7 +4254,7 @@
       },
       "input":{"shape":"GetIpamPoolAllocationsRequest"},
       "output":{"shape":"GetIpamPoolAllocationsResult"},
-      "documentation":"<p>Get a list of all the CIDR allocations in an IPAM pool.</p> <note> <p>If you use this action after <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_AllocateIpamPoolCidr.html\">AllocateIpamPoolCidr</a> or <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_ReleaseIpamPoolAllocation.html\">ReleaseIpamPoolAllocation</a>, note that all EC2 API actions follow an <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/query-api-troubleshooting.html#eventual-consistency\">eventual consistency</a> model.</p> </note>"
+      "documentation":"<p>Get a list of all the CIDR allocations in an IPAM pool.</p>"
     },
     "GetIpamPoolCidrs":{
       "name":"GetIpamPoolCidrs",
@@ -4486,16 +4486,6 @@
       "output":{"shape":"GetVpnConnectionDeviceTypesResult"},
       "documentation":"<p>Obtain a list of customer gateway devices for which sample configuration files can be provided. The request has no additional parameters. You can also see the list of device types with sample configuration files available under <a href=\"https://docs.aws.amazon.com/vpn/latest/s2svpn/your-cgw.html\">Your customer gateway device</a> in the <i>Amazon Web Services Site-to-Site VPN User Guide</i>.</p>"
     },
-    "GetVpnTunnelReplacementStatus":{
-      "name":"GetVpnTunnelReplacementStatus",
-      "http":{
-        "method":"POST",
-        "requestUri":"/"
-      },
-      "input":{"shape":"GetVpnTunnelReplacementStatusRequest"},
-      "output":{"shape":"GetVpnTunnelReplacementStatusResult"},
-      "documentation":"<p>Get details of available tunnel endpoint maintenance.</p>"
-    },
     "ImportClientVpnClientCertificateRevocationList":{
       "name":"ImportClientVpnClientCertificateRevocationList",
       "http":{
@@ -4514,7 +4504,7 @@
       },
       "input":{"shape":"ImportImageRequest"},
       "output":{"shape":"ImportImageResult"},
-      "documentation":"<note> <p>To import your virtual machines (VMs) with a console-based experience, you can use the <i>Import virtual machine images to Amazon Web Services</i> template in the <a href=\"https://console.aws.amazon.com/migrationhub/orchestrator\">Migration Hub Orchestrator console</a>. For more information, see the <a href=\"https://docs.aws.amazon.com/migrationhub-orchestrator/latest/userguide/import-vm-images.html\"> <i>Migration Hub Orchestrator User Guide</i> </a>.</p> </note> <p>Import single or multi-volume disk images or EBS snapshots into an Amazon Machine Image (AMI).</p> <important> <p>Amazon Web Services VM Import/Export strongly recommends specifying a value for either the <code>--license-type</code> or <code>--usage-operation</code> parameter when you create a new VM Import task. This ensures your operating system is licensed appropriately and your billing is optimized.</p> </important> <p>For more information, see <a href=\"https://docs.aws.amazon.com/vm-import/latest/userguide/vmimport-image-import.html\">Importing a VM as an image using VM Import/Export</a> in the <i>VM Import/Export User Guide</i>.</p>"
+      "documentation":"<p>Import single or multi-volume disk images or EBS snapshots into an Amazon Machine Image (AMI).</p> <important> <p>Amazon Web Services VM Import/Export strongly recommends specifying a value for either the <code>--license-type</code> or <code>--usage-operation</code> parameter when you create a new VM Import task. This ensures your operating system is licensed appropriately and your billing is optimized.</p> </important> <p>For more information, see <a href=\"https://docs.aws.amazon.com/vm-import/latest/userguide/vmimport-image-import.html\">Importing a VM as an image using VM Import/Export</a> in the <i>VM Import/Export User Guide</i>.</p>"
     },
     "ImportInstance":{
       "name":"ImportInstance",
@@ -4701,7 +4691,7 @@
         "requestUri":"/"
       },
       "input":{"shape":"ModifyImageAttributeRequest"},
-      "documentation":"<p>Modifies the specified attribute of the specified AMI. You can specify only one attribute at a time.</p> <p>To specify the attribute, you can use the <code>Attribute</code> parameter, or one of the following parameters: <code>Description</code>, <code>ImdsSupport</code>, or <code>LaunchPermission</code>.</p> <p>Images with an Amazon Web Services Marketplace product code cannot be made public.</p> <p>To enable the SriovNetSupport enhanced networking attribute of an image, enable SriovNetSupport on an instance and create an AMI from the instance.</p>"
+      "documentation":"<p>Modifies the specified attribute of the specified AMI. You can specify only one attribute at a time. You can use the <code>Attribute</code> parameter to specify the attribute or one of the following parameters: <code>Description</code> or <code>LaunchPermission</code>.</p> <p>Images with an Amazon Web Services Marketplace product code cannot be made public.</p> <p>To enable the SriovNetSupport enhanced networking attribute of an image, enable SriovNetSupport on an instance and create an AMI from the instance.</p>"
     },
     "ModifyInstanceAttribute":{
       "name":"ModifyInstanceAttribute",
@@ -5155,7 +5145,7 @@
       },
       "input":{"shape":"ModifyVpcPeeringConnectionOptionsRequest"},
       "output":{"shape":"ModifyVpcPeeringConnectionOptionsResult"},
-      "documentation":"<note> <p>We are retiring EC2-Classic. We recommend that you migrate from EC2-Classic to a VPC. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/vpc-migrate.html\">Migrate from EC2-Classic to a VPC</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p> </note> <p>Modifies the VPC peering connection options on one side of a VPC peering connection. You can do the following:</p> <ul> <li> <p>Enable/disable communication over the peering connection between an EC2-Classic instance that's linked to your VPC (using ClassicLink) and instances in the peer VPC.</p> </li> <li> <p>Enable/disable communication over the peering connection between instances in your VPC and an EC2-Classic instance that's linked to the peer VPC.</p> </li> <li> <p>Enable/disable the ability to resolve public DNS hostnames to private IP addresses when queried from instances in the peer VPC.</p> </li> </ul> <p>If the peered VPCs are in the same Amazon Web Services account, you can enable DNS resolution for queries from the local VPC. This ensures that queries from the local VPC resolve to private IP addresses in the peer VPC. This option is not available if the peered VPCs are in different Amazon Web Services accounts or different Regions. For peered VPCs in different Amazon Web Services accounts, each Amazon Web Services account owner must initiate a separate request to modify the peering connection options. For inter-region peering connections, you must use the Region for the requester VPC to modify the requester VPC peering options and the Region for the accepter VPC to modify the accepter VPC peering options. To verify which VPCs are the accepter and the requester for a VPC peering connection, use the <a>DescribeVpcPeeringConnections</a> command.</p>"
+      "documentation":"<note> <p>We are retiring EC2-Classic. We recommend that you migrate from EC2-Classic to a VPC. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/vpc-migrate.html\">Migrate from EC2-Classic to a VPC</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p> </note> <p>Modifies the VPC peering connection options on one side of a VPC peering connection. You can do the following:</p> <ul> <li> <p>Enable/disable communication over the peering connection between an EC2-Classic instance that's linked to your VPC (using ClassicLink) and instances in the peer VPC.</p> </li> <li> <p>Enable/disable communication over the peering connection between instances in your VPC and an EC2-Classic instance that's linked to the peer VPC.</p> </li> <li> <p>Enable/disable the ability to resolve public DNS hostnames to private IP addresses when queried from instances in the peer VPC.</p> </li> </ul> <p>If the peered VPCs are in the same Amazon Web Services account, you can enable DNS resolution for queries from the local VPC. This ensures that queries from the local VPC resolve to private IP addresses in the peer VPC. This option is not available if the peered VPCs are in different different Amazon Web Services accounts or different Regions. For peered VPCs in different Amazon Web Services accounts, each Amazon Web Services account owner must initiate a separate request to modify the peering connection options. For inter-region peering connections, you must use the Region for the requester VPC to modify the requester VPC peering options and the Region for the accepter VPC to modify the accepter VPC peering options. To verify which VPCs are the accepter and the requester for a VPC peering connection, use the <a>DescribeVpcPeeringConnections</a> command.</p>"
     },
     "ModifyVpcTenancy":{
       "name":"ModifyVpcTenancy",
@@ -5423,7 +5413,7 @@
       },
       "input":{"shape":"ReleaseIpamPoolAllocationRequest"},
       "output":{"shape":"ReleaseIpamPoolAllocationResult"},
-      "documentation":"<p>Release an allocation within an IPAM pool. You can only use this action to release manual allocations. To remove an allocation for a resource without deleting the resource, set its monitored state to false using <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_ModifyIpamResourceCidr.html\">ModifyIpamResourceCidr</a>. For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/ipam/release-pool-alloc-ipam.html\">Release an allocation</a> in the <i>Amazon VPC IPAM User Guide</i>. </p> <note> <p>All EC2 API actions follow an <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/query-api-troubleshooting.html#eventual-consistency\">eventual consistency</a> model.</p> </note>"
+      "documentation":"<p>Release an allocation within an IPAM pool. You can only use this action to release manual allocations. To remove an allocation for a resource without deleting the resource, set its monitored state to false using <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_ModifyIpamResourceCidr.html\">ModifyIpamResourceCidr</a>. For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/ipam/release-pool-alloc-ipam.html\">Release an allocation</a> in the <i>Amazon VPC IPAM User Guide</i>. </p>"
     },
     "ReplaceIamInstanceProfileAssociation":{
       "name":"ReplaceIamInstanceProfileAssociation",
@@ -5482,16 +5472,6 @@
       "input":{"shape":"ReplaceTransitGatewayRouteRequest"},
       "output":{"shape":"ReplaceTransitGatewayRouteResult"},
       "documentation":"<p>Replaces the specified route in the specified transit gateway route table.</p>"
-    },
-    "ReplaceVpnTunnel":{
-      "name":"ReplaceVpnTunnel",
-      "http":{
-        "method":"POST",
-        "requestUri":"/"
-      },
-      "input":{"shape":"ReplaceVpnTunnelRequest"},
-      "output":{"shape":"ReplaceVpnTunnelResult"},
-      "documentation":"<p>Trigger replacement of specified VPN tunnel.</p>"
     },
     "ReportInstanceStatus":{
       "name":"ReportInstanceStatus",
@@ -5824,7 +5804,7 @@
       },
       "input":{"shape":"UnassignPrivateNatGatewayAddressRequest"},
       "output":{"shape":"UnassignPrivateNatGatewayAddressResult"},
-      "documentation":"<p>Unassigns secondary private IPv4 addresses from a private NAT gateway. You cannot unassign your primary private IP. For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html#nat-gateway-edit-secondary\">Edit secondary IP address associations</a> in the <i>Amazon Virtual Private Cloud User Guide</i>.</p> <p>While unassigning is in progress, you cannot assign/unassign additional IP addresses while the connections are being drained. You are, however, allowed to delete the NAT gateway.</p> <p>A private IP address will only be released at the end of MaxDrainDurationSeconds. The private IP addresses stay associated and support the existing connections but do not support any new connections (new connections are distributed across the remaining assigned private IP address). After the existing connections drain out, the private IP addresses get released. </p> <p/> <p/>"
+      "documentation":"<p>Unassigns secondary private NAT gateway IPv4 addresses from a private NAT gateway. You cannot unassign your primary private IP. For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html#nat-gateway-edit-secondary\">Edit secondary IP address associations</a> in the <i>Amazon Virtual Private Cloud User Guide</i>.</p> <p>While unassigning is in progress, you cannot assign/unassign additional IP addresses while the connections are being drained. You are, however, allowed to delete the NAT gateway.</p> <p>A private IP address will only be released at the end of MaxDrainDurationSeconds. The private IP addresses stay associated and support the existing connections but do not support any new connections (new connections are distributed across the remaining assigned private IP address). After the existing connections drain out, the private IP addresses get released. </p> <p/> <p/>"
     },
     "UnmonitorInstances":{
       "name":"UnmonitorInstances",
@@ -6437,46 +6417,16 @@
       "members":{
         "AdditionalDetailType":{
           "shape":"String",
-          "documentation":"<p>The additional detail code.</p>",
+          "documentation":"<p>The information type.</p>",
           "locationName":"additionalDetailType"
         },
         "Component":{
           "shape":"AnalysisComponent",
           "documentation":"<p>The path component.</p>",
           "locationName":"component"
-        },
-        "VpcEndpointService":{
-          "shape":"AnalysisComponent",
-          "documentation":"<p>The VPC endpoint service.</p>",
-          "locationName":"vpcEndpointService"
-        },
-        "RuleOptions":{
-          "shape":"RuleOptionList",
-          "documentation":"<p>The rule options.</p>",
-          "locationName":"ruleOptionSet"
-        },
-        "RuleGroupTypePairs":{
-          "shape":"RuleGroupTypePairList",
-          "documentation":"<p>The rule group type.</p>",
-          "locationName":"ruleGroupTypePairSet"
-        },
-        "RuleGroupRuleOptionsPairs":{
-          "shape":"RuleGroupRuleOptionsPairList",
-          "documentation":"<p>The rule options.</p>",
-          "locationName":"ruleGroupRuleOptionsPairSet"
-        },
-        "ServiceName":{
-          "shape":"String",
-          "documentation":"<p>The name of the VPC endpoint service.</p>",
-          "locationName":"serviceName"
-        },
-        "LoadBalancers":{
-          "shape":"AnalysisComponentList",
-          "documentation":"<p>The load balancers.</p>",
-          "locationName":"loadBalancerSet"
         }
       },
-      "documentation":"<p>Describes an additional detail for a path analysis. For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/reachability/additional-detail-codes.html\">Reachability Analyzer additional detail codes</a>.</p>"
+      "documentation":"<p>Describes an additional detail for a path analysis.</p>"
     },
     "AdditionalDetailList":{
       "type":"list",
@@ -6827,10 +6777,6 @@
         "OutpostArn":{
           "shape":"String",
           "documentation":"<p>The Amazon Resource Name (ARN) of the Amazon Web Services Outpost on which to allocate the Dedicated Host.</p>"
-        },
-        "HostMaintenance":{
-          "shape":"HostMaintenance",
-          "documentation":"<p>Indicates whether to enable or disable host maintenance for the Dedicated Host. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/dedicated-hosts-maintenance.html\">Host maintenance</a> in the <i>Amazon EC2 User Guide</i>.</p>"
         }
       }
     },
@@ -7212,21 +7158,6 @@
           "shape":"String",
           "documentation":"<p>The state. The following are the possible values:</p> <ul> <li> <p>active</p> </li> <li> <p>blackhole</p> </li> </ul>",
           "locationName":"state"
-        },
-        "CarrierGatewayId":{
-          "shape":"String",
-          "documentation":"<p>The ID of a carrier gateway.</p>",
-          "locationName":"carrierGatewayId"
-        },
-        "CoreNetworkArn":{
-          "shape":"ResourceArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of a core network.</p>",
-          "locationName":"coreNetworkArn"
-        },
-        "LocalGatewayId":{
-          "shape":"String",
-          "documentation":"<p>The ID of a local gateway.</p>",
-          "locationName":"localGatewayId"
         }
       },
       "documentation":"<p>Describes a route table route.</p>"
@@ -7536,7 +7467,7 @@
           "documentation":"<p>The ID of the instance. The instance must have exactly one attached network interface. For EC2-VPC, you can specify either the instance ID or the network interface ID, but not both. For EC2-Classic, you must specify an instance ID and the instance must be in the running state.</p>"
         },
         "PublicIp":{
-          "shape":"EipAllocationPublicIp",
+          "shape":"String",
           "documentation":"<p>[EC2-Classic] The Elastic IP address to associate with the instance. This is required for EC2-Classic.</p>"
         },
         "AllowReassociation":{
@@ -8848,7 +8779,6 @@
         "locationName":"item"
       }
     },
-    "AvailabilityZoneName":{"type":"string"},
     "AvailabilityZoneOptInStatus":{
       "type":"string",
       "enum":[
@@ -9033,8 +8963,7 @@
       "type":"string",
       "enum":[
         "legacy-bios",
-        "uefi",
-        "uefi-preferred"
+        "uefi"
       ]
     },
     "BoxedDouble":{"type":"double"},
@@ -9498,7 +9427,7 @@
         },
         "TerminateInstances":{
           "shape":"Boolean",
-          "documentation":"<p>Indicates whether to terminate the associated instances when the Spot Fleet request is canceled. The default is to terminate the instances.</p> <p>To let the instances continue to run after the Spot Fleet request is canceled, specify <code>no-terminate-instances</code>.</p>",
+          "documentation":"<p>Indicates whether to terminate instances for a Spot Fleet request if it is canceled successfully.</p>",
           "locationName":"terminateInstances"
         }
       },
@@ -11856,7 +11785,10 @@
     },
     "CreateCustomerGatewayRequest":{
       "type":"structure",
-      "required":["Type"],
+      "required":[
+        "BgpAsn",
+        "Type"
+      ],
       "members":{
         "BgpAsn":{
           "shape":"Integer",
@@ -13210,25 +13142,26 @@
       "type":"structure",
       "required":[
         "Source",
+        "Destination",
         "Protocol",
         "ClientToken"
       ],
       "members":{
         "SourceIp":{
           "shape":"IpAddress",
-          "documentation":"<p>The IP address of the source.</p>"
+          "documentation":"<p>The IP address of the Amazon Web Services resource that is the source of the path.</p>"
         },
         "DestinationIp":{
           "shape":"IpAddress",
-          "documentation":"<p>The IP address of the destination.</p>"
+          "documentation":"<p>The IP address of the Amazon Web Services resource that is the destination of the path.</p>"
         },
         "Source":{
           "shape":"NetworkInsightsResourceId",
-          "documentation":"<p>The ID or ARN of the source. If the resource is in another account, you must specify an ARN.</p>"
+          "documentation":"<p>The Amazon Web Services resource that is the source of the path.</p>"
         },
         "Destination":{
           "shape":"NetworkInsightsResourceId",
-          "documentation":"<p>The ID or ARN of the destination. If the resource is in another account, you must specify an ARN.</p>"
+          "documentation":"<p>The Amazon Web Services resource that is the destination of the path.</p>"
         },
         "Protocol":{
           "shape":"Protocol",
@@ -13251,14 +13184,6 @@
           "shape":"String",
           "documentation":"<p>Unique, case-sensitive identifier that you provide to ensure the idempotency of the request. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Run_Instance_Idempotency.html\">How to ensure idempotency</a>.</p>",
           "idempotencyToken":true
-        },
-        "FilterAtSource":{
-          "shape":"PathRequestFilter",
-          "documentation":"<p>Scopes the analysis to network paths that match specific filters at the source. If you specify this parameter, you can't specify the parameters for the source IP address or the destination port.</p>"
-        },
-        "FilterAtDestination":{
-          "shape":"PathRequestFilter",
-          "documentation":"<p>Scopes the analysis to network paths that match specific filters at the destination. If you specify this parameter, you can't specify the parameter for the destination IP address.</p>"
         }
       }
     },
@@ -13737,7 +13662,7 @@
       "members":{
         "Description":{
           "shape":"String",
-          "documentation":"<p>A description for the security group.</p> <p>Constraints: Up to 255 characters in length</p> <p>Constraints for EC2-Classic: ASCII characters</p> <p>Constraints for EC2-VPC: a-z, A-Z, 0-9, spaces, and ._-:/()#,@[]+=&amp;;{}!$*</p>",
+          "documentation":"<p>A description for the security group. This is informational only.</p> <p>Constraints: Up to 255 characters in length</p> <p>Constraints for EC2-Classic: ASCII characters</p> <p>Constraints for EC2-VPC: a-z, A-Z, 0-9, spaces, and ._-:/()#,@[]+=&amp;;{}!$*</p>",
           "locationName":"GroupDescription"
         },
         "GroupName":{
@@ -15092,7 +15017,7 @@
       "required":["AvailabilityZone"],
       "members":{
         "AvailabilityZone":{
-          "shape":"AvailabilityZoneName",
+          "shape":"String",
           "documentation":"<p>The Availability Zone in which to create the volume.</p>"
         },
         "Encrypted":{
@@ -16062,7 +15987,7 @@
         },
         "TerminateInstances":{
           "shape":"Boolean",
-          "documentation":"<p>Indicates whether to terminate the associated instances when the EC2 Fleet is deleted. The default is to terminate the instances.</p> <p>To let the instances continue to run after the EC2 Fleet is deleted, specify <code>no-terminate-instances</code>. Supported only for fleets of type <code>maintain</code> and <code>request</code>.</p> <p>For <code>instant</code> fleets, you cannot specify <code>NoTerminateInstances</code>. A deleted <code>instant</code> fleet with running instances is not supported.</p>"
+          "documentation":"<p>Indicates whether to terminate the instances when the EC2 Fleet is deleted. The default is to terminate the instances.</p> <p>To let the instances continue to run after the EC2 Fleet is deleted, specify <code>NoTerminateInstances</code>. Supported only for fleets of type <code>maintain</code> and <code>request</code>.</p> <p>For <code>instant</code> fleets, you cannot specify <code>NoTerminateInstances</code>. A deleted <code>instant</code> fleet with running instances is not supported.</p>"
         }
       }
     },
@@ -17752,7 +17677,7 @@
         },
         "Cidr":{
           "shape":"String",
-          "documentation":"<p>The CIDR you want to deprovision from the pool. Enter the CIDR you want to deprovision with a netmask of <code>/32</code>. You must rerun this command for each IP address in the CIDR range. If your CIDR is a <code>/24</code>, you will have to run this command to deprovision each of the 256 IP addresses in the <code>/24</code> CIDR.</p>"
+          "documentation":"<p>The CIDR you want to deprovision from the pool.</p>"
         }
       }
     },
@@ -18066,7 +17991,7 @@
       "members":{
         "Filters":{
           "shape":"FilterList",
-          "documentation":"<p>The filters.</p> <ul> <li> <p> <code>group-name</code> - For Availability Zones, use the Region name. For Local Zones, use the name of the group associated with the Local Zone (for example, <code>us-west-2-lax-1</code>) For Wavelength Zones, use the name of the group associated with the Wavelength Zone (for example, <code>us-east-1-wl1-bos-wlz-1</code>).</p> </li> <li> <p> <code>message</code> - The Zone message.</p> </li> <li> <p> <code>opt-in-status</code> - The opt-in status (<code>opted-in</code> | <code>not-opted-in</code> | <code>opt-in-not-required</code>).</p> </li> <li> <p> <code>parent-zoneID</code> - The ID of the zone that handles some of the Local Zone and Wavelength Zone control plane operations, such as API calls.</p> </li> <li> <p> <code>parent-zoneName</code> - The ID of the zone that handles some of the Local Zone and Wavelength Zone control plane operations, such as API calls.</p> </li> <li> <p> <code>region-name</code> - The name of the Region for the Zone (for example, <code>us-east-1</code>).</p> </li> <li> <p> <code>state</code> - The state of the Availability Zone, the Local Zone, or the Wavelength Zone (<code>available</code>).</p> </li> <li> <p> <code>zone-id</code> - The ID of the Availability Zone (for example, <code>use1-az1</code>), the Local Zone (for example, <code>usw2-lax1-az1</code>), or the Wavelength Zone (for example, <code>us-east-1-wl1-bos-wlz-1</code>).</p> </li> <li> <p> <code>zone-name</code> - The name of the Availability Zone (for example, <code>us-east-1a</code>), the Local Zone (for example, <code>us-west-2-lax-1a</code>), or the Wavelength Zone (for example, <code>us-east-1-wl1-bos-wlz-1</code>).</p> </li> <li> <p> <code>zone-type</code> - The type of zone (<code>availability-zone</code> | <code>local-zone</code> | <code>wavelength-zone</code>).</p> </li> </ul>",
+          "documentation":"<p>The filters.</p> <ul> <li> <p> <code>group-name</code> - For Availability Zones, use the Region name. For Local Zones, use the name of the group associated with the Local Zone (for example, <code>us-west-2-lax-1</code>) For Wavelength Zones, use the name of the group associated with the Wavelength Zone (for example, <code>us-east-1-wl1-bos-wlz-1</code>).</p> </li> <li> <p> <code>message</code> - The Zone message.</p> </li> <li> <p> <code>opt-in-status</code> - The opt-in status (<code>opted-in</code>, and <code>not-opted-in</code> | <code>opt-in-not-required</code>).</p> </li> <li> <p> <code>parent-zoneID</code> - The ID of the zone that handles some of the Local Zone and Wavelength Zone control plane operations, such as API calls.</p> </li> <li> <p> <code>parent-zoneName</code> - The ID of the zone that handles some of the Local Zone and Wavelength Zone control plane operations, such as API calls.</p> </li> <li> <p> <code>region-name</code> - The name of the Region for the Zone (for example, <code>us-east-1</code>).</p> </li> <li> <p> <code>state</code> - The state of the Availability Zone, the Local Zone, or the Wavelength Zone (<code>available</code>).</p> </li> <li> <p> <code>zone-id</code> - The ID of the Availability Zone (for example, <code>use1-az1</code>), the Local Zone (for example, <code>usw2-lax1-az1</code>), or the Wavelength Zone (for example, <code>us-east-1-wl1-bos-wlz-1</code>).</p> </li> <li> <p> <code>zone-type</code> - The type of zone, for example, <code>local-zone</code>.</p> </li> <li> <p> <code>zone-name</code> - The name of the Availability Zone (for example, <code>us-east-1a</code>), the Local Zone (for example, <code>us-west-2-lax-1a</code>), or the Wavelength Zone (for example, <code>us-east-1-wl1-bos-wlz-1</code>).</p> </li> <li> <p> <code>zone-type</code> - The type of zone, for example, <code>local-zone</code>.</p> </li> </ul>",
           "locationName":"Filter"
         },
         "ZoneNames":{
@@ -18366,12 +18291,12 @@
         },
         "MaxResults":{
           "shape":"DescribeClassicLinkInstancesMaxResults",
-          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p> <p>Constraint: If the value is greater than 1000, we return only 1000 items.</p>",
+          "documentation":"<p>The maximum number of results to return with a single call. To retrieve the remaining results, make another call with the returned <code>nextToken</code> value.</p> <p>Constraint: If the value is greater than 1000, we return only 1000 items.</p>",
           "locationName":"maxResults"
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token returned from a previous paginated request. Pagination continues from the end of the items returned by the previous request.</p>",
+          "documentation":"<p>The token for the next page of results.</p>",
           "locationName":"nextToken"
         }
       }
@@ -18386,7 +18311,7 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "documentation":"<p>The token to use to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>",
           "locationName":"nextToken"
         }
       }
@@ -18761,11 +18686,11 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token returned from a previous paginated request. Pagination continues from the end of the items returned by the previous request.</p>"
+          "documentation":"<p>The token for the next page of results.</p>"
         },
         "MaxResults":{
           "shape":"DescribeDhcpOptionsMaxResults",
-          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>"
+          "documentation":"<p>The maximum number of results to return with a single call. To retrieve the remaining results, make another call with the returned <code>nextToken</code> value.</p>"
         }
       }
     },
@@ -18779,7 +18704,7 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "documentation":"<p>The token to use to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>",
           "locationName":"nextToken"
         }
       }
@@ -18803,11 +18728,11 @@
         },
         "MaxResults":{
           "shape":"DescribeEgressOnlyInternetGatewaysMaxResults",
-          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>"
+          "documentation":"<p>The maximum number of results to return with a single call. To retrieve the remaining results, make another call with the returned <code>nextToken</code> value.</p>"
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token returned from a previous paginated request. Pagination continues from the end of the items returned by the previous request.</p>"
+          "documentation":"<p>The token for the next page of results.</p>"
         },
         "Filters":{
           "shape":"FilterList",
@@ -18826,7 +18751,7 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "documentation":"<p>The token to use to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>",
           "locationName":"nextToken"
         }
       }
@@ -18970,11 +18895,11 @@
         },
         "MaxResults":{
           "shape":"DescribeFastLaunchImagesRequestMaxResults",
-          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>"
+          "documentation":"<p>The maximum number of results to return in a single call. To retrieve the remaining results, make another request with the returned NextToken value. If this parameter is not specified, then all results are returned.</p>"
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>The token returned from a previous paginated request. Pagination continues from the end of the items returned by the previous request.</p>"
+          "documentation":"<p>The token for the next set of results.</p>"
         },
         "DryRun":{
           "shape":"Boolean",
@@ -18997,7 +18922,7 @@
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "documentation":"<p>The token to use for the next set of results. This value is null when there are no more results to return.</p>",
           "locationName":"nextToken"
         }
       }
@@ -19027,7 +18952,7 @@
         },
         "MaxParallelLaunches":{
           "shape":"Integer",
-          "documentation":"<p>The maximum number of instances that Amazon EC2 can launch at the same time to create pre-provisioned snapshots for Windows faster launching.</p>",
+          "documentation":"<p>The maximum number of parallel instances that are launched for creating resources.</p>",
           "locationName":"maxParallelLaunches"
         },
         "OwnerId":{
@@ -19143,11 +19068,11 @@
         },
         "MaxResults":{
           "shape":"DescribeFastSnapshotRestoresMaxResults",
-          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>"
+          "documentation":"<p>The maximum number of results to return with a single call. To retrieve the remaining results, make another call with the returned <code>nextToken</code> value.</p>"
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>The token returned from a previous paginated request. Pagination continues from the end of the items returned by the previous request.</p>"
+          "documentation":"<p>The token for the next page of results.</p>"
         },
         "DryRun":{
           "shape":"Boolean",
@@ -19165,7 +19090,7 @@
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "documentation":"<p>The token to use to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>",
           "locationName":"nextToken"
         }
       }
@@ -19213,11 +19138,11 @@
         },
         "MaxResults":{
           "shape":"Integer",
-          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>"
+          "documentation":"<p>The maximum number of results to return in a single call. Specify a value between 1 and 1000. The default value is 1000. To retrieve the remaining results, make another call with the returned <code>NextToken</code> value.</p>"
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token returned from a previous paginated request. Pagination continues from the end of the items returned by the previous request.</p>"
+          "documentation":"<p>The token for the next set of results.</p>"
         },
         "FleetId":{
           "shape":"FleetId",
@@ -19239,12 +19164,12 @@
         },
         "LastEvaluatedTime":{
           "shape":"DateTime",
-          "documentation":"<p>The last date and time for the events, in UTC format (for example, <i>YYYY</i>-<i>MM</i>-<i>DD</i>T<i>HH</i>:<i>MM</i>:<i>SS</i>Z). All records up to this time were retrieved.</p> <p>If <code>nextToken</code> indicates that there are more items, this value is not present.</p>",
+          "documentation":"<p>The last date and time for the events, in UTC format (for example, <i>YYYY</i>-<i>MM</i>-<i>DD</i>T<i>HH</i>:<i>MM</i>:<i>SS</i>Z). All records up to this time were retrieved.</p> <p>If <code>nextToken</code> indicates that there are more results, this value is not present.</p>",
           "locationName":"lastEvaluatedTime"
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "documentation":"<p>The token for the next set of results.</p>",
           "locationName":"nextToken"
         },
         "FleetId":{
@@ -19269,11 +19194,11 @@
         },
         "MaxResults":{
           "shape":"Integer",
-          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>"
+          "documentation":"<p>The maximum number of results to return in a single call. Specify a value between 1 and 1000. The default value is 1000. To retrieve the remaining results, make another call with the returned <code>NextToken</code> value.</p>"
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token returned from a previous paginated request. Pagination continues from the end of the items returned by the previous request.</p>"
+          "documentation":"<p>The token for the next set of results.</p>"
         },
         "FleetId":{
           "shape":"FleetId",
@@ -19296,7 +19221,7 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "documentation":"<p>The token for the next set of results.</p>",
           "locationName":"nextToken"
         },
         "FleetId":{
@@ -19360,11 +19285,11 @@
         },
         "MaxResults":{
           "shape":"Integer",
-          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>"
+          "documentation":"<p>The maximum number of results to return in a single call. Specify a value between 1 and 1000. The default value is 1000. To retrieve the remaining results, make another call with the returned <code>NextToken</code> value.</p>"
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token returned from a previous paginated request. Pagination continues from the end of the items returned by the previous request.</p>"
+          "documentation":"<p>The token for the next set of results.</p>"
         },
         "FleetIds":{
           "shape":"FleetIdSet",
@@ -19383,7 +19308,7 @@
       "members":{
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "documentation":"<p>The token for the next set of results.</p>",
           "locationName":"nextToken"
         },
         "Fleets":{
@@ -19411,11 +19336,11 @@
         },
         "MaxResults":{
           "shape":"Integer",
-          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>"
+          "documentation":"<p>The maximum number of results to return with a single call. To retrieve the remaining results, make another call with the returned <code>nextToken</code> value.</p>"
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token to request the next page of items. Pagination continues from the end of the items returned by the previous request.</p>"
+          "documentation":"<p>The token for the next page of results.</p>"
         }
       }
     },
@@ -19429,7 +19354,7 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token to request the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "documentation":"<p>The token to use to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>",
           "locationName":"nextToken"
         }
       }
@@ -19662,11 +19587,11 @@
         },
         "MaxResults":{
           "shape":"DescribeIamInstanceProfileAssociationsMaxResults",
-          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>"
+          "documentation":"<p>The maximum number of results to return in a single call. To retrieve the remaining results, make another call with the returned <code>NextToken</code> value.</p>"
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>The token returned from a previous paginated request. Pagination continues from the end of the items returned by the previous request.</p>"
+          "documentation":"<p>The token to request the next page of results.</p>"
         }
       }
     },
@@ -19680,7 +19605,7 @@
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "documentation":"<p>The token to use to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>",
           "locationName":"nextToken"
         }
       }
@@ -19787,11 +19712,11 @@
         },
         "MaxResults":{
           "shape":"Integer",
-          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>"
+          "documentation":"<p>The maximum number of results to return with a single call. To retrieve the remaining results, make another call with the returned <code>nextToken</code> value.</p>"
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token returned from a previous paginated request. Pagination continues from the end of the items returned by the previous request.</p>"
+          "documentation":"<p>The token for the next page of results.</p>"
         }
       }
     },
@@ -19805,7 +19730,7 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "documentation":"<p>The token to use to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>",
           "locationName":"nextToken"
         }
       }
@@ -19940,11 +19865,11 @@
         },
         "MaxResults":{
           "shape":"DescribeInstanceCreditSpecificationsMaxResults",
-          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p> <p>You cannot specify this parameter and the instance IDs parameter in the same call.</p>"
+          "documentation":"<p>The maximum number of results to return in a single call. To retrieve the remaining results, make another call with the returned <code>NextToken</code> value. This value can be between 5 and 1000. You cannot specify this parameter and the instance IDs parameter in the same call.</p>"
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token returned from a previous paginated request. Pagination continues from the end of the items returned by the previous request.</p>"
+          "documentation":"<p>The token to retrieve the next page of results.</p>"
         }
       }
     },
@@ -19958,7 +19883,7 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "documentation":"<p>The token to use to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>",
           "locationName":"nextToken"
         }
       }
@@ -20040,11 +19965,11 @@
         },
         "MaxResults":{
           "shape":"Integer",
-          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p> <p>You cannot specify this parameter and the instance IDs parameter in the same request.</p>"
+          "documentation":"<p>The maximum number of results to return in a single call. To retrieve the remaining results, make another call with the returned <code>NextToken</code> value. This value can be between 5 and 1000. You cannot specify this parameter and the instance IDs parameter in the same call.</p>"
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token returned from a previous paginated request. Pagination continues from the end of the items returned by the previous request.</p>"
+          "documentation":"<p>The token to retrieve the next page of results.</p>"
         },
         "DryRun":{
           "shape":"Boolean",
@@ -20068,7 +19993,7 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "documentation":"<p>The token to use to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>",
           "locationName":"nextToken"
         }
       }
@@ -20091,11 +20016,11 @@
         },
         "MaxResults":{
           "shape":"DITOMaxResults",
-          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>"
+          "documentation":"<p>The maximum number of results to return for the request in a single page. The remaining results can be seen by sending another request with the next token value.</p>"
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>The token returned from a previous paginated request. Pagination continues from the end of the items returned by the previous request.</p>"
+          "documentation":"<p>The token to retrieve the next page of results.</p>"
         }
       }
     },
@@ -20109,7 +20034,7 @@
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "documentation":"<p>The token to use to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>",
           "locationName":"nextToken"
         }
       }
@@ -20133,11 +20058,11 @@
         },
         "MaxResults":{
           "shape":"DITMaxResults",
-          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>"
+          "documentation":"<p>The maximum number of results to return for the request in a single page. The remaining results can be seen by sending another request with the next token value.</p>"
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>The token returned from a previous paginated request. Pagination continues from the end of the items returned by the previous request.</p>"
+          "documentation":"<p>The token to retrieve the next page of results.</p>"
         }
       }
     },
@@ -20151,7 +20076,7 @@
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "documentation":"<p>The token to use to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>",
           "locationName":"nextToken"
         }
       }
@@ -20176,12 +20101,12 @@
         },
         "MaxResults":{
           "shape":"Integer",
-          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p> <p>You cannot specify this parameter and the instance IDs parameter in the same request.</p>",
+          "documentation":"<p>The maximum number of results to return in a single call. To retrieve the remaining results, make another call with the returned <code>NextToken</code> value. This value can be between 5 and 1000. You cannot specify this parameter and the instance IDs parameter in the same call.</p>",
           "locationName":"maxResults"
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token returned from a previous paginated request. Pagination continues from the end of the items returned by the previous request.</p>",
+          "documentation":"<p>The token to request the next page of results.</p>",
           "locationName":"nextToken"
         }
       }
@@ -20196,7 +20121,7 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "documentation":"<p>The token to use to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>",
           "locationName":"nextToken"
         }
       }
@@ -20226,11 +20151,11 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token returned from a previous paginated request. Pagination continues from the end of the items returned by the previous request.</p>"
+          "documentation":"<p>The token for the next page of results.</p>"
         },
         "MaxResults":{
           "shape":"DescribeInternetGatewaysMaxResults",
-          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>"
+          "documentation":"<p>The maximum number of results to return with a single call. To retrieve the remaining results, make another call with the returned <code>nextToken</code> value.</p>"
         }
       }
     },
@@ -20244,7 +20169,7 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "documentation":"<p>The token to use to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>",
           "locationName":"nextToken"
         }
       }
@@ -21016,7 +20941,7 @@
         },
         "MaxResults":{
           "shape":"DescribeNatGatewaysMaxResults",
-          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>"
+          "documentation":"<p>The maximum number of results to return with a single call. To retrieve the remaining results, make another call with the returned <code>nextToken</code> value.</p>"
         },
         "NatGatewayIds":{
           "shape":"NatGatewayIdStringList",
@@ -21025,7 +20950,7 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token returned from a previous paginated request. Pagination continues from the end of the items returned by the previous request.</p>"
+          "documentation":"<p>The token for the next page of results.</p>"
         }
       }
     },
@@ -21039,7 +20964,7 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "documentation":"<p>The token to use to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>",
           "locationName":"nextToken"
         }
       }
@@ -21069,11 +20994,11 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token returned from a previous paginated request. Pagination continues from the end of the items returned by the previous request.</p>"
+          "documentation":"<p>The token for the next page of results.</p>"
         },
         "MaxResults":{
           "shape":"DescribeNetworkAclsMaxResults",
-          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>"
+          "documentation":"<p>The maximum number of results to return with a single call. To retrieve the remaining results, make another call with the returned <code>nextToken</code> value.</p>"
         }
       }
     },
@@ -21087,7 +21012,7 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "documentation":"<p>The token to use to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>",
           "locationName":"nextToken"
         }
       }
@@ -21252,7 +21177,7 @@
         },
         "Filters":{
           "shape":"FilterList",
-          "documentation":"<p>The filters. The following are the possible values:</p> <ul> <li> <p>destination - The ID of the resource.</p> </li> <li> <p>filter-at-source.source-address - The source IPv4 address at the source.</p> </li> <li> <p>filter-at-source.source-port-range - The source port range at the source.</p> </li> <li> <p>filter-at-source.destination-address - The destination IPv4 address at the source.</p> </li> <li> <p>filter-at-source.destination-port-range - The destination port range at the source.</p> </li> <li> <p>filter-at-destination.source-address - The source IPv4 address at the destination.</p> </li> <li> <p>filter-at-destination.source-port-range - The source port range at the destination.</p> </li> <li> <p>filter-at-destination.destination-address - The destination IPv4 address at the destination.</p> </li> <li> <p>filter-at-destination.destination-port-range - The destination port range at the destination.</p> </li> <li> <p>protocol - The protocol.</p> </li> <li> <p>source - The ID of the resource.</p> </li> </ul>",
+          "documentation":"<p>The filters. The following are the possible values:</p> <ul> <li> <p>destination - The ID of the resource.</p> </li> <li> <p>destination-port - The destination port.</p> </li> <li> <p>protocol - The protocol.</p> </li> <li> <p>source - The ID of the resource.</p> </li> </ul>",
           "locationName":"Filter"
         },
         "MaxResults":{
@@ -21357,11 +21282,11 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token returned from a previous paginated request. Pagination continues from the end of the items returned by the previous request.</p>"
+          "documentation":"<p>The token to request the next page of results.</p>"
         },
         "MaxResults":{
           "shape":"DescribeNetworkInterfacePermissionsMaxResults",
-          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. If this parameter is not specified, up to 50 results are returned by default. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>"
+          "documentation":"<p>The maximum number of results to return in a single call. To retrieve the remaining results, make another call with the returned <code>NextToken</code> value. If this parameter is not specified, up to 50 results are returned by default.</p>"
         }
       },
       "documentation":"<p>Contains the parameters for DescribeNetworkInterfacePermissions.</p>"
@@ -21376,7 +21301,7 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "documentation":"<p>The token to use to retrieve the next page of results.</p>",
           "locationName":"nextToken"
         }
       },
@@ -21407,11 +21332,11 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token returned from a previous paginated request. Pagination continues from the end of the items returned by the previous request.</p>"
+          "documentation":"<p>The token to retrieve the next page of results.</p>"
         },
         "MaxResults":{
           "shape":"DescribeNetworkInterfacesMaxResults",
-          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. You cannot specify this parameter and the network interface IDs parameter in the same request. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>"
+          "documentation":"<p>The maximum number of items to return for this request. The request returns a token that you can specify in a subsequent call to get the next set of results. You cannot specify this parameter and the network interface IDs parameter in the same request.</p>"
         }
       },
       "documentation":"<p>Contains the parameters for DescribeNetworkInterfaces.</p>"
@@ -21426,10 +21351,11 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "documentation":"<p>The token to use to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>",
           "locationName":"nextToken"
         }
-      }
+      },
+      "documentation":"<p>Contains the output of DescribeNetworkInterfaces.</p>"
     },
     "DescribePlacementGroupsRequest":{
       "type":"structure",
@@ -21642,11 +21568,11 @@
         },
         "MaxResults":{
           "shape":"DescribeReplaceRootVolumeTasksMaxResults",
-          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>"
+          "documentation":"<p>The maximum number of results to return with a single call. To retrieve the remaining results, make another call with the returned <code>nextToken</code> value.</p>"
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>The token returned from a previous paginated request. Pagination continues from the end of the items returned by the previous request.</p>"
+          "documentation":"<p>The token for the next page of results.</p>"
         },
         "DryRun":{
           "shape":"Boolean",
@@ -21664,7 +21590,7 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "documentation":"<p>The token to use to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>",
           "locationName":"nextToken"
         }
       }
@@ -21893,11 +21819,11 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token returned from a previous paginated request. Pagination continues from the end of the items returned by the previous request.</p>"
+          "documentation":"<p>The token for the next page of results.</p>"
         },
         "MaxResults":{
           "shape":"DescribeRouteTablesMaxResults",
-          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>"
+          "documentation":"<p>The maximum number of results to return with a single call. To retrieve the remaining results, make another call with the returned <code>nextToken</code> value.</p>"
         }
       }
     },
@@ -21911,7 +21837,7 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "documentation":"<p>The token to use to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>",
           "locationName":"nextToken"
         }
       },
@@ -22077,11 +22003,11 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token returned from a previous paginated request. Pagination continues from the end of the items returned by the previous request.</p>"
+          "documentation":"<p>The token for the next page of results.</p>"
         },
         "MaxResults":{
           "shape":"DescribeSecurityGroupRulesMaxResults",
-          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. This value can be between 5 and 1000. If this parameter is not specified, then all items are returned. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>"
+          "documentation":"<p>The maximum number of results to return in a single call. To retrieve the remaining results, make another request with the returned <code>NextToken</code> value. This value can be between 5 and 1000. If this parameter is not specified, then all results are returned.</p>"
         }
       }
     },
@@ -22095,7 +22021,7 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "documentation":"<p>The token to use to retrieve the next page of results. This value is <code>null</code> when there are no more results to return. </p>",
           "locationName":"nextToken"
         }
       }
@@ -22130,11 +22056,11 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token returned from a previous paginated request. Pagination continues from the end of the items returned by the previous request.</p>"
+          "documentation":"<p>The token to request the next page of results.</p>"
         },
         "MaxResults":{
           "shape":"DescribeSecurityGroupsMaxResults",
-          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. This value can be between 5 and 1000. If this parameter is not specified, then all items are returned. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>"
+          "documentation":"<p>The maximum number of results to return in a single call. To retrieve the remaining results, make another request with the returned <code>NextToken</code> value. This value can be between 5 and 1000. If this parameter is not specified, then all results are returned.</p>"
         }
       }
     },
@@ -22148,7 +22074,7 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "documentation":"<p>The token to use to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>",
           "locationName":"nextToken"
         }
       }
@@ -22210,11 +22136,11 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token returned from a previous paginated request. Pagination continues from the end of the items returned by the previous request.</p>"
+          "documentation":"<p>The token for the next page of results.</p>"
         },
         "MaxResults":{
           "shape":"DescribeSnapshotTierStatusMaxResults",
-          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>"
+          "documentation":"<p>The maximum number of results to return with a single call. To retrieve the remaining results, make another call with the returned <code>nextToken</code> value.</p>"
         }
       }
     },
@@ -22228,7 +22154,7 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "documentation":"<p>The token to use to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>",
           "locationName":"nextToken"
         }
       }
@@ -22243,11 +22169,11 @@
         },
         "MaxResults":{
           "shape":"Integer",
-          "documentation":"<p>The maximum number of snapshots to return for this request. This value can be between 5 and 1,000; if this value is larger than 1,000, only 1,000 results are returned. If this parameter is not used, then the request returns all snapshots. You cannot specify this parameter and the snapshot IDs parameter in the same request. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>"
+          "documentation":"<p>The maximum number of snapshot results returned by <code>DescribeSnapshots</code> in paginated output. When this parameter is used, <code>DescribeSnapshots</code> only returns <code>MaxResults</code> results in a single page along with a <code>NextToken</code> response element. The remaining results of the initial request can be seen by sending another <code>DescribeSnapshots</code> request with the returned <code>NextToken</code> value. This value can be between 5 and 1,000; if <code>MaxResults</code> is given a value larger than 1,000, only 1,000 results are returned. If this parameter is not used, then <code>DescribeSnapshots</code> returns all results. You cannot specify this parameter and the snapshot IDs parameter in the same request.</p>"
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token returned from a previous paginated request. Pagination continues from the end of the items returned by the previous request.</p>"
+          "documentation":"<p>The <code>NextToken</code> value returned from a previous paginated <code>DescribeSnapshots</code> request where <code>MaxResults</code> was used and the results exceeded the value of that parameter. Pagination continues from the end of the previous results that returned the <code>NextToken</code> value. This value is <code>null</code> when there are no more results to return.</p>"
         },
         "OwnerIds":{
           "shape":"OwnerStringList",
@@ -22281,7 +22207,7 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token to include in another request to return the next page of snapshots. This value is <code>null</code> when there are no more snapshots to return.</p>",
+          "documentation":"<p>The <code>NextToken</code> value to include in a future <code>DescribeSnapshots</code> request. When the results of a <code>DescribeSnapshots</code> request exceed <code>MaxResults</code>, this value can be used to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>",
           "locationName":"nextToken"
         }
       }
@@ -22324,12 +22250,12 @@
         },
         "MaxResults":{
           "shape":"DescribeSpotFleetInstancesMaxResults",
-          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>",
+          "documentation":"<p>The maximum number of results to return in a single call. Specify a value between 1 and 1000. The default value is 1000. To retrieve the remaining results, make another call with the returned <code>NextToken</code> value.</p>",
           "locationName":"maxResults"
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "documentation":"<p>The token for the next set of results.</p>",
           "locationName":"nextToken"
         },
         "SpotFleetRequestId":{
@@ -22350,7 +22276,7 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "documentation":"<p>The token required to retrieve the next set of results. This value is <code>null</code> when there are no more results to return.</p>",
           "locationName":"nextToken"
         },
         "SpotFleetRequestId":{
@@ -22385,12 +22311,12 @@
         },
         "MaxResults":{
           "shape":"DescribeSpotFleetRequestHistoryMaxResults",
-          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>",
+          "documentation":"<p>The maximum number of results to return in a single call. Specify a value between 1 and 1000. The default value is 1000. To retrieve the remaining results, make another call with the returned <code>NextToken</code> value.</p>",
           "locationName":"maxResults"
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "documentation":"<p>The token for the next set of results.</p>",
           "locationName":"nextToken"
         },
         "SpotFleetRequestId":{
@@ -22416,12 +22342,12 @@
         },
         "LastEvaluatedTime":{
           "shape":"DateTime",
-          "documentation":"<p>The last date and time for the events, in UTC format (for example, <i>YYYY</i>-<i>MM</i>-<i>DD</i>T<i>HH</i>:<i>MM</i>:<i>SS</i>Z). All records up to this time were retrieved.</p> <p>If <code>nextToken</code> indicates that there are more items, this value is not present.</p>",
+          "documentation":"<p>The last date and time for the events, in UTC format (for example, <i>YYYY</i>-<i>MM</i>-<i>DD</i>T<i>HH</i>:<i>MM</i>:<i>SS</i>Z). All records up to this time were retrieved.</p> <p>If <code>nextToken</code> indicates that there are more results, this value is not present.</p>",
           "locationName":"lastEvaluatedTime"
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "documentation":"<p>The token required to retrieve the next set of results. This value is <code>null</code> when there are no more results to return.</p>",
           "locationName":"nextToken"
         },
         "SpotFleetRequestId":{
@@ -22447,12 +22373,12 @@
         },
         "MaxResults":{
           "shape":"Integer",
-          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>",
+          "documentation":"<p>The maximum number of results to return in a single call. Specify a value between 1 and 1000. The default value is 1000. To retrieve the remaining results, make another call with the returned <code>NextToken</code> value.</p>",
           "locationName":"maxResults"
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "documentation":"<p>The token for the next set of results.</p>",
           "locationName":"nextToken"
         },
         "SpotFleetRequestIds":{
@@ -22468,7 +22394,7 @@
       "members":{
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "documentation":"<p>The token required to retrieve the next set of results. This value is <code>null</code> when there are no more results to return.</p>",
           "locationName":"nextToken"
         },
         "SpotFleetRequestConfigs":{
@@ -22499,11 +22425,11 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token returned from a previous paginated request. Pagination continues from the end of the items returned by the previous request.</p>"
+          "documentation":"<p>The token to request the next set of results. This value is <code>null</code> when there are no more results to return.</p>"
         },
         "MaxResults":{
           "shape":"Integer",
-          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>"
+          "documentation":"<p>The maximum number of results to return in a single call. Specify a value between 5 and 1000. To retrieve the remaining results, make another call with the returned <code>NextToken</code> value.</p>"
         }
       },
       "documentation":"<p>Contains the parameters for DescribeSpotInstanceRequests.</p>"
@@ -22518,7 +22444,7 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "documentation":"<p>The token to use to retrieve the next set of results. This value is <code>null</code> when there are no more results to return.</p>",
           "locationName":"nextToken"
         }
       },
@@ -22554,12 +22480,12 @@
         },
         "MaxResults":{
           "shape":"Integer",
-          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>",
+          "documentation":"<p>The maximum number of results to return in a single call. Specify a value between 1 and 1000. The default value is 1000. To retrieve the remaining results, make another call with the returned <code>NextToken</code> value.</p>",
           "locationName":"maxResults"
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token returned from a previous paginated request. Pagination continues from the end of the items returned by the previous request.</p>",
+          "documentation":"<p>The token for the next set of results.</p>",
           "locationName":"nextToken"
         },
         "ProductDescriptions":{
@@ -22580,7 +22506,7 @@
       "members":{
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "documentation":"<p>The token required to retrieve the next set of results. This value is null or an empty string when there are no more results to return.</p>",
           "locationName":"nextToken"
         },
         "SpotPriceHistory":{
@@ -22611,11 +22537,11 @@
         },
         "MaxResults":{
           "shape":"DescribeStaleSecurityGroupsMaxResults",
-          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>"
+          "documentation":"<p>The maximum number of items to return for this request. The request returns a token that you can specify in a subsequent call to get the next set of results.</p>"
         },
         "NextToken":{
           "shape":"DescribeStaleSecurityGroupsNextToken",
-          "documentation":"<p>The token returned from a previous paginated request. Pagination continues from the end of the items returned by the previous request.</p>"
+          "documentation":"<p>The token for the next set of items to return. (You received this token from a prior call.)</p>"
         },
         "VpcId":{
           "shape":"VpcId",
@@ -22628,7 +22554,7 @@
       "members":{
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token to include in another request to get the next page of items. If there are no additional items to return, the string is empty.</p>",
+          "documentation":"<p>The token to use when requesting the next set of items. If there are no additional items to return, the string is empty.</p>",
           "locationName":"nextToken"
         },
         "StaleSecurityGroupSet":{
@@ -22657,11 +22583,11 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token returned from a previous paginated request. Pagination continues from the end of the items returned by the previous request.</p>"
+          "documentation":"<p>The token for the next page of results.</p>"
         },
         "MaxResults":{
           "shape":"DescribeStoreImageTasksRequestMaxResults",
-          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p> <p>You cannot specify this parameter and the <code>ImageIDs</code> parameter in the same call.</p>"
+          "documentation":"<p>The maximum number of results to return in a single call. To retrieve the remaining results, make another call with the returned <code>NextToken</code> value. This value can be between 1 and 200. You cannot specify this parameter and the <code>ImageIDs</code> parameter in the same call.</p>"
         }
       }
     },
@@ -22680,7 +22606,7 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "documentation":"<p>The token to use to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>",
           "locationName":"nextToken"
         }
       }
@@ -22710,11 +22636,11 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token returned from a previous paginated request. Pagination continues from the end of the items returned by the previous request.</p>"
+          "documentation":"<p>The token for the next page of results.</p>"
         },
         "MaxResults":{
           "shape":"DescribeSubnetsMaxResults",
-          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>"
+          "documentation":"<p>The maximum number of results to return with a single call. To retrieve the remaining results, make another call with the returned <code>nextToken</code> value.</p>"
         }
       }
     },
@@ -22728,7 +22654,7 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "documentation":"<p>The token to use to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>",
           "locationName":"nextToken"
         }
       }
@@ -22748,12 +22674,12 @@
         },
         "MaxResults":{
           "shape":"Integer",
-          "documentation":"<p>The maximum number of items to return for this request. This value can be between 5 and 1000. To get the next page of items, make another request with the token returned in the output. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>",
+          "documentation":"<p>The maximum number of results to return in a single call. This value can be between 5 and 1000. To retrieve the remaining results, make another call with the returned <code>NextToken</code> value.</p>",
           "locationName":"maxResults"
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token returned from a previous paginated request. Pagination continues from the end of the items returned by the previous request.</p>",
+          "documentation":"<p>The token to retrieve the next page of results.</p>",
           "locationName":"nextToken"
         }
       }
@@ -22763,7 +22689,7 @@
       "members":{
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "documentation":"<p>The token to use to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>",
           "locationName":"nextToken"
         },
         "Tags":{
@@ -23655,11 +23581,11 @@
         },
         "MaxResults":{
           "shape":"Integer",
-          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. This value can be between 5 and 1,000; if the value is larger than 1,000, only 1,000 results are returned. If this parameter is not used, then all items are returned. You cannot specify this parameter and the volume IDs parameter in the same request. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>"
+          "documentation":"<p>The maximum number of volume results returned by <code>DescribeVolumeStatus</code> in paginated output. When this parameter is used, the request only returns <code>MaxResults</code> results in a single page along with a <code>NextToken</code> response element. The remaining results of the initial request can be seen by sending another request with the returned <code>NextToken</code> value. This value can be between 5 and 1,000; if <code>MaxResults</code> is given a value larger than 1,000, only 1,000 results are returned. If this parameter is not used, then <code>DescribeVolumeStatus</code> returns all results. You cannot specify this parameter and the volume IDs parameter in the same request.</p>"
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token returned from a previous paginated request. Pagination continues from the end of the items returned by the previous request.</p>"
+          "documentation":"<p>The <code>NextToken</code> value to include in a future <code>DescribeVolumeStatus</code> request. When the results of the request exceed <code>MaxResults</code>, this value can be used to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>"
         },
         "VolumeIds":{
           "shape":"VolumeIdStringList",
@@ -23678,7 +23604,7 @@
       "members":{
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "documentation":"<p>The token to use to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>",
           "locationName":"nextToken"
         },
         "VolumeStatuses":{
@@ -23707,11 +23633,11 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token returned by a previous paginated request. Pagination continues from the end of the items returned by the previous request.</p>"
+          "documentation":"<p>The <code>nextToken</code> value returned by a previous paginated request.</p>"
         },
         "MaxResults":{
           "shape":"Integer",
-          "documentation":"<p>The maximum number of results (up to a limit of 500) to be returned in a paginated request. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>"
+          "documentation":"<p>The maximum number of results (up to a limit of 500) to be returned in a paginated request.</p>"
         }
       }
     },
@@ -23725,7 +23651,7 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> if there are no more items to return.</p>",
+          "documentation":"<p>Token for pagination, null if there are no more results </p>",
           "locationName":"nextToken"
         }
       }
@@ -23750,12 +23676,12 @@
         },
         "MaxResults":{
           "shape":"Integer",
-          "documentation":"<p>The maximum number of volumes to return for this request. This value can be between 5 and 500; if you specify a value larger than 500, only 500 items are returned. If this parameter is not used, then all items are returned. You cannot specify this parameter and the volume IDs parameter in the same request. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>",
+          "documentation":"<p>The maximum number of volume results returned by <code>DescribeVolumes</code> in paginated output. When this parameter is used, <code>DescribeVolumes</code> only returns <code>MaxResults</code> results in a single page along with a <code>NextToken</code> response element. The remaining results of the initial request can be seen by sending another <code>DescribeVolumes</code> request with the returned <code>NextToken</code> value. This value can be between 5 and 500; if <code>MaxResults</code> is given a value larger than 500, only 500 results are returned. If this parameter is not used, then <code>DescribeVolumes</code> returns all results. You cannot specify this parameter and the volume IDs parameter in the same request.</p>",
           "locationName":"maxResults"
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token returned from a previous paginated request. Pagination continues from the end of the items returned from the previous request.</p>",
+          "documentation":"<p>The <code>NextToken</code> value returned from a previous paginated <code>DescribeVolumes</code> request where <code>MaxResults</code> was used and the results exceeded the value of that parameter. Pagination continues from the end of the previous results that returned the <code>NextToken</code> value. This value is <code>null</code> when there are no more results to return.</p>",
           "locationName":"nextToken"
         }
       }
@@ -23770,7 +23696,7 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "documentation":"<p>The <code>NextToken</code> value to include in a future <code>DescribeVolumes</code> request. When the results of a <code>DescribeVolumes</code> request exceed <code>MaxResults</code>, this value can be used to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>",
           "locationName":"nextToken"
         }
       }
@@ -23837,12 +23763,12 @@
       "members":{
         "MaxResults":{
           "shape":"DescribeVpcClassicLinkDnsSupportMaxResults",
-          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>",
+          "documentation":"<p>The maximum number of results to return with a single call. To retrieve the remaining results, make another call with the returned <code>nextToken</code> value.</p>",
           "locationName":"maxResults"
         },
         "NextToken":{
           "shape":"DescribeVpcClassicLinkDnsSupportNextToken",
-          "documentation":"<p>The token returned from a previous paginated request. Pagination continues from the end of the items returned by the previous request.</p>",
+          "documentation":"<p>The token for the next page of results.</p>",
           "locationName":"nextToken"
         },
         "VpcIds":{
@@ -23856,7 +23782,7 @@
       "members":{
         "NextToken":{
           "shape":"DescribeVpcClassicLinkDnsSupportNextToken",
-          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "documentation":"<p>The token to use to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>",
           "locationName":"nextToken"
         },
         "Vpcs":{
@@ -24172,11 +24098,11 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token returned from a previous paginated request. Pagination continues from the end of the items returned by the previous request.</p>"
+          "documentation":"<p>The token for the next page of results.</p>"
         },
         "MaxResults":{
           "shape":"DescribeVpcPeeringConnectionsMaxResults",
-          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>"
+          "documentation":"<p>The maximum number of results to return with a single call. To retrieve the remaining results, make another call with the returned <code>nextToken</code> value.</p>"
         }
       }
     },
@@ -24190,7 +24116,7 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "documentation":"<p>The token to use to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>",
           "locationName":"nextToken"
         }
       }
@@ -24220,11 +24146,11 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token returned from a previous paginated request. Pagination continues from the end of the items returned by the previous request.</p>"
+          "documentation":"<p>The token for the next page of results.</p>"
         },
         "MaxResults":{
           "shape":"DescribeVpcsMaxResults",
-          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>"
+          "documentation":"<p>The maximum number of results to return with a single call. To retrieve the remaining results, make another call with the returned <code>nextToken</code> value.</p>"
         }
       }
     },
@@ -24238,7 +24164,7 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "documentation":"<p>The token to use to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>",
           "locationName":"nextToken"
         }
       }
@@ -24762,7 +24688,7 @@
         },
         "MaxParallelLaunches":{
           "shape":"Integer",
-          "documentation":"<p>The maximum number of instances that Amazon EC2 can launch at the same time to create pre-provisioned snapshots for Windows faster launching.</p>",
+          "documentation":"<p>The maximum number of parallel instances to launch for creating resources.</p>",
           "locationName":"maxParallelLaunches"
         },
         "OwnerId":{
@@ -25129,7 +25055,7 @@
           "documentation":"<p>[EC2-VPC] The association ID. Required for EC2-VPC.</p>"
         },
         "PublicIp":{
-          "shape":"EipAllocationPublicIp",
+          "shape":"String",
           "documentation":"<p>[EC2-Classic] The Elastic IP address. Required for EC2-Classic.</p>"
         },
         "DryRun":{
@@ -25591,7 +25517,7 @@
           "locationName":"format"
         },
         "ImportManifestUrl":{
-          "shape":"ImportManifestUrl",
+          "shape":"String",
           "documentation":"<p>A presigned URL for the import manifest stored in Amazon S3 and presented here as an Amazon S3 presigned URL. For information about creating a presigned URL for an Amazon S3 object, read the \"Query String Request Authentication Alternative\" section of the <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/dev/RESTAuthentication.html\">Authenticating REST Requests</a> topic in the <i>Amazon Simple Storage Service Developer Guide</i>.</p> <p>For information about the import manifest referenced by this API action, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/manifest.html\">VM Import Manifest</a>.</p>",
           "locationName":"importManifestUrl"
         }
@@ -25700,11 +25626,6 @@
           "shape":"DnsRecordIpType",
           "documentation":"<p>The DNS records created for the endpoint.</p>",
           "locationName":"dnsRecordIpType"
-        },
-        "PrivateDnsOnlyForInboundResolverEndpoint":{
-          "shape":"Boolean",
-          "documentation":"<p>Indicates whether to enable private DNS only for inbound endpoints.</p>",
-          "locationName":"privateDnsOnlyForInboundResolverEndpoint"
         }
       },
       "documentation":"<p>Describes the DNS options for an endpoint.</p>"
@@ -25715,10 +25636,6 @@
         "DnsRecordIpType":{
           "shape":"DnsRecordIpType",
           "documentation":"<p>The DNS records created for the endpoint.</p>"
-        },
-        "PrivateDnsOnlyForInboundResolverEndpoint":{
-          "shape":"Boolean",
-          "documentation":"<p>Indicates whether to enable private DNS only for inbound endpoints. This option is available only for services that support both gateway and interface endpoints. It routes traffic that originates from the VPC to the gateway endpoint and traffic that originates from on-premises to the interface endpoint.</p>"
         }
       },
       "documentation":"<p>Describes the DNS options for an endpoint.</p>"
@@ -25823,7 +25740,7 @@
         },
         "Encrypted":{
           "shape":"Boolean",
-          "documentation":"<p>Indicates whether the encryption state of an EBS volume is changed while being restored from a backing snapshot. The effect of setting the encryption state to <code>true</code> depends on the volume origin (new or from a snapshot), starting encryption state, ownership, and whether encryption by default is enabled. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html#encryption-parameters\">Amazon EBS encryption</a> in the <i>Amazon EC2 User Guide</i>.</p> <p>In no case can you remove encryption from an encrypted volume.</p> <p>Encrypted volumes can only be attached to instances that support Amazon EBS encryption. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html#EBSEncryption_supported_instances\">Supported instance types</a>.</p> <p>This parameter is not returned by <a>DescribeImageAttribute</a>.</p> <p>For <a>CreateImage</a> and <a>RegisterImage</a>, whether you can include this parameter, and the allowed values differ depending on the type of block device mapping you are creating.</p> <ul> <li> <p>If you are creating a block device mapping for a <b>new (empty) volume</b>, you can include this parameter, and specify either <code>true</code> for an encrypted volume, or <code>false</code> for an unencrypted volume. If you omit this parameter, it defaults to <code>false</code> (unencrypted).</p> </li> <li> <p>If you are creating a block device mapping from an <b>existing encrypted or unencrypted snapshot</b>, you must omit this parameter. If you include this parameter, the request will fail, regardless of the value that you specify.</p> </li> <li> <p>If you are creating a block device mapping from an <b>existing unencrypted volume</b>, you can include this parameter, but you must specify <code>false</code>. If you specify <code>true</code>, the request will fail. In this case, we recommend that you omit the parameter.</p> </li> <li> <p>If you are creating a block device mapping from an <b>existing encrypted volume</b>, you can include this parameter, and specify either <code>true</code> or <code>false</code>. However, if you specify <code>false</code>, the parameter is ignored and the block device mapping is always encrypted. In this case, we recommend that you omit the parameter.</p> </li> </ul>",
+          "documentation":"<p>Indicates whether the encryption state of an EBS volume is changed while being restored from a backing snapshot. The effect of setting the encryption state to <code>true</code> depends on the volume origin (new or from a snapshot), starting encryption state, ownership, and whether encryption by default is enabled. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html#encryption-parameters\">Amazon EBS encryption</a> in the <i>Amazon EC2 User Guide</i>.</p> <p>In no case can you remove encryption from an encrypted volume.</p> <p>Encrypted volumes can only be attached to instances that support Amazon EBS encryption. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html#EBSEncryption_supported_instances\">Supported instance types</a>.</p> <p>This parameter is not returned by <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeImageAttribute.html\">DescribeImageAttribute</a>.</p> <p>For <a>CreateImage</a> and <a>RegisterImage</a>, you can specify this parameter only for block device mappings that result in new, empty volumes when instances are launched from the image. Omit this parameter on block device mappings that include an existing volume or snapshot. If you include this parameter, and specify an encryption setting that is different from the existing volume or snapshot, the request will fail.</p>",
           "locationName":"encrypted"
         }
       },
@@ -26004,7 +25921,6 @@
         "locationName":"item"
       }
     },
-    "EipAllocationPublicIp":{"type":"string"},
     "EipAssociationIdList":{
       "type":"list",
       "member":{
@@ -26366,7 +26282,7 @@
         },
         "MaxParallelLaunches":{
           "shape":"Integer",
-          "documentation":"<p>The maximum number of instances that Amazon EC2 can launch at the same time to create pre-provisioned snapshots for Windows faster launching. Value must be <code>6</code> or greater.</p>"
+          "documentation":"<p>The maximum number of parallel instances to launch for creating resources. Value must be <code>6</code> or greater. </p>"
         },
         "DryRun":{
           "shape":"Boolean",
@@ -26389,7 +26305,7 @@
         },
         "SnapshotConfiguration":{
           "shape":"FastLaunchSnapshotConfigurationResponse",
-          "documentation":"<p>Settings to create and manage the pre-provisioned snapshots that Amazon EC2 uses for faster launches from the Windows AMI. This property is returned when the associated <code>resourceType</code> is <code>snapshot</code>.</p>",
+          "documentation":"<p>The configuration settings that were defined for creating and managing the pre-provisioned snapshots for faster launching of the Windows AMI. This property is returned when the associated <code>resourceType</code> is <code>snapshot</code>.</p>",
           "locationName":"snapshotConfiguration"
         },
         "LaunchTemplate":{
@@ -26399,7 +26315,7 @@
         },
         "MaxParallelLaunches":{
           "shape":"Integer",
-          "documentation":"<p>The maximum number of instances that Amazon EC2 can launch at the same time to create pre-provisioned snapshots for Windows faster launching.</p>",
+          "documentation":"<p>The maximum number of parallel instances to launch for creating resources.</p>",
           "locationName":"maxParallelLaunches"
         },
         "OwnerId":{
@@ -27177,16 +27093,6 @@
           "shape":"ComponentRegion",
           "documentation":"<p>The Region for the component.</p>",
           "locationName":"componentRegion"
-        },
-        "FirewallStatelessRule":{
-          "shape":"FirewallStatelessRule",
-          "documentation":"<p>The Network Firewall stateless rule.</p>",
-          "locationName":"firewallStatelessRule"
-        },
-        "FirewallStatefulRule":{
-          "shape":"FirewallStatefulRule",
-          "documentation":"<p>The Network Firewall stateful rule.</p>",
-          "locationName":"firewallStatefulRule"
         }
       },
       "documentation":"<p>Describes an explanation code for an unreachable path. For more information, see <a href=\"https://docs.aws.amazon.com/vpc/latest/reachability/explanation-codes.html\">Reachability Analyzer explanation codes</a>.</p>"
@@ -27795,22 +27701,6 @@
         "locationName":"Filter"
       }
     },
-    "FilterPortRange":{
-      "type":"structure",
-      "members":{
-        "FromPort":{
-          "shape":"Port",
-          "documentation":"<p>The first port in the range.</p>",
-          "locationName":"fromPort"
-        },
-        "ToPort":{
-          "shape":"Port",
-          "documentation":"<p>The last port in the range.</p>",
-          "locationName":"toPort"
-        }
-      },
-      "documentation":"<p>Describes a port range.</p>"
-    },
     "FindingsFound":{
       "type":"string",
       "enum":[
@@ -27818,98 +27708,6 @@
         "false",
         "unknown"
       ]
-    },
-    "FirewallStatefulRule":{
-      "type":"structure",
-      "members":{
-        "RuleGroupArn":{
-          "shape":"ResourceArn",
-          "documentation":"<p>The ARN of the stateful rule group.</p>",
-          "locationName":"ruleGroupArn"
-        },
-        "Sources":{
-          "shape":"ValueStringList",
-          "documentation":"<p>The source IP addresses, in CIDR notation.</p>",
-          "locationName":"sourceSet"
-        },
-        "Destinations":{
-          "shape":"ValueStringList",
-          "documentation":"<p>The destination IP addresses, in CIDR notation.</p>",
-          "locationName":"destinationSet"
-        },
-        "SourcePorts":{
-          "shape":"PortRangeList",
-          "documentation":"<p>The source ports.</p>",
-          "locationName":"sourcePortSet"
-        },
-        "DestinationPorts":{
-          "shape":"PortRangeList",
-          "documentation":"<p>The destination ports.</p>",
-          "locationName":"destinationPortSet"
-        },
-        "Protocol":{
-          "shape":"String",
-          "documentation":"<p>The protocol.</p>",
-          "locationName":"protocol"
-        },
-        "RuleAction":{
-          "shape":"String",
-          "documentation":"<p>The rule action. The possible values are <code>pass</code>, <code>drop</code>, and <code>alert</code>.</p>",
-          "locationName":"ruleAction"
-        },
-        "Direction":{
-          "shape":"String",
-          "documentation":"<p>The direction. The possible values are <code>FORWARD</code> and <code>ANY</code>.</p>",
-          "locationName":"direction"
-        }
-      },
-      "documentation":"<p>Describes a stateful rule.</p>"
-    },
-    "FirewallStatelessRule":{
-      "type":"structure",
-      "members":{
-        "RuleGroupArn":{
-          "shape":"ResourceArn",
-          "documentation":"<p>The ARN of the stateless rule group.</p>",
-          "locationName":"ruleGroupArn"
-        },
-        "Sources":{
-          "shape":"ValueStringList",
-          "documentation":"<p>The source IP addresses, in CIDR notation.</p>",
-          "locationName":"sourceSet"
-        },
-        "Destinations":{
-          "shape":"ValueStringList",
-          "documentation":"<p>The destination IP addresses, in CIDR notation.</p>",
-          "locationName":"destinationSet"
-        },
-        "SourcePorts":{
-          "shape":"PortRangeList",
-          "documentation":"<p>The source ports.</p>",
-          "locationName":"sourcePortSet"
-        },
-        "DestinationPorts":{
-          "shape":"PortRangeList",
-          "documentation":"<p>The destination ports.</p>",
-          "locationName":"destinationPortSet"
-        },
-        "Protocols":{
-          "shape":"ProtocolIntList",
-          "documentation":"<p>The protocols.</p>",
-          "locationName":"protocolSet"
-        },
-        "RuleAction":{
-          "shape":"String",
-          "documentation":"<p>The rule action. The possible values are <code>pass</code>, <code>drop</code>, and <code>forward_to_site</code>.</p>",
-          "locationName":"ruleAction"
-        },
-        "Priority":{
-          "shape":"Priority",
-          "documentation":"<p>The rule priority.</p>",
-          "locationName":"priority"
-        }
-      },
-      "documentation":"<p>Describes a stateless rule.</p>"
     },
     "FleetActivityStatus":{
       "type":"string",
@@ -28182,7 +27980,7 @@
       "members":{
         "InstanceType":{
           "shape":"InstanceType",
-          "documentation":"<p>The instance type.</p> <p> <code>mac1.metal</code> is not supported as a launch template override.</p> <note> <p>If you specify <code>InstanceType</code>, you can't specify <code>InstanceRequirements</code>.</p> </note>",
+          "documentation":"<p>The instance type.</p> <note> <p>If you specify <code>InstanceType</code>, you can't specify <code>InstanceRequirements</code>.</p> </note>",
           "locationName":"instanceType"
         },
         "MaxPrice":{
@@ -28247,7 +28045,7 @@
       "members":{
         "InstanceType":{
           "shape":"InstanceType",
-          "documentation":"<p>The instance type.</p> <p> <code>mac1.metal</code> is not supported as a launch template override.</p> <note> <p>If you specify <code>InstanceType</code>, you can't specify <code>InstanceRequirements</code>.</p> </note>"
+          "documentation":"<p>The instance type.</p> <note> <p>If you specify <code>InstanceType</code>, you can't specify <code>InstanceRequirements</code>.</p> </note>"
         },
         "MaxPrice":{
           "shape":"String",
@@ -29180,7 +28978,7 @@
       "members":{
         "CapacityReservationId":{
           "shape":"CapacityReservationId",
-          "documentation":"<p>The ID of the Capacity Reservation. If you specify a Capacity Reservation that is shared with you, the operation returns only Capacity Reservation groups that you own.</p>"
+          "documentation":"<p>The ID of the Capacity Reservation.</p>"
         },
         "NextToken":{
           "shape":"String",
@@ -29286,11 +29084,11 @@
         },
         "MaxResults":{
           "shape":"Integer",
-          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>"
+          "documentation":"<p>The maximum number of results to return in a single call. Specify a value between 1 and&#x2028; 1000. The default value is 1000. To retrieve the remaining results, make another call with&#x2028; the returned <code>NextToken</code> value.</p>"
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token returned from a previous paginated request. Pagination continues from the end of the items returned by the previous request.</p>"
+          "documentation":"<p>The token for the next set of results.</p>"
         }
       }
     },
@@ -29304,7 +29102,7 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "documentation":"<p>The token for the next set of results.</p>",
           "locationName":"nextToken"
         }
       }
@@ -29987,11 +29785,11 @@
         },
         "MaxResults":{
           "shape":"SpotPlacementScoresMaxResults",
-          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>"
+          "documentation":"<p>The maximum number of results to return in a single call. Specify a value between 1 and&#x2028; 1000. The default value is 1000. To retrieve the remaining results, make another call with&#x2028; the returned <code>NextToken</code> value.</p>"
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token returned from a previous paginated request. Pagination continues from the end of the items returned by the previous request.</p>"
+          "documentation":"<p>The token for the next set of results.</p>"
         }
       }
     },
@@ -30005,7 +29803,7 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "documentation":"<p>The token for the next set of results.</p>",
           "locationName":"nextToken"
         }
       }
@@ -30476,62 +30274,6 @@
         }
       }
     },
-    "GetVpnTunnelReplacementStatusRequest":{
-      "type":"structure",
-      "required":[
-        "VpnConnectionId",
-        "VpnTunnelOutsideIpAddress"
-      ],
-      "members":{
-        "VpnConnectionId":{
-          "shape":"VpnConnectionId",
-          "documentation":"<p>The ID of the Site-to-Site VPN connection. </p>"
-        },
-        "VpnTunnelOutsideIpAddress":{
-          "shape":"String",
-          "documentation":"<p>The external IP address of the VPN tunnel.</p>"
-        },
-        "DryRun":{
-          "shape":"Boolean",
-          "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>"
-        }
-      }
-    },
-    "GetVpnTunnelReplacementStatusResult":{
-      "type":"structure",
-      "members":{
-        "VpnConnectionId":{
-          "shape":"VpnConnectionId",
-          "documentation":"<p>The ID of the Site-to-Site VPN connection. </p>",
-          "locationName":"vpnConnectionId"
-        },
-        "TransitGatewayId":{
-          "shape":"TransitGatewayId",
-          "documentation":"<p>The ID of the transit gateway associated with the VPN connection.</p>",
-          "locationName":"transitGatewayId"
-        },
-        "CustomerGatewayId":{
-          "shape":"CustomerGatewayId",
-          "documentation":"<p>The ID of the customer gateway.</p>",
-          "locationName":"customerGatewayId"
-        },
-        "VpnGatewayId":{
-          "shape":"VpnGatewayId",
-          "documentation":"<p>The ID of the virtual private gateway.</p>",
-          "locationName":"vpnGatewayId"
-        },
-        "VpnTunnelOutsideIpAddress":{
-          "shape":"String",
-          "documentation":"<p>The external IP address of the VPN tunnel.</p>",
-          "locationName":"vpnTunnelOutsideIpAddress"
-        },
-        "MaintenanceDetails":{
-          "shape":"MaintenanceDetails",
-          "documentation":"<p>Get details of pending tunnel endpoint maintenance.</p>",
-          "locationName":"maintenanceDetails"
-        }
-      }
-    },
     "GpuDeviceCount":{"type":"integer"},
     "GpuDeviceInfo":{
       "type":"structure",
@@ -30817,11 +30559,6 @@
           "shape":"String",
           "documentation":"<p>The Amazon Resource Name (ARN) of the Amazon Web Services Outpost on which the Dedicated Host is allocated.</p>",
           "locationName":"outpostArn"
-        },
-        "HostMaintenance":{
-          "shape":"HostMaintenance",
-          "documentation":"<p>Indicates whether host maintenance is enabled or disabled for the Dedicated Host.</p>",
-          "locationName":"hostMaintenance"
         }
       },
       "documentation":"<p>Describes the properties of the Dedicated Host.</p>"
@@ -30860,13 +30597,6 @@
         "shape":"Host",
         "locationName":"item"
       }
-    },
-    "HostMaintenance":{
-      "type":"string",
-      "enum":[
-        "on",
-        "off"
-      ]
     },
     "HostOffering":{
       "type":"structure",
@@ -32160,10 +31890,6 @@
         }
       }
     },
-    "ImportManifestUrl":{
-      "type":"string",
-      "sensitive":true
-    },
     "ImportSnapshotRequest":{
       "type":"structure",
       "members":{
@@ -32553,7 +32279,7 @@
         },
         "ElasticInferenceAcceleratorAssociations":{
           "shape":"ElasticInferenceAcceleratorAssociationList",
-          "documentation":"<p>The elastic inference accelerator associated with the instance.</p>",
+          "documentation":"<p> The elastic inference accelerator associated with the instance.</p>",
           "locationName":"elasticInferenceAcceleratorAssociationSet"
         },
         "NetworkInterfaces":{
@@ -32648,7 +32374,7 @@
         },
         "BootMode":{
           "shape":"BootModeValues",
-          "documentation":"<p>The boot mode that was specified by the AMI. If the value is <code>uefi-preferred</code>, the AMI supports both UEFI and Legacy BIOS. The <code>currentInstanceBootMode</code> parameter is the boot mode that is used to boot the instance at launch or start.</p> <note> <p>The operating system contained in the AMI must be configured to support the specified boot mode.</p> </note> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ami-boot.html\">Boot modes</a> in the <i>Amazon EC2 User Guide</i>.</p>",
+          "documentation":"<p>The boot mode of the instance. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ami-boot.html\">Boot modes</a> in the <i>Amazon EC2 User Guide</i>.</p>",
           "locationName":"bootMode"
         },
         "PlatformDetails":{
@@ -32685,11 +32411,6 @@
           "shape":"InstanceMaintenanceOptions",
           "documentation":"<p>Provides information on the recovery and maintenance options of your instance.</p>",
           "locationName":"maintenanceOptions"
-        },
-        "CurrentInstanceBootMode":{
-          "shape":"InstanceBootModeValues",
-          "documentation":"<p>The boot mode that is used to boot the instance at launch or start. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ami-boot.html\">Boot modes</a> in the <i>Amazon EC2 User Guide</i>.</p>",
-          "locationName":"currentInstanceBootMode"
         }
       },
       "documentation":"<p>Describes an instance.</p>"
@@ -32868,13 +32589,6 @@
         "shape":"InstanceBlockDeviceMappingSpecification",
         "locationName":"item"
       }
-    },
-    "InstanceBootModeValues":{
-      "type":"string",
-      "enum":[
-        "legacy-bios",
-        "uefi"
-      ]
     },
     "InstanceCapacity":{
       "type":"structure",
@@ -34956,31 +34670,7 @@
         "r6idn.12xlarge",
         "r6idn.16xlarge",
         "r6idn.24xlarge",
-        "r6idn.32xlarge",
-        "c7g.metal",
-        "m7g.medium",
-        "m7g.large",
-        "m7g.xlarge",
-        "m7g.2xlarge",
-        "m7g.4xlarge",
-        "m7g.8xlarge",
-        "m7g.12xlarge",
-        "m7g.16xlarge",
-        "m7g.metal",
-        "r7g.medium",
-        "r7g.large",
-        "r7g.xlarge",
-        "r7g.2xlarge",
-        "r7g.4xlarge",
-        "r7g.8xlarge",
-        "r7g.12xlarge",
-        "r7g.16xlarge",
-        "r7g.metal",
-        "c6in.metal",
-        "m6in.metal",
-        "m6idn.metal",
-        "r6in.metal",
-        "r6idn.metal"
+        "r6idn.32xlarge"
       ]
     },
     "InstanceTypeHypervisor":{
@@ -36881,8 +36571,8 @@
       "type":"structure",
       "members":{
         "UserData":{
-          "shape":"SensitiveUserData",
-          "documentation":"<p>The base64-encoded user data that instances use when starting up. User data is limited to 16 KB.</p>",
+          "shape":"String",
+          "documentation":"<p>The Base64-encoded user data for the instance.</p>",
           "locationName":"userData"
         },
         "SecurityGroups":{
@@ -38224,11 +37914,11 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token returned from a previous paginated request. Pagination continues from the end of the items returned by the previous request.</p>"
+          "documentation":"<p>The token for the next page of results.</p>"
         },
         "MaxResults":{
           "shape":"ListImagesInRecycleBinMaxResults",
-          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>"
+          "documentation":"<p>The maximum number of results to return with a single call. To retrieve the remaining results, make another call with the returned <code>nextToken</code> value.</p> <p>If you do not specify a value for <i>MaxResults</i>, the request returns 1,000 items per page by default. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\"> Pagination</a>.</p>"
         },
         "DryRun":{
           "shape":"Boolean",
@@ -38246,7 +37936,7 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "documentation":"<p>The token to use to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>",
           "locationName":"nextToken"
         }
       }
@@ -38261,11 +37951,11 @@
       "members":{
         "MaxResults":{
           "shape":"ListSnapshotsInRecycleBinMaxResults",
-          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>"
+          "documentation":"<p>The maximum number of results to return with a single call. To retrieve the remaining results, make another call with the returned <code>nextToken</code> value.</p>"
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token returned from a previous paginated request. Pagination continues from the end of the items returned by the previous request.</p>"
+          "documentation":"<p>The token for the next page of results.</p>"
         },
         "SnapshotIds":{
           "shape":"SnapshotIdStringList",
@@ -38288,7 +37978,7 @@
         },
         "NextToken":{
           "shape":"String",
-          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "documentation":"<p>The token to use to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>",
           "locationName":"nextToken"
         }
       }
@@ -38869,27 +38559,6 @@
       ]
     },
     "Long":{"type":"long"},
-    "MaintenanceDetails":{
-      "type":"structure",
-      "members":{
-        "PendingMaintenance":{
-          "shape":"String",
-          "documentation":"<p>Verify existence of a pending maintenance.</p>",
-          "locationName":"pendingMaintenance"
-        },
-        "MaintenanceAutoAppliedAfter":{
-          "shape":"MillisecondDateTime",
-          "documentation":"<p>The timestamp after which Amazon Web Services will automatically apply maintenance.</p>",
-          "locationName":"maintenanceAutoAppliedAfter"
-        },
-        "LastMaintenanceApplied":{
-          "shape":"MillisecondDateTime",
-          "documentation":"<p>Timestamp of last applied maintenance.</p>",
-          "locationName":"lastMaintenanceApplied"
-        }
-      },
-      "documentation":"<p>Details for Site-to-Site VPN tunnel endpoint maintenance events.</p>"
-    },
     "ManagedPrefixList":{
       "type":"structure",
       "members":{
@@ -39487,10 +39156,6 @@
         "InstanceFamily":{
           "shape":"String",
           "documentation":"<p>Specifies the instance family to be supported by the Dedicated Host. Specify this parameter to modify a Dedicated Host to support multiple instance types within its current instance family.</p> <p>If you want to modify a Dedicated Host to support a specific instance type only, omit this parameter and specify <b>InstanceType</b> instead. You cannot specify <b>InstanceFamily</b> and <b>InstanceType</b> in the same request.</p>"
-        },
-        "HostMaintenance":{
-          "shape":"HostMaintenance",
-          "documentation":"<p>Indicates whether to enable or disable host maintenance for the Dedicated Host. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/dedicated-hosts-maintenance.html\"> Host maintenance</a> in the <i>Amazon EC2 User Guide</i>.</p>"
         }
       }
     },
@@ -39557,7 +39222,7 @@
       "members":{
         "Attribute":{
           "shape":"String",
-          "documentation":"<p>The name of the attribute to modify.</p> <p>Valid values: <code>description</code> | <code>imdsSupport</code> | <code>launchPermission</code> </p>"
+          "documentation":"<p>The name of the attribute to modify.</p> <p>Valid values: <code>description</code> | <code>launchPermission</code> </p>"
         },
         "Description":{
           "shape":"AttributeValue",
@@ -39592,7 +39257,7 @@
         },
         "Value":{
           "shape":"String",
-          "documentation":"<p>The value of the attribute being modified. This parameter can be used only when the <code>Attribute</code> parameter is <code>description</code> or <code>imdsSupport</code>.</p>"
+          "documentation":"<p>The value of the attribute being modified. This parameter can be used only when the <code>Attribute</code> parameter is <code>description</code>.</p>"
         },
         "DryRun":{
           "shape":"Boolean",
@@ -39608,10 +39273,6 @@
           "shape":"OrganizationalUnitArnStringList",
           "documentation":"<p>The Amazon Resource Name (ARN) of an organizational unit (OU). This parameter can be used only when the <code>Attribute</code> parameter is <code>launchPermission</code>.</p>",
           "locationName":"OrganizationalUnitArn"
-        },
-        "ImdsSupport":{
-          "shape":"AttributeValue",
-          "documentation":"<p>Set to <code>v2.0</code> to indicate that IMDSv2 is specified in the AMI. Instances launched from this AMI will have <code>HttpTokens</code> automatically set to <code>required</code> so that, by default, the instance requires that IMDSv2 is used when requesting instance metadata. In addition, <code>HttpPutResponseHopLimit</code> is set to <code>2</code>. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/configuring-IMDS-new-instances.html#configure-IMDS-new-instances-ami-configuration\">Configure the AMI</a> in the <i>Amazon EC2 User Guide</i>.</p> <important> <p>Do not use this parameter unless your AMI software supports IMDSv2. After you set the value to <code>v2.0</code>, you can't undo it. The only way to “reset” your AMI is to create a new AMI from the underlying snapshot.</p> </important>"
         }
       },
       "documentation":"<p>Contains the parameters for ModifyImageAttribute.</p>"
@@ -41798,10 +41459,6 @@
         "DryRun":{
           "shape":"Boolean",
           "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>"
-        },
-        "SkipTunnelReplacement":{
-          "shape":"Boolean",
-          "documentation":"<p>Choose whether or not to trigger immediate tunnel replacement.</p> <p>Valid values: <code>True</code> | <code>False</code> </p>"
         }
       }
     },
@@ -41900,10 +41557,6 @@
         "LogOptions":{
           "shape":"VpnTunnelLogOptionsSpecification",
           "documentation":"<p>Options for logging VPN tunnel activity.</p>"
-        },
-        "EnableTunnelLifecycleControl":{
-          "shape":"Boolean",
-          "documentation":"<p>Turn on or off tunnel endpoint lifecycle control feature.</p>"
         }
       },
       "documentation":"<p>The Amazon Web Services Site-to-Site VPN tunnel options to modify.</p>"
@@ -42650,7 +42303,7 @@
         },
         "FilterInArns":{
           "shape":"ArnList",
-          "documentation":"<p>The Amazon Resource Names (ARN) of the resources that the path must traverse.</p>",
+          "documentation":"<p>The Amazon Resource Names (ARN) of the Amazon Web Services resources that the path must traverse.</p>",
           "locationName":"filterInArnSet"
         },
         "StartDate":{
@@ -42751,12 +42404,12 @@
         },
         "Source":{
           "shape":"String",
-          "documentation":"<p>The ID of the source.</p>",
+          "documentation":"<p>The Amazon Web Services resource that is the source of the path.</p>",
           "locationName":"source"
         },
         "Destination":{
           "shape":"String",
-          "documentation":"<p>The ID of the destination.</p>",
+          "documentation":"<p>The Amazon Web Services resource that is the destination of the path.</p>",
           "locationName":"destination"
         },
         "SourceArn":{
@@ -42771,12 +42424,12 @@
         },
         "SourceIp":{
           "shape":"IpAddress",
-          "documentation":"<p>The IP address of the source.</p>",
+          "documentation":"<p>The IP address of the Amazon Web Services resource that is the source of the path.</p>",
           "locationName":"sourceIp"
         },
         "DestinationIp":{
           "shape":"IpAddress",
-          "documentation":"<p>The IP address of the destination.</p>",
+          "documentation":"<p>The IP address of the Amazon Web Services resource that is the destination of the path.</p>",
           "locationName":"destinationIp"
         },
         "Protocol":{
@@ -42793,16 +42446,6 @@
           "shape":"TagList",
           "documentation":"<p>The tags associated with the path.</p>",
           "locationName":"tagSet"
-        },
-        "FilterAtSource":{
-          "shape":"PathFilter",
-          "documentation":"<p>Scopes the analysis to network paths that match specific filters at the source.</p>",
-          "locationName":"filterAtSource"
-        },
-        "FilterAtDestination":{
-          "shape":"PathFilter",
-          "documentation":"<p>Scopes the analysis to network paths that match specific filters at the destination.</p>",
-          "locationName":"filterAtDestination"
         }
       },
       "documentation":"<p>Describes a path.</p>"
@@ -43665,21 +43308,6 @@
           "shape":"AnalysisComponent",
           "documentation":"<p>The load balancer listener.</p>",
           "locationName":"elasticLoadBalancerListener"
-        },
-        "FirewallStatelessRule":{
-          "shape":"FirewallStatelessRule",
-          "documentation":"<p>The Network Firewall stateless rule.</p>",
-          "locationName":"firewallStatelessRule"
-        },
-        "FirewallStatefulRule":{
-          "shape":"FirewallStatefulRule",
-          "documentation":"<p>The Network Firewall stateful rule.</p>",
-          "locationName":"firewallStatefulRule"
-        },
-        "ServiceName":{
-          "shape":"String",
-          "documentation":"<p>The name of the VPC endpoint service.</p>",
-          "locationName":"serviceName"
         }
       },
       "documentation":"<p>Describes a path component.</p>"
@@ -43690,54 +43318,6 @@
         "shape":"PathComponent",
         "locationName":"item"
       }
-    },
-    "PathFilter":{
-      "type":"structure",
-      "members":{
-        "SourceAddress":{
-          "shape":"IpAddress",
-          "documentation":"<p>The source IPv4 address.</p>",
-          "locationName":"sourceAddress"
-        },
-        "SourcePortRange":{
-          "shape":"FilterPortRange",
-          "documentation":"<p>The source port range.</p>",
-          "locationName":"sourcePortRange"
-        },
-        "DestinationAddress":{
-          "shape":"IpAddress",
-          "documentation":"<p>The destination IPv4 address.</p>",
-          "locationName":"destinationAddress"
-        },
-        "DestinationPortRange":{
-          "shape":"FilterPortRange",
-          "documentation":"<p>The destination port range.</p>",
-          "locationName":"destinationPortRange"
-        }
-      },
-      "documentation":"<p>Describes a set of filters for a path analysis. Use path filters to scope the analysis when there can be multiple resulting paths.</p>"
-    },
-    "PathRequestFilter":{
-      "type":"structure",
-      "members":{
-        "SourceAddress":{
-          "shape":"IpAddress",
-          "documentation":"<p>The source IPv4 address.</p>"
-        },
-        "SourcePortRange":{
-          "shape":"RequestFilterPortRange",
-          "documentation":"<p>The source port range.</p>"
-        },
-        "DestinationAddress":{
-          "shape":"IpAddress",
-          "documentation":"<p>The destination IPv4 address.</p>"
-        },
-        "DestinationPortRange":{
-          "shape":"RequestFilterPortRange",
-          "documentation":"<p>The destination port range.</p>"
-        }
-      },
-      "documentation":"<p>Describes a set of filters for a path analysis. Use path filters to scope the analysis when there can be multiple resulting paths.</p>"
     },
     "PathStatement":{
       "type":"structure",
@@ -44591,11 +44171,6 @@
         "Role"
       ]
     },
-    "Priority":{
-      "type":"integer",
-      "max":65535,
-      "min":-1
-    },
     "PrivateDnsDetails":{
       "type":"structure",
       "members":{
@@ -44824,18 +44399,6 @@
         "tcp",
         "udp"
       ]
-    },
-    "ProtocolInt":{
-      "type":"integer",
-      "max":255,
-      "min":0
-    },
-    "ProtocolIntList":{
-      "type":"list",
-      "member":{
-        "shape":"ProtocolInt",
-        "locationName":"item"
-      }
     },
     "ProtocolList":{
       "type":"list",
@@ -45550,7 +45113,7 @@
         },
         "BootMode":{
           "shape":"BootModeValues",
-          "documentation":"<p>The boot mode of the AMI. A value of <code>uefi-preferred</code> indicates that the AMI supports both UEFI and Legacy BIOS.</p> <note> <p>The operating system contained in the AMI must be configured to support the specified boot mode.</p> </note> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ami-boot.html\">Boot modes</a> in the <i>Amazon EC2 User Guide</i>.</p>"
+          "documentation":"<p>The boot mode of the AMI. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ami-boot.html\">Boot modes</a> in the <i>Amazon EC2 User Guide</i>.</p>"
         },
         "TpmSupport":{
           "shape":"TpmSupportValues",
@@ -46302,41 +45865,6 @@
         }
       }
     },
-    "ReplaceVpnTunnelRequest":{
-      "type":"structure",
-      "required":[
-        "VpnConnectionId",
-        "VpnTunnelOutsideIpAddress"
-      ],
-      "members":{
-        "VpnConnectionId":{
-          "shape":"VpnConnectionId",
-          "documentation":"<p>The ID of the Site-to-Site VPN connection. </p>"
-        },
-        "VpnTunnelOutsideIpAddress":{
-          "shape":"String",
-          "documentation":"<p>The external IP address of the VPN tunnel.</p>"
-        },
-        "ApplyPendingMaintenance":{
-          "shape":"Boolean",
-          "documentation":"<p>Trigger pending tunnel endpoint maintenance.</p>"
-        },
-        "DryRun":{
-          "shape":"Boolean",
-          "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>"
-        }
-      }
-    },
-    "ReplaceVpnTunnelResult":{
-      "type":"structure",
-      "members":{
-        "Return":{
-          "shape":"Boolean",
-          "documentation":"<p>Confirmation of replace tunnel operation.</p>",
-          "locationName":"return"
-        }
-      }
-    },
     "ReplacementStrategy":{
       "type":"string",
       "enum":[
@@ -46409,20 +45937,6 @@
         "ok",
         "impaired"
       ]
-    },
-    "RequestFilterPortRange":{
-      "type":"structure",
-      "members":{
-        "FromPort":{
-          "shape":"Port",
-          "documentation":"<p>The first port in the range.</p>"
-        },
-        "ToPort":{
-          "shape":"Port",
-          "documentation":"<p>The last port in the range.</p>"
-        }
-      },
-      "documentation":"<p>Describes a port range.</p>"
     },
     "RequestHostIdList":{
       "type":"list",
@@ -46792,8 +46306,8 @@
           "locationName":"subnetId"
         },
         "UserData":{
-          "shape":"SensitiveUserData",
-          "documentation":"<p>The base64-encoded user data that instances use when starting up. User data is limited to 16 KB.</p>",
+          "shape":"String",
+          "documentation":"<p>The Base64-encoded user data for the instance. User data is limited to 16 KB.</p>",
           "locationName":"userData"
         }
       },
@@ -47803,7 +47317,7 @@
           "locationName":"instanceInitiatedShutdownBehavior"
         },
         "UserData":{
-          "shape":"SensitiveUserData",
+          "shape":"String",
           "documentation":"<p>The user data for the instance. </p>",
           "locationName":"userData"
         },
@@ -48545,75 +48059,6 @@
         "deny"
       ]
     },
-    "RuleGroupRuleOptionsPair":{
-      "type":"structure",
-      "members":{
-        "RuleGroupArn":{
-          "shape":"ResourceArn",
-          "documentation":"<p>The ARN of the rule group.</p>",
-          "locationName":"ruleGroupArn"
-        },
-        "RuleOptions":{
-          "shape":"RuleOptionList",
-          "documentation":"<p>The rule options.</p>",
-          "locationName":"ruleOptionSet"
-        }
-      },
-      "documentation":"<p>Describes the rule options for a stateful rule group.</p>"
-    },
-    "RuleGroupRuleOptionsPairList":{
-      "type":"list",
-      "member":{
-        "shape":"RuleGroupRuleOptionsPair",
-        "locationName":"item"
-      }
-    },
-    "RuleGroupTypePair":{
-      "type":"structure",
-      "members":{
-        "RuleGroupArn":{
-          "shape":"ResourceArn",
-          "documentation":"<p>The ARN of the rule group.</p>",
-          "locationName":"ruleGroupArn"
-        },
-        "RuleGroupType":{
-          "shape":"String",
-          "documentation":"<p>The rule group type. The possible values are <code>Domain List</code> and <code>Suricata</code>.</p>",
-          "locationName":"ruleGroupType"
-        }
-      },
-      "documentation":"<p>Describes the type of a stateful rule group.</p>"
-    },
-    "RuleGroupTypePairList":{
-      "type":"list",
-      "member":{
-        "shape":"RuleGroupTypePair",
-        "locationName":"item"
-      }
-    },
-    "RuleOption":{
-      "type":"structure",
-      "members":{
-        "Keyword":{
-          "shape":"String",
-          "documentation":"<p>The Suricata keyword.</p>",
-          "locationName":"keyword"
-        },
-        "Settings":{
-          "shape":"StringList",
-          "documentation":"<p>The settings for the keyword.</p>",
-          "locationName":"settingSet"
-        }
-      },
-      "documentation":"<p>Describes additional settings for a stateful rule.</p>"
-    },
-    "RuleOptionList":{
-      "type":"list",
-      "member":{
-        "shape":"RuleOption",
-        "locationName":"item"
-      }
-    },
     "RunInstancesMonitoringEnabled":{
       "type":"structure",
       "required":["Enabled"],
@@ -48753,7 +48198,7 @@
         },
         "ElasticInferenceAccelerators":{
           "shape":"ElasticInferenceAccelerators",
-          "documentation":"<p>An elastic inference accelerator to associate with the instance. Elastic inference accelerators are a resource you can attach to your Amazon EC2 instances to accelerate your Deep Learning (DL) inference workloads.</p> <p>You cannot specify accelerators from different generations in the same request.</p> <note> <p>Starting April 15, 2023, Amazon Web Services will not onboard new customers to Amazon Elastic Inference (EI), and will help current customers migrate their workloads to options that offer better price and performance. After April 15, 2023, new customers will not be able to launch instances with Amazon EI accelerators in Amazon SageMaker, Amazon ECS, or Amazon EC2. However, customers who have used Amazon EI at least once during the past 30-day period are considered current customers and will be able to continue using the service.</p> </note>",
+          "documentation":"<p>An elastic inference accelerator to associate with the instance. Elastic inference accelerators are a resource you can attach to your Amazon EC2 instances to accelerate your Deep Learning (DL) inference workloads.</p> <p>You cannot specify accelerators from different generations in the same request.</p>",
           "locationName":"ElasticInferenceAccelerator"
         },
         "TagSpecifications":{
@@ -49295,8 +48740,7 @@
           "documentation":"<p>The base64-encoded MIME user data.</p>"
         }
       },
-      "documentation":"<p>Describes the launch specification for a Scheduled Instance.</p> <p>If you are launching the Scheduled Instance in EC2-VPC, you must specify the ID of the subnet. You can specify the subnet using either <code>SubnetId</code> or <code>NetworkInterface</code>.</p>",
-      "sensitive":true
+      "documentation":"<p>Describes the launch specification for a Scheduled Instance.</p> <p>If you are launching the Scheduled Instance in EC2-VPC, you must specify the ID of the subnet. You can specify the subnet using either <code>SubnetId</code> or <code>NetworkInterface</code>.</p>"
     },
     "ScheduledInstancesMonitoring":{
       "type":"structure",
@@ -50679,8 +50123,8 @@
           "locationName":"subnetId"
         },
         "UserData":{
-          "shape":"SensitiveUserData",
-          "documentation":"<p>The base64-encoded user data that instances use when starting up. User data is limited to 16 KB.</p>",
+          "shape":"String",
+          "documentation":"<p>The Base64-encoded user data that instances use when starting up.</p>",
           "locationName":"userData"
         },
         "WeightedCapacity":{
@@ -52173,7 +51617,7 @@
           "locationName":"Tag"
         }
       },
-      "documentation":"<p>The tags to apply to a resource when the resource is being created. When you specify a tag, you must specify the resource type to tag, otherwise the request will fail.</p> <note> <p>The <code>Valid Values</code> lists all the resource types that can be tagged. However, the action you're using might not support tagging all of these resource types. If you try to tag a resource type that is unsupported for the action you're using, you'll get an error.</p> </note>"
+      "documentation":"<p>The tags to apply to a resource when the resource is being created.</p> <note> <p>The <code>Valid Values</code> lists all the resource types that can be tagged. However, the action you're using might not support tagging all of these resource types. If you try to tag a resource type that is unsupported for the action you're using, you'll get an error.</p> </note>"
     },
     "TagSpecificationList":{
       "type":"list",
@@ -54815,11 +54259,6 @@
           "shape":"VpnTunnelLogOptions",
           "documentation":"<p>Options for logging VPN tunnel activity.</p>",
           "locationName":"logOptions"
-        },
-        "EnableTunnelLifecycleControl":{
-          "shape":"Boolean",
-          "documentation":"<p>Status of tunnel endpoint lifecycle control feature.</p>",
-          "locationName":"enableTunnelLifecycleControl"
         }
       },
       "documentation":"<p>The VPN tunnel options.</p>"
@@ -57658,10 +57097,6 @@
         "LogOptions":{
           "shape":"VpnTunnelLogOptionsSpecification",
           "documentation":"<p>Options for logging VPN tunnel activity.</p>"
-        },
-        "EnableTunnelLifecycleControl":{
-          "shape":"Boolean",
-          "documentation":"<p>Turn on or off tunnel endpoint lifecycle control feature.</p>"
         }
       },
       "documentation":"<p>The tunnel options for a single VPN tunnel.</p>"

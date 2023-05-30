@@ -1,326 +1,15 @@
 {
     "testCases": [
         {
-            "documentation": "For region aws-global with FIPS disabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "properties": {
-                        "authSchemes": [
-                            {
-                                "name": "sigv4",
-                                "signingName": "iam",
-                                "signingRegion": "us-east-1"
-                            }
-                        ]
-                    },
-                    "url": "https://iam.amazonaws.com"
-                }
-            },
-            "params": {
-                "UseFIPS": false,
-                "UseDualStack": false,
-                "Region": "aws-global"
-            }
-        },
-        {
-            "documentation": "For region aws-global with FIPS enabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "properties": {
-                        "authSchemes": [
-                            {
-                                "name": "sigv4",
-                                "signingName": "iam",
-                                "signingRegion": "us-east-1"
-                            }
-                        ]
-                    },
-                    "url": "https://iam-fips.amazonaws.com"
-                }
-            },
-            "params": {
-                "UseFIPS": true,
-                "UseDualStack": false,
-                "Region": "aws-global"
-            }
-        },
-        {
-            "documentation": "For region us-east-1 with FIPS enabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://iam-fips.us-east-1.api.aws"
-                }
-            },
-            "params": {
-                "UseFIPS": true,
-                "UseDualStack": true,
-                "Region": "us-east-1"
-            }
-        },
-        {
-            "documentation": "For region us-east-1 with FIPS enabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "properties": {
-                        "authSchemes": [
-                            {
-                                "name": "sigv4",
-                                "signingName": "iam",
-                                "signingRegion": "us-east-1"
-                            }
-                        ]
-                    },
-                    "url": "https://iam-fips.amazonaws.com"
-                }
-            },
-            "params": {
-                "UseFIPS": true,
-                "UseDualStack": false,
-                "Region": "us-east-1"
-            }
-        },
-        {
-            "documentation": "For region us-east-1 with FIPS disabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://iam.us-east-1.api.aws"
-                }
-            },
-            "params": {
-                "UseFIPS": false,
-                "UseDualStack": true,
-                "Region": "us-east-1"
-            }
-        },
-        {
-            "documentation": "For region us-east-1 with FIPS disabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "properties": {
-                        "authSchemes": [
-                            {
-                                "name": "sigv4",
-                                "signingName": "iam",
-                                "signingRegion": "us-east-1"
-                            }
-                        ]
-                    },
-                    "url": "https://iam.amazonaws.com"
-                }
-            },
-            "params": {
-                "UseFIPS": false,
-                "UseDualStack": false,
-                "Region": "us-east-1"
-            }
-        },
-        {
-            "documentation": "For region aws-cn-global with FIPS disabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "properties": {
-                        "authSchemes": [
-                            {
-                                "name": "sigv4",
-                                "signingName": "iam",
-                                "signingRegion": "cn-north-1"
-                            }
-                        ]
-                    },
-                    "url": "https://iam.cn-north-1.amazonaws.com.cn"
-                }
-            },
-            "params": {
-                "UseFIPS": false,
-                "UseDualStack": false,
-                "Region": "aws-cn-global"
-            }
-        },
-        {
-            "documentation": "For region cn-north-1 with FIPS enabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://iam-fips.cn-north-1.api.amazonwebservices.com.cn"
-                }
-            },
-            "params": {
-                "UseFIPS": true,
-                "UseDualStack": true,
-                "Region": "cn-north-1"
-            }
-        },
-        {
-            "documentation": "For region cn-north-1 with FIPS enabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://iam-fips.cn-north-1.amazonaws.com.cn"
-                }
-            },
-            "params": {
-                "UseFIPS": true,
-                "UseDualStack": false,
-                "Region": "cn-north-1"
-            }
-        },
-        {
-            "documentation": "For region cn-north-1 with FIPS disabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://iam.cn-north-1.api.amazonwebservices.com.cn"
-                }
-            },
-            "params": {
-                "UseFIPS": false,
-                "UseDualStack": true,
-                "Region": "cn-north-1"
-            }
-        },
-        {
-            "documentation": "For region cn-north-1 with FIPS disabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "properties": {
-                        "authSchemes": [
-                            {
-                                "name": "sigv4",
-                                "signingName": "iam",
-                                "signingRegion": "cn-north-1"
-                            }
-                        ]
-                    },
-                    "url": "https://iam.cn-north-1.amazonaws.com.cn"
-                }
-            },
-            "params": {
-                "UseFIPS": false,
-                "UseDualStack": false,
-                "Region": "cn-north-1"
-            }
-        },
-        {
-            "documentation": "For region aws-us-gov-global with FIPS disabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "properties": {
-                        "authSchemes": [
-                            {
-                                "name": "sigv4",
-                                "signingName": "iam",
-                                "signingRegion": "us-gov-west-1"
-                            }
-                        ]
-                    },
-                    "url": "https://iam.us-gov.amazonaws.com"
-                }
-            },
-            "params": {
-                "UseFIPS": false,
-                "UseDualStack": false,
-                "Region": "aws-us-gov-global"
-            }
-        },
-        {
-            "documentation": "For region aws-us-gov-global with FIPS enabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "properties": {
-                        "authSchemes": [
-                            {
-                                "name": "sigv4",
-                                "signingName": "iam",
-                                "signingRegion": "us-gov-west-1"
-                            }
-                        ]
-                    },
-                    "url": "https://iam.us-gov.amazonaws.com"
-                }
-            },
-            "params": {
-                "UseFIPS": true,
-                "UseDualStack": false,
-                "Region": "aws-us-gov-global"
-            }
-        },
-        {
-            "documentation": "For region us-gov-east-1 with FIPS enabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://iam-fips.us-gov-east-1.api.aws"
-                }
-            },
-            "params": {
-                "UseFIPS": true,
-                "UseDualStack": true,
-                "Region": "us-gov-east-1"
-            }
-        },
-        {
-            "documentation": "For region us-gov-east-1 with FIPS enabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "properties": {
-                        "authSchemes": [
-                            {
-                                "name": "sigv4",
-                                "signingName": "iam",
-                                "signingRegion": "us-gov-west-1"
-                            }
-                        ]
-                    },
-                    "url": "https://iam.us-gov.amazonaws.com"
-                }
-            },
-            "params": {
-                "UseFIPS": true,
-                "UseDualStack": false,
-                "Region": "us-gov-east-1"
-            }
-        },
-        {
-            "documentation": "For region us-gov-east-1 with FIPS disabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://iam.us-gov-east-1.api.aws"
-                }
-            },
-            "params": {
-                "UseFIPS": false,
-                "UseDualStack": true,
-                "Region": "us-gov-east-1"
-            }
-        },
-        {
-            "documentation": "For region us-gov-east-1 with FIPS disabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "properties": {
-                        "authSchemes": [
-                            {
-                                "name": "sigv4",
-                                "signingName": "iam",
-                                "signingRegion": "us-gov-west-1"
-                            }
-                        ]
-                    },
-                    "url": "https://iam.us-gov.amazonaws.com"
-                }
-            },
-            "params": {
-                "UseFIPS": false,
-                "UseDualStack": false,
-                "Region": "us-gov-east-1"
-            }
-        },
-        {
             "documentation": "For region aws-iso-global with FIPS disabled and DualStack disabled",
             "expect": {
                 "endpoint": {
                     "properties": {
                         "authSchemes": [
                             {
-                                "name": "sigv4",
                                 "signingName": "iam",
-                                "signingRegion": "us-iso-east-1"
+                                "signingRegion": "us-iso-east-1",
+                                "name": "sigv4"
                             }
                         ]
                     },
@@ -328,8 +17,8 @@
                 }
             },
             "params": {
-                "UseFIPS": false,
                 "UseDualStack": false,
+                "UseFIPS": false,
                 "Region": "aws-iso-global"
             }
         },
@@ -341,8 +30,8 @@
                 }
             },
             "params": {
-                "UseFIPS": true,
                 "UseDualStack": false,
+                "UseFIPS": true,
                 "Region": "us-iso-east-1"
             }
         },
@@ -353,9 +42,9 @@
                     "properties": {
                         "authSchemes": [
                             {
-                                "name": "sigv4",
                                 "signingName": "iam",
-                                "signingRegion": "us-iso-east-1"
+                                "signingRegion": "us-iso-east-1",
+                                "name": "sigv4"
                             }
                         ]
                     },
@@ -363,9 +52,237 @@
                 }
             },
             "params": {
-                "UseFIPS": false,
                 "UseDualStack": false,
+                "UseFIPS": false,
                 "Region": "us-iso-east-1"
+            }
+        },
+        {
+            "documentation": "For region aws-global with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "properties": {
+                        "authSchemes": [
+                            {
+                                "signingName": "iam",
+                                "signingRegion": "us-east-1",
+                                "name": "sigv4"
+                            }
+                        ]
+                    },
+                    "url": "https://iam.amazonaws.com"
+                }
+            },
+            "params": {
+                "UseDualStack": false,
+                "UseFIPS": false,
+                "Region": "aws-global"
+            }
+        },
+        {
+            "documentation": "For region aws-global with FIPS enabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "properties": {
+                        "authSchemes": [
+                            {
+                                "signingName": "iam",
+                                "signingRegion": "us-east-1",
+                                "name": "sigv4"
+                            }
+                        ]
+                    },
+                    "url": "https://iam-fips.amazonaws.com"
+                }
+            },
+            "params": {
+                "UseDualStack": false,
+                "UseFIPS": true,
+                "Region": "aws-global"
+            }
+        },
+        {
+            "documentation": "For region us-east-1 with FIPS enabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://iam-fips.us-east-1.api.aws"
+                }
+            },
+            "params": {
+                "UseDualStack": true,
+                "UseFIPS": true,
+                "Region": "us-east-1"
+            }
+        },
+        {
+            "documentation": "For region us-east-1 with FIPS enabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "properties": {
+                        "authSchemes": [
+                            {
+                                "signingName": "iam",
+                                "signingRegion": "us-east-1",
+                                "name": "sigv4"
+                            }
+                        ]
+                    },
+                    "url": "https://iam-fips.amazonaws.com"
+                }
+            },
+            "params": {
+                "UseDualStack": false,
+                "UseFIPS": true,
+                "Region": "us-east-1"
+            }
+        },
+        {
+            "documentation": "For region us-east-1 with FIPS disabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://iam.us-east-1.api.aws"
+                }
+            },
+            "params": {
+                "UseDualStack": true,
+                "UseFIPS": false,
+                "Region": "us-east-1"
+            }
+        },
+        {
+            "documentation": "For region us-east-1 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "properties": {
+                        "authSchemes": [
+                            {
+                                "signingName": "iam",
+                                "signingRegion": "us-east-1",
+                                "name": "sigv4"
+                            }
+                        ]
+                    },
+                    "url": "https://iam.amazonaws.com"
+                }
+            },
+            "params": {
+                "UseDualStack": false,
+                "UseFIPS": false,
+                "Region": "us-east-1"
+            }
+        },
+        {
+            "documentation": "For region aws-us-gov-global with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "properties": {
+                        "authSchemes": [
+                            {
+                                "signingName": "iam",
+                                "signingRegion": "us-gov-west-1",
+                                "name": "sigv4"
+                            }
+                        ]
+                    },
+                    "url": "https://iam.us-gov.amazonaws.com"
+                }
+            },
+            "params": {
+                "UseDualStack": false,
+                "UseFIPS": false,
+                "Region": "aws-us-gov-global"
+            }
+        },
+        {
+            "documentation": "For region aws-us-gov-global with FIPS enabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "properties": {
+                        "authSchemes": [
+                            {
+                                "signingName": "iam",
+                                "signingRegion": "us-gov-west-1",
+                                "name": "sigv4"
+                            }
+                        ]
+                    },
+                    "url": "https://iam.us-gov.amazonaws.com"
+                }
+            },
+            "params": {
+                "UseDualStack": false,
+                "UseFIPS": true,
+                "Region": "aws-us-gov-global"
+            }
+        },
+        {
+            "documentation": "For region us-gov-east-1 with FIPS enabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://iam-fips.us-gov-east-1.api.aws"
+                }
+            },
+            "params": {
+                "UseDualStack": true,
+                "UseFIPS": true,
+                "Region": "us-gov-east-1"
+            }
+        },
+        {
+            "documentation": "For region us-gov-east-1 with FIPS enabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "properties": {
+                        "authSchemes": [
+                            {
+                                "signingName": "iam",
+                                "signingRegion": "us-gov-west-1",
+                                "name": "sigv4"
+                            }
+                        ]
+                    },
+                    "url": "https://iam.us-gov.amazonaws.com"
+                }
+            },
+            "params": {
+                "UseDualStack": false,
+                "UseFIPS": true,
+                "Region": "us-gov-east-1"
+            }
+        },
+        {
+            "documentation": "For region us-gov-east-1 with FIPS disabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://iam.us-gov-east-1.api.aws"
+                }
+            },
+            "params": {
+                "UseDualStack": true,
+                "UseFIPS": false,
+                "Region": "us-gov-east-1"
+            }
+        },
+        {
+            "documentation": "For region us-gov-east-1 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "properties": {
+                        "authSchemes": [
+                            {
+                                "signingName": "iam",
+                                "signingRegion": "us-gov-west-1",
+                                "name": "sigv4"
+                            }
+                        ]
+                    },
+                    "url": "https://iam.us-gov.amazonaws.com"
+                }
+            },
+            "params": {
+                "UseDualStack": false,
+                "UseFIPS": false,
+                "Region": "us-gov-east-1"
             }
         },
         {
@@ -375,9 +292,9 @@
                     "properties": {
                         "authSchemes": [
                             {
-                                "name": "sigv4",
                                 "signingName": "iam",
-                                "signingRegion": "us-isob-east-1"
+                                "signingRegion": "us-isob-east-1",
+                                "name": "sigv4"
                             }
                         ]
                     },
@@ -385,8 +302,8 @@
                 }
             },
             "params": {
-                "UseFIPS": false,
                 "UseDualStack": false,
+                "UseFIPS": false,
                 "Region": "aws-iso-b-global"
             }
         },
@@ -398,8 +315,8 @@
                 }
             },
             "params": {
-                "UseFIPS": true,
                 "UseDualStack": false,
+                "UseFIPS": true,
                 "Region": "us-isob-east-1"
             }
         },
@@ -410,9 +327,9 @@
                     "properties": {
                         "authSchemes": [
                             {
-                                "name": "sigv4",
                                 "signingName": "iam",
-                                "signingRegion": "us-isob-east-1"
+                                "signingRegion": "us-isob-east-1",
+                                "name": "sigv4"
                             }
                         ]
                     },
@@ -420,35 +337,105 @@
                 }
             },
             "params": {
-                "UseFIPS": false,
                 "UseDualStack": false,
+                "UseFIPS": false,
                 "Region": "us-isob-east-1"
             }
         },
         {
-            "documentation": "For custom endpoint with region set and fips disabled and dualstack disabled",
+            "documentation": "For region aws-cn-global with FIPS disabled and DualStack disabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://example.com"
+                    "properties": {
+                        "authSchemes": [
+                            {
+                                "signingName": "iam",
+                                "signingRegion": "cn-north-1",
+                                "name": "sigv4"
+                            }
+                        ]
+                    },
+                    "url": "https://iam.cn-north-1.amazonaws.com.cn"
                 }
             },
             "params": {
-                "UseFIPS": false,
                 "UseDualStack": false,
-                "Region": "us-east-1",
-                "Endpoint": "https://example.com"
+                "UseFIPS": false,
+                "Region": "aws-cn-global"
             }
         },
         {
-            "documentation": "For custom endpoint with region not set and fips disabled and dualstack disabled",
+            "documentation": "For region cn-north-1 with FIPS enabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://iam-fips.cn-north-1.api.amazonwebservices.com.cn"
+                }
+            },
+            "params": {
+                "UseDualStack": true,
+                "UseFIPS": true,
+                "Region": "cn-north-1"
+            }
+        },
+        {
+            "documentation": "For region cn-north-1 with FIPS enabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://iam-fips.cn-north-1.amazonaws.com.cn"
+                }
+            },
+            "params": {
+                "UseDualStack": false,
+                "UseFIPS": true,
+                "Region": "cn-north-1"
+            }
+        },
+        {
+            "documentation": "For region cn-north-1 with FIPS disabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://iam.cn-north-1.api.amazonwebservices.com.cn"
+                }
+            },
+            "params": {
+                "UseDualStack": true,
+                "UseFIPS": false,
+                "Region": "cn-north-1"
+            }
+        },
+        {
+            "documentation": "For region cn-north-1 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "properties": {
+                        "authSchemes": [
+                            {
+                                "signingName": "iam",
+                                "signingRegion": "cn-north-1",
+                                "name": "sigv4"
+                            }
+                        ]
+                    },
+                    "url": "https://iam.cn-north-1.amazonaws.com.cn"
+                }
+            },
+            "params": {
+                "UseDualStack": false,
+                "UseFIPS": false,
+                "Region": "cn-north-1"
+            }
+        },
+        {
+            "documentation": "For custom endpoint with fips disabled and dualstack disabled",
             "expect": {
                 "endpoint": {
                     "url": "https://example.com"
                 }
             },
             "params": {
-                "UseFIPS": false,
                 "UseDualStack": false,
+                "UseFIPS": false,
+                "Region": "us-east-1",
                 "Endpoint": "https://example.com"
             }
         },
@@ -458,8 +445,8 @@
                 "error": "Invalid Configuration: FIPS and custom endpoint are not supported"
             },
             "params": {
-                "UseFIPS": true,
                 "UseDualStack": false,
+                "UseFIPS": true,
                 "Region": "us-east-1",
                 "Endpoint": "https://example.com"
             }
@@ -470,8 +457,8 @@
                 "error": "Invalid Configuration: Dualstack and custom endpoint are not supported"
             },
             "params": {
-                "UseFIPS": false,
                 "UseDualStack": true,
+                "UseFIPS": false,
                 "Region": "us-east-1",
                 "Endpoint": "https://example.com"
             }

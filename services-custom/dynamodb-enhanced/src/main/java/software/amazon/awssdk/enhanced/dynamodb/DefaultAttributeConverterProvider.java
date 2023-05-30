@@ -61,7 +61,6 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.Opt
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.OptionalLongAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.PeriodAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.SdkBytesAttributeConverter;
-import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.SdkNumberAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.SetAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.ShortAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.StringAttributeConverter;
@@ -89,8 +88,6 @@ import software.amazon.awssdk.utils.Validate;
 @ThreadSafe
 @Immutable
 public final class DefaultAttributeConverterProvider implements AttributeConverterProvider {
-    private static final DefaultAttributeConverterProvider INSTANCE = getDefaultBuilder().build();
-
     private static final Logger log = Logger.loggerFor(DefaultAttributeConverterProvider.class);
 
     private final ConcurrentHashMap<EnhancedType<?>, AttributeConverter<?>> converterCache =
@@ -120,8 +117,9 @@ public final class DefaultAttributeConverterProvider implements AttributeConvert
      * Returns an attribute converter provider with all default converters set.
      */
     public static DefaultAttributeConverterProvider create() {
-        return INSTANCE;
+        return getDefaultBuilder().build();
     }
+
 
     /**
      * Equivalent to {@code builder(EnhancedType.of(Object.class))}.
@@ -248,8 +246,7 @@ public final class DefaultAttributeConverterProvider implements AttributeConvert
                                                 .addConverter(UuidAttributeConverter.create())
                                                 .addConverter(ZonedDateTimeAsStringAttributeConverter.create())
                                                 .addConverter(ZoneIdAttributeConverter.create())
-                                                .addConverter(ZoneOffsetAttributeConverter.create())
-                                                .addConverter(SdkNumberAttributeConverter.create());
+                                                .addConverter(ZoneOffsetAttributeConverter.create());
     }
 
     /**

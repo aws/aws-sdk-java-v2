@@ -687,11 +687,6 @@
           "locationName": "arn",
           "shape": "__string"
         },
-        "CreatedAt": {
-          "documentation": "The date and time the Channel was created.",
-          "locationName": "createdAt",
-          "shape": "__string"
-        },
         "Description": {
           "documentation": "A short text description of the Channel.",
           "locationName": "description",
@@ -908,11 +903,6 @@
           "locationName": "arn",
           "shape": "__string"
         },
-        "CreatedAt": {
-          "documentation": "The date and time the Channel was created.",
-          "locationName": "createdAt",
-          "shape": "__string"
-        },
         "Description": {
           "documentation": "A short text description of the Channel.",
           "locationName": "description",
@@ -970,11 +960,6 @@
         "Arn": {
           "documentation": "The Amazon Resource Name (ARN) assigned to the Channel.",
           "locationName": "arn",
-          "shape": "__string"
-        },
-        "CreatedAt": {
-          "documentation": "The date and time the Channel was created.",
-          "locationName": "createdAt",
           "shape": "__string"
         },
         "Description": {
@@ -1056,7 +1041,7 @@
           "shape": "__string"
         },
         "CreatedAt": {
-          "documentation": "The date and time the HarvestJob was submitted.\n",
+          "documentation": "The time the HarvestJob was submitted\n",
           "locationName": "createdAt",
           "shape": "__string"
         },
@@ -1185,11 +1170,6 @@
         "CmafPackage": {
           "locationName": "cmafPackage",
           "shape": "CmafPackage"
-        },
-        "CreatedAt": {
-          "documentation": "The date and time the OriginEndpoint was created.",
-          "locationName": "createdAt",
-          "shape": "__string"
         },
         "DashPackage": {
           "locationName": "dashPackage",
@@ -1407,11 +1387,6 @@
           "locationName": "arn",
           "shape": "__string"
         },
-        "CreatedAt": {
-          "documentation": "The date and time the Channel was created.",
-          "locationName": "createdAt",
-          "shape": "__string"
-        },
         "Description": {
           "documentation": "A short text description of the Channel.",
           "locationName": "description",
@@ -1468,7 +1443,7 @@
           "shape": "__string"
         },
         "CreatedAt": {
-          "documentation": "The date and time the HarvestJob was submitted.\n",
+          "documentation": "The time the HarvestJob was submitted\n",
           "locationName": "createdAt",
           "shape": "__string"
         },
@@ -1537,11 +1512,6 @@
         "CmafPackage": {
           "locationName": "cmafPackage",
           "shape": "CmafPackage"
-        },
-        "CreatedAt": {
-          "documentation": "The date and time the OriginEndpoint was created.",
-          "locationName": "createdAt",
-          "shape": "__string"
         },
         "DashPackage": {
           "locationName": "dashPackage",
@@ -1668,7 +1638,7 @@
           "shape": "__string"
         },
         "CreatedAt": {
-          "documentation": "The date and time the HarvestJob was submitted.\n",
+          "documentation": "The time the HarvestJob was submitted\n",
           "locationName": "createdAt",
           "shape": "__string"
         },
@@ -2243,11 +2213,6 @@
           "locationName": "cmafPackage",
           "shape": "CmafPackage"
         },
-        "CreatedAt": {
-          "documentation": "The date and time the OriginEndpoint was created.",
-          "locationName": "createdAt",
-          "shape": "__string"
-        },
         "DashPackage": {
           "locationName": "dashPackage",
           "shape": "DashPackage"
@@ -2525,11 +2490,6 @@
           "locationName": "arn",
           "shape": "__string"
         },
-        "CreatedAt": {
-          "documentation": "The date and time the Channel was created.",
-          "locationName": "createdAt",
-          "shape": "__string"
-        },
         "Description": {
           "documentation": "A short text description of the Channel.",
           "locationName": "description",
@@ -2585,11 +2545,6 @@
         "Arn": {
           "documentation": "The Amazon Resource Name (ARN) assigned to the Channel.",
           "locationName": "arn",
-          "shape": "__string"
-        },
-        "CreatedAt": {
-          "documentation": "The date and time the Channel was created.",
-          "locationName": "createdAt",
           "shape": "__string"
         },
         "Description": {
@@ -2862,11 +2817,6 @@
           "locationName": "arn",
           "shape": "__string"
         },
-        "CreatedAt": {
-          "documentation": "The date and time the Channel was created.",
-          "locationName": "createdAt",
-          "shape": "__string"
-        },
         "Description": {
           "documentation": "A short text description of the Channel.",
           "locationName": "description",
@@ -2980,11 +2930,6 @@
         "CmafPackage": {
           "locationName": "cmafPackage",
           "shape": "CmafPackage"
-        },
-        "CreatedAt": {
-          "documentation": "The date and time the OriginEndpoint was created.",
-          "locationName": "createdAt",
-          "shape": "__string"
         },
         "DashPackage": {
           "locationName": "dashPackage",

@@ -18,9 +18,14 @@ package software.amazon.awssdk.http.crt.internal;
 
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.crt.http.HttpMonitoringOptions;
+import software.amazon.awssdk.crt.http.HttpProxyOptions;
 import software.amazon.awssdk.crt.io.SocketOptions;
 import software.amazon.awssdk.crt.io.TlsCipherPreference;
+import software.amazon.awssdk.crt.io.TlsContext;
 import software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient;
+import software.amazon.awssdk.http.crt.ConnectionHealthConfiguration;
+import software.amazon.awssdk.http.crt.ProxyConfiguration;
 import software.amazon.awssdk.http.crt.TcpKeepAliveConfiguration;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.NumericUtils;
@@ -49,6 +54,43 @@ public final class AwsCrtConfigurationUtils {
         }
 
         return clientSocketOptions;
+    }
+
+    public static HttpProxyOptions buildProxyOptions(ProxyConfiguration proxyConfiguration, TlsContext tlsContext) {
+        if (proxyConfiguration == null) {
+            return null;
+        }
+
+        HttpProxyOptions clientProxyOptions = new HttpProxyOptions();
+
+        clientProxyOptions.setHost(proxyConfiguration.host());
+        clientProxyOptions.setPort(proxyConfiguration.port());
+
+        if ("https".equalsIgnoreCase(proxyConfiguration.scheme())) {
+            clientProxyOptions.setTlsContext(tlsContext);
+        }
+
+        if (proxyConfiguration.username() != null && proxyConfiguration.password() != null) {
+            clientProxyOptions.setAuthorizationUsername(proxyConfiguration.username());
+            clientProxyOptions.setAuthorizationPassword(proxyConfiguration.password());
+            clientProxyOptions.setAuthorizationType(HttpProxyOptions.HttpProxyAuthorizationType.Basic);
+        } else {
+            clientProxyOptions.setAuthorizationType(HttpProxyOptions.HttpProxyAuthorizationType.None);
+        }
+
+        return clientProxyOptions;
+    }
+
+    public static HttpMonitoringOptions resolveHttpMonitoringOptions(ConnectionHealthConfiguration config) {
+        if (config == null) {
+            return null;
+        }
+
+        HttpMonitoringOptions httpMonitoringOptions = new HttpMonitoringOptions();
+        httpMonitoringOptions.setMinThroughputBytesPerSecond(config.minimumThroughputInBps());
+        int seconds = (int) config.minimumThroughputTimeout().getSeconds();
+        httpMonitoringOptions.setAllowableThroughputFailureIntervalSeconds(seconds);
+        return httpMonitoringOptions;
     }
 
     public static TlsCipherPreference resolveCipherPreference(Boolean postQuantumTlsEnabled) {

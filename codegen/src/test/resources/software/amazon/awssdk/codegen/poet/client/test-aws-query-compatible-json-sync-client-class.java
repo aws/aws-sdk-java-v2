@@ -51,13 +51,9 @@ final class DefaultQueryToJsonCompatibleClient implements QueryToJsonCompatibleC
 
     private final SdkClientConfiguration clientConfiguration;
 
-    private final QueryToJsonCompatibleServiceClientConfiguration serviceClientConfiguration;
-
-    protected DefaultQueryToJsonCompatibleClient(QueryToJsonCompatibleServiceClientConfiguration serviceClientConfiguration,
-                                                 SdkClientConfiguration clientConfiguration) {
+    protected DefaultQueryToJsonCompatibleClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
-        this.serviceClientConfiguration = serviceClientConfiguration;
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
     }
 
@@ -158,11 +154,6 @@ final class DefaultQueryToJsonCompatibleClient implements QueryToJsonCompatibleC
             .registerModeledException(
                 ExceptionMetadata.builder().errorCode("InvalidInput")
                                  .exceptionBuilderSupplier(InvalidInputException::builder).httpStatusCode(400).build());
-    }
-
-    @Override
-    public final QueryToJsonCompatibleServiceClientConfiguration serviceClientConfiguration() {
-        return this.serviceClientConfiguration;
     }
 
     @Override

@@ -20,8 +20,7 @@ phases:
         -DartifactId=apache-project \
         -DhttpClient=apache-client \
         -Dservice=s3  \
-        -DinteractiveMode=false \
-        -DcredentialProvider=default
+        -DinteractiveMode=false
     - |
     - cd apache-project
     - mvn clean package -P native-image
@@ -39,8 +38,7 @@ phases:
         -DhttpClient=url-connection-client \
         -DartifactId=url-connection-project \
         -Dservice=s3  \
-        -DinteractiveMode=false \
-        -DcredentialProvider=default
+        -DinteractiveMode=false
     - |
     - cd url-connection-project
     - mvn clean package -P native-image
@@ -58,8 +56,7 @@ phases:
         -DnativeImage=true \
         -DartifactId=netty-project \
         -Dservice=dynamodb  \
-        -DinteractiveMode=false \
-        -DcredentialProvider=default
+        -DinteractiveMode=false
     - |
     - cd netty-project
     - mvn clean package -P native-image

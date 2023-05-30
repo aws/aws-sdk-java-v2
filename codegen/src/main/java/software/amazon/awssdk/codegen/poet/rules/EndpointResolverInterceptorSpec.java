@@ -148,6 +148,16 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
 
         b.addStatement("$T builder = $T.builder()", paramsBuilderClass(), endpointRulesSpecUtils.parametersClassName());
 
+        b.addStatement("setStaticContextParams(builder, executionAttributes.getAttribute($T.OPERATION_NAME))",
+                       AwsExecutionAttribute.class);
+
+        b.addStatement("setContextParams(builder, executionAttributes.getAttribute($T.OPERATION_NAME), context.request())",
+                       AwsExecutionAttribute.class);
+
+        if (hasClientContextParams()) {
+            b.addStatement("setClientContextParams(builder, executionAttributes)");
+        }
+
         Map<String, ParameterModel> parameters = model.getEndpointRuleSetModel().getParameters();
 
         parameters.forEach((n, m) -> {
@@ -190,14 +200,6 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
             b.addStatement("builder.$N($T.$N(executionAttributes))", setterName,
                            endpointRulesSpecUtils.rulesRuntimeClassName("AwsEndpointProviderUtils"), builtInFn);
         });
-
-        if (hasClientContextParams()) {
-            b.addStatement("setClientContextParams(builder, executionAttributes)");
-        }
-        b.addStatement("setContextParams(builder, executionAttributes.getAttribute($T.OPERATION_NAME), context.request())",
-                       AwsExecutionAttribute.class);
-        b.addStatement("setStaticContextParams(builder, executionAttributes.getAttribute($T.OPERATION_NAME))",
-                       AwsExecutionAttribute.class);
 
         b.addStatement("return builder.build()");
         return b.build();

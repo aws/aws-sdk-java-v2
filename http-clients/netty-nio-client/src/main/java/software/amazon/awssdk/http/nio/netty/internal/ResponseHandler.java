@@ -376,8 +376,6 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
                         }
                     } catch (IOException e) {
                         notifyError(e);
-                        runAndLogError(channelContext.channel(), () -> "Could not release channel back to the pool",
-                                       () -> closeAndRelease(channelContext));
                     }
                 }
 

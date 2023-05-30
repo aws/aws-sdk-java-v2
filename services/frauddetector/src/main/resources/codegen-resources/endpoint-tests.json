@@ -1,123 +1,6 @@
 {
     "testCases": [
         {
-            "documentation": "For region ap-southeast-1 with FIPS disabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://frauddetector.ap-southeast-1.amazonaws.com"
-                }
-            },
-            "params": {
-                "Region": "ap-southeast-1",
-                "UseDualStack": false,
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region ap-southeast-2 with FIPS disabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://frauddetector.ap-southeast-2.amazonaws.com"
-                }
-            },
-            "params": {
-                "Region": "ap-southeast-2",
-                "UseDualStack": false,
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region eu-west-1 with FIPS disabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://frauddetector.eu-west-1.amazonaws.com"
-                }
-            },
-            "params": {
-                "Region": "eu-west-1",
-                "UseDualStack": false,
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region us-east-1 with FIPS disabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://frauddetector.us-east-1.amazonaws.com"
-                }
-            },
-            "params": {
-                "Region": "us-east-1",
-                "UseDualStack": false,
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region us-east-2 with FIPS disabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://frauddetector.us-east-2.amazonaws.com"
-                }
-            },
-            "params": {
-                "Region": "us-east-2",
-                "UseDualStack": false,
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region us-west-2 with FIPS disabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://frauddetector.us-west-2.amazonaws.com"
-                }
-            },
-            "params": {
-                "Region": "us-west-2",
-                "UseDualStack": false,
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region us-east-1 with FIPS enabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://frauddetector-fips.us-east-1.api.aws"
-                }
-            },
-            "params": {
-                "Region": "us-east-1",
-                "UseDualStack": true,
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region us-east-1 with FIPS enabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://frauddetector-fips.us-east-1.amazonaws.com"
-                }
-            },
-            "params": {
-                "Region": "us-east-1",
-                "UseDualStack": false,
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region us-east-1 with FIPS disabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://frauddetector.us-east-1.api.aws"
-                }
-            },
-            "params": {
-                "Region": "us-east-1",
-                "UseDualStack": true,
-                "UseFIPS": false
-            }
-        },
-        {
             "documentation": "For region cn-north-1 with FIPS enabled and DualStack enabled",
             "expect": {
                 "endpoint": {
@@ -125,9 +8,9 @@
                 }
             },
             "params": {
-                "Region": "cn-north-1",
+                "UseFIPS": true,
                 "UseDualStack": true,
-                "UseFIPS": true
+                "Region": "cn-north-1"
             }
         },
         {
@@ -138,9 +21,9 @@
                 }
             },
             "params": {
-                "Region": "cn-north-1",
+                "UseFIPS": true,
                 "UseDualStack": false,
-                "UseFIPS": true
+                "Region": "cn-north-1"
             }
         },
         {
@@ -151,9 +34,9 @@
                 }
             },
             "params": {
-                "Region": "cn-north-1",
+                "UseFIPS": false,
                 "UseDualStack": true,
-                "UseFIPS": false
+                "Region": "cn-north-1"
             }
         },
         {
@@ -164,61 +47,9 @@
                 }
             },
             "params": {
-                "Region": "cn-north-1",
+                "UseFIPS": false,
                 "UseDualStack": false,
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region us-gov-east-1 with FIPS enabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://frauddetector-fips.us-gov-east-1.api.aws"
-                }
-            },
-            "params": {
-                "Region": "us-gov-east-1",
-                "UseDualStack": true,
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region us-gov-east-1 with FIPS enabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://frauddetector-fips.us-gov-east-1.amazonaws.com"
-                }
-            },
-            "params": {
-                "Region": "us-gov-east-1",
-                "UseDualStack": false,
-                "UseFIPS": true
-            }
-        },
-        {
-            "documentation": "For region us-gov-east-1 with FIPS disabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://frauddetector.us-gov-east-1.api.aws"
-                }
-            },
-            "params": {
-                "Region": "us-gov-east-1",
-                "UseDualStack": true,
-                "UseFIPS": false
-            }
-        },
-        {
-            "documentation": "For region us-gov-east-1 with FIPS disabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://frauddetector.us-gov-east-1.amazonaws.com"
-                }
-            },
-            "params": {
-                "Region": "us-gov-east-1",
-                "UseDualStack": false,
-                "UseFIPS": false
+                "Region": "cn-north-1"
             }
         },
         {
@@ -229,9 +60,9 @@
                 }
             },
             "params": {
-                "Region": "us-iso-east-1",
+                "UseFIPS": true,
                 "UseDualStack": false,
-                "UseFIPS": true
+                "Region": "us-iso-east-1"
             }
         },
         {
@@ -242,9 +73,178 @@
                 }
             },
             "params": {
-                "Region": "us-iso-east-1",
+                "UseFIPS": false,
                 "UseDualStack": false,
-                "UseFIPS": false
+                "Region": "us-iso-east-1"
+            }
+        },
+        {
+            "documentation": "For region us-west-2 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://frauddetector.us-west-2.amazonaws.com"
+                }
+            },
+            "params": {
+                "UseFIPS": false,
+                "UseDualStack": false,
+                "Region": "us-west-2"
+            }
+        },
+        {
+            "documentation": "For region ap-southeast-1 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://frauddetector.ap-southeast-1.amazonaws.com"
+                }
+            },
+            "params": {
+                "UseFIPS": false,
+                "UseDualStack": false,
+                "Region": "ap-southeast-1"
+            }
+        },
+        {
+            "documentation": "For region ap-southeast-2 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://frauddetector.ap-southeast-2.amazonaws.com"
+                }
+            },
+            "params": {
+                "UseFIPS": false,
+                "UseDualStack": false,
+                "Region": "ap-southeast-2"
+            }
+        },
+        {
+            "documentation": "For region us-east-1 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://frauddetector.us-east-1.amazonaws.com"
+                }
+            },
+            "params": {
+                "UseFIPS": false,
+                "UseDualStack": false,
+                "Region": "us-east-1"
+            }
+        },
+        {
+            "documentation": "For region us-east-2 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://frauddetector.us-east-2.amazonaws.com"
+                }
+            },
+            "params": {
+                "UseFIPS": false,
+                "UseDualStack": false,
+                "Region": "us-east-2"
+            }
+        },
+        {
+            "documentation": "For region eu-west-1 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://frauddetector.eu-west-1.amazonaws.com"
+                }
+            },
+            "params": {
+                "UseFIPS": false,
+                "UseDualStack": false,
+                "Region": "eu-west-1"
+            }
+        },
+        {
+            "documentation": "For region us-east-1 with FIPS enabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://frauddetector-fips.us-east-1.api.aws"
+                }
+            },
+            "params": {
+                "UseFIPS": true,
+                "UseDualStack": true,
+                "Region": "us-east-1"
+            }
+        },
+        {
+            "documentation": "For region us-east-1 with FIPS enabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://frauddetector-fips.us-east-1.amazonaws.com"
+                }
+            },
+            "params": {
+                "UseFIPS": true,
+                "UseDualStack": false,
+                "Region": "us-east-1"
+            }
+        },
+        {
+            "documentation": "For region us-east-1 with FIPS disabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://frauddetector.us-east-1.api.aws"
+                }
+            },
+            "params": {
+                "UseFIPS": false,
+                "UseDualStack": true,
+                "Region": "us-east-1"
+            }
+        },
+        {
+            "documentation": "For region us-gov-east-1 with FIPS enabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://frauddetector-fips.us-gov-east-1.api.aws"
+                }
+            },
+            "params": {
+                "UseFIPS": true,
+                "UseDualStack": true,
+                "Region": "us-gov-east-1"
+            }
+        },
+        {
+            "documentation": "For region us-gov-east-1 with FIPS enabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://frauddetector-fips.us-gov-east-1.amazonaws.com"
+                }
+            },
+            "params": {
+                "UseFIPS": true,
+                "UseDualStack": false,
+                "Region": "us-gov-east-1"
+            }
+        },
+        {
+            "documentation": "For region us-gov-east-1 with FIPS disabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://frauddetector.us-gov-east-1.api.aws"
+                }
+            },
+            "params": {
+                "UseFIPS": false,
+                "UseDualStack": true,
+                "Region": "us-gov-east-1"
+            }
+        },
+        {
+            "documentation": "For region us-gov-east-1 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://frauddetector.us-gov-east-1.amazonaws.com"
+                }
+            },
+            "params": {
+                "UseFIPS": false,
+                "UseDualStack": false,
+                "Region": "us-gov-east-1"
             }
         },
         {
@@ -255,9 +255,9 @@
                 }
             },
             "params": {
-                "Region": "us-isob-east-1",
+                "UseFIPS": true,
                 "UseDualStack": false,
-                "UseFIPS": true
+                "Region": "us-isob-east-1"
             }
         },
         {
@@ -268,35 +268,22 @@
                 }
             },
             "params": {
-                "Region": "us-isob-east-1",
+                "UseFIPS": false,
                 "UseDualStack": false,
-                "UseFIPS": false
+                "Region": "us-isob-east-1"
             }
         },
         {
-            "documentation": "For custom endpoint with region set and fips disabled and dualstack disabled",
+            "documentation": "For custom endpoint with fips disabled and dualstack disabled",
             "expect": {
                 "endpoint": {
                     "url": "https://example.com"
                 }
             },
             "params": {
+                "UseFIPS": false,
+                "UseDualStack": false,
                 "Region": "us-east-1",
-                "UseDualStack": false,
-                "UseFIPS": false,
-                "Endpoint": "https://example.com"
-            }
-        },
-        {
-            "documentation": "For custom endpoint with region not set and fips disabled and dualstack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://example.com"
-                }
-            },
-            "params": {
-                "UseDualStack": false,
-                "UseFIPS": false,
                 "Endpoint": "https://example.com"
             }
         },
@@ -306,9 +293,9 @@
                 "error": "Invalid Configuration: FIPS and custom endpoint are not supported"
             },
             "params": {
-                "Region": "us-east-1",
-                "UseDualStack": false,
                 "UseFIPS": true,
+                "UseDualStack": false,
+                "Region": "us-east-1",
                 "Endpoint": "https://example.com"
             }
         },
@@ -318,9 +305,9 @@
                 "error": "Invalid Configuration: Dualstack and custom endpoint are not supported"
             },
             "params": {
-                "Region": "us-east-1",
-                "UseDualStack": true,
                 "UseFIPS": false,
+                "UseDualStack": true,
+                "Region": "us-east-1",
                 "Endpoint": "https://example.com"
             }
         }

@@ -24,24 +24,22 @@ import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpE
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.OPERATION_NAME;
 
 import java.net.URI;
-import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
+import org.assertj.core.internal.Integers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.crt.http.HttpRequest;
-import software.amazon.awssdk.crt.io.ExponentialBackoffRetryOptions;
-import software.amazon.awssdk.crt.io.StandardRetryOptions;
 import software.amazon.awssdk.crt.s3.ChecksumAlgorithm;
 import software.amazon.awssdk.crt.s3.S3Client;
-import software.amazon.awssdk.crt.s3.S3ClientOptions;
 import software.amazon.awssdk.crt.s3.S3MetaRequest;
 import software.amazon.awssdk.crt.s3.S3MetaRequestOptions;
 import software.amazon.awssdk.http.SdkHttpMethod;
@@ -49,7 +47,7 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
-import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
 
 public class S3CrtAsyncHttpClientTest {
     private static final URI DEFAULT_ENDPOINT = URI.create("https://127.0.0.1:443");
@@ -308,58 +306,6 @@ public class S3CrtAsyncHttpClientTest {
         asyncHttpClient.close();
         verify(s3Client).close();
         s3NativeClientConfiguration.close();
-    }
-
-    @Test
-    void build_shouldPassThroughParameters() {
-        S3NativeClientConfiguration configuration =
-            S3NativeClientConfiguration.builder()
-                                       .maxConcurrency(100)
-                                       .signingRegion("us-west-2")
-                .standardRetryOptions(
-                    new StandardRetryOptions()
-                        .withBackoffRetryOptions(new ExponentialBackoffRetryOptions().withMaxRetries(7)))
-                                       .httpConfiguration(S3CrtHttpConfiguration.builder()
-                                                                                .connectionTimeout(Duration.ofSeconds(1))
-                                                                                .connectionHealthConfiguration(c -> c.minimumThroughputInBps(1024L)
-                                                                                                                     .minimumThroughputTimeout(Duration.ofSeconds(2)))
-                                                                                .proxyConfiguration(p -> p.host("127.0.0.1").port(8080))
-                                                                                .build())
-                                       .build();
-        S3CrtAsyncHttpClient client =
-            (S3CrtAsyncHttpClient) S3CrtAsyncHttpClient.builder().s3ClientConfiguration(configuration).build();
-        S3ClientOptions clientOptions = client.s3ClientOptions();
-        assertThat(clientOptions.getConnectTimeoutMs()).isEqualTo(1000);
-        assertThat(clientOptions.getStandardRetryOptions().getBackoffRetryOptions().getMaxRetries()).isEqualTo(7);
-        assertThat(clientOptions.getMaxConnections()).isEqualTo(100);
-        assertThat(clientOptions.getMonitoringOptions()).satisfies(options -> {
-            assertThat(options.getMinThroughputBytesPerSecond()).isEqualTo(1024);
-            assertThat(options.getAllowableThroughputFailureIntervalSeconds()).isEqualTo(2);
-        });
-        assertThat(clientOptions.getProxyOptions()).satisfies(options -> {
-            assertThat(options.getHost()).isEqualTo("127.0.0.1");
-            assertThat(options.getPort()).isEqualTo(8080);
-        });
-        assertThat(clientOptions.getMonitoringOptions()).satisfies(options -> {
-            assertThat(options.getAllowableThroughputFailureIntervalSeconds()).isEqualTo(2);
-            assertThat(options.getMinThroughputBytesPerSecond()).isEqualTo(1024);
-        });
-        assertThat(clientOptions.getMaxConnections()).isEqualTo(100);
-    }
-
-    @Test
-    void build_nullHttpConfiguration() {
-        S3NativeClientConfiguration configuration =
-            S3NativeClientConfiguration.builder()
-                                       .build();
-        S3CrtAsyncHttpClient client =
-            (S3CrtAsyncHttpClient) S3CrtAsyncHttpClient.builder().s3ClientConfiguration(configuration).build();
-        S3ClientOptions clientOptions = client.s3ClientOptions();
-        assertThat(clientOptions.getConnectTimeoutMs()).isZero();
-        assertThat(clientOptions.getMaxConnections()).isZero();
-        assertThat(clientOptions.getMonitoringOptions()).isNull();
-        assertThat(clientOptions.getProxyOptions()).isNull();
-        assertThat(clientOptions.getMonitoringOptions()).isNull();
     }
 
     private AsyncExecuteRequest.Builder getExecuteRequestBuilder() {

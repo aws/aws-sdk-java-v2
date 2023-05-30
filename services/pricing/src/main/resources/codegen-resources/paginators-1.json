@@ -3,26 +3,17 @@
     "DescribeServices": {
       "input_token": "NextToken",
       "output_token": "NextToken",
-      "limit_key": "MaxResults",
-      "result_key": "Services"
+      "limit_key": "MaxResults"
     },
     "GetAttributeValues": {
       "input_token": "NextToken",
       "output_token": "NextToken",
-      "limit_key": "MaxResults",
-      "result_key": "AttributeValues"
+      "limit_key": "MaxResults"
     },
     "GetProducts": {
       "input_token": "NextToken",
       "output_token": "NextToken",
-      "limit_key": "MaxResults",
-      "result_key": "PriceList"
-    },
-    "ListPriceLists": {
-      "input_token": "NextToken",
-      "output_token": "NextToken",
-      "limit_key": "MaxResults",
-      "result_key": "PriceLists"
+      "limit_key": "MaxResults"
     }
   }
 }

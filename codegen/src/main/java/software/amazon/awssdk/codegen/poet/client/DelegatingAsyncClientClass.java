@@ -108,16 +108,6 @@ public class DelegatingAsyncClientClass extends AsyncClientInterface {
     }
 
     @Override
-    protected MethodSpec serviceClientConfigMethod() {
-        return MethodSpec.methodBuilder("serviceClientConfiguration")
-                         .addAnnotation(Override.class)
-                         .addModifiers(PUBLIC, FINAL)
-                         .returns(new PoetExtension(model).getServiceConfigClass())
-                         .addStatement("return delegate.serviceClientConfiguration()")
-                         .build();
-    }
-
-    @Override
     protected void addCloseMethod(TypeSpec.Builder type) {
         MethodSpec method = MethodSpec.methodBuilder("close")
                                       .addAnnotation(Override.class)

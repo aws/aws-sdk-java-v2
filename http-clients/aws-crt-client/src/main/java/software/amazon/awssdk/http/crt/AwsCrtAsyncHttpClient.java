@@ -15,12 +15,12 @@
 
 package software.amazon.awssdk.http.crt;
 
-import static software.amazon.awssdk.crtcore.CrtConfigurationUtils.resolveHttpMonitoringOptions;
-import static software.amazon.awssdk.crtcore.CrtConfigurationUtils.resolveProxy;
 import static software.amazon.awssdk.http.HttpMetric.HTTP_CLIENT_NAME;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.PROTOCOL;
+import static software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils.buildProxyOptions;
 import static software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils.buildSocketOptions;
 import static software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils.resolveCipherPreference;
+import static software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils.resolveHttpMonitoringOptions;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import static software.amazon.awssdk.utils.Validate.paramNotNull;
 
@@ -108,9 +108,9 @@ public final class AwsCrtAsyncHttpClient implements SdkAsyncHttpClient {
             this.tlsContext = registerOwnedResource(clientTlsContext);
             this.readBufferSize = builder.readBufferSize == null ? DEFAULT_STREAM_WINDOW_SIZE : builder.readBufferSize;
             this.maxConnectionsPerEndpoint = config.get(SdkHttpConfigurationOption.MAX_CONNECTIONS);
-            this.monitoringOptions = resolveHttpMonitoringOptions(builder.connectionHealthConfiguration).orElse(null);
+            this.monitoringOptions = resolveHttpMonitoringOptions(builder.connectionHealthConfiguration);
             this.maxConnectionIdleInMilliseconds = config.get(SdkHttpConfigurationOption.CONNECTION_MAX_IDLE_TIMEOUT).toMillis();
-            this.proxyOptions = resolveProxy(builder.proxyConfiguration, tlsContext).orElse(null);
+            this.proxyOptions = buildProxyOptions(builder.proxyConfiguration, tlsContext);
         }
     }
 

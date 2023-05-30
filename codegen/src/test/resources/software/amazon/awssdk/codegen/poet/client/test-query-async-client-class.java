@@ -93,15 +93,11 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
 
     private final SdkClientConfiguration clientConfiguration;
 
-    private final QueryServiceClientConfiguration serviceClientConfiguration;
-
     private final ScheduledExecutorService executorService;
 
-    protected DefaultQueryAsyncClient(QueryServiceClientConfiguration serviceClientConfiguration,
-                                      SdkClientConfiguration clientConfiguration) {
+    protected DefaultQueryAsyncClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
-        this.serviceClientConfiguration = serviceClientConfiguration;
         this.protocolFactory = init();
         this.executorService = clientConfiguration.option(SdkClientOption.SCHEDULED_EXECUTOR_SERVICE);
     }
@@ -785,11 +781,6 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
     @Override
     public QueryAsyncWaiter waiter() {
         return QueryAsyncWaiter.builder().client(this).scheduledExecutorService(executorService).build();
-    }
-
-    @Override
-    public final QueryServiceClientConfiguration serviceClientConfiguration() {
-        return this.serviceClientConfiguration;
     }
 
     @Override

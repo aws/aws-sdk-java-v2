@@ -32,7 +32,6 @@ public final class DefaultCustomizationProcessor {
                 new RenameShapesProcessor(config.getRenameShapes()),
                 new ShapeModifiersProcessor(config.getShapeModifiers()),
                 new ShapeSubstitutionsProcessor(config.getShapeSubstitutions()),
-                new CustomSdkShapesProcessor(config.getCustomSdkShapes()),
                 new OperationModifiersProcessor(config.getOperationModifiers()),
                 new RemoveExceptionMessagePropertyProcessor(),
                 new UseLegacyEventGenerationSchemeProcessor(),

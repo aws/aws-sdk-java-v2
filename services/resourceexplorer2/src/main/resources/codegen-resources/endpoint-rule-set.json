@@ -3,7 +3,7 @@
     "parameters": {
         "Region": {
             "builtIn": "AWS::Region",
-            "required": false,
+            "required": true,
             "documentation": "The AWS region used to dispatch the request.",
             "type": "String"
         },
@@ -25,46 +25,15 @@
         {
             "conditions": [
                 {
-                    "fn": "isSet",
+                    "fn": "aws.partition",
                     "argv": [
                         {
-                            "ref": "Endpoint"
-                        }
-                    ]
-                }
-            ],
-            "type": "tree",
-            "rules": [
-                {
-                    "conditions": [
-                        {
-                            "fn": "booleanEquals",
-                            "argv": [
-                                {
-                                    "ref": "UseFIPS"
-                                },
-                                true
-                            ]
+                            "ref": "Region"
                         }
                     ],
-                    "error": "Invalid Configuration: FIPS and custom endpoint are not supported",
-                    "type": "error"
-                },
-                {
-                    "conditions": [],
-                    "endpoint": {
-                        "url": {
-                            "ref": "Endpoint"
-                        },
-                        "properties": {},
-                        "headers": {}
-                    },
-                    "type": "endpoint"
+                    "assign": "PartitionResult"
                 }
-            ]
-        },
-        {
-            "conditions": [],
+            ],
             "type": "tree",
             "rules": [
                 {
@@ -73,7 +42,7 @@
                             "fn": "isSet",
                             "argv": [
                                 {
-                                    "ref": "Region"
+                                    "ref": "Endpoint"
                                 }
                             ]
                         }
@@ -83,19 +52,67 @@
                         {
                             "conditions": [
                                 {
-                                    "fn": "aws.partition",
+                                    "fn": "booleanEquals",
                                     "argv": [
                                         {
-                                            "ref": "Region"
+                                            "ref": "UseFIPS"
+                                        },
+                                        true
+                                    ]
+                                }
+                            ],
+                            "error": "Invalid Configuration: FIPS and custom endpoint are not supported",
+                            "type": "error"
+                        },
+                        {
+                            "conditions": [],
+                            "endpoint": {
+                                "url": {
+                                    "ref": "Endpoint"
+                                },
+                                "properties": {},
+                                "headers": {}
+                            },
+                            "type": "endpoint"
+                        }
+                    ]
+                },
+                {
+                    "conditions": [],
+                    "type": "tree",
+                    "rules": [
+                        {
+                            "conditions": [
+                                {
+                                    "fn": "booleanEquals",
+                                    "argv": [
+                                        true,
+                                        {
+                                            "fn": "getAttr",
+                                            "argv": [
+                                                {
+                                                    "ref": "PartitionResult"
+                                                },
+                                                "supportsDualStack"
+                                            ]
                                         }
-                                    ],
-                                    "assign": "PartitionResult"
+                                    ]
                                 }
                             ],
                             "type": "tree",
                             "rules": [
                                 {
-                                    "conditions": [],
+                                    "conditions": [
+                                        {
+                                            "fn": "booleanEquals",
+                                            "argv": [
+                                                {
+                                                    "ref": "UseFIPS"
+                                                },
+                                                true
+                                            ]
+                                        }
+                                    ],
                                     "type": "tree",
                                     "rules": [
                                         {
@@ -110,7 +127,7 @@
                                                                 {
                                                                     "ref": "PartitionResult"
                                                                 },
-                                                                "supportsDualStack"
+                                                                "supportsFIPS"
                                                             ]
                                                         }
                                                     ]
@@ -119,61 +136,9 @@
                                             "type": "tree",
                                             "rules": [
                                                 {
-                                                    "conditions": [
-                                                        {
-                                                            "fn": "booleanEquals",
-                                                            "argv": [
-                                                                {
-                                                                    "ref": "UseFIPS"
-                                                                },
-                                                                true
-                                                            ]
-                                                        }
-                                                    ],
-                                                    "type": "tree",
-                                                    "rules": [
-                                                        {
-                                                            "conditions": [
-                                                                {
-                                                                    "fn": "booleanEquals",
-                                                                    "argv": [
-                                                                        true,
-                                                                        {
-                                                                            "fn": "getAttr",
-                                                                            "argv": [
-                                                                                {
-                                                                                    "ref": "PartitionResult"
-                                                                                },
-                                                                                "supportsFIPS"
-                                                                            ]
-                                                                        }
-                                                                    ]
-                                                                }
-                                                            ],
-                                                            "type": "tree",
-                                                            "rules": [
-                                                                {
-                                                                    "conditions": [],
-                                                                    "endpoint": {
-                                                                        "url": "https://resource-explorer-2-fips.{Region}.{PartitionResult#dualStackDnsSuffix}",
-                                                                        "properties": {},
-                                                                        "headers": {}
-                                                                    },
-                                                                    "type": "endpoint"
-                                                                }
-                                                            ]
-                                                        },
-                                                        {
-                                                            "conditions": [],
-                                                            "error": "FIPS is enabled but this partition does not support FIPS",
-                                                            "type": "error"
-                                                        }
-                                                    ]
-                                                },
-                                                {
                                                     "conditions": [],
                                                     "endpoint": {
-                                                        "url": "https://resource-explorer-2.{Region}.{PartitionResult#dualStackDnsSuffix}",
+                                                        "url": "https://resource-explorer-2-fips.{Region}.{PartitionResult#dualStackDnsSuffix}",
                                                         "properties": {},
                                                         "headers": {}
                                                     },
@@ -183,93 +148,90 @@
                                         },
                                         {
                                             "conditions": [],
-                                            "type": "tree",
-                                            "rules": [
+                                            "error": "FIPS is enabled but this partition does not support FIPS",
+                                            "type": "error"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "conditions": [],
+                                    "endpoint": {
+                                        "url": "https://resource-explorer-2.{Region}.{PartitionResult#dualStackDnsSuffix}",
+                                        "properties": {},
+                                        "headers": {}
+                                    },
+                                    "type": "endpoint"
+                                }
+                            ]
+                        },
+                        {
+                            "conditions": [],
+                            "type": "tree",
+                            "rules": [
+                                {
+                                    "conditions": [
+                                        {
+                                            "fn": "booleanEquals",
+                                            "argv": [
                                                 {
-                                                    "conditions": [
+                                                    "ref": "UseFIPS"
+                                                },
+                                                true
+                                            ]
+                                        }
+                                    ],
+                                    "type": "tree",
+                                    "rules": [
+                                        {
+                                            "conditions": [
+                                                {
+                                                    "fn": "booleanEquals",
+                                                    "argv": [
+                                                        true,
                                                         {
-                                                            "fn": "booleanEquals",
+                                                            "fn": "getAttr",
                                                             "argv": [
                                                                 {
-                                                                    "ref": "UseFIPS"
+                                                                    "ref": "PartitionResult"
                                                                 },
-                                                                true
+                                                                "supportsFIPS"
                                                             ]
-                                                        }
-                                                    ],
-                                                    "type": "tree",
-                                                    "rules": [
-                                                        {
-                                                            "conditions": [
-                                                                {
-                                                                    "fn": "booleanEquals",
-                                                                    "argv": [
-                                                                        true,
-                                                                        {
-                                                                            "fn": "getAttr",
-                                                                            "argv": [
-                                                                                {
-                                                                                    "ref": "PartitionResult"
-                                                                                },
-                                                                                "supportsFIPS"
-                                                                            ]
-                                                                        }
-                                                                    ]
-                                                                }
-                                                            ],
-                                                            "type": "tree",
-                                                            "rules": [
-                                                                {
-                                                                    "conditions": [],
-                                                                    "type": "tree",
-                                                                    "rules": [
-                                                                        {
-                                                                            "conditions": [],
-                                                                            "endpoint": {
-                                                                                "url": "https://resource-explorer-2-fips.{Region}.{PartitionResult#dnsSuffix}",
-                                                                                "properties": {},
-                                                                                "headers": {}
-                                                                            },
-                                                                            "type": "endpoint"
-                                                                        }
-                                                                    ]
-                                                                }
-                                                            ]
-                                                        },
-                                                        {
-                                                            "conditions": [],
-                                                            "error": "FIPS is enabled but this partition does not support FIPS",
-                                                            "type": "error"
-                                                        }
-                                                    ]
-                                                },
-                                                {
-                                                    "conditions": [],
-                                                    "type": "tree",
-                                                    "rules": [
-                                                        {
-                                                            "conditions": [],
-                                                            "endpoint": {
-                                                                "url": "https://resource-explorer-2.{Region}.{PartitionResult#dnsSuffix}",
-                                                                "properties": {},
-                                                                "headers": {}
-                                                            },
-                                                            "type": "endpoint"
                                                         }
                                                     ]
                                                 }
+                                            ],
+                                            "type": "tree",
+                                            "rules": [
+                                                {
+                                                    "conditions": [],
+                                                    "endpoint": {
+                                                        "url": "https://resource-explorer-2-fips.{Region}.{PartitionResult#dnsSuffix}",
+                                                        "properties": {},
+                                                        "headers": {}
+                                                    },
+                                                    "type": "endpoint"
+                                                }
                                             ]
+                                        },
+                                        {
+                                            "conditions": [],
+                                            "error": "FIPS is enabled but this partition does not support FIPS",
+                                            "type": "error"
                                         }
                                     ]
+                                },
+                                {
+                                    "conditions": [],
+                                    "endpoint": {
+                                        "url": "https://resource-explorer-2.{Region}.{PartitionResult#dnsSuffix}",
+                                        "properties": {},
+                                        "headers": {}
+                                    },
+                                    "type": "endpoint"
                                 }
                             ]
                         }
                     ]
-                },
-                {
-                    "conditions": [],
-                    "error": "Invalid Configuration: Missing Region",
-                    "type": "error"
                 }
             ]
         }

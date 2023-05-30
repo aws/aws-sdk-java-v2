@@ -32,14 +32,8 @@ public final class BaseType implements SdkPojo, Serializable, ToCopyableBuilder<
 
     private final String baseMember;
 
-    private final String customShape1;
-
-    private final Integer customShape2;
-
     private BaseType(BuilderImpl builder) {
         this.baseMember = builder.baseMember;
-        this.customShape1 = builder.customShape1;
-        this.customShape2 = builder.customShape2;
     }
 
     /**
@@ -49,24 +43,6 @@ public final class BaseType implements SdkPojo, Serializable, ToCopyableBuilder<
      */
     public final String baseMember() {
         return baseMember;
-    }
-
-    /**
-     * Custom shape of type string
-     *
-     * @return Custom shape of type string
-     */
-    public final String customShape1() {
-        return customShape1;
-    }
-
-    /**
-     * Custom shape of type integer
-     *
-     * @return Custom shape of type integer
-     */
-    public final Integer customShape2() {
-        return customShape2;
     }
 
     @Override
@@ -86,8 +62,6 @@ public final class BaseType implements SdkPojo, Serializable, ToCopyableBuilder<
     public final int hashCode() {
         int hashCode = 1;
         hashCode = 31 * hashCode + Objects.hashCode(baseMember());
-        hashCode = 31 * hashCode + Objects.hashCode(customShape1());
-        hashCode = 31 * hashCode + Objects.hashCode(customShape2());
         return hashCode;
     }
 
@@ -108,8 +82,7 @@ public final class BaseType implements SdkPojo, Serializable, ToCopyableBuilder<
             return false;
         }
         BaseType other = (BaseType) obj;
-        return Objects.equals(baseMember(), other.baseMember()) && Objects.equals(customShape1(), other.customShape1())
-               && Objects.equals(customShape2(), other.customShape2());
+        return Objects.equals(baseMember(), other.baseMember());
     }
 
     /**
@@ -118,18 +91,13 @@ public final class BaseType implements SdkPojo, Serializable, ToCopyableBuilder<
      */
     @Override
     public final String toString() {
-        return ToString.builder("BaseType").add("BaseMember", baseMember()).add("CustomShape1", customShape1())
-                       .add("CustomShape2", customShape2()).build();
+        return ToString.builder("BaseType").add("BaseMember", baseMember()).build();
     }
 
     public final <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
         switch (fieldName) {
             case "BaseMember":
                 return Optional.ofNullable(clazz.cast(baseMember()));
-            case "CustomShape1":
-                return Optional.ofNullable(clazz.cast(customShape1()));
-            case "CustomShape2":
-                return Optional.ofNullable(clazz.cast(customShape2()));
             default:
                 return Optional.empty();
         }
@@ -157,40 +125,16 @@ public final class BaseType implements SdkPojo, Serializable, ToCopyableBuilder<
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder baseMember(String baseMember);
-
-        /**
-         * Custom shape of type string
-         *
-         * @param customShape1
-         *        Custom shape of type string
-         * @return Returns a reference to this object so that method calls can be chained together.
-         */
-        Builder customShape1(String customShape1);
-
-        /**
-         * Custom shape of type integer
-         *
-         * @param customShape2
-         *        Custom shape of type integer
-         * @return Returns a reference to this object so that method calls can be chained together.
-         */
-        Builder customShape2(Integer customShape2);
     }
 
     static final class BuilderImpl implements Builder {
         private String baseMember;
-
-        private String customShape1;
-
-        private Integer customShape2;
 
         private BuilderImpl() {
         }
 
         private BuilderImpl(BaseType model) {
             baseMember(model.baseMember);
-            customShape1(model.customShape1);
-            customShape2(model.customShape2);
         }
 
         public final String getBaseMember() {
@@ -204,34 +148,6 @@ public final class BaseType implements SdkPojo, Serializable, ToCopyableBuilder<
         @Override
         public final Builder baseMember(String baseMember) {
             this.baseMember = baseMember;
-            return this;
-        }
-
-        public final String getCustomShape1() {
-            return customShape1;
-        }
-
-        public final void setCustomShape1(String customShape1) {
-            this.customShape1 = customShape1;
-        }
-
-        @Override
-        public final Builder customShape1(String customShape1) {
-            this.customShape1 = customShape1;
-            return this;
-        }
-
-        public final Integer getCustomShape2() {
-            return customShape2;
-        }
-
-        public final void setCustomShape2(Integer customShape2) {
-            this.customShape2 = customShape2;
-        }
-
-        @Override
-        public final Builder customShape2(Integer customShape2) {
-            this.customShape2 = customShape2;
             return this;
         }
 

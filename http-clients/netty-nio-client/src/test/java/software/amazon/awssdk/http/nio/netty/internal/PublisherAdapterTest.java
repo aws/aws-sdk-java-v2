@@ -235,56 +235,6 @@ public class PublisherAdapterTest {
         }
     }
 
-    @Test
-    public void contentLengthValidationFails_closesAndReleasesConnection() {
-        channel.attr(ChannelAttributeKey.RESPONSE_CONTENT_LENGTH).set(1L);
-        channel.attr(ChannelAttributeKey.RESPONSE_DATA_READ).set(0L);
-
-        Publisher<HttpContent> publisher = subscriber -> subscriber.onSubscribe(new Subscription() {
-            @Override
-            public void request(long l) {
-                subscriber.onComplete();
-            }
-
-            @Override
-            public void cancel() {
-            }
-        });
-
-        DefaultStreamedHttpResponse streamedResponse = new DefaultStreamedHttpResponse(HttpVersion.HTTP_1_1,
-                                                                                       HttpResponseStatus.OK, publisher);
-
-        Subscriber<ByteBuffer> subscriber = new Subscriber<ByteBuffer>() {
-            private Subscription subscription;
-
-            @Override
-            public void onSubscribe(Subscription subscription) {
-                this.subscription = subscription;
-                subscription.request(Long.MAX_VALUE);
-            }
-
-            @Override
-            public void onNext(ByteBuffer byteBuffer) {
-            }
-
-            @Override
-            public void onError(Throwable throwable) {
-            }
-
-            @Override
-            public void onComplete() {
-            }
-        };
-
-        ResponseHandler.PublisherAdapter publisherAdapter = new ResponseHandler.PublisherAdapter(streamedResponse, ctx,
-                                                                                                 requestContext, executeFuture);
-
-        publisherAdapter.subscribe(subscriber);
-
-        verify(ctx).close();
-        verify(channelPool).release(channel);
-    }
-
     static final class TestSubscriber implements Subscriber<ByteBuffer> {
 
         private Subscription subscription;

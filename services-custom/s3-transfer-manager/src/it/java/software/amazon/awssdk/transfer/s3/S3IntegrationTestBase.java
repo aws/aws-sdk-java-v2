@@ -30,7 +30,6 @@ import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
-import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectVersionsRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectVersionsResponse;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
@@ -142,7 +141,6 @@ public class S3IntegrationTestBase extends AwsTestBase {
             }
             for (S3Object objectSummary : response.contents()) {
                 s3.deleteObject(DeleteObjectRequest.builder().bucket(bucketName).key(objectSummary.key()).build());
-                s3.waiter().waitUntilObjectNotExists(HeadObjectRequest.builder().bucket(bucketName).key(objectSummary.key()).build());
             }
 
             if (response.isTruncated()) {

@@ -277,7 +277,6 @@
       "input":{"shape":"UpdateLoggingConfigurationRequest"},
       "output":{"shape":"UpdateLoggingConfigurationResponse"},
       "errors":[
-        {"shape":"ConflictException"},
         {"shape":"AccessDeniedException"},
         {"shape":"ResourceNotFoundException"},
         {"shape":"PendingVerification"},

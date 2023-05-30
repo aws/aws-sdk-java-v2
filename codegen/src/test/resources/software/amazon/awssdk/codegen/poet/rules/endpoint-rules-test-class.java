@@ -104,15 +104,7 @@ public class QueryClientEndpointTests extends BaseRuleSetClientTest {
                 OperationWithContextParamRequest request = OperationWithContextParamRequest.builder()
                                                                                            .nestedMember(ChecksumStructure.builder().checksumMode("foo").build()).build();
                 builder.build().operationWithContextParam(request);
-            }, Expect.builder().error("Missing info").build()), new SyncTestCase("Has has undeclared input parameter",
-                                                                                 () -> {
-                                                                                     QueryClientBuilder builder = QueryClient.builder();
-                                                                                     builder.credentialsProvider(BaseRuleSetClientTest.CREDENTIALS_PROVIDER);
-                                                                                     builder.tokenProvider(BaseRuleSetClientTest.TOKEN_PROVIDER);
-                                                                                     builder.httpClient(getSyncHttpClient());
-                                                                                     APostOperationRequest request = APostOperationRequest.builder().build();
-                                                                                     builder.build().aPostOperation(request);
-                                                                                 }, Expect.builder().error("Missing info").build()));
+            }, Expect.builder().error("Missing info").build()));
     }
 
     private static List<AsyncTestCase> asyncTestCases() {
@@ -174,14 +166,6 @@ public class QueryClientEndpointTests extends BaseRuleSetClientTest {
                 OperationWithContextParamRequest request = OperationWithContextParamRequest.builder()
                                                                                            .nestedMember(ChecksumStructure.builder().checksumMode("foo").build()).build();
                 return builder.build().operationWithContextParam(request);
-            }, Expect.builder().error("Missing info").build()), new AsyncTestCase("Has has undeclared input parameter",
-                                                                                  () -> {
-                                                                                      QueryAsyncClientBuilder builder = QueryAsyncClient.builder();
-                                                                                      builder.credentialsProvider(BaseRuleSetClientTest.CREDENTIALS_PROVIDER);
-                                                                                      builder.tokenProvider(BaseRuleSetClientTest.TOKEN_PROVIDER);
-                                                                                      builder.httpClient(getAsyncHttpClient());
-                                                                                      APostOperationRequest request = APostOperationRequest.builder().build();
-                                                                                      return builder.build().aPostOperation(request);
-                                                                                  }, Expect.builder().error("Missing info").build()));
+            }, Expect.builder().error("Missing info").build()));
     }
 }

@@ -18,19 +18,14 @@ package software.amazon.awssdk.services.s3.internal.crt;
 import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.SDK_HTTP_EXECUTION_ATTRIBUTES;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.HTTP_CHECKSUM;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.OPERATION_NAME;
-import static software.amazon.awssdk.services.s3.internal.crt.S3NativeClientConfiguration.DEFAULT_PART_SIZE_IN_BYTES;
 
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.checksums.ChecksumValidation;
-import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -40,8 +35,6 @@ import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.util.ClassLoaderHelper;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.signer.NoOpSigner;
-import software.amazon.awssdk.crt.io.ExponentialBackoffRetryOptions;
-import software.amazon.awssdk.crt.io.StandardRetryOptions;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
@@ -50,8 +43,6 @@ import software.amazon.awssdk.services.s3.DelegatingS3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder;
-import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
-import software.amazon.awssdk.services.s3.crt.S3CrtRetryConfiguration;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -62,13 +53,12 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient implements S3CrtAsyncClient {
     private static final String CRT_CLIENT_CLASSPATH = "software.amazon.awssdk.crt.s3.S3Client";
+    private static S3NativeClientConfiguration s3NativeClientConfiguration;
     private final CopyObjectHelper copyObjectHelper;
 
     private DefaultS3CrtAsyncClient(DefaultS3CrtClientBuilder builder) {
         super(initializeS3AsyncClient(builder));
-        long partSizeInBytes = builder.minimalPartSizeInBytes == null ? DEFAULT_PART_SIZE_IN_BYTES :
-                               builder.minimalPartSizeInBytes;
-        this.copyObjectHelper = new CopyObjectHelper((S3AsyncClient) delegate(),  partSizeInBytes);
+        this.copyObjectHelper = new CopyObjectHelper((S3AsyncClient) delegate(), s3NativeClientConfiguration);
     }
 
     @Override
@@ -77,31 +67,22 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
     }
 
     private static S3AsyncClient initializeS3AsyncClient(DefaultS3CrtClientBuilder builder) {
-        ClientOverrideConfiguration.Builder overrideConfigurationBuilder =
-            ClientOverrideConfiguration.builder()
-                                       // Disable checksum, retry policy and signer because they are handled in crt
-                                       .putAdvancedOption(SdkAdvancedClientOption.SIGNER, new NoOpSigner())
-                                       .putExecutionAttribute(SdkExecutionAttribute.HTTP_RESPONSE_CHECKSUM_VALIDATION,
-                                                              ChecksumValidation.FORCE_SKIP)
-                                       .retryPolicy(RetryPolicy.none())
-                                       .addExecutionInterceptor(new ValidateRequestInterceptor())
-                                       .addExecutionInterceptor(new AttachHttpAttributesExecutionInterceptor());
-
-        if (builder.executionInterceptors != null) {
-            builder.executionInterceptors.forEach(overrideConfigurationBuilder::addExecutionInterceptor);
-        }
-
         return S3AsyncClient.builder()
-                            // Disable checksum, it is handled in CRT
+                            // Disable checksum, retry policy and signer because they are handled in crt
                             .serviceConfiguration(S3Configuration.builder()
                                                                  .checksumValidationEnabled(false)
                                                                  .build())
                             .region(builder.region)
                             .endpointOverride(builder.endpointOverride)
                             .credentialsProvider(builder.credentialsProvider)
-                            .overrideConfiguration(overrideConfigurationBuilder.build())
-                            .accelerate(builder.accelerate)
-                            .forcePathStyle(builder.forcePathStyle)
+                            .overrideConfiguration(o -> o.putAdvancedOption(SdkAdvancedClientOption.SIGNER,
+                                                                            new NoOpSigner())
+                                                         .putExecutionAttribute(
+                                                             SdkExecutionAttribute.HTTP_RESPONSE_CHECKSUM_VALIDATION,
+                                                             ChecksumValidation.FORCE_SKIP)
+                                                         .retryPolicy(RetryPolicy.none())
+                                                         .addExecutionInterceptor(new ValidateRequestInterceptor())
+                                                         .addExecutionInterceptor(new AttachHttpAttributesExecutionInterceptor()))
                             .httpClientBuilder(initializeS3CrtAsyncHttpClient(builder))
                             .build();
     }
@@ -113,7 +94,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         Validate.isPositiveOrNull(builder.targetThroughputInGbps, "targetThroughputInGbps");
         Validate.isPositiveOrNull(builder.minimalPartSizeInBytes, "minimalPartSizeInBytes");
 
-        S3NativeClientConfiguration.Builder nativeClientBuilder =
+        s3NativeClientConfiguration =
             S3NativeClientConfiguration.builder()
                                        .checksumValidationEnabled(builder.checksumValidationEnabled)
                                        .targetThroughputInGbps(builder.targetThroughputInGbps)
@@ -123,16 +104,9 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                                        .endpointOverride(builder.endpointOverride)
                                        .credentialsProvider(builder.credentialsProvider)
                                        .readBufferSizeInBytes(builder.readBufferSizeInBytes)
-                                       .httpConfiguration(builder.httpConfiguration);
-
-        if (builder.retryConfiguration != null) {
-            nativeClientBuilder.standardRetryOptions(
-                new StandardRetryOptions()
-                    .withBackoffRetryOptions(new ExponentialBackoffRetryOptions()
-                                                 .withMaxRetries(builder.retryConfiguration.numRetries())));
-        }
+                                       .build();
         return S3CrtAsyncHttpClient.builder()
-                                   .s3ClientConfiguration(nativeClientBuilder.build());
+                                   .s3ClientConfiguration(s3NativeClientConfiguration);
     }
 
     public static final class DefaultS3CrtClientBuilder implements S3CrtAsyncClientBuilder {
@@ -144,12 +118,6 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         private Integer maxConcurrency;
         private URI endpointOverride;
         private Boolean checksumValidationEnabled;
-        private S3CrtHttpConfiguration httpConfiguration;
-        private Boolean accelerate;
-        private Boolean forcePathStyle;
-
-        private List<ExecutionInterceptor> executionInterceptors;
-        private S3CrtRetryConfiguration retryConfiguration;
 
         @Override
         public S3CrtAsyncClientBuilder credentialsProvider(
@@ -197,39 +165,6 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         @Override
         public S3CrtAsyncClientBuilder initialReadBufferSizeInBytes(Long readBufferSizeInBytes) {
             this.readBufferSizeInBytes = readBufferSizeInBytes;
-            return this;
-        }
-
-        @Override
-        public S3CrtAsyncClientBuilder httpConfiguration(S3CrtHttpConfiguration configuration) {
-            this.httpConfiguration = configuration;
-            return this;
-        }
-
-        @Override
-        public S3CrtAsyncClientBuilder accelerate(Boolean accelerate) {
-            this.accelerate = accelerate;
-            return this;
-        }
-
-        @Override
-        public S3CrtAsyncClientBuilder forcePathStyle(Boolean forcePathStyle) {
-            this.forcePathStyle = forcePathStyle;
-            return this;
-        }
-
-        @SdkTestInternalApi
-        S3CrtAsyncClientBuilder addExecutionInterceptor(ExecutionInterceptor executionInterceptor) {
-            if (executionInterceptors == null) {
-                this.executionInterceptors = new ArrayList<>();
-            }
-            executionInterceptors.add(executionInterceptor);
-            return this;
-        }
-
-        @Override
-        public S3CrtAsyncClientBuilder retryConfiguration(S3CrtRetryConfiguration retryConfiguration) {
-            this.retryConfiguration = retryConfiguration;
             return this;
         }
 

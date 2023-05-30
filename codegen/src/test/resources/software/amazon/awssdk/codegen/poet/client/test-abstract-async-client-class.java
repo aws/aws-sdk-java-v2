@@ -653,11 +653,6 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
     }
 
     @Override
-    public final JsonServiceClientConfiguration serviceClientConfiguration() {
-        return delegate.serviceClientConfiguration();
-    }
-
-    @Override
     public final String serviceName() {
         return delegate.serviceName();
     }

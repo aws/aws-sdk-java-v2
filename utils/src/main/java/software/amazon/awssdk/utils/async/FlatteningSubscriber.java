@@ -235,7 +235,7 @@ public class FlatteningSubscriber<U> extends DelegatingSubscriber<Iterable<U>, U
      * result is subject to change.
      */
     private boolean onCompleteNeeded() {
-        return onCompleteCalledByUpstream && allItems.isEmpty() && !terminalCallMadeDownstream;
+        return allItems.isEmpty() && onCompleteCalledByUpstream && !terminalCallMadeDownstream;
     }
 
     /**

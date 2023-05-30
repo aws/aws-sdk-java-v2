@@ -589,15 +589,8 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
     @Override
     public AttributeConverter<T> converterForAttribute(Object key) {
         ResolvedImmutableAttribute<T, B> resolvedImmutableAttribute = indexedMappers.get(key);
-        if (resolvedImmutableAttribute != null) {
-            return resolvedImmutableAttribute.attributeConverter();
-        }
-
-        // If no resolvedAttribute is found look through flattened attributes
-        FlattenedMapper<T, B, ?> flattenedMapper = indexedFlattenedMappers.get(key);
-        if (flattenedMapper != null) {
-            return (AttributeConverter) flattenedMapper.getOtherItemTableSchema().converterForAttribute(key);
-        }
-        return null;
+        return resolvedImmutableAttribute != null
+               ? resolvedImmutableAttribute.attributeConverter()
+               : null;
     }
 }

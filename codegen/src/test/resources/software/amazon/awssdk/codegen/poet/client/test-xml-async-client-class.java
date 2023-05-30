@@ -98,15 +98,11 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
 
     private final SdkClientConfiguration clientConfiguration;
 
-    private final XmlServiceClientConfiguration serviceClientConfiguration;
-
     private final Executor executor;
 
-    protected DefaultXmlAsyncClient(XmlServiceClientConfiguration serviceClientConfiguration,
-                                    SdkClientConfiguration clientConfiguration) {
+    protected DefaultXmlAsyncClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
-        this.serviceClientConfiguration = serviceClientConfiguration;
         this.protocolFactory = init();
         this.executor = clientConfiguration.option(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR);
     }
@@ -752,11 +748,6 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             return CompletableFutureUtils.failedFuture(t);
         }
-    }
-
-    @Override
-    public final XmlServiceClientConfiguration serviceClientConfiguration() {
-        return this.serviceClientConfiguration;
     }
 
     @Override

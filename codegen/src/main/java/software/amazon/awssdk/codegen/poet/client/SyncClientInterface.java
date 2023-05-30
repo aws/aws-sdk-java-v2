@@ -42,7 +42,6 @@ import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
-import software.amazon.awssdk.awscore.AwsClient;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.codegen.docs.ClientType;
 import software.amazon.awssdk.codegen.docs.DocConfiguration;
@@ -58,6 +57,7 @@ import software.amazon.awssdk.codegen.poet.model.DeprecationUtils;
 import software.amazon.awssdk.codegen.utils.PaginatorUtils;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
@@ -94,13 +94,12 @@ public class SyncClientInterface implements ClassSpec {
             result.addMethod(waiterMethod());
         }
         addAdditionalMethods(result);
-        result.addMethod(serviceClientConfigMethod());
         addCloseMethod(result);
         return result.build();
     }
 
     protected void addInterfaceClass(TypeSpec.Builder type) {
-        type.addSuperinterface(AwsClient.class);
+        type.addSuperinterface(SdkClient.class);
     }
 
     protected TypeSpec.Builder createTypeSpec() {
@@ -528,15 +527,6 @@ public class SyncClientInterface implements ClassSpec {
                                                            + "configuration set on this client.", returnType);
 
         return utilitiesOperationBody(builder).build();
-    }
-
-    protected MethodSpec serviceClientConfigMethod() {
-        return MethodSpec.methodBuilder("serviceClientConfiguration")
-                         .addAnnotation(Override.class)
-                         .addModifiers(PUBLIC, DEFAULT)
-                         .addStatement("throw new $T()", UnsupportedOperationException.class)
-                         .returns(new PoetExtension(model).getServiceConfigClass())
-                         .build();
     }
 
     protected MethodSpec.Builder utilitiesOperationBody(MethodSpec.Builder builder) {

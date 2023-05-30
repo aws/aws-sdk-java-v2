@@ -4,11 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -16,11 +12,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
-import software.amazon.awssdk.enhanced.dynamodb.extensions.WriteModification;
-import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.StringAttributeConverter;
-import software.amazon.awssdk.enhanced.dynamodb.update.AddAction;
-import software.amazon.awssdk.enhanced.dynamodb.update.RemoveAction;
-import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ChainConverterProviderTest {
@@ -81,11 +72,4 @@ public class ChainConverterProviderTest {
         assertThat(chain.converterFor(EnhancedType.of(String.class))).isSameAs(mockAttributeConverter1);
     }
 
-    @Test
-    public void equalsHashcode() {
-
-        EqualsVerifier.forClass(ChainConverterProvider.class)
-                      .usingGetClass()
-                      .verify();
-    }
 }

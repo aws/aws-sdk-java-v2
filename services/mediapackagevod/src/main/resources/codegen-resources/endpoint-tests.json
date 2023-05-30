@@ -1,29 +1,42 @@
 {
     "testCases": [
         {
-            "documentation": "For region ap-northeast-1 with FIPS disabled and DualStack disabled",
+            "documentation": "For region ap-south-1 with FIPS enabled and DualStack enabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://mediapackage-vod.ap-northeast-1.amazonaws.com"
+                    "url": "https://mediapackage-vod-fips.ap-south-1.api.aws"
                 }
             },
             "params": {
-                "Region": "ap-northeast-1",
-                "UseFIPS": false,
-                "UseDualStack": false
+                "UseDualStack": true,
+                "UseFIPS": true,
+                "Region": "ap-south-1"
             }
         },
         {
-            "documentation": "For region ap-northeast-2 with FIPS disabled and DualStack disabled",
+            "documentation": "For region ap-south-1 with FIPS enabled and DualStack disabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://mediapackage-vod.ap-northeast-2.amazonaws.com"
+                    "url": "https://mediapackage-vod-fips.ap-south-1.amazonaws.com"
                 }
             },
             "params": {
-                "Region": "ap-northeast-2",
+                "UseDualStack": false,
+                "UseFIPS": true,
+                "Region": "ap-south-1"
+            }
+        },
+        {
+            "documentation": "For region ap-south-1 with FIPS disabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://mediapackage-vod.ap-south-1.api.aws"
+                }
+            },
+            "params": {
+                "UseDualStack": true,
                 "UseFIPS": false,
-                "UseDualStack": false
+                "Region": "ap-south-1"
             }
         },
         {
@@ -34,35 +47,48 @@
                 }
             },
             "params": {
-                "Region": "ap-south-1",
+                "UseDualStack": false,
                 "UseFIPS": false,
-                "UseDualStack": false
+                "Region": "ap-south-1"
             }
         },
         {
-            "documentation": "For region ap-southeast-1 with FIPS disabled and DualStack disabled",
+            "documentation": "For region eu-central-1 with FIPS enabled and DualStack enabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://mediapackage-vod.ap-southeast-1.amazonaws.com"
+                    "url": "https://mediapackage-vod-fips.eu-central-1.api.aws"
                 }
             },
             "params": {
-                "Region": "ap-southeast-1",
-                "UseFIPS": false,
-                "UseDualStack": false
+                "UseDualStack": true,
+                "UseFIPS": true,
+                "Region": "eu-central-1"
             }
         },
         {
-            "documentation": "For region ap-southeast-2 with FIPS disabled and DualStack disabled",
+            "documentation": "For region eu-central-1 with FIPS enabled and DualStack disabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://mediapackage-vod.ap-southeast-2.amazonaws.com"
+                    "url": "https://mediapackage-vod-fips.eu-central-1.amazonaws.com"
                 }
             },
             "params": {
-                "Region": "ap-southeast-2",
+                "UseDualStack": false,
+                "UseFIPS": true,
+                "Region": "eu-central-1"
+            }
+        },
+        {
+            "documentation": "For region eu-central-1 with FIPS disabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://mediapackage-vod.eu-central-1.api.aws"
+                }
+            },
+            "params": {
+                "UseDualStack": true,
                 "UseFIPS": false,
-                "UseDualStack": false
+                "Region": "eu-central-1"
             }
         },
         {
@@ -73,100 +99,48 @@
                 }
             },
             "params": {
-                "Region": "eu-central-1",
+                "UseDualStack": false,
                 "UseFIPS": false,
-                "UseDualStack": false
+                "Region": "eu-central-1"
             }
         },
         {
-            "documentation": "For region eu-north-1 with FIPS disabled and DualStack disabled",
+            "documentation": "For region us-west-1 with FIPS enabled and DualStack enabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://mediapackage-vod.eu-north-1.amazonaws.com"
+                    "url": "https://mediapackage-vod-fips.us-west-1.api.aws"
                 }
             },
             "params": {
-                "Region": "eu-north-1",
-                "UseFIPS": false,
-                "UseDualStack": false
+                "UseDualStack": true,
+                "UseFIPS": true,
+                "Region": "us-west-1"
             }
         },
         {
-            "documentation": "For region eu-west-1 with FIPS disabled and DualStack disabled",
+            "documentation": "For region us-west-1 with FIPS enabled and DualStack disabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://mediapackage-vod.eu-west-1.amazonaws.com"
+                    "url": "https://mediapackage-vod-fips.us-west-1.amazonaws.com"
                 }
             },
             "params": {
-                "Region": "eu-west-1",
-                "UseFIPS": false,
-                "UseDualStack": false
+                "UseDualStack": false,
+                "UseFIPS": true,
+                "Region": "us-west-1"
             }
         },
         {
-            "documentation": "For region eu-west-2 with FIPS disabled and DualStack disabled",
+            "documentation": "For region us-west-1 with FIPS disabled and DualStack enabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://mediapackage-vod.eu-west-2.amazonaws.com"
+                    "url": "https://mediapackage-vod.us-west-1.api.aws"
                 }
             },
             "params": {
-                "Region": "eu-west-2",
+                "UseDualStack": true,
                 "UseFIPS": false,
-                "UseDualStack": false
-            }
-        },
-        {
-            "documentation": "For region eu-west-3 with FIPS disabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://mediapackage-vod.eu-west-3.amazonaws.com"
-                }
-            },
-            "params": {
-                "Region": "eu-west-3",
-                "UseFIPS": false,
-                "UseDualStack": false
-            }
-        },
-        {
-            "documentation": "For region sa-east-1 with FIPS disabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://mediapackage-vod.sa-east-1.amazonaws.com"
-                }
-            },
-            "params": {
-                "Region": "sa-east-1",
-                "UseFIPS": false,
-                "UseDualStack": false
-            }
-        },
-        {
-            "documentation": "For region us-east-1 with FIPS disabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://mediapackage-vod.us-east-1.amazonaws.com"
-                }
-            },
-            "params": {
-                "Region": "us-east-1",
-                "UseFIPS": false,
-                "UseDualStack": false
-            }
-        },
-        {
-            "documentation": "For region us-east-2 with FIPS disabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://mediapackage-vod.us-east-2.amazonaws.com"
-                }
-            },
-            "params": {
-                "Region": "us-east-2",
-                "UseFIPS": false,
-                "UseDualStack": false
+                "Region": "us-west-1"
             }
         },
         {
@@ -177,9 +151,48 @@
                 }
             },
             "params": {
-                "Region": "us-west-1",
+                "UseDualStack": false,
                 "UseFIPS": false,
-                "UseDualStack": false
+                "Region": "us-west-1"
+            }
+        },
+        {
+            "documentation": "For region us-west-2 with FIPS enabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://mediapackage-vod-fips.us-west-2.api.aws"
+                }
+            },
+            "params": {
+                "UseDualStack": true,
+                "UseFIPS": true,
+                "Region": "us-west-2"
+            }
+        },
+        {
+            "documentation": "For region us-west-2 with FIPS enabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://mediapackage-vod-fips.us-west-2.amazonaws.com"
+                }
+            },
+            "params": {
+                "UseDualStack": false,
+                "UseFIPS": true,
+                "Region": "us-west-2"
+            }
+        },
+        {
+            "documentation": "For region us-west-2 with FIPS disabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://mediapackage-vod.us-west-2.api.aws"
+                }
+            },
+            "params": {
+                "UseDualStack": true,
+                "UseFIPS": false,
+                "Region": "us-west-2"
             }
         },
         {
@@ -190,152 +203,488 @@
                 }
             },
             "params": {
-                "Region": "us-west-2",
+                "UseDualStack": false,
                 "UseFIPS": false,
-                "UseDualStack": false
+                "Region": "us-west-2"
             }
         },
         {
-            "documentation": "For region us-east-1 with FIPS enabled and DualStack enabled",
+            "documentation": "For region eu-north-1 with FIPS enabled and DualStack enabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://mediapackage-vod-fips.us-east-1.api.aws"
+                    "url": "https://mediapackage-vod-fips.eu-north-1.api.aws"
                 }
             },
             "params": {
-                "Region": "us-east-1",
+                "UseDualStack": true,
                 "UseFIPS": true,
-                "UseDualStack": true
+                "Region": "eu-north-1"
             }
         },
         {
-            "documentation": "For region us-east-1 with FIPS enabled and DualStack disabled",
+            "documentation": "For region eu-north-1 with FIPS enabled and DualStack disabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://mediapackage-vod-fips.us-east-1.amazonaws.com"
+                    "url": "https://mediapackage-vod-fips.eu-north-1.amazonaws.com"
                 }
             },
             "params": {
-                "Region": "us-east-1",
+                "UseDualStack": false,
                 "UseFIPS": true,
-                "UseDualStack": false
+                "Region": "eu-north-1"
             }
         },
         {
-            "documentation": "For region us-east-1 with FIPS disabled and DualStack enabled",
+            "documentation": "For region eu-north-1 with FIPS disabled and DualStack enabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://mediapackage-vod.us-east-1.api.aws"
+                    "url": "https://mediapackage-vod.eu-north-1.api.aws"
                 }
             },
             "params": {
-                "Region": "us-east-1",
+                "UseDualStack": true,
                 "UseFIPS": false,
-                "UseDualStack": true
+                "Region": "eu-north-1"
             }
         },
         {
-            "documentation": "For region cn-north-1 with FIPS enabled and DualStack enabled",
+            "documentation": "For region eu-north-1 with FIPS disabled and DualStack disabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://mediapackage-vod-fips.cn-north-1.api.amazonwebservices.com.cn"
+                    "url": "https://mediapackage-vod.eu-north-1.amazonaws.com"
                 }
             },
             "params": {
-                "Region": "cn-north-1",
-                "UseFIPS": true,
-                "UseDualStack": true
-            }
-        },
-        {
-            "documentation": "For region cn-north-1 with FIPS enabled and DualStack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://mediapackage-vod-fips.cn-north-1.amazonaws.com.cn"
-                }
-            },
-            "params": {
-                "Region": "cn-north-1",
-                "UseFIPS": true,
-                "UseDualStack": false
-            }
-        },
-        {
-            "documentation": "For region cn-north-1 with FIPS disabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://mediapackage-vod.cn-north-1.api.amazonwebservices.com.cn"
-                }
-            },
-            "params": {
-                "Region": "cn-north-1",
+                "UseDualStack": false,
                 "UseFIPS": false,
-                "UseDualStack": true
+                "Region": "eu-north-1"
             }
         },
         {
-            "documentation": "For region cn-north-1 with FIPS disabled and DualStack disabled",
+            "documentation": "For region eu-west-3 with FIPS enabled and DualStack enabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://mediapackage-vod.cn-north-1.amazonaws.com.cn"
+                    "url": "https://mediapackage-vod-fips.eu-west-3.api.aws"
                 }
             },
             "params": {
-                "Region": "cn-north-1",
-                "UseFIPS": false,
-                "UseDualStack": false
-            }
-        },
-        {
-            "documentation": "For region us-gov-east-1 with FIPS enabled and DualStack enabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://mediapackage-vod-fips.us-gov-east-1.api.aws"
-                }
-            },
-            "params": {
-                "Region": "us-gov-east-1",
+                "UseDualStack": true,
                 "UseFIPS": true,
-                "UseDualStack": true
+                "Region": "eu-west-3"
             }
         },
         {
-            "documentation": "For region us-gov-east-1 with FIPS enabled and DualStack disabled",
+            "documentation": "For region eu-west-3 with FIPS enabled and DualStack disabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://mediapackage-vod-fips.us-gov-east-1.amazonaws.com"
+                    "url": "https://mediapackage-vod-fips.eu-west-3.amazonaws.com"
                 }
             },
             "params": {
-                "Region": "us-gov-east-1",
+                "UseDualStack": false,
                 "UseFIPS": true,
-                "UseDualStack": false
+                "Region": "eu-west-3"
             }
         },
         {
-            "documentation": "For region us-gov-east-1 with FIPS disabled and DualStack enabled",
+            "documentation": "For region eu-west-3 with FIPS disabled and DualStack enabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://mediapackage-vod.us-gov-east-1.api.aws"
+                    "url": "https://mediapackage-vod.eu-west-3.api.aws"
                 }
             },
             "params": {
-                "Region": "us-gov-east-1",
+                "UseDualStack": true,
                 "UseFIPS": false,
-                "UseDualStack": true
+                "Region": "eu-west-3"
             }
         },
         {
-            "documentation": "For region us-gov-east-1 with FIPS disabled and DualStack disabled",
+            "documentation": "For region eu-west-3 with FIPS disabled and DualStack disabled",
             "expect": {
                 "endpoint": {
-                    "url": "https://mediapackage-vod.us-gov-east-1.amazonaws.com"
+                    "url": "https://mediapackage-vod.eu-west-3.amazonaws.com"
                 }
             },
             "params": {
-                "Region": "us-gov-east-1",
+                "UseDualStack": false,
                 "UseFIPS": false,
-                "UseDualStack": false
+                "Region": "eu-west-3"
+            }
+        },
+        {
+            "documentation": "For region eu-west-2 with FIPS enabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://mediapackage-vod-fips.eu-west-2.api.aws"
+                }
+            },
+            "params": {
+                "UseDualStack": true,
+                "UseFIPS": true,
+                "Region": "eu-west-2"
+            }
+        },
+        {
+            "documentation": "For region eu-west-2 with FIPS enabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://mediapackage-vod-fips.eu-west-2.amazonaws.com"
+                }
+            },
+            "params": {
+                "UseDualStack": false,
+                "UseFIPS": true,
+                "Region": "eu-west-2"
+            }
+        },
+        {
+            "documentation": "For region eu-west-2 with FIPS disabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://mediapackage-vod.eu-west-2.api.aws"
+                }
+            },
+            "params": {
+                "UseDualStack": true,
+                "UseFIPS": false,
+                "Region": "eu-west-2"
+            }
+        },
+        {
+            "documentation": "For region eu-west-2 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://mediapackage-vod.eu-west-2.amazonaws.com"
+                }
+            },
+            "params": {
+                "UseDualStack": false,
+                "UseFIPS": false,
+                "Region": "eu-west-2"
+            }
+        },
+        {
+            "documentation": "For region eu-west-1 with FIPS enabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://mediapackage-vod-fips.eu-west-1.api.aws"
+                }
+            },
+            "params": {
+                "UseDualStack": true,
+                "UseFIPS": true,
+                "Region": "eu-west-1"
+            }
+        },
+        {
+            "documentation": "For region eu-west-1 with FIPS enabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://mediapackage-vod-fips.eu-west-1.amazonaws.com"
+                }
+            },
+            "params": {
+                "UseDualStack": false,
+                "UseFIPS": true,
+                "Region": "eu-west-1"
+            }
+        },
+        {
+            "documentation": "For region eu-west-1 with FIPS disabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://mediapackage-vod.eu-west-1.api.aws"
+                }
+            },
+            "params": {
+                "UseDualStack": true,
+                "UseFIPS": false,
+                "Region": "eu-west-1"
+            }
+        },
+        {
+            "documentation": "For region eu-west-1 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://mediapackage-vod.eu-west-1.amazonaws.com"
+                }
+            },
+            "params": {
+                "UseDualStack": false,
+                "UseFIPS": false,
+                "Region": "eu-west-1"
+            }
+        },
+        {
+            "documentation": "For region ap-northeast-2 with FIPS enabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://mediapackage-vod-fips.ap-northeast-2.api.aws"
+                }
+            },
+            "params": {
+                "UseDualStack": true,
+                "UseFIPS": true,
+                "Region": "ap-northeast-2"
+            }
+        },
+        {
+            "documentation": "For region ap-northeast-2 with FIPS enabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://mediapackage-vod-fips.ap-northeast-2.amazonaws.com"
+                }
+            },
+            "params": {
+                "UseDualStack": false,
+                "UseFIPS": true,
+                "Region": "ap-northeast-2"
+            }
+        },
+        {
+            "documentation": "For region ap-northeast-2 with FIPS disabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://mediapackage-vod.ap-northeast-2.api.aws"
+                }
+            },
+            "params": {
+                "UseDualStack": true,
+                "UseFIPS": false,
+                "Region": "ap-northeast-2"
+            }
+        },
+        {
+            "documentation": "For region ap-northeast-2 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://mediapackage-vod.ap-northeast-2.amazonaws.com"
+                }
+            },
+            "params": {
+                "UseDualStack": false,
+                "UseFIPS": false,
+                "Region": "ap-northeast-2"
+            }
+        },
+        {
+            "documentation": "For region ap-northeast-1 with FIPS enabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://mediapackage-vod-fips.ap-northeast-1.api.aws"
+                }
+            },
+            "params": {
+                "UseDualStack": true,
+                "UseFIPS": true,
+                "Region": "ap-northeast-1"
+            }
+        },
+        {
+            "documentation": "For region ap-northeast-1 with FIPS enabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://mediapackage-vod-fips.ap-northeast-1.amazonaws.com"
+                }
+            },
+            "params": {
+                "UseDualStack": false,
+                "UseFIPS": true,
+                "Region": "ap-northeast-1"
+            }
+        },
+        {
+            "documentation": "For region ap-northeast-1 with FIPS disabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://mediapackage-vod.ap-northeast-1.api.aws"
+                }
+            },
+            "params": {
+                "UseDualStack": true,
+                "UseFIPS": false,
+                "Region": "ap-northeast-1"
+            }
+        },
+        {
+            "documentation": "For region ap-northeast-1 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://mediapackage-vod.ap-northeast-1.amazonaws.com"
+                }
+            },
+            "params": {
+                "UseDualStack": false,
+                "UseFIPS": false,
+                "Region": "ap-northeast-1"
+            }
+        },
+        {
+            "documentation": "For region sa-east-1 with FIPS enabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://mediapackage-vod-fips.sa-east-1.api.aws"
+                }
+            },
+            "params": {
+                "UseDualStack": true,
+                "UseFIPS": true,
+                "Region": "sa-east-1"
+            }
+        },
+        {
+            "documentation": "For region sa-east-1 with FIPS enabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://mediapackage-vod-fips.sa-east-1.amazonaws.com"
+                }
+            },
+            "params": {
+                "UseDualStack": false,
+                "UseFIPS": true,
+                "Region": "sa-east-1"
+            }
+        },
+        {
+            "documentation": "For region sa-east-1 with FIPS disabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://mediapackage-vod.sa-east-1.api.aws"
+                }
+            },
+            "params": {
+                "UseDualStack": true,
+                "UseFIPS": false,
+                "Region": "sa-east-1"
+            }
+        },
+        {
+            "documentation": "For region sa-east-1 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://mediapackage-vod.sa-east-1.amazonaws.com"
+                }
+            },
+            "params": {
+                "UseDualStack": false,
+                "UseFIPS": false,
+                "Region": "sa-east-1"
+            }
+        },
+        {
+            "documentation": "For region ap-southeast-1 with FIPS enabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://mediapackage-vod-fips.ap-southeast-1.api.aws"
+                }
+            },
+            "params": {
+                "UseDualStack": true,
+                "UseFIPS": true,
+                "Region": "ap-southeast-1"
+            }
+        },
+        {
+            "documentation": "For region ap-southeast-1 with FIPS enabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://mediapackage-vod-fips.ap-southeast-1.amazonaws.com"
+                }
+            },
+            "params": {
+                "UseDualStack": false,
+                "UseFIPS": true,
+                "Region": "ap-southeast-1"
+            }
+        },
+        {
+            "documentation": "For region ap-southeast-1 with FIPS disabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://mediapackage-vod.ap-southeast-1.api.aws"
+                }
+            },
+            "params": {
+                "UseDualStack": true,
+                "UseFIPS": false,
+                "Region": "ap-southeast-1"
+            }
+        },
+        {
+            "documentation": "For region ap-southeast-1 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://mediapackage-vod.ap-southeast-1.amazonaws.com"
+                }
+            },
+            "params": {
+                "UseDualStack": false,
+                "UseFIPS": false,
+                "Region": "ap-southeast-1"
+            }
+        },
+        {
+            "documentation": "For region ap-southeast-2 with FIPS enabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://mediapackage-vod-fips.ap-southeast-2.api.aws"
+                }
+            },
+            "params": {
+                "UseDualStack": true,
+                "UseFIPS": true,
+                "Region": "ap-southeast-2"
+            }
+        },
+        {
+            "documentation": "For region ap-southeast-2 with FIPS enabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://mediapackage-vod-fips.ap-southeast-2.amazonaws.com"
+                }
+            },
+            "params": {
+                "UseDualStack": false,
+                "UseFIPS": true,
+                "Region": "ap-southeast-2"
+            }
+        },
+        {
+            "documentation": "For region ap-southeast-2 with FIPS disabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://mediapackage-vod.ap-southeast-2.api.aws"
+                }
+            },
+            "params": {
+                "UseDualStack": true,
+                "UseFIPS": false,
+                "Region": "ap-southeast-2"
+            }
+        },
+        {
+            "documentation": "For region ap-southeast-2 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://mediapackage-vod.ap-southeast-2.amazonaws.com"
+                }
+            },
+            "params": {
+                "UseDualStack": false,
+                "UseFIPS": false,
+                "Region": "ap-southeast-2"
+            }
+        },
+        {
+            "documentation": "For region us-iso-east-1 with FIPS enabled and DualStack enabled",
+            "expect": {
+                "error": "FIPS and DualStack are enabled, but this partition does not support one or both"
+            },
+            "params": {
+                "UseDualStack": true,
+                "UseFIPS": true,
+                "Region": "us-iso-east-1"
             }
         },
         {
@@ -346,9 +695,20 @@
                 }
             },
             "params": {
-                "Region": "us-iso-east-1",
+                "UseDualStack": false,
                 "UseFIPS": true,
-                "UseDualStack": false
+                "Region": "us-iso-east-1"
+            }
+        },
+        {
+            "documentation": "For region us-iso-east-1 with FIPS disabled and DualStack enabled",
+            "expect": {
+                "error": "DualStack is enabled but this partition does not support DualStack"
+            },
+            "params": {
+                "UseDualStack": true,
+                "UseFIPS": false,
+                "Region": "us-iso-east-1"
             }
         },
         {
@@ -359,9 +719,124 @@
                 }
             },
             "params": {
-                "Region": "us-iso-east-1",
+                "UseDualStack": false,
                 "UseFIPS": false,
-                "UseDualStack": false
+                "Region": "us-iso-east-1"
+            }
+        },
+        {
+            "documentation": "For region us-east-1 with FIPS enabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://mediapackage-vod-fips.us-east-1.api.aws"
+                }
+            },
+            "params": {
+                "UseDualStack": true,
+                "UseFIPS": true,
+                "Region": "us-east-1"
+            }
+        },
+        {
+            "documentation": "For region us-east-1 with FIPS enabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://mediapackage-vod-fips.us-east-1.amazonaws.com"
+                }
+            },
+            "params": {
+                "UseDualStack": false,
+                "UseFIPS": true,
+                "Region": "us-east-1"
+            }
+        },
+        {
+            "documentation": "For region us-east-1 with FIPS disabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://mediapackage-vod.us-east-1.api.aws"
+                }
+            },
+            "params": {
+                "UseDualStack": true,
+                "UseFIPS": false,
+                "Region": "us-east-1"
+            }
+        },
+        {
+            "documentation": "For region us-east-1 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://mediapackage-vod.us-east-1.amazonaws.com"
+                }
+            },
+            "params": {
+                "UseDualStack": false,
+                "UseFIPS": false,
+                "Region": "us-east-1"
+            }
+        },
+        {
+            "documentation": "For region us-east-2 with FIPS enabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://mediapackage-vod-fips.us-east-2.api.aws"
+                }
+            },
+            "params": {
+                "UseDualStack": true,
+                "UseFIPS": true,
+                "Region": "us-east-2"
+            }
+        },
+        {
+            "documentation": "For region us-east-2 with FIPS enabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://mediapackage-vod-fips.us-east-2.amazonaws.com"
+                }
+            },
+            "params": {
+                "UseDualStack": false,
+                "UseFIPS": true,
+                "Region": "us-east-2"
+            }
+        },
+        {
+            "documentation": "For region us-east-2 with FIPS disabled and DualStack enabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://mediapackage-vod.us-east-2.api.aws"
+                }
+            },
+            "params": {
+                "UseDualStack": true,
+                "UseFIPS": false,
+                "Region": "us-east-2"
+            }
+        },
+        {
+            "documentation": "For region us-east-2 with FIPS disabled and DualStack disabled",
+            "expect": {
+                "endpoint": {
+                    "url": "https://mediapackage-vod.us-east-2.amazonaws.com"
+                }
+            },
+            "params": {
+                "UseDualStack": false,
+                "UseFIPS": false,
+                "Region": "us-east-2"
+            }
+        },
+        {
+            "documentation": "For region us-isob-east-1 with FIPS enabled and DualStack enabled",
+            "expect": {
+                "error": "FIPS and DualStack are enabled, but this partition does not support one or both"
+            },
+            "params": {
+                "UseDualStack": true,
+                "UseFIPS": true,
+                "Region": "us-isob-east-1"
             }
         },
         {
@@ -372,9 +847,20 @@
                 }
             },
             "params": {
-                "Region": "us-isob-east-1",
+                "UseDualStack": false,
                 "UseFIPS": true,
-                "UseDualStack": false
+                "Region": "us-isob-east-1"
+            }
+        },
+        {
+            "documentation": "For region us-isob-east-1 with FIPS disabled and DualStack enabled",
+            "expect": {
+                "error": "DualStack is enabled but this partition does not support DualStack"
+            },
+            "params": {
+                "UseDualStack": true,
+                "UseFIPS": false,
+                "Region": "us-isob-east-1"
             }
         },
         {
@@ -385,35 +871,22 @@
                 }
             },
             "params": {
-                "Region": "us-isob-east-1",
+                "UseDualStack": false,
                 "UseFIPS": false,
-                "UseDualStack": false
+                "Region": "us-isob-east-1"
             }
         },
         {
-            "documentation": "For custom endpoint with region set and fips disabled and dualstack disabled",
+            "documentation": "For custom endpoint with fips disabled and dualstack disabled",
             "expect": {
                 "endpoint": {
                     "url": "https://example.com"
                 }
             },
             "params": {
+                "UseDualStack": false,
+                "UseFIPS": false,
                 "Region": "us-east-1",
-                "UseFIPS": false,
-                "UseDualStack": false,
-                "Endpoint": "https://example.com"
-            }
-        },
-        {
-            "documentation": "For custom endpoint with region not set and fips disabled and dualstack disabled",
-            "expect": {
-                "endpoint": {
-                    "url": "https://example.com"
-                }
-            },
-            "params": {
-                "UseFIPS": false,
-                "UseDualStack": false,
                 "Endpoint": "https://example.com"
             }
         },
@@ -423,9 +896,9 @@
                 "error": "Invalid Configuration: FIPS and custom endpoint are not supported"
             },
             "params": {
-                "Region": "us-east-1",
-                "UseFIPS": true,
                 "UseDualStack": false,
+                "UseFIPS": true,
+                "Region": "us-east-1",
                 "Endpoint": "https://example.com"
             }
         },
@@ -435,9 +908,9 @@
                 "error": "Invalid Configuration: Dualstack and custom endpoint are not supported"
             },
             "params": {
-                "Region": "us-east-1",
-                "UseFIPS": false,
                 "UseDualStack": true,
+                "UseFIPS": false,
+                "Region": "us-east-1",
                 "Endpoint": "https://example.com"
             }
         }

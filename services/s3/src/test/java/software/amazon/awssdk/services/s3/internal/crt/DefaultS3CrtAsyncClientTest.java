@@ -15,23 +15,15 @@
 
 package software.amazon.awssdk.services.s3.internal.crt;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import software.amazon.awssdk.auth.signer.AwsS3V4Signer;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
-import software.amazon.awssdk.core.interceptor.Context;
-import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.endpoints.S3ClientContextParams;
-import software.amazon.awssdk.utils.AttributeMap;
 
 class DefaultS3CrtAsyncClientTest {
 
@@ -45,37 +37,6 @@ class DefaultS3CrtAsyncClientTest {
             assertThatThrownBy(() -> s3AsyncClient.putObject(
                 b -> b.bucket("bucket").key("key").overrideConfiguration(o -> o.signer(AwsS3V4Signer.create())),
                 AsyncRequestBody.fromString("foobar")).join()).hasCauseInstanceOf(UnsupportedOperationException.class);
-        }
-    }
-
-    @Test
-    void clientContextParamsSetOnBuilder_propagatedToInterceptors() {
-        AtomicReference<AttributeMap> clientContexParams = new AtomicReference<>();
-
-        ExecutionInterceptor paramsCaptor = new ExecutionInterceptor() {
-            @Override
-            public void beforeExecution(Context.BeforeExecution context, ExecutionAttributes executionAttributes) {
-                clientContexParams.set(executionAttributes.getAttribute(SdkInternalExecutionAttribute.CLIENT_CONTEXT_PARAMS));
-                throw new RuntimeException("BOOM");
-            }
-        };
-
-        DefaultS3CrtAsyncClient.DefaultS3CrtClientBuilder builder =
-            (DefaultS3CrtAsyncClient.DefaultS3CrtClientBuilder) S3CrtAsyncClient.builder();
-
-        builder.addExecutionInterceptor(paramsCaptor);
-
-        try (S3AsyncClient s3AsyncClient = builder.accelerate(false)
-                                                  .forcePathStyle(true)
-                                                  .build()) {
-
-            assertThatThrownBy(s3AsyncClient.listBuckets()::join).hasMessageContaining("BOOM");
-            AttributeMap attributeMap = clientContexParams.get();
-
-            assertThat(attributeMap.get(S3ClientContextParams.ACCELERATE)).isFalse();
-            assertThat(attributeMap.get(S3ClientContextParams.FORCE_PATH_STYLE)).isTrue();
-            assertThat(attributeMap.get(S3ClientContextParams.USE_ARN_REGION)).isFalse();
-            assertThat(attributeMap.get(S3ClientContextParams.DISABLE_MULTI_REGION_ACCESS_POINTS)).isFalse();
         }
     }
 

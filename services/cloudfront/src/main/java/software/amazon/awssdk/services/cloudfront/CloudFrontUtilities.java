@@ -145,8 +145,8 @@ public final class CloudFrontUtilities {
             URI uri = URI.create(resourceUrl);
             String protocol = uri.getScheme();
             String domain = uri.getHost();
-            String encodedPath = uri.getRawPath()
-                                 + (uri.getQuery() != null ? "?" + uri.getRawQuery() + "&" : "?")
+            String encodedPath = uri.getPath()
+                                 + (uri.getQuery() != null ? "?" + uri.getQuery() + "&" : "?")
                                  + "Expires=" + request.expirationDate().getEpochSecond()
                                  + "&Signature=" + urlSafeSignature
                                  + "&Key-Pair-Id=" + request.keyPairId();
@@ -254,8 +254,8 @@ public final class CloudFrontUtilities {
             URI uri = URI.create(resourceUrl);
             String protocol = uri.getScheme();
             String domain = uri.getHost();
-            String encodedPath = uri.getRawPath()
-                                 + (uri.getQuery() != null ? "?" + uri.getRawQuery() + "&" : "?")
+            String encodedPath = uri.getPath()
+                                 + (uri.getQuery() != null ? "?" + uri.getQuery() + "&" : "?")
                                  + "Policy=" + urlSafePolicy
                                  + "&Signature=" + urlSafeSignature
                                  + "&Key-Pair-Id=" + request.keyPairId();

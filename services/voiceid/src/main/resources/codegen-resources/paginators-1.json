@@ -12,12 +12,6 @@
       "limit_key": "MaxResults",
       "result_key": "JobSummaries"
     },
-    "ListFraudsters": {
-      "input_token": "NextToken",
-      "output_token": "NextToken",
-      "limit_key": "MaxResults",
-      "result_key": "FraudsterSummaries"
-    },
     "ListSpeakerEnrollmentJobs": {
       "input_token": "NextToken",
       "output_token": "NextToken",
@@ -29,12 +23,6 @@
       "output_token": "NextToken",
       "limit_key": "MaxResults",
       "result_key": "SpeakerSummaries"
-    },
-    "ListWatchlists": {
-      "input_token": "NextToken",
-      "output_token": "NextToken",
-      "limit_key": "MaxResults",
-      "result_key": "WatchlistSummaries"
     }
   }
 }

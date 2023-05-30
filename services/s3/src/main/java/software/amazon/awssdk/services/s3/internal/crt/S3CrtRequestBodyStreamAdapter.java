@@ -16,7 +16,6 @@
 package software.amazon.awssdk.services.s3.internal.crt;
 
 import java.nio.ByteBuffer;
-import java.util.concurrent.atomic.AtomicBoolean;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.http.HttpRequestBodyStream;
 import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
@@ -27,23 +26,19 @@ import software.amazon.awssdk.utils.async.ByteBufferStoringSubscriber;
  */
 @SdkInternalApi
 public final class S3CrtRequestBodyStreamAdapter implements HttpRequestBodyStream {
-    private static final long MINIMUM_BYTES_BUFFERED = 1024 * 1024L;
+    private static final long MINIMUM_BYTES_BUFFERED = 16 * 1024 * 1024L;
     private final SdkHttpContentPublisher bodyPublisher;
     private final ByteBufferStoringSubscriber requestBodySubscriber;
 
-    private final AtomicBoolean subscribed = new AtomicBoolean(false);
 
     public S3CrtRequestBodyStreamAdapter(SdkHttpContentPublisher bodyPublisher) {
         this.bodyPublisher = bodyPublisher;
         this.requestBodySubscriber = new ByteBufferStoringSubscriber(MINIMUM_BYTES_BUFFERED);
+        bodyPublisher.subscribe(requestBodySubscriber);
     }
 
     @Override
     public boolean sendRequestBody(ByteBuffer outBuffer) {
-        if (subscribed.compareAndSet(false, true)) {
-            bodyPublisher.subscribe(requestBodySubscriber);
-        }
-
         // blocking here because CRT S3 requires the buffer to be completely filled
         return requestBodySubscriber.blockingTransferTo(outBuffer) == ByteBufferStoringSubscriber.TransferResult.END_OF_STREAM;
     }

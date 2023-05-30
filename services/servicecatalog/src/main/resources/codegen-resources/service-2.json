@@ -84,8 +84,7 @@
       "errors":[
         {"shape":"ResourceNotFoundException"},
         {"shape":"DuplicateResourceException"},
-        {"shape":"LimitExceededException"},
-        {"shape":"InvalidParametersException"}
+        {"shape":"LimitExceededException"}
       ],
       "documentation":"<p>Associates a self-service action with a provisioning artifact.</p>"
     },
@@ -469,7 +468,7 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"InvalidParametersException"}
       ],
-      "documentation":"<p>Gets information about the specified product.</p> <note> <p> Running this operation with administrator access results in a failure. <a>DescribeProductAsAdmin</a> should be used instead. </p> </note>"
+      "documentation":"<p>Gets information about the specified product.</p>"
     },
     "DescribeProductAsAdmin":{
       "name":"DescribeProductAsAdmin",
@@ -780,7 +779,7 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"InvalidParametersException"}
       ],
-      "documentation":"<p> Requests the import of a resource as an Service Catalog provisioned product that is associated to an Service Catalog product and provisioning artifact. Once imported, all supported governance actions are supported on the provisioned product. </p> <p> Resource import only supports CloudFormation stack ARNs. CloudFormation StackSets, and non-root nested stacks are not supported. </p> <p> The CloudFormation stack must have one of the following statuses to be imported: <code>CREATE_COMPLETE</code>, <code>UPDATE_COMPLETE</code>, <code>UPDATE_ROLLBACK_COMPLETE</code>, <code>IMPORT_COMPLETE</code>, and <code>IMPORT_ROLLBACK_COMPLETE</code>. </p> <p> Import of the resource requires that the CloudFormation stack template matches the associated Service Catalog product provisioning artifact. </p> <note> <p> When you import an existing CloudFormation stack into a portfolio, constraints that are associated with the product aren't applied during the import process. The constraints are applied after you call <code>UpdateProvisionedProduct</code> for the provisioned product. </p> </note> <p> The user or role that performs this operation must have the <code>cloudformation:GetTemplate</code> and <code>cloudformation:DescribeStacks</code> IAM policy permissions. </p>"
+      "documentation":"<p>Requests the import of a resource as an Service Catalog provisioned product that is associated to an Service Catalog product and provisioning artifact. Once imported, all supported Service Catalog governance actions are supported on the provisioned product.</p> <p>Resource import only supports CloudFormation stack ARNs. CloudFormation StackSets and non-root nested stacks are not supported.</p> <p>The CloudFormation stack must have one of the following statuses to be imported: <code>CREATE_COMPLETE</code>, <code>UPDATE_COMPLETE</code>, <code>UPDATE_ROLLBACK_COMPLETE</code>, <code>IMPORT_COMPLETE</code>, <code>IMPORT_ROLLBACK_COMPLETE</code>.</p> <p>Import of the resource requires that the CloudFormation stack template matches the associated Service Catalog product provisioning artifact. </p> <p>The user or role that performs this operation must have the <code>cloudformation:GetTemplate</code> and <code>cloudformation:DescribeStacks</code> IAM policy permissions. </p>"
     },
     "ListAcceptedPortfolioShares":{
       "name":"ListAcceptedPortfolioShares",
@@ -836,7 +835,7 @@
         {"shape":"InvalidParametersException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p> Lists the paths to the specified product. A path describes how the user gets access to a specified product and is necessary when provisioning a product. A path also determines the constraints that are put on a product. A path is dependent on a specific product, porfolio, and principal. </p> <note> <p> When provisioning a product that's been added to a portfolio, you must grant your user, group, or role access to the portfolio. For more information, see <a href=\"https://docs.aws.amazon.com/servicecatalog/latest/adminguide/catalogs_portfolios_users.html\">Granting users access</a> in the <i>Service Catalog User Guide</i>. </p> </note>"
+      "documentation":"<p>Lists the paths to the specified product. A path is how the user has access to a specified product, and is necessary when provisioning a product. A path also determines the constraints put on the product.</p>"
     },
     "ListOrganizationPortfolioAccess":{
       "name":"ListOrganizationPortfolioAccess",
@@ -1033,48 +1032,6 @@
       ],
       "documentation":"<p>Lists the specified TagOptions or all TagOptions.</p>"
     },
-    "NotifyProvisionProductEngineWorkflowResult":{
-      "name":"NotifyProvisionProductEngineWorkflowResult",
-      "http":{
-        "method":"POST",
-        "requestUri":"/"
-      },
-      "input":{"shape":"NotifyProvisionProductEngineWorkflowResultInput"},
-      "output":{"shape":"NotifyProvisionProductEngineWorkflowResultOutput"},
-      "errors":[
-        {"shape":"InvalidParametersException"},
-        {"shape":"ResourceNotFoundException"}
-      ],
-      "documentation":"<p> Notifies the result of the provisioning engine execution. </p>"
-    },
-    "NotifyTerminateProvisionedProductEngineWorkflowResult":{
-      "name":"NotifyTerminateProvisionedProductEngineWorkflowResult",
-      "http":{
-        "method":"POST",
-        "requestUri":"/"
-      },
-      "input":{"shape":"NotifyTerminateProvisionedProductEngineWorkflowResultInput"},
-      "output":{"shape":"NotifyTerminateProvisionedProductEngineWorkflowResultOutput"},
-      "errors":[
-        {"shape":"InvalidParametersException"},
-        {"shape":"ResourceNotFoundException"}
-      ],
-      "documentation":"<p> Notifies the result of the terminate engine execution. </p>"
-    },
-    "NotifyUpdateProvisionedProductEngineWorkflowResult":{
-      "name":"NotifyUpdateProvisionedProductEngineWorkflowResult",
-      "http":{
-        "method":"POST",
-        "requestUri":"/"
-      },
-      "input":{"shape":"NotifyUpdateProvisionedProductEngineWorkflowResultInput"},
-      "output":{"shape":"NotifyUpdateProvisionedProductEngineWorkflowResultOutput"},
-      "errors":[
-        {"shape":"InvalidParametersException"},
-        {"shape":"ResourceNotFoundException"}
-      ],
-      "documentation":"<p> Notifies the result of the update engine execution. </p>"
-    },
     "ProvisionProduct":{
       "name":"ProvisionProduct",
       "http":{
@@ -1088,7 +1045,7 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"DuplicateResourceException"}
       ],
-      "documentation":"<p> Provisions the specified product. </p> <p> A provisioned product is a resourced instance of a product. For example, provisioning a product that's based on an CloudFormation template launches an CloudFormation stack and its underlying resources. You can check the status of this request using <a>DescribeRecord</a>. </p> <p> If the request contains a tag key with an empty list of values, there's a tag conflict for that key. Don't include conflicted keys as tags, or this will cause the error \"Parameter validation failed: Missing required parameter in Tags[<i>N</i>]:<i>Value</i>\". </p> <note> <p> When provisioning a product that's been added to a portfolio, you must grant your user, group, or role access to the portfolio. For more information, see <a href=\"https://docs.aws.amazon.com/servicecatalog/latest/adminguide/catalogs_portfolios_users.html\">Granting users access</a> in the <i>Service Catalog User Guide</i>. </p> </note>"
+      "documentation":"<p>Provisions the specified product.</p> <p>A provisioned product is a resourced instance of a product. For example, provisioning a product based on a CloudFormation template launches a CloudFormation stack and its underlying resources. You can check the status of this request using <a>DescribeRecord</a>.</p> <p>If the request contains a tag key with an empty list of values, there is a tag conflict for that key. Do not include conflicted keys as tags, or this causes the error \"Parameter validation failed: Missing required parameter in Tags[<i>N</i>]:<i>Value</i>\".</p>"
     },
     "RejectPortfolioShare":{
       "name":"RejectPortfolioShare",
@@ -1154,7 +1111,7 @@
       "errors":[
         {"shape":"InvalidParametersException"}
       ],
-      "documentation":"<p>Gets information about the provisioned products that meet the specified criteria.</p>"
+      "documentation":"<p>Gets information about the provisioned products that meet the specified criteria.</p> <note> <p>To ensure a complete list of provisioned products and remove duplicate products, use <code>sort-by createdTime</code>. </p> <p>Here is a CLI example: <code> </code> </p> <p> <code>aws servicecatalog search-provisioned-products --sort-by createdTime </code> </p> </note>"
     },
     "TerminateProvisionedProduct":{
       "name":"TerminateProvisionedProduct",
@@ -1315,7 +1272,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "PortfolioId":{
           "shape":"Id",
@@ -1413,7 +1370,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "PortfolioId":{
           "shape":"Id",
@@ -1421,7 +1378,7 @@
         },
         "PrincipalARN":{
           "shape":"PrincipalARN",
-          "documentation":"<p>The ARN of the principal (user, role, or group). This field allows an ARN with no <code>accountID</code> if <code>PrincipalType</code> is <code>IAM_PATTERN</code>. </p> <p>You can associate multiple <code>IAM</code> patterns even if the account has no principal with that name. This is useful in Principal Name Sharing if you want to share a principal without creating it in the account that owns the portfolio. </p>"
+          "documentation":"<p>The ARN of the principal (IAM user, role, or group). This field allows an ARN with no <code>accountID</code> if <code>PrincipalType</code> is <code>IAM_PATTERN</code>. </p> <p>You can associate multiple <code>IAM</code> patterns even if the account has no principal with that name. This is useful in Principal Name Sharing if you want to share a principal without creating it in the account that owns the portfolio. </p>"
         },
         "PrincipalType":{
           "shape":"PrincipalType",
@@ -1443,7 +1400,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "ProductId":{
           "shape":"Id",
@@ -1486,7 +1443,7 @@
         },
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         }
       }
     },
@@ -1528,7 +1485,7 @@
         },
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         }
       }
     },
@@ -1551,7 +1508,7 @@
         },
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         }
       }
     },
@@ -1721,7 +1678,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "SourceProductArn":{
           "shape":"ProductArn",
@@ -1779,7 +1736,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "PortfolioId":{
           "shape":"Id",
@@ -1835,7 +1792,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "DisplayName":{
           "shape":"PortfolioDisplayName",
@@ -1879,7 +1836,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "PortfolioId":{
           "shape":"Id",
@@ -1923,7 +1880,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "Name":{
           "shape":"ProductViewName",
@@ -2006,7 +1963,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "PlanName":{
           "shape":"ProvisionedProductPlanName",
@@ -2086,7 +2043,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "ProductId":{
           "shape":"Id",
@@ -2147,7 +2104,7 @@
         },
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "IdempotencyToken":{
           "shape":"IdempotencyToken",
@@ -2200,7 +2157,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "Id":{
           "shape":"Id",
@@ -2219,7 +2176,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "Id":{
           "shape":"Id",
@@ -2238,7 +2195,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "PortfolioId":{
           "shape":"Id",
@@ -2269,7 +2226,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "Id":{
           "shape":"Id",
@@ -2288,7 +2245,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "PlanId":{
           "shape":"Id",
@@ -2314,7 +2271,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "ProductId":{
           "shape":"Id",
@@ -2341,7 +2298,7 @@
         },
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         }
       }
     },
@@ -2371,7 +2328,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "Id":{
           "shape":"Id",
@@ -2402,7 +2359,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "CopyProductToken":{
           "shape":"Id",
@@ -2433,7 +2390,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "Id":{
           "shape":"Id",
@@ -2549,7 +2506,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "Id":{
           "shape":"Id",
@@ -2595,7 +2552,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "Id":{
           "shape":"Id",
@@ -2634,7 +2591,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "Id":{
           "shape":"Id",
@@ -2660,7 +2617,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "Id":{
           "shape":"Id",
@@ -2692,7 +2649,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "PlanId":{
           "shape":"Id",
@@ -2730,7 +2687,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "ProvisioningArtifactId":{
           "shape":"Id",
@@ -2776,7 +2733,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "ProductId":{
           "shape":"Id",
@@ -2845,7 +2802,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "Id":{
           "shape":"Id",
@@ -2895,7 +2852,7 @@
         },
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         }
       }
     },
@@ -2918,7 +2875,7 @@
         },
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         }
       }
     },
@@ -2993,7 +2950,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "PortfolioId":{
           "shape":"Id",
@@ -3001,7 +2958,7 @@
         },
         "PrincipalARN":{
           "shape":"PrincipalARN",
-          "documentation":"<p>The ARN of the principal (user, role, or group). This field allows an ARN with no <code>accountID</code> if <code>PrincipalType</code> is <code>IAM_PATTERN</code>.</p>"
+          "documentation":"<p>The ARN of the principal (IAM user, role, or group). This field allows an ARN with no <code>accountID</code> if <code>PrincipalType</code> is <code>IAM_PATTERN</code>.</p>"
         },
         "PrincipalType":{
           "shape":"PrincipalType",
@@ -3023,7 +2980,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "ProductId":{
           "shape":"Id",
@@ -3062,7 +3019,7 @@
         },
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         }
       }
     },
@@ -3110,35 +3067,6 @@
       "members":{
       }
     },
-    "EngineWorkflowFailureReason":{
-      "type":"string",
-      "max":2048,
-      "min":1,
-      "pattern":"[\\u0009\\u000a\\u000d\\u0020-\\uD7FF\\uE000-\\uFFFD]*"
-    },
-    "EngineWorkflowResourceIdentifier":{
-      "type":"structure",
-      "members":{
-        "UniqueTag":{
-          "shape":"UniqueTagResourceIdentifier",
-          "documentation":"<p> The unique key-value pair for a tag that identifies provisioned product resources. </p>"
-        }
-      },
-      "documentation":"<p> The ID for the provisioned product resources that are part of a resource group. </p>"
-    },
-    "EngineWorkflowStatus":{
-      "type":"string",
-      "enum":[
-        "SUCCEEDED",
-        "FAILED"
-      ]
-    },
-    "EngineWorkflowToken":{
-      "type":"string",
-      "max":20000,
-      "min":1,
-      "pattern":"[0-9A-Za-z+\\/=]+"
-    },
     "Error":{"type":"string"},
     "ErrorCode":{"type":"string"},
     "ErrorDescription":{"type":"string"},
@@ -3158,7 +3086,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "PlanId":{
           "shape":"Id",
@@ -3203,7 +3131,7 @@
         },
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "Parameters":{
           "shape":"ExecutionParameterMap",
@@ -3320,7 +3248,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "ProvisionedProductId":{
           "shape":"Id",
@@ -3383,7 +3311,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "ProductId":{
           "shape":"Id",
@@ -3523,7 +3451,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "PageToken":{
           "shape":"PageToken",
@@ -3558,7 +3486,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "ResourceId":{
           "shape":"Id",
@@ -3593,7 +3521,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "PortfolioId":{
           "shape":"Id",
@@ -3632,7 +3560,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "ProductId":{
           "shape":"Id",
@@ -3670,7 +3598,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "PortfolioId":{
           "shape":"Id",
@@ -3709,7 +3637,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "PortfolioId":{
           "shape":"Id",
@@ -3748,7 +3676,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "ProductId":{
           "shape":"Id",
@@ -3782,7 +3710,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "PageToken":{
           "shape":"PageToken",
@@ -3813,7 +3741,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "PortfolioId":{
           "shape":"Id",
@@ -3847,7 +3775,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "ProvisionProductId":{
           "shape":"Id",
@@ -3898,7 +3826,7 @@
         },
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         }
       }
     },
@@ -3921,7 +3849,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "ProductId":{
           "shape":"Id",
@@ -3947,7 +3875,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "AccessLevelFilter":{
           "shape":"AccessLevelFilter",
@@ -4054,7 +3982,7 @@
         },
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         }
       }
     },
@@ -4076,7 +4004,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "PageSize":{
           "shape":"PageSize",
@@ -4107,7 +4035,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "ProvisionedProductId":{
           "shape":"Id",
@@ -4201,129 +4129,6 @@
       "type":"list",
       "member":{"shape":"NotificationArn"},
       "max":5
-    },
-    "NotifyProvisionProductEngineWorkflowResultInput":{
-      "type":"structure",
-      "required":[
-        "WorkflowToken",
-        "RecordId",
-        "Status",
-        "IdempotencyToken"
-      ],
-      "members":{
-        "WorkflowToken":{
-          "shape":"EngineWorkflowToken",
-          "documentation":"<p> The encrypted contents of the provisioning engine execution payload that Service Catalog sends after the Terraform product provisioning workflow starts. </p>"
-        },
-        "RecordId":{
-          "shape":"Id",
-          "documentation":"<p> The identifier of the record. </p>"
-        },
-        "Status":{
-          "shape":"EngineWorkflowStatus",
-          "documentation":"<p> The status of the provisioning engine execution. </p>"
-        },
-        "FailureReason":{
-          "shape":"EngineWorkflowFailureReason",
-          "documentation":"<p> The reason why the provisioning engine execution failed. </p>"
-        },
-        "ResourceIdentifier":{
-          "shape":"EngineWorkflowResourceIdentifier",
-          "documentation":"<p> The ID for the provisioned product resources that are part of a resource group. </p>"
-        },
-        "Outputs":{
-          "shape":"RecordOutputs",
-          "documentation":"<p> The output of the provisioning engine execution. </p>"
-        },
-        "IdempotencyToken":{
-          "shape":"IdempotencyToken",
-          "documentation":"<p> The idempotency token that identifies the provisioning engine execution. </p>",
-          "idempotencyToken":true
-        }
-      }
-    },
-    "NotifyProvisionProductEngineWorkflowResultOutput":{
-      "type":"structure",
-      "members":{
-      }
-    },
-    "NotifyTerminateProvisionedProductEngineWorkflowResultInput":{
-      "type":"structure",
-      "required":[
-        "WorkflowToken",
-        "RecordId",
-        "Status",
-        "IdempotencyToken"
-      ],
-      "members":{
-        "WorkflowToken":{
-          "shape":"EngineWorkflowToken",
-          "documentation":"<p> The encrypted contents of the terminate engine execution payload that Service Catalog sends after the Terraform product terminate workflow starts. </p>"
-        },
-        "RecordId":{
-          "shape":"Id",
-          "documentation":"<p> The identifier of the record. </p>"
-        },
-        "Status":{
-          "shape":"EngineWorkflowStatus",
-          "documentation":"<p> The status of the terminate engine execution. </p>"
-        },
-        "FailureReason":{
-          "shape":"EngineWorkflowFailureReason",
-          "documentation":"<p> The reason why the terminate engine execution failed. </p>"
-        },
-        "IdempotencyToken":{
-          "shape":"IdempotencyToken",
-          "documentation":"<p> The idempotency token that identifies the terminate engine execution. </p>",
-          "idempotencyToken":true
-        }
-      }
-    },
-    "NotifyTerminateProvisionedProductEngineWorkflowResultOutput":{
-      "type":"structure",
-      "members":{
-      }
-    },
-    "NotifyUpdateProvisionedProductEngineWorkflowResultInput":{
-      "type":"structure",
-      "required":[
-        "WorkflowToken",
-        "RecordId",
-        "Status",
-        "IdempotencyToken"
-      ],
-      "members":{
-        "WorkflowToken":{
-          "shape":"EngineWorkflowToken",
-          "documentation":"<p> The encrypted contents of the update engine execution payload that Service Catalog sends after the Terraform product update workflow starts. </p>"
-        },
-        "RecordId":{
-          "shape":"Id",
-          "documentation":"<p> The identifier of the record. </p>"
-        },
-        "Status":{
-          "shape":"EngineWorkflowStatus",
-          "documentation":"<p> The status of the update engine execution. </p>"
-        },
-        "FailureReason":{
-          "shape":"EngineWorkflowFailureReason",
-          "documentation":"<p> The reason why the update engine execution failed. </p>"
-        },
-        "Outputs":{
-          "shape":"RecordOutputs",
-          "documentation":"<p> The output of the update engine execution. </p>"
-        },
-        "IdempotencyToken":{
-          "shape":"IdempotencyToken",
-          "documentation":"<p> The idempotency token that identifies the update engine execution. </p>",
-          "idempotencyToken":true
-        }
-      }
-    },
-    "NotifyUpdateProvisionedProductEngineWorkflowResultOutput":{
-      "type":"structure",
-      "members":{
-      }
     },
     "NullableBoolean":{
       "type":"boolean",
@@ -4531,7 +4336,7 @@
       "members":{
         "PrincipalARN":{
           "shape":"PrincipalARN",
-          "documentation":"<p>The ARN of the principal (user, role, or group). This field allows for an ARN with no <code>accountID</code> if the <code>PrincipalType</code> is an <code>IAM_PATTERN</code>. </p>"
+          "documentation":"<p>The ARN of the principal (IAM user, role, or group). This field allows for an ARN with no <code>accountID</code> if the <code>PrincipalType</code> is an <code>IAM_PATTERN</code>. </p>"
         },
         "PrincipalType":{
           "shape":"PrincipalType",
@@ -4570,8 +4375,7 @@
       "type":"string",
       "enum":[
         "CLOUD_FORMATION_TEMPLATE",
-        "MARKETPLACE",
-        "TERRAFORM_OPEN_SOURCE"
+        "MARKETPLACE"
       ],
       "max":8191
     },
@@ -4752,7 +4556,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "ProductId":{
           "shape":"Id",
@@ -4887,11 +4691,11 @@
         },
         "UserArn":{
           "shape":"UserArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the user.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the IAM user.</p>"
         },
         "UserArnSession":{
           "shape":"UserArnSession",
-          "documentation":"<p>The ARN of the user in the session. This ARN might contain a session ID.</p>"
+          "documentation":"<p>The ARN of the IAM user in the session. This ARN might contain a session ID.</p>"
         }
       },
       "documentation":"<p>Information about a provisioned product.</p>"
@@ -5312,7 +5116,7 @@
         },
         "Type":{
           "shape":"ProvisioningArtifactType",
-          "documentation":"<p>The type of provisioning artifact.</p> <ul> <li> <p> <code>CLOUD_FORMATION_TEMPLATE</code> - CloudFormation template</p> </li> <li> <p> <code>MARKETPLACE_AMI</code> - Amazon Web Services Marketplace AMI</p> </li> <li> <p> <code>MARKETPLACE_CAR</code> - Amazon Web Services Marketplace Clusters and Amazon Web Services Resources</p> </li> <li> <p> <code>TERRAFORM_OPEN_SOURCE</code> - Terraform open source configuration file</p> </li> </ul>"
+          "documentation":"<p>The type of provisioning artifact.</p> <ul> <li> <p> <code>CLOUD_FORMATION_TEMPLATE</code> - CloudFormation template</p> </li> <li> <p> <code>MARKETPLACE_AMI</code> - Amazon Web Services Marketplace AMI</p> </li> <li> <p> <code>MARKETPLACE_CAR</code> - Amazon Web Services Marketplace Clusters and Amazon Web Services Resources</p> </li> </ul>"
         },
         "DisableTemplateValidation":{
           "shape":"DisableTemplateValidation",
@@ -5361,8 +5165,7 @@
       "enum":[
         "CLOUD_FORMATION_TEMPLATE",
         "MARKETPLACE_AMI",
-        "MARKETPLACE_CAR",
-        "TERRAFORM_OPEN_SOURCE"
+        "MARKETPLACE_CAR"
       ]
     },
     "ProvisioningArtifactView":{
@@ -5590,7 +5393,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "PortfolioId":{
           "shape":"Id",
@@ -5795,7 +5598,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "AccessLevelFilter":{
           "shape":"AccessLevelFilter",
@@ -5835,7 +5638,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "PortfolioId":{
           "shape":"Id",
@@ -5885,7 +5688,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "Filters":{
           "shape":"ProductViewFilters",
@@ -5931,7 +5734,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "AccessLevelFilter":{
           "shape":"AccessLevelFilter",
@@ -6011,8 +5814,7 @@
         "INTERNAL_FAILURE",
         "LIMIT_EXCEEDED",
         "RESOURCE_NOT_FOUND",
-        "THROTTLING",
-        "INVALID_PARAMETER"
+        "THROTTLING"
       ]
     },
     "ServiceActionAssociationErrorMessage":{
@@ -6449,7 +6251,7 @@
         },
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "RetainPhysicalResources":{
           "shape":"RetainPhysicalResources",
@@ -6467,39 +6269,13 @@
       }
     },
     "TotalResultsCount":{"type":"integer"},
-    "UniqueTagKey":{
-      "type":"string",
-      "max":128,
-      "min":1,
-      "pattern":"^([\\p{L}\\p{Z}\\p{N}_.:\\/=+\\-@]*)$"
-    },
-    "UniqueTagResourceIdentifier":{
-      "type":"structure",
-      "members":{
-        "Key":{
-          "shape":"UniqueTagKey",
-          "documentation":"<p> A unique key that's attached to a resource. </p>"
-        },
-        "Value":{
-          "shape":"UniqueTagValue",
-          "documentation":"<p> A unique value that's attached to a resource. </p>"
-        }
-      },
-      "documentation":"<p> The unique key-value pair for a tag that identifies provisioned product resources. </p>"
-    },
-    "UniqueTagValue":{
-      "type":"string",
-      "max":256,
-      "min":1,
-      "pattern":"^([\\p{L}\\p{Z}\\p{N}_.:\\/=+\\-@]*)$"
-    },
     "UpdateConstraintInput":{
       "type":"structure",
       "required":["Id"],
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "Id":{
           "shape":"Id",
@@ -6538,7 +6314,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "Id":{
           "shape":"Id",
@@ -6585,7 +6361,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "PortfolioId":{
           "shape":"Id",
@@ -6625,7 +6401,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "Id":{
           "shape":"Id",
@@ -6692,7 +6468,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "ProvisionedProductName":{
           "shape":"ProvisionedProductNameOrArn",
@@ -6764,7 +6540,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "ProvisionedProductId":{
           "shape":"Id",
@@ -6772,7 +6548,7 @@
         },
         "ProvisionedProductProperties":{
           "shape":"ProvisionedProductProperties",
-          "documentation":"<p>A map that contains the provisioned product properties to be updated.</p> <p>The <code>LAUNCH_ROLE</code> key accepts role ARNs. This key allows an administrator to call <code>UpdateProvisionedProductProperties</code> to update the launch role that is associated with a provisioned product. This role is used when an end user calls a provisioning operation such as <code>UpdateProvisionedProduct</code>, <code>TerminateProvisionedProduct</code>, or <code>ExecuteProvisionedProductServiceAction</code>. Only a role ARN is valid. A user ARN is invalid. </p> <p>The <code>OWNER</code> key accepts user ARNs, IAM role ARNs, and STS assumed-role ARNs. The owner is the user that has permission to see, update, terminate, and execute service actions in the provisioned product.</p> <p>The administrator can change the owner of a provisioned product to another IAM or STS entity within the same account. Both end user owners and administrators can see ownership history of the provisioned product using the <code>ListRecordHistory</code> API. The new owner can describe all past records for the provisioned product using the <code>DescribeRecord</code> API. The previous owner can no longer use <code>DescribeRecord</code>, but can still see the product's history from when he was an owner using <code>ListRecordHistory</code>.</p> <p>If a provisioned product ownership is assigned to an end user, they can see and perform any action through the API or Service Catalog console such as update, terminate, and execute service actions. If an end user provisions a product and the owner is updated to someone else, they will no longer be able to see or perform any actions through API or the Service Catalog console on that provisioned product.</p>"
+          "documentation":"<p>A map that contains the provisioned product properties to be updated.</p> <p>The <code>LAUNCH_ROLE</code> key accepts role ARNs. This key allows an administrator to call <code>UpdateProvisionedProductProperties</code> to update the launch role that is associated with a provisioned product. This role is used when an end user calls a provisioning operation such as <code>UpdateProvisionedProduct</code>, <code>TerminateProvisionedProduct</code>, or <code>ExecuteProvisionedProductServiceAction</code>. Only a role ARN is valid. A user ARN is invalid. </p> <p>The <code>OWNER</code> key accepts IAM user ARNs, IAM role ARNs, and STS assumed-role ARNs. The owner is the user that has permission to see, update, terminate, and execute service actions in the provisioned product.</p> <p>The administrator can change the owner of a provisioned product to another IAM or STS entity within the same account. Both end user owners and administrators can see ownership history of the provisioned product using the <code>ListRecordHistory</code> API. The new owner can describe all past records for the provisioned product using the <code>DescribeRecord</code> API. The previous owner can no longer use <code>DescribeRecord</code>, but can still see the product's history from when he was an owner using <code>ListRecordHistory</code>.</p> <p>If a provisioned product ownership is assigned to an end user, they can see and perform any action through the API or Service Catalog console such as update, terminate, and execute service actions. If an end user provisions a product and the owner is updated to someone else, they will no longer be able to see or perform any actions through API or the Service Catalog console on that provisioned product.</p>"
         },
         "IdempotencyToken":{
           "shape":"IdempotencyToken",
@@ -6811,7 +6587,7 @@
       "members":{
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         },
         "ProductId":{
           "shape":"Id",
@@ -6934,7 +6710,7 @@
         },
         "AcceptLanguage":{
           "shape":"AcceptLanguage",
-          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
+          "documentation":"<p>The language code.</p> <ul> <li> <p> <code>en</code> - English (default)</p> </li> <li> <p> <code>jp</code> - Japanese</p> </li> <li> <p> <code>zh</code> - Chinese</p> </li> </ul>"
         }
       }
     },

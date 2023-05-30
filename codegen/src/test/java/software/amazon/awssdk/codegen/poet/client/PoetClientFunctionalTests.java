@@ -145,4 +145,5 @@ public class PoetClientFunctionalTests {
         ClassSpec syncClientCustomServiceMetaData = createSyncClientClass(ClientTestModels.customContentTypeModels());
         assertThat(syncClientCustomServiceMetaData, generatesTo("test-customservicemetadata-sync.java"));
     }
+
 }

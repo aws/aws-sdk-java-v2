@@ -31,16 +31,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -220,32 +213,6 @@ class FileAsyncResponseTransformerTest {
                                         .failureBehavior(LEAVE).build());
     }
 
-    @Test
-    void explicitExecutor_shouldUseExecutor() throws Exception {
-        Path testPath = testFs.getPath("test_file.txt");
-        assertThat(testPath).doesNotExist();
-        String newContent = RandomStringUtils.randomAlphanumeric(2000);
-
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        try {
-            SpyingExecutorService spyingExecutorService = new SpyingExecutorService(executor);
-            FileTransformerConfiguration configuration = FileTransformerConfiguration
-                .builder()
-                .fileWriteOption(FileWriteOption.CREATE_NEW)
-                .failureBehavior(DELETE)
-                .executorService(spyingExecutorService)
-                .build();
-            FileAsyncResponseTransformer<String> transformer = new FileAsyncResponseTransformer<>(testPath, configuration);
-
-            stubSuccessfulStreaming(newContent, transformer);
-            assertThat(testPath).hasContent(newContent);
-            assertThat(spyingExecutorService.hasReceivedTasks()).isTrue();
-        } finally {
-            executor.shutdown();
-            assertThat(executor.awaitTermination(1, TimeUnit.MINUTES)).isTrue();
-        }
-    }
-
     private static void stubSuccessfulStreaming(String newContent, FileAsyncResponseTransformer<String> transformer) throws Exception {
         CompletableFuture<String> future = transformer.prepare();
         transformer.onResponse("foobar");
@@ -272,91 +239,5 @@ class FileAsyncResponseTransformerTest {
 
     private static SdkPublisher<ByteBuffer> testPublisher(String content) {
         return SdkPublisher.adapt(Flowable.just(ByteBuffer.wrap(content.getBytes(StandardCharsets.UTF_8))));
-    }
-
-    private static final class SpyingExecutorService implements ExecutorService {
-        private final ExecutorService executorService;
-        private boolean receivedTasks = false;
-
-        private SpyingExecutorService(ExecutorService executorService) {
-            this.executorService = executorService;
-        }
-
-        public boolean hasReceivedTasks() {
-            return receivedTasks;
-        }
-
-        @Override
-        public void shutdown() {
-            executorService.shutdown();
-        }
-
-        @Override
-        public List<Runnable> shutdownNow() {
-            return executorService.shutdownNow();
-        }
-
-        @Override
-        public boolean isShutdown() {
-            return executorService.isShutdown();
-        }
-
-        @Override
-        public boolean isTerminated() {
-            return executorService.isTerminated();
-        }
-
-        @Override
-        public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
-            return executorService.awaitTermination(timeout, unit);
-        }
-
-        @Override
-        public <T> Future<T> submit(Callable<T> task) {
-            receivedTasks = true;
-            return executorService.submit(task);
-        }
-
-        @Override
-        public <T> Future<T> submit(Runnable task, T result) {
-            receivedTasks = true;
-            return executorService.submit(task, result);
-        }
-
-        @Override
-        public Future<?> submit(Runnable task) {
-            receivedTasks = true;
-            return executorService.submit(task);
-        }
-
-        @Override
-        public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks) throws InterruptedException {
-            receivedTasks = true;
-            return executorService.invokeAll(tasks);
-        }
-
-        @Override
-        public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) throws InterruptedException {
-            receivedTasks = true;
-            return executorService.invokeAll(tasks, timeout, unit);
-        }
-
-        @Override
-        public <T> T invokeAny(Collection<? extends Callable<T>> tasks) throws InterruptedException, ExecutionException {
-            receivedTasks = true;
-            return executorService.invokeAny(tasks);
-        }
-
-        @Override
-        public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-            receivedTasks = true;
-            return executorService.invokeAny(tasks, timeout, unit);
-        }
-
-        @Override
-        public void execute(Runnable command) {
-            receivedTasks = true;
-            executorService.execute(command);
-        }
     }
 }

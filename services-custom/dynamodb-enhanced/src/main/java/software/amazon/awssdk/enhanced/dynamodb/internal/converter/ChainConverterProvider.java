@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
@@ -68,22 +67,4 @@ public final class ChainConverterProvider implements AttributeConverterProvider 
                 .map(p -> p.converterFor(enhancedType))
                 .findFirst().orElse(null);
     }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        ChainConverterProvider that = (ChainConverterProvider) o;
-        return Objects.equals(providerChain, that.providerChain);
-    }
-
-    @Override
-    public int hashCode() {
-        return providerChain != null ? providerChain.hashCode() : 0;
-    }
-
 }

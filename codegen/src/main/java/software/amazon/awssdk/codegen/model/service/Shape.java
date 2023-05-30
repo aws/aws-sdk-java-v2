@@ -34,8 +34,6 @@ public class Shape {
 
     private boolean flattened;
 
-    private boolean synthetic;
-
     private boolean exception;
 
     private boolean streaming;
@@ -155,22 +153,6 @@ public class Shape {
 
     public void setFlattened(boolean flattened) {
         this.flattened = flattened;
-    }
-
-    /**
-     * Returns flag that indicates whether this shape is a custom SDK shape. If true, this shape will be excluded from the static
-     * SdkFields, preventing it from being marshalled.
-     */
-    public boolean isSynthetic() {
-        return synthetic;
-    }
-
-    /**
-     * Sets flag that indicates whether this shape is a custom SDK shape. If true, this shape will be excluded from the static
-     * SdkFields, preventing it from being marshalled.
-     */
-    public void setSynthetic(boolean synthetic) {
-        this.synthetic = synthetic;
     }
 
     public boolean isException() {
