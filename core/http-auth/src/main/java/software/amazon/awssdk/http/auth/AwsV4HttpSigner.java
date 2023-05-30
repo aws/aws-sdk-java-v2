@@ -16,9 +16,13 @@
 package software.amazon.awssdk.http.auth;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.internal.DefaultAwsV4HttpSigner;
+import software.amazon.awssdk.http.auth.internal.checksums.SdkChecksum;
+import software.amazon.awssdk.http.auth.internal.util.SignerConstant;
 import software.amazon.awssdk.http.auth.spi.HttpSigner;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.AwsSessionCredentialsIdentity;
 
 /**
  * An {@link HttpSigner} that will sign a request using an AWS credentials {@link AwsCredentialsIdentity}).
@@ -33,5 +37,24 @@ public interface AwsV4HttpSigner extends HttpSigner<AwsCredentialsIdentity> {
      */
     static AwsV4HttpSigner create() {
         return new DefaultAwsV4HttpSigner();
+    }
+
+    /**
+     * Perform any additional procedure on the request payload, with access to the result
+     * from signing the header. (e.g. Signing the payload by chunk-encoding). The default
+     * implementation doesn't need to do anything.
+     */
+    default void processRequestPayload(SdkHttpRequest.Builder requestBuilder,
+                                       byte[] signature,
+                                       byte[] signingKey,
+                                       SdkChecksum sdkChecksum) {
+    }
+
+    /**
+     * Adds session credentials to the request given.
+     */
+    default void addSessionCredentials(SdkHttpRequest.Builder requestBuilder,
+                                       AwsSessionCredentialsIdentity credentials) {
+        requestBuilder.putHeader(SignerConstant.X_AMZ_SECURITY_TOKEN, credentials.sessionToken());
     }
 }

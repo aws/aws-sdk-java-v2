@@ -16,8 +16,6 @@
 package software.amazon.awssdk.http.auth;
 
 import org.junit.jupiter.api.Test;
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.spi.AsyncHttpSignRequest;
@@ -25,10 +23,9 @@ import software.amazon.awssdk.http.auth.spi.AsyncSignedHttpRequest;
 import software.amazon.awssdk.http.auth.spi.SyncHttpSignRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignedHttpRequest;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
-
 import java.io.ByteArrayInputStream;
 import java.net.URI;
-import java.nio.ByteBuffer;
+import software.amazon.awssdk.utils.async.SimplePublisher;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -92,16 +89,8 @@ class BearerHttpSignerTest {
                         .encodedPath("/")
                         .uri(URI.create("http://demo.us-east-1.amazonaws.com"))
                         .build())
-                .payload(new TestPublisher())
+                .payload(new SimplePublisher<>())
                 .build();
     }
 
-    private static class TestPublisher implements Publisher<ByteBuffer> {
-        Subscriber<? super ByteBuffer> s;
-
-        @Override
-        public void subscribe(Subscriber<? super ByteBuffer> s) {
-            this.s = s;
-        }
-    }
 }

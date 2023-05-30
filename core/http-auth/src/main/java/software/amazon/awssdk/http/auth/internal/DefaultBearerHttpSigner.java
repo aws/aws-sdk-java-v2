@@ -37,17 +37,17 @@ public class DefaultBearerHttpSigner implements BearerHttpSigner {
     @Override
     public SyncSignedHttpRequest sign(SyncHttpSignRequest<? extends TokenIdentity> request) {
         return SyncSignedHttpRequest.builder()
-                .request(doSign(request))
-                .payload(request.payload().orElse(null))
-                .build();
+            .request(doSign(request))
+            .payload(request.payload().orElse(null))
+            .build();
     }
 
     @Override
     public AsyncSignedHttpRequest signAsync(AsyncHttpSignRequest<? extends TokenIdentity> request) {
         return AsyncSignedHttpRequest.builder()
-                .request(doSign(request))
-                .payload(request.payload().orElse(null))
-                .build();
+            .request(doSign(request))
+            .payload(request.payload().orElse(null))
+            .build();
     }
 
     /**
@@ -56,10 +56,10 @@ public class DefaultBearerHttpSigner implements BearerHttpSigner {
      */
     private SdkHttpRequest doSign(HttpSignRequest<?, ? extends TokenIdentity> request) {
         return request.request().toBuilder()
-                .putHeader(
-                        AUTHZ_HEADER,
-                        buildAuthorizationHeader(request.identity()))
-                .build();
+            .putHeader(
+                AUTHZ_HEADER,
+                buildAuthorizationHeader(request.identity()))
+            .build();
     }
 
     /**
