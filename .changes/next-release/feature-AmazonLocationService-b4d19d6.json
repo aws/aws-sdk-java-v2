@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Location Service",
+    "contributor": "",
+    "description": "This release adds API support for political views for the maps service APIs: CreateMap, UpdateMap, DescribeMap."
+}
