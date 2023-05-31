@@ -23,6 +23,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.services.dynamodb.model.ConsumedCapacity;
 import software.amazon.awssdk.services.dynamodb.model.ItemCollectionMetrics;
+import software.amazon.awssdk.services.dynamodb.model.ReturnValue;
 import software.amazon.awssdk.services.dynamodb.model.UpdateItemResponse;
 
 /**
@@ -46,7 +47,8 @@ public final class UpdateItemEnhancedResponse<T> {
     }
 
     /**
-     * The attribute values as they appeared before the {@code UpdateItem} operation.
+     * The returned attribute values. These correspond to the DynamoDB {@link ReturnValue} setting. By default,
+     * the attributes reflect the values after the {@code UpdateItem} operation has been applied ({@link ReturnValue#ALL_NEW}).
      */
     public T attributes() {
         return attributes;

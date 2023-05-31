@@ -1,0 +1,72 @@
+{
+    "version": "2.20.50",
+    "date": "2023-04-20",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS IoT",
+            "contributor": "",
+            "description": "Support additional OTA states in GetOTAUpdate API"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "API to Add TrustAllCertificates in CRT S3 Client options for test purposes"
+        },
+        {
+            "type": "feature",
+            "category": "AWS WAFV2",
+            "contributor": "",
+            "description": "You can now create encrypted API keys to use in a client application integration of the JavaScript CAPTCHA API . You can also retrieve a list of your API keys and the JavaScript application integration URL."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Chime",
+            "contributor": "",
+            "description": "Adds support for Hindi and Thai languages and additional Amazon Transcribe parameters to the StartMeetingTranscription API."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Chime SDK Media Pipelines",
+            "contributor": "",
+            "description": "This release adds support for specifying the recording file format in an S3 recording sink configuration."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Chime SDK Meetings",
+            "contributor": "",
+            "description": "Adds support for Hindi and Thai languages and additional Amazon Transcribe parameters to the StartMeetingTranscription API."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon GameLift",
+            "contributor": "",
+            "description": "Amazon GameLift supports creating Builds for Windows 2016 operating system."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon GuardDuty",
+            "contributor": "",
+            "description": "This release adds support for the new Lambda Protection feature."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Import/Export Snowball",
+            "contributor": "",
+            "description": "Adds support for Amazon S3 compatible storage. AWS Snow Family customers can now use Amazon S3 compatible storage on Snowball Edge devices. Also adds support for V3_5S. This is a refreshed AWS Snowball Edge Storage Optimized device type with 210TB SSD (customer usable)."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Amazon SageMaker Canvas adds ModelRegisterSettings support for CanvasAppSettings."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

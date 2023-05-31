@@ -54,10 +54,6 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
      */
     private static final Duration BLOCKING_REFRESH_MAX_WAIT = Duration.ofSeconds(5);
 
-    /**
-     * Random instance used for jittering refresh results.
-     */
-    private static final Random JITTER_RANDOM = new Random();
 
     /**
      * Used as a primitive form of rate limiting for the speed of our refreshes. This will make sure that the backing supplier has
@@ -101,6 +97,11 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
      * The "expensive" to call supplier that is used to refresh the {@link #cachedValue}.
      */
     private final Supplier<RefreshResult<T>> valueSupplier;
+
+    /**
+     * Random instance used for jittering refresh results.
+     */
+    private final Random jitterRandom = new Random();
 
     private CachedSupplier(Builder<T> builder) {
         Validate.notNull(builder.supplier, "builder.supplier");
@@ -323,7 +324,7 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
 
     private Instant jitterTime(Instant time, Duration jitterStart, Duration jitterEnd) {
         long jitterRange = jitterEnd.minus(jitterStart).toMillis();
-        long jitterAmount = Math.abs(JITTER_RANDOM.nextLong() % jitterRange);
+        long jitterAmount = Math.abs(jitterRandom.nextLong() % jitterRange);
         return time.plus(jitterStart).plusMillis(jitterAmount);
     }
 

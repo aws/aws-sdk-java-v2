@@ -95,6 +95,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
     private final PoetExtension poetExtensions;
     private final ClassName className;
     private final ProtocolSpec protocolSpec;
+    private final ClassName serviceClientConfigurationClassName;
 
     public AsyncClientClass(GeneratorTaskParams dependencies) {
         super(dependencies.getModel());
@@ -102,6 +103,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
         this.poetExtensions = dependencies.getPoetExtensions();
         this.className = poetExtensions.getClientClass(model.getMetadata().getAsyncClient());
         this.protocolSpec = getProtocolSpecs(poetExtensions, model);
+        this.serviceClientConfigurationClassName = new PoetExtension(model).getServiceConfigClass();
     }
 
     @Override
@@ -135,7 +137,8 @@ public final class AsyncClientClass extends AsyncClientInterface {
                                .build())
             .addField(AsyncClientHandler.class, "clientHandler", PRIVATE, FINAL)
             .addField(protocolSpec.protocolFactory(model))
-            .addField(SdkClientConfiguration.class, "clientConfiguration", PRIVATE, FINAL);
+            .addField(SdkClientConfiguration.class, "clientConfiguration", PRIVATE, FINAL)
+            .addField(serviceClientConfigurationClassName, "serviceClientConfiguration", PRIVATE, FINAL);
 
         // Kinesis doesn't support CBOR for STS yet so need another protocol factory for JSON
         if (model.getMetadata().isCborProtocol()) {
@@ -202,12 +205,14 @@ public final class AsyncClientClass extends AsyncClientInterface {
     }
 
     private MethodSpec constructor(TypeSpec.Builder classBuilder) {
-        MethodSpec.Builder builder = MethodSpec.constructorBuilder()
-                                               .addModifiers(PROTECTED)
-                                               .addParameter(SdkClientConfiguration.class, "clientConfiguration")
-                                               .addStatement("this.clientHandler = new $T(clientConfiguration)",
-                                                             AwsAsyncClientHandler.class)
-                                               .addStatement("this.clientConfiguration = clientConfiguration");
+        MethodSpec.Builder builder
+            = MethodSpec.constructorBuilder()
+                        .addModifiers(PROTECTED)
+                        .addParameter(serviceClientConfigurationClassName, "serviceClientConfiguration")
+                        .addParameter(SdkClientConfiguration.class, "clientConfiguration")
+                        .addStatement("this.clientHandler = new $T(clientConfiguration)", AwsAsyncClientHandler.class)
+                        .addStatement("this.clientConfiguration = clientConfiguration")
+                        .addStatement("this.serviceClientConfiguration = serviceClientConfiguration");
         FieldSpec protocolFactoryField = protocolSpec.protocolFactory(model);
         if (model.getMetadata().isJsonProtocol()) {
             builder.addStatement("this.$N = init($T.builder()).build()", protocolFactoryField.name,
@@ -263,6 +268,16 @@ public final class AsyncClientClass extends AsyncClientInterface {
                          .addModifiers(PUBLIC, FINAL)
                          .returns(String.class)
                          .addStatement("return SERVICE_NAME")
+                         .build();
+    }
+
+    @Override
+    protected MethodSpec serviceClientConfigMethod() {
+        return MethodSpec.methodBuilder("serviceClientConfiguration")
+                         .addAnnotation(Override.class)
+                         .addModifiers(PUBLIC, FINAL)
+                         .returns(serviceClientConfigurationClassName)
+                         .addStatement("return this.serviceClientConfiguration")
                          .build();
     }
 

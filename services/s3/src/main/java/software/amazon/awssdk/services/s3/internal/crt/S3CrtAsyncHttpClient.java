@@ -23,6 +23,7 @@ import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpE
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.net.URI;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -44,6 +45,7 @@ import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.NumericUtils;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
@@ -57,12 +59,13 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
     private final S3Client crtS3Client;
 
     private final S3NativeClientConfiguration s3NativeClientConfiguration;
+    private final S3ClientOptions s3ClientOptions;
 
     private S3CrtAsyncHttpClient(Builder builder) {
         s3NativeClientConfiguration = builder.clientConfiguration;
         Long initialWindowSize = s3NativeClientConfiguration.readBufferSizeInBytes();
 
-        S3ClientOptions s3ClientOptions =
+        this.s3ClientOptions =
             new S3ClientOptions().withRegion(s3NativeClientConfiguration.signingRegion())
                                  .withEndpoint(s3NativeClientConfiguration.endpointOverride() == null ? null :
                                                s3NativeClientConfiguration.endpointOverride().toString())
@@ -74,6 +77,18 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
                                  .withThroughputTargetGbps(s3NativeClientConfiguration.targetThroughputInGbps())
                                  .withInitialReadWindowSize(initialWindowSize)
                                  .withReadBackpressureEnabled(true);
+
+        if (s3NativeClientConfiguration.standardRetryOptions() != null) {
+            this.s3ClientOptions.withStandardRetryOptions(s3NativeClientConfiguration.standardRetryOptions());
+        }
+        Optional.ofNullable(s3NativeClientConfiguration.proxyOptions()).ifPresent(s3ClientOptions::withProxyOptions);
+        Optional.ofNullable(s3NativeClientConfiguration.connectionTimeout())
+                .map(Duration::toMillis)
+                .map(NumericUtils::saturatedCast)
+                .ifPresent(s3ClientOptions::withConnectTimeoutMs);
+        Optional.ofNullable(s3NativeClientConfiguration.httpMonitoringOptions())
+                .ifPresent(s3ClientOptions::withHttpMonitoringOptions);
+
         this.crtS3Client = new S3Client(s3ClientOptions);
     }
 
@@ -82,6 +97,12 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
                          S3NativeClientConfiguration nativeClientConfiguration) {
         this.crtS3Client = crtS3Client;
         this.s3NativeClientConfiguration = nativeClientConfiguration;
+        this.s3ClientOptions = null;
+    }
+
+    @SdkTestInternalApi
+    public S3ClientOptions s3ClientOptions() {
+        return s3ClientOptions;
     }
 
     @Override

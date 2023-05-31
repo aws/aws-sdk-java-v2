@@ -96,9 +96,13 @@ final class DefaultJsonClient implements JsonClient {
 
     private final SdkClientConfiguration clientConfiguration;
 
-    protected DefaultJsonClient(SdkClientConfiguration clientConfiguration) {
+    private final JsonServiceClientConfiguration serviceClientConfiguration;
+
+    protected DefaultJsonClient(JsonServiceClientConfiguration serviceClientConfiguration,
+                                SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration;
+        this.serviceClientConfiguration = serviceClientConfiguration;
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
     }
 
@@ -999,6 +1003,11 @@ final class DefaultJsonClient implements JsonClient {
             .registerModeledException(
                 ExceptionMetadata.builder().errorCode("InvalidInput")
                                  .exceptionBuilderSupplier(InvalidInputException::builder).httpStatusCode(400).build());
+    }
+
+    @Override
+    public final JsonServiceClientConfiguration serviceClientConfiguration() {
+        return this.serviceClientConfiguration;
     }
 
     @Override

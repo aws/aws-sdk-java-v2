@@ -166,4 +166,14 @@ public class DelegatingSyncClientClass extends SyncClientInterface {
                          .addStatement("return delegate.serviceName()")
                          .build();
     }
+
+    @Override
+    protected MethodSpec serviceClientConfigMethod() {
+        return MethodSpec.methodBuilder("serviceClientConfiguration")
+                         .addAnnotation(Override.class)
+                         .addModifiers(PUBLIC, FINAL)
+                         .returns(new PoetExtension(model).getServiceConfigClass())
+                         .addStatement("return delegate.serviceClientConfiguration()")
+                         .build();
+    }
 }

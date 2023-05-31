@@ -207,7 +207,6 @@ public final class DownloadDirectoryRequest
          *     DownloadDirectoryRequest.builder()
          *         .destination(Paths.get("."))
          *         .bucket("bucket")
-         *         .prefix("prefix")
          *         .downloadFileRequestTransformer(request -> request.addTransferListener(LoggingTransferListener.create()))
          *         .build();
          *
