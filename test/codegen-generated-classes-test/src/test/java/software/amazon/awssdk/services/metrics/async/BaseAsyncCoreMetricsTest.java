@@ -28,13 +28,13 @@ import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.metrics.CoreMetric;
+import software.amazon.awssdk.core.internal.metrics.SdkErrorType;
 import software.amazon.awssdk.http.HttpMetric;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricPublisher;
@@ -108,6 +108,7 @@ public abstract class BaseAsyncCoreMetricsTest {
                 .isEmpty();
             assertThat(requestMetrics.metricValues(CoreMetric.SERVICE_CALL_DURATION).get(0))
                 .isGreaterThanOrEqualTo(FIXED_DELAY);
+            assertThat(requestMetrics.metricValues(CoreMetric.ERROR_TYPE)).containsExactly(SdkErrorType.IO.toString());
         });
     }
 
@@ -162,6 +163,7 @@ public abstract class BaseAsyncCoreMetricsTest {
             .isGreaterThanOrEqualTo(Duration.ZERO);
         assertThat(requestMetrics.metricValues(CoreMetric.SERVICE_CALL_DURATION).get(0))
             .isGreaterThanOrEqualTo(Duration.ZERO);
+        assertThat(requestMetrics.metricValues(CoreMetric.ERROR_TYPE)).containsExactly(SdkErrorType.SERVER_ERROR.toString());
     }
 
     private void verifySuccessfulApiCallAttemptCollection(MetricCollection attemptCollection) {

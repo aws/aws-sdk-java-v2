@@ -1657,7 +1657,7 @@
       "errors":[
         {"shape":"ResourceNotFound"}
       ],
-      "documentation":"<p>Gets a description of a hyperparameter tuning job.</p>"
+      "documentation":"<p>Returns a description of a hyperparameter tuning job, depending on the fields selected. These fields can include the name, Amazon Resource Name (ARN), job status of your tuning job and more.</p>"
     },
     "DescribeImage":{
       "name":"DescribeImage",
@@ -5326,6 +5326,30 @@
         "Descending"
       ]
     },
+    "AutoParameter":{
+      "type":"structure",
+      "required":[
+        "Name",
+        "ValueHint"
+      ],
+      "members":{
+        "Name":{
+          "shape":"ParameterKey",
+          "documentation":"<p>The name of the hyperparameter to optimize using Autotune.</p>"
+        },
+        "ValueHint":{
+          "shape":"ParameterValue",
+          "documentation":"<p>An example value of the hyperparameter to optimize using Autotune.</p>"
+        }
+      },
+      "documentation":"<p>The name and an example value of the hyperparameter that you want to use in Autotune. If Automatic model tuning (AMT) determines that your hyperparameter is eligible for Autotune, an optimal hyperparameter range is selected for you.</p>"
+    },
+    "AutoParameters":{
+      "type":"list",
+      "member":{"shape":"AutoParameter"},
+      "max":100,
+      "min":0
+    },
     "AutoRollbackConfig":{
       "type":"structure",
       "members":{
@@ -5335,6 +5359,21 @@
         }
       },
       "documentation":"<p>Automatic rollback configuration for handling endpoint deployment failures and recovery.</p>"
+    },
+    "Autotune":{
+      "type":"structure",
+      "required":["Mode"],
+      "members":{
+        "Mode":{
+          "shape":"AutotuneMode",
+          "documentation":"<p>Set <code>Mode</code> to <code>Enabled</code> if you want to use Autotune.</p>"
+        }
+      },
+      "documentation":"<p>A flag to indicate if you want to use Autotune to automatically find optimal values for the following fields:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_HyperParameterTuningJobConfig.html#sagemaker-Type-HyperParameterTuningJobConfig-ParameterRanges\">ParameterRanges</a>: The names and ranges of parameters that a hyperparameter tuning job can optimize.</p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_ResourceLimits.html\">ResourceLimits</a>: The maximum resources that can be used for a training job. These resources include the maximum number of training jobs, the maximum runtime of a tuning job, and the maximum number of training jobs to run at the same time.</p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_HyperParameterTuningJobConfig.html#sagemaker-Type-HyperParameterTuningJobConfig-TrainingJobEarlyStoppingType\">TrainingJobEarlyStoppingType</a>: A flag that specifies whether or not to use early stopping for training jobs launched by a hyperparameter tuning job.</p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_HyperParameterTrainingJobDefinition.html#sagemaker-Type-HyperParameterTrainingJobDefinition-RetryStrategy\">RetryStrategy</a>: The number of times to retry a training job.</p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_HyperParameterTuningJobConfig.html\">Strategy</a>: Specifies how hyperparameter tuning chooses the combinations of hyperparameter values to use for the training jobs that it launches.</p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_ConvergenceDetected.html\">ConvergenceDetected</a>: A flag to indicate that Automatic model tuning (AMT) has detected model convergence.</p> </li> </ul>"
+    },
+    "AutotuneMode":{
+      "type":"string",
+      "enum":["Enabled"]
     },
     "AwsManagedHumanLoopRequestSource":{
       "type":"string",
@@ -7920,6 +7959,10 @@
         "Tags":{
           "shape":"TagList",
           "documentation":"<p>An array of key-value pairs. You can use tags to categorize your Amazon Web Services resources in different ways, for example, by purpose, owner, or environment. For more information, see <a href=\"https://docs.aws.amazon.com/general/latest/gr/aws_tagging.html\">Tagging Amazon Web Services Resources</a>.</p> <p>Tags that you specify for the tuning job are also added to all training jobs that the tuning job launches.</p>"
+        },
+        "Autotune":{
+          "shape":"Autotune",
+          "documentation":"<p>Configures SageMaker Automatic model tuning (AMT) to automatically find optimal parameters for the following fields:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_HyperParameterTuningJobConfig.html#sagemaker-Type-HyperParameterTuningJobConfig-ParameterRanges\">ParameterRanges</a>: The names and ranges of parameters that a hyperparameter tuning job can optimize.</p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_ResourceLimits.html\">ResourceLimits</a>: The maximum resources that can be used for a training job. These resources include the maximum number of training jobs, the maximum runtime of a tuning job, and the maximum number of training jobs to run at the same time.</p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_HyperParameterTuningJobConfig.html#sagemaker-Type-HyperParameterTuningJobConfig-TrainingJobEarlyStoppingType\">TrainingJobEarlyStoppingType</a>: A flag that specifies whether or not to use early stopping for training jobs launched by a hyperparameter tuning job.</p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_HyperParameterTrainingJobDefinition.html#sagemaker-Type-HyperParameterTrainingJobDefinition-RetryStrategy\">RetryStrategy</a>: The number of times to retry a training job.</p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_HyperParameterTuningJobConfig.html\">Strategy</a>: Specifies how hyperparameter tuning chooses the combinations of hyperparameter values to use for the training jobs that it launches.</p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_ConvergenceDetected.html\">ConvergenceDetected</a>: A flag to indicate that Automatic model tuning (AMT) has detected model convergence.</p> </li> </ul>"
         }
       }
     },
@@ -9080,7 +9123,7 @@
         },
         "InputDataConfig":{
           "shape":"InputDataConfig",
-          "documentation":"<p>An array of <code>Channel</code> objects. Each channel is a named input source. <code>InputDataConfig</code> describes the input data and its location. </p> <p>Algorithms can accept input data from one or more channels. For example, an algorithm might have two channels of input data, <code>training_data</code> and <code>validation_data</code>. The configuration for each channel provides the S3, EFS, or FSx location where the input data is stored. It also provides information about the stored data: the MIME type, compression method, and whether the data is wrapped in RecordIO format. </p> <p>Depending on the input mode that the algorithm supports, SageMaker either copies input data files from an S3 bucket to a local directory in the Docker container, or makes it available as input streams. For example, if you specify an EFS location, input data files are available as input streams. They do not need to be downloaded.</p>"
+          "documentation":"<p>An array of <code>Channel</code> objects. Each channel is a named input source. <code>InputDataConfig</code> describes the input data and its location. </p> <p>Algorithms can accept input data from one or more channels. For example, an algorithm might have two channels of input data, <code>training_data</code> and <code>validation_data</code>. The configuration for each channel provides the S3, EFS, or FSx location where the input data is stored. It also provides information about the stored data: the MIME type, compression method, and whether the data is wrapped in RecordIO format. </p> <p>Depending on the input mode that the algorithm supports, SageMaker either copies input data files from an S3 bucket to a local directory in the Docker container, or makes it available as input streams. For example, if you specify an EFS location, input data files are available as input streams. They do not need to be downloaded.</p> <p>Your input must be in the same Amazon Web Services region as your training job.</p>"
         },
         "OutputDataConfig":{
           "shape":"OutputDataConfig",
@@ -10560,6 +10603,21 @@
         }
       },
       "documentation":"<p>The deployment configuration for an endpoint, which contains the desired deployment strategy and rollback configurations.</p>"
+    },
+    "DeploymentRecommendation":{
+      "type":"structure",
+      "required":["RecommendationStatus"],
+      "members":{
+        "RecommendationStatus":{
+          "shape":"RecommendationStatus",
+          "documentation":"<p>Status of the deployment recommendation. <code>NOT_APPLICABLE</code> means that SageMaker is unable to provide a default recommendation for the model using the information provided.</p>"
+        },
+        "RealTimeInferenceRecommendations":{
+          "shape":"RealTimeInferenceRecommendations",
+          "documentation":"<p>A list of <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_RealTimeInferenceRecommendation.html\">RealTimeInferenceRecommendation</a> items.</p>"
+        }
+      },
+      "documentation":"<p>A set of recommended deployment configurations for the model.</p>"
     },
     "DeploymentStage":{
       "type":"structure",
@@ -12413,7 +12471,7 @@
       "members":{
         "HyperParameterTuningJobName":{
           "shape":"HyperParameterTuningJobName",
-          "documentation":"<p>The name of the tuning job.</p>"
+          "documentation":"<p>The name of the hyperparameter tuning job.</p>"
         },
         "HyperParameterTuningJobArn":{
           "shape":"HyperParameterTuningJobArn",
@@ -12475,7 +12533,11 @@
           "shape":"HyperParameterTuningJobCompletionDetails",
           "documentation":"<p>Tuning job completion information returned as the response from a hyperparameter tuning job. This information tells if your tuning job has or has not converged. It also includes the number of training jobs that have not improved model performance as evaluated against the objective function.</p>"
         },
-        "ConsumedResources":{"shape":"HyperParameterTuningJobConsumedResources"}
+        "ConsumedResources":{"shape":"HyperParameterTuningJobConsumedResources"},
+        "Autotune":{
+          "shape":"Autotune",
+          "documentation":"<p>A flag to indicate if autotune is enabled for the hyperparameter tuning job.</p>"
+        }
       }
     },
     "DescribeImageRequest":{
@@ -13230,6 +13292,10 @@
         "EnableNetworkIsolation":{
           "shape":"Boolean",
           "documentation":"<p>If <code>True</code>, no inbound or outbound network calls can be made to or from the model container.</p>"
+        },
+        "DeploymentRecommendation":{
+          "shape":"DeploymentRecommendation",
+          "documentation":"<p>A set of recommended deployment configurations for the model.</p>"
         }
       }
     },
@@ -18578,6 +18644,14 @@
         "RecommendationId":{
           "shape":"String",
           "documentation":"<p>The recommendation ID which uniquely identifies each recommendation.</p>"
+        },
+        "InvocationEndTime":{
+          "shape":"InvocationEndTime",
+          "documentation":"<p>A timestamp that shows when the benchmark completed.</p>"
+        },
+        "InvocationStartTime":{
+          "shape":"InvocationStartTime",
+          "documentation":"<p>A timestamp that shows when the benchmark started.</p>"
         }
       },
       "documentation":"<p>A list of recommendations made by Amazon SageMaker Inference Recommender.</p>"
@@ -18640,6 +18714,18 @@
         "FailureReason":{
           "shape":"FailureReason",
           "documentation":"<p>If the job fails, provides information why the job failed.</p>"
+        },
+        "ModelName":{
+          "shape":"ModelName",
+          "documentation":"<p>The name of the created model.</p>"
+        },
+        "SamplePayloadUrl":{
+          "shape":"S3Uri",
+          "documentation":"<p>The Amazon Simple Storage Service (Amazon S3) path where the sample payload is stored. This path must point to a single gzip compressed tar archive (.tar.gz suffix).</p>"
+        },
+        "ModelPackageVersionArn":{
+          "shape":"ModelPackageArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of a versioned model package.</p>"
         }
       },
       "documentation":"<p>A structure that contains a list of recommendation jobs.</p>"
@@ -18890,7 +18976,13 @@
         "ml.g5.16xlarge",
         "ml.g5.12xlarge",
         "ml.g5.24xlarge",
-        "ml.g5.48xlarge"
+        "ml.g5.48xlarge",
+        "ml.inf1.xlarge",
+        "ml.inf1.2xlarge",
+        "ml.inf1.6xlarge",
+        "ml.inf1.24xlarge",
+        "ml.p4d.24xlarge",
+        "ml.p4de.24xlarge"
       ]
     },
     "Integer":{"type":"integer"},
@@ -18946,6 +19038,8 @@
       "min":0
     },
     "IntegerValue":{"type":"integer"},
+    "InvocationEndTime":{"type":"timestamp"},
+    "InvocationStartTime":{"type":"timestamp"},
     "InvocationsMaxRetries":{
       "type":"integer",
       "max":3,
@@ -21271,6 +21365,14 @@
         "MaxResults":{
           "shape":"MaxResults",
           "documentation":"<p>The maximum number of recommendations to return in the response.</p>"
+        },
+        "ModelNameEquals":{
+          "shape":"ModelName",
+          "documentation":"<p>A filter that returns only jobs that were created for this model.</p>"
+        },
+        "ModelPackageVersionArnEquals":{
+          "shape":"ModelPackageArn",
+          "documentation":"<p>A filter that returns only jobs that were created for this versioned model package.</p>"
         }
       }
     },
@@ -23504,6 +23606,10 @@
         "Tags":{
           "shape":"TagList",
           "documentation":"<p>A list of key-value pairs associated with the model. For more information, see <a href=\"https://docs.aws.amazon.com/general/latest/gr/aws_tagging.html\">Tagging Amazon Web Services resources</a> in the <i>Amazon Web Services General Reference Guide</i>.</p>"
+        },
+        "DeploymentRecommendation":{
+          "shape":"DeploymentRecommendation",
+          "documentation":"<p>A set of recommended deployment configurations for the model.</p>"
         }
       },
       "documentation":"<p>The properties of a model as returned by the <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_Search.html\">Search</a> API.</p>"
@@ -26424,6 +26530,10 @@
         "CategoricalParameterRanges":{
           "shape":"CategoricalParameterRanges",
           "documentation":"<p>The array of <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_CategoricalParameterRange.html\">CategoricalParameterRange</a> objects that specify ranges of categorical hyperparameters that a hyperparameter tuning job searches.</p>"
+        },
+        "AutoParameters":{
+          "shape":"AutoParameters",
+          "documentation":"<p>A list containing hyperparameter names and example values to be used by Autotune to determine optimal ranges for your tuning job.</p>"
         }
       },
       "documentation":"<p>Specifies ranges of integer, continuous, and categorical hyperparameters that a hyperparameter tuning job searches. The hyperparameter tuning job launches training jobs with hyperparameter values within these ranges to find the combination of values that result in the training job with the best performance as measured by the objective metric of the hyperparameter tuning job.</p> <note> <p>The maximum number of items specified for <code>Array Members</code> refers to the maximum number of hyperparameters for each range and also the maximum for the hyperparameter tuning job itself. That is, the sum of the number of hyperparameters for all the ranges can't exceed the maximum number specified.</p> </note>"
@@ -28495,6 +28605,34 @@
       },
       "documentation":"<p>The infrastructure configuration for deploying the model to a real-time inference endpoint.</p>"
     },
+    "RealTimeInferenceRecommendation":{
+      "type":"structure",
+      "required":[
+        "RecommendationId",
+        "InstanceType"
+      ],
+      "members":{
+        "RecommendationId":{
+          "shape":"String",
+          "documentation":"<p>The recommendation ID which uniquely identifies each recommendation.</p>"
+        },
+        "InstanceType":{
+          "shape":"ProductionVariantInstanceType",
+          "documentation":"<p>The recommended instance type for Real-Time Inference.</p>"
+        },
+        "Environment":{
+          "shape":"EnvironmentMap",
+          "documentation":"<p>The recommended environment variables to set in the model container for Real-Time Inference.</p>"
+        }
+      },
+      "documentation":"<p>The recommended configuration to use for Real-Time Inference.</p>"
+    },
+    "RealTimeInferenceRecommendations":{
+      "type":"list",
+      "member":{"shape":"RealTimeInferenceRecommendation"},
+      "max":3,
+      "min":0
+    },
     "RealtimeInferenceInstanceTypes":{
       "type":"list",
       "member":{"shape":"ProductionVariantInstanceType"}
@@ -28580,7 +28718,15 @@
           "shape":"RecommendationFailureReason",
           "documentation":"<p>The reason why a benchmark failed.</p>"
         },
-        "EndpointMetrics":{"shape":"InferenceMetrics"}
+        "EndpointMetrics":{"shape":"InferenceMetrics"},
+        "InvocationEndTime":{
+          "shape":"InvocationEndTime",
+          "documentation":"<p>A timestamp that shows when the benchmark completed.</p>"
+        },
+        "InvocationStartTime":{
+          "shape":"InvocationStartTime",
+          "documentation":"<p>A timestamp that shows when the benchmark started.</p>"
+        }
       },
       "documentation":"<p>The details for a specific benchmark from an Inference Recommender job.</p>"
     },
@@ -28793,6 +28939,15 @@
         }
       },
       "documentation":"<p>The metrics of recommendations.</p>"
+    },
+    "RecommendationStatus":{
+      "type":"string",
+      "enum":[
+        "IN_PROGRESS",
+        "COMPLETED",
+        "FAILED",
+        "NOT_APPLICABLE"
+      ]
     },
     "RecommendationStepType":{
       "type":"string",
@@ -29314,7 +29469,7 @@
         },
         "S3Uri":{
           "shape":"S3Uri",
-          "documentation":"<p>Depending on the value specified for the <code>S3DataType</code>, identifies either a key name prefix or a manifest. For example: </p> <ul> <li> <p> A key name prefix might look like this: <code>s3://bucketname/exampleprefix</code> </p> </li> <li> <p> A manifest might look like this: <code>s3://bucketname/example.manifest</code> </p> <p> A manifest is an S3 object which is a JSON file consisting of an array of elements. The first element is a prefix which is followed by one or more suffixes. SageMaker appends the suffix elements to the prefix to get a full set of <code>S3Uri</code>. Note that the prefix must be a valid non-empty <code>S3Uri</code> that precludes users from specifying a manifest whose individual <code>S3Uri</code> is sourced from different S3 buckets.</p> <p> The following code example shows a valid manifest format: </p> <p> <code>[ {\"prefix\": \"s3://customer_bucket/some/prefix/\"},</code> </p> <p> <code> \"relative/path/to/custdata-1\",</code> </p> <p> <code> \"relative/path/custdata-2\",</code> </p> <p> <code> ...</code> </p> <p> <code> \"relative/path/custdata-N\"</code> </p> <p> <code>]</code> </p> <p> This JSON is equivalent to the following <code>S3Uri</code> list:</p> <p> <code>s3://customer_bucket/some/prefix/relative/path/to/custdata-1</code> </p> <p> <code>s3://customer_bucket/some/prefix/relative/path/custdata-2</code> </p> <p> <code>...</code> </p> <p> <code>s3://customer_bucket/some/prefix/relative/path/custdata-N</code> </p> <p>The complete set of <code>S3Uri</code> in this manifest is the input data for the channel for this data source. The object that each <code>S3Uri</code> points to must be readable by the IAM role that SageMaker uses to perform tasks on your behalf. </p> </li> </ul>"
+          "documentation":"<p>Depending on the value specified for the <code>S3DataType</code>, identifies either a key name prefix or a manifest. For example: </p> <ul> <li> <p> A key name prefix might look like this: <code>s3://bucketname/exampleprefix</code> </p> </li> <li> <p> A manifest might look like this: <code>s3://bucketname/example.manifest</code> </p> <p> A manifest is an S3 object which is a JSON file consisting of an array of elements. The first element is a prefix which is followed by one or more suffixes. SageMaker appends the suffix elements to the prefix to get a full set of <code>S3Uri</code>. Note that the prefix must be a valid non-empty <code>S3Uri</code> that precludes users from specifying a manifest whose individual <code>S3Uri</code> is sourced from different S3 buckets.</p> <p> The following code example shows a valid manifest format: </p> <p> <code>[ {\"prefix\": \"s3://customer_bucket/some/prefix/\"},</code> </p> <p> <code> \"relative/path/to/custdata-1\",</code> </p> <p> <code> \"relative/path/custdata-2\",</code> </p> <p> <code> ...</code> </p> <p> <code> \"relative/path/custdata-N\"</code> </p> <p> <code>]</code> </p> <p> This JSON is equivalent to the following <code>S3Uri</code> list:</p> <p> <code>s3://customer_bucket/some/prefix/relative/path/to/custdata-1</code> </p> <p> <code>s3://customer_bucket/some/prefix/relative/path/custdata-2</code> </p> <p> <code>...</code> </p> <p> <code>s3://customer_bucket/some/prefix/relative/path/custdata-N</code> </p> <p>The complete set of <code>S3Uri</code> in this manifest is the input data for the channel for this data source. The object that each <code>S3Uri</code> points to must be readable by the IAM role that SageMaker uses to perform tasks on your behalf. </p> </li> </ul> <p>Your input bucket must be located in same Amazon Web Services region as your training job.</p>"
         },
         "S3DataDistributionType":{
           "shape":"S3DataDistribution",
@@ -29329,7 +29484,7 @@
           "documentation":"<p>A list of names of instance groups that get data from the S3 data source.</p>"
         }
       },
-      "documentation":"<p>Describes the S3 data source.</p>"
+      "documentation":"<p>Describes the S3 data source.</p> <p>Your input bucket must be in the same Amazon Web Services region as your training job.</p>"
     },
     "S3DataType":{
       "type":"string",
@@ -29929,7 +30084,7 @@
       "members":{
         "ModelDataUrl":{
           "shape":"Url",
-          "documentation":"<p>The Amazon S3 path where the model artifacts, which result from model training, are stored. This path must point to a single <code>gzip</code> compressed tar archive (<code>.tar.gz</code> suffix).</p> <note> <p>The model artifacts must be in an S3 bucket that is in the same region as the algorithm.</p> </note>"
+          "documentation":"<p>The Amazon S3 path where the model artifacts, which result from model training, are stored. This path must point to a single <code>gzip</code> compressed tar archive (<code>.tar.gz</code> suffix).</p> <note> <p>The model artifacts must be in an S3 bucket that is in the same Amazon Web Services region as the algorithm.</p> </note>"
         },
         "AlgorithmName":{
           "shape":"ArnOrName",
@@ -31081,7 +31236,7 @@
         },
         "InputDataConfig":{
           "shape":"InputDataConfig",
-          "documentation":"<p>An array of <code>Channel</code> objects that describes each data input channel.</p>"
+          "documentation":"<p>An array of <code>Channel</code> objects that describes each data input channel.</p> <p>Your input must be in the same Amazon Web Services region as your training job.</p>"
         },
         "OutputDataConfig":{
           "shape":"OutputDataConfig",

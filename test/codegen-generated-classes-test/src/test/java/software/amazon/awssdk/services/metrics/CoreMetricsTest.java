@@ -38,6 +38,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.core.exception.SdkException;
+import software.amazon.awssdk.core.internal.metrics.SdkErrorType;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
@@ -252,9 +254,34 @@ public class CoreMetricsTest {
                 assertThat(requestMetrics.metricValues(CoreMetric.UNMARSHALLING_DURATION)).hasOnlyOneElementSatisfying(d -> {
                     assertThat(d).isGreaterThanOrEqualTo(Duration.ZERO);
                 });
+                assertThat(requestMetrics.metricValues(CoreMetric.ERROR_TYPE)).containsExactly(SdkErrorType.SERVER_ERROR.toString());
             }
         }
     }
+
+    @Test
+    public void testApiCall_httpClientThrowsNetworkError_errorTypeIncludedInMetrics() throws IOException {
+        ExecutableHttpRequest mockExecuteRequest = mock(ExecutableHttpRequest.class);
+        when(mockExecuteRequest.call()).thenThrow(new IOException("I/O error"));
+
+        when(mockHttpClient.prepareRequest(any(HttpExecuteRequest.class)))
+            .thenReturn(mockExecuteRequest);
+
+        thrown.expect(SdkException.class);
+        try {
+            client.allTypes();
+        } finally {
+            ArgumentCaptor<MetricCollection> collectionCaptor = ArgumentCaptor.forClass(MetricCollection.class);
+            verify(mockPublisher).publish(collectionCaptor.capture());
+
+            MetricCollection capturedCollection = collectionCaptor.getValue();
+            assertThat(capturedCollection.children()).isNotEmpty();
+            for (MetricCollection requestMetrics : capturedCollection.children()) {
+                assertThat(requestMetrics.metricValues(CoreMetric.ERROR_TYPE)).containsExactly(SdkErrorType.IO.toString());
+            }
+        }
+    }
+
 
     private static HttpExecuteResponse mockExecuteResponse(SdkHttpFullResponse httpResponse) {
         HttpExecuteResponse mockResponse = mock(HttpExecuteResponse.class);
