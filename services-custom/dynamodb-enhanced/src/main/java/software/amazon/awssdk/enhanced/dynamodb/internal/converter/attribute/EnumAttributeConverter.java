@@ -62,7 +62,7 @@ public class EnumAttributeConverter<T extends Enum<T>> implements AttributeConve
 
     @Override
     public T transformTo(AttributeValue input) {
-        if(input.nul()){
+        if(input.nul() != null && input.nul()){
             return null;
         }
         Validate.isTrue(input.s() != null, "Cannot convert non-string value to enum.");
