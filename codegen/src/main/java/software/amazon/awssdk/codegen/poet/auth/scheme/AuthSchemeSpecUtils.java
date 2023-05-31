@@ -16,14 +16,19 @@
 package software.amazon.awssdk.codegen.poet.auth.scheme;
 
 import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
+import javax.lang.model.element.Modifier;
+import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
+import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.codegen.utils.AuthUtils;
 import software.amazon.awssdk.http.auth.spi.HttpAuthOption;
+import software.amazon.awssdk.utils.internal.CodegenNamingUtils;
 
 public final class AuthSchemeSpecUtils {
     private final IntermediateModel intermediateModel;
@@ -66,5 +71,32 @@ public final class AuthSchemeSpecUtils {
 
     public boolean usesSigV4() {
         return AuthUtils.usesAwsAuth(intermediateModel);
+    }
+
+    public String paramMethodName(String param) {
+        return Utils.unCapitalize(CodegenNamingUtils.pascalCase(param));
+    }
+
+    public boolean generateEndpointBasedParams() {
+        return intermediateModel.getCustomizationConfig().isEnableEndpointAuthSchemeParams();
+    }
+
+    public MethodSpec.Builder endpointParamAccessorSignature(ParameterModel model, String name) {
+        String methodName = Utils.unCapitalize(CodegenNamingUtils.pascalCase(name));
+        TypeName typeName = EndpointRulesSpecUtils.parameterType(model);
+        MethodSpec.Builder spec = MethodSpec.methodBuilder(methodName)
+                                            .addModifiers(Modifier.PUBLIC);
+        String docs = model.getDocumentation();
+        if (docs != null) {
+            spec.addJavadoc(docs);
+        }
+        if (isRequired(model)) {
+            return spec.returns(typeName);
+        }
+        return spec.returns(ParameterizedTypeName.get(ClassName.get(Optional.class), typeName));
+    }
+
+    public static boolean isRequired(ParameterModel model) {
+        return model.isRequired() != null && model.isRequired();
     }
 }

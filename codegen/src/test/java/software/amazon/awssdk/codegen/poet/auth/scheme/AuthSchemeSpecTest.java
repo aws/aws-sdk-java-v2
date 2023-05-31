@@ -18,33 +18,128 @@ package software.amazon.awssdk.codegen.poet.auth.scheme;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static software.amazon.awssdk.codegen.poet.PoetMatchers.generatesTo;
 
-import org.junit.jupiter.api.Test;
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.ClientTestModels;
 
 public class AuthSchemeSpecTest {
 
-    @Test
-    public void authSchemeParams() {
-        ClassSpec authSchemeParams = new AuthSchemeParamsSpec(ClientTestModels.queryServiceModels());
-        assertThat(authSchemeParams, generatesTo("auth-scheme-params.java"));
+    @ParameterizedTest
+    @MethodSource("parameters")
+    void testCase(TestCase testCase) {
+        ClassSpec classSpec = testCase.classSpecProvider.apply(testCase.modelProvider.get());
+        String expectedFileName = testCase.caseName + "-auth-scheme-" + testCase.outputFileSuffix + ".java";
+        assertThat(expectedFileName + " must match the generated class",
+            classSpec, generatesTo(expectedFileName));
     }
 
-    @Test
-    public void authSchemeProvider() {
-        ClassSpec authSchemeProvider = new AuthSchemeProviderSpec(ClientTestModels.queryServiceModels());
-        assertThat(authSchemeProvider, generatesTo("auth-scheme-provider.java"));
+    static List<TestCase> parameters() {
+        return Arrays.asList(
+            // query
+            TestCase.builder()
+                    .modelProvider(ClientTestModels::queryServiceModels)
+                    .classSpecProvider(AuthSchemeProviderSpec::new)
+                    .caseName("query")
+                    .outputFileSuffix("provider")
+                    .build(),
+            TestCase.builder()
+                    .modelProvider(ClientTestModels::queryServiceModels)
+                    .classSpecProvider(AuthSchemeParamsSpec::new)
+                    .caseName("query")
+                    .outputFileSuffix("params")
+                    .build(),
+            TestCase.builder()
+                    .modelProvider(ClientTestModels::queryServiceModels)
+                    .classSpecProvider(DefaultAuthSchemeProviderSpec::new)
+                    .caseName("query")
+                    .outputFileSuffix("default-provider")
+                    .build(),
+            TestCase.builder()
+                    .modelProvider(ClientTestModels::queryServiceModels)
+                    .classSpecProvider(DefaultAuthSchemeParamsSpec::new)
+                    .caseName("query")
+                    .outputFileSuffix("default-params")
+                    .build(),
+            // query-endpoint-auth-params
+            TestCase.builder()
+                    .modelProvider(ClientTestModels::queryServiceModels)
+                    .classSpecProvider(AuthSchemeProviderSpec::new)
+                    .caseName("query-endpoint-auth-params")
+                    .outputFileSuffix("provider")
+                    .build(),
+            TestCase.builder()
+                    .modelProvider(ClientTestModels::queryServiceModels)
+                    .classSpecProvider(AuthSchemeParamsSpec::new)
+                    .caseName("query-endpoint-auth-params")
+                    .outputFileSuffix("params")
+                    .build(),
+            TestCase.builder()
+                    .modelProvider(ClientTestModels::queryServiceModels)
+                    .classSpecProvider(DefaultAuthSchemeProviderSpec::new)
+                    .caseName("query-endpoint-auth-params")
+                    .outputFileSuffix("default-provider")
+                    .build(),
+            TestCase.builder()
+                    .modelProvider(ClientTestModels::queryServiceModels)
+                    .classSpecProvider(DefaultAuthSchemeParamsSpec::new)
+                    .caseName("query")
+                    .outputFileSuffix("default-params")
+                    .build()
+        );
     }
 
-    @Test
-    public void defaultAuthSchemeParams() {
-        ClassSpec defaultAuthSchemeParams = new DefaultAuthSchemeParamsSpec(ClientTestModels.queryServiceModels());
-        assertThat(defaultAuthSchemeParams, generatesTo("default-auth-scheme-params.java"));
-    }
+    static class TestCase {
+        private final Supplier<IntermediateModel> modelProvider;
+        private final Function<IntermediateModel, ClassSpec> classSpecProvider;
+        private final String outputFileSuffix;
+        private final String caseName;
 
-    @Test
-    public void defaultAuthSchemeProvider() {
-        ClassSpec defaultAuthSchemeProvider = new DefaultAuthSchemeProviderSpec(ClientTestModels.queryServiceModels());
-        assertThat(defaultAuthSchemeProvider, generatesTo("default-auth-scheme-provider.java"));
+        TestCase(Builder builder) {
+            this.modelProvider = builder.modelProvider;
+            this.classSpecProvider = builder.classSpecProvider;
+            this.outputFileSuffix = builder.outputFileSuffix;
+            this.caseName = builder.caseName;
+        }
+
+        static Builder builder() {
+            return new Builder();
+        }
+
+        static class Builder {
+            private Supplier<IntermediateModel> modelProvider;
+            private Function<IntermediateModel, ClassSpec> classSpecProvider;
+            private String outputFileSuffix;
+            private String caseName;
+
+            Builder modelProvider(Supplier<IntermediateModel> modelProvider) {
+                this.modelProvider = modelProvider;
+                return this;
+            }
+
+            Builder classSpecProvider(Function<IntermediateModel, ClassSpec> classSpecProvider) {
+                this.classSpecProvider = classSpecProvider;
+                return this;
+            }
+
+            Builder outputFileSuffix(String outputFileSuffix) {
+                this.outputFileSuffix = outputFileSuffix;
+                return this;
+            }
+
+            Builder caseName(String caseName) {
+                this.caseName = caseName;
+                return this;
+            }
+
+            TestCase build() {
+                return new TestCase(this);
+            }
+        }
     }
 }
