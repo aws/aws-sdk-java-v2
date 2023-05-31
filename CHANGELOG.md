@@ -1,3 +1,36 @@
+# __2.20.76__ __2023-05-31__
+## __AWS Config__
+  - ### Features
+    - Resource Types Exclusion feature launch by AWS Config
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix an issue where the optimal number of parts calculated could be higher than 10,000
+
+## __AWS Service Catalog__
+  - ### Features
+    - Documentation updates for ServiceCatalog.
+
+## __AWSMainframeModernization__
+  - ### Features
+    - Adds an optional create-only 'roleArn' property to Application resources. Enables PS and PO data set org types.
+
+## __Amazon Fraud Detector__
+  - ### Features
+    - This release enables publishing event predictions from Amazon Fraud Detector (AFD) to Amazon EventBridge. For example, after getting predictions from AFD, Amazon EventBridge rules can be configured to trigger notification through an SNS topic, send a message with SES, or trigger Lambda workflows.
+
+## __Amazon HealthLake__
+  - ### Features
+    - This release adds a new request parameter to the CreateFHIRDatastore API operation. IdentityProviderConfiguration specifies how you want to authenticate incoming requests to your Healthlake Data Store.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds support for changing the engine for Oracle using the ModifyDbInstance API
+
+## __Amazon WorkSpaces Web__
+  - ### Features
+    - WorkSpaces Web now allows you to control which IP addresses your WorkSpaces Web portal may be accessed from.
+
 # __2.20.75__ __2023-05-30__
 ## __AWS Glue__
   - ### Features
