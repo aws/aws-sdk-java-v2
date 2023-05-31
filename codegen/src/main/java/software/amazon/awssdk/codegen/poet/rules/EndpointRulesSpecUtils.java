@@ -120,7 +120,7 @@ public class EndpointRulesSpecUtils {
         return intermediateModel.getNamingStrategy().getEnumValueName(paramName);
     }
 
-    public TypeName toJavaType(String type) {
+    public static TypeName toJavaType(String type) {
         switch (type.toLowerCase(Locale.ENGLISH)) {
             case "boolean":
                 return TypeName.get(Boolean.class);
@@ -149,7 +149,7 @@ public class EndpointRulesSpecUtils {
                         .build();
     }
 
-    public TypeName parameterType(ParameterModel param) {
+    public static TypeName parameterType(ParameterModel param) {
         if (param.getBuiltInEnum() == null || param.getBuiltInEnum() != BuiltInParameter.AWS_REGION) {
             return toJavaType(param.getType());
         }

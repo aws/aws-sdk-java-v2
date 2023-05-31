@@ -15,13 +15,13 @@
 
 package software.amazon.awssdk.codegen.poet.auth.scheme;
 
+import static software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils.parameterType;
+
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
-import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
-import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import java.util.Map;
 import java.util.Optional;
@@ -31,17 +31,14 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
-import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 
 public class AuthSchemeParamsSpec implements ClassSpec {
     private final IntermediateModel intermediateModel;
     private final AuthSchemeSpecUtils authSchemeSpecUtils;
-    private final EndpointRulesSpecUtils endpointRulesSpecUtils;
 
     public AuthSchemeParamsSpec(IntermediateModel intermediateModel) {
         this.intermediateModel = intermediateModel;
         this.authSchemeSpecUtils = new AuthSchemeSpecUtils(intermediateModel);
-        this.endpointRulesSpecUtils = new EndpointRulesSpecUtils(intermediateModel);
     }
 
     @Override
@@ -77,7 +74,7 @@ public class AuthSchemeParamsSpec implements ClassSpec {
                          .returns(authSchemeSpecUtils.parametersInterfaceBuilderInterfaceName())
                          .addStatement("return $T.builder()", authSchemeSpecUtils.parametersDefaultImplName())
                          .addJavadoc("Get a new builder for creating a {@link $T}.",
-                                   authSchemeSpecUtils.parametersInterfaceName())
+                                     authSchemeSpecUtils.parametersInterfaceName())
                          .build();
     }
 
@@ -115,26 +112,16 @@ public class AuthSchemeParamsSpec implements ClassSpec {
                                   .build());
         }
 
-        parameters().forEach((name, model) -> {
-            TypeName typeName = endpointRulesSpecUtils.parameterType(model);
-            String methodName = endpointRulesSpecUtils.paramMethodName(name);
-            if (!"region".equals(methodName) || !authSchemeSpecUtils.usesSigV4()) {
-                if (model.isRequired()) {
-                    b.addMethod(MethodSpec.methodBuilder(methodName)
-                                          .addJavadoc(model.getDocumentation())
-                                          .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
-                                          .returns(typeName)
-                                          .build());
-                } else {
-                    b.addMethod(MethodSpec.methodBuilder(methodName)
-                                          .addJavadoc(model.getDocumentation())
-                                          .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
-                                          .returns(ParameterizedTypeName.get(ClassName.get(Optional.class), typeName))
-                                          .build());
+        if (authSchemeSpecUtils.generateEndpointBasedParams()) {
+            parameters().forEach((name, model) -> {
+                String methodName = authSchemeSpecUtils.paramMethodName(name);
+                if (!"region".equals(methodName) || !authSchemeSpecUtils.usesSigV4()) {
+                    b.addMethod(authSchemeSpecUtils.endpointParamAccessorSignature(model, name)
+                                                   .addModifiers(Modifier.ABSTRACT)
+                                                   .build());
                 }
-            }
-        });
-
+            });
+        }
     }
 
     private void addBuilderSetterMethods(TypeSpec.Builder b) {
@@ -156,25 +143,29 @@ public class AuthSchemeParamsSpec implements ClassSpec {
                                   .build());
         }
 
-        parameters().forEach((name, model) -> {
-            String methodName = endpointRulesSpecUtils.paramMethodName(name);
-            if (!"region".equals(methodName) || !authSchemeSpecUtils.usesSigV4()) {
-                b.addMethod(setterMethodDeclaration(name, model));
-            }
-        });
+        if (authSchemeSpecUtils.generateEndpointBasedParams()) {
+            parameters().forEach((name, model) -> {
+                String methodName = authSchemeSpecUtils.paramMethodName(name);
+                if (!"region".equals(methodName) || !authSchemeSpecUtils.usesSigV4()) {
+                    b.addMethod(setterMethodDeclaration(name, model));
+                }
+            });
+        }
     }
 
     private MethodSpec setterMethodDeclaration(String name, ParameterModel model) {
-        return paramMethodBuilder(name, model)
-            .addJavadoc(model.getDocumentation())
+        MethodSpec.Builder spec = paramMethodBuilder(name, model)
             .addModifiers(Modifier.ABSTRACT)
             .addParameter(parameterSpec(name, model))
-            .returns(authSchemeSpecUtils.parametersInterfaceBuilderInterfaceName())
-            .build();
+            .returns(authSchemeSpecUtils.parametersInterfaceBuilderInterfaceName());
+        if (model.getDocumentation() != null) {
+            spec.addJavadoc(model.getDocumentation());
+        }
+        return spec.build();
     }
 
     private ParameterSpec parameterSpec(String name, ParameterModel model) {
-        return ParameterSpec.builder(endpointRulesSpecUtils.parameterType(model), variableName(name)).build();
+        return ParameterSpec.builder(parameterType(model), variableName(name)).build();
     }
 
     private String variableName(String name) {
@@ -182,7 +173,7 @@ public class AuthSchemeParamsSpec implements ClassSpec {
     }
 
     private MethodSpec.Builder paramMethodBuilder(String name, ParameterModel model) {
-        MethodSpec.Builder b = MethodSpec.methodBuilder(endpointRulesSpecUtils.paramMethodName(name));
+        MethodSpec.Builder b = MethodSpec.methodBuilder(authSchemeSpecUtils.paramMethodName(name));
         b.addModifiers(Modifier.PUBLIC);
         if (model.getDeprecated() != null) {
             b.addAnnotation(Deprecated.class);

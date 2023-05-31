@@ -15,6 +15,9 @@
 
 package software.amazon.awssdk.codegen.poet.auth.scheme;
 
+import static software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils.isRequired;
+import static software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils.parameterType;
+
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
@@ -22,7 +25,6 @@ import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
-import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.Optional;
 import javax.lang.model.element.Modifier;
@@ -31,19 +33,16 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
-import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.utils.Validate;
 
 public class DefaultAuthSchemeParamsSpec implements ClassSpec {
 
     private final IntermediateModel intermediateModel;
     private final AuthSchemeSpecUtils authSchemeSpecUtils;
-    private final EndpointRulesSpecUtils endpointRulesSpecUtils;
 
     public DefaultAuthSchemeParamsSpec(IntermediateModel intermediateModel) {
         this.intermediateModel = intermediateModel;
         this.authSchemeSpecUtils = new AuthSchemeSpecUtils(intermediateModel);
-        this.endpointRulesSpecUtils = new EndpointRulesSpecUtils(intermediateModel);
     }
 
     @Override
@@ -54,12 +53,12 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
     @Override
     public TypeSpec poetSpec() {
         TypeSpec.Builder b = PoetUtils.createClassBuilder(className())
-                              .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                              .addAnnotation(SdkInternalApi.class)
-                              .addSuperinterface(authSchemeSpecUtils.parametersInterfaceName())
-                              .addMethod(constructor())
-                              .addMethod(builderMethod())
-                              .addType(builderImplSpec());
+                                      .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+                                      .addAnnotation(SdkInternalApi.class)
+                                      .addSuperinterface(authSchemeSpecUtils.parametersInterfaceName())
+                                      .addMethod(constructor())
+                                      .addMethod(builderMethod())
+                                      .addType(builderImplSpec());
 
         addFieldsAndAccessors(b);
 
@@ -77,12 +76,14 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
             b.addStatement("this.region = builder.region");
         }
 
-        parameters().forEach((name, model) -> {
-            String fieldName = endpointRulesSpecUtils.paramMethodName(name);
-            if (!"region".equals(fieldName) || !authSchemeSpecUtils.usesSigV4()) {
-                b.addStatement("this." + fieldName + " = builder." + fieldName);
-            }
-        });
+        if (authSchemeSpecUtils.generateEndpointBasedParams()) {
+            parameters().forEach((name, model) -> {
+                String fieldName = authSchemeSpecUtils.paramMethodName(name);
+                if (!"region".equals(fieldName) || !authSchemeSpecUtils.usesSigV4()) {
+                    b.addStatement("this." + fieldName + " = builder." + fieldName);
+                }
+            });
+        }
 
         return b.build();
     }
@@ -137,30 +138,27 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
                                   .build());
         }
 
-        parameters().forEach((name, model) -> {
-            TypeName typeName = endpointRulesSpecUtils.parameterType(model);
-            String methodName = endpointRulesSpecUtils.paramMethodName(name);
-            if (!"region".equals(methodName) || !authSchemeSpecUtils.usesSigV4()) {
-                b.addField(FieldSpec.builder(typeName, methodName)
-                                    .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
-                                    .build());
-                if (model.isRequired()) {
-                    b.addMethod(MethodSpec.methodBuilder(methodName)
-                                          .addModifiers(Modifier.PUBLIC)
-                                          .addAnnotation(Override.class)
-                                          .returns(typeName)
-                                          .addStatement("return " + methodName)
-                                          .build());
-                } else {
-                    b.addMethod(MethodSpec.methodBuilder(methodName)
-                                          .addModifiers(Modifier.PUBLIC)
-                                          .addAnnotation(Override.class)
-                                          .returns(ParameterizedTypeName.get(ClassName.get(Optional.class), typeName))
-                                          .addStatement("return Optional.ofNullable(" + methodName + ")")
-                                          .build());
+        if (authSchemeSpecUtils.generateEndpointBasedParams()) {
+            parameters().forEach((name, model) -> {
+                String methodName = authSchemeSpecUtils.paramMethodName(name);
+                if (!"region".equals(methodName) || !authSchemeSpecUtils.usesSigV4()) {
+                    TypeName typeName = parameterType(model);
+                    b.addField(FieldSpec.builder(typeName, methodName)
+                                        .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
+                                        .build());
+                    MethodSpec.Builder spec = authSchemeSpecUtils.endpointParamAccessorSignature(model, name)
+                                                                 .addAnnotation(Override.class);
+
+                    if (isRequired(model)) {
+                        b.addMethod(spec.addStatement("return " + methodName)
+                                        .build());
+                    } else {
+                        b.addMethod(spec.addStatement("return Optional.ofNullable(" + methodName + ")")
+                                        .build());
+                    }
                 }
-            }
-        });
+            });
+        }
     }
 
     private void addBuilderFieldsAndSetter(TypeSpec.Builder b) {
@@ -176,16 +174,18 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
             b.addMethod(builderSetterMethod("region", TypeName.get(String.class)));
         }
 
-        parameters().forEach((name, model) -> {
-            TypeName typeName = endpointRulesSpecUtils.parameterType(model);
-            String methodName = endpointRulesSpecUtils.paramMethodName(name);
-            if (!"region".equals(methodName) || !authSchemeSpecUtils.usesSigV4()) {
-                b.addField(FieldSpec.builder(typeName, methodName)
-                                    .addModifiers(Modifier.PRIVATE)
-                                    .build());
-                b.addMethod(builderSetterMethod(methodName, typeName));
-            }
-        });
+        if (authSchemeSpecUtils.generateEndpointBasedParams()) {
+            parameters().forEach((name, model) -> {
+                TypeName typeName = parameterType(model);
+                String methodName = authSchemeSpecUtils.paramMethodName(name);
+                if (!"region".equals(methodName) || !authSchemeSpecUtils.usesSigV4()) {
+                    b.addField(FieldSpec.builder(typeName, methodName)
+                                        .addModifiers(Modifier.PRIVATE)
+                                        .build());
+                    b.addMethod(builderSetterMethod(methodName, typeName));
+                }
+            });
+        }
     }
 
     private MethodSpec builderSetterMethod(String field, TypeName type) {

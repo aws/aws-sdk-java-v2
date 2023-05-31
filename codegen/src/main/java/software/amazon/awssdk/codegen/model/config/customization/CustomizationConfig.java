@@ -231,6 +231,11 @@ public class CustomizationConfig {
      */
     private boolean requiredTraitValidationEnabled = false;
 
+    /**
+     * Whether to generate auth scheme params based on endpoint params.
+     */
+    private boolean enableEndpointAuthSchemeParams = false;
+
     private CustomizationConfig() {
     }
 
@@ -607,5 +612,13 @@ public class CustomizationConfig {
 
     public void setRequiredTraitValidationEnabled(boolean requiredTraitValidationEnabled) {
         this.requiredTraitValidationEnabled = requiredTraitValidationEnabled;
+    }
+
+    public void setEnableEndpointAuthSchemeParams(boolean enableEndpointAuthSchemeParams) {
+        this.enableEndpointAuthSchemeParams = enableEndpointAuthSchemeParams;
+    }
+
+    public boolean isEnableEndpointAuthSchemeParams() {
+        return enableEndpointAuthSchemeParams;
     }
 }
