@@ -20,7 +20,6 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import java.util.List;
-import java.util.Optional;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -78,7 +77,15 @@ public final class AuthSchemeSpecUtils {
     }
 
     public boolean generateEndpointBasedParams() {
-        return intermediateModel.getCustomizationConfig().isEnableEndpointAuthSchemeParams();
+        return "S3".equals(intermediateModel.getMetadata().getServiceName());
+    }
+
+    public boolean includeParam(ParameterModel model, String name) {
+        if (usesSigV4()) {
+            String methodName = paramMethodName(name);
+            return !"region".equals(methodName);
+        }
+        return true;
     }
 
     public MethodSpec.Builder endpointParamAccessorSignature(ParameterModel model, String name) {
@@ -90,13 +97,6 @@ public final class AuthSchemeSpecUtils {
         if (docs != null) {
             spec.addJavadoc(docs);
         }
-        if (isRequired(model)) {
-            return spec.returns(typeName);
-        }
-        return spec.returns(ParameterizedTypeName.get(ClassName.get(Optional.class), typeName));
-    }
-
-    public static boolean isRequired(ParameterModel model) {
-        return model.isRequired() != null && model.isRequired();
+        return spec.returns(typeName);
     }
 }

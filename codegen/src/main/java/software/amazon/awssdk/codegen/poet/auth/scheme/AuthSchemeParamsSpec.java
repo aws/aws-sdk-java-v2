@@ -114,8 +114,7 @@ public class AuthSchemeParamsSpec implements ClassSpec {
 
         if (authSchemeSpecUtils.generateEndpointBasedParams()) {
             parameters().forEach((name, model) -> {
-                String methodName = authSchemeSpecUtils.paramMethodName(name);
-                if (!"region".equals(methodName) || !authSchemeSpecUtils.usesSigV4()) {
+                if (authSchemeSpecUtils.includeParam(model, name)) {
                     b.addMethod(authSchemeSpecUtils.endpointParamAccessorSignature(model, name)
                                                    .addModifiers(Modifier.ABSTRACT)
                                                    .build());
@@ -145,8 +144,7 @@ public class AuthSchemeParamsSpec implements ClassSpec {
 
         if (authSchemeSpecUtils.generateEndpointBasedParams()) {
             parameters().forEach((name, model) -> {
-                String methodName = authSchemeSpecUtils.paramMethodName(name);
-                if (!"region".equals(methodName) || !authSchemeSpecUtils.usesSigV4()) {
+                if (authSchemeSpecUtils.includeParam(model, name)) {
                     b.addMethod(setterMethodDeclaration(name, model));
                 }
             });

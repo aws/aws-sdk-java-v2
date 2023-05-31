@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.codegen.poet.auth.scheme;
 
-import static software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils.isRequired;
 import static software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils.parameterType;
 
 import com.squareup.javapoet.ClassName;
@@ -79,7 +78,7 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
         if (authSchemeSpecUtils.generateEndpointBasedParams()) {
             parameters().forEach((name, model) -> {
                 String fieldName = authSchemeSpecUtils.paramMethodName(name);
-                if (!"region".equals(fieldName) || !authSchemeSpecUtils.usesSigV4()) {
+                if (authSchemeSpecUtils.includeParam(model, name)) {
                     b.addStatement("this." + fieldName + " = builder." + fieldName);
                 }
             });
@@ -140,8 +139,8 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
 
         if (authSchemeSpecUtils.generateEndpointBasedParams()) {
             parameters().forEach((name, model) -> {
-                String methodName = authSchemeSpecUtils.paramMethodName(name);
-                if (!"region".equals(methodName) || !authSchemeSpecUtils.usesSigV4()) {
+                if (authSchemeSpecUtils.includeParam(model, name)) {
+                    String methodName = authSchemeSpecUtils.paramMethodName(name);
                     TypeName typeName = parameterType(model);
                     b.addField(FieldSpec.builder(typeName, methodName)
                                         .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
@@ -149,13 +148,8 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
                     MethodSpec.Builder spec = authSchemeSpecUtils.endpointParamAccessorSignature(model, name)
                                                                  .addAnnotation(Override.class);
 
-                    if (isRequired(model)) {
-                        b.addMethod(spec.addStatement("return " + methodName)
-                                        .build());
-                    } else {
-                        b.addMethod(spec.addStatement("return Optional.ofNullable(" + methodName + ")")
-                                        .build());
-                    }
+                    b.addMethod(spec.addStatement("return " + methodName)
+                                    .build());
                 }
             });
         }
@@ -178,7 +172,7 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
             parameters().forEach((name, model) -> {
                 TypeName typeName = parameterType(model);
                 String methodName = authSchemeSpecUtils.paramMethodName(name);
-                if (!"region".equals(methodName) || !authSchemeSpecUtils.usesSigV4()) {
+                if (authSchemeSpecUtils.includeParam(model, name)) {
                     b.addField(FieldSpec.builder(typeName, methodName)
                                         .addModifiers(Modifier.PRIVATE)
                                         .build());

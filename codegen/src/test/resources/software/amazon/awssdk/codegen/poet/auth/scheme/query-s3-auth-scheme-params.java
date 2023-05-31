@@ -13,24 +13,24 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.query.auth.scheme;
+package software.amazon.awssdk.services.s3.auth.scheme;
 
 import java.util.Optional;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.services.query.auth.scheme.internal.DefaultQueryAuthSchemeParams;
+import software.amazon.awssdk.services.s3.auth.scheme.internal.DefaultS3AuthSchemeParams;
 
 /**
- * The parameters object used to resolve the auth schemes for the Query service.
+ * The parameters object used to resolve the auth schemes for the S3 service.
  */
 @Generated("software.amazon.awssdk:codegen")
 @SdkPublicApi
-public interface QueryAuthSchemeParams {
+public interface S3AuthSchemeParams {
     /**
-     * Get a new builder for creating a {@link QueryAuthSchemeParams}.
+     * Get a new builder for creating a {@link S3AuthSchemeParams}.
      */
     static Builder builder() {
-        return DefaultQueryAuthSchemeParams.builder();
+        return DefaultS3AuthSchemeParams.builder();
     }
 
     /**
@@ -44,8 +44,26 @@ public interface QueryAuthSchemeParams {
      */
     Optional<String> region();
 
+    Boolean useDualStackEndpoint();
+
+    Boolean useFipsEndpoint();
+
+    String endpointId();
+
+    Boolean defaultTrueParam();
+
+    String defaultStringParam();
+
+    String deprecatedParam();
+
+    Boolean booleanContextParam();
+
+    String stringContextParam();
+
+    String operationContextParam();
+
     /**
-     * A builder for a {@link QueryAuthSchemeParams}.
+     * A builder for a {@link S3AuthSchemeParams}.
      */
     interface Builder {
         /**
@@ -58,10 +76,29 @@ public interface QueryAuthSchemeParams {
          */
         Builder region(String region);
 
+        Builder useDualStackEndpoint(Boolean useDualStackEndpoint);
+
+        Builder useFipsEndpoint(Boolean useFIPSEndpoint);
+
+        Builder endpointId(String endpointId);
+
+        Builder defaultTrueParam(Boolean defaultTrueParam);
+
+        Builder defaultStringParam(String defaultStringParam);
+
+        @Deprecated
+        Builder deprecatedParam(String deprecatedParam);
+
+        Builder booleanContextParam(Boolean booleanContextParam);
+
+        Builder stringContextParam(String stringContextParam);
+
+        Builder operationContextParam(String operationContextParam);
+
         /**
-         * Returns a {@link QueryAuthSchemeParams} object that is created from the properties that have been set on the
+         * Returns a {@link S3AuthSchemeParams} object that is created from the properties that have been set on the
          * builder.
          */
-        QueryAuthSchemeParams build();
+        S3AuthSchemeParams build();
     }
 }
