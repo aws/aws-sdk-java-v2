@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWSMainframeModernization",
-    "contributor": "",
-    "description": "Adds an optional create-only 'roleArn' property to Application resources. Enables PS and PO data set org types."
-}
