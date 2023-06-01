@@ -85,7 +85,6 @@ public class DelegatingAsyncClientTest {
         validateIsDecorated();
     }
 
-    //TODO: handle paginated calls - the paginated publisher calls should also be decorated
     @Test
     public void paginatedOp_Request_publisherResponse_delegatingClient_DoesNotIntercept() throws Exception {
         PaginatedOperationWithResultKeyPublisher publisher =
@@ -94,7 +93,7 @@ public class DelegatingAsyncClientTest {
                                                                                                             .build());
         CompletableFuture<Void> future = publisher.subscribe(PaginatedOperationWithResultKeyResponse::items);
         future.get();
-        assertThat(mockAsyncHttpClient.getLastRequest().headers().get(INTERCEPTED_HEADER)).isNull();
+        validateIsDecorated();
     }
 
     @Test
@@ -103,7 +102,7 @@ public class DelegatingAsyncClientTest {
             decoratingClient.paginatedOperationWithResultKeyPaginator(r -> r.nextToken("token").build());
         CompletableFuture<Void> future = publisher.subscribe(PaginatedOperationWithResultKeyResponse::items);
         future.get();
-        assertThat(mockAsyncHttpClient.getLastRequest().headers().get(INTERCEPTED_HEADER)).isNull();
+        validateIsDecorated();
     }
 
     private void validateIsDecorated() {

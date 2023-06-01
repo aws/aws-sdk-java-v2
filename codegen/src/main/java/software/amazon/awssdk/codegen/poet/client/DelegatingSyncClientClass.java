@@ -16,6 +16,7 @@
 package software.amazon.awssdk.codegen.poet.client;
 
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 import static javax.lang.model.element.Modifier.ABSTRACT;
 import static javax.lang.model.element.Modifier.FINAL;
 import static javax.lang.model.element.Modifier.PRIVATE;
@@ -31,8 +32,10 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.codegen.docs.SimpleMethodOverload;
 import software.amazon.awssdk.codegen.model.config.customization.UtilitiesMethod;
@@ -40,7 +43,6 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
-import software.amazon.awssdk.codegen.utils.PaginatorUtils;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.utils.Validate;
 
@@ -113,6 +115,23 @@ public class DelegatingSyncClientClass extends SyncClientInterface {
     }
 
     @Override
+    protected List<MethodSpec> operations() {
+        return model.getOperations().values().stream()
+                    // TODO Sync not supported for event streaming yet. Revisit after sync/async merge
+                    .filter(o -> !o.hasEventStreamInput())
+                    .filter(o -> !o.hasEventStreamOutput())
+                    .flatMap(this::operations)
+                    .sorted(Comparator.comparing(m -> m.name))
+                    .collect(toList());
+    }
+
+    private Stream<MethodSpec> operations(OperationModel opModel) {
+        List<MethodSpec> methods = new ArrayList<>();
+        methods.add(traditionalMethod(opModel));
+        return methods.stream();
+    }
+
+    @Override
     public ClassName className() {
         return className;
     }
@@ -120,6 +139,11 @@ public class DelegatingSyncClientClass extends SyncClientInterface {
     @Override
     protected MethodSpec.Builder simpleMethodModifier(MethodSpec.Builder builder) {
         return builder.addAnnotation(Override.class);
+    }
+
+    protected MethodSpec traditionalMethod(OperationModel opModel) {
+        MethodSpec.Builder builder = operationMethodSignature(model, opModel);
+        return operationBody(builder, opModel).build();
     }
 
     @Override
@@ -141,14 +165,6 @@ public class DelegatingSyncClientClass extends SyncClientInterface {
                              operationParameters.isEmpty() ? "" : additionalParameters);
 
         return builder;
-    }
-
-    @Override
-    protected MethodSpec.Builder paginatedMethodBody(MethodSpec.Builder builder, OperationModel opModel) {
-        String methodName = PaginatorUtils.getPaginatedMethodName(opModel.getMethodName());
-        return builder.addModifiers(PUBLIC)
-                      .addAnnotation(Override.class)
-                      .addStatement("return delegate.$N($N)", methodName, opModel.getInput().getVariableName());
     }
 
     @Override
