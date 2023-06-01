@@ -23,6 +23,7 @@ import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 import java.util.function.Consumer;
 import javax.lang.model.element.Modifier;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
@@ -48,6 +49,7 @@ public class UserAgentUtilsSpec implements ClassSpec {
         return TypeSpec.classBuilder(className())
                        .addModifiers(Modifier.PUBLIC)
                        .addAnnotation(PoetUtils.generatedAnnotation())
+                       .addAnnotation(SdkInternalApi.class)
                        .addMethod(privateConstructor())
                        .addMethod(applyUserAgentInfoMethod())
                        .addMethod(applyPaginatorUserAgentMethod())
