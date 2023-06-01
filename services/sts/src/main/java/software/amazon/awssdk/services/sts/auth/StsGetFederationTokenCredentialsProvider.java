@@ -15,11 +15,14 @@
 
 package software.amazon.awssdk.services.sts.auth;
 
+import static software.amazon.awssdk.services.sts.internal.StsAuthUtils.fromStsCredentials;
+
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.endpoints.internal.Arn;
 import software.amazon.awssdk.services.sts.model.FederatedUser;
@@ -66,12 +69,9 @@ public class StsGetFederationTokenCredentialsProvider
     }
 
     @Override
-    protected SessionCredentialsHolder getUpdatedCredentials(StsClient stsClient) {
+    protected AwsSessionCredentials getUpdatedCredentials(StsClient stsClient) {
         GetFederationTokenResponse federationToken = stsClient.getFederationToken(getFederationTokenRequest);
-        return SessionCredentialsHolder.builder()
-                                       .credentials(federationToken.credentials())
-                                       .accountId(accountIdFromArn(federationToken.federatedUser()))
-                                       .build();
+        return fromStsCredentials(federationToken.credentials(), accountIdFromArn(federationToken.federatedUser()));
     }
 
     private String accountIdFromArn(FederatedUser federatedUser) {

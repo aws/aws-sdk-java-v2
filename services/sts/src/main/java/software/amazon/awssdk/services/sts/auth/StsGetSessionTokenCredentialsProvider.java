@@ -15,11 +15,14 @@
 
 package software.amazon.awssdk.services.sts.auth;
 
+import static software.amazon.awssdk.services.sts.internal.StsAuthUtils.fromStsCredentials;
+
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.GetSessionTokenRequest;
 import software.amazon.awssdk.services.sts.model.GetSessionTokenResponse;
@@ -64,11 +67,9 @@ public class StsGetSessionTokenCredentialsProvider
     }
 
     @Override
-    protected SessionCredentialsHolder getUpdatedCredentials(StsClient stsClient) {
+    protected AwsSessionCredentials getUpdatedCredentials(StsClient stsClient) {
         GetSessionTokenResponse sessionToken = stsClient.getSessionToken(getSessionTokenRequest);
-        return SessionCredentialsHolder.builder()
-                                       .credentials(sessionToken.credentials())
-                                       .build();
+        return fromStsCredentials(sessionToken.credentials());
     }
 
     @Override

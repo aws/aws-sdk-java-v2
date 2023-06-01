@@ -44,7 +44,7 @@ public final class AwsBasicCredentials implements AwsCredentials {
      * This should be accessed via {@link AnonymousCredentialsProvider#resolveCredentials()}.
      */
     @SdkInternalApi
-    static final AwsBasicCredentials ANONYMOUS_CREDENTIALS = builder().validateCredentials(Boolean.FALSE).build();
+    static final AwsBasicCredentials ANONYMOUS_CREDENTIALS = builder().validateCredentials(false).build();
 
     private final String accessKeyId;
     private final String secretAccessKey;
@@ -54,11 +54,23 @@ public final class AwsBasicCredentials implements AwsCredentials {
         this.accessKeyId = trimToNull(builder.accessKeyId);
         this.secretAccessKey = trimToNull(builder.secretAccessKey);
 
-        if (Boolean.TRUE.equals(builder.validateCredentials)) {
+        if (builder.validateCredentials) {
             Validate.notNull(this.accessKeyId, "Access key ID cannot be blank.");
             Validate.notNull(this.secretAccessKey, "Secret access key cannot be blank.");
         }
         this.accountId = builder.accountId;
+    }
+
+    /**
+     * Constructs a new credentials object, with the specified AWS access key and AWS secret key.
+     *
+     * @param accessKeyId The AWS access key, used to identify the user interacting with AWS.
+     * @param secretAccessKey The AWS secret access key, used to authenticate the user interacting with AWS.
+     */
+    protected AwsBasicCredentials(String accessKeyId, String secretAccessKey) {
+        this(builder().accessKeyId(accessKeyId)
+                      .secretAccessKey(secretAccessKey)
+                      .validateCredentials(true));
     }
 
     public static Builder builder() {
@@ -136,7 +148,7 @@ public final class AwsBasicCredentials implements AwsCredentials {
         private String accessKeyId;
         private String secretAccessKey;
         private String accountId;
-        private Boolean validateCredentials = Boolean.TRUE;
+        private boolean validateCredentials = true;
 
         /**
          * The AWS access key, used to identify the user interacting with services.

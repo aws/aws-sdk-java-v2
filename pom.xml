@@ -635,8 +635,6 @@
                             <!-- Moving the interface methods to new SRA super interfaces causes japicmp to complain -->
                             <exclude>software.amazon.awssdk.auth.credentials.AwsCredentials</exclude>
                             <exclude>software.amazon.awssdk.auth.token.credentials.SdkToken</exclude>
-                            <!-- Removed protected ctor, not used according to internal code usage search -->
-                            <exclude>software.amazon.awssdk.auth.credentials.AwsBasicCredentials</exclude>
                         </excludes>
 
                         <ignoreMissingOldVersion>true</ignoreMissingOldVersion>
