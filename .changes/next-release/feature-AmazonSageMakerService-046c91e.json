@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon SageMaker Service",
-    "contributor": "",
-    "description": "Amazon Sagemaker Autopilot adds support for Parquet file input to NLP text classification jobs."
-}

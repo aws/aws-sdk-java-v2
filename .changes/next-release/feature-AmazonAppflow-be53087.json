@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Appflow",
-    "contributor": "",
-    "description": "Added ability to select DataTransferApiType for DescribeConnector and CreateFlow requests when using Async supported connectors. Added supportedDataTransferType to DescribeConnector/DescribeConnectors/ListConnector response."
-}
