@@ -24,8 +24,8 @@ import static org.mockito.Mockito.when;
 
 import java.net.URI;
 import java.util.concurrent.CompletableFuture;
-import org.junit.Test;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;

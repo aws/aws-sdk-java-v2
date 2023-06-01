@@ -28,7 +28,6 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.internal.WebIdentityTokenCredentialProperties;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.services.sts.StsClient;
-import software.amazon.awssdk.services.sts.endpoints.internal.Arn;
 import software.amazon.awssdk.services.sts.internal.AssumeRoleWithWebIdentityRequestSupplier;
 import software.amazon.awssdk.services.sts.model.AssumeRoleWithWebIdentityRequest;
 import software.amazon.awssdk.services.sts.model.AssumeRoleWithWebIdentityResponse;
