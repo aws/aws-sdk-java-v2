@@ -231,6 +231,16 @@ public class CustomizationConfig {
      */
     private boolean requiredTraitValidationEnabled = false;
 
+    /**
+     * Whether to generate auth scheme params based on endpoint params.
+     */
+    private boolean enableEndpointAuthSchemeParams = false;
+
+    /**
+     * List of endpoint params to be used for the auth scheme params
+     */
+    private List<String> includeEndpointParamsInAuthSchemeParams = new ArrayList<>();
+
     private CustomizationConfig() {
     }
 
@@ -607,5 +617,21 @@ public class CustomizationConfig {
 
     public void setRequiredTraitValidationEnabled(boolean requiredTraitValidationEnabled) {
         this.requiredTraitValidationEnabled = requiredTraitValidationEnabled;
+    }
+
+    public void setEnableEndpointAuthSchemeParams(boolean enableEndpointAuthSchemeParams) {
+        this.enableEndpointAuthSchemeParams = enableEndpointAuthSchemeParams;
+    }
+
+    public boolean isEnableEndpointAuthSchemeParams() {
+        return enableEndpointAuthSchemeParams;
+    }
+
+    public void setIncludeEndpointParamsInAuthSchemeParams(List<String> includeEndpointParamsInAuthSchemeParams) {
+        this.includeEndpointParamsInAuthSchemeParams = includeEndpointParamsInAuthSchemeParams;
+    }
+
+    public List<String> getIncludeEndpointParamsInAuthSchemeParams() {
+        return this.includeEndpointParamsInAuthSchemeParams;
     }
 }

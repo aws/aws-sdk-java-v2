@@ -74,7 +74,7 @@ public class AuthSchemeParamsSpec implements ClassSpec {
                          .returns(authSchemeSpecUtils.parametersInterfaceBuilderInterfaceName())
                          .addStatement("return $T.builder()", authSchemeSpecUtils.parametersDefaultImplName())
                          .addJavadoc("Get a new builder for creating a {@link $T}.",
-                                     authSchemeSpecUtils.parametersInterfaceName())
+                                   authSchemeSpecUtils.parametersInterfaceName())
                          .build();
     }
 
@@ -134,7 +134,6 @@ public class AuthSchemeParamsSpec implements ClassSpec {
         if (authSchemeSpecUtils.usesSigV4()) {
             b.addMethod(MethodSpec.methodBuilder("region")
                                   .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
-                                  // TODO: Use Region.class instead?
                                   .addParameter(ParameterSpec.builder(String.class, "region").build())
                                   .returns(authSchemeSpecUtils.parametersInterfaceBuilderInterfaceName())
                                   .addJavadoc("Set the region. The region parameter may be used with  the $S auth scheme.",
@@ -152,8 +151,12 @@ public class AuthSchemeParamsSpec implements ClassSpec {
     }
 
     private MethodSpec setterMethodDeclaration(String name, ParameterModel model) {
-        MethodSpec.Builder spec = paramMethodBuilder(name, model)
-            .addModifiers(Modifier.ABSTRACT)
+        MethodSpec.Builder spec = MethodSpec.methodBuilder(authSchemeSpecUtils.paramMethodName(name));
+        spec.addModifiers(Modifier.PUBLIC);
+        if (model.getDeprecated() != null) {
+            spec.addAnnotation(Deprecated.class);
+        }
+        spec.addModifiers(Modifier.ABSTRACT)
             .addParameter(parameterSpec(name, model))
             .returns(authSchemeSpecUtils.parametersInterfaceBuilderInterfaceName());
         if (model.getDocumentation() != null) {
@@ -168,15 +171,6 @@ public class AuthSchemeParamsSpec implements ClassSpec {
 
     private String variableName(String name) {
         return intermediateModel.getNamingStrategy().getVariableName(name);
-    }
-
-    private MethodSpec.Builder paramMethodBuilder(String name, ParameterModel model) {
-        MethodSpec.Builder b = MethodSpec.methodBuilder(authSchemeSpecUtils.paramMethodName(name));
-        b.addModifiers(Modifier.PUBLIC);
-        if (model.getDeprecated() != null) {
-            b.addAnnotation(Deprecated.class);
-        }
-        return b;
     }
 
     private Map<String, ParameterModel> parameters() {

@@ -72,20 +72,17 @@ public final class AuthSchemeSpecUtils {
         return AuthUtils.usesAwsAuth(intermediateModel);
     }
 
-    public String paramMethodName(String param) {
-        return Utils.unCapitalize(CodegenNamingUtils.pascalCase(param));
+    public String paramMethodName(String name) {
+        return intermediateModel.getNamingStrategy().getVariableName(name);
     }
 
     public boolean generateEndpointBasedParams() {
-        return "S3".equals(intermediateModel.getMetadata().getServiceName());
+        return intermediateModel.getCustomizationConfig().isEnableEndpointAuthSchemeParams();
     }
 
     public boolean includeParam(ParameterModel model, String name) {
-        if (usesSigV4()) {
-            String methodName = paramMethodName(name);
-            return !"region".equals(methodName);
-        }
-        return true;
+        List<String> included = intermediateModel.getCustomizationConfig().getIncludeEndpointParamsInAuthSchemeParams();
+        return included.contains(name);
     }
 
     public MethodSpec.Builder endpointParamAccessorSignature(ParameterModel model, String name) {
@@ -96,6 +93,9 @@ public final class AuthSchemeSpecUtils {
         String docs = model.getDocumentation();
         if (docs != null) {
             spec.addJavadoc(docs);
+        }
+        if (model.getDeprecated() != null) {
+            spec.addAnnotation(Deprecated.class);
         }
         return spec.returns(typeName);
     }

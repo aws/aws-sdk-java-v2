@@ -13,24 +13,24 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.auth.scheme;
+package software.amazon.awssdk.services.query.auth.scheme;
 
 import java.util.Optional;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.services.s3.auth.scheme.internal.DefaultS3AuthSchemeParams;
+import software.amazon.awssdk.services.query.auth.scheme.internal.DefaultQueryAuthSchemeParams;
 
 /**
- * The parameters object used to resolve the auth schemes for the S3 service.
+ * The parameters object used to resolve the auth schemes for the Query service.
  */
 @Generated("software.amazon.awssdk:codegen")
 @SdkPublicApi
-public interface S3AuthSchemeParams {
+public interface QueryAuthSchemeParams {
     /**
-     * Get a new builder for creating a {@link S3AuthSchemeParams}.
+     * Get a new builder for creating a {@link QueryAuthSchemeParams}.
      */
     static Builder builder() {
-        return DefaultS3AuthSchemeParams.builder();
+        return DefaultQueryAuthSchemeParams.builder();
     }
 
     /**
@@ -44,16 +44,11 @@ public interface S3AuthSchemeParams {
      */
     Optional<String> region();
 
-    Boolean useDualStackEndpoint();
-
-    Boolean useFipsEndpoint();
-
-    String endpointId();
-
     Boolean defaultTrueParam();
 
     String defaultStringParam();
 
+    @Deprecated
     String deprecatedParam();
 
     Boolean booleanContextParam();
@@ -63,7 +58,7 @@ public interface S3AuthSchemeParams {
     String operationContextParam();
 
     /**
-     * A builder for a {@link S3AuthSchemeParams}.
+     * A builder for a {@link QueryAuthSchemeParams}.
      */
     interface Builder {
         /**
@@ -75,12 +70,6 @@ public interface S3AuthSchemeParams {
          * Set the region. The region parameter may be used with the "aws.auth#sigv4" auth scheme.
          */
         Builder region(String region);
-
-        Builder useDualStackEndpoint(Boolean useDualStackEndpoint);
-
-        Builder useFipsEndpoint(Boolean useFIPSEndpoint);
-
-        Builder endpointId(String endpointId);
 
         Builder defaultTrueParam(Boolean defaultTrueParam);
 
@@ -96,9 +85,9 @@ public interface S3AuthSchemeParams {
         Builder operationContextParam(String operationContextParam);
 
         /**
-         * Returns a {@link S3AuthSchemeParams} object that is created from the properties that have been set on the
+         * Returns a {@link QueryAuthSchemeParams} object that is created from the properties that have been set on the
          * builder.
          */
-        S3AuthSchemeParams build();
+        QueryAuthSchemeParams build();
     }
 }

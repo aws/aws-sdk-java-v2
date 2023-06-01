@@ -36,7 +36,7 @@ public class AuthSchemeSpecTest {
         ClassSpec classSpec = testCase.classSpecProvider.apply(testCase.modelProvider.get());
         String expectedFileName = testCase.caseName + "-auth-scheme-" + testCase.outputFileSuffix + ".java";
         assertThat("Generated class must match " + expectedFileName,
-                   classSpec, generatesTo(expectedFileName));
+            classSpec, generatesTo(expectedFileName));
     }
 
     static List<TestCase> parameters() {
@@ -66,29 +66,29 @@ public class AuthSchemeSpecTest {
                     .caseName("query")
                     .outputFileSuffix("default-params")
                     .build(),
-            // query-s3
+            // query-endpoint-auth-params
             TestCase.builder()
-                    .modelProvider(ClientTestModels::queryS3ServiceModels)
+                    .modelProvider(ClientTestModels::queryServiceModelsEndpointAuthParams)
                     .classSpecProvider(AuthSchemeProviderSpec::new)
-                    .caseName("query-s3")
+                    .caseName("query-endpoint-auth-params")
                     .outputFileSuffix("provider")
                     .build(),
             TestCase.builder()
-                    .modelProvider(ClientTestModels::queryS3ServiceModels)
+                    .modelProvider(ClientTestModels::queryServiceModelsEndpointAuthParams)
                     .classSpecProvider(AuthSchemeParamsSpec::new)
-                    .caseName("query-s3")
+                    .caseName("query-endpoint-auth-params")
                     .outputFileSuffix("params")
                     .build(),
             TestCase.builder()
-                    .modelProvider(ClientTestModels::queryS3ServiceModels)
+                    .modelProvider(ClientTestModels::queryServiceModelsEndpointAuthParams)
                     .classSpecProvider(DefaultAuthSchemeProviderSpec::new)
-                    .caseName("query-s3")
+                    .caseName("query-endpoint-auth-params")
                     .outputFileSuffix("default-provider")
                     .build(),
             TestCase.builder()
-                    .modelProvider(ClientTestModels::queryS3ServiceModels)
+                    .modelProvider(ClientTestModels::queryServiceModelsEndpointAuthParams)
                     .classSpecProvider(DefaultAuthSchemeParamsSpec::new)
-                    .caseName("query-s3")
+                    .caseName("query-endpoint-auth-params")
                     .outputFileSuffix("default-params")
                     .build()
         );

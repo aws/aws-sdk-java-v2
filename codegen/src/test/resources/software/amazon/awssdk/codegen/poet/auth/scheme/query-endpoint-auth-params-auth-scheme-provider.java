@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.auth.scheme;
+package software.amazon.awssdk.services.query.auth.scheme;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -21,25 +21,25 @@ import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeProvider;
 import software.amazon.awssdk.http.auth.spi.HttpAuthOption;
-import software.amazon.awssdk.services.s3.auth.scheme.internal.DefaultS3AuthSchemeProvider;
+import software.amazon.awssdk.services.query.auth.scheme.internal.DefaultQueryAuthSchemeProvider;
 
 /**
- * An auth scheme provider for S3 service. The auth scheme provider takes a set of parameters using
- * {@link S3AuthSchemeParams}, and resolves a list of {@link HttpAuthOption} based on the given parameters.
+ * An auth scheme provider for Query service. The auth scheme provider takes a set of parameters using
+ * {@link QueryAuthSchemeParams}, and resolves a list of {@link HttpAuthOption} based on the given parameters.
  */
 @Generated("software.amazon.awssdk:codegen")
 @SdkPublicApi
-public interface S3AuthSchemeProvider extends AuthSchemeProvider {
+public interface QueryAuthSchemeProvider extends AuthSchemeProvider {
     /**
      * Resolve the auth schemes based on the given set of parameters.
      */
-    List<HttpAuthOption> resolveAuthScheme(S3AuthSchemeParams authSchemeParams);
+    List<HttpAuthOption> resolveAuthScheme(QueryAuthSchemeParams authSchemeParams);
 
     /**
      * Resolve the auth schemes based on the given set of parameters.
      */
-    default List<HttpAuthOption> resolveAuthScheme(Consumer<S3AuthSchemeParams.Builder> consumer) {
-        S3AuthSchemeParams.Builder builder = S3AuthSchemeParams.builder();
+    default List<HttpAuthOption> resolveAuthScheme(Consumer<QueryAuthSchemeParams.Builder> consumer) {
+        QueryAuthSchemeParams.Builder builder = QueryAuthSchemeParams.builder();
         consumer.accept(builder);
         return resolveAuthScheme(builder.build());
     }
@@ -47,7 +47,7 @@ public interface S3AuthSchemeProvider extends AuthSchemeProvider {
     /**
      * Get the default auth scheme provider.
      */
-    static S3AuthSchemeProvider defaultProvider() {
-        return DefaultS3AuthSchemeProvider.create();
+    static QueryAuthSchemeProvider defaultProvider() {
+        return DefaultQueryAuthSchemeProvider.create();
     }
 }

@@ -13,26 +13,20 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.auth.scheme.internal;
+package software.amazon.awssdk.services.query.auth.scheme.internal;
 
 import java.util.Optional;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.services.s3.auth.scheme.S3AuthSchemeParams;
+import software.amazon.awssdk.services.query.auth.scheme.QueryAuthSchemeParams;
 import software.amazon.awssdk.utils.Validate;
 
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
-public final class DefaultS3AuthSchemeParams implements S3AuthSchemeParams {
+public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams {
     private final String operation;
 
     private final String region;
-
-    private final Boolean useDualStackEndpoint;
-
-    private final Boolean useFipsEndpoint;
-
-    private final String endpointId;
 
     private final Boolean defaultTrueParam;
 
@@ -46,12 +40,9 @@ public final class DefaultS3AuthSchemeParams implements S3AuthSchemeParams {
 
     private final String operationContextParam;
 
-    private DefaultS3AuthSchemeParams(Builder builder) {
+    private DefaultQueryAuthSchemeParams(Builder builder) {
         this.operation = Validate.paramNotNull(builder.operation, "operation");
         this.region = builder.region;
-        this.useDualStackEndpoint = builder.useDualStackEndpoint;
-        this.useFipsEndpoint = builder.useFipsEndpoint;
-        this.endpointId = builder.endpointId;
         this.defaultTrueParam = builder.defaultTrueParam;
         this.defaultStringParam = builder.defaultStringParam;
         this.deprecatedParam = builder.deprecatedParam;
@@ -60,7 +51,7 @@ public final class DefaultS3AuthSchemeParams implements S3AuthSchemeParams {
         this.operationContextParam = builder.operationContextParam;
     }
 
-    public static S3AuthSchemeParams.Builder builder() {
+    public static QueryAuthSchemeParams.Builder builder() {
         return new Builder();
     }
 
@@ -75,21 +66,6 @@ public final class DefaultS3AuthSchemeParams implements S3AuthSchemeParams {
     }
 
     @Override
-    public Boolean useDualStackEndpoint() {
-        return useDualStackEndpoint;
-    }
-
-    @Override
-    public Boolean useFipsEndpoint() {
-        return useFipsEndpoint;
-    }
-
-    @Override
-    public String endpointId() {
-        return endpointId;
-    }
-
-    @Override
     public Boolean defaultTrueParam() {
         return defaultTrueParam;
     }
@@ -99,6 +75,7 @@ public final class DefaultS3AuthSchemeParams implements S3AuthSchemeParams {
         return defaultStringParam;
     }
 
+    @Deprecated
     @Override
     public String deprecatedParam() {
         return deprecatedParam;
@@ -119,16 +96,10 @@ public final class DefaultS3AuthSchemeParams implements S3AuthSchemeParams {
         return operationContextParam;
     }
 
-    private static final class Builder implements S3AuthSchemeParams.Builder {
+    private static final class Builder implements QueryAuthSchemeParams.Builder {
         private String operation;
 
         private String region;
-
-        private Boolean useDualStackEndpoint;
-
-        private Boolean useFipsEndpoint;
-
-        private String endpointId;
 
         private Boolean defaultTrueParam;
 
@@ -151,24 +122,6 @@ public final class DefaultS3AuthSchemeParams implements S3AuthSchemeParams {
         @Override
         public Builder region(String region) {
             this.region = region;
-            return this;
-        }
-
-        @Override
-        public Builder useDualStackEndpoint(Boolean useDualStackEndpoint) {
-            this.useDualStackEndpoint = useDualStackEndpoint;
-            return this;
-        }
-
-        @Override
-        public Builder useFipsEndpoint(Boolean useFipsEndpoint) {
-            this.useFipsEndpoint = useFipsEndpoint;
-            return this;
-        }
-
-        @Override
-        public Builder endpointId(String endpointId) {
-            this.endpointId = endpointId;
             return this;
         }
 
@@ -209,8 +162,8 @@ public final class DefaultS3AuthSchemeParams implements S3AuthSchemeParams {
         }
 
         @Override
-        public S3AuthSchemeParams build() {
-            return new DefaultS3AuthSchemeParams(this);
+        public QueryAuthSchemeParams build() {
+            return new DefaultQueryAuthSchemeParams(this);
         }
     }
 }

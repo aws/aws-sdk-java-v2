@@ -17,6 +17,7 @@ package software.amazon.awssdk.codegen.poet;
 
 import java.io.File;
 
+import org.eclipse.core.runtime.internal.adaptor.IModel;
 import software.amazon.awssdk.codegen.C2jModels;
 import software.amazon.awssdk.codegen.IntermediateModelBuilder;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
@@ -107,16 +108,16 @@ public class ClientTestModels {
         return new IntermediateModelBuilder(models).build();
     }
 
-    public static IntermediateModel queryS3ServiceModels() {
-        File serviceModel = new File(ClientTestModels.class.getResource("client/c2j/query-s3/service-2.json").getFile());
+    public static IntermediateModel queryServiceModelsEndpointAuthParams() {
+        File serviceModel = new File(ClientTestModels.class.getResource("client/c2j/query/service-2.json").getFile());
         File customizationModel =
-            new File(ClientTestModels.class.getResource("client/c2j/query-s3/customization.config")
+            new File(ClientTestModels.class.getResource("client/c2j/query/customization-endpoint-auth-params.config")
                                            .getFile());
-        File waitersModel = new File(ClientTestModels.class.getResource("client/c2j/query-s3/waiters-2.json").getFile());
+        File waitersModel = new File(ClientTestModels.class.getResource("client/c2j/query/waiters-2.json").getFile());
         File endpointRuleSetModel =
-            new File(ClientTestModels.class.getResource("client/c2j/query-s3/endpoint-rule-set.json").getFile());
+            new File(ClientTestModels.class.getResource("client/c2j/query/endpoint-rule-set.json").getFile());
         File endpointTestsModel =
-            new File(ClientTestModels.class.getResource("client/c2j/query-s3/endpoint-tests.json").getFile());
+            new File(ClientTestModels.class.getResource("client/c2j/query/endpoint-tests.json").getFile());
 
         C2jModels models = C2jModels
             .builder()

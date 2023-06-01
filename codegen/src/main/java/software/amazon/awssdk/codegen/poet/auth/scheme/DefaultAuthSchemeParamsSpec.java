@@ -52,12 +52,12 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
     @Override
     public TypeSpec poetSpec() {
         TypeSpec.Builder b = PoetUtils.createClassBuilder(className())
-                                      .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                                      .addAnnotation(SdkInternalApi.class)
-                                      .addSuperinterface(authSchemeSpecUtils.parametersInterfaceName())
-                                      .addMethod(constructor())
-                                      .addMethod(builderMethod())
-                                      .addType(builderImplSpec());
+                              .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+                              .addAnnotation(SdkInternalApi.class)
+                              .addSuperinterface(authSchemeSpecUtils.parametersInterfaceName())
+                              .addMethod(constructor())
+                              .addMethod(builderMethod())
+                              .addType(builderImplSpec());
 
         addFieldsAndAccessors(b);
 
@@ -77,8 +77,8 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
 
         if (authSchemeSpecUtils.generateEndpointBasedParams()) {
             parameters().forEach((name, model) -> {
-                String fieldName = authSchemeSpecUtils.paramMethodName(name);
                 if (authSchemeSpecUtils.includeParam(model, name)) {
+                    String fieldName = authSchemeSpecUtils.paramMethodName(name);
                     b.addStatement("this." + fieldName + " = builder." + fieldName);
                 }
             });
@@ -147,7 +147,6 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
                                         .build());
                     MethodSpec.Builder spec = authSchemeSpecUtils.endpointParamAccessorSignature(model, name)
                                                                  .addAnnotation(Override.class);
-
                     b.addMethod(spec.addStatement("return " + methodName)
                                     .build());
                 }
@@ -170,9 +169,9 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
 
         if (authSchemeSpecUtils.generateEndpointBasedParams()) {
             parameters().forEach((name, model) -> {
-                TypeName typeName = parameterType(model);
-                String methodName = authSchemeSpecUtils.paramMethodName(name);
                 if (authSchemeSpecUtils.includeParam(model, name)) {
+                    TypeName typeName = parameterType(model);
+                    String methodName = authSchemeSpecUtils.paramMethodName(name);
                     b.addField(FieldSpec.builder(typeName, methodName)
                                         .addModifiers(Modifier.PRIVATE)
                                         .build());
