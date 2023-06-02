@@ -127,11 +127,10 @@ public interface RetryStrategy<
                     return true;
                 }
                 Throwable cause = t.getCause();
-                while (cause != null) {
+                if (cause != null) {
                     if (cause.getClass() == throwable) {
                         return true;
                     }
-                    cause = cause.getCause();
                 }
                 return false;
             });
@@ -147,11 +146,10 @@ public interface RetryStrategy<
                     return true;
                 }
                 Throwable cause = t.getCause();
-                while (cause != null) {
+                if (cause != null) {
                     if (throwable.isAssignableFrom(cause.getClass())) {
                         return true;
                     }
-                    cause = cause.getCause();
                 }
                 return false;
             });

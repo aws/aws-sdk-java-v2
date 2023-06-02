@@ -58,11 +58,7 @@ class RetryStrategyBuilderTest {
                 .expectShouldRetry()
             , new TestCase()
                 .configure(b -> b.retryOnExceptionOrCause(IllegalArgumentException.class))
-                .givenThrowable(new RuntimeException(new RuntimeException(new IllegalArgumentException())))
-                .expectShouldRetry()
-            , new TestCase()
-                .configure(b -> b.retryOnExceptionOrCause(IllegalArgumentException.class))
-                .givenThrowable(new RuntimeException(new RuntimeException(new NumberFormatException())))
+                .givenThrowable(new RuntimeException(new NumberFormatException()))
                 .expectShouldNotRetry()
             , new TestCase()
                 .configure(b -> b.retryOnExceptionInstanceOf(IllegalArgumentException.class))
@@ -95,10 +91,6 @@ class RetryStrategyBuilderTest {
             , new TestCase()
                 .configure(b -> b.retryOnExceptionOrCauseInstanceOf(IllegalArgumentException.class))
                 .givenThrowable(new NumberFormatException())
-                .expectShouldRetry()
-            , new TestCase()
-                .configure(b -> b.retryOnExceptionOrCauseInstanceOf(IllegalArgumentException.class))
-                .givenThrowable(new RuntimeException(new RuntimeException(new NumberFormatException())))
                 .expectShouldRetry()
         );
     }
