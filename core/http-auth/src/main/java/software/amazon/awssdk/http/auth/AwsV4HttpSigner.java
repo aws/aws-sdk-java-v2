@@ -15,14 +15,13 @@
 
 package software.amazon.awssdk.http.auth;
 
+import java.time.Instant;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.internal.DefaultAwsV4HttpSigner;
-import software.amazon.awssdk.http.auth.internal.checksums.SdkChecksum;
-import software.amazon.awssdk.http.auth.internal.util.SignerConstant;
+import software.amazon.awssdk.http.auth.internal.checksums.Algorithm;
 import software.amazon.awssdk.http.auth.spi.HttpSigner;
+import software.amazon.awssdk.http.auth.spi.SignerProperty;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
-import software.amazon.awssdk.identity.spi.AwsSessionCredentialsIdentity;
 
 /**
  * An {@link HttpSigner} that will sign a request using an AWS credentials {@link AwsCredentialsIdentity}).
@@ -31,30 +30,49 @@ import software.amazon.awssdk.identity.spi.AwsSessionCredentialsIdentity;
 public interface AwsV4HttpSigner extends HttpSigner<AwsCredentialsIdentity> {
 
     /**
+     * The datetime, in milliseconds, for the request.
+     */
+    SignerProperty<Instant> REQUEST_SIGNING_INSTANT =
+        SignerProperty.create(Instant.class, "requestSigningInstant");
+    /**
+     * The AWS region to be used for computing the signature.
+     */
+    SignerProperty<String> REGION_NAME =
+        SignerProperty.create(String.class, "regionName");
+    /**
+     * The name of the AWS service.
+     */
+    SignerProperty<String> SERVICE_SIGNING_NAME =
+        SignerProperty.create(String.class, "serviceSigningName");
+    /**
+     * The name of the header for the checksum.
+     */
+    SignerProperty<String> CHECKSUM_HEADER_NAME =
+        SignerProperty.create(String.class, "checksumHeaderName");
+    /**
+     * The Algorithm used to compute the checksum.
+     */
+    SignerProperty<Algorithm> CHECKSUM_ALGORITHM =
+        SignerProperty.create(Algorithm.class, "checksumAlgorithm");
+    /**
+     * A boolean to indicate whether to double url-encode the resource path
+     * when constructing the canonical request.
+     */
+    SignerProperty<Boolean> DOUBLE_URL_ENCODE =
+        SignerProperty.create(Boolean.class, "doubleUrlEncode");
+    /**
+     * A boolean to indicate Whether the resource path should be "normalized"
+     * according to RFC3986 when constructing the canonical request.
+     */
+    SignerProperty<Boolean> NORMALIZE_PATH =
+        SignerProperty.create(Boolean.class, "normalizePath");
+
+    /**
      * Get a default implementation of a {@link AwsV4HttpSigner}
      *
      * @return AwsV4HttpSigner
      */
     static AwsV4HttpSigner create() {
         return new DefaultAwsV4HttpSigner();
-    }
-
-    /**
-     * Perform any additional procedure on the request payload, with access to the result
-     * from signing the header. (e.g. Signing the payload by chunk-encoding). The default
-     * implementation doesn't need to do anything.
-     */
-    default void processRequestPayload(SdkHttpRequest.Builder requestBuilder,
-                                       byte[] signature,
-                                       byte[] signingKey,
-                                       SdkChecksum sdkChecksum) {
-    }
-
-    /**
-     * Adds session credentials to the request given.
-     */
-    default void addSessionCredentials(SdkHttpRequest.Builder requestBuilder,
-                                       AwsSessionCredentialsIdentity credentials) {
-        requestBuilder.putHeader(SignerConstant.X_AMZ_SECURITY_TOKEN, credentials.sessionToken());
     }
 }
