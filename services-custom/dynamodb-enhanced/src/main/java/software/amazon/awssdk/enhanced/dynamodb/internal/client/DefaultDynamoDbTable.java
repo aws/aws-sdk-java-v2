@@ -169,7 +169,6 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
         return EnhancedGlobalSecondaryIndex.builder()
                                            .indexName(indexMetadata.name())
                                            .projection(pb -> pb.projectionType(ProjectionType.ALL))
-                                           .provisionedThroughput(ptb -> ptb.readCapacityUnits(20L).writeCapacityUnits(20L))
                                            .build();
     }
 
