@@ -41,11 +41,11 @@ import software.amazon.awssdk.http.auth.internal.util.CredentialUtils;
 import software.amazon.awssdk.http.auth.internal.util.DigestComputingSubscriber;
 import software.amazon.awssdk.http.auth.internal.util.HttpChecksumUtils;
 import software.amazon.awssdk.http.auth.internal.util.SignerConstant;
-import software.amazon.awssdk.http.auth.spi.AsyncHttpSignRequest;
-import software.amazon.awssdk.http.auth.spi.AsyncSignedHttpRequest;
-import software.amazon.awssdk.http.auth.spi.HttpSignRequest;
+import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
+import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
+import software.amazon.awssdk.http.auth.spi.SignRequest;
 import software.amazon.awssdk.http.auth.spi.SignerProperty;
-import software.amazon.awssdk.http.auth.spi.SyncHttpSignRequest;
+import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignedHttpRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.AwsSessionCredentialsIdentity;
@@ -102,7 +102,7 @@ public class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
     private static final Logger LOG = Logger.loggerFor(DefaultAwsV4HttpSigner.class);
 
     @Override
-    public SyncSignedHttpRequest sign(SyncHttpSignRequest<? extends AwsCredentialsIdentity> request) {
+    public SyncSignedHttpRequest sign(SyncSignRequest<? extends AwsCredentialsIdentity> request) {
         // anonymous credentials, don't sign
         if (CredentialUtils.isAnonymous(request.identity())) {
             return SyncSignedHttpRequest.builder()
@@ -118,14 +118,14 @@ public class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
             .build();
     }
 
-    private SdkHttpRequest.Builder doSign(SyncHttpSignRequest<? extends AwsCredentialsIdentity> request) {
+    private SdkHttpRequest.Builder doSign(SyncSignRequest<? extends AwsCredentialsIdentity> request) {
         SdkChecksum sdkChecksum = createSdkChecksumFromRequest(request.request(), request.property(CHECKSUM_HEADER_NAME),
             request.property(CHECKSUM_ALGORITHM));
         String contentHash = calculateContentHash(request.payload().orElse(null), sdkChecksum);
         return doSign(request, new ContentChecksum(contentHash, sdkChecksum));
     }
 
-    private SdkHttpRequest.Builder doSign(HttpSignRequest<?, ? extends AwsCredentialsIdentity> request,
+    private SdkHttpRequest.Builder doSign(SignRequest<?, ? extends AwsCredentialsIdentity> request,
                                           ContentChecksum contentChecksum) {
         SdkHttpRequest.Builder requestBuilder = request.request().toBuilder();
         Boolean doubleUrlEncode = request.property(DOUBLE_URL_ENCODE);
@@ -226,9 +226,9 @@ public class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
     }
 
     @Override
-    public AsyncSignedHttpRequest signAsync(AsyncHttpSignRequest<? extends AwsCredentialsIdentity> request) {
+    public AsyncSignedRequest signAsync(AsyncSignRequest<? extends AwsCredentialsIdentity> request) {
         if (CredentialUtils.isAnonymous(request.identity())) {
-            return AsyncSignedHttpRequest.builder()
+            return AsyncSignedRequest.builder()
                 .request(request.request())
                 .payload(request.payload().orElse(null))
                 .build();
@@ -253,7 +253,7 @@ public class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
             return builder.build();
         });
 
-        return AsyncSignedHttpRequest.builder()
+        return AsyncSignedRequest.builder()
             .request(signedReqFuture.join())
             .payload(request.payload().orElse(null))
             .build();

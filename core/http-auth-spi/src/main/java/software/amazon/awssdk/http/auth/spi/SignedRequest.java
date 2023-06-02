@@ -29,7 +29,7 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 @SdkPublicApi
 @Immutable
 @ThreadSafe
-public interface SignedHttpRequest<PayloadT> {
+public interface SignedRequest<PayloadT> {
 
     /**
      * Returns the HTTP request object, without the request body payload.
@@ -42,7 +42,7 @@ public interface SignedHttpRequest<PayloadT> {
     Optional<PayloadT> payload();
 
     /**
-     * A builder for a {@link SignedHttpRequest}.
+     * A builder for a {@link SignedRequest}.
      */
     interface Builder<B extends Builder<B, PayloadT>, PayloadT> {
 

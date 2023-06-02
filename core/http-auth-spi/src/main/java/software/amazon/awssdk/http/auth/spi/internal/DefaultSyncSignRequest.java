@@ -17,21 +17,21 @@ package software.amazon.awssdk.http.auth.spi.internal;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.ContentStreamProvider;
-import software.amazon.awssdk.http.auth.spi.SyncHttpSignRequest;
+import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.utils.ToString;
 
 @SdkInternalApi
-public final class DefaultSyncHttpSignRequest<IdentityT extends Identity>
-    extends DefaultHttpSignRequest<ContentStreamProvider, IdentityT> implements SyncHttpSignRequest<IdentityT> {
+public final class DefaultSyncSignRequest<IdentityT extends Identity>
+    extends DefaultSignRequest<ContentStreamProvider, IdentityT> implements SyncSignRequest<IdentityT> {
 
-    private DefaultSyncHttpSignRequest(BuilderImpl<IdentityT> builder) {
+    private DefaultSyncSignRequest(BuilderImpl<IdentityT> builder) {
         super(builder);
     }
 
     @Override
     public String toString() {
-        return ToString.builder("SyncHttpSignRequest")
+        return ToString.builder("SyncSignRequest")
                        .add("request", request)
                        .add("identity", identity)
                        .add("properties", properties)
@@ -40,21 +40,21 @@ public final class DefaultSyncHttpSignRequest<IdentityT extends Identity>
 
     @SdkInternalApi
     public static final class BuilderImpl<IdentityT extends Identity>
-        extends DefaultHttpSignRequest.BuilderImpl<SyncHttpSignRequest.Builder<IdentityT>, ContentStreamProvider, IdentityT>
-        implements SyncHttpSignRequest.Builder<IdentityT> {
+        extends DefaultSignRequest.BuilderImpl<SyncSignRequest.Builder<IdentityT>, ContentStreamProvider, IdentityT>
+        implements SyncSignRequest.Builder<IdentityT> {
 
         // Used to enable consumer builder pattern in HttpSigner.sign()
         public BuilderImpl() {
         }
 
-        // Used by SyncHttpSignRequest#builder() where identity is passed as parameter, to avoid having to pass Class<IdentityT>.
+        // Used by SyncSignRequest#builder() where identity is passed as parameter, to avoid having to pass Class<IdentityT>.
         public BuilderImpl(IdentityT identity) {
             super(identity);
         }
 
         @Override
-        public SyncHttpSignRequest<IdentityT> build() {
-            return new DefaultSyncHttpSignRequest<>(this);
+        public SyncSignRequest<IdentityT> build() {
+            return new DefaultSyncSignRequest<>(this);
         }
     }
 }

@@ -15,35 +15,36 @@
 
 package software.amazon.awssdk.http.auth.spi;
 
+import java.nio.ByteBuffer;
+import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.http.ContentStreamProvider;
-import software.amazon.awssdk.http.auth.spi.internal.DefaultSyncHttpSignRequest;
+import software.amazon.awssdk.http.auth.spi.internal.DefaultAsyncSignRequest;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
- * Input parameters to sign a request with sync payload, using {@link HttpSigner}.
+ * Input parameters to sign a request with async payload, using {@link HttpSigner}.
  *
  * @param <IdentityT> The type of the identity.
  */
 @SdkPublicApi
 @Immutable
 @ThreadSafe
-public interface SyncHttpSignRequest<IdentityT extends Identity> extends HttpSignRequest<ContentStreamProvider, IdentityT> {
+public interface AsyncSignRequest<IdentityT extends Identity> extends SignRequest<Publisher<ByteBuffer>, IdentityT> {
     /**
-     * Get a new builder for creating a {@link SyncHttpSignRequest}.
+     * Get a new builder for creating a {@link AsyncSignRequest}.
      */
     static <IdentityT extends Identity> Builder<IdentityT> builder(IdentityT identity) {
-        return new DefaultSyncHttpSignRequest.BuilderImpl<>(identity);
+        return new DefaultAsyncSignRequest.BuilderImpl<>(identity);
     }
 
     /**
-     * A builder for a {@link SyncHttpSignRequest}.
+     * A builder for a {@link AsyncSignRequest}.
      */
     interface Builder<IdentityT extends Identity>
-        extends HttpSignRequest.Builder<Builder<IdentityT>, ContentStreamProvider, IdentityT>,
-                SdkBuilder<Builder<IdentityT>, SyncHttpSignRequest<IdentityT>> {
+        extends SignRequest.Builder<Builder<IdentityT>, Publisher<ByteBuffer>, IdentityT>,
+                SdkBuilder<Builder<IdentityT>, AsyncSignRequest<IdentityT>> {
     }
 }

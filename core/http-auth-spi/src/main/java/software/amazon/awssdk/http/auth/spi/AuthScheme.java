@@ -35,7 +35,7 @@ import software.amazon.awssdk.identity.spi.TokenIdentity;
  * @param <T> The type of the {@link Identity} used by this authentication scheme.
  */
 @SdkPublicApi
-public interface HttpAuthScheme<T extends Identity> {
+public interface AuthScheme<T extends Identity> {
 
     /**
      * Retrieve the scheme ID, a unique identifier for the authentication scheme (aws.auth#sigv4, smithy.api#httpBearerAuth).

@@ -19,7 +19,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
  * A marker interface for an auth scheme provider. An auth scheme provider takes as input a set of service-specific parameters,
- * and resolves a list of {@link HttpAuthOption} based on the given parameters.
+ * and resolves a list of {@link AuthOption} based on the given parameters.
  */
 @SdkPublicApi
 public interface AuthSchemeProvider {

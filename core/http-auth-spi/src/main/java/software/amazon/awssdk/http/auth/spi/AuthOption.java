@@ -16,7 +16,7 @@
 package software.amazon.awssdk.http.auth.spi;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.http.auth.spi.internal.DefaultHttpAuthOption;
+import software.amazon.awssdk.http.auth.spi.internal.DefaultAuthOption;
 import software.amazon.awssdk.identity.spi.IdentityProperty;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
@@ -27,16 +27,16 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
  * This is used in the output from the auth scheme resolver. The resolver returns a list of these, in the order the auth scheme
  * resolver wishes to use them.
  *
- * @see HttpAuthScheme
+ * @see AuthScheme
  */
 @SdkProtectedApi
-public interface HttpAuthOption {
+public interface AuthOption {
 
     /**
-     * Get a new builder for creating a {@link HttpAuthOption}.
+     * Get a new builder for creating a {@link AuthOption}.
      */
     static Builder builder() {
-        return new DefaultHttpAuthOption.BuilderImpl();
+        return new DefaultAuthOption.BuilderImpl();
     }
 
     /**
@@ -55,12 +55,12 @@ public interface HttpAuthOption {
     <T> T signerProperty(SignerProperty<T> property);
 
     /**
-     * A method to operate on all {@link IdentityProperty} values of this HttpAuthOption.
+     * A method to operate on all {@link IdentityProperty} values of this AuthOption.
      */
     <T> void forEachIdentityProperty(IdentityPropertyConsumer consumer);
 
     /**
-     * A method to operate on all {@link SignerProperty} values of this HttpAuthOption.
+     * A method to operate on all {@link SignerProperty} values of this AuthOption.
      */
     <T> void forEachSignerProperty(SignerPropertyConsumer consumer);
 
@@ -80,7 +80,7 @@ public interface HttpAuthOption {
         <T> void accept(SignerProperty<T> propertyKey, T propertyValue);
     }
 
-    interface Builder extends SdkBuilder<Builder, HttpAuthOption> {
+    interface Builder extends SdkBuilder<Builder, AuthOption> {
         Builder schemeId(String schemeId);
 
         <T> Builder putIdentityProperty(IdentityProperty<T> key, T value);

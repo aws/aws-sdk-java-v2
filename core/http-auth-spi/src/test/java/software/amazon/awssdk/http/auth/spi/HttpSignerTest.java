@@ -44,7 +44,7 @@ public class HttpSignerTest {
     @Test
     public void sign_usingRequest_works() {
         SyncSignedHttpRequest signedRequest =
-            signer.sign(SyncHttpSignRequest.builder(IDENTITY)
+            signer.sign(SyncSignRequest.builder(IDENTITY)
                                            .request(mock(SdkHttpRequest.class))
                                            .identity(IDENTITY) // Note, this is doable
                                            .putProperty(KEY, VALUE)
@@ -55,7 +55,7 @@ public class HttpSignerTest {
     @Test
     public void signAsync_usingConsumerBuilder_works() {
         Publisher<ByteBuffer> payload = subscriber -> {};
-        AsyncSignedHttpRequest signedRequest = signer.signAsync(r -> r.request(mock(SdkHttpRequest.class))
+        AsyncSignedRequest signedRequest = signer.signAsync(r -> r.request(mock(SdkHttpRequest.class))
                                                                       .payload(payload)
                                                                       .identity(IDENTITY)
                                                                       .putProperty(KEY, VALUE));
@@ -65,8 +65,8 @@ public class HttpSignerTest {
     @Test
     public void signAsync_usingRequest_works() {
         Publisher<ByteBuffer> payload = subscriber -> {};
-        AsyncSignedHttpRequest signedRequest =
-            signer.signAsync(AsyncHttpSignRequest.builder(IDENTITY)
+        AsyncSignedRequest signedRequest =
+            signer.signAsync(AsyncSignRequest.builder(IDENTITY)
                                                  .request(mock(SdkHttpRequest.class))
                                                  .payload(payload)
                                                  .identity(IDENTITY) // Note, this is doable
@@ -82,7 +82,7 @@ public class HttpSignerTest {
      */
     private static class TestSigner implements HttpSigner<TokenIdentity> {
         @Override
-        public SyncSignedHttpRequest sign(SyncHttpSignRequest<? extends TokenIdentity> request) {
+        public SyncSignedHttpRequest sign(SyncSignRequest<? extends TokenIdentity> request) {
             assertEquals(VALUE, request.property(KEY));
             assertEquals(IDENTITY, request.identity());
 
@@ -93,17 +93,17 @@ public class HttpSignerTest {
         }
 
         @Override
-        public AsyncSignedHttpRequest signAsync(AsyncHttpSignRequest<? extends TokenIdentity> request) {
+        public AsyncSignedRequest signAsync(AsyncSignRequest<? extends TokenIdentity> request) {
             assertEquals(VALUE, request.property(KEY));
             assertEquals(IDENTITY, request.identity());
 
-            return AsyncSignedHttpRequest.builder()
+            return AsyncSignedRequest.builder()
                                          .request(addTokenHeader(request))
                                          .payload(request.payload().orElse(null))
                                          .build();
         }
 
-        private SdkHttpRequest addTokenHeader(HttpSignRequest<?, ? extends TokenIdentity> input) {
+        private SdkHttpRequest addTokenHeader(SignRequest<?, ? extends TokenIdentity> input) {
             // return input.request().copy(b -> b.putHeader("Token-Header", input.identity().token()));
             return input.request();
         }

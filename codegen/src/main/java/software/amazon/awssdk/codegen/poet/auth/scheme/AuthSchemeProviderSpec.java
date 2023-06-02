@@ -28,7 +28,7 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeProvider;
-import software.amazon.awssdk.http.auth.spi.HttpAuthOption;
+import software.amazon.awssdk.http.auth.spi.AuthOption;
 
 public class AuthSchemeProviderSpec implements ClassSpec {
     private final IntermediateModel intermediateModel;
@@ -100,7 +100,7 @@ public class AuthSchemeProviderSpec implements ClassSpec {
               + "resolves a list of {@link $T} based on the given parameters.",
               intermediateModel.getMetadata().getServiceName(),
               authSchemeSpecUtils.parametersInterfaceName(),
-              HttpAuthOption.class);
+              AuthOption.class);
 
         return b.build();
     }

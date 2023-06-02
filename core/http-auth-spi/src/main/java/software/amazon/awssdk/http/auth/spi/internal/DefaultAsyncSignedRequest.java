@@ -15,34 +15,35 @@
 
 package software.amazon.awssdk.http.auth.spi.internal;
 
+import java.nio.ByteBuffer;
+import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.http.ContentStreamProvider;
-import software.amazon.awssdk.http.auth.spi.SyncSignedHttpRequest;
+import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
 import software.amazon.awssdk.utils.ToString;
 
 @SdkInternalApi
-public final class DefaultSyncSignedHttpRequest
-    extends DefaultSignedHttpRequest<ContentStreamProvider> implements SyncSignedHttpRequest {
+public final class DefaultAsyncSignedRequest
+    extends DefaultSignedRequest<Publisher<ByteBuffer>> implements AsyncSignedRequest {
 
-    private DefaultSyncSignedHttpRequest(BuilderImpl builder) {
+    private DefaultAsyncSignedRequest(BuilderImpl builder) {
         super(builder);
     }
 
     @Override
     public String toString() {
-        return ToString.builder("SyncSignedHttpRequest")
+        return ToString.builder("AsyncSignedRequest")
                        .add("request", request)
                        .build();
     }
 
     @SdkInternalApi
     public static final class BuilderImpl
-        extends DefaultSignedHttpRequest.BuilderImpl<SyncSignedHttpRequest.Builder, ContentStreamProvider>
-        implements SyncSignedHttpRequest.Builder {
+        extends DefaultSignedRequest.BuilderImpl<AsyncSignedRequest.Builder, Publisher<ByteBuffer>>
+        implements AsyncSignedRequest.Builder {
 
         @Override
-        public SyncSignedHttpRequest build() {
-            return new DefaultSyncSignedHttpRequest(this);
+        public AsyncSignedRequest build() {
+            return new DefaultAsyncSignedRequest(this);
         }
     }
 }

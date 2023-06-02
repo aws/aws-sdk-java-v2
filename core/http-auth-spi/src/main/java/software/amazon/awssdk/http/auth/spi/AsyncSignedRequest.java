@@ -20,7 +20,7 @@ import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
-import software.amazon.awssdk.http.auth.spi.internal.DefaultAsyncSignedHttpRequest;
+import software.amazon.awssdk.http.auth.spi.internal.DefaultAsyncSignedRequest;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
@@ -29,19 +29,19 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
 @SdkPublicApi
 @Immutable
 @ThreadSafe
-public interface AsyncSignedHttpRequest extends SignedHttpRequest<Publisher<ByteBuffer>> {
+public interface AsyncSignedRequest extends SignedRequest<Publisher<ByteBuffer>> {
 
     /**
-     * Get a new builder for creating a {@link AsyncSignedHttpRequest}.
+     * Get a new builder for creating a {@link AsyncSignedRequest}.
      */
     static Builder builder() {
-        return new DefaultAsyncSignedHttpRequest.BuilderImpl();
+        return new DefaultAsyncSignedRequest.BuilderImpl();
     }
 
     /**
-     * A builder for a {@link AsyncSignedHttpRequest}.
+     * A builder for a {@link AsyncSignedRequest}.
      */
-    interface Builder extends SignedHttpRequest.Builder<Builder, Publisher<ByteBuffer>>,
-                              SdkBuilder<Builder, AsyncSignedHttpRequest> {
+    interface Builder extends SignedRequest.Builder<Builder, Publisher<ByteBuffer>>,
+                              SdkBuilder<Builder, AsyncSignedRequest> {
     }
 }

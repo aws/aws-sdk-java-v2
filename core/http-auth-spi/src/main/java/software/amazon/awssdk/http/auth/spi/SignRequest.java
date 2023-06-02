@@ -31,7 +31,7 @@ import software.amazon.awssdk.identity.spi.Identity;
 @SdkPublicApi
 @Immutable
 @ThreadSafe
-public interface HttpSignRequest<PayloadT, IdentityT extends Identity> {
+public interface SignRequest<PayloadT, IdentityT extends Identity> {
 
     /**
      * Returns the HTTP request object, without the request body payload.
@@ -54,7 +54,7 @@ public interface HttpSignRequest<PayloadT, IdentityT extends Identity> {
     <T> T property(SignerProperty<T> property);
 
     /**
-     * A builder for a {@link HttpSignRequest}.
+     * A builder for a {@link SignRequest}.
      */
     interface Builder<B extends Builder<B, PayloadT, IdentityT>, PayloadT, IdentityT extends Identity> {
 

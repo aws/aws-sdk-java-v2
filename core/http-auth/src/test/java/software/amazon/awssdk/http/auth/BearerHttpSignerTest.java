@@ -18,9 +18,9 @@ package software.amazon.awssdk.http.auth;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.auth.spi.AsyncHttpSignRequest;
-import software.amazon.awssdk.http.auth.spi.AsyncSignedHttpRequest;
-import software.amazon.awssdk.http.auth.spi.SyncHttpSignRequest;
+import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
+import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
+import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignedHttpRequest;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
 import java.io.ByteArrayInputStream;
@@ -52,7 +52,7 @@ class BearerHttpSignerTest {
 
         BearerHttpSigner tokenSigner = BearerHttpSigner.create();
 
-        AsyncSignedHttpRequest signedRequest =
+        AsyncSignedRequest signedRequest =
                 tokenSigner.signAsync(generateBasicAsyncRequest(tokenValue));
 
 
@@ -65,9 +65,9 @@ class BearerHttpSignerTest {
         return BEARER_AUTH_MARKER + token;
     }
 
-    private static SyncHttpSignRequest<? extends TokenIdentity> generateBasicRequest(String token) {
+    private static SyncSignRequest<? extends TokenIdentity> generateBasicRequest(String token) {
 
-        return SyncHttpSignRequest.builder(TokenIdentity.create(token))
+        return SyncSignRequest.builder(TokenIdentity.create(token))
                 .request(SdkHttpRequest.builder()
                         .method(SdkHttpMethod.POST)
                         .putHeader("Host", "demo.us-east-1.amazonaws.com")
@@ -79,9 +79,9 @@ class BearerHttpSignerTest {
                 .build();
     }
 
-    private static AsyncHttpSignRequest<? extends TokenIdentity> generateBasicAsyncRequest(String token) {
+    private static AsyncSignRequest<? extends TokenIdentity> generateBasicAsyncRequest(String token) {
 
-        return AsyncHttpSignRequest.builder(TokenIdentity.create(token))
+        return AsyncSignRequest.builder(TokenIdentity.create(token))
                 .request(SdkHttpRequest.builder()
                         .method(SdkHttpMethod.POST)
                         .putHeader("Host", "demo.us-east-1.amazonaws.com")

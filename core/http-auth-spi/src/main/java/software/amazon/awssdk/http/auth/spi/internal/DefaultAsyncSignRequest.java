@@ -18,21 +18,21 @@ package software.amazon.awssdk.http.auth.spi.internal;
 import java.nio.ByteBuffer;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.http.auth.spi.AsyncHttpSignRequest;
+import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.utils.ToString;
 
 @SdkInternalApi
-public final class DefaultAsyncHttpSignRequest<IdentityT extends Identity>
-    extends DefaultHttpSignRequest<Publisher<ByteBuffer>, IdentityT> implements AsyncHttpSignRequest<IdentityT> {
+public final class DefaultAsyncSignRequest<IdentityT extends Identity>
+    extends DefaultSignRequest<Publisher<ByteBuffer>, IdentityT> implements AsyncSignRequest<IdentityT> {
 
-    private DefaultAsyncHttpSignRequest(BuilderImpl<IdentityT> builder) {
+    private DefaultAsyncSignRequest(BuilderImpl<IdentityT> builder) {
         super(builder);
     }
 
     @Override
     public String toString() {
-        return ToString.builder("AsyncHttpSignRequest")
+        return ToString.builder("AsyncSignRequest")
                        .add("request", request)
                        .add("identity", identity)
                        .add("properties", properties)
@@ -41,21 +41,21 @@ public final class DefaultAsyncHttpSignRequest<IdentityT extends Identity>
 
     @SdkInternalApi
     public static final class BuilderImpl<IdentityT extends Identity>
-        extends DefaultHttpSignRequest.BuilderImpl<AsyncHttpSignRequest.Builder<IdentityT>, Publisher<ByteBuffer>, IdentityT>
-        implements AsyncHttpSignRequest.Builder<IdentityT> {
+        extends DefaultSignRequest.BuilderImpl<AsyncSignRequest.Builder<IdentityT>, Publisher<ByteBuffer>, IdentityT>
+        implements AsyncSignRequest.Builder<IdentityT> {
 
         // Used to enable consumer builder pattern in HttpSigner.signAsync()
         public BuilderImpl() {
         }
 
-        // Used by AsyncHttpSignRequest#builder() where identity is passed as parameter, to avoid having to pass Class<IdentityT>.
+        // Used by AsyncSignRequest#builder() where identity is passed as parameter, to avoid having to pass Class<IdentityT>.
         public BuilderImpl(IdentityT identity) {
             super(identity);
         }
 
         @Override
-        public AsyncHttpSignRequest<IdentityT> build() {
-            return new DefaultAsyncHttpSignRequest<>(this);
+        public AsyncSignRequest<IdentityT> build() {
+            return new DefaultAsyncSignRequest<>(this);
         }
     }
 }
