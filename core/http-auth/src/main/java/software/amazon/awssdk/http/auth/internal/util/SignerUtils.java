@@ -57,17 +57,7 @@ public class SignerUtils {
     }
 
     /**
-     * Returns a string representation of the given date time in yyyyMMdd
-     * format. The date returned is in the UTC zone.
-     * <p>
-     * For example, given a time "1416863450581", this method returns "20141124"
-     */
-    public static String formatDateStamp(long timeMilli) {
-        return DATE_FORMATTER.format(Instant.ofEpochMilli(timeMilli));
-    }
-
-    /**
-     * Returns a string representation of the given date time in yyyyMMdd
+     * Returns a string representation of the given datetime in yyyyMMdd
      * format. The date returned is in the UTC zone.
      * <p>
      * For example, given an Instant with millis-value of 1416863450581, this
@@ -78,16 +68,15 @@ public class SignerUtils {
     }
 
     /**
-     * Returns a string representation of the given timestamp in
+     * Returns a string representation of the given datetime in
      * yyyyMMdd'T'HHmmss'Z' format. The date returned is in the UTC zone.
      * <p>
-     * For example, given a time "1416863450581", this method returns
-     * "20141124T211050Z"
+     * For example, given an Instant with millis-value of 1416863450581, this
+     * method returns "20141124T211050Z"
      */
-    public static String formatTimestamp(long timeMilli) {
-        return TIME_FORMATTER.format(Instant.ofEpochMilli(timeMilli));
+    public static String formatTimestamp(Instant instant) {
+        return TIME_FORMATTER.format(instant);
     }
-
 
     /**
      * Build the credential scope ("CredentialScope") string as documented in SigV4.
@@ -168,19 +157,6 @@ public class SignerUtils {
 
         LOG.debug(() -> "AWS4 String to sign: " + stringToSign);
         return stringToSign;
-    }
-
-    /**
-     * Get the signing key based on the given credentials, datetime, region, and service
-     */
-    public static byte[] deriveSigningKey(AwsCredentialsIdentity credentials,
-                                          long requestSigningDateTimeMilli,
-                                          String regionName,
-                                          String serviceSigningName) {
-        return deriveSigningKey(credentials,
-            Instant.ofEpochMilli(requestSigningDateTimeMilli),
-            regionName,
-            serviceSigningName);
     }
 
     /**

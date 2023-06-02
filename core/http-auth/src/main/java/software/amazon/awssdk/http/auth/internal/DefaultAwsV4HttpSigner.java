@@ -28,11 +28,11 @@ import static software.amazon.awssdk.http.auth.internal.util.SignerUtils.deriveS
 import static software.amazon.awssdk.http.auth.internal.util.SignerUtils.formatDateStamp;
 import static software.amazon.awssdk.http.auth.internal.util.SignerUtils.formatTimestamp;
 
+import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.AwsV4HttpSigner;
-import software.amazon.awssdk.http.auth.internal.checksums.Algorithm;
 import software.amazon.awssdk.http.auth.internal.checksums.ChecksumSpecs;
 import software.amazon.awssdk.http.auth.internal.checksums.ContentChecksum;
 import software.amazon.awssdk.http.auth.internal.checksums.SdkChecksum;
@@ -44,7 +44,6 @@ import software.amazon.awssdk.http.auth.internal.util.SignerConstant;
 import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
 import software.amazon.awssdk.http.auth.spi.SignRequest;
-import software.amazon.awssdk.http.auth.spi.SignerProperty;
 import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
@@ -61,43 +60,6 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
 public class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
 
     public static final String UNSIGNED_PAYLOAD = "UNSIGNED-PAYLOAD";
-    /**
-     * The datetime, in milliseconds, for the request.
-     */
-    public static final SignerProperty<Long> REQUEST_SIGNING_DATE_TIME_MILLI =
-        SignerProperty.create(Long.class, "requestSigningDateTimeMilli");
-    /**
-     * The AWS region to be used for computing the signature.
-     */
-    public static final SignerProperty<String> REGION_NAME =
-        SignerProperty.create(String.class, "regionName");
-    /**
-     * The name of the AWS service.
-     */
-    public static final SignerProperty<String> SERVICE_SIGNING_NAME =
-        SignerProperty.create(String.class, "serviceSigningName");
-    /**
-     * The name of the header for the checksum.
-     */
-    public static final SignerProperty<String> CHECKSUM_HEADER_NAME =
-        SignerProperty.create(String.class, "checksumHeaderName");
-    /**
-     * The Algorithm used to compute the checksum.
-     */
-    public static final SignerProperty<Algorithm> CHECKSUM_ALGORITHM =
-        SignerProperty.create(Algorithm.class, "checksumAlgorithm");
-    /**
-     * A boolean to indicate whether to double url-encode the resource path
-     * when constructing the canonical request.
-     */
-    public static final SignerProperty<Boolean> DOUBLE_URL_ENCODE =
-        SignerProperty.create(Boolean.class, "doubleUrlEncode");
-    /**
-     * A boolean to indicate Whether the resource path should be "normalized"
-     * according to RFC3986 when constructing the canonical request.
-     */
-    public static final SignerProperty<Boolean> NORMALIZE_PATH =
-        SignerProperty.create(Boolean.class, "normalizePath");
 
     private static final Logger LOG = Logger.loggerFor(DefaultAwsV4HttpSigner.class);
 
@@ -131,9 +93,9 @@ public class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         Boolean doubleUrlEncode = request.property(DOUBLE_URL_ENCODE);
         Boolean normalizePath = request.property(NORMALIZE_PATH);
         String checksumHeaderName = request.property(CHECKSUM_HEADER_NAME);
-        Long requestSigningDateTimeMilli = request.property(REQUEST_SIGNING_DATE_TIME_MILLI);
-        String formattedRequestSigningDate = formatDateStamp(requestSigningDateTimeMilli);
-        String formattedRequestSigningDateTime = formatTimestamp(requestSigningDateTimeMilli);
+        Instant requestSigningInstant = request.property(REQUEST_SIGNING_INSTANT);
+        String formattedRequestSigningDate = formatDateStamp(requestSigningInstant);
+        String formattedRequestSigningDateTime = formatTimestamp(requestSigningInstant);
         String regionName = request.property(REGION_NAME);
         String serviceSigningName = request.property(SERVICE_SIGNING_NAME);
         String scope = buildScope(
@@ -173,7 +135,7 @@ public class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
 
         byte[] signingKey = deriveSigningKey(
             sanitizedCredentials,
-            requestSigningDateTimeMilli,
+            requestSigningInstant,
             regionName,
             serviceSigningName
         );
@@ -257,5 +219,24 @@ public class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
             .request(signedReqFuture.join())
             .payload(request.payload().orElse(null))
             .build();
+    }
+
+    /**
+     * Perform any additional procedure on the request payload, with access to the result
+     * from signing the header. (e.g. Signing the payload by chunk-encoding). The default
+     * implementation doesn't need to do anything.
+     */
+    public void processRequestPayload(SdkHttpRequest.Builder requestBuilder,
+                                       byte[] signature,
+                                       byte[] signingKey,
+                                       SdkChecksum sdkChecksum) {
+    }
+
+    /**
+     * Adds session credentials to the request given.
+     */
+    public void addSessionCredentials(SdkHttpRequest.Builder requestBuilder,
+                                       AwsSessionCredentialsIdentity credentials) {
+        requestBuilder.putHeader(SignerConstant.X_AMZ_SECURITY_TOKEN, credentials.sessionToken());
     }
 }

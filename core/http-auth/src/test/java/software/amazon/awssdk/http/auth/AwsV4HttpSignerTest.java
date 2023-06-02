@@ -17,17 +17,18 @@ package software.amazon.awssdk.http.auth;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static software.amazon.awssdk.http.auth.internal.DefaultAwsV4HttpSigner.CHECKSUM_ALGORITHM;
-import static software.amazon.awssdk.http.auth.internal.DefaultAwsV4HttpSigner.CHECKSUM_HEADER_NAME;
-import static software.amazon.awssdk.http.auth.internal.DefaultAwsV4HttpSigner.DOUBLE_URL_ENCODE;
-import static software.amazon.awssdk.http.auth.internal.DefaultAwsV4HttpSigner.NORMALIZE_PATH;
-import static software.amazon.awssdk.http.auth.internal.DefaultAwsV4HttpSigner.REGION_NAME;
-import static software.amazon.awssdk.http.auth.internal.DefaultAwsV4HttpSigner.REQUEST_SIGNING_DATE_TIME_MILLI;
-import static software.amazon.awssdk.http.auth.internal.DefaultAwsV4HttpSigner.SERVICE_SIGNING_NAME;
+import static software.amazon.awssdk.http.auth.AwsV4HttpSigner.CHECKSUM_ALGORITHM;
+import static software.amazon.awssdk.http.auth.AwsV4HttpSigner.CHECKSUM_HEADER_NAME;
+import static software.amazon.awssdk.http.auth.AwsV4HttpSigner.DOUBLE_URL_ENCODE;
+import static software.amazon.awssdk.http.auth.AwsV4HttpSigner.NORMALIZE_PATH;
+import static software.amazon.awssdk.http.auth.AwsV4HttpSigner.REGION_NAME;
+import static software.amazon.awssdk.http.auth.AwsV4HttpSigner.REQUEST_SIGNING_INSTANT;
+import static software.amazon.awssdk.http.auth.AwsV4HttpSigner.SERVICE_SIGNING_NAME;
 
 import java.io.ByteArrayInputStream;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -54,7 +55,7 @@ class AwsV4HttpSignerTest {
     private static final AwsV4HttpSigner signer = AwsV4HttpSigner.create();
 
     @Test
-    public void testSigning() {
+    public void sign_withoutSHA256Header_shouldSign() {
         final String expectedAuthorizationHeaderWithoutSha256Header =
             AWS_4_HMAC_SHA_256_AUTHORIZATION +
                 "SignedHeaders=host;x-amz-archive-description;x-amz-date, " +
@@ -73,7 +74,7 @@ class AwsV4HttpSignerTest {
     }
 
     @Test
-    public void testAsyncSigning() {
+    public void signAsync_withoutSHA256Header_shouldSign() {
         final String expectedAuthorizationHeaderWithoutSha256Header =
             AWS_4_HMAC_SHA_256_AUTHORIZATION +
                 "SignedHeaders=host;x-amz-archive-description;x-amz-date, " +
@@ -92,7 +93,7 @@ class AwsV4HttpSignerTest {
     }
 
     @Test
-    public void testSigningWithHeader() {
+    public void sign_withSHA256Header_shouldSignAndHaveHeader() {
         final String expectedAuthorizationHeaderWithSha256Header =
             AWS_4_HMAC_SHA_256_AUTHORIZATION +
                 "SignedHeaders=host;x-amz-archive-description;x-amz-date;x-amz-sha256, " +
@@ -112,7 +113,7 @@ class AwsV4HttpSignerTest {
     }
 
     @Test
-    public void testAsyncSigningWithHeader() {
+    public void signAsync_withSHA256Header_shouldSignAndHaveHeader() {
         final String expectedAuthorizationHeaderWithSha256Header =
             AWS_4_HMAC_SHA_256_AUTHORIZATION +
                 "SignedHeaders=host;x-amz-archive-description;x-amz-date;x-amz-sha256, " +
@@ -132,7 +133,7 @@ class AwsV4HttpSignerTest {
     }
 
     @Test
-    public void queryParamsWithNullValuesAreStillSignedWithTrailingEquals() {
+    public void sign_withNullQueryParam_shouldStillSignTrailingEquals() {
         final String expectedAuthorizationHeaderWithoutSha256Header =
             AWS_4_HMAC_SHA_256_AUTHORIZATION  +
                 "SignedHeaders=host;x-amz-archive-description;x-amz-date, " +
@@ -155,10 +156,9 @@ class AwsV4HttpSignerTest {
      * Tests that if passed anonymous credentials, signer will not generate a signature.
      */
     @Test
-    public void testAnonymous() {
+    public void sign_withAnonymousCredentials_shouldNotSign() {
         SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
-            SdkHttpRequest.builder()
-                .putRawQueryParameter("Foo", (String) null),
+            SdkHttpRequest.builder(),
             SyncSignRequest.builder(new AnonymousCredentialsIdentity())
         );
 
@@ -168,7 +168,7 @@ class AwsV4HttpSignerTest {
     }
 
     @Test
-    public void xAmznTraceId_NotSigned() {
+    public void sign_withTraceHeader_shouldNotSignTraceHeader() {
         final String expectedAuthorizationHeader =
             AWS_4_HMAC_SHA_256_AKID_AUTHORIZATION  +
                 "SignedHeaders=host;x-amz-archive-description;x-amz-date, " +
@@ -191,7 +191,7 @@ class AwsV4HttpSignerTest {
      * Multi-value headers should be comma separated.
      */
     @Test
-    public void canonicalizedHeaderString_multiValueHeaders_areCommaSeparated() {
+    public void sign_withMultiValueHeaders_shouldBeSignedAsCommaSeparated() {
         final String expectedAuthorizationHeader =
             AWS_4_HMAC_SHA_256_AKID_AUTHORIZATION  +
                 "SignedHeaders=foo;host;x-amz-archive-description;x-amz-date, " +
@@ -216,7 +216,7 @@ class AwsV4HttpSignerTest {
      * space.
      */
     @Test
-    public void canonicalizedHeaderString_valuesWithExtraWhitespace_areTrimmed() {
+    public void sign_withHeaderStringWithExtraWhitespace_shouldBeSignedWithoutWhitespace() {
         final String expectedAuthorizationHeader =
             AWS_4_HMAC_SHA_256_AKID_AUTHORIZATION  +
                 "SignedHeaders=host;my-header1;my-header2;x-amz-archive-description;x-amz-date, " +
@@ -240,7 +240,7 @@ class AwsV4HttpSignerTest {
      * Query strings with empty keys should not be included in the canonical string.
      */
     @Test
-    public void canonicalizedQueryString_keyWithEmptyNames_doNotGetSigned() {
+    public void sign_withQueryStringKeysWithEmptyNames_shouldNotSignEmptyNameKeys() {
         final String expectedAuthorizationHeader =
             AWS_4_HMAC_SHA_256_AKID_AUTHORIZATION  +
                 "SignedHeaders=host;x-amz-archive-description;x-amz-date, " +
@@ -260,7 +260,7 @@ class AwsV4HttpSignerTest {
     }
 
     @Test
-    public void signing_with_Crc32Checksum_WithOut_x_amz_sha25_header() {
+    public void sign_withCrc32Checksum_and_withoutSHA256Header_shouldSignWithCrc32Checksum() {
         // Note here x_amz_sha25_header is not present in SignedHeaders
         String expectedAuthorizationHeader = AWS_4_HMAC_SHA_256_AUTHORIZATION + SIGNER_HEADER_WITH_CHECKSUMS_IN_HEADER
             + "Signature=c1804802dc623d1689e7d0a7f9f5caee3588cc8d3df4495425129dbd52965d1f";
@@ -282,7 +282,7 @@ class AwsV4HttpSignerTest {
     }
 
     @Test
-    public void signing_with_Crc32Checksum_with_x_amz_sha25_header_preset() {
+    public void sign_withCrc32Checksum_and_withSHA256Header_shouldSignWithCrc32ChecksumAndHaveHeader() {
         //Note here x_amz_sha25_header is  present in SignedHeaders, we make sure checksum is calculated even in this case.
         String expectedAuthorizationHeader = AWS_4_HMAC_SHA_256_AUTHORIZATION
             + "SignedHeaders=host;x-amz-archive-description;x-amz-content-sha256;x-amz-date;x-amzn-header-crc, "
@@ -306,7 +306,7 @@ class AwsV4HttpSignerTest {
     }
 
     @Test
-    public void signing_with_Crc32Checksum_with_header_already_present() {
+    public void sign_withCrc32Checksum_and_withPrexistingHeader_shouldSignWithCrc32ChecksumAndNotOverwriteHeader() {
         String expectedAuthorizationHeader = AWS_4_HMAC_SHA_256_AUTHORIZATION + SIGNER_HEADER_WITH_CHECKSUMS_IN_HEADER
             + "Signature=f6fad563460f2ac50fe2ab5f5f5d77a787e357897ac6e9bb116ff12d30f45589";
 
@@ -327,7 +327,7 @@ class AwsV4HttpSignerTest {
     }
 
     @Test
-    public void signing_with_Crc32Checksum_with_trailer_header_already_present() {
+    public void sign_withCrc32Checksum_and_withTrailinggHeader_shouldSignWithCrc32ChecksumAndTrailerHeaderContainsCrc32Header() {
         String expectedAuthorizationHeader = AWS_4_HMAC_SHA_256_AUTHORIZATION + SIGNER_HEADER_WITH_CHECKSUMS_IN_TRAILER
             + "Signature=3436c4bc175d31e87a591802e64756cebf2d1c6c2054d26ca3dc91bdd3de303e";
 
@@ -365,7 +365,7 @@ class AwsV4HttpSignerTest {
             .putProperty(SERVICE_SIGNING_NAME, "demo")
             .putProperty(DOUBLE_URL_ENCODE, false)
             .putProperty(NORMALIZE_PATH, false)
-            .putProperty(REQUEST_SIGNING_DATE_TIME_MILLI, 351153000968L)
+            .putProperty(REQUEST_SIGNING_INSTANT, Instant.ofEpochMilli(351153000968L))
             .build();
     }
 
@@ -392,7 +392,7 @@ class AwsV4HttpSignerTest {
             .putProperty(SERVICE_SIGNING_NAME, "demo")
             .putProperty(DOUBLE_URL_ENCODE, false)
             .putProperty(NORMALIZE_PATH, false)
-            .putProperty(REQUEST_SIGNING_DATE_TIME_MILLI, 351153000968L)
+            .putProperty(REQUEST_SIGNING_INSTANT, Instant.ofEpochMilli(351153000968L))
             .build();
     }
 }
