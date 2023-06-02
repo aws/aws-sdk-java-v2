@@ -94,7 +94,7 @@ public final class DefaultAwsSessionCredentialsIdentity implements AwsSessionCre
         return Objects.equals(accessKeyId, that.accessKeyId()) &&
                Objects.equals(secretAccessKey, that.secretAccessKey()) &&
                Objects.equals(sessionToken, that.sessionToken()) &&
-                Objects.equals(accountId, that.accountId().orElse(null));
+               Objects.equals(accountId, that.accountId().orElse(null));
     }
 
     @Override
