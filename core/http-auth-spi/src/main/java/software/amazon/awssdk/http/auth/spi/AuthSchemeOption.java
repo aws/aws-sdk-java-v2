@@ -16,7 +16,7 @@
 package software.amazon.awssdk.http.auth.spi;
 
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.http.auth.spi.internal.DefaultAuthOption;
+import software.amazon.awssdk.http.auth.spi.internal.DefaultAuthSchemeOption;
 import software.amazon.awssdk.identity.spi.IdentityProperty;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
@@ -30,13 +30,13 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
  * @see AuthScheme
  */
 @SdkProtectedApi
-public interface AuthOption {
+public interface AuthSchemeOption {
 
     /**
-     * Get a new builder for creating a {@link AuthOption}.
+     * Get a new builder for creating a {@link AuthSchemeOption}.
      */
     static Builder builder() {
-        return new DefaultAuthOption.BuilderImpl();
+        return new DefaultAuthSchemeOption.BuilderImpl();
     }
 
     /**
@@ -55,12 +55,12 @@ public interface AuthOption {
     <T> T signerProperty(SignerProperty<T> property);
 
     /**
-     * A method to operate on all {@link IdentityProperty} values of this AuthOption.
+     * A method to operate on all {@link IdentityProperty} values of this AuthSchemeOption.
      */
     <T> void forEachIdentityProperty(IdentityPropertyConsumer consumer);
 
     /**
-     * A method to operate on all {@link SignerProperty} values of this AuthOption.
+     * A method to operate on all {@link SignerProperty} values of this AuthSchemeOption.
      */
     <T> void forEachSignerProperty(SignerPropertyConsumer consumer);
 
@@ -80,7 +80,7 @@ public interface AuthOption {
         <T> void accept(SignerProperty<T> propertyKey, T propertyValue);
     }
 
-    interface Builder extends SdkBuilder<Builder, AuthOption> {
+    interface Builder extends SdkBuilder<Builder, AuthSchemeOption> {
         Builder schemeId(String schemeId);
 
         <T> Builder putIdentityProperty(IdentityProperty<T> key, T value);

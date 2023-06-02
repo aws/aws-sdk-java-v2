@@ -46,7 +46,7 @@ import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
 import software.amazon.awssdk.http.auth.spi.SignRequest;
 import software.amazon.awssdk.http.auth.spi.SignerProperty;
 import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
-import software.amazon.awssdk.http.auth.spi.SyncSignedHttpRequest;
+import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.AwsSessionCredentialsIdentity;
 import software.amazon.awssdk.utils.BinaryUtils;
@@ -102,17 +102,17 @@ public class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
     private static final Logger LOG = Logger.loggerFor(DefaultAwsV4HttpSigner.class);
 
     @Override
-    public SyncSignedHttpRequest sign(SyncSignRequest<? extends AwsCredentialsIdentity> request) {
+    public SyncSignedRequest sign(SyncSignRequest<? extends AwsCredentialsIdentity> request) {
         // anonymous credentials, don't sign
         if (CredentialUtils.isAnonymous(request.identity())) {
-            return SyncSignedHttpRequest.builder()
+            return SyncSignedRequest.builder()
                 .request(request.request())
                 .payload(request.payload().orElse(null))
                 .build();
         }
 
         SdkHttpRequest signedRequest = doSign(request).build();
-        return SyncSignedHttpRequest.builder()
+        return SyncSignedRequest.builder()
             .request(signedRequest)
             .payload(request.payload().orElse(null))
             .build();

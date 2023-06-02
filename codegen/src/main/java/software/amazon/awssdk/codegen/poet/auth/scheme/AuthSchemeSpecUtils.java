@@ -21,7 +21,7 @@ import com.squareup.javapoet.TypeName;
 import java.util.List;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.utils.AuthUtils;
-import software.amazon.awssdk.http.auth.spi.AuthOption;
+import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
 
 public final class AuthSchemeSpecUtils {
     private final IntermediateModel intermediateModel;
@@ -59,7 +59,7 @@ public final class AuthSchemeSpecUtils {
     }
 
     public TypeName resolverReturnType() {
-        return ParameterizedTypeName.get(List.class, AuthOption.class);
+        return ParameterizedTypeName.get(List.class, AuthSchemeOption.class);
     }
 
     public boolean usesSigV4() {

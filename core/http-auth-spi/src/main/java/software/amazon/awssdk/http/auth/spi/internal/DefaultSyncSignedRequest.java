@@ -17,12 +17,12 @@ package software.amazon.awssdk.http.auth.spi.internal;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.ContentStreamProvider;
-import software.amazon.awssdk.http.auth.spi.SyncSignedHttpRequest;
+import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
 import software.amazon.awssdk.utils.ToString;
 
 @SdkInternalApi
 public final class DefaultSyncSignedRequest
-    extends DefaultSignedRequest<ContentStreamProvider> implements SyncSignedHttpRequest {
+    extends DefaultSignedRequest<ContentStreamProvider> implements SyncSignedRequest {
 
     private DefaultSyncSignedRequest(BuilderImpl builder) {
         super(builder);
@@ -30,18 +30,18 @@ public final class DefaultSyncSignedRequest
 
     @Override
     public String toString() {
-        return ToString.builder("SyncSignedHttpRequest")
+        return ToString.builder("SyncSignedRequest")
                        .add("request", request)
                        .build();
     }
 
     @SdkInternalApi
     public static final class BuilderImpl
-        extends DefaultSignedRequest.BuilderImpl<SyncSignedHttpRequest.Builder, ContentStreamProvider>
-        implements SyncSignedHttpRequest.Builder {
+        extends DefaultSignedRequest.BuilderImpl<SyncSignedRequest.Builder, ContentStreamProvider>
+        implements SyncSignedRequest.Builder {
 
         @Override
-        public SyncSignedHttpRequest build() {
+        public SyncSignedRequest build() {
             return new DefaultSyncSignedRequest(this);
         }
     }

@@ -20,7 +20,7 @@ import software.amazon.awssdk.http.auth.AwsV4QueryHttpSigner;
 import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
-import software.amazon.awssdk.http.auth.spi.SyncSignedHttpRequest;
+import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 
 /**
@@ -30,7 +30,7 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 public class DefaultAwsV4QueryHttpSigner implements AwsV4QueryHttpSigner {
 
     @Override
-    public SyncSignedHttpRequest sign(SyncSignRequest<? extends AwsCredentialsIdentity> request) {
+    public SyncSignedRequest sign(SyncSignRequest<? extends AwsCredentialsIdentity> request) {
         throw new UnsupportedOperationException();
     }
 

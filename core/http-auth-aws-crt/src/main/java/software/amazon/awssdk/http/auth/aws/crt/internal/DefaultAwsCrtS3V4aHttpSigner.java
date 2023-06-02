@@ -20,7 +20,7 @@ import software.amazon.awssdk.http.auth.aws.crt.AwsCrtS3V4aHttpSigner;
 import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
-import software.amazon.awssdk.http.auth.spi.SyncSignedHttpRequest;
+import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 
 /**
@@ -30,7 +30,7 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 public class DefaultAwsCrtS3V4aHttpSigner implements AwsCrtS3V4aHttpSigner {
 
     @Override
-    public SyncSignedHttpRequest sign(SyncSignRequest<? extends AwsCredentialsIdentity> request) {
+    public SyncSignedRequest sign(SyncSignRequest<? extends AwsCredentialsIdentity> request) {
         throw new UnsupportedOperationException();
     }
 

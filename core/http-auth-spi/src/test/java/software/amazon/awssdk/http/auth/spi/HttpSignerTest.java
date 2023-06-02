@@ -35,7 +35,7 @@ public class HttpSignerTest {
 
     @Test
     public void sign_usingConsumerBuilder_works() {
-        SyncSignedHttpRequest signedRequest = signer.sign(r -> r.request(mock(SdkHttpRequest.class))
+        SyncSignedRequest signedRequest = signer.sign(r -> r.request(mock(SdkHttpRequest.class))
                                                                 .identity(IDENTITY)
                                                                 .putProperty(KEY, VALUE));
         assertNotNull(signedRequest);
@@ -43,7 +43,7 @@ public class HttpSignerTest {
 
     @Test
     public void sign_usingRequest_works() {
-        SyncSignedHttpRequest signedRequest =
+        SyncSignedRequest signedRequest =
             signer.sign(SyncSignRequest.builder(IDENTITY)
                                            .request(mock(SdkHttpRequest.class))
                                            .identity(IDENTITY) // Note, this is doable
@@ -82,11 +82,11 @@ public class HttpSignerTest {
      */
     private static class TestSigner implements HttpSigner<TokenIdentity> {
         @Override
-        public SyncSignedHttpRequest sign(SyncSignRequest<? extends TokenIdentity> request) {
+        public SyncSignedRequest sign(SyncSignRequest<? extends TokenIdentity> request) {
             assertEquals(VALUE, request.property(KEY));
             assertEquals(IDENTITY, request.identity());
 
-            return SyncSignedHttpRequest.builder()
+            return SyncSignedRequest.builder()
                                         .request(addTokenHeader(request))
                                         .payload(request.payload().orElse(null))
                                         .build();

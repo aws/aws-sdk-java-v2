@@ -18,20 +18,20 @@ package software.amazon.awssdk.http.auth.spi.internal;
 import java.util.HashMap;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.http.auth.spi.AuthOption;
+import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.SignerProperty;
 import software.amazon.awssdk.identity.spi.IdentityProperty;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
-public final class DefaultAuthOption implements AuthOption {
+public final class DefaultAuthSchemeOption implements AuthSchemeOption {
 
     private final String schemeId;
     private final Map<IdentityProperty<?>, Object> identityProperties;
     private final Map<SignerProperty<?>, Object> signerProperties;
 
-    DefaultAuthOption(BuilderImpl builder) {
+    DefaultAuthSchemeOption(BuilderImpl builder) {
         this.schemeId = Validate.paramNotBlank(builder.schemeId, "schemeId");
         this.identityProperties = new HashMap<>(builder.identityProperties);
         this.signerProperties = new HashMap<>(builder.signerProperties);
@@ -70,7 +70,7 @@ public final class DefaultAuthOption implements AuthOption {
 
     @Override
     public String toString() {
-        return ToString.builder("AuthOption")
+        return ToString.builder("AuthSchemeOption")
                        .add("identityProperties", identityProperties)
                        .add("signerProperties", signerProperties)
                        .build();
@@ -101,8 +101,8 @@ public final class DefaultAuthOption implements AuthOption {
         }
 
         @Override
-        public AuthOption build() {
-            return new DefaultAuthOption(this);
+        public AuthSchemeOption build() {
+            return new DefaultAuthSchemeOption(this);
         }
     }
 }

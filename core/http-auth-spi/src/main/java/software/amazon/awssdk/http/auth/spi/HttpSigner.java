@@ -36,7 +36,7 @@ public interface HttpSigner<IdentityT extends Identity> {
      * @param request The inputs to sign a request.
      * @return A signed version of the request.
      */
-    SyncSignedHttpRequest sign(SyncSignRequest<? extends IdentityT> request);
+    SyncSignedRequest sign(SyncSignRequest<? extends IdentityT> request);
 
     /**
      * Method that takes in inputs to sign a request with sync payload and returns a signed version of the request.
@@ -48,7 +48,7 @@ public interface HttpSigner<IdentityT extends Identity> {
      * @param consumer A {@link Consumer} to which an empty {@link SyncSignRequest.Builder} will be given.
      * @return A signed version of the request.
      */
-    default SyncSignedHttpRequest sign(Consumer<SyncSignRequest.Builder<IdentityT>> consumer) {
+    default SyncSignedRequest sign(Consumer<SyncSignRequest.Builder<IdentityT>> consumer) {
         return sign(new DefaultSyncSignRequest.BuilderImpl<IdentityT>().applyMutation(consumer).build());
     }
 

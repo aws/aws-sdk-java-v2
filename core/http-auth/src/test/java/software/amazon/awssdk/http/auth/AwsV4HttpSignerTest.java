@@ -36,7 +36,7 @@ import software.amazon.awssdk.http.auth.internal.checksums.Algorithm;
 import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
-import software.amazon.awssdk.http.auth.spi.SyncSignedHttpRequest;
+import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
 import software.amazon.awssdk.http.auth.TestUtils.AnonymousCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.utils.async.SimplePublisher;
@@ -66,7 +66,7 @@ class AwsV4HttpSignerTest {
             SyncSignRequest.builder(AwsCredentialsIdentity.create("access", "secret"))
         );
 
-        SyncSignedHttpRequest signedRequest = signer.sign(request);
+        SyncSignedRequest signedRequest = signer.sign(request);
 
         assertThat(signedRequest.request().firstMatchingHeader("Authorization"))
             .hasValue(expectedAuthorizationHeaderWithoutSha256Header);
@@ -105,7 +105,7 @@ class AwsV4HttpSignerTest {
             SyncSignRequest.builder(AwsCredentialsIdentity.create("access", "secret"))
         );
 
-        SyncSignedHttpRequest signedRequest = signer.sign(request);
+        SyncSignedRequest signedRequest = signer.sign(request);
 
         assertThat(signedRequest.request().firstMatchingHeader("Authorization"))
             .hasValue(expectedAuthorizationHeaderWithSha256Header);
@@ -145,7 +145,7 @@ class AwsV4HttpSignerTest {
             SyncSignRequest.builder(AwsCredentialsIdentity.create("access", "secret"))
         );
 
-        SyncSignedHttpRequest signedRequest = signer.sign(request);
+        SyncSignedRequest signedRequest = signer.sign(request);
 
         assertThat(signedRequest.request().firstMatchingHeader("Authorization"))
             .hasValue(expectedAuthorizationHeaderWithoutSha256Header);
@@ -162,7 +162,7 @@ class AwsV4HttpSignerTest {
             SyncSignRequest.builder(new AnonymousCredentialsIdentity())
         );
 
-        SyncSignedHttpRequest signedRequest = signer.sign(request);
+        SyncSignedRequest signedRequest = signer.sign(request);
 
         assertNull(signedRequest.request().headers().get("Authorization"));
     }
@@ -181,7 +181,7 @@ class AwsV4HttpSignerTest {
             SyncSignRequest.builder(AwsCredentialsIdentity.create("akid", "skid"))
         );
 
-        SyncSignedHttpRequest signedRequest = signer.sign(request);
+        SyncSignedRequest signedRequest = signer.sign(request);
 
         assertThat(signedRequest.request().firstMatchingHeader("Authorization"))
             .hasValue(expectedAuthorizationHeader);
@@ -205,7 +205,7 @@ class AwsV4HttpSignerTest {
             SyncSignRequest.builder(AwsCredentialsIdentity.create("akid", "skid"))
         );
 
-        SyncSignedHttpRequest signedRequest = signer.sign(request);
+        SyncSignedRequest signedRequest = signer.sign(request);
 
         assertThat(signedRequest.request().firstMatchingHeader("Authorization"))
             .hasValue(expectedAuthorizationHeader);
@@ -230,7 +230,7 @@ class AwsV4HttpSignerTest {
             SyncSignRequest.builder(AwsCredentialsIdentity.create("akid", "skid"))
         );
 
-        SyncSignedHttpRequest signedRequest = signer.sign(request);
+        SyncSignedRequest signedRequest = signer.sign(request);
 
         assertThat(signedRequest.request().firstMatchingHeader("Authorization"))
             .hasValue(expectedAuthorizationHeader);
@@ -253,7 +253,7 @@ class AwsV4HttpSignerTest {
             SyncSignRequest.builder(AwsCredentialsIdentity.create("akid", "skid"))
         );
 
-        SyncSignedHttpRequest signedRequest = signer.sign(request);
+        SyncSignedRequest signedRequest = signer.sign(request);
 
         assertThat(signedRequest.request().firstMatchingHeader("Authorization"))
             .hasValue(expectedAuthorizationHeader);
@@ -273,7 +273,7 @@ class AwsV4HttpSignerTest {
                 .putProperty(CHECKSUM_ALGORITHM, Algorithm.CRC32)
         );
 
-        SyncSignedHttpRequest signedRequest = signer.sign(request);
+        SyncSignedRequest signedRequest = signer.sign(request);
 
         assertThat(signedRequest.request().firstMatchingHeader("Authorization"))
             .hasValue(expectedAuthorizationHeader);
@@ -297,7 +297,7 @@ class AwsV4HttpSignerTest {
                 .putProperty(CHECKSUM_ALGORITHM, Algorithm.CRC32)
         );
 
-        SyncSignedHttpRequest signedRequest = signer.sign(request);
+        SyncSignedRequest signedRequest = signer.sign(request);
 
         assertThat(signedRequest.request().firstMatchingHeader("Authorization"))
             .hasValue(expectedAuthorizationHeader);
@@ -318,7 +318,7 @@ class AwsV4HttpSignerTest {
                 .putProperty(CHECKSUM_ALGORITHM, Algorithm.CRC32)
         );
 
-        SyncSignedHttpRequest signedRequest = signer.sign(request);
+        SyncSignedRequest signedRequest = signer.sign(request);
 
         assertThat(signedRequest.request().firstMatchingHeader("Authorization"))
             .hasValue(expectedAuthorizationHeader);
@@ -339,7 +339,7 @@ class AwsV4HttpSignerTest {
                 .putProperty(CHECKSUM_ALGORITHM, Algorithm.CRC32)
         );
 
-        SyncSignedHttpRequest signedRequest = signer.sign(request);
+        SyncSignedRequest signedRequest = signer.sign(request);
 
         assertThat(signedRequest.request().firstMatchingHeader("x-amzn-header-crc")).isNotPresent();
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-trailer")).contains("x-amzn-header-crc");

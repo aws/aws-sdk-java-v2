@@ -22,7 +22,7 @@ import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
 import software.amazon.awssdk.http.auth.spi.SignRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
-import software.amazon.awssdk.http.auth.spi.SyncSignedHttpRequest;
+import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
 
 /**
@@ -35,8 +35,8 @@ public class DefaultBearerHttpSigner implements BearerHttpSigner {
     private static final String BEARER_LABEL = "Bearer";
 
     @Override
-    public SyncSignedHttpRequest sign(SyncSignRequest<? extends TokenIdentity> request) {
-        return SyncSignedHttpRequest.builder()
+    public SyncSignedRequest sign(SyncSignRequest<? extends TokenIdentity> request) {
+        return SyncSignedRequest.builder()
             .request(doSign(request))
             .payload(request.payload().orElse(null))
             .build();

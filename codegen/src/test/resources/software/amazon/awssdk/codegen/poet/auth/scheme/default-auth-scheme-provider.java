@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.http.auth.spi.AuthOption;
+import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
 import software.amazon.awssdk.services.query.auth.scheme.QueryAuthSchemeParams;
 import software.amazon.awssdk.services.query.auth.scheme.QueryAuthSchemeProvider;
 
@@ -37,7 +37,7 @@ public final class DefaultQueryAuthSchemeProvider implements QueryAuthSchemeProv
     }
 
     @Override
-    public List<AuthOption> resolveAuthScheme(QueryAuthSchemeParams authSchemeParams) {
+    public List<AuthSchemeOption> resolveAuthScheme(QueryAuthSchemeParams authSchemeParams) {
         return new ArrayList<>();
     }
 }
