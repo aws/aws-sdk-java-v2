@@ -1,0 +1,54 @@
+{
+    "version": "2.20.76",
+    "date": "2023-05-31",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Fix an issue where the optimal number of parts calculated could be higher than 10,000"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Config",
+            "contributor": "",
+            "description": "Resource Types Exclusion feature launch by AWS Config"
+        },
+        {
+            "type": "feature",
+            "category": "AWSMainframeModernization",
+            "contributor": "",
+            "description": "Adds an optional create-only 'roleArn' property to Application resources. Enables PS and PO data set org types."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Service Catalog",
+            "contributor": "",
+            "description": "Documentation updates for ServiceCatalog."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Fraud Detector",
+            "contributor": "",
+            "description": "This release enables publishing event predictions from Amazon Fraud Detector (AFD) to Amazon EventBridge. For example, after getting predictions from AFD, Amazon EventBridge rules can be configured to trigger notification through an SNS topic, send a message with SES, or trigger Lambda workflows."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon HealthLake",
+            "contributor": "",
+            "description": "This release adds a new request parameter to the CreateFHIRDatastore API operation. IdentityProviderConfiguration specifies how you want to authenticate incoming requests to your Healthlake Data Store."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "This release adds support for changing the engine for Oracle using the ModifyDbInstance API"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkSpaces Web",
+            "contributor": "",
+            "description": "WorkSpaces Web now allows you to control which IP addresses your WorkSpaces Web portal may be accessed from."
+        }
+    ]
+}
