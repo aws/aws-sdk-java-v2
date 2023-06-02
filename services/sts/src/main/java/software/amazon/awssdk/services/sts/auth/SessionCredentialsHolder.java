@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.sts.auth;
 
-import java.util.Date;
+import java.time.Instant;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
@@ -27,22 +27,48 @@ import software.amazon.awssdk.services.sts.model.Credentials;
 @SdkInternalApi
 @ThreadSafe
 final class SessionCredentialsHolder {
-
     private final AwsSessionCredentials sessionCredentials;
-    private final Date sessionCredentialsExpiration;
+    private final Instant sessionCredentialsExpiration;
 
-    SessionCredentialsHolder(Credentials credentials) {
-        this.sessionCredentials = AwsSessionCredentials.create(credentials.accessKeyId(),
-                                                            credentials.secretAccessKey(),
-                                                            credentials.sessionToken());
-        this.sessionCredentialsExpiration = Date.from(credentials.expiration());
+    SessionCredentialsHolder(Builder b) {
+        Credentials credentials = b.credentials;
+        this.sessionCredentials = AwsSessionCredentials.builder()
+                                                       .accessKeyId(credentials.accessKeyId())
+                                                       .secretAccessKey(credentials.secretAccessKey())
+                                                       .sessionToken(credentials.sessionToken())
+                                                       .accountId(b.accountId)
+                                                       .build();
+        this.sessionCredentialsExpiration = credentials.expiration();
+    }
+
+    public static Builder builder() {
+        return new Builder();
     }
 
     public AwsSessionCredentials getSessionCredentials() {
         return sessionCredentials;
     }
 
-    public Date getSessionCredentialsExpiration() {
+    public Instant getSessionCredentialsExpiration() {
         return sessionCredentialsExpiration;
+    }
+
+    public static class Builder {
+        private Credentials credentials;
+        private String accountId;
+
+        public Builder credentials(Credentials credentials) {
+            this.credentials = credentials;
+            return this;
+        }
+
+        public Builder accountId(String accountId) {
+            this.accountId = accountId;
+            return this;
+        }
+
+        public SessionCredentialsHolder build() {
+            return new SessionCredentialsHolder(this);
+        }
     }
 }

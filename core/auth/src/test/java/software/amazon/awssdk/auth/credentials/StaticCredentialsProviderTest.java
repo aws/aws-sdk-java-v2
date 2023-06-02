@@ -22,7 +22,7 @@ import org.junit.Test;
 public class StaticCredentialsProviderTest {
     @Test
     public void getAwsCredentials_ReturnsSameCredentials() throws Exception {
-        final AwsCredentials credentials = new AwsBasicCredentials("akid", "skid");
+        final AwsCredentials credentials = AwsBasicCredentials.create("akid", "skid");
         final AwsCredentials actualCredentials =
                 StaticCredentialsProvider.create(credentials).resolveCredentials();
         assertEquals(credentials, actualCredentials);
