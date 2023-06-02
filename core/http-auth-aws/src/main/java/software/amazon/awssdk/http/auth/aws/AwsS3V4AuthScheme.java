@@ -13,20 +13,20 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.auth;
+package software.amazon.awssdk.http.auth.aws;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.http.auth.spi.HttpAuthScheme;
+import software.amazon.awssdk.http.auth.spi.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.IdentityProviderConfiguration;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 
 /**
  * The <a href="https://smithy.io/2.0/aws/aws-auth.html#aws-auth-sigv4-trait">aws.auth#sigv4</a>
- * auth scheme, which uses a {@link AwsCredentialsIdentity} and {@link AwsV4QueryHttpSigner}.
+ * auth scheme, which uses a {@link AwsCredentialsIdentity} and {@link AwsS3V4HttpSigner}.
  */
 @SdkPublicApi
-public interface AwsV4QueryHttpAuthScheme extends HttpAuthScheme<AwsCredentialsIdentity> {
+public interface AwsS3V4AuthScheme extends AuthScheme<AwsCredentialsIdentity> {
 
     /**
      * Retrieve the scheme ID.
@@ -45,18 +45,18 @@ public interface AwsV4QueryHttpAuthScheme extends HttpAuthScheme<AwsCredentialsI
     }
 
     /**
-     * Retrieve the {@link AwsV4QueryHttpSigner} associated with this authentication scheme.
+     * Retrieve the {@link AwsS3V4HttpSigner} associated with this authentication scheme.
      */
     @Override
-    default AwsV4QueryHttpSigner signer() {
-        return AwsV4QueryHttpSigner.create();
+    default AwsS3V4HttpSigner signer() {
+        return AwsS3V4HttpSigner.create();
     }
 
     /**
-     * Get a default implementation of a {@link AwsV4QueryHttpAuthScheme}
+     * Get a default implementation of a {@link AwsS3V4AuthScheme}
      */
-    static AwsV4QueryHttpAuthScheme create() {
-        return new AwsV4QueryHttpAuthScheme() {
+    static AwsS3V4AuthScheme create() {
+        return new AwsS3V4AuthScheme() {
         };
     }
 }

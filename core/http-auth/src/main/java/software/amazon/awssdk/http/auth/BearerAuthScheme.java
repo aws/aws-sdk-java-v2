@@ -16,7 +16,7 @@
 package software.amazon.awssdk.http.auth;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.http.auth.spi.HttpAuthScheme;
+import software.amazon.awssdk.http.auth.spi.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.IdentityProviderConfiguration;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
@@ -26,7 +26,7 @@ import software.amazon.awssdk.identity.spi.TokenIdentity;
  * auth scheme, which uses a {@link TokenIdentity} and {@link BearerHttpSigner}.
  */
 @SdkPublicApi
-public interface BearerHttpAuthScheme extends HttpAuthScheme<TokenIdentity> {
+public interface BearerAuthScheme extends AuthScheme<TokenIdentity> {
 
     /**
      * Retrieve the scheme ID.
@@ -53,10 +53,10 @@ public interface BearerHttpAuthScheme extends HttpAuthScheme<TokenIdentity> {
     }
 
     /**
-     * Get a default implementation of a {@link BearerHttpAuthScheme}
+     * Get a default implementation of a {@link BearerAuthScheme}
      */
-    static BearerHttpAuthScheme create() {
-        return new BearerHttpAuthScheme() {
+    static BearerAuthScheme create() {
+        return new BearerAuthScheme() {
         };
     }
 }
