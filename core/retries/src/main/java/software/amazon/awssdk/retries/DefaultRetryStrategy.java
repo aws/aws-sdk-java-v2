@@ -30,6 +30,15 @@ public final class DefaultRetryStrategy {
     }
 
     /**
+     * Creates a non-retrying strategy.
+     */
+    public static StandardRetryStrategy none() {
+        return standardStrategyBuilder()
+            .maxAttempts(1)
+            .build();
+    }
+
+    /**
      * Create a new builder for a {@link StandardRetryStrategy}.
      *
      * <p>Example Usage

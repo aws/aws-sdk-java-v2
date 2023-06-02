@@ -39,6 +39,7 @@ import static software.amazon.awssdk.core.client.config.SdkClientOption.PROFILE_
 import static software.amazon.awssdk.core.client.config.SdkClientOption.PROFILE_FILE_SUPPLIER;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.PROFILE_NAME;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_POLICY;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_STRATEGY;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.SCHEDULED_EXECUTOR_SERVICE;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.SIGNER_OVERRIDDEN;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.SYNC_HTTP_CLIENT;
@@ -77,6 +78,7 @@ import software.amazon.awssdk.core.internal.interceptor.HttpChecksumInHeaderInte
 import software.amazon.awssdk.core.internal.interceptor.HttpChecksumRequiredInterceptor;
 import software.amazon.awssdk.core.internal.interceptor.HttpChecksumValidationInterceptor;
 import software.amazon.awssdk.core.internal.interceptor.SyncHttpChecksumInTrailerInterceptor;
+import software.amazon.awssdk.core.internal.retry.SdkDefaultRetryStrategy;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.util.SdkUserAgent;
@@ -89,6 +91,10 @@ import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSupplier;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
+import software.amazon.awssdk.retries.AdaptiveRetryStrategy;
+import software.amazon.awssdk.retries.LegacyRetryStrategy;
+import software.amazon.awssdk.retries.StandardRetryStrategy;
+import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Either;
 import software.amazon.awssdk.utils.ScheduledExecutorUtils;
@@ -226,6 +232,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         builder.option(SCHEDULED_EXECUTOR_SERVICE, clientOverrideConfiguration.scheduledExecutorService().orElse(null));
         builder.option(EXECUTION_INTERCEPTORS, clientOverrideConfiguration.executionInterceptors());
         builder.option(RETRY_POLICY, clientOverrideConfiguration.retryPolicy().orElse(null));
+        builder.option(RETRY_STRATEGY, clientOverrideConfiguration.retryStrategy().orElse(null));
         builder.option(ADDITIONAL_HTTP_HEADERS, clientOverrideConfiguration.headers());
         builder.option(SIGNER, clientOverrideConfiguration.advancedOption(SIGNER).orElse(null));
         builder.option(USER_AGENT_SUFFIX, clientOverrideConfiguration.advancedOption(USER_AGENT_SUFFIX).orElse(null));
@@ -314,21 +321,40 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
      */
     private SdkClientConfiguration finalizeConfiguration(SdkClientConfiguration config) {
         RetryPolicy retryPolicy = resolveRetryPolicy(config);
+        RetryStrategy<?, ?> retryStrategy = resolveRetryStrategy(config);
+        String retryMode = resolveRetryMode(retryPolicy, retryStrategy);
         return config.toBuilder()
                      .option(SCHEDULED_EXECUTOR_SERVICE, resolveScheduledExecutorService(config))
                      .option(EXECUTION_INTERCEPTORS, resolveExecutionInterceptors(config))
                      .option(RETRY_POLICY, retryPolicy)
-                     .option(CLIENT_USER_AGENT, resolveClientUserAgent(config, retryPolicy))
+                     .option(RETRY_STRATEGY, retryStrategy)
+                     .option(CLIENT_USER_AGENT, resolveClientUserAgent(config, retryMode))
                      .build();
     }
 
-    private String resolveClientUserAgent(SdkClientConfiguration config, RetryPolicy retryPolicy) {
+    private String resolveRetryMode(RetryPolicy retryPolicy, RetryStrategy<?, ?> retryStrategy) {
+        if (retryPolicy != null) {
+            return retryPolicy.retryMode().toString();
+        }
+        if (retryStrategy instanceof StandardRetryStrategy) {
+            return RetryMode.STANDARD.toString();
+        }
+        if (retryStrategy instanceof LegacyRetryStrategy) {
+            return RetryMode.LEGACY.toString();
+        }
+        if (retryStrategy instanceof AdaptiveRetryStrategy) {
+            return RetryMode.ADAPTIVE.toString();
+        }
+        return "UnknownRetryMode";
+    }
+
+    private String resolveClientUserAgent(SdkClientConfiguration config, String retryMode) {
         return ApplyUserAgentStage.resolveClientUserAgent(config.option(USER_AGENT_PREFIX),
                                                           config.option(INTERNAL_USER_AGENT),
                                                           config.option(CLIENT_TYPE),
                                                           config.option(SYNC_HTTP_CLIENT),
                                                           config.option(ASYNC_HTTP_CLIENT),
-                                                          retryPolicy);
+                                                          retryMode);
     }
 
     private RetryPolicy resolveRetryPolicy(SdkClientConfiguration config) {
@@ -343,6 +369,25 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
                                        .defaultRetryMode(config.option(SdkClientOption.DEFAULT_RETRY_MODE))
                                        .resolve();
         return RetryPolicy.forRetryMode(retryMode);
+        // fixme This will be changed like this to pick the configured retry strategy
+        // if no retry policy is configured.
+        /*
+        return config.option(SdkClientOption.RETRY_POLICY);
+        */
+    }
+
+    private RetryStrategy<?, ?> resolveRetryStrategy(SdkClientConfiguration config) {
+        RetryStrategy<?, ?> strategy = config.option(RETRY_STRATEGY);
+        if (strategy != null) {
+            return strategy;
+        }
+
+        RetryMode retryMode = RetryMode.resolver()
+                                       .profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
+                                       .profileName(config.option(SdkClientOption.PROFILE_NAME))
+                                       .defaultRetryMode(config.option(SdkClientOption.DEFAULT_RETRY_MODE))
+                                       .resolve();
+        return SdkDefaultRetryStrategy.forRetryMode(retryMode);
     }
 
     /**

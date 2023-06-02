@@ -31,12 +31,14 @@ import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.internal.retry.SdkDefaultRetryStrategy;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
+import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.ToString;
@@ -55,6 +57,7 @@ public final class ClientOverrideConfiguration
         implements ToCopyableBuilder<ClientOverrideConfiguration.Builder, ClientOverrideConfiguration> {
     private final Map<String, List<String>> headers;
     private final RetryPolicy retryPolicy;
+    private final RetryStrategy<?, ?> retryStrategy;
     private final List<ExecutionInterceptor> executionInterceptors;
     private final AttributeMap advancedOptions;
     private final Duration apiCallAttemptTimeout;
@@ -71,6 +74,7 @@ public final class ClientOverrideConfiguration
     private ClientOverrideConfiguration(Builder builder) {
         this.headers = CollectionUtils.deepUnmodifiableMap(builder.headers(), () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER));
         this.retryPolicy = builder.retryPolicy();
+        this.retryStrategy = builder.retryStrategy();
         this.executionInterceptors = Collections.unmodifiableList(new ArrayList<>(builder.executionInterceptors()));
         this.advancedOptions = builder.advancedOptions();
         this.apiCallTimeout = Validate.isPositiveOrNull(builder.apiCallTimeout(), "apiCallTimeout");
@@ -89,6 +93,7 @@ public final class ClientOverrideConfiguration
             .advancedOptions(advancedOptions.toBuilder())
             .headers(headers)
             .retryPolicy(retryPolicy)
+            .retryStrategy(retryStrategy)
             .apiCallTimeout(apiCallTimeout)
             .apiCallAttemptTimeout(apiCallAttemptTimeout)
             .executionInterceptors(executionInterceptors)
@@ -125,6 +130,15 @@ public final class ClientOverrideConfiguration
      */
     public Optional<RetryPolicy> retryPolicy() {
         return Optional.ofNullable(retryPolicy);
+    }
+
+    /**
+     * The optional retry strategy that should be used when handling failure cases.
+     *
+     * @see Builder#retryStrategy(RetryStrategy)
+     */
+    public Optional<RetryStrategy> retryStrategy() {
+        return Optional.ofNullable(retryStrategy);
     }
 
     /**
@@ -235,6 +249,7 @@ public final class ClientOverrideConfiguration
         return ToString.builder("ClientOverrideConfiguration")
                 .add("headers", headers)
                 .add("retryPolicy", retryPolicy)
+                .add("retryStrategy", retryStrategy)
                 .add("apiCallTimeout", apiCallTimeout)
                 .add("apiCallAttemptTimeout", apiCallAttemptTimeout)
                 .add("executionInterceptors", executionInterceptors)
@@ -322,6 +337,34 @@ public final class ClientOverrideConfiguration
         }
 
         RetryPolicy retryPolicy();
+
+        /**
+         * Configure the retry mode used to determine the retry strategy that is used when handling failure cases. This is
+         * shorthand for {@code retryStrategy(SdkDefaultRetryStrategy.forRetryMode(retryMode))}, and overrides any configured
+         * retry policy on this builder.
+         */
+        default Builder retryStrategy(RetryMode retryMode) {
+            return retryStrategy(SdkDefaultRetryStrategy.forRetryMode(retryMode));
+        }
+
+        /**
+         * Configure the retry policy that should be used when handling failure cases.
+         *
+         * @see ClientOverrideConfiguration#retryStrategy()
+         */
+        Builder retryStrategy(RetryStrategy<?, ?> retryStrategy);
+
+        /**
+         * Configure the retry strategy that should be used when handling failure cases.
+         */
+        default Builder retryStrategy(Consumer<RetryStrategy.Builder<?, ?>> mutator) {
+            RetryStrategy.Builder<?, ?> builder = SdkDefaultRetryStrategy.forRetryMode(RetryMode.defaultRetryMode())
+                                                                         .toBuilder();
+            mutator.accept(builder);
+            return retryStrategy(builder.build());
+        }
+
+        RetryStrategy<?, ?> retryStrategy();
 
         /**
          * Configure a list of execution interceptors that will have access to read and modify the request and response objcets as
@@ -521,6 +564,7 @@ public final class ClientOverrideConfiguration
     private static final class DefaultClientOverrideConfigurationBuilder implements Builder {
         private Map<String, List<String>> headers = new HashMap<>();
         private RetryPolicy retryPolicy;
+        private RetryStrategy<?, ?> retryStrategy;
         private List<ExecutionInterceptor> executionInterceptors = new ArrayList<>();
         private AttributeMap.Builder advancedOptions = AttributeMap.builder();
         private Duration apiCallTimeout;
@@ -568,6 +612,17 @@ public final class ClientOverrideConfiguration
         @Override
         public RetryPolicy retryPolicy() {
             return retryPolicy;
+        }
+
+        @Override
+        public Builder retryStrategy(RetryStrategy<?, ?> retryStrategy) {
+            this.retryStrategy = retryStrategy;
+            return this;
+        }
+
+        @Override
+        public RetryStrategy<?, ?> retryStrategy() {
+            return this.retryStrategy;
         }
 
         @Override

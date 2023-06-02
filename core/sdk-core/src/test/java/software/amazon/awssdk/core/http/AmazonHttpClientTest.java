@@ -134,7 +134,7 @@ public class AmazonHttpClientTest {
 
         String clientUserAgent =
             ApplyUserAgentStage.resolveClientUserAgent(prefix, "", ClientType.SYNC, sdkHttpClient, null,
-                                                       RetryPolicy.forRetryMode(RetryMode.STANDARD));
+                                                       RetryMode.STANDARD.toString());
 
         SdkClientConfiguration config = HttpTestUtils.testClientConfiguration().toBuilder()
                                                      .option(SdkAdvancedClientOption.USER_AGENT_SUFFIX, suffix)
@@ -165,7 +165,7 @@ public class AmazonHttpClientTest {
 
         String clientUserAgent =
             ApplyUserAgentStage.resolveClientUserAgent(null, null, ClientType.SYNC, sdkHttpClient, null,
-                                                       RetryPolicy.forRetryMode(RetryMode.STANDARD));
+                                                       RetryMode.STANDARD.toString());
         SdkClientConfiguration config = HttpTestUtils.testClientConfiguration().toBuilder()
                                                      .option(SdkClientOption.SYNC_HTTP_CLIENT, sdkHttpClient)
                                                      .option(SdkClientOption.CLIENT_TYPE, ClientType.SYNC)
@@ -195,7 +195,7 @@ public class AmazonHttpClientTest {
 
         String clientUserAgent =
             ApplyUserAgentStage.resolveClientUserAgent(null, null, ClientType.SYNC, sdkHttpClient, null,
-                                                       RetryPolicy.forRetryMode(RetryMode.STANDARD));
+                                                       RetryMode.STANDARD.toString());
 
         SdkClientConfiguration config = HttpTestUtils.testClientConfiguration().toBuilder()
                                                      .option(SdkClientOption.CLIENT_USER_AGENT, clientUserAgent)
