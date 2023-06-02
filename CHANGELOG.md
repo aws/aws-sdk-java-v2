@@ -1,3 +1,24 @@
+# __2.20.78__ __2023-06-02__
+## __AWS CloudTrail__
+  - ### Features
+    - This feature allows users to start and stop event ingestion on a CloudTrail Lake event data store.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS WAFV2__
+  - ### Features
+    - Added APIs to describe managed products. The APIs retrieve information about rule groups that are managed by AWS and by AWS Marketplace sellers.
+
+## __Amazon Athena__
+  - ### Features
+    - This release introduces the DeleteCapacityReservation API and the ability to manage capacity reservations using CloudFormation
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds Selective Execution feature that allows SageMaker Pipelines users to run selected steps in a pipeline.
+
 # __2.20.77__ __2023-06-01__
 ## __AWS SDK for Java v2__
   - ### Features
