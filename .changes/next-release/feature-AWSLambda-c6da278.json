@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Lambda",
-    "contributor": "",
-    "description": "Add Ruby 3.2 (ruby3.2) Runtime support to AWS Lambda."
-}

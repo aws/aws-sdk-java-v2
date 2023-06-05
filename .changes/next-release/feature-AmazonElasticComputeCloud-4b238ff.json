@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Compute Cloud",
-    "contributor": "",
-    "description": "Making InstanceTagAttribute as the required parameter for the DeregisterInstanceEventNotificationAttributes and RegisterInstanceEventNotificationAttributes APIs."
-}
