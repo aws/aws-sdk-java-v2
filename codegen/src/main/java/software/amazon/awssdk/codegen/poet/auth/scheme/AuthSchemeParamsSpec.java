@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.codegen.poet.auth.scheme;
 
-import static software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils.parameterType;
-
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
@@ -31,14 +29,17 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 
 public class AuthSchemeParamsSpec implements ClassSpec {
     private final IntermediateModel intermediateModel;
     private final AuthSchemeSpecUtils authSchemeSpecUtils;
+    private final EndpointRulesSpecUtils endpointRulesSpecUtils;
 
     public AuthSchemeParamsSpec(IntermediateModel intermediateModel) {
         this.intermediateModel = intermediateModel;
         this.authSchemeSpecUtils = new AuthSchemeSpecUtils(intermediateModel);
+        this.endpointRulesSpecUtils = new EndpointRulesSpecUtils(intermediateModel);
     }
 
     @Override
@@ -74,7 +75,7 @@ public class AuthSchemeParamsSpec implements ClassSpec {
                          .returns(authSchemeSpecUtils.parametersInterfaceBuilderInterfaceName())
                          .addStatement("return $T.builder()", authSchemeSpecUtils.parametersDefaultImplName())
                          .addJavadoc("Get a new builder for creating a {@link $T}.",
-                                   authSchemeSpecUtils.parametersInterfaceName())
+                                     authSchemeSpecUtils.parametersInterfaceName())
                          .build();
     }
 
@@ -115,9 +116,7 @@ public class AuthSchemeParamsSpec implements ClassSpec {
         if (authSchemeSpecUtils.generateEndpointBasedParams()) {
             parameters().forEach((name, model) -> {
                 if (authSchemeSpecUtils.includeParam(model, name)) {
-                    b.addMethod(authSchemeSpecUtils.endpointParamAccessorSignature(model, name)
-                                                   .addModifiers(Modifier.ABSTRACT)
-                                                   .build());
+                    b.addMethod(endpointRulesSpecUtils.parameterInterfaceAccessorMethod(name, model));
                 }
             });
         }
@@ -144,33 +143,11 @@ public class AuthSchemeParamsSpec implements ClassSpec {
         if (authSchemeSpecUtils.generateEndpointBasedParams()) {
             parameters().forEach((name, model) -> {
                 if (authSchemeSpecUtils.includeParam(model, name)) {
-                    b.addMethod(setterMethodDeclaration(name, model));
+                    ClassName parametersInterfaceName = authSchemeSpecUtils.parametersInterfaceName();
+                    b.addMethod(endpointRulesSpecUtils.parameterBuilderSetterMethodDeclaration(parametersInterfaceName, name, model));
                 }
             });
         }
-    }
-
-    private MethodSpec setterMethodDeclaration(String name, ParameterModel model) {
-        MethodSpec.Builder spec = MethodSpec.methodBuilder(authSchemeSpecUtils.paramMethodName(name));
-        spec.addModifiers(Modifier.PUBLIC);
-        if (model.getDeprecated() != null) {
-            spec.addAnnotation(Deprecated.class);
-        }
-        spec.addModifiers(Modifier.ABSTRACT)
-            .addParameter(parameterSpec(name, model))
-            .returns(authSchemeSpecUtils.parametersInterfaceBuilderInterfaceName());
-        if (model.getDocumentation() != null) {
-            spec.addJavadoc(model.getDocumentation());
-        }
-        return spec.build();
-    }
-
-    private ParameterSpec parameterSpec(String name, ParameterModel model) {
-        return ParameterSpec.builder(parameterType(model), variableName(name)).build();
-    }
-
-    private String variableName(String name) {
-        return intermediateModel.getNamingStrategy().getVariableName(name);
     }
 
     private Map<String, ParameterModel> parameters() {

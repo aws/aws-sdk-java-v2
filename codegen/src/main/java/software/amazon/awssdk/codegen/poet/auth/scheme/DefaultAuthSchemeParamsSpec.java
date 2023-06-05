@@ -32,16 +32,20 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.utils.Validate;
 
 public class DefaultAuthSchemeParamsSpec implements ClassSpec {
 
     private final IntermediateModel intermediateModel;
     private final AuthSchemeSpecUtils authSchemeSpecUtils;
+    private final EndpointRulesSpecUtils endpointRulesSpecUtils;
+
 
     public DefaultAuthSchemeParamsSpec(IntermediateModel intermediateModel) {
         this.intermediateModel = intermediateModel;
         this.authSchemeSpecUtils = new AuthSchemeSpecUtils(intermediateModel);
+        this.endpointRulesSpecUtils = new EndpointRulesSpecUtils(intermediateModel);
     }
 
     @Override
@@ -79,12 +83,24 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
             parameters().forEach((name, model) -> {
                 if (authSchemeSpecUtils.includeParam(model, name)) {
                     String fieldName = authSchemeSpecUtils.paramMethodName(name);
-                    b.addStatement("this." + fieldName + " = builder." + fieldName);
+                    boolean isRequired = isParamRequired(model);
+                    if (isRequired) {
+                        b.addStatement(String.join(fieldName, "this.", " = $T.paramNotNull(builder.", ", \"", "\")"),
+                                       Validate.class);
+                    } else {
+                        b.addStatement("this." + fieldName + " = builder." + fieldName);
+                    }
+
                 }
             });
         }
 
         return b.build();
+    }
+
+    private boolean isParamRequired(ParameterModel model) {
+        Boolean isRequired = model.isRequired();
+        return (isRequired != null && isRequired) || model.getDefault() != null;
     }
 
     private MethodSpec builderMethod() {
@@ -140,15 +156,8 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
         if (authSchemeSpecUtils.generateEndpointBasedParams()) {
             parameters().forEach((name, model) -> {
                 if (authSchemeSpecUtils.includeParam(model, name)) {
-                    String methodName = authSchemeSpecUtils.paramMethodName(name);
-                    TypeName typeName = parameterType(model);
-                    b.addField(FieldSpec.builder(typeName, methodName)
-                                        .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
-                                        .build());
-                    MethodSpec.Builder spec = authSchemeSpecUtils.endpointParamAccessorSignature(model, name)
-                                                                 .addAnnotation(Override.class);
-                    b.addMethod(spec.addStatement("return " + methodName)
-                                    .build());
+                    b.addField(endpointRulesSpecUtils.parameterClassField(name, model));
+                    b.addMethod(endpointRulesSpecUtils.parameterClassAccessorMethod(name, model));
                 }
             });
         }
@@ -170,12 +179,8 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
         if (authSchemeSpecUtils.generateEndpointBasedParams()) {
             parameters().forEach((name, model) -> {
                 if (authSchemeSpecUtils.includeParam(model, name)) {
-                    TypeName typeName = parameterType(model);
-                    String methodName = authSchemeSpecUtils.paramMethodName(name);
-                    b.addField(FieldSpec.builder(typeName, methodName)
-                                        .addModifiers(Modifier.PRIVATE)
-                                        .build());
-                    b.addMethod(builderSetterMethod(methodName, typeName));
+                    b.addField(endpointRulesSpecUtils.parameterBuilderFieldSpec(name, model));
+                    b.addMethod(endpointRulesSpecUtils.parameterBuilderSetterMethod(className(), name, model));
                 }
             });
         }
