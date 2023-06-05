@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Upgrading AWS CRT dependency to v0.21.17. This version contains minor fixes and updates"
+}

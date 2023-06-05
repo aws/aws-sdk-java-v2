@@ -222,6 +222,41 @@ class CopyObjectHelperTest {
     }
 
     @Test
+    void multiPartCopy_contentSizeExceeds10000Parts_shouldAdjustPartSize() {
+        long contentLength = 1024L * 10_000 * 2; // twice too many parts with configures part size
+
+        stubSuccessfulHeadObjectCall(contentLength);
+        stubSuccessfulCreateMulipartCall();
+        stubSuccessfulUploadPartCopyCalls();
+        stubSuccessfulCompleteMultipartCall();
+
+        CopyObjectRequest copyObjectRequest = copyObjectRequest();
+
+        CompletableFuture<CopyObjectResponse> future = copyHelper.copyObject(copyObjectRequest);
+
+        CopyObjectResponse actualResponse = future.join();
+        assertThat(actualResponse.copyObjectResult()).isNotNull();
+
+        ArgumentCaptor<UploadPartCopyRequest> argumentCaptor = ArgumentCaptor.forClass(UploadPartCopyRequest.class);
+        verify(s3AsyncClient, times(10_000)).uploadPartCopy(argumentCaptor.capture());
+        List<UploadPartCopyRequest> actualUploadPartCopyRequests = argumentCaptor.getAllValues();
+        assertThat(actualUploadPartCopyRequests).allSatisfy(d -> {
+            assertThat(d.sourceBucket()).isEqualTo(SOURCE_BUCKET);
+            assertThat(d.sourceKey()).isEqualTo(SOURCE_KEY);
+            assertThat(d.destinationBucket()).isEqualTo(DESTINATION_BUCKET);
+            assertThat(d.destinationKey()).isEqualTo(DESTINATION_KEY);
+        });
+
+        long expectedPartSize = 2048L;
+        for (int i = 0; i < actualUploadPartCopyRequests.size(); i++) {
+            int rangeStart = (int) expectedPartSize * i;
+            int rangeEnd = (int) (rangeStart + (expectedPartSize - 1));
+            assertThat(actualUploadPartCopyRequests.get(i).copySourceRange()).isEqualTo(
+                String.format("bytes=%d-%d", rangeStart, rangeEnd));
+        }
+    }
+
+    @Test
     void copy_cancelResponseFuture_shouldPropagate() {
         CopyObjectRequest copyObjectRequest = copyObjectRequest();
 
