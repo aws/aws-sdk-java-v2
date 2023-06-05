@@ -27,7 +27,7 @@ public interface BackoffStrategy {
 
     /**
      * Max permitted retry times. To prevent exponentialDelay from overflow, there must be 2 ^ retriesAttempted
-     * <= 2 ^ 31 - 1, which means retriesAttempted <= 30, so that is the ceil for retriesAttempted.
+     * &lt;= 2 ^ 31 - 1, which means retriesAttempted &lt;= 30, so that is the ceil for retriesAttempted.
      */
     int RETRIES_ATTEMPTED_CEILING = (int) Math.floor(Math.log(Integer.MAX_VALUE) / Math.log(2));
 
