@@ -18,6 +18,7 @@ package software.amazon.awssdk.awscore.interceptor;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.net.URI;
+import java.util.Properties;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import software.amazon.awssdk.core.SdkRequest;
@@ -44,6 +45,32 @@ public class TraceIdExecutionInterceptorTest {
             resetRelevantEnvVars(env);
             env.set("AWS_LAMBDA_FUNCTION_NAME", "foo");
             env.set("_X_AMZN_TRACE_ID", "bar");
+            Context.ModifyHttpRequest context = context();
+            assertThat(modifyHttpRequest(context).firstMatchingHeader("X-Amzn-Trace-Id")).hasValue("bar");
+        });
+    }
+
+
+    @Test
+    public void headerAddedWithSysPropWhenNoEnvSettings() {
+        EnvironmentVariableHelper.run(env -> {
+            resetRelevantEnvVars(env);
+            env.set("AWS_LAMBDA_FUNCTION_NAME", "foo");
+            Properties props = System.getProperties();
+            props.setProperty("com.amazonaws.xray.traceHeader", "sys-prop");
+            Context.ModifyHttpRequest context = context();
+            assertThat(modifyHttpRequest(context).firstMatchingHeader("X-Amzn-Trace-Id")).hasValue("sys-prop");
+        });
+    }
+
+    @Test
+    public void headerAddedWithEnvVariableValueWhenBothEnvAndSysPropAreSet() {
+        EnvironmentVariableHelper.run(env -> {
+            resetRelevantEnvVars(env);
+            env.set("AWS_LAMBDA_FUNCTION_NAME", "foo");
+            env.set("_X_AMZN_TRACE_ID", "bar");
+            Properties props = System.getProperties();
+            props.setProperty("com.amazonaws.xray.traceHeader", "sys-prop");
             Context.ModifyHttpRequest context = context();
             assertThat(modifyHttpRequest(context).firstMatchingHeader("X-Amzn-Trace-Id")).hasValue("bar");
         });

@@ -24,14 +24,17 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.utils.SystemSetting;
 
 /**
- * The {@code TraceIdExecutionInterceptor} copies the {@link #TRACE_ID_ENVIRONMENT_VARIABLE} value to the
- * {@link #TRACE_ID_HEADER} header, assuming we seem to be running in a lambda environment.
+ * The {@code TraceIdExecutionInterceptor} copies the {@link #TRACE_ID_ENVIRONMENT_VARIABLE} value(if null copies the
+ * {@link #LAMBDA_TRACE_HEADER_PROP}) to the {@link #TRACE_ID_HEADER} header, assuming we seem to be running in a lambda
+ * environment.
  */
 @SdkInternalApi
 public class TraceIdExecutionInterceptor implements ExecutionInterceptor {
     private static final String TRACE_ID_HEADER = "X-Amzn-Trace-Id";
     private static final String TRACE_ID_ENVIRONMENT_VARIABLE = "_X_AMZN_TRACE_ID";
     private static final String LAMBDA_FUNCTION_NAME_ENVIRONMENT_VARIABLE = "AWS_LAMBDA_FUNCTION_NAME";
+    // See: https://github.com/aws/aws-xray-sdk-java/issues/251
+    private static final String LAMBDA_TRACE_HEADER_PROP = "com.amazonaws.xray.traceHeader";
 
     @Override
     public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
@@ -54,7 +57,8 @@ public class TraceIdExecutionInterceptor implements ExecutionInterceptor {
 
     private Optional<String> traceIdEnvironmentVariable() {
         // CHECKSTYLE:OFF - This is not configured by the customer, so it should not be configurable by system property
-        return SystemSetting.getStringValueFromEnvironmentVariable(TRACE_ID_ENVIRONMENT_VARIABLE);
+        Optional<String> traceHeader = SystemSetting.getStringValueFromEnvironmentVariable(TRACE_ID_ENVIRONMENT_VARIABLE);
+        return traceHeader.isPresent() ? traceHeader : Optional.ofNullable(System.getProperty(LAMBDA_TRACE_HEADER_PROP));
         // CHECKSTYLE:ON
     }
 
