@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Identity and Access Management",
+    "contributor": "",
+    "description": "This release updates the AccountAlias regex pattern with the same length restrictions enforced by the length constraint."
+}
