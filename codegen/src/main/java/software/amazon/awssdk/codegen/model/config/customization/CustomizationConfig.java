@@ -218,6 +218,11 @@ public class CustomizationConfig {
     private boolean skipEndpointTestGeneration;
 
     /**
+     * Whether to generate client-level endpoint tests; overrides test case criteria such as operation inputs.
+     */
+    private boolean generateEndpointClientTests;
+
+    /**
      * A mapping from the skipped test's description to the reason why it's being skipped.
      */
     private Map<String, String> skipEndpointTests;
@@ -575,6 +580,14 @@ public class CustomizationConfig {
 
     public void setSkipEndpointTestGeneration(boolean skipEndpointTestGeneration) {
         this.skipEndpointTestGeneration = skipEndpointTestGeneration;
+    }
+
+    public boolean isGenerateEndpointClientTests() {
+        return generateEndpointClientTests;
+    }
+
+    public void setGenerateEndpointClientTests(boolean generateEndpointClientTests) {
+        this.generateEndpointClientTests = generateEndpointClientTests;
     }
 
     public boolean useGlobalEndpoint() {

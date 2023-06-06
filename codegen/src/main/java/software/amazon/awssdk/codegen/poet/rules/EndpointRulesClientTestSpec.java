@@ -219,12 +219,15 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
 
         EndpointTestSuiteModel endpointTestSuiteModel = model.getEndpointTestSuiteModel();
         Iterator<EndpointTestModel> testIter = endpointTestSuiteModel.getTestCases().iterator();
-
+        boolean isFirst = true;
         while (testIter.hasNext()) {
             EndpointTestModel test = testIter.next();
-
-            if (test.getOperationInputs() != null) {
+            if (testCaseHasOperationInputs(test)) {
                 Iterator<OperationInput> operationInputsIter = test.getOperationInputs().iterator();
+                if (!isFirst) {
+                    b.addCode(", ");
+                }
+                isFirst = false;
                 while (operationInputsIter.hasNext()) {
                     OperationInput opInput = operationInputsIter.next();
                     OperationModel opModel = model.getOperation(opInput.getOperationName());
@@ -240,17 +243,17 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
                         b.addCode(",");
                     }
                 }
-            } else {
+            } else if (shouldGenerateClientTestsOverride()) {
+                if (!isFirst) {
+                    b.addCode(", ");
+                }
+                isFirst = false;
                 b.addCode("new $T($S, $L, $L$L)",
                           SyncTestCase.class,
                           test.getDocumentation(),
                           syncOperationCallLambda(defaultOpModel, test.getParams(), Collections.emptyMap()),
                           TestGeneratorUtils.createExpect(test.getExpect(), defaultOpModel, null),
                           getSkipReasonBlock(test.getDocumentation()));
-            }
-
-            if (testIter.hasNext()) {
-                b.addCode(",");
             }
         }
 
@@ -365,12 +368,16 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
 
         EndpointTestSuiteModel endpointTestSuiteModel = model.getEndpointTestSuiteModel();
         Iterator<EndpointTestModel> testIter = endpointTestSuiteModel.getTestCases().iterator();
-
+        boolean isFirst = true;
         while (testIter.hasNext()) {
             EndpointTestModel test = testIter.next();
 
-            if (test.getOperationInputs() != null) {
+            if (testCaseHasOperationInputs(test)) {
                 Iterator<OperationInput> operationInputsIter = test.getOperationInputs().iterator();
+                if (!isFirst) {
+                    b.addCode(", ");
+                }
+                isFirst = false;
                 while (operationInputsIter.hasNext()) {
                     OperationInput opInput = operationInputsIter.next();
                     OperationModel opModel = model.getOperation(opInput.getOperationName());
@@ -386,17 +393,17 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
                         b.addCode(",");
                     }
                 }
-            } else {
+            } else if (shouldGenerateClientTestsOverride()) {
+                if (!isFirst) {
+                    b.addCode(", ");
+                }
+                isFirst = false;
                 b.addCode("new $T($S, $L, $L$L)",
                           AsyncTestCase.class,
                           test.getDocumentation(),
                           asyncOperationCallLambda(defaultOpModel, test.getParams(), Collections.emptyMap()),
                           TestGeneratorUtils.createExpect(test.getExpect(), defaultOpModel, null),
                           getSkipReasonBlock(test.getDocumentation()));
-            }
-
-            if (testIter.hasNext()) {
-                b.addCode(",");
             }
         }
 
@@ -647,6 +654,17 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
             skippedTests.putAll(customSkippedTests);
         }
         return skippedTests;
+    }
+
+    /**
+     * Always generate client endpoint tests if the test case has operation inputs
+     */
+    private static boolean testCaseHasOperationInputs(EndpointTestModel test) {
+        return test.getOperationInputs() != null;
+    }
+
+    private boolean shouldGenerateClientTestsOverride() {
+        return model.getCustomizationConfig().isGenerateEndpointClientTests();
     }
 
     private CodeBlock getSkipReasonBlock(String testName) {
