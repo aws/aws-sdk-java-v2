@@ -16,9 +16,47 @@
 package software.amazon.awssdk.http.auth.aws.crt;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.http.auth.spi.HttpSigner;
+import software.amazon.awssdk.http.auth.spi.HttpAuthScheme;
+import software.amazon.awssdk.http.auth.spi.IdentityProviderConfiguration;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
 
+/**
+ * The <a href="https://smithy.io/2.0/aws/aws-auth.html#aws-auth-sigv4-trait">aws.auth#sigv4</a>
+ * auth scheme, which uses a {@link AwsCredentialsIdentity} and {@link AwsCrtV4aHttpSigner}.
+ */
 @SdkPublicApi
-public interface AwsCrtV4aHttpAuthScheme extends HttpSigner {
+public interface AwsCrtV4aHttpAuthScheme extends HttpAuthScheme<AwsCredentialsIdentity> {
 
+    /**
+     * Retrieve the scheme ID.
+     */
+    @Override
+    default String schemeId() {
+        return "aws.auth#sigv4";
+    }
+
+    /**
+     * Retrieve the {@link AwsCredentialsIdentity} based {@link IdentityProvider} associated with this authentication scheme.
+     */
+    @Override
+    default IdentityProvider<AwsCredentialsIdentity> identityProvider(IdentityProviderConfiguration providers) {
+        return providers.identityProvider(AwsCredentialsIdentity.class);
+    }
+
+    /**
+     * Retrieve the {@link AwsCrtV4aHttpSigner} associated with this authentication scheme.
+     */
+    @Override
+    default AwsCrtV4aHttpSigner signer() {
+        return AwsCrtV4aHttpSigner.create();
+    }
+
+    /**
+     * Get a default implementation of a {@link AwsCrtV4aHttpAuthScheme}
+     */
+    static AwsCrtV4aHttpAuthScheme create() {
+        return new AwsCrtV4aHttpAuthScheme() {
+        };
+    }
 }

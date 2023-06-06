@@ -1,0 +1,90 @@
+{
+    "version": "2.20.60",
+    "date": "2023-05-04",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "martinKindall",
+            "description": "Avoids NullPointerException when config and credentials files were not found for profiles. Now it returns an empty map, as it used to."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Config",
+            "contributor": "",
+            "description": "Updated ResourceType enum with new resource types onboarded by AWS Config in April 2023."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Network Firewall",
+            "contributor": "",
+            "description": "This release adds support for the Suricata REJECT option in midstream exception configurations."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SecurityHub",
+            "contributor": "",
+            "description": "Add support for Finding History."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch",
+            "contributor": "",
+            "description": "Adds support for filtering by metric names in CloudWatch Metric Streams."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "Remove unused InvalidParameterException from CreateParticipant API"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "contributor": "",
+            "description": "Documentation update for new error type NamespaceNotFoundException for CreateCluster and UpdateCluster"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon OpenSearch Service",
+            "contributor": "",
+            "description": "DescribeDomainNodes: A new API that provides configuration information for nodes part of the domain"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "contributor": "",
+            "description": "Add support for Topic, Dataset parameters and VPC"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Rekognition",
+            "contributor": "",
+            "description": "This release adds a new attribute FaceOccluded. Additionally, you can now select attributes individually (e.g. [\"DEFAULT\", \"FACE_OCCLUDED\", \"AGE_RANGE\"] instead of [\"ALL\"]), which can reduce response time."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "We added support for ml.inf2 and ml.trn1 family of instances on Amazon SageMaker for deploying machine learning (ML) models for Real-time and Asynchronous inference. You can use these instances to achieve high performance at a low cost for generative artificial intelligence (AI) models."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Queue Service",
+            "contributor": "",
+            "description": "This release enables customers to call SQS using AWS JSON-1.0 protocol."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Storage Service",
+            "contributor": "",
+            "description": "Documentation updates for Amazon S3"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

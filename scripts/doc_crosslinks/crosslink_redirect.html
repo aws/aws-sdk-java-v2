@@ -7,7 +7,10 @@
             var uidServiceData = '${UID_SERVICE_MAPPING}';
             var uidToServiceName = JSON.parse(uidServiceData);
             var uidClientNameData = '${UID_CLIENT_CLASS_MAPPING}';
-            var uidToClientName = JSON.parse(uidClientNameData);
+            var uidToClientPrefix = JSON.parse(uidClientNameData);
+            // A mapping from uid to the list of operations that are only available on the async client
+            var uidToAsyncOnlyOperationData = '${SERVICE_NAME_TO_ASYNC_ONLY_OPERATION_MAPPING}';
+            var uidToAsyncOnlyOperations = JSON.parse(uidToAsyncOnlyOperationData)
             var baseUri = window.location.href;
             var serviceFolderPath = "software/amazon/awssdk/services/";
 
@@ -39,10 +42,42 @@
                 }
             }
 
+            function requestSignature(uid, serviceName, typeName) {
+                var pkgBase = "software.amazon.awssdk.services." + serviceName + ".model.";
+                var requestObjectName = typeName + "Request";
+
+                var params = pkgBase + requestObjectName;
+
+                if (isAsyncOnlyMethod(uid, typeName)) {
+                    eventStreamInfo = uidToAsyncOnlyOperations[uid][typeName];
+                    if (eventStreamInfo['input'] === true) {
+                        params = params + ",org.reactivestreams.Publisher";
+                    }
+
+                    if (eventStreamInfo['output'] === true) {
+                        params = params + "," + pkgBase + typeName + "ResponseHandler";
+                    }
+                }
+
+                return "(" + params + ")"
+            }
+
+            function isAsyncOnlyMethod(uid, typeName) {
+                return uidToAsyncOnlyOperations[uid] != null && uidToAsyncOnlyOperations[uid][typeName] != null;
+            }
+
+            function asyncClientName(uid) {
+                return uidToClientPrefix[uid] + "AsyncClient";
+            }
+
+            function syncClientName(uid) {
+                return uidToClientPrefix[uid] + "Client";
+            }
+
             var typeName = getQueryStringParameter("type", window.location.href);
             var operation = getQueryStringParameter("operation", window.location.href);
             var uid = getQueryStringParameter("uid", window.location.href);
-            var clientObjectName =  uidToClientName[uid];
+            var clientObjectName =  syncClientName(uid);
             var serviceName =  uidToServiceName[uid];
             var redirectSuffixLink = "index.html"
 
@@ -50,20 +85,25 @@
                 redirectServiceSuffixLink = serviceFolderPath + serviceName + "/model/" + typeName + ".html" ;
                 if(checkResourceExists( baseUri.replace(/crosslink_redirect.*/gi, redirectServiceSuffixLink) )) {
                     redirectSuffixLink =  redirectServiceSuffixLink;
-                }
-                else
-                {
-                    redirectServiceSuffixLink =  serviceFolderPath + serviceName + "/" + clientObjectName + ".html" ;
+                } else {
+                    redirectServiceSuffixLink =  serviceFolderPath + serviceName + "/";
                     if(typeName != null) {
-                        methodName = camelize(typeName)
-                        requestObjectName = methodName.charAt(0).toUpperCase() + methodName.slice(1) + "Request"
+                        if (isAsyncOnlyMethod(uid, typeName)) {
+                            clientObjectName = asyncClientName(uid);
+                        }
+                        redirectServiceSuffixLink = redirectServiceSuffixLink + clientObjectName + ".html" ;
+                        methodName = camelize(typeName);
                         redirectServiceSuffixLink =
                             redirectServiceSuffixLink +
-                            "#" + methodName +
-                            "(software.amazon.awssdk.services." + serviceName + ".model." + requestObjectName + ")";
+                            "#" +
+                            methodName + requestSignature(uid, serviceName, typeName);
+                    } else {
+                        redirectServiceSuffixLink = redirectServiceSuffixLink + clientObjectName + ".html" ;
                     }
-                    if(checkResourceExists( baseUri.replace(/crosslink_redirect.*/gi, redirectServiceSuffixLink) ))
+
+                    if(checkResourceExists( baseUri.replace(/crosslink_redirect.*/gi, redirectServiceSuffixLink) )) {
                         redirectSuffixLink =  redirectServiceSuffixLink;
+                    }
                 }
             }
             window.location.href = redirectSuffixLink ;

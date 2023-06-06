@@ -11,6 +11,7 @@ import software.amazon.awssdk.services.query.endpoints.QueryEndpointParams;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointProvider;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.MapUtils;
+import software.amazon.awssdk.utils.Validate;
 
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
@@ -19,6 +20,7 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
 
     @Override
     public CompletableFuture<Endpoint> resolveEndpoint(QueryEndpointParams endpointParams) {
+        Validate.notNull(endpointParams.region(), "Parameter 'region' must not be null");
         Value res = new DefaultRuleEngine().evaluate(ENDPOINT_RULE_SET, toIdentifierValueMap(endpointParams));
         try {
             return CompletableFuture.completedFuture(AwsEndpointProviderUtils.valueAsEndpointOrThrow(res));

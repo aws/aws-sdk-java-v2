@@ -20,7 +20,7 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.NotThreadSafe;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -46,8 +46,8 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
  * Users of this provider must {@link #close()} it when they are finished using it.
  */
 @ThreadSafe
-@SdkInternalApi
-abstract class StsCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
+@SdkPublicApi
+public abstract class StsCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
 
     private static final Duration DEFAULT_STALE_TIME = Duration.ofMinutes(1);
     private static final Duration DEFAULT_PREFETCH_TIME = Duration.ofMinutes(5);
@@ -66,7 +66,7 @@ abstract class StsCredentialsProvider implements AwsCredentialsProvider, SdkAuto
     private final Duration prefetchTime;
     private final Boolean asyncCredentialUpdateEnabled;
 
-    protected StsCredentialsProvider(BaseBuilder<?, ?> builder, String asyncThreadName) {
+    StsCredentialsProvider(BaseBuilder<?, ?> builder, String asyncThreadName) {
         this.stsClient = Validate.notNull(builder.stsClient, "STS client must not be null.");
 
         this.staleTime = Optional.ofNullable(builder.staleTime).orElse(DEFAULT_STALE_TIME);
@@ -124,13 +124,14 @@ abstract class StsCredentialsProvider implements AwsCredentialsProvider, SdkAuto
     /**
      * Implemented by a child class to call STS and get a new set of credentials to be used by this provider.
      */
-    protected abstract AwsSessionCredentials getUpdatedCredentials(StsClient stsClient);
+    abstract AwsSessionCredentials getUpdatedCredentials(StsClient stsClient);
 
     /**
      * Extended by child class's builders to share configuration across credential providers.
      */
     @NotThreadSafe
-    protected abstract static class BaseBuilder<B extends BaseBuilder<B, T>, T extends ToCopyableBuilder<B, T>>
+    @SdkPublicApi
+    public abstract static class BaseBuilder<B extends BaseBuilder<B, T>, T extends ToCopyableBuilder<B, T>>
         implements CopyableBuilder<B, T> {
         private final Function<B, T> providerConstructor;
 
@@ -139,11 +140,11 @@ abstract class StsCredentialsProvider implements AwsCredentialsProvider, SdkAuto
         private Duration staleTime;
         private Duration prefetchTime;
 
-        protected BaseBuilder(Function<B, T> providerConstructor) {
+        BaseBuilder(Function<B, T> providerConstructor) {
             this.providerConstructor = providerConstructor;
         }
 
-        public BaseBuilder(Function<B, T> providerConstructor, StsCredentialsProvider provider) {
+        BaseBuilder(Function<B, T> providerConstructor, StsCredentialsProvider provider) {
             this.providerConstructor = providerConstructor;
             this.asyncCredentialUpdateEnabled = provider.asyncCredentialUpdateEnabled;
             this.stsClient = provider.stsClient;

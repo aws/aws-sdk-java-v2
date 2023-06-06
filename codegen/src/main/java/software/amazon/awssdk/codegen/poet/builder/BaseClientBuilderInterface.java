@@ -34,6 +34,7 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.service.ClientContextParam;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.codegen.utils.AuthUtils;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
@@ -49,12 +50,14 @@ public class BaseClientBuilderInterface implements ClassSpec {
     private final String basePackage;
     private final ClassName builderInterfaceName;
     private final EndpointRulesSpecUtils endpointRulesSpecUtils;
+    private final AuthSchemeSpecUtils authSchemeSpecUtils;
 
     public BaseClientBuilderInterface(IntermediateModel model) {
         this.model = model;
         this.basePackage = model.getMetadata().getFullClientPackageName();
         this.builderInterfaceName = ClassName.get(basePackage, model.getMetadata().getBaseBuilderInterface());
         this.endpointRulesSpecUtils = new EndpointRulesSpecUtils(model);
+        this.authSchemeSpecUtils = new AuthSchemeSpecUtils(model);
     }
 
     @Override
@@ -79,6 +82,7 @@ public class BaseClientBuilderInterface implements ClassSpec {
         }
 
         builder.addMethod(endpointProviderMethod());
+        builder.addMethod(authSchemeProviderMethod());
 
         if (hasClientContextParams()) {
             model.getClientContextParams().forEach((n, m) -> {
@@ -150,6 +154,19 @@ public class BaseClientBuilderInterface implements ClassSpec {
                                      + "the endpoint for each request. This is optional; if none is provided a "
                                      + "default implementation will be used the SDK.",
                                      endpointRulesSpecUtils.providerInterfaceName())
+                         .returns(TypeVariableName.get("B"))
+                         .addStatement("throw new $T()", UnsupportedOperationException.class)
+                         .build();
+    }
+
+    private MethodSpec authSchemeProviderMethod() {
+        return MethodSpec.methodBuilder("authSchemeProvider")
+                         .addModifiers(Modifier.PUBLIC, Modifier.DEFAULT)
+                         .addParameter(authSchemeSpecUtils.providerInterfaceName(), "authSchemeProvider")
+                         .addJavadoc("Set the {@link $T} implementation that will be used by the client to resolve the "
+                                     + "auth scheme for each request. This is optional; if none is provided a "
+                                     + "default implementation will be used the SDK.",
+                                     authSchemeSpecUtils.providerInterfaceName())
                          .returns(TypeVariableName.get("B"))
                          .addStatement("throw new $T()", UnsupportedOperationException.class)
                          .build();

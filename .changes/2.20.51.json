@@ -1,0 +1,30 @@
+{
+    "version": "2.20.51",
+    "date": "2023-04-21",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "This release adds a new API CreateParticipant. For Amazon Connect Chat, you can use this new API to customize chat flow experiences."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "contributor": "",
+            "description": "Documentation update to address various Amazon ECS tickets."
+        },
+        {
+            "type": "feature",
+            "category": "Firewall Management Service",
+            "contributor": "",
+            "description": "AWS Firewall Manager adds support for multiple administrators. You can now delegate more than one administrator per organization."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

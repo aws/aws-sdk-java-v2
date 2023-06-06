@@ -258,6 +258,35 @@ public class AwsEndpointProviderUtilsTest {
     }
 
     @Test
+    public void setUri_doubleSlash_combinesPathsCorrectly() {
+        URI clientEndpoint = URI.create("https://override.example.com/a");
+        URI requestUri = URI.create("https://override.example.com/a//c");
+        URI resolvedUri = URI.create("https://override.example.com/a/b");
+
+        SdkHttpRequest request = SdkHttpRequest.builder()
+                                               .uri(requestUri)
+                                               .method(SdkHttpMethod.GET)
+                                               .build();
+
+        assertThat(AwsEndpointProviderUtils.setUri(request, clientEndpoint, resolvedUri).getUri().toString())
+            .isEqualTo("https://override.example.com/a/b//c");
+    }
+
+    @Test
+    public void setUri_withTrailingSlashNoPath_combinesPathsCorrectly() {
+        URI clientEndpoint = URI.create("https://override.example.com/");
+        URI requestUri = URI.create("https://override.example.com//a");
+        URI resolvedUri = URI.create("https://override.example.com/");
+        SdkHttpRequest request = SdkHttpRequest.builder()
+                                               .uri(requestUri)
+                                               .method(SdkHttpMethod.GET)
+                                               .build();
+
+        assertThat(AwsEndpointProviderUtils.setUri(request, clientEndpoint, resolvedUri).getUri().toString())
+            .isEqualTo("https://override.example.com//a");
+    }
+
+    @Test
     public void setHeaders_existingValuesOnOverride_combinesWithNewValues() {
         AwsRequest request = AllTypesRequest.builder()
                                             .overrideConfiguration(o -> o.putHeader("foo", Arrays.asList("a", "b")))

@@ -19,6 +19,7 @@ import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.protocols.query.interceptor.QueryParametersToBodyInterceptor;
+import software.amazon.awssdk.services.query.auth.scheme.QueryAuthSchemeProvider;
 import software.amazon.awssdk.services.query.endpoints.QueryClientContextParams;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointProvider;
 import software.amazon.awssdk.services.query.endpoints.internal.QueryEndpointAuthSchemeInterceptor;
@@ -46,6 +47,7 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
     @Override
     protected final SdkClientConfiguration mergeServiceDefaults(SdkClientConfiguration config) {
         return config.merge(c -> c.option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
+                                  .option(SdkClientOption.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider())
                                   .option(SdkAdvancedClientOption.SIGNER, defaultSigner())
                                   .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
                                   .option(AwsClientOption.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider())
@@ -82,6 +84,15 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
 
     private QueryEndpointProvider defaultEndpointProvider() {
         return QueryEndpointProvider.defaultProvider();
+    }
+
+    public B authSchemeProvider(QueryAuthSchemeProvider authSchemeProvider) {
+        clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER, authSchemeProvider);
+        return thisBuilder();
+    }
+
+    private QueryAuthSchemeProvider defaultAuthSchemeProvider() {
+        return QueryAuthSchemeProvider.defaultProvider();
     }
 
     public B booleanContextParam(Boolean booleanContextParam) {

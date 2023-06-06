@@ -47,6 +47,7 @@ import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.model.service.ClientContextParam;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.codegen.utils.AuthUtils;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
@@ -73,6 +74,7 @@ public class BaseClientBuilderClass implements ClassSpec {
     private final ClassName builderClassName;
     private final String basePackage;
     private final EndpointRulesSpecUtils endpointRulesSpecUtils;
+    private final AuthSchemeSpecUtils authSchemeSpecUtils;
 
     public BaseClientBuilderClass(IntermediateModel model) {
         this.model = model;
@@ -80,6 +82,7 @@ public class BaseClientBuilderClass implements ClassSpec {
         this.builderInterfaceName = ClassName.get(basePackage, model.getMetadata().getBaseBuilderInterface());
         this.builderClassName = ClassName.get(basePackage, model.getMetadata().getBaseBuilder());
         this.endpointRulesSpecUtils = new EndpointRulesSpecUtils(model);
+        this.authSchemeSpecUtils = new AuthSchemeSpecUtils(model);
     }
 
     @Override
@@ -114,6 +117,9 @@ public class BaseClientBuilderClass implements ClassSpec {
         defaultAwsAuthSignerMethod().ifPresent(builder::addMethod);
         builder.addMethod(signingNameMethod());
         builder.addMethod(defaultEndpointProviderMethod());
+
+        builder.addMethod(authSchemeProviderMethod());
+        builder.addMethod(defaultAuthSchemeProviderMethod());
 
         if (hasClientContextParams()) {
             model.getClientContextParams().forEach((n, m) -> {
@@ -192,7 +198,7 @@ public class BaseClientBuilderClass implements ClassSpec {
                                                .addCode("return config.merge(c -> c");
 
         builder.addCode(".option($T.ENDPOINT_PROVIDER, defaultEndpointProvider())", SdkClientOption.class);
-
+        builder.addCode(".option($T.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider())", SdkClientOption.class);
 
         if (defaultAwsAuthSignerMethod().isPresent()) {
             builder.addCode(".option($T.SIGNER, defaultSigner())\n", SdkAdvancedClientOption.class);
@@ -577,6 +583,25 @@ public class BaseClientBuilderClass implements ClassSpec {
                          .addModifiers(PRIVATE)
                          .returns(endpointRulesSpecUtils.providerInterfaceName())
                          .addStatement("return $T.defaultProvider()", endpointRulesSpecUtils.providerInterfaceName())
+                         .build();
+    }
+
+    private MethodSpec authSchemeProviderMethod() {
+        return MethodSpec.methodBuilder("authSchemeProvider")
+                         .addModifiers(Modifier.PUBLIC)
+                         .returns(TypeVariableName.get("B"))
+                         .addParameter(authSchemeSpecUtils.providerInterfaceName(), "authSchemeProvider")
+                         .addStatement("clientConfiguration.option($T.AUTH_SCHEME_PROVIDER, authSchemeProvider)",
+                                       SdkClientOption.class)
+                         .addStatement("return thisBuilder()")
+                         .build();
+    }
+
+    private MethodSpec defaultAuthSchemeProviderMethod() {
+        return MethodSpec.methodBuilder("defaultAuthSchemeProvider")
+                         .addModifiers(PRIVATE)
+                         .returns(authSchemeSpecUtils.providerInterfaceName())
+                         .addStatement("return $T.defaultProvider()", authSchemeSpecUtils.providerInterfaceName())
                          .build();
     }
 

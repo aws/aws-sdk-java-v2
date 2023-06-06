@@ -23,7 +23,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.io.ByteArrayOutputStream;
 import java.nio.file.Paths;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.AfterEach;
@@ -32,7 +31,6 @@ import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
-import software.amazon.awssdk.core.async.ResponsePublisher;
 import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
@@ -66,7 +64,7 @@ class S3TransferManagerTest {
         uploadDirectoryHelper = mock(UploadDirectoryHelper.class);
         configuration = mock(TransferManagerConfiguration.class);
         downloadDirectoryHelper = mock(DownloadDirectoryHelper.class);
-        tm = new DefaultS3TransferManager(mockS3Crt, uploadDirectoryHelper, configuration, downloadDirectoryHelper);
+        tm = new GenericS3TransferManager(mockS3Crt, uploadDirectoryHelper, configuration, downloadDirectoryHelper);
     }
 
     @AfterEach
@@ -343,7 +341,7 @@ class S3TransferManagerTest {
 
     @Test
     void close_shouldCloseUnderlyingResources() {
-        S3TransferManager transferManager = new DefaultS3TransferManager(mockS3Crt, uploadDirectoryHelper, configuration, downloadDirectoryHelper);
+        S3TransferManager transferManager = new GenericS3TransferManager(mockS3Crt, uploadDirectoryHelper, configuration, downloadDirectoryHelper);
         transferManager.close();
         verify(mockS3Crt, times(0)).close();
         verify(configuration).close();
@@ -352,7 +350,7 @@ class S3TransferManagerTest {
     @Test
     void close_shouldNotCloseCloseS3AsyncClientPassedInBuilder_when_transferManagerClosed() {
         S3TransferManager transferManager =
-            DefaultS3TransferManager.builder().s3Client(mockS3Crt).build();
+            S3TransferManager.builder().s3Client(mockS3Crt).build();
         transferManager.close();
         verify(mockS3Crt, times(0)).close();
     }

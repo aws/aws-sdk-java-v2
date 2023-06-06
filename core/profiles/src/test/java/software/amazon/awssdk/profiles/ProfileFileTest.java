@@ -554,6 +554,15 @@ public class ProfileFileTest {
         ProfileFile.defaultProfileFile();
     }
 
+    @Test
+    public void returnsEmptyMap_when_AwsFilesDoNotExist() {
+        ProfileFile missingProfile = ProfileFile.aggregator()
+                                                .build();
+
+        assertThat(missingProfile.profiles()).isEmpty();
+        assertThat(missingProfile.profiles()).isInstanceOf(Map.class);
+    }
+
     private ProfileFile configFile(String configFile) {
         return ProfileFile.builder()
                           .content(new StringInputStream(configFile))

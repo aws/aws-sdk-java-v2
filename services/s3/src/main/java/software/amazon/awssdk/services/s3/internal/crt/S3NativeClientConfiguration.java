@@ -34,6 +34,7 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**
@@ -42,6 +43,7 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
 @SdkInternalApi
 public class S3NativeClientConfiguration implements SdkAutoCloseable {
     static final long DEFAULT_PART_SIZE_IN_BYTES = 8L * 1024 * 1024;
+    private static final Logger log = Logger.loggerFor(S3NativeClientConfiguration.class);
     private static final long DEFAULT_TARGET_THROUGHPUT_IN_GBPS = 10;
 
     private final String signingRegion;
@@ -68,6 +70,13 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         TlsContextOptions clientTlsContextOptions =
             TlsContextOptions.createDefaultClient()
                              .withCipherPreference(TlsCipherPreference.TLS_CIPHER_SYSTEM_DEFAULT);
+
+        if (builder.httpConfiguration != null
+            && builder.httpConfiguration.trustAllCertificatesEnabled() != null) {
+            log.warn(() -> "SSL Certificate verification is disabled. "
+                           + "This is not a safe setting and should only be used for testing.");
+            clientTlsContextOptions.withVerifyPeer(!builder.httpConfiguration.trustAllCertificatesEnabled());
+        }
         this.tlsContext = new TlsContext(clientTlsContextOptions);
         this.credentialProviderAdapter =
             builder.credentialsProvider == null ?
@@ -176,6 +185,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         private Integer maxConcurrency;
         private URI endpointOverride;
         private Boolean checksumValidationEnabled;
+
         private S3CrtHttpConfiguration httpConfiguration;
         private StandardRetryOptions standardRetryOptions;
 

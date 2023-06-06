@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.http.auth.spi.internal;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -22,27 +23,22 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.spi.HttpSignRequest;
 import software.amazon.awssdk.http.auth.spi.SignerProperty;
-import software.amazon.awssdk.utils.ToString;
+import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
-public final class DefaultHttpSignRequest<PayloadT> implements HttpSignRequest<PayloadT> {
+abstract class DefaultHttpSignRequest<PayloadT, IdentityT extends Identity> implements HttpSignRequest<PayloadT, IdentityT> {
 
-    private final Class<PayloadT> payloadType;
-    private final SdkHttpRequest request;
-    private final PayloadT payload;
-    private final Map<SignerProperty<?>, Object> properties;
+    protected final SdkHttpRequest request;
+    protected final PayloadT payload;
+    protected final IdentityT identity;
+    protected final Map<SignerProperty<?>, Object> properties;
 
-    DefaultHttpSignRequest(BuilderImpl<PayloadT>  builder) {
-        this.payloadType = Validate.paramNotNull(builder.payloadType, "payloadType");
+    protected DefaultHttpSignRequest(BuilderImpl<?, PayloadT, IdentityT> builder) {
         this.request = Validate.paramNotNull(builder.request, "request");
         this.payload = builder.payload;
-        this.properties = new HashMap<>(builder.properties);
-    }
-
-    @Override
-    public Class<PayloadT> payloadType() {
-        return payloadType;
+        this.identity = Validate.paramNotNull(builder.identity, "identity");
+        this.properties = Collections.unmodifiableMap(builder.properties);
     }
 
     @Override
@@ -51,8 +47,13 @@ public final class DefaultHttpSignRequest<PayloadT> implements HttpSignRequest<P
     }
 
     @Override
-    public Optional payload() {
+    public Optional<PayloadT> payload() {
         return payload == null ? Optional.empty() : Optional.of(payload);
+    }
+
+    @Override
+    public IdentityT identity() {
+        return identity;
     }
 
     @Override
@@ -60,47 +61,47 @@ public final class DefaultHttpSignRequest<PayloadT> implements HttpSignRequest<P
         return (T) properties.get(property);
     }
 
-    @Override
-    public String toString() {
-        return ToString.builder("HttpSignRequest")
-                       .add("payloadType", payloadType)
-                       .add("request", request)
-                       .add("properties", properties)
-                       .build();
-    }
-
-
-    public static final class BuilderImpl<PayloadT> implements Builder<PayloadT> {
-        private final Class<PayloadT> payloadType;
+    @SdkInternalApi
+    protected abstract static class BuilderImpl<B extends Builder<B, PayloadT, IdentityT>, PayloadT,
+        IdentityT extends Identity> implements Builder<B, PayloadT, IdentityT> {
         private SdkHttpRequest request;
         private PayloadT payload;
+        private IdentityT identity;
         private final Map<SignerProperty<?>, Object> properties = new HashMap<>();
 
-        public BuilderImpl(Class<PayloadT> payloadType) {
-            this.payloadType = payloadType;
+        protected BuilderImpl() {
+        }
+
+        protected BuilderImpl(IdentityT identity) {
+            this.identity = identity;
         }
 
         @Override
-        public Builder request(SdkHttpRequest request) {
+        public B request(SdkHttpRequest request) {
             this.request = request;
-            return this;
+            return thisBuilder();
         }
 
         @Override
-        public Builder payload(PayloadT payload) {
+        public B payload(PayloadT payload) {
             this.payload = payload;
-            return this;
+            return thisBuilder();
         }
 
         @Override
-        public <T> Builder putProperty(SignerProperty<T> key, T value) {
+        public B identity(IdentityT identity) {
+            this.identity = identity;
+            return thisBuilder();
+        }
+
+        @Override
+        public <T> B putProperty(SignerProperty<T> key, T value) {
             this.properties.put(key, value);
-            return this;
+            return thisBuilder();
         }
 
-        @Override
-        public HttpSignRequest build() {
-            return new DefaultHttpSignRequest(this);
+        private B thisBuilder() {
+            return (B) this;
         }
     }
 }
