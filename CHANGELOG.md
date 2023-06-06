@@ -1,3 +1,48 @@
+# __2.20.80__ __2023-06-06__
+## __AWS Identity and Access Management__
+  - ### Features
+    - This release updates the AccountAlias regex pattern with the same length restrictions enforced by the length constraint.
+
+## __AWS IoT__
+  - ### Features
+    - Adding IoT Device Management Software Package Catalog APIs to register, store, and report system software packages, along with their versions and metadata in a centralized location.
+
+## __AWS IoT Data Plane__
+  - ### Features
+    - Update thing shadow name regex to allow '$' character
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Signer__
+  - ### Features
+    - AWS Signer is launching Container Image Signing, a new feature that enables you to sign and verify container images. This feature enables you to validate that only container images you approve are used in your enterprise.
+
+## __Amazon Connect Service__
+  - ### Features
+    - GetMetricDataV2 API is now available in AWS GovCloud(US) region.
+
+## __Amazon EMR__
+  - ### Features
+    - This release provides customers the ability to specify an allocation strategies amongst PRICE_CAPACITY_OPTIMIZED, CAPACITY_OPTIMIZED, LOWEST_PRICE, DIVERSIFIED for Spot instances in Instance Feet cluster. This enables customers to choose an allocation strategy best suited for their workload.
+
+## __Amazon Lex Model Building V2__
+  - ### Features
+    - This release adds support for Lex Developers to create test sets and to execute those test-sets against their bots.
+
+## __Amazon QuickSight__
+  - ### Features
+    - QuickSight support for pivot table field collapse state, radar chart range scale and multiple scope options in conditional formatting.
+
+## __Amazon Simple Queue Service__
+  - ### Features
+    - Amazon SQS adds three new APIs - StartMessageMoveTask, CancelMessageMoveTask, and ListMessageMoveTasks to automate redriving messages from dead-letter queues to source queues or a custom destination.
+
+## __Inspector2__
+  - ### Features
+    - Adds new response properties and request parameters for 'last scanned at' on the ListCoverage operation. This feature allows you to search and view the date of which your resources were last scanned by Inspector.
+
 # __2.20.79__ __2023-06-05__
 ## __AWS CloudFormation__
   - ### Features
