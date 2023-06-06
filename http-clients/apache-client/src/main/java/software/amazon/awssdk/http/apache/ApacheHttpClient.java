@@ -24,6 +24,7 @@ import static software.amazon.awssdk.http.apache.internal.conn.ClientConnectionR
 import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.net.InetAddress;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -229,6 +230,10 @@ public final class ApacheHttpClient implements SdkHttpClient {
             @Override
             public HttpExecuteResponse call() throws IOException {
                 HttpExecuteResponse executeResponse = execute(apacheRequest, metricCollector);
+                if (Thread.interrupted()) {
+                    abort();
+                    throw new InterruptedIOException(Thread.currentThread().getName() + " was interrupted");
+                }
                 collectPoolMetric(metricCollector);
                 return executeResponse;
             }
