@@ -22,7 +22,6 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.utils.SystemSetting;
-import software.amazon.awssdk.utils.TracingSystemSetting;
 
 /**
  * The {@code TraceIdExecutionInterceptor} copies the trace details to the {@link #TRACE_ID_HEADER} header, assuming we seem to
@@ -53,9 +52,7 @@ public class TraceIdExecutionInterceptor implements ExecutionInterceptor {
     }
 
     private Optional<String> traceId() {
-        // CHECKSTYLE:OFF - This is not configured by the customer, so it should not be configurable by system property
         return TracingSystemSetting._X_AMZN_TRACE_ID.getStringValue();
-        // CHECKSTYLE:ON
     }
 
     private Optional<String> lambdaFunctionNameEnvironmentVariable() {

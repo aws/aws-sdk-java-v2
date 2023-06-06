@@ -12,12 +12,15 @@
  * express or implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
+package software.amazon.awssdk.awscore.interceptor;
 
-package software.amazon.awssdk.utils;
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.utils.SystemSetting;
 
 /**
  * Tracing specific System Setting.
  */
+@SdkInternalApi
 public enum TracingSystemSetting implements SystemSetting {
     // See: https://github.com/aws/aws-xray-sdk-java/issues/251
     _X_AMZN_TRACE_ID("com.amazonaws.xray.traceHeader", null);
