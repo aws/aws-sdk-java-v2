@@ -72,7 +72,7 @@ public class TraceIdExecutionInterceptorTest {
             Properties props = System.getProperties();
             props.setProperty("com.amazonaws.xray.traceHeader", "sys-prop");
             Context.ModifyHttpRequest context = context();
-            assertThat(modifyHttpRequest(context).firstMatchingHeader("X-Amzn-Trace-Id")).hasValue("bar");
+            assertThat(modifyHttpRequest(context).firstMatchingHeader("X-Amzn-Trace-Id")).hasValue("sys-prop");
         });
     }
 
