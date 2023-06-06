@@ -12,7 +12,7 @@
  * express or implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
-package software.amazon.awssdk.awscore.interceptor;
+package software.amazon.awssdk.awscore.internal.interceptor;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.SystemSetting;
