@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon QuickSight",
-    "contributor": "",
-    "description": "QuickSight support for pivot table field collapse state, radar chart range scale and multiple scope options in conditional formatting."
-}
