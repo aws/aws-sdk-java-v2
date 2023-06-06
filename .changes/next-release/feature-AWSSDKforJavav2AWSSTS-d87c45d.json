@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2, AWS STS",
+    "contributor": "",
+    "description": "Updates the core STS credential provider logic to return AwsSessionCredentials instead of a holder class, and adds expirationTime to AwsSessionCredentials\""
+}
