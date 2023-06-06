@@ -40,7 +40,7 @@ import software.amazon.awssdk.utils.Validate;
  * Implements the {@link RetryStrategy} interface by wrapping a {@link RetryPolicy} instance.
  */
 @SdkInternalApi
-public class RetryPolicyAdapter implements RetryStrategy<RetryPolicyAdapter.Builder, RetryPolicyAdapter> {
+public final class RetryPolicyAdapter implements RetryStrategy<RetryPolicyAdapter.Builder, RetryPolicyAdapter> {
 
     private final RetryPolicy retryPolicy;
     private final RetryPolicyContext retryPolicyContext;

@@ -348,7 +348,7 @@ public final class ClientOverrideConfiguration
         }
 
         /**
-         * Configure the retry policy that should be used when handling failure cases.
+         * Configure the retry strategy that should be used when handling failure cases.
          *
          * @see ClientOverrideConfiguration#retryStrategy()
          */

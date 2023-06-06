@@ -369,7 +369,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
                                        .defaultRetryMode(config.option(SdkClientOption.DEFAULT_RETRY_MODE))
                                        .resolve();
         return RetryPolicy.forRetryMode(retryMode);
-        // fixme This will be changed like this to pick the configured retry strategy
+        // TODO: fixme This will be changed like this to pick the configured retry strategy
         // if no retry policy is configured.
         /*
         return config.option(SdkClientOption.RETRY_POLICY);

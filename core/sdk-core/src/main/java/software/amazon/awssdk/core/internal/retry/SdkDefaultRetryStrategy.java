@@ -30,13 +30,15 @@ import software.amazon.awssdk.retries.api.RetryStrategy;
  * Retry strategies used by any SDK client.
  */
 @SdkPublicApi
-public class SdkDefaultRetryStrategy {
+public final class SdkDefaultRetryStrategy {
 
     private SdkDefaultRetryStrategy() {
     }
 
     /**
      * Retrieve the default retry strategy for the configured retry mode.
+     *
+     * @return the default retry strategy for the configured retry mode.
      */
     public static RetryStrategy<?, ?> defaultRetryStrategy() {
         return forRetryMode(RetryMode.defaultRetryMode());
@@ -44,6 +46,9 @@ public class SdkDefaultRetryStrategy {
 
     /**
      * Retrieve the appropriate retry strategy for the retry mode with AWS-specific conditions added.
+     *
+     * @param mode The retry mode for which we want the retry strategy
+     * @return the appropriate retry strategy for the retry mode with AWS-specific conditions added.
      */
     public static RetryStrategy<?, ?> forRetryMode(RetryMode mode) {
         switch (mode) {
@@ -60,6 +65,8 @@ public class SdkDefaultRetryStrategy {
 
     /**
      * Returns a {@link StandardRetryStrategy} with generic SDK retry conditions.
+     *
+     * @return a {@link StandardRetryStrategy} with generic SDK retry conditions.
      */
     public static StandardRetryStrategy standardRetryStrategy() {
         return standardRetryStrategyBuilder().build();
@@ -67,6 +74,8 @@ public class SdkDefaultRetryStrategy {
 
     /**
      * Returns a {@link LegacyRetryStrategy} with generic SDK retry conditions.
+     *
+     * @return a {@link LegacyRetryStrategy} with generic SDK retry conditions.
      */
     public static LegacyRetryStrategy legacyRetryStrategy() {
         return legacyRetryStrategyBuilder().build();
@@ -74,6 +83,8 @@ public class SdkDefaultRetryStrategy {
 
     /**
      * Returns an {@link AdaptiveRetryStrategy} with generic SDK retry conditions.
+     *
+     * @return an {@link AdaptiveRetryStrategy} with generic SDK retry conditions.
      */
     public static AdaptiveRetryStrategy adaptiveRetryStrategy() {
         return adaptiveRetryStrategyBuilder().build();
@@ -81,6 +92,8 @@ public class SdkDefaultRetryStrategy {
 
     /**
      * Returns a {@link StandardRetryStrategy.Builder} with preconfigured generic SDK retry conditions.
+     *
+     * @return a {@link StandardRetryStrategy.Builder} with preconfigured generic SDK retry conditions.
      */
     public static StandardRetryStrategy.Builder standardRetryStrategyBuilder() {
         StandardRetryStrategy.Builder builder = DefaultRetryStrategy.standardStrategyBuilder();
@@ -89,6 +102,8 @@ public class SdkDefaultRetryStrategy {
 
     /**
      * Returns a {@link LegacyRetryStrategy.Builder} with preconfigured generic SDK retry conditions.
+     *
+     * @return a {@link LegacyRetryStrategy.Builder} with preconfigured generic SDK retry conditions.
      */
     public static LegacyRetryStrategy.Builder legacyRetryStrategyBuilder() {
         LegacyRetryStrategy.Builder builder = DefaultRetryStrategy.legacyStrategyBuilder();
@@ -98,6 +113,8 @@ public class SdkDefaultRetryStrategy {
 
     /**
      * Returns an {@link AdaptiveRetryStrategy.Builder} with preconfigured generic SDK retry conditions.
+     *
+     * @return an {@link AdaptiveRetryStrategy.Builder} with preconfigured generic SDK retry conditions.
      */
     public static AdaptiveRetryStrategy.Builder adaptiveRetryStrategyBuilder() {
         AdaptiveRetryStrategy.Builder builder = DefaultRetryStrategy.adaptiveStrategyBuilder();
@@ -106,8 +123,13 @@ public class SdkDefaultRetryStrategy {
     }
 
     /**
-     * Configures a retry strategy using its builder to add SDK-specific retry conditions.
+     * Configures a retry strategy using its builder to add SDK-generic retry exceptions.
+     *
+     * @param builder The builder to add the SDK-generic retry exceptions
+     * @return The given builder
+     * @param <T> The type of the builder extending {@link RetryStrategy.Builder}
      */
+
     public static <T extends RetryStrategy.Builder<T, ?>> T configure(T builder) {
         builder.retryOnException(SdkDefaultRetryStrategy::retryOnRetryableStatusCodes)
                .retryOnException(SdkDefaultRetryStrategy::retryOnStatusCodes)
@@ -149,7 +171,6 @@ public class SdkDefaultRetryStrategy {
     private static boolean retryOnRetryableStatusCodes(Throwable ex) {
         if (ex instanceof SdkServiceException) {
             SdkServiceException exception = (SdkServiceException) ex;
-            // fixme, I need to double check with the team if this assumption is correct.
             return SdkDefaultRetrySetting.RETRYABLE_STATUS_CODES.contains(exception.statusCode());
         }
         return false;

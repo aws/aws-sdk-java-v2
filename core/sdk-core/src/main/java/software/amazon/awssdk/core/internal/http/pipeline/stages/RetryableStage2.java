@@ -70,7 +70,6 @@ public final class RetryableStage2<OutputT> implements RequestToResponsePipeline
     }
 
     private Duration suggestedDelay(Exception e) {
-        // fixme, I'm not sure where this value should come from if any.
         return Duration.ZERO;
     }
 

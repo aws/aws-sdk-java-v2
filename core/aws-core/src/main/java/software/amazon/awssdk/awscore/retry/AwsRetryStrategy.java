@@ -30,13 +30,15 @@ import software.amazon.awssdk.retries.api.RetryStrategy;
  * Retry strategies used by clients when communicating with AWS services.
  */
 @SdkPublicApi
-public class AwsRetryStrategy {
+public final class AwsRetryStrategy {
 
     private AwsRetryStrategy() {
     }
 
     /**
      * Retrieve the {@link SdkDefaultRetryStrategy#defaultRetryStrategy()} with AWS-specific conditions added.
+     *
+     * @return The default retry strategy.
      */
     public static RetryStrategy<?, ?> defaultRetryStrategy() {
         return forRetryMode(RetryMode.defaultRetryMode());
@@ -44,6 +46,9 @@ public class AwsRetryStrategy {
 
     /**
      * Retrieve the appropriate retry strategy for the retry mode with AWS-specific conditions added.
+     *
+     * @param mode The retry mode for which we want to create a retry strategy.
+     * @return A retry strategy for the given retry mode.
      */
     public static RetryStrategy<?, ?> forRetryMode(RetryMode mode) {
         switch (mode) {
@@ -54,12 +59,15 @@ public class AwsRetryStrategy {
             case LEGACY:
                 return legacyRetryStrategy();
             default:
-                throw new IllegalStateException("unknown retry mode: " + mode);
+                throw new IllegalArgumentException("unknown retry mode: " + mode);
         }
     }
 
     /**
      * Update the provided {@link RetryStrategy} to add AWS-specific conditions.
+     *
+     * @param strategy The strategy to update
+     * @return The updated strategy
      */
     public static RetryStrategy<?, ?> addRetryConditions(RetryStrategy<?, ?> strategy) {
         return strategy.toBuilder()
@@ -69,6 +77,8 @@ public class AwsRetryStrategy {
 
     /**
      * Returns a retry strategy that does not retry.
+     *
+     * @return A retry strategy that does not retry.
      */
     public static RetryStrategy<?, ?> none() {
         return DefaultRetryStrategy.none();
@@ -77,6 +87,8 @@ public class AwsRetryStrategy {
 
     /**
      * Returns a {@link StandardRetryStrategy} with AWS-specific conditions added.
+     *
+     * @return A {@link StandardRetryStrategy} with AWS-specific conditions added.
      */
     public static StandardRetryStrategy standardRetryStrategy() {
         StandardRetryStrategy.Builder builder = SdkDefaultRetryStrategy.standardRetryStrategyBuilder();
@@ -85,6 +97,8 @@ public class AwsRetryStrategy {
 
     /**
      * Returns a {@link LegacyRetryStrategy} with AWS-specific conditions added.
+     *
+     * @return A {@link LegacyRetryStrategy} with AWS-specific conditions added.
      */
     public static LegacyRetryStrategy legacyRetryStrategy() {
         LegacyRetryStrategy.Builder builder = SdkDefaultRetryStrategy.legacyRetryStrategyBuilder();
@@ -94,6 +108,8 @@ public class AwsRetryStrategy {
 
     /**
      * Returns an {@link AdaptiveRetryStrategy} with AWS-specific conditions added.
+     *
+     * @return An {@link AdaptiveRetryStrategy} with AWS-specific conditions added.
      */
     public static AdaptiveRetryStrategy adaptiveRetryStrategy() {
         AdaptiveRetryStrategy.Builder builder = SdkDefaultRetryStrategy.adaptiveRetryStrategyBuilder();
@@ -102,7 +118,11 @@ public class AwsRetryStrategy {
     }
 
     /**
-     * Configures a retry strategy using its builder to add AWS-specific retry conditions.
+     * Configures a retry strategy using its builder to add AWS-specific retry exceptions.
+     *
+     * @param builder The builder to add the AWS-specific retry exceptions
+     * @return The given builder
+     * @param <T> The type of the builder extending {@link RetryStrategy.Builder}
      */
     public static <T extends RetryStrategy.Builder<T, ?>> T configure(T builder) {
         return builder.retryOnException(AwsRetryStrategy::retryOnAwsRetryableErrors);
@@ -111,8 +131,6 @@ public class AwsRetryStrategy {
     private static boolean retryOnAwsRetryableErrors(Throwable ex) {
         if (ex instanceof AwsServiceException) {
             AwsServiceException exception = (AwsServiceException) ex;
-            // fixme, I need to double check with the team whether this assumption that the error code will be in the [error
-            //  details -> error code] is correct.
             return AwsErrorCode.RETRYABLE_ERROR_CODES.contains(exception.awsErrorDetails().errorCode());
         }
         return false;

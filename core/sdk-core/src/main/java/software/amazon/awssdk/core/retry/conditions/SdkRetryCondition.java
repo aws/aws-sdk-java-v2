@@ -26,7 +26,6 @@ import software.amazon.awssdk.core.retry.RetryUtils;
 public final class SdkRetryCondition {
 
     public static final RetryCondition DEFAULT = OrRetryCondition.create(
-        // fixme 🤨 does these translate into request.exception??
         RetryOnStatusCodeCondition.create(SdkDefaultRetrySetting.RETRYABLE_STATUS_CODES),
         RetryOnExceptionsCondition.create(SdkDefaultRetrySetting.RETRYABLE_EXCEPTIONS),
         c -> RetryUtils.isClockSkewException(c.exception()),

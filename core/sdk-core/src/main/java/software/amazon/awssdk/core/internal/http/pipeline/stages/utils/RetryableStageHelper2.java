@@ -56,7 +56,7 @@ import software.amazon.awssdk.retries.api.TokenAcquisitionFailedException;
  * {@link RetryStrategy}.
  */
 @SdkInternalApi
-public class RetryableStageHelper2 {
+public final class RetryableStageHelper2 {
     public static final String SDK_RETRY_INFO_HEADER = "amz-sdk-request";
     private final SdkHttpFullRequest request;
     private final RequestExecutionContext context;
@@ -94,8 +94,6 @@ public class RetryableStageHelper2 {
      * value is {@link AdaptiveRetryStrategy}.
      */
     public Duration acquireInitialToken() {
-        // fixme, scope is hardcoded for the time being, we might want to change this before launching otherwise might be a
-        // behavior braking change if we decide later to change it.
         String scope = "GLOBAL";
         AcquireInitialTokenRequest acquireRequest = AcquireInitialTokenRequest.create(scope);
         AcquireInitialTokenResponse acquireResponse = retryStrategy().acquireInitialToken(acquireRequest);
@@ -175,8 +173,8 @@ public class RetryableStageHelper2 {
      * Retrieve the request to send to the service, including any detailed retry information headers.
      */
     public SdkHttpFullRequest requestToSend() {
-        // fixme, we don't longer have this information handy we need to change the interface to access it.
-        int maxAllowedRetries = 123_456;
+        // TODO: fixme, we don't longer have this information handy we need to change the interface to access it.
+        int maxAllowedRetries = 3;
         return request.toBuilder()
                       .putHeader(SDK_RETRY_INFO_HEADER, "attempt=" + attemptNumber + "; max=" + maxAllowedRetries)
                       .build();

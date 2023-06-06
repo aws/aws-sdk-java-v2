@@ -82,7 +82,7 @@ public abstract class RetryHeaderTestSuite<T extends MockHttpClient> {
         assertThat(requests).hasSize(2);
         assertThat(retryComponent(requests.get(0), "attempt")).isEqualTo("1");
         assertThat(retryComponent(requests.get(1), "attempt")).isEqualTo("2");
-        /* fixme, we do not set the max field correctly at the moment
+        /* TODO: fixme, we do not set the max field correctly at the moment
         assertThat(retryComponent(requests.get(0), "max")).isEqualTo("3");
         assertThat(retryComponent(requests.get(1), "max")).isEqualTo("3");
          */

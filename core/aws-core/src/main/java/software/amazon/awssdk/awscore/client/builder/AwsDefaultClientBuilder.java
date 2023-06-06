@@ -378,7 +378,7 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
                                        .defaultRetryMode(config.option(SdkClientOption.DEFAULT_RETRY_MODE))
                                        .resolve();
         return AwsRetryPolicy.forRetryMode(retryMode);
-        // fixme This will be changed like this to pick the configured retry strategy
+        // TODO: fixme This will be changed like this to pick the configured retry strategy
         // if no retry policy is configured.
         /*
         RetryPolicy policy = config.option(SdkClientOption.RETRY_POLICY);
