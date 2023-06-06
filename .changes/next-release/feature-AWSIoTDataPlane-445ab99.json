@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS IoT Data Plane",
+    "contributor": "",
+    "description": "Update thing shadow name regex to allow '$' character"
+}
