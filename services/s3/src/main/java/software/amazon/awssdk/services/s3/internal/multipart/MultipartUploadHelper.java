@@ -140,12 +140,9 @@ public final class MultipartUploadHelper {
         UploadPartRequestPublisher uploadPartRequestPublisher =
             UploadPartRequestPublisher.builder()
                                       .partSize(partSizeInBytes)
-                                      .numOfParts(partCount)
                                       .asyncRequestBody(asyncRequestBody)
-                                      .contentLength(contentLength)
                                       .putObjectRequest(putObjectRequest)
                                       .numOfPartsBuffered(numOfPartsBuffered)
-                                      .executor(executor)
                                       .uploadId(uploadId)
                                       .build();
 
