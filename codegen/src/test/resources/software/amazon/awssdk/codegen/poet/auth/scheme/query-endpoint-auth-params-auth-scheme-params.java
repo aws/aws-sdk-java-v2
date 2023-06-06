@@ -44,6 +44,9 @@ public interface QueryAuthSchemeParams {
      */
     Optional<String> region();
 
+    /**
+     * A param that defauls to true
+     */
     Boolean defaultTrueParam();
 
     String defaultStringParam();
@@ -71,6 +74,9 @@ public interface QueryAuthSchemeParams {
          */
         Builder region(String region);
 
+        /**
+         * A param that defauls to true
+         */
         Builder defaultTrueParam(Boolean defaultTrueParam);
 
         Builder defaultStringParam(String defaultStringParam);

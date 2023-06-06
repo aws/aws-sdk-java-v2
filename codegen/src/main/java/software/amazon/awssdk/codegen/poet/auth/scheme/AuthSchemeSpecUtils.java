@@ -19,7 +19,10 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -31,9 +34,12 @@ import software.amazon.awssdk.utils.internal.CodegenNamingUtils;
 
 public final class AuthSchemeSpecUtils {
     private final IntermediateModel intermediateModel;
+    private final Set<String> allowedEndpointAuthSchemeParams;
 
     public AuthSchemeSpecUtils(IntermediateModel intermediateModel) {
         this.intermediateModel = intermediateModel;
+        this.allowedEndpointAuthSchemeParams = Collections.unmodifiableSet(
+            new HashSet<>(intermediateModel.getCustomizationConfig().getAllowedEndpointAuthSchemeParams()));
     }
 
     private String basePackage() {
@@ -80,9 +86,8 @@ public final class AuthSchemeSpecUtils {
         return intermediateModel.getCustomizationConfig().isEnableEndpointAuthSchemeParams();
     }
 
-    public boolean includeParam(ParameterModel model, String name) {
-        List<String> included = intermediateModel.getCustomizationConfig().getIncludeEndpointParamsInAuthSchemeParams();
-        return included.contains(name);
+    public boolean includeParam(String name) {
+        return allowedEndpointAuthSchemeParams.contains(name);
     }
 
     public MethodSpec.Builder endpointParamAccessorSignature(ParameterModel model, String name) {

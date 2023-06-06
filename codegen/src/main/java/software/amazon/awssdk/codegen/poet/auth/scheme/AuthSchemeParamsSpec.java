@@ -115,8 +115,12 @@ public class AuthSchemeParamsSpec implements ClassSpec {
 
         if (authSchemeSpecUtils.generateEndpointBasedParams()) {
             parameters().forEach((name, model) -> {
-                if (authSchemeSpecUtils.includeParam(model, name)) {
-                    b.addMethod(endpointRulesSpecUtils.parameterInterfaceAccessorMethod(name, model));
+                if (authSchemeSpecUtils.includeParam(name)) {
+                    MethodSpec accessor = endpointRulesSpecUtils.parameterInterfaceAccessorMethod(name, model);
+                    if (model.getDocumentation() != null) {
+                        accessor = accessor.toBuilder().addJavadoc(model.getDocumentation()).build();
+                    }
+                    b.addMethod(accessor);
                 }
             });
         }
@@ -142,9 +146,14 @@ public class AuthSchemeParamsSpec implements ClassSpec {
 
         if (authSchemeSpecUtils.generateEndpointBasedParams()) {
             parameters().forEach((name, model) -> {
-                if (authSchemeSpecUtils.includeParam(model, name)) {
+                if (authSchemeSpecUtils.includeParam(name)) {
                     ClassName parametersInterfaceName = authSchemeSpecUtils.parametersInterfaceName();
-                    b.addMethod(endpointRulesSpecUtils.parameterBuilderSetterMethodDeclaration(parametersInterfaceName, name, model));
+                    MethodSpec setter = endpointRulesSpecUtils
+                        .parameterBuilderSetterMethodDeclaration(parametersInterfaceName, name, model);
+                    if (model.getDocumentation() != null) {
+                        setter = setter.toBuilder().addJavadoc(model.getDocumentation()).build();
+                    }
+                    b.addMethod(setter);
                 }
             });
         }

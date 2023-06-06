@@ -239,7 +239,7 @@ public class CustomizationConfig {
     /**
      * List of endpoint params to be used for the auth scheme params
      */
-    private List<String> includeEndpointParamsInAuthSchemeParams = new ArrayList<>();
+    private List<String> allowedEndpointAuthSchemeParams = new ArrayList<>();
 
     private CustomizationConfig() {
     }
@@ -627,11 +627,11 @@ public class CustomizationConfig {
         return enableEndpointAuthSchemeParams;
     }
 
-    public void setIncludeEndpointParamsInAuthSchemeParams(List<String> includeEndpointParamsInAuthSchemeParams) {
-        this.includeEndpointParamsInAuthSchemeParams = includeEndpointParamsInAuthSchemeParams;
+    public void setAllowedEndpointAuthSchemeParams(List<String> allowedEndpointAuthSchemeParams) {
+        this.allowedEndpointAuthSchemeParams = allowedEndpointAuthSchemeParams;
     }
 
-    public List<String> getIncludeEndpointParamsInAuthSchemeParams() {
-        return this.includeEndpointParamsInAuthSchemeParams;
+    public List<String> getAllowedEndpointAuthSchemeParams() {
+        return this.allowedEndpointAuthSchemeParams;
     }
 }

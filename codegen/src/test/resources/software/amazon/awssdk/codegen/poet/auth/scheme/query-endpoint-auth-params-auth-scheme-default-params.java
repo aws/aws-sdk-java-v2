@@ -43,8 +43,8 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
     private DefaultQueryAuthSchemeParams(Builder builder) {
         this.operation = Validate.paramNotNull(builder.operation, "operation");
         this.region = builder.region;
-        this.defaultTrueParam = builder.defaultTrueParam;
-        this.defaultStringParam = builder.defaultStringParam;
+        this.defaultTrueParam = Validate.paramNotNull(builder.defaultTrueParam, "defaultTrueParam");
+        this.defaultStringParam = Validate.paramNotNull(builder.defaultStringParam, "defaultStringParam");
         this.deprecatedParam = builder.deprecatedParam;
         this.booleanContextParam = builder.booleanContextParam;
         this.stringContextParam = builder.stringContextParam;
@@ -101,9 +101,9 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
 
         private String region;
 
-        private Boolean defaultTrueParam;
+        private Boolean defaultTrueParam = true;
 
-        private String defaultStringParam;
+        private String defaultStringParam = "hello endpoints";
 
         private String deprecatedParam;
 
@@ -128,15 +128,22 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
         @Override
         public Builder defaultTrueParam(Boolean defaultTrueParam) {
             this.defaultTrueParam = defaultTrueParam;
+            if (this.defaultTrueParam == null) {
+                this.defaultTrueParam = true;
+            }
             return this;
         }
 
         @Override
         public Builder defaultStringParam(String defaultStringParam) {
             this.defaultStringParam = defaultStringParam;
+            if (this.defaultStringParam == null) {
+                this.defaultStringParam = "hello endpoints";
+            }
             return this;
         }
 
+        @Deprecated
         @Override
         public Builder deprecatedParam(String deprecatedParam) {
             this.deprecatedParam = deprecatedParam;

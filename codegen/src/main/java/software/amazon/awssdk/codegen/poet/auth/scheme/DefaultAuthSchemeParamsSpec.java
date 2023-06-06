@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.codegen.poet.auth.scheme;
 
-import static software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils.parameterType;
-
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
@@ -56,12 +54,12 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
     @Override
     public TypeSpec poetSpec() {
         TypeSpec.Builder b = PoetUtils.createClassBuilder(className())
-                              .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                              .addAnnotation(SdkInternalApi.class)
-                              .addSuperinterface(authSchemeSpecUtils.parametersInterfaceName())
-                              .addMethod(constructor())
-                              .addMethod(builderMethod())
-                              .addType(builderImplSpec());
+                                      .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+                                      .addAnnotation(SdkInternalApi.class)
+                                      .addSuperinterface(authSchemeSpecUtils.parametersInterfaceName())
+                                      .addMethod(constructor())
+                                      .addMethod(builderMethod())
+                                      .addType(builderImplSpec());
 
         addFieldsAndAccessors(b);
 
@@ -81,7 +79,7 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
 
         if (authSchemeSpecUtils.generateEndpointBasedParams()) {
             parameters().forEach((name, model) -> {
-                if (authSchemeSpecUtils.includeParam(model, name)) {
+                if (authSchemeSpecUtils.includeParam(name)) {
                     String fieldName = authSchemeSpecUtils.paramMethodName(name);
                     boolean isRequired = isParamRequired(model);
                     if (isRequired) {
@@ -155,9 +153,12 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
 
         if (authSchemeSpecUtils.generateEndpointBasedParams()) {
             parameters().forEach((name, model) -> {
-                if (authSchemeSpecUtils.includeParam(model, name)) {
+                if (authSchemeSpecUtils.includeParam(name)) {
                     b.addField(endpointRulesSpecUtils.parameterClassField(name, model));
-                    b.addMethod(endpointRulesSpecUtils.parameterClassAccessorMethod(name, model));
+                    b.addMethod(endpointRulesSpecUtils.parameterClassAccessorMethod(name, model)
+                                    .toBuilder()
+                                    .addAnnotation(Override.class)
+                                    .build());
                 }
             });
         }
@@ -178,7 +179,7 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
 
         if (authSchemeSpecUtils.generateEndpointBasedParams()) {
             parameters().forEach((name, model) -> {
-                if (authSchemeSpecUtils.includeParam(model, name)) {
+                if (authSchemeSpecUtils.includeParam(name)) {
                     b.addField(endpointRulesSpecUtils.parameterBuilderFieldSpec(name, model));
                     b.addMethod(endpointRulesSpecUtils.parameterBuilderSetterMethod(className(), name, model));
                 }
