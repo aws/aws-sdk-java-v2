@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Lex Model Building V2",
+    "contributor": "",
+    "description": "This release adds support for Lex Developers to create test sets and to execute those test-sets against their bots."
+}
