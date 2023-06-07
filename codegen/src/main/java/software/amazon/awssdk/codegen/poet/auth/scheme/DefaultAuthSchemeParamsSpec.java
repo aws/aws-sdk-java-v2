@@ -97,7 +97,7 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
 
     private boolean isParamRequired(ParameterModel model) {
         Boolean isRequired = model.isRequired();
-        return (isRequired != null && isRequired) || model.getDefault() != null;
+        return isRequired != null && isRequired;
     }
 
     private MethodSpec builderMethod() {
