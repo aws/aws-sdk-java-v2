@@ -75,9 +75,11 @@ public class MakeHttpRequestStage
         context.apiCallAttemptTimeoutTracker().abortable(requestCallable);
 
         Pair<HttpExecuteResponse, Duration> measuredExecute = MetricUtils.measureDurationUnsafe(requestCallable);
-
         attemptMetricCollector.reportMetric(CoreMetric.SERVICE_CALL_DURATION, measuredExecute.right());
-
+        if (Thread.currentThread().isInterrupted()) {
+            requestCallable.abort();
+            InterruptMonitor.checkInterrupted();
+        }
         return measuredExecute.left();
     }
 
