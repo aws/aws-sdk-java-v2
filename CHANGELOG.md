@@ -1,3 +1,28 @@
+# __2.20.81__ __2023-06-07__
+## __AWS CloudFormation__
+  - ### Features
+    - AWS CloudFormation StackSets is updating the deployment experience for all stackset operations to skip suspended AWS accounts during deployments. StackSets will skip target AWS accounts that are suspended and set the Detailed Status of the corresponding stack instances as SKIPPED_SUSPENDED_ACCOUNT
+
+## __AWS Direct Connect__
+  - ### Features
+    - This update corrects the jumbo frames mtu values from 9100 to 8500 for transit virtual interfaces.
+
+## __AWS IoT Core Device Advisor__
+  - ### Features
+    - AWS IoT Core Device Advisor now supports new Qualification Suite test case list. With this update, customers can more easily create new qualification test suite with an empty rootGroup input.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - This change adds support for account level data protection policies using 3 new APIs, PutAccountPolicy, DeleteAccountPolicy and DescribeAccountPolicy. DescribeLogGroup API has been modified to indicate if account level policy is applied to the LogGroup via "inheritedProperties" list in the response.
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - This release introduces event stream related APIs.
+
+## __Amazon EMR Containers__
+  - ### Features
+    - EMR on EKS adds support for log rotation of Spark container logs with EMR-6.11.0 onwards, to the StartJobRun API.
+
 # __2.20.80__ __2023-06-06__
 ## __AWS Identity and Access Management__
   - ### Features
