@@ -111,6 +111,10 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
             b.addField(s3RegionEndpointSystemPropertySaveValueField());
         }
 
+        if (serviceHasNoMatchingTestCases()) {
+            return b.build();
+        }
+
         b.addMethod(methodSetupMethod());
         b.addMethod(teardownMethod());
 
@@ -214,6 +218,9 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
         MethodSpec.Builder b = MethodSpec.methodBuilder("syncTestCases")
                                          .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
                                          .returns(ParameterizedTypeName.get(List.class, SyncTestCase.class));
+
+
+
 
         b.addCode("return $T.asList(", Arrays.class);
 
@@ -656,6 +663,12 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
         return skippedTests;
     }
 
+    private boolean serviceHasNoMatchingTestCases() {
+        boolean noTestCasesHaveOperationInputs = model.getEndpointTestSuiteModel().getTestCases().stream()
+                                                      .noneMatch(EndpointRulesClientTestSpec::testCaseHasOperationInputs);
+        return noTestCasesHaveOperationInputs && !shouldGenerateClientTestsOverride();
+    }
+
     /**
      * Always generate client endpoint tests if the test case has operation inputs
      */
@@ -663,6 +676,10 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
         return test.getOperationInputs() != null;
     }
 
+    /**
+     * Some services can run tests without operation inputs if there are other conditions that allow
+     * codegen to create a functioning test case
+     */
     private boolean shouldGenerateClientTestsOverride() {
         return model.getCustomizationConfig().isGenerateEndpointClientTests();
     }
