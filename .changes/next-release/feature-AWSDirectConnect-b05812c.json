@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Direct Connect",
+    "contributor": "",
+    "description": "This update corrects the jumbo frames mtu values from 9100 to 8500 for transit virtual interfaces."
+}
