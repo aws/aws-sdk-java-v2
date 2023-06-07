@@ -30,14 +30,20 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.exception.AbortedException;
 import software.amazon.awssdk.core.exception.ApiCallAttemptTimeoutException;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.metrics.MetricRecord;
@@ -53,6 +59,7 @@ class SyncClientConnectionInterruptionTest {
                                              + "\":\"resultString\"}";
     private final WireMockServer mockServer = new WireMockServer(new WireMockConfiguration()
                                                                      .bindAddress("localhost")
+                                                                     .dynamicPort());
     @BeforeEach
     public void setup() {
         mockServer.start();
@@ -109,6 +116,7 @@ class SyncClientConnectionInterruptionTest {
     @Test
     void interruptionWhenWaitingForLease_AbortsImmediately() throws InterruptedException {
         Integer LONG_DELAY = 5000;
+        ExceptionInThreadRun exceptionInThreadRun = new ExceptionInThreadRun();
         AtomicLong leaseWaitingTime = new AtomicLong(LONG_DELAY);
         stubPostRequest("/2016-03-11/allTypes", aResponse().withFixedDelay(LONG_DELAY), SAMPLE_BODY);
         SdkHttpClient httpClient = ApacheHttpClient.builder().maxConnections(1).build();
@@ -116,30 +124,46 @@ class SyncClientConnectionInterruptionTest {
         ExecutorService executorService = Executors.newFixedThreadPool(5);
         executorService.submit(() -> client.allTypes());
         unInterruptedSleep(100);
-        Thread leaseWaitingThread = new Thread(() ->
-                                                   client.allTypes(l -> l.overrideConfiguration(
-                                                       b -> b
-                                                           .apiCallAttemptTimeout(Duration.ofSeconds(10))
-                                                           .addMetricPublisher(new MetricPublisher() {
-                                                               @Override
-                                                               public void publish(MetricCollection metricCollection) {
-                                                                   System.out.println(metricCollection);
-                                                                   Optional<MetricRecord<?>> apiCallDuration =
-                                                                       metricCollection.stream().filter(o -> "ApiCallDuration" .equals(o.metric().name())).findAny();
-                                                                   leaseWaitingTime.set(Duration.parse(apiCallDuration.get().value().toString()).toMillis());
-                                                               }
-                                                               @Override
-                                                               public void close() {
-                                                               }
-                                                           })
-                                                   )));
+        Thread leaseWaitingThread = new Thread(() -> {
+
+            try {
+                client.allTypes(l -> l.overrideConfiguration(
+                    b -> b
+                        .apiCallAttemptTimeout(Duration.ofSeconds(10))
+                        .addMetricPublisher(new MetricPublisher() {
+                            @Override
+                            public void publish(MetricCollection metricCollection) {
+                                System.out.println(metricCollection);
+                                Optional<MetricRecord<?>> apiCallDuration =
+                                    metricCollection.stream().filter(o -> "ApiCallDuration" .equals(o.metric().name())).findAny();
+                                leaseWaitingTime.set(Duration.parse(apiCallDuration.get().value().toString()).toMillis());
+                            }
+
+                            @Override
+                            public void close() {
+                            }
+                        })
+                ));
+
+            } catch (Exception exception) {
+                exceptionInThreadRun.setException(exception);
+
+            }
+        });
+
         leaseWaitingThread.start();
         unInterruptedSleep(100);
         leaseWaitingThread.interrupt();
         leaseWaitingThread.join();
         assertThat(leaseWaitingTime.get()).isNotEqualTo(LONG_DELAY.longValue());
         assertThat(leaseWaitingTime.get()).isLessThan(LONG_DELAY.longValue());
+        assertThat(exceptionInThreadRun.getException()).isInstanceOf(AbortedException.class);
         client.close();
+    }
+
+    private static Stream<Arguments> httpClientImplementation() {
+        return Stream.of(Arguments.of(ApacheHttpClient.create()),
+                         Arguments.of(UrlConnectionHttpClient.create()));
     }
 
     /**
@@ -148,12 +172,12 @@ class SyncClientConnectionInterruptionTest {
      * And we interrupt the thread at 90% of X.
      * In this case since the ApiTimeOut first happened we should get ApiTimeOut Exception and not the interrupt.
      */
-    @Test
-    void interruptionDueToApiTimeOut_followed_byInterruptCausesOnlyTimeOutException() throws InterruptedException {
+    @ParameterizedTest
+    @MethodSource("httpClientImplementation")
+    void interruptionDueToApiTimeOut_followed_byInterruptCausesOnlyTimeOutException(SdkHttpClient httpClient) throws InterruptedException {
         Integer SERVER_RESPONSE_DELAY = 3000;
         stubPostRequest("/2016-03-11/allTypes", aResponse().withFixedDelay(SERVER_RESPONSE_DELAY), SAMPLE_BODY);
         ExceptionInThreadRun exception = new ExceptionInThreadRun();
-        SdkHttpClient httpClient = ApacheHttpClient.builder().build();
         ProtocolRestJsonClient client =
             getClient(httpClient, Duration.ofMillis(10)).overrideConfiguration(o -> o.retryPolicy(RetryPolicy.none())).build();
         unInterruptedSleep(100);
@@ -172,6 +196,32 @@ class SyncClientConnectionInterruptionTest {
         assertThat(exception.getException()).isInstanceOf(ApiCallAttemptTimeoutException.class);
         client.close();
     }
+
+    @ParameterizedTest
+    @MethodSource("httpClientImplementation")
+    void sdkClientInterrupted_while_connectionIsInProgress(SdkHttpClient httpClient) throws InterruptedException {
+        Integer SERVER_RESPONSE_DELAY = 3000;
+        stubPostRequest("/2016-03-11/allTypes", aResponse().withFixedDelay(SERVER_RESPONSE_DELAY), SAMPLE_BODY);
+        ExceptionInThreadRun exception = new ExceptionInThreadRun();
+        ProtocolRestJsonClient client =
+            getClient(httpClient, Duration.ofMillis(10)).overrideConfiguration(o -> o.retryPolicy(RetryPolicy.none())).build();
+        unInterruptedSleep(100);
+        // We need to creat a separate thread to interrupt it externally.
+        Thread leaseWaitingThread = new Thread(() -> {
+            try {
+                client.allTypes(l -> l.overrideConfiguration(b -> b.apiCallAttemptTimeout(Duration.ofMillis(SERVER_RESPONSE_DELAY * 3))));
+            } catch (Exception e) {
+                exception.setException(e);
+            }
+        });
+        leaseWaitingThread.start();
+        unInterruptedSleep(SERVER_RESPONSE_DELAY - SERVER_RESPONSE_DELAY / 10);
+        leaseWaitingThread.interrupt();
+        leaseWaitingThread.join();
+        assertThat(exception.getException()).isInstanceOf(AbortedException.class);
+        client.close();
+    }
+
     private class ExceptionInThreadRun {
         private Exception exception;
         public Exception getException() {
