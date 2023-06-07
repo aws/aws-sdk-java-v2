@@ -39,7 +39,6 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
     private final AuthSchemeSpecUtils authSchemeSpecUtils;
     private final EndpointRulesSpecUtils endpointRulesSpecUtils;
 
-
     public DefaultAuthSchemeParamsSpec(IntermediateModel intermediateModel) {
         this.intermediateModel = intermediateModel;
         this.authSchemeSpecUtils = new AuthSchemeSpecUtils(intermediateModel);
@@ -83,10 +82,10 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
                     String fieldName = authSchemeSpecUtils.paramMethodName(name);
                     boolean isRequired = isParamRequired(model);
                     if (isRequired) {
-                        b.addStatement(String.join(fieldName, "this.", " = $T.paramNotNull(builder.", ", \"", "\")"),
-                                       Validate.class);
+                        b.addStatement("this.$1N = $2T.paramNotNull(builder.$1N, $1S)",
+                                       fieldName, Validate.class);
                     } else {
-                        b.addStatement("this." + fieldName + " = builder." + fieldName);
+                        b.addStatement("this.$1N = builder.$1N", fieldName);
                     }
 
                 }
