@@ -42,7 +42,7 @@ import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeRequestImmu
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeRequestMutableStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MergeCustomHeadersStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MergeCustomQueryParamsStage;
-import software.amazon.awssdk.core.internal.http.pipeline.stages.RetryableStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.RetryableStage2;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.SigningStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.TimeoutExceptionHandlingStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.UnwrapResponseContainer;
@@ -182,7 +182,7 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
                                          .wrappedWith(ApiCallAttemptTimeoutTrackingStage::new)
                                          .wrappedWith(TimeoutExceptionHandlingStage::new)
                                          .wrappedWith((deps, wrapped) -> new ApiCallAttemptMetricCollectionStage<>(wrapped))
-                                         .wrappedWith(RetryableStage::new)::build)
+                                         .wrappedWith(RetryableStage2::new)::build)
                                .wrappedWith(StreamManagingStage::new)
                                .wrappedWith(ApiCallTimeoutTrackingStage::new)::build)
                                .wrappedWith((deps, wrapped) -> new ApiCallMetricCollectionStage<>(wrapped))

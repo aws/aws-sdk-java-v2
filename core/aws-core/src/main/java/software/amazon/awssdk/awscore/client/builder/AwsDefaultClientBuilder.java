@@ -39,6 +39,7 @@ import software.amazon.awssdk.awscore.internal.defaultsmode.AutoDefaultsModeDisc
 import software.amazon.awssdk.awscore.internal.defaultsmode.DefaultsModeConfiguration;
 import software.amazon.awssdk.awscore.internal.defaultsmode.DefaultsModeResolver;
 import software.amazon.awssdk.awscore.retry.AwsRetryPolicy;
+import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
 import software.amazon.awssdk.core.client.builder.SdkDefaultClientBuilder;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -53,6 +54,7 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.ServiceMetadata;
 import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
+import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Logger;
@@ -196,6 +198,7 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
                             .option(SdkClientOption.EXECUTION_INTERCEPTORS, addAwsInterceptors(configuration))
                             .option(AwsClientOption.SIGNING_REGION, resolveSigningRegion(configuration))
                             .option(SdkClientOption.RETRY_POLICY, resolveAwsRetryPolicy(configuration))
+                            .option(SdkClientOption.RETRY_STRATEGY, resolveAwsRetryStrategy(configuration))
                             .build();
     }
 
@@ -375,6 +378,35 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
                                        .defaultRetryMode(config.option(SdkClientOption.DEFAULT_RETRY_MODE))
                                        .resolve();
         return AwsRetryPolicy.forRetryMode(retryMode);
+        // TODO: fixme This will be changed like this to pick the configured retry strategy
+        // if no retry policy is configured.
+        /*
+        RetryPolicy policy = config.option(SdkClientOption.RETRY_POLICY);
+
+        if (policy != null) {
+            if (policy.additionalRetryConditionsAllowed()) {
+                return AwsRetryPolicy.addRetryConditions(policy);
+            } else {
+                return policy;
+            }
+        }
+
+        // If we don't have a configured retry policy we will use the configured retry strategy instead.
+        return null;
+         */
+    }
+
+    private RetryStrategy<?, ?> resolveAwsRetryStrategy(SdkClientConfiguration config) {
+        RetryStrategy<?, ?> strategy = config.option(SdkClientOption.RETRY_STRATEGY);
+        if (strategy != null) {
+            return AwsRetryStrategy.addRetryConditions(strategy);
+        }
+        RetryMode retryMode = RetryMode.resolver()
+                                       .profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
+                                       .profileName(config.option(SdkClientOption.PROFILE_NAME))
+                                       .defaultRetryMode(config.option(SdkClientOption.DEFAULT_RETRY_MODE))
+                                       .resolve();
+        return AwsRetryStrategy.forRetryMode(retryMode);
     }
 
     @Override

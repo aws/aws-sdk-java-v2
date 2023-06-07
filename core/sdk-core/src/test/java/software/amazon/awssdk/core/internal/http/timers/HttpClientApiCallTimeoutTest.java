@@ -46,6 +46,7 @@ import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.retries.DefaultRetryStrategy;
 import utils.ValidSdkObjects;
 
 
@@ -60,6 +61,7 @@ public class HttpClientApiCallTimeoutTest {
     public void setup() {
         httpClient = testClientBuilder()
             .retryPolicy(RetryPolicy.none())
+            .retryStrategy(DefaultRetryStrategy.none())
             .apiCallTimeout(API_CALL_TIMEOUT)
             .build();
     }
