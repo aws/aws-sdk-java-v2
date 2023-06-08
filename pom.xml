@@ -753,7 +753,7 @@
             </activation>
             <properties>
                 <!-- Blockhound doesn't support Java 13+ without flags: https://github.com/reactor/BlockHound/issues/33 -->
-                <argLine>-XX:+AllowRedefinitionToAddDeleteMethods</argLine>
+<!--                <argLine>-XX:+AllowRedefinitionToAddDeleteMethods</argLine>-->
             </properties>
         </profile>
 
