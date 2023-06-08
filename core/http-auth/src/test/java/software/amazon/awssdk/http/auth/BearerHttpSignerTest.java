@@ -16,19 +16,16 @@
 package software.amazon.awssdk.http.auth;
 
 import org.junit.jupiter.api.Test;
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.auth.spi.AsyncHttpSignRequest;
-import software.amazon.awssdk.http.auth.spi.AsyncSignedHttpRequest;
-import software.amazon.awssdk.http.auth.spi.SyncHttpSignRequest;
-import software.amazon.awssdk.http.auth.spi.SyncSignedHttpRequest;
+import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
+import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
+import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
+import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
-
 import java.io.ByteArrayInputStream;
 import java.net.URI;
-import java.nio.ByteBuffer;
+import software.amazon.awssdk.utils.async.SimplePublisher;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -41,7 +38,7 @@ class BearerHttpSignerTest {
         String tokenValue = "mF_9.B5f-4.1JqM";
 
         BearerHttpSigner tokenSigner = BearerHttpSigner.create();
-        SyncSignedHttpRequest signedRequest = tokenSigner.sign(generateBasicRequest(tokenValue));
+        SyncSignedRequest signedRequest = tokenSigner.sign(generateBasicRequest(tokenValue));
 
 
         String expectedHeader = createExpectedHeader(tokenValue);
@@ -55,7 +52,7 @@ class BearerHttpSignerTest {
 
         BearerHttpSigner tokenSigner = BearerHttpSigner.create();
 
-        AsyncSignedHttpRequest signedRequest =
+        AsyncSignedRequest signedRequest =
                 tokenSigner.signAsync(generateBasicAsyncRequest(tokenValue));
 
 
@@ -68,9 +65,9 @@ class BearerHttpSignerTest {
         return BEARER_AUTH_MARKER + token;
     }
 
-    private static SyncHttpSignRequest<? extends TokenIdentity> generateBasicRequest(String token) {
+    private static SyncSignRequest<? extends TokenIdentity> generateBasicRequest(String token) {
 
-        return SyncHttpSignRequest.builder(TokenIdentity.create(token))
+        return SyncSignRequest.builder(TokenIdentity.create(token))
                 .request(SdkHttpRequest.builder()
                         .method(SdkHttpMethod.POST)
                         .putHeader("Host", "demo.us-east-1.amazonaws.com")
@@ -82,9 +79,9 @@ class BearerHttpSignerTest {
                 .build();
     }
 
-    private static AsyncHttpSignRequest<? extends TokenIdentity> generateBasicAsyncRequest(String token) {
+    private static AsyncSignRequest<? extends TokenIdentity> generateBasicAsyncRequest(String token) {
 
-        return AsyncHttpSignRequest.builder(TokenIdentity.create(token))
+        return AsyncSignRequest.builder(TokenIdentity.create(token))
                 .request(SdkHttpRequest.builder()
                         .method(SdkHttpMethod.POST)
                         .putHeader("Host", "demo.us-east-1.amazonaws.com")
@@ -92,16 +89,8 @@ class BearerHttpSignerTest {
                         .encodedPath("/")
                         .uri(URI.create("http://demo.us-east-1.amazonaws.com"))
                         .build())
-                .payload(new TestPublisher())
+                .payload(new SimplePublisher<>())
                 .build();
     }
 
-    private static class TestPublisher implements Publisher<ByteBuffer> {
-        Subscriber<? super ByteBuffer> s;
-
-        @Override
-        public void subscribe(Subscriber<? super ByteBuffer> s) {
-            this.s = s;
-        }
-    }
 }

@@ -17,10 +17,10 @@ package software.amazon.awssdk.http.auth.aws.crt.internal;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.auth.aws.crt.AwsCrtV4aHttpSigner;
-import software.amazon.awssdk.http.auth.spi.AsyncHttpSignRequest;
-import software.amazon.awssdk.http.auth.spi.AsyncSignedHttpRequest;
-import software.amazon.awssdk.http.auth.spi.SyncHttpSignRequest;
-import software.amazon.awssdk.http.auth.spi.SyncSignedHttpRequest;
+import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
+import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
+import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
+import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 
 /**
@@ -30,12 +30,12 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 public class DefaultAwsCrtV4aHttpSigner implements AwsCrtV4aHttpSigner {
 
     @Override
-    public SyncSignedHttpRequest sign(SyncHttpSignRequest<? extends AwsCredentialsIdentity> request) {
+    public SyncSignedRequest sign(SyncSignRequest<? extends AwsCredentialsIdentity> request) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public AsyncSignedHttpRequest signAsync(AsyncHttpSignRequest<? extends AwsCredentialsIdentity> request) {
+    public AsyncSignedRequest signAsync(AsyncSignRequest<? extends AwsCredentialsIdentity> request) {
         throw new UnsupportedOperationException();
     }
 }
