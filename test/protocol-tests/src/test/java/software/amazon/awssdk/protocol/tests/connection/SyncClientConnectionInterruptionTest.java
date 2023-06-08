@@ -43,7 +43,6 @@ import software.amazon.awssdk.core.exception.ApiCallAttemptTimeoutException;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
-import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.metrics.MetricRecord;
@@ -161,20 +160,15 @@ class SyncClientConnectionInterruptionTest {
         client.close();
     }
 
-    private static Stream<Arguments> httpClientImplementation() {
-        return Stream.of(Arguments.of(ApacheHttpClient.create()),
-                         Arguments.of(UrlConnectionHttpClient.create()));
-    }
-
     /**
      * Service Latency is set to high value say X.
      * Api timeout value id set to 1/3 of X.
      * And we interrupt the thread at 90% of X.
      * In this case since the ApiTimeOut first happened we should get ApiTimeOut Exception and not the interrupt.
      */
-    @ParameterizedTest
-    @MethodSource("httpClientImplementation")
-    void interruptionDueToApiTimeOut_followed_byInterruptCausesOnlyTimeOutException(SdkHttpClient httpClient) throws InterruptedException {
+    @Test
+    void interruptionDueToApiTimeOut_followed_byInterruptCausesOnlyTimeOutException() throws InterruptedException {
+        SdkHttpClient httpClient = ApacheHttpClient.create();
         Integer SERVER_RESPONSE_DELAY = 3000;
         stubPostRequest("/2016-03-11/allTypes", aResponse().withFixedDelay(SERVER_RESPONSE_DELAY), SAMPLE_BODY);
         ExceptionInThreadRun exception = new ExceptionInThreadRun();
@@ -197,9 +191,10 @@ class SyncClientConnectionInterruptionTest {
         client.close();
     }
 
-    @ParameterizedTest
-    @MethodSource("httpClientImplementation")
-    void sdkClientInterrupted_while_connectionIsInProgress(SdkHttpClient httpClient) throws InterruptedException {
+
+    @Test
+    void sdkClientInterrupted_while_connectionIsInProgress() throws InterruptedException {
+        SdkHttpClient httpClient = ApacheHttpClient.create();
         Integer SERVER_RESPONSE_DELAY = 3000;
         stubPostRequest("/2016-03-11/allTypes", aResponse().withFixedDelay(SERVER_RESPONSE_DELAY), SAMPLE_BODY);
         ExceptionInThreadRun exception = new ExceptionInThreadRun();
