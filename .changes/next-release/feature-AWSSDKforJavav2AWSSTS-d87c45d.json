@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS STS",
+    "contributor": "",
+    "description": "Updates the core STS credential provider logic to return AwsSessionCredentials instead of an STS-specific class, and adds expirationTime to AwsSessionCredentials"
+}
