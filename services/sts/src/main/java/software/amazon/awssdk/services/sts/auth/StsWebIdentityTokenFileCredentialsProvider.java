@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.sts.auth;
 
-import static software.amazon.awssdk.services.sts.internal.StsAuthUtils.fromStsCredentials;
+import static software.amazon.awssdk.services.sts.internal.StsAuthUtils.toAwsSessionCredentials;
 import static software.amazon.awssdk.utils.StringUtils.trim;
 import static software.amazon.awssdk.utils.Validate.notNull;
 
@@ -144,7 +144,7 @@ public final class StsWebIdentityTokenFileCredentialsProvider
     protected AwsSessionCredentials getUpdatedCredentials(StsClient stsClient) {
         AssumeRoleWithWebIdentityRequest request = assumeRoleWithWebIdentityRequest.get();
         notNull(request, "AssumeRoleWithWebIdentityRequest can't be null");
-        return fromStsCredentials(stsClient.assumeRoleWithWebIdentity(request).credentials());
+        return toAwsSessionCredentials(stsClient.assumeRoleWithWebIdentity(request).credentials());
     }
 
     @Override

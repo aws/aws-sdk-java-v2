@@ -42,7 +42,7 @@ public final class AwsSessionCredentials implements AwsCredentials {
         this.accessKeyId = Validate.paramNotNull(builder.accessKeyId, "accessKey");
         this.secretAccessKey = Validate.paramNotNull(builder.secretAccessKey, "secretKey");
         this.sessionToken = Validate.paramNotNull(builder.sessionToken, "sessionToken");
-        this.expirationTime = builder.expiration;
+        this.expirationTime = builder.expirationTime;
     }
 
     /**
@@ -81,7 +81,7 @@ public final class AwsSessionCredentials implements AwsCredentials {
     }
 
     /**
-     * Retrieve the expiration time of these credentials, if they exist.
+     * Retrieve the expiration time of these credentials, if it exists.
      */
     public Optional<Instant> expirationTime() {
         return Optional.ofNullable(expirationTime);
@@ -128,29 +128,48 @@ public final class AwsSessionCredentials implements AwsCredentials {
         return hashCode;
     }
 
+    /**
+     * A builder for creating an instance of {@link AwsSessionCredentials}. This can be created with the static
+     * {@link #builder()} method.
+     */
     public static final class Builder {
         private String accessKeyId;
         private String secretAccessKey;
         private String sessionToken;
-        private Instant expiration;
+        private Instant expirationTime;
 
+        /**
+         * The AWS access key, used to identify the user interacting with services. Required.
+         */
         public Builder accessKeyId(String accessKeyId) {
             this.accessKeyId = accessKeyId;
             return this;
         }
 
+        /**
+         * The AWS secret access key, used to authenticate the user interacting with services. Required
+         */
         public Builder secretAccessKey(String secretAccessKey) {
             this.secretAccessKey = secretAccessKey;
             return this;
         }
 
+        /**
+         * The AWS session token, retrieved from an AWS token service, used for authenticating that this user has
+         * received temporary permission to access some resource. Required
+         */
         public Builder sessionToken(String sessionToken) {
             this.sessionToken = sessionToken;
             return this;
         }
 
-        public Builder expiration(Instant expiration) {
-            this.expiration = expiration;
+        /**
+         * The time after which this identity will no longer be valid. If this is empty,
+         * an expiration time is not known (but the identity may still expire at some
+         * time in the future).
+         */
+        public Builder expirationTime(Instant expirationTime) {
+            this.expirationTime = expirationTime;
             return this;
         }
 

@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.sts.auth;
 
-import static software.amazon.awssdk.services.sts.internal.StsAuthUtils.fromStsCredentials;
+import static software.amazon.awssdk.services.sts.internal.StsAuthUtils.toAwsSessionCredentials;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -70,7 +70,7 @@ public final class StsAssumeRoleCredentialsProvider
     protected AwsSessionCredentials getUpdatedCredentials(StsClient stsClient) {
         AssumeRoleRequest assumeRoleRequest = assumeRoleRequestSupplier.get();
         Validate.notNull(assumeRoleRequest, "Assume role request must not be null.");
-        return fromStsCredentials(stsClient.assumeRole(assumeRoleRequest).credentials());
+        return toAwsSessionCredentials(stsClient.assumeRole(assumeRoleRequest).credentials());
     }
 
     @Override

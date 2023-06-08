@@ -24,12 +24,12 @@ public final class StsAuthUtils {
     private StsAuthUtils() {
     }
 
-    public static AwsSessionCredentials fromStsCredentials(Credentials credentials) {
+    public static AwsSessionCredentials toAwsSessionCredentials(Credentials credentials) {
         return AwsSessionCredentials.builder()
                                     .accessKeyId(credentials.accessKeyId())
                                     .secretAccessKey(credentials.secretAccessKey())
                                     .sessionToken(credentials.sessionToken())
-                                    .expiration(credentials.expiration())
+                                    .expirationTime(credentials.expiration())
                                     .build();
     }
 }

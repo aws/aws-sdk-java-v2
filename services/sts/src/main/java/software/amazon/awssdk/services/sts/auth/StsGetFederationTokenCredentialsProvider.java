@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.services.sts.auth;
 
-import static software.amazon.awssdk.services.sts.internal.StsAuthUtils.fromStsCredentials;
+import static software.amazon.awssdk.services.sts.internal.StsAuthUtils.toAwsSessionCredentials;
 
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.NotThreadSafe;
@@ -67,7 +67,7 @@ public class StsGetFederationTokenCredentialsProvider
 
     @Override
     protected AwsSessionCredentials getUpdatedCredentials(StsClient stsClient) {
-        return fromStsCredentials(stsClient.getFederationToken(getFederationTokenRequest).credentials());
+        return toAwsSessionCredentials(stsClient.getFederationToken(getFederationTokenRequest).credentials());
     }
 
     @Override
