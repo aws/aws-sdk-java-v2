@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Payment Cryptography Data Plane",
-    "contributor": "",
-    "description": "Initial release of AWS Payment Cryptography DataPlane Plane service for performing cryptographic operations typically used during card payment processing."
-}
