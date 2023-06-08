@@ -15,9 +15,9 @@
 
 package software.amazon.awssdk.services.query.auth.scheme;
 
-import java.util.Optional;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.query.auth.scheme.internal.DefaultQueryAuthSchemeParams;
 
 /**
@@ -39,10 +39,9 @@ public interface QueryAuthSchemeParams {
     String operation();
 
     /**
-     * Returns the region. The region is optional. The region parameter may be used with "aws.auth#sigv4" auth scheme.
-     * By default, the region will be empty.
+     * Returns the region. The region parameter may be used with the "aws.auth#sigv4" auth scheme.
      */
-    Optional<String> region();
+    Region region();
 
     /**
      * A param that defauls to true
@@ -72,7 +71,7 @@ public interface QueryAuthSchemeParams {
         /**
          * Set the region. The region parameter may be used with the "aws.auth#sigv4" auth scheme.
          */
-        Builder region(String region);
+        Builder region(Region region);
 
         /**
          * A param that defauls to true

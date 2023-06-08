@@ -15,9 +15,9 @@
 
 package software.amazon.awssdk.services.query.auth.scheme.internal;
 
-import java.util.Optional;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.query.auth.scheme.QueryAuthSchemeParams;
 import software.amazon.awssdk.utils.Validate;
 
@@ -26,7 +26,7 @@ import software.amazon.awssdk.utils.Validate;
 public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams {
     private final String operation;
 
-    private final String region;
+    private final Region region;
 
     private final Boolean defaultTrueParam;
 
@@ -43,8 +43,8 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
     private DefaultQueryAuthSchemeParams(Builder builder) {
         this.operation = Validate.paramNotNull(builder.operation, "operation");
         this.region = builder.region;
-        this.defaultTrueParam = Validate.paramNotNull(builder.defaultTrueParam, "defaultTrueParam");
-        this.defaultStringParam = Validate.paramNotNull(builder.defaultStringParam, "defaultStringParam");
+        this.defaultTrueParam = builder.defaultTrueParam;
+        this.defaultStringParam = builder.defaultStringParam;
         this.deprecatedParam = builder.deprecatedParam;
         this.booleanContextParam = builder.booleanContextParam;
         this.stringContextParam = builder.stringContextParam;
@@ -61,8 +61,8 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
     }
 
     @Override
-    public Optional<String> region() {
-        return region == null ? Optional.empty() : Optional.of(region);
+    public Region region() {
+        return region;
     }
 
     @Override
@@ -99,7 +99,7 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
     private static final class Builder implements QueryAuthSchemeParams.Builder {
         private String operation;
 
-        private String region;
+        private Region region;
 
         private Boolean defaultTrueParam = true;
 
@@ -120,7 +120,7 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
         }
 
         @Override
-        public Builder region(String region) {
+        public Builder region(Region region) {
             this.region = region;
             return this;
         }

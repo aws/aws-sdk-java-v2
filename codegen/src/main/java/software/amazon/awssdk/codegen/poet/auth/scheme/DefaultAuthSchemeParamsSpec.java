@@ -19,11 +19,9 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
-import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import java.util.Map;
-import java.util.Optional;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -31,6 +29,7 @@ import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.Validate;
 
 public class DefaultAuthSchemeParamsSpec implements ClassSpec {
@@ -138,16 +137,18 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
                               .build());
 
         if (authSchemeSpecUtils.usesSigV4()) {
-            b.addField(FieldSpec.builder(String.class, "region")
-                                .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
-                                .build());
+            if (authSchemeSpecUtils.usesSigV4()) {
+                b.addField(FieldSpec.builder(Region.class, "region")
+                                    .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
+                                    .build());
 
-            b.addMethod(MethodSpec.methodBuilder("region")
-                                  .addModifiers(Modifier.PUBLIC)
-                                  .addAnnotation(Override.class)
-                                  .returns(ParameterizedTypeName.get(Optional.class, String.class))
-                                  .addStatement("return region == null ? Optional.empty() : Optional.of(region)")
-                                  .build());
+                b.addMethod(MethodSpec.methodBuilder("region")
+                                      .addModifiers(Modifier.PUBLIC)
+                                      .addAnnotation(Override.class)
+                                      .returns(Region.class)
+                                      .addStatement("return region")
+                                      .build());
+            }
         }
 
         if (authSchemeSpecUtils.generateEndpointBasedParams()) {
@@ -155,9 +156,9 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
                 if (authSchemeSpecUtils.includeParam(name)) {
                     b.addField(endpointRulesSpecUtils.parameterClassField(name, model));
                     b.addMethod(endpointRulesSpecUtils.parameterClassAccessorMethod(name, model)
-                                    .toBuilder()
-                                    .addAnnotation(Override.class)
-                                    .build());
+                                                      .toBuilder()
+                                                      .addAnnotation(Override.class)
+                                                      .build());
                 }
             });
         }
@@ -170,10 +171,10 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
         b.addMethod(builderSetterMethod("operation", TypeName.get(String.class)));
 
         if (authSchemeSpecUtils.usesSigV4()) {
-            b.addField(FieldSpec.builder(String.class, "region")
+            b.addField(FieldSpec.builder(Region.class, "region")
                                 .addModifiers(Modifier.PRIVATE)
                                 .build());
-            b.addMethod(builderSetterMethod("region", TypeName.get(String.class)));
+            b.addMethod(builderSetterMethod("region", TypeName.get(Region.class)));
         }
 
         if (authSchemeSpecUtils.generateEndpointBasedParams()) {

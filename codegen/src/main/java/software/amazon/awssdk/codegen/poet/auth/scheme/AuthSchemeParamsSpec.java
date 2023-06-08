@@ -19,10 +19,8 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
-import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
 import java.util.Map;
-import java.util.Optional;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -30,6 +28,7 @@ import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
+import software.amazon.awssdk.regions.Region;
 
 public class AuthSchemeParamsSpec implements ClassSpec {
     private final IntermediateModel intermediateModel;
@@ -106,11 +105,11 @@ public class AuthSchemeParamsSpec implements ClassSpec {
         if (authSchemeSpecUtils.usesSigV4()) {
             b.addMethod(MethodSpec.methodBuilder("region")
                                   .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
-                                  // TODO: Should region be Regions? (Regions.class isn't available here though)
-                                  .returns(ParameterizedTypeName.get(Optional.class, String.class))
-                                  .addJavadoc("Returns the region. The region is optional. The region parameter may be used "
-                                              + "with $S auth scheme. By default, the region will be empty.", "aws.auth#sigv4")
+                                  .returns(Region.class)
+                                  .addJavadoc("Returns the region. The region parameter may be used with the $S auth scheme.",
+                                              "aws.auth#sigv4")
                                   .build());
+
         }
 
         if (authSchemeSpecUtils.generateEndpointBasedParams()) {
@@ -137,11 +136,12 @@ public class AuthSchemeParamsSpec implements ClassSpec {
         if (authSchemeSpecUtils.usesSigV4()) {
             b.addMethod(MethodSpec.methodBuilder("region")
                                   .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
-                                  .addParameter(ParameterSpec.builder(String.class, "region").build())
+                                  .addParameter(ParameterSpec.builder(Region.class, "region").build())
                                   .returns(authSchemeSpecUtils.parametersInterfaceBuilderInterfaceName())
-                                  .addJavadoc("Set the region. The region parameter may be used with  the $S auth scheme.",
+                                  .addJavadoc("Set the region. The region parameter may be used with the $S auth scheme.",
                                               "aws.auth#sigv4") // TODO: Reference the SigV4 AuthScheme when implemented
                                   .build());
+
         }
 
         if (authSchemeSpecUtils.generateEndpointBasedParams()) {

@@ -15,9 +15,9 @@
 
 package software.amazon.awssdk.services.query.auth.scheme.internal;
 
-import java.util.Optional;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.query.auth.scheme.QueryAuthSchemeParams;
 import software.amazon.awssdk.utils.Validate;
 
@@ -25,7 +25,8 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams {
     private final String operation;
-    private final String region;
+
+    private final Region region;
 
     private DefaultQueryAuthSchemeParams(Builder builder) {
         this.operation = Validate.paramNotNull(builder.operation, "operation");
@@ -42,13 +43,14 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
     }
 
     @Override
-    public Optional<String> region() {
-        return region == null ? Optional.empty() : Optional.of(region);
+    public Region region() {
+        return region;
     }
 
     private static final class Builder implements QueryAuthSchemeParams.Builder {
         private String operation;
-        private String region;
+
+        private Region region;
 
         @Override
         public Builder operation(String operation) {
@@ -57,7 +59,7 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
         }
 
         @Override
-        public Builder region(String region) {
+        public Builder region(Region region) {
             this.region = region;
             return this;
         }
