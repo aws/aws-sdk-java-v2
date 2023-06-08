@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Payment Cryptography Control Plane",
-    "contributor": "",
-    "description": "Initial release of AWS Payment Cryptography Control Plane service for creating and managing cryptographic keys used during card payment processing."
-}
