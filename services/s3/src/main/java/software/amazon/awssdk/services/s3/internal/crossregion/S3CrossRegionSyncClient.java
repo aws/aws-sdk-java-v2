@@ -15,53 +15,95 @@
 
 package software.amazon.awssdk.services.s3.internal.crossregion;
 
+import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
-import software.amazon.awssdk.endpoints.Endpoint;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.DelegatingS3Client;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.endpoints.S3EndpointParams;
 import software.amazon.awssdk.services.s3.endpoints.S3EndpointProvider;
+import software.amazon.awssdk.services.s3.internal.crossregion.endpointprovider.BucketEndpointProvider;
+import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.model.S3Request;
 
+/**
+ * Decorator S3 Sync client that will fetch the region name whenever there is Redirect 301 error due to cross region bucket
+ * access.
+ */
 @SdkInternalApi
 public final class S3CrossRegionSyncClient extends DelegatingS3Client {
+
+    private static final String AMZ_BUCKET_REGION_HEADER = "x-amz-bucket-region";
+    public static final int REDIRECT_STATUS_CODE = 301;
+    private final Map<String, Region> bucketToRegionCache = new ConcurrentHashMap<>();
+
     public S3CrossRegionSyncClient(S3Client s3Client) {
         super(s3Client);
+    }
+
+    private static <T extends S3Request> Optional<String> bucketNameFromRequest(T request) {
+        return request.getValueForField("Bucket", String.class);
     }
 
     @Override
     protected <T extends S3Request, ReturnT> ReturnT invokeOperation(T request, Function<T, ReturnT> operation) {
 
-        Optional<String> bucket = request.getValueForField("Bucket", String.class);
-
-        if (bucket.isPresent()) {
-            try {
-                return operation.apply(requestWithDecoratedEndpointProvider(request, bucket.get()));
-            } catch (Exception e) {
-                handleOperationFailure(e, bucket.get());
-            }
+        Optional<String> bucketRequest = bucketNameFromRequest(request);
+        if (!bucketRequest.isPresent()) {
+            return operation.apply(request);
         }
-
-        return operation.apply(request);
+        String bucketName = bucketRequest.get();
+        try {
+            if (bucketToRegionCache.containsKey(bucketName)) {
+                return operation.apply(requestWithDecoratedEndpointProvider(request, regionSupplier(bucketName)));
+            }
+            return operation.apply(request);
+        } catch (S3Exception exception) {
+            if (exception.statusCode() == REDIRECT_STATUS_CODE) {
+                updateCacheFromRedirectException(exception, bucketName);
+                return operation.apply(requestWithDecoratedEndpointProvider(request, regionSupplier(bucketName)));
+            }
+            throw exception;
+        }
     }
 
-    private void handleOperationFailure(Throwable t, String bucket) {
-        //TODO: handle failure case
+    private String updateCacheFromRedirectException(S3Exception exception, String bucketName) {
+        Optional<String> regionStr = getBucketRegionFromException(exception);
+        // If redirected, clear previous values due to region change.        bucketToRegionCache.remove(bucketName);
+        regionStr.ifPresent(region -> bucketToRegionCache.put(bucketName, Region.of(region)));
+        return regionStr.orElse(null);
+    }
+
+    private Supplier<Region> regionSupplier(String bucket) {
+        return () -> bucketToRegionCache.computeIfAbsent(bucket, this::fetchBucketRegion);
+    }
+
+    private Region fetchBucketRegion(String bucketName) {
+        try {
+            ((S3Client) delegate()).headBucket(HeadBucketRequest.builder().bucket(bucketName).build());
+        } catch (S3Exception exception) {
+            if (exception.statusCode() == REDIRECT_STATUS_CODE) {
+                return Region.of(getBucketRegionFromException(exception).orElseThrow(() -> exception));
+            }
+            throw exception;
+        }
+        return null;
     }
 
     @SuppressWarnings("unchecked")
-    private <T extends S3Request> T requestWithDecoratedEndpointProvider(T request, String bucket) {
+    private <T extends S3Request> T requestWithDecoratedEndpointProvider(T request, Supplier<Region> regionSupplier) {
         return (T) request.toBuilder()
-                          .overrideConfiguration(getOrCreateConfigWithEndpointProvider(request, bucket))
+                          .overrideConfiguration(getOrCreateConfigWithEndpointProvider(request, regionSupplier))
                           .build();
     }
 
-    //TODO: optimize shared sync/async code
-    private AwsRequestOverrideConfiguration getOrCreateConfigWithEndpointProvider(S3Request request, String bucket) {
+    private AwsRequestOverrideConfiguration getOrCreateConfigWithEndpointProvider(S3Request request,
+                                                                                  Supplier<Region> regionSupplier) {
         AwsRequestOverrideConfiguration requestOverrideConfig =
             request.overrideConfiguration().orElseGet(() -> AwsRequestOverrideConfiguration.builder().build());
 
@@ -69,26 +111,14 @@ public final class S3CrossRegionSyncClient extends DelegatingS3Client {
             requestOverrideConfig.endpointProvider().orElseGet(() -> serviceClientConfiguration().endpointProvider().get());
 
         return requestOverrideConfig.toBuilder()
-                                    .endpointProvider(BucketEndpointProvider.create(delegateEndpointProvider, bucket))
+                                    .endpointProvider(BucketEndpointProvider.create(delegateEndpointProvider, regionSupplier))
                                     .build();
     }
 
-    static final class BucketEndpointProvider implements S3EndpointProvider {
-        private final S3EndpointProvider delegate;
-        private final String bucket;
-
-        private BucketEndpointProvider(S3EndpointProvider delegate, String bucket) {
-            this.delegate = delegate;
-            this.bucket = bucket;
-        }
-
-        public static BucketEndpointProvider create(S3EndpointProvider delegate, String bucket) {
-            return new BucketEndpointProvider(delegate, bucket);
-        }
-
-        @Override
-        public CompletableFuture<Endpoint> resolveEndpoint(S3EndpointParams endpointParams) {
-            return delegate.resolveEndpoint(endpointParams);
-        }
+    private Optional<String> getBucketRegionFromException(S3Exception exception) {
+        return exception.awsErrorDetails()
+                        .sdkHttpResponse()
+                        .firstMatchingHeader(AMZ_BUCKET_REGION_HEADER);
     }
+
 }

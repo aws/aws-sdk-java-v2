@@ -20,11 +20,10 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
-import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.services.s3.DelegatingS3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.endpoints.S3EndpointParams;
 import software.amazon.awssdk.services.s3.endpoints.S3EndpointProvider;
+import software.amazon.awssdk.services.s3.internal.crossregion.endpointprovider.BucketEndpointProvider;
 import software.amazon.awssdk.services.s3.model.S3Request;
 
 @SdkInternalApi
@@ -67,28 +66,12 @@ public final class S3CrossRegionAsyncClient extends DelegatingS3AsyncClient {
         S3EndpointProvider delegateEndpointProvider = (S3EndpointProvider)
             requestOverrideConfig.endpointProvider().orElseGet(() -> serviceClientConfiguration().endpointProvider().get());
 
+        // TODO : separate PR to provide supplier for Async client
         return requestOverrideConfig.toBuilder()
-                                    .endpointProvider(BucketEndpointProvider.create(delegateEndpointProvider, bucket))
+                                    .endpointProvider(BucketEndpointProvider.create(delegateEndpointProvider, null))
                                     .build();
     }
 
     //TODO: add cross region logic
-    static final class BucketEndpointProvider implements S3EndpointProvider {
-        private final S3EndpointProvider delegate;
-        private final String bucket;
 
-        private BucketEndpointProvider(S3EndpointProvider delegate, String bucket) {
-            this.delegate = delegate;
-            this.bucket = bucket;
-        }
-
-        public static BucketEndpointProvider create(S3EndpointProvider delegate, String bucket) {
-            return new BucketEndpointProvider(delegate, bucket);
-        }
-
-        @Override
-        public CompletableFuture<Endpoint> resolveEndpoint(S3EndpointParams endpointParams) {
-            return delegate.resolveEndpoint(endpointParams);
-        }
-    }
 }

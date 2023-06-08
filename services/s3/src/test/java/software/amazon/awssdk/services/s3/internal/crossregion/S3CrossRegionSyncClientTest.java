@@ -30,6 +30,7 @@ import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.endpoints.internal.DefaultS3EndpointProvider;
+import software.amazon.awssdk.services.s3.internal.crossregion.endpointprovider.BucketEndpointProvider;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.paginators.ListObjectsV2Iterable;
@@ -67,7 +68,7 @@ class S3CrossRegionSyncClientTest {
     public void standardOp_crossRegionClient_noOverrideConfig_SuccessfullyIntercepts() {
         S3Client crossRegionClient = new S3CrossRegionSyncClient(s3Client);
         crossRegionClient.getObject(r -> r.bucket(BUCKET).key(KEY));
-        assertThat(captureInterceptor.endpointProvider).isInstanceOf(S3CrossRegionSyncClient.BucketEndpointProvider.class);
+        assertThat(captureInterceptor.endpointProvider).isInstanceOf(BucketEndpointProvider.class);
     }
 
     @Test
@@ -79,7 +80,7 @@ class S3CrossRegionSyncClientTest {
                                                    .overrideConfiguration(o -> o.putHeader("someheader", "somevalue"))
                                                    .build();
         crossRegionClient.getObject(request);
-        assertThat(captureInterceptor.endpointProvider).isInstanceOf(S3CrossRegionSyncClient.BucketEndpointProvider.class);
+        assertThat(captureInterceptor.endpointProvider).isInstanceOf(BucketEndpointProvider.class);
         assertThat(mockSyncHttpClient.getLastRequest().headers().get("someheader")).isNotNull();
     }
 
