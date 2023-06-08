@@ -96,7 +96,7 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
 
     private boolean isParamRequired(ParameterModel model) {
         Boolean isRequired = model.isRequired();
-        return isRequired != null && isRequired;
+        return (isRequired != null && isRequired) || model.getDefault() != null;
     }
 
     private MethodSpec builderMethod() {
@@ -137,18 +137,16 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
                               .build());
 
         if (authSchemeSpecUtils.usesSigV4()) {
-            if (authSchemeSpecUtils.usesSigV4()) {
-                b.addField(FieldSpec.builder(Region.class, "region")
-                                    .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
-                                    .build());
+            b.addField(FieldSpec.builder(Region.class, "region")
+                                .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
+                                .build());
 
-                b.addMethod(MethodSpec.methodBuilder("region")
-                                      .addModifiers(Modifier.PUBLIC)
-                                      .addAnnotation(Override.class)
-                                      .returns(Region.class)
-                                      .addStatement("return region")
-                                      .build());
-            }
+            b.addMethod(MethodSpec.methodBuilder("region")
+                                  .addModifiers(Modifier.PUBLIC)
+                                  .addAnnotation(Override.class)
+                                  .returns(Region.class)
+                                  .addStatement("return region")
+                                  .build());
         }
 
         if (authSchemeSpecUtils.generateEndpointBasedParams()) {
