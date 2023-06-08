@@ -69,6 +69,11 @@ public class BuilderClassTest {
     }
 
     @Test
+    public void syncComposedClientBuilderClass() throws Exception {
+        validateComposedClientGeneration(SyncClientBuilderClass::new, "test-composed-sync-client-builder-class.java");
+    }
+
+    @Test
     public void asyncClientBuilderInterface() throws Exception {
         validateGeneration(AsyncClientBuilderInterface::new, "test-async-client-builder-interface.java");
     }
@@ -78,8 +83,18 @@ public class BuilderClassTest {
         validateGeneration(AsyncClientBuilderClass::new, "test-async-client-builder-class.java");
     }
 
+    @Test
+    public void asyncComposedClientBuilderClass() throws Exception {
+        validateComposedClientGeneration(AsyncClientBuilderClass::new, "test-composed-async-client-builder-class.java");
+    }
+
     private void validateGeneration(Function<IntermediateModel, ClassSpec> generatorConstructor, String expectedClassName) {
         assertThat(generatorConstructor.apply(ClientTestModels.restJsonServiceModels()), generatesTo(expectedClassName));
+    }
+
+    private void validateComposedClientGeneration(Function<IntermediateModel, ClassSpec> generatorConstructor,
+                                                  String expectedClassName) {
+        assertThat(generatorConstructor.apply(ClientTestModels.composedClientJsonServiceModels()), generatesTo(expectedClassName));
     }
 
     private void validateBearerAuthGeneration(Function<IntermediateModel, ClassSpec> generatorConstructor,

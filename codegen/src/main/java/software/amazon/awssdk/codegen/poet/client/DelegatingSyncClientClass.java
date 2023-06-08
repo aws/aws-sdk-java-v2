@@ -151,7 +151,7 @@ public class DelegatingSyncClientClass extends SyncClientInterface {
         builder.addModifiers(PUBLIC)
                .addAnnotation(Override.class);
 
-        if (builder.parameters.size() < 1) {
+        if (builder.parameters.isEmpty()) {
             throw new IllegalStateException("All client methods must have an argument");
         }
 

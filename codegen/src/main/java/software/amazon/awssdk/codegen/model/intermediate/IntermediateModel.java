@@ -235,6 +235,13 @@ public final class IntermediateModel {
         }
     }
 
+    public Optional<String> clientComposerClassName() {
+        if (customizationConfig.getClientComposerFactory() != null) {
+            return Optional.of(customizationConfig.getClientComposerFactory());
+        }
+        return Optional.empty();
+    }
+
     public String getFileHeader() {
         return FILE_HEADER;
     }

@@ -213,6 +213,14 @@ public class CustomizationConfig {
     private boolean delegateSyncClientClass;
 
     /**
+     * Fully qualified name of a class that given the default client instance can return the final client instance,
+     * for instance by decorating the client with specific-purpose implementations of the client interface.
+     * The class should expose one async and one sync public static method that takes an instance of the client class
+     * and the client configuration and returns the same type for the client. See S3 customization.config for an example.
+     */
+    private String clientComposerFactory;
+
+    /**
      * Whether to skip generating endpoint tests from endpoint-tests.json
      */
     private boolean skipEndpointTestGeneration;
@@ -559,6 +567,14 @@ public class CustomizationConfig {
 
     public void setDelegateAsyncClientClass(boolean delegateAsyncClientClass) {
         this.delegateAsyncClientClass = delegateAsyncClientClass;
+    }
+
+    public String getClientComposerFactory() {
+        return clientComposerFactory;
+    }
+
+    public void setClientComposerFactory(String clientComposerFactory) {
+        this.clientComposerFactory = clientComposerFactory;
     }
 
     public boolean isDelegateSyncClientClass() {
