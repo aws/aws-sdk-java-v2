@@ -69,8 +69,7 @@ public final class ClassLoaderHelper {
      * @throws ClassNotFoundException
      *             if failed to load the class
      */
-    public static Class<?> loadClass(String fqcn, Class<?>... classes)
-            throws ClassNotFoundException {
+    public static Class<?> loadClass(String fqcn, Class<?>... classes) throws ClassNotFoundException {
         return loadClass(fqcn, true, classes);
     }
 

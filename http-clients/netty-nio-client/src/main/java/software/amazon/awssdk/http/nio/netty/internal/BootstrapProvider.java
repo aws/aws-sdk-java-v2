@@ -43,12 +43,15 @@ public class BootstrapProvider {
 
     /**
      * Creates a Bootstrap for a specific host and port with an unresolved InetSocketAddress as the remoteAddress.
-     * @param host The unresolved remote hostname
-     * @param port The remote port
-     * @return A newly created Bootstrap using the configuration this provider was initialized with, and having an
-     * unresolved remote address.
+     *
+     * @param host                      The unresolved remote hostname
+     * @param port                      The remote port
+     * @param useNonBlockingDnsResolver If true, uses the default non-blocking DNS resolver from Netty. Otherwise, the default
+     *                                  JDK blocking DNS resolver will be used.
+     * @return A newly created Bootstrap using the configuration this provider was initialized with, and having an unresolved
+     * remote address.
      */
-    public Bootstrap createBootstrap(String host, int port) {
+    public Bootstrap createBootstrap(String host, int port, Boolean useNonBlockingDnsResolver) {
         Bootstrap bootstrap =
             new Bootstrap()
                 .group(sdkEventLoopGroup.eventLoopGroup())
@@ -56,6 +59,11 @@ public class BootstrapProvider {
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, nettyConfiguration.connectTimeoutMillis())
                 .option(ChannelOption.SO_KEEPALIVE, nettyConfiguration.tcpKeepAlive())
                 .remoteAddress(InetSocketAddress.createUnresolved(host, port));
+
+        if (Boolean.TRUE.equals(useNonBlockingDnsResolver)) {
+            bootstrap.resolver(DnsResolverLoader.init(sdkEventLoopGroup.datagramChannelFactory()));
+        }
+
         sdkChannelOptions.channelOptions().forEach(bootstrap::option);
 
         return bootstrap;
