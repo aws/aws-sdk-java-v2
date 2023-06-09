@@ -184,6 +184,10 @@ public enum SdkSystemSetting implements SystemSetting {
      */
     AWS_USE_FIPS_ENDPOINT("aws.useFipsEndpoint", null),
 
+    AWS_REQUEST_COMPRESSION_ENABLED("aws.requestCompressionEnabled", null),
+
+    AWS_REQUEST_MIN_COMPRESSION_SIZE_IN_BYTES("aws.requestMinCompressionSizeInBytes", null),
+
     ;
 
     private final String systemProperty;

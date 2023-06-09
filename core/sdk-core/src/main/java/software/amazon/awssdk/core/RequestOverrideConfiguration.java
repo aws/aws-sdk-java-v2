@@ -50,6 +50,7 @@ public abstract class RequestOverrideConfiguration {
     private final Signer signer;
     private final List<MetricPublisher> metricPublishers;
     private final ExecutionAttributes executionAttributes;
+    private final RequestCompressionConfiguration requestCompressionConfiguration;
 
     protected RequestOverrideConfiguration(Builder<?> builder) {
         this.headers = CollectionUtils.deepUnmodifiableMap(builder.headers(), () -> new TreeMap<>(String.CASE_INSENSITIVE_ORDER));
@@ -60,6 +61,7 @@ public abstract class RequestOverrideConfiguration {
         this.signer = builder.signer();
         this.metricPublishers = Collections.unmodifiableList(new ArrayList<>(builder.metricPublishers()));
         this.executionAttributes = ExecutionAttributes.unmodifiableExecutionAttributes(builder.executionAttributes());
+        this.requestCompressionConfiguration = builder.requestCompressionConfiguration();
     }
 
     /**
@@ -153,6 +155,13 @@ public abstract class RequestOverrideConfiguration {
         return executionAttributes;
     }
 
+    /**
+     * Returns the request compression configuration object. TODO
+     */
+    public RequestCompressionConfiguration requestCompressionConfiguration() {
+        return requestCompressionConfiguration;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -169,7 +178,8 @@ public abstract class RequestOverrideConfiguration {
                Objects.equals(apiCallAttemptTimeout, that.apiCallAttemptTimeout) &&
                Objects.equals(signer, that.signer) &&
                Objects.equals(metricPublishers, that.metricPublishers) &&
-               Objects.equals(executionAttributes, that.executionAttributes);
+               Objects.equals(executionAttributes, that.executionAttributes) &&
+               Objects.equals(requestCompressionConfiguration, that.requestCompressionConfiguration);
     }
 
     @Override
@@ -183,6 +193,7 @@ public abstract class RequestOverrideConfiguration {
         hashCode = 31 * hashCode + Objects.hashCode(signer);
         hashCode = 31 * hashCode + Objects.hashCode(metricPublishers);
         hashCode = 31 * hashCode + Objects.hashCode(executionAttributes);
+        hashCode = 31 * hashCode + Objects.hashCode(requestCompressionConfiguration);
         return hashCode;
     }
 
@@ -413,6 +424,15 @@ public abstract class RequestOverrideConfiguration {
         ExecutionAttributes executionAttributes();
 
         /**
+         *
+         *
+         * @param requestCompressionConfiguration
+         */
+        B requestCompressionConfiguration(RequestCompressionConfiguration requestCompressionConfiguration);
+
+        RequestCompressionConfiguration requestCompressionConfiguration();
+
+        /**
          * Create a new {@code SdkRequestOverrideConfiguration} with the properties set on this builder.
          *
          * @return The new {@code SdkRequestOverrideConfiguration}.
@@ -429,6 +449,7 @@ public abstract class RequestOverrideConfiguration {
         private Signer signer;
         private List<MetricPublisher> metricPublishers = new ArrayList<>();
         private ExecutionAttributes.Builder executionAttributesBuilder = ExecutionAttributes.builder();
+        private RequestCompressionConfiguration requestCompressionConfiguration;
 
         protected BuilderImpl() {
         }
@@ -442,6 +463,7 @@ public abstract class RequestOverrideConfiguration {
             signer(sdkRequestOverrideConfig.signer().orElse(null));
             metricPublishers(sdkRequestOverrideConfig.metricPublishers());
             executionAttributes(sdkRequestOverrideConfig.executionAttributes());
+            requestCompressionConfiguration(sdkRequestOverrideConfig.requestCompressionConfiguration);
         }
 
         @Override
@@ -594,6 +616,17 @@ public abstract class RequestOverrideConfiguration {
 
         public void setExecutionAttributes(ExecutionAttributes executionAttributes) {
             executionAttributes(executionAttributes);
+        }
+
+        @Override
+        public B requestCompressionConfiguration(RequestCompressionConfiguration requestCompressionConfiguration) {
+            this.requestCompressionConfiguration = requestCompressionConfiguration;
+            return (B) this;
+        }
+
+        @Override
+        public RequestCompressionConfiguration requestCompressionConfiguration() {
+            return requestCompressionConfiguration;
         }
     }
 }
