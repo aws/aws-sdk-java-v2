@@ -15,24 +15,17 @@
 
 package software.amazon.awssdk.codegen.poet.rules;
 
-import com.fasterxml.jackson.core.TreeNode;
-import com.fasterxml.jackson.jr.stree.JrsBoolean;
-import com.fasterxml.jackson.jr.stree.JrsString;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
-import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
-import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.TypeSpec;
 import java.util.Map;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
-import software.amazon.awssdk.codegen.model.rules.endpoints.BuiltInParameter;
 import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
-import software.amazon.awssdk.regions.Region;
 
 public class EndpointParametersClassSpec implements ClassSpec {
     private final IntermediateModel intermediateModel;
@@ -56,8 +49,8 @@ public class EndpointParametersClassSpec implements ClassSpec {
                                       .addModifiers(Modifier.PUBLIC, Modifier.FINAL);
 
         parameters().forEach((name, model) -> {
-            b.addField(fieldSpec(name, model).toBuilder().addModifiers(Modifier.FINAL).build());
-            b.addMethod(accessorMethod(name, model));
+            b.addField(endpointRulesSpecUtils.parameterClassField(name, model));
+            b.addMethod(endpointRulesSpecUtils.parameterClassAccessorMethod(name, model));
         });
 
         return b.build();
@@ -73,7 +66,7 @@ public class EndpointParametersClassSpec implements ClassSpec {
                                          .addModifiers(Modifier.PUBLIC);
 
         parameters().forEach((name, model) -> {
-            b.addMethod(setterMethodDeclaration(name, model));
+            b.addMethod(endpointRulesSpecUtils.parameterBuilderSetterMethodDeclaration(className(), name, model));
         });
 
         b.addMethod(MethodSpec.methodBuilder("build")
@@ -90,8 +83,8 @@ public class EndpointParametersClassSpec implements ClassSpec {
                                      .addSuperinterface(builderInterfaceName());
 
         parameters().forEach((name, model) -> {
-            b.addField(fieldSpec(name, model).toBuilder().initializer(defaultValueCode(model)).build());
-            b.addMethod(builderSetterMethod(name, model));
+            b.addField(endpointRulesSpecUtils.parameterBuilderFieldSpec(name, model));
+            b.addMethod(endpointRulesSpecUtils.parameterBuilderSetterMethod(className(), name, model));
         });
 
         b.addMethod(MethodSpec.methodBuilder("build")
@@ -118,51 +111,6 @@ public class EndpointParametersClassSpec implements ClassSpec {
         return intermediateModel.getEndpointRuleSetModel().getParameters();
     }
 
-    private ParameterSpec parameterSpec(String name, ParameterModel model) {
-        return ParameterSpec.builder(endpointRulesSpecUtils.parameterType(model), variableName(name)).build();
-    }
-
-    private FieldSpec fieldSpec(String name, ParameterModel model) {
-        return FieldSpec.builder(endpointRulesSpecUtils.parameterType(model), variableName(name))
-                        .addModifiers(Modifier.PRIVATE)
-                        .build();
-    }
-
-    private MethodSpec setterMethodDeclaration(String name, ParameterModel model) {
-        MethodSpec.Builder b = paramMethodBuilder(name, model);
-        b.addModifiers(Modifier.ABSTRACT);
-        b.addParameter(parameterSpec(name, model));
-        b.returns(builderInterfaceName());
-        return b.build();
-    }
-
-    private MethodSpec accessorMethod(String name, ParameterModel model) {
-        MethodSpec.Builder b = paramMethodBuilder(name, model);
-        b.returns(endpointRulesSpecUtils.parameterType(model));
-        b.addStatement("return $N", variableName(name));
-        return b.build();
-    }
-
-    private MethodSpec builderSetterMethod(String name, ParameterModel model) {
-        String memberName = variableName(name);
-
-        MethodSpec.Builder b = paramMethodBuilder(name, model)
-            .addAnnotation(Override.class)
-            .addParameter(parameterSpec(name, model))
-            .returns(builderInterfaceName())
-            .addStatement("this.$1N = $1N", memberName);
-
-        TreeNode defaultValue = model.getDefault();
-        if (defaultValue != null) {
-            b.beginControlFlow("if (this.$N == null)", memberName);
-            b.addStatement("this.$N = $L", memberName, defaultValueCode(model));
-            b.endControlFlow();
-        }
-
-        b.addStatement("return this");
-        return b.build();
-    }
-
     private MethodSpec ctor() {
         MethodSpec.Builder b = MethodSpec.constructorBuilder()
                                          .addModifiers(Modifier.PRIVATE)
@@ -185,43 +133,5 @@ public class EndpointParametersClassSpec implements ClassSpec {
 
     private String variableName(String name) {
         return intermediateModel.getNamingStrategy().getVariableName(name);
-    }
-
-    private CodeBlock defaultValueCode(ParameterModel parameterModel) {
-        CodeBlock.Builder b = CodeBlock.builder();
-
-        TreeNode defaultValue = parameterModel.getDefault();
-
-        if (defaultValue == null) {
-            return b.build();
-        }
-
-        switch (defaultValue.asToken()) {
-            case VALUE_STRING:
-                String stringValue = ((JrsString) defaultValue).getValue();
-                if (parameterModel.getBuiltInEnum() == BuiltInParameter.AWS_REGION) {
-                    b.add("$T.of($S)", Region.class, stringValue);
-                } else {
-                    b.add("$S", stringValue);
-                }
-                break;
-            case VALUE_TRUE:
-            case VALUE_FALSE:
-                b.add("$L", ((JrsBoolean) defaultValue).booleanValue());
-                break;
-            default:
-                throw new RuntimeException("Don't know how to set default value for parameter of type "
-                                           + defaultValue.asToken());
-        }
-        return b.build();
-    }
-
-    private MethodSpec.Builder paramMethodBuilder(String name, ParameterModel model) {
-        MethodSpec.Builder b = MethodSpec.methodBuilder(endpointRulesSpecUtils.paramMethodName(name));
-        b.addModifiers(Modifier.PUBLIC);
-        if (model.getDeprecated() != null) {
-            b.addAnnotation(Deprecated.class);
-        }
-        return b;
     }
 }
