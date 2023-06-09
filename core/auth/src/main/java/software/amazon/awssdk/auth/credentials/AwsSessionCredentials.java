@@ -84,6 +84,7 @@ public final class AwsSessionCredentials implements AwsCredentials, AwsSessionCr
     /**
      * Retrieve the expiration time of these credentials, if it exists.
      */
+    @Override
     public Optional<Instant> expirationTime() {
         return Optional.ofNullable(expirationTime);
     }
