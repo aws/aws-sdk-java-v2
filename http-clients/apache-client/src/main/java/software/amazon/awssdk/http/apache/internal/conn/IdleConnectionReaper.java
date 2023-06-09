@@ -16,7 +16,9 @@
 package software.amazon.awssdk.http.apache.internal.conn;
 
 import java.time.Duration;
+import java.util.Collections;
 import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -48,7 +50,7 @@ public final class IdleConnectionReaper {
     private volatile ReaperTask reaperTask;
 
     private IdleConnectionReaper() {
-        this.connectionManagers =  new ConcurrentHashMap<>();
+        this.connectionManagers = Collections.synchronizedMap(new WeakHashMap<>());
 
         this.executorServiceSupplier = () -> {
             ExecutorService e = Executors.newSingleThreadExecutor(r -> {
