@@ -32,6 +32,7 @@ import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.interceptor.trait.RequestCompression;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
@@ -235,8 +236,10 @@ public final class ClientOverrideConfiguration
     }
 
     /**
+     * The request compression configuration object, which includes options to enable/disable request compression and set the
+     * minimum compression threshold.
      *
-     * @return
+     * @see Builder#requestCompressionConfiguration(RequestCompressionConfiguration)
      */
     public RequestCompressionConfiguration requestCompressionConfiguration() {
         return requestCompressionConfiguration;
@@ -528,9 +531,7 @@ public final class ClientOverrideConfiguration
         ExecutionAttributes executionAttributes();
 
         /**
-         *
-         *
-         * @param requestCompressionConfiguration
+         * Sets the {@link RequestCompressionConfiguration} for this client.
          */
         Builder requestCompressionConfiguration(RequestCompressionConfiguration requestCompressionConfiguration);
 

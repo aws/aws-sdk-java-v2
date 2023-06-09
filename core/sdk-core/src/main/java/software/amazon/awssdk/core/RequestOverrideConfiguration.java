@@ -156,7 +156,9 @@ public abstract class RequestOverrideConfiguration {
     }
 
     /**
-     * Returns the request compression configuration object. TODO
+     * Returns the request compression configuration object, which includes options to enable/disable request compression and
+     * set the minimum compression threshold. This request compression config object supersedes the request compression config
+     * object set on the client.
      */
     public RequestCompressionConfiguration requestCompressionConfiguration() {
         return requestCompressionConfiguration;
@@ -424,9 +426,9 @@ public abstract class RequestOverrideConfiguration {
         ExecutionAttributes executionAttributes();
 
         /**
+         * Sets the {@link RequestCompressionConfiguration} for this request.
          *
-         *
-         * @param requestCompressionConfiguration
+         * @param requestCompressionConfiguration Request compression configuration object for this request.
          */
         B requestCompressionConfiguration(RequestCompressionConfiguration requestCompressionConfiguration);
 
