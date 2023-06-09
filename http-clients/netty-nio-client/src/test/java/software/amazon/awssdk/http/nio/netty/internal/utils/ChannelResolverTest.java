@@ -16,39 +16,47 @@
 package software.amazon.awssdk.http.nio.netty.internal.utils;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static software.amazon.awssdk.http.nio.netty.internal.utils.SocketChannelResolver.resolveSocketChannelFactory;
+import static software.amazon.awssdk.http.nio.netty.internal.utils.ChannelResolver.resolveDatagramChannelFactory;
+import static software.amazon.awssdk.http.nio.netty.internal.utils.ChannelResolver.resolveSocketChannelFactory;
 
 import io.netty.channel.epoll.Epoll;
+import io.netty.channel.epoll.EpollDatagramChannel;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.oio.OioEventLoopGroup;
+import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.channel.socket.oio.OioDatagramChannel;
 import io.netty.channel.socket.oio.OioSocketChannel;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.http.nio.netty.internal.DelegatingEventLoopGroup;
 
-public class SocketChannelResolverTest {
+public class ChannelResolverTest {
 
     @Test
     public void canDetectFactoryForStandardNioEventLoopGroup() {
         assertThat(resolveSocketChannelFactory(new NioEventLoopGroup()).newChannel()).isInstanceOf(NioSocketChannel.class);
+        assertThat(resolveDatagramChannelFactory(new NioEventLoopGroup()).newChannel()).isInstanceOf(NioDatagramChannel.class);
     }
 
     @Test
     public void canDetectEpollEventLoopGroupFactory() {
         Assumptions.assumeTrue(Epoll.isAvailable());
         assertThat(resolveSocketChannelFactory(new EpollEventLoopGroup()).newChannel()).isInstanceOf(EpollSocketChannel.class);
+        assertThat(resolveDatagramChannelFactory(new EpollEventLoopGroup()).newChannel()).isInstanceOf(EpollDatagramChannel.class);
     }
 
     @Test
     public void worksWithDelegateEventLoopGroupsFactory() {
         assertThat(resolveSocketChannelFactory(new DelegatingEventLoopGroup(new NioEventLoopGroup()) {}).newChannel()).isInstanceOf(NioSocketChannel.class);
+        assertThat(resolveDatagramChannelFactory(new DelegatingEventLoopGroup(new NioEventLoopGroup()) {}).newChannel()).isInstanceOf(NioDatagramChannel.class);
     }
 
     @Test
     public void worksWithOioEventLoopGroupFactory() {
         assertThat(resolveSocketChannelFactory(new OioEventLoopGroup()).newChannel()).isInstanceOf(OioSocketChannel.class);
+        assertThat(resolveDatagramChannelFactory(new OioEventLoopGroup()).newChannel()).isInstanceOf(OioDatagramChannel.class);
     }
 }
