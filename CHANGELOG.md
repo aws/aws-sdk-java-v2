@@ -1,3 +1,25 @@
+# __2.20.83__ __2023-06-09__
+## __AWS Certificate Manager Private Certificate Authority__
+  - ### Features
+    - Document-only update to refresh CLI documentation for AWS Private CA. No change to the service.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fixed issue with leased connection leaks when threads executing HTTP connections with Apache HttpClient were interrupted while the connection was in progress.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds search APIs for Prompts, Quick Connects and Hours of Operations, which can be used to search for those resources within a Connect Instance.
+
+## __Netty NIO HTTP Client__
+  - ### Bugfixes
+    - By default, Netty threads are blocked during dns resolution, namely InetAddress.getByName is used under the hood. Now, there's an option to configure the NettyNioAsyncHttpClient in order to use a non blocking dns resolution strategy.
+        - Contributed by: [@martinKindall](https://github.com/martinKindall)
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@martinKindall](https://github.com/martinKindall)
 # __2.20.82__ __2023-06-08__
 ## __AWS Comprehend Medical__
   - ### Features
