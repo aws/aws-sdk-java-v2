@@ -20,21 +20,29 @@ import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
-import java.util.Optional;
+import java.util.Map;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 public class AuthSchemeParamsSpec implements ClassSpec {
     private final IntermediateModel intermediateModel;
     private final AuthSchemeSpecUtils authSchemeSpecUtils;
+    private final EndpointRulesSpecUtils endpointRulesSpecUtils;
 
     public AuthSchemeParamsSpec(IntermediateModel intermediateModel) {
         this.intermediateModel = intermediateModel;
         this.authSchemeSpecUtils = new AuthSchemeSpecUtils(intermediateModel);
+        this.endpointRulesSpecUtils = new EndpointRulesSpecUtils(intermediateModel);
     }
 
     @Override
@@ -45,6 +53,7 @@ public class AuthSchemeParamsSpec implements ClassSpec {
     @Override
     public TypeSpec poetSpec() {
         TypeSpec.Builder b = PoetUtils.createInterfaceBuilder(className())
+                                      .addSuperinterface(toCopyableBuilderInterface())
                                       .addModifiers(Modifier.PUBLIC)
                                       .addAnnotation(SdkPublicApi.class)
                                       .addJavadoc(interfaceJavadoc())
@@ -52,6 +61,7 @@ public class AuthSchemeParamsSpec implements ClassSpec {
                                       .addType(builderInterfaceSpec());
 
         addAccessorMethods(b);
+        addToBuilder(b);
         return b.build();
     }
 
@@ -70,12 +80,13 @@ public class AuthSchemeParamsSpec implements ClassSpec {
                          .returns(authSchemeSpecUtils.parametersInterfaceBuilderInterfaceName())
                          .addStatement("return $T.builder()", authSchemeSpecUtils.parametersDefaultImplName())
                          .addJavadoc("Get a new builder for creating a {@link $T}.",
-                                   authSchemeSpecUtils.parametersInterfaceName())
+                                     authSchemeSpecUtils.parametersInterfaceName())
                          .build();
     }
 
     private TypeSpec builderInterfaceSpec() {
         TypeSpec.Builder b = TypeSpec.interfaceBuilder(authSchemeSpecUtils.parametersInterfaceBuilderInterfaceName())
+                                     .addSuperinterface(copyableBuilderInterface())
                                      .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                                      .addJavadoc("A builder for a {@link $T}.", authSchemeSpecUtils.parametersInterfaceName());
 
@@ -101,12 +112,34 @@ public class AuthSchemeParamsSpec implements ClassSpec {
         if (authSchemeSpecUtils.usesSigV4()) {
             b.addMethod(MethodSpec.methodBuilder("region")
                                   .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
-                                  // TODO: Should region be Regions? (Regions.class isn't available here though)
-                                  .returns(ParameterizedTypeName.get(Optional.class, String.class))
-                                  .addJavadoc("Returns the region. The region is optional. The region parameter may be used "
-                                              + "with $S auth scheme. By default, the region will be empty.", "aws.auth#sigv4")
+                                  .returns(Region.class)
+                                  .addJavadoc("Returns the region. The region parameter may be used with the $S auth scheme.",
+                                              "aws.auth#sigv4")
                                   .build());
+
         }
+
+        if (authSchemeSpecUtils.generateEndpointBasedParams()) {
+            parameters().forEach((name, model) -> {
+                if (authSchemeSpecUtils.includeParam(name)) {
+                    MethodSpec accessor = endpointRulesSpecUtils.parameterInterfaceAccessorMethod(name, model);
+                    if (model.getDocumentation() != null) {
+                        accessor = accessor.toBuilder().addJavadoc(model.getDocumentation()).build();
+                    }
+                    b.addMethod(accessor);
+                }
+            });
+        }
+    }
+
+    private void addToBuilder(TypeSpec.Builder b) {
+        ClassName builderClassName = authSchemeSpecUtils.parametersInterfaceBuilderInterfaceName();
+        b.addMethod(MethodSpec.methodBuilder("toBuilder")
+                              .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                              .returns(builderClassName)
+                              .addJavadoc("Returns a {@link $T} to customize the parameters.", builderClassName)
+                              .build());
+
     }
 
     private void addBuilderSetterMethods(TypeSpec.Builder b) {
@@ -120,11 +153,42 @@ public class AuthSchemeParamsSpec implements ClassSpec {
         if (authSchemeSpecUtils.usesSigV4()) {
             b.addMethod(MethodSpec.methodBuilder("region")
                                   .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
-                                  .addParameter(ParameterSpec.builder(String.class, "region").build())
+                                  .addParameter(ParameterSpec.builder(Region.class, "region").build())
                                   .returns(authSchemeSpecUtils.parametersInterfaceBuilderInterfaceName())
-                                  .addJavadoc("Set the region. The region parameter may be used with  the $S auth scheme.",
+                                  .addJavadoc("Set the region. The region parameter may be used with the $S auth scheme.",
                                               "aws.auth#sigv4") // TODO: Reference the SigV4 AuthScheme when implemented
                                   .build());
+
         }
+
+        if (authSchemeSpecUtils.generateEndpointBasedParams()) {
+            parameters().forEach((name, model) -> {
+                if (authSchemeSpecUtils.includeParam(name)) {
+                    ClassName parametersInterfaceName = authSchemeSpecUtils.parametersInterfaceName();
+                    MethodSpec setter = endpointRulesSpecUtils
+                        .parameterBuilderSetterMethodDeclaration(parametersInterfaceName, name, model);
+                    if (model.getDocumentation() != null) {
+                        setter = setter.toBuilder().addJavadoc(model.getDocumentation()).build();
+                    }
+                    b.addMethod(setter);
+                }
+            });
+        }
+    }
+
+    private Map<String, ParameterModel> parameters() {
+        return intermediateModel.getEndpointRuleSetModel().getParameters();
+    }
+
+    private TypeName toCopyableBuilderInterface() {
+        return ParameterizedTypeName.get(ClassName.get(ToCopyableBuilder.class),
+                                         className().nestedClass("Builder"),
+                                         className());
+    }
+
+    private TypeName copyableBuilderInterface() {
+        return ParameterizedTypeName.get(ClassName.get(CopyableBuilder.class),
+                                         className().nestedClass("Builder"),
+                                         className());
     }
 }
