@@ -19,13 +19,15 @@ import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.query.auth.scheme.internal.DefaultQueryAuthSchemeParams;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * The parameters object used to resolve the auth schemes for the Query service.
  */
 @Generated("software.amazon.awssdk:codegen")
 @SdkPublicApi
-public interface QueryAuthSchemeParams {
+public interface QueryAuthSchemeParams extends ToCopyableBuilder<QueryAuthSchemeParams.Builder, QueryAuthSchemeParams> {
     /**
      * Get a new builder for creating a {@link QueryAuthSchemeParams}.
      */
@@ -60,9 +62,14 @@ public interface QueryAuthSchemeParams {
     String operationContextParam();
 
     /**
+     * Returns a {@link Builder} to customize the parameters.
+     */
+    Builder toBuilder();
+
+    /**
      * A builder for a {@link QueryAuthSchemeParams}.
      */
-    interface Builder {
+    interface Builder extends CopyableBuilder<Builder, QueryAuthSchemeParams> {
         /**
          * Set the operation for which to resolve the auth scheme.
          */

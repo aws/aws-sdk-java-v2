@@ -96,6 +96,11 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
         return operationContextParam;
     }
 
+    @Override
+    public QueryAuthSchemeParams.Builder toBuilder() {
+        return new Builder(this);
+    }
+
     private static final class Builder implements QueryAuthSchemeParams.Builder {
         private String operation;
 
@@ -112,6 +117,20 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
         private String stringContextParam;
 
         private String operationContextParam;
+
+        Builder() {
+        }
+
+        Builder(DefaultQueryAuthSchemeParams params) {
+            this.operation = params.operation;
+            this.region = params.region;
+            this.defaultTrueParam = params.defaultTrueParam;
+            this.defaultStringParam = params.defaultStringParam;
+            this.deprecatedParam = params.deprecatedParam;
+            this.booleanContextParam = params.booleanContextParam;
+            this.stringContextParam = params.stringContextParam;
+            this.operationContextParam = params.operationContextParam;
+        }
 
         @Override
         public Builder operation(String operation) {

@@ -60,7 +60,7 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
                                       .addType(builderImplSpec());
 
         addFieldsAndAccessors(b);
-
+        addToBuilder(b);
         return b.build();
     }
 
@@ -112,6 +112,7 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
                                      .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
                                      .addSuperinterface(authSchemeSpecUtils.parametersInterfaceBuilderInterfaceName());
 
+        addBuilderConstructors(b);
         addBuilderFieldsAndSetter(b);
 
         b.addMethod(MethodSpec.methodBuilder("build")
@@ -122,6 +123,27 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
                               .build());
 
         return b.build();
+    }
+
+    private void addBuilderConstructors(TypeSpec.Builder b) {
+        b.addMethod(MethodSpec.constructorBuilder()
+                              .build());
+
+        MethodSpec.Builder builderFromInstance = MethodSpec.constructorBuilder()
+                                                           .addParameter(className(), "params");
+
+        builderFromInstance.addStatement("this.operation = params.operation");
+        if (authSchemeSpecUtils.usesSigV4()) {
+            builderFromInstance.addStatement("this.region = params.region");
+        }
+        if (authSchemeSpecUtils.generateEndpointBasedParams()) {
+            parameters().forEach((name, model) -> {
+                if (authSchemeSpecUtils.includeParam(name)) {
+                    builderFromInstance.addStatement("this.$1N = params.$1N", endpointRulesSpecUtils.variableName(name));
+                }
+            });
+        }
+        b.addMethod(builderFromInstance.build());
     }
 
     private void addFieldsAndAccessors(TypeSpec.Builder b) {
@@ -160,6 +182,15 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
                 }
             });
         }
+    }
+
+    private void addToBuilder(TypeSpec.Builder b) {
+        b.addMethod(MethodSpec.methodBuilder("toBuilder")
+                              .addModifiers(Modifier.PUBLIC)
+                              .addAnnotation(Override.class)
+                              .returns(authSchemeSpecUtils.parametersInterfaceBuilderInterfaceName())
+                              .addStatement("return new $T(this)", builderClassName())
+                              .build());
     }
 
     private void addBuilderFieldsAndSetter(TypeSpec.Builder b) {

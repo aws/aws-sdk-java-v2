@@ -124,7 +124,7 @@ public class EndpointRulesSpecUtils {
         return intermediateModel.getNamingStrategy().getEnumValueName(paramName);
     }
 
-    public static TypeName toJavaType(String type) {
+    public TypeName toJavaType(String type) {
         switch (type.toLowerCase(Locale.ENGLISH)) {
             case "boolean":
                 return TypeName.get(Boolean.class);
@@ -153,7 +153,7 @@ public class EndpointRulesSpecUtils {
                         .build();
     }
 
-    public static TypeName parameterType(ParameterModel param) {
+    public TypeName parameterType(ParameterModel param) {
         if (param.getBuiltInEnum() == null || param.getBuiltInEnum() != BuiltInParameter.AWS_REGION) {
             return toJavaType(param.getType());
         }
@@ -212,6 +212,13 @@ public class EndpointRulesSpecUtils {
         return parameters.containsKey(paramName);
     }
 
+    /**
+     * Creates a data-class level field for the given parameter. For instance
+     *
+     * <pre>
+     *     private final Region region;
+     * </pre>
+     */
     public FieldSpec parameterClassField(String name, ParameterModel model) {
         return parameterFieldSpecBuilder(name, model)
             .addModifiers(Modifier.PRIVATE)
@@ -219,6 +226,13 @@ public class EndpointRulesSpecUtils {
             .build();
     }
 
+    /**
+     * Creates a data-class method to access the given parameter. For instance
+     *
+     * <pre>
+     *     public Region region() {…};
+     * </pre>
+     */
     public MethodSpec parameterClassAccessorMethod(String name, ParameterModel model) {
         MethodSpec.Builder b = parameterMethodBuilder(name, model);
         b.returns(parameterType(model));
@@ -226,6 +240,14 @@ public class EndpointRulesSpecUtils {
         return b.build();
     }
 
+
+    /**
+     * Creates a data-interface method to access the given parameter. For instance
+     *
+     * <pre>
+     *     Region region();
+     * </pre>
+     */
     public MethodSpec parameterInterfaceAccessorMethod(String name, ParameterModel model) {
         MethodSpec.Builder b = parameterMethodBuilder(name, model);
         b.returns(parameterType(model));
@@ -233,17 +255,27 @@ public class EndpointRulesSpecUtils {
         return b.build();
     }
 
+    /**
+     * Creates a builder-class level field for the given parameter initialized to its default value when present. For instance
+     *
+     * <pre>
+     *    private Boolean useGlobalEndpoint = false;
+     * </pre>
+     */
     public FieldSpec parameterBuilderFieldSpec(String name, ParameterModel model) {
         return parameterFieldSpecBuilder(name, model)
             .initializer(parameterDefaultValueCode(model))
             .build();
     }
 
-    public FieldSpec.Builder parameterFieldSpecBuilder(String name, ParameterModel model) {
-        return FieldSpec.builder(parameterType(model), variableName(name))
-                        .addModifiers(Modifier.PRIVATE);
-    }
-
+    /**
+     * Creates a builder-interface method to set the given parameter. For instance
+     *
+     * <pre>
+     *    Builder region(Region region);
+     * </pre>
+     *
+     */
     public MethodSpec parameterBuilderSetterMethodDeclaration(ClassName containingClass, String name, ParameterModel model) {
         MethodSpec.Builder b = parameterMethodBuilder(name, model);
         b.addModifiers(Modifier.ABSTRACT);
@@ -252,6 +284,13 @@ public class EndpointRulesSpecUtils {
         return b.build();
     }
 
+    /**
+     * Creates a builder-class method to set the given parameter. For instance
+     *
+     * <pre>
+     *    public Builder region(Region region) {…};
+     * </pre>
+     */
     public MethodSpec parameterBuilderSetterMethod(ClassName containingClass, String name, ParameterModel model) {
         String memberName = variableName(name);
 
@@ -272,14 +311,33 @@ public class EndpointRulesSpecUtils {
         return b.build();
     }
 
+    /**
+     * Used internally to create a field for the given parameter. Returns the builder that can be further tailor to be used for
+     * data-classes or for builder-classes.
+     */
+    private FieldSpec.Builder parameterFieldSpecBuilder(String name, ParameterModel model) {
+        return FieldSpec.builder(parameterType(model), variableName(name))
+                        .addModifiers(Modifier.PRIVATE);
+    }
+
+    /**
+     * Used internally to create the spec for a parameter to be used in a method for the given param model. For instance, for
+     * {@code ParameterModel} for {@code Region} it creates this parameter for the builder setter.
+     *
+     * <pre>
+     *    public Builder region(
+     *          Region region // <<--- This
+     *          ) {…};
+     * </pre>
+     */
     private ParameterSpec parameterSpec(String name, ParameterModel model) {
         return ParameterSpec.builder(parameterType(model), variableName(name)).build();
     }
 
-    private String variableName(String name) {
-        return intermediateModel.getNamingStrategy().getVariableName(name);
-    }
-
+    /**
+     * Used internally to create a accessor method for the given parameter model. Returns the builder that can be further
+     * tailor to be used for data-classes/interfaces and builder-classes/interfaces.
+     */
     private MethodSpec.Builder parameterMethodBuilder(String name, ParameterModel model) {
         MethodSpec.Builder b = MethodSpec.methodBuilder(paramMethodName(name));
         b.addModifiers(Modifier.PUBLIC);
@@ -289,6 +347,20 @@ public class EndpointRulesSpecUtils {
         return b;
     }
 
+    /**
+     * Used internally to create the code to initialize the default value modeled for the given parameter. For instance, if the
+     * modeled default for region is "us-east-1", it will create
+     *
+     * <pre>
+     *     Region.of("us-east-1")
+     * </pre>
+     *
+     * and if the modeled default value for a boolean parameter useGlobalEndpoint is "false", it will create
+     *
+     * <pre>
+     *     false
+     * </pre>
+     */
     private CodeBlock parameterDefaultValueCode(ParameterModel parameterModel) {
         CodeBlock.Builder b = CodeBlock.builder();
 
@@ -316,5 +388,12 @@ public class EndpointRulesSpecUtils {
                                            + defaultValue.asToken());
         }
         return b.build();
+    }
+
+    /**
+     * Returns the name as a variable name using the intermediate model naming strategy.
+     */
+    public String variableName(String name) {
+        return intermediateModel.getNamingStrategy().getVariableName(name);
     }
 }

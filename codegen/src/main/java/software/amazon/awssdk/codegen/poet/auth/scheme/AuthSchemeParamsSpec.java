@@ -19,6 +19,8 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
+import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import java.util.Map;
 import javax.lang.model.element.Modifier;
@@ -29,6 +31,8 @@ import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 public class AuthSchemeParamsSpec implements ClassSpec {
     private final IntermediateModel intermediateModel;
@@ -49,6 +53,7 @@ public class AuthSchemeParamsSpec implements ClassSpec {
     @Override
     public TypeSpec poetSpec() {
         TypeSpec.Builder b = PoetUtils.createInterfaceBuilder(className())
+                                      .addSuperinterface(toCopyableBuilderInterface())
                                       .addModifiers(Modifier.PUBLIC)
                                       .addAnnotation(SdkPublicApi.class)
                                       .addJavadoc(interfaceJavadoc())
@@ -56,6 +61,7 @@ public class AuthSchemeParamsSpec implements ClassSpec {
                                       .addType(builderInterfaceSpec());
 
         addAccessorMethods(b);
+        addToBuilder(b);
         return b.build();
     }
 
@@ -80,6 +86,7 @@ public class AuthSchemeParamsSpec implements ClassSpec {
 
     private TypeSpec builderInterfaceSpec() {
         TypeSpec.Builder b = TypeSpec.interfaceBuilder(authSchemeSpecUtils.parametersInterfaceBuilderInterfaceName())
+                                     .addSuperinterface(copyableBuilderInterface())
                                      .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                                      .addJavadoc("A builder for a {@link $T}.", authSchemeSpecUtils.parametersInterfaceName());
 
@@ -125,6 +132,16 @@ public class AuthSchemeParamsSpec implements ClassSpec {
         }
     }
 
+    private void addToBuilder(TypeSpec.Builder b) {
+        ClassName builderClassName = authSchemeSpecUtils.parametersInterfaceBuilderInterfaceName();
+        b.addMethod(MethodSpec.methodBuilder("toBuilder")
+                              .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                              .returns(builderClassName)
+                              .addJavadoc("Returns a {@link $T} to customize the parameters.", builderClassName)
+                              .build());
+
+    }
+
     private void addBuilderSetterMethods(TypeSpec.Builder b) {
         b.addMethod(MethodSpec.methodBuilder("operation")
                               .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
@@ -161,5 +178,17 @@ public class AuthSchemeParamsSpec implements ClassSpec {
 
     private Map<String, ParameterModel> parameters() {
         return intermediateModel.getEndpointRuleSetModel().getParameters();
+    }
+
+    private TypeName toCopyableBuilderInterface() {
+        return ParameterizedTypeName.get(ClassName.get(ToCopyableBuilder.class),
+                                         className().nestedClass("Builder"),
+                                         className());
+    }
+
+    private TypeName copyableBuilderInterface() {
+        return ParameterizedTypeName.get(ClassName.get(CopyableBuilder.class),
+                                         className().nestedClass("Builder"),
+                                         className());
     }
 }

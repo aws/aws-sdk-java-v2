@@ -47,10 +47,23 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
         return region;
     }
 
+    @Override
+    public QueryAuthSchemeParams.Builder toBuilder() {
+        return new Builder(this);
+    }
+
     private static final class Builder implements QueryAuthSchemeParams.Builder {
         private String operation;
 
         private Region region;
+
+        Builder() {
+        }
+
+        Builder(DefaultQueryAuthSchemeParams params) {
+            this.operation = params.operation;
+            this.region = params.region;
+        }
 
         @Override
         public Builder operation(String operation) {
