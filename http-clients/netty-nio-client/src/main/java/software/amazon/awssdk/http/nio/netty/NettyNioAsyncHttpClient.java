@@ -103,6 +103,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
                                              .sdkEventLoopGroup(sdkEventLoopGroup)
                                              .sslProvider(resolveSslProvider(builder))
                                              .proxyConfiguration(builder.proxyConfiguration)
+                                             .useNonBlockingDnsResolver(builder.useNonBlockingDnsResolver)
                                              .build();
     }
 
@@ -475,6 +476,15 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
          * @return the builder for method chaining.
          */
         Builder http2Configuration(Consumer<Http2Configuration.Builder> http2ConfigurationBuilderConsumer);
+
+        /**
+         * Configure whether to use a non-blocking dns resolver or not. False by default, as netty's default dns resolver is
+         * blocking; it namely calls java.net.InetAddress.getByName.
+         * <p>
+         * When enabled, a non-blocking dns resolver will be used instead, by modifying netty's bootstrap configuration.
+         * See https://netty.io/news/2016/05/26/4-1-0-Final.html
+         */
+        Builder useNonBlockingDnsResolver(Boolean useNonBlockingDnsResolver);
     }
 
     /**
@@ -492,6 +502,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
         private Http2Configuration http2Configuration;
         private SslProvider sslProvider;
         private ProxyConfiguration proxyConfiguration;
+        private Boolean useNonBlockingDnsResolver;
 
         private DefaultBuilder() {
         }
@@ -714,6 +725,16 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
 
         public void setHttp2Configuration(Http2Configuration http2Configuration) {
             http2Configuration(http2Configuration);
+        }
+
+        @Override
+        public Builder useNonBlockingDnsResolver(Boolean useNonBlockingDnsResolver) {
+            this.useNonBlockingDnsResolver = useNonBlockingDnsResolver;
+            return this;
+        }
+
+        public void setUseNonBlockingDnsResolver(Boolean useNonBlockingDnsResolver) {
+            useNonBlockingDnsResolver(useNonBlockingDnsResolver);
         }
 
         @Override
