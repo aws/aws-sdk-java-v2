@@ -117,7 +117,7 @@ public final class ProfileFile {
      */
     public Map<String, Profile> profiles() {
         Map<String, Profile> profileMap = profilesAndSectionsMap.get(PROFILES_SECTION_TITLE);
-        return profileMap != null ? Collections.unmodifiableMap(profileMap) : profileMap;
+        return profileMap != null ? Collections.unmodifiableMap(profileMap) : Collections.emptyMap();
     }
 
     @Override

@@ -28,16 +28,32 @@ import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.imds.TestConstants.EC2_METADATA_TOKEN_TTL_HEADER;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.http.AbortableInputStream;
+import software.amazon.awssdk.http.ExecutableHttpRequest;
+import software.amazon.awssdk.http.HttpExecuteRequest;
+import software.amazon.awssdk.http.HttpExecuteResponse;
+import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.imds.Ec2MetadataClient;
 import software.amazon.awssdk.imds.Ec2MetadataResponse;
 
@@ -58,13 +74,31 @@ class CachedTokenClientTest {
     }
 
     @Test
-    void get_tokenFailsError4xx_shouldNotRetry() {
-        stubFor(put(urlPathEqualTo("/latest/api/token")).willReturn(aResponse().withStatus(400).withBody("ERROR 400")));
-        stubFor(get(urlPathEqualTo("/latest/meta-data/ami-id")).willReturn(aResponse().withBody("{}")));
+    void get_tokenFailsError4xx_shouldNotRetry() throws IOException {
+        SdkHttpClient mockClient = mock(SdkHttpClient.class);
+        ExecutableHttpRequest mockRequest = mock(ExecutableHttpRequest.class);
+        when(mockClient.prepareRequest(any(HttpExecuteRequest.class))).thenReturn(mockRequest);
 
-        assertThatThrownBy(() -> clientBuilder.build().get("/latest/meta-data/ami-id")).isInstanceOf(SdkClientException.class);
-        verify(exactly(1), putRequestedFor(urlPathEqualTo("/latest/api/token"))
-            .withHeader("x-aws-ec2-metadata-token-ttl-seconds", equalTo("21600")));
+        AbortableInputStream content =
+            AbortableInputStream.create(new ByteArrayInputStream("ERROR 400".getBytes(StandardCharsets.UTF_8)));
+        SdkHttpResponse httpResponse = SdkHttpFullResponse.builder()
+                                                          .statusCode(400)
+                                                          .build();
+        HttpExecuteResponse executeResponse = HttpExecuteResponse.builder()
+                                                                 .response(httpResponse)
+                                                                 .responseBody(content)
+                                                                 .build();
+        when(mockRequest.call()).thenReturn(executeResponse);
+
+        Ec2MetadataClient imdsClient = Ec2MetadataClient.builder().httpClient(mockClient).build();
+
+        assertThatThrownBy(() ->imdsClient.get("/latest/meta-data/ami-id")).isInstanceOf(SdkClientException.class);
+
+        ArgumentCaptor<HttpExecuteRequest> requestCaptor = ArgumentCaptor.forClass(HttpExecuteRequest.class);
+        Mockito.verify(mockClient).prepareRequest(requestCaptor.capture());
+        SdkHttpRequest httpRequest = requestCaptor.getValue().httpRequest();
+        assertThat(httpRequest.encodedPath()).isEqualTo("/latest/api/token");
+        assertThat(httpRequest.firstMatchingHeader("x-aws-ec2-metadata-token-ttl-seconds").get()).isEqualTo("21600");
     }
 
     @Test

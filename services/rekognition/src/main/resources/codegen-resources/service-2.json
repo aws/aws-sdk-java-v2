@@ -108,7 +108,7 @@
         {"shape":"ThrottlingException"},
         {"shape":"ProvisionedThroughputExceededException"}
       ],
-      "documentation":"<p>This API operation initiates a Face Liveness session. It returns a <code>SessionId</code>, which you can use to start streaming Face Liveness video and get the results for a Face Liveness session. You can use the <code>OutputConfig</code> option in the Settings parameter to provide an Amazon S3 bucket location. The Amazon S3 bucket stores reference images and audit images. You can use <code>AuditImagesLimit</code> to limit of audit images returned. This number is between 0 and 4. By default, it is set to 0. The limit is best effort and based on the duration of the selfie-video. </p>",
+      "documentation":"<p>This API operation initiates a Face Liveness session. It returns a <code>SessionId</code>, which you can use to start streaming Face Liveness video and get the results for a Face Liveness session. You can use the <code>OutputConfig</code> option in the Settings parameter to provide an Amazon S3 bucket location. The Amazon S3 bucket stores reference images and audit images. You can use <code>AuditImagesLimit</code> to limit the number of audit images returned. This number is between 0 and 4. By default, it is set to 0. The limit is best effort and based on the duration of the selfie-video. </p>",
       "idempotent":true
     },
     "CreateProject":{
@@ -435,7 +435,7 @@
         {"shape":"ProvisionedThroughputExceededException"},
         {"shape":"InvalidImageFormatException"}
       ],
-      "documentation":"<p>Detects faces within an image that is provided as input.</p> <p> <code>DetectFaces</code> detects the 100 largest faces in the image. For each face detected, the operation returns face details. These details include a bounding box of the face, a confidence value (that the bounding box contains a face), and a fixed set of attributes such as facial landmarks (for example, coordinates of eye and mouth), presence of beard, sunglasses, and so on. </p> <p>The face-detection algorithm is most effective on frontal faces. For non-frontal or obscured faces, the algorithm might not detect the faces or might detect faces with lower confidence. </p> <p>You pass the input image either as base64-encoded image bytes or as a reference to an image in an Amazon S3 bucket. If you use the AWS CLI to call Amazon Rekognition operations, passing image bytes is not supported. The image must be either a PNG or JPEG formatted file. </p> <note> <p>This is a stateless API operation. That is, the operation does not persist any data.</p> </note> <p>This operation requires permissions to perform the <code>rekognition:DetectFaces</code> action. </p>"
+      "documentation":"<p>Detects faces within an image that is provided as input.</p> <p> <code>DetectFaces</code> detects the 100 largest faces in the image. For each face detected, the operation returns face details. These details include a bounding box of the face, a confidence value (that the bounding box contains a face), and a fixed set of attributes such as facial landmarks (for example, coordinates of eye and mouth), pose, presence of facial occlusion, and so on.</p> <p>The face-detection algorithm is most effective on frontal faces. For non-frontal or obscured faces, the algorithm might not detect the faces or might detect faces with lower confidence. </p> <p>You pass the input image either as base64-encoded image bytes or as a reference to an image in an Amazon S3 bucket. If you use the AWS CLI to call Amazon Rekognition operations, passing image bytes is not supported. The image must be either a PNG or JPEG formatted file. </p> <note> <p>This is a stateless API operation. That is, the operation does not persist any data.</p> </note> <p>This operation requires permissions to perform the <code>rekognition:DetectFaces</code> action. </p>"
     },
     "DetectLabels":{
       "name":"DetectLabels",
@@ -745,7 +745,7 @@
         {"shape":"InvalidImageFormatException"},
         {"shape":"ServiceQuotaExceededException"}
       ],
-      "documentation":"<p>Detects faces in the input image and adds them to the specified collection. </p> <p>Amazon Rekognition doesn't save the actual faces that are detected. Instead, the underlying detection algorithm first detects the faces in the input image. For each face, the algorithm extracts facial features into a feature vector, and stores it in the backend database. Amazon Rekognition uses feature vectors when it performs face match and search operations using the <a>SearchFaces</a> and <a>SearchFacesByImage</a> operations.</p> <p>For more information, see Adding faces to a collection in the Amazon Rekognition Developer Guide.</p> <p>To get the number of faces in a collection, call <a>DescribeCollection</a>. </p> <p>If you're using version 1.0 of the face detection model, <code>IndexFaces</code> indexes the 15 largest faces in the input image. Later versions of the face detection model index the 100 largest faces in the input image. </p> <p>If you're using version 4 or later of the face model, image orientation information is not returned in the <code>OrientationCorrection</code> field. </p> <p>To determine which version of the model you're using, call <a>DescribeCollection</a> and supply the collection ID. You can also get the model version from the value of <code>FaceModelVersion</code> in the response from <code>IndexFaces</code> </p> <p>For more information, see Model Versioning in the Amazon Rekognition Developer Guide.</p> <p>If you provide the optional <code>ExternalImageId</code> for the input image you provided, Amazon Rekognition associates this ID with all faces that it detects. When you call the <a>ListFaces</a> operation, the response returns the external ID. You can use this external image ID to create a client-side index to associate the faces with each image. You can then use the index to find all faces in an image.</p> <p>You can specify the maximum number of faces to index with the <code>MaxFaces</code> input parameter. This is useful when you want to index the largest faces in an image and don't want to index smaller faces, such as those belonging to people standing in the background.</p> <p>The <code>QualityFilter</code> input parameter allows you to filter out detected faces that don’t meet a required quality bar. The quality bar is based on a variety of common use cases. By default, <code>IndexFaces</code> chooses the quality bar that's used to filter faces. You can also explicitly choose the quality bar. Use <code>QualityFilter</code>, to set the quality bar by specifying <code>LOW</code>, <code>MEDIUM</code>, or <code>HIGH</code>. If you do not want to filter detected faces, specify <code>NONE</code>. </p> <note> <p>To use quality filtering, you need a collection associated with version 3 of the face model or higher. To get the version of the face model associated with a collection, call <a>DescribeCollection</a>. </p> </note> <p>Information about faces detected in an image, but not indexed, is returned in an array of <a>UnindexedFace</a> objects, <code>UnindexedFaces</code>. Faces aren't indexed for reasons such as:</p> <ul> <li> <p>The number of faces detected exceeds the value of the <code>MaxFaces</code> request parameter.</p> </li> <li> <p>The face is too small compared to the image dimensions.</p> </li> <li> <p>The face is too blurry.</p> </li> <li> <p>The image is too dark.</p> </li> <li> <p>The face has an extreme pose.</p> </li> <li> <p>The face doesn’t have enough detail to be suitable for face search.</p> </li> </ul> <p>In response, the <code>IndexFaces</code> operation returns an array of metadata for all detected faces, <code>FaceRecords</code>. This includes: </p> <ul> <li> <p>The bounding box, <code>BoundingBox</code>, of the detected face. </p> </li> <li> <p>A confidence value, <code>Confidence</code>, which indicates the confidence that the bounding box contains a face.</p> </li> <li> <p>A face ID, <code>FaceId</code>, assigned by the service for each face that's detected and stored.</p> </li> <li> <p>An image ID, <code>ImageId</code>, assigned by the service for the input image.</p> </li> </ul> <p>If you request all facial attributes (by using the <code>detectionAttributes</code> parameter), Amazon Rekognition returns detailed facial attributes, such as facial landmarks (for example, location of eye and mouth) and other facial attributes. If you provide the same image, specify the same collection, and use the same external ID in the <code>IndexFaces</code> operation, Amazon Rekognition doesn't save duplicate face metadata.</p> <p/> <p>The input image is passed either as base64-encoded image bytes, or as a reference to an image in an Amazon S3 bucket. If you use the AWS CLI to call Amazon Rekognition operations, passing image bytes isn't supported. The image must be formatted as a PNG or JPEG file. </p> <p>This operation requires permissions to perform the <code>rekognition:IndexFaces</code> action.</p>"
+      "documentation":"<p>Detects faces in the input image and adds them to the specified collection. </p> <p>Amazon Rekognition doesn't save the actual faces that are detected. Instead, the underlying detection algorithm first detects the faces in the input image. For each face, the algorithm extracts facial features into a feature vector, and stores it in the backend database. Amazon Rekognition uses feature vectors when it performs face match and search operations using the <a>SearchFaces</a> and <a>SearchFacesByImage</a> operations.</p> <p>For more information, see Adding faces to a collection in the Amazon Rekognition Developer Guide.</p> <p>To get the number of faces in a collection, call <a>DescribeCollection</a>. </p> <p>If you're using version 1.0 of the face detection model, <code>IndexFaces</code> indexes the 15 largest faces in the input image. Later versions of the face detection model index the 100 largest faces in the input image. </p> <p>If you're using version 4 or later of the face model, image orientation information is not returned in the <code>OrientationCorrection</code> field. </p> <p>To determine which version of the model you're using, call <a>DescribeCollection</a> and supply the collection ID. You can also get the model version from the value of <code>FaceModelVersion</code> in the response from <code>IndexFaces</code> </p> <p>For more information, see Model Versioning in the Amazon Rekognition Developer Guide.</p> <p>If you provide the optional <code>ExternalImageId</code> for the input image you provided, Amazon Rekognition associates this ID with all faces that it detects. When you call the <a>ListFaces</a> operation, the response returns the external ID. You can use this external image ID to create a client-side index to associate the faces with each image. You can then use the index to find all faces in an image.</p> <p>You can specify the maximum number of faces to index with the <code>MaxFaces</code> input parameter. This is useful when you want to index the largest faces in an image and don't want to index smaller faces, such as those belonging to people standing in the background.</p> <p>The <code>QualityFilter</code> input parameter allows you to filter out detected faces that don’t meet a required quality bar. The quality bar is based on a variety of common use cases. By default, <code>IndexFaces</code> chooses the quality bar that's used to filter faces. You can also explicitly choose the quality bar. Use <code>QualityFilter</code>, to set the quality bar by specifying <code>LOW</code>, <code>MEDIUM</code>, or <code>HIGH</code>. If you do not want to filter detected faces, specify <code>NONE</code>. </p> <note> <p>To use quality filtering, you need a collection associated with version 3 of the face model or higher. To get the version of the face model associated with a collection, call <a>DescribeCollection</a>. </p> </note> <p>Information about faces detected in an image, but not indexed, is returned in an array of <a>UnindexedFace</a> objects, <code>UnindexedFaces</code>. Faces aren't indexed for reasons such as:</p> <ul> <li> <p>The number of faces detected exceeds the value of the <code>MaxFaces</code> request parameter.</p> </li> <li> <p>The face is too small compared to the image dimensions.</p> </li> <li> <p>The face is too blurry.</p> </li> <li> <p>The image is too dark.</p> </li> <li> <p>The face has an extreme pose.</p> </li> <li> <p>The face doesn’t have enough detail to be suitable for face search.</p> </li> </ul> <p>In response, the <code>IndexFaces</code> operation returns an array of metadata for all detected faces, <code>FaceRecords</code>. This includes: </p> <ul> <li> <p>The bounding box, <code>BoundingBox</code>, of the detected face. </p> </li> <li> <p>A confidence value, <code>Confidence</code>, which indicates the confidence that the bounding box contains a face.</p> </li> <li> <p>A face ID, <code>FaceId</code>, assigned by the service for each face that's detected and stored.</p> </li> <li> <p>An image ID, <code>ImageId</code>, assigned by the service for the input image.</p> </li> </ul> <p>If you request <code>ALL</code> or specific facial attributes (e.g., <code>FACE_OCCLUDED</code>) by using the detectionAttributes parameter, Amazon Rekognition returns detailed facial attributes, such as facial landmarks (for example, location of eye and mouth), facial occlusion, and other facial attributes.</p> <p>If you provide the same image, specify the same collection, and use the same external ID in the <code>IndexFaces</code> operation, Amazon Rekognition doesn't save duplicate face metadata.</p> <p/> <p>The input image is passed either as base64-encoded image bytes, or as a reference to an image in an Amazon S3 bucket. If you use the AWS CLI to call Amazon Rekognition operations, passing image bytes isn't supported. The image must be formatted as a PNG or JPEG file. </p> <p>This operation requires permissions to perform the <code>rekognition:IndexFaces</code> action.</p>"
     },
     "ListCollections":{
       "name":"ListCollections",
@@ -1333,7 +1333,19 @@
       "type":"string",
       "enum":[
         "DEFAULT",
-        "ALL"
+        "ALL",
+        "AGE_RANGE",
+        "BEARD",
+        "EMOTIONS",
+        "EYE_DIRECTION",
+        "EYEGLASSES",
+        "EYES_OPEN",
+        "GENDER",
+        "MOUTH_OPEN",
+        "MUSTACHE",
+        "FACE_OCCLUDED",
+        "SMILE",
+        "SUNGLASSES"
       ]
     },
     "Attributes":{
@@ -1739,6 +1751,13 @@
       "member":{"shape":"ContentClassifier"},
       "max":256
     },
+    "ContentModerationAggregateBy":{
+      "type":"string",
+      "enum":[
+        "TIMESTAMPS",
+        "SEGMENTS"
+      ]
+    },
     "ContentModerationDetection":{
       "type":"structure",
       "members":{
@@ -1749,6 +1768,18 @@
         "ModerationLabel":{
           "shape":"ModerationLabel",
           "documentation":"<p>The content moderation label detected by in the stored video.</p>"
+        },
+        "StartTimestampMillis":{
+          "shape":"ULong",
+          "documentation":"<p>The time in milliseconds defining the start of the timeline segment containing a continuously detected moderation label.</p>"
+        },
+        "EndTimestampMillis":{
+          "shape":"ULong",
+          "documentation":"<p> The time in milliseconds defining the end of the timeline segment containing a continuously detected moderation label. </p>"
+        },
+        "DurationMillis":{
+          "shape":"ULong",
+          "documentation":"<p> The time duration of a segment in milliseconds, I.e. time elapsed from StartTimestampMillis to EndTimestampMillis. </p>"
         }
       },
       "documentation":"<p>Information about an inappropriate, unwanted, or offensive content label detection in a stored video.</p>"
@@ -1910,7 +1941,7 @@
       "members":{
         "OutputConfig":{
           "shape":"LivenessOutputConfig",
-          "documentation":"<p>Can specify the location of an Amazon S3 bucket, where reference and audit images will be stored. Note that the Amazon S3 bucket must be located in the caller's AWS account and in the same region as the Face Liveness end-point. Additionally, the Amazon S3 object keys are auto-generated by the Face Liveness system.</p>"
+          "documentation":"<p>Can specify the location of an Amazon S3 bucket, where reference and audit images will be stored. Note that the Amazon S3 bucket must be located in the caller's AWS account and in the same region as the Face Liveness end-point. Additionally, the Amazon S3 object keys are auto-generated by the Face Liveness system. Requires that the caller has the <code>s3:PutObject</code> permission on the Amazon S3 bucket.</p>"
         },
         "AuditImagesLimit":{
           "shape":"AuditImagesLimit",
@@ -2639,7 +2670,7 @@
         },
         "Attributes":{
           "shape":"Attributes",
-          "documentation":"<p>An array of facial attributes you want to be returned. This can be the default list of attributes or all attributes. If you don't specify a value for <code>Attributes</code> or if you specify <code>[\"DEFAULT\"]</code>, the API returns the following subset of facial attributes: <code>BoundingBox</code>, <code>Confidence</code>, <code>Pose</code>, <code>Quality</code>, and <code>Landmarks</code>. If you provide <code>[\"ALL\"]</code>, all facial attributes are returned, but the operation takes longer to complete.</p> <p>If you provide both, <code>[\"ALL\", \"DEFAULT\"]</code>, the service uses a logical AND operator to determine which attributes to return (in this case, all attributes). </p>"
+          "documentation":"<p>An array of facial attributes you want to be returned. A <code>DEFAULT</code> subset of facial attributes - <code>BoundingBox</code>, <code>Confidence</code>, <code>Pose</code>, <code>Quality</code>, and <code>Landmarks</code> - will always be returned. You can request for specific facial attributes (in addition to the default list) - by using [<code>\"DEFAULT\", \"FACE_OCCLUDED\"</code>] or just [<code>\"FACE_OCCLUDED\"</code>]. You can request for all facial attributes by using [<code>\"ALL\"]</code>. Requesting more attributes may increase response time.</p> <p>If you provide both, <code>[\"ALL\", \"DEFAULT\"]</code>, the service uses a logical \"AND\" operator to determine which attributes to return (in this case, all attributes). </p>"
         }
       }
     },
@@ -3087,6 +3118,24 @@
       "min":1,
       "pattern":"[a-zA-Z0-9_.\\-:]+"
     },
+    "EyeDirection":{
+      "type":"structure",
+      "members":{
+        "Yaw":{
+          "shape":"Degree",
+          "documentation":"<p>Value representing eye direction on the yaw axis.</p>"
+        },
+        "Pitch":{
+          "shape":"Degree",
+          "documentation":"<p>Value representing eye direction on the pitch axis.</p>"
+        },
+        "Confidence":{
+          "shape":"Percent",
+          "documentation":"<p>The confidence that the service has in its predicted eye direction.</p>"
+        }
+      },
+      "documentation":"<p>Indicates the direction the eyes are gazing in (independent of the head pose) as determined by its pitch and yaw. </p>"
+    },
     "EyeOpen":{
       "type":"structure",
       "members":{
@@ -3214,6 +3263,14 @@
         "Confidence":{
           "shape":"Percent",
           "documentation":"<p>Confidence level that the bounding box contains a face (and not a different object such as a tree). Default attribute.</p>"
+        },
+        "FaceOccluded":{
+          "shape":"FaceOccluded",
+          "documentation":"<p> <code>FaceOccluded</code> should return \"true\" with a high confidence score if a detected face’s eyes, nose, and mouth are partially captured or if they are covered by masks, dark sunglasses, cell phones, hands, or other objects. <code>FaceOccluded</code> should return \"false\" with a high confidence score if common occurrences that do not impact face verification are detected, such as eye glasses, lightly tinted sunglasses, strands of hair, and others. </p>"
+        },
+        "EyeDirection":{
+          "shape":"EyeDirection",
+          "documentation":"<p>Indicates the direction the eyes are gazing in, as defined by pitch and yaw.</p>"
         }
       },
       "documentation":"<p>Structure containing attributes of the face that the algorithm detected.</p> <p>A <code>FaceDetail</code> object contains either the default facial attributes or all facial attributes. The default attributes are <code>BoundingBox</code>, <code>Confidence</code>, <code>Landmarks</code>, <code>Pose</code>, and <code>Quality</code>.</p> <p> <a>GetFaceDetection</a> is the only Amazon Rekognition Video stored video operation that can return a <code>FaceDetail</code> object with all attributes. To specify which attributes to return, use the <code>FaceAttributes</code> input parameter for <a>StartFaceDetection</a>. The following Amazon Rekognition Video operations return only the default attributes. The corresponding Start operations don't have a <code>FaceAttributes</code> input parameter:</p> <ul> <li> <p>GetCelebrityRecognition</p> </li> <li> <p>GetPersonTracking</p> </li> <li> <p>GetFaceSearch</p> </li> </ul> <p>The Amazon Rekognition Image <a>DetectFaces</a> and <a>IndexFaces</a> operations can return all facial attributes. To specify which attributes to return, use the <code>Attributes</code> input parameter for <code>DetectFaces</code>. For <code>IndexFaces</code>, use the <code>DetectAttributes</code> input parameter.</p>"
@@ -3275,6 +3332,20 @@
     "FaceModelVersionList":{
       "type":"list",
       "member":{"shape":"String"}
+    },
+    "FaceOccluded":{
+      "type":"structure",
+      "members":{
+        "Value":{
+          "shape":"Boolean",
+          "documentation":"<p>True if a detected face’s eyes, nose, and mouth are partially captured or if they are covered by masks, dark sunglasses, cell phones, hands, or other objects. False if common occurrences that do not impact face verification are detected, such as eye glasses, lightly tinted sunglasses, strands of hair, and others.</p>"
+        },
+        "Confidence":{
+          "shape":"Percent",
+          "documentation":"<p>The confidence that the service has detected the presence of a face occlusion.</p>"
+        }
+      },
+      "documentation":"<p> <code>FaceOccluded</code> should return \"true\" with a high confidence score if a detected face’s eyes, nose, and mouth are partially captured or if they are covered by masks, dark sunglasses, cell phones, hands, or other objects. <code>FaceOccluded</code> should return \"false\" with a high confidence score if common occurrences that do not impact face verification are detected, such as eye glasses, lightly tinted sunglasses, strands of hair, and others. </p> <p>You can use <code>FaceOccluded</code> to determine if an obstruction on a face negatively impacts using the image for face matching.</p>"
     },
     "FaceRecord":{
       "type":"structure",
@@ -3460,6 +3531,15 @@
         "Celebrities":{
           "shape":"CelebrityRecognitions",
           "documentation":"<p>Array of celebrities recognized in the video.</p>"
+        },
+        "JobId":{
+          "shape":"JobId",
+          "documentation":"<p>Job identifier for the celebrity recognition operation for which you want to obtain results. The job identifer is returned by an initial call to StartCelebrityRecognition.</p>"
+        },
+        "Video":{"shape":"Video"},
+        "JobTag":{
+          "shape":"JobTag",
+          "documentation":"<p>A job identifier specified in the call to StartCelebrityRecognition and returned in the job completion notification sent to your Amazon Simple Notification Service topic.</p>"
         }
       }
     },
@@ -3482,8 +3562,26 @@
         "SortBy":{
           "shape":"ContentModerationSortBy",
           "documentation":"<p>Sort to use for elements in the <code>ModerationLabelDetections</code> array. Use <code>TIMESTAMP</code> to sort array elements by the time labels are detected. Use <code>NAME</code> to alphabetically group elements for a label together. Within each label group, the array element are sorted by detection confidence. The default sort is by <code>TIMESTAMP</code>.</p>"
+        },
+        "AggregateBy":{
+          "shape":"ContentModerationAggregateBy",
+          "documentation":"<p>Defines how to aggregate results of the StartContentModeration request. Default aggregation option is TIMESTAMPS. SEGMENTS mode aggregates moderation labels over time.</p>"
         }
       }
+    },
+    "GetContentModerationRequestMetadata":{
+      "type":"structure",
+      "members":{
+        "SortBy":{
+          "shape":"ContentModerationSortBy",
+          "documentation":"<p>The sorting method chosen for a GetContentModeration request.</p>"
+        },
+        "AggregateBy":{
+          "shape":"ContentModerationAggregateBy",
+          "documentation":"<p>The aggregation method chosen for a GetContentModeration request.</p>"
+        }
+      },
+      "documentation":"<p>Contains metadata about a content moderation request, including the SortBy and AggregateBy options.</p>"
     },
     "GetContentModerationResponse":{
       "type":"structure",
@@ -3511,6 +3609,19 @@
         "ModerationModelVersion":{
           "shape":"String",
           "documentation":"<p>Version number of the moderation detection model that was used to detect inappropriate, unwanted, or offensive content.</p>"
+        },
+        "JobId":{
+          "shape":"JobId",
+          "documentation":"<p>Job identifier for the content moderation operation for which you want to obtain results. The job identifer is returned by an initial call to StartContentModeration.</p>"
+        },
+        "Video":{"shape":"Video"},
+        "JobTag":{
+          "shape":"JobTag",
+          "documentation":"<p>A job identifier specified in the call to StartContentModeration and returned in the job completion notification sent to your Amazon Simple Notification Service topic.</p>"
+        },
+        "GetRequestMetadata":{
+          "shape":"GetContentModerationRequestMetadata",
+          "documentation":"<p>Information about the paramters used when getting a response. Includes information on aggregation and sorting methods.</p>"
         }
       }
     },
@@ -3554,6 +3665,15 @@
         "Faces":{
           "shape":"FaceDetections",
           "documentation":"<p>An array of faces detected in the video. Each element contains a detected face's details and the time, in milliseconds from the start of the video, the face was detected. </p>"
+        },
+        "JobId":{
+          "shape":"JobId",
+          "documentation":"<p>Job identifier for the face detection operation for which you want to obtain results. The job identifer is returned by an initial call to StartFaceDetection.</p>"
+        },
+        "Video":{"shape":"Video"},
+        "JobTag":{
+          "shape":"JobTag",
+          "documentation":"<p>A job identifier specified in the call to StartFaceDetection and returned in the job completion notification sent to your Amazon Simple Notification Service topic.</p>"
         }
       }
     },
@@ -3640,6 +3760,15 @@
         "Persons":{
           "shape":"PersonMatches",
           "documentation":"<p>An array of persons, <a>PersonMatch</a>, in the video whose face(s) match the face(s) in an Amazon Rekognition collection. It also includes time information for when persons are matched in the video. You specify the input collection in an initial call to <code>StartFaceSearch</code>. Each <code>Persons</code> element includes a time the person was matched, face match details (<code>FaceMatches</code>) for matching faces in the collection, and person information (<code>Person</code>) for the matched person. </p>"
+        },
+        "JobId":{
+          "shape":"JobId",
+          "documentation":"<p>Job identifier for the face search operation for which you want to obtain results. The job identifer is returned by an initial call to StartFaceSearch.</p>"
+        },
+        "Video":{"shape":"Video"},
+        "JobTag":{
+          "shape":"JobTag",
+          "documentation":"<p>A job identifier specified in the call to StartFaceSearch and returned in the job completion notification sent to your Amazon Simple Notification Service topic.</p>"
         }
       }
     },
@@ -3669,6 +3798,20 @@
         }
       }
     },
+    "GetLabelDetectionRequestMetadata":{
+      "type":"structure",
+      "members":{
+        "SortBy":{
+          "shape":"LabelDetectionSortBy",
+          "documentation":"<p>The sorting method chosen for a GetLabelDetection request.</p>"
+        },
+        "AggregateBy":{
+          "shape":"LabelDetectionAggregateBy",
+          "documentation":"<p>The aggregation method chosen for a GetLabelDetection request.</p>"
+        }
+      },
+      "documentation":"<p>Contains metadata about a label detection request, including the SortBy and AggregateBy options.</p>"
+    },
     "GetLabelDetectionResponse":{
       "type":"structure",
       "members":{
@@ -3695,6 +3838,19 @@
         "LabelModelVersion":{
           "shape":"String",
           "documentation":"<p>Version number of the label detection model that was used to detect labels.</p>"
+        },
+        "JobId":{
+          "shape":"JobId",
+          "documentation":"<p>Job identifier for the label detection operation for which you want to obtain results. The job identifer is returned by an initial call to StartLabelDetection.</p>"
+        },
+        "Video":{"shape":"Video"},
+        "JobTag":{
+          "shape":"JobTag",
+          "documentation":"<p>A job identifier specified in the call to StartLabelDetection and returned in the job completion notification sent to your Amazon Simple Notification Service topic.</p>"
+        },
+        "GetRequestMetadata":{
+          "shape":"GetLabelDetectionRequestMetadata",
+          "documentation":"<p>Information about the paramters used when getting a response. Includes information on aggregation and sorting methods.</p>"
         }
       }
     },
@@ -3742,6 +3898,15 @@
         "Persons":{
           "shape":"PersonDetections",
           "documentation":"<p>An array of the persons detected in the video and the time(s) their path was tracked throughout the video. An array element will exist for each time a person's path is tracked. </p>"
+        },
+        "JobId":{
+          "shape":"JobId",
+          "documentation":"<p>Job identifier for the person tracking operation for which you want to obtain results. The job identifer is returned by an initial call to StartPersonTracking.</p>"
+        },
+        "Video":{"shape":"Video"},
+        "JobTag":{
+          "shape":"JobTag",
+          "documentation":"<p>A job identifier specified in the call to StartCelebrityRecognition and returned in the job completion notification sent to your Amazon Simple Notification Service topic.</p>"
         }
       }
     },
@@ -3793,6 +3958,15 @@
         "SelectedSegmentTypes":{
           "shape":"SegmentTypesInfo",
           "documentation":"<p>An array containing the segment types requested in the call to <code>StartSegmentDetection</code>. </p>"
+        },
+        "JobId":{
+          "shape":"JobId",
+          "documentation":"<p>Job identifier for the segment detection operation for which you want to obtain results. The job identifer is returned by an initial call to StartSegmentDetection.</p>"
+        },
+        "Video":{"shape":"Video"},
+        "JobTag":{
+          "shape":"JobTag",
+          "documentation":"<p>A job identifier specified in the call to StartSegmentDetection and returned in the job completion notification sent to your Amazon Simple Notification Service topic.</p>"
         }
       }
     },
@@ -3837,6 +4011,15 @@
         "TextModelVersion":{
           "shape":"String",
           "documentation":"<p>Version number of the text detection model that was used to detect text.</p>"
+        },
+        "JobId":{
+          "shape":"JobId",
+          "documentation":"<p>Job identifier for the text detection operation for which you want to obtain results. The job identifer is returned by an initial call to StartTextDetection.</p>"
+        },
+        "Video":{"shape":"Video"},
+        "JobTag":{
+          "shape":"JobTag",
+          "documentation":"<p>A job identifier specified in the call to StartTextDetection and returned in the job completion notification sent to your Amazon Simple Notification Service topic.</p>"
         }
       }
     },
@@ -4019,7 +4202,7 @@
         },
         "DetectionAttributes":{
           "shape":"Attributes",
-          "documentation":"<p>An array of facial attributes that you want to be returned. This can be the default list of attributes or all attributes. If you don't specify a value for <code>Attributes</code> or if you specify <code>[\"DEFAULT\"]</code>, the API returns the following subset of facial attributes: <code>BoundingBox</code>, <code>Confidence</code>, <code>Pose</code>, <code>Quality</code>, and <code>Landmarks</code>. If you provide <code>[\"ALL\"]</code>, all facial attributes are returned, but the operation takes longer to complete.</p> <p>If you provide both, <code>[\"ALL\", \"DEFAULT\"]</code>, the service uses a logical AND operator to determine which attributes to return (in this case, all attributes). </p>"
+          "documentation":"<p>An array of facial attributes you want to be returned. A <code>DEFAULT</code> subset of facial attributes - <code>BoundingBox</code>, <code>Confidence</code>, <code>Pose</code>, <code>Quality</code>, and <code>Landmarks</code> - will always be returned. You can request for specific facial attributes (in addition to the default list) - by using <code>[\"DEFAULT\", \"FACE_OCCLUDED\"]</code> or just <code>[\"FACE_OCCLUDED\"]</code>. You can request for all facial attributes by using <code>[\"ALL\"]</code>. Requesting more attributes may increase response time.</p> <p>If you provide both, <code>[\"ALL\", \"DEFAULT\"]</code>, the service uses a logical AND operator to determine which attributes to return (in this case, all attributes). </p>"
         },
         "MaxFaces":{
           "shape":"MaxFacesToIndex",
@@ -4130,9 +4313,9 @@
     },
     "JobTag":{
       "type":"string",
-      "max":256,
+      "max":1024,
       "min":1,
-      "pattern":"[a-zA-Z0-9_.\\-:]+"
+      "pattern":"[a-zA-Z0-9_.\\-:+=\\/]+"
     },
     "KinesisDataArn":{
       "type":"string",
@@ -4645,7 +4828,7 @@
         },
         "S3KeyPrefix":{
           "shape":"LivenessS3KeyPrefix",
-          "documentation":"<p>The prefix appended to the output files for the Face Liveness session results.</p>"
+          "documentation":"<p>The prefix prepended to the output files for the Face Liveness session results.</p>"
         }
       },
       "documentation":"<p>Contains settings that specify the location of an Amazon S3 bucket used to store the output of a Face Liveness session. Note that the S3 bucket must be located in the caller's AWS account and in the same region as the Face Liveness end-point. Additionally, the Amazon S3 object keys are auto-generated by the Face Liveness system. </p>"
@@ -4657,8 +4840,8 @@
     },
     "LivenessSessionId":{
       "type":"string",
-      "max":255,
-      "min":1,
+      "max":36,
+      "min":36,
       "pattern":"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
     },
     "LivenessSessionStatus":{
@@ -4667,7 +4850,8 @@
         "CREATED",
         "IN_PROGRESS",
         "SUCCEEDED",
-        "FAILED"
+        "FAILED",
+        "EXPIRED"
       ]
     },
     "MalformedPolicyDocumentException":{

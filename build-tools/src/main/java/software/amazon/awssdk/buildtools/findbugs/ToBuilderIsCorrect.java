@@ -190,7 +190,7 @@ public class ToBuilderIsCorrect extends OpcodeStackDetector {
 
     @Override
     public void visit(Field obj) {
-        if (isBuilder) {
+        if (isBuilder && !obj.isStatic()) {
             builderFields.computeIfAbsent(getDottedClassName(), c -> new ArrayList<>()).add(obj.getName());
         }
     }

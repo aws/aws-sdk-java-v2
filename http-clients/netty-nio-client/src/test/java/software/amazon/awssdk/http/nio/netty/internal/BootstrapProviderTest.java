@@ -42,7 +42,19 @@ public class BootstrapProviderTest {
     // connection attempt and not cached between connection attempts.
     @Test
     public void createBootstrap_usesUnresolvedInetSocketAddress() {
-        Bootstrap bootstrap = bootstrapProvider.createBootstrap("some-awesome-service-1234.amazonaws.com", 443);
+        Bootstrap bootstrap = bootstrapProvider.createBootstrap("some-awesome-service-1234.amazonaws.com", 443, false);
+
+        SocketAddress socketAddress = bootstrap.config().remoteAddress();
+
+        assertThat(socketAddress).isInstanceOf(InetSocketAddress.class);
+        InetSocketAddress inetSocketAddress = (InetSocketAddress)socketAddress;
+
+        assertThat(inetSocketAddress.isUnresolved()).isTrue();
+    }
+
+    @Test
+    public void createBootstrapNonBlockingDns_usesUnresolvedInetSocketAddress() {
+        Bootstrap bootstrap = bootstrapProvider.createBootstrap("some-awesome-service-1234.amazonaws.com", 443, true);
 
         SocketAddress socketAddress = bootstrap.config().remoteAddress();
 
@@ -54,7 +66,7 @@ public class BootstrapProviderTest {
 
     @Test
     public void createBootstrap_defaultConfiguration_tcpKeepAliveShouldBeFalse() {
-        Bootstrap bootstrap = bootstrapProvider.createBootstrap("some-awesome-service-1234.amazonaws.com", 443);
+        Bootstrap bootstrap = bootstrapProvider.createBootstrap("some-awesome-service-1234.amazonaws.com", 443, false);
 
         Boolean keepAlive = (Boolean) bootstrap.config().options().get(ChannelOption.SO_KEEPALIVE);
         assertThat(keepAlive).isFalse();
@@ -70,7 +82,7 @@ public class BootstrapProviderTest {
                                   nettyConfiguration,
                                   new SdkChannelOptions());
 
-        Bootstrap bootstrap = provider.createBootstrap("some-awesome-service-1234.amazonaws.com", 443);
+        Bootstrap bootstrap = provider.createBootstrap("some-awesome-service-1234.amazonaws.com", 443, false);
         Boolean keepAlive = (Boolean) bootstrap.config().options().get(ChannelOption.SO_KEEPALIVE);
         assertThat(keepAlive).isTrue();
     }
