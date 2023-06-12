@@ -93,12 +93,14 @@ public final class RequestCompression {
             return false;
         }
         RequestCompression that = (RequestCompression) o;
-        return Objects.equals(encodings, that.getEncodings());
+        return isStreaming == that.isStreaming()
+               && Objects.equals(encodings, that.getEncodings());
     }
 
     @Override
     public int hashCode() {
         int hashCode = 1;
+        hashCode = 31 * hashCode + (isStreaming ? 1 : 0);
         hashCode = 31 * hashCode + Objects.hashCode(encodings);
         return hashCode;
     }
