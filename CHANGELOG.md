@@ -1,3 +1,43 @@
+# __2.20.84__ __2023-06-12__
+## __AWS Amplify UI Builder__
+  - ### Features
+    - AWS Amplify UIBuilder is launching Codegen UI, a new feature that enables you to generate your amplify uibuilder components and forms.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add "unsafe" and "fromRemaining" AsyncRequestBody constructors for byte arrays and ByteBuffers
+        - Contributed by: [@StephenFlavin](https://github.com/StephenFlavin)
+    - Updated endpoint and partition metadata.
+    - `IdleConnectionReaper` now does not prevent `HttpClientConnectionManager` from getting GC'd in the case where an SDK client is created per request and not closed.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Documentation updates for DynamoDB
+
+## __Amazon DynamoDB Streams__
+  - ### Features
+    - Documentation updates for DynamoDB Streams
+
+## __Amazon FSx__
+  - ### Features
+    - Amazon FSx for NetApp ONTAP now supports joining a storage virtual machine (SVM) to Active Directory after the SVM has been created.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - This release adds support for SkipUnavailable connection property for cross cluster search
+
+## __Amazon Rekognition__
+  - ### Features
+    - This release adds support for improved accuracy with user vector in Amazon Rekognition Face Search. Adds new APIs: AssociateFaces, CreateUser, DeleteUser, DisassociateFaces, ListUsers, SearchUsers, SearchUsersByImage. Also adds new face metadata that can be stored: user vector.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Sagemaker Neo now supports compilation for inferentia2 (ML_INF2) and Trainium1 (ML_TRN1) as available targets. With these devices, you can run your workloads at highest performance with lowest cost. inferentia2 (ML_INF2) is available in CMH and Trainium1 (ML_TRN1) is available in IAD currently
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@StephenFlavin](https://github.com/StephenFlavin)
 # __2.20.83__ __2023-06-09__
 ## __AWS Certificate Manager Private Certificate Authority__
   - ### Features
