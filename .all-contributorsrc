@@ -796,6 +796,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "scrocquesel",
+      "name": "Sébastien Crocquesel",
+      "avatar_url": "https://avatars.githubusercontent.com/u/88554524?v=4",
+      "profile": "https://www.inulogic.fr",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
@@ -804,5 +813,6 @@
   "repoType": "github",
   "repoHost": "https://github.com",
   "skipCi": true,
-  "commitConvention": "angular"
+  "commitConvention": "angular",
+  "commitType": "docs"
 }
