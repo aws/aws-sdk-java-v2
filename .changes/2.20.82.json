@@ -1,0 +1,54 @@
+{
+    "version": "2.20.82",
+    "date": "2023-06-08",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Comprehend Medical",
+            "contributor": "",
+            "description": "This release supports a new set of entities and traits."
+        },
+        {
+            "type": "feature",
+            "category": "AWS STS",
+            "contributor": "",
+            "description": "Updates the core STS credential provider logic to return AwsSessionCredentials instead of an STS-specific class, and adds expirationTime to AwsSessionCredentials"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Service Catalog",
+            "contributor": "",
+            "description": "New parameter added in ServiceCatalog DescribeProvisioningArtifact api - IncludeProvisioningArtifactParameters. This parameter can be used to return information about the parameters used to provision the product"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Athena",
+            "contributor": "",
+            "description": "You can now define custom spark properties at start of the session for use cases like cluster encryption, table formats, and general Spark tuning."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Timestream Write",
+            "contributor": "",
+            "description": "This release adds the capability for customers to define how their data should be partitioned, optimizing for certain access patterns. This definition will take place as a part of the table creation."
+        },
+        {
+            "type": "feature",
+            "category": "Payment Cryptography Control Plane",
+            "contributor": "",
+            "description": "Initial release of AWS Payment Cryptography Control Plane service for creating and managing cryptographic keys used during card payment processing."
+        },
+        {
+            "type": "feature",
+            "category": "Payment Cryptography Data Plane",
+            "contributor": "",
+            "description": "Initial release of AWS Payment Cryptography DataPlane Plane service for performing cryptographic operations typically used during card payment processing."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

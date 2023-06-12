@@ -22,7 +22,7 @@ import software.amazon.awssdk.identity.spi.IdentityProvider;
 /**
  * The identity providers configured in the SDK.
  * <p>
- * Used by the {@link HttpAuthScheme} implementation to load any @{@link IdentityProvider}s it needs from the set that are
+ * Used by the {@link AuthScheme} implementation to load any @{@link IdentityProvider}s it needs from the set that are
  * configured on the SDK.
  */
 @SdkPublicApi

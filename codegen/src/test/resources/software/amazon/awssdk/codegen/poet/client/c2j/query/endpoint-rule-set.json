@@ -21,7 +21,8 @@
     },
     "defaultTrueParam": {
       "type": "boolean",
-      "default": true
+        "default": true,
+        "documentation": "A param that defauls to true"
     },
     "defaultStringParam": {
       "type": "string",

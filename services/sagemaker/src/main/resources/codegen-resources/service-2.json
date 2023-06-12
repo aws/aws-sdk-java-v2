@@ -10610,14 +10610,14 @@
       "members":{
         "RecommendationStatus":{
           "shape":"RecommendationStatus",
-          "documentation":"<p>Status of the deployment recommendation. <code>NOT_APPLICABLE</code> means that SageMaker is unable to provide a default recommendation for the model using the information provided.</p>"
+          "documentation":"<p>Status of the deployment recommendation. The status <code>NOT_APPLICABLE</code> means that SageMaker is unable to provide a default recommendation for the model using the information provided. If the deployment status is <code>IN_PROGRESS</code>, retry your API call after a few seconds to get a <code>COMPLETED</code> deployment recommendation.</p>"
         },
         "RealTimeInferenceRecommendations":{
           "shape":"RealTimeInferenceRecommendations",
           "documentation":"<p>A list of <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_RealTimeInferenceRecommendation.html\">RealTimeInferenceRecommendation</a> items.</p>"
         }
       },
-      "documentation":"<p>A set of recommended deployment configurations for the model.</p>"
+      "documentation":"<p>A set of recommended deployment configurations for the model. To get more advanced recommendations, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_CreateInferenceRecommendationsJob.html\">CreateInferenceRecommendationsJob</a> to create an inference recommendation job.</p>"
     },
     "DeploymentStage":{
       "type":"structure",
@@ -13794,6 +13794,10 @@
         "ParallelismConfiguration":{
           "shape":"ParallelismConfiguration",
           "documentation":"<p>The parallelism configuration applied to the pipeline.</p>"
+        },
+        "SelectiveExecutionConfig":{
+          "shape":"SelectiveExecutionConfig",
+          "documentation":"<p>The selective execution configuration applied to the pipeline run.</p>"
         }
       }
     },
@@ -26834,6 +26838,10 @@
         "PipelineParameters":{
           "shape":"ParameterList",
           "documentation":"<p>Contains a list of pipeline parameters. This list can be empty. </p>"
+        },
+        "SelectiveExecutionConfig":{
+          "shape":"SelectiveExecutionConfig",
+          "documentation":"<p>The selective execution configuration applied to the pipeline run.</p>"
         }
       },
       "documentation":"<p>An execution of a pipeline.</p>"
@@ -26912,6 +26920,10 @@
         "Metadata":{
           "shape":"PipelineExecutionStepMetadata",
           "documentation":"<p>Metadata to run the pipeline step.</p>"
+        },
+        "SelectiveExecutionResult":{
+          "shape":"SelectiveExecutionResult",
+          "documentation":"<p>The ARN from an execution of the current pipeline from which results are reused for this step.</p>"
         }
       },
       "documentation":"<p>An execution of a step in a pipeline.</p>"
@@ -28534,7 +28546,7 @@
           "documentation":"<p>The level of permissions that the user has within the <code>RStudioServerPro</code> app. This value defaults to `User`. The `Admin` value allows the user access to the RStudio Administrative Dashboard.</p>"
         }
       },
-      "documentation":"<p>A collection of settings that configure user interaction with the <code>RStudioServerPro</code> app. <code>RStudioServerProAppSettings</code> cannot be updated. The <code>RStudioServerPro</code> app must be deleted and a new one created to make any changes.</p>"
+      "documentation":"<p>A collection of settings that configure user interaction with the <code>RStudioServerPro</code> app.</p>"
     },
     "RStudioServerProDomainSettings":{
       "type":"structure",
@@ -29772,6 +29784,51 @@
       "max":5
     },
     "Seed":{"type":"long"},
+    "SelectedStep":{
+      "type":"structure",
+      "required":["StepName"],
+      "members":{
+        "StepName":{
+          "shape":"String256",
+          "documentation":"<p>The name of the pipeline step.</p>"
+        }
+      },
+      "documentation":"<p>A step selected to run in selective execution mode.</p>"
+    },
+    "SelectedStepList":{
+      "type":"list",
+      "member":{"shape":"SelectedStep"},
+      "max":50,
+      "min":1
+    },
+    "SelectiveExecutionConfig":{
+      "type":"structure",
+      "required":[
+        "SourcePipelineExecutionArn",
+        "SelectedSteps"
+      ],
+      "members":{
+        "SourcePipelineExecutionArn":{
+          "shape":"PipelineExecutionArn",
+          "documentation":"<p>The ARN from a reference execution of the current pipeline. Used to copy input collaterals needed for the selected steps to run. The execution status of the pipeline can be either <code>Failed</code> or <code>Success</code>.</p>"
+        },
+        "SelectedSteps":{
+          "shape":"SelectedStepList",
+          "documentation":"<p>A list of pipeline steps to run. All step(s) in all path(s) between two selected steps should be included.</p>"
+        }
+      },
+      "documentation":"<p>The selective execution configuration applied to the pipeline run.</p>"
+    },
+    "SelectiveExecutionResult":{
+      "type":"structure",
+      "members":{
+        "SourcePipelineExecutionArn":{
+          "shape":"PipelineExecutionArn",
+          "documentation":"<p>The ARN from an execution of the current pipeline.</p>"
+        }
+      },
+      "documentation":"<p>The ARN from an execution of the current pipeline.</p>"
+    },
     "SendPipelineExecutionStepFailureRequest":{
       "type":"structure",
       "required":["CallbackToken"],
@@ -30311,6 +30368,10 @@
         "ParallelismConfiguration":{
           "shape":"ParallelismConfiguration",
           "documentation":"<p>This configuration, if specified, overrides the parallelism configuration of the parent pipeline for this specific run.</p>"
+        },
+        "SelectiveExecutionConfig":{
+          "shape":"SelectiveExecutionConfig",
+          "documentation":"<p>The selective execution configuration applied to the pipeline run.</p>"
         }
       }
     },

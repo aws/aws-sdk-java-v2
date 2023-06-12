@@ -218,6 +218,11 @@ public class CustomizationConfig {
     private boolean skipEndpointTestGeneration;
 
     /**
+     * Whether to generate client-level endpoint tests; overrides test case criteria such as operation inputs.
+     */
+    private boolean generateEndpointClientTests;
+
+    /**
      * A mapping from the skipped test's description to the reason why it's being skipped.
      */
     private Map<String, String> skipEndpointTests;
@@ -230,6 +235,16 @@ public class CustomizationConfig {
      * Whether marshallers perform validations against members marked with RequiredTrait.
      */
     private boolean requiredTraitValidationEnabled = false;
+
+    /**
+     * Whether to generate auth scheme params based on endpoint params.
+     */
+    private boolean enableEndpointAuthSchemeParams = false;
+
+    /**
+     * List of endpoint params to be used for the auth scheme params
+     */
+    private List<String> allowedEndpointAuthSchemeParams = new ArrayList<>();
 
     private CustomizationConfig() {
     }
@@ -577,6 +592,14 @@ public class CustomizationConfig {
         this.skipEndpointTestGeneration = skipEndpointTestGeneration;
     }
 
+    public boolean isGenerateEndpointClientTests() {
+        return generateEndpointClientTests;
+    }
+
+    public void setGenerateEndpointClientTests(boolean generateEndpointClientTests) {
+        this.generateEndpointClientTests = generateEndpointClientTests;
+    }
+
     public boolean useGlobalEndpoint() {
         return useGlobalEndpoint;
     }
@@ -607,5 +630,21 @@ public class CustomizationConfig {
 
     public void setRequiredTraitValidationEnabled(boolean requiredTraitValidationEnabled) {
         this.requiredTraitValidationEnabled = requiredTraitValidationEnabled;
+    }
+
+    public void setEnableEndpointAuthSchemeParams(boolean enableEndpointAuthSchemeParams) {
+        this.enableEndpointAuthSchemeParams = enableEndpointAuthSchemeParams;
+    }
+
+    public boolean isEnableEndpointAuthSchemeParams() {
+        return enableEndpointAuthSchemeParams;
+    }
+
+    public void setAllowedEndpointAuthSchemeParams(List<String> allowedEndpointAuthSchemeParams) {
+        this.allowedEndpointAuthSchemeParams = allowedEndpointAuthSchemeParams;
+    }
+
+    public List<String> getAllowedEndpointAuthSchemeParams() {
+        return this.allowedEndpointAuthSchemeParams;
     }
 }
