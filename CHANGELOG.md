@@ -1,3 +1,208 @@
+# __2.20.84__ __2023-06-12__
+## __AWS Amplify UI Builder__
+  - ### Features
+    - AWS Amplify UIBuilder is launching Codegen UI, a new feature that enables you to generate your amplify uibuilder components and forms.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add "unsafe" and "fromRemaining" AsyncRequestBody constructors for byte arrays and ByteBuffers
+        - Contributed by: [@StephenFlavin](https://github.com/StephenFlavin)
+    - Updated endpoint and partition metadata.
+    - `IdleConnectionReaper` now does not prevent `HttpClientConnectionManager` from getting GC'd in the case where an SDK client is created per request and not closed.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Documentation updates for DynamoDB
+
+## __Amazon DynamoDB Streams__
+  - ### Features
+    - Documentation updates for DynamoDB Streams
+
+## __Amazon FSx__
+  - ### Features
+    - Amazon FSx for NetApp ONTAP now supports joining a storage virtual machine (SVM) to Active Directory after the SVM has been created.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - This release adds support for SkipUnavailable connection property for cross cluster search
+
+## __Amazon Rekognition__
+  - ### Features
+    - This release adds support for improved accuracy with user vector in Amazon Rekognition Face Search. Adds new APIs: AssociateFaces, CreateUser, DeleteUser, DisassociateFaces, ListUsers, SearchUsers, SearchUsersByImage. Also adds new face metadata that can be stored: user vector.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Sagemaker Neo now supports compilation for inferentia2 (ML_INF2) and Trainium1 (ML_TRN1) as available targets. With these devices, you can run your workloads at highest performance with lowest cost. inferentia2 (ML_INF2) is available in CMH and Trainium1 (ML_TRN1) is available in IAD currently
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@StephenFlavin](https://github.com/StephenFlavin)
+# __2.20.83__ __2023-06-09__
+## __AWS Certificate Manager Private Certificate Authority__
+  - ### Features
+    - Document-only update to refresh CLI documentation for AWS Private CA. No change to the service.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fixed issue with leased connection leaks when threads executing HTTP connections with Apache HttpClient were interrupted while the connection was in progress.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds search APIs for Prompts, Quick Connects and Hours of Operations, which can be used to search for those resources within a Connect Instance.
+
+## __Netty NIO HTTP Client__
+  - ### Bugfixes
+    - By default, Netty threads are blocked during dns resolution, namely InetAddress.getByName is used under the hood. Now, there's an option to configure the NettyNioAsyncHttpClient in order to use a non blocking dns resolution strategy.
+        - Contributed by: [@martinKindall](https://github.com/martinKindall)
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@martinKindall](https://github.com/martinKindall)
+# __2.20.82__ __2023-06-08__
+## __AWS Comprehend Medical__
+  - ### Features
+    - This release supports a new set of entities and traits.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS STS__
+  - ### Features
+    - Updates the core STS credential provider logic to return AwsSessionCredentials instead of an STS-specific class, and adds expirationTime to AwsSessionCredentials
+
+## __AWS Service Catalog__
+  - ### Features
+    - New parameter added in ServiceCatalog DescribeProvisioningArtifact api - IncludeProvisioningArtifactParameters. This parameter can be used to return information about the parameters used to provision the product
+
+## __Amazon Athena__
+  - ### Features
+    - You can now define custom spark properties at start of the session for use cases like cluster encryption, table formats, and general Spark tuning.
+
+## __Amazon Timestream Write__
+  - ### Features
+    - This release adds the capability for customers to define how their data should be partitioned, optimizing for certain access patterns. This definition will take place as a part of the table creation.
+
+## __Payment Cryptography Control Plane__
+  - ### Features
+    - Initial release of AWS Payment Cryptography Control Plane service for creating and managing cryptographic keys used during card payment processing.
+
+## __Payment Cryptography Data Plane__
+  - ### Features
+    - Initial release of AWS Payment Cryptography DataPlane Plane service for performing cryptographic operations typically used during card payment processing.
+
+# __2.20.81__ __2023-06-07__
+## __AWS CloudFormation__
+  - ### Features
+    - AWS CloudFormation StackSets is updating the deployment experience for all stackset operations to skip suspended AWS accounts during deployments. StackSets will skip target AWS accounts that are suspended and set the Detailed Status of the corresponding stack instances as SKIPPED_SUSPENDED_ACCOUNT
+
+## __AWS Direct Connect__
+  - ### Features
+    - This update corrects the jumbo frames mtu values from 9100 to 8500 for transit virtual interfaces.
+
+## __AWS IoT Core Device Advisor__
+  - ### Features
+    - AWS IoT Core Device Advisor now supports new Qualification Suite test case list. With this update, customers can more easily create new qualification test suite with an empty rootGroup input.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - This change adds support for account level data protection policies using 3 new APIs, PutAccountPolicy, DeleteAccountPolicy and DescribeAccountPolicy. DescribeLogGroup API has been modified to indicate if account level policy is applied to the LogGroup via "inheritedProperties" list in the response.
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - This release introduces event stream related APIs.
+
+## __Amazon EMR Containers__
+  - ### Features
+    - EMR on EKS adds support for log rotation of Spark container logs with EMR-6.11.0 onwards, to the StartJobRun API.
+
+# __2.20.80__ __2023-06-06__
+## __AWS Identity and Access Management__
+  - ### Features
+    - This release updates the AccountAlias regex pattern with the same length restrictions enforced by the length constraint.
+
+## __AWS IoT__
+  - ### Features
+    - Adding IoT Device Management Software Package Catalog APIs to register, store, and report system software packages, along with their versions and metadata in a centralized location.
+
+## __AWS IoT Data Plane__
+  - ### Features
+    - Update thing shadow name regex to allow '$' character
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Signer__
+  - ### Features
+    - AWS Signer is launching Container Image Signing, a new feature that enables you to sign and verify container images. This feature enables you to validate that only container images you approve are used in your enterprise.
+
+## __Amazon Connect Service__
+  - ### Features
+    - GetMetricDataV2 API is now available in AWS GovCloud(US) region.
+
+## __Amazon EMR__
+  - ### Features
+    - This release provides customers the ability to specify an allocation strategies amongst PRICE_CAPACITY_OPTIMIZED, CAPACITY_OPTIMIZED, LOWEST_PRICE, DIVERSIFIED for Spot instances in Instance Feet cluster. This enables customers to choose an allocation strategy best suited for their workload.
+
+## __Amazon Lex Model Building V2__
+  - ### Features
+    - This release adds support for Lex Developers to create test sets and to execute those test-sets against their bots.
+
+## __Amazon QuickSight__
+  - ### Features
+    - QuickSight support for pivot table field collapse state, radar chart range scale and multiple scope options in conditional formatting.
+
+## __Amazon Simple Queue Service__
+  - ### Features
+    - Amazon SQS adds three new APIs - StartMessageMoveTask, CancelMessageMoveTask, and ListMessageMoveTasks to automate redriving messages from dead-letter queues to source queues or a custom destination.
+
+## __Inspector2__
+  - ### Features
+    - Adds new response properties and request parameters for 'last scanned at' on the ListCoverage operation. This feature allows you to search and view the date of which your resources were last scanned by Inspector.
+
+# __2.20.79__ __2023-06-05__
+## __AWS CloudFormation__
+  - ### Features
+    - AWS CloudFormation StackSets provides customers with three new APIs to activate, deactivate, and describe AWS Organizations trusted access which is needed to get started with service-managed StackSets.
+
+## __AWS Key Management Service__
+  - ### Features
+    - This release includes feature to import customer's asymmetric (RSA and ECC) and HMAC keys into KMS. It also includes feature to allow customers to specify number of days to schedule a KMS key deletion as a policy condition key.
+
+## __AWS Lambda__
+  - ### Features
+    - Add Ruby 3.2 (ruby3.2) Runtime support to AWS Lambda.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Upgrading AWS CRT dependency to v0.21.17. This version contains minor fixes and updates
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Making InstanceTagAttribute as the required parameter for the DeregisterInstanceEventNotificationAttributes and RegisterInstanceEventNotificationAttributes APIs.
+
+## __Amazon Fraud Detector__
+  - ### Features
+    - Added new variable types, new DateTime data type, and new rules engine functions for interacting and working with DateTime data types.
+
+## __Amazon Keyspaces__
+  - ### Features
+    - This release adds support for MRR GA launch, and includes multiregion support in create-keyspace, get-keyspace, and list-keyspace.
+
+## __AmazonMWAA__
+  - ### Features
+    - This release adds ROLLING_BACK and CREATING_SNAPSHOT environment statuses for Amazon MWAA environments.
+
+## __FinSpace User Environment Management service__
+  - ### Features
+    - Releasing new Managed kdb Insights APIs
+
 # __2.20.78__ __2023-06-02__
 ## __AWS CloudTrail__
   - ### Features
