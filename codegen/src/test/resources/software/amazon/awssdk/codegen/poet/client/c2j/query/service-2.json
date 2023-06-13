@@ -59,6 +59,17 @@
       },
       "authtype": "none"
     },
+    "OperationWithRequestCompression": {
+      "name": "APostOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "authtype": "none",
+      "requestCompression": {
+        "encodings": ["gzip"]
+      }
+    },
     "APostOperation": {
       "name": "APostOperation",
       "http": {

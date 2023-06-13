@@ -25,7 +25,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * compression threshold in bytes.
  */
 @SdkPublicApi
-public class RequestCompressionConfiguration implements ToCopyableBuilder<RequestCompressionConfiguration.Builder,
+public final class RequestCompressionConfiguration implements ToCopyableBuilder<RequestCompressionConfiguration.Builder,
     RequestCompressionConfiguration> {
 
     private final Boolean requestCompressionEnabled;

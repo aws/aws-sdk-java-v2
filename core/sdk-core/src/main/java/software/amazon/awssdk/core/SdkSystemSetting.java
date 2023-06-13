@@ -185,15 +185,16 @@ public enum SdkSystemSetting implements SystemSetting {
     AWS_USE_FIPS_ENDPOINT("aws.useFipsEndpoint", null),
 
     /**
-     * Whether request compression is enabled for operations marked with the RequestCompression trait. The default value is true.
+     * Whether request compression is disabled for operations marked with the RequestCompression trait. The default value is
+     * false, i.e., request compression is enabled.
      */
-    AWS_REQUEST_COMPRESSION_ENABLED("aws.requestCompressionEnabled", null),
+    AWS_DISABLE_REQUEST_COMPRESSION("aws.disableRequestCompression", null),
 
     /**
      * Defines the minimum compression size in bytes, inclusive, for a request to be compressed. The default value is 10_240.
      * The value must be non-negative and no greater than 10_485_760.
      */
-    AWS_REQUEST_MIN_COMPRESSION_SIZE_IN_BYTES("aws.requestMinCompressionSizeInBytes", null),
+    AWS_REQUEST_MIN_COMPRESSION_SIZE_BYTES("aws.requestMinCompressionSizeBytes", null),
 
     ;
 

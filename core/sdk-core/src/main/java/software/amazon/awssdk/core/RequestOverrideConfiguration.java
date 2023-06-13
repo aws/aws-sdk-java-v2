@@ -156,12 +156,12 @@ public abstract class RequestOverrideConfiguration {
     }
 
     /**
-     * Returns the request compression configuration object, which includes options to enable/disable request compression and
-     * set the minimum compression threshold. This request compression config object supersedes the request compression config
-     * object set on the client.
+     * Returns the request compression configuration object, if present, which includes options to enable/disable request
+     * compression and set the minimum compression threshold. This request compression config object supersedes the request
+     * compression config object set on the client.
      */
-    public RequestCompressionConfiguration requestCompressionConfiguration() {
-        return requestCompressionConfiguration;
+    public Optional<RequestCompressionConfiguration> requestCompressionConfiguration() {
+        return Optional.ofNullable(requestCompressionConfiguration);
     }
 
     @Override
@@ -426,14 +426,16 @@ public abstract class RequestOverrideConfiguration {
         ExecutionAttributes executionAttributes();
 
         /**
-         * Sets the {@link RequestCompressionConfiguration} for this request.
+         * Sets the {@link RequestCompressionConfiguration} for this request. The order of precedence, from highest to lowest,
+         * for this setting is: 1) Per request configuration 2) Client configuration 3) Environment variables 4) Profile setting.
          *
          * @param requestCompressionConfiguration Request compression configuration object for this request.
          */
         B requestCompressionConfiguration(RequestCompressionConfiguration requestCompressionConfiguration);
 
         /**
-         * Sets the {@link RequestCompressionConfiguration} for this request.
+         * Sets the {@link RequestCompressionConfiguration} for this request. The order of precedence, from highest to lowest,
+         * for this setting is: 1) Per request configuration 2) Client configuration 3) Environment variables 4) Profile setting.
          *
          * @param requestCompressionConfigurationConsumer A {@link Consumer} that accepts a
          *        {@link RequestCompressionConfiguration.Builder}

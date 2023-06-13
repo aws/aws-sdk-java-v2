@@ -110,6 +110,10 @@ public class SdkExecutionAttribute {
     public static final ExecutionAttribute<ChecksumValidation> HTTP_RESPONSE_CHECKSUM_VALIDATION = new ExecutionAttribute<>(
         "HttpResponseChecksumValidation");
 
+    /**
+     * The {@link RequestCompressionConfiguration}, which includes options to enable/disable request compression and set the
+     * minimum compression threshold.
+     */
     public static final ExecutionAttribute<RequestCompressionConfiguration> REQUEST_COMPRESSION_CONFIGURATION =
         new ExecutionAttribute<>("RequestCompressionConfiguration");
 

@@ -534,6 +534,16 @@ public final class ClientOverrideConfiguration
          */
         Builder requestCompressionConfiguration(RequestCompressionConfiguration requestCompressionConfiguration);
 
+        /**
+         * Sets the {@link RequestCompressionConfiguration} for this client.
+         */
+        default Builder requestCompressionConfiguration(Consumer<RequestCompressionConfiguration.Builder>
+                                                            requestCompressionConfiguration) {
+            return requestCompressionConfiguration(RequestCompressionConfiguration.builder()
+                                                                                  .applyMutation(requestCompressionConfiguration)
+                                                                                  .build());
+        }
+
         RequestCompressionConfiguration requestCompressionConfiguration();
     }
 

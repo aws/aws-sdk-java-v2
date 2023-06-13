@@ -94,7 +94,7 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
         new ExecutionAttribute<>("IsDiscoveredEndpoint");
 
     /**
-     * The supported compression algorithms for an operation
+     * The supported compression algorithms for an operation, and whether the operation is streaming or not.
      */
     public static final ExecutionAttribute<RequestCompression> REQUEST_COMPRESSION =
         new ExecutionAttribute<>("RequestCompression");
