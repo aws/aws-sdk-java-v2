@@ -33,36 +33,36 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 public interface AwsV4HttpSigner extends HttpSigner<AwsCredentialsIdentity> {
 
     /**
-     * The datetime, in milliseconds, for the request.
-     * REQUIRED.
+     * The datetime, as an {@link Instant}, for the request.
+     * This property is required.
      */
     SignerProperty<Instant> REQUEST_SIGNING_INSTANT =
         SignerProperty.create(Instant.class, "RequestSigningInstant");
 
     /**
-     * The AWS region to be used for computing the signature.
-     * REQUIRED.
+     * The AWS region name to be used for computing the signature.
+     * This property is required.
      */
     SignerProperty<String> REGION_NAME =
         SignerProperty.create(String.class, "RegionName");
 
     /**
      * The name of the AWS service.
-     * REQUIRED.
+     * This property is required.
      */
     SignerProperty<String> SERVICE_SIGNING_NAME =
         SignerProperty.create(String.class, "ServiceSigningName");
 
     /**
      * The name of the header for the checksum.
-     * REQUIRED.
+     * This property is required.
      */
     SignerProperty<String> CHECKSUM_HEADER_NAME =
         SignerProperty.create(String.class, "ChecksumHeaderName");
 
     /**
-     * The ChecksumAlgorithm used to compute the checksum.
-     * REQUIRED.
+     * The {@link ChecksumAlgorithm} used to compute the checksum.
+     * This property is required.
      */
     SignerProperty<ChecksumAlgorithm> CHECKSUM_ALGORITHM =
         SignerProperty.create(ChecksumAlgorithm.class, "ChecksumAlgorithm");
@@ -70,7 +70,7 @@ public interface AwsV4HttpSigner extends HttpSigner<AwsCredentialsIdentity> {
     /**
      * A boolean to indicate whether to double url-encode the resource path
      * when constructing the canonical request.
-     * DEFAULT: true
+     * This property defaults to true.
      */
     SignerProperty<Boolean> DOUBLE_URL_ENCODE =
         SignerProperty.create(Boolean.class, "DoubleUrlEncode");
@@ -78,7 +78,7 @@ public interface AwsV4HttpSigner extends HttpSigner<AwsCredentialsIdentity> {
     /**
      * A boolean to indicate Whether the resource path should be "normalized"
      * according to RFC3986 when constructing the canonical request.
-     * DEFAULT: true
+     * This property defaults to true.
      */
     SignerProperty<Boolean> NORMALIZE_PATH =
         SignerProperty.create(Boolean.class, "NormalizePath");

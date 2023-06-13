@@ -65,10 +65,6 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
 
     private static final Logger LOG = Logger.loggerFor(DefaultAwsV4HttpSigner.class);
 
-    private static final Boolean DEFAULT_DOUBLE_URL_ENCODE = Boolean.TRUE;
-
-    private static final Boolean DEFAULT_NORMALIZE_PATH = Boolean.TRUE;
-
     @Override
     public SyncSignedRequest sign(SyncSignRequest<? extends AwsCredentialsIdentity> request) {
         // anonymous credentials, don't sign
@@ -98,8 +94,8 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
                                           ContentChecksum contentChecksum) {
         SdkHttpRequest.Builder requestBuilder = request.request().toBuilder();
 
-        Boolean doubleUrlEncode = validatedProperty(request, DOUBLE_URL_ENCODE, DEFAULT_DOUBLE_URL_ENCODE);
-        Boolean normalizePath = validatedProperty(request, NORMALIZE_PATH, DEFAULT_NORMALIZE_PATH);
+        Boolean doubleUrlEncode = validatedProperty(request, DOUBLE_URL_ENCODE, true);
+        Boolean normalizePath = validatedProperty(request, NORMALIZE_PATH, true);
         String checksumHeaderName = validatedProperty(request, CHECKSUM_HEADER_NAME);
         Instant requestSigningInstant = validatedProperty(request, REQUEST_SIGNING_INSTANT);
         String formattedRequestSigningDate = formatDateStamp(requestSigningInstant);
