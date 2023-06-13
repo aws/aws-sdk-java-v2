@@ -30,6 +30,7 @@ import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.services.codecatalyst.auth.scheme.CodeCatalystAuthSchemeProvider;
+import software.amazon.awssdk.services.codecatalyst.auth.scheme.internal.CodeCatalystAuthSchemeInterceptor;
 import software.amazon.awssdk.services.codecatalyst.endpoints.CodeCatalystEndpointProvider;
 import software.amazon.awssdk.services.codecatalyst.endpoints.internal.CodeCatalystEndpointAuthSchemeInterceptor;
 import software.amazon.awssdk.services.codecatalyst.endpoints.internal.CodeCatalystRequestSetEndpointInterceptor;
@@ -66,6 +67,7 @@ abstract class DefaultCodeCatalystBaseClientBuilder<B extends CodeCatalystBaseCl
     @Override
     protected final SdkClientConfiguration finalizeServiceConfiguration(SdkClientConfiguration config) {
         List<ExecutionInterceptor> endpointInterceptors = new ArrayList<>();
+        endpointInterceptors.add(new CodeCatalystAuthSchemeInterceptor());
         endpointInterceptors.add(new CodeCatalystResolveEndpointInterceptor());
         endpointInterceptors.add(new CodeCatalystEndpointAuthSchemeInterceptor());
         endpointInterceptors.add(new CodeCatalystRequestSetEndpointInterceptor());

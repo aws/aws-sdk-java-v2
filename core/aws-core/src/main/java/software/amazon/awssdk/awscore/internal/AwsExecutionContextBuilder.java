@@ -18,6 +18,7 @@ package software.amazon.awssdk.awscore.internal;
 import static software.amazon.awssdk.auth.signer.internal.util.SignerMethodResolver.resolveSigningMethodUsed;
 import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS;
 
+import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
@@ -40,7 +41,13 @@ import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.InternalCoreExecutionAttribute;
 import software.amazon.awssdk.core.internal.util.HttpChecksumResolver;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.http.auth.AwsV4AuthScheme;
+import software.amazon.awssdk.http.auth.BearerAuthScheme;
+import software.amazon.awssdk.http.auth.spi.AuthScheme;
+import software.amazon.awssdk.http.auth.spi.AuthSchemeProvider;
+import software.amazon.awssdk.http.auth.spi.IdentityProviderConfiguration;
 import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.utils.MapUtils;
 
 @SdkInternalApi
 public final class AwsExecutionContextBuilder {
@@ -101,6 +108,9 @@ public final class AwsExecutionContextBuilder {
                           clientConfig.option(AwsClientOption.USE_GLOBAL_ENDPOINT))
             .putAttribute(RESOLVED_CHECKSUM_SPECS, HttpChecksumResolver.resolveChecksumSpecs(executionAttributes));
 
+        // Auth Scheme resolution related attributes
+        putAuthSchemeResolutionAttributes(executionAttributes, clientConfig);
+
         ExecutionInterceptorChain executionInterceptorChain =
                 new ExecutionInterceptorChain(clientConfig.option(SdkClientOption.EXECUTION_INTERCEPTORS));
 
@@ -133,6 +143,51 @@ public final class AwsExecutionContextBuilder {
                                .signer(signer)
                                .metricCollector(metricCollector)
                                .build();
+    }
+
+    private static void putAuthSchemeResolutionAttributes(ExecutionAttributes executionAttributes,
+                                                          SdkClientConfiguration clientConfig) {
+
+        // TODO: should this be client v/s advanced option?
+        // TODO: When request-level auth scheme resovler is added, use the request-level auth scheme resolver if the customer
+        //  specified an override, otherwise fall back to the one on the client.
+        AuthSchemeProvider authSchemeProvider = clientConfig.option(SdkClientOption.AUTH_SCHEME_PROVIDER);
+
+        // Use auth schemes that the user specified at the request level with
+        // preference over those on the client.
+        // TODO: The request level schemes should be "merged" with client level, with request preferred over client
+
+        // TODO: this may have to be setup at operation level, as some operations may use different signer for same schemeId,
+        // e.g., EventStreamV4AuthScheme
+
+        // TODO: If request level override is specified, should each operation check that overridden scheme is the
+        //  appropriate type (uses the appropriate Signer) for streaming, etc.
+
+        // Map<String, AuthScheme<?>> authSchemes = clientConfig.option(SdkClientOption.AUTH_SCHEMES);
+        AwsV4AuthScheme awsv4 = AwsV4AuthScheme.create();
+        BearerAuthScheme bearerAuthScheme = BearerAuthScheme.create();
+        Map<String, AuthScheme<?>> authSchemes = MapUtils.of(
+            // awsv4.schemeId(), awsv4,
+            bearerAuthScheme.schemeId(), bearerAuthScheme
+        );
+
+        // TODO: IDENTITY_PROVIDERS or IDENTITY_PROVIDER_CONFIGURATION
+        // IdentityProviderConfiguration identityProviders = clientConfig.option(SdkClientOption.IDENTITY_PROVIDERS);
+        IdentityProviderConfiguration.Builder identityProvidersBuilder =
+            IdentityProviderConfiguration.builder();
+
+        if (clientConfig.option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER) != null) {
+            identityProvidersBuilder.putIdentityProvider(clientConfig.option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER));
+        }
+        if (clientConfig.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER) != null) {
+            identityProvidersBuilder.putIdentityProvider(clientConfig.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER));
+        }
+        IdentityProviderConfiguration identityProviders = identityProvidersBuilder.build();
+
+        executionAttributes
+            .putAttribute(SdkExecutionAttribute.AUTH_SCHEME_RESOLVER, authSchemeProvider)
+            .putAttribute(SdkExecutionAttribute.AUTH_SCHEMES, authSchemes)
+            .putAttribute(SdkExecutionAttribute.IDENTITY_PROVIDERS, identityProviders);
     }
 
     /**

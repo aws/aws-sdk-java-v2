@@ -17,6 +17,7 @@ package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -30,6 +31,14 @@ import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.signer.AsyncRequestBodySigner;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
+import software.amazon.awssdk.http.auth.spi.HttpSigner;
+import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
+import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
+import software.amazon.awssdk.identity.spi.Identity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.utils.Pair;
 
@@ -52,7 +61,69 @@ public class SigningStage implements RequestToRequestPipeline {
     @Override
     public SdkHttpFullRequest execute(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {
         InterruptMonitor.checkInterrupted();
+        if (context.executionAttributes().getAttribute(SdkExecutionAttribute.SELECTED_AUTH_SCHEME) != null) {
+            return sraSignRequest(request, context);
+        }
         return signRequest(request, context);
+    }
+
+    private <T extends Identity> SdkHttpFullRequest sraSignRequest(SdkHttpFullRequest request, RequestExecutionContext context) {
+
+        ExecutionAttributes executionAttributes = context.executionAttributes();
+        SelectedAuthScheme<T> selectedAuthScheme =
+            executionAttributes.getAttribute(SdkExecutionAttribute.SELECTED_AUTH_SCHEME);
+
+        AuthSchemeOption authSchemeOption = selectedAuthScheme.authSchemeOption();
+
+        ResolveIdentityRequest.Builder identityRequestBuilder = ResolveIdentityRequest.builder();
+        authSchemeOption.forEachIdentityProperty(identityRequestBuilder::putProperty);
+
+        IdentityProvider<T> identityProvider = selectedAuthScheme.identityProvider();
+        T identity = identityProvider.resolveIdentity(identityRequestBuilder.build()).join();
+
+        // TODO: resolveIdentity(Consumer builder) doesn't get used
+
+        // Consumer<ResolveIdentityRequest.Builder> c = r -> r.putProperty(IdentityProperty.create(String.class, "key"), "value");
+        // identityProvider.resolveIdentity(c);
+        // TODO: Consumer Builder is not working because of ambiguity!!
+        // identityProvider.resolveIdentity(r -> r.putProperty(IdentityProperty.create(String.class, "key"), "value"));
+
+        SyncSignRequest.Builder<T> signRequestBuilder = SyncSignRequest
+            .builder(identity)
+            .request(request)
+            .payload(request.contentStreamProvider().orElse(null));
+        authSchemeOption.forEachSignerProperty(signRequestBuilder::putProperty);
+
+        HttpSigner<T> signer = selectedAuthScheme.signer();
+        SyncSignedRequest signedRequest = signer.sign(signRequestBuilder.build());
+
+        // TODO: sign(Consumer builder) doesn't get used
+        // SyncSignedRequest signedRequest =
+        //     signer.sign(r -> r.identity(identity)
+        //                       .request(request)
+        //                       .payload(request.contentStreamProvider().orElse(null))
+        //                       .putProperty(SignerProperty.create(String.class, "key"), "value"));
+
+        return toSdkHttpFullRequest(signedRequest);
+    }
+
+    private SdkHttpFullRequest toSdkHttpFullRequest(SyncSignedRequest signedRequest) {
+        SdkHttpRequest request = signedRequest.request();
+        // TODO: take the SdkHttpRequest and create SdkHttpFullRequest from it
+
+        // TODO: Copy from DefaultS3Presigner
+        // TODO: use .uri(request.getUri()) to get everything except headers?
+        return SdkHttpFullRequest.builder()
+                                 .contentStreamProvider(signedRequest.payload().orElse(null))
+                                 .protocol(request.protocol())
+                                 .method(request.method())
+                                 .host(request.host())
+                                 .port(request.port())
+                                 .encodedPath(request.encodedPath())
+                                 // .uri(request.getUri())
+                                 .applyMutation(r -> request.forEachHeader(r::putHeader))
+                                 .applyMutation(r -> request.forEachRawQueryParameter(r::putRawQueryParameter))
+                                 .build();
     }
 
     /**

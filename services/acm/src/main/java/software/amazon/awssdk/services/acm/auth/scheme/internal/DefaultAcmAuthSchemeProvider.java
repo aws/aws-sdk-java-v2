@@ -13,10 +13,11 @@
 
 package software.amazon.awssdk.services.acm.auth.scheme.internal;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.http.auth.AwsV4AuthScheme;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
 import software.amazon.awssdk.services.acm.auth.scheme.AcmAuthSchemeParams;
 import software.amazon.awssdk.services.acm.auth.scheme.AcmAuthSchemeProvider;
@@ -35,6 +36,6 @@ public final class DefaultAcmAuthSchemeProvider implements AcmAuthSchemeProvider
 
     @Override
     public List<AuthSchemeOption> resolveAuthScheme(AcmAuthSchemeParams authSchemeParams) {
-        return new ArrayList<>();
+        return Arrays.asList(AuthSchemeOption.builder().schemeId(AwsV4AuthScheme.create().schemeId()).build());
     }
 }
