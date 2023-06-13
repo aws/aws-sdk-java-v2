@@ -1,9 +1,17 @@
 name: AWS CodeBuild CI
 on:
   pull_request:
+    paths-ignore:
+      - '**.md'
+      - '.all-contributorsrc'
+      - 'docs/**'
   push:
     branches:
       - master
+    paths-ignore:
+      - '**.md'
+      - '.all-contributorsrc'
+      - 'docs/**'
 
 permissions:
   id-token: write
