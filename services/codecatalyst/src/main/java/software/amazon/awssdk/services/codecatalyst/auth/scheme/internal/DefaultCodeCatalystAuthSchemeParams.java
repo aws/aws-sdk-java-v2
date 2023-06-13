@@ -36,8 +36,20 @@ public final class DefaultCodeCatalystAuthSchemeParams implements CodeCatalystAu
         return operation;
     }
 
+    @Override
+    public CodeCatalystAuthSchemeParams.Builder toBuilder() {
+        return new Builder(this);
+    }
+
     private static final class Builder implements CodeCatalystAuthSchemeParams.Builder {
         private String operation;
+
+        Builder() {
+        }
+
+        Builder(DefaultCodeCatalystAuthSchemeParams params) {
+            this.operation = params.operation;
+        }
 
         @Override
         public Builder operation(String operation) {

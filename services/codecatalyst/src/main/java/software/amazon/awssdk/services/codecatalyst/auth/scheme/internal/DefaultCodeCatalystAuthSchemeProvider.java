@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.http.auth.spi.HttpAuthOption;
+import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
 import software.amazon.awssdk.services.codecatalyst.auth.scheme.CodeCatalystAuthSchemeParams;
 import software.amazon.awssdk.services.codecatalyst.auth.scheme.CodeCatalystAuthSchemeProvider;
 
@@ -34,7 +34,7 @@ public final class DefaultCodeCatalystAuthSchemeProvider implements CodeCatalyst
     }
 
     @Override
-    public List<HttpAuthOption> resolveAuthScheme(CodeCatalystAuthSchemeParams authSchemeParams) {
+    public List<AuthSchemeOption> resolveAuthScheme(CodeCatalystAuthSchemeParams authSchemeParams) {
         return new ArrayList<>();
     }
 }

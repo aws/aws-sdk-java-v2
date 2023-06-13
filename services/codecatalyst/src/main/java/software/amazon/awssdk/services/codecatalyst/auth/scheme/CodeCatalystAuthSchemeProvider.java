@@ -17,13 +17,13 @@ import java.util.List;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeProvider;
-import software.amazon.awssdk.http.auth.spi.HttpAuthOption;
 import software.amazon.awssdk.services.codecatalyst.auth.scheme.internal.DefaultCodeCatalystAuthSchemeProvider;
 
 /**
  * An auth scheme provider for CodeCatalyst service. The auth scheme provider takes a set of parameters using
- * {@link CodeCatalystAuthSchemeParams}, and resolves a list of {@link HttpAuthOption} based on the given parameters.
+ * {@link CodeCatalystAuthSchemeParams}, and resolves a list of {@link AuthSchemeOption} based on the given parameters.
  */
 @Generated("software.amazon.awssdk:codegen")
 @SdkPublicApi
@@ -31,12 +31,12 @@ public interface CodeCatalystAuthSchemeProvider extends AuthSchemeProvider {
     /**
      * Resolve the auth schemes based on the given set of parameters.
      */
-    List<HttpAuthOption> resolveAuthScheme(CodeCatalystAuthSchemeParams authSchemeParams);
+    List<AuthSchemeOption> resolveAuthScheme(CodeCatalystAuthSchemeParams authSchemeParams);
 
     /**
      * Resolve the auth schemes based on the given set of parameters.
      */
-    default List<HttpAuthOption> resolveAuthScheme(Consumer<CodeCatalystAuthSchemeParams.Builder> consumer) {
+    default List<AuthSchemeOption> resolveAuthScheme(Consumer<CodeCatalystAuthSchemeParams.Builder> consumer) {
         CodeCatalystAuthSchemeParams.Builder builder = CodeCatalystAuthSchemeParams.builder();
         consumer.accept(builder);
         return resolveAuthScheme(builder.build());

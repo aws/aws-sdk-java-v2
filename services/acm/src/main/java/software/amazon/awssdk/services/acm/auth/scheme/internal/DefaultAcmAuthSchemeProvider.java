@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.http.auth.spi.HttpAuthOption;
+import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
 import software.amazon.awssdk.services.acm.auth.scheme.AcmAuthSchemeParams;
 import software.amazon.awssdk.services.acm.auth.scheme.AcmAuthSchemeProvider;
 
@@ -34,7 +34,7 @@ public final class DefaultAcmAuthSchemeProvider implements AcmAuthSchemeProvider
     }
 
     @Override
-    public List<HttpAuthOption> resolveAuthScheme(AcmAuthSchemeParams authSchemeParams) {
+    public List<AuthSchemeOption> resolveAuthScheme(AcmAuthSchemeParams authSchemeParams) {
         return new ArrayList<>();
     }
 }

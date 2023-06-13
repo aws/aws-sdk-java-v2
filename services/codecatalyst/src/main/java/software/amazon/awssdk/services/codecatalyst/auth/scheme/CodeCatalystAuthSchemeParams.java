@@ -16,13 +16,16 @@ package software.amazon.awssdk.services.codecatalyst.auth.scheme;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.codecatalyst.auth.scheme.internal.DefaultCodeCatalystAuthSchemeParams;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * The parameters object used to resolve the auth schemes for the CodeCatalyst service.
  */
 @Generated("software.amazon.awssdk:codegen")
 @SdkPublicApi
-public interface CodeCatalystAuthSchemeParams {
+public interface CodeCatalystAuthSchemeParams extends
+        ToCopyableBuilder<CodeCatalystAuthSchemeParams.Builder, CodeCatalystAuthSchemeParams> {
     /**
      * Get a new builder for creating a {@link CodeCatalystAuthSchemeParams}.
      */
@@ -36,9 +39,14 @@ public interface CodeCatalystAuthSchemeParams {
     String operation();
 
     /**
+     * Returns a {@link Builder} to customize the parameters.
+     */
+    Builder toBuilder();
+
+    /**
      * A builder for a {@link CodeCatalystAuthSchemeParams}.
      */
-    interface Builder {
+    interface Builder extends CopyableBuilder<Builder, CodeCatalystAuthSchemeParams> {
         /**
          * Set the operation for which to resolve the auth scheme.
          */
