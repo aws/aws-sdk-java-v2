@@ -5,10 +5,11 @@ import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import software.amazon.awssdk.awscore.internal.client.ClientComposer;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.endpoints.EndpointProvider;
-import software.amazon.awssdk.services.builder.ClientComposerFactory;
+import software.amazon.awssdk.services.builder.AsyncClientComposer;
 import software.amazon.awssdk.services.json.endpoints.JsonEndpointProvider;
 
 /**
@@ -36,7 +37,8 @@ final class DefaultJsonAsyncClientBuilder extends DefaultJsonBaseClientBuilder<J
         this.validateClientOptions(clientConfiguration);
         JsonServiceClientConfiguration serviceClientConfiguration = initializeServiceClientConfig(clientConfiguration);
         JsonAsyncClient client = new DefaultJsonAsyncClient(serviceClientConfiguration, clientConfiguration);
-        return ClientComposerFactory.composeAsync(client, clientConfiguration);
+        ClientComposer composer = new AsyncClientComposer();
+        return (JsonAsyncClient) composer.compose(client, clientConfiguration);
     }
 
     private JsonServiceClientConfiguration initializeServiceClientConfig(SdkClientConfiguration clientConfig) {

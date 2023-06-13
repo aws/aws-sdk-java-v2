@@ -27,7 +27,8 @@ import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Configuration;
-import software.amazon.awssdk.services.s3.internal.client.S3ClientComposer;
+import software.amazon.awssdk.services.s3.internal.client.S3AsyncClientComposer;
+import software.amazon.awssdk.services.s3.internal.client.S3SyncClientComposer;
 import software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionAsyncClient;
 import software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionSyncClient;
 
@@ -36,8 +37,9 @@ public class ClientCompositionFactoryTest {
     @ParameterizedTest
     @MethodSource("syncTestCases")
     void syncClientTest(Consumer<S3Configuration.Builder> s3ConfigSettings, Class<Object> clazz, boolean isClass) {
-        S3Client composedClient = S3ClientComposer.composeSync(S3Client.create(),
-                                                               clientConfigWithServiceConfig(s3ConfigSettings));
+        S3SyncClientComposer composer = new S3SyncClientComposer();
+        S3Client composedClient = composer.compose(S3Client.create(),
+                                                   clientConfigWithServiceConfig(s3ConfigSettings));
         if (isClass) {
             assertThat(composedClient).isInstanceOf(clazz);
         } else {
@@ -48,8 +50,9 @@ public class ClientCompositionFactoryTest {
     @ParameterizedTest
     @MethodSource("asyncTestCases")
     void asyncClientTest(Consumer<S3Configuration.Builder> s3ConfigSettings, Class<Object> clazz, boolean isClass) {
-        S3AsyncClient composedClient = S3ClientComposer.composeAsync(S3AsyncClient.create(),
-                                                                     clientConfigWithServiceConfig(s3ConfigSettings));
+        S3AsyncClientComposer composer = new S3AsyncClientComposer();
+        S3AsyncClient composedClient = composer.compose(S3AsyncClient.create(),
+                                                        clientConfigWithServiceConfig(s3ConfigSettings));
         if (isClass) {
             assertThat(composedClient).isInstanceOf(clazz);
         } else {
