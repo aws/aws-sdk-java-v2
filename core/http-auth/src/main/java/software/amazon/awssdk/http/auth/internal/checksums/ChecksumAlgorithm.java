@@ -16,15 +16,15 @@
 package software.amazon.awssdk.http.auth.internal.checksums;
 
 import java.util.Map;
-import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.internal.EnumUtils;
 
 /**
  * Enum that indicates all the checksums supported by Flexible checksums in a Service Request/Response Header.
  */
-@SdkPublicApi
-public enum Algorithm {
+@SdkInternalApi
+public enum ChecksumAlgorithm {
 
     CRC32C("crc32c", 8),
     CRC32("crc32", 8),
@@ -32,22 +32,23 @@ public enum Algorithm {
     SHA1("sha1", 28),
     ;
 
-    private static final Map<String, Algorithm> VALUE_MAP = EnumUtils.uniqueIndex(Algorithm.class, Algorithm::toString);
+    private static final Map<String, ChecksumAlgorithm> VALUE_MAP =
+        EnumUtils.uniqueIndex(ChecksumAlgorithm.class, ChecksumAlgorithm::toString);
 
     private final String value;
     private final int length;
 
-    Algorithm(String value, int length) {
+    ChecksumAlgorithm(String value, int length) {
         this.value = value;
         this.length = length;
     }
 
-    public static Algorithm fromValue(String value) {
+    public static ChecksumAlgorithm fromValue(String value) {
         if (value == null) {
             return null;
         }
         String normalizedValue = StringUtils.lowerCase(value);
-        Algorithm algorithm = VALUE_MAP.get(normalizedValue);
+        ChecksumAlgorithm algorithm = VALUE_MAP.get(normalizedValue);
         if (algorithm == null) {
             throw new IllegalArgumentException("The provided value is not a valid algorithm " + value);
         }

@@ -22,7 +22,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 @SdkInternalApi
 public enum SigningAlgorithm {
 
-    HmacSHA256;
+    HMAC_SHA256;
 
     private final ThreadLocal<Mac> macReference;
 

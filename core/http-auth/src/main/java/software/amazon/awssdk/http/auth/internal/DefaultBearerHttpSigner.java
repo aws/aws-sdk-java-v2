@@ -29,7 +29,7 @@ import software.amazon.awssdk.identity.spi.TokenIdentity;
  * A default implementation of {@link BearerHttpSigner}.
  */
 @SdkInternalApi
-public class DefaultBearerHttpSigner implements BearerHttpSigner {
+public final class DefaultBearerHttpSigner implements BearerHttpSigner {
 
     private static final String AUTHZ_HEADER = "Authorization";
     private static final String BEARER_LABEL = "Bearer";

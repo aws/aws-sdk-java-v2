@@ -26,7 +26,7 @@ import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.auth.internal.checksums.Algorithm;
+import software.amazon.awssdk.http.auth.internal.checksums.ChecksumAlgorithm;
 import software.amazon.awssdk.http.auth.internal.checksums.ChecksumSpecs;
 import software.amazon.awssdk.http.auth.internal.checksums.SdkChecksum;
 import software.amazon.awssdk.http.auth.internal.io.SdkDigestInputStream;
@@ -104,7 +104,7 @@ public final class HttpChecksumUtils {
     }
 
     public static SdkChecksum createSdkChecksumFromRequest(SdkHttpRequest request, String checksumHeaderName,
-                                                           Algorithm checksumAlgorithm) {
+                                                           ChecksumAlgorithm checksumAlgorithm) {
         boolean isValidChecksumHeader = StringUtils.isNotBlank(checksumHeaderName);
 
         if (isValidChecksumHeader
