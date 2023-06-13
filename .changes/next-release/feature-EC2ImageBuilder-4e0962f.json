@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "EC2 Image Builder",
-    "contributor": "",
-    "description": "Change the Image Builder ImagePipeline dateNextRun field to more accurately describe the data."
-}
