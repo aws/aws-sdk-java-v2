@@ -432,6 +432,17 @@ public abstract class RequestOverrideConfiguration {
          */
         B requestCompressionConfiguration(RequestCompressionConfiguration requestCompressionConfiguration);
 
+        /**
+         * Sets the {@link RequestCompressionConfiguration} for this request.
+         *
+         * @param requestCompressionConfigurationConsumer A {@link Consumer} that accepts a
+         *        {@link RequestCompressionConfiguration.Builder}
+         *
+         * @return This object for method chaining
+         */
+        B requestCompressionConfiguration(Consumer<RequestCompressionConfiguration.Builder>
+                                              requestCompressionConfigurationConsumer);
+
         RequestCompressionConfiguration requestCompressionConfiguration();
 
         /**
@@ -623,6 +634,15 @@ public abstract class RequestOverrideConfiguration {
         @Override
         public B requestCompressionConfiguration(RequestCompressionConfiguration requestCompressionConfiguration) {
             this.requestCompressionConfiguration = requestCompressionConfiguration;
+            return (B) this;
+        }
+
+        @Override
+        public B requestCompressionConfiguration(Consumer<RequestCompressionConfiguration.Builder>
+                                              requestCompressionConfigurationConsumer) {
+            RequestCompressionConfiguration.Builder b = RequestCompressionConfiguration.builder();
+            requestCompressionConfigurationConsumer.accept(b);
+            requestCompressionConfiguration(b.build());
             return (B) this;
         }
 

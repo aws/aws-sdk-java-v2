@@ -46,7 +46,7 @@ public class RequestCompressionConfiguration implements ToCopyableBuilder<Reques
     /**
      * If set, returns the minimum compression threshold in bytes, inclusive, in order to trigger request compression.
      */
-    public Integer getMinimumCompressionThresholdInBytes() {
+    public Integer minimumCompressionThresholdInBytes() {
         return minimumCompressionThresholdInBytes;
     }
 
@@ -90,7 +90,7 @@ public class RequestCompressionConfiguration implements ToCopyableBuilder<Reques
     public interface Builder extends CopyableBuilder<Builder, RequestCompressionConfiguration> {
 
         /**
-         * Configures whether request compression is enabled or not.
+         * Configures whether request compression is enabled or not. The default value is true.
          *
          * @param requestCompressionEnabled
          * @return This object for method chaining.
@@ -98,7 +98,8 @@ public class RequestCompressionConfiguration implements ToCopyableBuilder<Reques
         Builder requestCompressionEnabled(Boolean requestCompressionEnabled);
 
         /**
-         * Configures the minimum compression threshold in bytes.
+         * Configures the minimum compression threshold, inclusive, in bytes. The default value is 10_240. The value must be
+         * non-negative and no greater than 10_485_760.
          *
          * @param minimumCompressionThresholdInBytes
          * @return This object for method chaining.

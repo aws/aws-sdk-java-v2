@@ -240,8 +240,8 @@ public final class ClientOverrideConfiguration
      *
      * @see Builder#requestCompressionConfiguration(RequestCompressionConfiguration)
      */
-    public RequestCompressionConfiguration requestCompressionConfiguration() {
-        return requestCompressionConfiguration;
+    public Optional<RequestCompressionConfiguration> requestCompressionConfiguration() {
+        return Optional.ofNullable(requestCompressionConfiguration);
     }
 
     @Override

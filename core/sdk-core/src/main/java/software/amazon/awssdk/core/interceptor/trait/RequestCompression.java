@@ -35,22 +35,8 @@ public final class RequestCompression {
         return encodings;
     }
 
-    public void setEncodings(List<String> encodings) {
-        this.encodings = encodings;
-    }
-
-    public void setEncodings(String... encodings) {
-        if (encodings != null) {
-            this.encodings = Arrays.asList(encodings);
-        }
-    }
-
     public boolean isStreaming() {
         return isStreaming;
-    }
-
-    public void setStreaming(boolean isStreaming) {
-        this.isStreaming = isStreaming;
     }
 
     public static Builder builder() {

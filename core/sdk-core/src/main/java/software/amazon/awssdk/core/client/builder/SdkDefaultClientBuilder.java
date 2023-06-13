@@ -242,7 +242,8 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         builder.option(METRIC_PUBLISHERS, clientOverrideConfiguration.metricPublishers());
         builder.option(EXECUTION_ATTRIBUTES, clientOverrideConfiguration.executionAttributes());
         builder.option(TOKEN_SIGNER, clientOverrideConfiguration.advancedOption(TOKEN_SIGNER).orElse(null));
-        builder.option(REQUEST_COMPRESSION_CONFIGURATION, clientOverrideConfiguration.requestCompressionConfiguration());
+        builder.option(REQUEST_COMPRESSION_CONFIGURATION,
+                       clientOverrideConfiguration.requestCompressionConfiguration().orElse(null));
 
         clientOverrideConfiguration.advancedOption(ENDPOINT_OVERRIDDEN_OVERRIDE).ifPresent(value -> {
             builder.option(ENDPOINT_OVERRIDDEN, value);
