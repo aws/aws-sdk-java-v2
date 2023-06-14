@@ -35,6 +35,14 @@ class IdentityProviderConfigurationTest {
     }
 
     @Test
+    public void identityProvider_withUnknownType_returnsNull() {
+        IdentityProvider<AwsCredentialsIdentity> awsCredentialsProvider = new AwsCredentialsProvider();
+        IdentityProviderConfiguration identityProviders =
+            IdentityProviderConfiguration.builder().putIdentityProvider(awsCredentialsProvider).build();
+        assertNull(identityProviders.identityProvider(TokenIdentity.class));
+    }
+
+    @Test
     public void identityProvider_canBeRetrieved() {
         IdentityProvider<AwsCredentialsIdentity> awsCredentialsProvider = new AwsCredentialsProvider();
         IdentityProviderConfiguration identityProviders =
@@ -43,11 +51,14 @@ class IdentityProviderConfigurationTest {
     }
 
     @Test
-    public void identityProvider_withUnknownType_returnsNull() {
-        IdentityProvider<AwsCredentialsIdentity> awsCredentialsProvider = new AwsCredentialsProvider();
+    public void putIdentityProvider_ofSameType_isReplaced() {
+        IdentityProvider<AwsCredentialsIdentity> awsCredentialsProvider1 = new AwsCredentialsProvider();
+        IdentityProvider<AwsCredentialsIdentity> awsCredentialsProvider2 = new AwsCredentialsProvider();
         IdentityProviderConfiguration identityProviders =
-            IdentityProviderConfiguration.builder().putIdentityProvider(awsCredentialsProvider).build();
-        assertNull(identityProviders.identityProvider(TokenIdentity.class));
+            IdentityProviderConfiguration.builder()
+                                         .putIdentityProvider(awsCredentialsProvider1)
+                                         .putIdentityProvider(awsCredentialsProvider2).build();
+        assertSame(awsCredentialsProvider2, identityProviders.identityProvider(AwsCredentialsIdentity.class));
     }
 
     @Test
@@ -75,6 +86,21 @@ class IdentityProviderConfigurationTest {
         assertNull(identityProviders.identityProvider(AwsCredentialsIdentity.class));
     }
 
+    @Test
+    public void copyBuilder_addIdentityProvider_works() {
+        IdentityProvider<AwsCredentialsIdentity> awsCredentialsProvider = new AwsCredentialsProvider();
+        IdentityProviderConfiguration identityProviders =
+            IdentityProviderConfiguration.builder()
+                                         .putIdentityProvider(awsCredentialsProvider)
+                                         .build();
+
+        IdentityProvider<TokenIdentity> tokenProvider = new TokenProvider();
+        identityProviders = identityProviders.copy(builder -> builder.putIdentityProvider(tokenProvider));
+
+        assertSame(awsCredentialsProvider, identityProviders.identityProvider(AwsCredentialsIdentity.class));
+        assertSame(tokenProvider, identityProviders.identityProvider(TokenIdentity.class));
+    }
+
     private static final class AwsCredentialsProvider implements IdentityProvider<AwsCredentialsIdentity> {
 
         @Override
@@ -97,6 +123,19 @@ class IdentityProviderConfigurationTest {
 
         @Override
         public CompletableFuture<? extends AwsSessionCredentialsIdentity> resolveIdentity(ResolveIdentityRequest request) {
+            return null;
+        }
+    }
+
+    private static final class TokenProvider implements IdentityProvider<TokenIdentity> {
+
+        @Override
+        public Class<TokenIdentity> identityType() {
+            return TokenIdentity.class;
+        }
+
+        @Override
+        public CompletableFuture<? extends TokenIdentity> resolveIdentity(ResolveIdentityRequest request) {
             return null;
         }
     }

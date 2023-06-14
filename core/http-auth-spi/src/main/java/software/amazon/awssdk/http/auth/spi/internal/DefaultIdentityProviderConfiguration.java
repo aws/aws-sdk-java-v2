@@ -43,6 +43,11 @@ public final class DefaultIdentityProviderConfiguration implements IdentityProvi
     }
 
     @Override
+    public Builder toBuilder() {
+        return new BuilderImpl(this);
+    }
+
+    @Override
     public String toString() {
         return ToString.builder("IdentityProviderConfiguration")
                        .add("identityProviders", identityProviders)
@@ -51,6 +56,13 @@ public final class DefaultIdentityProviderConfiguration implements IdentityProvi
 
     private static final class BuilderImpl implements Builder {
         private final Map<Class<?>, IdentityProvider<?>> identityProviders = new HashMap<>();
+
+        private BuilderImpl() {
+        }
+
+        private BuilderImpl(DefaultIdentityProviderConfiguration identityProviders) {
+            this.identityProviders.putAll(identityProviders.identityProviders);
+        }
 
         @Override
         public <T extends Identity> Builder putIdentityProvider(IdentityProvider<T> identityProvider) {
