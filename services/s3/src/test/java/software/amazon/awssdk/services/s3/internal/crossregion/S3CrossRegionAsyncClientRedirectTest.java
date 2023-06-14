@@ -22,19 +22,15 @@ import static org.mockito.Mockito.when;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
-import java.util.function.Consumer;
 import org.junit.jupiter.api.BeforeEach;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
-import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
-import software.amazon.awssdk.services.s3.model.HeadBucketResponse;
 import software.amazon.awssdk.services.s3.model.ListBucketsRequest;
 import software.amazon.awssdk.services.s3.model.ListBucketsResponse;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsResponse;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 public class S3CrossRegionAsyncClientRedirectTest extends S3DecoratorRedirectBaseTest {
@@ -49,7 +45,6 @@ public class S3CrossRegionAsyncClientRedirectTest extends S3DecoratorRedirectBas
 
     @Override
     protected void stubRedirectSuccessSuccess() {
-
         when(mockDelegateAsyncClient.listObjects(any(ListObjectsRequest.class)))
             .thenReturn(CompletableFutureUtils.failedFuture(redirectException(301, CROSS_REGION, null, null)))
             .thenReturn(CompletableFuture.completedFuture(ListObjectsResponse.builder().contents(S3_OBJECTS).build()))
@@ -68,7 +63,6 @@ public class S3CrossRegionAsyncClientRedirectTest extends S3DecoratorRedirectBas
     @Override
     protected void verifyTheApiServiceCall(int times, ArgumentCaptor<ListObjectsRequest> requestArgumentCaptor) {
         verify(mockDelegateAsyncClient, times(times)).listObjects(requestArgumentCaptor.capture());
-
     }
 
     @Override
@@ -78,13 +72,11 @@ public class S3CrossRegionAsyncClientRedirectTest extends S3DecoratorRedirectBas
 
     @Override
     protected void stubClientAPICallWithFirstRedirectThenSuccessWithRegionInErrorResponse() {
-
         when(mockDelegateAsyncClient.listObjects(any(ListObjectsRequest.class)))
            .thenReturn(CompletableFutureUtils.failedFuture(redirectException(301, CROSS_REGION, null, null)))
             .thenReturn(CompletableFuture.completedFuture(ListObjectsResponse.builder().contents(S3_OBJECTS).build()
             ));
     }
-
 
     @Override
     protected void verifyNoBucketApiCall(int times, ArgumentCaptor<ListBucketsRequest> requestArgumentCaptor) {
@@ -112,7 +104,6 @@ public class S3CrossRegionAsyncClientRedirectTest extends S3DecoratorRedirectBas
     protected void stubHeadBucketRedirect() {
         when(mockDelegateAsyncClient.headBucket(any(HeadBucketRequest.class)))
             .thenReturn(CompletableFutureUtils.failedFuture(redirectException(301, CROSS_REGION, null, null)));
-
     }
 
     @Override
@@ -123,9 +114,6 @@ public class S3CrossRegionAsyncClientRedirectTest extends S3DecoratorRedirectBas
             .thenReturn(CompletableFuture.completedFuture(ListObjectsResponse.builder().contents(S3_OBJECTS).build()));
     }
 
-
-
-
     @Override
     protected void stubRedirectThenError() {
         when(mockDelegateAsyncClient.listObjects(any(ListObjectsRequest.class)))
@@ -133,14 +121,8 @@ public class S3CrossRegionAsyncClientRedirectTest extends S3DecoratorRedirectBas
             .thenReturn(CompletableFutureUtils.failedFuture(redirectException(400, null, "InvalidArgument", "Invalid id")));
     }
 
-
     @Override
     protected void verifyHeadBucketServiceCall(int times) {
         verify(mockDelegateAsyncClient, times(times)).headBucket(any(HeadBucketRequest.class));
-
     }
-
-
-
-
 }

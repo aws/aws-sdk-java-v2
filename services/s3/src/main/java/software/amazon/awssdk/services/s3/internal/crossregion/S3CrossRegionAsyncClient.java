@@ -98,9 +98,9 @@ public final class S3CrossRegionAsyncClient extends DelegatingS3AsyncClient {
                                                                           }
                                                                           return null;
                                                                       }))
-                                .thenApplyAsync(h -> {
-                                    h.join();
-                                    if (h != null && StringUtils.isNotBlank(stringBuilder.toString())) {
+                                .thenApplyAsync(headResponse -> {
+                                    headResponse.join();
+                                    if (headResponse != null && StringUtils.isNotBlank(stringBuilder.toString())) {
                                         return Region.of(stringBuilder.toString());
                                     }
                                     return null;

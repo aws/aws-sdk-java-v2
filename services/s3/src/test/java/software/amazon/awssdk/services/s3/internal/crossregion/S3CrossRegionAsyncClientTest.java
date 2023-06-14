@@ -16,6 +16,8 @@
 package software.amazon.awssdk.services.s3.internal.crossregion;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static software.amazon.awssdk.services.s3.internal.crossregion.S3DecoratorRedirectBaseTest.CROSS_REGION;
+import static software.amazon.awssdk.services.s3.internal.crossregion.S3DecoratorRedirectBaseTest.X_AMZ_BUCKET_REGION;
 
 import java.net.URI;
 import java.util.concurrent.CompletableFuture;
@@ -29,6 +31,7 @@ import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.HttpExecuteResponse;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -40,6 +43,7 @@ import software.amazon.awssdk.services.s3.paginators.ListObjectsV2Iterable;
 import software.amazon.awssdk.services.s3.paginators.ListObjectsV2Publisher;
 import software.amazon.awssdk.testutils.service.http.MockAsyncHttpClient;
 import software.amazon.awssdk.utils.StringInputStream;
+import software.amazon.awssdk.utils.StringUtils;
 
 class S3CrossRegionAsyncClientTest {
 
@@ -52,14 +56,29 @@ class S3CrossRegionAsyncClientTest {
     private CaptureInterceptor captureInterceptor;
     private S3AsyncClient s3Client;
 
+
+    public static HttpExecuteResponse successHttpResponse() {
+        return HttpExecuteResponse.builder()
+                                  .response(SdkHttpResponse.builder()
+                                                           .statusCode(200)
+                                                           .build())
+                                  .responseBody(AbortableInputStream.create(new StringInputStream(RESPONSE)))
+                                  .build();
+    }
+
+    public static HttpExecuteResponse customHttpResponse(int statusCode, String bucket_region) {
+        SdkHttpFullResponse.Builder httpResponseBuilder = SdkHttpResponse.builder();
+        if (StringUtils.isNotBlank(bucket_region)) {
+            httpResponseBuilder.appendHeader(X_AMZ_BUCKET_REGION, bucket_region);
+        }
+        return HttpExecuteResponse.builder()
+                                  .response(httpResponseBuilder.statusCode(statusCode).build())
+                                  .responseBody(AbortableInputStream.create(new StringInputStream(RESPONSE)))
+                                  .build();
+    }
+
     @BeforeEach
     public void before() {
-        mockAsyncHttpClient.stubNextResponse(
-            HttpExecuteResponse.builder()
-                               .response(SdkHttpResponse.builder().statusCode(200).build())
-                               .responseBody(AbortableInputStream.create(new StringInputStream(RESPONSE)))
-                               .build());
-
         captureInterceptor = new CaptureInterceptor();
         s3Client = S3AsyncClient.builder()
                                 .httpClient(mockAsyncHttpClient)
@@ -68,35 +87,39 @@ class S3CrossRegionAsyncClientTest {
                                 .build();
     }
 
+
+
     @Test
     public void standardOp_crossRegionClient_noOverrideConfig_SuccessfullyIntercepts() {
+        mockAsyncHttpClient.stubResponses(customHttpResponse(301, CROSS_REGION), successHttpResponse());
         S3AsyncClient crossRegionClient = new S3CrossRegionAsyncClient(s3Client);
-        crossRegionClient.getObject(r -> r.bucket(BUCKET).key(KEY), AsyncResponseTransformer.toBytes());
+        crossRegionClient.getObject(r -> r.bucket(BUCKET).key(KEY), AsyncResponseTransformer.toBytes()).join();
         assertThat(captureInterceptor.endpointProvider).isInstanceOf(BucketEndpointProvider.class);
     }
 
     @Test
     public void standardOp_crossRegionClient_existingOverrideConfig_SuccessfullyIntercepts() {
+        mockAsyncHttpClient.stubResponses(customHttpResponse(301, CROSS_REGION), successHttpResponse());
         S3AsyncClient crossRegionClient = new S3CrossRegionAsyncClient(s3Client);
         GetObjectRequest request = GetObjectRequest.builder()
                                                    .bucket(BUCKET)
                                                    .key(KEY)
                                                    .overrideConfiguration(o -> o.putHeader("someheader", "somevalue"))
                                                    .build();
-        crossRegionClient.getObject(request, AsyncResponseTransformer.toBytes());
+        crossRegionClient.getObject(request, AsyncResponseTransformer.toBytes()).join();
         assertThat(captureInterceptor.endpointProvider).isInstanceOf(BucketEndpointProvider.class);
         assertThat(mockAsyncHttpClient.getLastRequest().headers().get("someheader")).isNotNull();
     }
 
-    //TODO: handle paginated calls - the paginated publisher calls should also be decorated
     @Test
-    public void paginatedOp_crossRegionClient_DoesNotIntercept() throws Exception {
+    public void paginatedOp_crossRegionClient_DoesIntercept() throws Exception {
+        mockAsyncHttpClient.stubResponses(customHttpResponse(301, CROSS_REGION), successHttpResponse(), successHttpResponse());
         S3AsyncClient crossRegionClient = new S3CrossRegionAsyncClient(s3Client);
         ListObjectsV2Publisher publisher =
             crossRegionClient.listObjectsV2Paginator(r -> r.bucket(BUCKET).continuationToken(TOKEN).build());
         CompletableFuture<Void> future = publisher.subscribe(ListObjectsV2Response::contents);
         future.get();
-        assertThat(captureInterceptor.endpointProvider).isInstanceOf(DefaultS3EndpointProvider.class);
+        assertThat(captureInterceptor.endpointProvider).isInstanceOf(BucketEndpointProvider.class);
     }
 
     private static final class CaptureInterceptor implements ExecutionInterceptor {

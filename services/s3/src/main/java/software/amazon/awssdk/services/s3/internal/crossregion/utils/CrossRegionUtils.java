@@ -30,7 +30,7 @@ import software.amazon.awssdk.services.s3.model.S3Request;
 @SdkInternalApi
 public final class CrossRegionUtils {
     public static final int REDIRECT_STATUS_CODE = 301;
-    private static final String AMZ_BUCKET_REGION_HEADER = "x-amz-bucket-region";
+    public static final String AMZ_BUCKET_REGION_HEADER = "x-amz-bucket-region";
 
     private CrossRegionUtils() {
     }

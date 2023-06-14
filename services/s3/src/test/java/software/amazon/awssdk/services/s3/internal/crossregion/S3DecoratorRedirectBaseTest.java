@@ -40,8 +40,8 @@ import software.amazon.awssdk.services.s3.model.S3Object;
 public abstract class S3DecoratorRedirectBaseTest {
 
     protected static final String CROSS_REGION_BUCKET = "anyBucket";
-    protected static final String X_AMZ_BUCKET_REGION = "x-amz-bucket-region";
-    protected static final String CROSS_REGION = "us-east-1";
+    public static final String X_AMZ_BUCKET_REGION = "x-amz-bucket-region";
+    protected static final String CROSS_REGION = Region.EU_CENTRAL_1.toString();
     protected static final String CHANGED_CROSS_REGION = "us-west-1";
 
     protected static final List<S3Object> S3_OBJECTS = Collections.singletonList(S3Object.builder().key("keyObject").build());
@@ -51,7 +51,6 @@ public abstract class S3DecoratorRedirectBaseTest {
 
     @Test
     void decoratorAttemptsToRetryWithRegionNameInErrorResponse() throws Throwable {
-
         stubServiceClientConfiguration();
         stubClientAPICallWithFirstRedirectThenSuccessWithRegionInErrorResponse();
         // Assert retrieved listObject
@@ -100,7 +99,6 @@ public abstract class S3DecoratorRedirectBaseTest {
                 () -> firstApiCallToService())
             .withMessage("Invalid id (Service: S3, Status Code: 400, Request ID: 1, "
                          + "Extended Request ID: A1)");
-
         verifyHeadBucketServiceCall(0);
     }
 
@@ -117,9 +115,7 @@ public abstract class S3DecoratorRedirectBaseTest {
 
         assertThat(requestArgumentCaptor.getAllValues().get(0).overrideConfiguration()).isNotPresent();
         verifyTheEndPointProviderOverridden(1,requestArgumentCaptor, CROSS_REGION);
-
         verifyHeadBucketServiceCall(1);
-
     }
 
     @Test
@@ -132,21 +128,16 @@ public abstract class S3DecoratorRedirectBaseTest {
 
         ArgumentCaptor<ListObjectsRequest> preCacheCaptor = ArgumentCaptor.forClass(ListObjectsRequest.class);
         verifyTheApiServiceCall(2, preCacheCaptor);
-
         // We need to get the BucketEndpointProvider in order to update the cache
         verifyTheEndPointProviderOverridden(1,preCacheCaptor, CROSS_REGION);
-
         listObjectsResponse = firstApiCallToService();
         assertThat(listObjectsResponse.contents()).isEqualTo(S3_OBJECTS);
-
         // We need to captor again so that we get the args used in second API Call
         ArgumentCaptor<ListObjectsRequest> overAllPostCacheCaptor = ArgumentCaptor.forClass(ListObjectsRequest.class);
         verifyTheApiServiceCall(3, overAllPostCacheCaptor);
-
         assertThat(overAllPostCacheCaptor.getAllValues().get(0).overrideConfiguration()).isNotPresent();
         verifyTheEndPointProviderOverridden(1,overAllPostCacheCaptor, CROSS_REGION);
         verifyTheEndPointProviderOverridden(2,overAllPostCacheCaptor, CROSS_REGION);
-
         verifyHeadBucketServiceCall(1);
     }
 
@@ -160,12 +151,9 @@ public abstract class S3DecoratorRedirectBaseTest {
                 () -> noBucketCallToService())
             .withMessage("Redirect (Service: S3, Status Code: 301, Request ID: 1, "
                          + "Extended Request ID: A1)");
-
         ArgumentCaptor<ListBucketsRequest> requestArgumentCaptor = ArgumentCaptor.forClass(ListBucketsRequest.class);
-
         verifyHeadBucketServiceCall(0);
         verifyNoBucketApiCall(1, requestArgumentCaptor);
-        
         assertThat(requestArgumentCaptor.getAllValues().get(0).overrideConfiguration()).isNotPresent();
     }
 

@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.s3.internal.crossregion;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static software.amazon.awssdk.services.s3.internal.crossregion.S3DecoratorRedirectBaseTest.X_AMZ_BUCKET_REGION;
 
 import java.net.URI;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,12 +51,6 @@ class S3CrossRegionSyncClientTest {
 
     @BeforeEach
     public void before() {
-        mockSyncHttpClient.stubNextResponse(
-            HttpExecuteResponse.builder()
-                               .response(SdkHttpResponse.builder().statusCode(200).build())
-                               .responseBody(AbortableInputStream.create(new StringInputStream(RESPONSE)))
-                               .build());
-
         captureInterceptor = new CaptureInterceptor();
         s3Client = S3Client.builder()
                            .httpClient(mockSyncHttpClient)
@@ -64,8 +59,33 @@ class S3CrossRegionSyncClientTest {
                            .build();
     }
 
+    void stubSuccessResponse(){
+        mockSyncHttpClient.stubNextResponse(
+            HttpExecuteResponse.builder()
+                               .response(SdkHttpResponse.builder().statusCode(200).build())
+                               .responseBody(AbortableInputStream.create(new StringInputStream(RESPONSE)))
+                               .build());
+    }
+
+    void stubRedirectResponse(){
+        mockSyncHttpClient.stubResponses(
+            HttpExecuteResponse.builder()
+                               .response(SdkHttpResponse.builder()
+                                                        .statusCode(301)
+                                                        .appendHeader(X_AMZ_BUCKET_REGION, "us-east-1")
+                                                        .build())
+                               .responseBody(AbortableInputStream.create(new StringInputStream(RESPONSE)))
+                               .build(),
+                HttpExecuteResponse.builder()
+                                   .response(SdkHttpResponse.builder().statusCode(200).build())
+                                   .responseBody(AbortableInputStream.create(new StringInputStream(RESPONSE)))
+                                   .build());
+            ;
+    }
+
     @Test
     public void standardOp_crossRegionClient_noOverrideConfig_SuccessfullyIntercepts() {
+        stubRedirectResponse();
         S3Client crossRegionClient = new S3CrossRegionSyncClient(s3Client);
         crossRegionClient.getObject(r -> r.bucket(BUCKET).key(KEY));
         assertThat(captureInterceptor.endpointProvider).isInstanceOf(BucketEndpointProvider.class);
@@ -73,6 +93,7 @@ class S3CrossRegionSyncClientTest {
 
     @Test
     public void standardOp_crossRegionClient_existingOverrideConfig_SuccessfullyIntercepts() {
+        stubRedirectResponse();
         S3Client crossRegionClient = new S3CrossRegionSyncClient(s3Client);
         GetObjectRequest request = GetObjectRequest.builder()
                                                    .bucket(BUCKET)
@@ -84,15 +105,17 @@ class S3CrossRegionSyncClientTest {
         assertThat(mockSyncHttpClient.getLastRequest().headers().get("someheader")).isNotNull();
     }
 
-    //TODO: handle paginated calls - the paginated publisher calls should also be decorated
     @Test
-    public void paginatedOp_crossRegionClient_DoesNotIntercept() throws Exception {
+    public void paginatedOp_crossRegionClient_DoesIntercept() throws Exception {
+        stubRedirectResponse();
         S3Client crossRegionClient = new S3CrossRegionSyncClient(s3Client);
         ListObjectsV2Iterable iterable =
             crossRegionClient.listObjectsV2Paginator(r -> r.bucket(BUCKET).continuationToken(TOKEN).build());
         iterable.forEach(ListObjectsV2Response::contents);
-        assertThat(captureInterceptor.endpointProvider).isInstanceOf(DefaultS3EndpointProvider.class);
+        assertThat(captureInterceptor.endpointProvider).isInstanceOf(BucketEndpointProvider.class);
     }
+
+
 
     private static final class CaptureInterceptor implements ExecutionInterceptor {
 
