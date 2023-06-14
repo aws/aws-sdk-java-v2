@@ -19,10 +19,17 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.http.SdkHttpRequest;
 
 @SdkInternalApi
 public final class AcceptJsonInterceptor implements ExecutionInterceptor {
+
+    @Override
+    public void beforeExecution(Context.BeforeExecution context, ExecutionAttributes executionAttributes) {
+        executionAttributes.getAttribute(SdkExecutionAttribute.API_CALL_ATTEMPT_METRIC_COLLECTOR)
+    }
+
     @Override
     public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context,
                                             ExecutionAttributes executionAttributes) {
