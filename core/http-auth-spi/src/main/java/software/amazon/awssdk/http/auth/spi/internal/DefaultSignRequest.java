@@ -38,7 +38,7 @@ abstract class DefaultSignRequest<PayloadT, IdentityT extends Identity> implemen
         this.request = Validate.paramNotNull(builder.request, "request");
         this.payload = builder.payload;
         this.identity = Validate.paramNotNull(builder.identity, "identity");
-        this.properties = Collections.unmodifiableMap(builder.properties);
+        this.properties = Collections.unmodifiableMap(new HashMap<>(builder.properties));
     }
 
     @Override
