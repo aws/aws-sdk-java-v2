@@ -89,9 +89,9 @@ public final class S3CrossRegionAsyncClient extends DelegatingS3AsyncClient {
                                                                                                    .bucket(bucketName)
                                                                                                    .build())
                                                                       .exceptionally(exception -> {
-                                                                          if (isS3RedirectException(exception)) {
+                                                                          if (isS3RedirectException(exception.getCause())) {
                                                                               getBucketRegionFromException(
-                                                                                  (S3Exception) exception).ifPresent(
+                                                                                  (S3Exception) exception.getCause()).ifPresent(
                                                                                   stringBuilder::append);
                                                                           } else {
                                                                               CompletableFutureUtils.failedFuture(exception);

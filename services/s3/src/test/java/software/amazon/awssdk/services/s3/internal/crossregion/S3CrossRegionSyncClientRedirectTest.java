@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.s3.internal.crossregion;
 
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -30,6 +31,7 @@ import software.amazon.awssdk.services.s3.model.ListBucketsRequest;
 import software.amazon.awssdk.services.s3.model.ListBucketsResponse;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsResponse;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
 public class S3CrossRegionSyncClientRedirectTest extends S3DecoratorRedirectBaseTest {
 
@@ -41,6 +43,16 @@ public class S3CrossRegionSyncClientRedirectTest extends S3DecoratorRedirectBase
         mockDelegateClient = Mockito.mock(S3Client.class);
         decoratedS3Client = new S3CrossRegionSyncClient(mockDelegateClient);
     }
+
+    @Override
+    protected void verifyNoBucketCall() {
+        assertThatExceptionOfType(S3Exception.class)
+            .isThrownBy(
+                () -> noBucketCallToService())
+            .withMessage("Redirect (Service: S3, Status Code: 301, Request ID: 1, "
+                         + "Extended Request ID: A1)");
+    }
+
     @Override
     protected void verifyNoBucketApiCall(int times, ArgumentCaptor<ListBucketsRequest> requestArgumentCaptor) {
         verify(mockDelegateClient, times(times)).listBuckets(requestArgumentCaptor.capture());

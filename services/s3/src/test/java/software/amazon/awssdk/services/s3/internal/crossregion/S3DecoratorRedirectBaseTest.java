@@ -146,16 +146,14 @@ public abstract class S3DecoratorRedirectBaseTest {
         stubServiceClientConfiguration();
         stubApiWithNoBucketField();
         stubHeadBucketRedirect();
-        assertThatExceptionOfType(S3Exception.class)
-            .isThrownBy(
-                () -> noBucketCallToService())
-            .withMessage("Redirect (Service: S3, Status Code: 301, Request ID: 1, "
-                         + "Extended Request ID: A1)");
+        verifyNoBucketCall();
         ArgumentCaptor<ListBucketsRequest> requestArgumentCaptor = ArgumentCaptor.forClass(ListBucketsRequest.class);
         verifyHeadBucketServiceCall(0);
         verifyNoBucketApiCall(1, requestArgumentCaptor);
         assertThat(requestArgumentCaptor.getAllValues().get(0).overrideConfiguration()).isNotPresent();
     }
+
+    protected abstract void verifyNoBucketCall();
 
     protected abstract void verifyNoBucketApiCall(int i, ArgumentCaptor<ListBucketsRequest> requestArgumentCaptor);
 

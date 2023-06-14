@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.s3.internal.crossregion;
 
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -31,6 +32,7 @@ import software.amazon.awssdk.services.s3.model.ListBucketsRequest;
 import software.amazon.awssdk.services.s3.model.ListBucketsResponse;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsResponse;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 public class S3CrossRegionAsyncClientRedirectTest extends S3DecoratorRedirectBaseTest {
@@ -85,11 +87,7 @@ public class S3CrossRegionAsyncClientRedirectTest extends S3DecoratorRedirectBas
 
     @Override
     protected ListBucketsResponse noBucketCallToService() throws Throwable {
-        try {
-            return decoratedS3AsyncClient.listBuckets(ListBucketsRequest.builder().build()).join();
-        } catch (CompletionException exception) {
-            throw exception.getCause();
-        }
+        return decoratedS3AsyncClient.listBuckets(ListBucketsRequest.builder().build()).join();
     }
 
     @Override
@@ -103,7 +101,7 @@ public class S3CrossRegionAsyncClientRedirectTest extends S3DecoratorRedirectBas
     @Override
     protected void stubHeadBucketRedirect() {
         when(mockDelegateAsyncClient.headBucket(any(HeadBucketRequest.class)))
-            .thenReturn(CompletableFutureUtils.failedFuture(redirectException(301, CROSS_REGION, null, null)));
+            .thenReturn(CompletableFutureUtils.failedFuture(new CompletionException(redirectException(301, CROSS_REGION, null, null))));
     }
 
     @Override
@@ -124,5 +122,15 @@ public class S3CrossRegionAsyncClientRedirectTest extends S3DecoratorRedirectBas
     @Override
     protected void verifyHeadBucketServiceCall(int times) {
         verify(mockDelegateAsyncClient, times(times)).headBucket(any(HeadBucketRequest.class));
+    }
+
+    @Override
+    protected void verifyNoBucketCall() {
+        assertThatExceptionOfType(CompletionException.class)
+            .isThrownBy(
+                () -> noBucketCallToService())
+
+            .withCauseInstanceOf(S3Exception.class)
+            .withMessage("software.amazon.awssdk.services.s3.model.S3Exception: Redirect (Service: S3, Status Code: 301, Request ID: 1, Extended Request ID: A1)");
     }
 }
