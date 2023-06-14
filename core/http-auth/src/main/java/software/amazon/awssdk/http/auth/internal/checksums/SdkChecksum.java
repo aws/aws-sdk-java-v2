@@ -17,23 +17,23 @@ package software.amazon.awssdk.http.auth.internal.checksums;
 
 import java.nio.ByteBuffer;
 import java.util.zip.Checksum;
-import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Extension of {@link Checksum} to support checksums and checksum validations used by the SDK that
  * are not provided by the JDK.
  */
-@SdkPublicApi
+@SdkInternalApi
 public interface SdkChecksum extends Checksum {
 
     /**
-     * Gets the Checksum based on the required Algorithm.
-     * Instances for CRC32C, CRC32 Algorithm will be added from CRT Java library once they are available in release.
+     * Gets the Checksum based on the required ChecksumAlgorithm.
+     * Instances for CRC32C, CRC32 ChecksumAlgorithm will be added from CRT Java library once they are available in release.
      *
-     * @param algorithm Algorithm for calculating the checksum
+     * @param algorithm ChecksumAlgorithm for calculating the checksum
      * @return Optional Checksum instances.
      */
-    static SdkChecksum forAlgorithm(Algorithm algorithm) {
+    static SdkChecksum forAlgorithm(ChecksumAlgorithm algorithm) {
 
         switch (algorithm) {
             case SHA256:

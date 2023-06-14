@@ -15,15 +15,17 @@
 
 package software.amazon.awssdk.services.sts.auth;
 
+import static software.amazon.awssdk.services.sts.internal.StsAuthUtils.toAwsSessionCredentials;
+
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.AssumeRoleWithSamlRequest;
-import software.amazon.awssdk.services.sts.model.Credentials;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -66,10 +68,10 @@ public final class StsAssumeRoleWithSamlCredentialsProvider
     }
 
     @Override
-    protected Credentials getUpdatedCredentials(StsClient stsClient) {
+    protected AwsSessionCredentials getUpdatedCredentials(StsClient stsClient) {
         AssumeRoleWithSamlRequest assumeRoleWithSamlRequest = assumeRoleWithSamlRequestSupplier.get();
         Validate.notNull(assumeRoleWithSamlRequest, "Assume role with saml request must not be null.");
-        return stsClient.assumeRoleWithSAML(assumeRoleWithSamlRequest).credentials();
+        return toAwsSessionCredentials(stsClient.assumeRoleWithSAML(assumeRoleWithSamlRequest).credentials());
     }
 
     @Override

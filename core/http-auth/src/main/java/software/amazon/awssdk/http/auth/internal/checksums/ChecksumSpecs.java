@@ -25,11 +25,11 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  * response.
  */
 @SdkInternalApi
-public class ChecksumSpecs {
+public final class ChecksumSpecs {
 
-    private final Algorithm algorithm;
+    private final ChecksumAlgorithm algorithm;
     private final String headerName;
-    private final List<Algorithm> responseValidationAlgorithms;
+    private final List<ChecksumAlgorithm> responseValidationAlgorithms;
     private final boolean isValidationEnabled;
     private final boolean isRequestChecksumRequired;
     private final boolean isRequestStreaming;
@@ -47,7 +47,7 @@ public class ChecksumSpecs {
         return new Builder();
     }
 
-    public Algorithm algorithm() {
+    public ChecksumAlgorithm algorithm() {
         return algorithm;
     }
 
@@ -67,7 +67,7 @@ public class ChecksumSpecs {
         return isRequestChecksumRequired;
     }
 
-    public List<Algorithm> responseValidationAlgorithms() {
+    public List<ChecksumAlgorithm> responseValidationAlgorithms() {
         return responseValidationAlgorithms;
     }
 
@@ -112,9 +112,9 @@ public class ChecksumSpecs {
     }
 
     public static final class Builder {
-        private Algorithm algorithm;
+        private ChecksumAlgorithm algorithm;
         private String headerName;
-        private List<Algorithm> responseValidationAlgorithms;
+        private List<ChecksumAlgorithm> responseValidationAlgorithms;
         private boolean isValidationEnabled;
         private boolean isRequestChecksumRequired;
         private boolean isRequestStreaming;
@@ -122,7 +122,7 @@ public class ChecksumSpecs {
         private Builder() {
         }
 
-        public Builder algorithm(Algorithm algorithm) {
+        public Builder algorithm(ChecksumAlgorithm algorithm) {
             this.algorithm = algorithm;
             return this;
         }
@@ -132,7 +132,7 @@ public class ChecksumSpecs {
             return this;
         }
 
-        public Builder responseValidationAlgorithms(List<Algorithm> responseValidationAlgorithms) {
+        public Builder responseValidationAlgorithms(List<ChecksumAlgorithm> responseValidationAlgorithms) {
             this.responseValidationAlgorithms = responseValidationAlgorithms != null
                 ? Collections.unmodifiableList(responseValidationAlgorithms) : null;
             return this;

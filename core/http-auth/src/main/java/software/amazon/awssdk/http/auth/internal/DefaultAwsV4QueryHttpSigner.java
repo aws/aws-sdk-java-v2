@@ -27,7 +27,7 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
  * A default implementation of {@link AwsV4QueryHttpSigner}.
  */
 @SdkInternalApi
-public class DefaultAwsV4QueryHttpSigner implements AwsV4QueryHttpSigner {
+public final class DefaultAwsV4QueryHttpSigner implements AwsV4QueryHttpSigner {
 
     @Override
     public SyncSignedRequest sign(SyncSignRequest<? extends AwsCredentialsIdentity> request) {

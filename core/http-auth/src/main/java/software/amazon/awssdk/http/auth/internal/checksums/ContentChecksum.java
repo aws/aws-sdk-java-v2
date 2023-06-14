@@ -22,7 +22,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  * Encapsulates Hash in String format and FlexibleChecksum Instance for a Request Content.
  */
 @SdkInternalApi
-public class ContentChecksum {
+public final class ContentChecksum {
     private final String hash;
 
     private final SdkChecksum contentFlexibleChecksum;

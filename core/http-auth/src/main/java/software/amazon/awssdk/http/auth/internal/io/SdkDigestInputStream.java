@@ -19,15 +19,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.auth.internal.checksums.SdkChecksum;
 import software.amazon.awssdk.utils.IoUtils;
 
 /**
  * Base class for AWS Java SDK specific {@link DigestInputStream}.
  */
-@SdkProtectedApi
-public class SdkDigestInputStream extends DigestInputStream implements Releasable {
+@SdkInternalApi
+public final class SdkDigestInputStream extends DigestInputStream implements Releasable {
     private static final int SKIP_BUF_SIZE = 2 * 1024;
 
     private final SdkChecksum sdkChecksum;
@@ -66,7 +66,7 @@ public class SdkDigestInputStream extends DigestInputStream implements Releasabl
      *                     error occurs.
      */
     @Override
-    public final long skip(final long n) throws IOException {
+    public long skip(final long n) throws IOException {
         if (n <= 0) {
             return n;
         }
@@ -84,7 +84,7 @@ public class SdkDigestInputStream extends DigestInputStream implements Releasabl
     }
 
     @Override
-    public final void release() {
+    public void release() {
         // Don't call IOUtils.release(in, null) or else could lead to infinite loop
         IoUtils.closeQuietly(this, null);
         if (in instanceof Releasable) {

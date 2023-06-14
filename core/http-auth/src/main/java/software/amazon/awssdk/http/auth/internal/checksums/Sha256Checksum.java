@@ -22,7 +22,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  * Implementation of {@link SdkChecksum} to calculate an Sha-256 Checksum.
  */
 @SdkInternalApi
-public class Sha256Checksum implements SdkChecksum {
+public final class Sha256Checksum implements SdkChecksum {
 
     private MessageDigest digest;
 
