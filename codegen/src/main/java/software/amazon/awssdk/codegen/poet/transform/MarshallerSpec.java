@@ -40,6 +40,8 @@ import software.amazon.awssdk.codegen.poet.transform.protocols.QueryMarshallerSp
 import software.amazon.awssdk.codegen.poet.transform.protocols.XmlMarshallerSpec;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
+import software.amazon.awssdk.core.util.SdkAutoConstructList;
+import software.amazon.awssdk.core.util.SdkAutoConstructMap;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.utils.BinaryUtils;
@@ -245,7 +247,14 @@ public class MarshallerSpec implements ClassSpec {
                 // Ignore for now, we shouldn't generate the fast marshall at all for this?
             } else {
                 String memberAccessor = "input." + member.getFluentGetterMethodName() + "()";
-                result.add("if ($L != null) {", memberAccessor);
+
+                if (member.isList()) {
+                    result.add("if (!($L instanceof $T)) {", memberAccessor, SdkAutoConstructList.class);
+                } else if (member.isMap()) {
+                    result.add("if (!($L instanceof $T)) {", memberAccessor, SdkAutoConstructMap.class);
+                } else {
+                    result.add("if ($L != null) {", memberAccessor);
+                }
                 result.add("result.append('\"');");
                 result.add("result.append($S);", member.getName());
                 result.add("result.append(\"\\\":\");");
@@ -362,7 +371,9 @@ public class MarshallerSpec implements ClassSpec {
                     result.add("result.append($L);", memberAccessor);
                     break;
                 case "SDK_BYTES":
-                    result.add("result.append($T.toBase64($L.asByteArrayUnsafe()));", BinaryUtils.class, memberAccessor);
+                    result.add("result.append('\"');")
+                          .add("result.append($T.toBase64($L.asByteArrayUnsafe()));", BinaryUtils.class, memberAccessor)
+                          .add("result.append('\"');");
                     break;
                 default:
                     throw new IllegalArgumentException("JSON literals not supported for: " + member.getMarshallingType());
