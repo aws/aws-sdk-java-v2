@@ -13,31 +13,19 @@
  * permissions and limitations under the License.
  */
 
-/*
- * right Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License").
- * You may not use this file except in compliance with the License.
- * A  of the License is located at
- *
- *  http://aws.amazon.com/apache2.0
- *
- * or in the "license" file accompanying this file. This file is distributed
- * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the License for the specific language governing
- * permissions and limitations under the License.
- */
-
 package software.amazon.awssdk.services.s3.internal.multipart;
 
 
-import java.util.ArrayList;
-import java.util.List;
+import static software.amazon.awssdk.services.s3.internal.crt.RequestConversionUtils.toAbortMultipartUploadRequest;
+
+import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicReferenceArray;
+import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.internal.async.SplittingPublisher;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.internal.crt.RequestConversionUtils;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
@@ -62,23 +50,27 @@ public final class MultipartUploadHelper {
     private final long partSizeInBytes;
     private final GenericMultipartHelper<PutObjectRequest, PutObjectResponse> genericMultipartHelper;
 
-    private final int numOfPartsBuffered;
-    private final Executor executor;
+    private final long maxMemoryUsageInBytes;
+    private final long multipartUploadThresholdInBytes;
 
-    public MultipartUploadHelper(S3AsyncClient s3AsyncClient, long partSizeInBytes, int numOfPartsBuffered, Executor executor) {
+    public MultipartUploadHelper(S3AsyncClient s3AsyncClient,
+                                 long partSizeInBytes,
+                                 long multipartUploadThresholdInBytes,
+                                 long maxMemoryUsageInBytes) {
         this.s3AsyncClient = s3AsyncClient;
         this.partSizeInBytes = partSizeInBytes;
         this.genericMultipartHelper = new GenericMultipartHelper<>(s3AsyncClient,
                                                                    RequestConversionUtils::toAbortMultipartUploadRequest,
                                                                    RequestConversionUtils::toPutObjectResponse);
-        this.executor = executor;
-        this.numOfPartsBuffered = numOfPartsBuffered;
+        this.maxMemoryUsageInBytes = maxMemoryUsageInBytes;
+        this.multipartUploadThresholdInBytes = multipartUploadThresholdInBytes;
     }
 
     public CompletableFuture<PutObjectResponse> uploadObject(PutObjectRequest putObjectRequest,
                                                              AsyncRequestBody asyncRequestBody) {
         Long contentLength = asyncRequestBody.contentLength().orElseGet(putObjectRequest::contentLength);
 
+        // TODO: support null content length. Should be trivial to support it now
         if (contentLength == null) {
             throw new IllegalArgumentException("Content-length is required");
         }
@@ -86,12 +78,12 @@ public final class MultipartUploadHelper {
         CompletableFuture<PutObjectResponse> returnFuture = new CompletableFuture<>();
 
         try {
-            if (contentLength <= partSizeInBytes) {
-                log.debug(() -> "Starting the upload as a single upload part request");
-                uploadInOneChunk(putObjectRequest, asyncRequestBody, returnFuture);
-            } else {
+            if (contentLength > multipartUploadThresholdInBytes && contentLength > partSizeInBytes) {
                 log.debug(() -> "Starting the upload as multipart upload request");
                 uploadInParts(putObjectRequest, contentLength, asyncRequestBody, returnFuture);
+            } else {
+                log.debug(() -> "Starting the upload as a single upload part request");
+                uploadInOneChunk(putObjectRequest, asyncRequestBody, returnFuture);
             }
 
         } catch (Throwable throwable) {
@@ -116,19 +108,18 @@ public final class MultipartUploadHelper {
                 genericMultipartHelper.handleException(returnFuture, () -> "Failed to initiate multipart upload", throwable);
             } else {
                 log.debug(() -> "Initiated a new multipart upload, uploadId: " + createMultipartUploadResponse.uploadId());
-                doUploadInParts(putObjectRequest, asyncRequestBody, contentLength, returnFuture,
+                doUploadInParts(Pair.of(putObjectRequest, asyncRequestBody), contentLength, returnFuture,
                                 createMultipartUploadResponse.uploadId());
             }
         });
     }
 
-    private void doUploadInParts(PutObjectRequest putObjectRequest,
-                                 AsyncRequestBody asyncRequestBody,
+    private void doUploadInParts(Pair<PutObjectRequest, AsyncRequestBody> request,
                                  long contentLength,
                                  CompletableFuture<PutObjectResponse> returnFuture,
                                  String uploadId) {
-        long optimalPartSize = genericMultipartHelper.calculateOptimalPartSizeFor(contentLength, partSizeInBytes);
 
+        long optimalPartSize = genericMultipartHelper.calculateOptimalPartSizeFor(contentLength, partSizeInBytes);
         int partCount = genericMultipartHelper.determinePartCount(contentLength, optimalPartSize);
 
         log.debug(() -> String.format("Starting multipart upload with partCount: %d, optimalPartSize: %d", partCount,
@@ -137,48 +128,75 @@ public final class MultipartUploadHelper {
         // The list of completed parts must be sorted
         AtomicReferenceArray<CompletedPart> completedParts = new AtomicReferenceArray<>(partCount);
 
-        UploadPartRequestPublisher uploadPartRequestPublisher =
-            UploadPartRequestPublisher.builder()
-                                      .partSize(partSizeInBytes)
-                                      .asyncRequestBody(asyncRequestBody)
-                                      .putObjectRequest(putObjectRequest)
-                                      .numOfPartsBuffered(numOfPartsBuffered)
-                                      .uploadId(uploadId)
-                                      .build();
+        PutObjectRequest putObjectRequest = request.left();
 
-        List<CompletableFuture<CompletedPart>> futures = sendUploadPartRequests(uploadId, uploadPartRequestPublisher,
-                                                                                completedParts, returnFuture);
+        Collection<CompletableFuture<CompletedPart>> futures = new ConcurrentLinkedQueue<>();
 
-        CompletableFutureUtils.allOfExceptionForwarded(futures.toArray(new CompletableFuture[0]))
-                              .thenCompose(ignore -> genericMultipartHelper.completeMultipartUpload(putObjectRequest, uploadId,
-                                                                                                    completedParts))
-                              .handle(genericMultipartHelper.handleExceptionOrResponse(putObjectRequest, returnFuture, uploadId))
-                              .exceptionally(throwable -> {
-                                  genericMultipartHelper.handleException(returnFuture, () -> "Unexpected exception occurred",
-                                                                         throwable);
-                                  return null;
-                              });
+        MpuRequestContext mpuRequestContext = new MpuRequestContext(request, contentLength, optimalPartSize, uploadId);
+
+        CompletableFuture<Void> requestsFuture = sendUploadPartRequests(mpuRequestContext,
+                                                                        completedParts,
+                                                                        returnFuture,
+                                                                        futures);
+        requestsFuture.whenComplete((r, t) -> {
+            if (t != null) {
+                genericMultipartHelper.handleException(returnFuture, () -> "Failed to send multipart upload requests", t);
+                genericMultipartHelper.cleanUpParts(uploadId, toAbortMultipartUploadRequest(putObjectRequest));
+                cancelingOtherOngoingRequests(futures, t);
+                return;
+            }
+            CompletableFutureUtils.allOfExceptionForwarded(futures.toArray(new CompletableFuture[0]))
+                                  .thenCompose(ignore -> genericMultipartHelper.completeMultipartUpload(putObjectRequest,
+                                                                                                        uploadId,
+                                                                                                        completedParts))
+                                  .handle(genericMultipartHelper.handleExceptionOrResponse(putObjectRequest, returnFuture,
+                                                                                           uploadId))
+                                  .exceptionally(throwable -> {
+                                      genericMultipartHelper.handleException(returnFuture, () -> "Unexpected exception occurred",
+                                                                             throwable);
+                                      return null;
+                                  });
+        });
     }
 
-    private List<CompletableFuture<CompletedPart>> sendUploadPartRequests(String uploadId,
-                                                                          UploadPartRequestPublisher publisher,
-                                                                          AtomicReferenceArray<CompletedPart> completedParts,
-                                                                          CompletableFuture<PutObjectResponse> returnFuture) {
-        List<CompletableFuture<CompletedPart>> futures = new ArrayList<>();
+    private static void cancelingOtherOngoingRequests(Collection<CompletableFuture<CompletedPart>> futures, Throwable t) {
+        log.trace(() -> "cancelling other ongoing requests " + futures.size());
+        futures.forEach(f -> f.completeExceptionally(t));
+    }
 
-        publisher.subscribe(pair -> sendIndividualUploadPartRequest(uploadId, completedParts, futures, pair))
-                 .exceptionally(throwable -> {
-                     returnFuture.completeExceptionally(throwable);
-                     return null;
-                 });
+    private CompletableFuture<Void> sendUploadPartRequests(MpuRequestContext mpuRequestContext,
+                                                           AtomicReferenceArray<CompletedPart> completedParts,
+                                                           CompletableFuture<PutObjectResponse> returnFuture,
+                                                           Collection<CompletableFuture<CompletedPart>> futures) {
 
-        return futures;
+        CompletableFuture<Void> splittingPublisherFuture = new CompletableFuture<>();
+
+        AsyncRequestBody asyncRequestBody = mpuRequestContext.request.right();
+        SplittingPublisher splittingPublisher = SplittingPublisher.builder()
+                                                                  .asyncRequestBody(asyncRequestBody)
+                                                                  .chunkSizeInBytes(mpuRequestContext.partSize)
+                                                                  .maxMemoryUsageInBytes(maxMemoryUsageInBytes)
+                                                                  .resultFuture(splittingPublisherFuture)
+                                                                  .build();
+
+        splittingPublisher.map(new BodyToRequestConverter(mpuRequestContext.request.left(), mpuRequestContext.uploadId))
+                          .subscribe(pair -> sendIndividualUploadPartRequest(mpuRequestContext.uploadId,
+                                                                             completedParts,
+                                                                             futures,
+                                                                             pair,
+                                                                             splittingPublisherFuture))
+                          .exceptionally(throwable -> {
+                              returnFuture.completeExceptionally(throwable);
+                              return null;
+                          });
+        return splittingPublisherFuture;
     }
 
     private void sendIndividualUploadPartRequest(String uploadId,
                                                  AtomicReferenceArray<CompletedPart> completedParts,
-                                                 List<CompletableFuture<CompletedPart>> futures,
-                                                 Pair<UploadPartRequest, AsyncRequestBody> requestPair) {
+                                                 Collection<CompletableFuture<CompletedPart>> futures,
+                                                 Pair<UploadPartRequest, AsyncRequestBody> requestPair,
+                                                 CompletableFuture<Void> sendUploadPartRequestsFuture) {
         UploadPartRequest uploadPartRequest = requestPair.left();
         Integer partNumber = uploadPartRequest.partNumber();
         log.debug(() -> "Sending uploadPartRequest: " + uploadPartRequest.partNumber() + " uploadId: " + uploadId + " "
@@ -190,8 +208,8 @@ public final class MultipartUploadHelper {
             uploadPartFuture.thenApply(uploadPartResponse -> convertUploadPartResponse(completedParts, partNumber,
                                                                                        uploadPartResponse));
         futures.add(convertFuture);
-
         CompletableFutureUtils.forwardExceptionTo(convertFuture, uploadPartFuture);
+        CompletableFutureUtils.forwardExceptionTo(uploadPartFuture, sendUploadPartRequestsFuture);
     }
 
     private static CompletedPart convertUploadPartResponse(AtomicReferenceArray<CompletedPart> completedParts,
@@ -203,11 +221,54 @@ public final class MultipartUploadHelper {
         return completedPart;
     }
 
-    private void uploadInOneChunk(PutObjectRequest putObjectRequest, AsyncRequestBody asyncRequestBody,
+    private void uploadInOneChunk(PutObjectRequest putObjectRequest,
+                                  AsyncRequestBody asyncRequestBody,
                                   CompletableFuture<PutObjectResponse> returnFuture) {
         CompletableFuture<PutObjectResponse> putObjectResponseCompletableFuture = s3AsyncClient.putObject(putObjectRequest,
                                                                                                           asyncRequestBody);
         CompletableFutureUtils.forwardExceptionTo(returnFuture, putObjectResponseCompletableFuture);
         CompletableFutureUtils.forwardResultTo(putObjectResponseCompletableFuture, returnFuture);
     }
+
+    private static final class BodyToRequestConverter implements Function<AsyncRequestBody, Pair<UploadPartRequest,
+        AsyncRequestBody>> {
+        private int partNumber = 1;
+        private final PutObjectRequest putObjectRequest;
+        private final String uploadId;
+
+        BodyToRequestConverter(PutObjectRequest putObjectRequest, String uploadId) {
+            this.putObjectRequest = putObjectRequest;
+            this.uploadId = uploadId;
+        }
+
+        @Override
+        public Pair<UploadPartRequest, AsyncRequestBody> apply(AsyncRequestBody asyncRequestBody) {
+            log.trace(() -> "Generating uploadPartRequest for partNumber " + partNumber);
+            UploadPartRequest uploadRequest =
+                RequestConversionUtils.toUploadPartRequest(putObjectRequest,
+                                                           partNumber,
+                                                           uploadId);
+            ++partNumber;
+            return Pair.of(uploadRequest, asyncRequestBody);
+        }
+    }
+
+    private static final class MpuRequestContext {
+        private final Pair<PutObjectRequest, AsyncRequestBody> request;
+        private final long contentLength;
+        private final long partSize;
+
+        private final String uploadId;
+
+        private MpuRequestContext(Pair<PutObjectRequest, AsyncRequestBody> request,
+                                  long contentLength,
+                                  long partSize,
+                                  String uploadId) {
+            this.request = request;
+            this.contentLength = contentLength;
+            this.partSize = partSize;
+            this.uploadId = uploadId;
+        }
+    }
+
 }

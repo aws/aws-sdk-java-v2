@@ -110,18 +110,17 @@ class CopyRequestConversionUtilsTest {
         assertThat(convertedRequest.responseMetadata()).isEqualTo(s3ResponseMetadata);
     }
 
-    // @Test
-    // void toAbortMultipartUploadRequest_shouldCopyProperties() {
-    //     CopyObjectRequest randomCopyObject = randomCopyObjectRequest();
-    //     AbortMultipartUploadRequest convertedRequest = RequestConversionUtils.toAbortMultipartUploadRequest(randomCopyObject,
-    //                                                                                                         "id");
-    //     Set<String> fieldsToIgnore = new HashSet<>();
-    //     verifyFieldsAreCopied(randomCopyObject, convertedRequest, fieldsToIgnore,
-    //                           CopyObjectRequest.builder().sdkFields(),
-    //                           AbortMultipartUploadRequest.builder().sdkFields());
-    //
-    //     assertThat(convertedRequest.uploadId()).isEqualTo("id");
-    // }
+    @Test
+    void toAbortMultipartUploadRequest_shouldCopyProperties() {
+        CopyObjectRequest randomCopyObject = randomCopyObjectRequest();
+        AbortMultipartUploadRequest convertedRequest = RequestConversionUtils.toAbortMultipartUploadRequest(randomCopyObject).build();
+        Set<String> fieldsToIgnore = new HashSet<>();
+        verifyFieldsAreCopied(randomCopyObject, convertedRequest, fieldsToIgnore,
+                              CopyObjectRequest.builder().sdkFields(),
+                              AbortMultipartUploadRequest.builder().sdkFields());
+
+        //assertThat(convertedRequest.uploadId()).isEqualTo("id");
+    }
 
     @Test
     void toUploadPartCopyRequest_shouldCopyProperties() {

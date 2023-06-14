@@ -47,8 +47,8 @@ public final class GenericMultipartHelper<RequestT extends S3Request, ResponseT 
     private final Function<CompleteMultipartUploadResponse, ResponseT> responseConverter;
 
     public GenericMultipartHelper(S3AsyncClient s3AsyncClient,
-                           Function<RequestT, AbortMultipartUploadRequest.Builder> abortMultipartUploadRequestConverter,
-                           Function<CompleteMultipartUploadResponse, ResponseT> responseConverter) {
+                                  Function<RequestT, AbortMultipartUploadRequest.Builder> abortMultipartUploadRequestConverter,
+                                  Function<CompleteMultipartUploadResponse, ResponseT> responseConverter) {
         this.s3AsyncClient = s3AsyncClient;
         this.abortMultipartUploadRequestConverter = abortMultipartUploadRequestConverter;
         this.responseConverter = responseConverter;
@@ -107,7 +107,7 @@ public final class GenericMultipartHelper<RequestT extends S3Request, ResponseT 
         return (completeMultipartUploadResponse, throwable) -> {
             if (throwable != null) {
                 cleanUpParts(uploadId, abortMultipartUploadRequestConverter.apply(request));
-                handleException(returnFuture, () -> "Failed to send multipart copy requests.",
+                handleException(returnFuture, () -> "Failed to send multipart requests",
                                 throwable);
             } else {
                 returnFuture.complete(responseConverter.apply(

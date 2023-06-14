@@ -17,49 +17,31 @@ package software.amazon.awssdk.services.s3.internal.multipart;
 
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.services.s3.DelegatingS3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
-import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 
 // This is just a temporary class for testing
 //TODO: change this
 @SdkInternalApi
 public class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
     private static final long DEFAULT_PART_SIZE_IN_BYTES = 8L * 1024 * 1024;
+    private static final long DEFAULT_THRESHOLD = 8L * 1024 * 1024;
 
-    private static final int DEFAULT_CONCURRENCY = 2;
+    private static final long DEFAULT_MAX_MEMORY = DEFAULT_PART_SIZE_IN_BYTES * 2;
     private final MultipartUploadHelper mpuHelper;
 
     public MultipartS3AsyncClient(S3AsyncClient delegate) {
         super(delegate);
-
-        mpuHelper = new MultipartUploadHelper(delegate, DEFAULT_PART_SIZE_IN_BYTES, DEFAULT_CONCURRENCY, defaultExecutor());
-    }
-
-    // TODO: copied from TM executor, refine this
-    private Executor defaultExecutor() {
-        int maxPoolSize = 100;
-        ThreadPoolExecutor executor = new ThreadPoolExecutor(0, maxPoolSize,
-                                                             60, TimeUnit.SECONDS,
-                                                             new LinkedBlockingQueue<>(1_000),
-                                                             new ThreadFactoryBuilder()
-                                                                 .threadNamePrefix("s3-multipart").build());
-        // Allow idle core threads to time out
-        executor.allowCoreThreadTimeOut(true);
-        return executor;
+        // TODO: pass a config object to the upload helper instead
+        mpuHelper = new MultipartUploadHelper(delegate, DEFAULT_PART_SIZE_IN_BYTES, DEFAULT_THRESHOLD, DEFAULT_MAX_MEMORY);
     }
 
     @Override
     public CompletableFuture<PutObjectResponse> putObject(PutObjectRequest putObjectRequest, AsyncRequestBody requestBody) {
         return mpuHelper.uploadObject(putObjectRequest, requestBody);
     }
-
 }

@@ -16,6 +16,8 @@
 package software.amazon.awssdk.services.s3.multipart;
 
 import static java.util.concurrent.TimeUnit.MINUTES;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.nio.file.Files;
@@ -37,7 +39,7 @@ import software.amazon.awssdk.testutils.RandomTempFile;
 public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTestBase {
 
     private static final String TEST_BUCKET = temporaryBucketName(S3MultipartClientPutObjectIntegrationTest.class);
-    private static final String TEST_KEY = "10mib_file.dat";
+    private static final String TEST_KEY = "testfile.dat";
     private static final int OBJ_SIZE = 19 * 1024 * 1024;
 
     private static RandomTempFile testFile;
@@ -60,17 +62,17 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
     }
 
     @Test
-    @Timeout(value = 1, unit = MINUTES)
+    @Timeout(value = 20, unit = SECONDS)
     void putObject_fileRequestBody_objectSentCorrectly() throws Exception {
         AsyncRequestBody body = AsyncRequestBody.fromFile(testFile.toPath());
-        mpuS3Client.putObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY), body).get(2, MINUTES);
+        mpuS3Client.putObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY), body).join();
 
         ResponseInputStream<GetObjectResponse> objContent = S3IntegrationTestBase.s3.getObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY),
                                                                                                ResponseTransformer.toInputStream());
 
+        assertThat(objContent.response().contentLength()).isEqualTo(testFile.length());
         byte[] expectedSum = ChecksumUtils.computeCheckSum(Files.newInputStream(testFile.toPath()));
-
-        Assertions.assertThat(ChecksumUtils.computeCheckSum(objContent)).isEqualTo(expectedSum);
+        assertThat(ChecksumUtils.computeCheckSum(objContent)).isEqualTo(expectedSum);
     }
 
 }

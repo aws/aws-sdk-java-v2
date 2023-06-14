@@ -30,7 +30,6 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.internal.async.ByteArrayAsyncRequestBody;
 import software.amazon.awssdk.core.internal.async.FileAsyncRequestBody;
 import software.amazon.awssdk.core.internal.async.InputStreamWithExecutorAsyncRequestBody;
-import software.amazon.awssdk.core.internal.async.SplittingPublisher;
 import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.utils.BinaryUtils;
 
@@ -68,11 +67,6 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      */
     default String contentType() {
         return Mimetype.MIMETYPE_OCTET_STREAM;
-    }
-
-    default SdkPublisher<AsyncRequestBody> split(long partSizeInBytes,
-                                                 long maxMemoryUsageInBytes) {
-        return new SplittingPublisher(this, partSizeInBytes, maxMemoryUsageInBytes);
     }
 
     /**

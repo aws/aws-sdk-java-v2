@@ -31,8 +31,9 @@ import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartResponse;
 
 /**
- * Request conversion utility method for POJO classes associated with {@link S3CrtAsyncClient#copyObject(CopyObjectRequest)}
+ * Request conversion utility method for POJO classes associated with multipart feature.
  */
+//TODO: iterate over SDK fields to get the data
 @SdkInternalApi
 public final class RequestConversionUtils {
 
@@ -244,6 +245,8 @@ public final class RequestConversionUtils {
                                                              .ssekmsKeyId(response.ssekmsKeyId())
                                                              .serverSideEncryption(response.serverSideEncryptionAsString())
                                                              .requestCharged(response.requestChargedAsString());
+
+        // TODO: check why we have to do null check
         if (response.responseMetadata() != null) {
             builder.responseMetadata(response.responseMetadata());
         }
