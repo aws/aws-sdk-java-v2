@@ -15,63 +15,95 @@
 
 package software.amazon.awssdk.services.s3.internal.crossregion;
 
+import static software.amazon.awssdk.services.s3.internal.crossregion.utils.CrossRegionUtils.getBucketRegionFromException;
+import static software.amazon.awssdk.services.s3.internal.crossregion.utils.CrossRegionUtils.isS3RedirectException;
+import static software.amazon.awssdk.services.s3.internal.crossregion.utils.CrossRegionUtils.requestWithDecoratedEndpointProvider;
+
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.DelegatingS3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.endpoints.S3EndpointProvider;
-import software.amazon.awssdk.services.s3.internal.crossregion.endpointprovider.BucketEndpointProvider;
+import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.model.S3Request;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
+import software.amazon.awssdk.utils.StringUtils;
 
 @SdkInternalApi
 public final class S3CrossRegionAsyncClient extends DelegatingS3AsyncClient {
+
+    private final Map<String, CompletableFuture<Region>> bucketToRegionCache = new ConcurrentHashMap<>();
+
     public S3CrossRegionAsyncClient(S3AsyncClient s3Client) {
         super(s3Client);
     }
 
     @Override
-    protected <T extends S3Request, ReturnT> CompletableFuture<ReturnT>
-            invokeOperation(T request, Function<T, CompletableFuture<ReturnT>> operation) {
+    protected <T extends S3Request, ReturnT> CompletableFuture<ReturnT> invokeOperation(
+        T request, Function<T, CompletableFuture<ReturnT>> operation) {
 
         Optional<String> bucket = request.getValueForField("Bucket", String.class);
 
         if (!bucket.isPresent()) {
             return operation.apply(request);
         }
+        String bucketName = bucket.get();
 
-        return operation.apply(requestWithDecoratedEndpointProvider(request, bucket.get()))
-                        .whenComplete((r, t) -> handleOperationFailure(t, bucket.get()));
+        if (bucketToRegionCache.containsKey(bucketName)) {
+            return operation.apply(requestWithDecoratedEndpointProvider(request,
+                                                                        regionSupplier(bucketName),
+                                                                        serviceClientConfiguration().endpointProvider().get()));
+        }
+        return operation.apply(request).thenApply(CompletableFuture::completedFuture)
+                        .exceptionally(exception -> {
+                            if (isS3RedirectException(exception.getCause())) {
+                                bucketToRegionCache.remove(bucketName);
+                                getBucketRegionFromException((S3Exception) exception.getCause())
+                                    .ifPresent(
+                                        region -> bucketToRegionCache.put(bucketName,
+                                                                          CompletableFuture.completedFuture(Region.of(region))));
+                                return operation.apply(
+                                    requestWithDecoratedEndpointProvider(request,
+                                                                         regionSupplier(bucketName),
+                                                                         serviceClientConfiguration().endpointProvider().get()));
+                            }
+                            return CompletableFutureUtils.failedFuture(exception);
+                        }).thenCompose(Function.identity());
     }
 
-    private void handleOperationFailure(Throwable t, String bucket) {
-        //TODO: handle failure case
+
+    private Supplier<Region> regionSupplier(String bucket) {
+        return () -> bucketToRegionCache.computeIfAbsent(bucket, this::regionCompletableFuture).join();
     }
 
-    //Cannot avoid unchecked cast without upstream changes to supply builder function
-    @SuppressWarnings("unchecked")
-    private <T extends S3Request> T requestWithDecoratedEndpointProvider(T request, String bucket) {
-        return (T) request.toBuilder()
-                          .overrideConfiguration(getOrCreateConfigWithEndpointProvider(request, bucket))
-                          .build();
+    private CompletableFuture<Region> regionCompletableFuture(String bucketName) {
+        StringBuilder stringBuilder = new StringBuilder();
+        return CompletableFuture.supplyAsync(
+                                    () -> ((S3AsyncClient) delegate()).headBucket(HeadBucketRequest.builder()
+                                                                                                   .bucket(bucketName)
+                                                                                                   .build())
+                                                                      .exceptionally(exception -> {
+                                                                          if (isS3RedirectException(exception)) {
+                                                                              getBucketRegionFromException(
+                                                                                  (S3Exception) exception).ifPresent(
+                                                                                  stringBuilder::append);
+                                                                          } else {
+                                                                              CompletableFutureUtils.failedFuture(exception);
+                                                                          }
+                                                                          return null;
+                                                                      }))
+                                .thenApplyAsync(h -> {
+                                    h.join();
+                                    if (h != null && StringUtils.isNotBlank(stringBuilder.toString())) {
+                                        return Region.of(stringBuilder.toString());
+                                    }
+                                    return null;
+                                });
     }
-
-    //TODO: optimize shared sync/async code
-    private AwsRequestOverrideConfiguration getOrCreateConfigWithEndpointProvider(S3Request request, String bucket) {
-        AwsRequestOverrideConfiguration requestOverrideConfig =
-            request.overrideConfiguration().orElseGet(() -> AwsRequestOverrideConfiguration.builder().build());
-
-        S3EndpointProvider delegateEndpointProvider = (S3EndpointProvider)
-            requestOverrideConfig.endpointProvider().orElseGet(() -> serviceClientConfiguration().endpointProvider().get());
-
-        // TODO : separate PR to provide supplier for Async client
-        return requestOverrideConfig.toBuilder()
-                                    .endpointProvider(BucketEndpointProvider.create(delegateEndpointProvider, null))
-                                    .build();
-    }
-
-    //TODO: add cross region logic
-
 }

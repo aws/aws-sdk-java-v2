@@ -44,7 +44,7 @@ public class BucketEndpointProvider implements S3EndpointProvider {
     public CompletableFuture<Endpoint> resolveEndpoint(S3EndpointParams endpointParams) {
         Region crossRegion = regionSupplier.get();
         return delegateEndPointProvider.resolveEndpoint(
-            crossRegion != null ? endpointParams.toBuilder().region(crossRegion).build() : endpointParams);
+            crossRegion != null ? endpointParams.copy(c -> c.region(crossRegion)) : endpointParams);
     }
 }
 
