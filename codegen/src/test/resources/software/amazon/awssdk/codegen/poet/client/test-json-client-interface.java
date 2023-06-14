@@ -27,6 +27,8 @@ import software.amazon.awssdk.services.json.model.InvalidInputException;
 import software.amazon.awssdk.services.json.model.JsonException;
 import software.amazon.awssdk.services.json.model.OperationWithChecksumRequiredRequest;
 import software.amazon.awssdk.services.json.model.OperationWithChecksumRequiredResponse;
+import software.amazon.awssdk.services.json.model.OperationWithRequestCompressionRequest;
+import software.amazon.awssdk.services.json.model.OperationWithRequestCompressionResponse;
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyRequest;
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyResponse;
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyRequest;
@@ -389,6 +391,57 @@ public interface JsonClient extends AwsClient {
         throws AwsServiceException, SdkClientException, JsonException {
         return operationWithChecksumRequired(OperationWithChecksumRequiredRequest.builder()
                                                                                  .applyMutation(operationWithChecksumRequiredRequest).build());
+    }
+
+    /**
+     * Invokes the OperationWithRequestCompression operation.
+     *
+     * @param operationWithRequestCompressionRequest
+     * @return Result of the OperationWithRequestCompression operation returned by the service.
+     * @throws SdkException
+     *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
+     *         catch all scenarios.
+     * @throws SdkClientException
+     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc.
+     * @throws JsonException
+     *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
+     * @sample JsonClient.OperationWithRequestCompression
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/OperationWithRequestCompression"
+     *      target="_top">AWS API Documentation</a>
+     */
+    default OperationWithRequestCompressionResponse operationWithRequestCompression(
+        OperationWithRequestCompressionRequest operationWithRequestCompressionRequest) throws AwsServiceException,
+                                                                                              SdkClientException, JsonException {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Invokes the OperationWithRequestCompression operation.<br/>
+     * <p>
+     * This is a convenience which creates an instance of the {@link OperationWithRequestCompressionRequest.Builder}
+     * avoiding the need to create one manually via {@link OperationWithRequestCompressionRequest#builder()}
+     * </p>
+     *
+     * @param operationWithRequestCompressionRequest
+     *        A {@link Consumer} that will call methods on {@link OperationWithRequestCompressionRequest.Builder} to
+     *        create a request.
+     * @return Result of the OperationWithRequestCompression operation returned by the service.
+     * @throws SdkException
+     *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
+     *         catch all scenarios.
+     * @throws SdkClientException
+     *         If any client side error occurs such as an IO related failure, failure to get credentials, etc.
+     * @throws JsonException
+     *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
+     * @sample JsonClient.OperationWithRequestCompression
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/OperationWithRequestCompression"
+     *      target="_top">AWS API Documentation</a>
+     */
+    default OperationWithRequestCompressionResponse operationWithRequestCompression(
+        Consumer<OperationWithRequestCompressionRequest.Builder> operationWithRequestCompressionRequest)
+        throws AwsServiceException, SdkClientException, JsonException {
+        return operationWithRequestCompression(OperationWithRequestCompressionRequest.builder()
+                                                                                     .applyMutation(operationWithRequestCompressionRequest).build());
     }
 
     /**

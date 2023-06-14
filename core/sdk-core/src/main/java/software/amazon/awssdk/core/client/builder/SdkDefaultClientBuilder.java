@@ -38,6 +38,7 @@ import static software.amazon.awssdk.core.client.config.SdkClientOption.METRIC_P
 import static software.amazon.awssdk.core.client.config.SdkClientOption.PROFILE_FILE;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.PROFILE_FILE_SUPPLIER;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.PROFILE_NAME;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.REQUEST_COMPRESSION_CONFIGURATION;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_POLICY;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.SCHEDULED_EXECUTOR_SERVICE;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.SIGNER_OVERRIDDEN;
@@ -241,6 +242,8 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         builder.option(METRIC_PUBLISHERS, clientOverrideConfiguration.metricPublishers());
         builder.option(EXECUTION_ATTRIBUTES, clientOverrideConfiguration.executionAttributes());
         builder.option(TOKEN_SIGNER, clientOverrideConfiguration.advancedOption(TOKEN_SIGNER).orElse(null));
+        builder.option(REQUEST_COMPRESSION_CONFIGURATION,
+                       clientOverrideConfiguration.requestCompressionConfiguration().orElse(null));
 
         clientOverrideConfiguration.advancedOption(ENDPOINT_OVERRIDDEN_OVERRIDE).ifPresent(value -> {
             builder.option(ENDPOINT_OVERRIDDEN, value);

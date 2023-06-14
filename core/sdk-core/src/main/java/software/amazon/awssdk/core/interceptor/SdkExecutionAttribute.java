@@ -19,6 +19,7 @@ import java.net.URI;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.ClientType;
+import software.amazon.awssdk.core.RequestCompressionConfiguration;
 import software.amazon.awssdk.core.ServiceConfiguration;
 import software.amazon.awssdk.core.checksums.Algorithm;
 import software.amazon.awssdk.core.checksums.ChecksumSpecs;
@@ -109,6 +110,12 @@ public class SdkExecutionAttribute {
     public static final ExecutionAttribute<ChecksumValidation> HTTP_RESPONSE_CHECKSUM_VALIDATION = new ExecutionAttribute<>(
         "HttpResponseChecksumValidation");
 
+    /**
+     * The {@link RequestCompressionConfiguration}, which includes options to enable/disable request compression and set the
+     * minimum compression threshold.
+     */
+    public static final ExecutionAttribute<RequestCompressionConfiguration> REQUEST_COMPRESSION_CONFIGURATION =
+        new ExecutionAttribute<>("RequestCompressionConfiguration");
 
     protected SdkExecutionAttribute() {
     }

@@ -27,6 +27,8 @@ import software.amazon.awssdk.services.json.model.InputEventStream;
 import software.amazon.awssdk.services.json.model.InputEventStreamTwo;
 import software.amazon.awssdk.services.json.model.OperationWithChecksumRequiredRequest;
 import software.amazon.awssdk.services.json.model.OperationWithChecksumRequiredResponse;
+import software.amazon.awssdk.services.json.model.OperationWithRequestCompressionRequest;
+import software.amazon.awssdk.services.json.model.OperationWithRequestCompressionResponse;
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyRequest;
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithResultKeyResponse;
 import software.amazon.awssdk.services.json.model.PaginatedOperationWithoutResultKeyRequest;
@@ -300,6 +302,32 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
     public CompletableFuture<OperationWithChecksumRequiredResponse> operationWithChecksumRequired(
         OperationWithChecksumRequiredRequest operationWithChecksumRequiredRequest) {
         return delegate.operationWithChecksumRequired(operationWithChecksumRequiredRequest);
+    }
+
+    /**
+     * Invokes the OperationWithRequestCompression operation asynchronously.
+     *
+     * @param operationWithRequestCompressionRequest
+     * @return A Java Future containing the result of the OperationWithRequestCompression operation returned by the
+     *         service.<br/>
+     *         The CompletableFuture returned by this method can be completed exceptionally with the following
+     *         exceptions.
+     *         <ul>
+     *         <li>SdkException Base class for all exceptions that can be thrown by the SDK (both service and client).
+     *         Can be used for catch all scenarios.</li>
+     *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
+     *         credentials, etc.</li>
+     *         <li>JsonException Base class for all service exceptions. Unknown exceptions will be thrown as an instance
+     *         of this type.</li>
+     *         </ul>
+     * @sample JsonAsyncClient.OperationWithRequestCompression
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/json-service-2010-05-08/OperationWithRequestCompression"
+     *      target="_top">AWS API Documentation</a>
+     */
+    @Override
+    public CompletableFuture<OperationWithRequestCompressionResponse> operationWithRequestCompression(
+        OperationWithRequestCompressionRequest operationWithRequestCompressionRequest) {
+        return delegate.operationWithRequestCompression(operationWithRequestCompressionRequest);
     }
 
     /**
