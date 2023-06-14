@@ -22,12 +22,13 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 @SdkInternalApi
 public enum SigningAlgorithm {
 
-    HMAC_SHA256;
+    HMAC_SHA256("HmacSHA256");
 
+    private final String algorithmName;
     private final ThreadLocal<Mac> macReference;
 
-    SigningAlgorithm() {
-        String algorithmName = this.toString();
+    SigningAlgorithm(String algorithmName) {
+        this.algorithmName = algorithmName;
         macReference = new MacThreadLocal(algorithmName);
     }
 
@@ -51,7 +52,7 @@ public enum SigningAlgorithm {
                 return Mac.getInstance(algorithmName);
             } catch (NoSuchAlgorithmException e) {
                 throw new RuntimeException("Unable to fetch Mac instance for Algorithm "
-                    + algorithmName + e.getMessage());
+                    + algorithmName + ": " + e.getMessage());
             }
         }
     }

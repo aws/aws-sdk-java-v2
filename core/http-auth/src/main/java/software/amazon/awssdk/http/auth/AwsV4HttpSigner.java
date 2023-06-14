@@ -55,14 +55,14 @@ public interface AwsV4HttpSigner extends HttpSigner<AwsCredentialsIdentity> {
 
     /**
      * The name of the header for the checksum.
-     * This property is required.
+     * This property is optional.
      */
     SignerProperty<String> CHECKSUM_HEADER_NAME =
         SignerProperty.create(String.class, "ChecksumHeaderName");
 
     /**
      * The {@link ChecksumAlgorithm} used to compute the checksum.
-     * This property is required.
+     * This property is required *if* a checksum-header name is given.
      */
     SignerProperty<ChecksumAlgorithm> CHECKSUM_ALGORITHM =
         SignerProperty.create(ChecksumAlgorithm.class, "ChecksumAlgorithm");

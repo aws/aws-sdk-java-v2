@@ -34,13 +34,12 @@ import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.AwsV4HttpSigner;
-import software.amazon.awssdk.http.auth.internal.checksums.ChecksumSpecs;
+import software.amazon.awssdk.http.auth.internal.checksums.ChecksumAlgorithm;
 import software.amazon.awssdk.http.auth.internal.checksums.ContentChecksum;
 import software.amazon.awssdk.http.auth.internal.checksums.SdkChecksum;
 import software.amazon.awssdk.http.auth.internal.util.CanonicalRequest;
 import software.amazon.awssdk.http.auth.internal.util.CredentialUtils;
 import software.amazon.awssdk.http.auth.internal.util.DigestComputingSubscriber;
-import software.amazon.awssdk.http.auth.internal.util.HttpChecksumUtils;
 import software.amazon.awssdk.http.auth.internal.util.SignerConstant;
 import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
@@ -60,8 +59,6 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
  */
 @SdkInternalApi
 public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
-
-    public static final String UNSIGNED_PAYLOAD = "UNSIGNED-PAYLOAD";
 
     private static final Logger LOG = Logger.loggerFor(DefaultAwsV4HttpSigner.class);
 
@@ -83,10 +80,16 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
     }
 
     private SdkHttpRequest.Builder doSign(SyncSignRequest<? extends AwsCredentialsIdentity> request) {
-        SdkChecksum sdkChecksum =
-            createSdkChecksumFromRequest(request.request(), validatedProperty(request, CHECKSUM_HEADER_NAME),
-                validatedProperty(request, CHECKSUM_ALGORITHM));
+        String checksumHeaderName = request.property(CHECKSUM_HEADER_NAME);
+        ChecksumAlgorithm checksumAlgorithm = request.property(CHECKSUM_ALGORITHM);
+
+        if (StringUtils.isNotBlank(checksumHeaderName) && checksumAlgorithm == null) {
+            throw new RuntimeException(CHECKSUM_ALGORITHM + " cannot be null when " + CHECKSUM_HEADER_NAME + " is given!");
+        }
+
+        SdkChecksum sdkChecksum = createSdkChecksumFromRequest(request.request(), checksumHeaderName, checksumAlgorithm);
         String contentHash = calculateContentHash(request.payload().orElse(null), sdkChecksum);
+
         return doSign(request, new ContentChecksum(contentHash, sdkChecksum));
     }
 
@@ -96,7 +99,7 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
 
         Boolean doubleUrlEncode = validatedProperty(request, DOUBLE_URL_ENCODE, true);
         Boolean normalizePath = validatedProperty(request, NORMALIZE_PATH, true);
-        String checksumHeaderName = validatedProperty(request, CHECKSUM_HEADER_NAME);
+        String checksumHeaderName = request.property(CHECKSUM_HEADER_NAME);
         Instant requestSigningInstant = validatedProperty(request, REQUEST_SIGNING_INSTANT);
         String formattedRequestSigningDate = formatDateStamp(requestSigningInstant);
         String formattedRequestSigningDateTime = formatTimestamp(requestSigningInstant);
@@ -162,7 +165,7 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         if (!SdkHttpUtils.isUsingStandardPort(requestBuilder.protocol(), requestBuilder.port())) {
             host += ":" + requestBuilder.port();
         }
-        requestBuilder.putHeader(SignerConstant.HOST, requestBuilder.host());
+        requestBuilder.putHeader(SignerConstant.HOST, host);
     }
 
     private void addDateHeader(SdkHttpRequest.Builder requestBuilder, String dateTime) {
@@ -170,30 +173,15 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
     }
 
     private void putChecksumHeader(SdkChecksum sdkChecksum,
-                                   SdkHttpRequest.Builder requestBuilder, String contentHashString, String headerChecksum) {
-        if (shouldAddChecksumHeader(sdkChecksum, requestBuilder.build(), contentHashString, headerChecksum)) {
-            requestBuilder.putHeader(headerChecksum, BinaryUtils.toBase64(sdkChecksum.getChecksumBytes()));
+                                   SdkHttpRequest.Builder requestBuilder, String contentHashString, String checksumHeaderName) {
+
+        if (sdkChecksum != null && !isUnsignedPayload(contentHashString)) {
+            requestBuilder.putHeader(checksumHeaderName, BinaryUtils.toBase64(sdkChecksum.getChecksumBytes()));
         }
     }
 
-    /**
-     * Return false if content is unsigned or if checksum is already added.
-     * Otherwise, return true if checksum is not blank (false if it is)
-     */
-    private Boolean shouldAddChecksumHeader(SdkChecksum sdkChecksum,
-                                            SdkHttpRequest request, String contentHashString,
-                                            String headerChecksum) {
-        if (sdkChecksum != null && !UNSIGNED_PAYLOAD.equals(contentHashString) &&
-            !"STREAMING-UNSIGNED-PAYLOAD-TRAILER".equals(contentHashString)) {
-            return false;
-        }
-        if (HttpChecksumUtils.isHttpChecksumPresent(request,
-            ChecksumSpecs.builder()
-                .headerName(headerChecksum).build())) {
-            LOG.debug(() -> "Checksum already added in header ");
-            return false;
-        }
-        return StringUtils.isNotBlank(headerChecksum);
+    private Boolean isUnsignedPayload(String contentHashString) {
+        return "UNSIGNED_PAYLOAD".equals(contentHashString) || "STREAMING-UNSIGNED-PAYLOAD-TRAILER".equals(contentHashString);
     }
 
     @Override
@@ -205,9 +193,10 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
                 .build();
         }
 
-        SdkChecksum sdkChecksum =
-            createSdkChecksumFromRequest(request.request(), validatedProperty(request, CHECKSUM_HEADER_NAME),
-                validatedProperty(request, CHECKSUM_ALGORITHM));
+        String checksumHeaderName = validatedProperty(request, CHECKSUM_HEADER_NAME, "");
+        ChecksumAlgorithm checksumAlgorithm = validatedProperty(request, CHECKSUM_ALGORITHM, null);
+
+        SdkChecksum sdkChecksum = createSdkChecksumFromRequest(request.request(), checksumHeaderName, checksumAlgorithm);
         DigestComputingSubscriber bodyDigester = DigestComputingSubscriber.forSha256(sdkChecksum);
 
         request.payload().ifPresent((payload) ->

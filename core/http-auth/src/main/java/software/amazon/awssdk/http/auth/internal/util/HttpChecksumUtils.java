@@ -105,9 +105,9 @@ public final class HttpChecksumUtils {
 
     public static SdkChecksum createSdkChecksumFromRequest(SdkHttpRequest request, String checksumHeaderName,
                                                            ChecksumAlgorithm checksumAlgorithm) {
-        boolean isValidChecksumHeader = StringUtils.isNotBlank(checksumHeaderName);
+        boolean isHeaderPresent = StringUtils.isNotBlank(checksumHeaderName);
 
-        if (isValidChecksumHeader
+        if (isHeaderPresent
             && !HttpChecksumUtils.isHttpChecksumPresent(
             request,
             ChecksumSpecs.builder().headerName(checksumHeaderName).build())) {
