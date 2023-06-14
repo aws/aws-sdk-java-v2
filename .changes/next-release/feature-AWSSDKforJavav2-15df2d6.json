@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "`IdleConnectionReaper` now does not prevent `HttpClientConnectionManager` from getting GC'd in the case where an SDK client is created per request and not closed."
-}

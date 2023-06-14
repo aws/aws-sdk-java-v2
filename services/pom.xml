@@ -17,7 +17,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.20.84-SNAPSHOT</version>
+        <version>2.20.86-SNAPSHOT</version>
     </parent>
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
@@ -367,6 +367,8 @@
         <module>mediapackagev2</module>
         <module>paymentcryptographydata</module>
         <module>paymentcryptography</module>
+        <module>codegurusecurity</module>
+        <module>verifiedpermissions</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
