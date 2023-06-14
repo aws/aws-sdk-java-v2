@@ -542,7 +542,6 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
                              .withResponseHandler(responseHandler)
                              .withErrorResponseHandler(errorResponseHandler)
                              .withMetricCollector(apiCallMetricCollector)
-                             .putExecutionAttribute(SdkInternalExecutionAttribute.IS_NONE_AUTH_TYPE_REQUEST, false)
                              .putExecutionAttribute(SdkInternalExecutionAttribute.REQUEST_COMPRESSION,
                                                     RequestCompression.builder().encodings("gzip").isStreaming(false).build())
                              .putExecutionAttribute(SdkExecutionAttribute.REQUEST_COMPRESSION_CONFIGURATION,

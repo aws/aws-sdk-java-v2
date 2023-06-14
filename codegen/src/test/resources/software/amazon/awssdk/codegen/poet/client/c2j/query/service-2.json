@@ -65,7 +65,6 @@
         "method": "POST",
         "requestUri": "/"
       },
-      "authtype": "none",
       "requestCompression": {
         "encodings": ["gzip"]
       }
