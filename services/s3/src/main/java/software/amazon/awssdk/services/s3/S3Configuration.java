@@ -403,7 +403,6 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
          * Returns value of crossRegionAccessEnabled value set using {@link Builder#crossRegionAccessEnabled(Boolean)}
          */
         Boolean crossRegionAccessEnabled();
-
     }
 
     static final class DefaultS3ServiceConfigurationBuilder implements Builder {

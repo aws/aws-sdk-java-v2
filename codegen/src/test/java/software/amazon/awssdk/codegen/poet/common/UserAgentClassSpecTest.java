@@ -26,7 +26,7 @@ import software.amazon.awssdk.codegen.poet.common.UserAgentUtilsSpec;
 public class UserAgentClassSpecTest {
 
     @Test
-    public void testGeneratedResponseForSyncOperations() {
+    void testUserAgentClass() {
         ClassSpec useragentspec = new UserAgentUtilsSpec(ClientTestModels.restJsonServiceModels());
         assertThat(useragentspec, generatesTo("test-user-agent-class.java"));
     }

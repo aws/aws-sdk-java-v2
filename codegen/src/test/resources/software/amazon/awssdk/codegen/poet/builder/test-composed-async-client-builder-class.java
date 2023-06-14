@@ -5,37 +5,40 @@ import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import software.amazon.awssdk.awscore.internal.client.ClientComposer;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.endpoints.EndpointProvider;
+import software.amazon.awssdk.services.builder.AsyncClientComposer;
 import software.amazon.awssdk.services.json.endpoints.JsonEndpointProvider;
 
 /**
- * Internal implementation of {@link JsonClientBuilder}.
+ * Internal implementation of {@link JsonAsyncClientBuilder}.
  */
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
-final class DefaultJsonClientBuilder extends DefaultJsonBaseClientBuilder<JsonClientBuilder, JsonClient> implements
-                                                                                                         JsonClientBuilder {
+final class DefaultJsonAsyncClientBuilder extends DefaultJsonBaseClientBuilder<JsonAsyncClientBuilder, JsonAsyncClient> implements
+                                                                                                                        JsonAsyncClientBuilder {
     @Override
-    public DefaultJsonClientBuilder endpointProvider(JsonEndpointProvider endpointProvider) {
+    public DefaultJsonAsyncClientBuilder endpointProvider(JsonEndpointProvider endpointProvider) {
         clientConfiguration.option(SdkClientOption.ENDPOINT_PROVIDER, endpointProvider);
         return this;
     }
 
     @Override
-    public DefaultJsonClientBuilder tokenProvider(SdkTokenProvider tokenProvider) {
+    public DefaultJsonAsyncClientBuilder tokenProvider(SdkTokenProvider tokenProvider) {
         clientConfiguration.option(AwsClientOption.TOKEN_PROVIDER, tokenProvider);
         return this;
     }
 
     @Override
-    protected final JsonClient buildClient() {
-        SdkClientConfiguration clientConfiguration = super.syncClientConfiguration();
+    protected final JsonAsyncClient buildClient() {
+        SdkClientConfiguration clientConfiguration = super.asyncClientConfiguration();
         this.validateClientOptions(clientConfiguration);
         JsonServiceClientConfiguration serviceClientConfiguration = initializeServiceClientConfig(clientConfiguration);
-        JsonClient client = new DefaultJsonClient(serviceClientConfiguration, clientConfiguration);
-        return client;
+        JsonAsyncClient client = new DefaultJsonAsyncClient(serviceClientConfiguration, clientConfiguration);
+        ClientComposer composer = new AsyncClientComposer();
+        return (JsonAsyncClient) composer.compose(client, clientConfiguration);
     }
 
     private JsonServiceClientConfiguration initializeServiceClientConfig(SdkClientConfiguration clientConfig) {

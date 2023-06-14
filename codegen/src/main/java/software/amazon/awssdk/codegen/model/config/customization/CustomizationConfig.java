@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import software.amazon.awssdk.awscore.internal.client.ClientComposer;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.traits.PayloadTrait;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -211,6 +212,20 @@ public class CustomizationConfig {
      * Whether to generate an abstract decorator class that delegates to the sync service client
      */
     private boolean delegateSyncClientClass;
+
+    /**
+     * Fully qualified name of a class that given the default sync client instance can return the final client instance,
+     * for instance by decorating the client with specific-purpose implementations of the client interface.
+     * The class should implement the {@link ClientComposer} interface. See S3 customization.config for an example.
+     */
+    private String syncClientComposer;
+
+    /**
+     * Fully qualified name of a class that given the default async client instance can return the final client instance,
+     * for instance by decorating the client with specific-purpose implementations of the client interface.
+     * The class should implement the {@link ClientComposer} interface. See S3 customization.config for an example.
+     */
+    private String asyncClientComposer;
 
     /**
      * Whether to skip generating endpoint tests from endpoint-tests.json
@@ -559,6 +574,22 @@ public class CustomizationConfig {
 
     public void setDelegateAsyncClientClass(boolean delegateAsyncClientClass) {
         this.delegateAsyncClientClass = delegateAsyncClientClass;
+    }
+
+    public String getSyncClientComposer() {
+        return syncClientComposer;
+    }
+
+    public void setSyncClientComposer(String syncClientComposer) {
+        this.syncClientComposer = syncClientComposer;
+    }
+
+    public String getAsyncClientComposer() {
+        return asyncClientComposer;
+    }
+
+    public void setAsyncClientComposer(String asyncClientComposer) {
+        this.asyncClientComposer = asyncClientComposer;
     }
 
     public boolean isDelegateSyncClientClass() {
