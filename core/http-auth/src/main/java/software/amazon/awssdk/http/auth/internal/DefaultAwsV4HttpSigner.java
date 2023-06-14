@@ -84,7 +84,8 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         ChecksumAlgorithm checksumAlgorithm = request.property(CHECKSUM_ALGORITHM);
 
         if (StringUtils.isNotBlank(checksumHeaderName) && checksumAlgorithm == null) {
-            throw new RuntimeException(CHECKSUM_ALGORITHM + " cannot be null when " + CHECKSUM_HEADER_NAME + " is given!");
+            throw new IllegalArgumentException(
+                CHECKSUM_ALGORITHM + " cannot be null when " + CHECKSUM_HEADER_NAME + " is given!");
         }
 
         SdkChecksum sdkChecksum = createSdkChecksumFromRequest(request.request(), checksumHeaderName, checksumAlgorithm);
@@ -147,9 +148,6 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
 
         requestBuilder.putHeader(SignerConstant.AUTHORIZATION,
             buildAuthorizationHeader(signature, sanitizedCredentials, scope, canonicalRequest));
-
-        processRequestPayload(requestBuilder, signature, signingKey,
-            contentChecksum.contentFlexibleChecksum());
 
         return requestBuilder;
     }
@@ -218,17 +216,6 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
             .request(CompletableFutureUtils.joinLikeSync(signedReqFuture))
             .payload(request.payload().orElse(null))
             .build();
-    }
-
-    /**
-     * Perform any additional procedure on the request payload, with access to the result
-     * from signing the header. (e.g. Signing the payload by chunk-encoding). The default
-     * implementation doesn't need to do anything.
-     */
-    private void processRequestPayload(SdkHttpRequest.Builder requestBuilder,
-                                       byte[] signature,
-                                       byte[] signingKey,
-                                       SdkChecksum sdkChecksum) {
     }
 
     /**
