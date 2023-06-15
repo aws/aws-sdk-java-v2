@@ -19,18 +19,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static software.amazon.awssdk.http.auth.AwsV4HttpSigner.CHECKSUM_ALGORITHM;
 import static software.amazon.awssdk.http.auth.AwsV4HttpSigner.CHECKSUM_HEADER_NAME;
-import static software.amazon.awssdk.http.auth.AwsV4HttpSigner.DOUBLE_URL_ENCODE;
-import static software.amazon.awssdk.http.auth.AwsV4HttpSigner.NORMALIZE_PATH;
-import static software.amazon.awssdk.http.auth.AwsV4HttpSigner.REGION_NAME;
-import static software.amazon.awssdk.http.auth.AwsV4HttpSigner.REQUEST_SIGNING_INSTANT;
-import static software.amazon.awssdk.http.auth.AwsV4HttpSigner.SERVICE_SIGNING_NAME;
+import static software.amazon.awssdk.http.auth.TestUtils.generateBasicAsyncRequest;
+import static software.amazon.awssdk.http.auth.TestUtils.generateBasicRequest;
 
-import java.io.ByteArrayInputStream;
-import java.net.URI;
-import java.nio.ByteBuffer;
-import java.time.Instant;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.TestUtils.AnonymousCredentialsIdentity;
 import software.amazon.awssdk.http.auth.internal.checksums.ChecksumAlgorithm;
@@ -40,7 +32,6 @@ import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
-import software.amazon.awssdk.utils.async.SimplePublisher;
 
 class AwsV4HttpSignerTest {
 
@@ -56,55 +47,6 @@ class AwsV4HttpSignerTest {
         "SignedHeaders=host;x-amz-archive-description;x-amz-date;x-amz-trailer, ";
 
     private static final AwsV4HttpSigner signer = AwsV4HttpSigner.create();
-
-    // Helpers for tests
-    private static SyncSignRequest<? extends AwsCredentialsIdentity> generateBasicRequest(
-        SdkHttpRequest.Builder requestBuilder,
-        SyncSignRequest.Builder<? extends AwsCredentialsIdentity> signRequestBuilder
-    ) {
-        return signRequestBuilder
-            .request(requestBuilder
-                .method(SdkHttpMethod.POST)
-                .putHeader("Host", "demo.us-east-1.amazonaws.com")
-                .putHeader("x-amz-archive-description", "test  test")
-                .encodedPath("/")
-                .uri(URI.create("http://demo.us-east-1.amazonaws.com"))
-                .build())
-            .payload(() -> new ByteArrayInputStream("{\"TableName\": \"foo\"}".getBytes()))
-            .putProperty(REGION_NAME, "us-east-1")
-            .putProperty(SERVICE_SIGNING_NAME, "demo")
-            .putProperty(DOUBLE_URL_ENCODE, false)
-            .putProperty(NORMALIZE_PATH, false)
-            .putProperty(REQUEST_SIGNING_INSTANT, Instant.ofEpochMilli(351153000968L))
-            .build();
-    }
-
-    private static AsyncSignRequest<? extends AwsCredentialsIdentity> generateBasicAsyncRequest(
-        SdkHttpRequest.Builder requestBuilder,
-        AsyncSignRequest.Builder<? extends AwsCredentialsIdentity> signRequestBuilder
-    ) {
-
-        SimplePublisher<ByteBuffer> publisher = new SimplePublisher<>();
-
-        publisher.send(ByteBuffer.wrap("{\"TableName\": \"foo\"}".getBytes()));
-        publisher.complete();
-
-        return signRequestBuilder
-            .request(requestBuilder
-                .method(SdkHttpMethod.POST)
-                .putHeader("Host", "demo.us-east-1.amazonaws.com")
-                .putHeader("x-amz-archive-description", "test  test")
-                .encodedPath("/")
-                .uri(URI.create("http://demo.us-east-1.amazonaws.com"))
-                .build())
-            .payload(publisher)
-            .putProperty(REGION_NAME, "us-east-1")
-            .putProperty(SERVICE_SIGNING_NAME, "demo")
-            .putProperty(DOUBLE_URL_ENCODE, false)
-            .putProperty(NORMALIZE_PATH, false)
-            .putProperty(REQUEST_SIGNING_INSTANT, Instant.ofEpochMilli(351153000968L))
-            .build();
-    }
 
     @Test
     public void sign_withoutSHA256Header_shouldSign() {

@@ -30,11 +30,27 @@ public final class SignerConstant {
 
     public static final String X_AMZ_SECURITY_TOKEN = "X-Amz-Security-Token";
 
+    public static final String X_AMZ_CREDENTIAL = "X-Amz-Credential";
+
     public static final String X_AMZ_DATE = "X-Amz-Date";
+
+    public static final String X_AMZ_EXPIRES = "X-Amz-Expires";
+
+    public static final String X_AMZ_SIGNED_HEADER = "X-Amz-SignedHeaders";
+
+    public static final String X_AMZ_SIGNATURE = "X-Amz-Signature";
+
+    public static final String X_AMZ_ALGORITHM = "X-Amz-Algorithm";
 
     public static final String HOST = "Host";
 
     public static final String LINE_SEPARATOR = "\n";
+
+    /**
+     * Seconds in a week, which is the max expiration time Sig-v4 accepts.
+     */
+    public static final long PRESIGN_URL_MAX_EXPIRATION_SECONDS = 60L * 60 * 24 * 7;
+
 
     private SignerConstant() {
     }

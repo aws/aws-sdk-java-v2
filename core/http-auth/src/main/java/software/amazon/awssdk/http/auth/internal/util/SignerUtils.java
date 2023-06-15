@@ -28,12 +28,14 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.auth.internal.checksums.SdkChecksum;
 import software.amazon.awssdk.http.auth.spi.SignRequest;
 import software.amazon.awssdk.http.auth.spi.SignerProperty;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
  * Utility methods to be used by various AWS Signer implementations.
@@ -236,10 +238,51 @@ public final class SignerUtils {
     }
 
     public static <T> T validatedProperty(SignRequest<?, ?> request, SignerProperty<T> property) {
-        return Validate.notNull(request.property(property), property.toString() + "must not be null!");
+        return Validate.notNull(request.property(property), property.toString() + " must not be null!");
     }
 
     public static <T> T validatedProperty(SignRequest<?, ?> request, SignerProperty<T> property, T defaultValue) {
         return Validate.getOrDefault(request.property(property), () -> defaultValue);
+    }
+
+    /**
+     * Add the host header based on parameters of a request
+     */
+    public static void addHostHeader(SdkHttpRequest.Builder requestBuilder) {
+        // AWS4 requires that we sign the Host header, so we
+        // have to have it in the request by the time we sign.
+
+        StringBuilder hostHeaderBuilder = new StringBuilder(requestBuilder.host());
+        if (!SdkHttpUtils.isUsingStandardPort(requestBuilder.protocol(), requestBuilder.port())) {
+            hostHeaderBuilder.append(":").append(requestBuilder.port());
+        }
+
+        requestBuilder.putHeader(SignerConstant.HOST, hostHeaderBuilder.toString());
+    }
+
+    /**
+     * Add a date header using a datetimes string
+     */
+    public static void addDateHeader(SdkHttpRequest.Builder requestBuilder, String dateTime) {
+        requestBuilder.putHeader(SignerConstant.X_AMZ_DATE, dateTime);
+    }
+
+    /**
+     * Add the checksum header if the checksum is not null and the payload is signed
+     */
+    public static void putChecksumHeader(SdkChecksum sdkChecksum,
+                                         SdkHttpRequest.Builder requestBuilder, String contentHashString,
+                                         String checksumHeaderName) {
+
+        if (sdkChecksum != null && !isUnsignedPayload(contentHashString)) {
+            requestBuilder.putHeader(checksumHeaderName, BinaryUtils.toBase64(sdkChecksum.getChecksumBytes()));
+        }
+    }
+
+    /**
+     * Check if a payload is unsigned based on the content hash
+     */
+    public static Boolean isUnsignedPayload(String contentHashString) {
+        return "UNSIGNED_PAYLOAD".equals(contentHashString) || "STREAMING-UNSIGNED-PAYLOAD-TRAILER".equals(contentHashString);
     }
 }

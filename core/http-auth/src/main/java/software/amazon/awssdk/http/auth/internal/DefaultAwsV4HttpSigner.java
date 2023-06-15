@@ -19,6 +19,8 @@ import static software.amazon.awssdk.http.auth.internal.util.CredentialUtils.san
 import static software.amazon.awssdk.http.auth.internal.util.HttpChecksumUtils.calculateContentHash;
 import static software.amazon.awssdk.http.auth.internal.util.HttpChecksumUtils.createSdkChecksumFromRequest;
 import static software.amazon.awssdk.http.auth.internal.util.SignerConstant.AWS4_SIGNING_ALGORITHM;
+import static software.amazon.awssdk.http.auth.internal.util.SignerUtils.addDateHeader;
+import static software.amazon.awssdk.http.auth.internal.util.SignerUtils.addHostHeader;
 import static software.amazon.awssdk.http.auth.internal.util.SignerUtils.buildAuthorizationHeader;
 import static software.amazon.awssdk.http.auth.internal.util.SignerUtils.buildScope;
 import static software.amazon.awssdk.http.auth.internal.util.SignerUtils.buildStringToSign;
@@ -27,6 +29,7 @@ import static software.amazon.awssdk.http.auth.internal.util.SignerUtils.createC
 import static software.amazon.awssdk.http.auth.internal.util.SignerUtils.deriveSigningKey;
 import static software.amazon.awssdk.http.auth.internal.util.SignerUtils.formatDateStamp;
 import static software.amazon.awssdk.http.auth.internal.util.SignerUtils.formatTimestamp;
+import static software.amazon.awssdk.http.auth.internal.util.SignerUtils.putChecksumHeader;
 import static software.amazon.awssdk.http.auth.internal.util.SignerUtils.validatedProperty;
 
 import java.time.Instant;
@@ -52,7 +55,6 @@ import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.StringUtils;
-import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
  * A default implementation of {@link AwsV4HttpSigner}.
@@ -150,36 +152,6 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
             buildAuthorizationHeader(signature, sanitizedCredentials, scope, canonicalRequest));
 
         return requestBuilder;
-    }
-
-
-    /**
-     * AWS4 requires that we sign the Host header, so we
-     * have to have it in the request by the time we sign.
-     */
-    private void addHostHeader(SdkHttpRequest.Builder requestBuilder) {
-
-        String host = requestBuilder.host();
-        if (!SdkHttpUtils.isUsingStandardPort(requestBuilder.protocol(), requestBuilder.port())) {
-            host += ":" + requestBuilder.port();
-        }
-        requestBuilder.putHeader(SignerConstant.HOST, host);
-    }
-
-    private void addDateHeader(SdkHttpRequest.Builder requestBuilder, String dateTime) {
-        requestBuilder.putHeader(SignerConstant.X_AMZ_DATE, dateTime);
-    }
-
-    private void putChecksumHeader(SdkChecksum sdkChecksum,
-                                   SdkHttpRequest.Builder requestBuilder, String contentHashString, String checksumHeaderName) {
-
-        if (sdkChecksum != null && !isUnsignedPayload(contentHashString)) {
-            requestBuilder.putHeader(checksumHeaderName, BinaryUtils.toBase64(sdkChecksum.getChecksumBytes()));
-        }
-    }
-
-    private Boolean isUnsignedPayload(String contentHashString) {
-        return "UNSIGNED_PAYLOAD".equals(contentHashString) || "STREAMING-UNSIGNED-PAYLOAD-TRAILER".equals(contentHashString);
     }
 
     @Override
