@@ -1,0 +1,6 @@
+{
+    "category": "DynamoDB Enhanced Client", 
+    "contributor": "bmaizels", 
+    "type": "feature", 
+    "description": "Add EnhancedType parameters to static builder methods of StaticTableSchema and StaticImmitableTableSchema"
+}
