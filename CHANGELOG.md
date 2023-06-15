@@ -1,3 +1,95 @@
+# __2.20.86__ __2023-06-15__
+## __AWS Audit Manager__
+  - ### Features
+    - This release introduces 2 Audit Manager features: CSV exports and new manual evidence options. You can now export your evidence finder results in CSV format. In addition, you can now add manual evidence to a control by entering free-form text or uploading a file from your browser.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon DynamoDB Enhanced__
+  - ### Bugfixes
+    - Thanks to this bugfix it'll be possible to create DynamoDB table containing
+      secondary indices when using no arugments `createTable` method from `DefaultDynamoDbTable`
+      class. Information about their presence might be expressed using annotations, but it was ignored
+      and created tables didn't contain specified indices. Plase note that it is still not possible
+      to specify projections for indices using annotations. By default, all fields will be projected.
+        - Contributed by: [@breader124](https://github.com/breader124)
+
+## __Amazon Elastic File System__
+  - ### Features
+    - Documentation updates for EFS.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Updated descriptions for some APIs.
+
+## __Amazon Location Service__
+  - ### Features
+    - Amazon Location Service adds categories to places, including filtering on those categories in searches. Also, you can now add metadata properties to your geofences.
+
+## __DynamoDB Enhanced Client__
+  - ### Features
+    - Add EnhancedType parameters to static builder methods of StaticTableSchema and StaticImmitableTableSchema
+        - Contributed by: [@bmaizels](https://github.com/bmaizels)
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
+# __2.20.85__ __2023-06-13__
+## __AWS CloudTrail__
+  - ### Features
+    - This feature allows users to view dashboards for CloudTrail Lake event data stores.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Add support for Security Hub Automation Rules
+
+## __AWS SimSpace Weaver__
+  - ### Features
+    - This release fixes using aws-us-gov ARNs in API calls and adds documentation for snapshot APIs.
+
+## __AWS WAFV2__
+  - ### Features
+    - You can now detect and block fraudulent account creation attempts with the new AWS WAF Fraud Control account creation fraud prevention (ACFP) managed rule group AWSManagedRulesACFPRuleSet.
+
+## __AWS Well-Architected Tool__
+  - ### Features
+    - AWS Well-Architected now supports Profiles that help customers prioritize which questions to focus on first by providing a list of prioritized questions that are better aligned with their business goals and outcomes.
+
+## __Amazon CodeGuru Security__
+  - ### Features
+    - Initial release of Amazon CodeGuru Security APIs
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release introduces a new feature, EC2 Instance Connect Endpoint, that enables you to connect to a resource over TCP, without requiring the resource to have a public IPv4 address.
+
+## __Amazon Lightsail__
+  - ### Features
+    - This release adds pagination for the Get Certificates API operation.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Integrate double encryption feature to SDKs.
+
+## __Amazon Verified Permissions__
+  - ### Features
+    - GA release of Amazon Verified Permissions.
+
+## __EC2 Image Builder__
+  - ### Features
+    - Change the Image Builder ImagePipeline dateNextRun field to more accurately describe the data.
+
+## __Elastic Disaster Recovery Service__
+  - ### Features
+    - Added APIs to support network replication and recovery using AWS Elastic Disaster Recovery.
+
 # __2.20.84__ __2023-06-12__
 ## __AWS Amplify UI Builder__
   - ### Features
