@@ -48,7 +48,7 @@ abstract class DefaultSignRequest<PayloadT, IdentityT extends Identity> implemen
 
     @Override
     public Optional<PayloadT> payload() {
-        return payload == null ? Optional.empty() : Optional.of(payload);
+        return Optional.ofNullable(payload);
     }
 
     @Override
