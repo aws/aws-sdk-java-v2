@@ -1,3 +1,42 @@
+# __2.20.86__ __2023-06-15__
+## __AWS Audit Manager__
+  - ### Features
+    - This release introduces 2 Audit Manager features: CSV exports and new manual evidence options. You can now export your evidence finder results in CSV format. In addition, you can now add manual evidence to a control by entering free-form text or uploading a file from your browser.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon DynamoDB Enhanced__
+  - ### Bugfixes
+    - Thanks to this bugfix it'll be possible to create DynamoDB table containing
+      secondary indices when using no arugments `createTable` method from `DefaultDynamoDbTable`
+      class. Information about their presence might be expressed using annotations, but it was ignored
+      and created tables didn't contain specified indices. Plase note that it is still not possible
+      to specify projections for indices using annotations. By default, all fields will be projected.
+        - Contributed by: [@breader124](https://github.com/breader124)
+
+## __Amazon Elastic File System__
+  - ### Features
+    - Documentation updates for EFS.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Updated descriptions for some APIs.
+
+## __Amazon Location Service__
+  - ### Features
+    - Amazon Location Service adds categories to places, including filtering on those categories in searches. Also, you can now add metadata properties to your geofences.
+
+## __DynamoDB Enhanced Client__
+  - ### Features
+    - Add EnhancedType parameters to static builder methods of StaticTableSchema and StaticImmitableTableSchema
+        - Contributed by: [@bmaizels](https://github.com/bmaizels)
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features
