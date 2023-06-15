@@ -83,6 +83,7 @@ public abstract class S3DecoratorRedirectBaseTest {
         assertThat(requestArgumentCaptor.getAllValues().get(0).overrideConfiguration()).isNotPresent();
         verifyTheEndPointProviderOverridden(1,requestArgumentCaptor, CROSS_REGION);
         verifyTheEndPointProviderOverridden(2,requestArgumentCaptor, CROSS_REGION);
+        verifyHeadBucketServiceCall(0);
     }
 
     /**
@@ -151,6 +152,7 @@ public abstract class S3DecoratorRedirectBaseTest {
         verifyHeadBucketServiceCall(0);
         verifyNoBucketApiCall(1, requestArgumentCaptor);
         assertThat(requestArgumentCaptor.getAllValues().get(0).overrideConfiguration()).isNotPresent();
+        verifyHeadBucketServiceCall(0);
     }
 
     protected abstract void verifyNoBucketCall();

@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.s3.internal.crossregion;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static software.amazon.awssdk.services.s3.internal.crossregion.S3DecoratorRedirectBaseTest.CROSS_REGION;
 import static software.amazon.awssdk.services.s3.internal.crossregion.S3DecoratorRedirectBaseTest.X_AMZ_BUCKET_REGION;
 
@@ -23,6 +24,7 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -32,10 +34,12 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.HttpExecuteResponse;
@@ -47,10 +51,13 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClientBuilder;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.endpoints.S3EndpointParams;
+import software.amazon.awssdk.services.s3.endpoints.S3EndpointProvider;
 import software.amazon.awssdk.services.s3.endpoints.internal.DefaultS3EndpointProvider;
 import software.amazon.awssdk.services.s3.internal.crossregion.endpointprovider.BucketEndpointProvider;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.paginators.ListObjectsV2Publisher;
 import software.amazon.awssdk.testutils.service.http.MockAsyncHttpClient;
 import software.amazon.awssdk.utils.StringInputStream;
@@ -172,6 +179,57 @@ class S3CrossRegionAsyncClientTest {
             .isEqualTo(Arrays.asList(SdkHttpMethod.GET));
         assertThat(captureInterceptor.endpointProvider).isInstanceOf(BucketEndpointProvider.class);
 
+    }
+
+    @Test
+    void crossRegionClient_CallsHeadObjectErrors_shouldTerminateTheAPI() {
+        mockAsyncHttpClient.stubResponses(customHttpResponse(301,  null ),
+                                         customHttpResponse(400,  null ),
+                                         successHttpResponse(), successHttpResponse());
+        S3AsyncClient crossRegionClient =
+            clientBuilder().endpointOverride(null).region(Region.US_WEST_2)
+                           .serviceConfiguration(c -> c.crossRegionAccessEnabled(true)).build();
+
+        assertThatExceptionOfType(CompletionException.class)
+            .isThrownBy(() -> crossRegionClient.getObject(r -> r.bucket(BUCKET).key(KEY), AsyncResponseTransformer.toBytes()).join())
+            .withMessageContaining("Endpoint resolution failed");
+
+        List<SdkHttpRequest> requests = mockAsyncHttpClient.getRequests();
+        assertThat(requests).hasSize(2);
+
+        assertThat(requests.stream().map(req -> req.host().substring(10,req.host().length() - 14 )).collect(Collectors.toList()))
+            .isEqualTo(Arrays.asList(Region.US_WEST_2.toString(),
+                                     Region.US_WEST_2.toString()));
+
+        assertThat(requests.stream().map(req -> req.method()).collect(Collectors.toList()))
+            .isEqualTo(Arrays.asList(SdkHttpMethod.GET,
+                                     SdkHttpMethod.HEAD));
+    }
+
+    @Test
+    void crossRegionClient_CallsHeadObjectWithNoRegion_shouldTerminateHeadBucketAPI() {
+        mockAsyncHttpClient.stubResponses(customHttpResponse(301,  null ),
+                                          customHttpResponse(301,  null ),
+                                          successHttpResponse(), successHttpResponse());
+        S3AsyncClient crossRegionClient =
+            clientBuilder().endpointOverride(null).region(Region.US_WEST_2)
+                           .serviceConfiguration(c -> c.crossRegionAccessEnabled(true)).build();
+
+        assertThatExceptionOfType(CompletionException.class)
+            .isThrownBy(() -> crossRegionClient.getObject(r -> r.bucket(BUCKET).key(KEY), AsyncResponseTransformer.toBytes()).join())
+            .withMessageContaining("Endpoint resolution failed")
+            .withCauseInstanceOf(SdkClientException.class).withRootCauseExactlyInstanceOf(S3Exception.class);
+
+        List<SdkHttpRequest> requests = mockAsyncHttpClient.getRequests();
+        assertThat(requests).hasSize(2);
+
+        assertThat(requests.stream().map(req -> req.host().substring(10,req.host().length() - 14 )).collect(Collectors.toList()))
+            .isEqualTo(Arrays.asList(Region.US_WEST_2.toString(),
+                                     Region.US_WEST_2.toString()));
+
+        assertThat(requests.stream().map(req -> req.method()).collect(Collectors.toList()))
+            .isEqualTo(Arrays.asList(SdkHttpMethod.GET,
+                                     SdkHttpMethod.HEAD));
     }
 
     private S3AsyncClientBuilder clientBuilder() {

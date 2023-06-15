@@ -26,6 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.DelegatingS3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -33,7 +34,6 @@ import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.model.S3Request;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
-import software.amazon.awssdk.utils.StringUtils;
 
 @SdkInternalApi
 public final class S3CrossRegionAsyncClient extends DelegatingS3AsyncClient {
@@ -79,31 +79,24 @@ public final class S3CrossRegionAsyncClient extends DelegatingS3AsyncClient {
 
 
     private Supplier<Region> regionSupplier(String bucket) {
-        return () -> bucketToRegionCache.computeIfAbsent(bucket, this::regionCompletableFuture).join();
+        CompletableFuture<Region> completableFuture = bucketToRegionCache.computeIfAbsent(bucket, this::regionCompletableFuture);
+        return () -> completableFuture.join();
     }
 
     private CompletableFuture<Region> regionCompletableFuture(String bucketName) {
-        StringBuilder stringBuilder = new StringBuilder();
-        return CompletableFuture.supplyAsync(
-                                    () -> ((S3AsyncClient) delegate()).headBucket(HeadBucketRequest.builder()
-                                                                                                   .bucket(bucketName)
-                                                                                                   .build())
-                                                                      .exceptionally(exception -> {
-                                                                          if (isS3RedirectException(exception.getCause())) {
-                                                                              getBucketRegionFromException(
-                                                                                  (S3Exception) exception.getCause()).ifPresent(
-                                                                                  stringBuilder::append);
-                                                                          } else {
-                                                                              CompletableFutureUtils.failedFuture(exception);
-                                                                          }
-                                                                          return null;
-                                                                      }))
-                                .thenApplyAsync(headResponse -> {
-                                    headResponse.join();
-                                    if (headResponse != null && StringUtils.isNotBlank(stringBuilder.toString())) {
-                                        return Region.of(stringBuilder.toString());
-                                    }
-                                    return null;
-                                });
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                ((S3AsyncClient) delegate()).headBucket(HeadBucketRequest.builder().bucket(bucketName).build()).join();
+            } catch (Exception exception) {
+                if (isS3RedirectException(exception.getCause())) {
+                    String region = getBucketRegionFromException((S3Exception) exception.getCause())
+                        .orElseThrow(() -> AwsServiceException.create("Region name not found in Redirect error",
+                                                                      exception));
+                    return Region.of(region);
+                }
+                throw exception;
+            }
+            return ((S3AsyncClient) delegate()).serviceClientConfiguration().region();
+        });
     }
 }

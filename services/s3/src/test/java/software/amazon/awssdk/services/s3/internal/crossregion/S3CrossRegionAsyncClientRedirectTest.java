@@ -23,6 +23,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.function.Consumer;
 import org.junit.jupiter.api.BeforeEach;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -101,7 +102,9 @@ public class S3CrossRegionAsyncClientRedirectTest extends S3DecoratorRedirectBas
     @Override
     protected void stubHeadBucketRedirect() {
         when(mockDelegateAsyncClient.headBucket(any(HeadBucketRequest.class)))
-            .thenReturn(CompletableFutureUtils.failedFuture(new CompletionException(redirectException(301, CROSS_REGION, null, null))));
+            .thenThrow(new CompletionException(redirectException(301,CROSS_REGION, null, null)));
+        when(mockDelegateAsyncClient.headBucket(any(Consumer.class)))
+            .thenThrow(new CompletionException(redirectException(301,CROSS_REGION, null, null)));
     }
 
     @Override
