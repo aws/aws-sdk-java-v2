@@ -98,6 +98,13 @@ class S3CrossRegionAsyncClientTest {
         assertThat(captureInterceptor.endpointProvider).isInstanceOf(S3CrossRegionAsyncClient.BucketEndpointProvider.class);
     }
 
+    @Test
+    void standardOp_crossRegionClient_containUserAgent() {
+        S3AsyncClient crossRegionClient = new S3CrossRegionAsyncClient(s3Client);
+        crossRegionClient.getObject(r -> r.bucket(BUCKET).key(KEY), AsyncResponseTransformer.toBytes()).join();
+        assertThat(mockAsyncHttpClient.getLastRequest().firstMatchingHeader("User-Agent").get()).contains("hll/cross-region");
+    }
+
     private S3AsyncClientBuilder clientBuilder() {
         return S3AsyncClient.builder()
                             .httpClient(mockAsyncHttpClient)
