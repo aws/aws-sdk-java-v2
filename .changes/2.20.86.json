@@ -1,0 +1,48 @@
+{
+    "version": "2.20.86",
+    "date": "2023-06-15",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "Amazon DynamoDB Enhanced",
+            "contributor": "breader124",
+            "description": "Thanks to this bugfix it'll be possible to create DynamoDB table containing\nsecondary indices when using no arugments `createTable` method from `DefaultDynamoDbTable`\nclass. Information about their presence might be expressed using annotations, but it was ignored\nand created tables didn't contain specified indices. Plase note that it is still not possible\nto specify projections for indices using annotations. By default, all fields will be projected."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Audit Manager",
+            "contributor": "",
+            "description": "This release introduces 2 Audit Manager features: CSV exports and new manual evidence options. You can now export your evidence finder results in CSV format. In addition, you can now add manual evidence to a control by entering free-form text or uploading a file from your browser."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic File System",
+            "contributor": "",
+            "description": "Documentation updates for EFS."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon GuardDuty",
+            "contributor": "",
+            "description": "Updated descriptions for some APIs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Location Service",
+            "contributor": "",
+            "description": "Amazon Location Service adds categories to places, including filtering on those categories in searches. Also, you can now add metadata properties to your geofences."
+        },
+        {
+            "type": "feature",
+            "category": "DynamoDB Enhanced Client",
+            "contributor": "bmaizels",
+            "description": "Add EnhancedType parameters to static builder methods of StaticTableSchema and StaticImmitableTableSchema"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}
