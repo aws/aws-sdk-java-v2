@@ -15,21 +15,17 @@
 
 package software.amazon.awssdk.services.s3.internal.crossregion;
 
-import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.verify;
 import static software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionAsyncClientTest.customHttpResponse;
 import static software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionAsyncClientTest.successHttpResponse;
-import static software.amazon.awssdk.services.s3.internal.crossregion.S3DecoratorRedirectBaseTest.CROSS_REGION;
-import static software.amazon.awssdk.services.s3.internal.crossregion.S3DecoratorRedirectBaseTest.X_AMZ_BUCKET_REGION;
-import static software.amazon.awssdk.services.s3.internal.crossregion.S3DecoratorRedirectBaseTest.X_AMZ_BUCKET_REGION;
+import static software.amazon.awssdk.services.s3.internal.crossregion.S3DecoratorRedirectTestBase.CROSS_REGION;
+import static software.amazon.awssdk.services.s3.internal.crossregion.S3DecoratorRedirectTestBase.OVERRIDE_CONFIGURED_REGION;
 
-import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
@@ -38,22 +34,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.endpoints.EndpointProvider;
-import software.amazon.awssdk.http.AbortableInputStream;
-import software.amazon.awssdk.http.HttpExecuteRequest;
-import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
-import software.amazon.awssdk.services.s3.endpoints.S3EndpointProvider;
 import software.amazon.awssdk.services.s3.endpoints.internal.DefaultS3EndpointProvider;
 import software.amazon.awssdk.services.s3.internal.crossregion.endpointprovider.BucketEndpointProvider;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -61,7 +51,6 @@ import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.paginators.ListObjectsV2Iterable;
 import software.amazon.awssdk.testutils.service.http.MockSyncHttpClient;
-import software.amazon.awssdk.utils.StringInputStream;
 
 class S3CrossRegionSyncClientTest {
 
@@ -110,7 +99,6 @@ class S3CrossRegionSyncClientTest {
         );
     }
 
-
     @ParameterizedTest
     @MethodSource("stubResponses")
     void standardOp_crossRegionClient_noOverrideConfig_SuccessfullyIntercepts(Consumer<MockSyncHttpClient> stubConsumer,
@@ -158,7 +146,6 @@ class S3CrossRegionSyncClientTest {
         crossRegionClient.getObject(r -> r.bucket(BUCKET).key(KEY));
         assertThat(captureInterceptor.endpointProvider).isInstanceOf(endpointProviderType);
     }
-
 
     @ParameterizedTest
     @MethodSource("stubOverriddenEndpointProviderResponses")
@@ -209,7 +196,7 @@ class S3CrossRegionSyncClientTest {
                                          customHttpResponse(301,  CROSS_REGION ),
                                          successHttpResponse(), successHttpResponse());
         S3Client crossRegionClient =
-            clientBuilder().endpointOverride(null).region(Region.US_WEST_2).serviceConfiguration(c -> c.crossRegionAccessEnabled(true)).build();
+            clientBuilder().endpointOverride(null).region(OVERRIDE_CONFIGURED_REGION).serviceConfiguration(c -> c.crossRegionAccessEnabled(true)).build();
         crossRegionClient.getObject(r -> r.bucket(BUCKET).key(KEY));
         assertThat(captureInterceptor.endpointProvider).isInstanceOf(BucketEndpointProvider.class);
 
@@ -217,8 +204,8 @@ class S3CrossRegionSyncClientTest {
         assertThat(requests).hasSize(3);
 
         assertThat(requests.stream().map(req -> req.host().substring(10,req.host().length() - 14 )).collect(Collectors.toList()))
-            .isEqualTo(Arrays.asList(Region.US_WEST_2.toString(),
-                                     Region.US_WEST_2.toString(),
+            .isEqualTo(Arrays.asList(OVERRIDE_CONFIGURED_REGION.toString(),
+                                     OVERRIDE_CONFIGURED_REGION.toString(),
                                      CROSS_REGION));
 
         assertThat(requests.stream().map(req -> req.method()).collect(Collectors.toList()))
@@ -248,7 +235,7 @@ class S3CrossRegionSyncClientTest {
                                          customHttpResponse(400,  null ),
                                          successHttpResponse(), successHttpResponse());
         S3Client crossRegionClient =
-            clientBuilder().endpointOverride(null).region(Region.US_WEST_2).serviceConfiguration(c -> c.crossRegionAccessEnabled(true)).build();
+            clientBuilder().endpointOverride(null).region(OVERRIDE_CONFIGURED_REGION).serviceConfiguration(c -> c.crossRegionAccessEnabled(true)).build();
 
         assertThatExceptionOfType(S3Exception.class)
             .isThrownBy(() -> crossRegionClient.getObject(r -> r.bucket(BUCKET).key(KEY)))
@@ -258,8 +245,8 @@ class S3CrossRegionSyncClientTest {
         assertThat(requests).hasSize(2);
 
         assertThat(requests.stream().map(req -> req.host().substring(10,req.host().length() - 14 )).collect(Collectors.toList()))
-            .isEqualTo(Arrays.asList(Region.US_WEST_2.toString(),
-                                     Region.US_WEST_2.toString()));
+            .isEqualTo(Arrays.asList(OVERRIDE_CONFIGURED_REGION.toString(),
+                                     OVERRIDE_CONFIGURED_REGION.toString()));
 
         assertThat(requests.stream().map(req -> req.method()).collect(Collectors.toList()))
             .isEqualTo(Arrays.asList(SdkHttpMethod.GET,
@@ -272,7 +259,7 @@ class S3CrossRegionSyncClientTest {
                                          customHttpResponse(301,  null ),
                                          successHttpResponse(), successHttpResponse());
         S3Client crossRegionClient =
-            clientBuilder().endpointOverride(null).region(Region.US_WEST_2).serviceConfiguration(c -> c.crossRegionAccessEnabled(true)).build();
+            clientBuilder().endpointOverride(null).region(OVERRIDE_CONFIGURED_REGION).serviceConfiguration(c -> c.crossRegionAccessEnabled(true)).build();
 
         assertThatExceptionOfType(S3Exception.class)
             .isThrownBy(() -> crossRegionClient.getObject(r -> r.bucket(BUCKET).key(KEY)))
@@ -282,8 +269,8 @@ class S3CrossRegionSyncClientTest {
         assertThat(requests).hasSize(2);
 
         assertThat(requests.stream().map(req -> req.host().substring(10,req.host().length() - 14 )).collect(Collectors.toList()))
-            .isEqualTo(Arrays.asList(Region.US_WEST_2.toString(),
-                                     Region.US_WEST_2.toString()));
+            .isEqualTo(Arrays.asList(OVERRIDE_CONFIGURED_REGION.toString(),
+                                     OVERRIDE_CONFIGURED_REGION.toString()));
 
         assertThat(requests.stream().map(req -> req.method()).collect(Collectors.toList()))
             .isEqualTo(Arrays.asList(SdkHttpMethod.GET,

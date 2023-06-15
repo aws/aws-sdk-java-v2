@@ -33,7 +33,7 @@ import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsResponse;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
-public class S3CrossRegionSyncClientRedirectTest extends S3DecoratorRedirectBaseTest {
+public class S3CrossRegionSyncClientRedirectTest extends S3DecoratorRedirectTestBase {
 
     private static S3Client mockDelegateClient;
     private S3Client decoratedS3Client;
@@ -100,7 +100,7 @@ public class S3CrossRegionSyncClientRedirectTest extends S3DecoratorRedirectBase
     }
 
     @Override
-    protected ListObjectsResponse firstApiCallToService() {
+    protected ListObjectsResponse apiCallToService() {
         return decoratedS3Client.listObjects(i -> i.bucket(CROSS_REGION_BUCKET));
     }
 
@@ -116,7 +116,7 @@ public class S3CrossRegionSyncClientRedirectTest extends S3DecoratorRedirectBase
 
     @Override
     protected void stubServiceClientConfiguration() {
-        when(mockDelegateClient.serviceClientConfiguration()).thenReturn(ENDPOINT_CONFIGURED);
+        when(mockDelegateClient.serviceClientConfiguration()).thenReturn(CONFIGURED_ENDPOINT_PROVIDER);
     }
 
     @Override

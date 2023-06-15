@@ -69,8 +69,10 @@ public final class S3CrossRegionSyncClient extends DelegatingS3Client {
             if (exception.statusCode() == REDIRECT_STATUS_CODE) {
                 updateCacheFromRedirectException(exception, bucketName);
                 return operation.apply(
-                    requestWithDecoratedEndpointProvider(request, regionSupplier(bucketName),
-                                                         serviceClientConfiguration().endpointProvider().get()));
+                    requestWithDecoratedEndpointProvider(
+                        request,
+                        () -> bucketToRegionCache.computeIfAbsent(bucketName, this::fetchBucketRegion),
+                        serviceClientConfiguration().endpointProvider().get()));
             }
             throw exception;
         }
@@ -81,10 +83,6 @@ public final class S3CrossRegionSyncClient extends DelegatingS3Client {
         // If redirected, clear previous values due to region change.
         bucketToRegionCache.remove(bucketName);
         regionStr.ifPresent(region -> bucketToRegionCache.put(bucketName, Region.of(region)));
-    }
-
-    private Supplier<Region> regionSupplier(String bucket) {
-        return () -> bucketToRegionCache.computeIfAbsent(bucket, this::fetchBucketRegion);
     }
 
     private Region fetchBucketRegion(String bucketName) {

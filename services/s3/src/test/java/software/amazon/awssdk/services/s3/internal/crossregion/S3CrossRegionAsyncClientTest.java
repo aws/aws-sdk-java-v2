@@ -17,8 +17,9 @@ package software.amazon.awssdk.services.s3.internal.crossregion;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static software.amazon.awssdk.services.s3.internal.crossregion.S3DecoratorRedirectBaseTest.CROSS_REGION;
-import static software.amazon.awssdk.services.s3.internal.crossregion.S3DecoratorRedirectBaseTest.X_AMZ_BUCKET_REGION;
+import static software.amazon.awssdk.services.s3.internal.crossregion.S3DecoratorRedirectTestBase.CROSS_REGION;
+import static software.amazon.awssdk.services.s3.internal.crossregion.S3DecoratorRedirectTestBase.OVERRIDE_CONFIGURED_REGION;
+import static software.amazon.awssdk.services.s3.internal.crossregion.S3DecoratorRedirectTestBase.X_AMZ_BUCKET_REGION;
 
 import java.net.URI;
 import java.util.Arrays;
@@ -39,7 +40,6 @@ import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
-import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.HttpExecuteResponse;
@@ -50,9 +50,6 @@ import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClientBuilder;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.endpoints.S3EndpointParams;
-import software.amazon.awssdk.services.s3.endpoints.S3EndpointProvider;
 import software.amazon.awssdk.services.s3.endpoints.internal.DefaultS3EndpointProvider;
 import software.amazon.awssdk.services.s3.internal.crossregion.endpointprovider.BucketEndpointProvider;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -69,7 +66,6 @@ class S3CrossRegionAsyncClientTest {
     private static final String BUCKET = "bucket";
     private static final String KEY = "key";
     private static final String TOKEN = "token";
-
     private final MockAsyncHttpClient mockAsyncHttpClient = new MockAsyncHttpClient();
     private CaptureInterceptor captureInterceptor;
     private S3AsyncClient s3Client;
@@ -148,7 +144,7 @@ class S3CrossRegionAsyncClientTest {
                                          customHttpResponse(301,  CROSS_REGION ),
                                          successHttpResponse(), successHttpResponse());
         S3AsyncClient crossRegionClient =
-            clientBuilder().endpointOverride(null).region(Region.US_WEST_2).serviceConfiguration(c -> c.crossRegionAccessEnabled(true)).build();
+            clientBuilder().endpointOverride(null).region(OVERRIDE_CONFIGURED_REGION).serviceConfiguration(c -> c.crossRegionAccessEnabled(true)).build();
         crossRegionClient.getObject(r -> r.bucket(BUCKET).key(KEY), AsyncResponseTransformer.toBytes()).join();
         assertThat(captureInterceptor.endpointProvider).isInstanceOf(BucketEndpointProvider.class);
 
@@ -156,8 +152,8 @@ class S3CrossRegionAsyncClientTest {
         assertThat(requests).hasSize(3);
 
         assertThat(requests.stream().map(req -> req.host().substring(10,req.host().length() - 14 )).collect(Collectors.toList()))
-            .isEqualTo(Arrays.asList(Region.US_WEST_2.toString(),
-                                     Region.US_WEST_2.toString(),
+            .isEqualTo(Arrays.asList(OVERRIDE_CONFIGURED_REGION.toString(),
+                                     OVERRIDE_CONFIGURED_REGION.toString(),
                                      CROSS_REGION));
 
         assertThat(requests.stream().map(req -> req.method()).collect(Collectors.toList()))
@@ -187,7 +183,7 @@ class S3CrossRegionAsyncClientTest {
                                          customHttpResponse(400,  null ),
                                          successHttpResponse(), successHttpResponse());
         S3AsyncClient crossRegionClient =
-            clientBuilder().endpointOverride(null).region(Region.US_WEST_2)
+            clientBuilder().endpointOverride(null).region(OVERRIDE_CONFIGURED_REGION)
                            .serviceConfiguration(c -> c.crossRegionAccessEnabled(true)).build();
 
         assertThatExceptionOfType(CompletionException.class)
@@ -198,8 +194,8 @@ class S3CrossRegionAsyncClientTest {
         assertThat(requests).hasSize(2);
 
         assertThat(requests.stream().map(req -> req.host().substring(10,req.host().length() - 14 )).collect(Collectors.toList()))
-            .isEqualTo(Arrays.asList(Region.US_WEST_2.toString(),
-                                     Region.US_WEST_2.toString()));
+            .isEqualTo(Arrays.asList(OVERRIDE_CONFIGURED_REGION.toString(),
+                                     OVERRIDE_CONFIGURED_REGION.toString()));
 
         assertThat(requests.stream().map(req -> req.method()).collect(Collectors.toList()))
             .isEqualTo(Arrays.asList(SdkHttpMethod.GET,
@@ -212,7 +208,7 @@ class S3CrossRegionAsyncClientTest {
                                           customHttpResponse(301,  null ),
                                           successHttpResponse(), successHttpResponse());
         S3AsyncClient crossRegionClient =
-            clientBuilder().endpointOverride(null).region(Region.US_WEST_2)
+            clientBuilder().endpointOverride(null).region(OVERRIDE_CONFIGURED_REGION)
                            .serviceConfiguration(c -> c.crossRegionAccessEnabled(true)).build();
 
         assertThatExceptionOfType(CompletionException.class)
@@ -224,8 +220,8 @@ class S3CrossRegionAsyncClientTest {
         assertThat(requests).hasSize(2);
 
         assertThat(requests.stream().map(req -> req.host().substring(10,req.host().length() - 14 )).collect(Collectors.toList()))
-            .isEqualTo(Arrays.asList(Region.US_WEST_2.toString(),
-                                     Region.US_WEST_2.toString()));
+            .isEqualTo(Arrays.asList(OVERRIDE_CONFIGURED_REGION.toString(),
+                                     OVERRIDE_CONFIGURED_REGION.toString()));
 
         assertThat(requests.stream().map(req -> req.method()).collect(Collectors.toList()))
             .isEqualTo(Arrays.asList(SdkHttpMethod.GET,

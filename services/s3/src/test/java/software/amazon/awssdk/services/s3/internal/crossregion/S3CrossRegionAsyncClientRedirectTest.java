@@ -36,7 +36,7 @@ import software.amazon.awssdk.services.s3.model.ListObjectsResponse;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
-public class S3CrossRegionAsyncClientRedirectTest extends S3DecoratorRedirectBaseTest {
+public class S3CrossRegionAsyncClientRedirectTest extends S3DecoratorRedirectTestBase {
     private static S3AsyncClient mockDelegateAsyncClient;
     private S3AsyncClient decoratedS3AsyncClient;
 
@@ -55,7 +55,7 @@ public class S3CrossRegionAsyncClientRedirectTest extends S3DecoratorRedirectBas
     }
 
     @Override
-    protected ListObjectsResponse firstApiCallToService() throws Throwable {
+    protected ListObjectsResponse apiCallToService() throws Throwable {
         try{
            return decoratedS3AsyncClient.listObjects(i -> i.bucket(CROSS_REGION_BUCKET)).join();
         }catch (CompletionException exception){
@@ -70,7 +70,7 @@ public class S3CrossRegionAsyncClientRedirectTest extends S3DecoratorRedirectBas
 
     @Override
     protected void stubServiceClientConfiguration() {
-        when(mockDelegateAsyncClient.serviceClientConfiguration()).thenReturn(ENDPOINT_CONFIGURED);
+        when(mockDelegateAsyncClient.serviceClientConfiguration()).thenReturn(CONFIGURED_ENDPOINT_PROVIDER);
     }
 
     @Override
