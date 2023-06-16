@@ -18,21 +18,18 @@ import java.util.Map;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
-import software.amazon.awssdk.awscore.AwsRequest;
-import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
-import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.AuthScheme;
+import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.IdentityProviderConfiguration;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.codecatalyst.auth.scheme
-    .CodeCatalystAuthSchemeParams;
+import software.amazon.awssdk.services.codecatalyst.auth.scheme.CodeCatalystAuthSchemeParams;
 import software.amazon.awssdk.services.codecatalyst.auth.scheme.CodeCatalystAuthSchemeProvider;
 import software.amazon.awssdk.utils.Logger;
 
@@ -43,14 +40,10 @@ public final class CodeCatalystAuthSchemeInterceptor implements ExecutionInterce
     private static final Logger log = Logger.loggerFor(CodeCatalystAuthSchemeInterceptor.class);
 
     @Override
-    public SdkRequest modifyRequest(Context.ModifyRequest context, ExecutionAttributes executionAttributes) {
+    public void beforeExecution(Context.BeforeExecution context, ExecutionAttributes executionAttributes) {
         List<AuthSchemeOption> authOptions = resolveAuthOptions(executionAttributes);
         SelectedAuthScheme<?> selectedAuthScheme = selectAuthScheme(authOptions, executionAttributes);
-
         executionAttributes.putAttribute(SdkExecutionAttribute.SELECTED_AUTH_SCHEME, selectedAuthScheme);
-
-        AwsRequest request = (AwsRequest) context.request();
-        return request;
     }
 
     /**
