@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Account",
+    "contributor": "",
+    "description": "Improve pagination support for ListRegions"
+}
