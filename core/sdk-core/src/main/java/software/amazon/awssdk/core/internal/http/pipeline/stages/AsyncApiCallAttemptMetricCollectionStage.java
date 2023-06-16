@@ -25,6 +25,7 @@ import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.utils.RetryableStageHelper;
+import software.amazon.awssdk.core.internal.metrics.SdkErrorType;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.metrics.MetricCollector;
@@ -57,6 +58,12 @@ public final class AsyncApiCallAttemptMetricCollectionStage<OutputT> implements 
             if (t == null) {
                 collectHttpMetrics(apiCallAttemptMetrics, r.httpResponse());
             }
+
+            if (t != null) {
+                reportErrorType(context, t.getCause());
+            } else if (!Boolean.TRUE.equals(r.isSuccess())  && r.exception() != null) {
+                reportErrorType(context, r.exception());
+            }
         });
         CompletableFutureUtils.forwardExceptionTo(metricsCollectedFuture, executeFuture);
 
@@ -68,5 +75,9 @@ public final class AsyncApiCallAttemptMetricCollectionStage<OutputT> implements 
         if (lastBackoffDelay != null) {
             context.attemptMetricCollector().reportMetric(CoreMetric.BACKOFF_DELAY_DURATION, lastBackoffDelay);
         }
+    }
+
+    private void reportErrorType(RequestExecutionContext context, Throwable t) {
+        context.attemptMetricCollector().reportMetric(CoreMetric.ERROR_TYPE, SdkErrorType.fromException(t).toString());
     }
 }

@@ -130,7 +130,7 @@ public final class CopyObjectHelper {
                                Long contentLength,
                                CompletableFuture<CopyObjectResponse> returnFuture,
                                String uploadId) {
-        long optimalPartSize = calculateOptimalPartSizeForCopy(partSizeInBytes);
+        long optimalPartSize = calculateOptimalPartSizeForCopy(contentLength);
 
         int partCount = determinePartCount(contentLength, optimalPartSize);
 

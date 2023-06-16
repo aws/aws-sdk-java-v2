@@ -16,11 +16,14 @@
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -31,6 +34,9 @@ import static software.amazon.awssdk.core.internal.util.AsyncResponseHandlerTest
 
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -47,6 +53,7 @@ import software.amazon.awssdk.core.http.NoopTestRequest;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
+import software.amazon.awssdk.core.internal.http.TransformingAsyncResponseHandler;
 import software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
 import software.amazon.awssdk.core.internal.util.AsyncResponseHandlerTestUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -54,6 +61,8 @@ import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
+import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 import utils.ValidSdkObjects;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -149,6 +158,82 @@ public class MakeAsyncHttpRequestStageTest {
             verify(mockCollector).createChild(eq("HttpClient"));
             verify(sdkAsyncHttpClient).execute(httpRequestCaptor.capture());
             assertThat(httpRequestCaptor.getValue().metricCollector()).contains(childCollector);
+        }
+    }
+
+    @Test
+    public void execute_handlerFutureCompletedNormally_futureCompletionExecutorRejectsWhenCompleteAsync_futureCompletedSynchronously() {
+        ExecutorService mockExecutor = mock(ExecutorService.class);
+        doThrow(new RejectedExecutionException("Busy")).when(mockExecutor).execute(any(Runnable.class));
+
+        SdkClientConfiguration config =
+            SdkClientConfiguration.builder()
+                .option(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR, mockExecutor)
+                .option(ASYNC_HTTP_CLIENT, sdkAsyncHttpClient)
+                .build();
+        HttpClientDependencies dependencies = HttpClientDependencies.builder().clientConfiguration(config).build();
+
+        TransformingAsyncResponseHandler mockHandler = mock(TransformingAsyncResponseHandler.class);
+        CompletableFuture prepareFuture = new CompletableFuture();
+        when(mockHandler.prepare()).thenReturn(prepareFuture);
+
+        stage = new MakeAsyncHttpRequestStage<>(mockHandler, dependencies);
+
+        CompletableFuture<SdkHttpFullRequest> requestFuture = CompletableFuture.completedFuture(
+            ValidSdkObjects.sdkHttpFullRequest().build());
+
+        CompletableFuture executeFuture = stage.execute(requestFuture, requestContext());
+
+        long testThreadId = Thread.currentThread().getId();
+        CompletableFuture afterWhenComplete =
+            executeFuture.whenComplete((r, t) -> assertThat(Thread.currentThread().getId()).isEqualTo(testThreadId));
+
+        prepareFuture.complete(null);
+
+        afterWhenComplete.join();
+
+        verify(mockExecutor).execute(any(Runnable.class));
+    }
+
+    @Test
+    public void execute_handlerFutureCompletedExceptionally_doesNotAttemptSynchronousComplete() {
+        String threadNamePrefix = "async-handle-test";
+        ExecutorService mockExecutor = Executors.newSingleThreadExecutor(
+            new ThreadFactoryBuilder().threadNamePrefix(threadNamePrefix).build());
+
+        SdkClientConfiguration config =
+            SdkClientConfiguration.builder()
+                                  .option(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR, mockExecutor)
+                                  .option(ASYNC_HTTP_CLIENT, sdkAsyncHttpClient)
+                                  .build();
+        HttpClientDependencies dependencies = HttpClientDependencies.builder().clientConfiguration(config).build();
+
+        TransformingAsyncResponseHandler mockHandler = mock(TransformingAsyncResponseHandler.class);
+        CompletableFuture prepareFuture = spy(new CompletableFuture());
+        when(mockHandler.prepare()).thenReturn(prepareFuture);
+
+        stage = new MakeAsyncHttpRequestStage<>(mockHandler, dependencies);
+
+        CompletableFuture<SdkHttpFullRequest> requestFuture = CompletableFuture.completedFuture(
+            ValidSdkObjects.sdkHttpFullRequest().build());
+
+        CompletableFuture executeFuture = stage.execute(requestFuture, requestContext());
+
+        try {
+            CompletableFuture afterHandle =
+                executeFuture.handle((r, t) -> assertThat(Thread.currentThread().getName()).startsWith(threadNamePrefix));
+
+            prepareFuture.completeExceptionally(new RuntimeException("parse error"));
+
+            afterHandle.join();
+
+            assertThatThrownBy(executeFuture::join)
+                .hasCauseInstanceOf(RuntimeException.class)
+                .hasMessageContaining("parse error");
+
+            verify(prepareFuture, times(0)).whenComplete(any());
+        } finally {
+            mockExecutor.shutdown();
         }
     }
 

@@ -1,0 +1,78 @@
+{
+    "version": "2.20.75",
+    "date": "2023-05-30",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "contributor": "",
+            "description": "Added Runtime parameter to allow selection of Ray Runtime"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Ground Station",
+            "contributor": "",
+            "description": "Updating description of GetMinuteUsage to be clearer."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT FleetWise",
+            "contributor": "",
+            "description": "Campaigns now support selecting Timestream or S3 as the data destination, Signal catalogs now support \"Deprecation\" keyword released in VSS v2.1 and \"Comment\" keyword released in VSS v3.0"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SecurityHub",
+            "contributor": "",
+            "description": "Added new resource detail objects to ASFF, including resources for AwsGuardDutyDetector, AwsAmazonMqBroker, AwsEventSchemasRegistry, AwsAppSyncGraphQlApi and AwsStepFunctionStateMachine."
+        },
+        {
+            "type": "feature",
+            "category": "AWS WAFV2",
+            "contributor": "",
+            "description": "This SDK release provides customers the ability to use Header Order as a field to match."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Chime SDK Voice",
+            "contributor": "",
+            "description": "Added optional CallLeg field to StartSpeakerSearchTask API request"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Location Service",
+            "contributor": "",
+            "description": "This release adds API support for political views for the maps service APIs: CreateMap, UpdateMap, DescribeMap."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon MemoryDB",
+            "contributor": "",
+            "description": "Amazon MemoryDB for Redis now supports AWS Identity and Access Management authentication access to Redis clusters starting with redis-engine version 7.0"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Personalize",
+            "contributor": "",
+            "description": "This release provides support for the exclusion of certain columns for training when creating a solution and creating or updating a recommender with Amazon Personalize."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Polly",
+            "contributor": "",
+            "description": "Amazon Polly adds 2 new voices - Sofie (da-DK) and Niamh (en-IE)"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Security Lake",
+            "contributor": "",
+            "description": "Log sources are now versioned. AWS log sources and custom sources will now come with a version identifier that enables producers to vend multiple schema versions to subscribers. Security Lake API have been refactored to more closely align with AWS API conventions."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

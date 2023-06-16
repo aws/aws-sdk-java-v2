@@ -1,0 +1,30 @@
+{
+    "version": "2.20.83",
+    "date": "2023-06-09",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Fixed issue with leased connection leaks when threads executing HTTP connections with Apache HttpClient were interrupted while the connection was in progress."
+        },
+        {
+            "type": "bugfix",
+            "category": "Netty NIO HTTP Client",
+            "contributor": "martinKindall",
+            "description": "By default, Netty threads are blocked during dns resolution, namely InetAddress.getByName is used under the hood. Now, there's an option to configure the NettyNioAsyncHttpClient in order to use a non blocking dns resolution strategy."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Certificate Manager Private Certificate Authority",
+            "contributor": "",
+            "description": "Document-only update to refresh CLI documentation for AWS Private CA. No change to the service."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "This release adds search APIs for Prompts, Quick Connects and Hours of Operations, which can be used to search for those resources within a Connect Instance."
+        }
+    ]
+}

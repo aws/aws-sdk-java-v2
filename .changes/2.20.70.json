@@ -1,0 +1,36 @@
+{
+    "version": "2.20.70",
+    "date": "2023-05-22",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Backup",
+            "contributor": "",
+            "description": "Added support for tags on restore."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "scrocquesel",
+            "description": "Add client configuration overriding of SCHEDULED_EXECUTOR_SERVICE option"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "This commit adds a new ErrorType core metric that is recorded for all failed API call attempts. The ErrorType records the general category  of error that ocurred for a failed API call attempt. Those categories are:\n\n - Throttling errors\n - Service errors other than throttling\n - I/O errors\n - API call or API call attempt timeouts\n\n The intent of this metric is to help locate possible issues at a glance and help direct further debugging or investigation."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Pinpoint",
+            "contributor": "",
+            "description": "Amazon Pinpoint is deprecating the tags parameter in the UpdateSegment, UpdateCampaign, UpdateEmailTemplate, UpdateSmsTemplate, UpdatePushTemplate, UpdateInAppTemplate and UpdateVoiceTemplate. Amazon Pinpoint will end support tags parameter by May 22, 2023."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "contributor": "",
+            "description": "Add support for Asset Bundle, Geospatial Heatmaps."
+        }
+    ]
+}

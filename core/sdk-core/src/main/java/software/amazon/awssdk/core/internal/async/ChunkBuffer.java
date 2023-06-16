@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
@@ -58,10 +59,11 @@ public final class ChunkBuffer {
             int availableToRead = bufferSize - bufferedBytes;
             int bytesToMove = Math.min(availableToRead, currentBytesRead - startPosition);
 
+            byte[] bytes = BinaryUtils.copyAllBytesFrom(buffer);
             if (bufferedBytes == 0) {
-                currentBuffer.put(buffer.array(), startPosition, bytesToMove);
+                currentBuffer.put(bytes, startPosition, bytesToMove);
             } else {
-                currentBuffer.put(buffer.array(), 0, bytesToMove);
+                currentBuffer.put(bytes, 0, bytesToMove);
             }
 
             startPosition = startPosition + bytesToMove;

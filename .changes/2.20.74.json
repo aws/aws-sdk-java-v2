@@ -1,0 +1,30 @@
+{
+    "version": "2.20.74",
+    "date": "2023-05-26",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS IoT Wireless",
+            "contributor": "",
+            "description": "Add Multicast Group support in Network Analyzer Configuration."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "Documentation update for a new Initiation Method value in DescribeContact API"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Added ml.p4d and ml.inf1 as supported instance type families for SageMaker Notebook Instances."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}
