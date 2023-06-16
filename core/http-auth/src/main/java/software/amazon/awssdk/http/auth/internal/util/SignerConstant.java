@@ -36,7 +36,7 @@ public final class SignerConstant {
 
     public static final String X_AMZ_EXPIRES = "X-Amz-Expires";
 
-    public static final String X_AMZ_SIGNED_HEADER = "X-Amz-SignedHeaders";
+    public static final String X_AMZ_SIGNED_HEADERS = "X-Amz-SignedHeaders";
 
     public static final String X_AMZ_SIGNATURE = "X-Amz-Signature";
 

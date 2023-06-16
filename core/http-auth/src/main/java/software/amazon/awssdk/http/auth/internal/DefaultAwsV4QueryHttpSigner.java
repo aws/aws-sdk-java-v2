@@ -102,14 +102,6 @@ public final class DefaultAwsV4QueryHttpSigner implements AwsV4QueryHttpSigner {
             createCanonicalRequest(request.request(), requestBuilder, contentHash, doubleUrlEncode,
                 normalizePath);
 
-        // add presign info
-        String signingCredentials = sanitizedCredentials.accessKeyId() + "/" + scope;
-        requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_ALGORITHM, SignerConstant.AWS4_SIGNING_ALGORITHM);
-        requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_DATE, formattedRequestSigningDateTime);
-        requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_SIGNED_HEADER, canonicalRequest.signedHeaderString());
-        requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_EXPIRES, Long.toString(expirationInSeconds));
-        requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_CREDENTIAL, signingCredentials);
-
         String canonicalRequestString = canonicalRequest.string();
         String stringToSign = buildStringToSign(
             canonicalRequestString,
@@ -127,6 +119,12 @@ public final class DefaultAwsV4QueryHttpSigner implements AwsV4QueryHttpSigner {
 
         byte[] signature = computeSignature(stringToSign, signingKey);
 
+        String signingCredentials = sanitizedCredentials.accessKeyId() + "/" + scope;
+        requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_ALGORITHM, SignerConstant.AWS4_SIGNING_ALGORITHM);
+        requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_DATE, formattedRequestSigningDateTime);
+        requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_SIGNED_HEADERS, canonicalRequest.signedHeaderString());
+        requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_EXPIRES, Long.toString(expirationInSeconds));
+        requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_CREDENTIAL, signingCredentials);
         requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_SIGNATURE, BinaryUtils.toHex(signature));
 
         return requestBuilder;

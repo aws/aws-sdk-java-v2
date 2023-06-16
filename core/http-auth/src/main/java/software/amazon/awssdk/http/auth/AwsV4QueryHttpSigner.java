@@ -69,7 +69,7 @@ public interface AwsV4QueryHttpSigner extends HttpSigner<AwsCredentialsIdentity>
         SignerProperty.create(Boolean.class, "DoubleUrlEncode");
 
     /**
-     * A boolean to indicate Whether the resource path should be "normalized"
+     * A boolean to indicate whether the resource path should be "normalized"
      * according to RFC3986 when constructing the canonical request.
      * This property defaults to true.
      */
