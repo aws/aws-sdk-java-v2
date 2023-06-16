@@ -104,6 +104,14 @@ class S3CrossRegionSyncClientTest {
         assertThat(mockSyncHttpClient.getLastRequest().firstMatchingHeader("User-Agent").get()).contains("hll/cross-region");
     }
 
+    @Test
+    void standardOp_simpleClient_doesNotContainCrossRegionUserAgent() {
+        S3Client crossRegionClient = clientBuilder().serviceConfiguration(c -> c.crossRegionAccessEnabled(false)).build();
+        crossRegionClient.getObject(r -> r.bucket(BUCKET).key(KEY));
+        assertThat(mockSyncHttpClient.getLastRequest().firstMatchingHeader("User-Agent").get())
+            .doesNotContain("hll/cross-region");
+    }
+
     private S3ClientBuilder clientBuilder() {
         return S3Client.builder()
                        .httpClient(mockSyncHttpClient)
