@@ -19,7 +19,8 @@ import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.identity.spi.internal.DefaultResolveIdentityRequest;
-import software.amazon.awssdk.utils.builder.SdkBuilder;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * A request to resolve an {@link Identity}.
@@ -32,7 +33,7 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
 @SdkPublicApi
 @Immutable
 @ThreadSafe
-public interface ResolveIdentityRequest {
+public interface ResolveIdentityRequest extends ToCopyableBuilder<ResolveIdentityRequest.Builder, ResolveIdentityRequest> {
 
     /**
      * Get a new builder for creating a {@link ResolveIdentityRequest}.
@@ -49,7 +50,7 @@ public interface ResolveIdentityRequest {
     /**
      * A builder for a {@link ResolveIdentityRequest}.
      */
-    interface Builder extends SdkBuilder<Builder, ResolveIdentityRequest> {
+    interface Builder extends CopyableBuilder<Builder, ResolveIdentityRequest> {
 
         /**
          * Set a property that the {@link IdentityProvider} can use while resolving the identity.
