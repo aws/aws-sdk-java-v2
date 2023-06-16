@@ -145,7 +145,7 @@ public final class AwsExecutionContextBuilder {
     private static void putAuthSchemeResolutionAttributes(ExecutionAttributes executionAttributes,
                                                           SdkClientConfiguration clientConfig) {
 
-        // TODO: should this be client v/s advanced option?
+        // review TODO: should this be client v/s advanced option?
         // TODO: When request-level auth scheme resovler is added, use the request-level auth scheme resolver if the customer
         //  specified an override, otherwise fall back to the one on the client.
         AuthSchemeProvider authSchemeProvider = clientConfig.option(SdkClientOption.AUTH_SCHEME_PROVIDER);
@@ -161,23 +161,14 @@ public final class AwsExecutionContextBuilder {
         //  appropriate type (uses the appropriate Signer) for streaming, etc.
         Map<String, AuthScheme<?>> authSchemes = clientConfig.option(SdkClientOption.AUTH_SCHEMES);
 
-        // TODO: IDENTITY_PROVIDERS or IDENTITY_PROVIDER_CONFIGURATION
-        // IdentityProviderConfiguration identityProviders = clientConfig.option(SdkClientOption.IDENTITY_PROVIDERS);
-        IdentityProviderConfiguration.Builder identityProvidersBuilder =
-            IdentityProviderConfiguration.builder();
-
-        if (clientConfig.option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER) != null) {
-            identityProvidersBuilder.putIdentityProvider(clientConfig.option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER));
-        }
-        if (clientConfig.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER) != null) {
-            identityProvidersBuilder.putIdentityProvider(clientConfig.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER));
-        }
-        IdentityProviderConfiguration identityProviders = identityProvidersBuilder.build();
+        // TODO: If request level identity provider is specified, it should override.
+        // review TODO: IDENTITY_PROVIDERS or IDENTITY_PROVIDER_CONFIGURATION
+        IdentityProviderConfiguration identityProviders = clientConfig.option(SdkClientOption.IDENTITY_PROVIDER_CONFIGURATION);
 
         executionAttributes
             .putAttribute(SdkExecutionAttribute.AUTH_SCHEME_RESOLVER, authSchemeProvider)
             .putAttribute(SdkExecutionAttribute.AUTH_SCHEMES, authSchemes)
-            .putAttribute(SdkExecutionAttribute.IDENTITY_PROVIDERS, identityProviders);
+            .putAttribute(SdkExecutionAttribute.IDENTITY_PROVIDER_CONFIGURATION, identityProviders);
     }
 
     /**

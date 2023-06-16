@@ -194,6 +194,10 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
         configuration = mergeSmartDefaults(configuration);
 
         IdentityProvider<? extends AwsCredentialsIdentity> identityProvider = resolveCredentialsIdentityProvider(configuration);
+        // add the AwsCredentialsIdentity IdentityProvider to the IdentityProviders configured for the client
+        identityProviderConfigurationBuilder.putIdentityProvider(identityProvider);
+        // TODO: Does anything have the opportunity to change this clientOption after here?
+
         return configuration.toBuilder()
                             .option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER, identityProvider)
                             // CREDENTIALS_PROVIDER is also set, since older clients may be relying on it

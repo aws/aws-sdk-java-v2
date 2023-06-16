@@ -79,7 +79,7 @@ public final class AcmAuthSchemeInterceptor implements ExecutionInterceptor {
             executionAttributes.getAttribute(SdkExecutionAttribute.AUTH_SCHEMES);
 
         IdentityProviderConfiguration identityResolvers =
-            executionAttributes.getAttribute(SdkExecutionAttribute.IDENTITY_PROVIDERS);
+            executionAttributes.getAttribute(SdkExecutionAttribute.IDENTITY_PROVIDER_CONFIGURATION);
 
         StringBuilder failureReasons = new StringBuilder();
 

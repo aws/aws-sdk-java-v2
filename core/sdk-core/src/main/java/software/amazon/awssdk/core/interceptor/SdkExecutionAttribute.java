@@ -132,8 +132,8 @@ public class SdkExecutionAttribute {
      * The auth schemes available for a request.
      */
     // TODO: IDENTITY_PROVIDERS or IDENTITY_PROVIDER_CONFIGURATION
-    public static final ExecutionAttribute<IdentityProviderConfiguration> IDENTITY_PROVIDERS = new ExecutionAttribute<>(
-        "IdentityProviders");
+    public static final ExecutionAttribute<IdentityProviderConfiguration> IDENTITY_PROVIDER_CONFIGURATION =
+        new ExecutionAttribute<>("IdentityProviderConfiguration");
 
     /**
      * The selected auth scheme for a request.
