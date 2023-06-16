@@ -21,6 +21,7 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import java.net.URI;
+import java.util.Collections;
 import java.util.List;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -130,7 +131,7 @@ public class SyncClientBuilderClass implements ClassSpec {
                                          .addStatement("$T clientConfiguration = super.syncClientConfiguration()",
                                                        SdkClientConfiguration.class);
 
-        addQueryParamsToBodyInterceptorIfQueryProtocol(b);
+        addQueryProtocolInterceptors(b);
 
         return b.addStatement("this.validateClientOptions(clientConfiguration)")
                 .addStatement("$T endpointOverride = null", URI.class)
@@ -149,16 +150,25 @@ public class SyncClientBuilderClass implements ClassSpec {
                 .build();
     }
 
-    private MethodSpec.Builder addQueryParamsToBodyInterceptorIfQueryProtocol(MethodSpec.Builder b) {
-        if (model.getMetadata().isQueryProtocol()) {
-            TypeName listType = ParameterizedTypeName.get(List.class, ExecutionInterceptor.class);
-            b.addStatement("$T interceptors = clientConfiguration.option($T.EXECUTION_INTERCEPTORS)",
-                           listType, SdkClientOption.class)
-                .addStatement("interceptors.add(0, new $T())", QueryParametersToBodyInterceptor.class)
-                .addStatement("clientConfiguration = clientConfiguration.toBuilder().option($T.EXECUTION_INTERCEPTORS, "
-                           + "interceptors).build()", SdkClientOption.class);
+    private MethodSpec.Builder addQueryProtocolInterceptors(MethodSpec.Builder b) {
+        if (!model.getMetadata().isQueryProtocol()) {
+            return b;
         }
-        return b;
+
+        // queryParamsToBody interceptor
+        TypeName listType = ParameterizedTypeName.get(List.class, ExecutionInterceptor.class);
+        b.addStatement("$T interceptors = clientConfiguration.option($T.EXECUTION_INTERCEPTORS)", listType, SdkClientOption.class)
+            .addStatement("interceptors.add(0, new $T())", QueryParametersToBodyInterceptor.class);
+
+        // customization.config interceptors
+        List<String> customInterceptors = model.getCustomizationConfig().getInterceptors();
+        Collections.reverse(customInterceptors);
+        for (String customInterceptor : customInterceptors) {
+            b.addStatement("interceptors.add(0, new $T())", ClassName.bestGuess(customInterceptor));
+        }
+
+        return b.addStatement("clientConfiguration = clientConfiguration.toBuilder().option($T.EXECUTION_INTERCEPTORS, "
+                              + "interceptors).build()", SdkClientOption.class);
     }
 
     private MethodSpec tokenProviderMethodImpl() {

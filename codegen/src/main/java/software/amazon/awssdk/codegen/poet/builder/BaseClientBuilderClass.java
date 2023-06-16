@@ -260,8 +260,10 @@ public class BaseClientBuilderClass implements ClassSpec {
         builtInInterceptors.add(endpointRulesSpecUtils.authSchemesInterceptorName());
         builtInInterceptors.add(endpointRulesSpecUtils.requestModifierInterceptorName());
 
-        for (String interceptor : model.getCustomizationConfig().getInterceptors()) {
-            builtInInterceptors.add(ClassName.bestGuess(interceptor));
+        if (!model.getMetadata().isQueryProtocol()) {
+            for (String interceptor : model.getCustomizationConfig().getInterceptors()) {
+                builtInInterceptors.add(ClassName.bestGuess(interceptor));
+            }
         }
 
         for (ClassName interceptor : builtInInterceptors) {
