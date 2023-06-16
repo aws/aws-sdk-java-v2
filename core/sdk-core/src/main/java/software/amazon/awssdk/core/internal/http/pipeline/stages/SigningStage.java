@@ -75,6 +75,8 @@ public class SigningStage implements RequestToRequestPipeline {
 
         AuthSchemeOption authSchemeOption = selectedAuthScheme.authSchemeOption();
 
+        // TODO: Identity resolution should move to before Endpoint resolution interceptor, to support accountId based endpoints
+        //  and also to logically separate out identity resolution as its own step.
         ResolveIdentityRequest.Builder identityRequestBuilder = ResolveIdentityRequest.builder();
         authSchemeOption.forEachIdentityProperty(identityRequestBuilder::putProperty);
 
