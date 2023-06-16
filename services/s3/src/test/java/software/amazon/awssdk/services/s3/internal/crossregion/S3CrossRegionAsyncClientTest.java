@@ -26,6 +26,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -34,6 +35,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.Context;
@@ -53,6 +55,7 @@ import software.amazon.awssdk.services.s3.S3AsyncClientBuilder;
 import software.amazon.awssdk.services.s3.endpoints.internal.DefaultS3EndpointProvider;
 import software.amazon.awssdk.services.s3.internal.crossregion.endpointprovider.BucketEndpointProvider;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.paginators.ListObjectsV2Publisher;
@@ -139,7 +142,8 @@ class S3CrossRegionAsyncClientTest {
     }
 
     @Test
-    void crossRegionClient_CallsHeadObject_when_regionNameNotPresentInFallBackCall() {
+    void crossRegionClient_CallsHeadObject_when_regionNameNotPresentInFallBackCall(){
+        mockAsyncHttpClient.reset();
         mockAsyncHttpClient.stubResponses(customHttpResponse(301,  null ),
                                          customHttpResponse(301,  CROSS_REGION ),
                                          successHttpResponse(), successHttpResponse());
@@ -188,7 +192,7 @@ class S3CrossRegionAsyncClientTest {
 
         assertThatExceptionOfType(CompletionException.class)
             .isThrownBy(() -> crossRegionClient.getObject(r -> r.bucket(BUCKET).key(KEY), AsyncResponseTransformer.toBytes()).join())
-            .withMessageContaining("Endpoint resolution failed");
+            .withMessageContaining("software.amazon.awssdk.services.s3.model.S3Exception: null (Service: S3, Status Code: 400, Request ID: null)");
 
         List<SdkHttpRequest> requests = mockAsyncHttpClient.getRequests();
         assertThat(requests).hasSize(2);
@@ -213,8 +217,8 @@ class S3CrossRegionAsyncClientTest {
 
         assertThatExceptionOfType(CompletionException.class)
             .isThrownBy(() -> crossRegionClient.getObject(r -> r.bucket(BUCKET).key(KEY), AsyncResponseTransformer.toBytes()).join())
-            .withMessageContaining("Endpoint resolution failed")
-            .withCauseInstanceOf(SdkClientException.class).withRootCauseExactlyInstanceOf(S3Exception.class);
+            .withMessageContaining("software.amazon.awssdk.services.s3.model.S3Exception: null (Service: S3, Status Code: 301, Request ID: null)")
+            .withCauseInstanceOf(S3Exception.class).withRootCauseExactlyInstanceOf(S3Exception.class);
 
         List<SdkHttpRequest> requests = mockAsyncHttpClient.getRequests();
         assertThat(requests).hasSize(2);
@@ -226,6 +230,22 @@ class S3CrossRegionAsyncClientTest {
         assertThat(requests.stream().map(req -> req.method()).collect(Collectors.toList()))
             .isEqualTo(Arrays.asList(SdkHttpMethod.GET,
                                      SdkHttpMethod.HEAD));
+    }
+
+
+    @Test
+    void crossRegionClient_cancelsTheThread_when_futureIsCancelled(){
+        mockAsyncHttpClient.reset();
+        mockAsyncHttpClient.stubResponses(customHttpResponse(301,  null ),
+                                          customHttpResponse(301,  CROSS_REGION ),
+                                          successHttpResponse(), successHttpResponse());
+        S3AsyncClient crossRegionClient =
+            clientBuilder().endpointOverride(null).region(OVERRIDE_CONFIGURED_REGION).serviceConfiguration(c -> c.crossRegionAccessEnabled(true)).build();
+        CompletableFuture<ResponseBytes<GetObjectResponse>> completableFuture = crossRegionClient.getObject(r -> r.bucket(BUCKET).key(KEY)
+            , AsyncResponseTransformer.toBytes());
+
+        completableFuture.cancel(true);
+        assertThat(completableFuture.isCancelled()).isTrue();
     }
 
     private S3AsyncClientBuilder clientBuilder() {

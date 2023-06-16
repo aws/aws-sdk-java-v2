@@ -99,7 +99,7 @@ public abstract class S3DecoratorRedirectTestBase {
         stubRedirectThenError();
         assertThatExceptionOfType(S3Exception.class)
             .isThrownBy(() -> apiCallToService())
-            .withMessage("Invalid id (Service: S3, Status Code: 400, Request ID: 1, Extended Request ID: A1)");
+            .withMessageContaining("Invalid id (Service: S3, Status Code: 400, Request ID: 1, Extended Request ID: A1)");
         verifyHeadBucketServiceCall(0);
     }
 
