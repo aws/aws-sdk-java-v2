@@ -124,6 +124,9 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
 
     protected final AttributeMap.Builder clientContextParams = AttributeMap.builder();
 
+    protected final IdentityProviderConfiguration.Builder identityProviderConfigurationBuilder =
+        IdentityProviderConfiguration.builder();
+
     private final SdkHttpClient.Builder defaultHttpClientBuilder;
     private final SdkAsyncHttpClient.Builder defaultAsyncHttpClientBuilder;
 
@@ -131,9 +134,6 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
 
     private SdkHttpClient.Builder httpClientBuilder;
     private SdkAsyncHttpClient.Builder asyncHttpClientBuilder;
-
-    protected final IdentityProviderConfiguration.Builder identityProviderConfigurationBuilder =
-        IdentityProviderConfiguration.builder();
 
     protected SdkDefaultClientBuilder() {
         this(DEFAULT_HTTP_CLIENT_BUILDER, DEFAULT_ASYNC_HTTP_CLIENT_BUILDER);
