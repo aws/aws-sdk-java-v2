@@ -15,12 +15,12 @@
 
 package software.amazon.awssdk.http.auth.internal.util;
 
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.AwsSessionCredentialsIdentity;
 import software.amazon.awssdk.utils.StringUtils;
 
-@SdkProtectedApi
+@SdkInternalApi
 public final class CredentialUtils {
 
     private CredentialUtils() {

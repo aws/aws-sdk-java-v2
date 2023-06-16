@@ -32,27 +32,79 @@ import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.auth.TestUtils.AnonymousCredentialsIdentity;
+import software.amazon.awssdk.http.auth.internal.checksums.ChecksumAlgorithm;
 import software.amazon.awssdk.http.auth.internal.util.SignerConstant;
-import software.amazon.awssdk.http.auth.internal.checksums.Algorithm;
 import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
-import software.amazon.awssdk.http.auth.TestUtils.AnonymousCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.utils.async.SimplePublisher;
 
 class AwsV4HttpSignerTest {
 
-    private static final String AWS_4_HMAC_SHA_256_AUTHORIZATION = "AWS4-HMAC-SHA256 Credential=access/19810216/us-east-1/demo/aws4_request, ";
+    private static final String AWS_4_HMAC_SHA_256_AUTHORIZATION =
+        "AWS4-HMAC-SHA256 Credential=access/19810216/us-east-1/demo/aws4_request, ";
     private static final String AWS_4_HMAC_SHA_256_AKID_AUTHORIZATION = "AWS4-HMAC-SHA256 Credential=akid/19810216/us-east-1" +
         "/demo/aws4_request, ";
 
-    private static final String SIGNER_HEADER_WITH_CHECKSUMS_IN_HEADER = "SignedHeaders=host;x-amz-archive-description;x-amz-date;x-amzn-header-crc, ";
+    private static final String SIGNER_HEADER_WITH_CHECKSUMS_IN_HEADER =
+        "SignedHeaders=host;x-amz-archive-description;x-amz-date;x-amzn-header-crc, ";
 
-    private static final String SIGNER_HEADER_WITH_CHECKSUMS_IN_TRAILER = "SignedHeaders=host;x-amz-archive-description;x-amz-date;x-amz-trailer, ";
+    private static final String SIGNER_HEADER_WITH_CHECKSUMS_IN_TRAILER =
+        "SignedHeaders=host;x-amz-archive-description;x-amz-date;x-amz-trailer, ";
 
     private static final AwsV4HttpSigner signer = AwsV4HttpSigner.create();
+
+    // Helpers for tests
+    private static SyncSignRequest<? extends AwsCredentialsIdentity> generateBasicRequest(
+        SdkHttpRequest.Builder requestBuilder,
+        SyncSignRequest.Builder<? extends AwsCredentialsIdentity> signRequestBuilder
+    ) {
+        return signRequestBuilder
+            .request(requestBuilder
+                .method(SdkHttpMethod.POST)
+                .putHeader("Host", "demo.us-east-1.amazonaws.com")
+                .putHeader("x-amz-archive-description", "test  test")
+                .encodedPath("/")
+                .uri(URI.create("http://demo.us-east-1.amazonaws.com"))
+                .build())
+            .payload(() -> new ByteArrayInputStream("{\"TableName\": \"foo\"}".getBytes()))
+            .putProperty(REGION_NAME, "us-east-1")
+            .putProperty(SERVICE_SIGNING_NAME, "demo")
+            .putProperty(DOUBLE_URL_ENCODE, false)
+            .putProperty(NORMALIZE_PATH, false)
+            .putProperty(REQUEST_SIGNING_INSTANT, Instant.ofEpochMilli(351153000968L))
+            .build();
+    }
+
+    private static AsyncSignRequest<? extends AwsCredentialsIdentity> generateBasicAsyncRequest(
+        SdkHttpRequest.Builder requestBuilder,
+        AsyncSignRequest.Builder<? extends AwsCredentialsIdentity> signRequestBuilder
+    ) {
+
+        SimplePublisher<ByteBuffer> publisher = new SimplePublisher<>();
+
+        publisher.send(ByteBuffer.wrap("{\"TableName\": \"foo\"}".getBytes()));
+        publisher.complete();
+
+        return signRequestBuilder
+            .request(requestBuilder
+                .method(SdkHttpMethod.POST)
+                .putHeader("Host", "demo.us-east-1.amazonaws.com")
+                .putHeader("x-amz-archive-description", "test  test")
+                .encodedPath("/")
+                .uri(URI.create("http://demo.us-east-1.amazonaws.com"))
+                .build())
+            .payload(publisher)
+            .putProperty(REGION_NAME, "us-east-1")
+            .putProperty(SERVICE_SIGNING_NAME, "demo")
+            .putProperty(DOUBLE_URL_ENCODE, false)
+            .putProperty(NORMALIZE_PATH, false)
+            .putProperty(REQUEST_SIGNING_INSTANT, Instant.ofEpochMilli(351153000968L))
+            .build();
+    }
 
     @Test
     public void sign_withoutSHA256Header_shouldSign() {
@@ -135,7 +187,7 @@ class AwsV4HttpSignerTest {
     @Test
     public void sign_withNullQueryParam_shouldStillSignTrailingEquals() {
         final String expectedAuthorizationHeaderWithoutSha256Header =
-            AWS_4_HMAC_SHA_256_AUTHORIZATION  +
+            AWS_4_HMAC_SHA_256_AUTHORIZATION +
                 "SignedHeaders=host;x-amz-archive-description;x-amz-date, " +
                 "Signature=c45a3ff1f028e83017f3812c06b4440f0b3240264258f6e18cd683b816990ba4";
 
@@ -170,7 +222,7 @@ class AwsV4HttpSignerTest {
     @Test
     public void sign_withTraceHeader_shouldNotSignTraceHeader() {
         final String expectedAuthorizationHeader =
-            AWS_4_HMAC_SHA_256_AKID_AUTHORIZATION  +
+            AWS_4_HMAC_SHA_256_AKID_AUTHORIZATION +
                 "SignedHeaders=host;x-amz-archive-description;x-amz-date, " +
                 "Signature=581d0042389009a28d461124138f1fe8eeb8daed87611d2a2b47fd3d68d81d73";
 
@@ -193,15 +245,15 @@ class AwsV4HttpSignerTest {
     @Test
     public void sign_withMultiValueHeaders_shouldBeSignedAsCommaSeparated() {
         final String expectedAuthorizationHeader =
-            AWS_4_HMAC_SHA_256_AKID_AUTHORIZATION  +
+            AWS_4_HMAC_SHA_256_AKID_AUTHORIZATION +
                 "SignedHeaders=foo;host;x-amz-archive-description;x-amz-date, " +
                 "Signature=1253bc1751048ea299e688cbe07a2224292e5cc606a079cb40459ad987793c19";
 
         // Test request without 'x-amz-sha256' header
         SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             SdkHttpRequest.builder()
-                .appendHeader("foo","bar")
-                .appendHeader("foo","baz"),
+                .appendHeader("foo", "bar")
+                .appendHeader("foo", "baz"),
             SyncSignRequest.builder(AwsCredentialsIdentity.create("akid", "skid"))
         );
 
@@ -218,15 +270,15 @@ class AwsV4HttpSignerTest {
     @Test
     public void sign_withHeaderStringWithExtraWhitespace_shouldBeSignedWithoutWhitespace() {
         final String expectedAuthorizationHeader =
-            AWS_4_HMAC_SHA_256_AKID_AUTHORIZATION  +
+            AWS_4_HMAC_SHA_256_AKID_AUTHORIZATION +
                 "SignedHeaders=host;my-header1;my-header2;x-amz-archive-description;x-amz-date, " +
                 "Signature=6d3520e3397e7aba593d8ebd8361fc4405e90aed71bc4c7a09dcacb6f72460b9";
 
         // Test request without 'x-amz-sha256' header
         SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             SdkHttpRequest.builder()
-                .putHeader("My-header1","    a   b   c  ")
-                .putHeader("My-Header2","    \"a   b   c\"  "),
+                .putHeader("My-header1", "    a   b   c  ")
+                .putHeader("My-Header2", "    \"a   b   c\"  "),
             SyncSignRequest.builder(AwsCredentialsIdentity.create("akid", "skid"))
         );
 
@@ -242,7 +294,7 @@ class AwsV4HttpSignerTest {
     @Test
     public void sign_withQueryStringKeysWithEmptyNames_shouldNotSignEmptyNameKeys() {
         final String expectedAuthorizationHeader =
-            AWS_4_HMAC_SHA_256_AKID_AUTHORIZATION  +
+            AWS_4_HMAC_SHA_256_AKID_AUTHORIZATION +
                 "SignedHeaders=host;x-amz-archive-description;x-amz-date, " +
                 "Signature=581d0042389009a28d461124138f1fe8eeb8daed87611d2a2b47fd3d68d81d73";
 
@@ -270,7 +322,7 @@ class AwsV4HttpSignerTest {
             SdkHttpRequest.builder(),
             SyncSignRequest.builder(AwsCredentialsIdentity.create("access", "secret"))
                 .putProperty(CHECKSUM_HEADER_NAME, "x-amzn-header-crc")
-                .putProperty(CHECKSUM_ALGORITHM, Algorithm.CRC32)
+                .putProperty(CHECKSUM_ALGORITHM, ChecksumAlgorithm.CRC32)
         );
 
         SyncSignedRequest signedRequest = signer.sign(request);
@@ -294,7 +346,7 @@ class AwsV4HttpSignerTest {
                 .putHeader(SignerConstant.X_AMZ_CONTENT_SHA256, "required"),
             SyncSignRequest.builder(AwsCredentialsIdentity.create("access", "secret"))
                 .putProperty(CHECKSUM_HEADER_NAME, "x-amzn-header-crc")
-                .putProperty(CHECKSUM_ALGORITHM, Algorithm.CRC32)
+                .putProperty(CHECKSUM_ALGORITHM, ChecksumAlgorithm.CRC32)
         );
 
         SyncSignedRequest signedRequest = signer.sign(request);
@@ -315,7 +367,7 @@ class AwsV4HttpSignerTest {
                 .appendHeader("x-amzn-header-crc", "preCalculatedChecksum"),
             SyncSignRequest.builder(AwsCredentialsIdentity.create("access", "secret"))
                 .putProperty(CHECKSUM_HEADER_NAME, "x-amzn-header-crc")
-                .putProperty(CHECKSUM_ALGORITHM, Algorithm.CRC32)
+                .putProperty(CHECKSUM_ALGORITHM, ChecksumAlgorithm.CRC32)
         );
 
         SyncSignedRequest signedRequest = signer.sign(request);
@@ -336,7 +388,7 @@ class AwsV4HttpSignerTest {
                 .appendHeader("x-amz-trailer", "x-amzn-header-crc"),
             SyncSignRequest.builder(AwsCredentialsIdentity.create("access", "secret"))
                 .putProperty(CHECKSUM_HEADER_NAME, "x-amzn-header-crc")
-                .putProperty(CHECKSUM_ALGORITHM, Algorithm.CRC32)
+                .putProperty(CHECKSUM_ALGORITHM, ChecksumAlgorithm.CRC32)
         );
 
         SyncSignedRequest signedRequest = signer.sign(request);
@@ -345,54 +397,5 @@ class AwsV4HttpSignerTest {
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-trailer")).contains("x-amzn-header-crc");
         assertThat(signedRequest.request().firstMatchingHeader(SignerConstant.X_AMZ_CONTENT_SHA256)).isNotPresent();
         assertThat(signedRequest.request().firstMatchingHeader("Authorization")).hasValue(expectedAuthorizationHeader);
-    }
-
-    // Helpers for tests
-    private static SyncSignRequest<? extends AwsCredentialsIdentity> generateBasicRequest(
-        SdkHttpRequest.Builder requestBuilder,
-        SyncSignRequest.Builder<? extends AwsCredentialsIdentity> signRequestBuilder
-    ) {
-        return signRequestBuilder
-            .request(requestBuilder
-                .method(SdkHttpMethod.POST)
-                .putHeader("Host", "demo.us-east-1.amazonaws.com")
-                .putHeader("x-amz-archive-description", "test  test")
-                .encodedPath("/")
-                .uri(URI.create("http://demo.us-east-1.amazonaws.com"))
-                .build())
-            .payload(() -> new ByteArrayInputStream("{\"TableName\": \"foo\"}".getBytes()))
-            .putProperty(REGION_NAME, "us-east-1")
-            .putProperty(SERVICE_SIGNING_NAME, "demo")
-            .putProperty(DOUBLE_URL_ENCODE, false)
-            .putProperty(NORMALIZE_PATH, false)
-            .putProperty(REQUEST_SIGNING_INSTANT, Instant.ofEpochMilli(351153000968L))
-            .build();
-    }
-
-    private static AsyncSignRequest<? extends AwsCredentialsIdentity> generateBasicAsyncRequest(
-        SdkHttpRequest.Builder requestBuilder,
-        AsyncSignRequest.Builder<? extends AwsCredentialsIdentity> signRequestBuilder
-    ) {
-
-        SimplePublisher<ByteBuffer> publisher = new SimplePublisher<>();
-
-        publisher.send(ByteBuffer.wrap("{\"TableName\": \"foo\"}".getBytes()));
-        publisher.complete();
-
-        return signRequestBuilder
-            .request(requestBuilder
-                .method(SdkHttpMethod.POST)
-                .putHeader("Host", "demo.us-east-1.amazonaws.com")
-                .putHeader("x-amz-archive-description", "test  test")
-                .encodedPath("/")
-                .uri(URI.create("http://demo.us-east-1.amazonaws.com"))
-                .build())
-            .payload(publisher)
-            .putProperty(REGION_NAME, "us-east-1")
-            .putProperty(SERVICE_SIGNING_NAME, "demo")
-            .putProperty(DOUBLE_URL_ENCODE, false)
-            .putProperty(NORMALIZE_PATH, false)
-            .putProperty(REQUEST_SIGNING_INSTANT, Instant.ofEpochMilli(351153000968L))
-            .build();
     }
 }

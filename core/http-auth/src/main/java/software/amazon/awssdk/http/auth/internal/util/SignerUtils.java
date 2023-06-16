@@ -28,16 +28,19 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.auth.spi.SignRequest;
+import software.amazon.awssdk.http.auth.spi.SignerProperty;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Utility methods to be used by various AWS Signer implementations.
  * This class is strictly internal and is subjected to change.
  */
 @SdkInternalApi
-public class SignerUtils {
+public final class SignerUtils {
 
     private static final Logger LOG = Logger.loggerFor(SignerUtils.class);
 
@@ -120,8 +123,8 @@ public class SignerUtils {
                                                           String contentSha256,
                                                           boolean doubleUrlEncode,
                                                           boolean normalizePath) {
-        return new CanonicalRequest(request, requestBuilder, contentSha256,
-            doubleUrlEncode, normalizePath, LIST_OF_HEADERS_TO_IGNORE_IN_LOWER_CASE);
+        return new CanonicalRequest(request, requestBuilder, contentSha256, doubleUrlEncode, normalizePath,
+            LIST_OF_HEADERS_TO_IGNORE_IN_LOWER_CASE);
     }
 
     /**
@@ -201,7 +204,7 @@ public class SignerUtils {
     private static byte[] sign(String stringData, byte[] key) {
         try {
             byte[] data = stringData.getBytes(StandardCharsets.UTF_8);
-            return sign(data, key, SigningAlgorithm.HmacSHA256);
+            return sign(data, key, SigningAlgorithm.HMAC_SHA256);
         } catch (Exception e) {
             throw new RuntimeException("Unable to calculate a request signature: " + e.getMessage());
         }
@@ -229,6 +232,14 @@ public class SignerUtils {
      */
     public static byte[] computeSignature(String stringToSign, byte[] signingKey) {
         return sign(stringToSign.getBytes(StandardCharsets.UTF_8), signingKey,
-            SigningAlgorithm.HmacSHA256);
+            SigningAlgorithm.HMAC_SHA256);
+    }
+
+    public static <T> T validatedProperty(SignRequest<?, ?> request, SignerProperty<T> property) {
+        return Validate.notNull(request.property(property), property.toString() + "must not be null!");
+    }
+
+    public static <T> T validatedProperty(SignRequest<?, ?> request, SignerProperty<T> property, T defaultValue) {
+        return Validate.getOrDefault(request.property(property), () -> defaultValue);
     }
 }

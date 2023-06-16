@@ -27,19 +27,19 @@ import static software.amazon.awssdk.http.auth.internal.util.SignerUtils.createC
 import static software.amazon.awssdk.http.auth.internal.util.SignerUtils.deriveSigningKey;
 import static software.amazon.awssdk.http.auth.internal.util.SignerUtils.formatDateStamp;
 import static software.amazon.awssdk.http.auth.internal.util.SignerUtils.formatTimestamp;
+import static software.amazon.awssdk.http.auth.internal.util.SignerUtils.validatedProperty;
 
 import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.AwsV4HttpSigner;
-import software.amazon.awssdk.http.auth.internal.checksums.ChecksumSpecs;
+import software.amazon.awssdk.http.auth.internal.checksums.ChecksumAlgorithm;
 import software.amazon.awssdk.http.auth.internal.checksums.ContentChecksum;
 import software.amazon.awssdk.http.auth.internal.checksums.SdkChecksum;
 import software.amazon.awssdk.http.auth.internal.util.CanonicalRequest;
 import software.amazon.awssdk.http.auth.internal.util.CredentialUtils;
 import software.amazon.awssdk.http.auth.internal.util.DigestComputingSubscriber;
-import software.amazon.awssdk.http.auth.internal.util.HttpChecksumUtils;
 import software.amazon.awssdk.http.auth.internal.util.SignerConstant;
 import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
@@ -49,6 +49,7 @@ import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.AwsSessionCredentialsIdentity;
 import software.amazon.awssdk.utils.BinaryUtils;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
@@ -57,9 +58,7 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
  * A default implementation of {@link AwsV4HttpSigner}.
  */
 @SdkInternalApi
-public class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
-
-    public static final String UNSIGNED_PAYLOAD = "UNSIGNED-PAYLOAD";
+public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
 
     private static final Logger LOG = Logger.loggerFor(DefaultAwsV4HttpSigner.class);
 
@@ -81,28 +80,33 @@ public class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
     }
 
     private SdkHttpRequest.Builder doSign(SyncSignRequest<? extends AwsCredentialsIdentity> request) {
-        SdkChecksum sdkChecksum = createSdkChecksumFromRequest(request.request(), request.property(CHECKSUM_HEADER_NAME),
-            request.property(CHECKSUM_ALGORITHM));
+        String checksumHeaderName = request.property(CHECKSUM_HEADER_NAME);
+        ChecksumAlgorithm checksumAlgorithm = request.property(CHECKSUM_ALGORITHM);
+
+        if (StringUtils.isNotBlank(checksumHeaderName) && checksumAlgorithm == null) {
+            throw new IllegalArgumentException(
+                CHECKSUM_ALGORITHM + " cannot be null when " + CHECKSUM_HEADER_NAME + " is given!");
+        }
+
+        SdkChecksum sdkChecksum = createSdkChecksumFromRequest(request.request(), checksumHeaderName, checksumAlgorithm);
         String contentHash = calculateContentHash(request.payload().orElse(null), sdkChecksum);
+
         return doSign(request, new ContentChecksum(contentHash, sdkChecksum));
     }
 
     private SdkHttpRequest.Builder doSign(SignRequest<?, ? extends AwsCredentialsIdentity> request,
                                           ContentChecksum contentChecksum) {
         SdkHttpRequest.Builder requestBuilder = request.request().toBuilder();
-        Boolean doubleUrlEncode = request.property(DOUBLE_URL_ENCODE);
-        Boolean normalizePath = request.property(NORMALIZE_PATH);
+
+        Boolean doubleUrlEncode = validatedProperty(request, DOUBLE_URL_ENCODE, true);
+        Boolean normalizePath = validatedProperty(request, NORMALIZE_PATH, true);
         String checksumHeaderName = request.property(CHECKSUM_HEADER_NAME);
-        Instant requestSigningInstant = request.property(REQUEST_SIGNING_INSTANT);
+        Instant requestSigningInstant = validatedProperty(request, REQUEST_SIGNING_INSTANT);
         String formattedRequestSigningDate = formatDateStamp(requestSigningInstant);
         String formattedRequestSigningDateTime = formatTimestamp(requestSigningInstant);
-        String regionName = request.property(REGION_NAME);
-        String serviceSigningName = request.property(SERVICE_SIGNING_NAME);
-        String scope = buildScope(
-            formattedRequestSigningDate,
-            serviceSigningName,
-            regionName
-        );
+        String regionName = validatedProperty(request, REGION_NAME);
+        String serviceSigningName = validatedProperty(request, SERVICE_SIGNING_NAME);
+        String scope = buildScope(formattedRequestSigningDate, serviceSigningName, regionName);
 
         AwsCredentialsIdentity sanitizedCredentials = sanitizeCredentials(request.identity());
         if (sanitizedCredentials instanceof AwsSessionCredentialsIdentity) {
@@ -121,9 +125,9 @@ public class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         putChecksumHeader(contentChecksum.contentFlexibleChecksum(),
             requestBuilder, contentChecksum.contentHash(), checksumHeaderName);
 
-        CanonicalRequest canonicalRequest = createCanonicalRequest(request.request(), requestBuilder,
-            contentChecksum.contentHash(), doubleUrlEncode, normalizePath);
-
+        CanonicalRequest canonicalRequest =
+            createCanonicalRequest(request.request(), requestBuilder, contentChecksum.contentHash(), doubleUrlEncode,
+                normalizePath);
 
         String canonicalRequestString = canonicalRequest.string();
         String stringToSign = buildStringToSign(
@@ -145,23 +149,21 @@ public class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         requestBuilder.putHeader(SignerConstant.AUTHORIZATION,
             buildAuthorizationHeader(signature, sanitizedCredentials, scope, canonicalRequest));
 
-        processRequestPayload(requestBuilder, signature, signingKey,
-            contentChecksum.contentFlexibleChecksum());
-
         return requestBuilder;
     }
 
 
+    /**
+     * AWS4 requires that we sign the Host header, so we
+     * have to have it in the request by the time we sign.
+     */
     private void addHostHeader(SdkHttpRequest.Builder requestBuilder) {
-        // AWS4 requires that we sign the Host header, so we
-        // have to have it in the request by the time we sign.
 
-        StringBuilder hostHeaderBuilder = new StringBuilder(requestBuilder.host());
+        String host = requestBuilder.host();
         if (!SdkHttpUtils.isUsingStandardPort(requestBuilder.protocol(), requestBuilder.port())) {
-            hostHeaderBuilder.append(":").append(requestBuilder.port());
+            host += ":" + requestBuilder.port();
         }
-
-        requestBuilder.putHeader(SignerConstant.HOST, hostHeaderBuilder.toString());
+        requestBuilder.putHeader(SignerConstant.HOST, host);
     }
 
     private void addDateHeader(SdkHttpRequest.Builder requestBuilder, String dateTime) {
@@ -169,22 +171,15 @@ public class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
     }
 
     private void putChecksumHeader(SdkChecksum sdkChecksum,
-                                   SdkHttpRequest.Builder requestBuilder, String contentHashString, String headerChecksum) {
+                                   SdkHttpRequest.Builder requestBuilder, String contentHashString, String checksumHeaderName) {
 
-        if (sdkChecksum != null && !UNSIGNED_PAYLOAD.equals(contentHashString)
-            && !"STREAMING-UNSIGNED-PAYLOAD-TRAILER".equals(contentHashString)) {
-
-            if (HttpChecksumUtils.isHttpChecksumPresent(requestBuilder.build(),
-                ChecksumSpecs.builder()
-                    .headerName(headerChecksum).build())) {
-                LOG.debug(() -> "Checksum already added in header ");
-                return;
-            }
-            if (StringUtils.isNotBlank(headerChecksum)) {
-                requestBuilder.putHeader(headerChecksum,
-                    BinaryUtils.toBase64(sdkChecksum.getChecksumBytes()));
-            }
+        if (sdkChecksum != null && !isUnsignedPayload(contentHashString)) {
+            requestBuilder.putHeader(checksumHeaderName, BinaryUtils.toBase64(sdkChecksum.getChecksumBytes()));
         }
+    }
+
+    private Boolean isUnsignedPayload(String contentHashString) {
+        return "UNSIGNED_PAYLOAD".equals(contentHashString) || "STREAMING-UNSIGNED-PAYLOAD-TRAILER".equals(contentHashString);
     }
 
     @Override
@@ -196,8 +191,10 @@ public class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
                 .build();
         }
 
-        SdkChecksum sdkChecksum = createSdkChecksumFromRequest(request.request(), request.property(CHECKSUM_HEADER_NAME),
-            request.property(CHECKSUM_ALGORITHM));
+        String checksumHeaderName = validatedProperty(request, CHECKSUM_HEADER_NAME, "");
+        ChecksumAlgorithm checksumAlgorithm = validatedProperty(request, CHECKSUM_ALGORITHM, null);
+
+        SdkChecksum sdkChecksum = createSdkChecksumFromRequest(request.request(), checksumHeaderName, checksumAlgorithm);
         DigestComputingSubscriber bodyDigester = DigestComputingSubscriber.forSha256(sdkChecksum);
 
         request.payload().ifPresent((payload) ->
@@ -216,26 +213,15 @@ public class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         });
 
         return AsyncSignedRequest.builder()
-            .request(signedReqFuture.join())
+            .request(CompletableFutureUtils.joinLikeSync(signedReqFuture))
             .payload(request.payload().orElse(null))
             .build();
     }
 
     /**
-     * Perform any additional procedure on the request payload, with access to the result
-     * from signing the header. (e.g. Signing the payload by chunk-encoding). The default
-     * implementation doesn't need to do anything.
-     */
-    public void processRequestPayload(SdkHttpRequest.Builder requestBuilder,
-                                       byte[] signature,
-                                       byte[] signingKey,
-                                       SdkChecksum sdkChecksum) {
-    }
-
-    /**
      * Adds session credentials to the request given.
      */
-    public void addSessionCredentials(SdkHttpRequest.Builder requestBuilder,
+    private void addSessionCredentials(SdkHttpRequest.Builder requestBuilder,
                                        AwsSessionCredentialsIdentity credentials) {
         requestBuilder.putHeader(SignerConstant.X_AMZ_SECURITY_TOKEN, credentials.sessionToken());
     }

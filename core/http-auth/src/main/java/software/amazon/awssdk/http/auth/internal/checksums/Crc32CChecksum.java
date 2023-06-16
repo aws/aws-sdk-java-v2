@@ -28,7 +28,7 @@ import software.amazon.awssdk.http.auth.internal.checksums.factory.SdkCrc32C;
  * Implementation of {@link SdkChecksum} to calculate an CRC32C checksum.
  */
 @SdkInternalApi
-public class Crc32CChecksum implements SdkChecksum {
+public final class Crc32CChecksum implements SdkChecksum {
 
     private final boolean isCrtBasedChecksum;
     private Checksum crc32c;
