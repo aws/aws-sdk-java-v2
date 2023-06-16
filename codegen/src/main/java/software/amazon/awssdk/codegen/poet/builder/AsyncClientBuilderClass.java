@@ -18,8 +18,10 @@ package software.amazon.awssdk.codegen.poet.builder;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import java.net.URI;
+import java.util.List;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
@@ -32,6 +34,8 @@ import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.codegen.utils.AuthUtils;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.protocols.query.interceptor.QueryParametersToBodyInterceptor;
 
 public class AsyncClientBuilderClass implements ClassSpec {
     private final IntermediateModel model;
@@ -119,26 +123,42 @@ public class AsyncClientBuilderClass implements ClassSpec {
     }
 
     private MethodSpec buildClientMethod() {
-        return MethodSpec.methodBuilder("buildClient")
-                         .addAnnotation(Override.class)
-                         .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
-                         .returns(clientInterfaceName)
-                         .addStatement("$T clientConfiguration = super.asyncClientConfiguration()", SdkClientConfiguration.class)
-                         .addStatement("this.validateClientOptions(clientConfiguration)")
-                         .addStatement("$T endpointOverride = null", URI.class)
-                         .addCode("if (clientConfiguration.option($T.ENDPOINT_OVERRIDDEN) != null"
-                                  + "&& $T.TRUE.equals(clientConfiguration.option($T.ENDPOINT_OVERRIDDEN))) {"
-                                  + "endpointOverride = clientConfiguration.option($T.ENDPOINT);"
-                                  + "}",
-                                  SdkClientOption.class, Boolean.class, SdkClientOption.class, SdkClientOption.class)
-                         .addStatement("$T serviceClientConfiguration = $T.builder()"
-                                       + ".overrideConfiguration(overrideConfiguration())"
-                                       + ".region(clientConfiguration.option($T.AWS_REGION))"
-                                       + ".endpointOverride(endpointOverride)"
-                                       + ".build()",
-                                       serviceConfigClassName, serviceConfigClassName, AwsClientOption.class)
-                         .addStatement("return new $T(serviceClientConfiguration, clientConfiguration)", clientClassName)
-                         .build();
+        MethodSpec.Builder b = MethodSpec.methodBuilder("buildClient")
+                                         .addAnnotation(Override.class)
+                                         .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
+                                         .returns(clientInterfaceName)
+                                         .addStatement("$T clientConfiguration = super.asyncClientConfiguration()",
+                                                       SdkClientConfiguration.class);
+
+        addQueryParamsToBodyInterceptorIfQueryProtocol(b);
+
+        return b.addStatement("this.validateClientOptions(clientConfiguration)")
+                .addStatement("$T endpointOverride = null", URI.class)
+                .addCode("if (clientConfiguration.option($T.ENDPOINT_OVERRIDDEN) != null"
+                         + "&& $T.TRUE.equals(clientConfiguration.option($T.ENDPOINT_OVERRIDDEN))) {"
+                         + "endpointOverride = clientConfiguration.option($T.ENDPOINT);"
+                         + "}",
+                         SdkClientOption.class, Boolean.class, SdkClientOption.class, SdkClientOption.class)
+                .addStatement("$T serviceClientConfiguration = $T.builder()"
+                              + ".overrideConfiguration(overrideConfiguration())"
+                              + ".region(clientConfiguration.option($T.AWS_REGION))"
+                              + ".endpointOverride(endpointOverride)"
+                              + ".build()",
+                              serviceConfigClassName, serviceConfigClassName, AwsClientOption.class)
+                .addStatement("return new $T(serviceClientConfiguration, clientConfiguration)", clientClassName)
+                .build();
+    }
+
+    private MethodSpec.Builder addQueryParamsToBodyInterceptorIfQueryProtocol(MethodSpec.Builder b) {
+        if (model.getMetadata().isQueryProtocol()) {
+            TypeName listType = ParameterizedTypeName.get(List.class, ExecutionInterceptor.class);
+            b.addStatement("$T interceptors = clientConfiguration.option($T.EXECUTION_INTERCEPTORS)",
+                           listType, SdkClientOption.class)
+                .addStatement("interceptors.add(0, new $T())", QueryParametersToBodyInterceptor.class)
+                .addStatement("clientConfiguration = clientConfiguration.toBuilder().option($T.EXECUTION_INTERCEPTORS, "
+                              + "interceptors).build()", SdkClientOption.class);
+        }
+        return b;
     }
 
     private MethodSpec bearerTokenProviderMethod() {
