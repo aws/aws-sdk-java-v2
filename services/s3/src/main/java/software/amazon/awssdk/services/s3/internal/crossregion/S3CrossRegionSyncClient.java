@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.services.s3.internal.crossregion;
 
+import static software.amazon.awssdk.services.s3.internal.crossregion.utils.CrossRegionUtils.updateUserAgentInConfig;
+
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
@@ -38,15 +40,18 @@ public final class S3CrossRegionSyncClient extends DelegatingS3Client {
 
         Optional<String> bucket = request.getValueForField("Bucket", String.class);
 
+        AwsRequestOverrideConfiguration overrideConfiguration = updateUserAgentInConfig(request);
+        T userAgentUpdatedRequest = (T) request.toBuilder().overrideConfiguration(overrideConfiguration).build();
+
         if (bucket.isPresent()) {
             try {
-                return operation.apply(requestWithDecoratedEndpointProvider(request, bucket.get()));
+                return operation.apply(requestWithDecoratedEndpointProvider(userAgentUpdatedRequest, bucket.get()));
             } catch (Exception e) {
                 handleOperationFailure(e, bucket.get());
             }
         }
 
-        return operation.apply(request);
+        return operation.apply(userAgentUpdatedRequest);
     }
 
     private void handleOperationFailure(Throwable t, String bucket) {
