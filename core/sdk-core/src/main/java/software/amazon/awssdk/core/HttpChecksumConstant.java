@@ -31,6 +31,9 @@ public final class HttpChecksumConstant {
 
     public static final String AWS_CHUNKED_HEADER = "aws-chunked";
 
+    public static final ExecutionAttribute<String> HTTP_CHECKSUM_VALUE =
+        new ExecutionAttribute<>("HttpChecksumValue");
+
     public static final ExecutionAttribute<SigningMethod> SIGNING_METHOD =
         new ExecutionAttribute<>("SigningMethod");
 
