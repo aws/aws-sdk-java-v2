@@ -1,3 +1,33 @@
+# __2.20.87__ __2023-06-16__
+## __AWS Account__
+  - ### Features
+    - Improve pagination support for ListRegions
+
+## __AWS Application Discovery Service__
+  - ### Features
+    - Add Amazon EC2 instance recommendations export
+
+## __AWS Identity and Access Management__
+  - ### Features
+    - Documentation updates for AWS Identity and Access Management (IAM).
+
+## __Amazon Connect Service__
+  - ### Features
+    - Updates the *InstanceStorageConfig APIs to support a new ResourceType: SCREEN_RECORDINGS to enable screen recording and specify the storage configurations for publishing the recordings. Also updates DescribeInstance and ListInstances APIs to include InstanceAccessUrl attribute in the API response.
+
+## __Amazon DynamoDB__
+  - ### Bugfixes
+    - Created static method EnumAttributeConverter::createWithNameAsKeys which creates a converter based on the Enum::name method to identify enums, rather than Enum::toString. This is preferable because Enum::name is final and cannot be overwritten, as opposed to Enum::toString. EnumAttributeConverter::create is kept as it is, for backward compatibility.
+        - Contributed by: [@martinKindall](https://github.com/martinKindall)
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - This release adds SDK support for request-payer request header and request-charged response header in the "GetBucketAccelerateConfiguration", "ListMultipartUploads", "ListObjects", "ListObjectsV2" and "ListObjectVersions" S3 APIs.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@martinKindall](https://github.com/martinKindall)
 # __2.20.86__ __2023-06-15__
 ## __AWS Audit Manager__
   - ### Features
