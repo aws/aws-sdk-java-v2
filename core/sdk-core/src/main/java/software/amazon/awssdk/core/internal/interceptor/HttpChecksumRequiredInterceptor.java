@@ -41,6 +41,14 @@ import software.amazon.awssdk.utils.Md5Utils;
 @SdkInternalApi
 public class HttpChecksumRequiredInterceptor implements ExecutionInterceptor {
 
+    /**
+     * Calculates the MD5 checksum of the provided request (and base64 encodes it), and adds the header to the request.
+     *
+     * <p>Note: This assumes that the content stream provider can create multiple new streams. If it only supports one (e.g. with
+     * an input stream that doesn't support mark/reset), we could consider buffering the content in memory here and updating the
+     * request body to use that buffered content. We obviously don't want to do that for giant streams, so we haven't opted to do
+     * that yet.
+     */
     @Override
     public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
         boolean isHttpChecksumRequired = isHttpChecksumRequired(executionAttributes);
