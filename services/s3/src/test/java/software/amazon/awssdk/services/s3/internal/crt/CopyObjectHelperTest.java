@@ -175,7 +175,7 @@ class CopyObjectHelperTest {
 
         CompletableFuture<CopyObjectResponse> future = copyHelper.copyObject(copyObjectRequest);
 
-        assertThatThrownBy(future::join).hasMessageContaining("Failed to send multipart copy requests").hasRootCause(exception);
+        assertThatThrownBy(future::join).hasMessageContaining("Failed to send multipart requests").hasRootCause(exception);
 
         verify(s3AsyncClient, never()).completeMultipartUpload(any(CompleteMultipartUploadRequest.class));
 
@@ -213,7 +213,7 @@ class CopyObjectHelperTest {
         CompletableFuture<CopyObjectResponse> future =
             copyHelper.copyObject(copyObjectRequest);
 
-        assertThatThrownBy(future::join).hasMessageContaining("Failed to send multipart copy requests").hasRootCause(exception);
+        assertThatThrownBy(future::join).hasMessageContaining("Failed to send multipart requests").hasRootCause(exception);
 
         ArgumentCaptor<AbortMultipartUploadRequest> argumentCaptor = ArgumentCaptor.forClass(AbortMultipartUploadRequest.class);
         verify(s3AsyncClient).abortMultipartUpload(argumentCaptor.capture());
