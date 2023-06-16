@@ -41,13 +41,10 @@ import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.InternalCoreExecutionAttribute;
 import software.amazon.awssdk.core.internal.util.HttpChecksumResolver;
 import software.amazon.awssdk.core.signer.Signer;
-import software.amazon.awssdk.http.auth.AwsV4AuthScheme;
-import software.amazon.awssdk.http.auth.BearerAuthScheme;
 import software.amazon.awssdk.http.auth.spi.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeProvider;
 import software.amazon.awssdk.http.auth.spi.IdentityProviderConfiguration;
 import software.amazon.awssdk.metrics.MetricCollector;
-import software.amazon.awssdk.utils.MapUtils;
 
 @SdkInternalApi
 public final class AwsExecutionContextBuilder {
@@ -162,14 +159,7 @@ public final class AwsExecutionContextBuilder {
 
         // TODO: If request level override is specified, should each operation check that overridden scheme is the
         //  appropriate type (uses the appropriate Signer) for streaming, etc.
-
-        // Map<String, AuthScheme<?>> authSchemes = clientConfig.option(SdkClientOption.AUTH_SCHEMES);
-        AwsV4AuthScheme awsv4 = AwsV4AuthScheme.create();
-        BearerAuthScheme bearerAuthScheme = BearerAuthScheme.create();
-        Map<String, AuthScheme<?>> authSchemes = MapUtils.of(
-            // awsv4.schemeId(), awsv4,
-            bearerAuthScheme.schemeId(), bearerAuthScheme
-        );
+        Map<String, AuthScheme<?>> authSchemes = clientConfig.option(SdkClientOption.AUTH_SCHEMES);
 
         // TODO: IDENTITY_PROVIDERS or IDENTITY_PROVIDER_CONFIGURATION
         // IdentityProviderConfiguration identityProviders = clientConfig.option(SdkClientOption.IDENTITY_PROVIDERS);

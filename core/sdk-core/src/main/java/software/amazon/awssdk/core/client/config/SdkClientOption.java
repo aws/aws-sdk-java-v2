@@ -31,6 +31,7 @@ import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
+import software.amazon.awssdk.http.auth.spi.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeProvider;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.profiles.ProfileFile;
@@ -190,6 +191,12 @@ public final class SdkClientOption<T> extends ClientOption<T> {
      */
     public static final SdkClientOption<AuthSchemeProvider> AUTH_SCHEME_PROVIDER =
         new SdkClientOption<>(AuthSchemeProvider.class);
+
+    /**
+     * The {@link AuthScheme}s configured on the client.
+     */
+    public static final SdkClientOption<Map<String, AuthScheme<?>>> AUTH_SCHEMES =
+        new SdkClientOption<>(new UnsafeValueType(Map.class));
 
     /**
      * The container for any client contexts parameters set on the client.

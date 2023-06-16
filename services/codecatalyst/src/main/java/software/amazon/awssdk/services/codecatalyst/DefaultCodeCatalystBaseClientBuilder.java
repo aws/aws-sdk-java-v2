@@ -15,6 +15,7 @@ package software.amazon.awssdk.services.codecatalyst;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.token.credentials.aws.DefaultAwsTokenProvider;
@@ -27,6 +28,8 @@ import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.http.auth.BearerAuthScheme;
+import software.amazon.awssdk.http.auth.spi.AuthScheme;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.services.codecatalyst.auth.scheme.CodeCatalystAuthSchemeProvider;
@@ -36,6 +39,7 @@ import software.amazon.awssdk.services.codecatalyst.endpoints.internal.CodeCatal
 import software.amazon.awssdk.services.codecatalyst.endpoints.internal.CodeCatalystRequestSetEndpointInterceptor;
 import software.amazon.awssdk.services.codecatalyst.endpoints.internal.CodeCatalystResolveEndpointInterceptor;
 import software.amazon.awssdk.utils.CollectionUtils;
+import software.amazon.awssdk.utils.MapUtils;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -59,6 +63,7 @@ abstract class DefaultCodeCatalystBaseClientBuilder<B extends CodeCatalystBaseCl
     protected final SdkClientConfiguration mergeServiceDefaults(SdkClientConfiguration config) {
         return config.merge(c -> c.option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
                 .option(SdkClientOption.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider())
+                .option(SdkClientOption.AUTH_SCHEMES, defaultAuthSchemes())
                 .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
                 .option(AwsClientOption.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider())
                 .option(SdkAdvancedClientOption.TOKEN_SIGNER, defaultTokenSigner()));
@@ -101,6 +106,13 @@ abstract class DefaultCodeCatalystBaseClientBuilder<B extends CodeCatalystBaseCl
 
     private IdentityProvider<? extends TokenIdentity> defaultTokenProvider() {
         return DefaultAwsTokenProvider.create();
+    }
+
+    private Map<String, AuthScheme<?>> defaultAuthSchemes() {
+        BearerAuthScheme bearerAuthScheme = BearerAuthScheme.create();
+        return MapUtils.of(
+            bearerAuthScheme.schemeId(), bearerAuthScheme
+        );
     }
 
     private Signer defaultTokenSigner() {

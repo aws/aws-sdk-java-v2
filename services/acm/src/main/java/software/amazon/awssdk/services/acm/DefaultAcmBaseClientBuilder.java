@@ -15,6 +15,7 @@ package software.amazon.awssdk.services.acm;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
@@ -25,6 +26,8 @@ import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.http.auth.AwsV4AuthScheme;
+import software.amazon.awssdk.http.auth.spi.AuthScheme;
 import software.amazon.awssdk.services.acm.auth.scheme.AcmAuthSchemeProvider;
 import software.amazon.awssdk.services.acm.auth.scheme.internal.AcmAuthSchemeInterceptor;
 import software.amazon.awssdk.services.acm.endpoints.AcmEndpointProvider;
@@ -32,6 +35,7 @@ import software.amazon.awssdk.services.acm.endpoints.internal.AcmEndpointAuthSch
 import software.amazon.awssdk.services.acm.endpoints.internal.AcmRequestSetEndpointInterceptor;
 import software.amazon.awssdk.services.acm.endpoints.internal.AcmResolveEndpointInterceptor;
 import software.amazon.awssdk.utils.CollectionUtils;
+import software.amazon.awssdk.utils.MapUtils;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -54,6 +58,7 @@ abstract class DefaultAcmBaseClientBuilder<B extends AcmBaseClientBuilder<B, C>,
     protected final SdkClientConfiguration mergeServiceDefaults(SdkClientConfiguration config) {
         return config.merge(c -> c.option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
                 .option(SdkClientOption.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider())
+                .option(SdkClientOption.AUTH_SCHEMES, defaultAuthSchemes())
                 .option(SdkAdvancedClientOption.SIGNER, defaultSigner())
                 .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false));
     }
@@ -95,6 +100,13 @@ abstract class DefaultAcmBaseClientBuilder<B extends AcmBaseClientBuilder<B, C>,
 
     private AcmAuthSchemeProvider defaultAuthSchemeProvider() {
         return AcmAuthSchemeProvider.defaultProvider();
+    }
+
+    private Map<String, AuthScheme<?>> defaultAuthSchemes() {
+        AwsV4AuthScheme awsV4AuthScheme = AwsV4AuthScheme.create();
+        return MapUtils.of(
+            awsV4AuthScheme.schemeId(), awsV4AuthScheme
+        );
     }
 
     protected static void validateClientOptions(SdkClientConfiguration c) {

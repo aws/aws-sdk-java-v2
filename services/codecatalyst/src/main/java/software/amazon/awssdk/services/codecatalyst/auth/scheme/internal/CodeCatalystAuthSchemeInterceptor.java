@@ -75,7 +75,7 @@ public final class CodeCatalystAuthSchemeInterceptor implements ExecutionInterce
     private SelectedAuthScheme<?> selectAuthScheme(List<AuthSchemeOption> authOptions, ExecutionAttributes executionAttributes) {
 
         // TODO: This should be "merged" earlier, with request preferred over client
-        Map<String, ? extends AuthScheme<?>> authSchemes =
+        Map<String, AuthScheme<?>> authSchemes =
             executionAttributes.getAttribute(SdkExecutionAttribute.AUTH_SCHEMES);
 
         IdentityProviderConfiguration identityResolvers =
