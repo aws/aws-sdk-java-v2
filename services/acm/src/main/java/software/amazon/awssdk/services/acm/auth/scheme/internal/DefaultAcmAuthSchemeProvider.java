@@ -13,6 +13,11 @@
 
 package software.amazon.awssdk.services.acm.auth.scheme.internal;
 
+import static software.amazon.awssdk.http.auth.AwsV4HttpSigner.REGION_NAME;
+import static software.amazon.awssdk.http.auth.AwsV4HttpSigner.REQUEST_SIGNING_INSTANT;
+import static software.amazon.awssdk.http.auth.AwsV4HttpSigner.SERVICE_SIGNING_NAME;
+
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import software.amazon.awssdk.annotations.Generated;
@@ -36,6 +41,13 @@ public final class DefaultAcmAuthSchemeProvider implements AcmAuthSchemeProvider
 
     @Override
     public List<AuthSchemeOption> resolveAuthScheme(AcmAuthSchemeParams authSchemeParams) {
-        return Arrays.asList(AuthSchemeOption.builder().schemeId(AwsV4AuthScheme.create().schemeId()).build());
+        AwsV4AuthScheme awsV4AuthScheme = AwsV4AuthScheme.create();
+        return Arrays.asList(AuthSchemeOption.builder()
+                                             .schemeId(awsV4AuthScheme.schemeId())
+                                             .putSignerProperty(SERVICE_SIGNING_NAME, "acm")
+                                             .putSignerProperty(REGION_NAME, authSchemeParams.region().id())
+                                             // TODO: Make this signer property optional
+                                             .putSignerProperty(REQUEST_SIGNING_INSTANT, Instant.now())
+                                             .build());
     }
 }
