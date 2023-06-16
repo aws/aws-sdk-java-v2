@@ -48,6 +48,55 @@ class AwsV4HttpSignerTest {
 
     private static final AwsV4HttpSigner signer = AwsV4HttpSigner.create();
 
+    // Helpers for tests
+    private static SyncSignRequest<? extends AwsCredentialsIdentity> generateBasicRequest(
+        SdkHttpRequest.Builder requestBuilder,
+        SyncSignRequest.Builder<? extends AwsCredentialsIdentity> signRequestBuilder
+    ) {
+        return signRequestBuilder
+            .request(requestBuilder
+                .method(SdkHttpMethod.POST)
+                .putHeader("Host", "demo.us-east-1.amazonaws.com")
+                .putHeader("x-amz-archive-description", "test  test")
+                .encodedPath("/")
+                .uri(URI.create("http://demo.us-east-1.amazonaws.com"))
+                .build())
+            .payload(() -> new ByteArrayInputStream("{\"TableName\": \"foo\"}".getBytes()))
+            .putProperty(REGION_NAME, "us-east-1")
+            .putProperty(SERVICE_SIGNING_NAME, "demo")
+            .putProperty(DOUBLE_URL_ENCODE, false)
+            .putProperty(NORMALIZE_PATH, false)
+            .putProperty(REQUEST_SIGNING_INSTANT, Instant.ofEpochMilli(351153000968L))
+            .build();
+    }
+
+    private static AsyncSignRequest<? extends AwsCredentialsIdentity> generateBasicAsyncRequest(
+        SdkHttpRequest.Builder requestBuilder,
+        AsyncSignRequest.Builder<? extends AwsCredentialsIdentity> signRequestBuilder
+    ) {
+
+        SimplePublisher<ByteBuffer> publisher = new SimplePublisher<>();
+
+        publisher.send(ByteBuffer.wrap("{\"TableName\": \"foo\"}".getBytes()));
+        publisher.complete();
+
+        return signRequestBuilder
+            .request(requestBuilder
+                .method(SdkHttpMethod.POST)
+                .putHeader("Host", "demo.us-east-1.amazonaws.com")
+                .putHeader("x-amz-archive-description", "test  test")
+                .encodedPath("/")
+                .uri(URI.create("http://demo.us-east-1.amazonaws.com"))
+                .build())
+            .payload(publisher)
+            .putProperty(REGION_NAME, "us-east-1")
+            .putProperty(SERVICE_SIGNING_NAME, "demo")
+            .putProperty(DOUBLE_URL_ENCODE, false)
+            .putProperty(NORMALIZE_PATH, false)
+            .putProperty(REQUEST_SIGNING_INSTANT, Instant.ofEpochMilli(351153000968L))
+            .build();
+    }
+
     @Test
     public void sign_withoutSHA256Header_shouldSign() {
         final String expectedAuthorizationHeaderWithoutSha256Header =

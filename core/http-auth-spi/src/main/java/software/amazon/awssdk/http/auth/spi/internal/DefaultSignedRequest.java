@@ -39,7 +39,7 @@ abstract class DefaultSignedRequest<PayloadT> implements SignedRequest<PayloadT>
 
     @Override
     public Optional<PayloadT> payload() {
-        return payload == null ? Optional.empty() : Optional.of(payload);
+        return Optional.ofNullable(payload);
     }
 
     protected abstract static class BuilderImpl<B extends Builder<B, PayloadT>, PayloadT> implements Builder<B, PayloadT> {
