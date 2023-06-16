@@ -432,7 +432,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         List<ExecutionInterceptor> globalInterceptors = new ArrayList<>();
         globalInterceptors.addAll(sdkInterceptors());
         globalInterceptors.addAll(new ClasspathInterceptorChainFactory().getGlobalInterceptors());
-        return mergeLists(globalInterceptors, config.option(EXECUTION_INTERCEPTORS));
+        return mergeLists(config.option(EXECUTION_INTERCEPTORS), globalInterceptors);
     }
 
 
