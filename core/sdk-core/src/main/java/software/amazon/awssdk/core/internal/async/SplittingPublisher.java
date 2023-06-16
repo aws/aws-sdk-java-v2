@@ -33,7 +33,7 @@ import software.amazon.awssdk.utils.async.SimplePublisher;
 /**
  * Splits an {@link SdkPublisher} to multiple smaller {@link AsyncRequestBody}s, each of which publishes a specific portion of the
  * original data.
- * // TODO: create a static factory method in AsyncRequestBody for this
+ * // TODO: create a default method in AsyncRequestBody for this
  * // TODO: fix the case where content length is null
  */
 @SdkInternalApi
