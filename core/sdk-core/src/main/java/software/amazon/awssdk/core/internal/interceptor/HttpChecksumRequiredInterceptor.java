@@ -21,7 +21,6 @@ import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.interceptor.Context;
-import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
@@ -41,10 +40,17 @@ import software.amazon.awssdk.utils.Md5Utils;
  */
 @SdkInternalApi
 public class HttpChecksumRequiredInterceptor implements ExecutionInterceptor {
-    private static final ExecutionAttribute<String> CONTENT_MD5_VALUE = new ExecutionAttribute<>("ContentMd5");
 
+    /**
+     * Calculates the MD5 checksum of the provided request (and base64 encodes it), and adds the header to the request.
+     *
+     * <p>Note: This assumes that the content stream provider can create multiple new streams. If it only supports one (e.g. with
+     * an input stream that doesn't support mark/reset), we could consider buffering the content in memory here and updating the
+     * request body to use that buffered content. We obviously don't want to do that for giant streams, so we haven't opted to do
+     * that yet.
+     */
     @Override
-    public void afterMarshalling(Context.AfterMarshalling context, ExecutionAttributes executionAttributes) {
+    public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
         boolean isHttpChecksumRequired = isHttpChecksumRequired(executionAttributes);
         boolean requestAlreadyHasMd5 = context.httpRequest().firstMatchingHeader(Header.CONTENT_MD5).isPresent();
 
@@ -52,7 +58,7 @@ public class HttpChecksumRequiredInterceptor implements ExecutionInterceptor {
         Optional<AsyncRequestBody> asyncContent = context.asyncRequestBody();
 
         if (!isHttpChecksumRequired || requestAlreadyHasMd5) {
-            return;
+            return context.httpRequest();
         }
 
         if (asyncContent.isPresent()) {
@@ -60,14 +66,13 @@ public class HttpChecksumRequiredInterceptor implements ExecutionInterceptor {
                                                + "for non-blocking content.");
         }
 
-        syncContent.ifPresent(requestBody -> saveContentMd5(requestBody, executionAttributes));
-    }
-
-    @Override
-    public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
-        String contentMd5 = executionAttributes.getAttribute(CONTENT_MD5_VALUE);
-        if (contentMd5 != null) {
-            return context.httpRequest().copy(r -> r.putHeader(Header.CONTENT_MD5, contentMd5));
+        if (syncContent.isPresent()) {
+            try {
+                String payloadMd5 = Md5Utils.md5AsBase64(syncContent.get().contentStreamProvider().newStream());
+                return context.httpRequest().copy(r -> r.putHeader(Header.CONTENT_MD5, payloadMd5));
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
         }
         return context.httpRequest();
     }
@@ -75,23 +80,5 @@ public class HttpChecksumRequiredInterceptor implements ExecutionInterceptor {
     private boolean isHttpChecksumRequired(ExecutionAttributes executionAttributes) {
         return executionAttributes.getAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM_REQUIRED) != null
                || HttpChecksumUtils.isMd5ChecksumRequired(executionAttributes);
-    }
-
-    /**
-     * Calculates the MD5 checksum of the provided request (and base64 encodes it), storing the result in
-     * {@link #CONTENT_MD5_VALUE}.
-     *
-     * <p>Note: This assumes that the content stream provider can create multiple new streams. If it only supports one (e.g. with
-     * an input stream that doesn't support mark/reset), we could consider buffering the content in memory here and updating the
-     * request body to use that buffered content. We obviously don't want to do that for giant streams, so we haven't opted to do
-     * that yet.
-     */
-    private void saveContentMd5(RequestBody requestBody, ExecutionAttributes executionAttributes) {
-        try {
-            String payloadMd5 = Md5Utils.md5AsBase64(requestBody.contentStreamProvider().newStream());
-            executionAttributes.putAttribute(CONTENT_MD5_VALUE, payloadMd5);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
     }
 }
