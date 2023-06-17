@@ -16,6 +16,7 @@
 package software.amazon.awssdk.protocol.tests.timeout.sync;
 
 import java.time.Duration;
+import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.exception.ApiCallAttemptTimeoutException;
 import software.amazon.awssdk.core.retry.RetryPolicy;
@@ -32,6 +33,7 @@ public class SyncStreamingOperationApiCallAttemptTimeoutTest extends BaseSyncStr
 
     @Override
     ClientOverrideConfiguration clientOverrideConfiguration() {
-        return ClientOverrideConfiguration.builder().apiCallAttemptTimeout(Duration.ofMillis(TIMEOUT)).retryPolicy(RetryPolicy.none()).build();
+        return ClientOverrideConfiguration.builder().apiCallAttemptTimeout(Duration.ofMillis(TIMEOUT))
+            .retryStrategy(AwsRetryStrategy.none()).build();
     }
 }

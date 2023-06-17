@@ -28,12 +28,14 @@ import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestToResponsePipeline;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.utils.RetryableStageHelper2;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
 
 /**
  * Wrapper around the pipeline for a single request to provide retry, clock-skew and request throttling functionality.
  */
 @SdkInternalApi
 public final class RetryableStage2<OutputT> implements RequestToResponsePipeline<OutputT> {
+    private static final String RETRY_AFTER_HEADER = "Retry-After";
     private final RequestPipeline<SdkHttpFullRequest, Response<OutputT>> requestPipeline;
     private final HttpClientDependencies dependencies;
 
@@ -54,8 +56,13 @@ public final class RetryableStage2<OutputT> implements RequestToResponsePipeline
                 Response<OutputT> response = executeRequest(retryableStageHelper, context);
                 retryableStageHelper.recordAttemptSucceeded();
                 return response;
-            } catch (SdkException | IOException e) {
-                retryableStageHelper.setLastException(e);
+            } catch (SdkExceptionWithRetryAfterHint | SdkException | IOException e) {
+                Throwable throwable = e;
+                if (e instanceof SdkExceptionWithRetryAfterHint) {
+                    SdkExceptionWithRetryAfterHint wrapper = (SdkExceptionWithRetryAfterHint) e;
+                    throwable = wrapper.cause();
+                }
+                retryableStageHelper.setLastException(throwable);
                 Duration suggestedDelay = suggestedDelay(e);
                 Optional<Duration> backoffDelay = retryableStageHelper.tryRefreshToken(suggestedDelay);
                 if (backoffDelay.isPresent()) {
@@ -70,6 +77,10 @@ public final class RetryableStage2<OutputT> implements RequestToResponsePipeline
     }
 
     private Duration suggestedDelay(Exception e) {
+        if (e instanceof SdkExceptionWithRetryAfterHint) {
+            SdkExceptionWithRetryAfterHint except = (SdkExceptionWithRetryAfterHint) e;
+            return Duration.ofSeconds(except.retryAfter());
+        }
         return Duration.ZERO;
     }
 
@@ -83,8 +94,52 @@ public final class RetryableStage2<OutputT> implements RequestToResponsePipeline
         retryableStageHelper.setLastResponse(response.httpResponse());
         if (!response.isSuccess()) {
             retryableStageHelper.adjustClockIfClockSkew(response);
-            throw response.exception();
+            throw responseException(response);
         }
         return response;
+    }
+
+    private RuntimeException responseException(Response<OutputT> response) {
+        Optional<Integer> optionalRetryAfter = retryAfter(response.httpResponse());
+        if (optionalRetryAfter.isPresent()) {
+            return new SdkExceptionWithRetryAfterHint(optionalRetryAfter.get(), response.exception());
+        }
+        return response.exception();
+    }
+
+    private Optional<Integer> retryAfter(SdkHttpFullResponse response) {
+        Optional<String> optionalRetryAfterHeader = response.firstMatchingHeader(RETRY_AFTER_HEADER);
+        if (optionalRetryAfterHeader.isPresent()) {
+            String retryAfterHeader = optionalRetryAfterHeader.get();
+            try {
+                return Optional.of(Integer.parseInt(retryAfterHeader));
+            } catch (NumberFormatException e) {
+                // Ignore and fallback to returning empty.
+            }
+        }
+        return Optional.empty();
+    }
+
+    // This probably should go directly into SdkException
+    static class SdkExceptionWithRetryAfterHint extends RuntimeException {
+        private final SdkException cause;
+        private final int seconds;
+
+        SdkExceptionWithRetryAfterHint(int seconds, SdkException cause) {
+            this.seconds = seconds;
+            this.cause = cause;
+        }
+
+        public int retryAfter() {
+            return seconds;
+        }
+
+        public SdkException cause() {
+            return cause;
+        }
+
+        public int seconds() {
+            return seconds;
+        }
     }
 }

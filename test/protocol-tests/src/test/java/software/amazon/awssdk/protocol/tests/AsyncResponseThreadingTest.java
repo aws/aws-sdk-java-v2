@@ -33,10 +33,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;
 import software.amazon.awssdk.services.protocolrestjson.model.ProtocolRestJsonException;
@@ -85,7 +85,7 @@ public class AsyncResponseThreadingTest {
                                        .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
                                        .credentialsProvider(() -> AwsBasicCredentials.create("akid", "skid"))
                                        .asyncConfiguration(c -> c.advancedOption(FUTURE_COMPLETION_EXECUTOR, mockExecutor))
-                                       .overrideConfiguration(o -> o.retryPolicy(RetryPolicy.none()))
+                                       .overrideConfiguration(o -> o.retryStrategy(AwsRetryStrategy.none()))
                                        .build();
 
         assertThatThrownBy(() ->
@@ -107,7 +107,7 @@ public class AsyncResponseThreadingTest {
                                        .region(Region.US_WEST_1)
                                        .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
                                        .credentialsProvider(() -> AwsBasicCredentials.create("akid", "skid"))
-                                       .overrideConfiguration(o -> o.retryPolicy(RetryPolicy.none()))
+                                       .overrideConfiguration(o -> o.retryStrategy(AwsRetryStrategy.none()))
                                        .asyncConfiguration(c -> c.advancedOption(FUTURE_COMPLETION_EXECUTOR, mockExecutor))
                                        .build();
 

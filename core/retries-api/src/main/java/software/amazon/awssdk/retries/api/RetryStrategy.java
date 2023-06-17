@@ -84,6 +84,13 @@ public interface RetryStrategy<
     RecordSuccessResponse recordSuccess(RecordSuccessRequest request);
 
     /**
+     * Returns the maximum numbers attempts that this retry policy will allow.
+     *
+     * @return the maximum numbers attempts that this retry policy will allow.
+     */
+    int maxAttempts();
+
+    /**
      * Create a new {@link Builder} with the current configuration.
      *
      * <p>This is useful for modifying the strategy's behavior, like conditions or max retries.

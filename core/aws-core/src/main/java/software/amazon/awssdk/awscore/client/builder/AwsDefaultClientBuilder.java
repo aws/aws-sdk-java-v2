@@ -372,28 +372,8 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
             }
         }
 
-        RetryMode retryMode = RetryMode.resolver()
-                                       .profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
-                                       .profileName(config.option(SdkClientOption.PROFILE_NAME))
-                                       .defaultRetryMode(config.option(SdkClientOption.DEFAULT_RETRY_MODE))
-                                       .resolve();
-        return AwsRetryPolicy.forRetryMode(retryMode);
-        // TODO: fixme This will be changed like this to pick the configured retry strategy
-        // if no retry policy is configured.
-        /*
-        RetryPolicy policy = config.option(SdkClientOption.RETRY_POLICY);
-
-        if (policy != null) {
-            if (policy.additionalRetryConditionsAllowed()) {
-                return AwsRetryPolicy.addRetryConditions(policy);
-            } else {
-                return policy;
-            }
-        }
-
         // If we don't have a configured retry policy we will use the configured retry strategy instead.
         return null;
-         */
     }
 
     private RetryStrategy<?, ?> resolveAwsRetryStrategy(SdkClientConfiguration config) {

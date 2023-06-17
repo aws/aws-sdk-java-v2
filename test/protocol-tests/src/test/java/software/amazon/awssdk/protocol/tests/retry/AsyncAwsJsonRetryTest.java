@@ -30,7 +30,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.core.retry.RetryPolicy;
+import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocoljsonrpc.ProtocolJsonRpcAsyncClient;
 import software.amazon.awssdk.services.protocoljsonrpc.model.AllTypesRequest;
@@ -127,7 +127,7 @@ public class AsyncAwsJsonRetryTest {
     }
 
     @Test
-    public void retryPolicyNone_shouldNotRetry() {
+    public void retryStrategyNone_shouldNotRetry() {
         stubFor(post(urlEqualTo(PATH))
                     .inScenario("retry at 500")
                     .whenScenarioStateIs(Scenario.STARTED)
@@ -149,7 +149,7 @@ public class AsyncAwsJsonRetryTest {
                                                                                                                        "skid")))
                                       .region(Region.US_EAST_1)
                                       .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
-                                      .overrideConfiguration(c -> c.retryPolicy(RetryPolicy.none()))
+                                      .overrideConfiguration(c -> c.retryStrategy(AwsRetryStrategy.none()))
                                       .build();
 
         assertThatThrownBy(() -> clientWithNoRetry.allTypes(AllTypesRequest.builder().build()).join())

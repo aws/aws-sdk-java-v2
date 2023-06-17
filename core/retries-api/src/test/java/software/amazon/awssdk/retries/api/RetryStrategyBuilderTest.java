@@ -177,9 +177,15 @@ class RetryStrategyBuilderTest {
         }
 
         @Override
+        public int maxAttempts() {
+            return 0;
+        }
+
+        @Override
         public BuilderToTestDefaults toBuilder() {
             return null;
         }
+
     }
 
 }

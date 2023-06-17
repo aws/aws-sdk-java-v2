@@ -173,10 +173,9 @@ public final class RetryableStageHelper2 {
      * Retrieve the request to send to the service, including any detailed retry information headers.
      */
     public SdkHttpFullRequest requestToSend() {
-        // TODO: fixme, we don't longer have this information handy we need to change the interface to access it.
-        int maxAllowedRetries = 3;
         return request.toBuilder()
-                      .putHeader(SDK_RETRY_INFO_HEADER, "attempt=" + attemptNumber + "; max=" + maxAllowedRetries)
+                      .putHeader(SDK_RETRY_INFO_HEADER, "attempt=" + attemptNumber
+                                                        + "; max=" + retryStrategy().maxAttempts())
                       .build();
     }
 

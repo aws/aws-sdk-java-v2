@@ -72,7 +72,8 @@ public class AsyncCoreMetricsTest extends BaseAsyncCoreMetricsTest {
                                             .region(Region.US_WEST_2)
                                             .credentialsProvider(mockCredentialsProvider)
                                             .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
-                                            .overrideConfiguration(c -> c.addMetricPublisher(mockPublisher).retryPolicy(b -> b.numRetries(MAX_RETRIES)))
+                                            .overrideConfiguration(c -> c.addMetricPublisher(mockPublisher)
+                                                                         .retryStrategy(b -> b.maxAttempts(MAX_ATTEMPTS)))
                                             .build();
 
         when(mockCredentialsProvider.resolveCredentials()).thenAnswer(invocation -> {

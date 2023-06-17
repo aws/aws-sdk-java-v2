@@ -358,22 +358,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     }
 
     private RetryPolicy resolveRetryPolicy(SdkClientConfiguration config) {
-        RetryPolicy policy = config.option(SdkClientOption.RETRY_POLICY);
-        if (policy != null) {
-            return policy;
-        }
-
-        RetryMode retryMode = RetryMode.resolver()
-                                       .profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
-                                       .profileName(config.option(SdkClientOption.PROFILE_NAME))
-                                       .defaultRetryMode(config.option(SdkClientOption.DEFAULT_RETRY_MODE))
-                                       .resolve();
-        return RetryPolicy.forRetryMode(retryMode);
-        // TODO: fixme This will be changed like this to pick the configured retry strategy
-        // if no retry policy is configured.
-        /*
         return config.option(SdkClientOption.RETRY_POLICY);
-        */
     }
 
     private RetryStrategy<?, ?> resolveRetryStrategy(SdkClientConfiguration config) {
