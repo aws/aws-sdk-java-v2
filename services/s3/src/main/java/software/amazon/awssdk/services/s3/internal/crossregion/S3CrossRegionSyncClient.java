@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.services.s3.internal.crossregion;
 
-import static software.amazon.awssdk.services.s3.internal.crossregion.utils.CrossRegionUtils.REDIRECT_STATUS_CODE;
 import static software.amazon.awssdk.services.s3.internal.crossregion.utils.CrossRegionUtils.getBucketRegionFromException;
+import static software.amazon.awssdk.services.s3.internal.crossregion.utils.CrossRegionUtils.isS3RedirectException;
 import static software.amazon.awssdk.services.s3.internal.crossregion.utils.CrossRegionUtils.requestWithDecoratedEndpointProvider;
 
 import java.util.Map;
@@ -65,7 +65,7 @@ public final class S3CrossRegionSyncClient extends DelegatingS3Client {
             }
             return operation.apply(request);
         } catch (S3Exception exception) {
-            if (exception.statusCode() == REDIRECT_STATUS_CODE) {
+            if (isS3RedirectException(exception)) {
                 updateCacheFromRedirectException(exception, bucketName);
                 return operation.apply(
                     requestWithDecoratedEndpointProvider(
@@ -88,7 +88,7 @@ public final class S3CrossRegionSyncClient extends DelegatingS3Client {
         try {
             ((S3Client) delegate()).headBucket(HeadBucketRequest.builder().bucket(bucketName).build());
         } catch (S3Exception exception) {
-            if (exception.statusCode() == REDIRECT_STATUS_CODE) {
+            if (isS3RedirectException(exception)) {
                 return Region.of(getBucketRegionFromException(exception).orElseThrow(() -> exception));
             }
             throw exception;

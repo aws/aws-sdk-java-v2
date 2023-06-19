@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.s3.internal.crossregion.utils;
 
 
 import java.util.Optional;
+import java.util.concurrent.CompletionException;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
@@ -42,7 +43,9 @@ public final class CrossRegionUtils {
     }
 
     public static boolean isS3RedirectException(Throwable exception) {
-        return exception instanceof S3Exception && ((S3Exception) exception).statusCode() == REDIRECT_STATUS_CODE;
+        Throwable exceptionToBeChecked = exception instanceof CompletionException ? exception.getCause() : exception ;
+        return exceptionToBeChecked instanceof S3Exception
+               && ((S3Exception) exceptionToBeChecked).statusCode() == REDIRECT_STATUS_CODE;
     }
 
 

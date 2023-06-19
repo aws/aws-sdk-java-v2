@@ -62,17 +62,9 @@ public final class S3CrossRegionAsyncClient extends DelegatingS3AsyncClient {
         operation.apply(request)
                  .whenComplete((r, t) -> {
                      if (t != null) {
-                         if (isS3RedirectException(t.getCause())) {
+                         if (isS3RedirectException(t)) {
                              bucketToRegionCache.remove(bucketName);
-                             Optional<String> bucketRegionFromException =
-                                 getBucketRegionFromException((S3Exception) t.getCause());
-
-                             if (bucketRegionFromException.isPresent()) {
-                                 sendRequestWithRightRegion(request, operation, bucketName, returnFuture,
-                                                            bucketRegionFromException);
-                             } else {
-                                 fetchRegionAndSendRequest(request, operation, bucketName, returnFuture);
-                             }
+                             requestWithCrossRegion(request, operation, bucketName, returnFuture, t);
                              return;
                          }
                          returnFuture.completeExceptionally(t);
@@ -81,6 +73,21 @@ public final class S3CrossRegionAsyncClient extends DelegatingS3AsyncClient {
                      returnFuture.complete(r);
                  });
         return returnFuture;
+    }
+
+    private <T extends S3Request, ReturnT> void requestWithCrossRegion(T request,
+                                                                       Function<T, CompletableFuture<ReturnT>> operation,
+                                                                       String bucketName,
+                                                                       CompletableFuture<ReturnT> returnFuture,
+                                                                       Throwable t) {
+
+        Optional<String> bucketRegionFromException = getBucketRegionFromException((S3Exception) t.getCause());
+        if (bucketRegionFromException.isPresent()) {
+            sendRequestWithRightRegion(request, operation, bucketName, returnFuture,
+                                       bucketRegionFromException);
+        } else {
+            fetchRegionAndSendRequest(request, operation, bucketName, returnFuture);
+        }
     }
 
     private <T extends S3Request, ReturnT> void fetchRegionAndSendRequest(T request,
@@ -92,7 +99,7 @@ public final class S3CrossRegionAsyncClient extends DelegatingS3AsyncClient {
         ((S3AsyncClient) delegate()).headBucket(b -> b.bucket(bucketName)).whenComplete((response,
                                                                                          throwable) -> {
             if (throwable != null) {
-                if (isS3RedirectException(throwable.getCause())) {
+                if (isS3RedirectException(throwable)) {
                     bucketToRegionCache.remove(bucketName);
                     Optional<String> bucketRegion = getBucketRegionFromException((S3Exception) throwable.getCause());
 
