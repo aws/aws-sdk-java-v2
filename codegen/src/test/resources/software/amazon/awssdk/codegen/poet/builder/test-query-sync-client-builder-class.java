@@ -1,6 +1,8 @@
 package software.amazon.awssdk.services.query;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -12,6 +14,7 @@ import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.protocols.query.interceptor.QueryParametersToBodyInterceptor;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointProvider;
+import software.amazon.awssdk.utils.CollectionUtils;
 
 /**
  * Internal implementation of {@link QueryClientBuilder}.
@@ -36,8 +39,12 @@ final class DefaultQueryClientBuilder extends DefaultQueryBaseClientBuilder<Quer
     protected final QueryClient buildClient() {
         SdkClientConfiguration clientConfiguration = super.syncClientConfiguration();
         List<ExecutionInterceptor> interceptors = clientConfiguration.option(SdkClientOption.EXECUTION_INTERCEPTORS);
-        interceptors.add(0, new QueryParametersToBodyInterceptor());
-        interceptors.add(0, new QueryProtocolCustomTestInterceptor());
+        List<ExecutionInterceptor> queryParamsToBodyInterceptor = new ArrayList<>(
+            Arrays.asList(new QueryParametersToBodyInterceptor()));
+        List<ExecutionInterceptor> customizationInterceptors = new ArrayList<>();
+        customizationInterceptors.add(new QueryProtocolCustomTestInterceptor());
+        interceptors = CollectionUtils.mergeLists(queryParamsToBodyInterceptor, interceptors);
+        interceptors = CollectionUtils.mergeLists(customizationInterceptors, interceptors);
         clientConfiguration = clientConfiguration.toBuilder().option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors)
                                                  .build();
         this.validateClientOptions(clientConfiguration);

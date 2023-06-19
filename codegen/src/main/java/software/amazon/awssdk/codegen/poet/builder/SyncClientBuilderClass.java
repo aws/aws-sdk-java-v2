@@ -21,7 +21,8 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import java.net.URI;
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -37,6 +38,7 @@ import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.protocols.query.interceptor.QueryParametersToBodyInterceptor;
+import software.amazon.awssdk.utils.CollectionUtils;
 
 public class SyncClientBuilderClass implements ClassSpec {
     private final IntermediateModel model;
@@ -156,12 +158,19 @@ public class SyncClientBuilderClass implements ClassSpec {
         }
 
         TypeName listType = ParameterizedTypeName.get(List.class, ExecutionInterceptor.class);
-        b.addStatement("$T interceptors = clientConfiguration.option($T.EXECUTION_INTERCEPTORS)", listType, SdkClientOption.class)
-            .addStatement("interceptors.add(0, new $T())", QueryParametersToBodyInterceptor.class);
+
+        b.addStatement("$T interceptors = clientConfiguration.option($T.EXECUTION_INTERCEPTORS)",
+                       listType, SdkClientOption.class)
+            .addStatement("$T queryParamsToBodyInterceptor = new $T<>($T.asList(new $T()))",
+                          listType, ArrayList.class, Arrays.class, QueryParametersToBodyInterceptor.class)
+            .addStatement("$T customizationInterceptors = new $T<>()", listType, ArrayList.class);
 
         List<String> customInterceptors = model.getCustomizationConfig().getInterceptors();
-        Collections.reverse(customInterceptors);
-        customInterceptors.forEach(i -> b.addStatement("interceptors.add(0, new $T())", ClassName.bestGuess(i)));
+        customInterceptors.forEach(i -> b.addStatement("customizationInterceptors.add(new $T())", ClassName.bestGuess(i)));
+
+        b.addStatement("interceptors = $T.mergeLists(queryParamsToBodyInterceptor, interceptors)", CollectionUtils.class)
+            .addStatement("interceptors = $T.mergeLists(customizationInterceptors, interceptors)", CollectionUtils.class);
+
         return b.addStatement("clientConfiguration = clientConfiguration.toBuilder().option($T.EXECUTION_INTERCEPTORS, "
                               + "interceptors).build()", SdkClientOption.class);
     }
