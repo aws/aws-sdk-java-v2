@@ -155,18 +155,13 @@ public class AsyncClientBuilderClass implements ClassSpec {
             return b;
         }
 
-        // queryParamsToBody interceptor
         TypeName listType = ParameterizedTypeName.get(List.class, ExecutionInterceptor.class);
         b.addStatement("$T interceptors = clientConfiguration.option($T.EXECUTION_INTERCEPTORS)", listType, SdkClientOption.class)
             .addStatement("interceptors.add(0, new $T())", QueryParametersToBodyInterceptor.class);
 
-        // customization.config interceptors
         List<String> customInterceptors = model.getCustomizationConfig().getInterceptors();
         Collections.reverse(customInterceptors);
-        for (String customInterceptor : customInterceptors) {
-            b.addStatement("interceptors.add(0, new $T())", ClassName.bestGuess(customInterceptor));
-        }
-
+        customInterceptors.forEach(i -> b.addStatement("interceptors.add(0, new $T())", ClassName.bestGuess(i)));
         return b.addStatement("clientConfiguration = clientConfiguration.toBuilder().option($T.EXECUTION_INTERCEPTORS, "
                               + "interceptors).build()", SdkClientOption.class);
     }
