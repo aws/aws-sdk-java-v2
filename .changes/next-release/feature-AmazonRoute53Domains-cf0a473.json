@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Route 53 Domains",
+    "contributor": "",
+    "description": "Update MaxItems upper bound to 1000 for ListPricesRequest"
+}
