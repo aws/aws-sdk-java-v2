@@ -1,3 +1,41 @@
+# __2.20.88__ __2023-06-19__
+## __AWS CloudFormation__
+  - ### Features
+    - Specify desired CloudFormation behavior in the event of ChangeSet execution failure using the CreateChangeSet OnStackFailure parameter
+
+## __AWS Glue__
+  - ### Features
+    - This release adds support for creating cross region table/database resource links
+
+## __AWS Price List Service__
+  - ### Features
+    - This release updates the PriceListArn regex pattern.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - `WaiterExecutor` recursive implementation changed to iterative
+        - Contributed by: [@flittev](https://github.com/flittev)
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Documentation only update to address various tickets.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - API changes to AWS Verified Access to include data from trust providers in logs
+
+## __Amazon Route 53 Domains__
+  - ### Features
+    - Update MaxItems upper bound to 1000 for ListPricesRequest
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon Sagemaker Autopilot releases CreateAutoMLJobV2 and DescribeAutoMLJobV2 for Autopilot customers with ImageClassification, TextClassification and Tabular problem type config support.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@flittev](https://github.com/flittev)
 # __2.20.87__ __2023-06-16__
 ## __AWS Account__
   - ### Features
