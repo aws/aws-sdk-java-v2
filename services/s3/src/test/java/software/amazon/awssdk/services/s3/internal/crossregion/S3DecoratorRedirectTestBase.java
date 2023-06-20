@@ -62,7 +62,7 @@ public abstract class S3DecoratorRedirectTestBase {
         ArgumentCaptor<ListObjectsRequest> requestArgumentCaptor = ArgumentCaptor.forClass(ListObjectsRequest.class);
         verifyTheApiServiceCall(2, requestArgumentCaptor);
 
-        assertThat(requestArgumentCaptor.getAllValues().get(0).overrideConfiguration()).isNotPresent();
+        assertThat(requestArgumentCaptor.getAllValues().get(0).overrideConfiguration().get().endpointProvider()).isNotPresent();
         verifyTheEndPointProviderOverridden(1, requestArgumentCaptor, CROSS_REGION);
 
         verifyHeadBucketServiceCall(0);
@@ -82,7 +82,7 @@ public abstract class S3DecoratorRedirectTestBase {
         ArgumentCaptor<ListObjectsRequest> requestArgumentCaptor = ArgumentCaptor.forClass(ListObjectsRequest.class);
         verifyTheApiServiceCall(3, requestArgumentCaptor);
 
-        assertThat(requestArgumentCaptor.getAllValues().get(0).overrideConfiguration()).isNotPresent();
+        assertThat(requestArgumentCaptor.getAllValues().get(0).overrideConfiguration().get().endpointProvider()).isNotPresent();
         verifyTheEndPointProviderOverridden(1, requestArgumentCaptor, CROSS_REGION);
         verifyTheEndPointProviderOverridden(2, requestArgumentCaptor, CROSS_REGION);
         verifyHeadBucketServiceCall(0);
@@ -114,7 +114,7 @@ public abstract class S3DecoratorRedirectTestBase {
         ArgumentCaptor<ListObjectsRequest> requestArgumentCaptor = ArgumentCaptor.forClass(ListObjectsRequest.class);
         verifyTheApiServiceCall(2, requestArgumentCaptor);
 
-        assertThat(requestArgumentCaptor.getAllValues().get(0).overrideConfiguration()).isNotPresent();
+        assertThat(requestArgumentCaptor.getAllValues().get(0).overrideConfiguration().get().endpointProvider()).isNotPresent();
         verifyTheEndPointProviderOverridden(1, requestArgumentCaptor, CROSS_REGION);
         verifyHeadBucketServiceCall(1);
     }
@@ -136,7 +136,7 @@ public abstract class S3DecoratorRedirectTestBase {
         // We need to captor again so that we get the args used in second API Call
         ArgumentCaptor<ListObjectsRequest> overAllPostCacheCaptor = ArgumentCaptor.forClass(ListObjectsRequest.class);
         verifyTheApiServiceCall(3, overAllPostCacheCaptor);
-        assertThat(overAllPostCacheCaptor.getAllValues().get(0).overrideConfiguration()).isNotPresent();
+        assertThat(overAllPostCacheCaptor.getAllValues().get(0).overrideConfiguration().get().endpointProvider()).isNotPresent();
         verifyTheEndPointProviderOverridden(1, overAllPostCacheCaptor, CROSS_REGION);
         verifyTheEndPointProviderOverridden(2, overAllPostCacheCaptor, CROSS_REGION);
         verifyHeadBucketServiceCall(1);
@@ -151,7 +151,7 @@ public abstract class S3DecoratorRedirectTestBase {
         ArgumentCaptor<ListBucketsRequest> requestArgumentCaptor = ArgumentCaptor.forClass(ListBucketsRequest.class);
         verifyHeadBucketServiceCall(0);
         verifyNoBucketApiCall(1, requestArgumentCaptor);
-        assertThat(requestArgumentCaptor.getAllValues().get(0).overrideConfiguration()).isNotPresent();
+        assertThat(requestArgumentCaptor.getAllValues().get(0).overrideConfiguration().get().endpointProvider()).isNotPresent();
         verifyHeadBucketServiceCall(0);
     }
 

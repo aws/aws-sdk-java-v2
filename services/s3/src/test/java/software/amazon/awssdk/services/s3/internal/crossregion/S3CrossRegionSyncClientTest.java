@@ -150,11 +150,11 @@ class S3CrossRegionSyncClientTest {
     @ParameterizedTest
     @MethodSource("stubOverriddenEndpointProviderResponses")
     void standardOp_crossRegionClient_takesCustomEndpointProviderInRequest(Consumer<MockSyncHttpClient> stubConsumer,
-                                                                                    Class<?> endpointProviderType,
+                                                                           Class<?> endpointProviderType,
                                                                            String region) {
         stubConsumer.accept(mockSyncHttpClient);
         S3Client crossRegionClient = clientBuilder().serviceConfiguration(c -> c.crossRegionAccessEnabled(true))
-            .endpointProvider(new TestEndpointProvider())
+                                                    .endpointProvider(new TestEndpointProvider())
                                                     .build();
         GetObjectRequest request = GetObjectRequest.builder()
                                                    .bucket(BUCKET)
@@ -172,7 +172,7 @@ class S3CrossRegionSyncClientTest {
     @ParameterizedTest
     @MethodSource("stubOverriddenEndpointProviderResponses")
     void standardOp_crossRegionClient_takesCustomEndpointProviderInClient(Consumer<MockSyncHttpClient> stubConsumer,
-                                                                           Class<?> endpointProviderType,
+                                                                          Class<?> endpointProviderType,
                                                                           String region) {
         stubConsumer.accept(mockSyncHttpClient);
         S3Client crossRegionClient = clientBuilder().serviceConfiguration(c -> c.crossRegionAccessEnabled(true))
@@ -275,6 +275,24 @@ class S3CrossRegionSyncClientTest {
         assertThat(requests.stream().map(req -> req.method()).collect(Collectors.toList()))
             .isEqualTo(Arrays.asList(SdkHttpMethod.GET,
                                      SdkHttpMethod.HEAD));
+    }
+
+
+    @Test
+    void standardOp_crossRegionClient_containUserAgent() {
+        mockSyncHttpClient.stubResponses(successHttpResponse());
+        S3Client crossRegionClient = clientBuilder().serviceConfiguration(c -> c.crossRegionAccessEnabled(true)).build();
+        crossRegionClient.getObject(r -> r.bucket(BUCKET).key(KEY));
+        assertThat(mockSyncHttpClient.getLastRequest().firstMatchingHeader("User-Agent").get()).contains("hll/cross-region");
+    }
+
+    @Test
+    void standardOp_simpleClient_doesNotContainCrossRegionUserAgent() {
+        mockSyncHttpClient.stubResponses(successHttpResponse());
+        S3Client crossRegionClient = clientBuilder().serviceConfiguration(c -> c.crossRegionAccessEnabled(false)).build();
+        crossRegionClient.getObject(r -> r.bucket(BUCKET).key(KEY));
+        assertThat(mockSyncHttpClient.getLastRequest().firstMatchingHeader("User-Agent").get())
+            .doesNotContain("hll/cross-region");
     }
 
     private S3ClientBuilder clientBuilder() {

@@ -18,9 +18,11 @@ package software.amazon.awssdk.services.s3.internal.crossregion.utils;
 
 import java.util.Optional;
 import java.util.concurrent.CompletionException;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
+import software.amazon.awssdk.core.ApiName;
 import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.endpoints.S3EndpointProvider;
@@ -32,6 +34,9 @@ import software.amazon.awssdk.services.s3.model.S3Request;
 public final class CrossRegionUtils {
     public static final int REDIRECT_STATUS_CODE = 301;
     public static final String AMZ_BUCKET_REGION_HEADER = "x-amz-bucket-region";
+    private static final ApiName API_NAME = ApiName.builder().version("cross-region").name("hll").build();
+    private static final Consumer<AwsRequestOverrideConfiguration.Builder> USER_AGENT_APPLIER = b -> b.addApiName(API_NAME);
+
 
     private CrossRegionUtils() {
     }
@@ -49,6 +54,7 @@ public final class CrossRegionUtils {
     }
 
 
+    @SuppressWarnings("unchecked")
     public static <T extends S3Request> T requestWithDecoratedEndpointProvider(T request, Supplier<Region> regionSupplier,
                                                                                EndpointProvider clientEndpointProvider) {
         AwsRequestOverrideConfiguration requestOverrideConfig =
@@ -63,5 +69,16 @@ public final class CrossRegionUtils {
                                                        BucketEndpointProvider.create(delegateEndpointProvider, regionSupplier))
                                                    .build())
                           .build();
+    }
+
+    public static <T extends S3Request> AwsRequestOverrideConfiguration updateUserAgentInConfig(T request) {
+        AwsRequestOverrideConfiguration overrideConfiguration =
+            request.overrideConfiguration().map(c -> c.toBuilder()
+                                                      .applyMutation(USER_AGENT_APPLIER)
+                                                      .build())
+                   .orElse(AwsRequestOverrideConfiguration.builder()
+                                                          .applyMutation(USER_AGENT_APPLIER)
+                                                          .build());
+        return overrideConfiguration;
     }
 }

@@ -18,12 +18,14 @@ package software.amazon.awssdk.services.s3.internal.crossregion;
 import static software.amazon.awssdk.services.s3.internal.crossregion.utils.CrossRegionUtils.getBucketRegionFromException;
 import static software.amazon.awssdk.services.s3.internal.crossregion.utils.CrossRegionUtils.isS3RedirectException;
 import static software.amazon.awssdk.services.s3.internal.crossregion.utils.CrossRegionUtils.requestWithDecoratedEndpointProvider;
+import static software.amazon.awssdk.services.s3.internal.crossregion.utils.CrossRegionUtils.updateUserAgentInConfig;
 
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.DelegatingS3Client;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -52,24 +54,29 @@ public final class S3CrossRegionSyncClient extends DelegatingS3Client {
     protected <T extends S3Request, ReturnT> ReturnT invokeOperation(T request, Function<T, ReturnT> operation) {
 
         Optional<String> bucketRequest = bucketNameFromRequest(request);
+
+        AwsRequestOverrideConfiguration overrideConfiguration = updateUserAgentInConfig(request);
+        T userAgentUpdatedRequest = (T) request.toBuilder().overrideConfiguration(overrideConfiguration).build();
+
+
         if (!bucketRequest.isPresent()) {
-            return operation.apply(request);
+            return operation.apply(userAgentUpdatedRequest);
         }
         String bucketName = bucketRequest.get();
         try {
             if (bucketToRegionCache.containsKey(bucketName)) {
                 return operation.apply(
-                    requestWithDecoratedEndpointProvider(request,
+                    requestWithDecoratedEndpointProvider(userAgentUpdatedRequest,
                                                          () -> bucketToRegionCache.get(bucketName),
                                                          serviceClientConfiguration().endpointProvider().get()));
             }
-            return operation.apply(request);
+            return operation.apply(userAgentUpdatedRequest);
         } catch (S3Exception exception) {
             if (isS3RedirectException(exception)) {
                 updateCacheFromRedirectException(exception, bucketName);
                 return operation.apply(
                     requestWithDecoratedEndpointProvider(
-                        request,
+                        userAgentUpdatedRequest,
                         () -> bucketToRegionCache.computeIfAbsent(bucketName, this::fetchBucketRegion),
                         serviceClientConfiguration().endpointProvider().get()));
             }
