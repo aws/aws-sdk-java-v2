@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Appflow",
+    "contributor": "",
+    "description": "This release adds new API to reset connector metadata cache"
+}
