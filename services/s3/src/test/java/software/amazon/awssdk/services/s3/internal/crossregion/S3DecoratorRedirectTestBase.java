@@ -41,8 +41,8 @@ public abstract class S3DecoratorRedirectTestBase {
 
     public static final String X_AMZ_BUCKET_REGION = "x-amz-bucket-region";
     protected static final String CROSS_REGION_BUCKET = "anyBucket";
-    protected static final String CROSS_REGION = "eu-central-1";
-    protected static final String CHANGED_CROSS_REGION = "us-west-1";
+    protected static final Region CROSS_REGION = Region.EU_CENTRAL_1;
+    protected static final Region CHANGED_CROSS_REGION = Region.US_WEST_1;
 
     public static final Region OVERRIDE_CONFIGURED_REGION = Region.US_WEST_2;
 
@@ -63,7 +63,7 @@ public abstract class S3DecoratorRedirectTestBase {
         verifyTheApiServiceCall(2, requestArgumentCaptor);
 
         assertThat(requestArgumentCaptor.getAllValues().get(0).overrideConfiguration().get().endpointProvider()).isNotPresent();
-        verifyTheEndPointProviderOverridden(1, requestArgumentCaptor, CROSS_REGION);
+        verifyTheEndPointProviderOverridden(1, requestArgumentCaptor, CROSS_REGION.id());
 
         verifyHeadBucketServiceCall(0);
     }
@@ -83,8 +83,8 @@ public abstract class S3DecoratorRedirectTestBase {
         verifyTheApiServiceCall(3, requestArgumentCaptor);
 
         assertThat(requestArgumentCaptor.getAllValues().get(0).overrideConfiguration().get().endpointProvider()).isNotPresent();
-        verifyTheEndPointProviderOverridden(1, requestArgumentCaptor, CROSS_REGION);
-        verifyTheEndPointProviderOverridden(2, requestArgumentCaptor, CROSS_REGION);
+        verifyTheEndPointProviderOverridden(1, requestArgumentCaptor, CROSS_REGION.id());
+        verifyTheEndPointProviderOverridden(2, requestArgumentCaptor, CROSS_REGION.id());
         verifyHeadBucketServiceCall(0);
     }
 
@@ -115,7 +115,7 @@ public abstract class S3DecoratorRedirectTestBase {
         verifyTheApiServiceCall(2, requestArgumentCaptor);
 
         assertThat(requestArgumentCaptor.getAllValues().get(0).overrideConfiguration().get().endpointProvider()).isNotPresent();
-        verifyTheEndPointProviderOverridden(1, requestArgumentCaptor, CROSS_REGION);
+        verifyTheEndPointProviderOverridden(1, requestArgumentCaptor, CROSS_REGION.id());
         verifyHeadBucketServiceCall(1);
     }
 
@@ -130,15 +130,15 @@ public abstract class S3DecoratorRedirectTestBase {
         ArgumentCaptor<ListObjectsRequest> preCacheCaptor = ArgumentCaptor.forClass(ListObjectsRequest.class);
         verifyTheApiServiceCall(2, preCacheCaptor);
         // We need to get the BucketEndpointProvider in order to update the cache
-        verifyTheEndPointProviderOverridden(1, preCacheCaptor, CROSS_REGION);
+        verifyTheEndPointProviderOverridden(1, preCacheCaptor, CROSS_REGION.id());
         listObjectsResponse = apiCallToService();
         assertThat(listObjectsResponse.contents()).isEqualTo(S3_OBJECTS);
         // We need to captor again so that we get the args used in second API Call
         ArgumentCaptor<ListObjectsRequest> overAllPostCacheCaptor = ArgumentCaptor.forClass(ListObjectsRequest.class);
         verifyTheApiServiceCall(3, overAllPostCacheCaptor);
         assertThat(overAllPostCacheCaptor.getAllValues().get(0).overrideConfiguration().get().endpointProvider()).isNotPresent();
-        verifyTheEndPointProviderOverridden(1, overAllPostCacheCaptor, CROSS_REGION);
-        verifyTheEndPointProviderOverridden(2, overAllPostCacheCaptor, CROSS_REGION);
+        verifyTheEndPointProviderOverridden(1, overAllPostCacheCaptor, CROSS_REGION.id());
+        verifyTheEndPointProviderOverridden(2, overAllPostCacheCaptor, CROSS_REGION.id());
         verifyHeadBucketServiceCall(1);
     }
 

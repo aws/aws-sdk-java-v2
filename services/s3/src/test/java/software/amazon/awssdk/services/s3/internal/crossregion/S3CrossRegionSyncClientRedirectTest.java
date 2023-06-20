@@ -66,14 +66,14 @@ public class S3CrossRegionSyncClientRedirectTest extends S3DecoratorRedirectTest
     @Override
     protected void stubApiWithNoBucketField() {
         when(mockDelegateClient.listBuckets(any(ListBucketsRequest.class)))
-            .thenThrow(redirectException(301, CROSS_REGION, null, "Redirect"))
+            .thenThrow(redirectException(301, CROSS_REGION.id(), null, "Redirect"))
             .thenReturn(ListBucketsResponse.builder().build());
     }
 
     @Override
     protected void stubHeadBucketRedirect() {
         when(mockDelegateClient.headBucket(any(HeadBucketRequest.class)))
-            .thenThrow(redirectException(301, CROSS_REGION, null, null))
+            .thenThrow(redirectException(301, CROSS_REGION.id(), null, null))
             .thenReturn(HeadBucketResponse.builder().build());
     }
 
@@ -87,14 +87,14 @@ public class S3CrossRegionSyncClientRedirectTest extends S3DecoratorRedirectTest
     @Override
     protected void stubRedirectThenError() {
         when(mockDelegateClient.listObjects(any(ListObjectsRequest.class)))
-            .thenThrow(redirectException(301, CROSS_REGION, null, null))
+            .thenThrow(redirectException(301, CROSS_REGION.id(), null, null))
             .thenThrow(redirectException(400, null, "InvalidArgument", "Invalid id"));
     }
 
     @Override
     protected void stubRedirectSuccessSuccess() {
         when(mockDelegateClient.listObjects(any(ListObjectsRequest.class)))
-            .thenThrow(redirectException(301, CROSS_REGION, null, null))
+            .thenThrow(redirectException(301, CROSS_REGION.id(), null, null))
             .thenReturn(ListObjectsResponse.builder().contents(S3_OBJECTS).build())
             .thenReturn(ListObjectsResponse.builder().contents(S3_OBJECTS).build());
     }
@@ -122,7 +122,7 @@ public class S3CrossRegionSyncClientRedirectTest extends S3DecoratorRedirectTest
     @Override
     protected void stubClientAPICallWithFirstRedirectThenSuccessWithRegionInErrorResponse() {
         when(mockDelegateClient.listObjects(any(ListObjectsRequest.class)))
-            .thenThrow(redirectException(301, CROSS_REGION, null, null))
+            .thenThrow(redirectException(301, CROSS_REGION.id(), null, null))
             .thenReturn(ListObjectsResponse.builder().contents(S3_OBJECTS).build());
     }
 }

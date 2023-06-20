@@ -84,7 +84,7 @@ class S3CrossRegionAsyncClientTest {
 
     public static Stream<Arguments> stubResponses() {
         Consumer<MockAsyncHttpClient> redirectStubConsumer = mockSyncHttpClient ->
-            mockSyncHttpClient.stubResponses(customHttpResponse(301, CROSS_REGION), successHttpResponse());
+            mockSyncHttpClient.stubResponses(customHttpResponse(301, CROSS_REGION.id()), successHttpResponse());
 
         Consumer<MockAsyncHttpClient> successStubConsumer = mockSyncHttpClient ->
             mockSyncHttpClient.stubResponses(successHttpResponse(), successHttpResponse());
@@ -147,9 +147,9 @@ class S3CrossRegionAsyncClientTest {
     @Test
     void crossRegionClient_CallsHeadObject_when_regionNameNotPresentInFallBackCall(){
         mockAsyncHttpClient.reset();
-        mockAsyncHttpClient.stubResponses(customHttpResponse(301,  null ),
-                                         customHttpResponse(301,  CROSS_REGION ),
-                                         successHttpResponse(), successHttpResponse());
+        mockAsyncHttpClient.stubResponses(customHttpResponse(301, null),
+                                          customHttpResponse(301, CROSS_REGION.id()),
+                                          successHttpResponse(), successHttpResponse());
         S3AsyncClient crossRegionClient =
             clientBuilder().endpointOverride(null).region(OVERRIDE_CONFIGURED_REGION).serviceConfiguration(c -> c.crossRegionAccessEnabled(true)).build();
         crossRegionClient.getObject(r -> r.bucket(BUCKET).key(KEY), AsyncResponseTransformer.toBytes()).join();
@@ -159,9 +159,9 @@ class S3CrossRegionAsyncClientTest {
         assertThat(requests).hasSize(3);
 
         assertThat(requests.stream().map(req -> req.host().substring(10,req.host().length() - 14 )).collect(Collectors.toList()))
-            .isEqualTo(Arrays.asList(OVERRIDE_CONFIGURED_REGION.toString(),
-                                     OVERRIDE_CONFIGURED_REGION.toString(),
-                                     CROSS_REGION));
+            .isEqualTo(Arrays.asList(OVERRIDE_CONFIGURED_REGION.id(),
+                                     OVERRIDE_CONFIGURED_REGION.id(),
+                                     CROSS_REGION.id()));
 
         assertThat(requests.stream().map(req -> req.method()).collect(Collectors.toList()))
             .isEqualTo(Arrays.asList(SdkHttpMethod.GET,
@@ -177,7 +177,7 @@ class S3CrossRegionAsyncClientTest {
         assertThat(postCacheRequests.stream()
                                     .map(req -> req.host().substring(10,req.host().length() - 14 ))
                                     .collect(Collectors.toList()))
-            .isEqualTo(Arrays.asList(CROSS_REGION));
+            .isEqualTo(Arrays.asList(CROSS_REGION.id()));
         assertThat(postCacheRequests.stream().map(req -> req.method()).collect(Collectors.toList()))
             .isEqualTo(Arrays.asList(SdkHttpMethod.GET));
         assertThat(captureInterceptor.endpointProvider).isInstanceOf(BucketEndpointProvider.class);
@@ -239,8 +239,8 @@ class S3CrossRegionAsyncClientTest {
     @Test
     void crossRegionClient_cancelsTheThread_when_futureIsCancelled(){
         mockAsyncHttpClient.reset();
-        mockAsyncHttpClient.stubResponses(customHttpResponse(301,  null ),
-                                          customHttpResponse(301,  CROSS_REGION ),
+        mockAsyncHttpClient.stubResponses(customHttpResponse(301, null),
+                                          customHttpResponse(301, CROSS_REGION.id()),
                                           successHttpResponse(), successHttpResponse());
         S3AsyncClient crossRegionClient =
             clientBuilder().endpointOverride(null).region(OVERRIDE_CONFIGURED_REGION).serviceConfiguration(c -> c.crossRegionAccessEnabled(true)).build();
@@ -253,10 +253,10 @@ class S3CrossRegionAsyncClientTest {
 
     @Test
     void crossRegionClient_when_redirectsAfterCaching() {
-        mockAsyncHttpClient.stubResponses(customHttpResponse(301,  CROSS_REGION ),
+        mockAsyncHttpClient.stubResponses(customHttpResponse(301,  CROSS_REGION.id()),
                                          successHttpResponse(),
                                          successHttpResponse(),
-                                         customHttpResponse(301,  CHANGED_CROSS_REGION),
+                                         customHttpResponse(301,  CHANGED_CROSS_REGION.id()),
                                          successHttpResponse());
         S3AsyncClient crossRegionClient =
             clientBuilder().endpointOverride(null).region(OVERRIDE_CONFIGURED_REGION).serviceConfiguration(c -> c.crossRegionAccessEnabled(true)).build();
@@ -283,11 +283,11 @@ class S3CrossRegionAsyncClientTest {
     @Test
     void crossRegionClient_when_redirectsAfterCaching_withFallBackRedirectWithNoRegion() {
         mockAsyncHttpClient.stubResponses(customHttpResponse(301,  null ),
-                                         customHttpResponse(301,  CROSS_REGION ),
+                                         customHttpResponse(301,  CROSS_REGION.id()),
                                          successHttpResponse(),
                                          successHttpResponse(),
                                          customHttpResponse(301,  null),
-                                         customHttpResponse(301,  CHANGED_CROSS_REGION),
+                                         customHttpResponse(301,  CHANGED_CROSS_REGION.id()),
                                          successHttpResponse());
         S3AsyncClient crossRegionClient =
             clientBuilder().endpointOverride(null).region(OVERRIDE_CONFIGURED_REGION).serviceConfiguration(c -> c.crossRegionAccessEnabled(true)).build();
