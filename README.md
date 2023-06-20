@@ -4,7 +4,7 @@
 [![Gitter](https://badges.gitter.im/aws/aws-sdk-java-v2.svg)](https://gitter.im/aws/aws-sdk-java-v2?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge) 
 [![codecov](https://codecov.io/gh/aws/aws-sdk-java-v2/branch/master/graph/badge.svg)](https://codecov.io/gh/aws/aws-sdk-java-v2)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-89-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-91-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 The **AWS SDK for Java 2.0** is a rewrite of 1.0 with some great new features. As with version 1.0,
@@ -306,6 +306,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/paulolieuthier"><img src="https://avatars.githubusercontent.com/u/1238157?v=4?s=100" width="100px;" alt="Paulo Lieuthier"/><br /><sub><b>Paulo Lieuthier</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=paulolieuthier" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://www.inulogic.fr"><img src="https://avatars.githubusercontent.com/u/88554524?v=4?s=100" width="100px;" alt="Sébastien Crocquesel"/><br /><sub><b>Sébastien Crocquesel</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=scrocquesel" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/dave-fn"><img src="https://avatars.githubusercontent.com/u/21349334?v=4?s=100" width="100px;" alt="David Negrete"/><br /><sub><b>David Negrete</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=dave-fn" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/breader124"><img src="https://avatars.githubusercontent.com/u/36669019?v=4?s=100" width="100px;" alt="Adrian Chlebosz"/><br /><sub><b>Adrian Chlebosz</b></sub></a><br /><a href="https://github.com/aws/aws-sdk-java-v2/commits?author=breader124" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
