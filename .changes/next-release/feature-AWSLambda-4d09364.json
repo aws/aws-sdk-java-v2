@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Lambda",
+    "contributor": "",
+    "description": "This release adds RecursiveInvocationException to the Invoke API and InvokeWithResponseStream API."
+}
