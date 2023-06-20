@@ -2,7 +2,7 @@ package software.amazon.awssdk.services.query;
 
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -39,8 +39,8 @@ final class DefaultQueryClientBuilder extends DefaultQueryBaseClientBuilder<Quer
     protected final QueryClient buildClient() {
         SdkClientConfiguration clientConfiguration = super.syncClientConfiguration();
         List<ExecutionInterceptor> interceptors = clientConfiguration.option(SdkClientOption.EXECUTION_INTERCEPTORS);
-        List<ExecutionInterceptor> queryParamsToBodyInterceptor = new ArrayList<>(
-            Arrays.asList(new QueryParametersToBodyInterceptor()));
+        List<ExecutionInterceptor> queryParamsToBodyInterceptor = Collections
+            .singletonList(new QueryParametersToBodyInterceptor());
         List<ExecutionInterceptor> customizationInterceptors = new ArrayList<>();
         customizationInterceptors.add(new QueryProtocolCustomTestInterceptor());
         interceptors = CollectionUtils.mergeLists(queryParamsToBodyInterceptor, interceptors);

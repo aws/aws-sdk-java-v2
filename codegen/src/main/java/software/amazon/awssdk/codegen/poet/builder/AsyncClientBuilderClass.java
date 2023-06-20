@@ -22,7 +22,7 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -161,8 +161,8 @@ public class AsyncClientBuilderClass implements ClassSpec {
 
         b.addStatement("$T interceptors = clientConfiguration.option($T.EXECUTION_INTERCEPTORS)",
                        listType, SdkClientOption.class)
-            .addStatement("$T queryParamsToBodyInterceptor = new $T<>($T.asList(new $T()))",
-                       listType, ArrayList.class, Arrays.class, QueryParametersToBodyInterceptor.class)
+         .addStatement("$T queryParamsToBodyInterceptor = $T.singletonList(new $T())",
+                       listType, Collections.class, QueryParametersToBodyInterceptor.class)
             .addStatement("$T customizationInterceptors = new $T<>()", listType, ArrayList.class);
 
         List<String> customInterceptors = model.getCustomizationConfig().getInterceptors();
