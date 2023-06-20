@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.http.auth.internal.util;
 
+import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 @SdkInternalApi
@@ -49,7 +50,7 @@ public final class SignerConstant {
     /**
      * Seconds in a week, which is the max expiration time Sig-v4 accepts.
      */
-    public static final long PRESIGN_URL_MAX_EXPIRATION_SECONDS = 60L * 60 * 24 * 7;
+    public static final Duration PRESIGN_URL_MAX_EXPIRATION_DURATION = Duration.ofSeconds(60L * 60 * 24 * 7);
 
 
     private SignerConstant() {

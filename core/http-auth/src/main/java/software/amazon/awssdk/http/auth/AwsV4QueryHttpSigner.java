@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.http.auth;
 
+import java.time.Duration;
 import java.time.Instant;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.auth.internal.DefaultAwsV4QueryHttpSigner;
@@ -40,11 +41,11 @@ public interface AwsV4QueryHttpSigner extends HttpSigner<AwsCredentialsIdentity>
         SignerProperty.create(Instant.class, "RequestSigningInstant");
 
     /**
-     * The datetime, in milliseconds, for the request.
-     * This property defaults to the max valid duration (7 days) from the signing instant.
+     * The duration for the request to be valid.
+     * This property defaults to the max valid duration (7 days).
      */
-    SignerProperty<Instant> EXPIRATION_INSTANT =
-        SignerProperty.create(Instant.class, "ExpirationInstant");
+    SignerProperty<Duration> EXPIRATION_DURATION =
+        SignerProperty.create(Duration.class, "ExpirationDuration");
 
     /**
      * The AWS region name to be used for computing the signature.

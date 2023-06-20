@@ -18,13 +18,14 @@ package software.amazon.awssdk.http.auth;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static software.amazon.awssdk.http.auth.AwsV4QueryHttpSigner.EXPIRATION_INSTANT;
+import static software.amazon.awssdk.http.auth.AwsV4QueryHttpSigner.EXPIRATION_DURATION;
 import static software.amazon.awssdk.http.auth.TestUtils.generateBasicAsyncRequest;
 import static software.amazon.awssdk.http.auth.TestUtils.generateBasicRequest;
 
-import java.time.Instant;
+import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.auth.internal.util.SignerConstant;
 import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
 import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
@@ -37,6 +38,8 @@ class AwsV4QueryHttpSignerTest {
 
     @Test
     public void sign_withBasicRequest_shouldSign() {
+        final String expectedAmzAlgorithm = "AWS4-HMAC-SHA256";
+        final String expectedAmznSignedHeaders = "host;x-amz-archive-description";
         final String expectedAmzSignature = "bf7ae1c2f266d347e290a2aee7b126d38b8a695149d003b9fab2ed1eb6d6ebda";
         final String expectedAmzCredentials = "access/19810216/us-east-1/demo/aws4_request";
         final String expectedAmzDateHeader = "19810216T063000Z";
@@ -49,6 +52,8 @@ class AwsV4QueryHttpSignerTest {
 
         SyncSignedRequest signedRequest = signer.sign(request);
 
+        assertEquals(expectedAmzAlgorithm, signedRequest.request().rawQueryParameters().get("X-Amz-Algorithm").get(0));
+        assertEquals(expectedAmznSignedHeaders, signedRequest.request().rawQueryParameters().get("X-Amz-SignedHeaders").get(0));
         assertEquals(expectedAmzSignature, signedRequest.request().rawQueryParameters().get("X-Amz-Signature").get(0));
         assertEquals(expectedAmzCredentials, signedRequest.request().rawQueryParameters().get("X-Amz-Credential").get(0));
         assertEquals(expectedAmzDateHeader, signedRequest.request().rawQueryParameters().get("X-Amz-Date").get(0));
@@ -60,7 +65,7 @@ class AwsV4QueryHttpSignerTest {
         SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             SdkHttpRequest.builder(),
             SyncSignRequest.builder(AwsCredentialsIdentity.create("access", "secret"))
-                .putProperty(EXPIRATION_INSTANT, Instant.MAX)
+                .putProperty(EXPIRATION_DURATION, SignerConstant.PRESIGN_URL_MAX_EXPIRATION_DURATION.plus(Duration.ofSeconds(1)))
         );
 
         RuntimeException exception = assertThrows(RuntimeException.class, () -> signer.sign(request));

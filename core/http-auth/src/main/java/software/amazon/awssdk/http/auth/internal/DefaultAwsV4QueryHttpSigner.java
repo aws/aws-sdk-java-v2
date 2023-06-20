@@ -18,6 +18,7 @@ package software.amazon.awssdk.http.auth.internal;
 import static software.amazon.awssdk.http.auth.internal.util.CredentialUtils.sanitizeCredentials;
 import static software.amazon.awssdk.http.auth.internal.util.HttpChecksumUtils.calculateContentHash;
 import static software.amazon.awssdk.http.auth.internal.util.SignerConstant.AWS4_SIGNING_ALGORITHM;
+import static software.amazon.awssdk.http.auth.internal.util.SignerConstant.PRESIGN_URL_MAX_EXPIRATION_DURATION;
 import static software.amazon.awssdk.http.auth.internal.util.SignerUtils.addHostHeader;
 import static software.amazon.awssdk.http.auth.internal.util.SignerUtils.buildScope;
 import static software.amazon.awssdk.http.auth.internal.util.SignerUtils.buildStringToSign;
@@ -28,6 +29,7 @@ import static software.amazon.awssdk.http.auth.internal.util.SignerUtils.formatD
 import static software.amazon.awssdk.http.auth.internal.util.SignerUtils.formatTimestamp;
 import static software.amazon.awssdk.http.auth.internal.util.SignerUtils.validatedProperty;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -76,8 +78,7 @@ public final class DefaultAwsV4QueryHttpSigner implements AwsV4QueryHttpSigner {
         SdkHttpRequest.Builder requestBuilder = request.request().toBuilder();
 
         Instant requestSigningInstant = validatedProperty(request, REQUEST_SIGNING_INSTANT);
-        Instant expirationInstant = validatedProperty(request, EXPIRATION_INSTANT,
-            requestSigningInstant.plusSeconds(SignerConstant.PRESIGN_URL_MAX_EXPIRATION_SECONDS));
+        Duration expirationDuration = validatedProperty(request, EXPIRATION_DURATION, PRESIGN_URL_MAX_EXPIRATION_DURATION);
         Boolean doubleUrlEncode = validatedProperty(request, DOUBLE_URL_ENCODE, true);
         Boolean normalizePath = validatedProperty(request, NORMALIZE_PATH, true);
         String formattedRequestSigningDate = formatDateStamp(requestSigningInstant);
@@ -86,7 +87,7 @@ public final class DefaultAwsV4QueryHttpSigner implements AwsV4QueryHttpSigner {
         String serviceSigningName = validatedProperty(request, SERVICE_SIGNING_NAME);
         String scope = buildScope(formattedRequestSigningDate, serviceSigningName, regionName);
 
-        long expirationInSeconds = getSignatureDurationInSeconds(requestSigningInstant, expirationInstant);
+        long expirationInSeconds = getSignatureDurationInSeconds(requestSigningInstant, expirationDuration);
 
         addHostHeader(requestBuilder);
 
@@ -101,6 +102,13 @@ public final class DefaultAwsV4QueryHttpSigner implements AwsV4QueryHttpSigner {
         CanonicalRequest canonicalRequest =
             createCanonicalRequest(request.request(), requestBuilder, contentHash, doubleUrlEncode,
                 normalizePath);
+
+        String signingCredentials = sanitizedCredentials.accessKeyId() + "/" + scope;
+        requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_ALGORITHM, SignerConstant.AWS4_SIGNING_ALGORITHM);
+        requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_DATE, formattedRequestSigningDateTime);
+        requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_SIGNED_HEADERS, canonicalRequest.signedHeaderString());
+        requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_EXPIRES, Long.toString(expirationInSeconds));
+        requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_CREDENTIAL, signingCredentials);
 
         String canonicalRequestString = canonicalRequest.string();
         String stringToSign = buildStringToSign(
@@ -119,12 +127,6 @@ public final class DefaultAwsV4QueryHttpSigner implements AwsV4QueryHttpSigner {
 
         byte[] signature = computeSignature(stringToSign, signingKey);
 
-        String signingCredentials = sanitizedCredentials.accessKeyId() + "/" + scope;
-        requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_ALGORITHM, SignerConstant.AWS4_SIGNING_ALGORITHM);
-        requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_DATE, formattedRequestSigningDateTime);
-        requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_SIGNED_HEADERS, canonicalRequest.signedHeaderString());
-        requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_EXPIRES, Long.toString(expirationInSeconds));
-        requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_CREDENTIAL, signingCredentials);
         requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_SIGNATURE, BinaryUtils.toHex(signature));
 
         return requestBuilder;
@@ -168,22 +170,20 @@ public final class DefaultAwsV4QueryHttpSigner implements AwsV4QueryHttpSigner {
     }
 
     /**
-     * Generates an expiration time for the presigned url. If user has specified
-     * an expiration time, check if it is in the given limit.
+     * Generates an expiration time, in seconds, for the presigned url. If user has specified
+     * an expiration duration, check if it is in the given limit.
      */
-    private long getSignatureDurationInSeconds(Instant requestSigningInstant, Instant expirationInstant) {
+    private long getSignatureDurationInSeconds(Instant requestSigningInstant, Duration expirationDuration) {
         if (requestSigningInstant == null) {
             throw new RuntimeException("The request signing instant must be specified!");
         }
 
-        long expirationInSeconds = expirationInstant.getEpochSecond() - requestSigningInstant.getEpochSecond();
-
-        if (expirationInSeconds > SignerConstant.PRESIGN_URL_MAX_EXPIRATION_SECONDS) {
-            throw new RuntimeException("Requests that are pre-signed by SigV4 algorithm are valid for at most 7" +
-                " days. The expiration date set on the current request [" +
-                formatTimestamp(Instant.ofEpochSecond(expirationInSeconds)) + "] +" +
+        if (expirationDuration.compareTo(SignerConstant.PRESIGN_URL_MAX_EXPIRATION_DURATION) > 0) {
+            throw new IllegalArgumentException("Requests that are pre-signed by SigV4 algorithm are valid for at most 7" +
+                " days. The expiration duration set on the current request [" + expirationDuration + "]" +
                 " has exceeded this limit.");
         }
-        return expirationInSeconds;
+
+        return expirationDuration.getSeconds();
     }
 }
