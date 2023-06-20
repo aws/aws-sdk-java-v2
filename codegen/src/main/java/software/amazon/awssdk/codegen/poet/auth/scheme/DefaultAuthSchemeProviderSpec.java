@@ -15,16 +15,26 @@
 
 package software.amazon.awssdk.codegen.poet.auth.scheme;
 
+import static software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeCodegenMetadata.SignerPropertyValueProvider;
+import static software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeCodegenMetadata.fromAuthType;
+
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
 
 public class DefaultAuthSchemeProviderSpec implements ClassSpec {
     private final AuthSchemeSpecUtils authSchemeSpecUtils;
@@ -71,13 +81,74 @@ public class DefaultAuthSchemeProviderSpec implements ClassSpec {
     }
 
     private MethodSpec resolveAuthSchemeMethod() {
-        return MethodSpec.methodBuilder("resolveAuthScheme")
-                         .addModifiers(Modifier.PUBLIC)
-                         .addAnnotation(Override.class)
-                         .returns(authSchemeSpecUtils.resolverReturnType())
-                         .addParameter(authSchemeSpecUtils.parametersInterfaceName(), "authSchemeParams")
-                         // TODO: make real implementation
-                         .addStatement("return new $T<>()", ArrayList.class)
-                         .build();
+        MethodSpec.Builder spec = MethodSpec.methodBuilder("resolveAuthScheme")
+                                            .addModifiers(Modifier.PUBLIC)
+                                            .addAnnotation(Override.class)
+                                            .returns(authSchemeSpecUtils.resolverReturnType())
+                                            .addParameter(authSchemeSpecUtils.parametersInterfaceName(), "params");
+
+        spec.addStatement("$T options = new $T<>()", ParameterizedTypeName.get(List.class, AuthSchemeOption.class),
+                          TypeName.get(ArrayList.class));
+
+        Map<List<String>, List<AuthType>> operationsToAuthType = authSchemeSpecUtils.operationsToAuthType();
+
+        // All the operations share the same set of auth schemes, no need to create a switch statement.
+        if (operationsToAuthType.size() == 1) {
+            List<AuthType> types = operationsToAuthType.get(Collections.emptyList());
+            for (AuthType authType : types) {
+                addAuthTypeProperties(spec, authType);
+            }
+            return spec.addStatement("return $T.unmodifiableList(options)", Collections.class)
+                       .build();
+        }
+        spec.beginControlFlow("switch(params.operation())");
+        operationsToAuthType.forEach((ops, schemes) -> {
+            if (!ops.isEmpty()) {
+                addCasesForOperations(spec, ops, schemes);
+            }
+        });
+        addCasesForOperations(spec, Collections.emptyList(), operationsToAuthType.get(Collections.emptyList()));
+        spec.endControlFlow();
+
+        return spec.addStatement("return $T.unmodifiableList(options)", Collections.class)
+                   .build();
     }
+
+    private void addCasesForOperations(MethodSpec.Builder spec, List<String> operations, List<AuthType> schemes) {
+        if (operations.isEmpty()) {
+            spec.addCode("default:");
+        } else {
+            for (String name : operations) {
+                spec.addCode("case $S:", name);
+            }
+        }
+        for (AuthType authType : schemes) {
+            addAuthTypeProperties(spec, authType);
+        }
+        spec.addStatement("break");
+    }
+
+    public void addAuthTypeProperties(MethodSpec.Builder spec, AuthType authType) {
+        AuthSchemeCodegenMetadata metadata = fromAuthType(authType);
+        if (metadata == null) {
+            return;
+        }
+        spec.addCode("options.add($T.builder().schemeId($S)",
+                     AuthSchemeOption.class, metadata.schemeId());
+        for (SignerPropertyValueProvider property : metadata.properties()) {
+            spec.addCode(".putSignerProperty($T.$N", property.containingClass(), property.fieldName());
+            switch (property.valueType()) {
+                case STRING:
+                    spec.addCode(", $S)", property.valueProvider().apply(authSchemeSpecUtils));
+                    break;
+                case EXPRESSION:
+                    spec.addCode(", $N)", property.valueProvider().apply(authSchemeSpecUtils));
+                    break;
+                default:
+                    throw new IllegalStateException("unknown type: " + property.valueType());
+            }
+        }
+        spec.addCode(".build());\n");
+    }
+
 }

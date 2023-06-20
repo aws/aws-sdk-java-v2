@@ -18,11 +18,16 @@ package software.amazon.awssdk.codegen.poet.auth.scheme;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.utils.AuthUtils;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
 
@@ -86,5 +91,56 @@ public final class AuthSchemeSpecUtils {
 
     public boolean includeParam(String name) {
         return allowedEndpointAuthSchemeParams.contains(name);
+    }
+
+    public String serviceName() {
+        return intermediateModel.getMetadata().getServiceName();
+    }
+
+    public String signingName() {
+        return intermediateModel.getMetadata().getSigningName();
+    }
+
+    public AuthType defaultAuthType() {
+        return intermediateModel.getMetadata().getAuthType();
+    }
+
+    public Map<List<String>, List<AuthType>> operationsToAuthType() {
+        Map<List<AuthType>, List<String>> authSchemes2Operations =
+            intermediateModel.getOperations()
+                             .entrySet()
+                             .stream()
+                             .filter(kvp -> !kvp.getValue().getAuth().isEmpty())
+                             .collect(Collectors.groupingBy(kvp -> kvp.getValue().getAuth(),
+                                                            Collectors.mapping(Map.Entry::getKey, Collectors.toList())));
+
+        Map<List<String>, List<AuthType>> result = new HashMap<>();
+        authSchemes2Operations.forEach((key, value) -> result.put(value, key));
+
+        Set<String> operationsWithSpecificAuth = authSchemes2Operations
+            .values().stream()
+            .flatMap(List::stream)
+            .collect(Collectors.toSet());
+
+        // All the operations have a specific auth scheme configured, we can result here without caring about the service
+        // defaults.
+        if (operationsWithSpecificAuth.size() == intermediateModel.getOperations().size()) {
+            return result;
+        }
+
+        List<AuthType> serviceDefaults;
+        if (intermediateModel.getMetadata().getAuth().isEmpty()) {
+            serviceDefaults = Arrays.asList(intermediateModel.getMetadata().getAuthType());
+        } else {
+            serviceDefaults =
+                intermediateModel.getMetadata().getAuth();
+        }
+
+        // Get the list of services that share the same auth schemes as the system defaults and remove it from the result. We
+        // will take care of all of these in the fallback `default` case.
+        List<String> operationsWithDefaults = authSchemes2Operations.remove(serviceDefaults);
+        result.remove(operationsWithDefaults);
+        result.put(Collections.emptyList(), serviceDefaults);
+        return result;
     }
 }

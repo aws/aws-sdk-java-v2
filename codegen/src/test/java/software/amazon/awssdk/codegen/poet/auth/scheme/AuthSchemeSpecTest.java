@@ -90,6 +90,13 @@ public class AuthSchemeSpecTest {
                     .classSpecProvider(DefaultAuthSchemeParamsSpec::new)
                     .caseName("query-endpoint-auth-params")
                     .outputFileSuffix("default-params")
+                    .build(),
+            // Granular auth
+            TestCase.builder()
+                    .modelProvider(ClientTestModels::granularAuthProvidersServiceModels)
+                    .classSpecProvider(DefaultAuthSchemeProviderSpec::new)
+                    .caseName("granular")
+                    .outputFileSuffix("default-provider")
                     .build()
         );
     }

@@ -17,9 +17,12 @@ package software.amazon.awssdk.codegen;
 
 import static software.amazon.awssdk.codegen.internal.Utils.unCapitalize;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 import software.amazon.awssdk.codegen.model.intermediate.ExceptionModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ReturnTypeModel;
@@ -166,6 +169,8 @@ final class AddOperations {
             operationModel.setHttpChecksumRequired(op.isHttpChecksumRequired());
             operationModel.setHttpChecksum(op.getHttpChecksum());
             operationModel.setStaticContextParams(op.getStaticContextParams());
+            operationModel.setAuth(Optional.ofNullable(op.getAuth()).orElse(Collections.emptyList())
+                                           .stream().map(AuthType::fromValue).collect(Collectors.toList()));
 
             Input input = op.getInput();
             if (input != null) {
