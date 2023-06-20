@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.s3.internal.crossregion;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static software.amazon.awssdk.services.s3.internal.crossregion.S3DecoratorRedirectTestBase.CHANGED_CROSS_REGION;
 import static software.amazon.awssdk.services.s3.internal.crossregion.S3DecoratorRedirectTestBase.CROSS_REGION;
 import static software.amazon.awssdk.services.s3.internal.crossregion.S3DecoratorRedirectTestBase.OVERRIDE_CONFIGURED_REGION;
 import static software.amazon.awssdk.services.s3.internal.crossregion.S3DecoratorRedirectTestBase.X_AMZ_BUCKET_REGION;
@@ -52,6 +53,7 @@ import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClientBuilder;
+import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.endpoints.internal.DefaultS3EndpointProvider;
 import software.amazon.awssdk.services.s3.internal.crossregion.endpointprovider.BucketEndpointProvider;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -69,12 +71,13 @@ class S3CrossRegionAsyncClientTest {
     private static final String BUCKET = "bucket";
     private static final String KEY = "key";
     private static final String TOKEN = "token";
-    private final MockAsyncHttpClient mockAsyncHttpClient = new MockAsyncHttpClient();
+    private MockAsyncHttpClient mockAsyncHttpClient ;
     private CaptureInterceptor captureInterceptor;
     private S3AsyncClient s3Client;
 
     @BeforeEach
     void before() {
+        mockAsyncHttpClient = new MockAsyncHttpClient();
         captureInterceptor = new CaptureInterceptor();
         s3Client = clientBuilder().build();
     }
@@ -247,6 +250,69 @@ class S3CrossRegionAsyncClientTest {
         completableFuture.cancel(true);
         assertThat(completableFuture.isCancelled()).isTrue();
     }
+
+    @Test
+    void crossRegionClient_when_redirectsAfterCaching() {
+        mockAsyncHttpClient.stubResponses(customHttpResponse(301,  CROSS_REGION ),
+                                         successHttpResponse(),
+                                         successHttpResponse(),
+                                         customHttpResponse(301,  CHANGED_CROSS_REGION),
+                                         successHttpResponse());
+        S3AsyncClient crossRegionClient =
+            clientBuilder().endpointOverride(null).region(OVERRIDE_CONFIGURED_REGION).serviceConfiguration(c -> c.crossRegionAccessEnabled(true)).build();
+        crossRegionClient.getObject(r -> r.bucket(BUCKET).key(KEY), AsyncResponseTransformer.toBytes()).join();
+        crossRegionClient.getObject(r -> r.bucket(BUCKET).key(KEY), AsyncResponseTransformer.toBytes()).join();
+        crossRegionClient.getObject(r -> r.bucket(BUCKET).key(KEY), AsyncResponseTransformer.toBytes()).join();
+
+        assertThat(captureInterceptor.endpointProvider).isInstanceOf(BucketEndpointProvider.class);
+
+        List<SdkHttpRequest> requests = mockAsyncHttpClient.getRequests();
+        assertThat(requests).hasSize(5);
+
+        assertThat(requests.stream().map(req -> req.host().substring(10,req.host().length() - 14 )).collect(Collectors.toList()))
+            .isEqualTo(Arrays.asList(OVERRIDE_CONFIGURED_REGION.toString(),
+                                     CROSS_REGION.toString(),
+                                     CROSS_REGION.toString(),
+                                     CROSS_REGION.toString(),
+                                     CHANGED_CROSS_REGION.toString()));
+
+        assertThat(requests.stream().map(req -> req.method()).collect(Collectors.toList()))
+            .isEqualTo(Arrays.asList(SdkHttpMethod.GET,SdkHttpMethod.GET,SdkHttpMethod.GET,SdkHttpMethod.GET,SdkHttpMethod.GET));
+    }
+
+    @Test
+    void crossRegionClient_when_redirectsAfterCaching_withFallBackRedirectWithNoRegion() {
+        mockAsyncHttpClient.stubResponses(customHttpResponse(301,  null ),
+                                         customHttpResponse(301,  CROSS_REGION ),
+                                         successHttpResponse(),
+                                         successHttpResponse(),
+                                         customHttpResponse(301,  null),
+                                         customHttpResponse(301,  CHANGED_CROSS_REGION),
+                                         successHttpResponse());
+        S3AsyncClient crossRegionClient =
+            clientBuilder().endpointOverride(null).region(OVERRIDE_CONFIGURED_REGION).serviceConfiguration(c -> c.crossRegionAccessEnabled(true)).build();
+        crossRegionClient.getObject(r -> r.bucket(BUCKET).key(KEY), AsyncResponseTransformer.toBytes()).join();
+        crossRegionClient.getObject(r -> r.bucket(BUCKET).key(KEY), AsyncResponseTransformer.toBytes()).join();
+        crossRegionClient.getObject(r -> r.bucket(BUCKET).key(KEY), AsyncResponseTransformer.toBytes()).join();
+
+        assertThat(captureInterceptor.endpointProvider).isInstanceOf(BucketEndpointProvider.class);
+
+        List<SdkHttpRequest> requests = mockAsyncHttpClient.getRequests();
+        assertThat(requests).hasSize(7);
+
+        assertThat(requests.stream().map(req -> req.host().substring(10,req.host().length() - 14 )).collect(Collectors.toList()))
+            .isEqualTo(Arrays.asList(
+                OVERRIDE_CONFIGURED_REGION.toString(), OVERRIDE_CONFIGURED_REGION.toString(), CROSS_REGION.toString(),
+                CROSS_REGION.toString(),
+                CROSS_REGION.toString(), OVERRIDE_CONFIGURED_REGION.toString(),
+                CHANGED_CROSS_REGION.toString()));
+
+        assertThat(requests.stream().map(req -> req.method()).collect(Collectors.toList()))
+            .isEqualTo(Arrays.asList(SdkHttpMethod.GET, SdkHttpMethod.HEAD, SdkHttpMethod.GET,
+                                     SdkHttpMethod.GET,
+                                     SdkHttpMethod.GET, SdkHttpMethod.HEAD, SdkHttpMethod.GET));
+    }
+
 
     @Test
     void standardOp_crossRegionClient_containUserAgent() {
