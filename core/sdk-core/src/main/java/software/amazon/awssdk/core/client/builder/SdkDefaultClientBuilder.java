@@ -87,6 +87,7 @@ import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.auth.spi.IdentityProviderConfiguration;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSupplier;
@@ -123,9 +124,6 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     protected final SdkClientConfiguration.Builder clientConfiguration = SdkClientConfiguration.builder();
 
     protected final AttributeMap.Builder clientContextParams = AttributeMap.builder();
-
-    protected final IdentityProviderConfiguration.Builder identityProviderConfigurationBuilder =
-        IdentityProviderConfiguration.builder();
 
     private final SdkHttpClient.Builder defaultHttpClientBuilder;
     private final SdkAsyncHttpClient.Builder defaultAsyncHttpClientBuilder;
@@ -282,7 +280,9 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
                                          .option(PROFILE_NAME, ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow())
                                          .option(USER_AGENT_PREFIX, SdkUserAgent.create().userAgent())
                                          .option(USER_AGENT_SUFFIX, "")
-                                         .option(CRC32_FROM_COMPRESSED_DATA_ENABLED, false));
+                                         .option(CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
+                                         .option(IDENTITY_PROVIDER_CONFIGURATION,
+                                                 IdentityProviderConfiguration.builder().build()));
     }
 
     /**
@@ -324,8 +324,24 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
                      .option(EXECUTION_INTERCEPTORS, resolveExecutionInterceptors(config))
                      .option(RETRY_POLICY, retryPolicy)
                      .option(CLIENT_USER_AGENT, resolveClientUserAgent(config, retryPolicy))
-                     // review TODO: is finalizeConfiguration the right place for this? is this considered "global configuration"
-                     .option(IDENTITY_PROVIDER_CONFIGURATION, identityProviderConfigurationBuilder.build())
+                     .build();
+    }
+
+    /**
+     * Add an IdentityProvider to the IdentityProviders configured for the client.
+     */
+    protected IdentityProviderConfiguration updateIdentityProviderConfiguration(SdkClientConfiguration config,
+                                                                                IdentityProvider<?> identityProvider) {
+        // Currently it is not possible for identityProvider to be null as default provider is used while building the client if
+        // the clientConfig is null. However, we do want to support ability to unset a identity provider later.
+        // Moreover, putIdentityProvider will throw NPE on null, so adding the null check here. Also, validateClientOptions
+        // currently asserts it is not null, which will have to change when we allow unsetting default identity provider.
+        if (identityProvider == null) {
+            return config.option(IDENTITY_PROVIDER_CONFIGURATION);
+        }
+        return config.option(IDENTITY_PROVIDER_CONFIGURATION)
+                     .toBuilder()
+                     .putIdentityProvider(identityProvider)
                      .build();
     }
 

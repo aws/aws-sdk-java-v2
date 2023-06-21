@@ -71,17 +71,6 @@ abstract class DefaultCodeCatalystBaseClientBuilder<B extends CodeCatalystBaseCl
 
     @Override
     protected final SdkClientConfiguration finalizeServiceConfiguration(SdkClientConfiguration config) {
-        IdentityProvider<? extends TokenIdentity> identityProvider = config.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER);
-        // TODO: Does anything have the opportunity to change this clientOption after here?
-        // add the TokenIdentity IdentityProvider to the IdentityProviders configured for the client
-        if (identityProvider != null) {
-            // TODO: is it guaranteed to never be null here, because of defaultTokenProvider in mergeServiceDefaults
-            // validateClientOptions asserts it is not null, but that runs after this here.
-            // Maybe it is ok to just have the null check here, so in case it is null, it is not added to
-            // identityProviderConfigurationBuilder here, but it will fail in validateClientOptions anyways.
-            identityProviderConfigurationBuilder.putIdentityProvider(identityProvider);
-        }
-
         List<ExecutionInterceptor> endpointInterceptors = new ArrayList<>();
         endpointInterceptors.add(new CodeCatalystAuthSchemeInterceptor());
         endpointInterceptors.add(new CodeCatalystResolveEndpointInterceptor());
@@ -94,7 +83,12 @@ abstract class DefaultCodeCatalystBaseClientBuilder<B extends CodeCatalystBaseCl
         interceptors = CollectionUtils.mergeLists(endpointInterceptors, interceptors);
         interceptors = CollectionUtils.mergeLists(interceptors, additionalInterceptors);
         interceptors = CollectionUtils.mergeLists(interceptors, config.option(SdkClientOption.EXECUTION_INTERCEPTORS));
-        return config.toBuilder().option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors).build();
+
+        return config.toBuilder()
+                     .option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors)
+                     .option(SdkClientOption.IDENTITY_PROVIDER_CONFIGURATION,
+                             updateIdentityProviderConfiguration(config, config.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER)))
+                     .build();
     }
 
     @Override
