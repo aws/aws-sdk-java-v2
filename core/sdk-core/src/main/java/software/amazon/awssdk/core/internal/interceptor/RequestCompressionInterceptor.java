@@ -59,11 +59,12 @@ public class RequestCompressionInterceptor implements ExecutionInterceptor {
         if (!shouldCompress(context, executionAttributes)) {
             return context.httpRequest();
         }
-        if (executionAttributes.getAttribute(SdkInternalExecutionAttribute.REQUEST_COMPRESSION).isStreaming()) {
-            return updateContentEncodingHeader(context.httpRequest(), executionAttributes);
-        }
 
         Compressor compressor = resolveCompressionType(executionAttributes);
+        if (executionAttributes.getAttribute(SdkInternalExecutionAttribute.REQUEST_COMPRESSION).isStreaming()) {
+            return updateContentEncodingHeader(context.httpRequest(), compressor);
+        }
+
         SdkHttpFullRequest sdkHttpFullRequest = (SdkHttpFullRequest) context.httpRequest();
         try {
             InputStream inputStream = sdkHttpFullRequest.contentStreamProvider().get().newStream();
@@ -72,7 +73,7 @@ public class RequestCompressionInterceptor implements ExecutionInterceptor {
                 sdkHttpFullRequest.toBuilder()
                                   .contentStreamProvider(() -> new ByteArrayInputStream(compressedBytes))
                                   .build();
-            sdkHttpRequest = updateContentEncodingHeader(sdkHttpRequest, executionAttributes);
+            sdkHttpRequest = updateContentEncodingHeader(sdkHttpRequest, compressor);
             return updateContentLengthHeader(sdkHttpRequest);
         } catch (IOException e) {
             throw SdkClientException.create(e.getMessage(), e);
@@ -126,9 +127,7 @@ public class RequestCompressionInterceptor implements ExecutionInterceptor {
         return isRequestSizeWithinThreshold(context, executionAttributes);
     }
 
-    private static SdkHttpRequest updateContentEncodingHeader(SdkHttpRequest sdkHttpRequest,
-                                                             ExecutionAttributes executionAttributes) {
-        Compressor compressor = resolveCompressionType(executionAttributes);
+    private static SdkHttpRequest updateContentEncodingHeader(SdkHttpRequest sdkHttpRequest, Compressor compressor) {
         if (sdkHttpRequest.firstMatchingHeader("Content-encoding").isPresent()) {
             return sdkHttpRequest.copy(r -> r.appendHeader("Content-encoding", compressor.contentType()));
         }
