@@ -126,6 +126,30 @@ public class ProxyWireMockTest {
         assertThat(responseHandler.fullResponseAsString()).isEqualTo("hello");
     }
 
+    @Test
+    public void proxyConfigured_hostInNonProxySet_nonBlockingDns_doesNotConnect() {
+        RecordingResponseHandler responseHandler = new RecordingResponseHandler();
+        AsyncExecuteRequest req = AsyncExecuteRequest.builder()
+                                                     .request(testSdkRequest())
+                                                     .responseHandler(responseHandler)
+                                                     .requestContentPublisher(new EmptyPublisher())
+                                                     .build();
+
+        ProxyConfiguration cfg = proxyCfg.toBuilder()
+                                         .nonProxyHosts(Stream.of("localhost").collect(Collectors.toSet()))
+                                         .build();
+
+        client = NettyNioAsyncHttpClient.builder()
+                                        .proxyConfiguration(cfg)
+                                        .useNonBlockingDnsResolver(true)
+                                        .build();
+
+        client.execute(req).join();
+
+        responseHandler.completeFuture.join();
+        assertThat(responseHandler.fullResponseAsString()).isEqualTo("hello");
+    }
+
     private SdkHttpFullRequest testSdkRequest() {
         return SdkHttpFullRequest.builder()
                 .method(SdkHttpMethod.GET)

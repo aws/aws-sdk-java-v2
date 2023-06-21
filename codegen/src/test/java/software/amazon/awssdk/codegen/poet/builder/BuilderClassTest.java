@@ -59,6 +59,16 @@ public class BuilderClassTest {
     }
 
     @Test
+    public void syncQueryClientBuilderClass() throws Exception {
+        validateQueryGeneration(SyncClientBuilderClass::new, "test-query-sync-client-builder-class.java");
+    }
+
+    @Test
+    public void asyncQueryClientBuilderClass() throws Exception {
+        validateQueryGeneration(AsyncClientBuilderClass::new, "test-query-async-client-builder-class.java");
+    }
+
+    @Test
     public void syncClientBuilderInterface() throws Exception {
         validateGeneration(SyncClientBuilderInterface::new, "test-sync-client-builder-interface.java");
     }
