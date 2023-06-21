@@ -24,20 +24,22 @@ import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.compression.Compressor;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.utils.IoUtils;
 
 @SdkInternalApi
-public class GzipCompressor implements Compressor {
+public final class GzipCompressor implements Compressor {
 
-    private static final String CONTENT_TYPE = "gzip";
+    private static final String COMPRESSOR_TYPE = "gzip";
 
     @Override
-    public String contentType() {
-        return CONTENT_TYPE;
+    public String compressorType() {
+        return COMPRESSOR_TYPE;
     }
 
     @Override
-    public byte[] compress(byte[] content) {
+    public byte[] compress(InputStream inputStream) {
         try {
+            byte[] content = IoUtils.toByteArray(inputStream);
             ByteArrayOutputStream compressedOutputStream = new ByteArrayOutputStream();
             GZIPOutputStream gzipOutputStream = new GZIPOutputStream(compressedOutputStream);
             gzipOutputStream.write(content);
@@ -50,13 +52,7 @@ public class GzipCompressor implements Compressor {
     }
 
     @Override
-    public InputStream compressSyncStream(InputStream inputStream) {
-        //TODO
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Publisher<ByteBuffer> compressAsyncStream(InputStream inputStream) {
+    public Publisher<ByteBuffer> compressAsyncStream(Publisher<ByteBuffer> publisher) {
         //TODO
         throw new UnsupportedOperationException();
     }

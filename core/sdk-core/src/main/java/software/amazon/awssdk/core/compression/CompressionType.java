@@ -19,7 +19,6 @@ import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.internal.compression.GzipCompressor;
 import software.amazon.awssdk.utils.internal.EnumUtils;
 
 /**
@@ -40,20 +39,6 @@ public enum CompressionType {
 
     CompressionType(String value) {
         this.value = value;
-    }
-
-    /**
-     * Maps the {@link CompressionType} to its corresponding {@link Compressor}.
-     * TODO: Update mappings here when additional compressors are supported in the future
-     */
-    public Compressor compressor() {
-        if (value == null) {
-            return null;
-        }
-        if (value.equals("gzip")) {
-            return new GzipCompressor();
-        }
-        return null;
     }
 
     @Override

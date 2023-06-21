@@ -66,18 +66,14 @@ public class RequestCompressionInterceptor implements ExecutionInterceptor {
         }
 
         SdkHttpFullRequest sdkHttpFullRequest = (SdkHttpFullRequest) context.httpRequest();
-        try {
-            InputStream inputStream = sdkHttpFullRequest.contentStreamProvider().get().newStream();
-            byte[] compressedBytes = compressor.compress(IoUtils.toByteArray(inputStream));
-            SdkHttpRequest sdkHttpRequest =
-                sdkHttpFullRequest.toBuilder()
-                                  .contentStreamProvider(() -> new ByteArrayInputStream(compressedBytes))
-                                  .build();
-            sdkHttpRequest = updateContentEncodingHeader(sdkHttpRequest, compressor);
-            return updateContentLengthHeader(sdkHttpRequest);
-        } catch (IOException e) {
-            throw SdkClientException.create(e.getMessage(), e);
-        }
+        InputStream inputStream = sdkHttpFullRequest.contentStreamProvider().get().newStream();
+        byte[] compressedBytes = compressor.compress(inputStream);
+        SdkHttpRequest sdkHttpRequest =
+            sdkHttpFullRequest.toBuilder()
+                              .contentStreamProvider(() -> new ByteArrayInputStream(compressedBytes))
+                              .build();
+        sdkHttpRequest = updateContentEncodingHeader(sdkHttpRequest, compressor);
+        return updateContentLengthHeader(sdkHttpRequest);
     }
 
     @Override
@@ -86,11 +82,10 @@ public class RequestCompressionInterceptor implements ExecutionInterceptor {
             return context.requestBody();
         }
 
-        RequestBody requestBody = context.requestBody().get();
         Compressor compressor = resolveCompressionType(executionAttributes);
-
-        // TODO - Sync streaming compression implementation
-        throw new UnsupportedOperationException();
+        InputStream inputStream = context.requestBody().get().contentStreamProvider().newStream();
+        byte[] compressedBytes = compressor.compress(inputStream);
+        return Optional.of(RequestBody.fromBytes(compressedBytes));
     }
 
     @Override
@@ -129,10 +124,10 @@ public class RequestCompressionInterceptor implements ExecutionInterceptor {
 
     private static SdkHttpRequest updateContentEncodingHeader(SdkHttpRequest sdkHttpRequest, Compressor compressor) {
         if (sdkHttpRequest.firstMatchingHeader("Content-encoding").isPresent()) {
-            return sdkHttpRequest.copy(r -> r.appendHeader("Content-encoding", compressor.contentType()));
+            return sdkHttpRequest.copy(r -> r.appendHeader("Content-encoding", compressor.compressorType()));
         }
 
-        return sdkHttpRequest.copy(r -> r.putHeader("Content-encoding", compressor.contentType()));
+        return sdkHttpRequest.copy(r -> r.putHeader("Content-encoding", compressor.compressorType()));
     }
 
     private static SdkHttpRequest updateContentLengthHeader(SdkHttpRequest sdkHttpRequest) {
@@ -156,7 +151,7 @@ public class RequestCompressionInterceptor implements ExecutionInterceptor {
             if (compressionType == CompressionType.UNKNOWN_TO_SDK_VERSION) {
                 continue;
             }
-            return compressionType.compressor();
+            return Compressor.forCompressorType(compressionType);
         }
         return null;
     }

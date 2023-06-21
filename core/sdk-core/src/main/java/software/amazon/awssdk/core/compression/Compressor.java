@@ -15,11 +15,11 @@
 
 package software.amazon.awssdk.core.compression;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.internal.compression.GzipCompressor;
 import software.amazon.awssdk.core.internal.interceptor.RequestCompressionInterceptor;
 
 /**
@@ -28,23 +28,31 @@ import software.amazon.awssdk.core.internal.interceptor.RequestCompressionInterc
 @SdkPublicApi
 public interface Compressor {
 
-    /*
+    /**
      * The compression algorithm type.
      */
-    String contentType();
+    String compressorType();
 
-    /*
+    /**
      * Compress content of fixed length.
      */
-    byte[] compress(byte[] content);
+    byte[] compress(InputStream inputStream);
 
-    /*
-     * Compress a sync stream.
-     */
-    InputStream compressSyncStream(InputStream inputStream) throws IOException;
-
-    /*
+    /**
      * Compress an async stream.
      */
-    Publisher<ByteBuffer> compressAsyncStream(InputStream inputStream);
+    Publisher<ByteBuffer> compressAsyncStream(Publisher<ByteBuffer> publisher);
+
+    /**
+     * Maps the {@link CompressionType} to its corresponding {@link Compressor}.
+     * TODO: Update mappings here when additional compressors are supported in the future
+     */
+    static Compressor forCompressorType(CompressionType compressionType) {
+        switch (compressionType) {
+            case GZIP:
+                return new GzipCompressor();
+            default:
+                return null;
+        }
+    }
 }
