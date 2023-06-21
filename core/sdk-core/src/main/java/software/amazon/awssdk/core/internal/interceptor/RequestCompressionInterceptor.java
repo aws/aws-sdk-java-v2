@@ -164,7 +164,7 @@ public class RequestCompressionInterceptor implements ExecutionInterceptor {
     private static boolean resolveRequestCompressionEnabled(Context.ModifyHttpRequest context,
                                                             ExecutionAttributes executionAttributes) {
 
-        if (context.request().overrideConfiguration().get().requestCompressionConfiguration() != null
+        if (context.request().overrideConfiguration().isPresent()
             && context.request().overrideConfiguration().get().requestCompressionConfiguration().isPresent()) {
             Boolean requestCompressionEnabled = context.request().overrideConfiguration().get()
                                                        .requestCompressionConfiguration().get()
