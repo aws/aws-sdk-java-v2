@@ -145,7 +145,6 @@ public final class AwsExecutionContextBuilder {
     private static void putAuthSchemeResolutionAttributes(ExecutionAttributes executionAttributes,
                                                           SdkClientConfiguration clientConfig) {
 
-        // review TODO: should this be client v/s advanced option?
         // TODO: When request-level auth scheme resovler is added, use the request-level auth scheme resolver if the customer
         //  specified an override, otherwise fall back to the one on the client.
         AuthSchemeProvider authSchemeProvider = clientConfig.option(SdkClientOption.AUTH_SCHEME_PROVIDER);
@@ -162,7 +161,6 @@ public final class AwsExecutionContextBuilder {
         Map<String, AuthScheme<?>> authSchemes = clientConfig.option(SdkClientOption.AUTH_SCHEMES);
 
         // TODO: If request level identity provider is specified, it should override.
-        // review TODO: IDENTITY_PROVIDERS or IDENTITY_PROVIDER_CONFIGURATION
         IdentityProviderConfiguration identityProviders = clientConfig.option(SdkClientOption.IDENTITY_PROVIDER_CONFIGURATION);
 
         executionAttributes

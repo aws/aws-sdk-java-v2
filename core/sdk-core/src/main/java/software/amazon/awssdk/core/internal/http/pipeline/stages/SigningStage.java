@@ -83,13 +83,6 @@ public class SigningStage implements RequestToRequestPipeline {
         IdentityProvider<T> identityProvider = selectedAuthScheme.identityProvider();
         T identity = identityProvider.resolveIdentity(identityRequestBuilder.build()).join();
 
-        // TODO: resolveIdentity(Consumer builder) doesn't get used
-
-        // Consumer<ResolveIdentityRequest.Builder> c = r -> r.putProperty(IdentityProperty.create(String.class, "key"), "value");
-        // identityProvider.resolveIdentity(c);
-        // TODO: Consumer Builder is not working because of ambiguity!!
-        // identityProvider.resolveIdentity(r -> r.putProperty(IdentityProperty.create(String.class, "key"), "value"));
-
         SyncSignRequest.Builder<T> signRequestBuilder = SyncSignRequest
             .builder(identity)
             .request(request)
@@ -98,23 +91,11 @@ public class SigningStage implements RequestToRequestPipeline {
 
         HttpSigner<T> signer = selectedAuthScheme.signer();
         SyncSignedRequest signedRequest = signer.sign(signRequestBuilder.build());
-
-        // TODO: sign(Consumer builder) doesn't get used
-        // SyncSignedRequest signedRequest =
-        //     signer.sign(r -> r.identity(identity)
-        //                       .request(request)
-        //                       .payload(request.contentStreamProvider().orElse(null))
-        //                       .putProperty(SignerProperty.create(String.class, "key"), "value"));
-
         return toSdkHttpFullRequest(signedRequest);
     }
 
     private SdkHttpFullRequest toSdkHttpFullRequest(SyncSignedRequest signedRequest) {
         SdkHttpRequest request = signedRequest.request();
-        // TODO: take the SdkHttpRequest and create SdkHttpFullRequest from it
-
-        // TODO: Copy from DefaultS3Presigner
-        // TODO: use .uri(request.getUri()) to get everything except headers?
         return SdkHttpFullRequest.builder()
                                  .contentStreamProvider(signedRequest.payload().orElse(null))
                                  .protocol(request.protocol())
@@ -122,7 +103,6 @@ public class SigningStage implements RequestToRequestPipeline {
                                  .host(request.host())
                                  .port(request.port())
                                  .encodedPath(request.encodedPath())
-                                 // .uri(request.getUri())
                                  .applyMutation(r -> request.forEachHeader(r::putHeader))
                                  .applyMutation(r -> request.forEachRawQueryParameter(r::putRawQueryParameter))
                                  .build();
