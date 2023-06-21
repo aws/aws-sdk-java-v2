@@ -74,7 +74,7 @@ public class CreateTableOperation<T> implements TableOperation<T, CreateTableReq
         List<software.amazon.awssdk.services.dynamodb.model.GlobalSecondaryIndex> sdkGlobalSecondaryIndices = null;
         List<software.amazon.awssdk.services.dynamodb.model.LocalSecondaryIndex> sdkLocalSecondaryIndices = null;
 
-        if (this.request.globalSecondaryIndices() != null) {
+        if (this.request.globalSecondaryIndices() != null && !this.request.globalSecondaryIndices().isEmpty()) {
             sdkGlobalSecondaryIndices =
                 this.request.globalSecondaryIndices().stream().map(gsi -> {
                     String indexPartitionKey = tableSchema.tableMetadata().indexPartitionKey(gsi.indexName());
@@ -92,7 +92,7 @@ public class CreateTableOperation<T> implements TableOperation<T, CreateTableReq
                 }).collect(Collectors.toList());
         }
 
-        if (this.request.localSecondaryIndices() != null) {
+        if (this.request.localSecondaryIndices() != null && !this.request.localSecondaryIndices().isEmpty()) {
             sdkLocalSecondaryIndices =
                 this.request.localSecondaryIndices().stream().map(lsi -> {
                     Optional<String> indexSortKey = tableSchema.tableMetadata().indexSortKey(lsi.indexName());

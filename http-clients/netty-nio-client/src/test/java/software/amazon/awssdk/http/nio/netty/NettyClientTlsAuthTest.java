@@ -39,6 +39,7 @@ import org.junit.rules.ExpectedException;
 import software.amazon.awssdk.http.EmptyPublisher;
 import software.amazon.awssdk.http.FileStoreTlsKeyManagersProvider;
 import software.amazon.awssdk.http.HttpTestUtils;
+import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.TlsKeyManagersProvider;
@@ -183,6 +184,24 @@ public class NettyClientTlsAuthTest extends ClientTlsAuthTestBase {
             .isInstanceOf(CompletionException.class)
             .hasMessageContaining("SSL")
             .hasRootCauseInstanceOf(SSLException.class);
+    }
+
+    @Test
+    public void builderUsesProvidedKeyManagersProviderNonBlockingDns() {
+        TlsKeyManagersProvider mockKeyManagersProvider = mock(TlsKeyManagersProvider.class);
+        netty = NettyNioAsyncHttpClient.builder()
+                                       .useNonBlockingDnsResolver(true)
+                                       .proxyConfiguration(proxyCfg)
+                                       .tlsKeyManagersProvider(mockKeyManagersProvider)
+                                       .buildWithDefaults(AttributeMap.builder()
+                                                                      .put(TRUST_ALL_CERTIFICATES, true)
+                                                                      .build());
+
+        try {
+            sendRequest(netty, new RecordingResponseHandler());
+        } catch (Exception ignored) {
+        }
+        verify(mockKeyManagersProvider).keyManagers();
     }
 
     private void sendRequest(SdkAsyncHttpClient client, SdkAsyncHttpResponseHandler responseHandler) {

@@ -19,11 +19,13 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFactory;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.DatagramChannel;
+import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import java.util.Optional;
 import java.util.concurrent.ThreadFactory;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.http.nio.netty.internal.utils.SocketChannelResolver;
+import software.amazon.awssdk.http.nio.netty.internal.utils.ChannelResolver;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 import software.amazon.awssdk.utils.Validate;
 
@@ -39,7 +41,8 @@ import software.amazon.awssdk.utils.Validate;
  *
  * <li>Using {@link #create(EventLoopGroup)} to provide a custom {@link EventLoopGroup}. {@link ChannelFactory} will
  * be resolved based on the type of {@link EventLoopGroup} provided via
- * {@link SocketChannelResolver#resolveSocketChannelFactory(EventLoopGroup)}
+ * {@link ChannelResolver#resolveSocketChannelFactory(EventLoopGroup)} and
+ * {@link ChannelResolver#resolveDatagramChannelFactory(EventLoopGroup)}
  * </li>
  *
  * <li>Using {@link #create(EventLoopGroup, ChannelFactory)} to provide a custom {@link EventLoopGroup} and
@@ -63,12 +66,14 @@ public final class SdkEventLoopGroup {
 
     private final EventLoopGroup eventLoopGroup;
     private final ChannelFactory<? extends Channel> channelFactory;
+    private final ChannelFactory<? extends DatagramChannel> datagramChannelFactory;
 
     SdkEventLoopGroup(EventLoopGroup eventLoopGroup, ChannelFactory<? extends Channel> channelFactory) {
         Validate.paramNotNull(eventLoopGroup, "eventLoopGroup");
         Validate.paramNotNull(channelFactory, "channelFactory");
         this.eventLoopGroup = eventLoopGroup;
         this.channelFactory = channelFactory;
+        this.datagramChannelFactory = ChannelResolver.resolveDatagramChannelFactory(eventLoopGroup);
     }
 
     /**
@@ -76,7 +81,8 @@ public final class SdkEventLoopGroup {
      */
     private SdkEventLoopGroup(DefaultBuilder builder) {
         this.eventLoopGroup = resolveEventLoopGroup(builder);
-        this.channelFactory = resolveChannelFactory();
+        this.channelFactory = resolveSocketChannelFactory(builder);
+        this.datagramChannelFactory = resolveDatagramChannelFactory(builder);
     }
 
     /**
@@ -91,6 +97,13 @@ public final class SdkEventLoopGroup {
      */
     public ChannelFactory<? extends Channel> channelFactory() {
         return channelFactory;
+    }
+
+    /**
+     * @return the {@link ChannelFactory} for datagram channels to be used with Netty Http Client.
+     */
+    public ChannelFactory<? extends DatagramChannel> datagramChannelFactory() {
+        return datagramChannelFactory;
     }
 
     /**
@@ -116,7 +129,7 @@ public final class SdkEventLoopGroup {
      * @return a new instance of SdkEventLoopGroup
      */
     public static SdkEventLoopGroup create(EventLoopGroup eventLoopGroup) {
-        return create(eventLoopGroup, SocketChannelResolver.resolveSocketChannelFactory(eventLoopGroup));
+        return create(eventLoopGroup, ChannelResolver.resolveSocketChannelFactory(eventLoopGroup));
     }
 
     public static Builder builder() {
@@ -141,9 +154,20 @@ public final class SdkEventLoopGroup {
         }*/
     }
 
-    private ChannelFactory<? extends Channel> resolveChannelFactory() {
-        // Currently we only support NioEventLoopGroup
+    private ChannelFactory<? extends Channel> resolveSocketChannelFactory(DefaultBuilder builder) {
+        return builder.channelFactory;
+    }
+
+    private ChannelFactory<? extends DatagramChannel> resolveDatagramChannelFactory(DefaultBuilder builder) {
+        return builder.datagramChannelFactory;
+    }
+
+    private static ChannelFactory<? extends Channel> defaultSocketChannelFactory() {
         return NioSocketChannel::new;
+    }
+
+    private static ChannelFactory<? extends DatagramChannel> defaultDatagramChannelFactory() {
+        return NioDatagramChannel::new;
     }
 
     /**
@@ -172,6 +196,24 @@ public final class SdkEventLoopGroup {
          */
         Builder threadFactory(ThreadFactory threadFactory);
 
+        /**
+         * {@link ChannelFactory} to create socket channels used by the {@link EventLoopGroup}. If not set,
+         * NioSocketChannel is used.
+         *
+         * @param channelFactory ChannelFactory to use.
+         * @return This builder for method chaining.
+         */
+        Builder channelFactory(ChannelFactory<? extends Channel> channelFactory);
+
+        /**
+         * {@link ChannelFactory} to create datagram channels used by the {@link EventLoopGroup}. If not set,
+         * NioDatagramChannel is used.
+         *
+         * @param datagramChannelFactory ChannelFactory to use.
+         * @return This builder for method chaining.
+         */
+        Builder datagramChannelFactory(ChannelFactory<? extends DatagramChannel> datagramChannelFactory);
+
         SdkEventLoopGroup build();
     }
 
@@ -179,6 +221,8 @@ public final class SdkEventLoopGroup {
 
         private Integer numberOfThreads;
         private ThreadFactory threadFactory;
+        private ChannelFactory<? extends Channel> channelFactory = defaultSocketChannelFactory();
+        private ChannelFactory<? extends DatagramChannel> datagramChannelFactory = defaultDatagramChannelFactory();
 
         private DefaultBuilder() {
         }
@@ -201,6 +245,26 @@ public final class SdkEventLoopGroup {
 
         public void setThreadFactory(ThreadFactory threadFactory) {
             threadFactory(threadFactory);
+        }
+
+        @Override
+        public Builder channelFactory(ChannelFactory<? extends Channel> channelFactory) {
+            this.channelFactory = channelFactory;
+            return this;
+        }
+
+        public void setChannelFactory(ChannelFactory<? extends Channel> channelFactory) {
+            channelFactory(channelFactory);
+        }
+
+        @Override
+        public Builder datagramChannelFactory(ChannelFactory<? extends DatagramChannel> datagramChannelFactory) {
+            this.datagramChannelFactory = datagramChannelFactory;
+            return this;
+        }
+
+        public void setDatagramChannelFactory(ChannelFactory<? extends DatagramChannel> datagramChannelFactory) {
+            datagramChannelFactory(datagramChannelFactory);
         }
 
         @Override

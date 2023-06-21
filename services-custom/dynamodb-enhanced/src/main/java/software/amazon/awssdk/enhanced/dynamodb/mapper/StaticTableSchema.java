@@ -75,7 +75,16 @@ public final class StaticTableSchema<T> extends WrappedTableSchema<T, StaticImmu
      * @return A newly initialized builder
      */
     public static <T> Builder<T> builder(Class<T> itemClass) {
-        return new Builder<>(itemClass);
+        return new Builder<>(EnhancedType.of(itemClass));
+    }
+
+    /**
+     * Creates a builder for a {@link StaticTableSchema} typed to specific data item class.
+     * @param itemType The {@link EnhancedType} of the data item class object that the {@link StaticTableSchema} is to map to.
+     * @return A newly initialized builder
+     */
+    public static <T> Builder<T> builder(EnhancedType<T> itemType) {
+        return new Builder<>(itemType);
     }
 
     /**
@@ -85,11 +94,11 @@ public final class StaticTableSchema<T> extends WrappedTableSchema<T, StaticImmu
     @NotThreadSafe
     public static final class Builder<T> {
         private final StaticImmutableTableSchema.Builder<T, T> delegateBuilder;
-        private final Class<T> itemClass;
+        private final EnhancedType<T> itemType;
 
-        private Builder(Class<T> itemClass) {
-            this.delegateBuilder = StaticImmutableTableSchema.builder(itemClass, itemClass);
-            this.itemClass = itemClass;
+        private Builder(EnhancedType<T> itemType) {
+            this.delegateBuilder = StaticImmutableTableSchema.builder(itemType, itemType);
+            this.itemType = itemType;
         }
 
         /**
@@ -130,7 +139,7 @@ public final class StaticTableSchema<T> extends WrappedTableSchema<T, StaticImmu
          */
         public <R> Builder<T> addAttribute(EnhancedType<R> attributeType,
                                            Consumer<StaticAttribute.Builder<T, R>> staticAttribute) {
-            StaticAttribute.Builder<T, R> builder = StaticAttribute.builder(itemClass, attributeType);
+            StaticAttribute.Builder<T, R> builder = StaticAttribute.builder(itemType, attributeType);
             staticAttribute.accept(builder);
             this.delegateBuilder.addAttribute(builder.build().toImmutableAttribute());
             return this;
@@ -142,7 +151,7 @@ public final class StaticTableSchema<T> extends WrappedTableSchema<T, StaticImmu
          */
         public <R> Builder<T> addAttribute(Class<R> attributeClass,
                                            Consumer<StaticAttribute.Builder<T, R>> staticAttribute) {
-            StaticAttribute.Builder<T, R> builder = StaticAttribute.builder(itemClass, attributeClass);
+            StaticAttribute.Builder<T, R> builder = StaticAttribute.builder(itemType, EnhancedType.of(attributeClass));
             staticAttribute.accept(builder);
             this.delegateBuilder.addAttribute(builder.build().toImmutableAttribute());
             return this;

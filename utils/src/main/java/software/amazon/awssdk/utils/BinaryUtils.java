@@ -118,6 +118,80 @@ public final class BinaryUtils {
     }
 
     /**
+     * Returns an immutable copy of the given {@code ByteBuffer}.
+     * <p>
+     * The new buffer's position will be set to the position of the given {@code ByteBuffer}, but the mark if defined will be
+     * ignored.
+     * <p>
+     * <b>NOTE:</b> this method intentionally converts direct buffers to non-direct though there is no guarantee this will always
+     * be the case, if this is required see {@link #toNonDirectBuffer(ByteBuffer)}
+     *
+     * @param bb the source {@code ByteBuffer} to copy.
+     * @return a read only {@code ByteBuffer}.
+     */
+    public static ByteBuffer immutableCopyOf(ByteBuffer bb) {
+        if (bb == null) {
+            return null;
+        }
+        int sourceBufferPosition = bb.position();
+        ByteBuffer readOnlyCopy = bb.asReadOnlyBuffer();
+        readOnlyCopy.rewind();
+        ByteBuffer cloned = ByteBuffer.allocate(readOnlyCopy.capacity())
+                                      .put(readOnlyCopy);
+        cloned.position(sourceBufferPosition);
+        return cloned.asReadOnlyBuffer();
+    }
+
+    /**
+     * Returns an immutable copy of the remaining bytes of the given {@code ByteBuffer}.
+     * <p>
+     * <b>NOTE:</b> this method intentionally converts direct buffers to non-direct though there is no guarantee this will always
+     * be the case, if this is required see {@link #toNonDirectBuffer(ByteBuffer)}
+     *
+     * @param bb the source {@code ByteBuffer} to copy.
+     * @return a read only {@code ByteBuffer}.
+     */
+    public static ByteBuffer immutableCopyOfRemaining(ByteBuffer bb) {
+        if (bb == null) {
+            return null;
+        }
+        ByteBuffer readOnlyCopy = bb.asReadOnlyBuffer();
+        ByteBuffer cloned = ByteBuffer.allocate(readOnlyCopy.remaining())
+                                      .put(readOnlyCopy);
+        cloned.flip();
+        return cloned.asReadOnlyBuffer();
+    }
+
+    /**
+     * Returns a copy of the given {@code DirectByteBuffer} from its current position as a non-direct {@code HeapByteBuffer}
+     * <p>
+     * The new buffer's position will be set to the position of the given {@code ByteBuffer}, but the mark if defined will be
+     * ignored.
+     *
+     * @param bb the source {@code ByteBuffer} to copy.
+     * @return {@code ByteBuffer}.
+     */
+    public static ByteBuffer toNonDirectBuffer(ByteBuffer bb) {
+        if (bb == null) {
+            return null;
+        }
+        if (!bb.isDirect()) {
+            throw new IllegalArgumentException("Provided ByteBuffer is already non-direct");
+        }
+        int sourceBufferPosition = bb.position();
+        ByteBuffer readOnlyCopy = bb.asReadOnlyBuffer();
+        readOnlyCopy.rewind();
+        ByteBuffer cloned = ByteBuffer.allocate(bb.capacity())
+                                      .put(readOnlyCopy);
+        cloned.rewind();
+        cloned.position(sourceBufferPosition);
+        if (bb.isReadOnly()) {
+            return cloned.asReadOnlyBuffer();
+        }
+        return cloned;
+    }
+
+    /**
      * Returns a copy of all the bytes from the given <code>ByteBuffer</code>,
      * from the beginning to the buffer's limit; or null if the input is null.
      * <p>
