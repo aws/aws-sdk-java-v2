@@ -164,9 +164,9 @@ public final class AwsExecutionContextBuilder {
         IdentityProviderConfiguration identityProviders = clientConfig.option(SdkClientOption.IDENTITY_PROVIDER_CONFIGURATION);
 
         executionAttributes
-            .putAttribute(SdkExecutionAttribute.AUTH_SCHEME_RESOLVER, authSchemeProvider)
-            .putAttribute(SdkExecutionAttribute.AUTH_SCHEMES, authSchemes)
-            .putAttribute(SdkExecutionAttribute.IDENTITY_PROVIDER_CONFIGURATION, identityProviders);
+            .putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER, authSchemeProvider)
+            .putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES, authSchemes)
+            .putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDER_CONFIGURATION, identityProviders);
     }
 
     /**

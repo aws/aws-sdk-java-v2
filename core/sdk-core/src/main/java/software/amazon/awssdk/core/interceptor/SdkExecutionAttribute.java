@@ -16,19 +16,14 @@
 package software.amazon.awssdk.core.interceptor;
 
 import java.net.URI;
-import java.util.Map;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.ClientType;
-import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.ServiceConfiguration;
 import software.amazon.awssdk.core.checksums.Algorithm;
 import software.amazon.awssdk.core.checksums.ChecksumSpecs;
 import software.amazon.awssdk.core.checksums.ChecksumValidation;
 import software.amazon.awssdk.core.signer.Signer;
-import software.amazon.awssdk.http.auth.spi.AuthScheme;
-import software.amazon.awssdk.http.auth.spi.AuthSchemeProvider;
-import software.amazon.awssdk.http.auth.spi.IdentityProviderConfiguration;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.profiles.ProfileFile;
 
@@ -113,33 +108,6 @@ public class SdkExecutionAttribute {
      */
     public static final ExecutionAttribute<ChecksumValidation> HTTP_RESPONSE_CHECKSUM_VALIDATION = new ExecutionAttribute<>(
         "HttpResponseChecksumValidation");
-
-    /**
-     * The auth scheme provider used to resolve the auth scheme for a request.
-     */
-    // TODO: Should this be in SdkInternalExecutionAttribute like ENDPOINT_PROVIDER?
-    public static final ExecutionAttribute<AuthSchemeProvider> AUTH_SCHEME_RESOLVER = new ExecutionAttribute<>(
-        "AuthSchemeProvider");
-
-    /**
-     * The auth schemes available for a request.
-     */
-    // TODO: Ok to use a Map
-    public static final ExecutionAttribute<Map<String, AuthScheme<?>>> AUTH_SCHEMES = new ExecutionAttribute<>(
-        "AuthSchemes");
-
-    /**
-     * The auth schemes available for a request.
-     */
-    // TODO: IDENTITY_PROVIDERS or IDENTITY_PROVIDER_CONFIGURATION
-    public static final ExecutionAttribute<IdentityProviderConfiguration> IDENTITY_PROVIDER_CONFIGURATION =
-        new ExecutionAttribute<>("IdentityProviderConfiguration");
-
-    /**
-     * The selected auth scheme for a request.
-     */
-    public static final ExecutionAttribute<SelectedAuthScheme> SELECTED_AUTH_SCHEME = new ExecutionAttribute<>(
-        "SelectedAuthScheme");
 
 
     protected SdkExecutionAttribute() {

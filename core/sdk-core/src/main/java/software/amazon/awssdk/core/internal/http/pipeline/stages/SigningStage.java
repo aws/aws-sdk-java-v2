@@ -22,6 +22,7 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.InterruptMonitor;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
@@ -61,7 +62,7 @@ public class SigningStage implements RequestToRequestPipeline {
     @Override
     public SdkHttpFullRequest execute(SdkHttpFullRequest request, RequestExecutionContext context) throws Exception {
         InterruptMonitor.checkInterrupted();
-        if (context.executionAttributes().getAttribute(SdkExecutionAttribute.SELECTED_AUTH_SCHEME) != null) {
+        if (context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME) != null) {
             return sraSignRequest(request, context);
         }
         return signRequest(request, context);
@@ -71,7 +72,7 @@ public class SigningStage implements RequestToRequestPipeline {
 
         ExecutionAttributes executionAttributes = context.executionAttributes();
         SelectedAuthScheme<T> selectedAuthScheme =
-            executionAttributes.getAttribute(SdkExecutionAttribute.SELECTED_AUTH_SCHEME);
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
 
         AuthSchemeOption authSchemeOption = selectedAuthScheme.authSchemeOption();
 

@@ -23,6 +23,7 @@ import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.http.auth.spi.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.IdentityProviderConfiguration;
@@ -43,7 +44,7 @@ public final class CodeCatalystAuthSchemeInterceptor implements ExecutionInterce
     public void beforeExecution(Context.BeforeExecution context, ExecutionAttributes executionAttributes) {
         List<AuthSchemeOption> authOptions = resolveAuthOptions(executionAttributes);
         SelectedAuthScheme<?> selectedAuthScheme = selectAuthScheme(authOptions, executionAttributes);
-        executionAttributes.putAttribute(SdkExecutionAttribute.SELECTED_AUTH_SCHEME, selectedAuthScheme);
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME, selectedAuthScheme);
     }
 
     /**
@@ -61,7 +62,7 @@ public final class CodeCatalystAuthSchemeInterceptor implements ExecutionInterce
         // specified an override, otherwise fall back to the one on the client.
         // TODO: The fallback should happen while setting in execution attributes
         CodeCatalystAuthSchemeProvider authSchemeProvider =
-            (CodeCatalystAuthSchemeProvider) executionAttributes.getAttribute(SdkExecutionAttribute.AUTH_SCHEME_RESOLVER);
+            (CodeCatalystAuthSchemeProvider) executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER);
 
         return authSchemeProvider.resolveAuthScheme(CodeCatalystAuthSchemeParams.builder()
                                                                        .operation(operation)
@@ -76,10 +77,10 @@ public final class CodeCatalystAuthSchemeInterceptor implements ExecutionInterce
 
         // TODO: This should be "merged" earlier, with request preferred over client
         Map<String, AuthScheme<?>> authSchemes =
-            executionAttributes.getAttribute(SdkExecutionAttribute.AUTH_SCHEMES);
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES);
 
         IdentityProviderConfiguration identityResolvers =
-            executionAttributes.getAttribute(SdkExecutionAttribute.IDENTITY_PROVIDER_CONFIGURATION);
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDER_CONFIGURATION);
 
         StringBuilder failureReasons = new StringBuilder();
 
