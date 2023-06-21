@@ -87,7 +87,6 @@ import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.auth.spi.IdentityProviderConfiguration;
-import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSupplier;
@@ -324,17 +323,6 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
                      .option(EXECUTION_INTERCEPTORS, resolveExecutionInterceptors(config))
                      .option(RETRY_POLICY, retryPolicy)
                      .option(CLIENT_USER_AGENT, resolveClientUserAgent(config, retryPolicy))
-                     .build();
-    }
-
-    /**
-     * Add an IdentityProvider to the IdentityProviders configured for the client.
-     */
-    protected IdentityProviderConfiguration updateIdentityProviderConfiguration(SdkClientConfiguration config,
-                                                                                IdentityProvider<?> identityProvider) {
-        return config.option(IDENTITY_PROVIDER_CONFIGURATION)
-                     .toBuilder()
-                     .putIdentityProvider(identityProvider)
                      .build();
     }
 
