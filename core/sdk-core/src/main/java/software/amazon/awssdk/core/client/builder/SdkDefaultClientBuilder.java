@@ -77,6 +77,7 @@ import software.amazon.awssdk.core.internal.interceptor.AsyncRequestBodyHttpChec
 import software.amazon.awssdk.core.internal.interceptor.HttpChecksumInHeaderInterceptor;
 import software.amazon.awssdk.core.internal.interceptor.HttpChecksumRequiredInterceptor;
 import software.amazon.awssdk.core.internal.interceptor.HttpChecksumValidationInterceptor;
+import software.amazon.awssdk.core.internal.interceptor.RequestCompressionInterceptor;
 import software.amazon.awssdk.core.internal.interceptor.SyncHttpChecksumInTrailerInterceptor;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
@@ -444,6 +445,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
      */
     private List<ExecutionInterceptor> sdkInterceptors() {
         return Collections.unmodifiableList(Arrays.asList(
+            new RequestCompressionInterceptor(),
             new HttpChecksumRequiredInterceptor(),
             new SyncHttpChecksumInTrailerInterceptor(),
             new HttpChecksumValidationInterceptor(),
