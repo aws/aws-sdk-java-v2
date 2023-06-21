@@ -84,11 +84,20 @@ abstract class DefaultCodeCatalystBaseClientBuilder<B extends CodeCatalystBaseCl
         interceptors = CollectionUtils.mergeLists(interceptors, additionalInterceptors);
         interceptors = CollectionUtils.mergeLists(interceptors, config.option(SdkClientOption.EXECUTION_INTERCEPTORS));
 
-        return config.toBuilder()
-                     .option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors)
-                     .option(SdkClientOption.IDENTITY_PROVIDER_CONFIGURATION,
-                             updateIdentityProviderConfiguration(config, config.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER)))
-                     .build();
+        SdkClientConfiguration.Builder configBuilder = config.toBuilder()
+                                                             .option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors);
+
+        IdentityProvider<? extends TokenIdentity> identityProvider = config.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER);
+        // Currently it is not possible for identityProvider to be null as default provider is used while building the client if
+        // the clientConfig is null. However, we do want to support ability to unset a identity provider later.
+        // Moreover, putIdentityProvider will throw NPE on null, so adding the null check here. Also, validateClientOptions
+        // currently asserts it is not null, which will have to change when we allow unsetting default identity provider.
+        if (identityProvider != null) {
+            configBuilder.option(SdkClientOption.IDENTITY_PROVIDER_CONFIGURATION,
+                                 updateIdentityProviderConfiguration(config, identityProvider))
+                         .build();
+        }
+        return configBuilder.build();
     }
 
     @Override
