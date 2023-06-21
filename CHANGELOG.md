@@ -1,3 +1,32 @@
+# __2.20.90__ __2023-06-21__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This release introduces the bandwidth reduction filter for the HEVC encoder, increases the limits of outputs per job, and updates support for the Nagra SDK to version 1.14.7.
+
+## __AWS Transfer Family__
+  - ### Features
+    - This release adds a new parameter StructuredLogDestinations to CreateServer, UpdateServer APIs.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Documentation updates for DynamoDB
+
+## __Amazon EMR__
+  - ### Features
+    - This release introduces a new Amazon EMR EPI called ListSupportedInstanceTypes that returns a list of all instance types supported by a given EMR release.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release provides support in SageMaker for output files in training jobs to be uploaded without compression and enable customer to deploy uncompressed model from S3 to real-time inference Endpoints. In addition, ml.trn1n.32xlarge is added to supported instance type list in training job.
+
+## __AmazonMQ__
+  - ### Features
+    - The Cross Region Disaster Recovery feature allows to replicate a brokers state from one region to another in order to provide customers with multi-region resiliency in the event of a regional outage.
+
+## __Inspector2__
+  - ### Features
+    - This release adds support for Software Bill of Materials (SBOM) export and the general availability of code scanning for AWS Lambda functions.
+
 # __2.20.89__ __2023-06-20__
 ## __AWS Config__
   - ### Features
@@ -129,7 +158,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
+[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features
