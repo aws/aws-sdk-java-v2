@@ -87,6 +87,7 @@
     </modules>
     <scm>
         <url>${scm.github.url}</url>
+        <connection>${scm.github.connection}</connection>
     </scm>
     <properties>
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
@@ -173,7 +174,8 @@
         <skip.unit.tests>${skipTests}</skip.unit.tests>
         <integTestSourceDirectory>${project.basedir}/src/it/java</integTestSourceDirectory>
         <javadoc.resourcesDir>${session.executionRootDirectory}</javadoc.resourcesDir>
-        <scm.github.url>https://github.com/aws/aws-sdk-java-v2.git</scm.github.url>
+        <scm.github.url>https://github.com/aws/aws-sdk-java-v2</scm.github.url>
+        <scm.github.connection>scm:git:git://github.com/aws/aws-sdk-java-v2.git</scm.github.connection>
     </properties>
 
     <dependencyManagement>
@@ -693,9 +695,6 @@
 
         <profile>
             <id>publishing</id>
-            <properties>
-                <scm.github.url>https://github.com/aws/aws-sdk-java-v2/tree/release</scm.github.url>
-            </properties>
             <build>
                 <plugins>
                     <plugin>

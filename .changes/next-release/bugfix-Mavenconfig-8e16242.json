@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Maven config",
+    "contributor": "jensim",
+    "description": "Fix the scm.url in the maven project"
+}
