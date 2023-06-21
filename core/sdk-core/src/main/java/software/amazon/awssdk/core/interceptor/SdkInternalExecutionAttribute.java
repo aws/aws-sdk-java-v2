@@ -96,21 +96,25 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
      */
     public static final ExecutionAttribute<Boolean> IS_DISCOVERED_ENDPOINT =
         new ExecutionAttribute<>("IsDiscoveredEndpoint");
+
     /**
      * The auth scheme provider used to resolve the auth scheme for a request.
      */
     public static final ExecutionAttribute<AuthSchemeProvider> AUTH_SCHEME_RESOLVER = new ExecutionAttribute<>(
         "AuthSchemeProvider");
+
     /**
      * The auth schemes available for a request.
      */
     public static final ExecutionAttribute<Map<String, AuthScheme<?>>> AUTH_SCHEMES = new ExecutionAttribute<>(
         "AuthSchemes");
+
     /**
      * The auth schemes available for a request.
      */
     public static final ExecutionAttribute<IdentityProviderConfiguration> IDENTITY_PROVIDER_CONFIGURATION =
         new ExecutionAttribute<>("IdentityProviderConfiguration");
+
     /**
      * The selected auth scheme for a request.
      */
