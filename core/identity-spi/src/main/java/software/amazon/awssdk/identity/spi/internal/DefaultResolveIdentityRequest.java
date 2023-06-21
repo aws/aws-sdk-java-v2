@@ -32,8 +32,8 @@ public final class DefaultResolveIdentityRequest implements ResolveIdentityReque
 
     private final Map<IdentityProperty<?>, Object> properties;
 
-    private DefaultResolveIdentityRequest(Map<IdentityProperty<?>, Object> properties) {
-        this.properties = new HashMap<>(properties);
+    private DefaultResolveIdentityRequest(BuilderImpl builder) {
+        this.properties = new HashMap<>(builder.properties);
     }
 
     public static Builder builder() {
@@ -43,6 +43,11 @@ public final class DefaultResolveIdentityRequest implements ResolveIdentityReque
     @Override
     public <T> T property(IdentityProperty<T> property) {
         return (T) properties.get(property);
+    }
+
+    @Override
+    public Builder toBuilder() {
+        return new BuilderImpl(this);
     }
 
     @Override
@@ -73,13 +78,20 @@ public final class DefaultResolveIdentityRequest implements ResolveIdentityReque
     public static final class BuilderImpl implements Builder {
         private final Map<IdentityProperty<?>, Object> properties = new HashMap<>();
 
+        private BuilderImpl() {
+        }
+
+        private BuilderImpl(DefaultResolveIdentityRequest resolveIdentityRequest) {
+            this.properties.putAll(resolveIdentityRequest.properties);
+        }
+
         public <T> Builder putProperty(IdentityProperty<T> key, T value) {
             this.properties.put(key, value);
             return this;
         }
 
         public ResolveIdentityRequest build() {
-            return new DefaultResolveIdentityRequest(properties);
+            return new DefaultResolveIdentityRequest(this);
         }
     }
 }
