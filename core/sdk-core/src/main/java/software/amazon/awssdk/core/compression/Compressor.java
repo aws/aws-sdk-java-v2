@@ -52,7 +52,8 @@ public interface Compressor {
             case GZIP:
                 return new GzipCompressor();
             default:
-                return null;
+                throw new IllegalArgumentException("The compresssion type " + compressionType + "does not have an implemenation"
+                                                   + " of Compressor.");
         }
     }
 }
