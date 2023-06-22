@@ -1,3 +1,29 @@
+# __2.20.91__ __2023-06-22__
+## __AWS Step Functions__
+  - ### Features
+    - Adds support for Versions and Aliases. Adds 8 operations: PublishStateMachineVersion, DeleteStateMachineVersion, ListStateMachineVersions, CreateStateMachineAlias, DescribeStateMachineAlias, UpdateStateMachineAlias, DeleteStateMachineAlias, ListStateMachineAliases
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Introducing Amazon Kendra Retrieve API that can be used to retrieve relevant passages or text excerpts given an input query.
+
+## __Amazon Chime SDK Identity__
+  - ### Features
+    - AppInstanceBots can be configured to be invoked or not using the Target or the CHIME.mentions attribute for ChannelMessages
+
+## __Amazon Chime SDK Messaging__
+  - ### Features
+    - ChannelMessages can be made visible to sender and intended recipient rather than all channel members with the target attribute. For example, a user can send messages to a bot and receive messages back in a group channel without other members seeing them.
+
+## __Maven config__
+  - ### Bugfixes
+    - Fix the scm.url in the maven project
+        - Contributed by: [@jensim](https://github.com/jensim)
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@jensim](https://github.com/jensim)
 # __2.20.90__ __2023-06-21__
 ## __AWS Elemental MediaConvert__
   - ### Features
@@ -158,7 +184,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
+[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features
