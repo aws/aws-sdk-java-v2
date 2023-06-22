@@ -42,7 +42,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.S3Object;
 
-public abstract class S3CrossRegionTestBase extends S3IntegrationTestBase {
+public abstract class S3CrossRegionIntegrationTestBase extends S3IntegrationTestBase {
 
     public static final String X_AMZ_BUCKET_REGION = "x-amz-bucket-region";
 
