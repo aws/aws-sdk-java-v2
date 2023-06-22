@@ -96,14 +96,14 @@ class DefaultS3CrtAsyncClientTest {
     }
 
     @Test
-    void crtCrtClient_with_crossRegionAccessEnabled_asTrue(){
+    void crtClient_with_crossRegionAccessEnabled_asTrue(){
         S3AsyncClient crossRegionCrtClient = S3AsyncClient.crtBuilder().crossRegionAccessEnabled(true).build();
         assertThat(crossRegionCrtClient).isInstanceOf(DefaultS3CrtAsyncClient.class);
         assertThat(((DelegatingS3AsyncClient)crossRegionCrtClient).delegate()).isInstanceOf(S3CrossRegionAsyncClient.class);
     }
 
     @Test
-    void crtCrtClient_with_crossRegionAccessEnabled_asFalse(){
+    void crtClient_with_crossRegionAccessEnabled_asFalse(){
         S3AsyncClient crossRegionDisabledCrtClient = S3AsyncClient.crtBuilder().crossRegionAccessEnabled(false).build();
         assertThat(crossRegionDisabledCrtClient).isInstanceOf(DefaultS3CrtAsyncClient.class);
         assertThat(((DelegatingS3AsyncClient)crossRegionDisabledCrtClient).delegate()).isNotInstanceOf(S3CrossRegionAsyncClient.class);
