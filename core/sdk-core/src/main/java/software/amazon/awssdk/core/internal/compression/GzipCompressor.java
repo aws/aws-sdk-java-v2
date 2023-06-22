@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.internal.compression;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,7 +38,7 @@ public final class GzipCompressor implements Compressor {
     }
 
     @Override
-    public byte[] compress(InputStream inputStream) {
+    public InputStream compress(InputStream inputStream) {
         try {
             byte[] content = IoUtils.toByteArray(inputStream);
             ByteArrayOutputStream compressedOutputStream = new ByteArrayOutputStream();
@@ -45,7 +46,7 @@ public final class GzipCompressor implements Compressor {
             gzipOutputStream.write(content);
             gzipOutputStream.close();
 
-            return compressedOutputStream.toByteArray();
+            return new ByteArrayInputStream(compressedOutputStream.toByteArray());
         } catch (IOException e) {
             throw SdkClientException.create(e.getMessage(), e);
         }

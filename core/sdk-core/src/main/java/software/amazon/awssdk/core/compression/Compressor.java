@@ -34,9 +34,9 @@ public interface Compressor {
     String compressorType();
 
     /**
-     * Compress content of fixed length.
+     * Compress an {@link InputStream}.
      */
-    byte[] compress(InputStream inputStream);
+    InputStream compress(InputStream inputStream);
 
     /**
      * Compress an async stream.
