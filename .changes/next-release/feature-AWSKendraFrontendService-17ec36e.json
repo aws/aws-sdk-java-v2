@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWSKendraFrontendService",
+    "contributor": "",
+    "description": "Introducing Amazon Kendra Retrieve API that can be used to retrieve relevant passages or text excerpts given an input query."
+}
