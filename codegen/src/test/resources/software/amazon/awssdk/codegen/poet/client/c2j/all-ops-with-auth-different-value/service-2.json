@@ -10,14 +10,14 @@
         "serviceId": "Database Service",
         "signingName": "database-service",
         "signatureVersion": "v4",
-        "auth": ["bearer","v4"],
+        "auth": ["v4", "bearer"],
         "uid": "database-service-2023-06-08",
         "xmlNamespace": "https://database-service.amazonaws.com/doc/2023-06-08/"
     },
     "operations": {
         "GetRow": {
             "name": "GetRow",
-            "auth": ["v4", "bearer"],            
+            "auth": ["bearer"],            
             "http": {
                 "method": "GET",
                 "requestUri": "/get-row/"
@@ -35,49 +35,9 @@
             ],
             "documentation": "<p>Performs a get row operation no output</p>"
         },
-        "GetRowV2": {
-            "name": "GetRow",
-            "auth": ["v4", "bearer"],
-            "http": {
-                "method": "GET",
-                "requestUri": "/get-row-v2/"
-            },
-            "input": {
-                "shape": "GetRowRequest"
-            },
-            "output": {
-                "shape": "GetRowResponse"
-            },
-            "errors": [
-                {
-                    "shape": "InvalidInputException"
-                }
-            ],
-            "documentation": "<p>Performs a get row V2 operation no output</p>"
-        },
-        "ListRows": {
-            "name": "ListRows",
-            "auth": ["bearer"],            
-            "http": {
-                "method": "GET",
-                "requestUri": "/list-rows/"
-            },
-            "input": {
-                "shape": "ListRowsRequest"
-            },
-            "output": {
-                "shape": "ListRowsResponse"
-            },
-            "errors": [
-                {
-                    "shape": "InvalidInputException"
-                }
-            ],
-            "documentation": "<p>Performs a list rows operation no output</p>"
-        },
         "PutRow": {
             "name": "PutRow",
-            "auth": ["v4"],           
+            "auth": ["v4"],
             "http": {
                 "method": "PUT",
                 "requestUri": "/put-row/"
@@ -97,6 +57,7 @@
         },
         "DeleteRow": {
             "name": "DeleteRow",
+            "auth": [ "bearer", "v4"],
             "http": {
                 "method": "DELETE",
                 "requestUri": "/delete-row/"
@@ -126,24 +87,6 @@
             }
         },
         "GetRowResponse": {
-            "type": "structure",
-            "members": {
-                "StringMember": {
-                    "shape": "String",
-                    "documentation": "<p>A string Memer</p>"
-                }
-            }
-        },
-        "ListRowsRequest": {
-            "type": "structure",
-            "members": {
-                "StringMember": {
-                    "shape": "String",
-                    "documentation": "<p>A string Memer</p>"
-                }
-            }
-        },
-        "ListRowsResponse": {
             "type": "structure",
             "members": {
                 "StringMember": {

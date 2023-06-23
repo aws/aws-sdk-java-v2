@@ -48,7 +48,7 @@ public final class AuthSchemeCodegenMetadata {
     private final String schemeId;
     private final List<SignerPropertyValueProvider> properties;
 
-    public AuthSchemeCodegenMetadata(Builder builder) {
+    private AuthSchemeCodegenMetadata(Builder builder) {
         this.schemeId = Validate.paramNotNull(builder.schemeId, "schemeId");
         this.properties = Collections.unmodifiableList(Validate.paramNotNull(builder.properties, "properties"));
     }
@@ -61,7 +61,7 @@ public final class AuthSchemeCodegenMetadata {
         return properties;
     }
 
-    public static Builder builder() {
+    private static Builder builder() {
         return new Builder();
     }
 
@@ -74,7 +74,7 @@ public final class AuthSchemeCodegenMetadata {
         }
     }
 
-    static class Builder {
+    private static class Builder {
         private String schemeId;
         private List<SignerPropertyValueProvider> properties = new ArrayList<>();
 
@@ -126,7 +126,7 @@ public final class AuthSchemeCodegenMetadata {
             return valueType;
         }
 
-        public static Builder builder() {
+        private static Builder builder() {
             return new Builder();
         }
 

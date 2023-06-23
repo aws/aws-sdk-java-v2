@@ -97,6 +97,20 @@ public class AuthSchemeSpecTest {
                     .classSpecProvider(DefaultAuthSchemeProviderSpec::new)
                     .caseName("granular")
                     .outputFileSuffix("default-provider")
+                    .build(),
+            // All operations with auth with the same values
+            TestCase.builder()
+                    .modelProvider(ClientTestModels::allOperationsWithAuthSameValueServiceModels)
+                    .classSpecProvider(DefaultAuthSchemeProviderSpec::new)
+                    .caseName("all-ops-auth-same-value")
+                    .outputFileSuffix("default-provider")
+                    .build(),
+            // All operations with auth with different values
+            TestCase.builder()
+                    .modelProvider(ClientTestModels::allOperationsWithAuthDifferentValueServiceModels)
+                    .classSpecProvider(DefaultAuthSchemeProviderSpec::new)
+                    .caseName("all-ops-auth-different-value")
+                    .outputFileSuffix("default-provider")
                     .build()
         );
     }

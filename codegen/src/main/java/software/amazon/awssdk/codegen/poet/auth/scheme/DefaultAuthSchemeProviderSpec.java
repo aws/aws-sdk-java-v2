@@ -94,6 +94,7 @@ public class DefaultAuthSchemeProviderSpec implements ClassSpec {
 
         // All the operations share the same set of auth schemes, no need to create a switch statement.
         if (operationsToAuthType.size() == 1) {
+            // xxx
             List<AuthType> types = operationsToAuthType.get(Collections.emptyList());
             for (AuthType authType : types) {
                 addAuthTypeProperties(spec, authType);
@@ -130,9 +131,6 @@ public class DefaultAuthSchemeProviderSpec implements ClassSpec {
 
     public void addAuthTypeProperties(MethodSpec.Builder spec, AuthType authType) {
         AuthSchemeCodegenMetadata metadata = fromAuthType(authType);
-        if (metadata == null) {
-            return;
-        }
         spec.addCode("options.add($T.builder().schemeId($S)",
                      AuthSchemeOption.class, metadata.schemeId());
         for (SignerPropertyValueProvider property : metadata.properties()) {

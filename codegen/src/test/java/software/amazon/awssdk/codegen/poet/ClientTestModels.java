@@ -17,7 +17,6 @@ package software.amazon.awssdk.codegen.poet;
 
 import java.io.File;
 
-import org.eclipse.core.runtime.internal.adaptor.IModel;
 import software.amazon.awssdk.codegen.C2jModels;
 import software.amazon.awssdk.codegen.IntermediateModelBuilder;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
@@ -137,6 +136,36 @@ public class ClientTestModels {
             new File(ClientTestModels.class.getResource("client/c2j/fine-grained-auth/customization.config")
                                            .getFile());
 
+        C2jModels models = C2jModels
+            .builder()
+            .serviceModel(getServiceModel(serviceModel))
+            .customizationConfig(getCustomizationConfig(customizationModel))
+            .build();
+
+        return new IntermediateModelBuilder(models).build();
+    }
+
+    public static IntermediateModel allOperationsWithAuthSameValueServiceModels() {
+        File serviceModel =
+            new File(ClientTestModels.class.getResource("client/c2j/all-ops-with-auth-same-value/service-2.json").getFile());
+        File customizationModel =
+            new File(ClientTestModels.class.getResource("client/c2j/all-ops-with-auth-same-value/customization.config")
+                                           .getFile());
+        C2jModels models = C2jModels
+            .builder()
+            .serviceModel(getServiceModel(serviceModel))
+            .customizationConfig(getCustomizationConfig(customizationModel))
+            .build();
+
+        return new IntermediateModelBuilder(models).build();
+    }
+
+    public static IntermediateModel allOperationsWithAuthDifferentValueServiceModels() {
+        File serviceModel =
+            new File(ClientTestModels.class.getResource("client/c2j/all-ops-with-auth-different-value/service-2.json").getFile());
+        File customizationModel =
+            new File(ClientTestModels.class.getResource("client/c2j/all-ops-with-auth-different-value/customization.config")
+                                           .getFile());
         C2jModels models = C2jModels
             .builder()
             .serviceModel(getServiceModel(serviceModel))

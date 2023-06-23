@@ -101,10 +101,6 @@ public final class AuthSchemeSpecUtils {
         return intermediateModel.getMetadata().getSigningName();
     }
 
-    public AuthType defaultAuthType() {
-        return intermediateModel.getMetadata().getAuthType();
-    }
-
     public Map<List<String>, List<AuthType>> operationsToAuthType() {
         Map<List<AuthType>, List<String>> authSchemes2Operations =
             intermediateModel.getOperations()
@@ -116,27 +112,14 @@ public final class AuthSchemeSpecUtils {
 
         Map<List<String>, List<AuthType>> result = new HashMap<>();
         authSchemes2Operations.forEach((key, value) -> result.put(value, key));
-
-        Set<String> operationsWithSpecificAuth = authSchemes2Operations
-            .values().stream()
-            .flatMap(List::stream)
-            .collect(Collectors.toSet());
-
-        // All the operations have a specific auth scheme configured, we can result here without caring about the service
-        // defaults.
-        if (operationsWithSpecificAuth.size() == intermediateModel.getOperations().size()) {
-            return result;
-        }
-
         List<AuthType> serviceDefaults;
         if (intermediateModel.getMetadata().getAuth().isEmpty()) {
             serviceDefaults = Arrays.asList(intermediateModel.getMetadata().getAuthType());
         } else {
-            serviceDefaults =
-                intermediateModel.getMetadata().getAuth();
+            serviceDefaults = intermediateModel.getMetadata().getAuth();
         }
 
-        // Get the list of services that share the same auth schemes as the system defaults and remove it from the result. We
+        // Get the list of operations that share the same auth schemes as the system defaults and remove it from the result. We
         // will take care of all of these in the fallback `default` case.
         List<String> operationsWithDefaults = authSchemes2Operations.remove(serviceDefaults);
         result.remove(operationsWithDefaults);

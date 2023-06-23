@@ -46,21 +46,20 @@ public final class DefaultDatabaseAuthSchemeProvider implements DatabaseAuthSche
                     .putSignerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME, "database-service")
                     .putSignerProperty(AwsV4HttpSigner.REGION_NAME, params.region().toString()).build());
             break;
-        case "ListRows":
+        case "GetRow":
             options.add(AuthSchemeOption.builder().schemeId("smithy.auth#httpBearerAuth").build());
             break;
-        case "GetRow":
-        case "GetRowV2":
+        case "DeleteRow":
+            options.add(AuthSchemeOption.builder().schemeId("smithy.auth#httpBearerAuth").build());
             options.add(AuthSchemeOption.builder().schemeId("aws.auth#sigv4")
                     .putSignerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME, "database-service")
                     .putSignerProperty(AwsV4HttpSigner.REGION_NAME, params.region().toString()).build());
-            options.add(AuthSchemeOption.builder().schemeId("smithy.auth#httpBearerAuth").build());
             break;
         default:
-            options.add(AuthSchemeOption.builder().schemeId("smithy.auth#httpBearerAuth").build());
             options.add(AuthSchemeOption.builder().schemeId("aws.auth#sigv4")
                     .putSignerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME, "database-service")
                     .putSignerProperty(AwsV4HttpSigner.REGION_NAME, params.region().toString()).build());
+            options.add(AuthSchemeOption.builder().schemeId("smithy.auth#httpBearerAuth").build());
             break;
         }
         return Collections.unmodifiableList(options);
