@@ -1,3 +1,20 @@
+# __2.20.92__ __2023-06-23__
+## __Amazon DevOps Guru__
+  - ### Features
+    - This release adds support for encryption via customer managed keys.
+
+## __Amazon FSx__
+  - ### Features
+    - Update to Amazon FSx documentation.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Documentation improvements for create, describe, and modify DB clusters and DB instances.
+
+## __Amazon Verified Permissions__
+  - ### Features
+    - Added improved descriptions and new code samples to SDK documentation.
+
 # __2.20.91__ __2023-06-22__
 ## __AWS Step Functions__
   - ### Features
@@ -184,7 +201,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
+[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features
