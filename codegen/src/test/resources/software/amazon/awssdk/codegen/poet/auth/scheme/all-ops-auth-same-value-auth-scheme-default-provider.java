@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.query.auth.scheme.internal;
+package software.amazon.awssdk.services.database.auth.scheme.internal;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -22,27 +22,28 @@ import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.auth.AwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
-import software.amazon.awssdk.services.query.auth.scheme.QueryAuthSchemeParams;
-import software.amazon.awssdk.services.query.auth.scheme.QueryAuthSchemeProvider;
+import software.amazon.awssdk.services.database.auth.scheme.DatabaseAuthSchemeParams;
+import software.amazon.awssdk.services.database.auth.scheme.DatabaseAuthSchemeProvider;
 
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
-public final class DefaultQueryAuthSchemeProvider implements QueryAuthSchemeProvider {
-    private static final DefaultQueryAuthSchemeProvider DEFAULT = new DefaultQueryAuthSchemeProvider();
+public final class DefaultDatabaseAuthSchemeProvider implements DatabaseAuthSchemeProvider {
+    private static final DefaultDatabaseAuthSchemeProvider DEFAULT = new DefaultDatabaseAuthSchemeProvider();
 
-    private DefaultQueryAuthSchemeProvider() {
+    private DefaultDatabaseAuthSchemeProvider() {
     }
 
-    public static DefaultQueryAuthSchemeProvider create() {
+    public static DefaultDatabaseAuthSchemeProvider create() {
         return DEFAULT;
     }
 
     @Override
-    public List<AuthSchemeOption> resolveAuthScheme(QueryAuthSchemeParams params) {
+    public List<AuthSchemeOption> resolveAuthScheme(DatabaseAuthSchemeParams params) {
         List<AuthSchemeOption> options = new ArrayList<>();
         options.add(AuthSchemeOption.builder().schemeId("aws.auth#sigv4")
-                .putSignerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME, "query-service")
-                .putSignerProperty(AwsV4HttpSigner.REGION_NAME, params.region().toString()).build());
+                    .putSignerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME, "database-service")
+                    .putSignerProperty(AwsV4HttpSigner.REGION_NAME, params.region().toString()).build());
+        options.add(AuthSchemeOption.builder().schemeId("smithy.auth#httpBearerAuth").build());
         return Collections.unmodifiableList(options);
     }
 }
