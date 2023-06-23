@@ -49,6 +49,7 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.NumericUtils;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
@@ -135,7 +136,7 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
             .withResumeToken(resumeToken);
 
         // Create a new SigningConfig object only if the signing region has changed from the previously configured region.
-        if (signingRegion != null && !s3ClientOptions.getRegion().equals(signingRegion)) {
+        if (signingRegion != null && !s3ClientOptions.getRegion().equals(signingRegion.id())) {
             requestOptions.withSigningConfig(
                 AwsSigningConfig.getDefaultS3SigningConfig(signingRegion.id(),
                                                            s3ClientOptions.getCredentialsProvider()));
