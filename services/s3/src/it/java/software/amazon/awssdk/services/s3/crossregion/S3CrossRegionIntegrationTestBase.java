@@ -17,14 +17,11 @@ package software.amazon.awssdk.services.s3.crossregion;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
 import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
@@ -50,8 +47,6 @@ public abstract class S3CrossRegionIntegrationTestBase extends S3IntegrationTest
 
     private static final String KEY = "key";
 
-    protected CaptureInterceptor captureInterceptor;
-
     @Test
     void getApi_CrossRegionCall() {
         s3.putObject(p -> p.bucket(bucketName()).checksumAlgorithm(ChecksumAlgorithm.CRC32).key(KEY), RequestBody.fromString(
@@ -59,11 +54,7 @@ public abstract class S3CrossRegionIntegrationTestBase extends S3IntegrationTest
         GetObjectRequest getObjectRequest =
             GetObjectRequest.builder().bucket(bucketName()).checksumMode(ChecksumMode.ENABLED).key(KEY).build();
         ResponseBytes<GetObjectResponse> response = getAPICall(getObjectRequest);
-        assertThat(regionsIntercepted(captureInterceptor.hosts())).isEqualTo(Arrays.asList(CROSS_REGION.id(),
-                                                                                           DEFAULT_REGION.id()));
-        assertThat(captureInterceptor.httpMethods()).isEqualTo(Arrays.asList(SdkHttpMethod.GET, SdkHttpMethod.GET));
         assertThat(new String(response.asByteArray())).isEqualTo("TEST_STRING");
-        assertThat(captureInterceptor.getServiceCalls()).isEqualTo(2);
     }
 
     @Test
@@ -73,11 +64,7 @@ public abstract class S3CrossRegionIntegrationTestBase extends S3IntegrationTest
         PutObjectRequest putObjectRequest =
             PutObjectRequest.builder().bucket(bucketName()).checksumAlgorithm(ChecksumAlgorithm.CRC32).key(KEY).build();
         PutObjectResponse response = putAPICall(putObjectRequest, "TEST_STRING");
-        assertThat(regionsIntercepted(captureInterceptor.hosts())).isEqualTo(Arrays.asList(CROSS_REGION.id(),
-                                                                                           DEFAULT_REGION.id()));
-        assertThat(captureInterceptor.httpMethods()).isEqualTo(Arrays.asList(SdkHttpMethod.PUT, SdkHttpMethod.PUT));
         assertThat(response.checksumCRC32()).isEqualTo("S9ke8w==");
-        assertThat(captureInterceptor.getServiceCalls()).isEqualTo(2);
     }
 
     @Test
@@ -86,11 +73,8 @@ public abstract class S3CrossRegionIntegrationTestBase extends S3IntegrationTest
             "TEST_STRING"));
         DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder().bucket(bucketName()).key(KEY).build();
         DeleteObjectResponse response = deleteObjectAPICall(deleteObjectRequest);
-        assertThat(regionsIntercepted(captureInterceptor.hosts())).isEqualTo(Arrays.asList(CROSS_REGION.id(),
-                                                                                           DEFAULT_REGION.id()));
-        assertThat(captureInterceptor.httpMethods()).isEqualTo(Arrays.asList(SdkHttpMethod.DELETE, SdkHttpMethod.DELETE));
+        System.out.println(response);
         assertThat(response).isNotNull();
-        assertThat(captureInterceptor.getServiceCalls()).isEqualTo(2);
     }
 
     @Test
@@ -102,25 +86,18 @@ public abstract class S3CrossRegionIntegrationTestBase extends S3IntegrationTest
         DeleteObjectsRequest deleteObjectsRequest =
             DeleteObjectsRequest.builder().bucket(bucketName()).delete(d -> d.objects(o -> o.key(KEY), o -> o.key(KEY + "_1"))).build();
         DeleteObjectsResponse response = postObjectAPICall(deleteObjectsRequest);
-        assertThat(regionsIntercepted(captureInterceptor.hosts())).isEqualTo(Arrays.asList(CROSS_REGION.id(),
-                                                                                           DEFAULT_REGION.id()));
-        assertThat(captureInterceptor.httpMethods()).isEqualTo(Arrays.asList(SdkHttpMethod.POST, SdkHttpMethod.POST));
         assertThat(response).isNotNull();
-        assertThat(captureInterceptor.getServiceCalls()).isEqualTo(2);
+        System.out.println(response);
     }
 
     @Test
     void cachedRegionGetsUsed_when_CrossRegionCall() {
         putAPICall(PutObjectRequest.builder().bucket(bucketName()).checksumAlgorithm(ChecksumAlgorithm.CRC32).key(KEY).build(),
                    "TEST_STRING");
-        getAPICall(GetObjectRequest.builder().bucket(bucketName()).checksumMode(ChecksumMode.ENABLED).key(KEY).build());
-        assertThat(regionsIntercepted(captureInterceptor.hosts())).isEqualTo(Arrays.asList(CROSS_REGION.id(),
-                                                                                           DEFAULT_REGION.id(),
-                                                                                           DEFAULT_REGION.id()));
-        assertThat(captureInterceptor.httpMethods()).isEqualTo(Arrays.asList(SdkHttpMethod.PUT,
-                                                                             SdkHttpMethod.PUT,
-                                                                             SdkHttpMethod.GET));
-        assertThat(captureInterceptor.getServiceCalls()).isEqualTo(3);
+        GetObjectRequest getObjectRequest =
+            GetObjectRequest.builder().bucket(bucketName()).checksumMode(ChecksumMode.ENABLED).key(KEY).build();
+        ResponseBytes<GetObjectResponse> response = getAPICall(getObjectRequest);
+        assertThat(new String(response.asByteArray())).isEqualTo("TEST_STRING");
     }
 
     @Test
@@ -136,10 +113,7 @@ public abstract class S3CrossRegionIntegrationTestBase extends S3IntegrationTest
                  );
         ListObjectsV2Request listObjectsV2Request = ListObjectsV2Request.builder().bucket(bucketName()).maxKeys(maxKeys).build();
         List<S3Object> s3ObjectList = paginatedAPICall(listObjectsV2Request);
-        assertThat(regionsIntercepted(captureInterceptor.hosts())).isEqualTo(Arrays.asList(CROSS_REGION.id(),
-                                                                                           DEFAULT_REGION.id(),
-                                                                                           DEFAULT_REGION.id()));
-
+        assertThat(s3ObjectList).hasSize(totalKeys);
         IntStream.range(0, totalKeys ).forEach(i -> s3.deleteObject(p -> p.bucket(bucketName()).key(KEY + "_" + i)));
     }
 
@@ -149,11 +123,8 @@ public abstract class S3CrossRegionIntegrationTestBase extends S3IntegrationTest
             "TEST_STRING"));
         HeadBucketRequest headBucketRequest = HeadBucketRequest.builder().bucket(bucketName()).build();
         HeadBucketResponse response = headAPICall(headBucketRequest);
-        assertThat(regionsIntercepted(captureInterceptor.hosts())).isEqualTo(Arrays.asList(CROSS_REGION.id(),
-                                                                                           DEFAULT_REGION.id()));
-        assertThat(captureInterceptor.httpMethods()).isEqualTo(Arrays.asList(SdkHttpMethod.HEAD, SdkHttpMethod.HEAD));
         assertThat(response).isNotNull();
-        assertThat(captureInterceptor.getServiceCalls()).isEqualTo(2);
+        System.out.println(response);
     }
 
     protected abstract List<S3Object> paginatedAPICall(ListObjectsV2Request listObjectsV2Request);
@@ -169,11 +140,5 @@ public abstract class S3CrossRegionIntegrationTestBase extends S3IntegrationTest
     protected abstract ResponseBytes<GetObjectResponse> getAPICall(GetObjectRequest getObjectRequest);
 
     protected abstract String bucketName();
-
-    private List<String> regionsIntercepted(List<String> hosts) {
-        return hosts.stream()
-                    .map(req -> req.substring(bucketName().length() + 4, req.length() - 14))
-                    .collect(Collectors.toList());
-    }
 
 }

@@ -22,8 +22,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 
-public class S3AsyncCrossRegionIntegrationTest extends S3AsyncCrossRegionIntegrationTestBase {
-    private static final String BUCKET = temporaryBucketName(S3AsyncCrossRegionIntegrationTest.class);
+public class S3CrtCrossRegionIntegrationTest extends S3AsyncCrossRegionIntegrationTestBase {
+    private static final String BUCKET = temporaryBucketName(S3CrtCrossRegionIntegrationTest.class);
 
     @BeforeAll
     static void setUpClass() {
@@ -38,12 +38,12 @@ public class S3AsyncCrossRegionIntegrationTest extends S3AsyncCrossRegionIntegra
 
     @BeforeEach
     public void initialize() {
+        // TODO : Update this with crtBuilder ones CRT related PR is merged
         crossRegionS3Client = S3AsyncClient.builder()
                                            .region(CROSS_REGION)
                                            .serviceConfiguration(s -> s.crossRegionAccessEnabled(true))
                                            .build();
     }
-
     @Override
     protected String bucketName() {
         return BUCKET;
