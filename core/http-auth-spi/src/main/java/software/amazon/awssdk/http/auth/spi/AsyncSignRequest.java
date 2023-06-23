@@ -22,7 +22,8 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.http.auth.spi.internal.DefaultAsyncSignRequest;
 import software.amazon.awssdk.identity.spi.Identity;
-import software.amazon.awssdk.utils.builder.SdkBuilder;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * Input parameters to sign a request with async payload, using {@link HttpSigner}.
@@ -32,7 +33,8 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
 @SdkPublicApi
 @Immutable
 @ThreadSafe
-public interface AsyncSignRequest<IdentityT extends Identity> extends SignRequest<Publisher<ByteBuffer>, IdentityT> {
+public interface AsyncSignRequest<IdentityT extends Identity> extends SignRequest<Publisher<ByteBuffer>, IdentityT>,
+    ToCopyableBuilder<AsyncSignRequest.Builder<IdentityT>, AsyncSignRequest<IdentityT>> {
     /**
      * Get a new builder for creating a {@link AsyncSignRequest}.
      */
@@ -45,6 +47,6 @@ public interface AsyncSignRequest<IdentityT extends Identity> extends SignReques
      */
     interface Builder<IdentityT extends Identity>
         extends SignRequest.Builder<Builder<IdentityT>, Publisher<ByteBuffer>, IdentityT>,
-                SdkBuilder<Builder<IdentityT>, AsyncSignRequest<IdentityT>> {
+        CopyableBuilder<Builder<IdentityT>, AsyncSignRequest<IdentityT>> {
     }
 }

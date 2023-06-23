@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.http.auth;
 
-import java.time.Instant;
+import java.time.Clock;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.auth.internal.DefaultAwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.internal.checksums.ChecksumAlgorithm;
@@ -33,11 +33,11 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 public interface AwsV4HttpSigner extends HttpSigner<AwsCredentialsIdentity> {
 
     /**
-     * The datetime, as an {@link Instant}, for the request.
+     * A {@link Clock} to be used at the time of signing.
      * This property is required.
      */
-    SignerProperty<Instant> REQUEST_SIGNING_INSTANT =
-        SignerProperty.create(Instant.class, "RequestSigningInstant");
+    SignerProperty<Clock> SIGNING_CLOCK =
+        SignerProperty.create(Clock.class, "SigningClock");
 
     /**
      * The AWS region name to be used for computing the signature.

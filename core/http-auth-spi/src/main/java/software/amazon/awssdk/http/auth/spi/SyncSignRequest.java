@@ -21,7 +21,8 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.auth.spi.internal.DefaultSyncSignRequest;
 import software.amazon.awssdk.identity.spi.Identity;
-import software.amazon.awssdk.utils.builder.SdkBuilder;
+import software.amazon.awssdk.utils.builder.CopyableBuilder;
+import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * Input parameters to sign a request with sync payload, using {@link HttpSigner}.
@@ -31,7 +32,8 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
 @SdkPublicApi
 @Immutable
 @ThreadSafe
-public interface SyncSignRequest<IdentityT extends Identity> extends SignRequest<ContentStreamProvider, IdentityT> {
+public interface SyncSignRequest<IdentityT extends Identity> extends SignRequest<ContentStreamProvider, IdentityT>,
+    ToCopyableBuilder<SyncSignRequest.Builder<IdentityT>, SyncSignRequest<IdentityT>> {
     /**
      * Get a new builder for creating a {@link SyncSignRequest}.
      */
@@ -44,6 +46,6 @@ public interface SyncSignRequest<IdentityT extends Identity> extends SignRequest
      */
     interface Builder<IdentityT extends Identity>
         extends SignRequest.Builder<Builder<IdentityT>, ContentStreamProvider, IdentityT>,
-                SdkBuilder<Builder<IdentityT>, SyncSignRequest<IdentityT>> {
+            CopyableBuilder<Builder<IdentityT>, SyncSignRequest<IdentityT>> {
     }
 }

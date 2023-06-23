@@ -54,10 +54,10 @@ class AwsV4QueryHttpSignerTest {
 
         assertEquals(expectedAmzAlgorithm, signedRequest.request().rawQueryParameters().get("X-Amz-Algorithm").get(0));
         assertEquals(expectedAmznSignedHeaders, signedRequest.request().rawQueryParameters().get("X-Amz-SignedHeaders").get(0));
-        assertEquals(expectedAmzSignature, signedRequest.request().rawQueryParameters().get("X-Amz-Signature").get(0));
         assertEquals(expectedAmzCredentials, signedRequest.request().rawQueryParameters().get("X-Amz-Credential").get(0));
         assertEquals(expectedAmzDateHeader, signedRequest.request().rawQueryParameters().get("X-Amz-Date").get(0));
         assertEquals(expectedAmzExpires, signedRequest.request().rawQueryParameters().get("X-Amz-Expires").get(0));
+        assertEquals(expectedAmzSignature, signedRequest.request().rawQueryParameters().get("X-Amz-Signature").get(0));
     }
 
     @Test
@@ -68,7 +68,7 @@ class AwsV4QueryHttpSignerTest {
                 .putProperty(EXPIRATION_DURATION, SignerConstant.PRESIGN_URL_MAX_EXPIRATION_DURATION.plus(Duration.ofSeconds(1)))
         );
 
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> signer.sign(request));
+        RuntimeException exception = assertThrows(IllegalArgumentException.class, () -> signer.sign(request));
 
         assertThat(exception.getMessage()).contains("valid for at most 7 days");
     }

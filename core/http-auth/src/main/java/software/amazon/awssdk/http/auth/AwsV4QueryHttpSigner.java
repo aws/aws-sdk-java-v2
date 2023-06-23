@@ -16,7 +16,6 @@
 package software.amazon.awssdk.http.auth;
 
 import java.time.Duration;
-import java.time.Instant;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.auth.internal.DefaultAwsV4QueryHttpSigner;
 import software.amazon.awssdk.http.auth.spi.HttpSigner;
@@ -31,14 +30,7 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
  * <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_aws-signing.html">here</a>.
  */
 @SdkPublicApi
-public interface AwsV4QueryHttpSigner extends HttpSigner<AwsCredentialsIdentity> {
-
-    /**
-     * The datetime, in milliseconds, for the request.
-     * This property is required.
-     */
-    SignerProperty<Instant> REQUEST_SIGNING_INSTANT =
-        SignerProperty.create(Instant.class, "RequestSigningInstant");
+public interface AwsV4QueryHttpSigner extends AwsV4HttpSigner {
 
     /**
      * The duration for the request to be valid.
@@ -46,36 +38,6 @@ public interface AwsV4QueryHttpSigner extends HttpSigner<AwsCredentialsIdentity>
      */
     SignerProperty<Duration> EXPIRATION_DURATION =
         SignerProperty.create(Duration.class, "ExpirationDuration");
-
-    /**
-     * The AWS region name to be used for computing the signature.
-     * This property is required.
-     */
-    SignerProperty<String> REGION_NAME =
-        SignerProperty.create(String.class, "RegionName");
-
-    /**
-     * The name of the AWS service.
-     * This property is required.
-     */
-    SignerProperty<String> SERVICE_SIGNING_NAME =
-        SignerProperty.create(String.class, "ServiceSigningName");
-
-    /**
-     * A boolean to indicate whether to double url-encode the resource path
-     * when constructing the canonical request.
-     * This property defaults to true.
-     */
-    SignerProperty<Boolean> DOUBLE_URL_ENCODE =
-        SignerProperty.create(Boolean.class, "DoubleUrlEncode");
-
-    /**
-     * A boolean to indicate whether the resource path should be "normalized"
-     * according to RFC3986 when constructing the canonical request.
-     * This property defaults to true.
-     */
-    SignerProperty<Boolean> NORMALIZE_PATH =
-        SignerProperty.create(Boolean.class, "NormalizePath");
 
     /**
      * Get a default implementation of a {@link AwsV4QueryHttpSigner}

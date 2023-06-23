@@ -3,7 +3,9 @@ package software.amazon.awssdk.http.auth;
 import java.io.ByteArrayInputStream;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.time.Clock;
 import java.time.Instant;
+import java.time.ZoneId;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
@@ -32,7 +34,8 @@ public class TestUtils {
             .putProperty(SignerProperty.create(String.class, "ServiceSigningName"), "demo")
             .putProperty(SignerProperty.create(Boolean.class, "DoubleUrlEncode"), false)
             .putProperty(SignerProperty.create(Boolean.class, "NormalizePath"), false)
-            .putProperty(SignerProperty.create(Instant.class, "RequestSigningInstant"), Instant.ofEpochMilli(351153000968L))
+            .putProperty(SignerProperty.create(Clock.class, "SigningClock"), Clock.fixed(Instant.ofEpochMilli(351153000968L),
+                ZoneId.of("UTC")))
             .build();
     }
 
@@ -59,7 +62,8 @@ public class TestUtils {
             .putProperty(SignerProperty.create(String.class, "ServiceSigningName"), "demo")
             .putProperty(SignerProperty.create(Boolean.class, "DoubleUrlEncode"), false)
             .putProperty(SignerProperty.create(Boolean.class, "NormalizePath"), false)
-            .putProperty(SignerProperty.create(Instant.class, "RequestSigningInstant"), Instant.ofEpochMilli(351153000968L))
+            .putProperty(SignerProperty.create(Clock.class, "SigningClock"), Clock.fixed(Instant.ofEpochMilli(351153000968L),
+                ZoneId.of("UTC")))
             .build();
     }
 

@@ -16,14 +16,11 @@
 package software.amazon.awssdk.http.auth.internal.util;
 
 import static software.amazon.awssdk.http.auth.internal.util.HttpChecksumUtils.hash;
-import static software.amazon.awssdk.http.auth.internal.util.SignerConstant.AWS4_SIGNING_ALGORITHM;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.List;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -54,9 +51,6 @@ public final class SignerUtils {
 
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter
         .ofPattern("yyyyMMdd'T'HHmmss'Z'").withZone(ZoneId.of("UTC"));
-
-    private static final List<String> LIST_OF_HEADERS_TO_IGNORE_IN_LOWER_CASE =
-        Arrays.asList("connection", "x-amzn-trace-id", "user-agent", "expect");
 
     private SignerUtils() {
     }
@@ -91,77 +85,15 @@ public final class SignerUtils {
     }
 
     /**
-     * Generate the authorization header string.
-     * <p>
-     * Step 5 (partial) of the AWS Signature version 4 calculation. Refer to
-     * https://docs.aws.amazon.com/IAM/latest/UserGuide/create-signed-request.html#add-signature-to-request
-     */
-    public static String buildAuthorizationHeader(byte[] signature,
-                                                  AwsCredentialsIdentity credentials,
-                                                  String scope,
-                                                  CanonicalRequest canonicalRequest) {
-        String accessKeyId = credentials.accessKeyId();
-        StringBuilder stringBuilder = canonicalRequest.signedHeaderStringBuilder();
-        String signatureHex = BinaryUtils.toHex(signature);
-        return AWS4_SIGNING_ALGORITHM
-            + " Credential="
-            + accessKeyId
-            + "/"
-            + scope
-            + ", SignedHeaders="
-            + stringBuilder
-            + ", Signature="
-            + signatureHex;
-    }
-
-    /**
-     * Create a canonical request object for a given request
-     * <p>
-     * Step 1 of the AWS Signature version 4 calculation. Refer to
-     * https://docs.aws.amazon.com/IAM/latest/UserGuide/create-signed-request.html#create-canonical-request.
-     */
-    public static CanonicalRequest createCanonicalRequest(SdkHttpRequest request,
-                                                          SdkHttpRequest.Builder requestBuilder,
-                                                          String contentSha256,
-                                                          boolean doubleUrlEncode,
-                                                          boolean normalizePath) {
-        return new CanonicalRequest(request, requestBuilder, contentSha256, doubleUrlEncode, normalizePath,
-            LIST_OF_HEADERS_TO_IGNORE_IN_LOWER_CASE);
-    }
-
-    /**
      * Create a hash of the canonical request string
      * <p>
      * Step 2 of the AWS Signature version 4 calculation. Refer to
      * https://docs.aws.amazon.com/IAM/latest/UserGuide/create-signed-request.html#create-canonical-request-hash.
      */
     public static String hashCanonicalRequest(String canonicalRequestString) {
-        return BinaryUtils.toHex(hash(canonicalRequestString));
-    }
-
-    /**
-     * Build the sign-string ("string to sign").
-     * <p>
-     * Step 3 of the AWS Signature version 4 calculation. Refer to
-     * https://docs.aws.amazon.com/IAM/latest/UserGuide/create-signed-request.html#create-string-to-sign
-     */
-    public static String buildStringToSign(String canonicalRequest,
-                                           String signingAlgorithm,
-                                           String requestSigningDateTime,
-                                           String scope) {
-
-        LOG.debug(() -> "AWS4 Canonical Request: " + canonicalRequest);
-
-        String stringToSign = signingAlgorithm +
-            SignerConstant.LINE_SEPARATOR +
-            requestSigningDateTime +
-            SignerConstant.LINE_SEPARATOR +
-            scope +
-            SignerConstant.LINE_SEPARATOR +
-            hashCanonicalRequest(canonicalRequest);
-
-        LOG.debug(() -> "AWS4 String to sign: " + stringToSign);
-        return stringToSign;
+        return BinaryUtils.toHex(
+            hash(canonicalRequestString)
+        );
     }
 
     /**
@@ -183,6 +115,27 @@ public final class SignerUtils {
             region,
             service);
         SIGNER_CACHE.add(cacheKey, new SignerKey(signingInstant, signingKey));
+        return signingKey;
+    }
+
+    /**
+     * Get the signing key based on the given credentials and a credential-scope
+     */
+    public static byte[] deriveSigningKey(AwsCredentialsIdentity credentials, CredentialScope credentialScope) {
+        String cacheKey = createSigningCacheKeyName(credentials, credentialScope.getRegion(), credentialScope.getService());
+        SignerKey signerKey = SIGNER_CACHE.get(cacheKey);
+
+        if (signerKey != null && signerKey.isValidForDate(credentialScope.getInstant())) {
+            return signerKey.getSigningKey();
+        }
+
+        LOG.trace(() -> "Generating a new signing key as the signing key not available in the cache for the date: " +
+            credentialScope.getInstant().toEpochMilli());
+        byte[] signingKey = newSigningKey(credentials,
+            credentialScope.getDate(),
+            credentialScope.getRegion(),
+            credentialScope.getService());
+        SIGNER_CACHE.add(cacheKey, new SignerKey(credentialScope.getInstant(), signingKey));
         return signingKey;
     }
 

@@ -38,6 +38,11 @@ public final class DefaultSyncSignRequest<IdentityT extends Identity>
                        .build();
     }
 
+    @Override
+    public SyncSignRequest.Builder<IdentityT> toBuilder() {
+        return new BuilderImpl<>(identity);
+    }
+
     @SdkInternalApi
     public static final class BuilderImpl<IdentityT extends Identity>
         extends DefaultSignRequest.BuilderImpl<SyncSignRequest.Builder<IdentityT>, ContentStreamProvider, IdentityT>

@@ -39,6 +39,9 @@ public final class DefaultAsyncSignRequest<IdentityT extends Identity>
                        .build();
     }
 
+    @Override
+    public AsyncSignRequest.Builder<IdentityT> toBuilder() { return new BuilderImpl<>(this); }
+
     @SdkInternalApi
     public static final class BuilderImpl<IdentityT extends Identity>
         extends DefaultSignRequest.BuilderImpl<AsyncSignRequest.Builder<IdentityT>, Publisher<ByteBuffer>, IdentityT>
@@ -51,6 +54,13 @@ public final class DefaultAsyncSignRequest<IdentityT extends Identity>
         // Used by AsyncSignRequest#builder() where identity is passed as parameter, to avoid having to pass Class<IdentityT>.
         public BuilderImpl(IdentityT identity) {
             super(identity);
+        }
+
+        private BuilderImpl(DefaultAsyncSignRequest<IdentityT> request) {
+            this.request = request.request;
+            this.payload = request.payload;
+            this.identity = request.identity;
+            this.properties = request.properties;
         }
 
         @Override
