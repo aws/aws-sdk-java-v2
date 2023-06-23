@@ -94,7 +94,6 @@ public class DefaultAuthSchemeProviderSpec implements ClassSpec {
 
         // All the operations share the same set of auth schemes, no need to create a switch statement.
         if (operationsToAuthType.size() == 1) {
-            // xxx
             List<AuthType> types = operationsToAuthType.get(Collections.emptyList());
             for (AuthType authType : types) {
                 addAuthTypeProperties(spec, authType);
