@@ -78,6 +78,11 @@ public final class RetryPolicyAdapter implements RetryStrategy<RetryPolicyAdapte
     }
 
     @Override
+    public int maxAttempts() {
+        return retryPolicy.numRetries() + 1;
+    }
+
+    @Override
     public Builder toBuilder() {
         return new Builder(this);
     }

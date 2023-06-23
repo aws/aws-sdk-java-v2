@@ -26,12 +26,12 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
 import software.amazon.awssdk.core.exception.ApiCallTimeoutException;
-import software.amazon.awssdk.core.retry.RetryPolicy;
-import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.protocol.tests.timeout.BaseApiCallTimeoutTest;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.retries.api.BackoffStrategy;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
 import software.amazon.awssdk.services.protocolrestjson.model.AllTypesResponse;
 import software.amazon.awssdk.services.protocolrestjson.model.ProtocolRestJsonException;
@@ -58,7 +58,7 @@ public class SyncApiCallTimeoutTest extends BaseApiCallTimeoutTest {
                                        .httpClient(mockClient)
                                        .credentialsProvider(() -> AwsBasicCredentials.create("akid", "skid"))
                                        .overrideConfiguration(b -> b.apiCallTimeout(TIMEOUT)
-                                                                    .retryPolicy(RetryPolicy.none()))
+                                                                    .retryStrategy(AwsRetryStrategy.none()))
                                        .build();
 
         clientWithRetry = ProtocolRestJsonClient.builder()
@@ -66,10 +66,11 @@ public class SyncApiCallTimeoutTest extends BaseApiCallTimeoutTest {
                                                 .httpClient(mockClient)
                                                 .credentialsProvider(() -> AwsBasicCredentials.create("akid", "skid"))
                                                 .overrideConfiguration(b -> b.apiCallTimeout(TIMEOUT)
-                                                                             .retryPolicy(RetryPolicy.builder()
-                                                                                                     .backoffStrategy(BackoffStrategy.none())
-                                                                                                     .numRetries(1)
-                                                                                                     .build()))
+                                                    .retryStrategy(AwsRetryStrategy.standardRetryStrategy()
+                                                                       .toBuilder()
+                                                                       .backoffStrategy(BackoffStrategy.retryImmediately())
+                                                                       .maxAttempts(2)
+                                                                       .build()))
                                                 .build();
     }
 

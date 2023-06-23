@@ -205,6 +205,10 @@ public final class IntermediateModel {
         return customizationConfig.getCustomRetryPolicy();
     }
 
+    public String getCustomRetryStrategy() {
+        return customizationConfig.getCustomRetryStrategy();
+    }
+
     public String getSdkModeledExceptionBaseFqcn() {
         return String.format("%s.%s",
                              metadata.getFullModelPackageName(),

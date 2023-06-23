@@ -31,7 +31,7 @@ public class AsyncRetryHeaderTest extends RetryHeaderTestSuite<MockAsyncHttpClie
     public AsyncRetryHeaderTest() {
         super(new MockAsyncHttpClient());
         client = ProtocolRestJsonAsyncClient.builder()
-                                            .overrideConfiguration(c -> c.retryPolicy(RetryMode.STANDARD))
+                                            .overrideConfiguration(c -> c.retryStrategy(RetryMode.STANDARD))
                                             .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
                                             .region(Region.US_EAST_1)
                                             .endpointOverride(URI.create("http://localhost"))

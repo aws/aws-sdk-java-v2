@@ -130,6 +130,11 @@ public class CustomizationConfig {
      */
     private String customRetryPolicy;
 
+    /**
+     * Custom Retry strategy
+     */
+    private String customRetryStrategy;
+
     private boolean skipSyncClientGeneration;
 
     /**
@@ -416,8 +421,16 @@ public class CustomizationConfig {
         return customRetryPolicy;
     }
 
+    public String getCustomRetryStrategy() {
+        return customRetryStrategy;
+    }
+
     public void setCustomRetryPolicy(String customRetryPolicy) {
         this.customRetryPolicy = customRetryPolicy;
+    }
+
+    public void setCustomRetryStrategy(String customRetryStrategy) {
+        this.customRetryStrategy = customRetryStrategy;
     }
 
     public boolean isSkipSyncClientGeneration() {

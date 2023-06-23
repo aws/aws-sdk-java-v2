@@ -18,6 +18,7 @@ package software.amazon.awssdk.services.dynamodb;
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.retry.AwsRetryPolicy;
+import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.internal.retry.SdkDefaultRetrySetting;
@@ -25,6 +26,7 @@ import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
 import software.amazon.awssdk.core.retry.backoff.FullJitterBackoffStrategy;
+import software.amazon.awssdk.retries.api.RetryStrategy;
 
 
 /**
@@ -37,7 +39,12 @@ final class DynamoDbRetryPolicy {
      * Default max retry count for DynamoDB client, regardless of retry mode.
      **/
     private static final int MAX_ERROR_RETRY = 8;
-    
+
+    /**
+     * Default attempts count for DynamoDB client, regardless of retry mode.
+     **/
+    private static final int MAX_ATTEMPTS = MAX_ERROR_RETRY + 1;
+
     /**
      * Default base sleep time for DynamoDB, regardless of retry mode.
      **/
@@ -75,5 +82,22 @@ final class DynamoDbRetryPolicy {
                              .numRetries(MAX_ERROR_RETRY)
                              .backoffStrategy(BACKOFF_STRATEGY)
                              .build();
+    }
+
+    public static RetryStrategy<?, ?> resolveRetryStrategy(SdkClientConfiguration config) {
+        RetryStrategy<?, ?> configuredRetryStrategy = config.option(SdkClientOption.RETRY_STRATEGY);
+        if (configuredRetryStrategy != null) {
+            return configuredRetryStrategy;
+        }
+
+        RetryMode retryMode = RetryMode.resolver()
+                                       .profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
+                                       .profileName(config.option(SdkClientOption.PROFILE_NAME))
+                                       .defaultRetryMode(config.option(SdkClientOption.DEFAULT_RETRY_MODE))
+                                       .resolve();
+        return AwsRetryStrategy.forRetryMode(retryMode)
+            .toBuilder()
+            .maxAttempts(MAX_ATTEMPTS)
+            .build();
     }
 }

@@ -39,8 +39,8 @@ import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.core.exception.SdkException;
-import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.internal.metrics.SdkErrorType;
+import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
 import software.amazon.awssdk.http.HttpExecuteRequest;
@@ -62,6 +62,8 @@ public class CoreMetricsTest {
     private static final String REQUEST_ID = "req-id";
     private static final String EXTENDED_REQUEST_ID = "extended-id";
     private static final int MAX_RETRIES = 2;
+    private static final int MAX_ATTEMPTS = MAX_RETRIES + 1;
+
 
     private static ProtocolRestJsonClient client;
 
@@ -83,7 +85,8 @@ public class CoreMetricsTest {
                 .httpClient(mockHttpClient)
                 .region(Region.US_WEST_2)
                 .credentialsProvider(mockCredentialsProvider)
-                .overrideConfiguration(c -> c.addMetricPublisher(mockPublisher).retryPolicy(b -> b.numRetries(MAX_RETRIES)))
+                .overrideConfiguration(c -> c.addMetricPublisher(mockPublisher)
+                    .retryStrategy(b -> b.maxAttempts(MAX_ATTEMPTS)))
                 .build();
         AbortableInputStream content = contentStream("{}");
         SdkHttpFullResponse httpResponse = SdkHttpFullResponse.builder()
@@ -233,7 +236,7 @@ public class CoreMetricsTest {
 
             MetricCollection capturedCollection = collectionCaptor.getValue();
 
-            assertThat(capturedCollection.children()).hasSize(MAX_RETRIES + 1);
+            assertThat(capturedCollection.children()).hasSize(MAX_ATTEMPTS);
             assertThat(capturedCollection.metricValues(CoreMetric.RETRY_COUNT)).containsExactly(MAX_RETRIES);
             assertThat(capturedCollection.metricValues(CoreMetric.API_CALL_SUCCESSFUL)).containsExactly(false);
 
@@ -279,7 +282,6 @@ public class CoreMetricsTest {
             }
         }
     }
-
 
     private static HttpExecuteResponse mockExecuteResponse(SdkHttpFullResponse httpResponse) {
         HttpExecuteResponse mockResponse = mock(HttpExecuteResponse.class);

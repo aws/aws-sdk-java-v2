@@ -64,6 +64,25 @@ public final class SdkDefaultRetryStrategy {
     }
 
     /**
+     * Returns the {@link RetryMode} for the given retry strategy.
+     *
+     * @param retryStrategy The retry strategy to test for
+     * @return The retry mode for the given strategy
+     */
+    public static RetryMode retryMode(RetryStrategy<?, ?> retryStrategy) {
+        if (retryStrategy instanceof StandardRetryStrategy) {
+            return RetryMode.STANDARD;
+        }
+        if (retryStrategy instanceof AdaptiveRetryStrategy) {
+            return RetryMode.ADAPTIVE;
+        }
+        if (retryStrategy instanceof LegacyRetryStrategy) {
+            return RetryMode.LEGACY;
+        }
+        throw new IllegalArgumentException("unknown retry strategy class: " + retryStrategy.getClass().getName());
+    }
+
+    /**
      * Returns a {@link StandardRetryStrategy} with generic SDK retry conditions.
      *
      * @return a {@link StandardRetryStrategy} with generic SDK retry conditions.
@@ -131,8 +150,7 @@ public final class SdkDefaultRetryStrategy {
      */
 
     public static <T extends RetryStrategy.Builder<T, ?>> T configure(T builder) {
-        builder.retryOnException(SdkDefaultRetryStrategy::retryOnRetryableStatusCodes)
-               .retryOnException(SdkDefaultRetryStrategy::retryOnStatusCodes)
+        builder.retryOnException(SdkDefaultRetryStrategy::retryOnStatusCodes)
                .retryOnException(SdkDefaultRetryStrategy::retryOnClockSkewException)
                .retryOnException(SdkDefaultRetryStrategy::retryOnThrottlingCondition);
         SdkDefaultRetrySetting.RETRYABLE_EXCEPTIONS.forEach(builder::retryOnExceptionOrCauseInstanceOf);
@@ -164,14 +182,6 @@ public final class SdkDefaultRetryStrategy {
     private static boolean retryOnThrottlingCondition(Throwable ex) {
         if (ex instanceof SdkException) {
             return RetryUtils.isThrottlingException((SdkException) ex);
-        }
-        return false;
-    }
-
-    private static boolean retryOnRetryableStatusCodes(Throwable ex) {
-        if (ex instanceof SdkServiceException) {
-            SdkServiceException exception = (SdkServiceException) ex;
-            return SdkDefaultRetrySetting.RETRYABLE_STATUS_CODES.contains(exception.statusCode());
         }
         return false;
     }

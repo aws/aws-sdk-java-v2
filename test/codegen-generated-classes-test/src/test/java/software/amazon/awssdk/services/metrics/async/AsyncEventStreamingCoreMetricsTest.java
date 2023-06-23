@@ -61,7 +61,7 @@ public class AsyncEventStreamingCoreMetricsTest extends BaseAsyncCoreMetricsTest
                                             .credentialsProvider(mockCredentialsProvider)
                                             .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
                                             .overrideConfiguration(c -> c.addMetricPublisher(mockPublisher)
-                                                                         .retryPolicy(b -> b.numRetries(MAX_RETRIES)))
+                                                                         .retryStrategy(b -> b.maxAttempts(MAX_ATTEMPTS)))
                                             .build();
 
         when(mockCredentialsProvider.resolveCredentials()).thenAnswer(invocation -> {

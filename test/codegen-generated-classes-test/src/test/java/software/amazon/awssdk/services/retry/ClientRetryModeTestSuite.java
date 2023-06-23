@@ -48,7 +48,8 @@ public abstract class ClientRetryModeTestSuite<ClientT, BuilderT extends AwsClie
     @Test
     public void legacyRetryModeIsFourAttempts() {
         stubThrottlingResponse();
-        ClientT client = clientBuilder().overrideConfiguration(o -> o.retryPolicy(RetryMode.LEGACY)).build();
+        ClientT client = clientBuilder().overrideConfiguration(o -> o.retryStrategy(RetryMode.LEGACY))
+                                        .build();
         assertThatThrownBy(() -> callAllTypes(client)).isInstanceOf(SdkException.class);
         verifyRequestCount(4);
     }
@@ -56,7 +57,7 @@ public abstract class ClientRetryModeTestSuite<ClientT, BuilderT extends AwsClie
     @Test
     public void standardRetryModeIsThreeAttempts() {
         stubThrottlingResponse();
-        ClientT client = clientBuilder().overrideConfiguration(o -> o.retryPolicy(RetryMode.STANDARD)).build();
+        ClientT client = clientBuilder().overrideConfiguration(o -> o.retryStrategy(RetryMode.STANDARD)).build();
         assertThatThrownBy(() -> callAllTypes(client)).isInstanceOf(SdkException.class);
         verifyRequestCount(3);
     }
@@ -80,8 +81,7 @@ public abstract class ClientRetryModeTestSuite<ClientT, BuilderT extends AwsClie
         stubThrottlingResponse();
 
         ExecutorService executor = Executors.newFixedThreadPool(51);
-        ClientT client = clientBuilder().overrideConfiguration(o -> o.retryPolicy(RetryMode.LEGACY)).build();
-
+        ClientT client = clientBuilder().overrideConfiguration(o -> o.retryStrategy(RetryMode.LEGACY)).build();
         for (int i = 0; i < 51; ++i) {
             executor.execute(() -> assertThatThrownBy(() -> callAllTypes(client)).isInstanceOf(SdkException.class));
         }
@@ -97,7 +97,7 @@ public abstract class ClientRetryModeTestSuite<ClientT, BuilderT extends AwsClie
         stubThrottlingResponse();
 
         ExecutorService executor = Executors.newFixedThreadPool(51);
-        ClientT client = clientBuilder().overrideConfiguration(o -> o.retryPolicy(RetryMode.STANDARD)).build();
+        ClientT client = clientBuilder().overrideConfiguration(o -> o.retryStrategy(RetryMode.STANDARD)).build();
 
         for (int i = 0; i < 51; ++i) {
             executor.execute(() -> assertThatThrownBy(() -> callAllTypes(client)).isInstanceOf(SdkException.class));

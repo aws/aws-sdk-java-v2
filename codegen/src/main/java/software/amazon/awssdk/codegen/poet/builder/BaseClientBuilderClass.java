@@ -342,6 +342,12 @@ public class BaseClientBuilderClass implements ClassSpec {
                             PoetUtils.classNameFromFqcn(model.getCustomizationConfig().getCustomRetryPolicy()));
         }
 
+        if (StringUtils.isNotBlank(model.getCustomizationConfig().getCustomRetryStrategy())) {
+            builder.addCode(".option($1T.RETRY_STRATEGY, $2T.resolveRetryStrategy(config))",
+                            SdkClientOption.class,
+                            PoetUtils.classNameFromFqcn(model.getCustomizationConfig().getCustomRetryStrategy()));
+        }
+
         if (StringUtils.isNotBlank(clientConfigClassName)) {
             builder.addCode(".option($T.SERVICE_CONFIGURATION, finalServiceConfig)", SdkClientOption.class);
         }

@@ -139,6 +139,11 @@ public abstract class BaseRetryStrategy<
     }
 
     @Override
+    public int maxAttempts() {
+        return maxAttempts;
+    }
+
+    @Override
     public abstract B toBuilder();
 
 

@@ -46,8 +46,6 @@ public class SdkClientOptionValidation {
 
         require("overrideConfiguration.additionalHttpHeaders", c.option(SdkClientOption.ADDITIONAL_HTTP_HEADERS));
         require("overrideConfiguration.executionInterceptors", c.option(SdkClientOption.EXECUTION_INTERCEPTORS));
-        // TODO: fixme, this will be removed as retryPolicy will be optional
-        require("overrideConfiguration.retryPolicy", c.option(SdkClientOption.RETRY_POLICY));
         require("overrideConfiguration.retryStrategy", c.option(SdkClientOption.RETRY_STRATEGY));
 
         require("overrideConfiguration.advancedOption[USER_AGENT_PREFIX]",

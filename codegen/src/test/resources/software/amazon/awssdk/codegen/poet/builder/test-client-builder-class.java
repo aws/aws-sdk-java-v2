@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import software.amazon.MyServiceHttpConfig;
 import software.amazon.MyServiceRetryPolicy;
+import software.amazon.MyServiceRetryStrategy;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
@@ -126,6 +127,7 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
                      .option(AwsClientOption.FIPS_ENDPOINT_ENABLED, finalServiceConfig.fipsModeEnabled())
                      .option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors)
                      .option(SdkClientOption.RETRY_POLICY, MyServiceRetryPolicy.resolveRetryPolicy(config))
+                     .option(SdkClientOption.RETRY_STRATEGY, MyServiceRetryStrategy.resolveRetryStrategy(config))
                      .option(SdkClientOption.SERVICE_CONFIGURATION, finalServiceConfig).build();
     }
 
