@@ -25,6 +25,7 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.auth.internal.checksums.ContentChecksum;
 import software.amazon.awssdk.http.auth.internal.checksums.SdkChecksum;
 import software.amazon.awssdk.http.auth.spi.SignRequest;
 import software.amazon.awssdk.http.auth.spi.SignerProperty;
@@ -78,13 +79,6 @@ public final class SignerUtils {
     }
 
     /**
-     * Build the credential scope ("CredentialScope") string as documented in SigV4.
-     */
-    public static String buildScope(String dateStamp, String serviceName, String regionName) {
-        return dateStamp + "/" + regionName + "/" + serviceName + "/" + SignerConstant.AWS4_TERMINATOR;
-    }
-
-    /**
      * Create a hash of the canonical request string
      * <p>
      * Step 2 of the AWS Signature version 4 calculation. Refer to
@@ -94,28 +88,6 @@ public final class SignerUtils {
         return BinaryUtils.toHex(
             hash(canonicalRequestString)
         );
-    }
-
-    /**
-     * Get the signing key based on the given credentials, instant, region, and service
-     */
-    public static byte[] deriveSigningKey(AwsCredentialsIdentity credentials, Instant signingInstant, String region,
-                                          String service) {
-        String cacheKey = createSigningCacheKeyName(credentials, region, service);
-        SignerKey signerKey = SIGNER_CACHE.get(cacheKey);
-
-        if (signerKey != null && signerKey.isValidForDate(signingInstant)) {
-            return signerKey.getSigningKey();
-        }
-
-        LOG.trace(() -> "Generating a new signing key as the signing key not available in the cache for the date: " +
-            signingInstant.toEpochMilli());
-        byte[] signingKey = newSigningKey(credentials,
-            formatDateStamp(signingInstant),
-            region,
-            service);
-        SIGNER_CACHE.add(cacheKey, new SignerKey(signingInstant, signingKey));
-        return signingKey;
     }
 
     /**
@@ -179,10 +151,9 @@ public final class SignerUtils {
     }
 
     /**
-     * compute the signature of a string using a signing key.
+     * Compute the signature of a string using a signing key.
      * <p>
-     * Step 4 of the AWS Signature version 4 calculation. It involves deriving
-     * the signing key and computing the signature. Refer to
+     * Step 4 of the AWS Signature version 4 calculation. Refer to
      * https://docs.aws.amazon.com/IAM/latest/UserGuide/create-signed-request.html#calculate-signature.
      */
     public static byte[] computeSignature(String stringToSign, byte[] signingKey) {
@@ -190,10 +161,20 @@ public final class SignerUtils {
             SigningAlgorithm.HMAC_SHA256);
     }
 
+    /**
+     * Validate that the {@link SignerProperty} is present in the {@link SignRequest}.
+     * <p>
+     * The value, {@link T}, is return when present, and an exception is thrown otherwise.
+     */
     public static <T> T validatedProperty(SignRequest<?, ?> request, SignerProperty<T> property) {
         return Validate.notNull(request.property(property), property.toString() + " must not be null!");
     }
 
+    /**
+     * Validate that the {@link SignerProperty} is present in the {@link SignRequest}.
+     * <p>
+     * The value, {@link T}, is return when present, and the default is returned otherwise.
+     */
     public static <T> T validatedProperty(SignRequest<?, ?> request, SignerProperty<T> property, T defaultValue) {
         return Validate.getOrDefault(request.property(property), () -> defaultValue);
     }
@@ -214,17 +195,25 @@ public final class SignerUtils {
     }
 
     /**
-     * Add a date header using a datetimes string
+     * Add a date header using a datetime string
      */
     public static void addDateHeader(SdkHttpRequest.Builder requestBuilder, String dateTime) {
         requestBuilder.putHeader(SignerConstant.X_AMZ_DATE, dateTime);
     }
 
+    public static void addSha256ContentHeader(SdkHttpRequest.Builder requestBuilder, ContentChecksum contentChecksum) {
+        requestBuilder.firstMatchingHeader(SignerConstant.X_AMZ_CONTENT_SHA256)
+            .filter(h -> h.equals("required"))
+            .ifPresent(h ->
+                requestBuilder.putHeader(
+                    SignerConstant.X_AMZ_CONTENT_SHA256, contentChecksum.contentHash()));
+    }
+
     /**
-     * Add the checksum header if the checksum is not null and the payload is signed
+     * Add a checksum header if the checksum is not null and the payload is signed
      */
-    public static void putChecksumHeader(SdkChecksum sdkChecksum,
-                                         SdkHttpRequest.Builder requestBuilder, String contentHashString,
+    public static void addChecksumHeader(SdkHttpRequest.Builder requestBuilder, SdkChecksum sdkChecksum,
+                                         String contentHashString,
                                          String checksumHeaderName) {
 
         if (sdkChecksum != null && !isUnsignedPayload(contentHashString)) {
@@ -235,7 +224,7 @@ public final class SignerUtils {
     /**
      * Check if a payload is unsigned based on the content hash
      */
-    public static Boolean isUnsignedPayload(String contentHashString) {
+    public static boolean isUnsignedPayload(String contentHashString) {
         return "UNSIGNED_PAYLOAD".equals(contentHashString) || "STREAMING-UNSIGNED-PAYLOAD-TRAILER".equals(contentHashString);
     }
 }

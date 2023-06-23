@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.utils.Pair;
@@ -32,10 +33,13 @@ import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
- * A class that represents a canonical request in AWS, as documented
- * here: <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/create-signed-request.html#create-canonical-request">...</a>
+ * A class that represents a canonical request in AWS, as documented:
+ * <p>
+ * https://docs.aws.amazon.com/IAM/latest/UserGuide/create-signed-request.html#create-canonical-request
+ * </p>
  */
 @SdkInternalApi
+@Immutable
 public final class CanonicalRequestV2 {
     private static final List<String> HEADERS_TO_IGNORE_IN_LOWER_CASE =
         Arrays.asList("connection", "x-amzn-trace-id", "user-agent", "expect");
@@ -52,6 +56,14 @@ public final class CanonicalRequestV2 {
     private final String signedHeadersString;
     private final String canonicalRequestString;
 
+    /**
+     * Create a canonical request.
+     * <p>
+     * Each parameter of a canonical request is set upon creation of this object.
+     * <p>
+     * To get such a parameter (i.e. the canonical request string), simply call the getter
+     * for that parameter (i.e. getCanonicalRequestString())
+     */
     public CanonicalRequestV2(SdkHttpRequest request, String contentHash, Options options) {
         this.request = request;
         this.contentHash = contentHash;
@@ -63,14 +75,24 @@ public final class CanonicalRequestV2 {
         this.canonicalParamsString = getCanonicalQueryString(canonicalParams);
         this.canonicalHeadersString = getCanonicalHeadersString(canonicalHeaders);
         this.signedHeadersString = getSignedHeadersString(canonicalHeaders);
-        this.canonicalRequestString = getString();
+        this.canonicalRequestString = getCanonicalRequestString(request.method().toString(), canonicalUri, canonicalParamsString,
+            canonicalHeadersString, signedHeadersString, contentHash);
     }
 
     /**
-     * Get the canonical request string for a given {@link SdkHttpRequest}, content-hash, and {@link Options}.
+     * Get the canonical request string.
+     * <p>
+     * Each {@link String} parameter is separated by a newline character.
      */
-    public static String getString(SdkHttpRequest request, String contentHash, Options options) {
-        return new CanonicalRequestV2(request, contentHash, options).getString();
+    public static String getCanonicalRequestString(String httpMethod, String canonicalUri, String canonicalParamsString,
+                                                   String canonicalHeadersString, String signedHeadersString,
+                                                   String contentHash) {
+        return httpMethod + SignerConstant.LINE_SEPARATOR +
+            canonicalUri + SignerConstant.LINE_SEPARATOR +
+            canonicalParamsString + SignerConstant.LINE_SEPARATOR +
+            canonicalHeadersString + SignerConstant.LINE_SEPARATOR +
+            signedHeadersString + SignerConstant.LINE_SEPARATOR +
+            contentHash;
     }
 
     /**
@@ -276,18 +298,8 @@ public final class CanonicalRequestV2 {
     /**
      * Get the canonical request string.
      */
-    public String getString() {
-        return request.method().toString() +
-            SignerConstant.LINE_SEPARATOR +
-            canonicalUri +
-            SignerConstant.LINE_SEPARATOR +
-            canonicalParamsString +
-            SignerConstant.LINE_SEPARATOR +
-            canonicalHeadersString +
-            SignerConstant.LINE_SEPARATOR +
-            signedHeadersString +
-            SignerConstant.LINE_SEPARATOR +
-            contentHash;
+    public String getCanonicalRequestString() {
+        return canonicalRequestString;
     }
 
     public String getCanonicalUri() {
@@ -318,10 +330,10 @@ public final class CanonicalRequestV2 {
      * A class for representing options used when creating a {@link CanonicalRequestV2}
      */
     public static class Options {
-        final Boolean doubleUrlEncode;
-        final Boolean normalizePath;
+        final boolean doubleUrlEncode;
+        final boolean normalizePath;
 
-        public Options(Boolean doubleUrlEncode, Boolean normalizePath) {
+        public Options(boolean doubleUrlEncode, boolean normalizePath) {
             this.doubleUrlEncode = doubleUrlEncode;
             this.normalizePath = normalizePath;
         }

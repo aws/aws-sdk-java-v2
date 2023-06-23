@@ -18,12 +18,13 @@ package software.amazon.awssdk.http.auth.internal;
 import static software.amazon.awssdk.http.auth.internal.util.CredentialUtils.sanitizeCredentials;
 import static software.amazon.awssdk.http.auth.internal.util.HttpChecksumUtils.createSdkChecksumFromRequest;
 import static software.amazon.awssdk.http.auth.internal.util.SignerConstant.AWS4_SIGNING_ALGORITHM;
+import static software.amazon.awssdk.http.auth.internal.util.SignerUtils.addChecksumHeader;
 import static software.amazon.awssdk.http.auth.internal.util.SignerUtils.addDateHeader;
 import static software.amazon.awssdk.http.auth.internal.util.SignerUtils.addHostHeader;
+import static software.amazon.awssdk.http.auth.internal.util.SignerUtils.addSha256ContentHeader;
 import static software.amazon.awssdk.http.auth.internal.util.SignerUtils.deriveSigningKey;
 import static software.amazon.awssdk.http.auth.internal.util.SignerUtils.formatTimestamp;
 import static software.amazon.awssdk.http.auth.internal.util.SignerUtils.hashCanonicalRequest;
-import static software.amazon.awssdk.http.auth.internal.util.SignerUtils.putChecksumHeader;
 import static software.amazon.awssdk.http.auth.internal.util.SignerUtils.validatedProperty;
 
 import java.nio.ByteBuffer;
@@ -76,100 +77,12 @@ public class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
 
         ContentChecksum contentChecksum = createChecksum(request);
 
-        // preSign()
-
         SdkHttpRequest.Builder requestBuilder = sign(request, contentChecksum);
-
-        // postSign()
 
         return SyncSignedRequest.builder()
             .request(requestBuilder.build())
             .payload(request.payload().orElse(null))
             .build();
-    }
-
-    private SdkChecksum createSdkChecksum(SignRequest<?, ?> request) {
-        String checksumHeaderName = validatedProperty(request, CHECKSUM_HEADER_NAME, "");
-        ChecksumAlgorithm checksumAlgorithm = validatedProperty(request, CHECKSUM_ALGORITHM, null);
-
-        if (StringUtils.isNotBlank(checksumHeaderName) && checksumAlgorithm == null) {
-            throw new IllegalArgumentException(
-                CHECKSUM_ALGORITHM + " cannot be null when " + CHECKSUM_HEADER_NAME + " is given!");
-        }
-
-        return createSdkChecksumFromRequest(request.request(), checksumHeaderName, checksumAlgorithm);
-    }
-
-    private ContentChecksum createChecksum(SyncSignRequest<?> request) {
-        SdkChecksum sdkChecksum = createSdkChecksum(request);
-        String contentHash = createContentHash(request.payload().orElse(null), sdkChecksum);
-
-        return new ContentChecksum(contentHash, sdkChecksum);
-    }
-
-    private CompletableFuture<ContentChecksum> createChecksum(AsyncSignRequest<?> request) {
-        SdkChecksum sdkChecksum = createSdkChecksum(request);
-
-        return createContentHash(request.payload().orElse(null), sdkChecksum).thenApply(
-            hash -> new ContentChecksum(hash, sdkChecksum));
-    }
-
-    private SdkHttpRequest.Builder sign(SignRequest<?, ? extends AwsCredentialsIdentity> signRequest,
-                                        ContentChecksum contentChecksum) {
-        SdkHttpRequest.Builder requestBuilder = signRequest.request().toBuilder();
-
-        Instant requestSigningInstant = validatedProperty(signRequest, SIGNING_CLOCK).instant();
-        String regionName = validatedProperty(signRequest, REGION_NAME);
-        String serviceSigningName = validatedProperty(signRequest, SERVICE_SIGNING_NAME);
-        AwsCredentialsIdentity credentials = sanitizeCredentials(signRequest.identity());
-        CredentialScope credentialScope = new CredentialScope(regionName, serviceSigningName, requestSigningInstant);
-        String algorithm = AWS4_SIGNING_ALGORITHM;
-
-        // 0
-        if (credentials instanceof AwsSessionCredentialsIdentity) {
-            addSessionCredentials(requestBuilder, (AwsSessionCredentialsIdentity) credentials);
-        }
-
-        addPrerequisites(requestBuilder, signRequest, contentChecksum);
-
-        // 1
-        CanonicalRequestV2 canonicalRequest = createCanonicalRequest(signRequest, requestBuilder.build(), contentChecksum);
-
-        // 2
-        String canonicalRequestHash = hashCanonicalRequest(canonicalRequest.getString());
-
-        // 3
-        String stringToSign = createSignString(algorithm, credentialScope, canonicalRequestHash);
-
-        // 4
-        byte[] signingKey = deriveSigningKey(credentials, credentialScope);
-        String signature = createSignature(stringToSign, signingKey);
-
-        // 5
-        addSignature(requestBuilder, algorithm, credentials, credentialScope, canonicalRequest, signature);
-        // query signer implements this differently ^^^
-
-        return requestBuilder;
-    }
-
-    public void addPrerequisites(SdkHttpRequest.Builder requestBuilder, SignRequest<?, ? extends AwsCredentialsIdentity> signRequest,
-                                 ContentChecksum contentChecksum) {
-        Instant requestSigningInstant = validatedProperty(signRequest, SIGNING_CLOCK).instant();
-        String formattedRequestSigningDateTime = formatTimestamp(requestSigningInstant);
-        String checksumHeaderName = signRequest.property(CHECKSUM_HEADER_NAME);
-
-        // addContentHeader(requestBuilder, String contentHash); ??
-        requestBuilder.firstMatchingHeader(SignerConstant.X_AMZ_CONTENT_SHA256)
-            .filter(h -> h.equals("required"))
-            .ifPresent(h ->
-                requestBuilder.putHeader(
-                    SignerConstant.X_AMZ_CONTENT_SHA256, contentChecksum.contentHash()));
-
-        addHostHeader(requestBuilder);
-        addDateHeader(requestBuilder, formattedRequestSigningDateTime);
-        putChecksumHeader(contentChecksum.contentFlexibleChecksum(),
-            requestBuilder, contentChecksum.contentHash(), checksumHeaderName);
-
     }
 
     @Override
@@ -181,12 +94,9 @@ public class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
                 .build();
         }
 
-        // create a checksum with an empty hash as a placeholder
-
         CompletableFuture<SdkHttpRequest> signedReqFuture =
             createChecksum(request).thenApply(
                 contentChecksum -> {
-
                     SdkHttpRequest.Builder builder = sign(request, contentChecksum);
                     return builder.build();
                 });
@@ -199,18 +109,123 @@ public class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
     }
 
     /**
-     * Adds session credentials to the request given.
+     * Using a {@link SignRequest} and a {@link ContentChecksum}, perform all the necessary steps to
+     * create a signed request according to the SigV4 signing documentation:
+     * <p>
+     * https://docs.aws.amazon.com/IAM/latest/UserGuide/create-signed-request.html
      */
-    public void addSessionCredentials(SdkHttpRequest.Builder requestBuilder,
-                                       AwsSessionCredentialsIdentity credentials) {
+    protected SdkHttpRequest.Builder sign(SignRequest<?, ? extends AwsCredentialsIdentity> signRequest,
+                                          ContentChecksum contentChecksum) {
+
+        SdkHttpRequest.Builder requestBuilder = signRequest.request().toBuilder();
+        Instant requestSigningInstant = validatedProperty(signRequest, SIGNING_CLOCK).instant();
+        String regionName = validatedProperty(signRequest, REGION_NAME);
+        String serviceSigningName = validatedProperty(signRequest, SERVICE_SIGNING_NAME);
+        AwsCredentialsIdentity credentials = sanitizeCredentials(signRequest.identity());
+        CredentialScope credentialScope = new CredentialScope(regionName, serviceSigningName, requestSigningInstant);
+        String algorithm = AWS4_SIGNING_ALGORITHM;
+
+        // Perform any necessary pre-work, such as handling session-credentials or adding required headers
+        // to the request before it gets signed
+        if (credentials instanceof AwsSessionCredentialsIdentity) {
+            addSessionCredentials(requestBuilder, (AwsSessionCredentialsIdentity) credentials);
+        }
+        addPrerequisites(requestBuilder, signRequest, contentChecksum);
+
+        // Step 1: Create a canonical request
+        CanonicalRequestV2 canonicalRequest = createCanonicalRequest(signRequest, requestBuilder.build(), contentChecksum);
+
+        // Step 2: Create a hash of the canonical request
+        String canonicalRequestHash = hashCanonicalRequest(canonicalRequest.getCanonicalRequestString());
+
+        // Step 2: Create a hash of the canonical request
+        String stringToSign = createSignString(algorithm, credentialScope, canonicalRequestHash);
+
+        // Step 4: Calculate the signature
+        byte[] signingKey = deriveSigningKey(credentials, credentialScope);
+        String signature = createSignature(stringToSign, signingKey);
+
+        // Step 5: Add the signature to the request
+        addSignature(requestBuilder, algorithm, credentials, credentialScope, canonicalRequest, signature);
+
+        return requestBuilder;
+    }
+
+    /**
+     * Generate an {@link SdkChecksum} from the {@link SignRequest}.
+     */
+    protected SdkChecksum createSdkChecksum(SignRequest<?, ?> request) {
+        String checksumHeaderName = validatedProperty(request, CHECKSUM_HEADER_NAME, "");
+        ChecksumAlgorithm checksumAlgorithm = validatedProperty(request, CHECKSUM_ALGORITHM, null);
+
+        if (StringUtils.isNotBlank(checksumHeaderName) && checksumAlgorithm == null) {
+            throw new IllegalArgumentException(
+                CHECKSUM_ALGORITHM + " cannot be null when " + CHECKSUM_HEADER_NAME + " is given!");
+        }
+
+        return createSdkChecksumFromRequest(request.request(), checksumHeaderName, checksumAlgorithm);
+    }
+
+    /**
+     * Generate a {@link ContentChecksum} from the {@link SyncSignRequest}.
+     */
+    protected ContentChecksum createChecksum(SyncSignRequest<?> request) {
+        SdkChecksum sdkChecksum = createSdkChecksum(request);
+        String contentHash = createContentHash(request.payload().orElse(null), sdkChecksum);
+
+        return new ContentChecksum(contentHash, sdkChecksum);
+    }
+
+    /**
+     * Generate a {@link CompletableFuture<ContentChecksum>} from the {@link AsyncSignRequest}
+     */
+    protected CompletableFuture<ContentChecksum> createChecksum(AsyncSignRequest<?> request) {
+        SdkChecksum sdkChecksum = createSdkChecksum(request);
+
+        return createContentHash(request.payload().orElse(null), sdkChecksum).thenApply(
+            hash -> new ContentChecksum(hash, sdkChecksum));
+    }
+
+    /**
+     * Add any prerequisite items to the request using the {@link SdkHttpRequest.Builder}, the ${@link SignRequest},
+     * and the {@link ContentChecksum}
+     * <p>
+     * Such an item could be a header or query parameter that should be included in the signature of the request.
+     */
+    protected void addPrerequisites(SdkHttpRequest.Builder requestBuilder,
+                                    SignRequest<?, ? extends AwsCredentialsIdentity> signRequest,
+                                    ContentChecksum contentChecksum) {
+        Instant requestSigningInstant = validatedProperty(signRequest, SIGNING_CLOCK).instant();
+        String formattedRequestSigningDateTime = formatTimestamp(requestSigningInstant);
+        String checksumHeaderName = signRequest.property(CHECKSUM_HEADER_NAME);
+
+        addSha256ContentHeader(requestBuilder, contentChecksum);
+        addHostHeader(requestBuilder);
+        addDateHeader(requestBuilder, formattedRequestSigningDateTime);
+        addChecksumHeader(requestBuilder, contentChecksum.contentFlexibleChecksum(),
+            contentChecksum.contentHash(), checksumHeaderName);
+    }
+
+    /**
+     * Add an {@link AwsSessionCredentialsIdentity} to the request via {@link SdkHttpRequest.Builder}.
+     */
+    protected void addSessionCredentials(SdkHttpRequest.Builder requestBuilder,
+                                         AwsSessionCredentialsIdentity credentials) {
         requestBuilder.putHeader(SignerConstant.X_AMZ_SECURITY_TOKEN, credentials.sessionToken());
     }
 
-    private String createContentHash(ContentStreamProvider payload, SdkChecksum checksum) {
+    /**
+     * Generate a content hash by using the {@link ContentStreamProvider} and the {@link SdkChecksum}.
+     */
+    protected String createContentHash(ContentStreamProvider payload, SdkChecksum checksum) {
         return HttpChecksumUtils.calculateContentHash(payload, checksum);
     }
 
-    private CompletableFuture<String> createContentHash(Publisher<ByteBuffer> payload, SdkChecksum checksum) {
+    /**
+     * Generate a {@link CompletableFuture} for the content hash by using the {@link Publisher<ByteBuffer>}
+     * and the {@link SdkChecksum}.
+     */
+    protected CompletableFuture<String> createContentHash(Publisher<ByteBuffer> payload, SdkChecksum checksum) {
         DigestComputingSubscriber bodyDigester = DigestComputingSubscriber.forSha256(checksum);
 
         if (payload != null) {
@@ -220,11 +235,15 @@ public class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         return bodyDigester.digestBytes().thenApply(BinaryUtils::toHex);
     }
 
-    private CanonicalRequestV2 createCanonicalRequest(SignRequest<?, ? extends AwsCredentialsIdentity> signRequest,
-                                                      SdkHttpRequest request,
-                                                      ContentChecksum contentChecksum) {
-        Boolean doubleUrlEncode = validatedProperty(signRequest, DOUBLE_URL_ENCODE, true);
-        Boolean normalizePath = validatedProperty(signRequest, NORMALIZE_PATH, true);
+    /**
+     * Generate a {@link CanonicalRequestV2} from the {@link SignRequest},the {@link SdkHttpRequest},
+     * and the {@link ContentChecksum}.
+     */
+    protected CanonicalRequestV2 createCanonicalRequest(SignRequest<?, ? extends AwsCredentialsIdentity> signRequest,
+                                                        SdkHttpRequest request,
+                                                        ContentChecksum contentChecksum) {
+        boolean doubleUrlEncode = validatedProperty(signRequest, DOUBLE_URL_ENCODE, true);
+        boolean normalizePath = validatedProperty(signRequest, NORMALIZE_PATH, true);
 
         return new CanonicalRequestV2(request, contentChecksum.contentHash(), new CanonicalRequestV2.Options(
             doubleUrlEncode,
@@ -232,7 +251,10 @@ public class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         ));
     }
 
-    private String createSignString(String algorithm, CredentialScope credentialScope, String canonicalRequestHash) {
+    /**
+     * Generate a string-to-sign using the algorithm, the {@link CredentialScope}, and the hash of the canonical request.
+     */
+    protected String createSignString(String algorithm, CredentialScope credentialScope, String canonicalRequestHash) {
         LOG.debug(() -> "AWS4 Canonical Request Hash: " + canonicalRequestHash);
 
         String stringToSign = algorithm +
@@ -247,18 +269,23 @@ public class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         return stringToSign;
     }
 
-    private String createSignature(String stringToSign, byte[] signingKey) {
+    /**
+     * Generate a signature using the string-to-sign and the signing key.
+     */
+    protected String createSignature(String stringToSign, byte[] signingKey) {
         return BinaryUtils.toHex(
             SignerUtils.computeSignature(stringToSign, signingKey)
         );
     }
 
-    // TODO: Rename??
-    public void addSignature(SdkHttpRequest.Builder requestBuilder, String algorithm, AwsCredentialsIdentity credentials,
-                              CredentialScope credentialScope,
-                              CanonicalRequestV2 canonicalRequest,
-                              String signature) {
-        String authHeader = AWS4_SIGNING_ALGORITHM
+    /**
+     * Add the signature to the request in some form (as a header, query-parameter, or otherwise).
+     */
+    protected void addSignature(SdkHttpRequest.Builder requestBuilder, String algorithm, AwsCredentialsIdentity credentials,
+                                CredentialScope credentialScope,
+                                CanonicalRequestV2 canonicalRequest,
+                                String signature) {
+        String authHeader = algorithm
             + " Credential="
             + credentialScope.scope(credentials)
             + ", SignedHeaders="

@@ -82,7 +82,7 @@ public final class DefaultAwsV4QueryHttpSigner extends DefaultAwsV4HttpSigner im
     }
 
     /**
-     * Check if a given duration is within the valid bounds for a pre-signed url, and return it if it is.
+     * Check if the {@link Duration} is within the valid bounds for a pre-signed url, and return it if it is.
      */
     private Duration validateExpirationDuration(Duration expirationDuration) {
         if (expirationDuration.compareTo(SignerConstant.PRESIGN_URL_MAX_EXPIRATION_DURATION) > 0) {
