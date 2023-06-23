@@ -20,8 +20,9 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -102,7 +103,7 @@ public final class AuthSchemeSpecUtils {
     }
 
     public Map<List<String>, List<AuthType>> operationsToAuthType() {
-        Map<List<AuthType>, List<String>> authSchemes2Operations =
+        Map<List<AuthType>, List<String>> authSchemesToOperations =
             intermediateModel.getOperations()
                              .entrySet()
                              .stream()
@@ -110,8 +111,14 @@ public final class AuthSchemeSpecUtils {
                              .collect(Collectors.groupingBy(kvp -> kvp.getValue().getAuth(),
                                                             Collectors.mapping(Map.Entry::getKey, Collectors.toList())));
 
-        Map<List<String>, List<AuthType>> result = new HashMap<>();
-        authSchemes2Operations.forEach((key, value) -> result.put(value, key));
+        Map<List<String>, List<AuthType>> operationsToAuthType = authSchemesToOperations
+            .entrySet()
+            .stream()
+            .sorted(Comparator.comparing(left -> left.getValue().get(0)))
+            .collect(Collectors.toMap(Map.Entry::getValue,
+                                      Map.Entry::getKey, (a, b) -> b,
+                                      LinkedHashMap::new));
+
         List<AuthType> serviceDefaults;
         if (intermediateModel.getMetadata().getAuth().isEmpty()) {
             serviceDefaults = Arrays.asList(intermediateModel.getMetadata().getAuthType());
@@ -121,9 +128,9 @@ public final class AuthSchemeSpecUtils {
 
         // Get the list of operations that share the same auth schemes as the system defaults and remove it from the result. We
         // will take care of all of these in the fallback `default` case.
-        List<String> operationsWithDefaults = authSchemes2Operations.remove(serviceDefaults);
-        result.remove(operationsWithDefaults);
-        result.put(Collections.emptyList(), serviceDefaults);
-        return result;
+        List<String> operationsWithDefaults = authSchemesToOperations.remove(serviceDefaults);
+        operationsToAuthType.remove(operationsWithDefaults);
+        operationsToAuthType.put(Collections.emptyList(), serviceDefaults);
+        return operationsToAuthType;
     }
 }

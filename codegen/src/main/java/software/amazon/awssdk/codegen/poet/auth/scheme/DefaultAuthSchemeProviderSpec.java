@@ -148,5 +148,4 @@ public class DefaultAuthSchemeProviderSpec implements ClassSpec {
         }
         spec.addCode(".build());\n");
     }
-
 }

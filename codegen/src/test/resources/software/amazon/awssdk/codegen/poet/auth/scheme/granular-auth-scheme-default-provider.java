@@ -41,20 +41,20 @@ public final class DefaultDatabaseAuthSchemeProvider implements DatabaseAuthSche
     public List<AuthSchemeOption> resolveAuthScheme(DatabaseAuthSchemeParams params) {
         List<AuthSchemeOption> options = new ArrayList<>();
         switch (params.operation()) {
-        case "PutRow":
-            options.add(AuthSchemeOption.builder().schemeId("aws.auth#sigv4")
-                    .putSignerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME, "database-service")
-                    .putSignerProperty(AwsV4HttpSigner.REGION_NAME, params.region().toString()).build());
-            break;
-        case "ListRows":
-            options.add(AuthSchemeOption.builder().schemeId("smithy.auth#httpBearerAuth").build());
-            break;
         case "GetRow":
         case "GetRowV2":
             options.add(AuthSchemeOption.builder().schemeId("aws.auth#sigv4")
                     .putSignerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME, "database-service")
                     .putSignerProperty(AwsV4HttpSigner.REGION_NAME, params.region().toString()).build());
             options.add(AuthSchemeOption.builder().schemeId("smithy.auth#httpBearerAuth").build());
+            break;
+        case "ListRows":
+            options.add(AuthSchemeOption.builder().schemeId("smithy.auth#httpBearerAuth").build());
+            break;
+        case "PutRow":
+            options.add(AuthSchemeOption.builder().schemeId("aws.auth#sigv4")
+                    .putSignerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME, "database-service")
+                    .putSignerProperty(AwsV4HttpSigner.REGION_NAME, params.region().toString()).build());
             break;
         default:
             options.add(AuthSchemeOption.builder().schemeId("smithy.auth#httpBearerAuth").build());
