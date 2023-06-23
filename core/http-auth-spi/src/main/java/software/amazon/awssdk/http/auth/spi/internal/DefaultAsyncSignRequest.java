@@ -40,7 +40,9 @@ public final class DefaultAsyncSignRequest<IdentityT extends Identity>
     }
 
     @Override
-    public AsyncSignRequest.Builder<IdentityT> toBuilder() { return new BuilderImpl<>(this); }
+    public AsyncSignRequest.Builder<IdentityT> toBuilder() {
+        return new BuilderImpl<>(this);
+    }
 
     @SdkInternalApi
     public static final class BuilderImpl<IdentityT extends Identity>

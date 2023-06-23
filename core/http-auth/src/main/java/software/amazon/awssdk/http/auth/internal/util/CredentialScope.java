@@ -21,11 +21,13 @@ import static software.amazon.awssdk.http.auth.internal.util.SignerUtils.formatD
 import static software.amazon.awssdk.http.auth.internal.util.SignerUtils.formatTimestamp;
 
 import java.time.Instant;
+import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 
 @SdkInternalApi
-public class CredentialScope {
+@Immutable
+final public class CredentialScope {
     private final String region;
     private final String service;
     private final Instant instant;

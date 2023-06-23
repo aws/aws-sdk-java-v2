@@ -40,7 +40,7 @@ public final class DefaultSyncSignRequest<IdentityT extends Identity>
 
     @Override
     public SyncSignRequest.Builder<IdentityT> toBuilder() {
-        return new BuilderImpl<>(identity);
+        return new BuilderImpl<>(this);
     }
 
     @SdkInternalApi
@@ -55,6 +55,13 @@ public final class DefaultSyncSignRequest<IdentityT extends Identity>
         // Used by SyncSignRequest#builder() where identity is passed as parameter, to avoid having to pass Class<IdentityT>.
         public BuilderImpl(IdentityT identity) {
             super(identity);
+        }
+
+        private BuilderImpl(DefaultSyncSignRequest<IdentityT> request) {
+            this.request = request.request;
+            this.payload = request.payload;
+            this.identity = request.identity;
+            this.properties = request.properties;
         }
 
         @Override
