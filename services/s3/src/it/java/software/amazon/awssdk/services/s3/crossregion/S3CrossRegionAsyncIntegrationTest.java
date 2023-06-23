@@ -22,8 +22,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 
-public class S3AsyncCrossRegionIntegrationTest extends S3AsyncCrossRegionIntegrationTestBase {
-    private static final String BUCKET = temporaryBucketName(S3AsyncCrossRegionIntegrationTest.class);
+public class S3CrossRegionAsyncIntegrationTest extends S3CrossRegionAsyncIntegrationTestBase {
+    private static final String BUCKET = temporaryBucketName(S3CrossRegionAsyncIntegrationTest.class);
 
     @BeforeAll
     static void setUpClass() {

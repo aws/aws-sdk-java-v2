@@ -73,7 +73,6 @@ public abstract class S3CrossRegionIntegrationTestBase extends S3IntegrationTest
             "TEST_STRING"));
         DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder().bucket(bucketName()).key(KEY).build();
         DeleteObjectResponse response = deleteObjectAPICall(deleteObjectRequest);
-        System.out.println(response);
         assertThat(response).isNotNull();
     }
 
@@ -87,7 +86,6 @@ public abstract class S3CrossRegionIntegrationTestBase extends S3IntegrationTest
             DeleteObjectsRequest.builder().bucket(bucketName()).delete(d -> d.objects(o -> o.key(KEY), o -> o.key(KEY + "_1"))).build();
         DeleteObjectsResponse response = postObjectAPICall(deleteObjectsRequest);
         assertThat(response).isNotNull();
-        System.out.println(response);
     }
 
     @Test
@@ -124,7 +122,6 @@ public abstract class S3CrossRegionIntegrationTestBase extends S3IntegrationTest
         HeadBucketRequest headBucketRequest = HeadBucketRequest.builder().bucket(bucketName()).build();
         HeadBucketResponse response = headAPICall(headBucketRequest);
         assertThat(response).isNotNull();
-        System.out.println(response);
     }
 
     protected abstract List<S3Object> paginatedAPICall(ListObjectsV2Request listObjectsV2Request);
