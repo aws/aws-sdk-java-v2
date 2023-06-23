@@ -29,7 +29,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * within an Arn.
  *
  * <p>
- * If {@link #resourceType} is not present, {@link #resource} will return the entire resource
+ * If {@link #resourceType} is not present, {@link #resourceId} will return the entire resource
  * as a string the same as {@link Arn#resource()}.
  *
  * @see Arn
@@ -38,13 +38,34 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 public final class ArnResource implements ToCopyableBuilder<ArnResource.Builder, ArnResource> {
 
     private final String resourceType;
-    private final String resource;
+    private final String resourceId;
     private final String qualifier;
+    private final ArnResourceFormat resourceFormat;
+
+    /**
+     * There are two valid ways to format a resource type paired with a resource ID:
+     * with a colon or with a slash.
+     */
+    public enum ArnResourceFormat {
+        RESOURCE_WITH_SLASH('/'),
+        RESOURCE_WITH_COLON(':');
+
+        private final char seperator;
+
+        ArnResourceFormat(char seperator) {
+            this.seperator = seperator;
+        }
+
+        char getSeperator() {
+            return this.seperator;
+        }
+    }
 
     private ArnResource(DefaultBuilder builder) {
         this.resourceType = builder.resourceType;
-        this.resource = Validate.paramNotBlank(builder.resource, "resource");
+        this.resourceId = Validate.paramNotBlank(builder.resourceId, "resource");
         this.qualifier = builder.qualifier;
+        this.resourceFormat = builder.resourceFormat;
     }
 
     /**
@@ -58,7 +79,14 @@ public final class ArnResource implements ToCopyableBuilder<ArnResource.Builder,
      * @return the entire resource as a string
      */
     public String resource() {
-        return resource;
+        return this.resourceId;
+    }
+
+    /**
+     * @return the resourceId
+     */
+    public String resourceId() {
+        return resourceId;
     }
 
     /**
@@ -94,19 +122,22 @@ public final class ArnResource implements ToCopyableBuilder<ArnResource.Builder,
         Character splitter = StringUtils.findFirstOccurrence(resource, ':', '/');
 
         if (splitter == null) {
-            return ArnResource.builder().resource(resource).build();
+            return ArnResource.builder().resourceId(resource).build();
         }
 
         int resourceTypeColonIndex = resource.indexOf(splitter);
 
         ArnResource.Builder builder = ArnResource.builder().resourceType(resource.substring(0, resourceTypeColonIndex));
         int resourceColonIndex = resource.indexOf(splitter, resourceTypeColonIndex);
-        int qualifierColonIndex = resource.indexOf(splitter, resourceColonIndex + 1);
+        int qualifierColonIndex = resource.indexOf(':', resourceColonIndex + 1);
         if (qualifierColonIndex < 0) {
-            builder.resource(resource.substring(resourceTypeColonIndex + 1));
+            builder.resourceId(resource.substring(resourceTypeColonIndex + 1));
         } else {
-            builder.resource(resource.substring(resourceTypeColonIndex + 1, qualifierColonIndex));
+            builder.resourceId(resource.substring(resourceTypeColonIndex + 1, qualifierColonIndex));
             builder.qualifier(resource.substring(qualifierColonIndex + 1));
+        }
+        if (splitter.equals('/')) {
+            builder.resourceFormat(ArnResourceFormat.RESOURCE_WITH_SLASH);
         }
 
         return builder.build();
@@ -116,9 +147,19 @@ public final class ArnResource implements ToCopyableBuilder<ArnResource.Builder,
     public String toString() {
         return this.resourceType
                + ":"
-               + this.resource
+               + this.resourceId
                + ":"
                + this.qualifier;
+    }
+
+    public String toStringFormatted() {
+        if (this.resourceType == null) {
+            return this.resourceId;
+        }
+        if (this.qualifier == null) {
+            return this.resourceType + this.resourceFormat.getSeperator() + this.resourceId;
+        }
+        return this.resourceType + this.resourceFormat.getSeperator() + this.resourceId + ':' + qualifier;
     }
 
     @Override
@@ -135,7 +176,7 @@ public final class ArnResource implements ToCopyableBuilder<ArnResource.Builder,
         if (!Objects.equals(resourceType, that.resourceType)) {
             return false;
         }
-        if (!Objects.equals(resource, that.resource)) {
+        if (!Objects.equals(resourceId, that.resourceId)) {
             return false;
         }
         return Objects.equals(qualifier, that.qualifier);
@@ -144,7 +185,7 @@ public final class ArnResource implements ToCopyableBuilder<ArnResource.Builder,
     @Override
     public int hashCode() {
         int result = resourceType != null ? resourceType.hashCode() : 0;
-        result = 31 * result + (resource != null ? resource.hashCode() : 0);
+        result = 31 * result + (resourceId != null ? resourceId.hashCode() : 0);
         result = 31 * result + (qualifier != null ? qualifier.hashCode() : 0);
         return result;
     }
@@ -152,9 +193,10 @@ public final class ArnResource implements ToCopyableBuilder<ArnResource.Builder,
     @Override
     public Builder toBuilder() {
         return builder()
-            .resource(resource)
+            .resourceId(resourceId)
             .resourceType(resourceType)
-            .qualifier(qualifier);
+            .qualifier(qualifier)
+            .resourceFormat(resourceFormat);
     }
 
 
@@ -177,12 +219,39 @@ public final class ArnResource implements ToCopyableBuilder<ArnResource.Builder,
         Builder resource(String resource);
 
         /**
+         * Define the resource ID. This has the same affect as {@link #resource(String)}, but
+         * renamed to better align with the ARN format spec. 
+         *
+         * @param resourceId the entire resource
+         * @return Returns a reference to this builder
+         */
+        Builder resourceId(String resourceId);
+
+        /**
          * Define the qualifier of the resource.
          *
          * @param qualifier the qualifier of the resource
          * @return Returns a reference to this builder
          */
         Builder qualifier(String qualifier);
+
+        /**
+         * For legacy AWS Arns not following the resourceType:resource:qualifier pattern,
+         * the qualifier field will contain everything after the first two sections separated
+         * by a slash character "/". The default is to use a colon.
+         *
+         * @param resourceFormat the resource format to use
+         * @return Returns a reference to this builder
+         */
+        Builder resourceFormat(ArnResourceFormat resourceFormat);
+
+        /**
+         * Set the builder from an pre-existing {@link ArnResource}.
+         * 
+         * @param arnResource The {@link ArnResource} to copy.
+         * @return Returns a reference to this builder
+         */
+        Builder arnResource(ArnResource arnResource);
 
         /**
          * @return an instance of {@link ArnResource} that is created from the builder
@@ -193,8 +262,9 @@ public final class ArnResource implements ToCopyableBuilder<ArnResource.Builder,
 
     public static final class DefaultBuilder implements Builder {
         private String resourceType;
-        private String resource;
+        private String resourceId;
         private String qualifier;
+        private ArnResourceFormat resourceFormat = ArnResourceFormat.RESOURCE_WITH_COLON;
 
         private DefaultBuilder() {
         }
@@ -210,7 +280,7 @@ public final class ArnResource implements ToCopyableBuilder<ArnResource.Builder,
         }
 
         public void setResource(String resource) {
-            this.resource = resource;
+            this.resourceId = resource;
         }
 
         @Override
@@ -226,6 +296,39 @@ public final class ArnResource implements ToCopyableBuilder<ArnResource.Builder,
         @Override
         public Builder qualifier(String qualifier) {
             setQualifier(qualifier);
+            return this;
+        }
+
+        public void setResourceId(String resourceId) {
+            this.resourceId = resourceId;
+        }
+
+        @Override
+        public Builder resourceId(String resourceId) {
+            setResourceId(resourceId);
+            return this;
+        }
+
+        public void setResourceFormat(ArnResourceFormat resourceFormat) {
+            this.resourceFormat = resourceFormat;
+        }
+
+        @Override
+        public Builder resourceFormat(ArnResourceFormat resourceFormat) {
+            setResourceFormat(resourceFormat);
+            return this;
+        }
+
+        public void setArnResource(ArnResource arnResource) {
+            setResourceType(arnResource.resourceType);
+            setResourceId(arnResource.resourceId);
+            setQualifier(arnResource.qualifier);
+            setResourceFormat(arnResource.resourceFormat);
+        }
+
+        @Override
+        public Builder arnResource(ArnResource arnResource) {
+            setArnResource(arnResource);
             return this;
         }
 
