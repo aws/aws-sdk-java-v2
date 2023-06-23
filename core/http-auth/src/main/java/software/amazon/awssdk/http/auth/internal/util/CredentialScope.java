@@ -27,7 +27,7 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 
 @SdkInternalApi
 @Immutable
-final public class CredentialScope {
+public final class CredentialScope {
     private final String region;
     private final String service;
     private final Instant instant;
