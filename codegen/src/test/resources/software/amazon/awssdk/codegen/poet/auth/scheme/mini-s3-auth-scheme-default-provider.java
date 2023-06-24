@@ -12,8 +12,7 @@
  * express or implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
-
-package software.amazon.awssdk.services.query.auth.scheme.internal;
+package software.amazon.awssdk.services.minis3.auth.scheme.internal;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -22,27 +21,29 @@ import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.auth.AwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
-import software.amazon.awssdk.services.query.auth.scheme.QueryAuthSchemeParams;
-import software.amazon.awssdk.services.query.auth.scheme.QueryAuthSchemeProvider;
+import software.amazon.awssdk.services.minis3.auth.scheme.MiniS3AuthSchemeParams;
+import software.amazon.awssdk.services.minis3.auth.scheme.MiniS3AuthSchemeProvider;
 
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
-public final class DefaultQueryAuthSchemeProvider implements QueryAuthSchemeProvider {
-    private static final DefaultQueryAuthSchemeProvider DEFAULT = new DefaultQueryAuthSchemeProvider();
+public final class DefaultMiniS3AuthSchemeProvider implements MiniS3AuthSchemeProvider {
+    private static final DefaultMiniS3AuthSchemeProvider DEFAULT = new DefaultMiniS3AuthSchemeProvider();
 
-    private DefaultQueryAuthSchemeProvider() {
+    private DefaultMiniS3AuthSchemeProvider() {
     }
 
-    public static DefaultQueryAuthSchemeProvider create() {
+    public static DefaultMiniS3AuthSchemeProvider create() {
         return DEFAULT;
     }
 
     @Override
-    public List<AuthSchemeOption> resolveAuthScheme(QueryAuthSchemeParams params) {
+    public List<AuthSchemeOption> resolveAuthScheme(MiniS3AuthSchemeParams params) {
         List<AuthSchemeOption> options = new ArrayList<>();
         options.add(AuthSchemeOption.builder().schemeId("aws.auth#sigv4")
-                .putSignerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME, "query-service")
-                .putSignerProperty(AwsV4HttpSigner.REGION_NAME, params.region().id()).build());
+                .putSignerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME, "mini-s3-service")
+                .putSignerProperty(AwsV4HttpSigner.REGION_NAME, params.region().id())
+                .putSignerProperty(AwsV4HttpSigner.DOUBLE_URL_ENCODE, false)
+                .putSignerProperty(AwsV4HttpSigner.NORMALIZE_PATH, false).build());
         return Collections.unmodifiableList(options);
     }
 }
