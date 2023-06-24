@@ -17,8 +17,8 @@ package software.amazon.awssdk.http.auth.internal.util;
 
 
 import static software.amazon.awssdk.http.auth.internal.util.SignerConstant.AWS4_TERMINATOR;
-import static software.amazon.awssdk.http.auth.internal.util.SignerUtils.formatDateStamp;
-import static software.amazon.awssdk.http.auth.internal.util.SignerUtils.formatTimestamp;
+import static software.amazon.awssdk.http.auth.internal.util.SignerUtils.formatDate;
+import static software.amazon.awssdk.http.auth.internal.util.SignerUtils.formatDateTime;
 
 import java.time.Instant;
 import software.amazon.awssdk.annotations.Immutable;
@@ -51,11 +51,11 @@ public final class CredentialScope {
     }
 
     public String getDate() {
-        return formatDateStamp(instant);
+        return formatDate(instant);
     }
 
     public String getDatetime() {
-        return formatTimestamp(instant);
+        return formatDateTime(instant);
     }
 
     public String scope() {
@@ -63,6 +63,6 @@ public final class CredentialScope {
     }
 
     public String scope(AwsCredentialsIdentity credentials) {
-        return credentials.accessKeyId() + "/" + getDate() + "/" + region + "/" + service + "/" + AWS4_TERMINATOR;
+        return credentials.accessKeyId() + "/" + scope();
     }
 }

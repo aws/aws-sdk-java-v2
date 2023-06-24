@@ -31,14 +31,6 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
  */
 @SdkPublicApi
 public interface AwsV4HttpSigner extends HttpSigner<AwsCredentialsIdentity> {
-
-    /**
-     * A {@link Clock} to be used at the time of signing.
-     * This property is required.
-     */
-    SignerProperty<Clock> SIGNING_CLOCK =
-        SignerProperty.create(Clock.class, "SigningClock");
-
     /**
      * The AWS region name to be used for computing the signature.
      * This property is required.
@@ -52,6 +44,13 @@ public interface AwsV4HttpSigner extends HttpSigner<AwsCredentialsIdentity> {
      */
     SignerProperty<String> SERVICE_SIGNING_NAME =
         SignerProperty.create(String.class, "ServiceSigningName");
+
+    /**
+     * A {@link Clock} to be used at the time of signing.
+     * This property defaults to the time at which signing occurs.
+     */
+    SignerProperty<Clock> SIGNING_CLOCK =
+        SignerProperty.create(Clock.class, "SigningClock");
 
     /**
      * The name of the header for the checksum.

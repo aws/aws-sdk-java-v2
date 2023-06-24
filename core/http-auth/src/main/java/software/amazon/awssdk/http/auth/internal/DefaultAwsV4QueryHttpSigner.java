@@ -17,13 +17,11 @@ package software.amazon.awssdk.http.auth.internal;
 
 import static software.amazon.awssdk.http.auth.internal.util.CanonicalRequestV2.getCanonicalHeaders;
 import static software.amazon.awssdk.http.auth.internal.util.CanonicalRequestV2.getSignedHeadersString;
-import static software.amazon.awssdk.http.auth.internal.util.CredentialUtils.sanitizeCredentials;
 import static software.amazon.awssdk.http.auth.internal.util.SignerConstant.PRESIGN_URL_MAX_EXPIRATION_DURATION;
 import static software.amazon.awssdk.http.auth.internal.util.SignerUtils.addHostHeader;
 import static software.amazon.awssdk.http.auth.internal.util.SignerUtils.validatedProperty;
 
 import java.time.Duration;
-import java.time.Instant;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -43,6 +41,17 @@ import software.amazon.awssdk.utils.Pair;
 @SdkInternalApi
 public final class DefaultAwsV4QueryHttpSigner extends DefaultAwsV4HttpSigner implements AwsV4QueryHttpSigner {
 
+    private Duration expirationDuration;
+
+    @Override
+    public void setParameters(SignRequest<?, ? extends AwsCredentialsIdentity> signRequest) {
+        super.setParameters(signRequest);
+
+        // optional
+        expirationDuration = validateExpirationDuration(validatedProperty(signRequest, EXPIRATION_DURATION,
+            PRESIGN_URL_MAX_EXPIRATION_DURATION));
+    }
+
     @Override
     public void addSessionCredentials(SdkHttpRequest.Builder requestBuilder,
                                       AwsSessionCredentialsIdentity credentials) {
@@ -51,21 +60,13 @@ public final class DefaultAwsV4QueryHttpSigner extends DefaultAwsV4HttpSigner im
 
     @Override
     public void addPrerequisites(SdkHttpRequest.Builder requestBuilder,
-                                 SignRequest<?, ? extends AwsCredentialsIdentity> signRequest,
                                  ContentChecksum contentChecksum) {
-        Instant requestSigningInstant = validatedProperty(signRequest, SIGNING_CLOCK).instant();
-        String regionName = validatedProperty(signRequest, REGION_NAME);
-        String serviceSigningName = validatedProperty(signRequest, SERVICE_SIGNING_NAME);
-        Duration expirationDuration = validateExpirationDuration(validatedProperty(signRequest, EXPIRATION_DURATION,
-            PRESIGN_URL_MAX_EXPIRATION_DURATION));
-
-        AwsCredentialsIdentity credentials = sanitizeCredentials(signRequest.identity());
         CredentialScope credentialScope = new CredentialScope(regionName, serviceSigningName, requestSigningInstant);
 
         addHostHeader(requestBuilder);
 
         List<Pair<String, List<String>>> canonicalHeaders = getCanonicalHeaders(requestBuilder.build().headers());
-        requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_ALGORITHM, SignerConstant.AWS4_SIGNING_ALGORITHM);
+        requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_ALGORITHM, algorithm);
         requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_DATE, credentialScope.getDatetime());
         requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_SIGNED_HEADERS, getSignedHeadersString(canonicalHeaders));
         requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_EXPIRES, Long.toString(expirationDuration.getSeconds()));
@@ -74,8 +75,7 @@ public final class DefaultAwsV4QueryHttpSigner extends DefaultAwsV4HttpSigner im
     }
 
     @Override
-    public void addSignature(SdkHttpRequest.Builder requestBuilder, String algorithm, AwsCredentialsIdentity credentials,
-                             CredentialScope credentialScope,
+    public void addSignature(SdkHttpRequest.Builder requestBuilder,
                              CanonicalRequestV2 canonicalRequest,
                              String signature) {
         requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_SIGNATURE, signature);

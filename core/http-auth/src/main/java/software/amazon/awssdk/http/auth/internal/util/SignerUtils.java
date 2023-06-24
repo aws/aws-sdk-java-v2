@@ -63,7 +63,7 @@ public final class SignerUtils {
      * For example, given an Instant with millis-value of 1416863450581, this
      * method returns "20141124"
      */
-    public static String formatDateStamp(Instant instant) {
+    public static String formatDate(Instant instant) {
         return DATE_FORMATTER.format(instant);
     }
 
@@ -74,7 +74,7 @@ public final class SignerUtils {
      * For example, given an Instant with millis-value of 1416863450581, this
      * method returns "20141124T211050Z"
      */
-    public static String formatTimestamp(Instant instant) {
+    public static String formatDateTime(Instant instant) {
         return TIME_FORMATTER.format(instant);
     }
 
@@ -224,7 +224,7 @@ public final class SignerUtils {
     /**
      * Check if a payload is unsigned based on the content hash
      */
-    public static boolean isUnsignedPayload(String contentHashString) {
+    private static boolean isUnsignedPayload(String contentHashString) {
         return "UNSIGNED_PAYLOAD".equals(contentHashString) || "STREAMING-UNSIGNED-PAYLOAD-TRAILER".equals(contentHashString);
     }
 }

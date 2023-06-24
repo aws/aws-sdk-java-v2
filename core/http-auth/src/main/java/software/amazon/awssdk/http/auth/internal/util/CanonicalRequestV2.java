@@ -100,7 +100,7 @@ public final class CanonicalRequestV2 {
      * <p>
      * If the path is empty, a single-forward slash ('/') is returned.
      */
-    public static String getCanonicalUri(SdkHttpRequest request, Options options) {
+    private static String getCanonicalUri(SdkHttpRequest request, Options options) {
         String path = options.normalizePath ? request.getUri().normalize().getRawPath()
             : request.encodedPath();
 
@@ -133,7 +133,7 @@ public final class CanonicalRequestV2 {
     /**
      * Get the sorted map of query parameters that are to be signed.
      */
-    public static SortedMap<String, List<String>> getCanonicalQueryParams(SdkHttpRequest request) {
+    private static SortedMap<String, List<String>> getCanonicalQueryParams(SdkHttpRequest request) {
         SortedMap<String, List<String>> sorted = new TreeMap<>();
 
         // Signing protocol expects the param values also to be sorted after url
@@ -174,7 +174,7 @@ public final class CanonicalRequestV2 {
      * <p>
      * If no query string is given, an empty string ("") is returned.
      */
-    public static String getCanonicalQueryString(SortedMap<String, List<String>> canonicalParams) {
+    private static String getCanonicalQueryString(SortedMap<String, List<String>> canonicalParams) {
         StringBuilder stringBuilder = new StringBuilder(512);
         SdkHttpUtils.flattenQueryParameters(stringBuilder, canonicalParams);
 
@@ -209,7 +209,7 @@ public final class CanonicalRequestV2 {
      * <p>
      * Each header-value pair is separated by a newline.
      */
-    public static String getCanonicalHeadersString(List<Pair<String, List<String>>> canonicalHeaders) {
+    private static String getCanonicalHeadersString(List<Pair<String, List<String>>> canonicalHeaders) {
         StringBuilder result = new StringBuilder(512);
         canonicalHeaders.forEach(header -> {
             result.append(header.left());
@@ -226,7 +226,7 @@ public final class CanonicalRequestV2 {
 
     /**
      * Get the string representing which headers are part of the signing process.
-     * Header names are lower-case, sorted in alphabetical order, and separated by a semicolon.
+     * Header names are lower-case, in alphabetical order, and separated by a semicolon.
      */
     public static String getSignedHeadersString(List<Pair<String, List<String>>> canonicalHeaders) {
         String signedHeadersString;
@@ -302,23 +302,23 @@ public final class CanonicalRequestV2 {
         return canonicalRequestString;
     }
 
-    public String getCanonicalUri() {
+    private String getCanonicalUri() {
         return canonicalUri;
     }
 
-    public SortedMap<String, List<String>> getCanonicalParams() {
+    private SortedMap<String, List<String>> getCanonicalParams() {
         return canonicalParams;
     }
 
-    public List<Pair<String, List<String>>> getCanonicalHeaders() {
+    private List<Pair<String, List<String>>> getCanonicalHeaders() {
         return canonicalHeaders;
     }
 
-    public String getCanonicalParamsString() {
+    private String getCanonicalParamsString() {
         return canonicalParamsString;
     }
 
-    public String getCanonicalHeadersString() {
+    private String getCanonicalHeadersString() {
         return canonicalHeadersString;
     }
 
