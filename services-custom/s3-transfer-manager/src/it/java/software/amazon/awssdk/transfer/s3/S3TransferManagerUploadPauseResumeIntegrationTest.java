@@ -24,10 +24,14 @@ import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.time.Duration;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.retry.backoff.FixedDelayBackoffStrategy;
+import software.amazon.awssdk.core.waiters.AsyncWaiter;
 import software.amazon.awssdk.core.waiters.Waiter;
 import software.amazon.awssdk.core.waiters.WaiterAcceptor;
 import software.amazon.awssdk.services.s3.model.ListMultipartUploadsResponse;
@@ -48,12 +52,14 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
     private static final long OBJ_SIZE = 24 * MB;
     private static File largeFile;
     private static File smallFile;
+    private static ScheduledExecutorService executorService;
 
     @BeforeAll
     public static void setup() throws Exception {
         createBucket(BUCKET);
         largeFile = new RandomTempFile(OBJ_SIZE);
         smallFile = new RandomTempFile(2 * MB);
+        executorService = Executors.newScheduledThreadPool(3);
     }
 
     @AfterAll
@@ -61,6 +67,7 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
         deleteBucketAndAllContents(BUCKET);
         largeFile.delete();
         smallFile.delete();
+        executorService.shutdown();
     }
 
     @Test
@@ -151,8 +158,13 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
 
     private void verifyMultipartUploadIdNotExist(ResumableFileUpload resumableFileUpload) {
         String multipartUploadId = resumableFileUpload.multipartUploadId().get();
-        assertThatThrownBy(() -> s3Async.listParts(r -> r.uploadId(multipartUploadId).bucket(BUCKET).key(KEY)).join())
-            .hasCauseInstanceOf(NoSuchUploadException.class);
+        AsyncWaiter<ListPartsResponse> waiter = AsyncWaiter.builder(ListPartsResponse.class)
+                                                           .addAcceptor(WaiterAcceptor.successOnExceptionAcceptor(e -> e instanceof NoSuchUploadException))
+                                                           .addAcceptor(WaiterAcceptor.retryOnResponseAcceptor(r -> true))
+                                                           .overrideConfiguration(o -> o.waitTimeout(Duration.ofMinutes(1)))
+                                                           .scheduledExecutorService(executorService)
+                                                           .build();
+        waiter.runAsync(() -> s3Async.listParts(r -> r.uploadId(multipartUploadId).bucket(BUCKET).key(KEY)));
     }
 
     private static void waitUntilMultipartUploadExists() {

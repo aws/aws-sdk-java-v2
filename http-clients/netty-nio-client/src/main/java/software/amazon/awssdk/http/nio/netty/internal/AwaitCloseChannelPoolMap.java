@@ -83,6 +83,7 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
     private final ProxyConfiguration proxyConfiguration;
     private final BootstrapProvider bootstrapProvider;
     private final SslContextProvider sslContextProvider;
+    private final Boolean useNonBlockingDnsResolver;
 
     private AwaitCloseChannelPoolMap(Builder builder, Function<Builder, BootstrapProvider> createBootStrapProvider) {
         this.configuration = builder.configuration;
@@ -94,6 +95,7 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
         this.proxyConfiguration = builder.proxyConfiguration;
         this.bootstrapProvider = createBootStrapProvider.apply(builder);
         this.sslContextProvider = new SslContextProvider(configuration, protocol, sslProvider);
+        this.useNonBlockingDnsResolver = builder.useNonBlockingDnsResolver;
     }
 
     private AwaitCloseChannelPoolMap(Builder builder) {
@@ -179,7 +181,7 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
     private Bootstrap createBootstrap(URI poolKey) {
         String host = bootstrapHost(poolKey);
         int port = bootstrapPort(poolKey);
-        return bootstrapProvider.createBootstrap(host, port);
+        return bootstrapProvider.createBootstrap(host, port, useNonBlockingDnsResolver);
     }
 
 
@@ -278,6 +280,7 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
         private Duration healthCheckPingPeriod;
         private SslProvider sslProvider;
         private ProxyConfiguration proxyConfiguration;
+        private Boolean useNonBlockingDnsResolver;
 
         private Builder() {
         }
@@ -324,6 +327,11 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
 
         public Builder proxyConfiguration(ProxyConfiguration proxyConfiguration) {
             this.proxyConfiguration = proxyConfiguration;
+            return this;
+        }
+
+        public Builder useNonBlockingDnsResolver(Boolean useNonBlockingDnsResolver) {
+            this.useNonBlockingDnsResolver = useNonBlockingDnsResolver;
             return this;
         }
 

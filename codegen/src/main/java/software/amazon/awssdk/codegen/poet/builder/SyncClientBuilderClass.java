@@ -18,8 +18,12 @@ package software.amazon.awssdk.codegen.poet.builder;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
@@ -33,7 +37,10 @@ import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.codegen.utils.AuthUtils;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.endpoints.EndpointProvider;
+import software.amazon.awssdk.protocols.query.interceptor.QueryParametersToBodyInterceptor;
+import software.amazon.awssdk.utils.CollectionUtils;
 
 public class SyncClientBuilderClass implements ClassSpec {
     private final IntermediateModel model;
@@ -122,17 +129,20 @@ public class SyncClientBuilderClass implements ClassSpec {
                          .build();
     }
 
+
     private MethodSpec buildClientMethod() {
         MethodSpec.Builder builder = MethodSpec.methodBuilder("buildClient")
-                                               .addAnnotation(Override.class)
-                                               .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
-                                               .returns(clientInterfaceName)
-                                               .addStatement("$T clientConfiguration = super.syncClientConfiguration()",
-                                                             SdkClientConfiguration.class)
-                                               .addStatement("this.validateClientOptions(clientConfiguration)")
-                                               .addStatement("$T serviceClientConfiguration = initializeServiceClientConfig"
-                                                             + "(clientConfiguration)",
-                                                             serviceConfigClassName);
+                                         .addAnnotation(Override.class)
+                                         .addModifiers(Modifier.PROTECTED, Modifier.FINAL)
+                                         .returns(clientInterfaceName)
+                                         .addStatement("$T clientConfiguration = super.syncClientConfiguration()",
+                                                       SdkClientConfiguration.class)
+                                         .addStatement("this.validateClientOptions(clientConfiguration)")
+                                         .addStatement("$T serviceClientConfiguration = initializeServiceClientConfig"
+                                                       + "(clientConfiguration)",
+                                                       serviceConfigClassName);
+
+        addQueryProtocolInterceptors(builder);
 
         builder.addStatement("$1T client = new $2T(serviceClientConfiguration, clientConfiguration)",
                              clientInterfaceName, clientClassName);
@@ -145,6 +155,29 @@ public class SyncClientBuilderClass implements ClassSpec {
             builder.addStatement("return client");
         }
         return builder.build();
+    }
+
+    private MethodSpec.Builder addQueryProtocolInterceptors(MethodSpec.Builder b) {
+        if (!model.getMetadata().isQueryProtocol()) {
+            return b;
+        }
+
+        TypeName listType = ParameterizedTypeName.get(List.class, ExecutionInterceptor.class);
+
+        b.addStatement("$T interceptors = clientConfiguration.option($T.EXECUTION_INTERCEPTORS)",
+                       listType, SdkClientOption.class)
+         .addStatement("$T queryParamsToBodyInterceptor = $T.singletonList(new $T())",
+                       listType, Collections.class, QueryParametersToBodyInterceptor.class)
+            .addStatement("$T customizationInterceptors = new $T<>()", listType, ArrayList.class);
+
+        List<String> customInterceptors = model.getCustomizationConfig().getInterceptors();
+        customInterceptors.forEach(i -> b.addStatement("customizationInterceptors.add(new $T())", ClassName.bestGuess(i)));
+
+        b.addStatement("interceptors = $T.mergeLists(queryParamsToBodyInterceptor, interceptors)", CollectionUtils.class)
+            .addStatement("interceptors = $T.mergeLists(customizationInterceptors, interceptors)", CollectionUtils.class);
+
+        return b.addStatement("clientConfiguration = clientConfiguration.toBuilder().option($T.EXECUTION_INTERCEPTORS, "
+                              + "interceptors).build()", SdkClientOption.class);
     }
 
     private MethodSpec tokenProviderMethodImpl() {

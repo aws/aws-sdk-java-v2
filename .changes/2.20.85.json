@@ -1,0 +1,84 @@
+{
+    "version": "2.20.85",
+    "date": "2023-06-13",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS CloudTrail",
+            "contributor": "",
+            "description": "This feature allows users to view dashboards for CloudTrail Lake event data stores."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SecurityHub",
+            "contributor": "",
+            "description": "Add support for Security Hub Automation Rules"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SimSpace Weaver",
+            "contributor": "",
+            "description": "This release fixes using aws-us-gov ARNs in API calls and adds documentation for snapshot APIs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS WAFV2",
+            "contributor": "",
+            "description": "You can now detect and block fraudulent account creation attempts with the new AWS WAF Fraud Control account creation fraud prevention (ACFP) managed rule group AWSManagedRulesACFPRuleSet."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Well-Architected Tool",
+            "contributor": "",
+            "description": "AWS Well-Architected now supports Profiles that help customers prioritize which questions to focus on first by providing a list of prioritized questions that are better aligned with their business goals and outcomes."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CodeGuru Security",
+            "contributor": "",
+            "description": "Initial release of Amazon CodeGuru Security APIs"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "This release introduces a new feature, EC2 Instance Connect Endpoint, that enables you to connect to a resource over TCP, without requiring the resource to have a public IPv4 address."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lightsail",
+            "contributor": "",
+            "description": "This release adds pagination for the Get Certificates API operation."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Storage Service",
+            "contributor": "",
+            "description": "Integrate double encryption feature to SDKs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Verified Permissions",
+            "contributor": "",
+            "description": "GA release of Amazon Verified Permissions."
+        },
+        {
+            "type": "feature",
+            "category": "EC2 Image Builder",
+            "contributor": "",
+            "description": "Change the Image Builder ImagePipeline dateNextRun field to more accurately describe the data."
+        },
+        {
+            "type": "feature",
+            "category": "Elastic Disaster Recovery Service",
+            "contributor": "",
+            "description": "Added APIs to support network replication and recovery using AWS Elastic Disaster Recovery."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

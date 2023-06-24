@@ -20,12 +20,12 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.NotThreadSafe;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.services.sts.StsClient;
-import software.amazon.awssdk.services.sts.model.Credentials;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -46,8 +46,8 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
  * Users of this provider must {@link #close()} it when they are finished using it.
  */
 @ThreadSafe
-@SdkInternalApi
-abstract class StsCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
+@SdkPublicApi
+public abstract class StsCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
 
     private static final Duration DEFAULT_STALE_TIME = Duration.ofMinutes(1);
     private static final Duration DEFAULT_PREFETCH_TIME = Duration.ofMinutes(5);
@@ -60,20 +60,20 @@ abstract class StsCredentialsProvider implements AwsCredentialsProvider, SdkAuto
     /**
      * The session cache that handles automatically updating the credentials when they get close to expiring.
      */
-    private final CachedSupplier<SessionCredentialsHolder> sessionCache;
+    private final CachedSupplier<AwsSessionCredentials> sessionCache;
 
     private final Duration staleTime;
     private final Duration prefetchTime;
     private final Boolean asyncCredentialUpdateEnabled;
 
-    protected StsCredentialsProvider(BaseBuilder<?, ?> builder, String asyncThreadName) {
+    StsCredentialsProvider(BaseBuilder<?, ?> builder, String asyncThreadName) {
         this.stsClient = Validate.notNull(builder.stsClient, "STS client must not be null.");
 
         this.staleTime = Optional.ofNullable(builder.staleTime).orElse(DEFAULT_STALE_TIME);
         this.prefetchTime = Optional.ofNullable(builder.prefetchTime).orElse(DEFAULT_PREFETCH_TIME);
 
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
-        CachedSupplier.Builder<SessionCredentialsHolder> cacheBuilder = CachedSupplier.builder(this::updateSessionCredentials);
+        CachedSupplier.Builder<AwsSessionCredentials> cacheBuilder = CachedSupplier.builder(this::updateSessionCredentials);
         if (builder.asyncCredentialUpdateEnabled) {
             cacheBuilder.prefetchStrategy(new NonBlocking(asyncThreadName));
         }
@@ -84,9 +84,11 @@ abstract class StsCredentialsProvider implements AwsCredentialsProvider, SdkAuto
      * Update the expiring session credentials by calling STS. Invoked by {@link CachedSupplier} when the credentials
      * are close to expiring.
      */
-    private RefreshResult<SessionCredentialsHolder> updateSessionCredentials() {
-        SessionCredentialsHolder credentials = new SessionCredentialsHolder(getUpdatedCredentials(stsClient));
-        Instant actualTokenExpiration = credentials.getSessionCredentialsExpiration().toInstant();
+    private RefreshResult<AwsSessionCredentials> updateSessionCredentials() {
+        AwsSessionCredentials credentials = getUpdatedCredentials(stsClient);
+        Instant actualTokenExpiration =
+            credentials.expirationTime()
+                       .orElseThrow(() -> new IllegalStateException("Sourced credentials have no expiration value"));
 
         return RefreshResult.builder(credentials)
                             .staleTime(actualTokenExpiration.minus(staleTime))
@@ -96,7 +98,7 @@ abstract class StsCredentialsProvider implements AwsCredentialsProvider, SdkAuto
 
     @Override
     public AwsCredentials resolveCredentials() {
-        return sessionCache.get().getSessionCredentials();
+        return sessionCache.get();
     }
 
     @Override
@@ -123,13 +125,14 @@ abstract class StsCredentialsProvider implements AwsCredentialsProvider, SdkAuto
     /**
      * Implemented by a child class to call STS and get a new set of credentials to be used by this provider.
      */
-    protected abstract Credentials getUpdatedCredentials(StsClient stsClient);
+    abstract AwsSessionCredentials getUpdatedCredentials(StsClient stsClient);
 
     /**
      * Extended by child class's builders to share configuration across credential providers.
      */
     @NotThreadSafe
-    protected abstract static class BaseBuilder<B extends BaseBuilder<B, T>, T extends ToCopyableBuilder<B, T>>
+    @SdkPublicApi
+    public abstract static class BaseBuilder<B extends BaseBuilder<B, T>, T extends ToCopyableBuilder<B, T>>
         implements CopyableBuilder<B, T> {
         private final Function<B, T> providerConstructor;
 
@@ -138,11 +141,11 @@ abstract class StsCredentialsProvider implements AwsCredentialsProvider, SdkAuto
         private Duration staleTime;
         private Duration prefetchTime;
 
-        protected BaseBuilder(Function<B, T> providerConstructor) {
+        BaseBuilder(Function<B, T> providerConstructor) {
             this.providerConstructor = providerConstructor;
         }
 
-        public BaseBuilder(Function<B, T> providerConstructor, StsCredentialsProvider provider) {
+        BaseBuilder(Function<B, T> providerConstructor, StsCredentialsProvider provider) {
             this.providerConstructor = providerConstructor;
             this.asyncCredentialUpdateEnabled = provider.asyncCredentialUpdateEnabled;
             this.stsClient = provider.stsClient;
