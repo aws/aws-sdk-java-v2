@@ -93,7 +93,6 @@ public class S3IntegrationTestBase extends AwsTestBase {
                                                                 .build())
                                    .build());
         } catch (S3Exception e) {
-            e.printStackTrace();
             System.err.println("Error attempting to create bucket: " + bucketName);
             if (e.awsErrorDetails().errorCode().equals("BucketAlreadyOwnedByYou")) {
                 System.err.printf("%s bucket already exists, likely leaked by a previous run\n", bucketName);
