@@ -167,7 +167,7 @@ public final class CreateTableEnhancedRequest {
         }
 
         /**
-         * Sets the stream specification for this table.
+         * Sets the {@link StreamSpecification} for this table.
          * <p>
          * See the DynamoDb documentation for more information on stream specification values.
          */

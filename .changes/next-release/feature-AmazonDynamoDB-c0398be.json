@@ -1,6 +1,6 @@
 {
     "type": "feature",
-    "category": "Amazon DynamoDB",
+    "category": "DynamoDB Enhanced Client",
     "contributor": "acouvreur",
-    "description": "Add `StreamSpecification` to `CreateTableEnhancedRequest`\n\nYou can now use \n```java\nStreamSpecification streamSpecification = StreamSpecification.builder()\n                                                             .streamEnabled(true)\n                                                             .streamViewType(StreamViewType.NEW_IMAGE)\n                                                             .build();\n\nCreateTableOperation<FakeItem> operation = CreateTableOperation.create(\n       CreateTableEnhancedRequest.builder().streamSpecification(streamSpecification).build());\n```"
+    "description": "Added support for StreamSpecification in the CreateTableEnhancedRequest, allowing configuration of table stream specification using DynamoDB Enhanced Client."
 }
