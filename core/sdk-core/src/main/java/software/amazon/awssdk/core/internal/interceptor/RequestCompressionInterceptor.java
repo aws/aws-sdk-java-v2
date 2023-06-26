@@ -66,11 +66,11 @@ public class RequestCompressionInterceptor implements ExecutionInterceptor {
         }
 
         SdkHttpFullRequest sdkHttpFullRequest = (SdkHttpFullRequest) context.httpRequest();
-        InputStream inputStream = sdkHttpFullRequest.contentStreamProvider().get().newStream();
-        InputStream compressedStream = compressor.compress(inputStream);
+        ContentStreamProvider wrappedProvider = sdkHttpFullRequest.contentStreamProvider().get();
+        ContentStreamProvider compressedStreamProvider = () -> compressor.compress(wrappedProvider.newStream());
         SdkHttpRequest sdkHttpRequest =
             sdkHttpFullRequest.toBuilder()
-                              .contentStreamProvider(() -> compressedStream)
+                              .contentStreamProvider(compressedStreamProvider)
                               .build();
         sdkHttpRequest = updateContentEncodingHeader(sdkHttpRequest, compressor);
         return updateContentLengthHeader(sdkHttpRequest);
@@ -85,19 +85,8 @@ public class RequestCompressionInterceptor implements ExecutionInterceptor {
         Compressor compressor = resolveCompressionType(executionAttributes);
         RequestBody requestBody = context.requestBody().get();
 
-        if (isTransferEncodingChunked(context)) {
-            InputStream compressedStream = compressor.compress(requestBody.contentStreamProvider().newStream());
-            try {
-                byte[] compressedBytes = IoUtils.toByteArray(compressedStream);
-                return Optional.of(RequestBody.fromBytes(compressedBytes));
-            } catch(IOException e){
-                throw SdkClientException.create(e.getMessage(), e);
-            }
-        }
-
-        CompressionContentStreamProvider streamProvider =
-            new CompressionContentStreamProvider(requestBody.contentStreamProvider(), compressor);
-        return Optional.of(RequestBody.fromContentProvider(streamProvider, requestBody.contentType()));
+        // TODO - Sync streaming compression implementation
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -152,15 +141,6 @@ public class RequestCompressionInterceptor implements ExecutionInterceptor {
         } catch (IOException e) {
             throw SdkClientException.create(e.getMessage(), e);
         }
-    }
-
-    private boolean isTransferEncodingChunked(Context.ModifyHttpRequest context) {
-        SdkHttpRequest sdkHttpRequest = context.httpRequest();
-        Optional<String> transferEncodingHeader = sdkHttpRequest.firstMatchingHeader("Transfer-Encoding");
-        if (transferEncodingHeader.isPresent() && transferEncodingHeader.get().equals("chunked")) {
-            return true;
-        }
-        return false;
     }
 
     private static Compressor resolveCompressionType(ExecutionAttributes executionAttributes) {
