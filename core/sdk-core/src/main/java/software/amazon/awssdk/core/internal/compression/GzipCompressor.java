@@ -38,39 +38,22 @@ public final class GzipCompressor implements Compressor {
     }
 
     @Override
-    public byte[] compress(byte[] content) {
+    public InputStream compress(InputStream inputStream) {
         try {
+            byte[] content = IoUtils.toByteArray(inputStream);
             ByteArrayOutputStream compressedOutputStream = new ByteArrayOutputStream();
             GZIPOutputStream gzipOutputStream = new GZIPOutputStream(compressedOutputStream);
             gzipOutputStream.write(content);
             gzipOutputStream.close();
-            return compressedOutputStream.toByteArray();
+
+            return new ByteArrayInputStream(compressedOutputStream.toByteArray());
         } catch (IOException e) {
             throw SdkClientException.create(e.getMessage(), e);
         }
     }
 
     @Override
-    public InputStream compress(InputStream inputStream) {
-        try {
-            byte[] content = IoUtils.toByteArray(inputStream);
-            byte[] compressedContent = compress(content);
-            return new ByteArrayInputStream(compressedContent);
-        } catch (IOException e) {
-            throw SdkClientException.create(e.getMessage(), e);
-        }
-    }
-
-    @Override
-    public ByteBuffer compress(ByteBuffer byteBuffer) {
-        byte[] content = new byte[byteBuffer.remaining()];
-        byteBuffer.get(content);
-        byte[] compressedContent = compress(content);
-        return ByteBuffer.wrap(compressedContent);
-    }
-
-    @Override
-    public Publisher<ByteBuffer> compressAsyncRequestBody(Publisher<ByteBuffer> publisher) {
+    public Publisher<ByteBuffer> compressAsyncStream(Publisher<ByteBuffer> publisher) {
         //TODO
         throw new UnsupportedOperationException();
     }
