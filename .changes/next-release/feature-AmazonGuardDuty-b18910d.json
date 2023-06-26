@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon GuardDuty",
-    "contributor": "",
-    "description": "Add support for user.extra.sessionName in Kubernetes Audit Logs Findings."
-}

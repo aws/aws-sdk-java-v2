@@ -1,3 +1,24 @@
+# __2.20.93__ __2023-06-26__
+## __AWS Glue__
+  - ### Features
+    - Timestamp Starting Position For Kinesis and Kafka Data Sources in a Glue Streaming Job
+
+## __AWS Identity and Access Management__
+  - ### Features
+    - Support for a new API "GetMFADevice" to present MFA device metadata such as device certifications
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release provides a way to search for existing tags within an instance. Before tagging a resource, ensure consistency by searching for pre-existing key:value pairs.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Add support for user.extra.sessionName in Kubernetes Audit Logs Findings.
+
+## __Amazon Pinpoint__
+  - ### Features
+    - Added time zone estimation support for journeys
+
 # __2.20.92__ __2023-06-23__
 ## __Amazon DevOps Guru__
   - ### Features
@@ -201,7 +222,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
+[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features
