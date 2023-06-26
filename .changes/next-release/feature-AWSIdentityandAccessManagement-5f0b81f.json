@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Identity and Access Management",
+    "contributor": "",
+    "description": "Support for a new API \"GetMFADevice\" to present MFA device metadata such as device certifications"
+}
