@@ -91,7 +91,7 @@ public class RequestCompressionInterceptor implements ExecutionInterceptor {
             try {
                 byte[] compressedBytes = IoUtils.toByteArray(compressedStream);
                 return Optional.of(RequestBody.fromBytes(compressedBytes));
-            } catch(IOException e){
+            } catch (IOException e) {
                 throw SdkClientException.create(e.getMessage(), e);
             }
         }
@@ -108,8 +108,8 @@ public class RequestCompressionInterceptor implements ExecutionInterceptor {
             return context.asyncRequestBody();
         }
 
-        AsyncRequestBody asyncRequestBody = context.asyncRequestBody().get();
-        Compressor compressor = resolveCompressionType(executionAttributes);
+        //AsyncRequestBody asyncRequestBody = context.asyncRequestBody().get();
+        //Compressor compressor = resolveCompressionType(executionAttributes);
 
         // TODO - Async streaming compression implementation
         throw new UnsupportedOperationException();
