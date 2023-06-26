@@ -20,8 +20,8 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.utils.Logger;
 
 @SdkInternalApi
-class UnderlyingStreamBuffer {
-    private static final Logger log = Logger.loggerFor(UnderlyingStreamBuffer.class);
+class DecodedStreamBuffer {
+    private static final Logger log = Logger.loggerFor(DecodedStreamBuffer.class);
 
     private byte[] bufferArray;
     private int maxBufferSize;
@@ -29,7 +29,7 @@ class UnderlyingStreamBuffer {
     private int pos = -1;
     private boolean bufferSizeOverflow;
 
-    UnderlyingStreamBuffer(int maxBufferSize) {
+    DecodedStreamBuffer(int maxBufferSize) {
         bufferArray = new byte[maxBufferSize];
         this.maxBufferSize = maxBufferSize;
     }

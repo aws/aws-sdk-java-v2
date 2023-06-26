@@ -63,7 +63,7 @@ public abstract class AwsChunkedEncodingInputStream extends SdkInputStream {
      * Null if the wrapped stream is marksupported,
      * otherwise it will be initialized when this wrapper is marked.
      */
-    private UnderlyingStreamBuffer decodedStreamBuffer;
+    private DecodedStreamBuffer decodedStreamBuffer;
 
     private boolean isAtStart = true;
     private boolean isTerminating = false;
@@ -256,7 +256,7 @@ public abstract class AwsChunkedEncodingInputStream extends SdkInputStream {
         } else {
             log.debug(() -> "AwsChunkedEncodingInputStream marked at the start of the stream "
                             + "(initializing the buffer since the wrapped stream is not mark-supported).");
-            decodedStreamBuffer = new UnderlyingStreamBuffer(maxBufferSize);
+            decodedStreamBuffer = new DecodedStreamBuffer(maxBufferSize);
         }
     }
 
