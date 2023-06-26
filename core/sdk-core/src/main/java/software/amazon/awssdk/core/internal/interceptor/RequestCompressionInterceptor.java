@@ -32,7 +32,6 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
-import software.amazon.awssdk.core.internal.io.AwsCompressionInputStream;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -86,19 +85,8 @@ public class RequestCompressionInterceptor implements ExecutionInterceptor {
         Compressor compressor = resolveCompressionType(executionAttributes);
         RequestBody requestBody = context.requestBody().get();
 
-        if (isTransferEncodingChunked(context)) {
-            InputStream compressedStream = compressor.compress(requestBody.contentStreamProvider().newStream());
-            try {
-                byte[] compressedBytes = IoUtils.toByteArray(compressedStream);
-                return Optional.of(RequestBody.fromBytes(compressedBytes));
-            } catch(IOException e){
-                throw SdkClientException.create(e.getMessage(), e);
-            }
-        }
-
-        CompressionContentStreamProvider streamProvider =
-            new CompressionContentStreamProvider(requestBody.contentStreamProvider(), compressor);
-        return Optional.of(RequestBody.fromContentProvider(streamProvider, requestBody.contentType()));
+        // TODO - Sync streaming compression implementation
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -153,15 +141,6 @@ public class RequestCompressionInterceptor implements ExecutionInterceptor {
         } catch (IOException e) {
             throw SdkClientException.create(e.getMessage(), e);
         }
-    }
-
-    private boolean isTransferEncodingChunked(Context.ModifyHttpRequest context) {
-        SdkHttpRequest sdkHttpRequest = context.httpRequest();
-        Optional<String> transferEncodingHeader = sdkHttpRequest.firstMatchingHeader("Transfer-Encoding");
-        if (transferEncodingHeader.isPresent() && transferEncodingHeader.get().equals("chunked")) {
-            return true;
-        }
-        return false;
     }
 
     private static Compressor resolveCompressionType(ExecutionAttributes executionAttributes) {
@@ -279,10 +258,7 @@ public class RequestCompressionInterceptor implements ExecutionInterceptor {
         @Override
         public InputStream newStream() {
             closeCurrentStream();
-            currentStream = AwsCompressionInputStream.builder()
-                                                     .inputStream(underlyingInputStreamProvider.newStream())
-                                                     .compressor(compressor)
-                                                     .build();
+            currentStream = compressor.compress(underlyingInputStreamProvider.newStream());
             return currentStream;
         }
 
