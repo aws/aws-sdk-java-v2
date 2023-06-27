@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "DynamoDB Enhanced Client",
-    "contributor": "acouvreur",
-    "description": "Added support for StreamSpecification in the CreateTableEnhancedRequest, allowing configuration of table stream specification using DynamoDB Enhanced Client."
-}

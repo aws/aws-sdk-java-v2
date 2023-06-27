@@ -1,3 +1,57 @@
+# __2.20.94__ __2023-06-27__
+## __AWS Private 5G__
+  - ### Features
+    - This release allows Private5G customers to choose different commitment plans (60-days, 1-year, 3-years) when placing new orders, enables automatic renewal option for 1-year and 3-years commitments. It also allows customers to update the commitment plan of an existing radio unit.
+
+## __Amazon Appflow__
+  - ### Features
+    - This release adds support to bypass SSO with the SAPOData connector when connecting to an SAP instance.
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - IVS customers can now revoke the viewer session associated with an auth token, to prevent and stop playback using that token.
+
+## __Amazon Kinesis Video Streams__
+  - ### Features
+    - General Availability (GA) release of Kinesis Video Streams at Edge, enabling customers to provide a configuration for the Kinesis Video Streams EdgeAgent running on an on-premise IoT device. Customers can now locally record from cameras and stream videos to the cloud on a configured schedule.
+
+## __Amazon Macie 2__
+  - ### Features
+    - This release adds support for configuring new classification jobs to use the set of managed data identifiers that we recommend for jobs. For the managed data identifier selection type (managedDataIdentifierSelector), specify RECOMMENDED.
+
+## __Amazon SageMaker Feature Store Runtime__
+  - ### Features
+    - Introducing TTL for online store records for feature groups.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Introducing TTL for online store records in feature groups.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Systems Manager doc-only update for June 2023.
+
+## __Amazon Verified Permissions__
+  - ### Features
+    - This update fixes several broken links to the Cedar documentation.
+
+## __AppFabric__
+  - ### Features
+    - Initial release of AWS AppFabric for connecting SaaS applications for better productivity and security.
+
+## __DynamoDB Enhanced Client__
+  - ### Features
+    - Added support for StreamSpecification in the CreateTableEnhancedRequest, allowing configuration of table stream specification using DynamoDB Enhanced Client.
+        - Contributed by: [@acouvreur](https://github.com/acouvreur)
+
+## __EMR Serverless__
+  - ### Features
+    - This release adds support to update the release label of an EMR Serverless application to upgrade it to a different version of Amazon EMR via UpdateApplication API.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@acouvreur](https://github.com/acouvreur)
 # __2.20.93__ __2023-06-26__
 ## __AWS Glue__
   - ### Features
@@ -222,7 +276,7 @@ Special thanks to the following contributors to this release:
 ## __Contributors__
 Special thanks to the following contributors to this release: 
 
-[@breader124](https://github.com/breader124), [@bmaizels](https://github.com/bmaizels)
+[@bmaizels](https://github.com/bmaizels), [@breader124](https://github.com/breader124)
 # __2.20.85__ __2023-06-13__
 ## __AWS CloudTrail__
   - ### Features

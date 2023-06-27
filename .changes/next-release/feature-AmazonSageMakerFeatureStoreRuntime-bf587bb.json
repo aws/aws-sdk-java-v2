@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon SageMaker Feature Store Runtime",
-    "contributor": "",
-    "description": "Introducing TTL for online store records for feature groups."
-}
