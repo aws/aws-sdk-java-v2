@@ -25,6 +25,8 @@ public final class SignerConstant {
 
     public static final String AWS4_SIGNING_ALGORITHM = "AWS4-HMAC-SHA256";
 
+    public static final String AWS4_CHUNK_SIGNING_ALGORITHM = "AWS4-HMAC-SHA256-PAYLOAD";
+
     public static final String X_AMZ_CONTENT_SHA256 = "x-amz-content-sha256";
 
     public static final String AUTHORIZATION = "Authorization";
@@ -48,7 +50,7 @@ public final class SignerConstant {
     public static final String LINE_SEPARATOR = "\n";
 
     /**
-     * Seconds in a week, which is the max expiration time Sig-v4 accepts.
+     * Duration of a week, which is the max expiration time Sig-v4 accepts.
      */
     public static final Duration PRESIGN_URL_MAX_EXPIRATION_DURATION = Duration.ofDays(7);
 

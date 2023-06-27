@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http.auth.eventstream;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.http.auth.AwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.eventstream.internal.DefaultAwsV4EventStreamHttpSigner;
 import software.amazon.awssdk.http.auth.spi.HttpSigner;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
@@ -25,7 +26,7 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
  * specifically for Event Streams.
  */
 @SdkPublicApi
-public interface AwsV4EventStreamHttpSigner extends HttpSigner<AwsCredentialsIdentity> {
+public interface AwsV4EventStreamHttpSigner extends AwsV4HttpSigner {
 
     /**
      * Get a default implementation of a {@link AwsV4EventStreamHttpSigner}

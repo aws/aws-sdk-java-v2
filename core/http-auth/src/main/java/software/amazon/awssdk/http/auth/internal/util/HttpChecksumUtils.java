@@ -88,11 +88,23 @@ public final class HttpChecksumUtils {
         }
     }
 
-
     public static byte[] hash(String text) {
         try {
             MessageDigest md = getMessageDigestInstance();
             md.update(text.getBytes(StandardCharsets.UTF_8));
+            return md.digest();
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to compute hash while signing request: " + e.getMessage());
+        }
+    }
+
+    public static byte[] hash(byte[] data, SdkChecksum sdkChecksum) {
+        try {
+            MessageDigest md = getMessageDigestInstance();
+            md.update(data);
+            if (sdkChecksum != null) {
+                sdkChecksum.update(data);
+            }
             return md.digest();
         } catch (Exception e) {
             throw new RuntimeException("Unable to compute hash while signing request: " + e.getMessage());

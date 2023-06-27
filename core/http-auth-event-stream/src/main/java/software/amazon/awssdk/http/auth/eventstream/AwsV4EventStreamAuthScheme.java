@@ -29,6 +29,14 @@ import software.amazon.awssdk.identity.spi.IdentityProvider;
 public interface AwsV4EventStreamAuthScheme extends AuthScheme<AwsCredentialsIdentity> {
 
     /**
+     * Get a default implementation of a {@link AwsV4EventStreamAuthScheme}
+     */
+    static AwsV4EventStreamAuthScheme create() {
+        return new AwsV4EventStreamAuthScheme() {
+        };
+    }
+
+    /**
      * Retrieve the scheme ID.
      */
     @Override
@@ -50,13 +58,5 @@ public interface AwsV4EventStreamAuthScheme extends AuthScheme<AwsCredentialsIde
     @Override
     default AwsV4EventStreamHttpSigner signer() {
         return AwsV4EventStreamHttpSigner.create();
-    }
-
-    /**
-     * Get a default implementation of a {@link AwsV4EventStreamAuthScheme}
-     */
-    static AwsV4EventStreamAuthScheme create() {
-        return new AwsV4EventStreamAuthScheme() {
-        };
     }
 }

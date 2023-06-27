@@ -15,27 +15,39 @@
 
 package software.amazon.awssdk.http.auth.eventstream.internal;
 
+import static software.amazon.awssdk.http.auth.internal.util.SignerConstant.X_AMZ_CONTENT_SHA256;
+
+import java.nio.ByteBuffer;
+import java.util.concurrent.CompletableFuture;
+import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.eventstream.AwsV4EventStreamHttpSigner;
-import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
-import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
-import software.amazon.awssdk.http.auth.spi.SyncSignRequest;
-import software.amazon.awssdk.http.auth.spi.SyncSignedRequest;
-import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.http.auth.internal.DefaultAwsV4HttpSigner;
+import software.amazon.awssdk.http.auth.internal.checksums.ContentChecksum;
 
 /**
  * A default implementation of {@link AwsV4EventStreamHttpSigner}.
  */
 @SdkInternalApi
-public class DefaultAwsV4EventStreamHttpSigner implements AwsV4EventStreamHttpSigner {
+public class DefaultAwsV4EventStreamHttpSigner extends DefaultAwsV4HttpSigner implements AwsV4EventStreamHttpSigner {
+
+    private static final String HTTP_CONTENT_SHA_256 = "STREAMING-AWS4-HMAC-SHA256-EVENTS";
 
     @Override
-    public SyncSignedRequest sign(SyncSignRequest<? extends AwsCredentialsIdentity> request) {
-        throw new UnsupportedOperationException();
+    protected void addPrerequisites(SdkHttpRequest.Builder requestBuilder,
+                                    ContentChecksum contentChecksum) {
+        requestBuilder.putHeader(X_AMZ_CONTENT_SHA256, HTTP_CONTENT_SHA_256);
+        super.addPrerequisites(requestBuilder, contentChecksum);
     }
 
     @Override
-    public AsyncSignedRequest signAsync(AsyncSignRequest<? extends AwsCredentialsIdentity> request) {
-        throw new UnsupportedOperationException();
+    protected Publisher<ByteBuffer> processPayload(Publisher<ByteBuffer> payload) {
+        return new SigV4DataFramePublisher(payload, credentials, credentialScope, signature, signingClock);
+    }
+
+    @Override
+    protected CompletableFuture<String> createContentHash(Publisher<ByteBuffer> payload) {
+        return CompletableFuture.completedFuture(HTTP_CONTENT_SHA_256);
     }
 }
