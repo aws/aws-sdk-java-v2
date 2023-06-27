@@ -29,13 +29,21 @@ public final class DefaultSyncSignRequest<IdentityT extends Identity>
         super(builder);
     }
 
+    public static <IdentityT extends Identity> SyncSignRequest.Builder<IdentityT> builder() {
+        return new BuilderImpl<>();
+    }
+
+    public static <IdentityT extends Identity> SyncSignRequest.Builder<IdentityT> builder(IdentityT identity) {
+        return new BuilderImpl<>(identity);
+    }
+
     @Override
     public String toString() {
         return ToString.builder("SyncSignRequest")
-                       .add("request", request)
-                       .add("identity", identity)
-                       .add("properties", properties)
-                       .build();
+            .add("request", request)
+            .add("identity", identity)
+            .add("properties", properties)
+            .build();
     }
 
     @Override
@@ -49,19 +57,19 @@ public final class DefaultSyncSignRequest<IdentityT extends Identity>
         implements SyncSignRequest.Builder<IdentityT> {
 
         // Used to enable consumer builder pattern in HttpSigner.sign()
-        public BuilderImpl() {
+        private BuilderImpl() {
         }
 
         // Used by SyncSignRequest#builder() where identity is passed as parameter, to avoid having to pass Class<IdentityT>.
-        public BuilderImpl(IdentityT identity) {
+        private BuilderImpl(IdentityT identity) {
             super(identity);
         }
 
         private BuilderImpl(DefaultSyncSignRequest<IdentityT> request) {
-            this.request = request.request;
-            this.payload = request.payload;
-            this.identity = request.identity;
-            this.properties = request.properties;
+            properties(request.properties)
+                .identity(request.identity)
+                .payload(request.payload)
+                .request(request.request);
         }
 
         @Override

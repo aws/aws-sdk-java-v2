@@ -84,9 +84,9 @@ public final class CanonicalRequestV2 {
      * <p>
      * Each {@link String} parameter is separated by a newline character.
      */
-    public static String getCanonicalRequestString(String httpMethod, String canonicalUri, String canonicalParamsString,
-                                                   String canonicalHeadersString, String signedHeadersString,
-                                                   String contentHash) {
+    private static String getCanonicalRequestString(String httpMethod, String canonicalUri, String canonicalParamsString,
+                                                    String canonicalHeadersString, String signedHeadersString,
+                                                    String contentHash) {
         return httpMethod + SignerConstant.LINE_SEPARATOR +
             canonicalUri + SignerConstant.LINE_SEPARATOR +
             canonicalParamsString + SignerConstant.LINE_SEPARATOR +

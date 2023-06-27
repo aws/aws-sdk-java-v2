@@ -64,10 +64,10 @@ abstract class DefaultSignRequest<PayloadT, IdentityT extends Identity> implemen
     @SdkInternalApi
     protected abstract static class BuilderImpl<B extends Builder<B, PayloadT, IdentityT>, PayloadT,
         IdentityT extends Identity> implements Builder<B, PayloadT, IdentityT> {
-        protected SdkHttpRequest request;
-        protected PayloadT payload;
-        protected IdentityT identity;
-        protected Map<SignerProperty<?>, Object> properties = new HashMap<>();
+        private final Map<SignerProperty<?>, Object> properties = new HashMap<>();
+        private SdkHttpRequest request;
+        private PayloadT payload;
+        private IdentityT identity;
 
         protected BuilderImpl() {
         }
@@ -97,6 +97,12 @@ abstract class DefaultSignRequest<PayloadT, IdentityT extends Identity> implemen
         @Override
         public <T> B putProperty(SignerProperty<T> key, T value) {
             this.properties.put(key, value);
+            return thisBuilder();
+        }
+
+        protected B properties(Map<SignerProperty<?>, Object> properties) {
+            this.properties.clear();
+            this.properties.putAll(properties);
             return thisBuilder();
         }
 

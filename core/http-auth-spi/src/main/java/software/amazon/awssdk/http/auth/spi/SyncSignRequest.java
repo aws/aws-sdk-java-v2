@@ -38,7 +38,7 @@ public interface SyncSignRequest<IdentityT extends Identity> extends SignRequest
      * Get a new builder for creating a {@link SyncSignRequest}.
      */
     static <IdentityT extends Identity> Builder<IdentityT> builder(IdentityT identity) {
-        return new DefaultSyncSignRequest.BuilderImpl<>(identity);
+        return DefaultSyncSignRequest.builder(identity);
     }
 
     /**

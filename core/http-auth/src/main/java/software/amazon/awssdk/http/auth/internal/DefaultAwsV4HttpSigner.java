@@ -115,6 +115,7 @@ public class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
                 .build();
         }
 
+        // Set all necessary parameters needed for signing the request
         setParameters(request);
 
         CompletableFuture<SdkHttpRequest> signedReqFuture =

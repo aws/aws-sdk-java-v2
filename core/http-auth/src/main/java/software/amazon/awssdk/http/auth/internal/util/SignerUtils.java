@@ -225,6 +225,6 @@ public final class SignerUtils {
      * Check if a payload is unsigned based on the content hash
      */
     private static boolean isUnsignedPayload(String contentHashString) {
-        return "UNSIGNED_PAYLOAD".equals(contentHashString) || "STREAMING-UNSIGNED-PAYLOAD-TRAILER".equals(contentHashString);
+        return "UNSIGNED-PAYLOAD".equals(contentHashString) || "STREAMING-UNSIGNED-PAYLOAD-TRAILER".equals(contentHashString);
     }
 }

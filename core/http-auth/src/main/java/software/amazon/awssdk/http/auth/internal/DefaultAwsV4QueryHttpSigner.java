@@ -41,6 +41,7 @@ import software.amazon.awssdk.utils.Pair;
 @SdkInternalApi
 public final class DefaultAwsV4QueryHttpSigner extends DefaultAwsV4HttpSigner implements AwsV4QueryHttpSigner {
 
+    // optional
     private Duration expirationDuration;
 
     @Override
@@ -71,7 +72,6 @@ public final class DefaultAwsV4QueryHttpSigner extends DefaultAwsV4HttpSigner im
         requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_SIGNED_HEADERS, getSignedHeadersString(canonicalHeaders));
         requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_EXPIRES, Long.toString(expirationDuration.getSeconds()));
         requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_CREDENTIAL, credentialScope.scope(credentials));
-
     }
 
     @Override

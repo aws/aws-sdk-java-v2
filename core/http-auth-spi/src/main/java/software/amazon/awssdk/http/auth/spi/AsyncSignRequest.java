@@ -39,7 +39,7 @@ public interface AsyncSignRequest<IdentityT extends Identity> extends SignReques
      * Get a new builder for creating a {@link AsyncSignRequest}.
      */
     static <IdentityT extends Identity> Builder<IdentityT> builder(IdentityT identity) {
-        return new DefaultAsyncSignRequest.BuilderImpl<>(identity);
+        return DefaultAsyncSignRequest.builder(identity);
     }
 
     /**
@@ -47,6 +47,6 @@ public interface AsyncSignRequest<IdentityT extends Identity> extends SignReques
      */
     interface Builder<IdentityT extends Identity>
         extends SignRequest.Builder<Builder<IdentityT>, Publisher<ByteBuffer>, IdentityT>,
-        CopyableBuilder<Builder<IdentityT>, AsyncSignRequest<IdentityT>> {
+            CopyableBuilder<Builder<IdentityT>, AsyncSignRequest<IdentityT>> {
     }
 }

@@ -24,7 +24,6 @@ import static software.amazon.awssdk.http.auth.TestUtils.generateBasicRequest;
 
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.internal.util.SignerConstant;
 import software.amazon.awssdk.http.auth.spi.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.AsyncSignedRequest;
@@ -46,8 +45,11 @@ class AwsV4QueryHttpSignerTest {
         final String expectedAmzExpires = "604800";
 
         SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
-            SdkHttpRequest.builder(),
-            SyncSignRequest.builder(AwsCredentialsIdentity.create("access", "secret"))
+            AwsCredentialsIdentity.create("access", "secret"),
+            (httpRequest -> {
+            }),
+            (signRequest -> {
+            })
         );
 
         SyncSignedRequest signedRequest = signer.sign(request);
@@ -63,9 +65,11 @@ class AwsV4QueryHttpSignerTest {
     @Test
     public void sign_withInvalidExpiration_shouldThrow() {
         SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
-            SdkHttpRequest.builder(),
-            SyncSignRequest.builder(AwsCredentialsIdentity.create("access", "secret"))
-                .putProperty(EXPIRATION_DURATION, SignerConstant.PRESIGN_URL_MAX_EXPIRATION_DURATION.plus(Duration.ofSeconds(1)))
+            AwsCredentialsIdentity.create("access", "secret"),
+            (httpRequest -> {
+            }),
+            (signRequest -> signRequest.putProperty(EXPIRATION_DURATION,
+                SignerConstant.PRESIGN_URL_MAX_EXPIRATION_DURATION.plus(Duration.ofSeconds(1))))
         );
 
         RuntimeException exception = assertThrows(IllegalArgumentException.class, () -> signer.sign(request));
@@ -79,8 +83,11 @@ class AwsV4QueryHttpSignerTest {
     @Test
     public void sign_withAnonymousCredentials_shouldNotSign() {
         SyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
-            SdkHttpRequest.builder(),
-            SyncSignRequest.builder(new TestUtils.AnonymousCredentialsIdentity())
+            new TestUtils.AnonymousCredentialsIdentity(),
+            (httpRequest -> {
+            }),
+            (signRequest -> {
+            })
         );
 
         SyncSignedRequest signedRequest = signer.sign(request);
@@ -96,8 +103,11 @@ class AwsV4QueryHttpSignerTest {
         final String expectedAmzExpires = "604800";
 
         AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
-            SdkHttpRequest.builder(),
-            AsyncSignRequest.builder(AwsCredentialsIdentity.create("access", "secret"))
+            AwsCredentialsIdentity.create("access", "secret"),
+            (httpRequest -> {
+            }),
+            (signRequest -> {
+            })
         );
 
         AsyncSignedRequest signedRequest = signer.signAsync(request);
