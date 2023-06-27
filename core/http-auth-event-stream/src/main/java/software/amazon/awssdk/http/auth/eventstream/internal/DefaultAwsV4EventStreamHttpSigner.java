@@ -30,7 +30,7 @@ import software.amazon.awssdk.http.auth.internal.checksums.ContentChecksum;
  * A default implementation of {@link AwsV4EventStreamHttpSigner}.
  */
 @SdkInternalApi
-public class DefaultAwsV4EventStreamHttpSigner extends DefaultAwsV4HttpSigner implements AwsV4EventStreamHttpSigner {
+public final class DefaultAwsV4EventStreamHttpSigner extends DefaultAwsV4HttpSigner implements AwsV4EventStreamHttpSigner {
 
     private static final String HTTP_CONTENT_SHA_256 = "STREAMING-AWS4-HMAC-SHA256-EVENTS";
 
@@ -43,6 +43,10 @@ public class DefaultAwsV4EventStreamHttpSigner extends DefaultAwsV4HttpSigner im
 
     @Override
     protected Publisher<ByteBuffer> processPayload(Publisher<ByteBuffer> payload) {
+        if (payload == null) {
+            return payload;
+        }
+
         return new SigV4DataFramePublisher(payload, credentials, credentialScope, signature, signingClock);
     }
 

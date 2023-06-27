@@ -24,7 +24,7 @@ import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 @SdkInternalApi
-public class TrailingDataFramePublisher implements Publisher<ByteBuffer> {
+final class TrailingDataFramePublisher implements Publisher<ByteBuffer> {
 
     private final Publisher<ByteBuffer> trailingPublisher;
 

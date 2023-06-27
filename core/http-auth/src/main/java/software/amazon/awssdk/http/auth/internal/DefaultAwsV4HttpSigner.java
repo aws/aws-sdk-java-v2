@@ -326,7 +326,7 @@ public class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
      */
     protected Publisher<ByteBuffer> processPayload(Publisher<ByteBuffer> payload) {
         // The default implementation does nothing, as this version of signing does not
-        // modify or updated the payload object
+        // modify or update the payload object
         return payload;
     }
 }

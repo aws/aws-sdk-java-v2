@@ -35,7 +35,7 @@ public class AwsV4EventStreamHttpSignerTest {
     private static final AwsV4EventStreamHttpSigner signer = AwsV4EventStreamHttpSigner.create();
 
     @Test
-    public void asyncSign_shouldSignWithTransformedPublisher() {
+    public void signAsync_shouldSignWithTransformedPublisher() {
         AdjustableClock clock = new AdjustableClock();
         clock.time = Instant.parse("2020-01-01T23:59:59Z");
         ByteBuffer event = new Message(Collections.emptyMap(), "foo".getBytes(UTF_8)).toByteBuffer();

@@ -42,7 +42,7 @@ import software.amazon.eventstream.HeaderValue;
 import software.amazon.eventstream.Message;
 
 @SdkInternalApi
-public final class SigV4DataFramePublisher implements Publisher<ByteBuffer> {
+final class SigV4DataFramePublisher implements Publisher<ByteBuffer> {
 
     private static final Logger LOG = Logger.loggerFor(SigV4DataFramePublisher.class);
     private static final String CHUNK_SIGNATURE = ":chunk-signature";
