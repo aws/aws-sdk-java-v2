@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.zip.GZIPOutputStream;
-import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.compression.Compressor;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -67,11 +66,5 @@ public final class GzipCompressor implements Compressor {
         byteBuffer.get(content);
         byte[] compressedContent = compress(content);
         return ByteBuffer.wrap(compressedContent);
-    }
-
-    @Override
-    public Publisher<ByteBuffer> compressAsyncRequestBody(Publisher<ByteBuffer> publisher) {
-        //TODO
-        throw new UnsupportedOperationException();
     }
 }

@@ -17,9 +17,7 @@ package software.amazon.awssdk.core.compression;
 
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.internal.compression.GzipCompressor;
 import software.amazon.awssdk.core.internal.interceptor.RequestCompressionInterceptor;
 
@@ -48,11 +46,6 @@ public interface Compressor {
      * Compress a {@link ByteBuffer}.
      */
     ByteBuffer compress(ByteBuffer byteBuffer);
-
-    /**
-     * Compress an {@link AsyncRequestBody}.
-     */
-    Publisher<ByteBuffer> compressAsyncRequestBody(Publisher<ByteBuffer> publisher);
 
     /**
      * Maps the {@link CompressionType} to its corresponding {@link Compressor}.

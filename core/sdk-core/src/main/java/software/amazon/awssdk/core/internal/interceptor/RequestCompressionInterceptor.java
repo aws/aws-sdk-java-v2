@@ -32,6 +32,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.internal.async.CompressionAsyncRequestBody;
 import software.amazon.awssdk.core.internal.io.AwsCompressionInputStream;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.ContentStreamProvider;
@@ -91,7 +92,7 @@ public class RequestCompressionInterceptor implements ExecutionInterceptor {
             try {
                 byte[] compressedBytes = IoUtils.toByteArray(compressedStream);
                 return Optional.of(RequestBody.fromBytes(compressedBytes));
-            } catch(IOException e){
+            } catch (IOException e) {
                 throw SdkClientException.create(e.getMessage(), e);
             }
         }
@@ -111,8 +112,10 @@ public class RequestCompressionInterceptor implements ExecutionInterceptor {
         AsyncRequestBody asyncRequestBody = context.asyncRequestBody().get();
         Compressor compressor = resolveCompressionType(executionAttributes);
 
-        // TODO - Async streaming compression implementation
-        throw new UnsupportedOperationException();
+        return Optional.of(CompressionAsyncRequestBody.builder()
+                                                      .asyncRequestBody(asyncRequestBody)
+                                                      .compressor(compressor)
+                                                      .build());
     }
 
     private static boolean shouldCompress(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
