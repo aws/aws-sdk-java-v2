@@ -89,7 +89,7 @@ public class AuthSchemeProviderSpec implements ClassSpec {
             .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
             .returns(className())
             .addJavadoc("Get the default auth scheme provider.")
-            .addStatement("return $T.create()", authSchemeSpecUtils.providerDefaultImplName())
+            .addStatement("return $T.create()", authSchemeSpecUtils.defaultAuthSchemeProviderName())
             .build();
     }
 

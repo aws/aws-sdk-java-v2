@@ -45,7 +45,10 @@ public class DefaultAuthSchemeProviderSpec implements ClassSpec {
 
     @Override
     public ClassName className() {
-        return authSchemeSpecUtils.providerDefaultImplName();
+        if (authSchemeSpecUtils.useEndpointBasedAuthProvider()) {
+            return authSchemeSpecUtils.internalModeledAuthSchemeProviderName();
+        }
+        return authSchemeSpecUtils.defaultAuthSchemeProviderName();
     }
 
     @Override

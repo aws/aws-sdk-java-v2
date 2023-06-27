@@ -27,13 +27,13 @@ import software.amazon.awssdk.services.query.auth.scheme.QueryAuthSchemeProvider
 
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
-public final class DefaultQueryAuthSchemeProvider implements QueryAuthSchemeProvider {
-    private static final DefaultQueryAuthSchemeProvider DEFAULT = new DefaultQueryAuthSchemeProvider();
+public final class InternalModeledQueryAuthSchemeProvider implements QueryAuthSchemeProvider {
+    private static final InternalModeledQueryAuthSchemeProvider DEFAULT = new InternalModeledQueryAuthSchemeProvider();
 
-    private DefaultQueryAuthSchemeProvider() {
+    private InternalModeledQueryAuthSchemeProvider() {
     }
 
-    public static DefaultQueryAuthSchemeProvider create() {
+    public static InternalModeledQueryAuthSchemeProvider create() {
         return DEFAULT;
     }
 
