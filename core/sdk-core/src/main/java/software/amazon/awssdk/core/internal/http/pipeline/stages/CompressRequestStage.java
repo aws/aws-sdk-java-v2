@@ -49,7 +49,7 @@ public class CompressRequestStage implements MutableRequestToRequestPipeline {
 
     @Override
     public SdkHttpFullRequest.Builder execute(SdkHttpFullRequest.Builder input, RequestExecutionContext context)
-        throws Exception {
+            throws Exception {
 
         if (!shouldCompress(input, context)) {
             return input;
@@ -99,7 +99,8 @@ public class CompressRequestStage implements MutableRequestToRequestPipeline {
         return context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.REQUEST_COMPRESSION).isStreaming();
     }
 
-    private static SdkHttpFullRequest.Builder updateContentEncodingHeader(SdkHttpFullRequest.Builder input, Compressor compressor) {
+    private static SdkHttpFullRequest.Builder updateContentEncodingHeader(SdkHttpFullRequest.Builder input,
+                                                                          Compressor compressor) {
         if (input.firstMatchingHeader("Content-encoding").isPresent()) {
             return input.appendHeader("Content-encoding", compressor.compressorType());
         }
