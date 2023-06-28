@@ -161,10 +161,6 @@ public class SigningStage implements RequestToRequestPipeline {
     private boolean shouldSign(SelectedAuthScheme<?> selectedAuthScheme) {
         // TODO: Should this string be a constant somewhere. Similar logic is used in AuthSchemeInterceptors.
         return "smithy.api#noAuth".equals(selectedAuthScheme.authSchemeOption().schemeId());
-
-        // Hmm, these would be equivalent too:
-        // return selectedAuthScheme.identityProvider() == null;
-        // return selectedAuthScheme.signer() == null;
     }
 
     /**
