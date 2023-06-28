@@ -21,7 +21,6 @@ import java.io.UncheckedIOException;
 import java.util.Optional;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.compression.Compressor;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -78,17 +77,16 @@ public class CompressRequestStage implements MutableRequestToRequestPipeline {
     }
 
     private static boolean shouldCompress(SdkHttpFullRequest.Builder input, RequestExecutionContext context) {
-        ExecutionAttributes executionAttributes = context.executionAttributes();
-        if (executionAttributes.getAttribute(SdkInternalExecutionAttribute.REQUEST_COMPRESSION) == null) {
+        if (context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.REQUEST_COMPRESSION) == null) {
             return false;
         }
-        if (resolveCompressionType(executionAttributes) == null) {
+        if (resolveCompressionType(context.executionAttributes()) == null) {
             return false;
         }
-        if (!resolveRequestCompressionEnabled(context.originalRequest(), executionAttributes)) {
+        if (!resolveRequestCompressionEnabled(context)) {
             return false;
         }
-        if (executionAttributes.getAttribute(SdkInternalExecutionAttribute.REQUEST_COMPRESSION).isStreaming()) {
+        if (context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.REQUEST_COMPRESSION).isStreaming()) {
             return true;
         }
         if (input.contentStreamProvider() == null) {
@@ -137,20 +135,20 @@ public class CompressRequestStage implements MutableRequestToRequestPipeline {
         return null;
     }
 
-    private static boolean resolveRequestCompressionEnabled(SdkRequest sdkRequest, ExecutionAttributes executionAttributes) {
+    private static boolean resolveRequestCompressionEnabled(RequestExecutionContext context) {
 
-        if (sdkRequest.overrideConfiguration().isPresent()
-            && sdkRequest.overrideConfiguration().get().requestCompressionConfiguration().isPresent()) {
-            Boolean requestCompressionEnabled = sdkRequest.overrideConfiguration().get()
-                                                          .requestCompressionConfiguration().get()
-                                                          .requestCompressionEnabled();
+        if (context.originalRequest().overrideConfiguration().isPresent()
+            && context.originalRequest().overrideConfiguration().get().requestCompressionConfiguration().isPresent()) {
+            Boolean requestCompressionEnabled = context.originalRequest().overrideConfiguration().get()
+                                                       .requestCompressionConfiguration().get()
+                                                       .requestCompressionEnabled();
             if (requestCompressionEnabled != null) {
                 return requestCompressionEnabled;
             }
         }
 
-        if (executionAttributes.getAttribute(SdkExecutionAttribute.REQUEST_COMPRESSION_CONFIGURATION) != null) {
-            Boolean requestCompressionEnabled = executionAttributes.getAttribute(
+        if (context.executionAttributes().getAttribute(SdkExecutionAttribute.REQUEST_COMPRESSION_CONFIGURATION) != null) {
+            Boolean requestCompressionEnabled = context.executionAttributes().getAttribute(
                 SdkExecutionAttribute.REQUEST_COMPRESSION_CONFIGURATION).requestCompressionEnabled();
             if (requestCompressionEnabled != null) {
                 return requestCompressionEnabled;
