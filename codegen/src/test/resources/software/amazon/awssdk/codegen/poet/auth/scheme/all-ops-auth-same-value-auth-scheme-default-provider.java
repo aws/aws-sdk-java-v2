@@ -42,7 +42,7 @@ public final class DefaultDatabaseAuthSchemeProvider implements DatabaseAuthSche
         List<AuthSchemeOption> options = new ArrayList<>();
         options.add(AuthSchemeOption.builder().schemeId("aws.auth#sigv4")
                     .putSignerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME, "database-service")
-                    .putSignerProperty(AwsV4HttpSigner.REGION_NAME, params.region().toString()).build());
+                    .putSignerProperty(AwsV4HttpSigner.REGION_NAME, params.region().id()).build());
         options.add(AuthSchemeOption.builder().schemeId("smithy.auth#httpBearerAuth").build());
         return Collections.unmodifiableList(options);
     }

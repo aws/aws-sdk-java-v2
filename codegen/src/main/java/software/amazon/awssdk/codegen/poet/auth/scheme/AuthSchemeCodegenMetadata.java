@@ -36,13 +36,45 @@ public final class AuthSchemeCodegenMetadata {
         .addProperty(SignerPropertyValueProvider.builder()
                                                 .containingClass(AwsV4HttpSigner.class)
                                                 .fieldName("REGION_NAME")
-                                                .valueProvider(utils -> "params.region().toString()")
+                                                .valueProvider(utils -> "params.region().id()")
+                                                .valueType(ValueType.EXPRESSION)
+                                                .build())
+        .build();
+
+    static final AuthSchemeCodegenMetadata S3 = builder()
+        .schemeId("aws.auth#sigv4")
+        .addProperty(SignerPropertyValueProvider.builder()
+                                                .containingClass(AwsV4HttpSigner.class)
+                                                .fieldName("SERVICE_SIGNING_NAME")
+                                                .valueProvider(AuthSchemeSpecUtils::signingName)
+                                                .valueType(ValueType.STRING)
+                                                .build())
+        .addProperty(SignerPropertyValueProvider.builder()
+                                                .containingClass(AwsV4HttpSigner.class)
+                                                .fieldName("REGION_NAME")
+                                                .valueProvider(utils -> "params.region().id()")
+                                                .valueType(ValueType.EXPRESSION)
+                                                .build())
+        .addProperty(SignerPropertyValueProvider.builder()
+                                                .containingClass(AwsV4HttpSigner.class)
+                                                .fieldName("DOUBLE_URL_ENCODE")
+                                                .valueProvider(utils -> "false")
+                                                .valueType(ValueType.EXPRESSION)
+                                                .build())
+        .addProperty(SignerPropertyValueProvider.builder()
+                                                .containingClass(AwsV4HttpSigner.class)
+                                                .fieldName("NORMALIZE_PATH")
+                                                .valueProvider(utils -> "false")
                                                 .valueType(ValueType.EXPRESSION)
                                                 .build())
         .build();
 
     static final AuthSchemeCodegenMetadata BEARER = builder()
         .schemeId("smithy.auth#httpBearerAuth")
+        .build();
+
+    static final AuthSchemeCodegenMetadata NO_AUTH = builder()
+        .schemeId("smithy.auth#noAuth")
         .build();
 
     private final String schemeId;
@@ -69,8 +101,16 @@ public final class AuthSchemeCodegenMetadata {
         switch (type) {
             case BEARER:
                 return BEARER;
-            default:
+            case NONE:
+                return NO_AUTH;
+            case V4:
+            case V4_UNSIGNED_BODY:
                 return SIGV4;
+            case S3:
+            case S3V4:
+                return S3;
+            default:
+                throw new IllegalArgumentException("Unknown auth type: " + type);
         }
     }
 

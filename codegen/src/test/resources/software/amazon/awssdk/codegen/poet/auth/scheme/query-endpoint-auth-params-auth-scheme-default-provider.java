@@ -42,7 +42,7 @@ public final class DefaultQueryAuthSchemeProvider implements QueryAuthSchemeProv
         List<AuthSchemeOption> options = new ArrayList<>();
         options.add(AuthSchemeOption.builder().schemeId("aws.auth#sigv4")
                 .putSignerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME, "query-service")
-                .putSignerProperty(AwsV4HttpSigner.REGION_NAME, params.region().toString()).build());
+                .putSignerProperty(AwsV4HttpSigner.REGION_NAME, params.region().id()).build());
         return Collections.unmodifiableList(options);
     }
 }

@@ -45,7 +45,7 @@ public final class DefaultDatabaseAuthSchemeProvider implements DatabaseAuthSche
             options.add(AuthSchemeOption.builder().schemeId("smithy.auth#httpBearerAuth").build());
             options.add(AuthSchemeOption.builder().schemeId("aws.auth#sigv4")
                     .putSignerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME, "database-service")
-                    .putSignerProperty(AwsV4HttpSigner.REGION_NAME, params.region().toString()).build());
+                    .putSignerProperty(AwsV4HttpSigner.REGION_NAME, params.region().id()).build());
             break;
         case "GetRow":
             options.add(AuthSchemeOption.builder().schemeId("smithy.auth#httpBearerAuth").build());
@@ -53,12 +53,12 @@ public final class DefaultDatabaseAuthSchemeProvider implements DatabaseAuthSche
         case "PutRow":
             options.add(AuthSchemeOption.builder().schemeId("aws.auth#sigv4")
                     .putSignerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME, "database-service")
-                    .putSignerProperty(AwsV4HttpSigner.REGION_NAME, params.region().toString()).build());
+                    .putSignerProperty(AwsV4HttpSigner.REGION_NAME, params.region().id()).build());
             break;
         default:
             options.add(AuthSchemeOption.builder().schemeId("aws.auth#sigv4")
                     .putSignerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME, "database-service")
-                    .putSignerProperty(AwsV4HttpSigner.REGION_NAME, params.region().toString()).build());
+                    .putSignerProperty(AwsV4HttpSigner.REGION_NAME, params.region().id()).build());
             options.add(AuthSchemeOption.builder().schemeId("smithy.auth#httpBearerAuth").build());
             break;
         }
