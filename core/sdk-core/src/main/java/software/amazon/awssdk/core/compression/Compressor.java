@@ -17,42 +17,61 @@ package software.amazon.awssdk.core.compression;
 
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import org.reactivestreams.Publisher;
-import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.internal.compression.GzipCompressor;
 import software.amazon.awssdk.core.internal.interceptor.RequestCompressionInterceptor;
 
 /**
  * Interface for compressors to be used by {@link RequestCompressionInterceptor} to compress requests.
  */
-@SdkPublicApi
+@SdkInternalApi
 public interface Compressor {
 
     /**
      * The compression algorithm type.
+     *
+     * @return The {@link String} compression algorithm type.
      */
     String compressorType();
 
     /**
-     * Compress a byte array.
+     * Compress a {@link SdkBytes} payload.
+     *
+     * @param content
+     * @return The compressed {@link SdkBytes}.
      */
-    byte[] compress(byte[] content);
+    SdkBytes compress(SdkBytes content);
 
     /**
-     * Compress an {@link InputStream}.
+     * Compress a byte[] payload.
+     *
+     * @param content
+     * @return The compressed byte array.
      */
-    InputStream compress(InputStream inputStream);
+    default byte[] compress(byte[] content) {
+        return compress(SdkBytes.fromByteArray(content)).asByteArray();
+    }
 
     /**
-     * Compress a {@link ByteBuffer}.
+     * Compress an {@link InputStream} payload.
+     *
+     * @param content
+     * @return The compressed {@link InputStream}.
      */
-    ByteBuffer compress(ByteBuffer byteBuffer);
+    default InputStream compress(InputStream content) {
+        return compress(SdkBytes.fromInputStream(content)).asInputStream();
+    }
 
     /**
-     * Compress an {@link AsyncRequestBody}.
+     * Compress an {@link ByteBuffer} payload.
+     *
+     * @param content
+     * @return The compressed {@link ByteBuffer}.
      */
-    Publisher<ByteBuffer> compressAsyncRequestBody(Publisher<ByteBuffer> publisher);
+    default ByteBuffer compress(ByteBuffer content) {
+        return compress(SdkBytes.fromByteBuffer(content)).asByteBuffer();
+    }
 
     /**
      * Maps the {@link CompressionType} to its corresponding {@link Compressor}.
