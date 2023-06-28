@@ -16,24 +16,24 @@
 package software.amazon.awssdk.http.auth.internal.util;
 
 import static software.amazon.awssdk.http.auth.internal.util.HttpChecksumUtils.hash;
-import static software.amazon.awssdk.http.auth.internal.util.SignerConstant.AWS4_SIGNING_ALGORITHM;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.List;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.auth.internal.checksums.ContentChecksum;
+import software.amazon.awssdk.http.auth.internal.checksums.SdkChecksum;
 import software.amazon.awssdk.http.auth.spi.SignRequest;
 import software.amazon.awssdk.http.auth.spi.SignerProperty;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
  * Utility methods to be used by various AWS Signer implementations.
@@ -53,9 +53,6 @@ public final class SignerUtils {
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter
         .ofPattern("yyyyMMdd'T'HHmmss'Z'").withZone(ZoneId.of("UTC"));
 
-    private static final List<String> LIST_OF_HEADERS_TO_IGNORE_IN_LOWER_CASE =
-        Arrays.asList("connection", "x-amzn-trace-id", "user-agent", "expect");
-
     private SignerUtils() {
     }
 
@@ -66,7 +63,7 @@ public final class SignerUtils {
      * For example, given an Instant with millis-value of 1416863450581, this
      * method returns "20141124"
      */
-    public static String formatDateStamp(Instant instant) {
+    public static String formatDate(Instant instant) {
         return DATE_FORMATTER.format(instant);
     }
 
@@ -77,54 +74,8 @@ public final class SignerUtils {
      * For example, given an Instant with millis-value of 1416863450581, this
      * method returns "20141124T211050Z"
      */
-    public static String formatTimestamp(Instant instant) {
+    public static String formatDateTime(Instant instant) {
         return TIME_FORMATTER.format(instant);
-    }
-
-    /**
-     * Build the credential scope ("CredentialScope") string as documented in SigV4.
-     */
-    public static String buildScope(String dateStamp, String serviceName, String regionName) {
-        return dateStamp + "/" + regionName + "/" + serviceName + "/" + SignerConstant.AWS4_TERMINATOR;
-    }
-
-    /**
-     * Generate the authorization header string.
-     * <p>
-     * Step 5 (partial) of the AWS Signature version 4 calculation. Refer to
-     * https://docs.aws.amazon.com/IAM/latest/UserGuide/create-signed-request.html#add-signature-to-request
-     */
-    public static String buildAuthorizationHeader(byte[] signature,
-                                                  AwsCredentialsIdentity credentials,
-                                                  String scope,
-                                                  CanonicalRequest canonicalRequest) {
-        String accessKeyId = credentials.accessKeyId();
-        StringBuilder stringBuilder = canonicalRequest.signedHeaderStringBuilder();
-        String signatureHex = BinaryUtils.toHex(signature);
-        return AWS4_SIGNING_ALGORITHM
-            + " Credential="
-            + accessKeyId
-            + "/"
-            + scope
-            + ", SignedHeaders="
-            + stringBuilder
-            + ", Signature="
-            + signatureHex;
-    }
-
-    /**
-     * Create a canonical request object for a given request
-     * <p>
-     * Step 1 of the AWS Signature version 4 calculation. Refer to
-     * https://docs.aws.amazon.com/IAM/latest/UserGuide/create-signed-request.html#create-canonical-request.
-     */
-    public static CanonicalRequest createCanonicalRequest(SdkHttpRequest request,
-                                                          SdkHttpRequest.Builder requestBuilder,
-                                                          String contentSha256,
-                                                          boolean doubleUrlEncode,
-                                                          boolean normalizePath) {
-        return new CanonicalRequest(request, requestBuilder, contentSha256, doubleUrlEncode, normalizePath,
-            LIST_OF_HEADERS_TO_IGNORE_IN_LOWER_CASE);
     }
 
     /**
@@ -134,53 +85,29 @@ public final class SignerUtils {
      * https://docs.aws.amazon.com/IAM/latest/UserGuide/create-signed-request.html#create-canonical-request-hash.
      */
     public static String hashCanonicalRequest(String canonicalRequestString) {
-        return BinaryUtils.toHex(hash(canonicalRequestString));
+        return BinaryUtils.toHex(
+            hash(canonicalRequestString)
+        );
     }
 
     /**
-     * Build the sign-string ("string to sign").
-     * <p>
-     * Step 3 of the AWS Signature version 4 calculation. Refer to
-     * https://docs.aws.amazon.com/IAM/latest/UserGuide/create-signed-request.html#create-string-to-sign
+     * Get the signing key based on the given credentials and a credential-scope
      */
-    public static String buildStringToSign(String canonicalRequest,
-                                           String signingAlgorithm,
-                                           String requestSigningDateTime,
-                                           String scope) {
-
-        LOG.debug(() -> "AWS4 Canonical Request: " + canonicalRequest);
-
-        String stringToSign = signingAlgorithm +
-            SignerConstant.LINE_SEPARATOR +
-            requestSigningDateTime +
-            SignerConstant.LINE_SEPARATOR +
-            scope +
-            SignerConstant.LINE_SEPARATOR +
-            hashCanonicalRequest(canonicalRequest);
-
-        LOG.debug(() -> "AWS4 String to sign: " + stringToSign);
-        return stringToSign;
-    }
-
-    /**
-     * Get the signing key based on the given credentials, instant, region, and service
-     */
-    public static byte[] deriveSigningKey(AwsCredentialsIdentity credentials, Instant signingInstant, String region,
-                                          String service) {
-        String cacheKey = createSigningCacheKeyName(credentials, region, service);
+    public static byte[] deriveSigningKey(AwsCredentialsIdentity credentials, CredentialScope credentialScope) {
+        String cacheKey = createSigningCacheKeyName(credentials, credentialScope.getRegion(), credentialScope.getService());
         SignerKey signerKey = SIGNER_CACHE.get(cacheKey);
 
-        if (signerKey != null && signerKey.isValidForDate(signingInstant)) {
+        if (signerKey != null && signerKey.isValidForDate(credentialScope.getInstant())) {
             return signerKey.getSigningKey();
         }
 
         LOG.trace(() -> "Generating a new signing key as the signing key not available in the cache for the date: " +
-            signingInstant.toEpochMilli());
+            credentialScope.getInstant().toEpochMilli());
         byte[] signingKey = newSigningKey(credentials,
-            formatDateStamp(signingInstant),
-            region,
-            service);
-        SIGNER_CACHE.add(cacheKey, new SignerKey(signingInstant, signingKey));
+            credentialScope.getDate(),
+            credentialScope.getRegion(),
+            credentialScope.getService());
+        SIGNER_CACHE.add(cacheKey, new SignerKey(credentialScope.getInstant(), signingKey));
         return signingKey;
     }
 
@@ -224,10 +151,9 @@ public final class SignerUtils {
     }
 
     /**
-     * compute the signature of a string using a signing key.
+     * Compute the signature of a string using a signing key.
      * <p>
-     * Step 4 of the AWS Signature version 4 calculation. It involves deriving
-     * the signing key and computing the signature. Refer to
+     * Step 4 of the AWS Signature version 4 calculation. Refer to
      * https://docs.aws.amazon.com/IAM/latest/UserGuide/create-signed-request.html#calculate-signature.
      */
     public static byte[] computeSignature(String stringToSign, byte[] signingKey) {
@@ -235,11 +161,70 @@ public final class SignerUtils {
             SigningAlgorithm.HMAC_SHA256);
     }
 
+    /**
+     * Validate that the {@link SignerProperty} is present in the {@link SignRequest}.
+     * <p>
+     * The value, {@link T}, is return when present, and an exception is thrown otherwise.
+     */
     public static <T> T validatedProperty(SignRequest<?, ?> request, SignerProperty<T> property) {
-        return Validate.notNull(request.property(property), property.toString() + "must not be null!");
+        return Validate.notNull(request.property(property), property.toString() + " must not be null!");
     }
 
+    /**
+     * Validate that the {@link SignerProperty} is present in the {@link SignRequest}.
+     * <p>
+     * The value, {@link T}, is return when present, and the default is returned otherwise.
+     */
     public static <T> T validatedProperty(SignRequest<?, ?> request, SignerProperty<T> property, T defaultValue) {
         return Validate.getOrDefault(request.property(property), () -> defaultValue);
+    }
+
+    /**
+     * Add the host header based on parameters of a request
+     */
+    public static void addHostHeader(SdkHttpRequest.Builder requestBuilder) {
+        // AWS4 requires that we sign the Host header, so we
+        // have to have it in the request by the time we sign.
+
+        StringBuilder hostHeaderBuilder = new StringBuilder(requestBuilder.host());
+        if (!SdkHttpUtils.isUsingStandardPort(requestBuilder.protocol(), requestBuilder.port())) {
+            hostHeaderBuilder.append(":").append(requestBuilder.port());
+        }
+
+        requestBuilder.putHeader(SignerConstant.HOST, hostHeaderBuilder.toString());
+    }
+
+    /**
+     * Add a date header using a datetime string
+     */
+    public static void addDateHeader(SdkHttpRequest.Builder requestBuilder, String dateTime) {
+        requestBuilder.putHeader(SignerConstant.X_AMZ_DATE, dateTime);
+    }
+
+    public static void addSha256ContentHeader(SdkHttpRequest.Builder requestBuilder, ContentChecksum contentChecksum) {
+        requestBuilder.firstMatchingHeader(SignerConstant.X_AMZ_CONTENT_SHA256)
+            .filter(h -> h.equals("required"))
+            .ifPresent(h ->
+                requestBuilder.putHeader(
+                    SignerConstant.X_AMZ_CONTENT_SHA256, contentChecksum.contentHash()));
+    }
+
+    /**
+     * Add a checksum header if the checksum is not null and the payload is signed
+     */
+    public static void addChecksumHeader(SdkHttpRequest.Builder requestBuilder, SdkChecksum sdkChecksum,
+                                         String contentHashString,
+                                         String checksumHeaderName) {
+
+        if (sdkChecksum != null && !isUnsignedPayload(contentHashString)) {
+            requestBuilder.putHeader(checksumHeaderName, BinaryUtils.toBase64(sdkChecksum.getChecksumBytes()));
+        }
+    }
+
+    /**
+     * Check if a payload is unsigned based on the content hash
+     */
+    private static boolean isUnsignedPayload(String contentHashString) {
+        return "UNSIGNED-PAYLOAD".equals(contentHashString) || "STREAMING-UNSIGNED-PAYLOAD-TRAILER".equals(contentHashString);
     }
 }
