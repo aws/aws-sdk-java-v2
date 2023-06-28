@@ -137,6 +137,10 @@ public class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
             .build();
     }
 
+    /**
+     * Set required, optional, and auxiliary parameters that are needed throughout the process
+     * of signing a request (i.e. validated signer properties, credentials, etc).
+     */
     protected void setParameters(SignRequest<?, ? extends AwsCredentialsIdentity> signRequest) {
         // required
         regionName = validatedProperty(signRequest, REGION_NAME);
