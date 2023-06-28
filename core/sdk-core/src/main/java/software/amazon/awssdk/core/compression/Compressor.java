@@ -19,12 +19,10 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkBytes;
-import software.amazon.awssdk.core.internal.compression.GzipCompressor;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.CompressRequestStage;
 
 /**
  * Interface for compressors used by {@link CompressRequestStage} to compress requests.
- * TODO: this will be refactored in the other PR
  */
 @SdkInternalApi
 public interface Compressor {
@@ -72,19 +70,5 @@ public interface Compressor {
      */
     default ByteBuffer compress(ByteBuffer content) {
         return compress(SdkBytes.fromByteBuffer(content)).asByteBuffer();
-    }
-
-    /**
-     * Maps the {@link CompressionType} to its corresponding {@link Compressor}.
-     * TODO: Update mappings here when additional compressors are supported in the future
-     */
-    static Compressor forCompressorType(CompressionType compressionType) {
-        switch (compressionType) {
-            case GZIP:
-                return new GzipCompressor();
-            default:
-                throw new IllegalArgumentException("The compresssion type " + compressionType + "does not have an implemenation"
-                                                   + " of Compressor.");
-        }
     }
 }

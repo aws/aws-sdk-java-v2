@@ -18,10 +18,13 @@ package software.amazon.awssdk.core.internal.http.pipeline.stages;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
+import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkSystemSetting;
+import software.amazon.awssdk.core.compression.CompressionType;
 import software.amazon.awssdk.core.compression.Compressor;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -126,16 +129,15 @@ public class CompressRequestStage implements MutableRequestToRequestPipeline {
     }*/
 
     private static Compressor resolveCompressionType(ExecutionAttributes executionAttributes) {
-        /*List<String> encodings =
+        List<String> encodings =
             executionAttributes.getAttribute(SdkInternalExecutionAttribute.REQUEST_COMPRESSION).getEncodings();
 
-        TODO: will refactor CompressionType in the other PR and update this
         for (String encoding: encodings) {
             encoding = encoding.toLowerCase(Locale.ROOT);
-            if (CompressionType.compressionTypes().contains(encoding)) {
-                return CompressionType.of(encoding).newCompressor().get();
+            if (CompressionType.isSupported(encoding)) {
+                return CompressionType.of(encoding).newCompressor();
             }
-        }*/
+        }
         return null;
     }
 

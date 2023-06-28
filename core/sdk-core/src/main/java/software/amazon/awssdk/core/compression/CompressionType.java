@@ -15,60 +15,80 @@
 
 package software.amazon.awssdk.core.compression;
 
-import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.utils.internal.EnumUtils;
+import software.amazon.awssdk.core.internal.compression.GzipCompressor;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * The supported compression algorithms for operations with the requestCompression trait. Each supported algorithm will have an
  * {@link Compressor} implementation.
  */
 @SdkInternalApi
-public enum CompressionType {
+public final class CompressionType {
 
-    GZIP("gzip"),
+    public static final CompressionType GZIP = CompressionType.of("gzip");
 
-    UNKNOWN_TO_SDK_VERSION(null);
+    private static Map<String, Compressor> compressorMap = new HashMap<String, Compressor>() {{
+            put("gzip", new GzipCompressor());
+        }};
 
-    private static final Map<String, CompressionType> VALUE_MAP = EnumUtils.uniqueIndex(
-        CompressionType.class, CompressionType::toString);
+    private String id;
 
-    private final String value;
+    private CompressionType(String id) {
+        this.id = id;
+    }
 
-    CompressionType(String value) {
-        this.value = value;
+    /**
+     * Creates a new {@link CompressionType} of the given value.
+     */
+    public static CompressionType of(String value) {
+        Validate.paramNotBlank(value, "compressionType");
+        return CompressionTypeCache.put(value);
+    }
+
+    /**
+     * Returns the {@link Set} of {@link String}s of compression types supported by the SDK.
+     */
+    public static Set<String> compressionTypes() {
+        return compressorMap.keySet();
+    }
+
+    /**
+     * Whether or not the compression type is supported by the SDK.
+     */
+    public static boolean isSupported(String compressionType) {
+        return compressionTypes().contains(compressionType);
+    }
+
+    /**
+     * Maps the {@link CompressionType} to its corresponding {@link Compressor}.
+     */
+    public Compressor newCompressor() {
+        Compressor compressor = compressorMap.getOrDefault(this.id, null);
+        if (compressor == null) {
+            throw new UnsupportedOperationException("The compression type " + id + " does not have an implementation of "
+                                                    + "Compressor");
+        }
+        return compressor;
     }
 
     @Override
     public String toString() {
-        return String.valueOf(value);
+        return id;
     }
 
-    /**
-     * Use this in place of valueOf to convert the raw string into the enum value.
-     *
-     * @param value
-     *        real value
-     * @return SupportedEncodings corresponding to the value
-     */
-    public static CompressionType fromValue(String value) {
-        if (value == null) {
-            return null;
+    private static class CompressionTypeCache {
+        private static final ConcurrentHashMap<String, CompressionType> VALUES = new ConcurrentHashMap<>();
+
+        private CompressionTypeCache() {
         }
-        return VALUE_MAP.getOrDefault(value, UNKNOWN_TO_SDK_VERSION);
-    }
 
-    /**
-     * Use this in place of {@link #values()} to return a {@link Set} of all values known to the SDK. This will return
-     * all known enum values except {@link #UNKNOWN_TO_SDK_VERSION}.
-     *
-     * @return a {@link Set} of known {@link CompressionType}s
-     */
-    public static Set<CompressionType> knownValues() {
-        Set<CompressionType> knownValues = EnumSet.allOf(CompressionType.class);
-        knownValues.remove(UNKNOWN_TO_SDK_VERSION);
-        return knownValues;
+        private static CompressionType put(String value) {
+            return VALUES.computeIfAbsent(value, v -> new CompressionType(value));
+        }
     }
 }
