@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Omics",
+    "contributor": "",
+    "description": "Add Common Workflow Language (CWL) as a supported language for Omics workflows"
+}
