@@ -22,7 +22,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import software.amazon.awssdk.annotations.Immutable;
@@ -70,7 +69,7 @@ public final class CanonicalRequestV2 {
         this.options = options;
 
         this.canonicalParams = getCanonicalQueryParams(request);
-        this.canonicalHeaders = getCanonicalHeaders(request.headers());
+        this.canonicalHeaders = getCanonicalHeaders(request);
         this.canonicalUri = getCanonicalUri(request, options);
         this.canonicalParamsString = getCanonicalQueryString(canonicalParams);
         this.canonicalHeadersString = getCanonicalHeadersString(canonicalHeaders);
@@ -184,11 +183,11 @@ public final class CanonicalRequestV2 {
     /**
      * Get the list of headers that are to be signed.
      */
-    public static List<Pair<String, List<String>>> getCanonicalHeaders(Map<String, List<String>> headers) {
-        List<Pair<String, List<String>>> result = new ArrayList<>(headers.size());
+    public static List<Pair<String, List<String>>> getCanonicalHeaders(SdkHttpRequest request) {
+        List<Pair<String, List<String>>> result = new ArrayList<>(request.numHeaders());
 
         // headers retrieved from the request are already sorted case-insensitively
-        headers.forEach((key, value) -> {
+        request.forEachHeader((key, value) -> {
             String lowerCaseHeader = lowerCase(key);
             if (!HEADERS_TO_IGNORE_IN_LOWER_CASE.contains(lowerCaseHeader)) {
                 result.add(Pair.of(lowerCaseHeader, value));
@@ -226,7 +225,7 @@ public final class CanonicalRequestV2 {
 
     /**
      * Get the string representing which headers are part of the signing process.
-     * Header names are lower-case, in alphabetical order, and separated by a semicolon.
+     * Header names are separated by a semicolon.
      */
     public static String getSignedHeadersString(List<Pair<String, List<String>>> canonicalHeaders) {
         String signedHeadersString;
@@ -300,26 +299,6 @@ public final class CanonicalRequestV2 {
      */
     public String getCanonicalRequestString() {
         return canonicalRequestString;
-    }
-
-    private String getCanonicalUri() {
-        return canonicalUri;
-    }
-
-    private SortedMap<String, List<String>> getCanonicalParams() {
-        return canonicalParams;
-    }
-
-    private List<Pair<String, List<String>>> getCanonicalHeaders() {
-        return canonicalHeaders;
-    }
-
-    private String getCanonicalParamsString() {
-        return canonicalParamsString;
-    }
-
-    private String getCanonicalHeadersString() {
-        return canonicalHeadersString;
     }
 
     public String getSignedHeadersString() {

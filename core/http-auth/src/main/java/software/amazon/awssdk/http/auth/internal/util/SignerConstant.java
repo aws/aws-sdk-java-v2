@@ -50,7 +50,7 @@ public final class SignerConstant {
     public static final String LINE_SEPARATOR = "\n";
 
     /**
-     * Duration of a week, which is the max expiration time Sig-v4 accepts.
+     * Seconds in a week, which is the max expiration time Sig-v4 accepts.
      */
     public static final Duration PRESIGN_URL_MAX_EXPIRATION_DURATION = Duration.ofDays(7);
 

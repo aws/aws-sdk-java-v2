@@ -66,7 +66,7 @@ public final class DefaultAwsV4QueryHttpSigner extends DefaultAwsV4HttpSigner im
 
         addHostHeader(requestBuilder);
 
-        List<Pair<String, List<String>>> canonicalHeaders = getCanonicalHeaders(requestBuilder.build().headers());
+        List<Pair<String, List<String>>> canonicalHeaders = getCanonicalHeaders(requestBuilder.build());
         requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_ALGORITHM, algorithm);
         requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_DATE, credentialScope.getDatetime());
         requestBuilder.putRawQueryParameter(SignerConstant.X_AMZ_SIGNED_HEADERS, getSignedHeadersString(canonicalHeaders));

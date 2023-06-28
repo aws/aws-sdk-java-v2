@@ -66,10 +66,10 @@ public final class DefaultSyncSignRequest<IdentityT extends Identity>
         }
 
         private BuilderImpl(DefaultSyncSignRequest<IdentityT> request) {
-            properties(request.properties)
-                .identity(request.identity)
-                .payload(request.payload)
-                .request(request.request);
+            properties(request.properties);
+            identity(request.identity);
+            payload(request.payload);
+            request(request.request);
         }
 
         @Override

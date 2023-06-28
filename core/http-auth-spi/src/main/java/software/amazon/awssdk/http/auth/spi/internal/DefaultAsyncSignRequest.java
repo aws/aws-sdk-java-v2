@@ -67,10 +67,10 @@ public final class DefaultAsyncSignRequest<IdentityT extends Identity>
         }
 
         private BuilderImpl(DefaultAsyncSignRequest<IdentityT> request) {
-            properties(request.properties)
-                .identity(request.identity)
-                .payload(request.payload)
-                .request(request.request);
+            properties(request.properties);
+            identity(request.identity);
+            payload(request.payload);
+            request(request.request);
         }
 
         @Override
