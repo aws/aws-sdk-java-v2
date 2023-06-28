@@ -22,55 +22,30 @@ import java.util.Arrays;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.compression.Compressor;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.io.SdkInputStream;
-import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 /**
  * A wrapper class of InputStream that implements compression in chunks.
  */
 @SdkInternalApi
-public class AwsCompressionInputStream extends SdkInputStream {
-
-    public static final int COMPRESSION_CHUNK_SIZE = 128 * 1024;
-    public static final int COMPRESSION_BUFFER_SIZE = 256 * 1024;
-    private static final String CRLF = "\r\n";
-    private static final Logger log = Logger.loggerFor(AwsCompressionInputStream.class);
+public class AwsCompressionInputStream extends AwsChunkedInputStream {
     private Compressor compressor;
-    private InputStream is;
-    private ChunkContentIterator currentChunkIterator;
-    private UnderlyingStreamBuffer uncompressedStreamBuffer;
-    private boolean isAtStart = true;
-    private boolean isTerminating = false;
 
     private AwsCompressionInputStream(InputStream in, Compressor compressor) {
         this.compressor = compressor;
         if (in instanceof AwsCompressionInputStream) {
             // This could happen when the request is retried.
             AwsCompressionInputStream originalCompressionStream = (AwsCompressionInputStream) in;
-            is = originalCompressionStream.is;
-            uncompressedStreamBuffer = originalCompressionStream.uncompressedStreamBuffer;
+            this.is = originalCompressionStream.is;
+            this.underlyingStreamBuffer = originalCompressionStream.underlyingStreamBuffer;
         } else {
             this.is = in;
-            uncompressedStreamBuffer = null;
+            this.underlyingStreamBuffer = null;
         }
     }
 
     public static Builder builder() {
         return new Builder();
-    }
-
-    @Override
-    public int read() throws IOException {
-        byte[] tmp = new byte[1];
-        int count = read(tmp, 0, 1);
-        if (count > 0) {
-            log.debug(() -> "One byte read from the stream.");
-            int unsignedByte = (int) tmp[0] & 0xFF;
-            return unsignedByte;
-        } else {
-            return count;
-        }
     }
 
     @Override
@@ -99,18 +74,18 @@ public class AwsCompressionInputStream extends SdkInputStream {
     }
 
     private boolean setUpNextChunk() throws IOException {
-        byte[] chunkData = new byte[COMPRESSION_CHUNK_SIZE];
+        byte[] chunkData = new byte[DEFAULT_CHUNK_SIZE];
         int chunkSizeInBytes = 0;
-        while (chunkSizeInBytes < COMPRESSION_CHUNK_SIZE) {
+        while (chunkSizeInBytes < DEFAULT_CHUNK_SIZE) {
             /** Read from the buffer of the uncompressed stream */
-            if (uncompressedStreamBuffer != null && uncompressedStreamBuffer.hasNext()) {
-                chunkData[chunkSizeInBytes++] = uncompressedStreamBuffer.next();
+            if (underlyingStreamBuffer != null && underlyingStreamBuffer.hasNext()) {
+                chunkData[chunkSizeInBytes++] = underlyingStreamBuffer.next();
             } else { /** Read from the wrapped stream */
-                int bytesToRead = COMPRESSION_CHUNK_SIZE - chunkSizeInBytes;
+                int bytesToRead = DEFAULT_CHUNK_SIZE - chunkSizeInBytes;
                 int count = is.read(chunkData, chunkSizeInBytes, bytesToRead);
                 if (count != -1) {
-                    if (uncompressedStreamBuffer != null) {
-                        uncompressedStreamBuffer.buffer(chunkData, chunkSizeInBytes, count);
+                    if (underlyingStreamBuffer != null) {
+                        underlyingStreamBuffer.buffer(chunkData, chunkSizeInBytes, count);
                     }
                     chunkSizeInBytes += count;
                 } else {
@@ -119,7 +94,7 @@ public class AwsCompressionInputStream extends SdkInputStream {
             }
         }
         if (chunkSizeInBytes == 0) {
-            byte[] finalChunk = createFinalChunk();
+            byte[] finalChunk = createFinalChunk(FINAL_CHUNK);
             currentChunkIterator = new ChunkContentIterator(finalChunk);
             return true;
         } else {
@@ -134,7 +109,7 @@ public class AwsCompressionInputStream extends SdkInputStream {
         }
     }
 
-    private byte[] createChunk(byte[] compressedChunkData) {
+    protected byte[] createChunk(byte[] compressedChunkData) {
         StringBuilder chunkHeader = new StringBuilder();
         chunkHeader.append(Integer.toHexString(compressedChunkData.length));
         chunkHeader.append(CRLF);
@@ -156,44 +131,12 @@ public class AwsCompressionInputStream extends SdkInputStream {
         }
     }
 
-    private byte[] createFinalChunk() {
-        byte[] finalChunk = new byte[0];
+    protected byte[] createFinalChunk(byte[] finalChunk) {
         StringBuilder chunkHeader = new StringBuilder();
         // chunk-size
         chunkHeader.append(Integer.toHexString(finalChunk.length));
         chunkHeader.append(CRLF);
         return chunkHeader.toString().getBytes(StandardCharsets.UTF_8);
-    }
-
-    @Override
-    protected InputStream getWrappedInputStream() {
-        return is;
-    }
-
-    @Override
-    public long skip(long n) throws IOException {
-        if (n <= 0) {
-            return 0;
-        }
-        long remaining = n;
-        int toskip = (int) Math.min(COMPRESSION_BUFFER_SIZE, n);
-        byte[] temp = new byte[toskip];
-        while (remaining > 0) {
-            int count = read(temp, 0, toskip);
-            if (count < 0) {
-                break;
-            }
-            remaining -= count;
-        }
-        return n - remaining;
-    }
-
-    /**
-     * @see java.io.InputStream#markSupported()
-     */
-    @Override
-    public boolean markSupported() {
-        return true;
     }
 
     /**
@@ -212,7 +155,7 @@ public class AwsCompressionInputStream extends SdkInputStream {
         } else {
             log.debug(() -> "AwsCompressionInputStream marked at the start of the stream "
                             + "(initializing the buffer since the wrapped stream is not mark-supported).");
-            uncompressedStreamBuffer = new UnderlyingStreamBuffer(COMPRESSION_BUFFER_SIZE);
+            underlyingStreamBuffer = new UnderlyingStreamBuffer(SKIP_BUFFER_SIZE);
         }
     }
 
@@ -233,16 +176,11 @@ public class AwsCompressionInputStream extends SdkInputStream {
             is.reset();
         } else {
             log.debug(() -> "AwsCompressionInputStream reset (will use the buffer of the decoded stream).");
-            Validate.notNull(uncompressedStreamBuffer, "Cannot reset the stream because the mark is not set.");
-            uncompressedStreamBuffer.startReadBuffer();
+            Validate.notNull(underlyingStreamBuffer, "Cannot reset the stream because the mark is not set.");
+            underlyingStreamBuffer.startReadBuffer();
         }
         isAtStart = true;
         isTerminating = false;
-    }
-
-    @Override
-    public void close() throws IOException {
-        is.close();
     }
 
     public static final class Builder {
