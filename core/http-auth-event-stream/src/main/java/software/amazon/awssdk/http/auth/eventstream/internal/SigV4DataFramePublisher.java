@@ -50,7 +50,7 @@ final class SigV4DataFramePublisher implements Publisher<ByteBuffer> {
 
     private final Publisher<ByteBuffer> sigv4Publisher;
 
-    public SigV4DataFramePublisher(Publisher<ByteBuffer> publisher,
+    SigV4DataFramePublisher(Publisher<ByteBuffer> publisher,
                                    AwsCredentialsIdentity credentials,
                                    CredentialScope credentialScope,
                                    String signature,

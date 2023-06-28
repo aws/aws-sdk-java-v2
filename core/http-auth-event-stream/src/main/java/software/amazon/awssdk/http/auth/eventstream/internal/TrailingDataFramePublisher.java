@@ -28,7 +28,7 @@ final class TrailingDataFramePublisher implements Publisher<ByteBuffer> {
 
     private final Publisher<ByteBuffer> trailingPublisher;
 
-    public TrailingDataFramePublisher(Publisher<ByteBuffer> publisher) {
+    TrailingDataFramePublisher(Publisher<ByteBuffer> publisher) {
         this.trailingPublisher = subscriber -> {
             Subscriber<ByteBuffer> adaptedSubscriber = new SubscriberAdapter(subscriber);
             publisher.subscribe(adaptedSubscriber);
