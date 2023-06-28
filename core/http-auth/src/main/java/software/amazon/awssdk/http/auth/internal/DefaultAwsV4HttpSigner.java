@@ -84,6 +84,9 @@ public class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
     protected String algorithm;
     protected SdkChecksum sdkChecksum;
 
+    // compound
+    protected String signature;
+
     @Override
     public SyncSignedRequest sign(SyncSignRequest<? extends AwsCredentialsIdentity> request) {
         // anonymous credentials, don't sign
@@ -125,6 +128,8 @@ public class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
                     return builder.build();
                 });
 
+        // process the request payload, if necessary
+        Publisher<ByteBuffer> payload = processPayload(request.payload().orElse(null));
 
         return AsyncSignedRequest.builder()
             .request(CompletableFutureUtils.joinLikeSync(signedReqFuture))
@@ -158,8 +163,8 @@ public class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
      * <p>
      * https://docs.aws.amazon.com/IAM/latest/UserGuide/create-signed-request.html
      */
-    private SdkHttpRequest.Builder sign(SignRequest<?, ? extends AwsCredentialsIdentity> signRequest,
-                                        ContentChecksum contentChecksum) {
+    private <T> SdkHttpRequest.Builder sign(SignRequest<T, ? extends AwsCredentialsIdentity> signRequest,
+                                            ContentChecksum contentChecksum) {
 
         SdkHttpRequest.Builder requestBuilder = signRequest.request().toBuilder();
 
@@ -181,7 +186,7 @@ public class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
 
         // Step 4: Calculate the signature
         byte[] signingKey = deriveSigningKey(credentials, credentialScope);
-        String signature = createSignature(stringToSign, signingKey);
+        signature = createSignature(stringToSign, signingKey);
 
         // Step 5: Add the signature to the request
         addSignature(requestBuilder, canonicalRequest, signature);
@@ -229,7 +234,7 @@ public class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
      * Generate a {@link CompletableFuture} for the content hash by using the {@link Publisher<ByteBuffer>}
      * and the {@link SdkChecksum}.
      */
-    private CompletableFuture<String> createContentHash(Publisher<ByteBuffer> payload) {
+    protected CompletableFuture<String> createContentHash(Publisher<ByteBuffer> payload) {
         DigestComputingSubscriber bodyDigester = DigestComputingSubscriber.forSha256(sdkChecksum);
 
         if (payload != null) {
@@ -314,5 +319,14 @@ public class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
             + ", Signature=" + signature;
 
         requestBuilder.putHeader(SignerConstant.AUTHORIZATION, authHeader);
+    }
+
+    /**
+     * Process a request payload ({@link Publisher<ByteBuffer>}).
+     */
+    protected Publisher<ByteBuffer> processPayload(Publisher<ByteBuffer> payload) {
+        // The default implementation does nothing, as this version of signing does not
+        // modify or update the payload object
+        return payload;
     }
 }

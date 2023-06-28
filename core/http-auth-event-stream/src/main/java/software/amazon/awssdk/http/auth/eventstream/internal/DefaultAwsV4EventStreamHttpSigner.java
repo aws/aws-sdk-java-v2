@@ -44,7 +44,7 @@ public final class DefaultAwsV4EventStreamHttpSigner extends DefaultAwsV4HttpSig
     @Override
     protected Publisher<ByteBuffer> processPayload(Publisher<ByteBuffer> payload) {
         if (payload == null) {
-            return payload;
+            return null;
         }
 
         return new SigV4DataFramePublisher(payload, credentials, credentialScope, signature, signingClock);

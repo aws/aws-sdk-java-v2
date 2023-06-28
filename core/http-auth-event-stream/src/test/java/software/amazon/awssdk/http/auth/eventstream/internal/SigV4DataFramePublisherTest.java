@@ -1,4 +1,4 @@
-package software.amazon.awssdk.http.auth.eventstream;
+package software.amazon.awssdk.http.auth.eventstream.internal;
 
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -32,7 +32,6 @@ import org.mockito.Mockito;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import software.amazon.awssdk.http.auth.eventstream.internal.SigV4DataFramePublisher;
 import software.amazon.awssdk.http.auth.internal.util.CredentialScope;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.utils.BinaryUtils;
