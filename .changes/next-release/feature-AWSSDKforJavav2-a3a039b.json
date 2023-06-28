@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Added support for IamPolicy in new module software.amazon.awssdk:iam-policy-builder, a class to simplify the use of AWS policies."
+}

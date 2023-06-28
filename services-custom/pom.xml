@@ -30,6 +30,7 @@
     <modules>
         <module>dynamodb-enhanced</module>
         <module>s3-transfer-manager</module>
+        <module>iam-policy-builder</module>
     </modules>
 
     <dependencyManagement>
