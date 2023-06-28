@@ -117,7 +117,23 @@ public class AuthSchemeSpecTest {
                     .classSpecProvider(ModelBasedAuthSchemeProviderSpec::new)
                     .caseName("all-ops-auth-different-value")
                     .outputFileSuffix("default-provider")
+                    .build(),
+            // Service with operations with auth none
+            TestCase.builder()
+                    .modelProvider(ClientTestModels::serviceWithNoAuth)
+                    .classSpecProvider(DefaultAuthSchemeProviderSpec::new)
+                    .caseName("service-with-no-auth")
+                    .outputFileSuffix("default-provider")
+                    .build(),
+            // Service with signature version with the same value as S3
+            TestCase.builder()
+                    .modelProvider(ClientTestModels::serviceMiniS3)
+                    .classSpecProvider(DefaultAuthSchemeProviderSpec::new)
+                    .caseName("mini-s3")
+                    .outputFileSuffix("default-provider")
                     .build()
+
+
         );
     }
 

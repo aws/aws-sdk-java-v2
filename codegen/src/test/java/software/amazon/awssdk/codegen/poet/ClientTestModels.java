@@ -175,6 +175,36 @@ public class ClientTestModels {
         return new IntermediateModelBuilder(models).build();
     }
 
+    public static IntermediateModel serviceWithNoAuth() {
+        File serviceModel =
+            new File(ClientTestModels.class.getResource("client/c2j/ops-with-no-auth/service-2.json").getFile());
+        File customizationModel =
+            new File(ClientTestModels.class.getResource("client/c2j/ops-with-no-auth/customization.config")
+                                           .getFile());
+        C2jModels models = C2jModels
+            .builder()
+            .serviceModel(getServiceModel(serviceModel))
+            .customizationConfig(getCustomizationConfig(customizationModel))
+            .build();
+
+        return new IntermediateModelBuilder(models).build();
+    }
+
+    public static IntermediateModel serviceMiniS3() {
+        File serviceModel =
+            new File(ClientTestModels.class.getResource("client/c2j/mini-s3/service-2.json").getFile());
+        File customizationModel =
+            new File(ClientTestModels.class.getResource("client/c2j/mini-s3/customization.config")
+                                           .getFile());
+        C2jModels models = C2jModels
+            .builder()
+            .serviceModel(getServiceModel(serviceModel))
+            .customizationConfig(getCustomizationConfig(customizationModel))
+            .build();
+
+        return new IntermediateModelBuilder(models).build();
+    }
+
     public static IntermediateModel xmlServiceModels() {
         File serviceModel = new File(ClientTestModels.class.getResource("client/c2j/xml/service-2.json").getFile());
         File customizationModel = new File(ClientTestModels.class.getResource("client/c2j/xml/customization.config").getFile());

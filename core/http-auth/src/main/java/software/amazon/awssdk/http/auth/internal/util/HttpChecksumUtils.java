@@ -55,11 +55,7 @@ public final class HttpChecksumUtils {
     }
 
     /**
-     * Calculate the hash of the request's payload. Subclass could override this
-     * method to provide different values for "x-amz-content-sha256" header or
-     * do any other necessary set-ups on the request headers. (e.g. aws-chunked
-     * uses a pre-defined header value, and needs to change some headers
-     * relating to content-encoding and content-length.)
+     * Calculate the hash of the request's payload.
      */
     public static String calculateContentHash(ContentStreamProvider payload,
                                               SdkChecksum contentFlexibleChecksum) {

@@ -58,9 +58,6 @@ public final class CodeCatalystAuthSchemeInterceptor implements ExecutionInterce
         // TODO: Do this only if sigv4
         Region region = executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION);
 
-        // Use the operation-level auth scheme resolver if the customer
-        // specified an override, otherwise fall back to the one on the client.
-        // TODO: The fallback should happen while setting in execution attributes
         CodeCatalystAuthSchemeProvider authSchemeProvider =
             (CodeCatalystAuthSchemeProvider) executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER);
 
@@ -74,8 +71,6 @@ public final class CodeCatalystAuthSchemeInterceptor implements ExecutionInterce
      * From a list of possible auth options for this request, determine which auth scheme should be used.
      */
     private SelectedAuthScheme<?> selectAuthScheme(List<AuthSchemeOption> authOptions, ExecutionAttributes executionAttributes) {
-
-        // TODO: This should be "merged" earlier, with request preferred over client
         Map<String, AuthScheme<?>> authSchemes =
             executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES);
 

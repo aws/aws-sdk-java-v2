@@ -22,6 +22,7 @@ import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.internal.authcontext.AuthorizationStrategy;
 import software.amazon.awssdk.awscore.internal.authcontext.AuthorizationStrategyFactory;
@@ -105,8 +106,9 @@ public final class AwsExecutionContextBuilder {
                           clientConfig.option(AwsClientOption.USE_GLOBAL_ENDPOINT))
             .putAttribute(RESOLVED_CHECKSUM_SPECS, HttpChecksumResolver.resolveChecksumSpecs(executionAttributes));
 
+
         // Auth Scheme resolution related attributes
-        putAuthSchemeResolutionAttributes(executionAttributes, clientConfig);
+        putAuthSchemeResolutionAttributes(executionAttributes, clientConfig, originalRequest);
 
         ExecutionInterceptorChain executionInterceptorChain =
                 new ExecutionInterceptorChain(clientConfig.option(SdkClientOption.EXECUTION_INTERCEPTORS));
@@ -143,7 +145,8 @@ public final class AwsExecutionContextBuilder {
     }
 
     private static void putAuthSchemeResolutionAttributes(ExecutionAttributes executionAttributes,
-                                                          SdkClientConfiguration clientConfig) {
+                                                          SdkClientConfiguration clientConfig,
+                                                          SdkRequest originalRequest) {
 
         // TODO: When request-level auth scheme resovler is added, use the request-level auth scheme resolver if the customer
         //  specified an override, otherwise fall back to the one on the client.
@@ -160,13 +163,37 @@ public final class AwsExecutionContextBuilder {
         //  appropriate type (uses the appropriate Signer) for streaming, etc.
         Map<String, AuthScheme<?>> authSchemes = clientConfig.option(SdkClientOption.AUTH_SCHEMES);
 
-        // TODO: If request level identity provider is specified, it should override.
-        IdentityProviderConfiguration identityProviders = clientConfig.option(SdkClientOption.IDENTITY_PROVIDER_CONFIGURATION);
+        IdentityProviderConfiguration identityProviders = resolveIdentityProviderConfiguration(originalRequest, clientConfig);
 
         executionAttributes
             .putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER, authSchemeProvider)
             .putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES, authSchemes)
             .putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDER_CONFIGURATION, identityProviders);
+    }
+
+    // TODO: This is hard coding the logic for the credentialsIdentityProvider from AwsRequestOverrideConfiguration.
+    //       Currently, AwsRequestOverrideConfiguration does not support overriding the tokenIdentityProvider. When adding that
+    //       support this method will need to be updated.
+    private static IdentityProviderConfiguration resolveIdentityProviderConfiguration(SdkRequest originalRequest,
+                                                                                      SdkClientConfiguration clientConfig) {
+        IdentityProviderConfiguration identityProviderConfiguration =
+            clientConfig.option(SdkClientOption.IDENTITY_PROVIDER_CONFIGURATION);
+
+        // identityProviderConfiguration can be null, for new core with old client. In this case, even if
+        // AwsRequestOverrideConfiguration has credentialsIdentityProvider set (because it is in new core), it is ok to not setup
+        // IDENTITY_PROVIDER_CONFIGURATION, as old client won't have AUTH_SCHEME_PROVIDER/AUTH_SCHEMES set either, which are also
+        // needed for SRA logic.
+        if (identityProviderConfiguration == null) {
+            return null;
+        }
+
+        return originalRequest.overrideConfiguration()
+                              .filter(c -> c instanceof AwsRequestOverrideConfiguration)
+                              .map(c -> (AwsRequestOverrideConfiguration) c)
+                              .flatMap(AwsRequestOverrideConfiguration::credentialsIdentityProvider)
+                              .map(identityProvider ->
+                                       identityProviderConfiguration.copy(b -> b.putIdentityProvider(identityProvider)))
+                              .orElse(identityProviderConfiguration);
     }
 
     /**

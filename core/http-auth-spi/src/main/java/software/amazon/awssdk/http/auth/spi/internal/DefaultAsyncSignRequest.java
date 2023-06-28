@@ -30,13 +30,26 @@ public final class DefaultAsyncSignRequest<IdentityT extends Identity>
         super(builder);
     }
 
+    public static <IdentityT extends Identity> AsyncSignRequest.Builder<IdentityT> builder() {
+        return new BuilderImpl<>();
+    }
+
+    public static <IdentityT extends Identity> AsyncSignRequest.Builder<IdentityT> builder(IdentityT identity) {
+        return new BuilderImpl<>(identity);
+    }
+
     @Override
     public String toString() {
         return ToString.builder("AsyncSignRequest")
-                       .add("request", request)
-                       .add("identity", identity)
-                       .add("properties", properties)
-                       .build();
+            .add("request", request)
+            .add("identity", identity)
+            .add("properties", properties)
+            .build();
+    }
+
+    @Override
+    public AsyncSignRequest.Builder<IdentityT> toBuilder() {
+        return new BuilderImpl<>(this);
     }
 
     @SdkInternalApi
@@ -45,12 +58,19 @@ public final class DefaultAsyncSignRequest<IdentityT extends Identity>
         implements AsyncSignRequest.Builder<IdentityT> {
 
         // Used to enable consumer builder pattern in HttpSigner.signAsync()
-        public BuilderImpl() {
+        private BuilderImpl() {
         }
 
         // Used by AsyncSignRequest#builder() where identity is passed as parameter, to avoid having to pass Class<IdentityT>.
-        public BuilderImpl(IdentityT identity) {
+        private BuilderImpl(IdentityT identity) {
             super(identity);
+        }
+
+        private BuilderImpl(DefaultAsyncSignRequest<IdentityT> request) {
+            properties(request.properties);
+            identity(request.identity);
+            payload(request.payload);
+            request(request.request);
         }
 
         @Override

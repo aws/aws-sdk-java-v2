@@ -49,7 +49,7 @@ public interface HttpSigner<IdentityT extends Identity> {
      * @return A signed version of the request.
      */
     default SyncSignedRequest sign(Consumer<SyncSignRequest.Builder<IdentityT>> consumer) {
-        return sign(new DefaultSyncSignRequest.BuilderImpl<IdentityT>().applyMutation(consumer).build());
+        return sign(DefaultSyncSignRequest.<IdentityT>builder().applyMutation(consumer).build());
     }
 
     /**
@@ -71,6 +71,6 @@ public interface HttpSigner<IdentityT extends Identity> {
      * @return A signed version of the request.
      */
     default AsyncSignedRequest signAsync(Consumer<AsyncSignRequest.Builder<IdentityT>> consumer) {
-        return signAsync(new DefaultAsyncSignRequest.BuilderImpl<IdentityT>().applyMutation(consumer).build());
+        return signAsync(DefaultAsyncSignRequest.<IdentityT>builder().applyMutation(consumer).build());
     }
 }
