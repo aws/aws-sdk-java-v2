@@ -32,9 +32,9 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
 public final class AwsRequestOverrideConfiguration extends RequestOverrideConfiguration {
     private final IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider;
 
-    private AwsRequestOverrideConfiguration(Builder builder) {
+    private AwsRequestOverrideConfiguration(BuilderImpl builder) {
         super(builder);
-        this.credentialsProvider = builder.credentialsIdentityProvider();
+        this.credentialsProvider = builder.awsCredentialsProvider;
     }
 
     /**
@@ -127,14 +127,10 @@ public final class AwsRequestOverrideConfiguration extends RequestOverrideConfig
          * @param credentialsProvider The {@link IdentityProvider<? extends AwsCredentialsIdentity>}.
          * @return This object for chaining.
          */
-        // review TODO: Should this be named credentialsIdentityProvider for symmetry with the "get" method
         default Builder credentialsProvider(IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider) {
             throw new UnsupportedOperationException();
         }
 
-        // review TODO: Not sure why the builder should have a public getter. Currently it was called from constructor of
-        //  AwsRequestOverrideConfiguration. But it is private and should probably take BuilderImpl. Still can't remove this
-        //  method, but maybe can avoid adding credentialsIdentityProvider() to Builder.
         /**
          * Return the optional {@link AwsCredentialsProvider} that will provide credentials to be used to authenticate this
          * request.
@@ -142,14 +138,6 @@ public final class AwsRequestOverrideConfiguration extends RequestOverrideConfig
          * @return The optional {@link AwsCredentialsProvider}.
          */
         AwsCredentialsProvider credentialsProvider();
-
-        /**
-         * Return the optional {@link IdentityProvider<? extends AwsCredentialsIdentity>} that will provide credentials to be
-         * used to authenticate this request.
-         *
-         * @return The optional {@link IdentityProvider<? extends AwsCredentialsIdentity>}.
-         */
-        IdentityProvider<? extends AwsCredentialsIdentity> credentialsIdentityProvider();
 
         @Override
         AwsRequestOverrideConfiguration build();
@@ -180,11 +168,6 @@ public final class AwsRequestOverrideConfiguration extends RequestOverrideConfig
         @Override
         public AwsCredentialsProvider credentialsProvider() {
             return CredentialUtils.toCredentialsProvider(awsCredentialsProvider);
-        }
-
-        @Override
-        public IdentityProvider<? extends AwsCredentialsIdentity> credentialsIdentityProvider() {
-            return awsCredentialsProvider;
         }
 
         @Override
