@@ -72,8 +72,8 @@ public final class DefaultQueryAuthSchemeProvider implements QueryAuthSchemeProv
                         .schemeId("aws.auth#sigv4")
                         .putSignerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME, sigv4AuthScheme.signingName())
                         .putSignerProperty(AwsV4HttpSigner.REGION_NAME, sigv4AuthScheme.signingRegion())
-                        .putSignerProperty(AwsV4HttpSigner.DOUBLE_URL_ENCODE,
-                                negateOrDefault(sigv4AuthScheme.disableDoubleEncoding())).build());
+                        .putSignerProperty(AwsV4HttpSigner.DOUBLE_URL_ENCODE, !sigv4AuthScheme.disableDoubleEncoding())
+                            .build());
                 break;
             case "sigv4a":
                 throw new UnsupportedOperationException("SigV4a is not yet supported.");
@@ -82,12 +82,5 @@ public final class DefaultQueryAuthSchemeProvider implements QueryAuthSchemeProv
             }
         }
         return Collections.unmodifiableList(options);
-    }
-
-    private static Boolean negateOrDefault(Boolean value) {
-        if (value != null) {
-            return !value;
-        }
-        return value;
     }
 }

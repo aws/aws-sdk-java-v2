@@ -36,10 +36,10 @@ import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
 
-public class DefaultAuthSchemeProviderSpec implements ClassSpec {
+public class ModelBasedAuthSchemeProviderSpec implements ClassSpec {
     private final AuthSchemeSpecUtils authSchemeSpecUtils;
 
-    public DefaultAuthSchemeProviderSpec(IntermediateModel intermediateModel) {
+    public ModelBasedAuthSchemeProviderSpec(IntermediateModel intermediateModel) {
         this.authSchemeSpecUtils = new AuthSchemeSpecUtils(intermediateModel);
     }
 

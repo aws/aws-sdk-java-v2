@@ -66,7 +66,6 @@ public class EndpointBasedAuthSchemeProviderSpec implements ClassSpec {
                         .addField(endpointDelegateInstance())
                         .addMethod(createMethod())
                         .addMethod(resolveAuthSchemeMethod())
-                        .addMethod(addUtilNegateOrDefault())
                         .build();
     }
 
@@ -148,7 +147,7 @@ public class EndpointBasedAuthSchemeProviderSpec implements ClassSpec {
         spec.addCode("options.add($T.builder().schemeId($S)", AuthSchemeOption.class, "aws.auth#sigv4")
             .addCode(".putSignerProperty($T.SERVICE_SIGNING_NAME, sigv4AuthScheme.signingName())", AwsV4HttpSigner.class)
             .addCode(".putSignerProperty($T.REGION_NAME, sigv4AuthScheme.signingRegion())", AwsV4HttpSigner.class)
-            .addCode(".putSignerProperty($T.DOUBLE_URL_ENCODE, negateOrDefault(sigv4AuthScheme.disableDoubleEncoding()))",
+            .addCode(".putSignerProperty($T.DOUBLE_URL_ENCODE, !sigv4AuthScheme.disableDoubleEncoding())",
                      AwsV4HttpSigner.class)
             .addCode(".build());");
         spec.addStatement("break");
@@ -163,19 +162,7 @@ public class EndpointBasedAuthSchemeProviderSpec implements ClassSpec {
         spec.endControlFlow();
     }
 
-    private MethodSpec addUtilNegateOrDefault() {
-        MethodSpec.Builder spec = MethodSpec.methodBuilder("negateOrDefault")
-                                            .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
-                                            .returns(Boolean.class)
-                                            .addParameter(Boolean.class, "value");
-        return spec.beginControlFlow("if (value != null)")
-                   .addStatement("return !value")
-                   .endControlFlow()
-                   .addStatement("return value")
-                   .build();
-    }
-
     private Map<String, ParameterModel> parameters() {
-        return authSchemeSpecUtils.intermediateModel().getEndpointRuleSetModel().getParameters();
+        return endpointRulesSpecUtils.parameters();
     }
 }

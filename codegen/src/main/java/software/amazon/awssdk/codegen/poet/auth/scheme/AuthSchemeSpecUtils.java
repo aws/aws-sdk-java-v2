@@ -50,10 +50,6 @@ public final class AuthSchemeSpecUtils {
         return intermediateModel.getMetadata().getFullInternalAuthSchemePackageName();
     }
 
-    public IntermediateModel intermediateModel() {
-        return intermediateModel;
-    }
-
     public ClassName parametersInterfaceName() {
         return ClassName.get(basePackage(), intermediateModel.getMetadata().getServiceName() + "AuthSchemeParams");
     }
@@ -72,15 +68,6 @@ public final class AuthSchemeSpecUtils {
 
     public ClassName providerInterfaceName() {
         return ClassName.get(basePackage(), intermediateModel.getMetadata().getServiceName() + "AuthSchemeProvider");
-    }
-
-    public ClassName endpointDelegateName() {
-        return ClassName.get(intermediateModel.getMetadata().getFullEndpointRulesPackageName(),
-                             intermediateModel.getMetadata().getServiceName() + "EndpointProvider");
-    }
-
-    public ClassName providerDefaultImplName() {
-        return ClassName.get(internalPackage(), "Default" + providerInterfaceName().simpleName());
     }
 
     public ClassName defaultAuthSchemeProviderName() {
@@ -103,7 +90,7 @@ public final class AuthSchemeSpecUtils {
         // Endpoint based auth provider is gated using the same setting that enables the use of auth scheme params. One does
         // not make sense without the other so there's no much point on creating another setting if both have to be at the same
         // time enabled or disabled.
-        return intermediateModel.getCustomizationConfig().isEnableEndpointAuthSchemeParams();
+        return generateEndpointBasedParams();
     }
 
     public String paramMethodName(String name) {

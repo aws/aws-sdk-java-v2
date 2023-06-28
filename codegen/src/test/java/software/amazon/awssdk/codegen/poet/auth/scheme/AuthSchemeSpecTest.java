@@ -56,7 +56,7 @@ public class AuthSchemeSpecTest {
                     .build(),
             TestCase.builder()
                     .modelProvider(ClientTestModels::queryServiceModels)
-                    .classSpecProvider(DefaultAuthSchemeProviderSpec::new)
+                    .classSpecProvider(ModelBasedAuthSchemeProviderSpec::new)
                     .caseName("query")
                     .outputFileSuffix("default-provider")
                     .build(),
@@ -87,7 +87,7 @@ public class AuthSchemeSpecTest {
                     .build(),
             TestCase.builder()
                     .modelProvider(ClientTestModels::queryServiceModelsEndpointAuthParams)
-                    .classSpecProvider(DefaultAuthSchemeProviderSpec::new)
+                    .classSpecProvider(ModelBasedAuthSchemeProviderSpec::new)
                     .caseName("query-endpoint-auth-params")
                     .outputFileSuffix("modeled-provider")
                     .build(),
@@ -100,21 +100,21 @@ public class AuthSchemeSpecTest {
             // Granular auth
             TestCase.builder()
                     .modelProvider(ClientTestModels::granularAuthProvidersServiceModels)
-                    .classSpecProvider(DefaultAuthSchemeProviderSpec::new)
+                    .classSpecProvider(ModelBasedAuthSchemeProviderSpec::new)
                     .caseName("granular")
                     .outputFileSuffix("default-provider")
                     .build(),
             // All operations with auth with the same values
             TestCase.builder()
                     .modelProvider(ClientTestModels::allOperationsWithAuthSameValueServiceModels)
-                    .classSpecProvider(DefaultAuthSchemeProviderSpec::new)
+                    .classSpecProvider(ModelBasedAuthSchemeProviderSpec::new)
                     .caseName("all-ops-auth-same-value")
                     .outputFileSuffix("default-provider")
                     .build(),
             // All operations with auth with different values
             TestCase.builder()
                     .modelProvider(ClientTestModels::allOperationsWithAuthDifferentValueServiceModels)
-                    .classSpecProvider(DefaultAuthSchemeProviderSpec::new)
+                    .classSpecProvider(ModelBasedAuthSchemeProviderSpec::new)
                     .caseName("all-ops-auth-different-value")
                     .outputFileSuffix("default-provider")
                     .build()
