@@ -14,21 +14,14 @@
 package software.amazon.awssdk.services.codecatalyst.auth.scheme.internal;
 
 import java.util.List;
-import java.util.Map;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
-import software.amazon.awssdk.core.SelectedAuthScheme;
-import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
-import software.amazon.awssdk.http.auth.spi.AuthScheme;
+import software.amazon.awssdk.core.internal.interceptor.BaseAuthSchemeInterceptor;
 import software.amazon.awssdk.http.auth.spi.AuthSchemeOption;
-import software.amazon.awssdk.http.auth.spi.IdentityProviderConfiguration;
-import software.amazon.awssdk.identity.spi.Identity;
-import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.codecatalyst.auth.scheme.CodeCatalystAuthSchemeParams;
 import software.amazon.awssdk.services.codecatalyst.auth.scheme.CodeCatalystAuthSchemeProvider;
@@ -36,21 +29,12 @@ import software.amazon.awssdk.utils.Logger;
 
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
-public final class CodeCatalystAuthSchemeInterceptor implements ExecutionInterceptor {
+public final class CodeCatalystAuthSchemeInterceptor extends BaseAuthSchemeInterceptor {
 
     private static final Logger log = Logger.loggerFor(CodeCatalystAuthSchemeInterceptor.class);
 
     @Override
-    public void beforeExecution(Context.BeforeExecution context, ExecutionAttributes executionAttributes) {
-        List<AuthSchemeOption> authOptions = resolveAuthOptions(executionAttributes);
-        SelectedAuthScheme<?> selectedAuthScheme = selectAuthScheme(authOptions, executionAttributes);
-        executionAttributes.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME, selectedAuthScheme);
-    }
-
-    /**
-     * Invoke the auth scheme resolver to determine which auth options we should consider for this request.
-     */
-    private List<AuthSchemeOption> resolveAuthOptions(ExecutionAttributes executionAttributes) {
+    protected List<AuthSchemeOption> resolveAuthOptions(ExecutionAttributes executionAttributes) {
         // Prepare the inputs for the auth scheme resolver. We always include the
         // operationName, and we include the region if the service is modeled with
         // @sigv4.
@@ -65,64 +49,5 @@ public final class CodeCatalystAuthSchemeInterceptor implements ExecutionInterce
                                                                        .operation(operation)
                                                                        // .region(region.id())
                                                                        .build());
-    }
-
-    /**
-     * From a list of possible auth options for this request, determine which auth scheme should be used.
-     */
-    private SelectedAuthScheme<?> selectAuthScheme(List<AuthSchemeOption> authOptions, ExecutionAttributes executionAttributes) {
-        Map<String, AuthScheme<?>> authSchemes =
-            executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES);
-
-        IdentityProviderConfiguration identityResolvers =
-            executionAttributes.getAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDER_CONFIGURATION);
-
-        StringBuilder failureReasons = new StringBuilder();
-
-        // Check each option, in the order the auth scheme resolver proposed them.
-        for (AuthSchemeOption authOption : authOptions) {
-            // If we're using no-auth, don't consider which options are enabled.
-            if (authOption.schemeId().equals("smithy.auth#noAuth")) {
-                return new SelectedAuthScheme(null, null, authOption);
-            }
-
-            AuthScheme<?> authScheme = authSchemes.get(authOption.schemeId());
-
-            SelectedAuthScheme<?> selectedAuthScheme =
-                trySelectAuthScheme(authOption, authScheme, identityResolvers, failureReasons);
-
-            // Check to see if selecting this auth option succeeded.
-            if (selectedAuthScheme != null) {
-                if (failureReasons.length() > 0) {
-                    log.debug(() -> authOption.schemeId() + " auth will be used because " + failureReasons);
-                }
-                return selectedAuthScheme;
-            }
-        }
-
-        // TODO: Exception type and message?
-        throw new IllegalStateException("Failed to determine how to authenticate the user:" + failureReasons);
-    }
-
-    /**
-     * Try to select the provided auth scheme by ensuring it is non-null and that its identity resolver is configured.
-     */
-    <T extends Identity> SelectedAuthScheme<T> trySelectAuthScheme(AuthSchemeOption authOption,
-                                                  AuthScheme<T> authScheme,
-                                                  IdentityProviderConfiguration identityProviders,
-                                                  StringBuilder failureReasons) {
-        if (authScheme == null) {
-            failureReasons.append("\nAuth scheme '" + authOption.schemeId() + "' was not enabled for this request.");
-            return null;
-        }
-
-        IdentityProvider<T> identityProvider = authScheme.identityProvider(identityProviders);
-
-        if (identityProvider == null) {
-            failureReasons.append("\nAuth scheme '" + authOption.schemeId() + "' did not have an identity resolver configured.");
-            return null;
-        }
-
-        return new SelectedAuthScheme<>(identityProvider, authScheme.signer(), authOption);
     }
 }
