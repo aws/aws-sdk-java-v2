@@ -29,6 +29,14 @@ import software.amazon.awssdk.identity.spi.IdentityProvider;
 public interface AwsV4QueryAuthScheme extends AuthScheme<AwsCredentialsIdentity> {
 
     /**
+     * Get a default implementation of a {@link AwsV4QueryAuthScheme}
+     */
+    static AwsV4QueryAuthScheme create() {
+        return new AwsV4QueryAuthScheme() {
+        };
+    }
+
+    /**
      * Retrieve the scheme ID.
      */
     @Override
@@ -50,13 +58,5 @@ public interface AwsV4QueryAuthScheme extends AuthScheme<AwsCredentialsIdentity>
     @Override
     default AwsV4QueryHttpSigner signer() {
         return AwsV4QueryHttpSigner.create();
-    }
-
-    /**
-     * Get a default implementation of a {@link AwsV4QueryAuthScheme}
-     */
-    static AwsV4QueryAuthScheme create() {
-        return new AwsV4QueryAuthScheme() {
-        };
     }
 }

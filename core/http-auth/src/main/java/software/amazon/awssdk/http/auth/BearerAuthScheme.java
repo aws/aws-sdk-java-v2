@@ -29,6 +29,14 @@ import software.amazon.awssdk.identity.spi.TokenIdentity;
 public interface BearerAuthScheme extends AuthScheme<TokenIdentity> {
 
     /**
+     * Get a default implementation of a {@link BearerAuthScheme}
+     */
+    static BearerAuthScheme create() {
+        return new BearerAuthScheme() {
+        };
+    }
+
+    /**
      * Retrieve the scheme ID.
      */
     @Override
@@ -50,13 +58,5 @@ public interface BearerAuthScheme extends AuthScheme<TokenIdentity> {
     @Override
     default BearerHttpSigner signer() {
         return BearerHttpSigner.create();
-    }
-
-    /**
-     * Get a default implementation of a {@link BearerAuthScheme}
-     */
-    static BearerAuthScheme create() {
-        return new BearerAuthScheme() {
-        };
     }
 }
