@@ -434,7 +434,7 @@ class AwsV4HttpSignerTest {
             (signRequest -> signRequest.putProperty(SignerProperty.create(String.class, "RegionName"), null))
         );
 
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> signer.sign(request));
+        NullPointerException exception = assertThrows(NullPointerException.class, () -> signer.sign(request));
 
         assertThat(exception.getMessage()).contains("must not be null");
     }
@@ -448,7 +448,35 @@ class AwsV4HttpSignerTest {
             (signRequest -> signRequest.putProperty(SignerProperty.create(String.class, "ServiceSigningName"), null))
         );
 
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> signer.sign(request));
+        NullPointerException exception = assertThrows(NullPointerException.class, () -> signer.sign(request));
+
+        assertThat(exception.getMessage()).contains("must not be null");
+    }
+
+    @Test
+    public void signAsync_withoutRegionNameProperty_throws() {
+        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            (httpRequest -> {
+            }),
+            (signRequest -> signRequest.putProperty(SignerProperty.create(String.class, "RegionName"), null))
+        );
+
+        NullPointerException exception = assertThrows(NullPointerException.class, () -> signer.signAsync(request));
+
+        assertThat(exception.getMessage()).contains("must not be null");
+    }
+
+    @Test
+    public void signAsync_withoutServiceSigningNameProperty_throws() {
+        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            (httpRequest -> {
+            }),
+            (signRequest -> signRequest.putProperty(SignerProperty.create(String.class, "ServiceSigningName"), null))
+        );
+
+        NullPointerException exception = assertThrows(NullPointerException.class, () -> signer.signAsync(request));
 
         assertThat(exception.getMessage()).contains("must not be null");
     }

@@ -226,7 +226,7 @@ public final class CanonicalRequestV2 {
 
     /**
      * Get the string representing which headers are part of the signing process.
-     * Header names are lower-case, in alphabetical order, and separated by a semicolon.
+     * Header names are separated by a semicolon.
      */
     public static String getSignedHeadersString(List<Pair<String, List<String>>> canonicalHeaders) {
         String signedHeadersString;

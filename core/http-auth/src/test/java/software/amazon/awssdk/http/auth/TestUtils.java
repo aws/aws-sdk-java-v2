@@ -65,8 +65,8 @@ public class TestUtils {
             .payload(publisher)
             .putProperty(SignerProperty.create(String.class, "RegionName"), "us-east-1")
             .putProperty(SignerProperty.create(String.class, "ServiceSigningName"), "demo")
-            .putProperty(SignerProperty.create(Clock.class, "SigningClock"), Clock.fixed(Instant.ofEpochMilli(351153000968L),
-                ZoneId.of("UTC")))
+            .putProperty(SignerProperty.create(Clock.class, "SigningClock"),
+                new TickingClock(Instant.ofEpochMilli(351153000968L)))
             .build()
             .copy(signRequestOverrides);
     }
