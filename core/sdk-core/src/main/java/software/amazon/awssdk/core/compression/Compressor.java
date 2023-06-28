@@ -20,10 +20,11 @@ import java.nio.ByteBuffer;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.internal.compression.GzipCompressor;
-import software.amazon.awssdk.core.internal.interceptor.RequestCompressionInterceptor;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.CompressRequestStage;
 
 /**
- * Interface for compressors to be used by {@link RequestCompressionInterceptor} to compress requests.
+ * Interface for compressors used by {@link CompressRequestStage} to compress requests.
+ * TODO: this will be refactored in the other PR
  */
 @SdkPublicApi
 public interface Compressor {
